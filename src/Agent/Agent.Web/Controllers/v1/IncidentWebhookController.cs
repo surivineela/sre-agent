@@ -91,7 +91,9 @@ public class IncidentWebhookController : ControllerBase
                 Severity = request.Severity,
                 Source = request.Source,
                 AdditionalProperties = request.AdditionalProperties,
-                IsTest = request.IsTest
+                IsTest = request.IsTest,
+                IncidentFilter = request.IncidentFilter,
+                IncidentHandler = request.IncidentHandler
             }
         );
 
@@ -117,7 +119,7 @@ public class IncidentWebhookController : ControllerBase
     /// Handles Icm incident webhook notifications
     /// </summary>
     [HttpPost("icm")]
-    public async Task<IActionResult> IcmIncidentWebhook([FromBody] IncidentRequest request)
+    public async Task<IActionResult> IcmIncidentWebhook([FromBody] IcMRequest request)
     {
         if (request == null)
         {
@@ -144,7 +146,7 @@ public class IncidentWebhookController : ControllerBase
         }
     }
 
-    private async Task<IActionResult> IcmProcessIncident(IncidentRequest request)
+    private async Task<IActionResult> IcmProcessIncident(IcMRequest request)
     {
         if (request == null)
         {
@@ -165,7 +167,9 @@ public class IncidentWebhookController : ControllerBase
                 Severity = request.Severity,
                 Source = request.Source,
                 AdditionalProperties = request.AdditionalProperties,
-                IsTest = request.IsTest
+                IsTest = request.IsTest,
+                IncidentHandler = request.IncidentHandler,
+                IncidentFilter = request.IncidentFilter,
             }
         );
 
@@ -271,6 +275,9 @@ public class IncidentWebhookController : ControllerBase
                 Severity = request.Severity,
                 Source = "ServiceNow",
                 AdditionalProperties = request.AdditionalProperties,
+                IsTest = request.IsTest,
+                IncidentFilter = request.IncidentFilter,
+                IncidentHandler = request.IncidentHandler
             }
         );
 
@@ -295,10 +302,9 @@ public class IncidentWebhookController : ControllerBase
 
 #region Request Models
 
-/// <summary>
-/// Normalize incident requests from different sources.
-/// </summary>
-public class IncidentRequest
+
+
+public class IcMRequest: IncidentRequest
 {
     public string? Title { get; set; } = string.Empty;
 
@@ -307,66 +313,41 @@ public class IncidentRequest
     public string? IncidentId { get; set; }
     public string? Severity { get; set; }
     public string? Source { get; set; }
-    public Dictionary<string, string>? AdditionalProperties { get; set; }
-
-    /// <summary>
-    /// For "test incident", IsTest will be true so set Agent to test mode.
-    /// </summary>
-    public bool IsTest { get; set; } = false; 
 }
 
-public interface IIncidentAdapter
+public class PagerDutyRequest : IncidentRequest
 {
-    IncidentRequest ToStandardFormat();
+    [Required]
+    public required string Title { get; set; }
+
+    [Required]
+    public required string Description { get; set; }
+
+    public string? IncidentId { set; get; }
+
+    public string? Severity { get; set; }
+
+    public string? Source { get; set; }
+}
+
+public class ServiceNowRequest : IncidentRequest
+{
+    public string? Title { get; set; }
+
+    public string? Description { get; set; }
+
+    [Required]
+    public string? IncidentId { set; get; }
+
+    public string? Severity { get; set; }
+
+    public string? Source { get; set; } = "ServiceNow";
 }
 
 public class AzMonitorAlertRequest
 {
     [JsonProperty("data")]
     public required AlertData Data { get; set; }
-}
-
-public class AzMonitorAlertRequestAdapter : IIncidentAdapter
-{
-    private readonly AzMonitorAlertRequest _request;
-    public AzMonitorAlertRequestAdapter(AzMonitorAlertRequest alertRequest)
-    {
-        _request = alertRequest;
-    }
-
-    public IncidentRequest ToStandardFormat()
-    {
-        var description = new StringBuilder();
-        if (!string.IsNullOrEmpty(_request.Data?.Essentials?.Description))
-        {
-            description.AppendLine(_request.Data?.Essentials?.Description);
-        }
-        else if (_request.Data != null && _request.Data.Essentials != null)
-        {
-            description.AppendLine($"Alert Rule: {_request.Data.Essentials.AlertRule}");
-            description.AppendLine($"Condition: {_request.Data.Essentials.MonitorCondition}");
-            description.AppendLine($"Signal Type: {_request.Data.Essentials.SignalType}");
-        }
-
-        var additionalProps = new Dictionary<string, string>();
-        if (_request.Data?.Essentials != null)
-        {
-            if (!string.IsNullOrEmpty(_request.Data.Essentials.FiredDateTime))
-            {
-                additionalProps.Add("Fired At", _request.Data.Essentials.FiredDateTime);
-            }
-        }
-
-        return new IncidentRequest
-        {
-            Title = _request.Data?.Essentials?.AlertRule ?? "Azure Monitor Alert",
-            Description = description.ToString(),
-            IncidentId = _request.Data?.Essentials?.AlertId,
-            Severity = _request.Data?.Essentials?.Severity,
-            Source = "Azure Monitor",
-            AdditionalProperties = additionalProps
-        };
-    }
 }
 
 public class AlertData
@@ -404,86 +385,6 @@ public class Essentials
     [JsonProperty("description")]
     public required string Description { get; set; }
 
-}
-
-public class PagerDutyRequest
-{
-    [Required]
-    public required string Title { get; set; }
-
-    [Required]
-    public required string Description { get; set; }
-
-    public string? IncidentId { set; get; }
-
-    public string? Severity { get; set; }
-
-    public string? Source { get; set; }
-
-    public Dictionary<string, string>? AdditionalProperties { get; set; }
-
-    public bool IsTest { get; set; } = false;
-}
-
-public class PagerDutyRequestAdapter : IIncidentAdapter
-{
-    private readonly PagerDutyRequest _request;
-
-    public PagerDutyRequestAdapter(PagerDutyRequest request)
-    {
-        _request = request;
-    }
-    public IncidentRequest ToStandardFormat()
-    {
-        return new IncidentRequest
-        {
-            Title = _request.Title ?? "PagerDuty Alert",
-            Description = _request.Description ?? "Alert notification from PagerDuty",
-            IncidentId = _request.IncidentId,
-            Severity = _request.Severity,
-            Source = "PagerDuty",
-            AdditionalProperties = _request.AdditionalProperties
-        };
-    }
-}
-
-public class ServiceNowRequest
-{
-    public string? Title { get; set; }
-
-    public string? Description { get; set; }
-
-    [Required]
-    public string? IncidentId { set; get; }
-
-    public string? Severity { get; set; }
-
-    public string? Source { get; set; } = "ServiceNow";
-
-    public Dictionary<string, string>? AdditionalProperties { get; set; }
-}
-
-public class ServiceNowRequestAdapter : IIncidentAdapter
-{
-    private readonly ServiceNowRequest _request;
-
-    public ServiceNowRequestAdapter(ServiceNowRequest request)
-    {
-        _request = request;
-    }
-    
-    public IncidentRequest ToStandardFormat()
-    {
-        return new IncidentRequest
-        {
-            Title = _request.Title ?? "ServiceNow Alert",
-            Description = _request.Description ?? "Alert notification from ServiceNow",
-            IncidentId = _request.IncidentId,
-            Severity = _request.Severity,
-            Source = "ServiceNow",
-            AdditionalProperties = _request.AdditionalProperties
-        };
-    }
 }
 
 #endregion
