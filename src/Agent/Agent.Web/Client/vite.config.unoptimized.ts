@@ -18,7 +18,9 @@ export default defineConfig({
         sourcemap: true,
     },
     publicDir: './src/assets',
+    // https://vite.dev/config/server-options.html
     server: {
+        cors: { origin: /^https?:\/\/(?:(?:[^:]+\.)?localhost|127\.0\.0\.1|\[::1\]|(?:[^:]+\.)?portal\.azure\.net)(?::\d+)?$/ },
         proxy: {
             '/api': {
                 target: 'https://localhost:7023', // or your ASP.NET Core HTTPS port
