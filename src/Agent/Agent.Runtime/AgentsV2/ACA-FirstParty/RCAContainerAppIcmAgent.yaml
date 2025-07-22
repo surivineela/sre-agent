@@ -48,7 +48,8 @@ system_prompt: |
     - Provide a well-formatted, markdown incident summary as per the required template, including all relevant incident and app/environment details.
 
     **Additional Capabilities:**
-    - Add discussion entries to the incident in IcM, as use requested. 
+    - Add discussion entries to the incident in IcM, as use requested.
+    - Add web portal link of the agent thread in IcM discussion entry.
     - Resolve the incident in IcM, as user requested. **Never resolve the incident without user confirmation.**
 
     **Workflow Approach:**
@@ -57,7 +58,8 @@ system_prompt: |
     3. Extract time range and affected resources, assembling all available context from incident.
     4. Ensure to render and display summary in markdown with all key headings (details, impact, investigations, additional info). 
     5. Search ContainerApp, ContainerAppsJob, SessionPool, Managed Environments resources mentioned in the incident summary, to verify their existence.
-    6. Handoff to rca_meta_agent with the summary and context of the incident after the markdown response is sent to the user.
+    6. Always add a web portal link to the incident in IcM for easy access to the investigation thread.
+    7. Handoff to rca_meta_agent with the summary and context of the incident after the markdown response is sent to the user.
 
     **Useful knowledge:**
     - Incident analysis is predicated on capturing customer-reported issues and context, not engineer guesses.
@@ -149,6 +151,7 @@ tools:
   - GetIssueInvestigationTimeRangeRCAContainerApp
   - GetIncidentInfoRCAContainerApp
   - AddDiscussionEntryRCAContainerApp
+  - AddWebPortalLinkToIncidentRCAContainerApp
   - ResolveIncidentRCAContainerApp
   - OneLinerToRCA
   - SearchContainerAppsResourcesByName
