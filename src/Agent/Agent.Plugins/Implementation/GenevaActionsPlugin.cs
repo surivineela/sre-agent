@@ -77,21 +77,21 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
     private async Task<List<GenevaActionConfig>> InitializeGenevaActionsConfig()
     {
         var allGenevaActions = new List<GenevaActionConfig>();
-        _logger.LogInternalInformation("Initializing Geneva Actions Config");
+        _logger.LogInternalInformation("[GenevaActionsPlugin] Initializing Geneva Actions Config");
 
 
         try
         {
             if (!_keyVaultService.IsEnabled)
             {
-                _logger.LogInternalWarning("Key Vault Service is not enabled. Geneva Actions Config will not be loaded.");
+                _logger.LogInternalWarning("[GenevaActionsPlugin] Key Vault Service is not enabled. Geneva Actions Config will not be loaded.");
                 return allGenevaActions;
             }
 
             string json = await _keyVaultService.ReadSecretAsync(_genevaActionSecretName);
             if (string.IsNullOrWhiteSpace(json))
             {
-                _logger.LogInternalWarning($"Geneva Actions Config not found in Key Vault with name {_genevaActionSecretName}. Returning empty list.");
+                _logger.LogInternalWarning($"[GenevaActionsPlugin] Geneva Actions Config not found in Key Vault with name {_genevaActionSecretName}. Returning empty list.");
                 return allGenevaActions;
             }
 
@@ -99,7 +99,7 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
 
             if (genevaActionsConfigs == null || genevaActionsConfigs.Count == 0)
             {
-                _logger.LogInternalWarning("No Geneva Actions Config found in CosmosDB. Returning empty list.");
+                _logger.LogInternalWarning("[GenevaActionsPlugin] No Geneva Actions Config found in CosmosDB. Returning empty list.");
                 return allGenevaActions;
             }
 
@@ -107,7 +107,7 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError($"Error reading alert details from CosmosDB: {ex.Message}");
+            _logger.LogInternalError($"[GenevaActionsPlugin] Error reading alert details from CosmosDB: {ex.Message}");
         }
 
         return allGenevaActions;
@@ -120,19 +120,27 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
 
     private async Task<string> ExecuteGenevaActionWorkflow(GenevaActionConfig genevaActionConfig, Dictionary<string, string> inputParameters)
     {
-        var payload = JsonConvert.SerializeObject(inputParameters);
-        var response = await _icmWorkflowClient.SendICMWorkflowRequest(genevaActionConfig.WorkflowName, payload, genevaActionConfig.TenantId);
-        _logger.LogInternalInformation($"[execute_geneva_action_workflow] - workflowName: {genevaActionConfig.WorkflowName}, statusCode: {response.StatusCode}");
+        try
+        {
+            var payload = JsonConvert.SerializeObject(inputParameters);
+            var response = await _icmWorkflowClient.SendICMWorkflowRequest(genevaActionConfig.WorkflowName, payload, genevaActionConfig.TenantId);
+            _logger.LogInternalInformation($"[GenevaActionsPlugin] [execute_geneva_action_workflow] - workflowName: {genevaActionConfig.WorkflowName}, statusCode: {response.StatusCode}");
 
-        if (response.IsSuccessStatusCode)
-        {
-            var content = await response.Content.ReadAsStringAsync();
-            return content;
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                return content;
+            }
+            else
+            {
+                string errorMessage = await response.Content.ReadAsStringAsync();
+                return errorMessage;
+            }
         }
-        else
+        catch (Exception ex)
         {
-            string errorMessage = await response.Content.ReadAsStringAsync();
-            return errorMessage;
+            _logger.LogInternalError(ex, $"[GenevaActionsPlugin] Failed to execute geneva action: {genevaActionConfig.ActionName} with parameters: {JsonConvert.SerializeObject(inputParameters)}");
+            throw;
         }
     }
 
@@ -143,9 +151,9 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
         var genevaAction = (await GetGenevaActions()).Where(x => x.ActionName == actionName).FirstOrDefault();
         if (genevaAction == null)
         {
-            _logger.LogInternalWarning($"No Geneva Action found for actionName: {actionName}");
+            _logger.LogInternalWarning($"[GenevaActionsPlugin] No Geneva Action found for actionName: {actionName}");
             var availableActions = string.Join(", ", (await GetGenevaActions()).Select(x => x.ActionName));
-            _logger.LogInternalInformation($"Available Geneva Actions: {availableActions}");
+            _logger.LogInternalInformation($"[GenevaActionsPlugin] Available Geneva Actions: {availableActions}");
             return $"No Geneva Action found for actionName: {actionName}";
         }
         return $"For actionName: {actionName}. Required parameters are: {string.Join(", ", genevaAction.WorkflowInputParameters)}";
@@ -276,7 +284,7 @@ No approval request found for document ID: {documentId}. Please ensure the docum
             )
         );
 
-        var genevaAction = (await GetGenevaActions()).Where(x => x.ActionName == actionName).FirstOrDefault();
+        var genevaAction = (await GetGenevaActions()).Where(x => x.ActionName.ToLower() == actionName.ToLower()).FirstOrDefault();
         if (genevaAction == null)
         {
             return $"No Geneva Action found for actionName: {actionName}";
@@ -362,7 +370,7 @@ In order to potentially resolve the incident, the following Geneva Action '{acti
                     return errorMessage;
                 }
             }
-            else if( approvalRequestDetails.ApprovalStatus == OnebranchApprovalStatus.Approved)
+            else if (approvalRequestDetails.ApprovalStatus == OnebranchApprovalStatus.Approved)
             {
                 logMessage = $"[execute_geneva_action][{DateTime.UtcNow}] Approval already exists for actionName: {actionName}. Proceeding with execution.";
                 _logger.LogInternalInformation(logMessage);
@@ -388,7 +396,7 @@ In order to potentially resolve the incident, the following Geneva Action '{acti
         //    }
         //}
 
-        _logger.LogInternalInformation("Proceeding with executing Geneva Action");
+        _logger.LogInternalInformation("[GenevaActionsPlugin] Proceeding with executing Geneva Action");
         var response = await ExecuteGenevaActionWorkflow(genevaAction, inputParameters);
         await _icmAPIClient.PostDiscussionEntryAsync(incidentId, response);
         await _threadRepository.AddMessageAsync(ThreadId!.Value, new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"), $"Geneva Actions response: {response}"));

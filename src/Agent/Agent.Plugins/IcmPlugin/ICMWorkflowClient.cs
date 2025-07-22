@@ -35,175 +35,179 @@ namespace Agent.Plugins.IcmPlugin
             _logger = logger;
             _keyVaultService = keyVaultService;
 
-            if (!icmWorkflowSettings.Enabled)
-            {
-                return;
-            }
-
             _httpClientLazy = new Lazy<Task<HttpClient>>(() => InitializeHttpClientAsync(icmWorkflowSettings, keyVaultService, environment.IsDevelopment(), logger));
-
-            if (_icmWorkflowSettings.UseFunctionApp)
-            {
-                if (string.IsNullOrWhiteSpace(_icmWorkflowSettings.FunctionAppEndpoint))
-                {
-                    throw new Exception("The environment variable 'ICMWorkflows:FunctionAppEndpoint' is not set.");
-                }
-                if (string.IsNullOrWhiteSpace(_icmWorkflowSettings.FunctionAppKey))
-                {
-                    throw new Exception("The environment variable 'ICMWorkflows:FunctionAppKey' is not set.");
-                }
-            }
-            else
-            {
-                if (string.IsNullOrWhiteSpace(_icmWorkflowSettings.WorkflowsEndpoint))
-                {
-                    throw new Exception("The environment variable 'ICMWorkflows:WorkflowsEndpoint' is not set.");
-                }
-                if (!IsDevelopment && string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateSubjectName) && string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateFilePath) && string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateKeyVaultUri))
-                {
-                    throw new Exception("You need to set at least one of the three environment variables - 'ICMWorkflows:CertificateSubjectName', 'ICMWorkflows:CertificateFilePath' or 'ICMWorkflows:CertificateKeyVaultUri'.");
-                }
-                if (IsDevelopment && string.IsNullOrWhiteSpace(_icmWorkflowSettings.UserToken) && string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateSubjectName) && string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateFilePath) && string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateKeyVaultUri))
-                {
-                    throw new Exception("You need to set at least one of the three environment variables - 'ICMWorkflows:CertificateSubjectName', 'ICMWorkflows:UserToken' or 'ICMWorkflows:CertificateKeyVaultUri'.");
-                }
-            }
-
         }
 
         private static async Task<HttpClient> InitializeHttpClientAsync(ICMWorkflowSettings icmWorkflowSettings, IKeyVaultService userKeyVaultService, bool isDevelopment, ILogger<ICMWorkflowClient> logger)
         {
+            logger.LogInternalInformation($"[IcmWorkflowClient] Initializing HttpClient for ICMWorkflowClient");
             const int TimeoutInSeconds = 600;
 
-            if (icmWorkflowSettings.UseFunctionApp)
+            try
             {
-                var httpClient = new HttpClient()
+                if (string.IsNullOrWhiteSpace(icmWorkflowSettings.WorkflowsEndpoint))
                 {
-                    Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
-                };
-                httpClient.DefaultRequestHeaders.Add("x-functions-key", icmWorkflowSettings.FunctionAppKey);
-                return httpClient;
-            }
-            else
-            {
-                if (isDevelopment && !string.IsNullOrWhiteSpace(icmWorkflowSettings.UserToken))
+                    throw new Exception("Failed to initialize HttpClient. The environment variable 'ICMWorkflows:WorkflowsEndpoint' is not set.");
+                }
+
+                if (icmWorkflowSettings.UseFunctionApp)
                 {
+                    logger.LogInternalInformation($"[IcmWorkflowClient] Using Function App endpoint: {icmWorkflowSettings.FunctionAppEndpoint}");
+
+                    if (string.IsNullOrWhiteSpace(icmWorkflowSettings.FunctionAppEndpoint))
+                    {
+                        throw new Exception("The environment variable 'ICMWorkflows:FunctionAppEndpoint' is not set.");
+                    }
+                    if (string.IsNullOrWhiteSpace(icmWorkflowSettings.FunctionAppKey))
+                    {
+                        throw new Exception("The environment variable 'ICMWorkflows:FunctionAppKey' is not set.");
+                    }
+
                     var httpClient = new HttpClient()
                     {
                         Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                     };
-                    httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {icmWorkflowSettings.UserToken}");
+                    httpClient.DefaultRequestHeaders.Add("x-functions-key", icmWorkflowSettings.FunctionAppKey);
                     return httpClient;
                 }
-
-                if (userKeyVaultService.IsEnabled)
+                else
                 {
-                    string certificateKeyVaultSecretName = string.Empty;
-                    var settingName = "ICMWorkflowSettings--CertificateKeyVaultSecretName";
-                    try
+                    if (isDevelopment)
                     {
-                        logger.LogInternalInformation($"KeyVaultService is enabled. Attempting to read {settingName} from KeyVault {userKeyVaultService.KeyVaultUri}.");
-                        certificateKeyVaultSecretName = await userKeyVaultService.ReadSecretAsync(settingName);
-                    }
-                    catch (Azure.RequestFailedException ex)
-                    {
-                        logger.LogInternalError(ex, $"Error reading {settingName} from KeyVault. Continue without using the users certificate.");
+                        if (!string.IsNullOrWhiteSpace(icmWorkflowSettings.UserToken))
+                        {
+                            logger.LogInternalInformation($"[IcmWorkflowClient] Using User Token for ICMWorkflowClient in development mode.");
+                            var httpClient = new HttpClient()
+                            {
+                                Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
+                            };
+                            httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {icmWorkflowSettings.UserToken}");
+                            return httpClient;
+                        }
+                        else if (!string.IsNullOrWhiteSpace(icmWorkflowSettings.CertificateFilePath))
+                        {
+                            logger.LogInternalInformation($"[IcmWorkflowClient] Loading cert from file system");
+                            var handler = new HttpClientHandler();
+                            var certificate = CertLoader.LoadCertFromFile(icmWorkflowSettings.CertificateFilePath);
+                            handler.ClientCertificates.Add(certificate);
+                            logger.LogExternalInformation("[IcmWorkflowClient] Successfully loaded Cert file for ICMWorkflowClient.");
+                            return new HttpClient(handler)
+                            {
+                                Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
+                            };
+                        }
+
+                        throw new Exception("Failed to initialize HttpClient for ICMWorkflowClient in development mode. You need to set either 'ICMWorkflows:UserToken' or 'ICMWorkflows:CertificateFilePath'.");
                     }
 
-                    if (!string.IsNullOrWhiteSpace(certificateKeyVaultSecretName))
+                    if (userKeyVaultService.IsEnabled)
                     {
-                        var certificate = CertLoader.LoadCertFromKeyVault(
-                            KeyVaultConfigurationExtension.GetPlatformKeyVaultSettingFromEnvironment("KeyVaultUri"),
-                            certificateKeyVaultSecretName,
-                            KeyVaultConfigurationExtension.GetPlatformKeyVaultSettingFromEnvironment("Identity"),
-                        null,
-                        logger);
+                        logger.LogInternalInformation("[IcmWorkflowClient] User has a keyvault configured. Attempting to read certificate from their KeyVault.");
+                        string certificateKeyVaultSecretName = string.Empty;
+                        var settingName = "ICMWorkflowSettings--CertificateKeyVaultSecretName";
+                        try
+                        {
+                            logger.LogInternalInformation($"[IcmWorkflowClient] Read {settingName} from KeyVault {userKeyVaultService.KeyVaultUri}.");
+                            certificateKeyVaultSecretName = await userKeyVaultService.ReadSecretAsync(settingName);
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.LogInternalError(ex, $"[IcmWorkflowClient] Error reading {settingName} from KeyVault. Continue without using the users certificate.");
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(certificateKeyVaultSecretName))
+                        {
+                            var certificate = CertLoader.LoadCertFromKeyVault(
+                                KeyVaultConfigurationExtension.GetPlatformKeyVaultSettingFromEnvironment("KeyVaultUri"),
+                                certificateKeyVaultSecretName,
+                                KeyVaultConfigurationExtension.GetPlatformKeyVaultSettingFromEnvironment("Identity"),
+                            null,
+                            logger);
+
+                            var handler = new HttpClientHandler();
+                            handler.ClientCertificates.Add(certificate);
+                            logger.LogExternalInformation("[IcmWorkflowClient] Successfully loaded Cert from keyvault for ICMWorkflowClient.");
+                            return new HttpClient(handler)
+                            {
+                                Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
+                            };
+                        }
+                    }
+
+
+                    if ((!string.IsNullOrWhiteSpace(icmWorkflowSettings.CertificateSubjectName) || !string.IsNullOrEmpty(icmWorkflowSettings.CertificateKeyVaultSecretName)) && (!string.IsNullOrWhiteSpace(icmWorkflowSettings.CertificateKeyVaultUri)))
+                    {
+                        string certKvSecretName = icmWorkflowSettings.CertificateKeyVaultSecretName;
+
+                        string keyVaultUri = icmWorkflowSettings.CertificateKeyVaultUri;
+
+                        string certMsi = icmWorkflowSettings.ManagedIdentityClientId ?? string.Empty;
+
+                        logger.LogInternalInformation($"[IcmWorkflowClient] Loading cert from Key Vault: {keyVaultUri}, Certificate Name: {certKvSecretName}, Managed Identity Client Id: {certMsi}");
+                        var certificate = CertLoader.LoadCertFromKeyVault(keyVaultUri, certKvSecretName, certMsi, null, logger);
 
                         var handler = new HttpClientHandler();
                         handler.ClientCertificates.Add(certificate);
-                        logger.LogExternalInformation("Successfully loaded Cert from keyvault for ICMWorkflowClient.");
+                        logger.LogExternalInformation("[IcmWorkflowClient] Successfully loaded Cert from keyvault for ICMWorkflowClient.");
+                        return new HttpClient(handler)
+                        {
+                            Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
+                        };
+
+                    }
+                    else if (!string.IsNullOrWhiteSpace(icmWorkflowSettings.CertificateKeyVaultUri) && !string.IsNullOrEmpty(icmWorkflowSettings.CertificateKeyVaultSecretName))
+                    {
+                        var handler = new HttpClientHandler();
+                        logger.LogInternalInformation($"[IcmWorkflowClient] Loading cert from Key Vault: {icmWorkflowSettings.CertificateKeyVaultUri}, Certificate Name: {icmWorkflowSettings.CertificateKeyVaultSecretName}, Managed Identity Client Id: {icmWorkflowSettings.ManagedIdentityClientId}");
+                        var certificate = CertLoader.LoadCertFromKeyVault(icmWorkflowSettings.CertificateKeyVaultUri, icmWorkflowSettings.CertificateKeyVaultSecretName, icmWorkflowSettings.ManagedIdentityClientId, null, logger);
+                        handler.ClientCertificates.Add(certificate);
+                        logger.LogExternalInformation("[IcmWorkflowClient] Successfully loaded Cert from keyvault for ICMWorkflowClient.");
                         return new HttpClient(handler)
                         {
                             Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                         };
                     }
-                }
-
-
-                if ((!string.IsNullOrWhiteSpace(icmWorkflowSettings.CertificateSubjectName) || !string.IsNullOrEmpty(icmWorkflowSettings.CertificateKeyVaultSecretName)) && (!string.IsNullOrWhiteSpace(icmWorkflowSettings.CertificateKeyVaultUri)))
-                {
-                    string certKvSecretName = icmWorkflowSettings.CertificateKeyVaultSecretName;
-
-                    string keyVaultUri = icmWorkflowSettings.CertificateKeyVaultUri;
-
-                    string certMsi = icmWorkflowSettings.ManagedIdentityClientId ?? string.Empty;
-
-                    logger.LogInternalInformation($"Loading cert from Key Vault: {keyVaultUri}, Certificate Name: {certKvSecretName}, Managed Identity Client Id: {certMsi}");
-                    var certificate = CertLoader.LoadCertFromKeyVault(keyVaultUri, certKvSecretName, certMsi, null, logger);
-
-                    var handler = new HttpClientHandler();
-                    handler.ClientCertificates.Add(certificate);
-                    logger.LogExternalInformation("Successfully loaded Cert from keyvault for ICMWorkflowClient.");
-                    return new HttpClient(handler)
+                    else
                     {
-                        Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
-                    };
+                        var handler = new HttpClientHandler();
 
-                }
-                else if (!string.IsNullOrWhiteSpace(icmWorkflowSettings.CertificateKeyVaultUri) && !string.IsNullOrEmpty(icmWorkflowSettings.CertificateKeyVaultSecretName))
-                {
-                    var handler = new HttpClientHandler();
-                    var certificate = CertLoader.LoadCertFromKeyVault(icmWorkflowSettings.CertificateKeyVaultUri, icmWorkflowSettings.CertificateKeyVaultSecretName, icmWorkflowSettings.ManagedIdentityClientId, null, logger);
-                    handler.ClientCertificates.Add(certificate);
-                    logger.LogExternalInformation("Successfully loaded Cert from keyvault for ICMWorkflowClient.");
-                    return new HttpClient(handler)
-                    {
-                        Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
-                    };
-                }
-                else if (!string.IsNullOrWhiteSpace(icmWorkflowSettings.CertificateFilePath))
-                {
-                    var handler = new HttpClientHandler();
-                    var certificate = CertLoader.LoadCertFromFile(icmWorkflowSettings.CertificateFilePath);
-                    handler.ClientCertificates.Add(certificate);
-                    logger.LogExternalInformation("Successfully loaded Cert file for ICMWorkflowClient.");
-                    return new HttpClient(handler)
-                    {
-                        Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
-                    };
-                }
-                else
-                {
-                    var handler = new HttpClientHandler();
-
-                    // Open the "My" certificate store in the current user's context.
-                    using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))
-                    {
-                        store.Open(OpenFlags.ReadOnly);
-
-                        // Locate the certificate by matching the subject name.
-                        var certificates = store.Certificates.Find(X509FindType.FindBySubjectName, icmWorkflowSettings.CertificateSubjectName, validOnly: false);
-                        if (certificates == null || certificates.Count == 0)
+                        // Open the "My" certificate store in the current user's context.
+                        using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))
                         {
-                            throw new Exception($"Certificate with subject matching '{icmWorkflowSettings.CertificateSubjectName}' not found.");
+                            store.Open(OpenFlags.ReadOnly);
+
+                            // Locate the certificate by matching the subject name.
+                            logger.LogInternalInformation($"[IcmWorkflowClient] Searching for certificate with subject name: {icmWorkflowSettings.CertificateSubjectName}");
+                            var certificates = store.Certificates.Find(X509FindType.FindBySubjectName, icmWorkflowSettings.CertificateSubjectName, validOnly: false);
+                            if (certificates == null || certificates.Count == 0)
+                            {
+                                throw new Exception($"Certificate with subject matching '{icmWorkflowSettings.CertificateSubjectName}' not found.");
+                            }
+
+                            // Use the first matching certificate.
+                            handler.ClientCertificates.Add(certificates[0]);
                         }
 
-                        // Use the first matching certificate.
-                        handler.ClientCertificates.Add(certificates[0]);
+                        return new HttpClient(handler)
+                        {
+                            Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
+                        };
                     }
 
-                    return new HttpClient(handler)
-                    {
-                        Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
-                    };
+                    throw new Exception("Failed to initialize HttpClient. No valid certificate configuration found.");
                 }
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalError(ex, "[IcmWorkflowClient] Failed to initialize HttpClient for ICMWorkflowClient.");
+                throw new Exception("Failed to initialize HttpClient for ICMWorkflowClient.", ex);
             }
         }
 
         public async Task<HttpResponseMessage> SendICMWorkflowRequest(string workflowName, string body, string tenantId = null)
         {
             var httpClient = await _httpClientLazy!.Value;
-            _logger.LogExternalInformation($"Sending ICM Workflow Request. WorkflowName: {workflowName}, Body: {body}");
+            _logger.LogExternalInformation($"[IcmWorkflowClient] Sending ICM Workflow Request. WorkflowName: {workflowName}, Body: {body}");
             if (string.IsNullOrWhiteSpace(workflowName))
                 throw new ArgumentException("Workflow name must be provided.", nameof(workflowName));
             if (string.IsNullOrWhiteSpace(body))
@@ -241,7 +245,7 @@ namespace Agent.Plugins.IcmPlugin
                 using (var content = new StringContent(body, Encoding.UTF8, "application/json"))
                 {
                     // Send the HTTP POST request.
-                    _logger.LogExternalInformation("Sending request to ICM Workflow API: {requestUri}", requestUri);
+                    _logger.LogExternalInformation("[IcmWorkflowClient] Sending request to ICM Workflow API: {requestUri}", requestUri);
                     var response = await httpClient.PostAsync(requestUri, content);
                     return response;
                 }
@@ -271,10 +275,10 @@ namespace Agent.Plugins.IcmPlugin
             {
                 var content = await response.Content.ReadAsStringAsync();
                 var result = JsonConvert.DeserializeObject<SubscriptionDetail>(content);
-                _logger.LogExternalInformation($"GetSubscriptionDetail Completed. The subscription OfferType is {result?.OfferType}, QuotaId is {result?.QuotaId}");
+                _logger.LogExternalInformation($"[IcmWorkflowClient] GetSubscriptionDetail Completed. The subscription OfferType is {result?.OfferType}, QuotaId is {result?.QuotaId}");
                 return result;
             }
-            _logger.LogInternalError($"Failed to fetch SubscriptionDetail for subscription {subscriptionId}, statusCode: {response.StatusCode}");
+            _logger.LogInternalError($"[IcmWorkflowClient] Failed to fetch SubscriptionDetail for subscription {subscriptionId}, statusCode: {response.StatusCode}");
             return null;
         }
 
@@ -287,7 +291,7 @@ namespace Agent.Plugins.IcmPlugin
                 var content = await response.Content.ReadAsStringAsync();
                 return JsonConvert.DeserializeObject<AcaSubscriptionUsage>(content);
             }
-            _logger.LogInternalError($"Failed to fetch SubscriptionUsage for subscription {subscriptionId}, statusCode: {response.StatusCode}");
+            _logger.LogInternalError($"[IcmWorkflowClient] Failed to fetch SubscriptionUsage for subscription {subscriptionId}, statusCode: {response.StatusCode}");
             return null;
         }
 
