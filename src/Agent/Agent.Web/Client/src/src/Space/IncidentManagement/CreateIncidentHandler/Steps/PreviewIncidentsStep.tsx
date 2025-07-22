@@ -25,6 +25,7 @@ export const PreviewIncidentsStep: FC = () => {
         selectedTimespan,
         onSelectedTimespanChange,
         handlerLoaded,
+        saveHandler,
     } = useContext(IncidentHandlerConsolidatedCreateContext);
     const { dirty } = useFormikContext<IncidentHandlerCreateFormValues>();
 
@@ -168,13 +169,8 @@ export const PreviewIncidentsStep: FC = () => {
                 >
                     {intl.formatMessage(IncidentHandlerCreateResources.back)}
                 </Button>
-                <Button
-                    appearance="primary"
-                    onClick={() => {
-                        setCurrentStep(IncidentHandlerCreateSteps.DeployStep);
-                    }}
-                >
-                    {intl.formatMessage(IncidentHandlerCreateResources.next)}
+                <Button appearance="primary" onClick={saveHandler} disabled={!dirty}>
+                    {intl.formatMessage(IncidentHandlerCreateResources.save)}
                 </Button>
                 <DirtyStateConfirmationWrapper isDirty={dirty} onConfirm={exitToHome}>
                     <Button>{intl.formatMessage(IncidentHandlerCreateResources.cancel)}</Button>

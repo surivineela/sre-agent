@@ -14,7 +14,7 @@ import {
     IncidentQueryRequest,
     ToolInfo,
 } from '../../../Common/Contracts/Azure/IncidentHandler';
-import { IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
+import { AgentMode, IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../../Common/Helpers/Guid';
 import { ArmResourceDescriptor } from '../../../Common/Helpers/ResourceDescriptors';
 import { IncidentHandlerCreateResources, IncidentManagementNotificationResources } from '../../../Strings/SREAgentResources';
@@ -56,6 +56,7 @@ const getSaveOrUpdateActionForFilter = (
         impactedService: originalFilter.impactedService,
         priority: originalFilter.priority,
         titleContains: originalFilter.titleContains,
+        agentMode: originalFilter.agentMode,
     };
 
     const currentFilterValues = {
@@ -63,6 +64,7 @@ const getSaveOrUpdateActionForFilter = (
         impactedService: formValues.impactedService === 'ALL' ? '' : formValues.impactedService || '',
         priority: formValues.priority === 'ALL' ? '' : formValues.priority || '',
         titleContains: formValues.titleContains || '',
+        agentMode: formValues.agentMode || AgentMode.review,
     };
     if (isEqual(originalFilterValues, currentFilterValues)) return undefined;
 
@@ -388,6 +390,7 @@ export const useConsolidatedCreateIncidentHandler = (
                 ImpactedService: values.impactedService === 'ALL' ? undefined : values.impactedService,
                 Priority: values.priority === 'ALL' ? undefined : values.priority,
                 TitleContains: values.titleContains || '',
+                AgentMode: values.agentMode || AgentMode.review,
             };
 
             const additionalInfo = {
@@ -515,6 +518,7 @@ export const useConsolidatedCreateIncidentHandler = (
         values.impactedService,
         values.priority,
         values.titleContains,
+        values.agentMode,
 
         values.incidentIds,
         values.customInstructions,
@@ -840,6 +844,7 @@ export const useConsolidatedCreateIncidentHandler = (
                 impactedService: handlerCreateOrEditInfo.filter?.impactedService,
                 priority: handlerCreateOrEditInfo.filter?.priority,
                 titleContains: handlerCreateOrEditInfo.filter?.titleContains,
+                agentMode: handlerCreateOrEditInfo.filter?.agentMode || AgentMode.review,
                 useCustomHandler: !!handlerCreateOrEditInfo.handlerId,
             };
         });
@@ -849,6 +854,7 @@ export const useConsolidatedCreateIncidentHandler = (
         handlerCreateOrEditInfo.filter?.impactedService,
         handlerCreateOrEditInfo.filter?.priority,
         handlerCreateOrEditInfo.filter?.titleContains,
+        handlerCreateOrEditInfo.filter?.agentMode,
         handlerCreateOrEditInfo.handlerId,
     ]);
 

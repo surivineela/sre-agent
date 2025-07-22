@@ -294,13 +294,15 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                             aria-label={intl.formatMessage(IncidentManagementResources.setUpComplete)}
                         />
                         <div>{intl.formatMessage(IncidentManagementResources.created)}</div>
-                        <Link
-                            style={{ fontSize: '13px' }}
-                            onClick={() => {
-                                openHandlerCreate({ filter: item, handlerId: handler.id, quickEdit: true });
-                            }}
-                            disabled={handlerOperationStatus === 'inprogress'}
-                        >{`(${intl.formatMessage(IncidentManagementResources.goToHandler)})`}</Link>
+                        {!useConsolidatedCreate && (
+                            <Link
+                                style={{ fontSize: '13px' }}
+                                onClick={() => {
+                                    openHandlerCreate({ filter: item, handlerId: handler.id, quickEdit: true });
+                                }}
+                                disabled={handlerOperationStatus === 'inprogress'}
+                            >{`(${intl.formatMessage(IncidentManagementResources.goToHandler)})`}</Link>
+                        )}
                     </div>
                 );
             }
@@ -316,7 +318,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                 </Link>
             );
         },
-        [handlerOperationStatus, filterIdToHandlerMap, intl, openHandlerCreate, styles.greenCheckIcon, styles.setUp]
+        [handlerOperationStatus, filterIdToHandlerMap, intl, openHandlerCreate, styles.greenCheckIcon, styles.setUp, useConsolidatedCreate]
     );
 
     const onIncidentTypeChange = useCallback(

@@ -1,7 +1,8 @@
-import { Button, Checkbox, Dropdown, Field, Input, MessageBar, Option, Text } from '@fluentui/react-components';
+import { Button, Checkbox, Dropdown, Field, Input, MessageBar, Option, Radio, RadioGroup, Text } from '@fluentui/react-components';
 import { useFormikContext } from 'formik';
 import { FC, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
+import { AgentMode } from '../../../../Common/Contracts/Azure/SreAgent';
 import { IncidentHandlerCreateResources, IncidentManagementResources } from '../../../../Strings/SREAgentResources';
 import { DirtyStateConfirmationWrapper } from '../DirtyStateConfirmationDialog';
 import { IncidentHandlerConsolidatedCreateContext, IncidentHandlerCreateSteps } from '../IncidentHandlerConsolidatedCreateContext';
@@ -149,6 +150,32 @@ export const FilterStep: FC = () => {
                         onChange={(_, data) => setFieldValue('titleContains', data.value)}
                         placeholder={intl.formatMessage(IncidentManagementResources.titlePlaceholder)}
                     />
+                </Field>
+                <Field label={intl.formatMessage(IncidentManagementResources.agentAutonomyLevel)}>
+                    <RadioGroup name="agentMode" value={values.agentMode} onChange={(_, data) => setFieldValue('agentMode', data.value)}>
+                        <Radio
+                            value={AgentMode.review}
+                            label={
+                                <>
+                                    {intl.formatMessage(IncidentManagementResources.reviewDefault)}
+                                    <br />
+                                    <Text size={200}>{intl.formatMessage(IncidentManagementResources.autonomyLevelReviewDescription)}</Text>
+                                </>
+                            }
+                        />
+                        <Radio
+                            value={AgentMode.autonomous}
+                            label={
+                                <>
+                                    {intl.formatMessage(IncidentManagementResources.autonomousWord)}
+                                    <br />
+                                    <Text size={200}>
+                                        {intl.formatMessage(IncidentManagementResources.autonomyLevelAutonomousDescription)}
+                                    </Text>
+                                </>
+                            }
+                        />
+                    </RadioGroup>
                 </Field>
                 <Checkbox
                     name={'useCustomHandler'}

@@ -10,7 +10,7 @@ import { IncidentHandlerCreateFormValues } from '../IncidentHandlerCreateFormVal
 
 export const ReviewAndTestStep: FC = () => {
     const { dirty } = useFormikContext<IncidentHandlerCreateFormValues>();
-    const { generatingUpdatedTools, exitToHome, setCurrentStep } = useContext(IncidentHandlerConsolidatedCreateContext);
+    const { generatingUpdatedTools, exitToHome, setCurrentStep, saveHandler } = useContext(IncidentHandlerConsolidatedCreateContext);
     const intl = useIntl();
 
     return (
@@ -40,17 +40,11 @@ export const ReviewAndTestStep: FC = () => {
                 >
                     {intl.formatMessage(IncidentHandlerCreateResources.back)}
                 </Button>
-                <Button
-                    appearance="primary"
-                    onClick={() => {
-                        setCurrentStep(IncidentHandlerCreateSteps.DeployStep);
-                    }}
-                    disabled={generatingUpdatedTools}
-                >
-                    {intl.formatMessage(IncidentHandlerCreateResources.next)}
+                <Button appearance="primary" onClick={saveHandler} disabled={!dirty}>
+                    {intl.formatMessage(IncidentHandlerCreateResources.save)}
                 </Button>
                 <DirtyStateConfirmationWrapper isDirty={dirty} onConfirm={exitToHome}>
-                    <Button disabled={generatingUpdatedTools}>{intl.formatMessage(IncidentHandlerCreateResources.cancel)}</Button>
+                    <Button>{intl.formatMessage(IncidentHandlerCreateResources.cancel)}</Button>
                 </DirtyStateConfirmationWrapper>
             </div>
         </div>

@@ -7,7 +7,6 @@ export enum IncidentHandlerCreateSteps {
     PreviewIncidentsStep = 'PreviewIncidentsStep',
     IncidentsAndGuidanceStep = 'IncidentsAndGuidanceStep',
     ReviewAndTestStep = 'ReviewAndTestStep',
-    DeployStep = 'DeployStep',
 }
 
 export interface IncidentHandlerConsolidatedCreateMetadata {

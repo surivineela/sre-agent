@@ -5,7 +5,6 @@ import { useIntl } from 'react-intl';
 import { IncidentHandlerCreateResources } from '../../../../Strings/SREAgentResources';
 import { IncidentHandlerConsolidatedCreateContext, IncidentHandlerCreateSteps } from '../IncidentHandlerConsolidatedCreateContext';
 import { IncidentHandlerCreateFormValues } from '../IncidentHandlerCreateFormValues';
-import { DeployStep } from '../Steps/DeployStep';
 import { FilterStep } from '../Steps/FilterStep';
 import { IncidentsAndGuidanceStep } from '../Steps/IncidentsAndGuidanceStep';
 import { PreviewIncidentsStep } from '../Steps/PreviewIncidentsStep';
@@ -32,10 +31,6 @@ export const FullEditIncidentHandlerConsolidated: FC = () => {
                     stepKey: IncidentHandlerCreateSteps.ReviewAndTestStep,
                     stepTitle: intl.formatMessage(IncidentHandlerCreateResources.reviewAndTestStep),
                 },
-                {
-                    stepKey: IncidentHandlerCreateSteps.DeployStep,
-                    stepTitle: intl.formatMessage(IncidentHandlerCreateResources.deployStep),
-                },
             ];
         }
 
@@ -48,10 +43,6 @@ export const FullEditIncidentHandlerConsolidated: FC = () => {
                 stepKey: IncidentHandlerCreateSteps.PreviewIncidentsStep,
                 stepTitle: intl.formatMessage(IncidentHandlerCreateResources.previewIncidentsStep),
             },
-            {
-                stepKey: IncidentHandlerCreateSteps.DeployStep,
-                stepTitle: intl.formatMessage(IncidentHandlerCreateResources.deployStep),
-            },
         ];
     }, [intl, values.useCustomHandler]);
 
@@ -60,7 +51,6 @@ export const FullEditIncidentHandlerConsolidated: FC = () => {
             style={{
                 display: 'flex',
                 flexDirection: 'row',
-                gap: 12,
                 height: '100%',
             }}
         >
@@ -83,6 +73,7 @@ export const FullEditIncidentHandlerConsolidated: FC = () => {
                     height: '100%',
                     width: '100%',
                     overflowY: 'auto',
+                    paddingLeft: '12px',
                 }}
             >
                 {currentStep === IncidentHandlerCreateSteps.FilterStep ? (
@@ -93,8 +84,6 @@ export const FullEditIncidentHandlerConsolidated: FC = () => {
                     <PreviewIncidentsStep />
                 ) : currentStep === IncidentHandlerCreateSteps.ReviewAndTestStep ? (
                     <ReviewAndTestStep />
-                ) : currentStep === IncidentHandlerCreateSteps.DeployStep ? (
-                    <DeployStep />
                 ) : null}
             </div>
         </div>

@@ -1,6 +1,7 @@
 import { initializeIcons } from '@fluentui/react';
 import { FC, useEffect, useMemo, useState } from 'react';
 import Url from '../../Common/Helpers/Url';
+import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
 import { HandlerCreateOrEditInfo, OperationStatus } from './CreateIncidentHandler/Contracts';
 import CreateIncidentHandler from './CreateIncidentHandler/CreateIncidentHandler';
 import CreateIncidentHandlerConsolidated from './CreateIncidentHandler/CreateIncidentHandlerConsolidated';
@@ -11,7 +12,13 @@ const IncidentManagement: FC = () => {
     const [handlerCreateOrEditInfo, setHandlerCreateOrEditInfo] = useState<HandlerCreateOrEditInfo>();
     const [handlerOperationStatus, setHandlerOperationStatus] = useState<OperationStatus | undefined>(undefined);
 
-    const useConsolidatedCreate = useMemo(() => Url.getFeatureValue('consolidatedcreate') === 'true', []);
+    const consolidatedCreateFlagValue = useMemo(() => Url.getFeatureValue('consolidatedcreate') === 'true', []);
+    const consolidatedCreateConfigSettingValue = useConfigSetting(SettingNames.ConsolidatedCreate);
+
+    const useConsolidatedCreate = useMemo(
+        () => consolidatedCreateFlagValue || consolidatedCreateConfigSettingValue,
+        [consolidatedCreateFlagValue, consolidatedCreateConfigSettingValue]
+    );
 
     useEffect(() => {
         initializeIcons();

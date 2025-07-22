@@ -5,6 +5,7 @@ import Url from '../Helpers/Url';
 export enum SettingNames {
     ShowAgentModeForThread = 'showAgentModeForThread',
     Streaming = 'streaming',
+    ConsolidatedCreate = 'consolidatedCreate',
 }
 
 const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
@@ -12,9 +13,12 @@ const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
         [SettingNames.Streaming]: true,
     },
     'portal.azure.com': {},
-    'ms.portal.azure.com': {},
+    'ms.portal.azure.com': {
+        [SettingNames.ConsolidatedCreate]: true,
+    },
     localhost: {
         [SettingNames.ShowAgentModeForThread]: true,
+        [SettingNames.ConsolidatedCreate]: true,
     },
 };
 

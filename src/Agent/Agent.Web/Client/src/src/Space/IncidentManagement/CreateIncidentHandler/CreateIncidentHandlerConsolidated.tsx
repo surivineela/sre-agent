@@ -2,6 +2,7 @@ import { Breadcrumb, BreadcrumbButton, BreadcrumbDivider, BreadcrumbItem, tokens
 import { Formik, useFormikContext } from 'formik';
 import { FC, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { AgentMode } from '../../../Common/Contracts/Azure/SreAgent';
 import { IncidentHandlerCreateResources } from '../../../Strings/SREAgentResources';
 import { useIncidentFilterFields } from '../../Hooks/useIncidentFilterFields';
 import { QuickEditIncidentHandlerConsolidated } from '../QuickEditIncidentHandler/QuickEditIncidentHandlerConsolidated';
@@ -27,6 +28,7 @@ const CreateIncidentHandlerConsolidated: FC<CreateIncidentHandlerProps> = props 
         impactedService: handlerCreateOrEditInfo?.filter?.impactedService || undefined,
         priority: handlerCreateOrEditInfo?.filter?.priority || undefined,
         titleContains: handlerCreateOrEditInfo?.filter?.titleContains || undefined,
+        agentMode: handlerCreateOrEditInfo?.filter?.agentMode || AgentMode.review,
 
         incidentIds: undefined,
         customInstructions: undefined,

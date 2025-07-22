@@ -4,6 +4,7 @@ import { useFormikContext } from 'formik';
 import { FC, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { ToolInfo } from '../../../../Common/Contracts/Azure/IncidentHandler';
+import Url from '../../../../Common/Helpers/Url';
 import { IncidentHandlerCreateResources } from '../../../../Strings/SREAgentResources';
 import { MultipleSelectionShimmerDetailsList } from '../../../Components/MultipleSelectionShimmerDetailsList';
 import { ToolTableFieldNames } from '../Contracts';
@@ -23,6 +24,8 @@ export const ReviewAndTestContent: FC = () => {
 
     const [activeToolNames, setActiveToolNames] = useState<string[]>([]);
     const [toolsPickerVisible, setToolsPickerVisible] = useState<boolean>(false);
+
+    const showHandlerTestUi = useMemo(() => Url.getFeatureValue('showHandlerTestUi') === 'true', []);
 
     const toolsTableColumns: IColumn[] = useMemo(() => {
         return [
@@ -64,7 +67,7 @@ export const ReviewAndTestContent: FC = () => {
             )}
             <div
                 style={{
-                    width: '50%',
+                    width: showHandlerTestUi ? '50%' : '100%',
                     display: 'flex',
                     flexDirection: 'column',
                     gap: 16,
@@ -117,18 +120,20 @@ export const ReviewAndTestContent: FC = () => {
                     getKey={(item: ToolInfo) => item.name}
                 />
             </div>
-            <div
-                style={{
-                    width: '50%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 16,
-                }}
-            >
-                <Text size={400} weight="semibold">
-                    {intl.formatMessage(IncidentHandlerCreateResources.testHandlerTitle)}
-                </Text>
-            </div>
+            {showHandlerTestUi && (
+                <div
+                    style={{
+                        width: '50%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 16,
+                    }}
+                >
+                    <Text size={400} weight="semibold">
+                        {intl.formatMessage(IncidentHandlerCreateResources.testHandlerTitle)}
+                    </Text>
+                </div>
+            )}
         </div>
     );
 };
