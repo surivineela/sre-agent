@@ -14,7 +14,7 @@ import { StreamingMessage, StreamingMessageType } from '../../Common/Contracts/A
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
 import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
-import { ChatMessage, ChatMessageContent, ThreadLoadingCounts } from '../Contracts/Activities';
+import { ChatMessage, ChatMessageContent, ThreadFilter, ThreadLoadingCounts } from '../Contracts/Activities';
 import { DefaultUserIdAndDisplayName } from '../Hooks/useAuthenticatedUserInfo';
 import { ThreadItemHeightInPx, ThreadItemPaddingTopBottomInPx } from '../Styles/Activities.styles';
 
@@ -433,7 +433,7 @@ export const getGroupedMessages = (messages: Message[], currentMessageIndex: num
     return groupedMessages;
 };
 
-export const getFilteredThreads = (threads: Thread[], threadSource?: ThreadSource, searchText?: string): Thread[] => {
+export const getFilteredThreads = (threads: Thread[], threadFilters?: Set<ThreadFilter>, searchText?: string): Thread[] => {
     return threads.filter(thread => {
         let match = true;
 
@@ -441,8 +441,12 @@ export const getFilteredThreads = (threads: Thread[], threadSource?: ThreadSourc
             match = thread.title.toLowerCase().includes(searchText.toLocaleLowerCase());
         }
 
-        if (threadSource === ThreadSource.incident) {
+        if (threadFilters?.has(ThreadFilter.Incidents)) {
             match = thread.source === ThreadSource.incident;
+        }
+
+        if (threadFilters?.has(ThreadFilter.Unread)) {
+            match = isThreadUnread(thread);
         }
 
         return match;

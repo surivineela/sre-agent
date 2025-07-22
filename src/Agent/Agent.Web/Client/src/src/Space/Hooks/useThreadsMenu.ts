@@ -11,6 +11,7 @@ import {
     removeThreadIdsFromUnreadThreads,
 } from '../Activities/Utility';
 import {
+    ThreadFilter,
     ThreadListHandle,
     ThreadLoadingCounts,
     ThreadMenuHandle,
@@ -26,7 +27,7 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadMe
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
 
-    const [threadSource, setThreadSource] = useState<ThreadSource>();
+    const [threadFilters, setThreadFilters] = useState<Set<ThreadFilter>>(new Set<ThreadFilter>());
     const [hasMoreOldThreads, setHasMoreOldThreads] = useState<boolean>(true);
     const [unreadThreadIds, setUnreadThreadIds] = useState<Set<string>>(new Set<string>());
 
@@ -37,11 +38,20 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadMe
     const isLoadingOldThreads = useRef<boolean>(false);
     const loadOldThreadCallId = useRef<number>(0);
 
-    const updateThreadSource = useCallback((source: ThreadSource) => {
-        // Reset states before set thread source to prevent unnecessary trigger of polling new threads before loading initial threads
+    const updateThreadFilters = useCallback((filter: ThreadFilter) => {
+        // Reset states before set thread filter to prevent unnecessary trigger of polling new threads before loading initial threads
         setIsLoadingInitialThreads(true);
         setHasMoreOldThreads(true);
-        setThreadSource(source);
+
+        setThreadFilters(prev => {
+            const updatedFilters = new Set(prev);
+            if (updatedFilters.has(filter)) {
+                updatedFilters.delete(filter);
+            } else {
+                updatedFilters.add(filter);
+            }
+            return updatedFilters;
+        });
     }, []);
 
     const updateThreadLastReadTime = useCallback(async (threadId: string) => {
@@ -53,7 +63,7 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadMe
     }, []);
 
     const getOldThreadsRequest = async (
-        threadSource: ThreadSource | undefined,
+        threadFilters: Set<ThreadFilter>,
         numberOfThreadsToLoad: number,
         oldestThread: Thread | undefined
     ) => {
@@ -70,7 +80,8 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadMe
                           }
                         : undefined,
                 },
-                source: threadSource,
+                source: threadFilters.has(ThreadFilter.Incidents) ? ThreadSource.incident : undefined,
+                unread: threadFilters.has(ThreadFilter.Unread),
             },
         });
     };
@@ -85,7 +96,7 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadMe
      * @param latestThread
      * @returns
      */
-    const pollNewThreadsRequest = async (threadSource: ThreadSource | undefined, latestThread: Thread | undefined) => {
+    const pollNewThreadsRequest = async (threadFilters: Set<ThreadFilter>, latestThread: Thread | undefined) => {
         const newThreadsInAscendingOrderResponse = await threadClient.getThreads({
             skip: 0,
             top: ThreadPollingCounts.default,
@@ -99,7 +110,8 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadMe
                           }
                         : undefined,
                 },
-                source: threadSource,
+                source: threadFilters.has(ThreadFilter.Incidents) ? ThreadSource.incident : undefined,
+                unread: threadFilters.has(ThreadFilter.Unread),
             },
         });
         return newThreadsInAscendingOrderResponse;
@@ -129,7 +141,7 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadMe
                     ? getNumberOfThreadsToOverflowThreadsListDiv(threadListHandleRef.current?.getThreadListHeight(), threadsLength.current)
                     : ThreadLoadingCounts.scroll;
 
-                const oldThreadsResponse = await getOldThreadsRequest(threadSource, numberOfThreadsToLoad, oldestThread.current);
+                const oldThreadsResponse = await getOldThreadsRequest(threadFilters, numberOfThreadsToLoad, oldestThread.current);
 
                 if (callId === loadOldThreadCallId.current) {
                     const oldThreads = oldThreadsResponse.content ?? [];
@@ -151,21 +163,21 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadMe
                 }
             }
         },
-        [threadSource, isLoadingInitialThreads]
+        [threadFilters, isLoadingInitialThreads]
     );
 
     // Reset states when the thread source changes
     useEffect(() => {
         setIsLoadingInitialThreads(true);
         setHasMoreOldThreads(true);
-    }, [threadSource]);
+    }, [threadFilters]);
 
     useEffect(() => {
         // Increment loadOldThreadCallId when threadsFilterOptions or isLoadingInitialThreads changes, to ensure that the result from calling loadMoreOldThreads with outdated filter options and isLoadingInitialThreads state value is disregarded
         return () => {
             loadOldThreadCallId.current += 1;
         };
-    }, [threadSource, isLoadingInitialThreads]);
+    }, [threadFilters, isLoadingInitialThreads]);
 
     useEffect(() => {
         latestThread.current = threads[0];
@@ -187,14 +199,14 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadMe
 
         const setInitialThreads = async () => {
             // For a better user experience, we show the existing threads in the memory based on the filter options, before making a request to get the filtered threads from service side.
-            setThreads(prev => getFilteredThreads(prev, threadSource));
+            setThreads(prev => getFilteredThreads(prev, threadFilters));
 
             // Send a request to load initial threads based on the filter options to overflow the threads list div if possible
             isLoadingOldThreads.current = true;
 
             const numberOfThreadsToLoad = getNumberOfThreadsToOverflowThreadsListDiv(threadListHandleRef.current?.getThreadListHeight(), 0);
 
-            const initialThreadsResponse = await getOldThreadsRequest(threadSource, numberOfThreadsToLoad, undefined);
+            const initialThreadsResponse = await getOldThreadsRequest(threadFilters, numberOfThreadsToLoad, undefined);
 
             const initialThreads = initialThreadsResponse.content ?? [];
 
@@ -218,7 +230,7 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadMe
         return () => {
             isSubscribed = false;
         };
-    }, [threadSource, hasChatPermissions]);
+    }, [threadFilters, hasChatPermissions]);
 
     // Poll new threads every 10 seconds
     useEffect(() => {
@@ -231,7 +243,7 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadMe
 
         if (!isLoadingInitialThreads) {
             const pollNewThreads = async () => {
-                const newThreadsInAscendingOrderResponse = await pollNewThreadsRequest(threadSource, latestThread.current);
+                const newThreadsInAscendingOrderResponse = await pollNewThreadsRequest(threadFilters, latestThread.current);
 
                 const newThreadsInAscendingOrder = newThreadsInAscendingOrderResponse.content ?? [];
 
@@ -252,7 +264,7 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadMe
             isSubscribed = false;
             clearTimeout(pollNewThreadsTimeout);
         };
-    }, [threadSource, isLoadingInitialThreads, threadPollingTriggerId, hasChatPermissions]);
+    }, [threadFilters, isLoadingInitialThreads, threadPollingTriggerId, hasChatPermissions]);
 
     return {
         hasChatPermissions,
@@ -261,8 +273,8 @@ export const useThreadsMenu = (threadPollingTriggerId: number, ref: Ref<ThreadMe
         loadMoreOldThreads,
         hasMoreOldThreads,
         threadListHandleRef,
-        threadSource,
-        updateThreadSource,
+        threadFilters,
+        updateThreadFilters,
         oldestThreadModifiedTimestamp,
         unreadThreadIds,
         updateThreadLastReadTime,

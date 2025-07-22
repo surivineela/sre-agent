@@ -197,3 +197,8 @@ export class AgentMessageRegex {
     public static readonly investigationSummaryRegex = /<investigation-summary>([\s\S]*?)<\/investigation-summary>/;
     public static readonly investigationSummariesRegex = /<investigation-summaries>([\s\S]*?)<\/investigation-summaries>/;
 }
+
+export enum ThreadFilter {
+    Incidents,
+    Unread,
+}

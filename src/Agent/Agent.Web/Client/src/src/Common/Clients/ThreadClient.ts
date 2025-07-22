@@ -22,6 +22,7 @@ export interface ThreadsGetFilterOptions {
         };
     };
     source?: ThreadSource;
+    unread?: boolean;
 }
 
 export interface ThreadsGetOptions {
@@ -40,7 +41,7 @@ export const getThreadsGetUrlPath = (options: ThreadsGetOptions): string => {
     if (filters) {
         const filterStrings: string[] = [];
 
-        const { searchText, timestamps, source } = filters;
+        const { searchText, timestamps, source, unread } = filters;
 
         if (searchText) {
             filterStrings.push(`contains(tolower(title),'${searchText.toLowerCase()}')`);
@@ -60,6 +61,10 @@ export const getThreadsGetUrlPath = (options: ThreadsGetOptions): string => {
 
         if (source) {
             filterStrings.push(`source eq '${source}'`);
+        }
+
+        if (unread) {
+            filterStrings.push(`lastReadTime lt modifiedTimestamp`);
         }
 
         const filterString = filterStrings.join(' and ');

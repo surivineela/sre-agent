@@ -126,7 +126,7 @@ export const SreAgentResources = defineMessages({
     mitigated: { defaultMessage: 'Mitigated', id: 'dnXgff' },
     resolved: { defaultMessage: 'Resolved', id: 'W6nSYE' },
     activeThreads: { defaultMessage: 'Active threads', id: 'rFlkvY' },
-    allThreads: { defaultMessage: 'All threads', id: 'SDXmEJ' },
+    unread: { defaultMessage: 'Unread', id: 'jabB4C' },
     agent: { defaultMessage: 'Agent', id: 'QGVI63' },
     agentDetails: { defaultMessage: 'Agent details', id: 'Wf6bDe' },
     agents: { defaultMessage: 'Agents', id: 'GBnvl1' },

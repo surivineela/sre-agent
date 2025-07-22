@@ -2153,12 +2153,6 @@
       "value": "Cognitive Services Data Reader"
     }
   ],
-  "SDXmEJ": [
-    {
-      "type": 0,
-      "value": "All threads"
-    }
-  ],
   "SL7+hl": [
     {
       "type": 0,
@@ -3403,6 +3397,12 @@
     {
       "type": 0,
       "value": "Grafana resource must be unique within the resource group."
+    }
+  ],
+  "jabB4C": [
+    {
+      "type": 0,
+      "value": "Unread"
     }
   ],
   "jvo0vs": [

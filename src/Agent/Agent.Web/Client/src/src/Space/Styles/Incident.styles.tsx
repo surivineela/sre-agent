@@ -2,16 +2,14 @@ import { makeStyles, tokens } from '@fluentui/react-components';
 
 export const useActionsStatusBarStyles = makeStyles({
     container: {
-        margin: '0px 10px',
         padding: '8px 0px',
-        borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
     },
     innerContainerNoBorder: {
         display: 'flex',
         alignItems: 'center',
         gap: '10px',
         flexWrap: 'wrap',
-        padding: '0px 10px',
+        padding: '10px 0px 0px 0px',
     },
     statusGroup: {
         display: 'flex',

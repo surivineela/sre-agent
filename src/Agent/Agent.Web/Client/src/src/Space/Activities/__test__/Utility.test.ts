@@ -3,6 +3,7 @@ import { ThreadSeverity } from '../../../Common/Clients/ThreadClient';
 import { Message, Thread, ThreadSource } from '../../../Common/Contracts/Azure/SreAgent';
 import { getSafeDateTime } from '../../../Common/Helpers/Date';
 import { Guid } from '../../../Common/Helpers/Guid';
+import { ThreadFilter } from '../../Contracts/Activities';
 import {
     getFilteredThreads,
     getGroupedMessages,
@@ -448,13 +449,22 @@ describe('getFilteredThreads', () => {
     it('Filter threads based on source', () => {
         let threads: Thread[] = [getDefaultThread(undefined, '01', undefined, undefined, ThreadSource.incident)];
 
-        let result = getFilteredThreads(threads);
-        expect(result.length).toBe(1);
-        result = getFilteredThreads(threads, ThreadSource.incident);
+        let result = getFilteredThreads(threads, new Set<ThreadFilter>([ThreadFilter.Incidents]));
         expect(result.length).toBe(1);
 
         threads = [getDefaultThread(undefined, '01', undefined, undefined)];
-        result = getFilteredThreads(threads, ThreadSource.incident);
+        result = getFilteredThreads(threads, new Set<ThreadFilter>([ThreadFilter.Incidents]));
+        expect(result.length).toBe(0);
+    });
+
+    it('Filter threads based on unread status', () => {
+        let threads: Thread[] = [getDefaultThread('2023-10-06T00:00:00Z', '01', undefined, undefined, undefined, '2023-10-05T00:00:00Z')];
+
+        let result = getFilteredThreads(threads, new Set<ThreadFilter>([ThreadFilter.Unread]));
+        expect(result.length).toBe(1);
+
+        threads = [getDefaultThread('2023-10-06T00:00:00Z', '01', undefined, undefined, undefined, '2023-10-07T00:00:00Z')];
+        result = getFilteredThreads(threads, new Set<ThreadFilter>([ThreadFilter.Unread]));
         expect(result.length).toBe(0);
     });
 });

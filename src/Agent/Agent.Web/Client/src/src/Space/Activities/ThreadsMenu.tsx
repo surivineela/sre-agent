@@ -1,12 +1,11 @@
 import { Button } from '@fluentui/react-button';
 import { Dialog, DialogTrigger } from '@fluentui/react-dialog';
 import { AddRegular, PanelLeftContractRegular, PanelLeftExpandRegular, SearchRegular } from '@fluentui/react-icons';
-import { Radio, RadioGroup } from '@fluentui/react-radio';
 import { tokens } from '@fluentui/react-theme';
 import { ForwardedRef, forwardRef, useContext } from 'react';
 import { useIntl } from 'react-intl';
-import { ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
 import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import ThreadFiltersAndIncidentStatus from '../Components/ThreadFiltersAndIncidentStatus';
 import ThreadSearchDialog from '../Components/ThreadSearchDialog';
 import ThreadsList from '../Components/ThreadsList';
 import { IThreadsMenuProps, ThreadMenuHandle } from '../Contracts/Activities';
@@ -14,7 +13,6 @@ import { AgentContext } from '../Contracts/Context';
 import { useMetrics } from '../Hooks/useMetrics';
 import { useThreadsMenu } from '../Hooks/useThreadsMenu';
 import { getExpandCollapseButtonStyles, useThreadMenuStyle } from '../Styles/Activities.styles';
-import IncidentStatusBar from './IncidentStatusBar';
 
 const expandCollapseButtonStyles = getExpandCollapseButtonStyles('left');
 
@@ -29,8 +27,8 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
             loadMoreOldThreads,
             hasMoreOldThreads,
             threadListHandleRef,
-            threadSource,
-            updateThreadSource,
+            threadFilters,
+            updateThreadFilters,
             unreadThreadIds,
             oldestThreadModifiedTimestamp,
         } = useThreadsMenu(threadPollingTriggerId, ref);
@@ -95,19 +93,12 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
                     )}
                 </div>
                 {!collapsed && hasChatPermissions && (
-                    <RadioGroup
-                        value={threadSource || ''}
-                        onChange={(_e, data) => {
-                            updateThreadSource(data.value as ThreadSource);
-                        }}
-                        layout="horizontal"
-                        style={{ flexWrap: 'wrap', padding: '10px' }}
-                    >
-                        <Radio value={''} label={intl.formatMessage(SreAgentResources.allThreads)} />
-                        <Radio value={ThreadSource.incident} label={intl.formatMessage(SreAgentResources.incidents)} />
-                    </RadioGroup>
+                    <ThreadFiltersAndIncidentStatus
+                        threadFilters={threadFilters}
+                        updateThreadFilters={updateThreadFilters}
+                        incidentMetrics={incidentMetrics}
+                    />
                 )}
-                {!collapsed && hasChatPermissions && threadSource && <IncidentStatusBar incidentMetrics={incidentMetrics} />}
                 {!collapsed && hasChatPermissions && (
                     <ThreadsList
                         ref={threadListHandleRef}
