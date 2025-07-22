@@ -17,6 +17,7 @@ using Agent.Runtime.Services;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry.Trace;
 
 
 namespace Agent.Runtime.MetaAgent;
@@ -29,6 +30,7 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
 
     private readonly IChatClient _chatClient;
     private readonly ILogger<IncidentHandlerAgent> _logger;
+    private readonly Tracer _tracer;
 
     private readonly IAgentsFactory _agentsFactory;
     private readonly IToolFactory<AgentContext> _toolFactory;
@@ -39,6 +41,7 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
         IAgentsFactory agentsFactory,
         IToolFactory<AgentContext> toolFactory,
         ILogger<IncidentHandlerAgent> logger,
+        Tracer tracer,
         ThreadService threadService,
         IThreadRepository threadRepository,
         ActionSettings actionSettings
@@ -48,6 +51,7 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
         _threadService = threadService;
         _threadRepository = threadRepository;
         _logger = logger;
+        _tracer = tracer;
 
         _agentsFactory = agentsFactory;
         _toolFactory = toolFactory;
@@ -150,6 +154,7 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
 
     public async Task<string> ProcessIncidentAsync(AgentContext agentContext, AgentChatHistory agentChatHistory)
     {
+        using var span = _tracer.StartSpan(TraceOperationName.IncidentProcessMessage, SpanKind.Internal);
         _logger.LogInternalInformation(
             "[IncidentHandlerAgent] ProcessIncidentAsync: Invoked for AgentContextId: {AgentContextId}, ThreadId: {ThreadId}",
             agentContext.Id, agentContext.ThreadId);
@@ -158,6 +163,10 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
         _logger.LogInternalInformation(
             "[IncidentHandlerAgent] ProcessIncidentAsync: Retrieved last user message for ThreadId: {ThreadId}. Message: {Message}",
             agentContext.ThreadId, lastUserMessage);
+
+        span.SetAttribute(TraceAttribute.OperationName, TraceOperationName.IncidentProcessMessage);
+        span.SetAttribute(TraceAttribute.ThreadId, agentContext.ThreadId.ToString());
+        span.SetAttribute(TraceAttribute.MessageContent, lastUserMessage ?? string.Empty);
 
         using var _ = await _lock.AcquireWriterAsync();
 
@@ -172,15 +181,24 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
             _logger.LogInternalInformation(
                 "[IncidentHandlerAgent] ProcessIncidentAsync: Appended last user message to chat history for ThreadId: {ThreadId}",
                 threadGuid);
-        }
-
-        try
+        }        try
         {
             _logger.LogInternalInformation(
                 "[IncidentHandlerAgent] ProcessIncidentAsync: Calling GetModelResponse for AgentContextId: {AgentContextId}, ThreadId: {ThreadId}",
                 agentContext.Id, threadGuid);
 
+            using var generationSpan = _tracer.StartSpan(TraceOperationName.ModelGeneration, SpanKind.Internal, span);
+            generationSpan.SetAttribute(TraceAttribute.ThreadId, agentContext.ThreadId.ToString());
+            generationSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.ModelGeneration);
+            generationSpan.SetAttribute(TraceAttribute.ModelInput, ChatMessageFormatter.FormatChatMessages(chatHistory));
+
             var response = await GetModelResponse(agentContext, threadGuid, chatHistory);
+
+            generationSpan.SetAttribute(TraceAttribute.ModelOutput, ChatMessageFormatter.FormatChatMessages(response?.Messages ?? []));
+            generationSpan.SetAttribute(TraceAttribute.ModelInputTokensCount, response?.Usage?.InputTokenCount?.ToString() ?? string.Empty);
+            generationSpan.SetAttribute(TraceAttribute.ModelOutputTokensCount, response?.Usage?.OutputTokenCount?.ToString() ?? string.Empty);
+            generationSpan.SetAttribute(TraceAttribute.ModelTotalTokensCount, response?.Usage?.TotalTokenCount?.ToString() ?? string.Empty);
+            generationSpan.SetAttribute(TraceAttribute.ModelTemperature, "0.7");
 
             await response.UpdateAgentChatHistoryAsync(agentChatHistory, _threadRepository, agentContext.Id);
 
@@ -188,7 +206,7 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
                 "[IncidentHandlerAgent] ProcessIncidentAsync: Successfully processed incident for AgentContextId: {AgentContextId}, ThreadId: {ThreadId}",
                 agentContext.Id, threadGuid);
 
-            return response.Messages.Last().Text;
+            return response?.Messages?.LastOrDefault()?.Text ?? string.Empty;
         }
         catch (System.ClientModel.ClientResultException ex) when (ex.Message.Contains("HTTP 400 (content_filter)"))
         {

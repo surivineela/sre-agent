@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.Text;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
@@ -9,6 +10,7 @@ using Agent.Data.DataModels;
 using Agent.Graph.Interfaces;
 using Agent.Logging;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry.Trace;
 
 namespace Agent.Runtime.Services
 {
@@ -47,6 +49,7 @@ namespace Agent.Runtime.Services
         private readonly IICMAPIClient _icmApiClient;
         private readonly IAgentInboundCommunicationService _inboundCommunicationService;
         private readonly ILogger<IncidentHandlingService> _logger;
+        private readonly Tracer _tracer;
         private readonly IThreadRepository _repository;
         private readonly IIncidentFilterManagementService _incidentFilterManagementService;
         private readonly IIncidentHandlerManagementService _incidentHandlerManagementService;
@@ -62,6 +65,7 @@ namespace Agent.Runtime.Services
             IAgentInboundCommunicationService inboundCommunicationService,
             IThreadRepository repository,
             ILogger<IncidentHandlingService> logger,
+            Tracer tracer,
             IIncidentFilterManagementService incidentFilterManagementService,
             IIncidentHandlerManagementService incidentHandlerManagementService,
             IIncidentManagementService<PagerDutyIncidentDocument> pagerDutyincidentManagementService,
@@ -75,6 +79,7 @@ namespace Agent.Runtime.Services
             _inboundCommunicationService = inboundCommunicationService;
             _repository = repository;
             _logger = logger;
+            _tracer = tracer;
             _incidentFilterManagementService = incidentFilterManagementService;
             _incidentHandlerManagementService = incidentHandlerManagementService;
             _pagerDutyincidentManagementService = pagerDutyincidentManagementService;
@@ -84,7 +89,7 @@ namespace Agent.Runtime.Services
             _incidentManagementSettings = incidentManagementSettings;
         }
 
-        // Fix for CS8920: The interface 'IIncidentDocument' cannot be used as type argument. 
+        // Fix for CS8920: The interface 'IIncidentDocument' cannot be used as type argument.
         // Static member 'ICosmosDocument.ContainerName' does not have a most specific implementation in the interface.
 
         private async Task<PagerDutyIncidentDocument> GetPagerDutyIncidentLatest(string incidentId)
@@ -150,7 +155,7 @@ namespace Agent.Runtime.Services
                 _logger.LogInternalInformation("GetServiceNowIncidentLatest: Received incident data for IncidentId: {IncidentId}", incidentId);
 
                 var incident = new ServiceNowIncidentDocument(incidentData);
-                
+
                 _logger.LogInternalInformation("GetServiceNowIncidentLatest: Successfully created ServiceNowIncidentDocument for IncidentId: {IncidentId}", incidentId);
                 return incident;
             }
@@ -298,6 +303,7 @@ namespace Agent.Runtime.Services
 
         private async Task<Core.Models.Api.v1.Thread> CreateIncidentHandlerAgentThread(IIncidentDocument incidentDetails, IncidentHandlerDocument incidentHandler, IncidentFilterDocument incidentFilterDocument, IncidentHandlingRequestModel request)
         {
+            using var span = _tracer.StartSpan(TraceOperationName.IncidentCreateThread, SpanKind.Internal);
             _logger.LogInternalInformation("CreateIncidentHandlerAgentThread: Invoked for IncidentId: {IncidentId}, HandlerId: {HandlerId}", incidentDetails.Id, incidentHandler.Id);
             try
             {
@@ -338,6 +344,12 @@ namespace Agent.Runtime.Services
                     threadType: isTest ? ThreadType.Test : ThreadType.Prod,
                     overrideAgentMode: incidentFilterDocument.AgentMode
                 );
+
+                span.SetAttribute(TraceAttribute.OperationName, TraceOperationName.IncidentCreateThread);
+                span.SetAttribute(TraceAttribute.ThreadId, thread.Id.ToString());
+                span.SetAttribute(TraceAttribute.IncidentId, incidentDetails.Id);
+                span.SetAttribute(TraceAttribute.IncidentSource, incidentDetails.DocumentType);
+                span.SetAttribute(TraceAttribute.IncidentMessage, alertMessage);
 
                 _logger.LogInternalInformation("CreateIncidentHandlerAgentThread: Created thread with ThreadId: {ThreadId} for IncidentId: {IncidentId}", thread.Id, incidentDetails.Id);
 
