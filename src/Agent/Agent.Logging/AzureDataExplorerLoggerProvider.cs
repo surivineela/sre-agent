@@ -6,17 +6,17 @@ using Microsoft.Extensions.Logging;
 namespace Agent.Logging;
 public class AzureDataExplorerLoggerProvider : ILoggerProvider
 {
-    private readonly IKustoIngestClient _internalKustoClient;
-    private readonly string _internalDatabaseName;
-    private readonly string _internalTableName;
+    private readonly IKustoIngestClient? _internalKustoClient;
+    private readonly string? _internalDatabaseName;
+    private readonly string? _internalTableName;
 
     private readonly IKustoIngestClient? _externalKustoClient;
     private readonly string? _externalDatabaseName;
     private readonly string? _externalTableName;
 
-    private readonly CommonColumn _commonColumn;
+    private readonly CommonColumn? _commonColumn;
 
-    private AzureDataExplorerLogger _logger;
+    private AzureDataExplorerLogger? _logger;
 
     public AzureDataExplorerLoggerProvider(
         CommonColumn commonColumn,
@@ -77,21 +77,21 @@ public class AzureDataExplorerLoggerProvider : ILoggerProvider
         if (_externalKustoClient == null)
         {
             _logger = new AzureDataExplorerLogger(
-                commonColumn: _commonColumn,
-                internalKustoClient: _internalKustoClient,
-                internalDatabaseName: _internalDatabaseName,
-                internalTableName: _internalTableName);
+                commonColumn: _commonColumn ?? throw new Exception("CommonColumn cannot be null."),
+                internalKustoClient: _internalKustoClient ?? throw new Exception("Internal Kusto Client cannot be null."),
+                internalDatabaseName: _internalDatabaseName ?? throw new Exception("Internal Database Name cannot be null."),
+                internalTableName: _internalTableName ?? throw new Exception("Internal Table Name cannot be null."));
         }
         else
         {
             _logger = new AzureDataExplorerLogger(
-                commonColumn: _commonColumn,
-                internalKustoClient: _internalKustoClient,
-                internalDatabaseName: _internalDatabaseName,
-                internalTableName: _internalTableName,
-                externalKustoClient: _externalKustoClient,
-                externalDatabaseName: _externalDatabaseName,
-                externalTableName: _externalTableName);
+                commonColumn: _commonColumn ?? throw new Exception("CommonColumn cannot be null."),
+                internalKustoClient: _internalKustoClient ?? throw new Exception("Internal Kusto Client cannot be null."),
+                internalDatabaseName: _internalDatabaseName ?? throw new Exception("Internal Database Name cannot be null."),
+                internalTableName: _internalTableName ?? throw new Exception("Internal Table Name cannot be null."),
+                externalKustoClient: _externalKustoClient ?? throw new Exception("External Kusto Client cannot be null."),
+                externalDatabaseName: _externalDatabaseName ?? throw new Exception("External Database Name cannot be null."),
+                externalTableName: _externalTableName ?? throw new Exception("External Table Name cannot be null."));
         }
 
         return _logger;
@@ -99,7 +99,10 @@ public class AzureDataExplorerLoggerProvider : ILoggerProvider
 
     public void Dispose()
     {
-        _internalKustoClient.Dispose();
+        if (_internalKustoClient != null)
+        {
+            _internalKustoClient.Dispose();
+        }
 
         if (_externalKustoClient != null)
         {

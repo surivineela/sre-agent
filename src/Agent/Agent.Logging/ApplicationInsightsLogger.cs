@@ -33,7 +33,7 @@ public abstract class ApplicationInsightsLogger
 
     protected void LogMessage(string message, SeverityLevel severityLevel)
     {
-        if (_isConfigured)
+        if (_isConfigured && _telemetryClient != null)
         {
             _telemetryClient.TrackTrace(message, severityLevel);
         }
@@ -41,7 +41,7 @@ public abstract class ApplicationInsightsLogger
 
     protected void LogRequest(string method, string url, string statusCode, TimeSpan duration)
     {
-        if (_isConfigured)
+        if (_isConfigured && _telemetryClient != null)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
             _telemetryClient.TrackRequest(new RequestTelemetry
@@ -59,7 +59,7 @@ public abstract class ApplicationInsightsLogger
 
     protected void LogException(Exception ex, string message)
     {
-        if (_isConfigured)
+        if (_isConfigured && _telemetryClient != null)
         {
             _telemetryClient.TrackException(ex);
             if (!string.IsNullOrEmpty(message))
@@ -71,7 +71,7 @@ public abstract class ApplicationInsightsLogger
 
     protected void LogCustomEvent(string eventName, Dictionary<string, string> properties)
     {
-        if (_isConfigured)
+        if (_isConfigured && _telemetryClient != null)
         {
             _telemetryClient.TrackEvent(eventName, properties);
         }

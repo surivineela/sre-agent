@@ -14,8 +14,8 @@ public class CustomerAuditLogger : ApplicationInsightsLogger
 
     public void LogRequest(Activity activity)
     {
-        var url = activity.TagObjects.FirstOrDefault(t => t.Key == "http.url").Value as string;
-        var method = activity.TagObjects.FirstOrDefault(t => t.Key == "http.method").Value as string;
+        string url = activity.TagObjects.FirstOrDefault(t => t.Key == "http.url").Value as string ?? string.Empty;
+        string method = activity.TagObjects.FirstOrDefault(t => t.Key == "http.method").Value as string ?? string.Empty;
         var statusCodeObj = activity.TagObjects.FirstOrDefault(t => t.Key == "http.status_code").Value;
         var duration = activity.Duration;
 

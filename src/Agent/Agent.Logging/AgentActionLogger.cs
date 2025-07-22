@@ -120,12 +120,12 @@ public class AgentActionLogRecord
     /// <summary>
     /// ThreadId
     /// </summary>
-    public string ThreadId { get; set; }
+    public string ThreadId { get; set; } = string.Empty;
 
     /// <summary>
     /// Sub Agent Name
     /// </summary>
-    public string SubAgentName { get; set; }
+    public string SubAgentName { get; set; } = string.Empty;
 
     /// <summary>
     /// The action being performed

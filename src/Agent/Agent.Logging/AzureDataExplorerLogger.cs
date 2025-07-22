@@ -14,9 +14,9 @@ public class AzureDataExplorerLogger : ILogger
     public const string InternalLogType = "Internal";
     public const string ExternalLogType = "External";
 
-    private readonly IKustoIngestClient _internalKustoClient; // For "Internal" logs
-    private readonly string _internalDatabaseName;
-    private readonly string _internalTableName;
+    private readonly IKustoIngestClient? _internalKustoClient; // For "Internal" logs
+    private readonly string? _internalDatabaseName;
+    private readonly string? _internalTableName;
 
     private readonly IKustoIngestClient? _externalKustoClient; // For "External" logs
     private readonly string? _externalDatabaseName;
@@ -24,7 +24,7 @@ public class AzureDataExplorerLogger : ILogger
 
     private readonly bool _isExternalKustoClientEnabled;
 
-    private readonly CommonColumn _commonColumn;
+    private readonly CommonColumn? _commonColumn;
 
     public AzureDataExplorerLogger() { _logBuffer = new LogBuffer(); }
 
@@ -60,7 +60,7 @@ public class AzureDataExplorerLogger : ILogger
 
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
     {
-        if (!IsEnabled(logLevel)) return;
+        if (!IsEnabled(logLevel) || _commonColumn == null) return;
 
         var logMessage = formatter(state, exception);
 
@@ -91,7 +91,7 @@ public class AzureDataExplorerLogger : ILogger
         {
             _logBuffer.Logs.Enqueue(logData);
         }
-        else if (logType == ExternalLogType && _isExternalKustoClientEnabled)
+        else if (logType == ExternalLogType && _isExternalKustoClientEnabled && _externalKustoClient != null && _externalDatabaseName != null && _externalTableName != null)
         {
             IngestToCluster(
                 _externalKustoClient,
@@ -122,7 +122,7 @@ public class AzureDataExplorerLogger : ILogger
             }
         }
 
-        return null;
+        return string.Empty;
         // TODO: Uncomment to make strongly opinionated
         //throw new Exception("LogType property not found in log message");
     }
@@ -162,8 +162,11 @@ public class AzureDataExplorerLogger : ILogger
 
         stream.Position = 0; // Reset the position to the start of the stream
 
-        // Ingest the batch into Kusto
-        await _internalKustoClient.IngestFromStreamAsync(stream, ingestionProperties);
+        if (_internalKustoClient != null)
+        {
+            // Ingest the batch into Kusto
+            await _internalKustoClient.IngestFromStreamAsync(stream, ingestionProperties);
+        }
     }
 
     private void IngestToCluster(IKustoIngestClient client, string databaseName, string tableName, object logData)
