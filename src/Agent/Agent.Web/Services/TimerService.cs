@@ -26,7 +26,6 @@ using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
 using Agent.Runtime.SubAgents.WebAppDownAgent;
 using Agent.Runtime.ThreadEvaluator;
-using Gremlin.Net.Process.Traversal;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Web.Services;
@@ -277,11 +276,8 @@ public class TimerService : IHostedService, IDisposable
         _logger.LogInternalInformation("Starting Feedback RCA timer...");
         StartFeedbackRCATimer(cancellationToken);
 
-        if (_agentMemorySettings.Enabled)
-        {
-            _logger.LogInternalInformation("Starting Thread Evaluator timer...");
-            StartThreadEvaluatorTimer(cancellationToken);
-        }
+        _logger.LogInternalInformation("Starting Thread Evaluator timer...");
+        StartThreadEvaluatorTimer(cancellationToken);
 
         _logger.LogInternalInformation("Starting GitHub access token timer...");
         //StartGitHubAccessTokenTimer(cancellationToken);
