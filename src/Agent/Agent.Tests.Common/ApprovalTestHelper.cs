@@ -56,7 +56,7 @@ public class ApprovalTestHelper
                         OboToken: updated.OboToken
                         );
 
-                    await durableTaskClient.RaiseEventAsync(updated.OrchestrationId, "ApprovalEvent", approvalStatus);
+                    await durableTaskClient.RaiseEventAsync(updated.OrchestrationId ?? string.Empty, "ApprovalEvent", approvalStatus);
                     return;
                 }
             }
@@ -111,7 +111,7 @@ public class ApprovalTestHelper
                         OboToken: updated.OboToken
                         );
 
-                    await durableTaskClient.RaiseEventAsync(updated.OrchestrationId, "ApprovalEvent", approvalStatus);
+                    await durableTaskClient.RaiseEventAsync(updated.OrchestrationId ?? string.Empty, "ApprovalEvent", approvalStatus);
                     break;
                 }
             }

@@ -41,7 +41,12 @@ namespace Agent.Tests.Unit
             {
                 throw new InvalidOperationException("ThreadId must be set before calling this method.");
             }
-            return ThreadId.ToString();
+            var result = ThreadId.ToString();
+            if (string.IsNullOrEmpty(result))
+            {
+                throw new InvalidOperationException("ThreadId is null or empty.");
+            }
+            return result;
         }
 
         // Method without Description attribute - should not be registered
@@ -197,6 +202,7 @@ namespace Agent.Tests.Unit
             var function = toolFactory.GetTool("GetThreadId", threadId);
             Assert.NotNull(function);
             var result = await function.InvokeAsync();
+            Assert.NotNull(result);
             Assert.Equal(threadId.ToString(), result.ToString());
         }
 

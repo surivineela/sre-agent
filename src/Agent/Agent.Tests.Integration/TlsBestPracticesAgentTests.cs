@@ -74,7 +74,7 @@ namespace Agent.Tests.Integration
                     .AddFilter("ModelContextProtocol", LogLevel.Error);
             });
 
-            string llmDeploymentName = builder.Configuration["AppSettings:Core:Azure:OpenAI:LLMDeploymentName"];
+            string? llmDeploymentName = builder.Configuration["AppSettings:Core:Azure:OpenAI:LLMDeploymentName"];
 
             services.AddChatClient(serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().GetChatClient(llmDeploymentName).AsIChatClient(), ServiceLifetime.Singleton)
                 .UseAgenticLogging()
@@ -145,6 +145,7 @@ namespace Agent.Tests.Integration
 
                 if (orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Failed)
                 {
+                    Assert.NotNull(orchestrationMetadata.FailureDetails);
                     Assert.Fail(orchestrationMetadata.FailureDetails.ToString());
                 }
 
@@ -196,6 +197,7 @@ namespace Agent.Tests.Integration
 
                 if (orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Failed)
                 {
+                    Assert.NotNull(orchestrationMetadata.FailureDetails);
                     Assert.Fail(orchestrationMetadata.FailureDetails.ToString());
                 }
 
@@ -255,6 +257,7 @@ namespace Agent.Tests.Integration
 
                 if (orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Failed)
                 {
+                    Assert.NotNull(orchestrationMetadata.FailureDetails);
                     Assert.Fail(orchestrationMetadata.FailureDetails.ToString());
                 }
 
@@ -336,6 +339,7 @@ namespace Agent.Tests.Integration
 
                 if (orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Failed)
                 {
+                    Assert.NotNull(orchestrationMetadata.FailureDetails);
                     Assert.Fail(orchestrationMetadata.FailureDetails.ToString());
                 }
 

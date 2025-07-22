@@ -68,6 +68,15 @@ namespace Agent.Tests.Integration
 
             var cacheDir = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "..\\..\\..", "ChatCompletionCache", nameof(ManagedIdentityMigrationAgentTests)));
 
+            // -- test specific
+            _mockArmPlugin = new MockArmPlugin(_timeProvider);
+            _mockMetricsPlugin = new MockMetricsPlugin(_timeProvider);
+            _mockGithubPlugin = new MockGithubWorkflowTriggerPlugin(_timeProvider);
+            _mockTimePlugin = new MockTimePlugin(_timeProvider);
+            _mockMIConfigurationCheckPlugin = new MockMIConfigurationCheckPlugin();
+            _mockAppIdentityUpdatePlugin = new MockAppIdentityUpdatePlugin(_mockMIConfigurationCheckPlugin);
+            _mockAppIdentityUpdatePlugin.ConfigureTestApps(_testApps);
+
             _host = Host.CreateDefaultBuilder()
                 .ConfigureServices((context, services) =>
                 {
@@ -96,16 +105,7 @@ namespace Agent.Tests.Integration
                     services.AddKeyedChatClient("function-invocation-enabled", serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().GetChatClient(openAISettings.LLMDeploymentName).AsIChatClient(), ServiceLifetime.Singleton)
                         .UseAgenticLogging()
                         .UseDistributedCache(diskCache)
-                        .UseFunctionInvocation();
-
-                    // -- test specific
-                    _mockArmPlugin = new MockArmPlugin(_timeProvider);
-                    _mockMetricsPlugin = new MockMetricsPlugin(_timeProvider);
-                    _mockGithubPlugin = new MockGithubWorkflowTriggerPlugin(_timeProvider);
-                    _mockTimePlugin = new MockTimePlugin(_timeProvider);
-                    _mockMIConfigurationCheckPlugin = new MockMIConfigurationCheckPlugin();
-                    _mockAppIdentityUpdatePlugin = new MockAppIdentityUpdatePlugin(_mockMIConfigurationCheckPlugin);
-                    _mockAppIdentityUpdatePlugin.ConfigureTestApps(_testApps);
+                        .UseFunctionInvocation();                    
 
                     services.AddSingleton<IArmPlugin>(_mockArmPlugin);
                     services.AddSingleton<IMetricsPlugin>(_mockMetricsPlugin);
@@ -172,8 +172,10 @@ namespace Agent.Tests.Integration
                 await Task.Delay(TimeSpan.FromMilliseconds(500), approvalSource.Token);
                 var orchestrationMetadata = await _durableTaskClient.GetInstanceAsync(instanceID, getInputsAndOutputs: true);
 
+                Assert.NotNull(orchestrationMetadata);
                 if (orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Failed)
-                {
+                {                    
+                    Assert.NotNull(orchestrationMetadata.FailureDetails);
                     Assert.Fail(orchestrationMetadata.FailureDetails.ToString());
                 }
 
@@ -184,6 +186,7 @@ namespace Agent.Tests.Integration
 
                 var orchestrationStatus = orchestrationMetadata.ReadCustomStatusAs<string>();
 
+                Assert.NotNull(orchestrationStatus);
                 if (orchestrationStatus.StartsWith("Pending approval:"))
                 {
                     var approvalId = orchestrationStatus.Split(":")[1];
@@ -215,6 +218,7 @@ namespace Agent.Tests.Integration
                 var orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionAsync(instanceID, getInputsAndOutputs: true, tokenSource.Token);
                 if (orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Failed)
                 {
+                    Assert.NotNull(orchestrationMetadata.FailureDetails);
                     Assert.Fail(orchestrationMetadata.FailureDetails.ToString());
                 }
 

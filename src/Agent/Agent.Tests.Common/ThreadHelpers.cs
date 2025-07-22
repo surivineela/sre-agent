@@ -44,7 +44,7 @@ public static class ThreadHelpers
 
     public static async Task<(ChatResponse agentResponse, List<ChatMessage> fullConversation)> WaitForAgentResponse(this IThreadRepository threadRepository, Core.Models.Api.v1.Thread thread, CancellationToken cancellationToken)
     {
-        IList<Message> threadMessages = null;
+        IList<Message>? threadMessages = null;
         while (threadMessages == null || !threadMessages.Any() || threadMessages.Last().Author.Role == Role.User)
         {
             await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);

@@ -50,7 +50,7 @@ namespace Agent.Tests.Common
             public async Task<ChatResponse> GetResponseAsync(IEnumerable<ChatMessage> chatMessages, ChatOptions? options = null, CancellationToken cancellationToken = default)
             {
                 
-                string hash = null;
+                string hash;
                   
                 foreach (var chatMessage in chatMessages)
                 {
@@ -89,9 +89,12 @@ namespace Agent.Tests.Common
                             var sb = new StringBuilder();
                             sb.AppendLine($"Function call {functionCallContent.Name}({functionCallContent.CallId}) invoked with arguments:");
 
-                            foreach (var arg in functionCallContent.Arguments)
+                            if (functionCallContent.Arguments != null)
                             {
-                                sb.AppendLine($"  {arg.Key}: {arg.Value}");
+                                foreach (var arg in functionCallContent.Arguments)
+                                {
+                                    sb.AppendLine($"  {arg.Key}: {arg.Value}");
+                                }
                             }
 
                             _logger.LogTrace(sb.ToString());

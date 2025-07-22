@@ -39,12 +39,12 @@ public static class MetaAgentMock
         IMetaAgentVmRdpInvestigatorPlugin? vmRdpInvestigatorPlugin = null,
         IMetaAgentFunctionAppConnectivityPlugin? functionAppConnectivityPlugin = null,
         IMetaAgentSqlDbQueryPerfPlugin? sqlDbQueryPerfPlugin = null,
-        IMetaAgentAppCodeAnalysisPlugin appCodeAnalysisPlugin = null,
-        IMetaAgentCPUAnalysisPlugin cpuAnalysisPlugin = null,
-        IAppCodeAnalysisPlugin appCodePlugin = null,
-        ICpuAnalysisPlugin cpuPlugin = null,
-        IMetricsPlugin metricsPlugin = null,
-        IPagerDutyIncidentPlugin incidentPlugin = null,
+        IMetaAgentAppCodeAnalysisPlugin? appCodeAnalysisPlugin = null,
+        IMetaAgentCPUAnalysisPlugin? cpuAnalysisPlugin = null,
+        IAppCodeAnalysisPlugin? appCodePlugin = null,
+        ICpuAnalysisPlugin? cpuPlugin = null,
+        IMetricsPlugin? metricsPlugin = null,
+        IPagerDutyIncidentPlugin? incidentPlugin = null,
         IMetaAgentFunctionAppExecutionFailuresAgentPlugin? functionAppExecutionFailuresAgentPlugin = null,
         InstanceManagementSettings? instanceManagementSettings = null,
         IAzureMonitorMetricsPlugin? azureMonitorMetricsPlugin = null,
@@ -53,9 +53,9 @@ public static class MetaAgentMock
         IArmPlugin? armPlugin = null,
         ISearchPlugin? searchPlugin = null,
         IRemediationPlugin? remediationPlugin = null,
-        IAzureDevOpsWorkItemPlugin azureDevOpsWorkItemPlugin = null,
+        IAzureDevOpsWorkItemPlugin? azureDevOpsWorkItemPlugin = null,
         ISourceCodeAnalysisPlugin? sourceCodeAnalysisPlugin = null, // Added parameter
-        IGraphService graphServicePlugin = null
+        IGraphService? graphServicePlugin = null
         ) // Added parameter
     {
         return new ThirdPartyAgentsFactory(

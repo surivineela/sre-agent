@@ -109,7 +109,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns></returns>
         public static IServiceCollection Remove<TService, TImplementation>(this IServiceCollection serviceCollection)
         {
-            ServiceDescriptor descriptor = serviceCollection.SingleOrDefault(x => x.ServiceType == typeof(TService) && x.ImplementationType == typeof(TImplementation));
+            ServiceDescriptor? descriptor = serviceCollection.SingleOrDefault(x => x.ServiceType == typeof(TService) && x.ImplementationType == typeof(TImplementation));
 
             if (descriptor != null)
             {
@@ -129,7 +129,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns></returns>
         public static IServiceCollection Remove<TService>(this IServiceCollection serviceCollection, Type oldImplementationType)
         {
-            ServiceDescriptor descriptor = serviceCollection.SingleOrDefault(x => x.ServiceType == typeof(TService) && x.ImplementationType == oldImplementationType);
+            ServiceDescriptor? descriptor = serviceCollection.SingleOrDefault(x => x.ServiceType == typeof(TService) && x.ImplementationType == oldImplementationType);
 
             if (descriptor != null)
             {

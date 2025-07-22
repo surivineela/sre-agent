@@ -24,8 +24,8 @@ namespace Agent.Tests.Common.Mocks;
 public class MetaAgentMockSetup
 {
     public IAuthenticationService AuthenticationService = Mock.Of<IAuthenticationService>();
-    public InMemoryThreadRepository ThreadRepository { get; set; }
-    public MetaAgent Agent { get; set; }
+    public InMemoryThreadRepository? ThreadRepository { get; set; }
+    public MetaAgent? Agent { get; set; }
     public string GraphName { get; set; }
 
     public MetaAgentMockSetup(string graphName)

@@ -41,13 +41,17 @@ public static class DurableExtensions
     public static ChatMessage[] ReadChatHistory(this OrchestrationMetadata orchestration)
     {
         var fullHistoryRaw = orchestration.ReadCustomStatusAs<string>();
+        if (fullHistoryRaw == null)
+        {
+            throw new Exception("Unable to read custom status");
+        }
         var fullHistory = System.Text.Json.JsonSerializer.Deserialize<ChatMessage[]>(fullHistoryRaw, new System.Text.Json.JsonSerializerOptions
         {
 
             PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
         });
 
-        return fullHistory;
+        return fullHistory ?? [];
     }
 
     public static async Task<OrchestrationMetadata> WaitForInstanceCompletionWithRetryAsync(
@@ -59,7 +63,7 @@ public static class DurableExtensions
         if (durableTaskClient == null) throw new ArgumentNullException(nameof(durableTaskClient));
         if (string.IsNullOrEmpty(instanceId)) throw new ArgumentException("Instance ID cannot be null or empty.", nameof(instanceId));
 
-        OrchestrationMetadata orchestrationMetadata = null;
+        OrchestrationMetadata orchestrationMetadata;
 
         while (true)
         {

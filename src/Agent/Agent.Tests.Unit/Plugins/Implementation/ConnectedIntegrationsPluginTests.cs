@@ -9,16 +9,16 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 {
     public class ConnectedIntegrationsPluginTests
     {
-        private DashboardSettings GetDashboardSettings(string url = null, string apiKey = null)
+        private DashboardSettings GetDashboardSettings(string? url = null, string? apiKey = null)
         {
             return new DashboardSettings
             {
-                GrafanaUrl = url,
-                GrafanaApiKey = apiKey
+                GrafanaUrl = url ?? string.Empty,
+                GrafanaApiKey = apiKey ?? string.Empty
             };
         }
 
-        private IncidentManagementSettings GetIncidentSettings(IncidentManagementType? type = null, string key = null)
+        private IncidentManagementSettings GetIncidentSettings(IncidentManagementType? type = null, string? key = null)
         {
             return new IncidentManagementSettings
             {
@@ -27,11 +27,11 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             };
         }
 
-        private AppInsightsSettings GetAppInsightsSettings(string connStr = null)
+        private AppInsightsSettings GetAppInsightsSettings(string? connStr = null)
         {
             return new AppInsightsSettings
             {
-                ConnectionString = connStr
+                ConnectionString = connStr ?? string.Empty
             };
         }
 

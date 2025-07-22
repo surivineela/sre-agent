@@ -63,7 +63,7 @@ namespace Agent.Tests.Common.Mocks
 
         public Task AppendAgentToolCallResult(Guid threadId, FunctionResultContent result, Guid? messageId = null, CancellationToken cancellationToken = default)
         {
-            Messages.Add(result?.Result?.ToString());
+            Messages.Add(result.Result?.ToString() ?? string.Empty);
             return Task.CompletedTask;
         }
 
@@ -76,7 +76,7 @@ namespace Agent.Tests.Common.Mocks
         public Task NotifyCompletionAsync(string threadId, string instanceId, string status, string? summary = null)
         {
             _logger?.LogInternalInformation($"ThreadId: {threadId}, InstanceId: {instanceId}, Status: {status}");
-            Messages.Add(summary);
+            Messages.Add(summary ?? string.Empty);
             return Task.CompletedTask;
         }
 
