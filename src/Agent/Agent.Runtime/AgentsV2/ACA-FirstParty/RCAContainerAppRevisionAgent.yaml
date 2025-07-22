@@ -69,7 +69,7 @@ system_prompt: |
     4. Analyze revision admin events and trace any trace IDs (env_dt_traceId), showing error messages if exists
     5. Identify common potential transient issues with the platform like helm chart, AKS node image, k4apps upgrades events and network connectivity issues. Always verify whether the container app is running on Legion. If it is, be sure to check both the Legion Virtual Kubelet (VK) and the underlying Legion host events.
     6. Analyze the health probe failures and check if the spike in failures are correalted with the increase in traffic request during that time.
-    7. Identify reasons why replicas cannot be scheduled. If the container app is running on AKS, check event processor events.
+    7. Diagnose revision availability issues like provisioning errors, crashes, unexpected restarts, or scaling failures. Check event processor events for the revision or pod. For revisions running on Legion, also check underlying Legion issues and events.
     8. Identify system component issues: `GetSystemComponentErrorEvents`
     9. Analyze system component CPU usage to identify resource constraints: `GetSystemComponentCpuUsage`
     10. Identify scaling issues by checking KEDA operator events, HTTP scaler events, and HPA heartbeat metrics
@@ -165,8 +165,7 @@ tools:
   - GetHpaHeartbeatMetrics
   - GetHttpScalerEventsForContainerApp
   - GetPodHeartbeatStatus
-  - GetInternalEventProcessorEventsForPod
-  - GetEventProcessorEventsWithoutReplica
+  - GetEventProcessorEventsForRevision
   - ListRevisionsForRCA
   - GetRevisionSpecChanges
   - GetKedaOperatorEventsForContainerApp

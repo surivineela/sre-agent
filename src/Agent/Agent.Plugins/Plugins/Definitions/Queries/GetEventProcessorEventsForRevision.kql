@@ -1,0 +1,16 @@
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let capp_name = "##containerAppName##";
+let capp_rg = "##resourceGroupName##";
+let capp_sub = "##subscriptionId##";
+let capp_revision = "##revisionName##";
+let pod_name = "##podName##";
+let managedClusterName = toscalar(GetManagedClusterName(capp_name, capp_rg, capp_sub));    
+EventProcessorEvents
+| where PreciseTimeStamp between (queryFrom .. queryTo)
+| where RevisionName == capp_revision
+| where EnvironmentName == managedClusterName
+| where isempty(pod_name) or * contains pod_name
+| summarize StartTime= min(PreciseTimeStamp), EndTime = max(PreciseTimeStamp) by RevisionName,ReplicaName,Reason,Message=msg
+| order by StartTime asc
+| project StartTime,EndTime,RevisionName,ReplicaName,Reason,Message

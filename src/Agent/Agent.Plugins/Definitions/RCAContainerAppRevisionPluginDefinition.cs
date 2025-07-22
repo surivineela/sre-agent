@@ -456,30 +456,42 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
                 });
         }
 
-        [Description(@"""
-Retrieves EventProcessor events for a revision where no replica is associated.
-Use this tool to get EventProcessor events without replica association for a revision.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- PreciseTimeStamp: Timestamp of event.
-- RevisionName: Name of the revision.
-- Reason: Reason for the event.
-- msg: Additional event message details.
-"""
-)]
-        public Task<string> GetEventProcessorEventsWithoutReplica(
+        [Description("""
+        Purpose:
+        Retrieves EventProcessor events for a specific revision or pod.
+
+        Scenario:
+        Use this tool when you need to investigate:
+        - Revision startup failures or unexpected restarts
+        - Revision scale unexpectedly or fail to scale
+        - Pod lifecycle events such as container creation, restarts, exits, and node activity.
+
+        Output:
+        Returns tab-separated table data in CSV format. The first line contains these column headers:
+        - StartTime: Timestamp of the first time the event occurred.
+        - EndTime: Timestamp of the last time the event occurred.
+        - RevisionName: Name of the revision.
+        - ReplicaName: Name of the replica.
+        - Reason: Reason for the event.
+        - Message: Additional event message details.
+        """
+        )]
+        public Task<string> GetEventProcessorEventsForRevision(
             [Description("Azure region.")] string region,
             [Description("Start time.")] DateTime fromDate,
             [Description("End time.")] DateTime toDate,
             [Description("Revision name.")] string revisionName,
+            [Description("Pod name within the revision.")] string podName,
             [Description("App name.")] string containerAppName,
             [Description("Resource group.")] string resourceGroupName,
             [Description("Subscription ID.")] string subscriptionId)
         {
-            return _kustoPlugin.ExecuteLocalFunctionAsync("GetEventProcessorEventsWithoutReplica", region,
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetEventProcessorEventsForRevision", region,
                 new Dictionary<string, string> {
                         { "fromDate", fromDate.ToString() },
                         { "toDate", toDate.ToString() },
                         { "revisionName", revisionName },
+                        { "podName", podName },
                         { "containerAppName", containerAppName },
                         { "resourceGroupName", resourceGroupName },
                         { "subscriptionId", subscriptionId }
@@ -511,43 +523,6 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
                         { "fromDate", fromDate.ToString() },
                         { "toDate", toDate.ToString() },
                         { "revisionName", revisionName },
-                        { "containerAppName", containerAppName },
-                        { "resourceGroupName", resourceGroupName },
-                        { "subscriptionId", subscriptionId }
-                });
-        }
-
-        [Description(@"""
-Retrieves internal EventProcessor events for a specific pod inside a revision.
-Use this tool to get internal EventProcessor events for a pod in a revision.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- PreciseTimeStamp: Event timestamp.
-- Type: Type of event (Normal/Error).
-- msg: Event message.
-- Reason: Short reason description.
-- Count: Number of occurrences.
-- EventSource: Event origin.
-- ReplicaName: Name of the replica.
-- RevisionName: Name of the revision.
-- level: Info or Error.
-"""
-)]
-        public Task<string> GetInternalEventProcessorEventsForPod(
-            [Description("Azure region.")] string region,
-            [Description("Start timestamp.")] DateTime fromDate,
-            [Description("End timestamp.")] DateTime toDate,
-            [Description("Name of the revision.")] string revisionName,
-            [Description("Pod name within the revision.")] string podName,
-            [Description("Name of the container app.")] string containerAppName,
-            [Description("Name of the resource group.")] string resourceGroupName,
-            [Description("Azure subscription ID.")] string subscriptionId)
-        {
-            return _kustoPlugin.ExecuteLocalFunctionAsync("GetInternalEventProcessorEventsForPod", region,
-                new Dictionary<string, string> {
-                        { "fromDate", fromDate.ToString() },
-                        { "toDate", toDate.ToString() },
-                        { "revisionName", revisionName },
-                        { "podName", podName },
                         { "containerAppName", containerAppName },
                         { "resourceGroupName", resourceGroupName },
                         { "subscriptionId", subscriptionId }
