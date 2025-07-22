@@ -236,6 +236,7 @@ public static class ToolDescriptionHelper
             // Container Apps Revision Plugin functions
             "ListRevisionsForRCA" => "Listing revisions for analysis...",
             "GetHttpScalerEventsForContainerApp" => "Getting HTTP scaler events...",
+            "GetHttpScalerMetricsForContainerApp" => "Getting HTTP scaler metrics...",
             "GetKedaOperatorEventsForContainerApp" => "Getting KEDA operator events...",
             "GetASIPageForRevision" => "Getting ASI page link for revision...",
             "GetRevisionTrafficWithReplicaCount" => "Getting revision traffic and replica data...",

@@ -9,6 +9,6 @@ HttpScalerEvents
 | where EnvironmentName == cappsClusterName
 | where ScaledObjectName has cappsSiteName or Log has cappsSiteName
 | where msg != "Aggregated metrics"
-| where msg !has 'the object has been modified; please apply your changes to the latest version and try again'
+| extend Message = strcat(Log, msg)  
 | take 100
-| project PreciseTimeStamp, ManagedClusterName=EnvironmentName, ScaledObjectName, Log, Message=msg
+| project PreciseTimeStamp, ManagedClusterName=EnvironmentName, ScaledObjectName, Message

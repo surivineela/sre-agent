@@ -1,0 +1,19 @@
+let cappsSiteName = "##containerAppName##";
+let BT = datetime("##fromDate##");
+let ET = datetime("##toDate##");
+let cappsClusterName = "##managedClusterName##";
+let concurrentRequests = toreal("##concurrentRequests##");
+let minReplica = toreal("##minReplica##");
+let maxReplica = toreal("##maxReplica##");
+HttpScalerEvents
+| where PreciseTimeStamp between (BT .. ET)
+| where EnvironmentName == cappsClusterName
+| where ScaledObjectName has cappsSiteName or Log has cappsSiteName
+| extend metrics = parse_json(Details)
+| extend value = toint(metrics.Value), MetricName = strcat("s1-", metrics.MetricName)
+| summarize MaxValue = max(value), MinValue = min(value) by MetricName
+| extend
+DesiredReplica_Max = iff(ceiling(MaxValue/concurrentRequests) > maxReplica, maxReplica, ceiling(MaxValue/concurrentRequests)),
+DesiredReplica_Min = iff(ceiling(MinValue/concurrentRequests) < minReplica, minReplica, ceiling(MinValue/concurrentRequests))
+| project MetricName, MaxValue, DesiredReplica_Max, MinValue, DesiredReplica_Min 
+ 

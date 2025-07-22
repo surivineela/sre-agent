@@ -72,6 +72,9 @@ Count
 TotalCount
 FailureCount
 SuccessCount
+DesiredReplica
+DesiredReplica_Max
+DesiredReplica_Min 
 
 # Metric Descriptors
 MetricName

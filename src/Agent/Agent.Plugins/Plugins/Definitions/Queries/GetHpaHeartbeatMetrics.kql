@@ -10,7 +10,10 @@ ContainerAppControllerEvents
 | where Tenant == managedCluster
 | where msg == "HPA Heartbeat"
 | where ContainerAppName == capp_name
-| extend metrics = parse_json(Details).metrics
+| extend Details = parse_json(Details)
+| extend metrics = Details.metrics
+| extend DesiredReplica = tostring(Details.desiredReplicas)
+| extend metrics = Details.metrics
 | mv-expand metric = metrics
 | extend metricName = tostring(metric.name)
 | extend curr_raw    = todouble(replace("m", "", tostring(metric.currentValue))),
@@ -19,5 +22,5 @@ ContainerAppControllerEvents
          target  = iif(metric.targetValue   endswith "m", target_raw / 1000.0, target_raw)
 | extend ScalingResult = iif(current > target * 1.1,  "Scaling out is triggered when the value exceeds the target value, considering tolerance.", iif(current < target * 0.9, "Scaling in may occur when the value exceeds the target value, considering the tolerance.", "No scaling occurs as the value does not exceed the target value, considering tolerance"))
 | extend Tolerance = 0.1
-| summarize MaxValue = max(current), MinValue = min(current) by metricName, target, ScalingResult
-| project MetricName=metricName, MaxValue, MinValue, TargetValue=target, Tolerance=0.1, ScalingResult
+| summarize MaxValue = max(current), MinValue = min(current) by metricName, target, ScalingResult, DesiredReplica
+| project MetricName=metricName, MaxValue, MinValue, TargetValue=target, Tolerance=0.1, ScalingResult, DesiredReplica

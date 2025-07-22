@@ -115,7 +115,48 @@ Returns tab-separated table data in CSV format. Column headers:
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetHttpScalerEventsForContainerApp", region, parm, samplingOptions: samplingOptions);
         }
 
-                [Description("""
+        [Description("""
+        Purpose:
+        Retrieves the precise maximum and minimum values of metrics (s1_upstream_rq_total, s1_upstream_cx_active, s1_upstream_rq_active, s1_upstream_cx_total) for the HTTP scaler in real time, without any data collection interval.
+
+
+        Scenario:
+        Use this tool to verify whether the metrics value of HTTP scaler matches the scaling behavior of HPA. 
+
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - MetricName: Four types of HTTP metrics name will be returned: upstream_rq_total/upstream_cx_active/upstream_rq_active/upstream_cx_total
+        - MaxValue
+        - MinValue
+        - DesiredReplica_Max
+        - DesiredReplica_Min
+        """
+        )]
+        public Task<string> GetHttpScalerMetricsForContainerApp(
+    [Description("Azure region.")] string region,
+    [Description("Start time of the query.")] DateTime fromDate,
+    [Description("End time of the query.")] DateTime toDate,
+    [Description("Name of the container app.")] string containerAppName,
+    [Description("Name of the managed cluster.")] string managedClusterName,
+    [Description("concurrentRequests setting from http scaling rule.")] string concurrentRequests,
+    [Description("minReplica setting from http scaling rule.")] string minReplica,
+    [Description("maxReplica setting from http scaling rule.")] string maxReplica,
+    [Description("Sampling options for the query.")] SamplingOptions samplingOptions)
+        {
+            var parm = new Dictionary<string, string> {
+                    { "fromDate", fromDate.ToString() },
+                    { "toDate", toDate.ToString() },
+                    { "containerAppName", containerAppName },
+                    { "managedClusterName", managedClusterName },
+                    { "concurrentRequests", concurrentRequests },
+                    { "minReplica", minReplica },
+                    { "maxReplica", maxReplica }
+                };
+
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetHttpScalerMetricsForContainerApp", region, parm, samplingOptions: samplingOptions);
+        }
+
+        [Description("""
 Purpose:
 Retrieves KEDA Operator events related to scaling actions or failures for a container app.
 
@@ -358,7 +399,8 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
 
         [Description(@"""
 Purpose:
-Retrieves the maximum, minimum, and target metric values of different scalers in HPA (Horizontal Pod Autoscaler) without considering tolerance, and the scaling result when tolerance is considered.
+Retrieves the maximum, minimum, and target metric values of different scalers in HPA (Horizontal Pod Autoscaler) without considering tolerance, and the scaling result when tolerance is considered. Metric collection occurs at 30-second intervals, which may result in missed peak values.
+
 Scenario:
 Use this tool to check whether HPA triggers the scale-up or scale-down when analyzing scaling issue.
 
