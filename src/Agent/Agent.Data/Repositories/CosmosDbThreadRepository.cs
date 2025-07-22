@@ -564,6 +564,50 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
+    public async Task<Thread> UpdateTrajectoryGeneratedTimestampAsync(Guid threadId, DateTime evaluatedTimestamp)
+    {
+        string threadIdStr = threadId.ToString();
+
+        try
+        {
+            // Get the current thread document
+            ThreadDocument threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
+
+            if (threadDoc == null)
+            {
+                _logger.LogInternalWarning("Cannot update trajectory generated timestamp: Thread {ThreadId} not found", threadId);
+                return null;
+            }
+
+            // Create updated thread document with new trajectory generated timestamp
+            ThreadDocument updatedThreadDoc = threadDoc with
+            {
+                TrajectoryGeneratedTimestamp = evaluatedTimestamp
+            };
+
+            // Save the updated document
+            var response = await _client.GetContainer<ThreadDocument>(_databaseName).ReplaceItemAsync(
+                updatedThreadDoc,
+                threadIdStr,
+                new PartitionKey(threadIdStr)
+            );
+
+            // Get the updated thread with all of its data
+            var updatedThread = await GetThreadAsync(threadId);
+            return updatedThread;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            _logger.LogInternalWarning("Cannot update trajectory generated timestamp: Thread {ThreadId} not found", threadId);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error updating trajectory generated timestamp for thread {ThreadId}", threadId);
+            throw;
+        }
+    }
+
     public async Task<Thread> UpdateThreadAgentModeAsync(Guid threadId, string? agentMode)
     {
         string threadIdStr = threadId.ToString();

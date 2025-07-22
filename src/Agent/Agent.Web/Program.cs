@@ -81,6 +81,7 @@ using Agent.Runtime.SubAgents.VmRdpInvestigatorAgent;
 using Agent.Runtime.SubAgents.WebAppDownAgent;
 using Agent.Runtime.TeamsChatServices;
 using Agent.Runtime.ThreadEvaluator;
+using Agent.Runtime.TrajectoryEvaluator;
 using Agent.Web.Services;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using FirstPartyAgent.Core.FirstPartyAgents;
@@ -482,6 +483,7 @@ public class Program
             .AddSingleton<AksQaAgentFactory>()
             .AddSingleton<ManagedIdentityMigrationAgentFactory>()
             .AddSingleton<ThreadEvaluator>()
+            .AddSingleton<TrajectoryEvaluator>()
             .AddSingleton<TlsBestPracticeAgentFactory>()
             .AddSingleton<TlsBestPracticesScanner>()
             .AddTransient<LocalAuthScanner>()

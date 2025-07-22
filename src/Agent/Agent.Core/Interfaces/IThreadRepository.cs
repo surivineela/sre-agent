@@ -20,6 +20,7 @@ public interface IThreadRepository
     Task<Thread> UpdateThreadTitleAsync(Guid threadId, string newTitle);
     Task<Thread> UpdateThreadReadMarkAsync(Guid threadId, DateTime lastReadTime);
     Task<Thread> UpdateThreadEvaluatedTimestampAsync(Guid threadId, DateTime evaluatedTimestamp);
+    Task<Thread> UpdateTrajectoryGeneratedTimestampAsync(Guid threadId, DateTime evaluatedTimestamp);
     Task<Thread> UpdateThreadAgentModeAsync(Guid threadId, string? agentMode);
 
     Task<Message> GetMessageAsync(Guid threadId, Guid messageId);

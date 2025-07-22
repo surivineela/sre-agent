@@ -2,17 +2,15 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Text;
-using System.Text.Json;
-using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
-using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
-using Agent.Data.AgentMemory;
+using Agent.Core.Extensions;
 using Agent.Logging;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
+using System.Text;
+using System.Text.Json;
 using ThreadModel = Agent.Core.Models.Api.v1.Thread;
 
 namespace Agent.Runtime.ThreadEvaluator;
@@ -28,41 +26,24 @@ public class ThreadEvaluator
     private readonly ILogger<ThreadEvaluator> _logger;
     private readonly IThreadRepository _threadRepository;
     private readonly IChatClient _chatClient;
-    private readonly IAgentMemoryClient _memory;
     private readonly Tracer _tracer;
     private readonly AgentActionLogger _actionLogger;    // Configurable time windows for thread filtering
     private readonly TimeSpan _evaluationHistoryRange; // How far back to search for threads
     private readonly TimeSpan _coolDownPeriod;         // Minimum time since last modification before evaluation
-    private readonly bool _agentMemoryEnabled;
-    private readonly bool _saveOnlyUsefulTrajectories = false;
-    private readonly IEmbeddingGenerator<string, Embedding<float>> _embeddingGenerator;
-
-    private readonly ISearchIndexService _searchIndexService;
-
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = AIJsonUtilities.DefaultOptions;
-
     public ThreadEvaluator(
-        ILogger<ThreadEvaluator> logger,
-        IThreadRepository threadRepository,
-        IChatClient chatClient,
-        IAgentMemoryClient memory,
-        AgentActionLogger actionLogger,
-        Tracer tracer,
-        ISearchIndexService searchIndexService,
-        IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator,
-        TimeSpan? evaluationHistoryRange = null,
-        TimeSpan? coolDownPeriod = null)
+      ILogger<ThreadEvaluator> logger,
+      IThreadRepository threadRepository,
+      IChatClient chatClient,
+      AgentActionLogger actionLogger,
+      Tracer tracer,
+      TimeSpan? evaluationHistoryRange = null,
+      TimeSpan? coolDownPeriod = null)
     {
         _logger = logger;
         _threadRepository = threadRepository;
         _chatClient = chatClient;
         _actionLogger = actionLogger;
         _tracer = tracer;
-        _memory = memory;
-
-        _agentMemoryEnabled = _memory is not DummyAgentMemoryClient;
-        _searchIndexService = searchIndexService;
-        _embeddingGenerator = embeddingGenerator;
 
         // Allow overriding default time windows
         _evaluationHistoryRange = evaluationHistoryRange ?? TimeSpan.FromHours(24);
@@ -148,7 +129,7 @@ public class ThreadEvaluator
                 try
                 {
                     // First check if thread is within the time window
-                    var isInTimeWindow = thread.ModifiedTimestamp >= earliestTime &&
+                    bool isInTimeWindow = thread.ModifiedTimestamp >= earliestTime &&
                                          thread.ModifiedTimestamp <= latestTime;
 
                     if (!isInTimeWindow)
@@ -219,41 +200,6 @@ public class ThreadEvaluator
             (var chatHistory, var reasoningHistory) = await GetMessageHistories(thread.Id, agentContextsList);            // Call LLM to evaluate thread quality
             var llmEvaluation = await EvaluateThreadWithLLM(thread, chatHistory, reasoningHistory, toolCallMetrics, cancellationToken);// Calculate SAT Score as the average of all dimensions, rounded up to an integer
             var satScore = Math.Ceiling((double)(llmEvaluation.Resolved + llmEvaluation.Satisfied + llmEvaluation.Automatic + llmEvaluation.Smooth + llmEvaluation.Concise + llmEvaluation.Adherence) / 6.0);
-
-            if (_agentMemoryEnabled)
-            {
-                // Index the trajectory right away
-                try
-                {
-                    var chatMessages = await GetChatMessages(agentContexts.First());
-
-                    // todo: pass in start agent and autohandoff from the thread info
-                    var trajectoryInfo = await TrajectoryExtractor.GenerateTrajectoryAsync_v3(
-                        _chatClient,
-                        chatMessages,
-                        cancellationToken: cancellationToken);
-
-                    var trajectory = trajectoryInfo.Trajectory;
-                    if (trajectory != null)
-                    {
-                        var trajectoryString = JsonSerializer.Serialize(trajectory, _jsonSerializerOptions);
-                        await SaveTrajectoryAsync(thread.Id, trajectoryString, trajectoryInfo.PromptHash, cancellationToken);
-
-                        var vector = await _embeddingGenerator.GenerateVectorAsync(trajectory.SymptomsObserved, null, cancellationToken);
-                        var memory = AgentMemory.FromTrajectory(
-                            id: thread.Id.ToString(),
-                            trajectoryData: trajectory,
-                            embedding: [.. vector.Span]
-                        );
-
-                        await _searchIndexService.IndexContentAsync(memory);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogInternalWarning(ex, $"Failed to index trajectory for thread {thread.Id}");
-                }
-            }
 
             var evaluationResult = new ThreadEvaluateResult(
                 Id: Guid.NewGuid(),
@@ -336,7 +282,7 @@ public class ThreadEvaluator
                         metrics.TotalToolCalls++;
 
                         // Deserialize the chat message to get content
-                        var content = GetContentFromReasoningMessage(reasoningMessage);
+                        string content = GetContentFromReasoningMessage(reasoningMessage);
 
                         // Determine tool type and success based on message content
                         var isSuccess = !content.ToLower().Contains("error") &&
@@ -405,19 +351,6 @@ public class ThreadEvaluator
         }
     }
 
-    private async Task<IReadOnlyList<ChatMessage>> GetChatMessages(AgentContext agentContext)
-    {
-        var agentChatHistory = await _threadRepository.GetAgentChatHistoryAsync(agentContext.Id);
-        if (agentChatHistory == null)
-        {
-            _logger.LogInternalError("No chat history found for agent context {agentContextId}, this should never happen.", agentContext.Id);
-            return [];
-        }
-
-        var reasoningMessages = await agentChatHistory.GetReasoningMessagesAsync(_threadRepository);
-        return reasoningMessages.GetChatMessages();
-    }
-
     /// <summary>
     /// Get chat and reasoning message histories for the thread
     /// </summary>
@@ -472,7 +405,9 @@ public class ThreadEvaluator
         {
             var prompt = BuildEvaluationPrompt(thread, chatHistory, reasoningHistory, toolCallMetrics);
 
-            _logger.LogInternalInformation("LLM Evaluation Prompt for thread {ThreadId}:\n{Prompt}", thread.Id, prompt);            var chatMessages = new List<ChatMessage>
+            _logger.LogInternalInformation("LLM Evaluation Prompt for thread {ThreadId}:\n{Prompt}", thread.Id, prompt);
+
+            var chatMessages = new List<ChatMessage>
             {
                 new(ChatRole.System, """
                     You are an expert evaluator of AI agent conversations. Your task is to evaluate the quality and effectiveness of agent threads based on the provided conversation history and reasoning logs.
@@ -645,7 +580,6 @@ public class ThreadEvaluator
             };
         }
     }
-
     /// <summary>
     /// Build the evaluation prompt for the LLM
     /// </summary>
@@ -708,7 +642,7 @@ public class ThreadEvaluator
         }
     }
 
-    public class ToolCallMetrics
+    internal class ToolCallMetrics
     {
         public int TotalToolCalls { get; set; }
         public int TotalSuccesses { get; set; }
@@ -735,7 +669,6 @@ public class ThreadEvaluator
         public string Priority { get; set; } = "";
         public string PriorityReason { get; set; } = "";
     }
-
     internal class LLMEvaluationResponse
     {
         public double SATScore { get; set; }
@@ -791,37 +724,6 @@ public class ThreadEvaluator
         {
             _logger.LogInternalError(ex, $"Error checking evaluation status for thread {threadId}");
             return null;
-        }
-    }
-
-    private async Task SaveTrajectoryAsync(
-       Guid threadId,
-       string trajectory,
-       string promptHash,
-       CancellationToken ct)
-    {
-        if (string.IsNullOrWhiteSpace(trajectory)) return;
-
-        try
-        {
-            var trajectoryData = System.Text.Json.JsonSerializer.Deserialize<TrajectoryOutput>(trajectory);
-
-            if (_saveOnlyUsefulTrajectories && trajectoryData != null && !trajectoryData.IsInvestigationThread)
-            {
-                _logger.LogInternalWarning($"Skipping non-investigation thread. Reason: {trajectoryData.InvestigationReason}");
-                return;
-            }
-
-            using var ms = new MemoryStream(Encoding.UTF8.GetBytes(trajectory));
-            var blobName = $"{promptHash}/{threadId}.txt"; // store under prompt-hash folder
-            var ok = await _memory.UploadDocumentAsync(blobName, ms);
-
-            if (!ok)
-                _logger.LogInternalWarning($"UploadDocumentAsync returned false for {blobName}");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalWarning(ex, $"Failed to upload trajectory for {threadId}");
         }
     }
 

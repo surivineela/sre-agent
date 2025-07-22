@@ -26,6 +26,7 @@ using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
 using Agent.Runtime.SubAgents.WebAppDownAgent;
 using Agent.Runtime.ThreadEvaluator;
+using Agent.Runtime.TrajectoryEvaluator;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Web.Services;
@@ -83,6 +84,7 @@ public class TimerService : IHostedService, IDisposable
     private FeedbackRCAScanner _feedbackRCAScanner;
     private AzMonitorAlertScanner _azMonitorAlertScanner;
     private ThreadEvaluator _threadEvaluator;
+    private TrajectoryEvaluator _trajectoryEvaluator;
     private AzureDataExplorerLogger _azureDataExplorerLogger;
     private CustomerLogger _customerLogger;
     private CustomerAuditLogger _customerAuditLogger;
@@ -124,6 +126,10 @@ public class TimerService : IHostedService, IDisposable
     private Timer? _threadEvaluatorTimer = null;
     private bool _threadEvaluatorTimerIsRunning = false;
     private TimeSpan _threadEvaluatorTimerInterval = TimeSpan.FromMinutes(30);
+
+    private Timer? _trajectoryEvaluatorTimer = null;
+    private bool _trajectoryEvaluatorTimerIsRunning = false;
+    private TimeSpan _trajectoryEvaluatorTimerInterval = TimeSpan.FromMinutes(30);
 
     private Timer? _azMonitorAlertScannerTimer = null;
     private bool _azMonitorAlertScannerTimerIsRunning = false;
@@ -177,6 +183,7 @@ public class TimerService : IHostedService, IDisposable
         FeedbackRCAScanner feedbackRCAScanner,
         AzMonitorAlertScanner azMonitorAlertScanner,
         ThreadEvaluator threadEvaluator,
+        TrajectoryEvaluator trajectoryEvaluator,
         AzureDataExplorerLogger azureDataExplorerLogger,
         CustomerLogger customerLogger,
         CustomerAuditLogger customerAuditLogger,
@@ -204,6 +211,7 @@ public class TimerService : IHostedService, IDisposable
         _dashboardSettings = dashboardSettings;
         _azMonitorAlertScanner = azMonitorAlertScanner;
         _threadEvaluator = threadEvaluator;
+        _trajectoryEvaluator = trajectoryEvaluator;
         _azureDataExplorerLogger = azureDataExplorerLogger;
         _customerLogger = customerLogger;
         _customerAuditLogger = customerAuditLogger;
@@ -279,6 +287,12 @@ public class TimerService : IHostedService, IDisposable
         _logger.LogInternalInformation("Starting Thread Evaluator timer...");
         StartThreadEvaluatorTimer(cancellationToken);
 
+        if (_agentMemorySettings.Enabled)
+        {
+            _logger.LogInternalInformation("Starting Trajectory Evaluator timer...");
+            StartTrajectoryEvaluatorTimer(cancellationToken);
+        }
+
         _logger.LogInternalInformation("Starting GitHub access token timer...");
         //StartGitHubAccessTokenTimer(cancellationToken);
 
@@ -317,6 +331,7 @@ public class TimerService : IHostedService, IDisposable
 
         _crawlerTimer?.Change(Timeout.Infinite, 0); // Stop the timer
         _threadEvaluatorTimer?.Change(Timeout.Infinite, 0); // Stop the ThreadEvaluator timer
+        _trajectoryEvaluatorTimer?.Change(Timeout.Infinite, 0); // Stop the TrajectoryEvaluator timer
         _localAuthScannerTimer?.Change(Timeout.Infinite, 0); // Stop the Local Auth scanner timer
 
         // Stop all generic timers
@@ -704,6 +719,31 @@ public class TimerService : IHostedService, IDisposable
                 _threadEvaluatorTimerIsRunning = false;
             }
         }, null, TimeSpan.Zero, _threadEvaluatorTimerInterval);
+    }
+
+    public void StartTrajectoryEvaluatorTimer(CancellationToken cancellationToken)
+    {
+        _trajectoryEvaluatorTimer = new Timer(async _ =>
+        {
+            if (_trajectoryEvaluatorTimerIsRunning)
+            {
+                _logger.LogInternalInformation("Trajectory evaluator is already running. Skip this round.");
+                return;
+            }
+            try
+            {
+                _trajectoryEvaluatorTimerIsRunning = true;
+                await _trajectoryEvaluator.Evaluate(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Error executing trajectory evaluator.");
+            }
+            finally
+            {
+                _trajectoryEvaluatorTimerIsRunning = false;
+            }
+        }, null, TimeSpan.Zero, _trajectoryEvaluatorTimerInterval);
     }
 
     public void StartGitHubAccessTokenTimer(CancellationToken cancellationToken)

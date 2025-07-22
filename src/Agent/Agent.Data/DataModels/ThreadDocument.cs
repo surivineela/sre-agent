@@ -17,6 +17,7 @@ public record ThreadDocument(
     DateTime ModifiedTimestamp,
     ThreadSource Source = ThreadSource.Conversation,
     DateTime EvaluatedTimestamp = default,
+    DateTime TrajectoryGeneratedTimestamp = default,
     IncidentSource? IncidentSource = null,
     ThreadType? ThreadType = ThreadType.Prod
 ) : ICosmosDocument
@@ -40,6 +41,7 @@ public record ThreadDocument(
             thread.ModifiedTimestamp,
             thread.Source,
             thread.EvaluatedTimestamp,
+            thread.TrajectoryGeneratedTimestamp,
             IncidentSource: thread.IncidentSource,
             ThreadType: thread.Type
         )
@@ -65,6 +67,7 @@ public record ThreadDocument(
         {
             LastReadTime = LastReadTime,
             EvaluatedTimestamp = EvaluatedTimestamp,
+            TrajectoryGeneratedTimestamp = TrajectoryGeneratedTimestamp,
             AgentMode = AgentMode,
             Status = new Status()
             {

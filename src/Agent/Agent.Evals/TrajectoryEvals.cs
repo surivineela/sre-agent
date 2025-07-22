@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Agent.Framework;
-using Agent.Runtime.ThreadEvaluator;
+using Agent.Runtime.TrajectoryEvaluator;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Evals;

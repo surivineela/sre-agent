@@ -10,7 +10,7 @@ using Agent.Framework;
 using Microsoft.Extensions.AI;
 using ChatClientExtensions = Agent.Framework.ChatClientExtensions;
 
-namespace Agent.Runtime.ThreadEvaluator;
+namespace Agent.Runtime.TrajectoryEvaluator;
 
 /// <summary>
 /// Scanner that periodically evaluates completed threads to assess their behavior and performance.

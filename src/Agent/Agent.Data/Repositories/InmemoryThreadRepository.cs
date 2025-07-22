@@ -251,6 +251,26 @@ namespace Agent.Data.Repositories
             return Task.FromResult(updatedThread);
         }
 
+        public Task<Thread> UpdateTrajectoryGeneratedTimestampAsync(Guid threadId, DateTime evaluatedTimestamp)
+        {
+            if (!_threads.TryGetValue(threadId, out var existingThread))
+            {
+                _logger.LogInternalWarning("Cannot update trajectory generated timestamp: Thread {ThreadId} not found", threadId);
+                return Task.FromResult<Thread>(null);
+            }
+
+            // Update the thread with new trajectory generated timestamp
+            var updatedThread = existingThread with
+            {
+                TrajectoryGeneratedTimestamp = evaluatedTimestamp
+            };  
+
+            _threads[threadId] = updatedThread;
+            _logger.LogInternalInformation("Successfully updated trajectory generated timestamp for thread {ThreadId}", threadId);
+            return Task.FromResult(updatedThread);
+        }
+
+
         public async Task<Thread> UpdateThreadAgentModeAsync(Guid threadId, string? agentMode)
         {
             if (!_threads.TryGetValue(threadId, out var existingThread))
@@ -952,7 +972,6 @@ namespace Agent.Data.Repositories
             _threadEvaluateResults.Remove(evaluationId);
             return Task.FromResult(true);
         }
-
         #endregion
     }
 }
