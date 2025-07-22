@@ -5,6 +5,7 @@
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Plugins.Kusto;
 using Agent.Plugins.Services.Interfaces;
+using Agent.Plugins.Tools;
 
 namespace Agent.Plugins.Services
 {
@@ -12,7 +13,7 @@ namespace Agent.Plugins.Services
     {
         private readonly IReadOnlyCollection<KustoCluster> _regionalKustoClusters;
 
-        public KustoDashboardPlugin(KustoSettings kustoSettings)
+        public KustoDashboardPlugin(KustoConnector kustoSettings)
         {
             _regionalKustoClusters = kustoSettings.RegionalClusterGroups.Single(x => string.Equals(x.Name, "ContainerApps", StringComparison.OrdinalIgnoreCase)).Regions;
         }

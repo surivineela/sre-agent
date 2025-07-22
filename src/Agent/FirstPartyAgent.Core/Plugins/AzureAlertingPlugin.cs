@@ -2,6 +2,9 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.ComponentModel;
+using System.Linq;
+using Agent.Plugins.Kusto;
 using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Helpers;
@@ -9,11 +12,11 @@ using FirstPartyAgent.Core.Models;
 using FirstPartyAgent.Core.Plugins.Interfaces;
 using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Plugins;
+using k8s.KubeConfigModels;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Newtonsoft.Json;
-using System.ComponentModel;
-using System.Linq;
 
 namespace FirstPartyAgent.Core.Plugins
 {
@@ -80,7 +83,11 @@ namespace FirstPartyAgent.Core.Plugins
                     kustoQuery = kustoQuery + "\n" +
                         $"| where CorrelationId == '{correlationId}'";
                 }
-                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, NowOverride: nowOverride, kernel);
+
+                var log = $"[execute_kusto_query_on_cluster][{DateTime.UtcNow}] Invoked with cluster: {clusterName}, database: {databaseName}\nquery:\n{kustoQuery.Substring(0, Math.Min(100, kustoQuery.Length))}...";
+
+                await kernel.LogInformation(log, _logger, _teamsClient);
+                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery );
                 return kustoResult;
             }
             return $"Alert details not found for alertId {alertId}";

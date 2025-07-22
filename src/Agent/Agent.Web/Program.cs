@@ -36,6 +36,7 @@ using Agent.Plugins.Kusto.Tools;
 using Agent.Plugins.KustoPlugin;
 using Agent.Plugins.Services;
 using Agent.Plugins.Services.Interfaces;
+using Agent.Plugins.Tools;
 using Agent.Prometheus.Services;
 using Agent.Runtime;
 using Agent.Runtime.Communication;
@@ -46,6 +47,7 @@ using Agent.Runtime.MetaAgent;
 using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.MetaAgent.SubAgentPlugins;
 using Agent.Runtime.Reasoning;
+using Agent.Runtime.Reasoning.Models;
 using Agent.Runtime.Services;
 using Agent.Runtime.Services.AzMonitorAlertInvestigation;
 using Agent.Runtime.Services.AzMonitorAlertInvestigationService;
@@ -325,7 +327,7 @@ public class Program
             .AddSingleton<IFunctionAppsPlugin, FunctionAppsPlugin>()
             .AddSingleton<FunctionAppsPluginDefinition>()
             .AddSingleton<IGraphDatabaseClient, GremlinGraphDatabaseClient>()
-
+            .AddSingleton<KustoPluginFactory>()
             .AddSingleton<ITimePlugin, TimePlugin>()
             .AddSingleton<IMetricsPlugin, MetricsPlugin>()
             .AddSingleton<IAppInsightsPlugin, AppInsightsPlugin>()
@@ -439,7 +441,7 @@ public class Program
             .AddTransient<ServiceNowPluginDefinition>()
             .AddTransient<KustoPlugin>()
             .AddSingleton<DynamicKqlToolsPlugin>()
-            .AddTransient<KustoFunction>()
+            .AddTransient<KustoToolType>()
             .AddTransient<IAzureSearchClient, AzureSearchClient>()
             .AddTransient<AzureDocSearchPlugin>()
             .AddTransient<SearchPluginDefinition>()
@@ -470,7 +472,11 @@ public class Program
             .AddTransient<IICMPlugin, ICMPlugin>()
             .AddTransient<IAzureAlertingPlugin, AzureAlertingPlugin>()
             .AddTransient<IWebAppPlugin, WebAppPlugin>()
-            .AddSingleton<IKustoPluginClient, KustoPluginClient>()
+            
+            
+
+            
+
             //.AddSingleton<AppServiceRemediationAgentFactory>()
             .AddSingleton<KubernetesAgentFactory>()
             .AddSingleton<AksQaAgentFactory>()
@@ -643,16 +649,16 @@ public class Program
             {
                 var logger = sp.GetRequiredService<ILogger<KustoClient>>();
                 var actionSettings = sp.GetRequiredService<ActionSettings>();
-                var kustoAuthSetting = new Plugins.Kusto.KustoAuthSettings()
+                var kustoAuthSetting = new ConnectorAuthSettings()
                 {
-                    AuthenticationType = Plugins.Kusto.KustoAuthenticationType.UAMI,
+                    AuthenticationType = ConnectorAuthType.UAMI,
                     ManagedIdentityResourceId = actionSettings.Identity ?? string.Empty,
                 };
                 if (builder.Environment.IsDevelopment())
                 {
-                    kustoAuthSetting.AuthenticationType = KustoAuthenticationType.User;
+                    kustoAuthSetting.AuthenticationType = ConnectorAuthType.User;
                 }
-                var kustoSetting = new KustoSettings()
+                var kustoSetting = new KustoConnector()
                 {
                     Auth = kustoAuthSetting,
                     Enabled = true,

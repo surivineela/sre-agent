@@ -11,9 +11,9 @@ namespace Agent.Plugins.Definitions
     public class RCAContainerAppQuotaPluginDefinition
     {
         private readonly ICMWorkflowClient _icmWorkflowClient;
-        private readonly IKustoPluginChat _kustoPlugin;
+        private readonly IKustoPlugin _kustoPlugin;
 
-        public RCAContainerAppQuotaPluginDefinition(ICMWorkflowClient icmWorkflowClient, IKustoPluginChat kustoPlugin)
+        public RCAContainerAppQuotaPluginDefinition(ICMWorkflowClient icmWorkflowClient, IKustoPlugin kustoPlugin)
         {
             _icmWorkflowClient = icmWorkflowClient;
             _kustoPlugin = kustoPlugin;

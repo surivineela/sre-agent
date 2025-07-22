@@ -13,9 +13,9 @@ namespace Agent.Plugins.Definitions
     [AgentToolPlugin(IsFirstPartyOnly = true)]
     public class RCAContainerAppOutboundConnectionPluginDefinition
     {
-        private readonly IKustoPluginChat _kustoPlugin;
+        private readonly IKustoPlugin _kustoPlugin;
 
-        public RCAContainerAppOutboundConnectionPluginDefinition(IKustoPluginChat kustoPlugin)
+        public RCAContainerAppOutboundConnectionPluginDefinition(IKustoPlugin kustoPlugin)
         {
             _kustoPlugin = kustoPlugin;
         }

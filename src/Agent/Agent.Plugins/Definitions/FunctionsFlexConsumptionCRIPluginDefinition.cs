@@ -10,9 +10,9 @@ namespace Agent.Plugins.Definitions
     [AgentToolPlugin(IsFirstPartyOnly = true,Category = ToolCategories.Diagnostics, ResourceType = ToolResourceTypes.FunctionApp)]
     public class FunctionsFlexConsumptionCRIPluginDefinition
     {
-        private readonly IKustoPluginChat _kustoPlugin;
+        private readonly IKustoPlugin _kustoPlugin;
 
-        public FunctionsFlexConsumptionCRIPluginDefinition(IKustoPluginChat kustoPlugin)
+        public FunctionsFlexConsumptionCRIPluginDefinition(IKustoPlugin kustoPlugin)
         {
             _kustoPlugin = kustoPlugin;
         }

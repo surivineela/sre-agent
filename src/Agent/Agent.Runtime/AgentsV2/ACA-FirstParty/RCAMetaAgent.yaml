@@ -77,7 +77,6 @@ handoffs:
 
 tools:
   - SearchDesignDocs
-  - GetEnvoyControllerLogs
   - GetAgentWebPortalThreadLink
 
 common_prompts:

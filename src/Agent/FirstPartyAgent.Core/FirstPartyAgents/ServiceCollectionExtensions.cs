@@ -1,9 +1,10 @@
 using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
+using Agent.Plugins.Kusto;
+using Agent.Plugins.Tools;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.SubAgents;
-using FirstPartyAgent.Core.Clients;
 using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Core.Plugins.Definitions;
 using FirstPartyAgent.Core.Plugins.Implementation;
@@ -49,7 +50,6 @@ public static class ServiceCollectionExtensions
 
         builder.Services.AddSingleton<ITeamsClient, TeamsClient>();
         builder.Services.AddSingleton<KustoClient>();
-        builder.Services.AddSingleton<KustoRegionalGroupClientProvider>();
         builder.Services.AddSingleton<TeamsClientSettings>();
 
         builder.Services.AddOptionsWithValidateOnStart<ICMWorkflowSettings>()
@@ -58,7 +58,7 @@ public static class ServiceCollectionExtensions
         builder.Services.AddOptionsWithValidateOnStart<AzureSearchSettings>()
             .BindConfiguration("AppSettings:Core:External:AzureSearch")
             .ValidateDataAnnotations();
-        builder.Services.AddOptionsWithValidateOnStart<KustoSettings>()
+        builder.Services.AddOptionsWithValidateOnStart<KustoConnector>()
             .BindConfiguration("AppSettings:Core:External:Kusto")
             .ValidateDataAnnotations();
 
@@ -75,7 +75,7 @@ public static class ServiceCollectionExtensions
         });
         builder.Services.AddSingleton(sp =>
         {
-            var kustoSettings = sp.GetRequiredService<IOptions<KustoSettings>>();
+            var kustoSettings = sp.GetRequiredService<IOptions<KustoConnector>>();
             return kustoSettings.Value;
         });
     }

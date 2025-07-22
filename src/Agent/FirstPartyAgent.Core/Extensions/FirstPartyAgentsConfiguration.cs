@@ -9,10 +9,10 @@ using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.Repositories;
 using Agent.Plugins;
 using Agent.Plugins.Interface;
+using Agent.Plugins.Kusto;
 using Agent.Plugins.Models;
 using Agent.Runtime.Communication;
 using Azure.Identity;
-using FirstPartyAgent.Core.Clients;
 using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Core.Helpers;
 using FirstPartyAgent.Core.Plugins;
@@ -26,10 +26,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
+
 // Add alias for FirstPartyAgent's AzureSearchPlugin
 using FirstPartyAzureSearchPlugin = FirstPartyAgent.Core.Plugins.AzureSearchPlugin;
 using ICMWorkflowSettings = FirstPartyAgent.Core.Configuration.ICMWorkflowSettings;
-using IKustoPluginClient = FirstPartyAgent.Core.Plugins.Interfaces.IKustoPluginClient;
 using ObserverClientService = FirstPartyAgent.Core.Services.ObserverClientService;
 using WebAppPlugin = FirstPartyAgent.Core.Plugins.WebAppPlugin;
 
@@ -72,9 +72,9 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton<HttpRequestPlugin>();
 
             services.AddSingleton<KustoClient>();
-            services.AddSingleton<IKustoPluginClient, KustoPluginClient>();
+
             services.AddSingleton<KustoPlugin>();
-            
+
             services.AddSingleton<ITeamsClient, TeamsClient>();
             services.AddSingleton<TeamsPlugin>();
             services.AddSingleton<TeamsChartPlugin>();
@@ -99,10 +99,10 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton<ATLPlugin>();
 
             services.AddSingleton<FirstPartyAgent.Core.Services.IAzureSearchClient, FirstPartyAgent.Core.Services.AzureSearchClient>();
-            
+
             // Register FirstPartyAgent's AzureSearchPlugin with its interface using the alias
             services.AddSingleton<FirstPartyAgent.Core.Plugins.IAzureSearchPlugin, FirstPartyAzureSearchPlugin>();
-            
+
             // Register AzureSearchPluginDefinition that depends on FirstPartyAgent's implementation
             services.AddSingleton<FirstPartyAgent.Core.Plugins.Definitions.AzureSearchPluginDefinition>();
 
@@ -118,7 +118,6 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton<EmergingIssuePlugin>();
             services.AddSingleton<EmergingIssueManagerPlugin>();
 
-           
             services.AddHttpClient();
             services.AddDevOpsHelperHttpClient();
 
@@ -292,4 +291,3 @@ namespace FirstPartyAgent.Core.Extensions
         }
     }
 }
-

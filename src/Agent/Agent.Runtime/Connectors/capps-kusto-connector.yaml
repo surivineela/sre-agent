@@ -1,0 +1,173 @@
+name: capps-kusto-connector
+enabled: true
+type: Kusto
+description: Connector for accessing Kusto data across multiple regional clusters.
+auth:
+  authenticationType: UAMI
+  authority: ""
+  authorityHost: ""
+  applicationClientId: ""
+  applicationCertificate: ""
+  managedIdentityClientId: "5cc4f734-a234-443c-9092-04e06a2b80c2"
+  managedIdentityResourceId: ""
+metadata:
+owner: sre-agent-team@microsoft.com
+version: "1.0.0"
+tags:
+- containerapps
+- telemetry
+- multi-region
+lastUpdated: 2025-07-17
+clusterUrl: ""
+database: ""
+clusterHint: ""
+regionalClusterGroups:
+    - name: ContainerApps
+      regions:
+      - region: usgovvirginia
+        database: capps
+        clusterUri: https://cappsbn.usgovvirginia.kusto.usgovcloudapi.net
+      - region: usgovarizona
+        database: capps
+        clusterUri: https://cappsphx.usgovarizona.kusto.usgovcloudapi.net
+      - region: usgovtexas
+        database: capps
+        clusterUri: https://cappssn.usgovtexas.kusto.usgovcloudapi.net
+      - region: chinanorth3
+        database: capps
+        clusterUri: https://cappscn3.chinanorth3.kusto.chinacloudapi.cn
+      - region: australiaeast
+        database: capps
+        clusterUri: https://cappsae.australiaeast.kusto.windows.net
+      - region: brazilsouth
+        database: capps
+        clusterUri: https://cappsbrs.brazilsouth.kusto.windows.net
+      - region: canadacentral
+        database: capps
+        clusterUri: https://cappscc.canadacentral.kusto.windows.net
+      - region: centralindia
+        database: capps
+        clusterUri: https://cappsci.centralindia.kusto.windows.net
+      - region: centralus
+        database: capps
+        clusterUri: https://cappscus.centralus.kusto.windows.net
+      - region: centraluseuap
+        database: capps
+        clusterUri: https://cappscuseuap.centralus.kusto.windows.net
+      - region: eastasia
+        database: capps
+        clusterUri: https://cappsea.eastasia.kusto.windows.net
+      - region: eastus
+        database: capps
+        clusterUri: https://cappseus.eastus.kusto.windows.net
+      - region: eastus2
+        database: capps
+        clusterUri: https://cappseus2.eastus2.kusto.windows.net
+      - region: eastus2euap
+        database: capps
+        clusterUri: https://cappseus2euap.eastus2euap.kusto.windows.net
+      - region: francecentral
+        database: capps
+        clusterUri: https://cappsfrc.francecentral.kusto.windows.net
+      - region: germanywestcentral
+        database: capps
+        clusterUri: https://cappsfrc.francecentral.kusto.windows.net
+      - region: italynorth
+        database: capps
+        clusterUri: https://cappsitn.italynorth.kusto.windows.net
+      - region: japaneast
+        database: capps
+        clusterUri: https://cappsjpe.japaneast.kusto.windows.net
+      - region: koreacentral
+        database: capps
+        clusterUri: https://cappskc.koreacentral.kusto.windows.net
+      - region: northcentralus
+        database: capps
+        clusterUri: https://cappsncus.northcentralus.kusto.windows.net
+      - region: northeurope
+        database: capps
+        clusterUri: https://cappsneu.northeurope.kusto.windows.net
+      - region: norwayeast
+        database: capps
+        clusterUri: https://cappsnore.norwayeast.kusto.windows.net
+      - region: polandcentral
+        database: capps
+        clusterUri: https://cappsplc.polandcentral.kusto.windows.net
+      - region: southafricanorth
+        database: capps
+        clusterUri: https://cappssan.southafricanorth.kusto.windows.net
+      - region: southcentralus
+        database: capps
+        clusterUri: https://cappsscus.southcentralus.kusto.windows.net
+      - region: switzerlandnorth
+        database: capps
+        clusterUri: https://cappsswzn.switzerlandnorth.kusto.windows.net
+      - region: switzerlandwest
+        database: capps
+        clusterUri: https://cappsswzw.switzerlandwest.kusto.windows.net
+      - region: uaenorth
+        database: capps
+        clusterUri: https://cappsuaen.uaenorth.kusto.windows.net
+      - region: uksouth
+        database: capps
+        clusterUri: https://cappsuks.uksouth.kusto.windows.net
+      - region: westeurope
+        database: capps
+        clusterUri: https://cappsweu.westeurope.kusto.windows.net
+      - region: westus
+        database: capps
+        clusterUri: https://cappswus.westus.kusto.windows.net
+      - region: westus2
+        database: capps
+        clusterUri: https://cappswus2.westus2.kusto.windows.net
+      - region: westus3
+        database: capps
+        clusterUri: https://cappswus3.westus3.kusto.windows.net
+      - region: swedencentral
+        database: capps
+        clusterUri: https://cappsswec.swedencentral.kusto.windows.net
+      - region: southeastasia
+        database: capps
+        clusterUri: https://cappssea.southeastasia.kusto.windows.net
+      - region: canadaeast
+        database: capps
+        clusterUri: https://cappscae.canadaeast.kusto.windows.net
+      - region: ukwest
+        database: capps
+        clusterUri: https://cappsukw.ukwest.kusto.windows.net
+      - region: westcentralus
+        database: capps
+        clusterUri: https://cappswcu.westcentralus.kusto.windows.net
+      - region: southindia
+        database: capps
+        clusterUri: https://cappssi.southindia.kusto.windows.net
+      - region: australiasoutheast
+        database: capps
+        clusterUri: https://cappsase.australiasoutheast.kusto.windows.net
+      - region: francesouth
+        database: capps
+        clusterUri: https://cappsfrs.francesouth.kusto.windows.net
+      - region: jioindiawest
+        database: capps
+        clusterUri: https://cappsjiw.jioindiawest.kusto.windows.net
+      - region: spaincentral
+        database: capps
+        clusterUri: https://cappsesp.spaincentral.kusto.windows.net
+      - region: japanwest
+        database: capps
+        clusterUri: https://cappsjpw.japanwest.kusto.windows.net
+      - region: usnateast
+        database: capps
+        clusterUri: https://cappsgrn.usnateast.kusto.windows.net
+      - region: usnatwest
+        database: capps
+        clusterUri: https://cappsred.usnatwest.kusto.windows.net
+      - region: usseceast
+        database: capps
+        clusterUri: https://cappsmnz21.usseceast.kusto.windows.net
+      - region: ussecwest
+        database: capps
+        clusterUri: https://cappssn8.ussecwest.kusto.windows.net
+      - region: test
+        database: capps
+        clusterUri: https://cappstest.westus.kusto.windows.net

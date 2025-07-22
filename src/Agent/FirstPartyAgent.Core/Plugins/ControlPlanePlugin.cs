@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Reflection;
 using System.Text;
 using Agent.Core.Models;
+using Agent.Plugins.Kusto;
 using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Models;
 using FirstPartyAgent.Core.Plugins.Interfaces;
@@ -21,13 +22,13 @@ namespace FirstPartyAgent.Core.Plugins
         private readonly AlertHandlerService _alertHandlerService;
 
         private ITeamsClient _teamsClient;
-        private IKustoPluginClient _kustoPlugin;
+        private KustoClient _kustoPlugin;
         private const string _controlPlaneKustoDbName = "wawsprod";
 
         public ControlPlanePlugin(
             ICMPlugin icmPlugin,
             Kernel kernel,
-            IKustoPluginClient kustoPlugin,
+            KustoClient kustoPlugin,
             ITeamsClient teamsClient,
             ILogger<ControlPlanePlugin> logger,
             AlertHandlerService alertHandlerService
@@ -462,7 +463,7 @@ namespace FirstPartyAgent.Core.Plugins
 
             // Here we execute the Kusto query against the cluster
             // Then we clean up the result using the provided cleanUpResult function
-            var kustoResultTask = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, _controlPlaneKustoDbName, validationQueryStr, null);
+            var kustoResultTask = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, _controlPlaneKustoDbName, validationQueryStr);
             var preProcessedResults = cleanUpResult(kustoResultTask.Result);
 
             return await preProcessedResults;

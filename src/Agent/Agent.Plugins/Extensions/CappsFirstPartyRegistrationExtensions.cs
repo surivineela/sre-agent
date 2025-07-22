@@ -3,6 +3,7 @@ using Agent.Plugins.IcmPlugin;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Kusto;
 using Agent.Plugins.TeamsPlugin;
+using Agent.Plugins.Tools;
 using FirstPartyAgent.Common.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -20,11 +21,11 @@ public static class CappsFirstPartyRegistrationExtensions
         var secretResolvedEnvConfig = new { };
         builder.Configuration.AddJsonStream(new MemoryStream(JsonSerializer.SerializeToUtf8Bytes(secretResolvedEnvConfig)));
 
-        builder.Services.AddSingleton<IACAKustoPlugin, ACAKustoPlugin>();
-        builder.Services.AddSingleton<IKustoPluginChat, KustoPluginChat>();
+        
+        builder.Services.AddSingleton<IKustoPlugin, KustoPlugin>();
         builder.Services.AddSingleton<ITeamsClient, TeamsClient>();
         builder.Services.AddSingleton<KustoClient>();
-        builder.Services.AddSingleton<KustoRegionalGroupClientProvider>();
+        
         builder.Services.AddSingleton<TeamsClientSettings>();
         builder.Services.AddSingleton<IContainerAppIcMPlugin, ContainerAppIcMPlugin>();
         builder.Services.AddSingleton<ICMWorkflowClient>();
@@ -34,7 +35,7 @@ public static class CappsFirstPartyRegistrationExtensions
             .BindConfiguration("AppSettings:Core:External:ICMWorkflows")
             .ValidateDataAnnotations();
 
-        builder.Services.AddOptionsWithValidateOnStart<KustoSettings>()
+        builder.Services.AddOptionsWithValidateOnStart<KustoConnector>()
             .BindConfiguration("AppSettings:Core:External:Kusto")
             .ValidateDataAnnotations();
 
@@ -50,7 +51,7 @@ public static class CappsFirstPartyRegistrationExtensions
         });
         builder.Services.AddSingleton(sp =>
         {
-            var kustoSettings = sp.GetRequiredService<IOptions<KustoSettings>>();
+            var kustoSettings = sp.GetRequiredService<IOptions<KustoConnector>>();
             return kustoSettings.Value;
         });
         builder.Services.AddSingleton(sp =>

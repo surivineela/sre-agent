@@ -82,6 +82,9 @@
     <None Update="AgentsV2\RCA\ScaleControllerPreflight\*.yaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Connectors\capps-kusto-connector.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
 
 
     <None Update="SubAgents\AppCodeAnalysisAgent\AppCodeAnalysisPlan.txt">

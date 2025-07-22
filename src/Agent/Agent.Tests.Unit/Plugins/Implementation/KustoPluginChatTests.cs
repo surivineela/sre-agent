@@ -60,7 +60,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             var functionName = "SimpleQuery";
             
             // Act
-            var result = KustoPluginChat.GetKqlFilePath(functionName, _testBaseDirectory);
+            var result = KustoPlugin.GetKqlFilePath(functionName, _testBaseDirectory);
             
             // Assert
             Assert.NotNull(result);
@@ -75,7 +75,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             var functionName = "GetAdminEventErrorMessagesByTraceId";
             
             // Act
-            var result = KustoPluginChat.GetKqlFilePath(functionName, _testBaseDirectory);
+            var result = KustoPlugin.GetKqlFilePath(functionName, _testBaseDirectory);
             
             // Assert
             Assert.NotNull(result);
@@ -90,7 +90,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             var functionName = "ContainerApps.Monitoring.GetHealthStatus";
             
             // Act
-            var result = KustoPluginChat.GetKqlFilePath(functionName, _testBaseDirectory);
+            var result = KustoPlugin.GetKqlFilePath(functionName, _testBaseDirectory);
             
             // Assert
             Assert.NotNull(result);
@@ -107,7 +107,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             var functionName = "Level1.Level2.Level3.DeepQuery";
             
             // Act
-            var result = KustoPluginChat.GetKqlFilePath(functionName, _testBaseDirectory);
+            var result = KustoPlugin.GetKqlFilePath(functionName, _testBaseDirectory);
             
             // Assert
             Assert.NotNull(result);
@@ -125,7 +125,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             var functionName = "NonExistentQuery";
             
             // Act
-            var result = KustoPluginChat.GetKqlFilePath(functionName, _testBaseDirectory);
+            var result = KustoPlugin.GetKqlFilePath(functionName, _testBaseDirectory);
             
             // Assert
             Assert.NotNull(result);
@@ -140,7 +140,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             var functionName = "NonExistent.Namespace.Query";
             
             // Act
-            var result = KustoPluginChat.GetKqlFilePath(functionName, _testBaseDirectory);
+            var result = KustoPlugin.GetKqlFilePath(functionName, _testBaseDirectory);
             
             // Assert
             Assert.NotNull(result);
@@ -156,7 +156,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             var functionName = "";
             
             // Act
-            var result = KustoPluginChat.GetKqlFilePath(functionName, _testBaseDirectory);
+            var result = KustoPlugin.GetKqlFilePath(functionName, _testBaseDirectory);
             
             // Assert
             Assert.NotNull(result);
@@ -170,7 +170,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             var functionName = "Category.Query";
             
             // Act
-            var result = KustoPluginChat.GetKqlFilePath(functionName, _testBaseDirectory);
+            var result = KustoPlugin.GetKqlFilePath(functionName, _testBaseDirectory);
             
             // Assert
             Assert.NotNull(result);
@@ -188,7 +188,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             var functionName = "GetAdminEventErrorMessagesByTraceId";
             
             // Act
-            var result = KustoPluginChat.GetKqlFilePath(functionName, _testBaseDirectory);
+            var result = KustoPlugin.GetKqlFilePath(functionName, _testBaseDirectory);
             
             // Assert
             Assert.NotNull(result);
@@ -207,7 +207,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             var functionName = "AKS.Diagnostics.GetNodeStatus";
             
             // Act
-            var result = KustoPluginChat.GetKqlFilePath(functionName, _testBaseDirectory);
+            var result = KustoPlugin.GetKqlFilePath(functionName, _testBaseDirectory);
             
             // Assert
             Assert.NotNull(result);

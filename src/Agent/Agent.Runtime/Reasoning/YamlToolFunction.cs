@@ -111,6 +111,7 @@ public class YamlToolFunction<TContext> : IDeferredToolFunction where TContext :
 
         var transformer = instance as IToolArgumentTransformer ?? new DeclarativeArgumentTransformer();
         var invokeArgs = transformer.TransformArguments(method, flatArgs, _toolDef);
+
         if (instance is IYamlToolAware aware)
         {
             aware.SetToolDefinition(_toolDef);

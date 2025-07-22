@@ -10,6 +10,7 @@ using Agent.Plugins;
 using Agent.Plugins.IcmPlugin;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Kusto;
+using Agent.Plugins.Tools;
 using Agent.Runtime;
 using Agent.Tests.Integration.Fixtures;
 using Microsoft.Extensions.AI;
@@ -54,7 +55,7 @@ namespace Agent.Tests.Integration.External
                .BindConfiguration("AppSettings:Core:External")
                .ValidateDataAnnotations();
 
-            services.AddOptionsWithValidateOnStart<KustoSettings>()
+            services.AddOptionsWithValidateOnStart<KustoConnector>()
               .BindConfiguration("AppSettings:Core:External:Kusto")
               .ValidateDataAnnotations();
 
@@ -79,7 +80,7 @@ namespace Agent.Tests.Integration.External
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<ExternalSettings>>().Value.OneBranchApprovalService);
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<ExternalSettings>>().Value.KeyVault);
 
-            services.AddSingleton(sp => sp.GetRequiredService<IOptions<KustoSettings>>().Value);
+            services.AddSingleton(sp => sp.GetRequiredService<IOptions<KustoConnector>>().Value);
             services.AddSingleton<IAuthenticationService, AuthenticationService>();
             services.AddSingleton<AgentHelperService>();
 

@@ -12,9 +12,9 @@ namespace Agent.Plugins.Definitions
 
     public class RCAContainerAppPlatformUpgradesPluginDefinition
     {
-        private readonly IKustoPluginChat _kustoPlugin;
+        private readonly IKustoPlugin _kustoPlugin;
 
-        public RCAContainerAppPlatformUpgradesPluginDefinition(IKustoPluginChat kustoPlugin)
+        public RCAContainerAppPlatformUpgradesPluginDefinition(IKustoPlugin kustoPlugin)
         {
             _kustoPlugin = kustoPlugin;
         }

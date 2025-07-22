@@ -1,14 +1,13 @@
 
+using System.Net;
+using Agent.Plugins.Kusto;
+using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Core.Models;
+using Kusto.Cloud.Platform.Data;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.Cosmos;
-using Kusto.Cloud.Platform.Data;
-using FirstPartyAgent.Core.Clients;
-using System.Net;
-using FirstPartyAgent.Core.Configuration;
-using Newtonsoft.Json.Linq;
-using Gremlin.Net.Process.Traversal;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 
 namespace FirstPartyAgent.Core.Services;
 public class IcmAgentConfigService : IIcmAgentConfigService

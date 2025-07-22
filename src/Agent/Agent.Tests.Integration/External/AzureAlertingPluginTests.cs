@@ -13,6 +13,7 @@ using Agent.Plugins.IcmPlugin;
 using Agent.Plugins.Implementation;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Kusto;
+using Agent.Plugins.Tools;
 using Agent.Runtime;
 using Agent.Tests.Integration.Fixtures;
 using Microsoft.Azure.Cosmos;
@@ -59,7 +60,7 @@ namespace Agent.Tests.Integration.External
                .BindConfiguration("AppSettings:Core:External")
                .ValidateDataAnnotations();
 
-            services.AddOptionsWithValidateOnStart<KustoSettings>()
+            services.AddOptionsWithValidateOnStart<KustoConnector>()
               .BindConfiguration("AppSettings:Core:External:Kusto")
               .ValidateDataAnnotations();
 
@@ -84,7 +85,7 @@ namespace Agent.Tests.Integration.External
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<ExternalSettings>>().Value.OneBranchApprovalService);
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<ExternalSettings>>().Value.IncidentManagement);
 
-            services.AddSingleton(sp => sp.GetRequiredService<IOptions<KustoSettings>>().Value);
+            services.AddSingleton(sp => sp.GetRequiredService<IOptions<KustoConnector>>().Value);
             services.AddSingleton<IAuthenticationService, AuthenticationService>();
             services.AddSingleton<IICMPlugin, ICMPlugin>();
             services.AddSingleton<IICMAPIClient, ICMAPIClient>();
@@ -93,7 +94,7 @@ namespace Agent.Tests.Integration.External
             services.AddSingleton<IHostEnvironment>(_environment);
 
             services.AddTransient<IAzureAlertingPlugin, AzureAlertingPlugin>();
-            services.AddSingleton<IKustoPluginClient, KustoPluginClient>();
+            
             services.AddSingleton<KustoClient>();
             services.AddCosmosClient();
             services.ConfigureAzureOpenAIClient();

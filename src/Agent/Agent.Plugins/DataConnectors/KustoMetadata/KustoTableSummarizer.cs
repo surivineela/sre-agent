@@ -10,6 +10,8 @@ using System.Text.Json;
 using Agent.Core.Models.Search;
 using Agent.Plugins.Kusto;
 using Agent.Plugins.KustoPlugin;
+using Agent.Plugins.Tools;
+using Agent.Runtime.Reasoning.Models;
 using Kusto.Data.Exceptions;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -547,18 +549,18 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
 
         private static KustoClient BuildKustoClient(ILoggerFactory loggerFactory, string managedIdentityResourceId)
         {
-            KustoAuthSettings authSettings = string.IsNullOrEmpty(managedIdentityResourceId) ?
-                new KustoAuthSettings()
+            ConnectorAuthSettings authSettings = string.IsNullOrEmpty(managedIdentityResourceId) ?
+                new ConnectorAuthSettings()
                 {
-                    AuthenticationType = KustoAuthenticationType.User
+                    AuthenticationType = ConnectorAuthType.User
                 } :
-                new KustoAuthSettings()
+                new ConnectorAuthSettings()
                 {
-                    AuthenticationType = KustoAuthenticationType.UAMI,
+                    AuthenticationType = ConnectorAuthType.UAMI,
                     ManagedIdentityResourceId = managedIdentityResourceId
                 };
 
-            return new KustoClient(loggerFactory.CreateLogger<KustoClient>(), new KustoSettings()
+            return new KustoClient(loggerFactory.CreateLogger<KustoClient>(), new KustoConnector()
             {
                 Auth = authSettings
             });

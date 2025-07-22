@@ -3,31 +3,21 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel.DataAnnotations;
-using Agent.Core.Models;
+using System.Xml.Linq;
+using Agent.Runtime.Reasoning.Models;
 
-namespace FirstPartyAgent.Core.Configuration
+namespace Agent.Runtime.Reasoning.Models
 {
-    public class KustoSettings
-    {
-        public KustoAuthSettings Auth { get; set; } = new();
-        public IReadOnlyCollection<KustoRegionalGroupSettings> RegionalClusterGroups { get; set; } = [];
-    }
-
-    public class KustoRegionalGroupSettings
-    {
-        public string Name { get; set; } = string.Empty;
-        public IReadOnlyCollection<KustoCluster> Regions { get; set; } = [];
-    }
-
-    public class KustoAuthSettings
+    public class ConnectorAuthSettings
     {
         [Required]
-        public KustoAuthenticationType AuthenticationType { get; set; }
+        public ConnectorAuthType AuthenticationType { get; set; }
+
         public string Authority { get; set; } = string.Empty;
         public string AuthorityHost { get; set; } = string.Empty;
         public string ApplicationClientId { get; set; } = string.Empty;
         public string ApplicationCertificate { get; set; } = string.Empty;
         public string ManagedIdentityClientId { get; set; } = string.Empty;
+        public string ManagedIdentityResourceId { get; set; } = string.Empty;
     }
 }
-

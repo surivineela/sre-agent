@@ -15,10 +15,10 @@ namespace Agent.Core.Plugins.Definitions
     [AgentToolPlugin(IsFirstPartyOnly = true)]
     public class RCAContainerAppRevisionPluginDefinition
     {
-        private readonly IKustoPluginChat _kustoPlugin;
+        private readonly IKustoPlugin _kustoPlugin;
         private readonly IKustoDashboardPlugin _kustoDashboardPlugin;
 
-        public RCAContainerAppRevisionPluginDefinition(IKustoPluginChat kustoPlugin, IKustoDashboardPlugin kustoDashboardPlugin)
+        public RCAContainerAppRevisionPluginDefinition(IKustoPlugin kustoPlugin, IKustoDashboardPlugin kustoDashboardPlugin)
         {
             _kustoPlugin = kustoPlugin;
             _kustoDashboardPlugin = kustoDashboardPlugin;

@@ -14,12 +14,12 @@ namespace Agent.Plugins.Definitions
     [AgentToolPlugin(IsFirstPartyOnly = true, Category = ToolCategories.LogQuery, ResourceType = ToolResourceTypes.AppService)]
     public class ScaleControllerRCAPreflightPluginDefinition
     {
-        private readonly IKustoPluginChat _kustoPlugin;
+        private readonly IKustoPlugin _kustoPlugin;
         private readonly IICMPlugin _icmPlugin;
         private const string DefaultClusterName = "wawscus";
         private const string DefaultDatabaseName = "wawsprod";
 
-        public ScaleControllerRCAPreflightPluginDefinition(IKustoPluginChat kustoPlugin, IICMPlugin icmPlugin)
+        public ScaleControllerRCAPreflightPluginDefinition(IKustoPlugin kustoPlugin, IICMPlugin icmPlugin)
         {
             _kustoPlugin = kustoPlugin;
             _icmPlugin = icmPlugin;

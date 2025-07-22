@@ -5,6 +5,7 @@
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Agent.Core.Configuration;
+using Agent.Plugins.Kusto;
 using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Models;
@@ -20,7 +21,7 @@ namespace FirstPartyAgent.Core.Plugins
     public class GenevaActionsPlugin
     {
         private readonly IBaseIcmWorkflowClient _icmWorkflowClient;
-        private readonly IKustoPluginClient _kustoPlugin;
+        private readonly KustoClient _kustoPlugin;
         private readonly ILogger<GenevaActionsPlugin> _logger;
         private readonly ITeamsClient _teamsClient;
         private readonly IStorageService _storageService;
@@ -33,7 +34,7 @@ namespace FirstPartyAgent.Core.Plugins
 
         public GenevaActionsPlugin(
             IBaseIcmWorkflowClient icmWorkflowClient,
-            IKustoPluginClient kustoPlugin,
+            KustoClient kustoPlugin,
             ILogger<GenevaActionsPlugin> logger,
             ITeamsClient teamsClient,
             StorageAccountSettings storageAccountSettings,
@@ -150,7 +151,7 @@ namespace FirstPartyAgent.Core.Plugins
                 | where SubscriptionId == '{subscriptionId}'
                 | project ServiceName, SubscriptionId, ServiceId, Environment
                 | take 1";
-            var result = await _kustoPlugin.ExecuteClusterKustoQuery("servicetreepublic.westus", "Shared", kustoQuery, null);
+            var result = await _kustoPlugin.ExecuteClusterKustoQuery("servicetreepublic.westus", "Shared", kustoQuery);
             var kustoResult = result.Result;
             if (kustoResult != "ZERO_ROWS_RETURNED" && !string.IsNullOrWhiteSpace(kustoResult))
             {

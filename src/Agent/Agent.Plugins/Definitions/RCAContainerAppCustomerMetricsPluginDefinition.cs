@@ -14,8 +14,8 @@ namespace Agent.Plugins.Definitions
     [AgentToolPlugin(IsFirstPartyOnly = true)]
     public class RCAContainerAppCustomerMetricsPluginDefinition
     {
-        private readonly IKustoPluginChat _kustoPlugin;
-        public RCAContainerAppCustomerMetricsPluginDefinition(IKustoPluginChat kustoPlugin)
+        private readonly IKustoPlugin _kustoPlugin;
+        public RCAContainerAppCustomerMetricsPluginDefinition(IKustoPlugin kustoPlugin)
         {
             _kustoPlugin = kustoPlugin;
         }

@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using Agent.Plugins.Kusto;
 using FirstPartyAgent.Core.Plugins.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
@@ -13,7 +14,7 @@ namespace FirstPartyAgent.Plugins
     {
         private readonly ILogger<ATLPlugin> _logger;
         private readonly Kernel _kernel;
-        private readonly IKustoPluginClient _kustoPlugin;
+        private readonly KustoClient _kustoPlugin;
         private readonly static string _databaseName = "wawsprod";
         private readonly static Dictionary<string, string> _stampToCluster = new Dictionary<string, string>
         {
@@ -133,7 +134,7 @@ namespace FirstPartyAgent.Plugins
         public ATLPlugin(
             ILogger<ATLPlugin> logger,
             Kernel kernel,
-            IKustoPluginClient kustoPlugin)
+            KustoClient kustoPlugin)
         {
             _logger = logger;
             _kernel = kernel;
@@ -155,11 +156,11 @@ namespace FirstPartyAgent.Plugins
             try
             {
                 _logger.LogInformation($"Initializing LCV2_GetSites_WorkerComputePlatform_Legion.");
-                DateTime? nowOverride = null;
+                
 
                 var kustoQuery = GetSitesWithWorkerComputePlatformOnLegion_query(stampName, lookbackInDays);
 
-                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(_stampToCluster[stampName], _databaseName, kustoQuery, nowOverride);
+                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(_stampToCluster[stampName], _databaseName, kustoQuery);
                 return new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result };
             }
             catch (Exception ex)
@@ -177,11 +178,11 @@ namespace FirstPartyAgent.Plugins
             try
             {
                 _logger.LogInformation($"Initializing GetSitesWithLegionContainerAssignment.");
-                DateTime? nowOverride = null;
+                
 
                 var kustoQuery = GetSitesLegionContainerAssignment_query(stampName);
 
-                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(_stampToCluster[stampName], _databaseName, kustoQuery, nowOverride);
+                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(_stampToCluster[stampName], _databaseName, kustoQuery);
                 responses.Add(new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result });
             }
             catch (Exception ex)
@@ -205,11 +206,11 @@ namespace FirstPartyAgent.Plugins
             try
             {
                 _logger.LogInformation($"Initializing GetCandidateSitesForMigration.");
-                DateTime? nowOverride = null;
+                
 
                 var kustoQuery = GetCandidateSitesForMigration_ExcludeFP_query(stampName, numberOfSites, stampPrefix, tenant);
 
-                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(_stampToCluster[stampName], _databaseName, kustoQuery, nowOverride);
+                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(_stampToCluster[stampName], _databaseName, kustoQuery);
                 responses.Add(new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result });
             }
             catch (Exception ex)
@@ -230,11 +231,11 @@ namespace FirstPartyAgent.Plugins
             try
             {
                 _logger.LogInformation($"Initializing Exclusion_FeatureGap.");
-                DateTime? nowOverride = null;
+                
 
                 var kustoQuery = Exclusion_FeatureGap_query(stampName);
 
-                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(_stampToCluster[stampName], _databaseName, kustoQuery, nowOverride);
+                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(_stampToCluster[stampName], _databaseName, kustoQuery);
                 responses.Add(new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result });
             }
             catch (Exception ex)
@@ -254,11 +255,11 @@ namespace FirstPartyAgent.Plugins
             try
             {
                 _logger.LogInformation($"Initializing LCV2_GetLinuxConsumptionStamps.");
-                DateTime? nowOverride = null;
+                
 
                 var kustoQuery = GetLinuxConsumptionStamps_query();
 
-                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery("wawseas", _databaseName, kustoQuery, nowOverride);
+                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery("wawseas", _databaseName, kustoQuery);
                 responses.Add(new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result });
             }
             catch (Exception ex)
@@ -280,11 +281,11 @@ namespace FirstPartyAgent.Plugins
             try
             {
                 _logger.LogInformation($"Initializing LCV2_GetSitesWithSpecializationFailures.");
-                DateTime? nowOverride = null;
+                
 
                 var kustoQuery = GetSitesFailingSpecializationOnLegionButGoodOnACI_query(stampName, lookBackInDays);
 
-                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(_stampToCluster[stampName], _databaseName, kustoQuery, nowOverride);
+                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(_stampToCluster[stampName], _databaseName, kustoQuery);
                 responses.Add(new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result });
             }
             catch (Exception ex)
@@ -307,11 +308,11 @@ namespace FirstPartyAgent.Plugins
             try
             {
                 _logger.LogInformation($"Initializing LCV2_GetSitesWithFunctionsLoadFailures.");
-                DateTime? nowOverride = null;
+                
 
                 var kustoQuery = GetSitesWithFunctionsLoaded_query(stampName, lookBackInDays, sites);
 
-                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(_stampToCluster[stampName], _databaseName, kustoQuery, nowOverride);
+                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(_stampToCluster[stampName], _databaseName, kustoQuery);
                 responses.Add(new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result });
             }
             catch (Exception ex)
@@ -333,11 +334,11 @@ namespace FirstPartyAgent.Plugins
             try
             {
                 _logger.LogInformation($"Initializing LCV2_Exclusion_RFPMI_ContentShareMount.");
-                DateTime? nowOverride = null;
+                
 
                 var kustoQuery = Exclusion_RFPAndManagedIdentity_AndContentShareMount_BYOS_query(stampName, lookBackInDays);
 
-                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(_stampToCluster[stampName], _databaseName, kustoQuery, nowOverride);
+                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(_stampToCluster[stampName], _databaseName, kustoQuery);
                 responses.Add(new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result });
             }
             catch (Exception ex)
@@ -359,11 +360,11 @@ namespace FirstPartyAgent.Plugins
             try
             {
                 _logger.LogInformation($"Initializing LCV2_GetSitesOnACI.");
-                DateTime? nowOverride = null;
+                
 
                 var kustoQuery = GetSitesOnACI_query(stampName, candidateSites);
 
-                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(_stampToCluster[stampName], _databaseName, kustoQuery, nowOverride);
+                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(_stampToCluster[stampName], _databaseName, kustoQuery);
                 responses.Add(new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result });
             }
             catch (Exception ex)
@@ -383,11 +384,11 @@ namespace FirstPartyAgent.Plugins
             try
             {
                 _logger.LogInformation($"Initializing LCV2_GetCandidateStampsForMigration.");
-                DateTime? nowOverride = null;
+                
 
                 var kustoQuery = GetCandidateStampsForMigration_query();
 
-                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery("wawseas", _databaseName, kustoQuery, nowOverride);
+                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery("wawseas", _databaseName, kustoQuery);
                 responses.Add(new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result });
             }
             catch (Exception ex)
@@ -412,7 +413,7 @@ namespace FirstPartyAgent.Plugins
 
                 var kustoQuery = SpecificScenario_RFP_Zip_query(stampName);
 
-                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(_stampToCluster[stampName], _databaseName, kustoQuery, nowOverride);
+                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(_stampToCluster[stampName], _databaseName, kustoQuery );
                 responses.Add(new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result });
             }
             catch (Exception ex)

@@ -8,10 +8,10 @@ namespace Agent.Plugins.Definitions
     [AgentToolPlugin(IsFirstPartyOnly = true)]
     public class RCAContainerAppsManagedEnvironmentPluginDefinition
     {
-        private readonly IKustoPluginChat _kustoPlugin;
+        private readonly IKustoPlugin _kustoPlugin;
         private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
 
-        public RCAContainerAppsManagedEnvironmentPluginDefinition(IKustoPluginChat kustoPlugin, IAgentOutboundCommunicationService agentOutboundCommunicationService)
+        public RCAContainerAppsManagedEnvironmentPluginDefinition(IKustoPlugin kustoPlugin, IAgentOutboundCommunicationService agentOutboundCommunicationService)
         {
             _kustoPlugin = kustoPlugin;
             _agentOutboundCommunicationService = agentOutboundCommunicationService;

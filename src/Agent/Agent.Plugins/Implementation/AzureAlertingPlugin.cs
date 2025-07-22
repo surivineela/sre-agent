@@ -21,7 +21,7 @@ namespace Agent.Plugins.Implementation
 {
     public class AzureAlertingPlugin : IAzureAlertingPlugin
     {
-        private readonly IKustoPluginClient _kustoClient;
+        private readonly KustoClient _kustoClient;
         private readonly ILogger<AzureAlertingPlugin> _logger;
         private readonly CosmosClient _cosmosDBService;
         private readonly CosmosDBSettings _cosmosDBSettings;
@@ -29,7 +29,7 @@ namespace Agent.Plugins.Implementation
         private const string _icmAgentAlertDetailsCosmosDbContainer = "IcmAlertDetails";
 
         public AzureAlertingPlugin(
-            IKustoPluginClient kustoClient,
+            KustoClient kustoClient,
             ILogger<AzureAlertingPlugin> logger,
             CosmosClient cosmosDBService,
             CosmosDBSettings cosmosDBSettings)

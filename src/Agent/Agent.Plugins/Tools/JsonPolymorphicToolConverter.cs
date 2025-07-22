@@ -8,7 +8,7 @@ namespace Agent.Plugins.Tools
     {
         private static readonly Dictionary<string, Type> _typeMap = new(StringComparer.OrdinalIgnoreCase)
         {
-            ["KustoFunction"] = typeof(KustoToolDefinition),
+            ["KustoTool"] = typeof(KustoToolDefinition),
 
             // Add other supported types
         };

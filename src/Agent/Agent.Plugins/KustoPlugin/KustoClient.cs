@@ -5,9 +5,13 @@
 using System.Collections.Concurrent;
 using System.Data;
 using System.Security.Cryptography.X509Certificates;
+using Agent.Plugins.KustoPlugin;
+using Agent.Plugins.Tools;
+using Agent.Runtime.Reasoning.Models;
 using Azure.Identity;
 using Kusto.Data.Common;
 using Microsoft.Extensions.Logging;
+using Microsoft.Graph.Models;
 using KustoData = Kusto.Data;
 
 namespace Agent.Plugins.Kusto;
@@ -18,15 +22,18 @@ namespace Agent.Plugins.Kusto;
 public class KustoClient
 {
     private readonly ILogger<KustoClient> _logger;
-    private readonly KustoAuthSettings _kustoAuthSettings;
+
+    private readonly KustoConnector _kustoSettings;
+    public KustoConnector KustoSettings => _kustoSettings;
+
     private readonly ConcurrentDictionary<string, ICslQueryProvider> _queryProviders = new ConcurrentDictionary<string, ICslQueryProvider>(StringComparer.OrdinalIgnoreCase);
 
-    public KustoClient(ILogger<KustoClient> logger, KustoSettings kustoSettings)
+    public KustoClient(ILogger<KustoClient> logger, KustoConnector kustoSettings)
     {
         _logger = logger;
-        _kustoAuthSettings = kustoSettings.Auth;
+        _kustoSettings = kustoSettings;
 
-        _logger.LogInternalInformation($"Kusto Authentication type: {_kustoAuthSettings.AuthenticationType}");
+        _logger.LogInternalInformation($"Kusto Authentication type: {_kustoSettings.Auth.AuthenticationType}");
     }
 
     public async Task<IDataReader> PerformQueryAsync(string clusterUri, string database, string query, CancellationToken cancellationToken = default)
@@ -74,15 +81,15 @@ public class KustoClient
 
     private ClientCertificateCredential GetClientCertificateCredentials()
     {
-        X509Certificate2 clientCertificate = X509CertificateLoader.LoadCertificate(Convert.FromBase64String(_kustoAuthSettings.ApplicationCertificate));
+        X509Certificate2 clientCertificate = X509CertificateLoader.LoadCertificate(Convert.FromBase64String(_kustoSettings.Auth.ApplicationCertificate));
 
         return new ClientCertificateCredential(
-                    _kustoAuthSettings.Authority,
-                    _kustoAuthSettings.ApplicationClientId,
+                    _kustoSettings.Auth.Authority,
+                    _kustoSettings.Auth.ApplicationClientId,
                     clientCertificate,
                     new ClientCertificateCredentialOptions()
                     {
-                        AuthorityHost = new Uri(_kustoAuthSettings.AuthorityHost),
+                        AuthorityHost = new Uri(_kustoSettings.Auth.AuthorityHost),
                         SendCertificateChain = true
                     });
     }
@@ -90,15 +97,15 @@ public class KustoClient
     private DefaultAzureCredential GetUserManagedIdentityCredentials()
     {
         var defaultAzureCredentialOptions = new DefaultAzureCredentialOptions();
-        if (!string.IsNullOrEmpty(_kustoAuthSettings.ManagedIdentityClientId))
+        if (!string.IsNullOrEmpty(_kustoSettings.Auth.ManagedIdentityClientId))
         {
-            defaultAzureCredentialOptions.ManagedIdentityClientId = _kustoAuthSettings.ManagedIdentityClientId;
-            _logger.LogInternalInformation($"Kusto using MI with ClientId: {_kustoAuthSettings.ManagedIdentityClientId}");
+            defaultAzureCredentialOptions.ManagedIdentityClientId = _kustoSettings.Auth.ManagedIdentityClientId;
+            _logger.LogInternalInformation($"Kusto using MI with ClientId: {_kustoSettings.Auth.ManagedIdentityClientId}");
         }
-        else if (!string.IsNullOrEmpty(_kustoAuthSettings.ManagedIdentityResourceId))
+        else if (!string.IsNullOrEmpty(_kustoSettings.Auth.ManagedIdentityResourceId))
         {
-            _logger.LogInternalInformation($"Kusto using MI with ResourceId: {_kustoAuthSettings.ManagedIdentityResourceId}");
-            defaultAzureCredentialOptions.ManagedIdentityResourceId = new Azure.Core.ResourceIdentifier(_kustoAuthSettings.ManagedIdentityResourceId);
+            _logger.LogInternalInformation($"Kusto using MI with ResourceId: {_kustoSettings.Auth.ManagedIdentityResourceId}");
+            defaultAzureCredentialOptions.ManagedIdentityResourceId = new Azure.Core.ResourceIdentifier(_kustoSettings.Auth.ManagedIdentityResourceId);
         }
         else
         {
@@ -109,15 +116,25 @@ public class KustoClient
 
     private ICslQueryProvider GetClient(string clusterUri)
     {
-        return _kustoAuthSettings.AuthenticationType switch
+        return _kustoSettings.Auth.AuthenticationType switch
         {
-            KustoAuthenticationType.ManagedIdentity => KustoData.Net.Client.KustoClientFactory.CreateCslQueryProvider(new KustoData.KustoConnectionStringBuilder(clusterUri).WithAadSystemManagedIdentity()),
-            KustoAuthenticationType.UAMI => KustoData.Net.Client.KustoClientFactory.CreateCslQueryProvider(new KustoData.KustoConnectionStringBuilder(clusterUri).WithAadAzureTokenCredentialsAuthentication(GetUserManagedIdentityCredentials())),
-            KustoAuthenticationType.App => KustoData.Net.Client.KustoClientFactory.CreateCslQueryProvider(new KustoData.KustoConnectionStringBuilder(clusterUri).WithAadAzureTokenCredentialsAuthentication(GetClientCertificateCredentials())),
+            ConnectorAuthType.ManagedIdentity => KustoData.Net.Client.KustoClientFactory.CreateCslQueryProvider(new KustoData.KustoConnectionStringBuilder(clusterUri).WithAadSystemManagedIdentity()),
+            ConnectorAuthType.UAMI => KustoData.Net.Client.KustoClientFactory.CreateCslQueryProvider(new KustoData.KustoConnectionStringBuilder(clusterUri).WithAadAzureTokenCredentialsAuthentication(GetUserManagedIdentityCredentials())),
+            ConnectorAuthType.App => KustoData.Net.Client.KustoClientFactory.CreateCslQueryProvider(new KustoData.KustoConnectionStringBuilder(clusterUri).WithAadAzureTokenCredentialsAuthentication(GetClientCertificateCredentials())),
             _ => KustoData.Net.Client.KustoClientFactory.CreateCslQueryProvider(new KustoData.KustoConnectionStringBuilder(clusterUri).WithAadUserPromptAuthentication())
         };
     }
 
+    public async Task<KustoQueryResult> ExecuteClusterKustoQuery(
+           string cluster,
+           string database,
+           string fullQuery)
+    {
+        cluster = cluster.Replace(".kusto.windows.net", "");
+        cluster = cluster.Replace("https://", "");
+        var reader = await PerformQueryAsync($"https://{cluster}.kusto.windows.net", database, fullQuery);
+        return new KustoQueryResult(reader, fullQuery);
+    }
     private static void ApplyParameters(ClientRequestProperties properties, Dictionary<string, object> parameters)
     {
         ArgumentNullException.ThrowIfNull(properties);
@@ -134,44 +151,57 @@ public class KustoClient
                 case null:
                     properties.SetParameter(param.Key, string.Empty);
                     break;
+
                 case string stringValue:
                     properties.SetParameter(param.Key, stringValue);
                     break;
+
                 case int intValue:
                     properties.SetParameter(param.Key, intValue);
                     break;
+
                 case long longValue:
                     properties.SetParameter(param.Key, longValue);
                     break;
+
                 case double doubleValue:
                     properties.SetParameter(param.Key, doubleValue);
                     break;
+
                 case bool boolValue:
                     properties.SetParameter(param.Key, boolValue);
                     break;
+
                 case DateTime dateTimeValue:
                     properties.SetParameter(param.Key, dateTimeValue);
                     break;
+
                 case TimeSpan timeSpanValue:
                     properties.SetParameter(param.Key, timeSpanValue);
                     break;
+
                 case Guid guidValue:
                     properties.SetParameter(param.Key, guidValue);
                     break;
+
                 case decimal decimalValue:
                     properties.SetParameter(param.Key, (double)decimalValue);
                     break;
+
                 case float floatValue:
                     properties.SetParameter(param.Key, (double)floatValue);
                     break;
+
                 case byte[] byteArrayValue:
                     properties.SetParameter(param.Key, Convert.ToBase64String(byteArrayValue));
                     break;
+
                 case IEnumerable<object> enumerable:
                     // Convert collection to JSON string
                     var jsonString = System.Text.Json.JsonSerializer.Serialize(enumerable);
                     properties.SetParameter(param.Key, jsonString);
                     break;
+
                 default:
                     // For complex types, serialize to JSON
                     try
@@ -189,4 +219,3 @@ public class KustoClient
         }
     }
 }
-

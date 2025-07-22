@@ -9,15 +9,15 @@ using Agent.Runtime.Reasoning.Models;
 
 namespace Agent.Plugins.Kusto.Tools
 {
-    [ToolTypeAttribute("KustoFunction")]
-    public class KustoFunction : IYamlToolAware
+    [ToolTypeAttribute("KustoTool")]
+    public class KustoToolType : IYamlToolAware
     {
-        private readonly IKustoPluginChat _kustoChat;
+        private readonly KustoPluginFactory _kustoFactory;
         private KustoToolDefinition? _definition;
 
-        public KustoFunction(IKustoPluginChat kustoChat)
+        public KustoToolType(KustoPluginFactory kustoFactory)
         {
-            _kustoChat = kustoChat;
+            _kustoFactory = kustoFactory;
         }
 
         public void SetToolDefinition(YamlToolDefinitionBase definition)
@@ -29,18 +29,37 @@ namespace Agent.Plugins.Kusto.Tools
         {
             string groupName = "ContainerApps";
             SamplingOptions? samplingOptions = null;
-            if (_definition == null) throw new InvalidOperationException("Tool definition was not set.");
 
-            return await _kustoChat.ExecuteLocalFunctionAsync(_definition.Function, region, args, groupName, samplingOptions);
+            if (_definition == null) throw new InvalidOperationException("Tool definition was not set.");
+            var kustoChat = _kustoFactory.Create(_definition.GetConnector<KustoConnector>());
+            switch (_definition.Mode)
+            {
+                case KustoExecutionMode.Function:
+
+                    return await kustoChat.ExecuteLocalFunctionAsync(_definition.Function, region, args, groupName, samplingOptions);
+
+                case KustoExecutionMode.Query:
+                    var formmatedQuery = KustoPlugin.FormatQuery(_definition.Query, args);
+                    var result = await kustoChat.ExecuteKustoQuery(region, formmatedQuery, groupName);
+                    return result.Result;
+
+                case KustoExecutionMode.Script:
+                    break;
+
+                default:
+                    break;
+            }
+            return string.Empty; // Return empty string for unsupported modes or unhandled casesz   
+            //TODO unify kustosettings and kusto connector
         }
     }
 
     [ToolTypeAttribute("KustoQuery")]
     public class KustoQuery
     {
-        private readonly IKustoPluginChat _kustoChat;
+        private readonly IKustoPlugin _kustoChat;
 
-        public KustoQuery(IKustoPluginChat kustoChat)
+        public KustoQuery(IKustoPlugin kustoChat)
         {
             _kustoChat = kustoChat;
         }

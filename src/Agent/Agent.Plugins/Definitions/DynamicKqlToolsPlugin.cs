@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
 using System.Text.Json;
 using Agent.Core.Models;
+using Agent.Plugins.Kusto;
 
 [AgentToolPlugin(Category = ToolCategories.LogQuery)]
 public class DynamicKqlToolsPlugin

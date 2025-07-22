@@ -8,9 +8,9 @@ namespace Agent.Plugins.Definitions;
 [AgentToolPlugin(Category = ToolCategories.Configuration, ResourceType = ToolResourceTypes.ContainerApps)]
 public class RCAContainerAppAspirePluginDefinition
 {
-    private readonly IKustoPluginChat _kustoPlugin;
+    private readonly IKustoPlugin _kustoPlugin;
 
-    public RCAContainerAppAspirePluginDefinition(IKustoPluginChat kustoPlugin)
+    public RCAContainerAppAspirePluginDefinition(IKustoPlugin kustoPlugin)
     {
         _kustoPlugin = kustoPlugin;
     }
