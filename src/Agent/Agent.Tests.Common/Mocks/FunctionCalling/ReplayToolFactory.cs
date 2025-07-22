@@ -68,6 +68,20 @@ public class ReplayToolFactory<TContext> : IToolFactory<TContext> where TContext
         return _replayCore.CreateReplayWrapper(name, originalFunction);
     }
 
+    public AIFunction GetTool(string name, Guid threadId, string? agentMode)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new ArgumentException("Function name cannot be null or empty.", nameof(name));
+        }
+
+        // Get the original function from the inner factory with agent mode
+        var originalFunction = _innerFactory.GetTool(name, threadId, agentMode);
+
+        // Use CreateReplayWrapper to wrap it with replay functionality if appropriate
+        return _replayCore.CreateReplayWrapper(name, originalFunction);
+    }
+
     /// <summary>
     /// Tries to find a tool by name, returning a replayed version if available,
     /// otherwise falls back to the inner factory.

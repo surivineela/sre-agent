@@ -52,7 +52,5 @@ namespace Agent.Core.Configuration
         public string Endpoint { get; set; } = string.Empty;
         public string Username { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
-        public string InstanceName { get; set; } = string.Empty;
-        public bool ReadOnly { get; set; } = true;
     }
 }

@@ -235,7 +235,11 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
         var mode = GetModeForSystemPrompt(agentContext);
         string systemPrompt = _agentsFactory.GetIncidentHandlerAgentSystemPrompt(mode);
         var _aiTools = _agentsFactory.GetSubAgentsAITools(threadGuid, agentContext);
-        var _toolFactoryTools = agentContext.AllowedTools != null ? agentContext.AllowedTools.Select(x => (AITool)_toolFactory.GetTool(x, threadGuid)).ToList() : new List<AITool>();
+        
+        // Updated to pass the agent mode to tool factory
+        var _toolFactoryTools = agentContext.AllowedTools != null 
+            ? agentContext.AllowedTools.Select(x => (AITool)_toolFactory.GetTool(x, threadGuid, mode)).ToList() 
+            : new List<AITool>();
 
         var selectedTools = agentContext.AllowedTools != null && agentContext.AllowedTools.Count > 0
             ? _aiTools.Where(x => x.Name != null && agentContext.AllowedTools.Contains(x.Name))?.ToList().Concat(_toolFactoryTools).ToList()

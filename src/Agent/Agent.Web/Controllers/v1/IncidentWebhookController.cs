@@ -231,8 +231,8 @@ public class IncidentWebhookController : ControllerBase
     public async Task<IActionResult> ServiceNowWebhook([FromBody] ServiceNowRequest request)
     {
         _logger.LogInternalInformation(
-            "ServiceNowWebhook: Invoked with IncidentId: {IncidentId}, Title: {Title}, Source: {Source}",
-            request?.IncidentId, request?.Title, request?.Source ?? "ServiceNow");
+            "ServiceNowWebhook: Invoked with IncidentId: {IncidentId}, Title: {Title}, Source: {Source}, IsTest: {IsTest}",
+            request?.IncidentId, request?.Title, request?.Source ?? "ServiceNow", request?.IsTest);
 
         if(request == null)
         {
@@ -258,8 +258,8 @@ public class IncidentWebhookController : ControllerBase
     private async Task<IActionResult> ServiceNowProcessIncident(ServiceNowRequest request)
     {
         _logger.LogInternalInformation(
-            "ServiceNowProcessIncident: Handling incident with IncidentId: {IncidentId}, Title: {Title}, Source: {Source}",
-            request?.IncidentId, request?.Title, request?.Source ?? "ServiceNow");
+            "ServiceNowProcessIncident: Handling incident with IncidentId: {IncidentId}, Title: {Title}, Source: {Source}, IsTest: {IsTest}",
+            request?.IncidentId, request?.Title, request?.Source ?? "ServiceNow", request?.IsTest);
 
         if (request == null)
         {

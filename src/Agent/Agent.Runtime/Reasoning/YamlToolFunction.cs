@@ -24,7 +24,14 @@ public class YamlToolFunction<TContext> : IDeferredToolFunction where TContext :
 
     public AIFunction GetToolFunction(Guid? threadId = null)
     {
+        return GetToolFunction(threadId, null);
+    }
+
+    public AIFunction GetToolFunction(Guid? threadId, string? agentMode)
+    {
         _threadId = threadId;
+        // For now, YAML tools don't support agent mode, so we ignore the agentMode parameter
+        // You can add agent mode support for YAML tools later if needed
 
         var pluginType = _assemblies
             .SelectMany(a => a.GetTypes())

@@ -3,6 +3,8 @@
 // ------------------------------------------------------------
 
 using System.Reflection;
+using Agent.Core.Attributes;
+using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Agent.Plugins;
 using Agent.Plugins.Tools;
@@ -73,22 +75,40 @@ public sealed class DeferredToolFunction<TContext> : IDeferredToolFunction where
     /// </summary>
     public AIFunction GetToolFunction(Guid? threadId = null)
     {
+        return GetToolFunction(threadId, null);
+    }
+
+    /// <summary>
+    /// Creates the AIFunction based on the source information (Reflection or YAML) with agent mode support.
+    /// </summary>
+    public AIFunction GetToolFunction(Guid? threadId, string? agentMode)
+    {
         // Case 1: The tool was defined by reflecting over source code.
         if (_methodInfo is not null)
         {
-            return CreateFromReflection(threadId);
+            return CreateFromReflection(threadId, agentMode);
         }
 
         throw new InvalidOperationException("DeferredToolFunction was not properly initialized. Both reflection and YAML sources are null.");
     }
 
-    private AIFunction CreateFromReflection(Guid? threadId)
+    private AIFunction CreateFromReflection(Guid? threadId, string? agentMode)
     {
         var instance = _sp.GetRequiredService(_pluginType!);
+        
+        // Check if this is a write operation in read-only mode
+        var writeActionAttr = _methodInfo!.GetCustomAttribute<WriteActionAttribute>();
+        var isReadOnlyMode = IsReadOnlyMode(agentMode);
+        
+        if (writeActionAttr != null && isReadOnlyMode && !writeActionAttr.RunInReadOnlyMode)
+        {
+            // Create a wrapper that returns mock responses instead of executing
+            return CreateReadOnlyMockFunction(instance, threadId, writeActionAttr.ReadOnlyMessage);
+        }
 
+        // Standard tool creation logic (existing code continues here...)
         if (threadId is not null)
         {
-            // Note: This logic is preserved from the original implementation.
             // Check for public ThreadId property first
             var threadIdPropertyPublic = _pluginType!.GetProperty("ThreadId", BindingFlags.Instance | BindingFlags.Public);
             if (threadIdPropertyPublic is not null && threadIdPropertyPublic.PropertyType == typeof(Guid?))
@@ -126,6 +146,18 @@ public sealed class DeferredToolFunction<TContext> : IDeferredToolFunction where
         }
 
         return AIFunctionFactory.Create(_methodInfo!, instance, name: _reflectionBasedName!);
+    }
+
+    private bool IsReadOnlyMode(string? agentMode)
+    {
+        return string.Equals(agentMode, ActionMode.Chat.ToString(), StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(agentMode, ActionMode.ReadOnly.ToString(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    private AIFunction CreateReadOnlyMockFunction(object instance, Guid? threadId, string? customMessage)
+    {
+        var logger = _sp.GetService<ILogger<DeferredToolFunction<TContext>>>();
+        return new ReadOnlyMockFunction(_methodInfo!, instance, _reflectionBasedName!, logger, customMessage);
     }
 }
 
@@ -377,13 +409,18 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
         return DoFindAIFunction(name, threadId);
     }
 
-    private AIFunction DoFindAIFunction(string name, Guid? threadId = null)
+    public AIFunction GetTool(string name, Guid threadId, string? agentMode)
+    {
+        return DoFindAIFunction(name, threadId, agentMode);
+    }
+
+    private AIFunction DoFindAIFunction(string name, Guid? threadId = null, string? agentMode = null)
     {
         if (_tools.TryGetValue(name, out var function))
         {
             try
             {
-                return function.GetToolFunction(threadId);
+                return function.GetToolFunction(threadId, agentMode);
             }
             catch (Exception ex)
             {

@@ -36,6 +36,15 @@ public interface IToolFactory<TContext> where TContext : class
 
     public AIFunction GetTool(string name, Guid threadId);
 
+    /// <summary>
+    /// Find an AI function by its name with agent mode support.
+    /// </summary>
+    /// <param name="name">The name of the tool</param>
+    /// <param name="threadId">The thread ID</param>
+    /// <param name="agentMode">The agent mode (e.g., "Chat", "ReadOnly", "Review", "Autonomous")</param>
+    /// <returns></returns>
+    public AIFunction GetTool(string name, Guid threadId, string? agentMode);
+
     public bool TryFindTool(string name, out AIFunction? function);
 
     public bool HasTool(string name);

@@ -16,9 +16,16 @@ public interface IDeferredToolFunction
     /// <param name="threadId">The optional thread ID for context.</param>
     /// <returns>An <see cref="AIFunction"/>.</returns>
     AIFunction GetToolFunction(Guid? threadId = null);
+    
+    /// <summary>
+    /// Creates and returns the executable AIFunction with agent mode support.
+    /// </summary>
+    /// <param name="threadId">The optional thread ID for context.</param>
+    /// <param name="agentMode">The agent mode (e.g., "Chat", "ReadOnly", "Review", "Autonomous").</param>
+    /// <returns>An <see cref="AIFunction"/>.</returns>
+    AIFunction GetToolFunction(Guid? threadId, string? agentMode);
+    
     string GetPluginCategory();
-
     string GetPluginResourceType();
-
     string GetPluginName();
 }
