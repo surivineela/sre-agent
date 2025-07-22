@@ -1,15 +1,9 @@
-using FirstPartyAgent.Core.Constants;
 using FirstPartyAgent.Core.Extensions;
-using FirstPartyAgent.Core.Helpers;
 using FirstPartyAgent.Core.Models;
 using FirstPartyAgent.Core.Services;
-using FirstPartyAgent.Helpers;
 using FirstPartyAgent.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
-using Newtonsoft.Json;
-using System.ComponentModel;
 
 namespace FirstPartyAgent.Core.Helpers;
 
@@ -28,15 +22,15 @@ public class AlertHandlerClient
         _alertHandlerService = alertHandlerService;
     }
 
-    public async Task<ICMAlertConfig> GetConfigAsync(Incident incidentDetails, Kernel kernel)
+    public async Task<ICMAlertConfig?> GetConfigAsync(Incident incidentDetails, Kernel kernel)
     {
         if (kernel.Data.ContainsKey("alertConfig"))
         {
-            return (ICMAlertConfig)kernel.Data["alertConfig"];
+            return (ICMAlertConfig?)kernel.Data["alertConfig"];
         }
 
-        ICMAlertConfig alertConfig = null;
-        var customAlertConfig = kernel.Data.TryGetValue("customAlertConfig", out object customAlertConfigObj) ? (ICMAlertConfig)customAlertConfigObj : null;
+        ICMAlertConfig? alertConfig = null;
+        var customAlertConfig = kernel.Data.TryGetValue("customAlertConfig", out object? customAlertConfigObj) ? (ICMAlertConfig?)customAlertConfigObj : null;
 
         string agentMode = string.Empty;
         if(kernel.Data.TryGetValue("agentMode", out var value)) {

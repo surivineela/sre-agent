@@ -6,10 +6,10 @@ namespace FirstPartyAgent.Core.Models
 {
     public class MessageRequestBody
     {
-        public string Sender { get; set; }
-        public string Message { get; set; }
-        public string AgentMode { get; set; }
-        public string SessionId { get; set; }
+        public string Sender { get; set; } = string.Empty;
+        public string Message { get; set; } = string.Empty;
+        public string AgentMode { get; set; } = string.Empty;
+        public string SessionId { get; set; } = string.Empty;
         public bool SendLogsToTeams { get; set; } = false;
         public string? Title { get; set; }
         public Dictionary<string, string> PromptReplacements { get; set; } = new Dictionary<string, string>();

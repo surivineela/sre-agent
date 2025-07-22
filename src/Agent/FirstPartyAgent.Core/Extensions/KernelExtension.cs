@@ -16,14 +16,18 @@ namespace FirstPartyAgent.Core.Extensions
 {
     public static class KernelExtensions
     {
-        public static async Task LogInformation(this Kernel kernel, string info, ILogger logger, ITeamsClient teamsClient = null, ISessionMessageService sessionMessageService = null)
+        public static async Task LogInformation(this Kernel kernel, string info, ILogger logger, ITeamsClient? teamsClient = null, ISessionMessageService? sessionMessageService = null)
         {
             logger.LogInformation(info);
-            var sessionId = kernel.Data.ContainsKey("sessionId") ? (string)kernel.Data["sessionId"] : string.Empty;
+            var sessionId = kernel.Data.ContainsKey("sessionId") ? (string?)kernel.Data["sessionId"] : string.Empty;
 
             if (teamsClient != null && teamsClient.IsEnabled() && teamsClient.SendLogsToTeams())
             {
-                string agentMode = kernel.Data.TryGetValue("agentMode", out var val) ? val.ToString() : AgentMode.None.ToString();
+                string? agentMode = kernel.Data.TryGetValue("agentMode", out var val) ? val?.ToString() : AgentMode.None.ToString();
+                if (string.IsNullOrWhiteSpace(agentMode))
+                {
+                    agentMode = AgentMode.ICMAgent.ToString();
+                }
                 var teamsMessage = new TeamsMessage(info, null);
                 teamsMessage.MessageId = sessionId;
                 await teamsClient.PostMessageOnTeams(agentMode, teamsMessage).ConfigureAwait(false);
@@ -60,7 +64,7 @@ namespace FirstPartyAgent.Core.Extensions
                 },
                 kernel: kernel);
 
-            return result.Content;
+            return result.Content ?? string.Empty;
 
         }
     }

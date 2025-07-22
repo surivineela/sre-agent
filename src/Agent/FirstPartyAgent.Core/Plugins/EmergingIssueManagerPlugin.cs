@@ -418,10 +418,13 @@ IMPORTANT INSTRUCTIONS:
 
             // Fallback to original behavior if conversion fails
             // Format the content data
-            dynamic contentObj = null;
+            dynamic? contentObj = null;
             try
             {
-                contentObj = JsonConvert.DeserializeObject<dynamic>(issue.Content);
+                if (issue.Content != null)
+                {
+                    contentObj = JsonConvert.DeserializeObject<dynamic>(issue.Content);
+                }                
             }
             catch (Exception ex)
             {
@@ -654,7 +657,7 @@ IMPORTANT INSTRUCTIONS:
     {
         try
         {
-            _logger.LogInformation("Analyzing emerging issue content: {Length} chars", combinedContent?.Length ?? 0);
+            _logger.LogInformation("Analyzing emerging issue content: {Length} chars", combinedContent.Length);
             
             // Create chat history with system prompt and user message
             var history = new ChatHistory();
@@ -674,6 +677,11 @@ IMPORTANT INSTRUCTIONS:
                 kernel: _kernel);
             
             // Convert JSON result to Markdown format
+
+            if (result == null || string.IsNullOrWhiteSpace(result.Content))
+            {
+                throw new InvalidOperationException("No content returned from analysis. Please check the input data.");
+            }
             return ConvertJsonToMarkdown(result.Content);
         }
         catch (Exception ex)
@@ -689,7 +697,7 @@ IMPORTANT INSTRUCTIONS:
     /// <returns>Markdown formatted content</returns>
     private string ConvertHtmlToMarkdown(string htmlContent, string contentType)
     {
-        if (htmlContent == null || !htmlContent.Contains("<"))
+        if (!htmlContent.Contains("<"))
         {
             return htmlContent;
         }
@@ -734,8 +742,7 @@ IMPORTANT INSTRUCTIONS:
         try
         {
             // Parse JSON content
-            dynamic analysisData = JsonConvert.DeserializeObject<dynamic>(jsonContent);
-            
+            dynamic? analysisData = JsonConvert.DeserializeObject<dynamic>(jsonContent);            
             if (analysisData == null)
             {
                 _logger.LogWarning("Failed to parse JSON analysis result");

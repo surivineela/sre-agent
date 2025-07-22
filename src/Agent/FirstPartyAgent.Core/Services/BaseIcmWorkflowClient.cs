@@ -16,7 +16,7 @@ namespace FirstPartyAgent.Core.Services
     public class BaseIcmWorkflowClient: IBaseIcmWorkflowClient
     {
         private readonly bool IsDevelopment;
-        private static HttpClient _httpClient;
+        private readonly HttpClient? _httpClient;
         private readonly ILogger<BaseIcmWorkflowClient> _logger;
         private readonly BaseIcmWorkflowSettings _icmWorkflowSettings;
         private const string ActionPath = "triggers/manual/execute";
@@ -26,14 +26,15 @@ namespace FirstPartyAgent.Core.Services
 
         public BaseIcmWorkflowClient(IHostEnvironment environment, ILogger<BaseIcmWorkflowClient> logger, ICMWorkflowSettings icmWorkflowSettings)
         {
+            _icmWorkflowSettings = JsonConvert.DeserializeObject<BaseIcmWorkflowSettings>(JsonConvert.SerializeObject(icmWorkflowSettings)) ?? throw new Exception("Failed to deserialize ICMWorkflowSettings.");
+            _readOnly = _icmWorkflowSettings.ReadOnly;
+            IsDevelopment = environment.IsDevelopment();
+            _logger = logger;
+
             if (!icmWorkflowSettings.Enabled)
             {
                 return;
             }
-            _icmWorkflowSettings = JsonConvert.DeserializeObject<BaseIcmWorkflowSettings>(JsonConvert.SerializeObject(icmWorkflowSettings));
-            _readOnly = _icmWorkflowSettings.ReadOnly;
-            IsDevelopment = environment.IsDevelopment();
-            _logger = logger;
 
             if (_icmWorkflowSettings.UseFunctionApp)
             {
@@ -62,28 +63,29 @@ namespace FirstPartyAgent.Core.Services
                 }
             }
 
-            InitializeHttpClient();
+            _httpClient = GetHttpClient();
         }
 
-        private void InitializeHttpClient()
+        private HttpClient GetHttpClient()
         {
+            HttpClient result;
             if (_icmWorkflowSettings.UseFunctionApp)
             {
-                _httpClient = new HttpClient()
+                result = new HttpClient()
                 {
                     Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                 };
-                _httpClient.DefaultRequestHeaders.Add("x-functions-key", _icmWorkflowSettings.FunctionAppKey);
+                result.DefaultRequestHeaders.Add("x-functions-key", _icmWorkflowSettings.FunctionAppKey);
             }
             else
             {
                 if (IsDevelopment && !string.IsNullOrWhiteSpace(_icmWorkflowSettings.UserToken))
                 {
-                    _httpClient = new HttpClient()
+                    result = new HttpClient()
                     {
                         Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                     };
-                    _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_icmWorkflowSettings.UserToken}");
+                    result.DefaultRequestHeaders.Add("Authorization", $"Bearer {_icmWorkflowSettings.UserToken}");
                 }
                 else
                 {
@@ -105,16 +107,23 @@ namespace FirstPartyAgent.Core.Services
                         handler.ClientCertificates.Add(certificates[0]);
                     }
 
-                    _httpClient = new HttpClient(handler)
+                    result = new HttpClient(handler)
                     {
                         Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                     };
                 }
             }
+
+            return result;
         }
 
-        public async Task<HttpResponseMessage> SendICMWorkflowRequest(string workflowName, string body, string tenantId = null)
+        public async Task<HttpResponseMessage> SendICMWorkflowRequest(string workflowName, string body, string? tenantId = null)
         {
+            if (_httpClient == null)
+            {
+                throw new InvalidOperationException("ICM Workflow Client is not initialized. Ensure that the ICMWorkflowSettings are properly configured and the client is enabled.");
+            }
+
             _logger.LogInformation($"Sending ICM Workflow Request. WorkflowName: {workflowName}, Body: {body}");
             if (string.IsNullOrWhiteSpace(workflowName))
                 throw new ArgumentException("Workflow name must be provided.", nameof(workflowName));
@@ -161,6 +170,11 @@ namespace FirstPartyAgent.Core.Services
 
         public async Task<HttpResponseMessage> ExecuteGetCallsInICMWorkflowsFunctionApp(string apiPath)
         {
+            if (_httpClient == null)
+            {
+                throw new InvalidOperationException("ICM Workflow Client is not initialized. Ensure that the ICMWorkflowSettings are properly configured and the client is enabled.");
+            }
+
             if (string.IsNullOrWhiteSpace(_icmWorkflowSettings.FunctionAppEndpoint))
             {
                 throw new Exception("'ICMWorkflows:FunctionAppEndpoint' is not set in the configuration");
@@ -179,7 +193,7 @@ namespace FirstPartyAgent.Core.Services
     public interface IBaseIcmWorkflowClient : IDisposable
     {
         bool ReadOnly { get; }
-        Task<HttpResponseMessage> SendICMWorkflowRequest(string workflowName, string body, string tenantId = null);
+        Task<HttpResponseMessage> SendICMWorkflowRequest(string workflowName, string body, string? tenantId = null);
         Task<HttpResponseMessage> ExecuteGetCallsInICMWorkflowsFunctionApp(string apiPath);
     }
 
@@ -190,14 +204,14 @@ namespace FirstPartyAgent.Core.Services
     {
         public bool ReadOnly => true;
 
-        public Task<HttpResponseMessage> SendICMWorkflowRequest(string workflowName, string body, string tenantId = null)
+        public Task<HttpResponseMessage> SendICMWorkflowRequest(string workflowName, string body, string? tenantId = null)
         {
-            return Task.FromResult<HttpResponseMessage>(null);
+            return Task.FromResult<HttpResponseMessage>(new HttpResponseMessage());
         }
 
         public Task<HttpResponseMessage> ExecuteGetCallsInICMWorkflowsFunctionApp(string apiPath)
         {
-            return Task.FromResult<HttpResponseMessage>(null);
+            return Task.FromResult<HttpResponseMessage>(new HttpResponseMessage());
         }
 
         public void Dispose()

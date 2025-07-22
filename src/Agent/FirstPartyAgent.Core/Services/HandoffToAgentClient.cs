@@ -15,7 +15,7 @@ public class HandoffToAgentClient : IHandoffToAgentClient
 {
     private readonly HandoffToAgentSettings _handoffToAgentSettings;
     private readonly ILogger<HandoffToAgentClient> _logger;
-    private static HttpClient _httpClient;
+    private readonly HttpClient _httpClient;
     private readonly int TimeoutInSeconds = 240; // Default timeout for handoff operations
 
     public HandoffToAgentClient(HandoffToAgentSettings handoffToAgentSettings, ILogger<HandoffToAgentClient> logger)
@@ -76,7 +76,10 @@ public class HandoffToAgentClient : IHandoffToAgentClient
         }
 
         _handoffToAgentSettings.ConfiguredAgents.TryGetValue(targetAgentName, out var agentConfig);
-
+        if (agentConfig == null)
+        {
+            throw new InvalidOperationException($"Agent config for {targetAgentName} not found.");
+        }
         var requestUri = agentConfig.Endpoint;
         var requestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
         var content = new

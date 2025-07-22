@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using FirstPartyAgent.Core.Helpers;
 using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Models;
@@ -13,17 +8,14 @@ namespace FirstPartyAgent.Core.Models
 {
     public class SessionInformation
     {
-        public string SessionId { get; set; }
+        public string SessionId { get; set; } = string.Empty;
         public AgentMode AgentMode { get; set; }
         public DateTime Timestamp { get; set; }
         public bool SendLogsToTeams { get; set; } = false;
-        public ChatHistory ChatHistory { get; set; }
+        public ChatHistory ChatHistory { get; set; } = new ChatHistory();
         public bool AgentLoopRunning { get; set; }
 
-        [System.Text.Json.Serialization.JsonIgnore]
-        [Newtonsoft.Json.JsonIgnore]
-        public Kernel Kernel { get; set; }
-        public Dictionary<string, object> Data { get; set; }
+        public Dictionary<string, object> Data { get; set; } = [];
 
         public SessionInformation()
         {
@@ -35,7 +27,6 @@ namespace FirstPartyAgent.Core.Models
             SessionId = sessionId;
             AgentMode = _agentMode;
             Timestamp = DateTime.UtcNow;
-            ChatHistory = new ChatHistory();
 
             var agentInfo = AgentFinder.GetAgentPrompts(_agentMode).FirstOrDefault();
             ChatHistory.AddSystemMessage(agentInfo?.SystemMessage ?? "You are a helpful AI Assistant.");
@@ -67,12 +58,12 @@ namespace FirstPartyAgent.Core.Models
 
     public class DeserializableSessionInformation
     {
-        public string SessionId { get; set; }
+        public string SessionId { get; set; } = string.Empty;
         public AgentMode AgentMode { get; set; }
         public DateTime Timestamp { get; set; }
-        public List<DeserializableChatMessageContent> ChatHistory { get; set; }
+        public List<DeserializableChatMessageContent> ChatHistory { get; set; } = new List<DeserializableChatMessageContent>();
         public bool AgentLoopRunning { get; set; }
-        public Dictionary<string, object> Data { get; set; }
+        public Dictionary<string, object> Data { get; set; } = new Dictionary<string, object>();
 
         public DeserializableSessionInformation() { }
         public DeserializableSessionInformation(SessionInformation sessionInfo)

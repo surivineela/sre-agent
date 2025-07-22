@@ -50,8 +50,7 @@ namespace FirstPartyAgent.Core.Services
         public StorageService(StorageAccountSettings storageAccountSettings)
         {
             string storageAccountUrl = storageAccountSettings.AccountUrl;
-            DefaultAzureCredential credential = null;
-
+            DefaultAzureCredential credential;
             if (!string.IsNullOrEmpty(storageAccountSettings.ManagedIdentityClientId))
             {
                 credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions

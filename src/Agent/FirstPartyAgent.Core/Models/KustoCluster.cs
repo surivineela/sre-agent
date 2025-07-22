@@ -9,11 +9,11 @@ namespace Agent.Core.Models
     public class KustoCluster
     {
         [Required]
-        public string Region { get; set; }
+        public string Region { get; set; } = string.Empty;
+        [Required] 
+        public string ClusterUri { get; set; } = string.Empty;
         [Required]
-        public string ClusterUri { get; set; }
-        [Required]
-        public string Database { get; set; }
+        public string Database { get; set; } = string.Empty;
     }
 }
 

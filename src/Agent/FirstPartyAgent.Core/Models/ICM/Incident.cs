@@ -9,92 +9,92 @@ namespace FirstPartyAgent.Models
 {
     public class Incident
     {
-        public string IncidentId { get; set; }
+        public string IncidentId { get; set; } = string.Empty;
         public IncidentType IncidentType { get; set; }
-        public string CloudInstance { get; set; }
-        public string Slice { get; set; }
+        public string CloudInstance { get; set; } = string.Empty;
+        public string Slice { get; set; } = string.Empty;
         public int HitCount { get; set; }
         public string ParentIncidentId { get; set; } = string.Empty;
         public string Environment { get; set; } = string.Empty;
-        public string CreatedBy { get; set; }
+        public string CreatedBy { get; set; } = string.Empty;
         public DateTime ImpactStartDate { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime ModifiedDate { get; set; }
         public IncidentStatus Status { get; set; }
-        public string OwningService { get; set; }
-        public string OwningServiceId { get; set; }
-        public string OwningTeam { get; set; }
-        public string OwningTeamName { get; set; }
-        public string Owner { get; set; }
-        public string Severity { get; set; }
-        public string Title { get; set; }
-        public string Keywords { get; set; }
-        public string Summary { get; set; }
-        public string DiscussionEntry { get; set; }
-        public string MonitoringRole { get; set; }
-        public string MonitoringSlice { get; set; }
-        public string SubscriptionId { get; set; }
+        public string OwningService { get; set; } = string.Empty;
+        public string OwningServiceId { get; set; } = string.Empty;
+        public string OwningTeam { get; set; } = string.Empty;
+        public string OwningTeamName { get; set; } = string.Empty;
+        public string Owner { get; set; } = string.Empty;
+        public string Severity { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
+        public string Keywords { get; set; } = string.Empty;
+        public string Summary { get; set; } = string.Empty;
+        public string DiscussionEntry { get; set; } = string.Empty;
+        public string MonitoringRole { get; set; } = string.Empty;
+        public string MonitoringSlice { get; set; } = string.Empty;
+        public string SubscriptionId { get; set; } = string.Empty;
         public string[] Tags { get; set; } = Array.Empty<string>();
         public string? MonitorId { get; set; }
     }
 
     public class DiscussionEntry
     {
-        public string IncidentId { get; set; }
+        public string IncidentId { get; set; } = string.Empty;
         public DateTime Date { get; set; }
-        public string ChangedBy { get; set; }
-        public string Text { get; set; }
+        public string ChangedBy { get; set; } = string.Empty;
+        public string Text { get; set; } = string.Empty;
         public bool IsHtml { get; set; }
         public string? Cause { get; set; }
     }
 
     public class CustomField
     {
-        public string CustomFieldName { get; set; }
-        public string CustomFieldValue { get; set; }
+        public string CustomFieldName { get; set; } = string.Empty;
+        public string CustomFieldValue { get; set; } = string.Empty;
     }
 
     public class SearchItem
     {
-        public string Id { get; set; }
-        public string Title { get; set; }
-        public string ResponsibleServiceName { get; set; }
+        public string Id { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
+        public string ResponsibleServiceName { get; set; } = string.Empty;
         public DateTime CreatedDate { get; set; }
         public DateTime? MitigatedDate { get; set; }
         public DateTime? ResolvedDate { get; set; }
-        public string HowFixed { get; set; }
-        public string State { get; set; }
+        public string HowFixed { get; set; } = string.Empty;
+        public string State { get; set; }  = string.Empty;
     }
 
     public class IncidentAdvancedSearchResultItem: SearchItem
     {
-        public string CorrelationId { get; set; }
-        public string OccurringEnvironment { get; set; }
-        public string OccurringDatacenter { get; set; }
-        public string OccurringDeviceGroup { get; set; }
-        public string OccurringDeviceName { get; set; }
-        public string OccurringServiceInstanceId { get; set; }
-        public string IncidentType { get; set; }
-        public string Keywords { get; set; }
+        public string CorrelationId { get; set; } = string.Empty;
+        public string OccurringEnvironment { get; set; } = string.Empty;
+        public string OccurringDatacenter { get; set; } = string.Empty;
+        public string OccurringDeviceGroup { get; set; } = string.Empty;
+        public string OccurringDeviceName { get; set; } = string.Empty;
+        public string OccurringServiceInstanceId { get; set; } = string.Empty;
+        public string IncidentType { get; set; } = string.Empty;
+        public string Keywords { get; set; } = string.Empty;
         public DateTime ModifiedDate { get; set; }
-        public string OwningTeamId { get; set; }
-        public string OwningTenantId { get; set; }
-        public string OwningContactAlias { get; set; }
-        public string ParentIncidentId { get; set; }
-        public string RoutingId { get; set; }
-        public string Severity { get; set; }
-        public Guid SourceIncidentId { get; set; }
-        public string SourceId { get; set; }
+        public string OwningTeamId { get; set; } = string.Empty;
+        public string OwningTenantId { get; set; } = string.Empty;
+        public string OwningContactAlias { get; set; } = string.Empty;
+        public string ParentIncidentId { get; set; } = string.Empty;
+        public string RoutingId { get; set; } = string.Empty;
+        public string Severity { get; set; } = string.Empty;
+        public Guid SourceIncidentId { get; set; } = Guid.Empty;
+        public string SourceId { get; set; } = string.Empty;
     }
 
 
     public class ODataResponse<T>
     {
         [JsonProperty("odata.metadata")]
-        public string OdataMetadata { get; set; }
+        public string OdataMetadata { get; set; } = string.Empty;
 
         [JsonProperty("value")]
-        public List<T> Value { get; set; }
+        public List<T> Value { get; set; } = [];
     }
 
     public class IncidentRepairItem
@@ -131,20 +131,20 @@ namespace FirstPartyAgent.Models
             get => $"https://msazure.visualstudio.com/One/_workitems/edit/{RepairItemId}";
         }
 
-        public RepairItemEntityReference ExternalLinkEntityRef { get; set; }
-        public RepairItemEntityReference IcmEntityRef { get; set; }
-        public string Title { get; set; }
-        public string Owner { get; set; }
-        public string Status { get; set; }
+        public RepairItemEntityReference ExternalLinkEntityRef { get; set; } = new RepairItemEntityReference();
+        public RepairItemEntityReference IcmEntityRef { get; set; } = new RepairItemEntityReference();
+        public string Title { get; set; } = string.Empty;
+        public string Owner { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
         public DateTime ChangedDate { get; set; }
-        public string AdditionalData { get; set; }
+        public string AdditionalData { get; set; } = string.Empty;
         public int ExternalLinkConfigId { get; set; }
-        public object KeepRemoteEntityUntouched { get; set; }
+        public object KeepRemoteEntityUntouched { get; set; } = new object();
         public DateTime? CreatedDate { get; set; }
         public int ExternalLinkTypeId { get; set; }
-        public string CustomTags { get; set; }
+        public string CustomTags { get; set; } = string.Empty;
 
-        private RepairItemAdditionalData _parsedAdditionalData;
+        private RepairItemAdditionalData? _parsedAdditionalData;
 
         public RepairItemAdditionalData? ParsedAdditionalData =>
             _parsedAdditionalData ??= 
@@ -155,27 +155,27 @@ namespace FirstPartyAgent.Models
 
     public class RepairItemEntityReference
     {
-        public string IdType { get; set; }
-        public string Id { get; set; }
-        public string DisplayName { get; set; }
-        public string EntityTypeId { get; set; }
-        public string EntityTypeName { get; set; }
+        public string IdType { get; set; } = string.Empty;
+        public string Id { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = string.Empty;
+        public string EntityTypeId { get; set; } = string.Empty;
+        public string EntityTypeName { get; set; } = string.Empty;
     }
 
     public class RepairItemAdditionalData
     {
         public RepairItemType RepairItemType { get; set; }
         public int RepairItemDeliveryType { get; set; } // Using int because values in data don't match enum (101, 102, 103)
-        public string WorkItemType { get; set; }
-        public string Source { get; set; }
+        public string WorkItemType { get; set; } = string.Empty;
+        public string Source { get; set; } = string.Empty;
         public int Revision { get; set; }
-        public string Areapath { get; set; }
-        public string ProjectName { get; set; }
-        public string Tags { get; set; }
-        public DateTime VSTSCreatedDate { get; set; }
+        public string Areapath { get; set; } = string.Empty;
+        public string ProjectName { get; set; } = string.Empty;
+        public string Tags { get; set; } = string.Empty;
+        public DateTime VSTSCreatedDate { get; set; } 
         public DateTime? VSTSClosedDate { get; set; }
-        public string RepairItemOwningServiceId { get; set; }
-        public string RepairItemOwningTeamId { get; set; }
+        public string RepairItemOwningServiceId { get; set; } = string.Empty;
+        public string RepairItemOwningTeamId { get; set; } = string.Empty;
         public int IncidentSeverity { get; set; }
 
         public RepairItemDeliveryTypeEnum DeliveryType => RepairItemDeliveryType switch

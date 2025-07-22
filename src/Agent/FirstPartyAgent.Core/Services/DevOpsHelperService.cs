@@ -43,7 +43,8 @@ public class DevOpsHelperService
             var json = JsonSerializer.Deserialize<JsonElement>(await response.Content.ReadAsStringAsync());
 
             // read json["content"] as string
-            string result = json.GetProperty("content").GetString();
+            
+            string result = json.GetProperty("content").GetString() ?? string.Empty;
 
             return result;
         }

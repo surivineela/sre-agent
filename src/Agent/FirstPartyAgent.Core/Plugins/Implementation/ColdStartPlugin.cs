@@ -29,8 +29,8 @@ namespace FirstPartyAgent.Plugins
 
         public sealed class KustoQueryResponse
         {
-            public string KustoQuery { get; set; }
-            public string KustoResult { get; set; }
+            public string KustoQuery { get; set; } = string.Empty;
+            public string KustoResult { get; set; }     = string.Empty;
         }
 
         [KernelFunction("FindRequestGeneralInfo")]

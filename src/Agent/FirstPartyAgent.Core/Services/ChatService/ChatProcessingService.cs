@@ -23,10 +23,10 @@ namespace FirstPartyAgent.Core.Services;
 
 public class DeserializableChatMessageContent
 {
-    public string AuthorName { get; set; }
+    public string? AuthorName { get; set; }
     public AuthorRole Role { get; set; }
-    public string Content { get; set; }
-    public string Source { get; set; }
+    public string? Content { get; set; }
+    public string? Source { get; set; }
 
     public DeserializableChatMessageContent(ChatMessageContent chatMessage)
     {
@@ -90,7 +90,7 @@ public class ChatProcessingService : IChatService
         }
 
         var sessionChatHistory = _sessionCollection[sessionId];
-        var systemMessage = sessionChatHistory.ChatHistory.First().Content;
+        var systemMessage = sessionChatHistory.ChatHistory.First().Content ?? string.Empty;
         /*var agentMode = sessionChatHistory.AgentMode;
         var agentInfo = AgentFinder.GetAgentPrompts(agentMode).FirstOrDefault();*/
 
@@ -119,38 +119,6 @@ public class ChatProcessingService : IChatService
         return clonedHistory;
     }
 
-    private async Task<string> GetAgentStatusSummary(SessionInformation sessionInfo)
-    {
-        var clonedHistory = CloneChatHistory(sessionInfo.ChatHistory);
-        var statusPrompt = new ChatMessageContent()
-        {
-            Role = AuthorRole.User,
-            Content = "Take a deep look at the above conversation and generate a 1 liner status of the Agent."
-        };
-
-        clonedHistory.Add(statusPrompt);
-
-        var chatCompletionService = _emptyKernel.GetRequiredService<IChatCompletionService>();
-        var promptExecutionSettings = new AzureOpenAIPromptExecutionSettings()
-        {
-            FunctionChoiceBehavior = FunctionChoiceBehavior.None(),
-            MaxTokens = 100
-        };
-
-        var modelName = chatCompletionService.Attributes["DeploymentName"].ToString();
-        if (modelName.StartsWith("o"))
-        {
-            promptExecutionSettings.ReasoningEffort = OpenAI.Chat.ChatReasoningEffortLevel.Medium;
-        }
-
-        var chatCompletionResult = await chatCompletionService.GetChatMessageContentAsync(
-            clonedHistory,
-            executionSettings: promptExecutionSettings,
-            kernel: _emptyKernel);
-
-        return chatCompletionResult.Content;
-    }
-
     private async Task<bool> IsAgentDone(SessionInformation sessionInfo)
     {
         if (sessionInfo.AgentMode == AgentMode.None)
@@ -174,13 +142,13 @@ public class ChatProcessingService : IChatService
             MaxTokens = 100
         };
 
-        var modelName = chatCompletionService.Attributes["DeploymentName"].ToString();
-        if (modelName.StartsWith("o"))
+        var modelName = chatCompletionService.Attributes["DeploymentName"]?.ToString();
+        if (modelName != null && modelName.StartsWith("o"))
         {
             promptExecutionSettings.ReasoningEffort = OpenAI.Chat.ChatReasoningEffortLevel.Medium;
         }
 
-        ChatMessageContent chatCompletionResult = null;
+        ChatMessageContent? chatCompletionResult = null;
 
         try
         {
@@ -220,7 +188,7 @@ public class ChatProcessingService : IChatService
     private async Task<ChatMessageContent> RunAgentLoop(SessionInformation sessionInfo, int retryLimit = 2)
     {
         _logger.LogInformation($"ChatProcessingService:RunAgentLoop:Start - sessionId: {sessionInfo.SessionId}, chatHistoryLength: {sessionInfo.ChatHistory.Count}");
-        ChatMessageContent chatCompletionResult = null;
+        ChatMessageContent? chatCompletionResult = null;
         FunctionChoiceBehaviorOptions options = new() { AllowConcurrentInvocation = false };
 
         var _kernel = _kernelService.GetKernelForAgentMode(sessionInfo.AgentMode.ToString()).Clone();
@@ -235,7 +203,6 @@ public class ChatProcessingService : IChatService
             }
         }
 
-        sessionInfo.Kernel = _kernel;
         var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
         var promptExecutionSettings = new AzureOpenAIPromptExecutionSettings()
         {
@@ -243,8 +210,8 @@ public class ChatProcessingService : IChatService
             MaxTokens = 10000
         };
 
-        var modelName = chatCompletionService.Attributes["DeploymentName"].ToString();
-        if (modelName.StartsWith("o"))
+        var modelName = chatCompletionService.Attributes["DeploymentName"]?.ToString();
+        if (modelName != null && modelName.StartsWith("o"))
         {
             promptExecutionSettings.ReasoningEffort = OpenAI.Chat.ChatReasoningEffortLevel.High;
         }
@@ -313,7 +280,7 @@ public class ChatProcessingService : IChatService
         return chatCompletionResult;
     }
 
-    public async Task<ChatMessage> ProcessMessageAsync(MessageRequestBody message, SessionInformation sessionInfo = null)
+    public async Task<ChatMessage> ProcessMessageAsync(MessageRequestBody message, SessionInformation? sessionInfo = null)
     {
         try
         {
@@ -384,7 +351,7 @@ public class ChatProcessingService : IChatService
                 //Add custom instructions and alert details to the system message if they are present
                 if (sessionInfo.ChatHistory.Count == 1 && message.PromptReplacements != null && message.PromptReplacements.Keys.Count() > 0)
                 {
-                    var systemMessage = sessionInfo.ChatHistory.First().Content;
+                    var systemMessage = sessionInfo.ChatHistory.First().Content ?? string.Empty;
                     foreach (var promptKey in message.PromptReplacements.Keys)
                     {
                         systemMessage = systemMessage.Replace(promptKey, message.PromptReplacements[promptKey]);

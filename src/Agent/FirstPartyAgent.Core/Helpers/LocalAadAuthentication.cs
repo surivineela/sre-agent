@@ -9,7 +9,7 @@ namespace FirstPartyAgent.Core.Helpers
 {
     public static class LocalAadAuthenticator
     {
-        private static DefaultAzureCredential _credential;
+        private static DefaultAzureCredential _credential = new DefaultAzureCredential();
 
         public static void Initialize()
         {

@@ -6,13 +6,10 @@ using System.ComponentModel;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Agent.Core.Helpers;
-using Azure.Core;
-using Azure.Identity;
 using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Models;
 using FirstPartyAgent.Models;
-using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -23,7 +20,7 @@ namespace FirstPartyAgent.Core.Services
     public class ICMWorkflowClient: IICMWorkflowClient
     {
         private readonly bool IsDevelopment;
-        private static HttpClient _httpClient;
+        private readonly HttpClient? _httpClient;
         private readonly ILogger<ICMWorkflowClient> _logger;
         private readonly ICMWorkflowSettings _icmWorkflowSettings;
         private const string ActionPath = "triggers/manual/execute";
@@ -33,14 +30,15 @@ namespace FirstPartyAgent.Core.Services
 
         public ICMWorkflowClient(IHostEnvironment environment, ILogger<ICMWorkflowClient> logger, ICMWorkflowSettings icmWorkflowSettings)
         {
-            if (!icmWorkflowSettings.Enabled)
-            {
-                return;
-            }
             _icmWorkflowSettings = icmWorkflowSettings;
             _processImages = _icmWorkflowSettings.ProcessImages;
             IsDevelopment = environment.IsDevelopment();
             _logger = logger;
+
+            if (!icmWorkflowSettings.Enabled)
+            {
+                return;
+            }
 
             if (_icmWorkflowSettings.UseFunctionApp)
             {
@@ -69,28 +67,30 @@ namespace FirstPartyAgent.Core.Services
                 }
             }
 
-            InitializeHttpClient();
+            _httpClient = GetHttpClient();
         }
 
-        private void InitializeHttpClient()
+        private HttpClient GetHttpClient()
         {
+            HttpClient result;
+
             if (_icmWorkflowSettings.UseFunctionApp)
             {
-                _httpClient = new HttpClient()
+                result = new HttpClient()
                 {
                     Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                 };
-                _httpClient.DefaultRequestHeaders.Add("x-functions-key", _icmWorkflowSettings.FunctionAppKey);
+                result.DefaultRequestHeaders.Add("x-functions-key", _icmWorkflowSettings.FunctionAppKey);
             }
             else
             {
                 if (IsDevelopment && !string.IsNullOrWhiteSpace(_icmWorkflowSettings.UserToken))
                 {
-                    _httpClient = new HttpClient()
+                    result = new HttpClient()
                     {
                         Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                     };
-                    _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_icmWorkflowSettings.UserToken}");
+                    result.DefaultRequestHeaders.Add("Authorization", $"Bearer {_icmWorkflowSettings.UserToken}");
                 }
                 else if ((!string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateSubjectName) || !string.IsNullOrEmpty(_icmWorkflowSettings.CertificateKeyVaultSecretName))
                         && (!string.IsNullOrWhiteSpace(KeyVaultConfigurationExtension.GetPlatformKeyVaultSettingFromEnvironment("KeyVaultUri"))
@@ -115,7 +115,7 @@ namespace FirstPartyAgent.Core.Services
                     var handler = new HttpClientHandler();
                     handler.ClientCertificates.Add(certificate);
                     _logger.LogInformation("Successfully loaded Cert from keyvault for ICMWorkflowClient.");
-                    _httpClient = new HttpClient(handler)
+                    result = new HttpClient(handler)
                     {
                         Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                     };
@@ -127,7 +127,7 @@ namespace FirstPartyAgent.Core.Services
                     var certificate = CertLoader.LoadCertFromKeyVault(_icmWorkflowSettings.CertificateKeyVaultUri, _icmWorkflowSettings.CertificateKeyVaultSecretName, _icmWorkflowSettings.ManagedIdentityClientId, null, _logger);
                     handler.ClientCertificates.Add(certificate);
                     _logger.LogInformation("Successfully loaded Cert from keyvault for ICMWorkflowClient.");
-                    _httpClient = new HttpClient(handler)
+                    result = new HttpClient(handler)
                     {
                         Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                     };
@@ -138,7 +138,7 @@ namespace FirstPartyAgent.Core.Services
                     var certificate = CertLoader.LoadCertFromFile(_icmWorkflowSettings.CertificateFilePath);
                     handler.ClientCertificates.Add(certificate);
                     _logger.LogInformation("Successfully loaded Cert file for ICMWorkflowClient.");
-                    _httpClient = new HttpClient(handler)
+                    result = new HttpClient(handler)
                     {
                         Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                     };
@@ -163,16 +163,23 @@ namespace FirstPartyAgent.Core.Services
                         handler.ClientCertificates.Add(certificates[0]);
                     }
 
-                    _httpClient = new HttpClient(handler)
+                    result = new HttpClient(handler)
                     {
                         Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                     };
                 }
             }
+
+            return result;
         }
 
-        private async Task<HttpResponseMessage> SendICMWorkflowRequest(string workflowName, string body, string tenantId = null)
+        private async Task<HttpResponseMessage> SendICMWorkflowRequest(string workflowName, string body, string? tenantId = null)
         {
+            if (_httpClient == null)
+                            {
+                throw new InvalidOperationException("ICMWorkflowClient is not properly initialized. HttpClient is null.");
+            }
+
             _logger.LogInformation($"Sending ICM Workflow Request. WorkflowName: {workflowName}, Body: {body}");
             if (string.IsNullOrWhiteSpace(workflowName))
                 throw new ArgumentException("Workflow name must be provided.", nameof(workflowName));
@@ -218,17 +225,6 @@ namespace FirstPartyAgent.Core.Services
             }
         }
 
-        private async Task<HttpResponseMessage> ExecuteGetCallsInICMWorkflowsFunctionApp(string apiPath)
-        {
-            if (string.IsNullOrWhiteSpace(_icmWorkflowSettings.FunctionAppEndpoint))
-            {
-                throw new Exception("'ICMWorkflows:FunctionAppEndpoint' is not set in the configuration");
-            }
-
-            var response = await _httpClient.GetAsync($"{_icmWorkflowSettings.FunctionAppEndpoint}{apiPath}");
-            return response;
-        }
-
         public async Task<Incident> GetIncidentAsync(string incidentId)
         {
             var payload = JsonConvert.SerializeObject(new { incidentId });
@@ -237,6 +233,10 @@ namespace FirstPartyAgent.Core.Services
             {
                 var content = await response.Content.ReadAsStringAsync();
                 var incident = JsonConvert.DeserializeObject<Incident>(content);
+                if (incident == null)
+                {
+                    throw new Exception($"Failed to deserialize incident for incidentId: {incidentId}");
+                }
                 return incident;
             }
             else
@@ -260,33 +260,6 @@ namespace FirstPartyAgent.Core.Services
             }
         }
 
-        public async Task<SubscriptionDetail> GetSubscriptionDetail(string subscriptionId)
-        {
-            var response = await SendICMWorkflowRequest(_icmWorkflowSettings.SubscriptionDetailWorkflowName, JsonConvert.SerializeObject(new { SubscriptionId = subscriptionId }));
-            if (response.IsSuccessStatusCode) {
-                var content = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<SubscriptionDetail>(content);
-                _logger.LogInformation($"GetSubscriptionDetail Completed. The subscription OfferType is {result?.OfferType}, QuotaId is {result?.QuotaId}");
-                return result;
-            }
-            _logger.LogError($"Failed to fetch SubscriptionDetail for subscription {subscriptionId}, statusCode: {response.StatusCode}");
-            return null;
-        }
-
-        public async Task<string> GetSubscriptionQuota(string subscriptionId, string region, string quotaType)
-        {
-            const string workflowName = "Workflow-GenevaAction-GetSubscriptionQuota";
-            Dictionary<string, string> body = new()
-            {
-                { "SubscriptionId", subscriptionId },
-                { "Region", region },
-                { "QuotaType", quotaType },
-            };
-            var response = await SendICMWorkflowRequest(workflowName, JsonConvert.SerializeObject(body));
-            if (response.IsSuccessStatusCode) { return await response.Content.ReadAsStringAsync(); }
-            return $"Failed to get subscription quota with {response.StatusCode} error: {await response.Content.ReadAsStringAsync()}";
-        }
-
         public async Task<string> SetSubscriptionQuota(string subscriptionId, string region, string quotaType, string quotaLimit)
         {
             const string workflowName = "Workflow-GenevaAction-SetSubscriptionQuota";
@@ -304,52 +277,6 @@ namespace FirstPartyAgent.Core.Services
             return "Failed to set subscription quota";
         }
 
-        public async Task<string> GetEnvironmentQuota(string environmentUrl, string region, string quotaType)
-        {
-            const string workflowName = "Workflow-GenevaAction-GetEnvironmentQuota";
-            Dictionary<string, string> body = new()
-            {
-                { "EnvironmentURL", environmentUrl},
-                { "Region", region },
-                { "QuotaType", quotaType },
-            };
-            var response = await SendICMWorkflowRequest(workflowName, JsonConvert.SerializeObject(body));
-            if (response.IsSuccessStatusCode)
-            {
-                return await response.Content.ReadAsStringAsync();
-            }
-            return $"Failed to get environment quota with {response.StatusCode} error: {await response.Content.ReadAsStringAsync()}";
-        }
-
-        public async Task<string> SetEnvironmentQuota(string incidentId, string environmentUrl, string region, string quotaType, string quotaLimit)
-        {
-            const string workflowName = "Workflow-GenevaAction-SetEnvironmentQuota";
-            Dictionary<string, string> body = new()
-            {
-                { "IncidentId", incidentId },
-                { "EnvironmentURL", environmentUrl},
-                { "Region", region },
-                { "QuotaType", quotaType },
-                { "QuotaLimit", quotaLimit },
-            };
-            var response = await SendICMWorkflowRequest(workflowName, JsonConvert.SerializeObject(body));
-            var responseContent = await response.Content.ReadAsStringAsync();
-            if (response.IsSuccessStatusCode)
-            {
-                return responseContent;
-            }
-            else {
-                if (!string.IsNullOrEmpty(responseContent))
-                {
-                    return $"Failed to set environment quota with {response.StatusCode} error: {responseContent}";
-                }
-                else
-                {
-                    return $"Failed to set environment quota with unknow error. Please check Workflow-GenevaAction-SetEnvironmentQuota run history in https://portal.microsofticm.com/imp/v5/automation/workflows/Workflow-GenevaAction-SetEnvironmentQuota.";
-                }
-            } 
-        }
-
         public async Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId, DateTimeOffset? queryFrom = null)
         {
             var payload = queryFrom.HasValue
@@ -364,13 +291,13 @@ namespace FirstPartyAgent.Core.Services
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                var discussionEntries = JsonConvert.DeserializeObject<List<DiscussionEntry>>(content);
+                var discussionEntries = JsonConvert.DeserializeObject<List<DiscussionEntry>>(content) ?? [];
                 return discussionEntries;
             }
             else
             {
                 Console.WriteLine($"Failed to fetch discussion entries for incidentId: {incidentId}");
-                return null;
+                return [];
             }
         }
 
@@ -540,6 +467,13 @@ namespace FirstPartyAgent.Core.Services
             {
                 var content = await response.Content.ReadAsStringAsync();
                 var searchResults = JsonConvert.DeserializeObject<List<IncidentAdvancedSearchResultItem>>(content);
+                if (searchResults == null)
+                {
+                    string errorMessage = $"Failed to deserialize the response of ICMWorkflow request";
+                    _logger.LogError(errorMessage);
+                    return new List<IncidentAdvancedSearchResultItem> { new IncidentAdvancedSearchResultItem { Id = errorMessage } };
+
+                }
                 return searchResults;
             }
             else
@@ -624,7 +558,7 @@ Incidents
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                var searchResults = JsonConvert.DeserializeObject<List<SearchItem>>(content);
+                var searchResults = JsonConvert.DeserializeObject<List<SearchItem>>(content) ?? [];
                 return searchResults;
             }
             else
@@ -670,7 +604,7 @@ Incidents
             }
         }
 
-        public async Task<string> TransferIncidentToHumanInterventionAsync(string incidentId, string discussionEntry, string humanInterventionServiceName = null, string humanInterventionTeamName = null)
+        public async Task<string> TransferIncidentToHumanInterventionAsync(string incidentId, string discussionEntry, string? humanInterventionServiceName = null, string? humanInterventionTeamName = null)
         {
             if (_icmWorkflowSettings.ReadOnly)
             {
@@ -877,12 +811,10 @@ Incidents
     {
         public void Dispose() { }
 
-        public Task<Incident> GetIncidentAsync(string incidentId) => Task.FromResult<Incident>(null);
+        public Task<Incident> GetIncidentAsync(string incidentId) => Task.FromResult<Incident>(new Incident());
 
         public Task<string> AddAttachmentToIncident(string incidentId, string fileName, string base64Content) =>
             Task.FromResult("ICM Plugin is disabled");
-
-        public Task<SubscriptionDetail> GetSubscriptionDetail(string subscriptionId) => Task.FromResult<SubscriptionDetail>(null);
 
         public Task<string> SetSubscriptionQuota(string subscriptionId, string region, string quotaType, string quotaLimit) =>
             Task.FromResult("ICM Plugin is disabled");
@@ -914,7 +846,7 @@ Incidents
         public Task<string> DowngradeSeverityAsync(string incidentId, string discussionEntry) =>
             Task.FromResult("ICM Plugin is disabled");
 
-        public Task<string> TransferIncidentToHumanInterventionAsync(string incidentId, string discussionEntry, string humanInterventionServiceName = null, string humanInterventionTeamName = null) =>
+        public Task<string> TransferIncidentToHumanInterventionAsync(string incidentId, string discussionEntry, string? humanInterventionServiceName = null, string? humanInterventionTeamName = null) =>
             Task.FromResult("ICM Plugin is disabled");
 
         public Task<string> ResolveIncidentAsync(string incidentId, string discussionEntry) =>
@@ -926,14 +858,14 @@ Incidents
         public Task<string> MarkSubFirstPartyAsync(string subscriptionId) =>
             Task.FromResult("ICM Plugin is disabled");
 
-        public Task<string> GetSubDetailsFromGenevaAsync(string subscriptionId) => Task.FromResult<string>(null);
+        public Task<string> GetSubDetailsFromGenevaAsync(string subscriptionId) => Task.FromResult<string>(string.Empty);
 
         public Task<string> RebootWorker(string location, string stampName, string role, string roleInstance) =>
             Task.FromResult("ICM Plugin is disabled");
 
-        public Task<string> GetRedisDeploymentDetailsFromGenevaAsync(string cacheName) => Task.FromResult<string>(null);
+        public Task<string> GetRedisDeploymentDetailsFromGenevaAsync(string cacheName) => Task.FromResult<string>(string.Empty);
 
-        public Task<string> GetRedisDeploymentHistoryFromGenevaAsync(string cacheName) => Task.FromResult<string>(null);
+        public Task<string> GetRedisDeploymentHistoryFromGenevaAsync(string cacheName) => Task.FromResult<string>(string.Empty);
 
         public Task<string> RestartWebApp(string subscriptionId, string webappName, string webspaceName) =>
             Task.FromResult("ICM Plugin is disabled");
@@ -941,7 +873,7 @@ Incidents
         public Task<List<CustomField>> GetCustomFieldsAsync(string incidentId) =>
             Task.FromResult(new List<CustomField>());
 
-        public Task<string> GetAppLensDiagnosticsAsync(string incidentId) => Task.FromResult<string>(null);
+        public Task<string> GetAppLensDiagnosticsAsync(string incidentId) => Task.FromResult<string>(string.Empty);
         public bool ProcessImages => false;
         public bool IsEnabled() { return false; }
         public Task<string> RunKustoQuery(string query) => Task.FromResult<string>("ICM Plugin is disabled");
@@ -950,7 +882,6 @@ Incidents
     {
         Task<Incident> GetIncidentAsync(string incidentId);
         Task<string> AddAttachmentToIncident(string incidentId, string fileName, string base64Content);
-        Task<SubscriptionDetail> GetSubscriptionDetail(string subscriptionId);
         Task<string> SetSubscriptionQuota(string subscriptionId, string region, string quotaType, string quotaLimit);
         Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId, DateTimeOffset? queryFrom = null);
         Task<string> TransferIncidentAsync(string incidentId, string discussionEntry, string tenantName, string owningTeam);
@@ -963,7 +894,7 @@ Incidents
             List<Tuple<string, string, string>> filter3Tuple);
         Task<List<SearchItem>> SearchIncidentsAsync(string searchString, int lookbackPeriodInDays, int resultLimit);
         Task<string> DowngradeSeverityAsync(string incidentId, string discussionEntry);
-        Task<string> TransferIncidentToHumanInterventionAsync(string incidentId, string discussionEntry, string humanInterventionServiceName = null, string humanInterventionTeamName = null);
+        Task<string> TransferIncidentToHumanInterventionAsync(string incidentId, string discussionEntry, string? humanInterventionServiceName = null, string? humanInterventionTeamName = null);
         Task<string> ResolveIncidentAsync(string incidentId, string discussionEntry);
         Task<string> PostDiscussionEntryAsync(string incidentId, string discussionEntry);
         Task<string> MarkSubFirstPartyAsync(string subscriptionId);

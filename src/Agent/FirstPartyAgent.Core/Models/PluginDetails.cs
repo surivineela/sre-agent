@@ -6,8 +6,8 @@ namespace FirstPartyAgent.Core.Models
 {
     public class PluginDetails
     {
-        public string PluginName { get; set; }
-        public string ServiceIdentifier { get; set; }
+        public string PluginName { get; set; } = string.Empty;
+        public string ServiceIdentifier { get; set; } = string.Empty;
     }
 }
 

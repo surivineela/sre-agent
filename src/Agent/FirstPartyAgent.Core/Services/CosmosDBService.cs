@@ -17,12 +17,12 @@ namespace FirstPartyAgent.Core.Services
     /// 
     public interface ICosmosDBService
     {
-        CosmosClient CosmosClient { get; }
+        CosmosClient? CosmosClient { get; }
         IOrderedQueryable<T> GetQueryableContainer<T>(string databaseName, string containerName);
 
         Task BulkWriteAsync<T>(string databaseName, string containerName, IEnumerable<T> items, PartitionKey partitionKey);
 
-        Task<ItemResponse<T>> UpsertItemAsync<T>(string databaseName, string containerName, T item);
+        Task<ItemResponse<T>?> UpsertItemAsync<T>(string databaseName, string containerName, T item);
 
         bool IsEnabled { get; }
 
@@ -31,7 +31,7 @@ namespace FirstPartyAgent.Core.Services
 
     public class CosmosDBServiceDisabled : ICosmosDBService
     {
-        public CosmosClient CosmosClient => null;
+        public CosmosClient? CosmosClient => null;
         public IOrderedQueryable<T> GetQueryableContainer<T>(string databaseName, string containerName)
         {
             return new List<T>().AsQueryable().OrderBy(x => 0);
@@ -42,28 +42,26 @@ namespace FirstPartyAgent.Core.Services
             return Task.CompletedTask;
         }
 
-        public Task<ItemResponse<T>> UpsertItemAsync<T>(string databaseName, string containerName, T item)
+        public Task<ItemResponse<T>?> UpsertItemAsync<T>(string databaseName, string containerName, T item)
         {
-            return Task.FromResult(default(ItemResponse<T>));
+            return Task.FromResult<ItemResponse<T>?>(default);
         }
 
         public string IcmAgentDatabaseName => "HotsiteAgent";
 
         public bool IsEnabled => false;
-
-        public Exception Ex { get; set; }
     }
 
     public class CosmosDBService : ICosmosDBService
     {
         private readonly ILogger<CosmosDBService> _logger;
-        private readonly CosmosClient _cosmosClient;
+        private readonly CosmosClient? _cosmosClient;
         private FederationSettings _federationSettings;
         private string _managedIdentityClient;
         public string _icmAgentDatabaseName;
         private bool Enabled = true;
 
-        public CosmosClient CosmosClient => _cosmosClient;
+        public CosmosClient? CosmosClient => _cosmosClient;
         public bool IsEnabled => Enabled;
 
         public string IcmAgentDatabaseName => _icmAgentDatabaseName;
@@ -84,11 +82,10 @@ namespace FirstPartyAgent.Core.Services
 
             var cosmosDbSettings = azureSettings.Value.CosmosDB;
 
-
-            string cosmosAccountName = null;
-            string domainSuffix = null;
-            string endpoint = null;
-            string cosmosDatabaseName = null;
+            string? cosmosAccountName = null;
+            string? domainSuffix = null;
+            string? endpoint = null;
+            string? cosmosDatabaseName = null;
 
             if (!string.IsNullOrWhiteSpace(cosmosDbSettings?.Docs?.AccountName))
             {
@@ -100,11 +97,12 @@ namespace FirstPartyAgent.Core.Services
             else
             {
                 // Fallback to configuration values if CosmosDB settings are not provided
-                endpoint = configuration.GetValue<string>("AppSettings:Core:External:CosmosDB:AccountUrl", null);
+                endpoint = configuration.GetValue<string>("AppSettings:Core:External:CosmosDB:AccountUrl", string.Empty);
+                cosmosDatabaseName = string.Empty;
             }
 
             // use cosmosDatabaseName if not set in configuration
-            _icmAgentDatabaseName = configuration.GetValue<string>("AppSettings:Core:External:CosmosDB:IcmAgentDatabaseName", cosmosDatabaseName);
+            _icmAgentDatabaseName = configuration.GetValue<string>("AppSettings:Core:External:CosmosDB:IcmAgentDatabaseName", cosmosDatabaseName) ?? string.Empty;
 
             if (!hostEnvironment.IsDevelopment() && string.IsNullOrWhiteSpace(endpoint))
             {
@@ -175,14 +173,14 @@ namespace FirstPartyAgent.Core.Services
             _logger.LogInformation("Getting or creating container {ContainerName} in database {DatabaseName}",
                 containerName, databaseName);
 
-            var container = _cosmosClient.GetContainer(databaseName, containerName);
+            var container = _cosmosClient != null ? _cosmosClient.GetContainer(databaseName, containerName) : throw new InvalidOperationException("CosmosClient not initialized");
 
             return container.GetItemLinqQueryable<T>(true);
         }
 
         public async Task BulkWriteAsync<T>(string databaseName, string containerName, IEnumerable<T> items, PartitionKey partitionKey)
         {
-            var container = _cosmosClient.GetContainer(databaseName, containerName);
+            var container = _cosmosClient != null ? _cosmosClient.GetContainer(databaseName, containerName) : throw new InvalidOperationException("CosmosClient not initialized");
 
             var batch = container.CreateTransactionalBatch(partitionKey);
 
@@ -204,9 +202,9 @@ namespace FirstPartyAgent.Core.Services
             }
         }
 
-        public async Task<ItemResponse<T>> UpsertItemAsync<T>(string databaseName, string containerName, T item)
+        public async Task<ItemResponse<T>?> UpsertItemAsync<T>(string databaseName, string containerName, T item)
         {
-            var container = _cosmosClient.GetContainer(databaseName, containerName);
+            var container = _cosmosClient != null ? _cosmosClient.GetContainer(databaseName, containerName) : throw new InvalidOperationException("CosmosClient not initialized");
             return await container.UpsertItemAsync(item);
         }
     }

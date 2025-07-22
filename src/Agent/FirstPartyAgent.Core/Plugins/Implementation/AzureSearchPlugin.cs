@@ -37,7 +37,7 @@ namespace FirstPartyAgent.Core.Plugins
             async () =>
             {
                 var (owner, repo, issueNumber) = GitHubHelper.ParseGitHubIssueUrl(issueUrl);
-                issueSummaries = issueSummaries?.Where(d => !string.IsNullOrWhiteSpace(d))?.ToList() ?? new List<string>();
+                issueSummaries = issueSummaries.Where(d => !string.IsNullOrWhiteSpace(d)).ToList();
 
                 string completeRepo = $"{owner}/{repo}".ToLower();
                 switch (completeRepo)
@@ -69,10 +69,10 @@ namespace FirstPartyAgent.Core.Plugins
                 var searchResults = await Task.WhenAll(tasks);
                 var results = searchResults.SelectMany(result =>
                 {
-                    if (result?.TotalCount > 0)
+                    if (result.TotalCount > 0)
                     {
                         var latestResults = result.GetResults().Where(r => r.Document.lastUpdatedTimestamp > DateTime.UtcNow.AddYears(-1)).ToList();
-                        if (latestResults?.Count > 0)
+                        if (latestResults.Count > 0)
                         {
                             return latestResults;
                         }
@@ -88,12 +88,12 @@ namespace FirstPartyAgent.Core.Plugins
                 });
 
                 // Remove duplicates from the results by id and pick the one with highest score if multiple matches exist
-                var uniqueResults = results?.GroupBy(x => x.Document.issueId)?
-                    .Select(g => g?.OrderByDescending(x => x.Score)?.FirstOrDefault())?
-                    .ToList() ?? new List<SearchResult<IndexedGitHubIssueModel>>();
+                var uniqueResults = results.GroupBy(x => x.Document.issueId)
+                    .Select(g => g.OrderByDescending(x => x.Score).First())
+                    .ToList();
 
-                _logger.LogInformation($"Search result Count: {uniqueResults?.Count ?? 0}");
-                if (uniqueResults?.Count > 0)
+                _logger.LogInformation($"Search result Count: {uniqueResults.Count}");
+                if (uniqueResults.Count > 0)
                 {
                     return uniqueResults.Take(5);
                 }
@@ -124,7 +124,7 @@ namespace FirstPartyAgent.Core.Plugins
                     throw new ArgumentNullException(nameof(_tsgSettings));
                 }
 
-                string searchIndex = _tsgSettings.AiSearchSettings.SearchIndexes.FirstOrDefault()?.IndexName;
+                string? searchIndex = _tsgSettings.AiSearchSettings.SearchIndexes.FirstOrDefault()?.IndexName;
                 if (string.IsNullOrWhiteSpace(searchIndex))
                 {
                     throw new InvalidOperationException("TSG search index not found in settings");

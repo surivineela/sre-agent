@@ -74,7 +74,7 @@ public class HandoffToAgentPlugin
 
         var incidentDetails = await _icmPlugin.GetIncidentInfo(incidentId, kernel);
 
-        ICMAlertConfig alertConfig = await _alertHandlerClient.GetConfigAsync(incidentDetails, kernel);
+        ICMAlertConfig? alertConfig = await _alertHandlerClient.GetConfigAsync(incidentDetails, kernel);
         string senderAgentName = $"SREAgent_{alertConfig?.AgentName ?? "UnnamedAgent"}";
 
         await LogInformation("handoff_to_another_icm_agent", $"Handoff initiated for message: {handoffMessage} by {senderAgentName}", kernel);

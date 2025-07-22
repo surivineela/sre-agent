@@ -45,7 +45,7 @@ namespace FirstPartyAgent.Core.Plugins
             {
                 FunctionChoiceBehavior = FunctionChoiceBehavior.None()
             });
-            return result.Content;
+            return result.Content ?? string.Empty;
         }
 
         private async Task<string> ExtractHostnames(string observerPayload)
@@ -64,7 +64,7 @@ namespace FirstPartyAgent.Core.Plugins
             {
                 FunctionChoiceBehavior = FunctionChoiceBehavior.None()
             });
-            return result.Content;
+            return result.Content ?? string.Empty;
         }
 
         [KernelFunction("get_webapp_reboot_worker_details")]

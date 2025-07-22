@@ -5,25 +5,25 @@ namespace FirstPartyAgent.Core.Models;
 public class IndexedGitHubIssueModel
 {
     [Description("Unique identifier for the GitHub issue. Not to be confused with issueId within the repository")]
-    public string id { get; set; }
+    public string id { get; set; } = string.Empty;
 
     [Description("GitHub issue number in the repo")]
-    public string issueId { get; set; }
+    public string issueId { get; set; } = string.Empty;
 
     [Description("Link to GitHub issue")]
-    public string issueUrl { get; set; }
+    public string issueUrl { get; set; } = string.Empty;
 
     [Description("Owner of the GitHub repo")]
-    public string owner { get; set; }
+    public string owner { get; set; } = string.Empty;
 
     [Description("Name of the GitHub repo")]
-    public string repository { get; set; }
+    public string repository { get; set; } = string.Empty;
 
     [Description("Title of the GitHub issue")]
-    public string title { get; set; }
+    public string title { get; set; } = string.Empty;
 
     [Description("Body of the GitHub issue")]
-    public string body { get; set; }
+    public string body { get; set; } = string.Empty;
 
     [JsonIgnore]
     public List<IndexedGitHubIssueComment> commentsList { get; set; } = new List<IndexedGitHubIssueComment>();
@@ -44,7 +44,7 @@ public class IndexedGitHubIssueModel
                 _commentsJson = value;
                 try
                 {
-                    commentsList = JsonConvert.DeserializeObject<List<IndexedGitHubIssueComment>>(value);
+                    commentsList = JsonConvert.DeserializeObject<List<IndexedGitHubIssueComment>>(value) ?? [];
                 }
                 catch (JsonException)
                 {
@@ -76,11 +76,11 @@ public class IndexedGitHubIssueModel
     }
 
     [Description("State of the GitHub issue")]
-    public string state { get; set; }
+    public string state { get; set; } = string.Empty;
 
 
     [Description("Descriptive summary of the GitHub issue")]
-    public string descriptiveSummary { get; set; }
+    public string descriptiveSummary { get; set; } = string.Empty;
 
     [Description("Timestamp of when the GitHub issue was created")]
     public DateTime createdTimestamp { get; set; }
@@ -95,6 +95,6 @@ public class IndexedGitHubIssueComment
     public DateTime commentTimestamp { get; set; }
 
     [Description("Body of the comment")]
-    public string body { get; set; }
+    public string body { get; set; } = string.Empty;
 }
 

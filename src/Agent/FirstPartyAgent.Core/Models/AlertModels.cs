@@ -14,18 +14,18 @@ namespace FirstPartyAgent.Core.Models
         [JsonProperty("id")]
         public string? Id { get; set; }
         public int TeamId { get; set; }
-        public string AlertingId { get; set; }
+        public string AlertingId { get; set; } = string.Empty;
         public string? IncidentTitle { get; set; }
         public string? IncidentTitleContains { get; set; }
         public List<string> OwningTeams { get; set; } = new List<string>();
-        public string AgentMode { get; set; }
+        public string AgentMode { get; set; } = string.Empty;
         public bool UseCorrelationIdForKustoQuery { get; set; }
         public List<GenevaActionConfigBase>? GenevaActions { get; set; } = new List<GenevaActionConfigBase>();
         public List<string>? AllowedGenevaActions { get; set; } = new List<string>();
         public List<ICMConfigKustoQueryModel> KustoQueries { get; set; } = new List<ICMConfigKustoQueryModel>();
         public List<string> Owners { get; set; } = new List<string>();
         public int ActionTimeoutIntervalInMinutes { get; set; }
-        public string DefaultHumanInterventionLoop { get; set; }
+        public string DefaultHumanInterventionLoop { get; set; } = string.Empty;
         public List<string> RoutingInstructions { get; set; } = new List<string>();
         public List<string> MitigationInstructions { get; set; } = new List<string>();
         public List<string> MonitoringInstructions { get; set; } = new List<string>();
@@ -53,17 +53,17 @@ namespace FirstPartyAgent.Core.Models
         [JsonProperty("id")]
         [JsonPropertyName("id")]
         public string Id { get; set; } = Guid.NewGuid().ToString();
-        public List<GenevaActionConfig> GenevaActions { get; set; }
+        public List<GenevaActionConfig> GenevaActions { get; set; } = [];
         public int TeamId { get; set; }
         public Guid ServiceTreeId { get; set; } = Guid.NewGuid();
     }
 
     public class GenevaActionConfigBase
     {
-        public string ActionName { get; set; }
-        public string TenantId { get; set; }
-        public string WorkflowName { get; set; }
-        public List<string> WorkflowInputParameters { get; set; }
+        public string ActionName { get; set; } = string.Empty;
+        public string TenantId { get; set; } = string.Empty;  
+        public string WorkflowName { get; set; } = string.Empty;
+        public List<string> WorkflowInputParameters { get; set; } = [];
     }
 
     public class ICMConfigKustoQueryModel : KustoQueryModel
@@ -75,16 +75,16 @@ namespace FirstPartyAgent.Core.Models
 
     public class KustoQueryModel
     {
-        public string Title { get; set; }
-        public string KustoQuery { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string KustoQuery { get; set; } = string.Empty;
     }
 
     public class KustoCluster
     {
-        public string Cloud { get; set; }
-        public string ServiceName { get; set; }
-        public string Cluster { get; set; }
-        public string Database { get; set; }
+        public string Cloud { get; set; } = string.Empty;
+        public string ServiceName { get; set; } = string.Empty;
+        public string Cluster { get; set; } = string.Empty;
+        public string Database { get; set; } = string.Empty;
     }
 
     public class AlertDetailsBase
@@ -92,21 +92,21 @@ namespace FirstPartyAgent.Core.Models
         [JsonProperty("id")]
         [JsonPropertyName("id")]
         public Guid Id { get; set; } = Guid.NewGuid();
-        public string ServiceName { get; set; }
-        public string ServiceId { get; set; }
-        public string CreatedBy { get; set; }
-        public string Title { get; set; }
-        public string Description { get; set; }
-        public KustoQueryModel PrimaryKustoQuery { get; set; }
-        public List<KustoQueryModel> SecondaryKustoQueries { get; set; }
-        public List<KustoCluster> KustoClusters { get; set; }
+        public string ServiceName { get; set; } = string.Empty;
+        public string ServiceId { get; set; } = string.Empty;
+        public string CreatedBy { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public KustoQueryModel PrimaryKustoQuery { get; set; } = new KustoQueryModel();
+        public List<KustoQueryModel> SecondaryKustoQueries { get; set; } = new List<KustoQueryModel>();
+        public List<KustoCluster> KustoClusters { get; set; } = new List<KustoCluster>();
     }
 
     public class AlertDetails : AlertDetailsBase
     {
         public int? Severity { get; set; }
-        public string RoutingID { get; set; }
-        public string TeamAssignedTo { get; set; }
+        public string RoutingID { get; set; } = string.Empty;
+        public string TeamAssignedTo { get; set; } = string.Empty;
         public int? TeamId { get; set; }
 
         public AlertDetails()
@@ -129,23 +129,23 @@ namespace FirstPartyAgent.Core.Models
 
     public class WawsAlertDetails : AlertDetailsBase
     {
-        public List<WawsAlertAction> Actions { get; set; }
+        public List<WawsAlertAction> Actions { get; set; } = [];
     }
 
     public class WawsAlertAction
     {
         public int? Severity { get; set; }
-        public string RoutingID { get; set; }
-        public string TeamAssignedTo { get; set; }
+        public string RoutingID { get; set; } = string.Empty;
+        public string TeamAssignedTo { get; set; } = string.Empty;
     }
 
     public class IcmTeam
     {
         public int? IcmServiceId { get; set; }
-        public string IcmServiceName { get; set; }
-        public string IcmTeamName { get; set; }
+        public string IcmServiceName { get; set; } = string.Empty;
+        public string IcmTeamName { get; set; } = string.Empty;
         public int? IcmTeamId { get; set; }
-        public string TeamPublicId { get; set; }
+        public string TeamPublicId { get; set; } = string.Empty;
     }
 
     public class IcmService
@@ -185,26 +185,26 @@ namespace FirstPartyAgent.Core.Models
         [JsonProperty("id")]
         public string Id { get; set; } = Guid.NewGuid().ToString();
         public int TeamId { get; set; }
-        public string SubscriptionId { get; set; }
-        public string ResourceGroup { get; set; }
-        public string Name { get; set; }
-        public string Location { get; set; }
+        public string SubscriptionId { get; set; } = string.Empty;
+        public string ResourceGroup { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string Location { get; set; } = string.Empty;
     }
 
     public class TeamConfig
     {
         [JsonPropertyName("id")]
         [JsonProperty("id")]
-        public string Id { get; set; }
+        public string Id { get; set; } = string.Empty;
         public int TeamId { get; set; }
-        public string TeamName { get; set; }
+        public string TeamName { get; set; } = string.Empty;
     }
 
     public class IcmIncidentBasicInfo
     {
-        public string Title { get; set; }
-        public int Severity { get; set; }
-        public string State { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public int Severity { get; set; } 
+        public string State { get; set; } = string.Empty;
         public int Id { get; set; }
         public DateTime CreatedDate { get; set; }
     }
@@ -213,8 +213,8 @@ namespace FirstPartyAgent.Core.Models
     {
         [JsonPropertyName("id")]
         [JsonProperty("id")]
-        public string Id { get; set; }
-        public T Content { get; set; }
+        public string Id { get; set; } = string.Empty;
+        public T? Content { get; set; }
 
         [JsonPropertyName("_ts")]
         [JsonProperty("_ts")]

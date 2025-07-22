@@ -19,7 +19,7 @@ namespace FirstPartyAgent.Core.Services
 
     public class TeamsClient: ITeamsClient
     {
-        private static HttpClient _httpClient;
+        private readonly HttpClient _httpClient;
         private readonly TeamsClientSettings _teamsClientSettings;
         public TeamsClient(TeamsClientSettings teamsClientSettings)
         {
@@ -62,8 +62,7 @@ namespace FirstPartyAgent.Core.Services
             var requestBody = JsonSerializer.Serialize(payload, jsonOptions);
 
             int attempt = 0;
-            Exception lastException = null;
-
+            Exception? lastException = null;
             while (attempt <= retryCount)
             {
                 try
@@ -138,7 +137,7 @@ namespace FirstPartyAgent.Core.Services
         {
             var httpClient = new HttpClient();
             var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
-            HttpResponseMessage response = null;
+            HttpResponseMessage? response = null;
 
             if (_teamsClientSettings.UseTeamsChannel)
             {

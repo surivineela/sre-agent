@@ -10,14 +10,14 @@ namespace FirstPartyAgent.Core.Configuration
     {
         public ICMAPISettings ICMAPI { get; set; } = new();
 
-        public ObserverClientSettings Observer { get; set; }
-        public TeamsClientSettings Teams { get; set; }
-        public StorageAccountSettings Storage { get; set; }
-        public AzureAlertingSettings AzureAlerting { get; set; }
+        public ObserverClientSettings Observer { get; set; } = new();
+        public TeamsClientSettings Teams { get; set; } = new();
+        public StorageAccountSettings Storage { get; set; } = new();
+        public AzureAlertingSettings AzureAlerting { get; set; } = new();
         public AzureDevOpsSettings AzureDevOps { get; set; } = new();
-        public DevOpsSetting DevOps { get; set; }
+        public DevOpsSetting DevOps { get; set; } = new();
         public ApplensSettings Applens { get; set; } = new();
-        public IcmAgentSettings IcmAgent { get; set; }
+        public IcmAgentSettings IcmAgent { get; set; } = new();
         public HandoffToAgentSettings HandoffToAgentConfig { get; set; } = new();
     }
 }

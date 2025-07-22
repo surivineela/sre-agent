@@ -23,22 +23,22 @@ namespace FirstPartyAgent.Core.Services
 
     public class PluginToolInfo
     {
-        public string PluginName { get; set; }
-        public string ToolName { get; set; }
-        public string Description { get; set; }
-        public List<ToolParameter> ToolParameters { get; set; }
+        public string PluginName { get; set; } = string.Empty;
+        public string ToolName { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public List<ToolParameter> ToolParameters { get; set; } = new List<ToolParameter>();
     }
 
     public class ToolParameter
     {
-        public string ParameterName { get; set; }
-        public string Description { get; set; }
+        public string ParameterName { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
     }
 
     public class KernelService: IKernelService
     {
         private readonly Dictionary<string, Kernel> _kernels;
-        private static HttpClient _httpClient;
+        private readonly HttpClient _httpClient;
         private readonly IServiceProvider _serviceProvider;
 
         public KernelService(IServiceProvider sp)
@@ -105,7 +105,7 @@ namespace FirstPartyAgent.Core.Services
             return result;
         }
 
-        private static Kernel CreateAndConfigureKernel(AgentMode agentMode, IServiceProvider sp)
+        private Kernel CreateAndConfigureKernel(AgentMode agentMode, IServiceProvider sp)
         {
             var agentPluginList = AgentFinder.GetAgentPlugins(agentMode.ToString());
             var config = sp.GetRequiredService<IConfiguration>();

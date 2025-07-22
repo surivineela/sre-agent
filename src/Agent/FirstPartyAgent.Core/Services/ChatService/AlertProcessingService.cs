@@ -17,7 +17,7 @@ public interface IAlertProcessingService
 {
     Task<ChatMessage> ProcessAlertAsync(AlertRequestBody alertRequest);
 
-    (Func<Task<ChatMessage>> processor, string sessionId) GetAlertProcessorAndSessionId(AlertRequestBody alertRequest, bool test = false, string sessionId = null);
+    (Func<Task<ChatMessage>> processor, string sessionId) GetAlertProcessorAndSessionId(AlertRequestBody alertRequest, bool test = false, string? sessionId = null);
 }
 
 public class AlertProcessingService : IAlertProcessingService
@@ -94,8 +94,7 @@ public class AlertProcessingService : IAlertProcessingService
             };
         }
 
-        //TODO: Check for incidents that have already been processed by the SRE Agent
-        return null;
+        throw new Exception("No guardrail message to apply.");
     }
 
     private async Task<ChatMessage> ProcessAlertAsync(AlertRequestBody alertRequest, string sessionId, bool test = false)
@@ -166,7 +165,7 @@ public class AlertProcessingService : IAlertProcessingService
         }
     }
 
-    public (Func<Task<ChatMessage>> processor, string sessionId) GetAlertProcessorAndSessionId(AlertRequestBody alertRequest, bool test = false, string sessionId = null)
+    public (Func<Task<ChatMessage>> processor, string sessionId) GetAlertProcessorAndSessionId(AlertRequestBody alertRequest, bool test = false, string? sessionId = null)
     {
         sessionId = sessionId ?? GetSessionId(alertRequest, test);
         return (() => ProcessAlertAsync(alertRequest, sessionId, test), sessionId);

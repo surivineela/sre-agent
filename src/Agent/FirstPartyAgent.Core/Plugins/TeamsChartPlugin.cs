@@ -136,6 +136,10 @@ Kernel kernel)
                 if (_teamsClient.IsEnabled())
                 {
                     var agentMode = kernel.Data["agentMode"]?.ToString();
+                    if (string.IsNullOrWhiteSpace(agentMode))
+                    {
+                        throw new Exception("Agent mode is not set in the kernel data.");
+                    }
                     var teamsMessage = new TeamsMessage(description, base64Image);
                     await _teamsClient.PostMessageOnTeams(agentMode, teamsMessage);
                 }

@@ -22,9 +22,9 @@ namespace FirstPartyAgent.Core.Services
         Task<string> CreatePullRequestAsync(string sourceBranchName, string targetBranchName, string title, string description = "");
         Task<string> AbandonPullRequestAsync(int pullRequestId);
         Task<string> SearchCodeAsync(string searchText, int topN);
-        Task<string> QueryWorkItemsAsync(string wiqlQuery, string organization = null, string project = null);
-        Task<string> GetWorkItemByIdAsync(int workItemId, string organization = null, string project = null);
-        Task<string> CreateWorkItemAsync(string workItemType, string title, string description = null, string assignedTo = null, string organization = null, string project = null);
+        Task<string> QueryWorkItemsAsync(string wiqlQuery, string? organization = null, string? project = null);
+        Task<string> GetWorkItemByIdAsync(int workItemId, string? organization = null, string? project = null);
+        Task<string> CreateWorkItemAsync(string workItemType, string title, string? description = null, string? assignedTo = null, string? organization = null, string? project = null);
         Task<string> AssignWorkItemAsync(int workItemId, string assignedTo);
         string MainBranchName { get; }
     }
@@ -39,11 +39,11 @@ namespace FirstPartyAgent.Core.Services
         public Task<string> CreatePullRequestAsync(string sourceBranchName, string targetBranchName, string title, string description = "") => Task.FromResult<string>("Azure DevOps Client is Disabled.");
         public Task<string> AbandonPullRequestAsync(int pullRequestId) => Task.FromResult<string>("Azure DevOps Client is Disabled.");
         public Task<string> SearchCodeAsync(string searchText, int topN) => Task.FromResult<string>("Azure DevOps Client is Disabled.");
-        public Task<string> QueryWorkItemsAsync(string wiqlQuery, string organization = null, string project = null) => Task.FromResult<string>("Azure DevOps Client is Disabled.");
-        public Task<string> GetWorkItemByIdAsync(int workItemId, string organization = null, string project = null) => Task.FromResult<string>("Azure DevOps Client is Disabled.");
-        public Task<string> CreateWorkItemAsync(string workItemType, string title, string description = null, string assignedTo = null, string organization = null, string project = null) => Task.FromResult<string>("Azure DevOps Client is Disabled.");
+        public Task<string> QueryWorkItemsAsync(string wiqlQuery, string? organization = null, string? project = null) => Task.FromResult<string>("Azure DevOps Client is Disabled.");
+        public Task<string> GetWorkItemByIdAsync(int workItemId, string? organization = null, string? project = null) => Task.FromResult<string>("Azure DevOps Client is Disabled.");
+        public Task<string> CreateWorkItemAsync(string workItemType, string title, string? description = null, string? assignedTo = null, string? organization = null, string? project = null) => Task.FromResult<string>("Azure DevOps Client is Disabled.");
         public Task<string> AssignWorkItemAsync(int workItemId, string assignedTo) => Task.FromResult<string>("Azure DevOps Client is Disabled.");
-        public string MainBranchName => null;
+        public string MainBranchName => "main";
     }
 
     /// <summary>
@@ -74,8 +74,7 @@ namespace FirstPartyAgent.Core.Services
             _repositoryName = devOpsSettings.RepositoryName;
             _mainBranchName = devOpsSettings.MainBranchName;
 
-            string accessToken = null;
-
+            string accessToken;
             if (!string.IsNullOrWhiteSpace(devOpsSettings.PersonalAccessToken))
             {
                 accessToken = devOpsSettings.PersonalAccessToken;
@@ -128,7 +127,11 @@ namespace FirstPartyAgent.Core.Services
             using var doc = JsonDocument.Parse(json);
             if (doc.RootElement.TryGetProperty("content", out var contentElement))
             {
-                return contentElement.GetString();
+                var content = contentElement.GetString();
+                if (content is not null)
+                    return content;
+                else
+                    throw new InvalidOperationException("File content is null in the response.");
             }
             else
             {
@@ -310,7 +313,7 @@ namespace FirstPartyAgent.Core.Services
             return await response.Content.ReadAsStringAsync();
         }
 
-        public async Task<string> QueryWorkItemsAsync(string wiqlQuery, string organization = null, string project = null)
+        public async Task<string> QueryWorkItemsAsync(string wiqlQuery, string? organization = null, string? project = null)
         {
             var url = $"{_endpoint}{organization??_organization}/{project??_project}/_apis/wit/wiql?api-version=7.0";
             var payload = new { query = wiqlQuery };
@@ -320,7 +323,7 @@ namespace FirstPartyAgent.Core.Services
             return await response.Content.ReadAsStringAsync();
         }
 
-        public async Task<string> GetWorkItemByIdAsync(int workItemId, string organization = null, string project = null)
+        public async Task<string> GetWorkItemByIdAsync(int workItemId, string? organization = null, string? project = null)
         {
             var url = $"{_endpoint}{organization ?? _organization}/{project ?? _project}/_apis/wit/workitems/{workItemId}?api-version=7.0";
             var response = await _httpClient.GetAsync(url);
@@ -328,9 +331,9 @@ namespace FirstPartyAgent.Core.Services
             return await response.Content.ReadAsStringAsync();
         }
 
-        public async Task<string> CreateWorkItemAsync(string workItemType, string title, string description = null, string assignedTo = null, string organization = null, string project = null)
+        public async Task<string> CreateWorkItemAsync(string workItemType, string title, string? description = null, string? assignedTo = null, string? organization = null, string? project = null)
         {
-            var url = $"{_endpoint}{organization??_organization}/{project??_project}/_apis/wit/workitems/${workItemType}?api-version=7.0";
+            var url = $"{_endpoint}{organization??_organization}/{project??_project}/_apis/wit/workitems/{workItemType}?api-version=7.0";
             var patchDocument = new List<object>
             {
                 new { op = "add", path = "/fields/System.Title", value = title }

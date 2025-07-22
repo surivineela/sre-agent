@@ -11,7 +11,7 @@ namespace FirstPartyAgent.Models
     {
         public Incident? Incident { get; set; }
 
-        public ConversationContext ConversationContext { get; set; }
+        public ConversationContext ConversationContext { get; set; } = new ConversationContext();
 
         public string? Summary { get; set; }
 
@@ -112,9 +112,9 @@ namespace FirstPartyAgent.Models
 
     public class ConversationContext
     {
-        public string TeamsMessageId { get; set; }
+        public string TeamsMessageId { get; set; } = string.Empty;
 
-        public string IncidentId { get; set; }
+        public string IncidentId { get; set; } = string.Empty;
     }
 
     public class ConversationEntry

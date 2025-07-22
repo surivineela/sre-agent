@@ -9,8 +9,8 @@ namespace FirstPartyAgent.Core.Configuration
 {
     public class FirstPartyAgentAppSettings
     {
-        public string ApplicationName { get; set; }
-        public string Environment { get; set; }
+        public string ApplicationName { get; set; } = string.Empty;
+        public string Environment { get; set; } = string.Empty;
         public FirstPartyAgentCoreSettings Core { get; set; } = new();
     }
 

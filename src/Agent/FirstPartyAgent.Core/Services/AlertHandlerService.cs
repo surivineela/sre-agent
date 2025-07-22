@@ -27,7 +27,7 @@ public class AlertHandlerService
     private readonly string icmAgentConfigCosmosDbContainer = "IcmAlertConfigs";
     private const string icmAgentAlertDetailsCosmosDbContainer = "IcmAlertDetails";
     private readonly ILogger<AlertHandlerService> _logger;
-    private Task _initializationTask;
+    private Task? _initializationTask;
 
 
     public AlertHandlerService(StorageAccountSettings storageAccountSettings, IHostEnvironment hostEnvironment, IStorageService storageService, ICosmosDBService cosmosDBService, AzureAlertingClient azureAlertingClient, ILogger<AlertHandlerService> logger)
@@ -72,7 +72,7 @@ public class AlertHandlerService
         return _icmAlertConfigs;
     }
 
-    public async Task<AlertDetailsBase> GetAzureAlertingDetailsById(
+    public async Task<AlertDetailsBase?> GetAzureAlertingDetailsById(
             string azureAlertingId)
     {
         _logger.LogInformation($"AzureAlertingPlugin: Fetching Alert Details. azureAlertingId: {azureAlertingId}");
@@ -155,10 +155,10 @@ public class AlertHandlerService
         return null;
     }
 
-    public async Task<ICMAlertConfig> GetICMAlertConfigAsync(string alertingId)
+    public async Task<ICMAlertConfig?> GetICMAlertConfigAsync(string alertingId)
     {
         await IsReady();
-        ICMAlertConfig config;
+        ICMAlertConfig? config;
         if (_cosmosDbService != null && _cosmosDbService.IsEnabled)
         {
             var queryable = _cosmosDbService.GetQueryableContainer<ICMAlertConfig>(_cosmosDbService.IcmAgentDatabaseName, icmAgentConfigCosmosDbContainer);
@@ -201,6 +201,10 @@ public class AlertHandlerService
         }
         // Update the in-memory dictionary
         var config = JsonConvert.DeserializeObject<ICMAlertConfig>(customConfig);
+        if (config == null)
+        {
+            throw new ArgumentException("Invalid custom configuration provided.");
+        }
         _icmAlertConfigs[alertingId] = config;
         return string.Empty;
     }
@@ -242,6 +246,11 @@ public class AlertHandlerService
         {
             var jsonContent = _storageService.ReadFileFromStorage(icmAlertConfigsContainerName, blobName).Result;
             var config = JsonConvert.DeserializeObject<ICMAlertConfig>(jsonContent);
+            if (config == null)
+            {
+                _logger.LogWarning($"Failed to deserialize ICMAlertConfig from blob: {blobName}");
+                continue;
+            }
             _icmAlertConfigs[config.AlertingId] = config;
         }
     }
@@ -262,6 +271,11 @@ public class AlertHandlerService
             // Value: the entire JSON content
             var jsonContent = File.ReadAllText(jsonFile);
             var config = JsonConvert.DeserializeObject<ICMAlertConfig>(jsonContent);
+            if (config == null)
+            {
+                _logger.LogWarning($"Failed to deserialize ICMAlertConfig from file: {jsonFile}");
+                continue;
+            }
             _icmAlertConfigs[config.AlertingId] = config;
         }
     }

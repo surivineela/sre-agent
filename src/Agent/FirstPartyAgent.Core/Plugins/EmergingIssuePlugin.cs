@@ -18,7 +18,7 @@ public class EmergingIssuePlugin
     private readonly Kernel _kernel;
     private readonly ILogger<EmergingIssuePlugin> _logger;
     private readonly IEmergingIssueConfigService _emergingIssueConfigService;
-    private readonly AlertHandlerService _alertHandlerService;    private readonly Dictionary<string, EmergingIssueDetectionPromptConfig> _alertIdToDetectionConfig;
+    private readonly AlertHandlerService _alertHandlerService; private readonly Dictionary<string, EmergingIssueDetectionPromptConfig> _alertIdToDetectionConfig;
 
     public EmergingIssuePlugin(
         Kernel kernel,
@@ -32,8 +32,8 @@ public class EmergingIssuePlugin
         _alertHandlerService = alertHandlerService ?? throw new ArgumentNullException(nameof(alertHandlerService));
         _alertIdToDetectionConfig = LoadEmergingIssueDetectionPromptConfigs();
     }    /// <summary>
-    /// Loads custom system prompts for emerging issue detection from configuration files
-    /// </summary>
+         /// Loads custom system prompts for emerging issue detection from configuration files
+         /// </summary>
     private Dictionary<string, EmergingIssueDetectionPromptConfig> LoadEmergingIssueDetectionPromptConfigs()
     {
         var dict = new Dictionary<string, EmergingIssueDetectionPromptConfig>(StringComparer.OrdinalIgnoreCase);
@@ -41,7 +41,7 @@ public class EmergingIssuePlugin
         {
             // Try looking for the file with the new name in the FirstPartyAgent.Core directory
             var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "EmergingIssueDetectionPromptConfigs.json");
-            
+
             if (File.Exists(filePath))
             {
                 var json = File.ReadAllText(filePath);
@@ -93,7 +93,7 @@ public class EmergingIssuePlugin
     {
         try
         {
-            _logger.LogInformation("Detecting emerging issues for ICM content: {Length} chars", icmContent?.Length ?? 0);
+            _logger.LogInformation("Detecting emerging issues for ICM content: {Length} chars", icmContent.Length);
 
             var emergingIssueConfigs = await GetEmergingIssueConfigs();
             if (emergingIssueConfigs.Count == 0)
@@ -135,7 +135,7 @@ public class EmergingIssuePlugin
 
             // Get all emerging issues from the service
             var emergingIssues = await _emergingIssueConfigService.ListEmergingIssues();
-            
+
             foreach (var issue in emergingIssues)
             {
                 try
@@ -148,7 +148,7 @@ public class EmergingIssuePlugin
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error parsing emerging issue config for incident {IncidentId}: {Message}", 
+                    _logger.LogError(ex, "Error parsing emerging issue config for incident {IncidentId}: {Message}",
                         issue.IncidentId, ex.Message);
                 }
             }
@@ -166,7 +166,7 @@ public class EmergingIssuePlugin
     /// <summary>
     /// Parses an emerging issue configuration from the Models.EmergingIssueConfig
     /// </summary>
-    private EmergingIssueConfigWrapper ParseEmergingIssueConfig(EmergingIssueConfig emergingIssueConfig)
+    private EmergingIssueConfigWrapper? ParseEmergingIssueConfig(EmergingIssueConfig emergingIssueConfig)
     {
         if (emergingIssueConfig == null || string.IsNullOrEmpty(emergingIssueConfig.Content))
         {
@@ -175,7 +175,7 @@ public class EmergingIssuePlugin
 
         var content = emergingIssueConfig.Content;
         var lines = content.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-        
+
         var configWrapper = new EmergingIssueConfigWrapper
         {
             OriginalConfig = emergingIssueConfig,
@@ -247,8 +247,8 @@ public class EmergingIssuePlugin
     /// Finds the best matching emerging issue for the given ICM content
     /// </summary>
     private async Task<EmergingIssueDetectionResult> FindBestMatchingEmergingIssue(
-        string icmContent, 
-        string issueMetadata, 
+        string icmContent,
+        string issueMetadata,
         List<EmergingIssueConfigWrapper> emergingIssueConfigs,
         string alertId)
     {
@@ -257,9 +257,9 @@ public class EmergingIssuePlugin
             IsEmergingIssue = false,
             MatchConfidence = 0
         };        // First try to find a custom system prompt by AlertId
-        string systemPrompt = null;
+        string? systemPrompt = null;
         string metadataLabel = "Site Metadata:"; // Default value
-          // Direct AlertId match
+                                                 // Direct AlertId match
         if (!string.IsNullOrWhiteSpace(alertId) && _alertIdToDetectionConfig.TryGetValue(alertId, out var customConfigByAlertId))
         {
             systemPrompt = customConfigByAlertId.SystemPrompt;
@@ -300,7 +300,7 @@ public class EmergingIssuePlugin
                 _logger.LogWarning(ex, "Error getting ICMAlertConfig for tag matching with AlertId {AlertId}: {Message}", alertId, ex.Message);
             }
         }
-        
+
         // If no custom prompt found, use the default
         if (systemPrompt == null)
         {
@@ -327,7 +327,7 @@ Rate the similarity on a scale of 0-100 where:
 
         // Process each emerging issue configuration separately
         double highestScore = 0;
-        EmergingIssueConfigWrapper bestMatchConfig = null;
+        EmergingIssueConfigWrapper? bestMatchConfig = null;
         string bestMatchAnalysis = string.Empty;
 
         foreach (var config in emergingIssueConfigs)
@@ -388,7 +388,7 @@ Make sure to identify and list EVERY distinct condition from the emerging issue 
                     executionSettings: promptExecutionSettings,
                     kernel: _kernel);
 
-                var analysisText = chatCompletionResult.Content;
+                var analysisText = chatCompletionResult.Content ?? string.Empty;
 
                 // Parse JSON response
                 try
@@ -405,18 +405,18 @@ Make sure to identify and list EVERY distinct condition from the emerging issue 
                         {
                             highestScore = analysisResult.similarity_score;
                             bestMatchConfig = config;
-                            
+
                             // Format detailed analysis from the result
                             var detailedAnalysis = new StringBuilder();
                             detailedAnalysis.AppendLine($"Similarity Score: {analysisResult.similarity_score}");
                             detailedAnalysis.AppendLine($"Confidence: {analysisResult.confidence}");
-                            
+
                             detailedAnalysis.AppendLine("\n## Match Reasons:");
                             foreach (var reason in analysisResult.reasons)
                             {
                                 detailedAnalysis.AppendLine($"- {reason}");
                             }
-                            
+
                             // Make sure we have condition matches to display
                             if (analysisResult.condition_matches == null || analysisResult.condition_matches.Count == 0)
                             {
@@ -429,7 +429,7 @@ Make sure to identify and list EVERY distinct condition from the emerging issue 
                                 detailedAnalysis.AppendLine("\n## Condition Match Analysis:");
                                 detailedAnalysis.AppendLine("\n| Condition | Match Status | Explanation |");
                                 detailedAnalysis.AppendLine("|-----------|--------------|-------------|");
-                                
+
                                 foreach (var match in analysisResult.condition_matches)
                                 {
                                     // Use emojis for visual cues
@@ -439,15 +439,15 @@ Make sure to identify and list EVERY distinct condition from the emerging issue 
                                         "No" => "❌",
                                         _ => "❓"
                                     };
-                                    
+
                                     // Escape any pipe characters in the text to maintain table formatting
                                     var condition = match.condition?.Replace("|", "\\|") ?? "Unknown condition";
                                     var explanation = match.explanation?.Replace("|", "\\|") ?? "No explanation provided";
-                                    
+
                                     detailedAnalysis.AppendLine($"| {condition} | {statusEmoji} {match.match_status} | {explanation} |");
                                 }
                             }
-                            
+
                             bestMatchAnalysis = detailedAnalysis.ToString();
                         }
                     }
@@ -455,10 +455,10 @@ Make sure to identify and list EVERY distinct condition from the emerging issue 
                 catch (Exception jsonEx)
                 {
                     _logger.LogError(jsonEx, "Error parsing JSON analysis result: {Message}", jsonEx.Message);
-                    
+
                     // In case of parsing error, log the full response for debugging
                     _logger.LogDebug("Full response from LLM: {ResponseText}", analysisText);
-                    
+
                     // Fallback to basic extraction if JSON parsing fails
                     var similarity = ExtractNumericValue(analysisText, "similarity_score");
                     if (similarity > highestScore)
@@ -502,106 +502,74 @@ Make sure to identify and list EVERY distinct condition from the emerging issue 
     }
 
     /// <summary>
-    /// Extracts a value from LLM response based on a key
+    /// Result of emerging issue detection
     /// </summary>
-    private string ExtractValue(string text, string key)
+    public class EmergingIssueDetectionResult
     {
-        var lines = text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-        foreach (var line in lines)
-        {
-            if (line.StartsWith(key, StringComparison.OrdinalIgnoreCase))
-            {
-                return line.Substring(key.Length).Trim();
-            }
-        }
-
-        // Try to extract multi-line values
-        var startIndex = text.IndexOf(key, StringComparison.OrdinalIgnoreCase);
-        if (startIndex >= 0)
-        {
-            var endIndex = text.IndexOf(":", startIndex + key.Length + 1);
-            if (endIndex < 0) // If there's no other key, take the rest of the text
-            {
-                return text.Substring(startIndex + key.Length).Trim();
-            }
-            else
-            {
-                return text.Substring(startIndex + key.Length, endIndex - startIndex - key.Length).Trim();
-            }
-        }
-
-        return string.Empty;
+        public bool IsEmergingIssue { get; set; }
+        public double MatchConfidence { get; set; }
+        public EmergingIssueConfig? MatchedEmergingIssue { get; set; }
+        public string? AnalysisExplanation { get; set; }
     }
-}
-
-/// <summary>
-/// Result of emerging issue detection
-/// </summary>
-public class EmergingIssueDetectionResult
-{
-    public bool IsEmergingIssue { get; set; }
-    public double MatchConfidence { get; set; }
-    public EmergingIssueConfig MatchedEmergingIssue { get; set; }
-    public string AnalysisExplanation { get; set; }
-}
-
-/// <summary>
-/// JSON structure for the analysis result from the LLM
-/// </summary>
-public class EmergingIssueAnalysisResult
-{
-    public double similarity_score { get; set; }
-    public List<string> reasons { get; set; }
-    public double confidence { get; set; }
-    public List<ConditionMatch> condition_matches { get; set; }
-}
-
-/// <summary>
-/// Represents a single condition match in the analysis
-/// </summary>
-public class ConditionMatch
-{
-    public string condition { get; set; }
-    public string match_status { get; set; }
-    public string explanation { get; set; }
-}
-
-/// <summary>
-/// Wrapper for EmergingIssueConfig to parse and access markdown content
-/// </summary>
-public class EmergingIssueConfigWrapper
-{
-    public EmergingIssueConfig OriginalConfig { get; set; }
-    public string IncidentId { get; set; }
-    public string Title { get; set; }
-    public string Content { get; set; }
-    public string Condition { get; set; }
-    public Dictionary<string, string> Sections { get; set; } = new Dictionary<string, string>();
-}
-
-/// <summary>
-/// Configuration for customized system prompts used in emerging issue detection for specific alerts
-/// </summary>
-public class EmergingIssueDetectionPromptConfig
-{
-    /// <summary>
-    /// The ID of the alert that this system prompt applies to
-    /// </summary>
-    public string AlertId { get; set; }
 
     /// <summary>
-    /// The system prompt to use when detecting emerging issues for this alert type
+    /// JSON structure for the analysis result from the LLM
     /// </summary>
-    public string SystemPrompt { get; set; }
-    
-    /// <summary>
-    /// Optional tags to match against ICMAlertConfig Tags for finding prompt templates
-    /// </summary>
-    public List<string> Tags { get; set; } = new List<string>();
+    public class EmergingIssueAnalysisResult
+    {
+        public double similarity_score { get; set; }
+        public List<string> reasons { get; set; } = [];
+        public double confidence { get; set; }
+        public List<ConditionMatch> condition_matches { get; set; } = [];
+    }
 
     /// <summary>
-    /// The label to use for the metadata section in prompts (e.g., "Site Metadata:", "Service Metadata:", "Component Metadata:")
-    /// Defaults to "Site Metadata:" if not specified
+    /// Represents a single condition match in the analysis
     /// </summary>
-    public string MetadataLabel { get; set; } = "Site Metadata:";
+    public class ConditionMatch
+    {
+        public string condition { get; set; } = string.Empty;
+        public string match_status { get; set; } = string.Empty;
+        public string explanation { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Wrapper for EmergingIssueConfig to parse and access markdown content
+    /// </summary>
+    public class EmergingIssueConfigWrapper
+    {
+        public EmergingIssueConfig? OriginalConfig { get; set; }
+        public string IncidentId { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
+        public string Content { get; set; } = string.Empty;
+        public string Condition { get; set; } = string.Empty;
+        public Dictionary<string, string> Sections { get; set; } = new Dictionary<string, string>();
+    }
+
+    /// <summary>
+    /// Configuration for customized system prompts used in emerging issue detection for specific alerts
+    /// </summary>
+    public class EmergingIssueDetectionPromptConfig
+    {
+        /// <summary>
+        /// The ID of the alert that this system prompt applies to
+        /// </summary>
+        public string AlertId { get; set; } = string.Empty;
+
+        /// <summary>
+        /// The system prompt to use when detecting emerging issues for this alert type
+        /// </summary>
+        public string SystemPrompt { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Optional tags to match against ICMAlertConfig Tags for finding prompt templates
+        /// </summary>
+        public List<string> Tags { get; set; } = new List<string>();
+
+        /// <summary>
+        /// The label to use for the metadata section in prompts (e.g., "Site Metadata:", "Service Metadata:", "Component Metadata:")
+        /// Defaults to "Site Metadata:" if not specified
+        /// </summary>
+        public string MetadataLabel { get; set; } = "Site Metadata:";
+    }
 }

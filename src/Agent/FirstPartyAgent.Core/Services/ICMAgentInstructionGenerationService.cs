@@ -31,7 +31,7 @@ public class ICMAgentInstructionGenerationService
 
     public class GenerateInstructionsRequest
     {
-        public int[] IncidentIds { get; set; }
+        public int[] IncidentIds { get; set; } = Array.Empty<int>();
         public string? CustomInstructions { get; set; }
     }
 
@@ -57,8 +57,8 @@ public class ICMAgentInstructionGenerationService
 
     public class InstructionResult
     {
-        public string[] Instructions { get; set; }
-        public string TroubleshootingGuide { get; set; }
+        public string[] Instructions { get; set; } = Array.Empty<string>();
+        public string TroubleshootingGuide { get; set; } = string.Empty;
     }
 
     public async Task<InstructionResult> GenerateInstructions(GenerateInstructionsRequest request)
@@ -96,7 +96,7 @@ public class ICMAgentInstructionGenerationService
         }
     }
 
-    private async Task<string> GetTroubleShootingGuide(List<string> icmSummaryList, string customInstructions = null)
+    private async Task<string> GetTroubleShootingGuide(List<string> icmSummaryList, string? customInstructions = null)
     {
         try
         {
@@ -210,7 +210,7 @@ Generate a comprehensive troubleshooting guide that engineers can follow to effi
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred while getting incident details for incident ID: {IncidentId}", incidentId);
-            return null;
+            throw new Exception($"Failed to get incident summary for incident ID: {incidentId}. Error: {ex.Message}", ex);
         }
     }
 

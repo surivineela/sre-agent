@@ -66,7 +66,7 @@ namespace FirstPartyAgent.Core.Plugins
         {
             var logMessage = $"[run_alert_kusto_query][{DateTime.UtcNow}] Invoked with ICMBacktestingModeEnabled: {ICMBacktestingModeEnabled}, impactStartDate: {impactStartDate}, monitoringIterationNumber: {monitoringIterationNumber},  monitoringGapInSeconds: {monitoringGapInSeconds}, correlationId: {correlationId}, alertId: {alertId}, clusterName: {clusterName}, databaseName: {databaseName}.";
             await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
-            var customAlertConfig = kernel.Data.TryGetValue("customAlertConfig", out object customAlertConfigObj) ? (ICMAlertConfig)customAlertConfigObj : null;
+            var customAlertConfig = kernel.Data.TryGetValue("customAlertConfig", out object? customAlertConfigObj) ? (ICMAlertConfig?)customAlertConfigObj : null;
             DateTime? nowOverride = null;
             if (ICMBacktestingModeEnabled)
             {
@@ -75,7 +75,7 @@ namespace FirstPartyAgent.Core.Plugins
             }
             var alertDetails = await _alertHandlerService.GetAzureAlertingDetailsById(alertId);
             var alertConfig = alertId == customAlertConfig?.AlertingId ? customAlertConfig : await _alertHandlerService.GetICMAlertConfigAsync(alertId);
-            if (alertDetails != null)
+            if (alertDetails != null && alertConfig != null)
             {
                 var kustoQuery = alertDetails.PrimaryKustoQuery.KustoQuery;
                 if (alertConfig.UseCorrelationIdForKustoQuery)
@@ -102,21 +102,19 @@ namespace FirstPartyAgent.Core.Plugins
         {
             var logMessage = $"[get_alert_details_and_custom_instructions][{DateTime.UtcNow}] Invoked with incidentId: {incidentId}.";
             await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
-            string sessionId = kernel.Data.TryGetValue("sessionId", out object id) ? (string)id : null;
-            var customAlertConfig = kernel.Data.TryGetValue("customAlertConfig", out object customAlertConfigObj) ? (ICMAlertConfig)customAlertConfigObj : null;
+            var sessionId = kernel.Data.TryGetValue("sessionId", out object? id) ? (string?)id : null;
+            var customAlertConfig = kernel.Data.TryGetValue("customAlertConfig", out object? customAlertConfigObj) ? (ICMAlertConfig?)customAlertConfigObj : null;
 
             var incidentDetails = await _icmPlugin.GetIncidentInfo(incidentId, kernel);
             //match incident details with existing alert configs
-            ICMAlertConfig alertConfig = await _alertHandlerClient.GetConfigAsync(incidentDetails, kernel);
+            ICMAlertConfig? alertConfig = await _alertHandlerClient.GetConfigAsync(incidentDetails, kernel);
             _logger.LogInformation($"[get_alert_details_and_custom_instructions][{DateTime.UtcNow}] AzureAlertingPlugin: Fetching Alert Details. incidentId: {incidentId}, incidenTtile: {incidentDetails.Title}, owningTeam: {incidentDetails.OwningTeam}, monitoringRole: {incidentDetails.MonitoringRole}, monitoringSlice: {incidentDetails.MonitoringSlice}");
-            
             if (alertConfig != null && incidentDetails.MonitoringSlice != null)
             {
                 return $"ALERT_ID: {incidentDetails.MonitoringSlice}" +
                         "\n\n" +
                         "PROVIDED_MITIGATION_INSTRUCTIONS:\n" + JsonConvert.SerializeObject(alertConfig);
             }
-
             else if (alertConfig != null)
             {
                 return "PROVIDED_MITIGATION_INSTRUCTIONS:\n" + JsonConvert.SerializeObject(alertConfig);

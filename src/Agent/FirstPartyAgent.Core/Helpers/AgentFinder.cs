@@ -120,7 +120,7 @@ namespace FirstPartyAgent.Core.Helpers
                     var field = type.GetField("SystemMessage", BindingFlags.Public | BindingFlags.Static);
                     if (field != null)
                     {
-                        var systemMessage = field.GetValue(null) as string;
+                        var systemMessage = field.GetValue(null) as string ?? string.Empty;
                         results.Add(new AgentPromptModel(type.Name, attr.Description, systemMessage));
                     }
                 }
@@ -144,7 +144,7 @@ namespace FirstPartyAgent.Core.Helpers
                     Path.Combine(Directory.GetCurrentDirectory(), "AgentsV2", "ACA-FirstParty", yamlFileName)
                 };
 
-                string yamlPath = null;
+                string? yamlPath = null;
                 foreach (var path in possiblePaths)
                 {
                     if (File.Exists(path))

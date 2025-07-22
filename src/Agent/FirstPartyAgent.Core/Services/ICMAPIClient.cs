@@ -45,7 +45,7 @@ namespace FirstPartyAgent.Core.Services
     {
         private readonly bool IsDevelopment;
         private readonly ICMAPISettings _icmApiSettings;
-        private static HttpClient _httpClient;
+        private readonly HttpClient? _httpClient;
         private readonly int TimeoutInSeconds = 60;
         private readonly string IcmAPIPathPrefix;
         private readonly AuthType _authType;
@@ -56,6 +56,9 @@ namespace FirstPartyAgent.Core.Services
             _logger = logger;
             _icmApiSettings = icmApiSettings;
             IsDevelopment = environment.IsDevelopment();
+            _authType = AuthType.None;
+            IcmAPIPathPrefix = "/api/user";
+
             if (!icmApiSettings.Enabled)
             {
                 return;
@@ -64,9 +67,6 @@ namespace FirstPartyAgent.Core.Services
             {
                 throw new Exception("The environment variable 'ICMAPI:APIEndpoint' is not set.");
             }
-
-            _authType = AuthType.None;
-            IcmAPIPathPrefix = "/api/user";
 
             if (_icmApiSettings.ManagedIdentityEnabled && !string.IsNullOrWhiteSpace(_icmApiSettings.ManagedIdentityClientId))
             {
@@ -86,7 +86,7 @@ namespace FirstPartyAgent.Core.Services
                 throw new Exception("At least one of the environment variables 'ICMAPI:UserToken' or 'ICMAPI:CertificateSubjectName' must be set.");
             }
 
-            InitializeHttpClient();
+            _httpClient = GetHttpClient();
         }
 
         public bool IsEnabled()
@@ -94,15 +94,16 @@ namespace FirstPartyAgent.Core.Services
             return _icmApiSettings.Enabled;
         }
 
-        private void InitializeHttpClient()
+        private HttpClient GetHttpClient()
         {
+            HttpClient result;
             if (_authType == AuthType.UserToken)
             {
-                _httpClient = new HttpClient()
+                result = new HttpClient()
                 {
                     Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                 };
-                _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_icmApiSettings.UserToken}");
+                result.DefaultRequestHeaders.Add("Authorization", $"Bearer {_icmApiSettings.UserToken}");
             }
             else if (_authType == AuthType.Certificate)
             {
@@ -124,14 +125,14 @@ namespace FirstPartyAgent.Core.Services
                     handler.ClientCertificates.Add(certificates[0]);
                 }
 
-                _httpClient = new HttpClient(handler)
+                result = new HttpClient(handler)
                 {
                     Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                 };
             }
             else if (_authType == AuthType.ManagedIdentity)
             {
-                _httpClient = new HttpClient()
+                result = new HttpClient()
                 {
                     Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                 };
@@ -140,6 +141,8 @@ namespace FirstPartyAgent.Core.Services
             {
                 throw new Exception("Could not initialize http client for ICM APIs as no auth was set.");
             }
+
+            return result;
         }
 
         private async Task<HttpResponseMessage> SendICMGetRequestAsync(string apiPath)
@@ -147,6 +150,11 @@ namespace FirstPartyAgent.Core.Services
             if (string.IsNullOrWhiteSpace(apiPath))
             {
                 throw new ArgumentException("apiPath must be provided.", nameof(apiPath));
+            }
+
+            if (_httpClient == null)
+            {
+                throw new InvalidOperationException("ICM API Client is not initialized. Please check the configuration.");
             }
 
             var requestUri = $"{_icmApiSettings.APIEndpoint}{apiPath}";
@@ -162,6 +170,10 @@ namespace FirstPartyAgent.Core.Services
 
         private async Task<HttpResponseMessage> SendICMPostRequestAsync(string apiPath, object content)
         {
+            if (_httpClient == null)
+            {
+                throw new InvalidOperationException("ICM API Client is not initialized. Please check the configuration.");
+            }
             if (string.IsNullOrWhiteSpace(apiPath))
             {
                 throw new ArgumentException("apiPath must be provided.", nameof(apiPath));
@@ -184,6 +196,10 @@ namespace FirstPartyAgent.Core.Services
 
         private async Task<HttpResponseMessage> SendICMPatchRequestAsync(string apiPath, object content)
         {
+            if (_httpClient == null)
+            {
+                throw new InvalidOperationException("ICM API Client is not initialized. Please check the configuration.");
+            }
             if (string.IsNullOrWhiteSpace(apiPath))
             {
                 throw new ArgumentException("apiPath must be provided.", nameof(apiPath));
@@ -207,6 +223,10 @@ namespace FirstPartyAgent.Core.Services
 
         private async Task<HttpResponseMessage> SendICMDeleteRequestAsync(string apiPath)
         {
+            if (_httpClient == null)
+            {
+                throw new InvalidOperationException("ICM API Client is not initialized. Please check the configuration.");
+            }
             if (string.IsNullOrWhiteSpace(apiPath))
             {
                 throw new ArgumentException("apiPath must be provided.", nameof(apiPath));
@@ -229,8 +249,16 @@ namespace FirstPartyAgent.Core.Services
             {
                 var responseString = await response.Content.ReadAsStringAsync();
                 var obj = JsonConvert.DeserializeObject<JObject>(responseString);
+                if (obj == null)
+                {
+                    throw new Exception("Failed to deserialize incident response object.");
+                }
                 obj = TextProcessingHelpers.FillICMAPIIncidentJObject(obj);
                 var incident = JsonConvert.DeserializeObject<Incident>(JsonConvert.SerializeObject(obj));
+                if (incident == null)
+                {
+                    throw new Exception("Failed to deserialize incident object.");
+                }
                 return incident;
             }
             else
@@ -268,7 +296,7 @@ namespace FirstPartyAgent.Core.Services
             {
                 var responseString = await response.Content.ReadAsStringAsync();
                 var oDataModel = JsonConvert.DeserializeObject<ODataResponse<DiscussionEntry>>(responseString);
-                return oDataModel.Value;
+                return oDataModel?.Value ?? [];
             }
             else
             {
@@ -744,7 +772,7 @@ namespace FirstPartyAgent.Core.Services
             if (response.IsSuccessStatusCode)
             {
                 var responseString = await response.Content.ReadAsStringAsync();
-                var repairItems = JsonConvert.DeserializeObject<List<IncidentRepairItem>>(responseString);
+                var repairItems = JsonConvert.DeserializeObject<List<IncidentRepairItem>>(responseString) ?? [];
                 return repairItems;
             }
             else

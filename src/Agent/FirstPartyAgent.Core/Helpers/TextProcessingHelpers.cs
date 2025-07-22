@@ -93,35 +93,43 @@ namespace FirstPartyAgent.Helpers
         public static async Task<string> ProcessComplexICMContent(string complexContent, Kernel kernel, ILogger logger, bool skipImages = false)
         {
             List<(string, string)> base64Images = new List<(string, string)>();
-            if (complexContent != null)
+            // remove base64 images from the complexContent (they would blow the response which goes back to the model and the model wouldn't make sense out of it) and store them in a list
+            complexContent = TextProcessingHelpers.StripBase64Images(complexContent, base64Images);
+
+            // remove html attributes as they don't provide much value and make the response longer (todo: it might be useful to strip html tags completely and convert the text rather to markdown or something like that)
+            complexContent = TextProcessingHelpers.RemoveHtmlAttributes(complexContent);
+
+            var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
+            if (chatCompletionService == null)
             {
-                // remove base64 images from the complexContent (they would blow the response which goes back to the model and the model wouldn't make sense out of it) and store them in a list
-                complexContent = TextProcessingHelpers.StripBase64Images(complexContent, base64Images);
+                logger.LogError("ChatCompletionService is not registered in the kernel. Cannot extract text from images.");
+                return complexContent;
+            }
 
-                // remove html attributes as they don't provide much value and make the response longer (todo: it might be useful to strip html tags completely and convert the text rather to markdown or something like that)
-                complexContent = TextProcessingHelpers.RemoveHtmlAttributes(complexContent);
-
-                var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
-
-                for (int i = 0; i < base64Images.Count; i++)
+            for (int i = 0; i < base64Images.Count; i++)
+            {
+                string imageText = "No Image Description.";
+                var deploymentName = chatCompletionService.Attributes["DeploymentName"]?.ToString() ?? string.Empty;
+                if (deploymentName.StartsWith("o") && !skipImages)
                 {
-                    string imageText = "No Image Description.";
-                    if (!chatCompletionService.Attributes["DeploymentName"].ToString().StartsWith("o") && !skipImages)
+                    // extract text from the image and replace the placeholder in the summary with the extracted text
+                    try
                     {
-                        // extract text from the image and replace the placeholder in the summary with the extracted text
-                        try
+                        ChatMessageContent result = await ExtractTextFromImage(kernel, base64Images[i].Item1, base64Images[i].Item2, chatCompletionService, logger);
+                        if (result.Content == null)
                         {
-                            ChatMessageContent result = await ExtractTextFromImage(kernel, base64Images[i].Item1, base64Images[i].Item2, chatCompletionService, logger);
-                            imageText = result.Content;
+                            logger.LogInternalWarning($"No content extracted from image {base64Images[i].Item1} - {base64Images[i].Item2}");
+                            continue;
                         }
-                        catch (Exception ex)
-                        {
-                            logger.LogError(ex, $"Error extracting text from image {base64Images[i].Item1} - {base64Images[i].Item2}");
-                        }
+                        imageText = result.Content;
                     }
-
-                    complexContent = complexContent.Replace($"####{i}####", "[The following text was in an image in the incident]" + imageText + "\r\n[End of the image]");
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, $"Error extracting text from image {base64Images[i].Item1} - {base64Images[i].Item2}");
+                    }
                 }
+
+                complexContent = complexContent.Replace($"####{i}####", "[The following text was in an image in the incident]" + imageText + "\r\n[End of the image]");
             }
             return complexContent;
         }
@@ -133,92 +141,77 @@ namespace FirstPartyAgent.Helpers
             {
                 obj["IncidentId"] = obj["Id"];
             }
-
-
             // 2. CloudInstance: not provided in source json, so default to "Public"  
             if (obj["CloudInstance"] == null)
             {
                 obj["CloudInstance"] = "Public";
             }
-
             // 3. Slice: fill using IncidentLocation.ServiceInstanceId  
             if (obj["Slice"] == null && obj["IncidentLocation"]?["ServiceInstanceId"] != null)
             {
-                obj["Slice"] = obj["IncidentLocation"]["ServiceInstanceId"];
+                obj["Slice"] = obj["IncidentLocation"]!["ServiceInstanceId"];
             }
-
             // 4. Environment: fill from IncidentLocation.Environment  
             if (obj["Environment"] == null && obj["IncidentLocation"]?["Environment"] != null)
             {
-                obj["Environment"] = obj["IncidentLocation"]["Environment"];
+                obj["Environment"] = obj["IncidentLocation"]!["Environment"];
             }
-
             // 5. CreatedBy: fill from Source.CreatedBy  
             if (obj["CreatedBy"] == null && obj["Source"]?["CreatedBy"] != null)
             {
-                obj["CreatedBy"] = obj["Source"]["CreatedBy"];
+                obj["CreatedBy"] = obj["Source"]!["CreatedBy"];
             }
-
             // 6. CreatedDate: model expects CreatedDate but source has CreateDate  
             if (obj["CreatedDate"] == null && obj["CreateDate"] != null)
             {
                 obj["CreatedDate"] = obj["CreateDate"];
             }
-
             // 7. OwningService: not provided. Default to empty string.  
             if (obj["OwningService"] == null)
             {
                 obj["OwningService"] = string.Empty;
             }
-
             // 8. OwningServiceId: derive the first element from ImpactedServicesIds array.  
             if (obj["OwningServiceId"] == null && obj["ImpactedServicesIds"] is JArray arr && arr.Count > 0)
             {
                 obj["OwningServiceId"] = arr[0];
             }
-
             // 9. OwningTeam: map from "OwningTeamId"  
             if (obj["OwningTeam"] == null && obj["OwningTeamId"] != null)
             {
                 obj["OwningTeam"] = obj["OwningTeamId"];
             }
-
             // 10. OwningTeamName: not provided – default to empty  
             if (obj["OwningTeamName"] == null)
             {
                 obj["OwningTeamName"] = string.Empty;
             }
-
             // 11. Owner: not provided – default to empty  
             if (obj["Owner"] == null)
             {
                 obj["Owner"] = string.Empty;
             }
-
             // 12. DiscussionEntry: map from "NewDescriptionEntry"  
             if (obj["DiscussionEntry"] == null && obj["NewDescriptionEntry"] != null)
             {
                 obj["DiscussionEntry"] = obj["NewDescriptionEntry"];
             }
-
             // 13. MonitoringRole: map from "RaisingLocation.DeviceGroup"  
             if (obj["MonitoringRole"] == null && obj["RaisingLocation"]?["DeviceGroup"] != null)
             {
-                obj["MonitoringRole"] = obj["RaisingLocation"]["DeviceGroup"];
+                obj["MonitoringRole"] = obj["RaisingLocation"]!["DeviceGroup"];
             }
-
             // 14. MonitoringSlice: map from "RaisingLocation.ServiceInstanceId"  
             if (obj["MonitoringSlice"] == null && obj["RaisingLocation"]?["ServiceInstanceId"] != null)
             {
-                obj["MonitoringSlice"] = obj["RaisingLocation"]["ServiceInstanceId"];
+                obj["MonitoringSlice"] = obj["RaisingLocation"]!["ServiceInstanceId"];
             }
-
             // 15. Optionally convert Severity to a string in case it appears as a number  
-            if (obj["Severity"] != null && obj["Severity"].Type != JTokenType.String)
+            var severity = obj["Severity"];
+            if (severity != null && severity.Type != JTokenType.String)
             {
-                obj["Severity"] = obj["Severity"].ToString();
+                obj["Severity"] = severity.ToString();
             }
-
             // Additional mappings can be added here if needed.  
             return obj;
         }

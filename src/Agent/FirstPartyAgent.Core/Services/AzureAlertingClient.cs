@@ -13,7 +13,7 @@ namespace FirstPartyAgent.Core.Services
 {
     public sealed class AzureAlertingClient
     {
-        private static HttpClient _httpClient;
+        private readonly HttpClient? _httpClient;
         private readonly AzureAlertingSettings _azureAlertingSettings;
         private readonly bool isEnabled;
         private readonly ILogger<AzureAlertingClient> _logger;
@@ -28,7 +28,7 @@ namespace FirstPartyAgent.Core.Services
                 return;
             }
             isEnabled = true;
-            InitializeHttpClient();
+            _httpClient = GetHttpClient();
         }
 
         public bool IsEnabled()
@@ -36,8 +36,9 @@ namespace FirstPartyAgent.Core.Services
             return isEnabled;
         }
 
-        private void InitializeHttpClient()
+        private HttpClient GetHttpClient()
         {
+            HttpClient result;
             var handler = new HttpClientHandler()
             {
                 ServerCertificateCustomValidationCallback = delegate { return true; },
@@ -48,17 +49,24 @@ namespace FirstPartyAgent.Core.Services
                 // Removed SslProtocols setting to use OS default
                 handler.ClientCertificates.Add(cert);
             }
-            _httpClient = !string.IsNullOrWhiteSpace(_azureAlertingSettings.CertificateSubjectName) ? new HttpClient(handler) : new HttpClient();
-            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", "sreagent1p");
-            _httpClient.Timeout = TimeSpan.FromSeconds(30);
+            result = !string.IsNullOrWhiteSpace(_azureAlertingSettings.CertificateSubjectName) ? new HttpClient(handler) : new HttpClient();
+            result.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            result.DefaultRequestHeaders.Add("User-Agent", "sreagent1p");
+            result.Timeout = TimeSpan.FromSeconds(30);
+            return result;
         }
 
         private async Task<HttpResponseMessage> SendRequestWithRetryAsync(HttpRequestMessage request, int maxRetries = 3, int initialDelayInMilliseconds = 500)
         {
-            HttpResponseMessage response = null;
+            if (!isEnabled || _httpClient == null)
+            {
+                throw new InvalidOperationException("Azure Alerting Client is not enabled. Please check the configuration.");
+            }
+
+            HttpResponseMessage? response = null;
             int retries = 0;
             int delay = initialDelayInMilliseconds;
+
             if (string.IsNullOrWhiteSpace(_azureAlertingSettings.CertificateSubjectName) && !string.IsNullOrWhiteSpace(_azureAlertingSettings.UserToken))
             {
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _azureAlertingSettings.UserToken);
@@ -87,7 +95,6 @@ namespace FirstPartyAgent.Core.Services
                     try
                     {
                         response = await _httpClient.SendAsync(newRequest);
-
                         if (response.IsSuccessStatusCode)
                         {
                             break;
@@ -95,9 +102,14 @@ namespace FirstPartyAgent.Core.Services
                         else
                         {
                             _logger.LogInformation($"Request failed with status code: {response.StatusCode}, Reason: {response.ReasonPhrase}. Retrying. Numretries: {retries}, MaxRetries: {maxRetries}");
-                            await Task.Delay(delay);
+
+                            // Only retry if we haven't reached the max retries
+                            if (retries < maxRetries - 1)
+                            {
+                                await Task.Delay(delay);
+                                delay *= 2;
+                            }
                             retries++;
-                            delay *= 2;
                         }
                     }
                     catch (HttpRequestException ex)
@@ -105,10 +117,14 @@ namespace FirstPartyAgent.Core.Services
                         if (ex.InnerException is TimeoutException)
                         {
                             _logger.LogInformation($"Request timed out. Retrying. Numretries: {retries}, MaxRetries: {maxRetries}");
-                            // If the exception is a TimeoutException, wait and retry  
-                            await Task.Delay(delay);
+
+                            // Only retry if we haven't reached the max retries
+                            if (retries < maxRetries - 1)
+                            {
+                                await Task.Delay(delay);
+                                delay *= 2;
+                            }
                             retries++;
-                            delay *= 2;
                         }
                         else
                         {
@@ -117,6 +133,12 @@ namespace FirstPartyAgent.Core.Services
                         }
                     }
                 }
+            }
+
+            // If we've exhausted all retries and still don't have a successful response
+            if (response == null)
+            {
+                throw new HttpRequestException($"Request failed after {maxRetries} attempts with no response received.");
             }
 
             return response;
@@ -139,7 +161,7 @@ namespace FirstPartyAgent.Core.Services
             if (response.IsSuccessStatusCode)
             {
                 var jsonResponse = await response.Content.ReadAsStringAsync();
-                var res = JsonConvert.DeserializeObject<AlertDetails>(jsonResponse);
+                var res = JsonConvert.DeserializeObject<AlertDetails>(jsonResponse) ?? throw new Exception("Failed to deserialize alert details response.");
                 return res;
             }
             throw new Exception($"Failed to get alert details. Status code: {response.StatusCode}, Reason: {response.ReasonPhrase}");

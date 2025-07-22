@@ -75,36 +75,40 @@ namespace FirstPartyAgent.Core.Plugins
         private async Task<string> ProcessComplexICMContent(string complexContent, Kernel kernel, bool skipImages = false)
         {
             List<(string, string)> base64Images = new List<(string, string)>();
-            if (complexContent != null)
+            // remove base64 images from the complexContent (they would blow the response which goes back to the model and the model wouldn't make sense out of it) and store them in a list
+            complexContent = TextProcessingHelpers.StripBase64Images(complexContent, base64Images);
+            
+            // remove html attributes as they don't provide much value and make the response longer (todo: it might be useful to strip html tags completely and convert the text rather to markdown or something like that)
+            complexContent = TextProcessingHelpers.RemoveHtmlAttributes(complexContent);
+            
+            var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
+            if (chatCompletionService == null)
             {
-                // remove base64 images from the complexContent (they would blow the response which goes back to the model and the model wouldn't make sense out of it) and store them in a list
-                complexContent = TextProcessingHelpers.StripBase64Images(complexContent, base64Images);
-
-                // remove html attributes as they don't provide much value and make the response longer (todo: it might be useful to strip html tags completely and convert the text rather to markdown or something like that)
-                complexContent = TextProcessingHelpers.RemoveHtmlAttributes(complexContent);
-
-                var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
-
-                for (int i = 0; i < base64Images.Count; i++)
-                {
-                    string imageText = "No Image Description.";
-                    if (!chatCompletionService.Attributes["DeploymentName"].ToString().StartsWith("o") && !skipImages)
-                    {
-                        // extract text from the image and replace the placeholder in the summary with the extracted text
-                        try
-                        {
-                            ChatMessageContent result = await ExtractTextFromImage(kernel, base64Images[i].Item1, base64Images[i].Item2, chatCompletionService, _logger);
-                            imageText = result.Content;
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, $"Error extracting text from image {base64Images[i].Item1} - {base64Images[i].Item2}");
-                        }
-                    }
-                    
-                    complexContent = complexContent.Replace($"####{i}####", "[The following text was in an image in the incident]" + imageText + "\r\n[End of the image]");
-                }
+                _logger.LogInternalError("ChatCompletionService is not available in the kernel. Cannot process complex ICM content.");
+                return complexContent;
             }
+            
+            for (int i = 0; i < base64Images.Count; i++)
+            {
+                string imageText = "No Image Description.";
+                var deploymentName = chatCompletionService.Attributes["DeploymentName"]?.ToString() ?? string.Empty;
+                if (deploymentName.StartsWith("o") && !skipImages)
+                {
+                    // extract text from the image and replace the placeholder in the summary with the extracted text
+                    try
+                    {
+                        ChatMessageContent result = await ExtractTextFromImage(kernel, base64Images[i].Item1, base64Images[i].Item2, chatCompletionService, _logger);
+                        imageText = result.Content ?? imageText;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Error extracting text from image {base64Images[i].Item1} - {base64Images[i].Item2}");
+                    }
+                }
+                
+                complexContent = complexContent.Replace($"####{i}####", "[The following text was in an image in the incident]" + imageText + "\r\n[End of the image]");
+            }
+
             return complexContent;
         }
 
@@ -241,7 +245,7 @@ namespace FirstPartyAgent.Core.Plugins
 
         [KernelFunction("get_alerting_discussion_entry")]
         [Description("Get Azure Alerting discussion entry")]
-        public async Task<DiscussionEntry> GetAlertingDiscussionEntry(
+        public async Task<DiscussionEntry?> GetAlertingDiscussionEntry(
             [Description("Incident ID")] string incidentId,
             Kernel kernel)
         {
@@ -278,14 +282,11 @@ namespace FirstPartyAgent.Core.Plugins
             var discussionEntries = _icmApiClient.IsEnabled()
                 ? await _icmApiClient.GetIncidentDiscussionEntriesAsync(incidentId)
                 : await _icmWorkflowClient.GetIncidentDiscussionEntriesAsync(incidentId);
-            if (discussionEntries != null)
+            foreach (var entry in discussionEntries)
             {
-                foreach (var entry in discussionEntries)
+                if (entry.IsHtml)
                 {
-                    if (entry.IsHtml)
-                    {
-                        entry.Text = await ProcessComplexICMContent(entry.Text, kernel, !_icmWorkflowClient.ProcessImages);
-                    }
+                    entry.Text = await ProcessComplexICMContent(entry.Text, kernel, !_icmWorkflowClient.ProcessImages);
                 }
             }
             return discussionEntries;
@@ -526,10 +527,9 @@ namespace FirstPartyAgent.Core.Plugins
             // Add a tag to indicate the agent has started processing
             await AddTagToIncident(incidentId, AgentProcessingTag, kernel);
 
-            ICMAlertConfig alertConfig = await _alertHandlerClient.GetConfigAsync(incidentDetails, kernel);
+            ICMAlertConfig? alertConfig = await _alertHandlerClient.GetConfigAsync(incidentDetails, kernel);
             
-            string agentName = alertConfig?.AgentName;
-
+            string? agentName = alertConfig?.AgentName;
             if (!string.IsNullOrEmpty(agentName))
             {
                 await AddTagToIncident(incidentId, $"SREAgent_{agentName}", kernel);
@@ -557,12 +557,12 @@ namespace FirstPartyAgent.Core.Plugins
 
             var incidentDetails = await GetIncidentInfo(incidentId, kernel);
 
-            ICMAlertConfig alertConfig = await _alertHandlerClient.GetConfigAsync(incidentDetails, kernel);
+            ICMAlertConfig? alertConfig = await _alertHandlerClient.GetConfigAsync(incidentDetails, kernel);
 
             string discussionEntryMessage = $"The SRE Agent would not be able to proceed further with its current set of capabilities.<br><b>Reason</b>: {reason}<br>Request Human Intervention from the current on-calls to take this further.";
             if (alertConfig != null && !string.IsNullOrWhiteSpace(alertConfig.DefaultHumanInterventionLoop))
             {
-                string teamTenant = null; string teamName = null;
+                string? teamTenant = null; string? teamName = null;
                 var loopParts = alertConfig.DefaultHumanInterventionLoop.Split('/');
                 if (loopParts.Length > 1)
                 {
@@ -573,7 +573,7 @@ namespace FirstPartyAgent.Core.Plugins
                     return transferResult;
                 }
             }
-            var errorMessage = $"[escalate_to_human_queue][{DateTime.UtcNow}] No valid default human intervention loop found for incidentId {incidentId}. Provided value is {alertConfig.DefaultHumanInterventionLoop}. Tagged the Incident and requested the on-calls to take a look.";
+            var errorMessage = $"[escalate_to_human_queue][{DateTime.UtcNow}] No valid default human intervention loop found for incidentId {incidentId}. Provided value is {alertConfig?.DefaultHumanInterventionLoop}. Tagged the Incident and requested the on-calls to take a look.";
             await kernel.LogInformation(errorMessage, _logger, _teamsClient, _sessionMessageService);
             var errorDiscussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntryMessage);
             var postResult = await PostDiscussionEntry(incidentId, errorDiscussionEntry, kernel);

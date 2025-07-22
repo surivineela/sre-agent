@@ -143,8 +143,8 @@ namespace FirstPartyAgent.Plugins
 
         public sealed class KustoQueryResponse
         {
-            public string KustoQuery { get; set; }
-            public string KustoResult { get; set; }
+            public string KustoQuery { get; set; } = string.Empty;
+            public string KustoResult { get; set; } = string.Empty;
         }
 
         [KernelFunction("LCV2_GetSites_WorkerComputePlatform_Legion")]
@@ -409,7 +409,6 @@ namespace FirstPartyAgent.Plugins
             try
             {
                 _logger.LogInformation($"Initializing LCV2_SpecificScenario_RFP_Zip.");
-                DateTime? nowOverride = null;
 
                 var kustoQuery = SpecificScenario_RFP_Zip_query(stampName);
 

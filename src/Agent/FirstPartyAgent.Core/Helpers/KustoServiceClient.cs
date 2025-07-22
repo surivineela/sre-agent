@@ -16,14 +16,14 @@ namespace FirstPartyAgent.Core.Helpers;
 
 public class KustoConfig
 {
-    public string ClusterUri { get; set; }
-    public string DatabaseName { get; set; }
+    public string ClusterUri { get; set; } = string.Empty;
+    public string DatabaseName { get; set; } = string.Empty;
     public KustoAuthenticationType AuthType { get; set; }
-    public string Authority { get; set; }
-    public string AuthorityHost { get; set; }
-    public string ApplicationClientId { get; set; }
-    public string ApplicationCertificate { get; set; }
-    public string ManagedIdentityClientId { get; set; }
+    public string Authority { get; set; } = string.Empty;
+    public string AuthorityHost { get; set; } = string.Empty;
+    public string ApplicationClientId { get; set; } = string.Empty;
+    public string ApplicationCertificate { get; set; } = string.Empty;
+    public string ManagedIdentityClientId { get; set; } = string.Empty;
 }
 
 public class KustoServiceClientFactory

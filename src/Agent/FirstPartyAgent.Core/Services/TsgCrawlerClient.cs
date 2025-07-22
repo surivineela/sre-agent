@@ -27,11 +27,11 @@ namespace FirstPartyAgent.Core.Services
 
     public class TsgCrawlerClient : ITsgCrawlerClient
     {
-        private readonly IAzureDevOpsClient _azureDevOpsClient;
+        private readonly IAzureDevOpsClient? _azureDevOpsClient;
         private readonly ILogger<TsgCrawlerClient> _logger;
         private readonly TsgCrawlerSettings _tsgCrawlerSettings;
         private readonly AzureSearchSettings _azureSearchSettings;
-        private readonly IStorageService _storageService;
+        private readonly IStorageService? _storageService;
 
         public TsgCrawlerClient(
             IHostEnvironment hostEnvironment,
@@ -51,7 +51,7 @@ namespace FirstPartyAgent.Core.Services
 
         public async Task CrawlAndStoreRepositoryAsync()
         {
-            if (_tsgCrawlerSettings == null || !_tsgCrawlerSettings.Enabled)
+            if (_tsgCrawlerSettings == null || !_tsgCrawlerSettings.Enabled || _storageService == null || _azureDevOpsClient == null)
             {
                 _logger.LogWarning("TSG Crawler Client is disabled. Skipping repository crawl.");
                 return;
@@ -161,6 +161,12 @@ namespace FirstPartyAgent.Core.Services
 
         private async Task<List<string>> GetAllFilesAsync(string path)
         {
+            if (_azureDevOpsClient == null)
+            {
+                _logger.LogWarning("Azure DevOps client is not initialized. Cannot retrieve files.");
+                return new List<string>();
+            }
+
             var allFiles = new List<string>();
             // Use Full recursion level to get all files in one request
             var result = await _azureDevOpsClient.ListFilesAsync(path, int.MaxValue, "Full");
@@ -177,7 +183,11 @@ namespace FirstPartyAgent.Core.Services
                         {
                             if (item.TryGetProperty("path", out JsonElement pathElement))
                             {
-                                allFiles.Add(pathElement.GetString());
+                                var filePath = pathElement.GetString();
+                                if (filePath != null)
+                                {
+                                    allFiles.Add(filePath);
+                                }                                
                             }
                         }
                     }

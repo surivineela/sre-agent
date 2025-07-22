@@ -31,7 +31,11 @@ namespace FirstPartyAgent.Core.Plugins
             _logger.LogInformation($"[send_status_message][{DateTime.UtcNow}] Invoked with incidentId {incidentId}, statusMessage: {statusMessage}");
             if (_teamsClient.IsEnabled())
             {
-                string agentMode = kernel.Data.TryGetValue("agentMode", out var val) ? val.ToString() : AgentMode.None.ToString();
+                string? agentMode = kernel.Data.TryGetValue("agentMode", out var val) ? val?.ToString() : AgentMode.None.ToString();
+                if (string.IsNullOrWhiteSpace(agentMode))
+                {
+                    agentMode = AgentMode.None.ToString();
+                }
                 var teamsMessage = new TeamsMessage(statusMessage, null);
                 await _teamsClient.PostMessageOnTeams(agentMode, teamsMessage);
                 return "Sent status message on Teams";

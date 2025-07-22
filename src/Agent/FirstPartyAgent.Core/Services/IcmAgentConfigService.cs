@@ -16,7 +16,7 @@ public class IcmAgentConfigService : IIcmAgentConfigService
     private readonly IWebHostEnvironment _env;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly KustoClient _kustoClient;
-    private Task _initializationTask;
+    private Task? _initializationTask;
     private IICMWorkflowClient _icmworkflowClient;
     private ILogger<IcmAgentConfigService> _logger;
     private const string _alertConfigContainerName = "IcmAlertConfigs";
@@ -54,7 +54,17 @@ public class IcmAgentConfigService : IIcmAgentConfigService
 
     private async Task InitializeCosmosDbTables()
     {
+        if (!IsEnabled())
+        {
+            throw new InvalidOperationException("Icm service is disabled");
+        }
+
         var client = _cosmosDbService.CosmosClient;
+        if (client == null)
+        {
+            throw new InvalidOperationException("Cosmos client is not initialized");
+        }
+
         // create database if not exists
         var resp = await client.CreateDatabaseIfNotExistsAsync(_cosmosDbService.IcmAgentDatabaseName);
         var db = resp.Database;
@@ -176,8 +186,11 @@ public class IcmAgentConfigService : IIcmAgentConfigService
             var icmTeams = await GetAgentFactoryConfig<List<IcmTeam>>(AgentFactoryConfigIds.IcmTeams);
             var filters = await GetAgentFactoryConfig<Dictionary<int, string[]>>(AgentFactoryConfigIds.TeamFilters);
 
-            var dict = filters.Content;
-            var result = icmTeams.Content
+            var filtersContent = filters.Content ?? new Dictionary<int, string[]>();
+            var icmTeamsContent = icmTeams.Content ?? new List<IcmTeam>();
+
+            var dict = filtersContent;
+            var result = icmTeamsContent
                 .Where(i => !dict.ContainsKey(i.IcmServiceId ?? -1) || dict[i.IcmServiceId ?? -1].Contains(i.IcmTeamName))
                 .ToList();
 
@@ -195,7 +208,7 @@ public class IcmAgentConfigService : IIcmAgentConfigService
         try
         {
             var defaultTeamId = await GetAgentFactoryConfig<IcmTeam>(AgentFactoryConfigIds.DefaultIcmTeam);
-            return defaultTeamId.Content;
+            return defaultTeamId.Content ?? throw new Exception("Default ICM team ID not found.");
         }
         catch (Exception ex)
         {
@@ -212,7 +225,7 @@ public class IcmAgentConfigService : IIcmAgentConfigService
             var list = await _cosmosDbService.GetQueryableContainer<AgentFactoryConfigCosmos<T>>(_cosmosDbService.IcmAgentDatabaseName, _agentFactoryConfigsContainerName)
             .Where(c => c.Id == id).ToListAsync();
 
-            if (list != null && !list.Any())
+            if (!list.Any())
             {
                 throw new KeyNotFoundException($"Agent factory config with ID {id} not found.");
             }
@@ -364,7 +377,7 @@ public class IcmAgentConfigService : IIcmAgentConfigService
                 await CreateTeamConfigIfNotExists(new TeamConfig
                 {
                     TeamId = alertConfig.TeamId,
-                    TeamName = alertConfig.IncidentTitle
+                    TeamName = alertConfig.IncidentTitle ?? "Unknown Team"
                 });
             }
 
@@ -459,9 +472,9 @@ Incidents
                 {
                     Id = (int)row["Id"],
                     Severity = (int)row["Severity"],
-                    Title = row["Title"].ToString(),
-                    State = row["State"].ToString(),
-                    CreatedDate = row["CreatedDate"] is DateTime date ? date : DateTime.Parse(row["CreatedDate"].ToString())
+                    Title = row["Title"]?.ToString() ?? "No title",
+                    State = row["State"]?.ToString() ?? "Unknown state",
+                    CreatedDate = row["CreatedDate"] is DateTime date ? date : DateTime.Parse(row["CreatedDate"].ToString() ?? DateTime.Now.ToString())
                 };
                 DateTime.SpecifyKind(incident.CreatedDate, DateTimeKind.Utc);
                 incidents.Add(incident);
@@ -549,6 +562,11 @@ Incidents
         try
         {
             var client = _cosmosDbService.CosmosClient;
+            if (client == null)
+            {
+                throw new InvalidOperationException("Cosmos client is not initialized");
+            }
+
             var database = client.GetDatabase(_cosmosDbService.IcmAgentDatabaseName);
             
             // Fetch all container names from the database
@@ -585,6 +603,11 @@ Incidents
         try
         {
             var client = _cosmosDbService.CosmosClient;
+            if (client == null)
+            {
+                throw new InvalidOperationException("Cosmos client is not initialized");
+            }
+
             var database = client.GetDatabase(_cosmosDbService.IcmAgentDatabaseName);
             var container = database.GetContainer(containerName);
             
@@ -629,6 +652,10 @@ Incidents
         try
         {
             var client = _cosmosDbService.CosmosClient;
+            if (client == null)
+            {
+                throw new InvalidOperationException("Cosmos client is not initialized");
+            }
             var database = client.GetDatabase(_cosmosDbService.IcmAgentDatabaseName);
             var container = database.GetContainer(containerName);
 
@@ -687,6 +714,10 @@ Incidents
             // Assuming UpsertItemAsync can take a dynamic object and the container name
             // and that it returns the upserted item which can then be serialized.
             var result = await _cosmosDbService.UpsertItemAsync(_cosmosDbService.IcmAgentDatabaseName, containerName, documentObject);
+            if (result == null)
+            {
+                throw new Exception($"Failed to upsert document to container '{containerName}'.");
+            }
             return result.StatusCode.ToString();
         }
         catch (Newtonsoft.Json.JsonException jsonEx)
@@ -750,14 +781,14 @@ Incidents
         try
         {
             var icmServices = await GetAgentFactoryConfig<List<IcmService>>(AgentFactoryConfigIds.IcmServices);
-            if(icmServices.Datetime > DateTimeOffset.UtcNow.AddDays(-7) && icmServices.Content.Count > 0)
+            if(icmServices.Datetime > DateTimeOffset.UtcNow.AddDays(-7) && icmServices.Content != null && icmServices.Content.Count > 0)
             {
                 return icmServices.Content;
             }
         }
         catch (KeyNotFoundException)
         {
-            
+            _logger.LogInternalWarning("Icm services not found in agent factory config, fetching from Kusto.");
         }
 
         string query = @"
@@ -875,7 +906,7 @@ public class IcmAgentConfigServiceDisabled : IIcmAgentConfigService
 
     public Task<AgentFactoryConfigCosmos<T>> GetAgentFactoryConfig<T>(string id)
     {
-        return Task.FromResult<AgentFactoryConfigCosmos<T>>(null);
+        return Task.FromResult<AgentFactoryConfigCosmos<T>>(new());
     }
 
     public Task<List<string>> GetAgentFactoryConfigNames()
@@ -895,7 +926,7 @@ public class IcmAgentConfigServiceDisabled : IIcmAgentConfigService
 
     public Task<ICMAlertConfig> GetAlertConfig(int loopId, string alertId)
     {
-        return Task.FromResult<ICMAlertConfig>(null);
+        return Task.FromResult<ICMAlertConfig>(new());
     }
 
     public Task<string> CreateAlertConfig(ICMAlertConfig alertConfig)
@@ -920,12 +951,12 @@ public class IcmAgentConfigServiceDisabled : IIcmAgentConfigService
 
     public Task<GenevaActionsConfigCosmos> GetGenevaActionConfig(int teamId)
     {
-        return Task.FromResult<GenevaActionsConfigCosmos>(null);
+        return Task.FromResult<GenevaActionsConfigCosmos>(new());
     }
 
     public Task<GenevaActionsConfigCosmos> SaveGenevaActionsConfig(GenevaActionsConfigCosmos genevaActionsConfig)
     {
-        return Task.FromResult<GenevaActionsConfigCosmos>(null);
+        return Task.FromResult<GenevaActionsConfigCosmos>(new());
     }
 
     public Task<List<string>> ListAllContainers()
@@ -950,7 +981,7 @@ public class IcmAgentConfigServiceDisabled : IIcmAgentConfigService
 
     Task<IcmTeam> IIcmAgentConfigService.GetDefaultIcmTeam()
     {
-        return Task.FromResult<IcmTeam>(null);
+        return Task.FromResult<IcmTeam>(new());
     }
 
     public Task<List<IcmService>> GetIcmServices()
@@ -960,7 +991,7 @@ public class IcmAgentConfigServiceDisabled : IIcmAgentConfigService
 
     public Task<IcmTeams> GetIcmTeams(int serviceId)
     {
-        return Task.FromResult<IcmTeams>(null);
+        return Task.FromResult<IcmTeams>(new());
     }
 }
 

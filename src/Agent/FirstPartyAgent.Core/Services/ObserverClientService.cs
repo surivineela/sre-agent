@@ -15,13 +15,13 @@ namespace FirstPartyAgent.Core.Services
     {
         public HttpStatusCode StatusCode;
 
-        public dynamic Content;
+        public required dynamic Content;
     }
 
     public sealed class ObserverClientService
     {
         private readonly ObserverClientSettings _observerClientSettings;
-        private static HttpClient _httpClient;
+        private readonly HttpClient _httpClient;
 
         public bool IsEnabled => _observerClientSettings.IsEnabled;
 
@@ -32,10 +32,10 @@ namespace FirstPartyAgent.Core.Services
             {
                 throw new Exception("Either CertificateSubjectName or UserAuth must be set to run observer client");
             }
-            InitializeHttpClient();
+            _httpClient = GetHttpClient();
         }
 
-        private void InitializeHttpClient()
+        private HttpClient GetHttpClient()
         {
             var handler = new HttpClientHandler()
             {
@@ -47,15 +47,16 @@ namespace FirstPartyAgent.Core.Services
                 // Removed SslProtocols setting to use OS default
                 handler.ClientCertificates.Add(cert);
             }
-            _httpClient = !string.IsNullOrWhiteSpace(_observerClientSettings.CertificateSubjectName) ? new HttpClient(handler) : new HttpClient();
-            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", "sreagent1p");
-            _httpClient.Timeout = TimeSpan.FromSeconds(30);
+            var result = !string.IsNullOrWhiteSpace(_observerClientSettings.CertificateSubjectName) ? new HttpClient(handler) : new HttpClient();
+            result.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            result.DefaultRequestHeaders.Add("User-Agent", "sreagent1p");
+            result.Timeout = TimeSpan.FromSeconds(30);
+            return result;
         }
 
         private async Task<HttpResponseMessage> SendRequestWithRetryAsync(HttpRequestMessage request, int maxRetries = 1, int initialDelayInMilliseconds = 500)
         {
-            HttpResponseMessage response = null;
+            HttpResponseMessage? response = null;
             int retries = 0;
             int delay = initialDelayInMilliseconds;
             
@@ -116,6 +117,11 @@ namespace FirstPartyAgent.Core.Services
                         }
                     }
                 }
+            }
+
+            if (response == null)
+            {
+                throw new InvalidOperationException("ObserverClientService: Unable to get response from Observer API after retries.");
             }
 
             return response;
@@ -228,20 +234,14 @@ namespace FirstPartyAgent.Core.Services
 
         private async Task<ObserverResponse> CreateObserverResponse(HttpResponseMessage response, string apiName = "")
         {
-            var observerResponse = new ObserverResponse();
-
-            if (response == null)
-            {
-                observerResponse.StatusCode = HttpStatusCode.InternalServerError;
-                observerResponse.Content = "Unable to fetch data from Observer API : " + apiName;
-            }
+            var observerResponse = new ObserverResponse() { Content = string.Empty };
 
             observerResponse.StatusCode = response.StatusCode;
 
             if (response.IsSuccessStatusCode)
             {
                 var responseString = await response.Content.ReadAsStringAsync();
-                observerResponse.Content = JsonConvert.DeserializeObject(responseString);
+                observerResponse.Content = JsonConvert.DeserializeObject(responseString) ?? string.Empty;
             }
             else if (response.StatusCode == HttpStatusCode.NotFound)
             {

@@ -189,7 +189,7 @@ public class EmergingIssueConfigService : IEmergingIssueConfigService
             // Get the existing issue to use its ID and team
             var existingIssue = await GetEmergingIssue(incidentId);
 
-            if (IsCosmosDbEnabled())
+            if (IsCosmosDbEnabled() && _cosmosDbService.CosmosClient != null)
             {
                 // Delete from CosmosDB
                 var container = _cosmosDbService.CosmosClient.GetContainer(

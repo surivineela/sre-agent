@@ -434,6 +434,10 @@ namespace FirstPartyAgent.FunctionApp
 
             try
             {
+                if (_cosmosDBService.CosmosClient == null)
+                {
+                    throw new InvalidOperationException("CosmosDB client is not initialized.");
+                }
                 var db = _cosmosDBService.CosmosClient.GetDatabase(_cosmosDBService.IcmAgentDatabaseName);
                 var containerProperties = new ContainerProperties
                 {
@@ -480,6 +484,10 @@ namespace FirstPartyAgent.FunctionApp
             _logger.LogInformation("Processing ImportAgentDeployments request");
             try
             {
+                if (_cosmosDBService.CosmosClient == null)
+                {
+                    throw new InvalidOperationException("CosmosDB client is not initialized.");
+                }
                 var db = _cosmosDBService.CosmosClient.GetDatabase(_cosmosDBService.IcmAgentDatabaseName);
                 var containerProperties = new ContainerProperties
                 {

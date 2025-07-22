@@ -14,7 +14,7 @@ namespace FirstPartyAgent.Core.Services.TokenService
         /// <summary>
         /// Gets AAD issued auth token.
         /// </summary>
-        public string AuthorizationToken { get; private set; }
+        public string AuthorizationToken { get; private set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets AAD Resource.
@@ -109,7 +109,7 @@ namespace FirstPartyAgent.Core.Services.TokenService
         {
             if (!ManagedIdentityEnabled)
             {
-                return null;
+                return string.Empty;
             }
             if (TokenCredential == null)
             {
