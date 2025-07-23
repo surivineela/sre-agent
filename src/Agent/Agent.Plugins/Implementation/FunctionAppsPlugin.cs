@@ -4,7 +4,6 @@
 
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
-using Agent.Logging;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
 using Microsoft.Extensions.Logging;
@@ -23,7 +22,7 @@ public class FunctionAppsPlugin : IFunctionAppsPlugin
         _logger = logger;
     }
 
-    public async Task<FunctionAppDescriptor> GetFunctionAppInfoAsync(string resourceId)
+    public async Task<FunctionAppDescriptor?> GetFunctionAppInfoAsync(string resourceId)
     {
         _logger.LogInternalInformation($"[get_function_app_info] Invoked with resourceId: {resourceId}");
 
@@ -175,15 +174,22 @@ public class FunctionAppsPlugin : IFunctionAppsPlugin
 
     private string GetFirstPropertyValue(dynamic properties, string propertyName)
     {
-        if (properties == null || !((IDictionary<string, object>)properties).ContainsKey(propertyName))
+        if (properties == null)
         {
             return string.Empty;
         }
 
-        var values = properties[propertyName];
-        if (values is IEnumerable<object> enumerable && enumerable.Any())
+        var dict = properties as IDictionary<string, object>;
+        if (dict == null || !dict.ContainsKey(propertyName))
         {
-            return enumerable.First().ToString();
+            return string.Empty;
+        }
+
+        var values = dict[propertyName];
+        if (values is IEnumerable<object> enumerable)
+        {
+            var firstValue = enumerable.Cast<object>().FirstOrDefault();
+            return firstValue?.ToString() ?? string.Empty;
         }
 
         return string.Empty;

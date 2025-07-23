@@ -3,19 +3,15 @@
 // ------------------------------------------------------------
 
 using System.Text.Json;
-using Agent.Core;
 using Agent.Core.Exceptions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
-using Agent.Core.Models;
-using Agent.Logging;
 using Agent.Plugins.Interface;
 using Azure;
 using Azure.Core;
 using Azure.ResourceManager.Authorization;
 using Azure.ResourceManager.Authorization.Models;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph.Models;
 
 namespace Agent.Plugins.Implementation;
 
@@ -57,7 +53,7 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
     {
         try
         {
-            if(string.IsNullOrWhiteSpace(resourceId))
+            if (string.IsNullOrWhiteSpace(resourceId))
             {
                 return "ERROR: Resource ID cannot be null or empty.";
             }
@@ -67,7 +63,7 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
                 return "ERROR: Invalid resource ID format.";
             }
 
-            if(!string.IsNullOrEmpty(principalId) && !Guid.TryParseExact(principalId, "D", out _))
+            if (!string.IsNullOrEmpty(principalId) && !Guid.TryParseExact(principalId, "D", out _))
             {
                 return "ERROR: Invalid principal ID format. Principal id must be a valid GUID, separated by hyphens";
             }
@@ -168,9 +164,9 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
                 roleDefinitionId: new ResourceIdentifier(roleDefinitionId),
                 principalId: new Guid(principalId))
             {
-                PrincipalType = principalType?.Equals("User", StringComparison.OrdinalIgnoreCase) == true ? RoleManagementPrincipalType.User: RoleManagementPrincipalType.ServicePrincipal // Default to service principal
+                PrincipalType = principalType?.Equals("User", StringComparison.OrdinalIgnoreCase) == true ? RoleManagementPrincipalType.User : RoleManagementPrincipalType.ServicePrincipal // Default to service principal
             };
-            
+
             // Create the role assignment at the resource scope
             var roleAssignmentOperation = await roleAssignmentCollection.CreateOrUpdateAsync(
                 WaitUntil.Completed,
@@ -224,7 +220,7 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
             var resource = armClient.GetGenericResource(new ResourceIdentifier(resourceId));
             var roleAssignmentsCollection = resource.GetRoleAssignments();
 
-            RoleAssignmentResource roleAssignmentToDelete = null;
+            RoleAssignmentResource? roleAssignmentToDelete = null;
 
             await foreach (var assignment in roleAssignmentsCollection.GetAllAsync())
             {
@@ -279,7 +275,7 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
             {
                 return "ERROR: Invalid principal ID. Principal id must be a valid GUID, separated by hyphens";
             }
-            
+
             var armClient = await _armClientFactory.GetArmOperationClient();
             var roleDefinitionId = await GetRoleDefinitionIdFromNameAsync(roleName, resourceId);
 
@@ -293,7 +289,7 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
             var roleAssignmentsCollection = resource.GetRoleAssignments();
 
             bool hasRole = false;
-            RoleAssignmentData existingRoleAssignment = null;
+            RoleAssignmentData? existingRoleAssignment = null;
             await foreach (var assignment in roleAssignmentsCollection.GetAllAsync())
             {
                 if (assignment.Data.Scope.Equals(resourceId, StringComparison.OrdinalIgnoreCase) &&
@@ -306,7 +302,7 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
                 }
             }
 
-            return JsonSerializer.Serialize(new { HasRole = hasRole, RoleName = roleName, RoleDescription = existingRoleAssignment?.Description ?? string.Empty,  PrincipalId = principalId },
+            return JsonSerializer.Serialize(new { HasRole = hasRole, RoleName = roleName, RoleDescription = existingRoleAssignment?.Description ?? string.Empty, PrincipalId = principalId },
                 new JsonSerializerOptions { WriteIndented = true });
         }
         catch (RequestFailedException ex) when (ex.Status == 401 || ex.Status == 403)
@@ -329,7 +325,7 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
     /// <returns>Details of the specified role</returns>
     public async Task<string> GetRoleDetailsFromNameAsync(string roleName, string resourceId)
     {
-        if(string.IsNullOrWhiteSpace(roleName))
+        if (string.IsNullOrWhiteSpace(roleName))
         {
             return "ERROR: Role name cannot be null or empty.";
         }
@@ -455,7 +451,7 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
                 {
                     _logger.LogInternalError(innerEx, "Error getting role name from definition ID {RoleDefinitionId} at resource level", roleDefinitionId);
                 }
-            } 
+            }
 
             return "Unknown Role";
         }

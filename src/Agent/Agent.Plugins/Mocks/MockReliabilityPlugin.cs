@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Agent.Plugins.Interface;
 using Azure.ResourceManager.AppService.Models;
 using Microsoft.DurableTask.Client;
@@ -15,7 +10,7 @@ public class MockReliabilityPlugin : IReliabilityPlugin
         throw new NotImplementedException();
     }
 
-    public Task<OrchestrationRuntimeStatus> GetReliabilityOrchestrationStatus(string instanceId)
+    public Task<OrchestrationRuntimeStatus?> GetReliabilityOrchestrationStatus(string instanceId)
     {
         throw new NotImplementedException();
     }

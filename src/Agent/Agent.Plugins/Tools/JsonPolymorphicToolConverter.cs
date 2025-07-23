@@ -2,6 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace Agent.Plugins.Tools
 {
     public static class JsonToolConverter
@@ -13,7 +15,7 @@ namespace Agent.Plugins.Tools
             // Add other supported types
         };
 
-        public static bool TryResolve(string typeName, out Type concreteType) =>
+        public static bool TryResolve(string typeName, [NotNullWhen(true)] out Type? concreteType) =>
             _typeMap.TryGetValue(typeName, out concreteType);
     }
 }

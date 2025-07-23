@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Logging;
-using Agent.Logging;
 using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Implementation.DiagnosticsPlugin;
@@ -58,6 +57,7 @@ internal abstract class ComputeResourceDiagnosticStrategyBase : IComputeResource
     public ComputeResourceDiagnosticStrategyBase(ILogger<DiagnosticsPlugin> logger)
     {
         _logger = logger;
+        _analysisHandlers = new Dictionary<AnalysisType, Func<string, ComputeResourceInfo, AnalysisType, string, Task<string>>>();
     }
 
     public abstract bool CanHandle(ComputeResourceInfo resourceInfo);

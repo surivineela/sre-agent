@@ -12,7 +12,6 @@ using System.ComponentModel;
 using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
-using Agent.Logging;
 using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Implementation
@@ -33,11 +32,11 @@ namespace Agent.Plugins.Implementation
             _logger = logger;
             _httpClientFactory = httpClientFactory;
         }
-        
+
 
         private async Task<HttpClient> CreateAuthenticatedClientAsync()
         {
-            
+
             var client = _httpClientFactory.CreateClient();
             client.BaseAddress = new Uri(_dashboardSettings.GrafanaUrl);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -50,7 +49,7 @@ namespace Agent.Plugins.Implementation
 
         // Individual methods kept for flexibility
         public async Task<string> PublishDashboard(
-            string dashboardJson, 
+            string dashboardJson,
             bool overwrite = true)
         {
             try
@@ -58,7 +57,7 @@ namespace Agent.Plugins.Implementation
                 using (var client = await CreateAuthenticatedClientAsync())
                 {
                     var dashboardObject = JsonConvert.DeserializeObject<JObject>(dashboardJson);
-                    
+
                     var payload = new
                     {
                         dashboard = dashboardObject,
@@ -72,7 +71,7 @@ namespace Agent.Plugins.Implementation
                         "application/json");
 
                     var response = await client.PostAsync("/api/dashboards/db", content);
-                    
+
                     if (!response.IsSuccessStatusCode)
                     {
                         var errorContent = await response.Content.ReadAsStringAsync();
@@ -81,8 +80,8 @@ namespace Agent.Plugins.Implementation
                     }
 
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    dynamic result = JsonConvert.DeserializeObject(responseContent);
-                    string dashboardUid = result.uid;
+                    dynamic? result = JsonConvert.DeserializeObject(responseContent);
+                    string dashboardUid = result?.uid ?? string.Empty;
 
                     _logger?.LogInternalInformation($"Dashboard published successfully with UID: {dashboardUid}");
                     return dashboardUid; // Return just the UID for easier chaining
@@ -96,8 +95,8 @@ namespace Agent.Plugins.Implementation
         }
 
         public async Task<byte[]> CaptureScreenshot(
-            string dashboardUid, 
-            int width = 1920, 
+            string dashboardUid,
+            int width = 1920,
             int height = 1080)
         {
             try
@@ -108,7 +107,7 @@ namespace Agent.Plugins.Implementation
 
                     var renderUrl = $"/render/d/{dashboardUid}?orgId=1&from=now-1h&to=now&width={width}&height={height}&theme=light";
                     var response = await client.GetAsync(renderUrl);
-                    
+
                     if (!response.IsSuccessStatusCode)
                     {
                         var errorContent = await response.Content.ReadAsStringAsync();
@@ -136,7 +135,7 @@ namespace Agent.Plugins.Implementation
         public async Task<string> ModifyGrafanaDashboard(
             [Description("Description of changes the user wants")] string description,
             [Description("Name of the target dashboard")] string dashboardName,
-            [Description("Optional dashboard UID - will look up by name if not provided")] string existingDashboardUid = null)
+            [Description("Optional dashboard UID - will look up by name if not provided")] string existingDashboardUid = "")
         {
             string dashboardJson;
             string contextMessage;
@@ -271,7 +270,7 @@ namespace Agent.Plugins.Implementation
         }
 
         public async Task<string> SetupPrometheusDataSource(
-            string dataSourceName, 
+            string dataSourceName,
             bool isDefault = false)
         {
             try
@@ -306,7 +305,7 @@ namespace Agent.Plugins.Implementation
                         "application/json");
 
                     var response = await client.PostAsync("/api/datasources", content);
-                    
+
                     if (!response.IsSuccessStatusCode)
                     {
                         var errorContent = await response.Content.ReadAsStringAsync();
@@ -315,8 +314,8 @@ namespace Agent.Plugins.Implementation
                     }
 
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    dynamic result = JsonConvert.DeserializeObject(responseContent);
-                    string dataSourceUid = result.datasource.uid;
+                    dynamic? result = JsonConvert.DeserializeObject(responseContent);
+                    string dataSourceUid = result?.datasource?.uid ?? string.Empty;
 
                     _logger?.LogInternalInformation($"Data source '{dataSourceName}' created successfully with UID: {dataSourceUid}");
                     return dataSourceUid; // Return just the UID for easier chaining
@@ -330,7 +329,7 @@ namespace Agent.Plugins.Implementation
         }
 
         public async Task<string> LinkDataSourceToDashboard(
-            string dashboardUid, 
+            string dashboardUid,
             string dataSourceUid)
         {
             try
@@ -339,7 +338,7 @@ namespace Agent.Plugins.Implementation
                 {
                     // Get the dashboard
                     var dashboardResponse = await client.GetAsync($"/api/dashboards/uid/{dashboardUid}");
-                    
+
                     if (!dashboardResponse.IsSuccessStatusCode)
                     {
                         var errorContent = await dashboardResponse.Content.ReadAsStringAsync();
@@ -348,12 +347,12 @@ namespace Agent.Plugins.Implementation
                     }
 
                     var dashboardContent = await dashboardResponse.Content.ReadAsStringAsync();
-                    dynamic dashboardData = JsonConvert.DeserializeObject(dashboardContent);
-                    var dashboard = dashboardData.dashboard;
-                    
+                    dynamic? dashboardData = JsonConvert.DeserializeObject(dashboardContent);
+                    var dashboard = dashboardData?.dashboard ?? string.Empty;
+
                     // Get data source details to get its name and type
                     var dsResponse = await client.GetAsync($"/api/datasources/uid/{dataSourceUid}");
-                    
+
                     if (!dsResponse.IsSuccessStatusCode)
                     {
                         var errorContent = await dsResponse.Content.ReadAsStringAsync();
@@ -362,13 +361,13 @@ namespace Agent.Plugins.Implementation
                     }
 
                     var dsContent = await dsResponse.Content.ReadAsStringAsync();
-                    dynamic dsData = JsonConvert.DeserializeObject(dsContent);
-                    string dsType = dsData.type;
-                    string dsName = dsData.name;
+                    dynamic? dsData = JsonConvert.DeserializeObject(dsContent);
+                    string dsType = dsData?.type ?? string.Empty;
+                    string dsName = dsData?.name ?? string.Empty;
 
                     // Update dashboard panels to use the data source
                     bool panelsUpdated = UpdateDashboardPanels(dashboard, dataSourceUid, dsType);
-                    
+
                     if (!panelsUpdated)
                     {
                         _logger?.LogInternalWarning($"No panels found in dashboard '{dashboardUid}' to update");
@@ -388,7 +387,7 @@ namespace Agent.Plugins.Implementation
                         "application/json");
 
                     var response = await client.PostAsync("/api/dashboards/db", content);
-                    
+
                     if (!response.IsSuccessStatusCode)
                     {
                         var errorContent = await response.Content.ReadAsStringAsync();
@@ -409,8 +408,8 @@ namespace Agent.Plugins.Implementation
 
         // Combined method that performs all three operations
         public async Task<string> PublishDashboardWithPrometheusDataSource(
-            string dashboardJson, 
-            string dataSourceName, 
+            string dashboardJson,
+            string dataSourceName,
             bool isDefault = false)
         {
             try
@@ -419,29 +418,29 @@ namespace Agent.Plugins.Implementation
                 {
                     // Step 1: Setup Prometheus data source
                     string dataSourceUid = await SetupPrometheusDataSource(
-                        dataSourceName, 
+                        dataSourceName,
                         isDefault);
-                    
+
                     _logger?.LogInternalInformation($"Step 1 complete: Prometheus data source ready with UID '{dataSourceUid}'");
-                    
+
                     // Step 2: Pre-process dashboard JSON to update data source references
                     var dashboard = JsonConvert.DeserializeObject<JObject>(dashboardJson);
-                    
+
                     // Get data source type
                     var dsResponse = await client.GetAsync($"/api/datasources/uid/{dataSourceUid}");
-                    
+
                     if (!dsResponse.IsSuccessStatusCode)
                     {
                         throw new Exception($"Failed to retrieve data source details: {dsResponse.StatusCode}");
                     }
-                    
-                    var dsContent = await dsResponse.Content.ReadAsStringAsync();
-                    dynamic dsData = JsonConvert.DeserializeObject(dsContent);
-                    string dsType = dsData.type;
-                    
+
+                    string dsContent = await dsResponse.Content.ReadAsStringAsync() ?? string.Empty;
+                    dynamic? dsData = JsonConvert.DeserializeObject(dsContent);
+                    string dsType = dsData?.type ?? string.Empty;
+
                     // Update panels in the dashboard JSON
                     UpdateDashboardPanelsJson(dashboard, dataSourceUid, dsType);
-                    
+
                     // Step 3: Publish the dashboard with data source already configured
                     var payload = new
                     {
@@ -449,26 +448,26 @@ namespace Agent.Plugins.Implementation
                         overwrite = true,
                         message = $"Dashboard with Prometheus data source created at {DateTime.UtcNow:o}"
                     };
-                    
+
                     var content = new StringContent(
                         JsonConvert.SerializeObject(payload),
                         Encoding.UTF8,
                         "application/json");
-                    
+
                     var response = await client.PostAsync("/api/dashboards/db", content);
-                    
+
                     if (!response.IsSuccessStatusCode)
                     {
                         var errorContent = await response.Content.ReadAsStringAsync();
                         throw new Exception($"Failed to publish dashboard: {response.StatusCode}, {errorContent}");
                     }
-                    
+
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    dynamic result = JsonConvert.DeserializeObject(responseContent);
-                    string dashboardUid = result.uid;
-                    
+                    dynamic? result = JsonConvert.DeserializeObject(responseContent);
+                    string dashboardUid = result?.uid ?? string.Empty;
+
                     _logger?.LogInternalInformation($"Dashboard published and linked to Prometheus data source");
-                    
+
                     return $"Dashboard published with UID '{dashboardUid}' and linked to Prometheus data source '{dataSourceName}'";
                 }
             }
@@ -481,18 +480,23 @@ namespace Agent.Plugins.Implementation
 
         #region Helper Methods
 
-        private async Task<dynamic> GetDataSourceByName(HttpClient client, string dataSourceName)
+        private async Task<dynamic?> GetDataSourceByName(HttpClient client, string dataSourceName)
         {
             var response = await client.GetAsync("/api/datasources");
-            
+
             if (!response.IsSuccessStatusCode)
             {
                 return null;
             }
-            
+
             var content = await response.Content.ReadAsStringAsync();
-            dynamic dataSources = JsonConvert.DeserializeObject(content);
-            
+            dynamic? dataSources = JsonConvert.DeserializeObject(content);
+
+            if (dataSources == null)
+            {
+                return null;
+            }
+
             foreach (var ds in dataSources)
             {
                 if (string.Equals((string)ds.name, dataSourceName, StringComparison.OrdinalIgnoreCase))
@@ -500,14 +504,14 @@ namespace Agent.Plugins.Implementation
                     return ds;
                 }
             }
-            
+
             return null;
         }
 
         private bool UpdateDashboardPanels(dynamic dashboard, string dataSourceUid, string dsType)
         {
             bool panelsUpdated = false;
-            
+
             // Update each panel to use the specified data source
             if (dashboard.panels != null)
             {
@@ -541,12 +545,16 @@ namespace Agent.Plugins.Implementation
                     }
                 }
             }
-            
+
             return panelsUpdated;
         }
-        
-        private void UpdateDashboardPanelsJson(JObject dashboard, string dataSourceUid, string dsType)
+
+        private void UpdateDashboardPanelsJson(JObject? dashboard, string dataSourceUid, string dsType)
         {
+            if (dashboard == null)
+            {
+                return;
+            }
             // Update panels array
             if (dashboard["panels"] is JArray panels)
             {
@@ -559,7 +567,7 @@ namespace Agent.Plugins.Implementation
                     });
                 }
             }
-            
+
             // Update panels in rows
             if (dashboard["rows"] is JArray rows)
             {
@@ -578,18 +586,25 @@ namespace Agent.Plugins.Implementation
                     }
                 }
             }
-            
+
             // Add a template variable for the data source
-            if (dashboard["templating"] == null)
+            if (dashboard == null)
             {
-                dashboard["templating"] = new JObject();
+                dashboard = new JObject();
             }
-            
-            if (dashboard["templating"]["list"] == null)
+
+            if (!(dashboard["templating"] is JObject templating))
             {
-                dashboard["templating"]["list"] = new JArray();
+                templating = new JObject();
+                dashboard["templating"] = templating;
             }
-            
+
+            if (!(templating["list"] is JArray list))
+            {
+                list = new JArray();
+                templating["list"] = list;
+            }
+
             // Add data source variable to templating
             var dsVariable = JObject.FromObject(new
             {
@@ -604,8 +619,8 @@ namespace Agent.Plugins.Implementation
                 },
                 hide = 0
             });
-            
-            ((JArray)dashboard["templating"]["list"]).Add(dsVariable);
+
+            list.Add(dsVariable);
         }
 
         /// <summary>
@@ -632,18 +647,18 @@ namespace Agent.Plugins.Implementation
                             dashboard.TryGetProperty("type", out var typeElement) &&
                             string.Equals(typeElement.GetString(), "dash-db", StringComparison.OrdinalIgnoreCase))
                         {
-                            string title = titleElement.GetString();
+                            string title = titleElement.GetString() ?? string.Empty;
 
                             // If we find a matching title, return the uid
                             if (string.Equals(title, dashboardName, StringComparison.OrdinalIgnoreCase))
                             {
-                                return uidElement.GetString();
+                                return uidElement.GetString() ?? string.Empty;
                             }
                         }
                     }
 
                     // If we got here, no matching dashboard was found
-                    return null;
+                    return string.Empty;
                 }
             }
             catch (Exception ex)
@@ -655,4 +670,4 @@ namespace Agent.Plugins.Implementation
 
         #endregion
     }
-} 
+}

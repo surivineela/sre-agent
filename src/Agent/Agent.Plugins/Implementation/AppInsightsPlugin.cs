@@ -1,13 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Net.Http;
-using System.Text.Json;
 using Agent.Core.Helpers;
 using Agent.Plugins.Interface;
-using Azure.Core;
 using Microsoft.SemanticKernel;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Agent.Plugins;
@@ -36,12 +30,13 @@ public class AppInsightsPlugin : IAppInsightsPlugin
             var subId = resourceId.Split('/')[2];
 
             // use instrumentation key to single in on the correct app insights resource
-            var appInsightsAppId = await _armHelper.GetAppInsightsAppIdBySubscription(subId, instrumentationKey);
+            var appInsightsAppId = await _armHelper.GetAppInsightsAppIdBySubscription(subId, instrumentationKey ?? string.Empty);
             // query the correct app insights resource
             var results = await _armHelper.ExecuteAppInsightsQuery(appInsightsAppId, queryString);
             return results;
         }
-        catch (Exception ex) {
+        catch (Exception ex)
+        {
             return $"The Application Insights query {queryString} failed due to the exception {ex.Message}.";
         }
     }
@@ -66,10 +61,11 @@ public class AppInsightsPlugin : IAppInsightsPlugin
 
     private string? GetInstrumentationKey(string? connectionString)
     {
-        if (connectionString != null) {
+        if (connectionString != null)
+        {
             string[] keyValues = connectionString.Split(';');
 
-            string instrumentationKey = null;
+            string instrumentationKey = string.Empty;
 
             foreach (var keyValue in keyValues)
             {
@@ -79,7 +75,7 @@ public class AppInsightsPlugin : IAppInsightsPlugin
                     instrumentationKey = pair[1];
                     break;
                 }
-                else if(pair.Length == 1)
+                else if (pair.Length == 1)
                 {
                     // handle case where AppInsights is deployed via ARM (just the instrumentation key as the value)
                     instrumentationKey = pair[0];

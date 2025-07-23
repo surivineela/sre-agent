@@ -4,7 +4,6 @@
 
 using System.ComponentModel;
 using Agent.Core.Helpers;
-using Agent.Logging;
 using Agent.Plugins.Interface;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
@@ -45,14 +44,14 @@ namespace Agent.Plugins.Implementation
                 if (result.Length > maxResponseSize)
                 {
                     _logger.LogInternalInformation("Response size {size} bytes exceeds threshold, extracting only critical function failures", result.Length);
-                    
+
                     try
                     {
                         // Parse the JSON response
                         JObject resultObj = JObject.Parse(result);
-                        
+
                         // Look for the critical failures table - find the dataset array
-                        if (resultObj["properties"] is JObject properties && 
+                        if (resultObj["properties"] is JObject properties &&
                             properties["dataset"] is JArray dataset)
                         {
                             // Look for the table with critical failures
@@ -68,10 +67,10 @@ namespace Agent.Plugins.Implementation
                                         var firstRow = rows[0] as JArray;
                                         if (firstRow != null && firstRow.Count > 1)
                                         {
-                                            string status = firstRow[0]?.ToString();
-                                            string message = firstRow[1]?.ToString();
-                                            
-                                            if (status == "Critical" && 
+                                            string status = firstRow[0]?.ToString() ?? string.Empty;
+                                            string message = firstRow[1]?.ToString() ?? string.Empty;
+
+                                            if (status == "Critical" &&
                                                 message == "Detected function(s) having execution failure rate more than 1%.")
                                             {
                                                 // This is the table we want to keep - extract just this part
@@ -87,7 +86,7 @@ namespace Agent.Plugins.Implementation
                                                         ["dataset"] = new JArray { item }
                                                     }
                                                 };
-                                                
+
                                                 _logger.LogInternalInformation("Successfully extracted critical failure data from large response");
                                                 return reducedResponse.ToString();
                                             }
@@ -96,7 +95,7 @@ namespace Agent.Plugins.Implementation
                                 }
                             }
                         }
-                        
+
                         _logger.LogInternalWarning("Failed to extract critical failures table from large response, returning full response");
                     }
                     catch (Exception ex)
@@ -136,7 +135,7 @@ namespace Agent.Plugins.Implementation
         {
             // Default to 60 minutes if not specified
             int lookbackMinutes = minutes ?? 60;
-            
+
             // Calculate the start and end times
             DateTime endTime = DateTime.UtcNow;
             DateTime startTime = endTime.AddMinutes(-lookbackMinutes);
@@ -162,30 +161,30 @@ namespace Agent.Plugins.Implementation
                     | summarize FailedCount=sumif(itemCount, success == false) by name, bin(timestamp, timeGrain)";
 
             var failedRequestsPerFunctionJson = await _appInsightsPlugin.ExecuteAppInsightsQuery(resourceId, failedRequestsPerFunctionQuery);
-            
+
             var failedRequestsData = new List<FailedRequestsTimeSeriesData>();
-            
+
             try
             {
                 // Parse the JSON response from App Insights
                 var jsonResult = JObject.Parse(failedRequestsPerFunctionJson);
-                
+
                 if (jsonResult["tables"] is JArray tables && tables.Count > 0)
                 {
                     var table = tables[0];
                     var columns = table["columns"] as JArray;
                     var rows = table["rows"] as JArray;
-                    
+
                     if (columns != null && rows != null)
                     {
                         // Find the indices of the columns we need
                         int nameIndex = -1;
                         int timestampIndex = -1;
                         int failedCountIndex = -1;
-                        
+
                         for (int i = 0; i < columns.Count; i++)
                         {
-                            string columnName = columns[i]["name"]?.ToString().ToLowerInvariant();
+                            string columnName = columns[i]["name"]?.ToString().ToLowerInvariant() ?? string.Empty;
                             if (columnName == "name")
                             {
                                 nameIndex = i;
@@ -199,7 +198,7 @@ namespace Agent.Plugins.Implementation
                                 failedCountIndex = i;
                             }
                         }
-                        
+
                         // Parse each row into a FailedRequestsTimeSeriesData object
                         if (nameIndex >= 0 && timestampIndex >= 0 && failedCountIndex >= 0)
                         {
@@ -208,7 +207,7 @@ namespace Agent.Plugins.Implementation
                                 string functionName = row[nameIndex]?.ToString() ?? "Unknown";
                                 DateTime timestamp = row[timestampIndex]?.ToObject<DateTime>() ?? DateTime.MinValue;
                                 double failedCount = row[failedCountIndex]?.ToObject<double>() ?? 0;
-                                
+
                                 failedRequestsData.Add(new FailedRequestsTimeSeriesData(
                                     TimeStamp: timestamp,
                                     FunctionName: functionName,
@@ -258,8 +257,8 @@ namespace Agent.Plugins.Implementation
                         | top 3 by _count";
 
             var top3ExceptionsPerFunction = await _appInsightsPlugin.ExecuteAppInsightsQuery(resourceId, top3ExceptionsPerFunctionQuery);
-                return top3ExceptionsPerFunction;
-            }
+            return top3ExceptionsPerFunction;
+        }
 
         public async Task<string> GetHostRuntimeErrorEvents(string resourceId, DateTime? startTime = null, DateTime? endTime = null)
         {
@@ -284,8 +283,8 @@ namespace Agent.Plugins.Implementation
                 string resourceGroup = parts[4];
 
                 // Format timestamps if provided
-                string formattedStartTime = startTime.HasValue ? startTime.Value.ToString("yyyy-MM-ddTHH:mm:ssZ") : null;
-                string formattedEndTime = endTime.HasValue ? endTime.Value.ToString("yyyy-MM-ddTHH:mm:ssZ") : null;
+                string formattedStartTime = startTime.HasValue ? startTime.Value.ToString("yyyy-MM-ddTHH:mm:ssZ") : string.Empty;
+                string formattedEndTime = endTime.HasValue ? endTime.Value.ToString("yyyy-MM-ddTHH:mm:ssZ") : string.Empty;
 
                 // Call ArmHelper to get critical/error/warning activity logs
                 var activityLogs = await _armHelper.GetCriticalErrorActivityLogs(
@@ -475,11 +474,12 @@ namespace Agent.Plugins.Implementation
                         string operation = eventItem["Operation"]?.ToString() ?? "";
 
                         // Check the status message which might contain detailed error info
-                        if (eventItem["StatusMessage"] != null && !string.IsNullOrEmpty(eventItem["StatusMessage"].ToString()))
+                        if (eventItem != null && eventItem["StatusMessage"] != null &&
+                            !string.IsNullOrEmpty(eventItem["StatusMessage"]!.ToString()))
                         {
                             try
                             {
-                                var statusMessageString = eventItem["StatusMessage"].ToString();
+                                var statusMessageString = eventItem["StatusMessage"]!.ToString();
                                 // Try to parse the StatusMessage as JSON which contains more detailed error info
                                 var statusMessageObj = JObject.Parse(statusMessageString);
 
@@ -516,7 +516,7 @@ namespace Agent.Plugins.Implementation
                                 // If there's an error parsing StatusMessage as JSON, log it but continue checking
                                 _logger.LogInternalWarning(ex, "Error parsing StatusMessage as JSON. Will check as regular string.");
 
-                                string statusMessageString = eventItem["StatusMessage"].ToString();
+                                string statusMessageString = eventItem["StatusMessage"]?.ToString() ?? string.Empty;
                                 if (statusMessageString.Contains("host runtime", StringComparison.OrdinalIgnoreCase) ||
                                     statusMessageString.Contains("InternalServerError", StringComparison.OrdinalIgnoreCase))
                                 {
@@ -563,7 +563,7 @@ namespace Agent.Plugins.Implementation
                 // Call ArmHelper's SyncFunctionAppHost method
                 _logger.LogInternalInformation("Triggering Function App host sync for {resourceId}", resourceId);
                 string syncResponse = await _armHelper.SyncFunctionAppHost(resourceId);
-                
+
                 return syncResponse;
             }
             catch (Exception ex)

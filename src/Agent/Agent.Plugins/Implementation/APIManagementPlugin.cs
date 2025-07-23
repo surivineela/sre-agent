@@ -3,7 +3,6 @@ using System.Text.Json;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
-using Agent.Logging;
 using Agent.Plugins.Extensions;
 using Agent.Plugins.Helpers;
 using Agent.Plugins.Interface;
@@ -13,7 +12,6 @@ using Azure.Core;
 using Azure.ResourceManager.ApiManagement;
 using Azure.ResourceManager.ApiManagement.Models;
 using Azure.ResourceManager.Network;
-using Azure.ResourceManager.Network.Models;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using static Agent.Plugins.Helpers.APIManagementHelper;
@@ -28,7 +26,7 @@ namespace Agent.Plugins.Implementation
         private readonly ILogger<APIManagementPlugin> _logger;
         private readonly ArmHelper _armHelper;
         private readonly IArmClientFactory _armClientFactory;
-        
+
 
         public APIManagementPlugin(
             IGraphDatabaseClient databaseClient,
@@ -107,7 +105,7 @@ namespace Agent.Plugins.Implementation
                 return result
                     .Select(apiManagementAppData => new APIManagementNode(apiManagementAppData))
                     .Select(a => a.ToDescriptor(verbose: false))
-                    .ToList();               
+                    .ToList();
             }
             catch (Exception ex)
             {
@@ -344,7 +342,7 @@ namespace Agent.Plugins.Implementation
                 if (!doc.RootElement.TryGetProperty("value", out var valueElement))
                 {
                     _logger.LogInternalError($"GetAPIMApisAsync: 'value' property not found in response for resourceId {apiManagementResourceId}.");
-                    return null;
+                    return new List<APIManagementApiDescriptor>();
                 }
 
                 return JsonSerializer.Deserialize<List<APIManagementApiDescriptor>>(valueElement.GetRawText()) ?? new List<APIManagementApiDescriptor>();
@@ -352,11 +350,11 @@ namespace Agent.Plugins.Implementation
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, $"GetAPIMApisAsync: Exception occurred while fetching APIs for resourceId {apiManagementResourceId}: {ex.Message}");
-                return null;
+                return new List<APIManagementApiDescriptor>();
             }
         }
 
-        public async Task<APIManagementApiDescriptor> GetAPIDetailsByNameAsync(string apiManagementResourceId, string apiName, string workspaceName)
+        public async Task<APIManagementApiDescriptor?> GetAPIDetailsByNameAsync(string apiManagementResourceId, string apiName, string workspaceName)
         {
             string normalizedAPIName = apiName.ToLower().Replace(" ", "-");
             string workspaceSegment = string.IsNullOrWhiteSpace(workspaceName) ? string.Empty : $"/workspaces/{workspaceName}";
@@ -378,7 +376,7 @@ namespace Agent.Plugins.Implementation
             }
         }
 
-        public async Task<ApiPolicyResource> GetPoliciesByApiAsync(string apiManagementResourceId, string apiName)
+        public async Task<ApiPolicyResource?> GetPoliciesByApiAsync(string apiManagementResourceId, string apiName)
         {
             _logger.LogInternalInformation($"[GetPoliciesByApiAsync] Invoked with resourceId: {apiManagementResourceId}, apiName: {apiName}");
 
@@ -386,8 +384,8 @@ namespace Agent.Plugins.Implementation
             {
                 var armClient = await _armClientFactory.GetArmOperationClient();
                 var subResource = new ResourceIdentifier(apiManagementResourceId);
-                string subscriptionId = subResource.SubscriptionId;
-                string resourceGroupName = subResource.ResourceGroupName;
+                string subscriptionId = subResource.SubscriptionId ?? string.Empty;
+                string resourceGroupName = subResource.ResourceGroupName ?? string.Empty;
                 string serviceName = subResource.Name;
                 string apiId = apiName.ToLower().Replace(" ", "-");
 
@@ -403,7 +401,7 @@ namespace Agent.Plugins.Implementation
                 {
                     _logger.LogInternalError($"No policies found for API: {apiName} with resourceId: {apiManagementResourceId}");
                 }
-                ApiPolicyResource result = response.HasValue ? response.Value : null;
+                ApiPolicyResource? result = response.HasValue ? response.Value : null;
 
                 return result;
             }
@@ -414,7 +412,7 @@ namespace Agent.Plugins.Implementation
             }
         }
 
-        public async Task<ApiOperationPolicyResource> GetPoliciesByOperationAsync(string apiManagementResourceId, string apiName, string operationId)
+        public async Task<ApiOperationPolicyResource?> GetPoliciesByOperationAsync(string apiManagementResourceId, string apiName, string operationId)
         {
             _logger.LogInternalInformation($"[GetPoliciesByOperationAsync] Invoked with resourceId: {apiManagementResourceId}, apiName: {apiName}, operationId: {operationId}");
 
@@ -422,8 +420,8 @@ namespace Agent.Plugins.Implementation
             {
                 var armClient = await _armClientFactory.GetArmOperationClient();
                 var subResource = new ResourceIdentifier(apiManagementResourceId);
-                string subscriptionId = subResource.SubscriptionId;
-                string resourceGroupName = subResource.ResourceGroupName;
+                string subscriptionId = subResource.SubscriptionId ?? string.Empty;
+                string resourceGroupName = subResource.ResourceGroupName ?? string.Empty;
                 string serviceName = subResource.Name;
                 string normalizedApiId = apiName.ToLower().Replace(" ", "-");
                 string normalizedOperationId = operationId.ToLower().Replace(" ", "-");
@@ -445,7 +443,7 @@ namespace Agent.Plugins.Implementation
                 {
                     _logger.LogInternalError($"No policies found for operation: {operationId} in API: {apiName} with resourceId: {apiManagementResourceId}");
                 }
-                ApiOperationPolicyResource result = response.HasValue ? response.Value : null;
+                ApiOperationPolicyResource? result = response.HasValue ? response.Value : null;
 
                 return result;
             }
@@ -456,7 +454,7 @@ namespace Agent.Plugins.Implementation
             }
         }
 
-        public async Task<ApiManagementPolicyResource> GetGlobalApimPolicyAsync(string apiManagementResourceId)
+        public async Task<ApiManagementPolicyResource?> GetGlobalApimPolicyAsync(string apiManagementResourceId)
         {
             _logger.LogInternalInformation($"[GetGlobalApimPolicies] Invoked with resourceId: {apiManagementResourceId}");
 
@@ -495,7 +493,7 @@ namespace Agent.Plugins.Implementation
             string apiVersion = APIManagementHelper.Constants.APIMAPIVersion;
             string managementAzureBaseUrl = APIManagementHelper.Constants.ManagementAzureBaseUrl;
 
-            var requestUrl = $"{managementAzureBaseUrl}{apiManagementResourceId}{workspaceSegment}/apis/{normalizedAPIName}/operations?api-version={apiVersion}"; 
+            var requestUrl = $"{managementAzureBaseUrl}{apiManagementResourceId}{workspaceSegment}/apis/{normalizedAPIName}/operations?api-version={apiVersion}";
             try
             {
                 var res = await _armHelper.GetResourceByURL(requestUrl);
@@ -503,8 +501,8 @@ namespace Agent.Plugins.Implementation
 
                 if (!doc.RootElement.TryGetProperty("value", out var valueElement))
                 {
-                    _logger.LogInternalError(null, $"GetAPIOperationsByApiAsync: 'value' property not found in response for resourceId {apiManagementResourceId}, API {apiName}.");
-                    return null;
+                    _logger.LogInternalError("", $"GetAPIOperationsByApiAsync: 'value' property not found in response for resourceId {apiManagementResourceId}, API {apiName}.");
+                    return new List<APIManagementApiOperationSummary>();
                 }
 
                 return JsonSerializer.Deserialize<List<APIManagementApiOperationSummary>>(valueElement.GetRawText()) ?? new List<APIManagementApiOperationSummary>();
@@ -512,11 +510,11 @@ namespace Agent.Plugins.Implementation
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, $"GetAPIOperationsByApiAsync: Exception occurred while fetching operations for resourceId {apiManagementResourceId}, API {apiName}: {ex.Message}");
-                return null;
+                return new List<APIManagementApiOperationSummary>();
             }
         }
 
-        public async Task<APIManagementApiOperationDescriptor> GetAPIOperationDetailedInfoAsync(string apiManagementResourceId, string apiName, string operationName, string workspaceName)
+        public async Task<APIManagementApiOperationDescriptor?> GetAPIOperationDetailedInfoAsync(string apiManagementResourceId, string apiName, string operationName, string workspaceName)
         {
             string normalizedAPIName = apiName.ToLower().Replace(" ", "-");
             string normalizedOperationName = operationName.ToLower().Replace(" ", "-");
@@ -576,7 +574,7 @@ namespace Agent.Plugins.Implementation
                 string subscriptionId = subnetResourceInfo.SubscriptionId;
                 string subnetName = subnetResourceInfo.SubnetName;
                 string vnetName = subnetResourceInfo.VnetName;
-                string vnetType = apimProps?.VirtualNetworkType;
+                string vnetType = apimProps?.VirtualNetworkType ?? string.Empty;
 
                 sb.AppendLine($"✅ Subnet found: {subnetName}");
                 sb.AppendLine($"✅ VNet Name: {vnetName}");
@@ -598,7 +596,7 @@ namespace Agent.Plugins.Implementation
                 }
 
                 sb.AppendLine($"\n--- NSG Activity Log: ({issueStartTime:u} to {issueEndTime:u}) ---");
-                var nsgLogSummary = await GetNSGActivityLogsAsync(apimResourceId, topNAzureLogs:40, maxFindings:10);
+                var nsgLogSummary = await GetNSGActivityLogsAsync(apimResourceId, topNAzureLogs: 40, maxFindings: 10);
                 sb.AppendLine(nsgLogSummary);
             }
             catch (Exception ex)
@@ -670,7 +668,14 @@ namespace Agent.Plugins.Implementation
                             AddressPrefix = subnet["properties"]?["addressPrefix"]?.ToString() ?? "",
                             NetworkSecurityGroupId = subnet["properties"]?["networkSecurityGroup"]?["id"]?.ToString(),
                             PrivateEndpointPolicies = subnet["properties"]?["privateEndpointNetworkPolicies"]?.ToString(),
-                            ServiceEndpoints = subnet["properties"]?["serviceEndpoints"]?.Select(e => e["service"]?.ToString()).Where(s => !string.IsNullOrEmpty(s)).ToList() ?? new()
+                            ServiceEndpoints = subnet["properties"]?["serviceEndpoints"] is JArray endpointsArray
+                                                ? endpointsArray
+                                                    .Select(e => e["service"]?.ToString())
+                                                    .Where(s => !string.IsNullOrWhiteSpace(s))
+                                                    .Cast<string>()
+                                                    .ToList()
+                                                : new()
+
                         });
                     }
                 }
@@ -735,7 +740,7 @@ namespace Agent.Plugins.Implementation
 
                     if (getCustomOnly && !IsCustomNSGRule(name))
                         continue;
-                    
+
                     rulesList.Add(new NSGRuleDetails
                     {
                         NSGId = nsgId,
@@ -770,7 +775,7 @@ namespace Agent.Plugins.Implementation
 
             // Azure Activity Logs API only supports querying data from the past 90 days.
             // Adding a start time filter to ensure compliance and avoid BadRequest errors.
-            var startTime = DateTime.UtcNow.AddDays(-90).ToString("o"); 
+            var startTime = DateTime.UtcNow.AddDays(-90).ToString("o");
             string filter = $"eventTimestamp ge {startTime} and resourceType eq '{resourceType}'";
             string orderByDesc = "$orderby=eventTimestamp desc";
             string topN = $"$top={topNAzureLogs}";
@@ -805,12 +810,12 @@ namespace Agent.Plugins.Implementation
 
                     try
                     {
-                        string action = activityEvent["operationName"]?["value"]?.ToString();
-                        string eventName = activityEvent["eventName"]?["value"]?.ToString();
-                        string caller = activityEvent["caller"]?.ToString();
-                        string timestampStr = activityEvent["eventTimestamp"]?.ToString();
-                        string status = activityEvent["status"]?["localizedValue"]?.ToString();
-                        string resourceUri = activityEvent["httpRequest"]?["uri"]?.ToString();
+                        string action = activityEvent["operationName"]?["value"]?.ToString() ?? string.Empty;
+                        string eventName = activityEvent["eventName"]?["value"]?.ToString() ?? string.Empty;
+                        string caller = activityEvent["caller"]?.ToString() ?? string.Empty;
+                        string timestampStr = activityEvent["eventTimestamp"]?.ToString() ?? string.Empty;
+                        string status = activityEvent["status"]?["localizedValue"]?.ToString() ?? string.Empty;
+                        string resourceUri = activityEvent["httpRequest"]?["uri"]?.ToString() ?? string.Empty;
 
                         DateTime.TryParse(timestampStr, out var timestamp);
 
@@ -1101,8 +1106,15 @@ namespace Agent.Plugins.Implementation
             }
 
             // Calculate summary statistics
-            var avgValues = metricsData.LatencyPoints.Where(p => p.Avg.HasValue).Select(p => p.Avg.Value).ToList();
-            var maxValues = metricsData.LatencyPoints.Where(p => p.Max.HasValue).Select(p => p.Max.Value).ToList();
+            var avgValues = metricsData.LatencyPoints
+                .Where(p => p.Avg.HasValue)
+                .Select(p => p.Avg.GetValueOrDefault())
+                .ToList();
+
+            var maxValues = metricsData.LatencyPoints
+                .Where(p => p.Max.HasValue)
+                .Select(p => p.Max.GetValueOrDefault())
+                .ToList();
             metricsData.OverallAvg = avgValues.Any() ? avgValues.Average() : 0.0;
             metricsData.OverallMax = maxValues.Any() ? maxValues.Max() : 0.0;
 

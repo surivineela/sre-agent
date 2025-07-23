@@ -7,8 +7,6 @@ using System.Text.Json;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Charts;
 using Agent.Core.Models.Api.v1;
-using Agent.Logging;
-using Agent.Plugins.Attributes;
 using Agent.Plugins.Interface;
 using Microsoft.Extensions.Logging;
 using ScottPlot;
@@ -22,7 +20,7 @@ namespace Agent.Plugins
     public class ChartPluginV2 : IChartPlugin
     {
         private readonly ILogger? _logger;
-        private readonly IAgentOutboundCommunicationService? _outboundService;
+        private readonly IAgentOutboundCommunicationService _outboundService;
 
         public Guid? ThreadId { get; set; }
 
@@ -462,7 +460,8 @@ namespace Agent.Plugins
                 xAxisLabel = xAxisLabel,
                 y1AxisLabel = y1AxisLabel,
                 y2AxisLabel = y2AxisLabel,
-                data = areaChartData.Select(d => new {
+                data = areaChartData.Select(d => new
+                {
                     category = d.Category,
                     value1 = d.Value1,
                     value2 = d.Value2,

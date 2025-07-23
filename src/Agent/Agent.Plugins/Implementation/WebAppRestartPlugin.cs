@@ -4,7 +4,6 @@
 
 using System.ComponentModel;
 using Agent.Core.Helpers;
-using Agent.Logging;
 using Agent.Plugins.Interface;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
@@ -72,7 +71,7 @@ namespace Agent.Plugins.Implementation
         {
             // Default to 90 minutes if not specified
             int lookbackMinutes = minutes ?? 90;
-            
+
             // Calculate the start and end times
             DateTime endTime = DateTime.UtcNow;
             DateTime startTime = endTime.AddMinutes(-lookbackMinutes);
@@ -98,30 +97,30 @@ namespace Agent.Plugins.Implementation
                     | summarize FailedCount=sumif(itemCount, success == false) by name, bin(timestamp, timeGrain)";
 
             var failedRequestsJson = await _appInsightsPlugin.ExecuteAppInsightsQuery(resourceId, failedRequestsQuery);
-            
+
             var failedRequestsData = new List<FailedRequestsTimeSeriesData>();
-            
+
             try
             {
                 // Parse the JSON response from App Insights
                 var jsonResult = JObject.Parse(failedRequestsJson);
-                
+
                 if (jsonResult["tables"] is JArray tables && tables.Count > 0)
                 {
                     var table = tables[0];
                     var columns = table["columns"] as JArray;
                     var rows = table["rows"] as JArray;
-                    
+
                     if (columns != null && rows != null)
                     {
                         // Find the indices of the columns we need
                         int nameIndex = -1;
                         int timestampIndex = -1;
                         int failedCountIndex = -1;
-                        
+
                         for (int i = 0; i < columns.Count; i++)
                         {
-                            string columnName = columns[i]["name"]?.ToString().ToLowerInvariant();
+                            string columnName = columns[i]["name"]?.ToString().ToLowerInvariant() ?? string.Empty;
                             if (columnName == "name")
                             {
                                 nameIndex = i;
@@ -135,7 +134,7 @@ namespace Agent.Plugins.Implementation
                                 failedCountIndex = i;
                             }
                         }
-                        
+
                         // Parse each row into a FailedRequestsTimeSeriesData object
                         if (nameIndex >= 0 && timestampIndex >= 0 && failedCountIndex >= 0)
                         {
@@ -144,7 +143,7 @@ namespace Agent.Plugins.Implementation
                                 string requestName = row[nameIndex]?.ToString() ?? "Unknown";
                                 DateTime timestamp = row[timestampIndex]?.ToObject<DateTime>() ?? DateTime.MinValue;
                                 double failedCount = row[failedCountIndex]?.ToObject<double>() ?? 0;
-                                
+
                                 failedRequestsData.Add(new FailedRequestsTimeSeriesData(
                                     TimeStamp: timestamp,
                                     FunctionName: requestName,
@@ -158,7 +157,7 @@ namespace Agent.Plugins.Implementation
             {
                 _logger.LogInternalError(ex, "Error parsing failed requests data for {resourceId}", resourceId);
             }
-            
+
             var sortedData = failedRequestsData.OrderBy(d => d.TimeStamp).ToList();
             return sortedData;
         }
@@ -175,7 +174,7 @@ namespace Agent.Plugins.Implementation
                 var splitResourceParts = resourceId.Split('/');
                 resourceName = splitResourceParts[splitResourceParts.Length - 1];
             }
-            
+
             _logger.LogInternalInformation("[GetTop3Exceptions] Invoked with resourceId {resourceId}, startTime {startTime}, endTime {endTime}", resourceId, startTime, endTime);
 
             string top3ExceptionsQuery = $@"
@@ -191,7 +190,8 @@ namespace Agent.Plugins.Implementation
                         | top 3 by _count";
 
             var top3Exceptions = await _appInsightsPlugin.ExecuteAppInsightsQuery(resourceId, top3ExceptionsQuery);
-            return top3Exceptions;        }
+            return top3Exceptions;
+        }
 
         [KernelFunction("check_if_resource_is_web_app")]
         [Description("This function checks if a resource is a Web App by verifying its 'kind' property")]
@@ -230,7 +230,7 @@ namespace Agent.Plugins.Implementation
                         foreach (var item in kindArray)
                         {
                             string kindValue = item.ToString();
-                            if (kindValue.Contains("app", StringComparison.OrdinalIgnoreCase) && 
+                            if (kindValue.Contains("app", StringComparison.OrdinalIgnoreCase) &&
                                 !kindValue.Contains("functionapp", StringComparison.OrdinalIgnoreCase))
                             {
                                 return true;
@@ -243,14 +243,15 @@ namespace Agent.Plugins.Implementation
                         // For non-array tokens (JValue), check if it's a web app but not a function app
                         string kind = kindToken.ToString();
                         _logger.LogInternalInformation("Checking if kind '{kind}' is a web app", kind);
-                        return kind.Contains("app", StringComparison.OrdinalIgnoreCase) && 
+                        return kind.Contains("app", StringComparison.OrdinalIgnoreCase) &&
                                !kind.Contains("functionapp", StringComparison.OrdinalIgnoreCase);
                     }
                 }
 
                 _logger.LogInternalWarning("Resource does not have a 'kind' property: {resourceId}", resourceId);
                 return false;
-            }            catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 _logger.LogInternalError(ex, "Error checking if resource is a web app: {resourceId}", resourceId);
                 return false;

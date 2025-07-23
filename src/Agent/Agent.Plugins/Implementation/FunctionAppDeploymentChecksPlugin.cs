@@ -1,20 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Web;
 using System.Xml;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
-using Agent.Logging;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
-using Azure;
 using Azure.Core;
 using Azure.Identity;
 using Azure.Storage.Blobs;
@@ -197,7 +187,7 @@ namespace Agent.Plugins.Implementation
                 }
 
                 // Validate that the path is a proper URL
-                if (!Uri.TryCreate(zipFilePath, UriKind.Absolute, out Uri uri) ||
+                if (!Uri.TryCreate(zipFilePath, UriKind.Absolute, out Uri? uri) ||
                     (uri.Scheme != "http" && uri.Scheme != "https"))
                 {
                     result.IsSuccessful = false;
@@ -236,7 +226,7 @@ namespace Agent.Plugins.Implementation
 
                 // Verify that the blob is a zip file (check extension or content type)
                 var blobProperties = await blobClient.GetPropertiesAsync();
-                bool isZipFile = blobPath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) || 
+                bool isZipFile = blobPath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) ||
                                  blobProperties.Value.ContentType == "application/zip" ||
                                  blobProperties.Value.ContentType == "application/x-zip-compressed";
 
@@ -301,7 +291,7 @@ namespace Agent.Plugins.Implementation
 
                 result.IsSuccessful = true;
                 result.Details += $"Successfully updated WEBSITE_RUN_FROM_PACKAGE to '{zipFilePath}'.";
-                
+
                 return result;
             }
             catch (Exception ex)
@@ -400,7 +390,7 @@ namespace Agent.Plugins.Implementation
                     return result;
                 }
 
-                if (!Uri.TryCreate(containerUri, UriKind.Absolute, out Uri uri))
+                if (!Uri.TryCreate(containerUri, UriKind.Absolute, out Uri? uri))
                 {
                     result.IsSuccessful = false;
                     result.ErrorMessage = $"The provided container URI is not valid: {containerUri}";
@@ -409,7 +399,7 @@ namespace Agent.Plugins.Implementation
 
                 // Extract storage account and container name from the URI
                 string storageAccountName = uri.Host.Split('.')[0];
-                
+
                 // Parse query string to look for the container name
                 var queryParams = HttpUtility.ParseQueryString(uri.Query);
                 string containerName = string.Empty;
@@ -434,7 +424,7 @@ namespace Agent.Plugins.Implementation
                     // Start with the base URI
                     var uriBuilder = new UriBuilder(uri);
                     var query = HttpUtility.ParseQueryString(uriBuilder.Query);
-                    
+
                     // Add or update required parameters
                     if (!hasCompList)
                         query["comp"] = "list";
@@ -447,11 +437,11 @@ namespace Agent.Plugins.Implementation
                     if (!hasMaxResults)
                         query["maxresults"] = "100";
                     // Removed setting include=metadata parameter
-                    
+
                     // Update the URI with the new query string
                     uriBuilder.Query = query.ToString();
                     requestUri = uriBuilder.Uri.ToString();
-                    
+
                     _logger.LogInternalInformation("Updated request URI with required parameters: {RequestUri}", requestUri);
                 }
 
@@ -461,7 +451,7 @@ namespace Agent.Plugins.Implementation
 
                 // Create HTTP client for the request
                 using var httpClient = _httpClientFactory.CreateClient();
-                
+
                 // Add required headers
                 httpClient.DefaultRequestHeaders.Add("x-ms-client-session-id", "0113f3dab7784a05b285de727a9bcc72");
                 httpClient.DefaultRequestHeaders.Add("x-ms-command-name", "StorageClient.ListBlobs");
@@ -471,9 +461,9 @@ namespace Agent.Plugins.Implementation
 
                 // Initialize collection for all blobs
                 var allBlobs = new List<StorageBlobItem>();
-                string nextMarker = null;
+                string nextMarker = string.Empty;
                 bool hasMoreResults = true;
-                
+
                 // Loop to handle pagination
                 while (hasMoreResults)
                 {
@@ -486,7 +476,7 @@ namespace Agent.Plugins.Implementation
                             pageRequestUri += "&marker=" + HttpUtility.UrlEncode(nextMarker);
                         else
                             pageRequestUri += "?marker=" + HttpUtility.UrlEncode(nextMarker);
-                        
+
                         _logger.LogInternalInformation("Requesting next page with marker: {NextMarker}", nextMarker);
                     }
 
@@ -494,7 +484,7 @@ namespace Agent.Plugins.Implementation
                     var cred = await _authService.GetArmOperationCredential();
                     var tokenRequestContext = new TokenRequestContext(new[] { "https://storage.azure.com/.default" });
                     var token = await cred.GetTokenAsync(tokenRequestContext, CancellationToken.None);
-                    
+
                     // Add token to authorization header
                     httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
 
@@ -505,14 +495,14 @@ namespace Agent.Plugins.Implementation
                     {
                         result.IsSuccessful = false;
                         result.ErrorMessage = $"Failed to list blobs. Status code: {response.StatusCode}, Reason: {response.ReasonPhrase}";
-                        
+
                         // Try to get the response content for additional error details
                         try
                         {
                             string errorContent = await response.Content.ReadAsStringAsync();
                             if (!string.IsNullOrWhiteSpace(errorContent))
                             {
-                                _logger.LogInternalError("Storage API error response: {ErrorContent}", 
+                                _logger.LogInternalError("Storage API error response: {ErrorContent}",
                                     errorContent.Length <= 1000 ? errorContent : errorContent.Substring(0, 1000) + "...");
                                 result.ErrorMessage += $" Error details: {errorContent}";
                             }
@@ -521,13 +511,13 @@ namespace Agent.Plugins.Implementation
                         {
                             _logger.LogInternalError(ex, "Failed to read error response content");
                         }
-                        
+
                         return result;
                     }
 
                     // Get the XML response
                     string xmlResponse = await response.Content.ReadAsStringAsync();
-                    
+
                     // Log the XML response for debugging
                     _logger.LogInternalInformation("Received response of length {Length} from storage", xmlResponse.Length);
                     if (xmlResponse.Length > 0 && xmlResponse.Length <= 1000)
@@ -550,18 +540,18 @@ namespace Agent.Plugins.Implementation
                     // If the response doesn't look like XML, try to handle it as a special case
                     if (!xmlResponse.TrimStart().StartsWith("<"))
                     {
-                        _logger.LogInternalWarning("Response doesn't appear to be XML: {FirstChars}", 
+                        _logger.LogInternalWarning("Response doesn't appear to be XML: {FirstChars}",
                             xmlResponse.Length <= 50 ? xmlResponse : xmlResponse.Substring(0, 50) + "...");
-                        
+
                         // If empty container, create a valid result with no blobs
-                        if (xmlResponse.Contains("The specified container is empty") || 
+                        if (xmlResponse.Contains("The specified container is empty") ||
                             xmlResponse.Contains("The specified blob does not exist"))
                         {
                             result.IsSuccessful = true;
                             result.Details = "The container exists but is empty.";
                             return result;
                         }
-                        
+
                         result.IsSuccessful = false;
                         result.ErrorMessage = "Invalid response format from storage API";
                         return result;
@@ -572,7 +562,8 @@ namespace Agent.Plugins.Implementation
                     try
                     {
                         using var stringReader = new StringReader(xmlResponse);
-                        using var xmlReader = XmlReader.Create(stringReader, new XmlReaderSettings { 
+                        using var xmlReader = XmlReader.Create(stringReader, new XmlReaderSettings
+                        {
                             CheckCharacters = false,
                             IgnoreWhitespace = true,
                             IgnoreComments = true,
@@ -582,10 +573,10 @@ namespace Agent.Plugins.Implementation
 
                         // Debug logging to help diagnose the issue
                         _logger.LogInternalInformation("XML reader created, attempting to load document");
-                        
+
                         // Load the document with the reader
                         xmlDoc.Load(xmlReader);
-                        
+
                         _logger.LogInternalInformation("XML document loaded successfully");
 
                         // Verify we have a document element before proceeding
@@ -598,17 +589,19 @@ namespace Agent.Plugins.Implementation
                     }
                     catch (XmlException ex)
                     {
-                        _logger.LogInternalError(ex, "XML parsing error: {ErrorMessage}. XML Content: {XmlContent}", 
-                            ex.Message, 
+                        _logger.LogInternalError(ex, "XML parsing error: {ErrorMessage}. XML Content: {XmlContent}",
+                            ex.Message,
                             xmlResponse.Length <= 1000 ? xmlResponse : xmlResponse.Substring(0, 1000) + "...");
-                        
+
                         // Try alternative parsing approach
-                        try {
+                        try
+                        {
                             _logger.LogInternalInformation("Attempting alternative XML parsing approach");
                             xmlDoc.LoadXml(xmlResponse);
                             _logger.LogInternalInformation("Alternative XML parsing successful");
                         }
-                        catch (Exception altEx) {
+                        catch (Exception altEx)
+                        {
                             _logger.LogInternalError(altEx, "Alternative XML parsing also failed: {ErrorMessage}", altEx.Message);
                             result.IsSuccessful = false;
                             result.ErrorMessage = $"Failed to parse XML response: {ex.Message}";
@@ -643,7 +636,7 @@ namespace Agent.Plugins.Implementation
                             }
                             catch (Exception ex)
                             {
-                                _logger.LogInternalWarning("Failed to parse ServiceEndpoint URI '{ServiceEndpoint}': {ErrorMessage}", 
+                                _logger.LogInternalWarning("Failed to parse ServiceEndpoint URI '{ServiceEndpoint}': {ErrorMessage}",
                                     serviceEndpoint, ex.Message);
                                 // Continue processing even if we can't parse the service endpoint
                             }
@@ -670,7 +663,7 @@ namespace Agent.Plugins.Implementation
                         }
                         else
                         {
-                            nextMarker = null;
+                            nextMarker = string.Empty;
                             hasMoreResults = false;
                             _logger.LogInternalInformation("No NextMarker found, this is the last page of results");
                         }
@@ -755,7 +748,7 @@ namespace Agent.Plugins.Implementation
 
                         // Add the current page blobs to the overall results
                         allBlobs.AddRange(pageBlobs);
-                        _logger.LogInternalInformation("Added {Count} blobs from current page, total count now: {TotalCount}", 
+                        _logger.LogInternalInformation("Added {Count} blobs from current page, total count now: {TotalCount}",
                             pageBlobs.Count, allBlobs.Count);
                     }
                     catch (Exception ex)
@@ -776,7 +769,7 @@ namespace Agent.Plugins.Implementation
                 // Set the final results
                 result.Blobs = allBlobs;
                 result.IsSuccessful = true;
-                
+
                 // If we have no blobs but the operation is otherwise successful, add a note
                 if (result.Blobs.Count == 0)
                 {
@@ -784,10 +777,10 @@ namespace Agent.Plugins.Implementation
                 }
                 else
                 {
-                    _logger.LogInternalInformation("Successfully retrieved {Count} blobs from container {ContainerName}", 
+                    _logger.LogInternalInformation("Successfully retrieved {Count} blobs from container {ContainerName}",
                         result.Blobs.Count, result.ContainerName);
                 }
-                
+
                 return result;
             }
             catch (Exception ex)
@@ -805,7 +798,7 @@ namespace Agent.Plugins.Implementation
         /// <param name="resourceId">The Azure resource ID of the Function App or Web App</param>
         /// <param name="containerPath">Optional path to the blob container. If not provided, the WEBSITE_RUN_FROM_PACKAGE app setting will be parsed to extract container information</param>
         /// <returns>A verification result containing the list of files in the container</returns>
-        public async Task<BlobContainerVerificationResult> VerifyFilesInBlobContainerAsync(string resourceId, string containerPath = null)
+        public async Task<BlobContainerVerificationResult> VerifyFilesInBlobContainerAsync(string resourceId, string containerPath = "")
         {
             var result = new BlobContainerVerificationResult();
             string targetFileName = string.Empty;
@@ -846,7 +839,7 @@ namespace Agent.Plugins.Implementation
                         return result;
                     }
 
-                    string zipFilePath = runFromPackageValue?.ToString();
+                    string zipFilePath = runFromPackageValue?.ToString() ?? string.Empty;
 
                     if (string.IsNullOrWhiteSpace(zipFilePath) || zipFilePath == "0" || zipFilePath == "1" || zipFilePath == "true")
                     {
@@ -859,7 +852,7 @@ namespace Agent.Plugins.Implementation
 
                     // Store the target file path from the app setting
                     targetFilePath = zipFilePath;
-                    
+
                     // Extract the target file name from the path
                     if (targetFilePath.Contains('/'))
                     {
@@ -874,7 +867,7 @@ namespace Agent.Plugins.Implementation
                     result.TargetFilePath = targetFilePath;
 
                     // Extract the container URL from the zip file path
-                    if (!Uri.TryCreate(zipFilePath, UriKind.Absolute, out Uri uri))
+                    if (!Uri.TryCreate(zipFilePath, UriKind.Absolute, out Uri? uri))
                     {
                         result.IsSuccessful = false;
                         result.ErrorMessage = $"Failed to parse URL from WEBSITE_RUN_FROM_PACKAGE value: {zipFilePath}";
@@ -885,7 +878,7 @@ namespace Agent.Plugins.Implementation
 
                     // Get container URI by removing the blob name from the path
                     string uriWithoutBlob = zipFilePath.Substring(0, zipFilePath.LastIndexOf('/'));
-                    
+
                     // Check if there are any query parameters in the original URL and preserve them
                     string queryParams = string.Empty;
                     if (!string.IsNullOrEmpty(uri.Query))
@@ -923,11 +916,11 @@ namespace Agent.Plugins.Implementation
                 {
                     // If containerPath was directly provided, try to determine the target file
                     // Check if it's a blob path or container path
-                    Uri uri;
+                    Uri? uri;
                     if (Uri.TryCreate(containerPath, UriKind.Absolute, out uri))
                     {
                         string path = uri.AbsolutePath.TrimEnd('/');
-                        
+
                         // If it seems to be pointing to a specific file rather than a container
                         if (!path.EndsWith("/") && !containerPath.Contains("restype=container"))
                         {
@@ -935,10 +928,10 @@ namespace Agent.Plugins.Implementation
                             if (path.Contains('/'))
                             {
                                 targetFileName = path.Substring(path.LastIndexOf('/') + 1);
-                                
+
                                 // Convert file path to container path
                                 containerPath = containerPath.Substring(0, containerPath.LastIndexOf('/'));
-                                
+
                                 // Add required container and list operation query parameters if not already present
                                 if (!containerPath.Contains("?"))
                                 {
@@ -959,7 +952,7 @@ namespace Agent.Plugins.Implementation
                             }
                         }
                     }
-                    
+
                     // Set the target file path in the result
                     result.TargetFilePath = targetFilePath;
                 }
@@ -968,7 +961,7 @@ namespace Agent.Plugins.Implementation
                 result.VerifiedContainerUri = containerPath;
 
                 // Validate that the path is a proper URL
-                if (!Uri.TryCreate(containerPath, UriKind.Absolute, out Uri containerUri))
+                if (!Uri.TryCreate(containerPath, UriKind.Absolute, out Uri? containerUri))
                 {
                     result.IsSuccessful = false;
                     result.ErrorMessage = $"The provided container path is not a valid URL: {containerPath}";
@@ -996,39 +989,39 @@ namespace Agent.Plugins.Implementation
                 result.Files = blobListResult.Blobs;
                 result.NextMarker = blobListResult.NextMarker;
                 result.IsSuccessful = true;
-                
+
                 // Set FilesFound based on whether any files were found
                 result.FilesFound = result.Files.Count > 0;
-                
+
                 // Check if the target file was found
                 result.TargetFileFound = false;
                 if (!string.IsNullOrEmpty(targetFileName) && result.FilesFound)
                 {
                     // Look for the target file in the list of files
-                    var targetFile = result.Files.FirstOrDefault(f => f.Name == targetFileName || 
+                    var targetFile = result.Files.FirstOrDefault(f => f.Name == targetFileName ||
                                                                     f.Name.EndsWith("/" + targetFileName));
                     result.TargetFileFound = targetFile != null;
                 }
 
                 // Add details about the files found
-                int zipFileCount = result.Files.Count(f => f.Name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) || 
-                                                         f.ContentType == "application/zip" || 
+                int zipFileCount = result.Files.Count(f => f.Name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) ||
+                                                         f.ContentType == "application/zip" ||
                                                          f.ContentType == "application/x-zip-compressed");
-                
+
                 long totalSize = result.Files.Sum(f => f.ContentLength);
 
                 // Build the details message
                 var detailsBuilder = new System.Text.StringBuilder();
-                
+
                 // First, add information about the target file if specified
                 if (!string.IsNullOrEmpty(targetFilePath))
                 {
                     if (result.TargetFileFound)
                     {
                         detailsBuilder.AppendLine($"TARGET FILE FOUND: The file '{targetFileName}' was found in the container '{result.ContainerName}'.");
-                        
+
                         // Add details about the found target file
-                        var targetFile = result.Files.First(f => f.Name == targetFileName || 
+                        var targetFile = result.Files.First(f => f.Name == targetFileName ||
                                                               f.Name.EndsWith("/" + targetFileName));
                         detailsBuilder.AppendLine($"  - Size: {FormatSize(targetFile.ContentLength)}");
                         detailsBuilder.AppendLine($"  - Last Modified: {targetFile.LastModified:yyyy-MM-dd HH:mm:ss}");
@@ -1043,11 +1036,11 @@ namespace Agent.Plugins.Implementation
                     }
                     detailsBuilder.AppendLine();
                 }
-                
+
                 // Then add general information about all files in the container
                 if (result.FilesFound)
                 {
-                    detailsBuilder.AppendLine($"CONTAINER CONTENTS: {result.Files.Count} files found in container '{result.ContainerName}'. " + 
+                    detailsBuilder.AppendLine($"CONTAINER CONTENTS: {result.Files.Count} files found in container '{result.ContainerName}'. " +
                                             $"Zip files: {zipFileCount}. Total size: {FormatSize(totalSize)}.");
 
                     // Get the most recently modified file
@@ -1058,7 +1051,7 @@ namespace Agent.Plugins.Implementation
                 {
                     detailsBuilder.AppendLine($"EMPTY CONTAINER: The container '{result.ContainerName}' exists but contains no files.");
                 }
-                
+
                 result.Details = detailsBuilder.ToString().TrimEnd();
             }
             catch (Exception ex)
@@ -1081,13 +1074,13 @@ namespace Agent.Plugins.Implementation
             string[] sizes = { "B", "KB", "MB", "GB", "TB" };
             int order = 0;
             double size = bytes;
-            
+
             while (size >= 1024 && order < sizes.Length - 1)
             {
                 order++;
                 size /= 1024;
             }
-            
+
             return $"{size:0.##} {sizes[order]}";
         }
     }

@@ -13,6 +13,7 @@ public class MockGithubIssuePlugin : IGithubIssuePlugin
     public MockGithubIssuePlugin()
     {
         _reposScanned = new List<string>();
+        _githubIssuePluginDependabotVulnerabilities = new List<GithubIssuePluginDependabotVulnerability>();
     }
 
     public MockGithubIssuePlugin(List<GithubIssuePluginDependabotVulnerability> githubIssuePluginDependabotVulnerabilities)

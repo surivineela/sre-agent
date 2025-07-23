@@ -7,13 +7,11 @@ using System.Text;
 using Agent.Core.Services;
 using Agent.Core.Helpers;
 using Agent.Core.Models.ICM;
-using Agent.Logging;
 using Agent.Plugins.Helpers;
 using Microsoft.Extensions.AI;
 using ChatMessageContent = Microsoft.SemanticKernel.ChatMessageContent;
 using TextContent = Microsoft.SemanticKernel.TextContent;
 using Agent.Plugins.Interface;
-using Microsoft.OData.UriParser;
 
 namespace Agent.Plugins.Implementation;
 public class ICMPlugin : IICMPlugin
@@ -81,8 +79,12 @@ public class ICMPlugin : IICMPlugin
             for (var i = 0; i < base64Images.Count; i++)
             {
                 var imageText = "No Image Description.";
-                if (!_chatCompletionService.Attributes["ModelId"].ToString().StartsWith("o") && !skipImages)
+                if (_chatCompletionService.Attributes != null &&
+                   _chatCompletionService.Attributes.TryGetValue("ModelId", out var modelId) &&
+                   modelId?.ToString()?.StartsWith("o", StringComparison.OrdinalIgnoreCase) == false &&
+                   !skipImages)
                 {
+
                     // extract text from the image and replace the placeholder in the summary with the extracted text
                     try
                     {
@@ -98,7 +100,7 @@ public class ICMPlugin : IICMPlugin
                 complexContent = complexContent.Replace($"####{i}####", "[The following text was in an image in the incident]" + imageText + "\r\n[End of the image]");
             }
         }
-        return complexContent;
+        return complexContent ?? string.Empty;
     }
 
     public async Task<Incident> GetIncidentInfo(string incidentId)
@@ -137,7 +139,7 @@ public class ICMPlugin : IICMPlugin
 
             // 3. Process summary (including image processing)
             var processedSummary = await ProcessComplexICMContent(incident.Summary, !ProcessImages);
-            
+
             // 4. Convert summary to Markdown
             var summaryMarkdown = IcmHelper.ConvertToMarkDown(processedSummary);
 
@@ -148,16 +150,16 @@ public class ICMPlugin : IICMPlugin
                 foreach (var entry in discussionEntries)
                 {
                     var entryText = entry.Text;
-                    
+
                     // Process images if content is HTML
                     if (entry.IsHtml)
                     {
                         entryText = await ProcessComplexICMContent(entryText, !ProcessImages);
                     }
-                    
+
                     // Convert to Markdown
                     var entryMarkdown = IcmHelper.ConvertToMarkDown(entryText);
-                    
+
                     discussionMarkdown.AppendLine($"## Discussion Entry - {entry.Date:yyyy-MM-dd HH:mm:ss} UTC");
                     discussionMarkdown.AppendLine($"**Author:** {entry.ChangedBy}");
                     discussionMarkdown.AppendLine();
@@ -219,7 +221,7 @@ Example structure:
             // 7. Send request to LLM
             var history = new ChatHistory();
             history.AddUserMessage(prompt);
-            
+
             var result = await _chatCompletionService.GetChatMessageContentAsync(
                 history,
                 executionSettings: new()
@@ -332,7 +334,7 @@ Example structure:
     }
 
 
-    public async Task<DiscussionEntry> GetAlertingDiscussionEntry(string incidentId)
+    public async Task<DiscussionEntry?> GetAlertingDiscussionEntry(string incidentId)
     {
         var logMessage = $"[{nameof(ICMPlugin)}_{nameof(GetAlertingDiscussionEntry)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
         _logger.LogInternalInformation(logMessage);
@@ -371,7 +373,7 @@ Example structure:
                 }
             }
         }
-        return discussionEntries;
+        return discussionEntries ?? new List<DiscussionEntry>();
     }
 
     public async Task<string> TransferIncident(string incidentId, string discussionEntry, string tenantName, string owningTeam)

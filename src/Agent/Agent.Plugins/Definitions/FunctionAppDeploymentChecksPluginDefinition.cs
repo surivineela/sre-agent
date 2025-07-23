@@ -1,7 +1,6 @@
 using System.ComponentModel;
 using Agent.Core.Attributes;
 using Agent.Core.Models;
-using Agent.Framework;
 using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Definitions
@@ -65,7 +64,7 @@ namespace Agent.Plugins.Definitions
         {
             return await _functionAppDeploymentChecksPlugin.GetFunctionAppSlotSwapHistory(resourceId, startTime, endTime);
         }
-        
+
         /// <summary>
         /// Gets detailed deployment failure analysis for a Function App
         /// </summary>
@@ -118,7 +117,7 @@ namespace Agent.Plugins.Definitions
                     "Returns verification status, container details, and comprehensive file information.")]
         public async Task<Models.BlobContainerVerificationResult> VerifyFilesInBlobContainerAsync(
             [Description("The full Azure resource ID of the Function App or Web App to verify.")] string resourceId,
-            [Description("Optional path to the blob container. If not provided, the container will be extracted from the WEBSITE_RUN_FROM_PACKAGE app setting.")] string containerPath = null)
+            [Description("Optional path to the blob container. If not provided, the container will be extracted from the WEBSITE_RUN_FROM_PACKAGE app setting.")] string containerPath = "")
         {
             return await _functionAppDeploymentChecksPlugin.VerifyFilesInBlobContainerAsync(resourceId, containerPath);
         }

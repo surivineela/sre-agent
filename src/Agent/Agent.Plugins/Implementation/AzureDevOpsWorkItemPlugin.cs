@@ -65,7 +65,7 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
         return repoUrl;
     }
 
-    public async Task<string> CreateWorkItem(string resourceId, string title, string description, string[] tags, string assignedTo = null, string areaPath = null, string iterationPath = null, string workItemType = "Task", string priority = "Medium", string severity = "None", string state = "New")
+    public async Task<string> CreateWorkItem(string resourceId, string title, string description, string[]? tags, string assignedTo = "", string areaPath = "", string iterationPath = "", string workItemType = "Task", string priority = "Medium", string severity = "None", string state = "New")
     {
         try
         {
@@ -85,7 +85,7 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
             // Create a connection to Azure DevOps
             var connection = new VssConnection(
                 new Uri(orgUrl),
-                new VssBasicCredential(string.Empty, token.AccessToken));
+                new VssBasicCredential(string.Empty, token?.AccessToken));
 
             // Get a client for work item tracking
             var witClient = connection.GetClient<WorkItemTrackingHttpClient>();
@@ -120,7 +120,7 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
             var htmlUrl = workItem.Links.Links["html"] as ReferenceLink;
 
             _logger.LogInternalInformation($"Issue created successfully. ID: {workItem.Id}, URL: {htmlUrl?.Href}");
-            return htmlUrl?.Href;
+            return htmlUrl?.Href ?? string.Empty;
         }
 
         catch (Exception ex)
@@ -234,7 +234,7 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
 
         if (detectedTools.Count > 0)
         {
-            var results = detectedTools.Select(kvp => 
+            var results = detectedTools.Select(kvp =>
                 $"{kvp.Key}: {string.Join(", ", kvp.Value.Take(5))}{(kvp.Value.Count > 5 ? $" (and {kvp.Value.Count - 5} more)" : "")}");
             return string.Join("\n", results);
         }
@@ -307,7 +307,7 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
                 .Select(pattern => pattern.Trim())
                 .Where(pattern => !string.IsNullOrWhiteSpace(pattern));
 
-            var filteredBlobs = itemsResponse.Value.Where(t => matches.Any(pattern => IsWildcardMatch(t.Path, pattern)));
+            var filteredBlobs = itemsResponse.Value.Where(t => matches.Any(pattern => IsWildcardMatch(t?.Path ?? string.Empty, pattern)));
 
             if (filteredBlobs == null || !filteredBlobs.Any())
             {
@@ -323,7 +323,10 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
                 try
                 {
                     // Remove leading slash and convert to OS-specific path
-                    var relativePath = file.Path.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
+                    var relativePath = (file.Path ?? string.Empty)
+                        .TrimStart('/')
+                        .Replace('/', Path.DirectorySeparatorChar);
+
                     var fileDownloadRequest = new HttpRequestMessage(HttpMethod.Get, file.Url);
                     fileDownloadRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/octet-stream"));
 
@@ -331,7 +334,9 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
                     var fileResponse = await _httpClient.SendAsync(fileDownloadRequest);
                     fileResponse.EnsureSuccessStatusCode();
                     string fileContent = await fileResponse.Content.ReadAsStringAsync();
-                    fileContents[file.Path] = fileContent;
+                    var pathKey = file.Path ?? string.Empty;
+                    fileContents[pathKey] = fileContent;
+
                 }
                 catch (Exception fileEx)
                 {
@@ -403,7 +408,7 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
     public async Task<AzureDevOpsAccessToken> GetToken()
     {
         string token = "";
-        DateTime? expiresOnUTC = null; 
+        DateTime? expiresOnUTC = null;
 
         if (!string.IsNullOrEmpty(_tsgCrawlerSettings.DevOpsRepoSettings.PersonalAccessToken))
         {
@@ -435,7 +440,7 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
             }
 
             string repoUrl = await FindConnectedRepository(resourceId);
-            return await GetIaCTypeFromFiles(token.AccessToken, repoUrl, branch, fileMatches);
+            return await GetIaCTypeFromFiles(token?.AccessToken ?? string.Empty, repoUrl, branch, fileMatches);
         }
 
         catch (Exception ex)
@@ -445,7 +450,7 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
         }
     }
 
-    public async Task<string> LinkRepository(string resourceId, string repoUrl, string @namespace = null, string resourceName = null, string subType = null)
+    public async Task<string> LinkRepository(string resourceId, string repoUrl, string @namespace = "", string resourceName = "", string subType = "")
     {
         try
         {
@@ -528,12 +533,12 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
             azdoAccessToken = await _threadRepository.CreateOrUpdateAzureDevOpsAccessTokenAsync(new(authToken.AccessToken, ExpiresOn: authToken.ExpiresOn), resourceId);
         }
 
-        if (!await CanCreateWorkItemsAsync(repositoryUrl, azdoAccessToken.AccessToken!))
+        if (!await CanCreateWorkItemsAsync(repositoryUrl, azdoAccessToken?.AccessToken ?? string.Empty))
         {
             throw new InvalidOperationException("The provided Azure DevOps token has been linked but does not have permission to create work items in the repository. Please check the permissions.");
         }
 
-        DateTime? localTimeOfTokenExpiration = azdoAccessToken.ExpiresOn.GetValueOrDefault().ToLocalTime();
+        DateTime? localTimeOfTokenExpiration = azdoAccessToken?.ExpiresOn.GetValueOrDefault().ToLocalTime();
         string action = alreadyConnectedToSameRepository ? "relinked i.e., refreshed token" : "linked";
         string loggedMessage = $"Successfully {action}: {resourceId} -> {repositoryUrl} - the expiration time of the token is: {azdoAccessToken?.ExpiresOn.GetValueOrDefault()} UTC or {localTimeOfTokenExpiration} Local Time.";
         _logger.LogInternalInformation(loggedMessage);
@@ -593,45 +598,45 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
     // Classes to deserialize the JSON response
     internal class GitItemsResponse
     {
-        public List<GitItem> Value { get; set; }
+        public List<GitItem>? Value { get; set; }
     }
 
     internal class GitItem
     {
         [JsonPropertyName("objectId")]
-        public string ObjectId { get; set; }
+        public string? ObjectId { get; set; }
 
         [JsonPropertyName("gitObjectType")]
-        public string GitObjectType { get; set; }
+        public string? GitObjectType { get; set; }
 
         [JsonPropertyName("commitId")]
-        public string CommitId { get; set; }
+        public string? CommitId { get; set; }
 
         [JsonPropertyName("path")]
-        public string Path { get; set; }
+        public string? Path { get; set; }
 
         [JsonPropertyName("url")]
-        public string Url { get; set; }
+        public string? Url { get; set; }
 
         [JsonPropertyName("_links")]
-        public Links Links { get; set; }
+        public Links? Links { get; set; }
     }
 
     internal class Links
     {
         [JsonPropertyName("self")]
-        public Link Self { get; set; }
+        public Link? Self { get; set; }
 
         [JsonPropertyName("repository")]
-        public Link Repository { get; set; }
+        public Link? Repository { get; set; }
 
         [JsonPropertyName("blob")]
-        public Link Blob { get; set; }
+        public Link? Blob { get; set; }
     }
 
     internal class Link
     {
         [JsonPropertyName("href")]
-        public string Href { get; set; }
+        public string? Href { get; set; }
     }
 }

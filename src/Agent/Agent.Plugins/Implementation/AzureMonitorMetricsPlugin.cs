@@ -39,7 +39,7 @@ public class AzureMonitorMetricsPlugin : IAzureMonitorMetricsPlugin
     }
 
     public async Task<IReadOnlyList<MetricTimeSeriesElement>> QueryMetricValuesForAzureResource(
-        string resourceId, string metricNamespace, string metricName, DateTimeOffset startTime, DateTimeOffset endTime, string dimensionFilter = null)
+        string resourceId, string metricNamespace, string metricName, DateTimeOffset startTime, DateTimeOffset endTime, string dimensionFilter = "")
     {
         var duration = endTime - startTime;
 

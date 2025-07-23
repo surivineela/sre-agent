@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using Agent.Plugins.Models;
 
 namespace Agent.Plugins.Interface;
@@ -31,7 +29,7 @@ public interface IFunctionAppDeploymentChecksPlugin
     /// <param name="endTime">Optional end time for the query (defaults to current time minus 15 minutes)</param>
     /// <returns>A detailed history of function app deployments</returns>
     Task<string> GetFunctionAppDeploymentHistory(string resourceId, DateTime? startTime = null, DateTime? endTime = null);
-    
+
     /// <summary>
     /// Gets Function App slot swap information for a Function App
     /// </summary>
@@ -40,7 +38,7 @@ public interface IFunctionAppDeploymentChecksPlugin
     /// <param name="endTime">Optional end time for the query (defaults to current time minus 15 minutes)</param>
     /// <returns>A detailed history of function app slot swap operations</returns>
     Task<string> GetFunctionAppSlotSwapHistory(string resourceId, DateTime? startTime = null, DateTime? endTime = null);
-    
+
     /// <summary>
     /// Gets detailed deployment failure analysis for a Function App
     /// Note: This tool only works for Windows SKUs
@@ -58,7 +56,7 @@ public interface IFunctionAppDeploymentChecksPlugin
     /// <param name="zipFilePath">Path to the zip file in Azure Storage</param>
     /// <returns>A result indicating the success or failure of the update operation</returns>
     Task<Models.WebsiteRunFromPackageUpdateResult> UpdateWebsiteRunFromPackageAsync(string resourceId, string zipFilePath);
-    
+
     /// <summary>
     /// Lists blobs in a storage container using ARM REST API
     /// </summary>
@@ -72,5 +70,5 @@ public interface IFunctionAppDeploymentChecksPlugin
     /// <param name="resourceId">The Azure resource ID of the Function App or Web App</param>
     /// <param name="containerPath">Optional path to the container. If not provided, a default container path will be used</param>
     /// <returns>A verification result indicating if the files exist and details about the verification</returns>
-    Task<BlobContainerVerificationResult> VerifyFilesInBlobContainerAsync(string resourceId, string containerPath = null);
+    Task<BlobContainerVerificationResult> VerifyFilesInBlobContainerAsync(string resourceId, string containerPath = "");
 }

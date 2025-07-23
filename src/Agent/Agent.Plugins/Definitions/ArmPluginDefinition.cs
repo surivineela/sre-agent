@@ -209,7 +209,7 @@ NOTE: This is an internal tool for command validation, not for generating user d
 """)]
         public async Task<string> GetAzCliHelpAsync(
             [Description("The Azure CLI command/topic to get help for (e.g., 'webapp', 'containerapp create')")] string helpTopic,
-            [Description("Optional search pattern to filter help output - returns only lines containing this text")] string grepPattern = null)
+            [Description("Optional search pattern to filter help output - returns only lines containing this text")] string grepPattern = "")
         {
 
             return await _armPlugin.GetAzCliHelpAsync(helpTopic, grepPattern);

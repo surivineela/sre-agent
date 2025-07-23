@@ -36,10 +36,10 @@ namespace Agent.Plugins.Kusto.Tools
             {
                 case KustoExecutionMode.Function:
 
-                    return await kustoChat.ExecuteLocalFunctionAsync(_definition.Function, region, args, groupName, samplingOptions);
+                    return await kustoChat.ExecuteLocalFunctionAsync(_definition.Function ?? string.Empty, region, args, groupName, samplingOptions);
 
                 case KustoExecutionMode.Query:
-                    var formmatedQuery = KustoPlugin.FormatQuery(_definition.Query, args);
+                    var formmatedQuery = KustoPlugin.FormatQuery(_definition.Query ?? string.Empty, args);
                     var result = await kustoChat.ExecuteKustoQuery(region, formmatedQuery, groupName);
                     return result.Result;
 

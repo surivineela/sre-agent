@@ -5,7 +5,6 @@
 using System.ComponentModel;
 using Agent.Core.Attributes;
 using Agent.Core.Models;
-using Agent.Framework;
 using Agent.Plugins.Interface;
 
 namespace Agent.Plugins
@@ -58,7 +57,7 @@ namespace Agent.Plugins
             string dashboardName,
 
             [Description("Optional dashboard UID - will look up by name if not provided")]
-            string existingDashboardUid = null)
+            string existingDashboardUid = "")
         {
             return await _grafanaPlugin.ModifyGrafanaDashboard(
                 description,

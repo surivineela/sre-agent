@@ -24,7 +24,7 @@ namespace Agent.Plugins.Services
             var startTimeParam = $"p-_startTime={startTime}";
             var endTimeParam = $"p-_endTime={endTime}";
             var cluster = _regionalKustoClusters.Where(KustoCluster => { return KustoCluster.Region == region.NormalizeLocation(); }).FirstOrDefault();
-            var clusterUriParam = $"p-ClusterUri={cluster.ClusterUri}";
+            var clusterUriParam = $"p-ClusterUri={cluster?.ClusterUri}";
             var subscriptionIdParam = $"p-subscriptionId={subscriptionId}";
             var resourceGroupNameParam = $"p-resourceGroupName={resourceGroupName}";
             var managedClusterNameParam = $"p-managedClusterName={managedClusterName}";

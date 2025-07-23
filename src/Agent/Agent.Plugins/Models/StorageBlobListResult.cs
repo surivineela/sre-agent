@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace Agent.Plugins.Models
 {
     /// <summary>
@@ -47,6 +44,6 @@ namespace Agent.Plugins.Models
         /// Gets or sets the next marker for pagination (if available)
         /// </summary>
         public string NextMarker { get; set; } = string.Empty;
-        public string Details { get; internal set; }
+        public string Details { get; internal set; } = string.Empty;
     }
 }

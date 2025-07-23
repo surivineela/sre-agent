@@ -19,8 +19,8 @@ public class TlsBestPracticesEvals
 {
     public TestContext TestContext { get; set; }
 
-    private IHost _host;
-    private ChatConfiguration _chatConfiguration;
+    private IHost _host = null!;
+    private ChatConfiguration _chatConfiguration = null!;
     private string? _llmDeploymentName;
     private BasicMockSetup _mocks;
     private static int _iterationCount = 1;

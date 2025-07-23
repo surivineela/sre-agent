@@ -772,10 +772,15 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
     {
         var score = new Dictionary<string, (int, string)>(StringComparer.OrdinalIgnoreCase);
 
+        if (embeddingResult?.Results == null)
+        {
+            return "No recognizable Azure IaC system detected.";
+        }
+
         foreach (var result in embeddingResult.Results)
         {
-            string fileName = result.Location.Path.ToLower();
-            string content = result.Chunk.Text.ToLower();
+            string fileName = result?.Location?.Path?.ToLower() ?? string.Empty;
+            string content = result?.Chunk?.Text?.ToLower() ?? string.Empty;
 
             foreach (var kvp in IaCSignatures)
             {
@@ -905,40 +910,40 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
 public class SemanticSearchResponse
 {
     [JsonPropertyName("results")]
-    public List<SemanticSearchResult> Results { get; set; }
+    public List<SemanticSearchResult>? Results { get; set; }
 
     [JsonPropertyName("embedding_model")]
-    public string EmbeddingModel { get; set; }
+    public string? EmbeddingModel { get; set; }
 }
 
 public class SemanticSearchResult
 {
     [JsonPropertyName("location")]
-    public LocationInfo Location { get; set; }
+    public LocationInfo? Location { get; set; }
 
     [JsonPropertyName("distance")]
     public float Distance { get; set; }
 
     [JsonPropertyName("chunk")]
-    public Chunk Chunk { get; set; }
+    public Chunk? Chunk { get; set; }
 }
 
 public class LocationInfo
 {
     [JsonPropertyName("path")]
-    public string Path { get; set; }
+    public string? Path { get; set; }
 
     [JsonPropertyName("repo")]
-    public Repository Repo { get; set; }
+    public Repository? Repo { get; set; }
 
     [JsonPropertyName("commit_sha")]
-    public string CommitSha { get; set; }
+    public string? CommitSha { get; set; }
 
     [JsonPropertyName("ref_name")]
-    public string RefName { get; set; }
+    public string? RefName { get; set; }
 
     [JsonPropertyName("language")]
-    public Language Language { get; set; }
+    public Language? Language { get; set; }
 }
 
 public class Repository
@@ -947,13 +952,13 @@ public class Repository
     public ulong Id { get; set; }
 
     [JsonPropertyName("nwo")]
-    public string Nwo { get; set; }
+    public string? Nwo { get; set; }
 
     [JsonPropertyName("owner_id")]
     public ulong OwnerId { get; set; }
 
     [JsonPropertyName("url")]
-    public string Url { get; set; }
+    public string? Url { get; set; }
 }
 
 public class Language
@@ -962,28 +967,28 @@ public class Language
     public uint Id { get; set; }
 
     [JsonPropertyName("name")]
-    public string Name { get; set; }
+    public string? Name { get; set; }
 
     [JsonPropertyName("color")]
-    public string Color { get; set; }
+    public string? Color { get; set; }
 }
 
 public class Chunk
 {
     [JsonPropertyName("hash")]
-    public string Hash { get; set; }
+    public string? Hash { get; set; }
 
     [JsonPropertyName("text")]
-    public string Text { get; set; }
+    public string? Text { get; set; }
 
     [JsonPropertyName("range")]
-    public Range Range { get; set; }
+    public Range? Range { get; set; }
 
     [JsonPropertyName("line_range")]
-    public Range LineRange { get; set; }
+    public Range? LineRange { get; set; }
 
     [JsonPropertyName("embedding")]
-    public Embedding Embedding { get; set; }
+    public Embedding? Embedding { get; set; }
 }
 
 public class Range
@@ -998,16 +1003,16 @@ public class Range
 public class Embedding
 {
     [JsonPropertyName("embedding")]
-    public List<float> Values { get; set; }
+    public List<float>? Values { get; set; }
 }
 
 public class SemanticSearchRequest
 {
     [JsonPropertyName("prompt")]
-    public string Prompt { get; set; }
+    public string? Prompt { get; set; }
 
     [JsonPropertyName("scoping_query")]
-    public string ScopingQuery { get; set; }
+    public string? ScopingQuery { get; set; }
 
     [JsonPropertyName("include_embeddings")]
     public bool? IncludeEmbeddings { get; set; }
@@ -1016,10 +1021,10 @@ public class SemanticSearchRequest
     public int? Limit { get; set; }
 
     [JsonPropertyName("experiments")]
-    public Dictionary<string, string> Experiments { get; set; }
+    public Dictionary<string, string>? Experiments { get; set; }
 
     [JsonPropertyName("embedding_model")]
-    public string EmbeddingModel { get; set; }
+    public string? EmbeddingModel { get; set; }
 }
 
 

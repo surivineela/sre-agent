@@ -24,6 +24,7 @@ namespace Agent.Plugins.Mocks
             _containerAppsToSourceCodeNodeMapping = new Dictionary<string, string>();
             _reposScanned = new List<string>();
             _aksDependencyDescriptions = new Dictionary<string, string>();
+            _containerAppsWithNodesWithoutSourceCodeNodes = new List<string>();
         }
 
         public MockGraphDBPlugin(List<string> containerAppsWithNodesWithoutSourceCodeNodes)
@@ -162,7 +163,7 @@ namespace Agent.Plugins.Mocks
             throw new NotImplementedException();
         }
 
-        public Task<List<Dictionary<string, object>>> ListResourceGroupsAsync(string subscriptionId = null)
+        public Task<List<Dictionary<string, object>>> ListResourceGroupsAsync(string subscriptionId = "")
         {
             throw new NotImplementedException();
         }
@@ -196,7 +197,7 @@ namespace Agent.Plugins.Mocks
         public Task<string> VisualizeAKSMicroserviceTopology(string AKSClusterResourceId, string _namespace, string deploymentName, Guid? threadId = null)
         {
             string key = $"{AKSClusterResourceId}:{_namespace}:{deploymentName}";
-            if (_aksDependencyDescriptions.TryGetValue(key, out string dependency))
+            if (_aksDependencyDescriptions.TryGetValue(key, out string? dependency))
             {
                 return Task.FromResult(dependency);
             }

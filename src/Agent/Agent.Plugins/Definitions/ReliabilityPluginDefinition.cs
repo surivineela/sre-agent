@@ -1,17 +1,10 @@
 using Agent.Core.Attributes;
-using Agent.Core.Helpers;
 using Agent.Plugins.Attributes;
 using Agent.Plugins.Interface;
 using Azure.ResourceManager.AppService.Models;
 using Microsoft.DurableTask.Client;
 using Microsoft.SemanticKernel;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Agent.Plugins.Definitions
 {
@@ -87,10 +80,10 @@ namespace Agent.Plugins.Definitions
         [Description("To find how resilient, reliable, and optimal the app services are under a subscription.")]
         public async Task<string> GetReliabilityStatusForSubscriptions(CancellationToken cancellationToken = default)
         {
-            return await _reliabilityPlugin.GetReliabilityStatusForSubscriptions( cancellationToken);
+            return await _reliabilityPlugin.GetReliabilityStatusForSubscriptions(cancellationToken);
         }
 
-        [Submit202(ExecuteMethodName =nameof(GetReliabilityOrchestrationStatus))]
+        [Submit202(ExecuteMethodName = nameof(GetReliabilityOrchestrationStatus))]
         [KernelFunction("get_apps_to_monitor")]
         [Description("To find the apps and their metrics relevant to resilience, reliability, and optimization")]
         public async Task<string> GetAppsToMonitor(CancellationToken cancellationToken = default)
@@ -100,7 +93,7 @@ namespace Agent.Plugins.Definitions
 
         [KernelFunction("get_reliability_orchestration_status")]
         [Description("To get the current state or status of the orchestration task to update the apps' reliability metrics")]
-        public async Task<OrchestrationRuntimeStatus> GetReliabilityOrchestrationStatus(string instanceId)
+        public async Task<OrchestrationRuntimeStatus?> GetReliabilityOrchestrationStatus(string instanceId)
         {
             return await _reliabilityPlugin.GetReliabilityOrchestrationStatus(instanceId);
         }

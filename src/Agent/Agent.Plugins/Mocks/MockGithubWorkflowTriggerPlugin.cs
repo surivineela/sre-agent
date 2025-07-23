@@ -34,7 +34,7 @@ namespace Agent.Plugins.Mocks
         public Task<WorkflowRunResponse> TriggerWorkflow(string repoUrl, string resourceId)
         {
             System.Diagnostics.Debug.WriteLine($"Triggering workflow for resource {resourceId}");
-            
+
             var workflowIdentifier = "";
             if (resourceId.Contains("stage", StringComparison.OrdinalIgnoreCase))
             {
@@ -52,7 +52,7 @@ namespace Agent.Plugins.Mocks
             var response = new WorkflowRunResponse(
                 RunId: _nextRunId++,
                 Status: "queued",
-                Conclusion: null,
+                Conclusion: string.Empty,
                 HtmlUrl: $"https://github.com/testorg/testrepo/actions/runs/{_nextRunId}",
                 WorkflowIdentifier: workflowIdentifier
             );
@@ -73,7 +73,7 @@ namespace Agent.Plugins.Mocks
                 System.Diagnostics.Debug.WriteLine($"Workflow run {runId} not found in _workflowRuns list");
                 throw new ArgumentException($"Workflow run {runId} not found");
             }
-            var run = _workflowRuns[runIndex];            
+            var run = _workflowRuns[runIndex];
 
             // Complete the workflow immediately
             run.Status = "completed";

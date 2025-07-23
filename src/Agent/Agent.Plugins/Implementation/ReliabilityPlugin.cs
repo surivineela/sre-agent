@@ -2,32 +2,21 @@ using Agent.Core.Helpers;
 using Agent.Core.Models;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
-using Agent.Logging;
-using Agent.Plugins.Models;
-using Azure.Identity;
-using Azure.ResourceManager;
 using Azure.ResourceManager.AppService.Models;
 using Azure.ResourceManager.ResourceGraph.Models;
-using Azure.ResourceManager.Resources;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Newtonsoft.Json;
-using Octokit;
-using System.ComponentModel;
 using System.Data;
 using System.Text.Json;
-using Agent.Core.Configuration;
-using Agent.Core.Interfaces;
-using Agent.Core;
-using Agent.Core.Services;
 using Agent.Plugins.Interface;
 
 
 namespace Agent.Plugins.Implementation
 {
-    public class ReliabilityPlugin: IReliabilityPlugin
+    public class ReliabilityPlugin : IReliabilityPlugin
     {
         public ILogger<ReliabilityPlugin> _logger;
         private readonly IChatCompletionService _chatCompletionService;
@@ -123,7 +112,7 @@ namespace Agent.Plugins.Implementation
                 _logger.LogInternalError(ex, $"UpdateAutoHeal failed: {ex.ToString()}");
                 throw;
             }
-            
+
         }
 
         // changes the number of workers that the app service is hosted on
@@ -202,17 +191,17 @@ namespace Agent.Plugins.Implementation
                     foreach (var item in webAppsJson.EnumerateArray())
                     {
                         var webAppNode = CreateNodeFromJsonForAppSerivceReliability(item);
-                        table.Rows.Add(webAppNode.ResourceName, webAppNode.ResourceId, webAppNode.NumberOfWorkers, webAppNode.AutoHealEnabled, webAppNode.AlwaysOn, webAppNode.HealthCheckEnabled);
+                        table.Rows.Add(webAppNode?.ResourceName, webAppNode?.ResourceId, webAppNode?.NumberOfWorkers, webAppNode?.AutoHealEnabled, webAppNode?.AlwaysOn, webAppNode?.HealthCheckEnabled);
                         ReliabilityTables.Add(new Tuple<string, DataTable>(sub, table));
                     }
                 }
 
                 string userQuery = $"Format these apps into a table with the columns App Name, Number of Workers, Auto Heal Enabled, Always On Enabled, Health Check Enabled. ** Only return the table. ** \r\n {JsonConvert.SerializeObject(ReliabilityTables)}";
                 var response = await _chatCompletionService.GetChatMessageContentAsync(userQuery);
-                _logger.LogInternalInformation(response.Content);
-                return response.Content ?? string.Empty;
+                _logger.LogInternalInformation(response?.Content ?? "");
+                return response?.Content ?? string.Empty;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogInternalError(ex, $"GetReliabilityStatusForSubscriptions failed: {ex.ToString()}");
                 throw;
@@ -245,7 +234,7 @@ namespace Agent.Plugins.Implementation
                     foreach (var item in webAppsJson.EnumerateArray())
                     {
                         var webAppNode = CreateNodeFromJsonForAppSerivceReliability(item);
-                        appsToMonitor.Add(new AppReliability(webAppNode.ResourceId, webAppNode.AlwaysOn ?? false, webAppNode.HealthCheckEnabled?? false, webAppNode.AutoHealEnabled ?? false, webAppNode.NumberOfWorkers ?? 1));
+                        appsToMonitor.Add(new AppReliability(webAppNode?.ResourceId ?? string.Empty, webAppNode?.AlwaysOn ?? false, webAppNode?.HealthCheckEnabled ?? false, webAppNode?.AutoHealEnabled ?? false, webAppNode?.NumberOfWorkers ?? 1));
                     }
                 }
                 var response = JsonConvert.SerializeObject(appsToMonitor);
@@ -259,12 +248,12 @@ namespace Agent.Plugins.Implementation
             }
         }
 
-        public async Task<OrchestrationRuntimeStatus> GetReliabilityOrchestrationStatus(string instanceId)
+        public async Task<OrchestrationRuntimeStatus?> GetReliabilityOrchestrationStatus(string instanceId)
         {
             _logger.LogInternalInformation("Invoked GetReliabilityOrchestrationStatus function");
-            
+
             var instance = await _durableTaskClient.GetInstanceAsync(instanceId);
-            return instance.RuntimeStatus;
+            return instance?.RuntimeStatus;
         }
 
         private async Task<string> GetReliabilityOfAppService(
@@ -293,9 +282,9 @@ namespace Agent.Plugins.Implementation
                 "
             );
             var result = await _chatCompletionService.GetChatMessageContentAsync(
-                chatHistory, 
-                executionSettings: new() { FunctionChoiceBehavior = FunctionChoiceBehavior.Auto() }, 
-                kernel: kernel, 
+                chatHistory,
+                executionSettings: new() { FunctionChoiceBehavior = FunctionChoiceBehavior.Auto() },
+                kernel: kernel,
                 cancellationToken: cancellationToken);
 
             return result.Content ?? string.Empty;
@@ -371,16 +360,16 @@ namespace Agent.Plugins.Implementation
             return JsonConvert.DeserializeObject<AutoHealRules>(result.Content ?? string.Empty)!;
         }
 
-        private AppServiceNode CreateNodeFromJsonForAppSerivceReliability(JsonElement item)
+        private AppServiceNode? CreateNodeFromJsonForAppSerivceReliability(JsonElement item)
         {
             try
             {
-                var resourceId = item.GetProperty("id").GetString();
-                var resourceType = item.GetProperty("type").GetString();
-                var subscriptionId = item.GetProperty("subscriptionId").GetString();
-                var resourceGroupName = item.GetProperty("resourceGroup").GetString();
-                var resourceName = item.GetProperty("name").GetString();
-                var location = item.GetProperty("location").GetString();
+                var resourceId = item.GetProperty("id").GetString() ?? string.Empty;
+                var resourceType = item.GetProperty("type").GetString() ?? string.Empty;
+                var subscriptionId = item.GetProperty("subscriptionId").GetString() ?? string.Empty;
+                var resourceGroupName = item.GetProperty("resourceGroup").GetString() ?? string.Empty;
+                var resourceName = item.GetProperty("name").GetString() ?? string.Empty;
+                var location = item.GetProperty("location").GetString() ?? string.Empty;
 
                 var node = new AppServiceNode(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName, location);
 

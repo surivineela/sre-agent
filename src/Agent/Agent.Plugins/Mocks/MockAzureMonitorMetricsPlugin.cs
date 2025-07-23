@@ -20,7 +20,7 @@ namespace Agent.Plugins.Mocks
             throw new NotImplementedException();
         }
 
-        public Task<IReadOnlyList<MetricTimeSeriesElement>> QueryMetricValuesForAzureResource(string resourceId, string metricNamespace, string metricName, DateTimeOffset startTime, DateTimeOffset endTime, string dimensionFilter = null)
+        public Task<IReadOnlyList<MetricTimeSeriesElement>> QueryMetricValuesForAzureResource(string resourceId, string metricNamespace, string metricName, DateTimeOffset startTime, DateTimeOffset endTime, string dimensionFilter = "")
         {
             throw new NotImplementedException();
         }

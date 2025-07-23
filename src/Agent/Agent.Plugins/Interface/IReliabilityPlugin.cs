@@ -1,14 +1,5 @@
-using Agent.Core.Helpers;
 using Azure.ResourceManager.AppService.Models;
 using Microsoft.DurableTask.Client;
-using Microsoft.SemanticKernel;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Agent.Plugins.Interface
 {
@@ -28,6 +19,6 @@ namespace Agent.Plugins.Interface
 
         Task<string> GetAppsToMonitor(CancellationToken cancellationToken = default);
 
-        Task<OrchestrationRuntimeStatus> GetReliabilityOrchestrationStatus(string instanceId);
+        Task<OrchestrationRuntimeStatus?> GetReliabilityOrchestrationStatus(string instanceId);
     }
 }

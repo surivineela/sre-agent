@@ -16,13 +16,12 @@ namespace Agent.Plugins.TeamsPlugin
         Task<double> CreateTeamsChannelPost(TeamsMessage message);
     }
 
-    public class TeamsClient: ITeamsClient
+    public class TeamsClient : ITeamsClient
     {
-        private static HttpClient _httpClient;
+        private static HttpClient _httpClient = new HttpClient();
         private readonly TeamsClientSettings _teamsClientSettings;
         public TeamsClient(TeamsClientSettings teamsClientSettings)
         {
-            _httpClient = new HttpClient();
             _httpClient.Timeout = TimeSpan.FromSeconds(240);
             _teamsClientSettings = teamsClientSettings;
         }
@@ -58,6 +57,10 @@ namespace Agent.Plugins.TeamsPlugin
             };
 
             var requestBody = JsonSerializer.Serialize(payload, jsonOptions);
+            if (string.IsNullOrWhiteSpace(_teamsClientSettings.CreateTeamsChannelPostUrl))
+            {
+                throw new Exception($"CreateTeamsChannelPostUrl is null or empty");
+            }
             var response = await SendMessageAsync(_teamsClientSettings.CreateTeamsChannelPostUrl, requestBody);
             if (response.IsSuccessStatusCode)
             {
@@ -89,6 +92,10 @@ namespace Agent.Plugins.TeamsPlugin
             };
 
             var requestBody = JsonSerializer.Serialize(payload, jsonOptions);
+            if (string.IsNullOrWhiteSpace(_teamsClientSettings.ReplyToTeamsChannelPostUrl))
+            {
+                throw new Exception($"ReplyToTeamsChannelPostUrl is null or empty");
+            }
             var response = await SendMessageAsync(_teamsClientSettings.ReplyToTeamsChannelPostUrl, requestBody);
             return response;
         }
@@ -105,6 +112,10 @@ namespace Agent.Plugins.TeamsPlugin
             };
 
             var requestBody = JsonSerializer.Serialize(payload, jsonOptions);
+            if (string.IsNullOrWhiteSpace(_teamsClientSettings.TeamsEndpoint))
+            {
+                throw new Exception($"TeamsEndpoint is null or empty");
+            }
             var response = await SendMessageAsync(_teamsClientSettings.TeamsEndpoint, JsonSerializer.Serialize(payload));
             return response;
         }
@@ -113,7 +124,7 @@ namespace Agent.Plugins.TeamsPlugin
         {
             var httpClient = new HttpClient();
             var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
-            HttpResponseMessage response = null;
+            HttpResponseMessage response = new HttpResponseMessage();
 
             if (_teamsClientSettings.UseTeamsChannel)
             {

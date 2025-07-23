@@ -6,7 +6,6 @@ using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using Octokit;
 using Agent.Core.Models;
-using Agent.Logging;
 using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Implementation
@@ -34,7 +33,7 @@ namespace Agent.Plugins.Implementation
                     MergeCommitSha: pullRequest.MergeCommitSha,
                     MergedAt: pullRequest.MergedAt,
                     State: pullRequest.State.StringValue,
-                    MergeableState: pullRequest.MergeableState.Value.ToString()
+                    MergeableState: pullRequest?.MergeableState?.Value.ToString() ?? string.Empty
                 );
             }
             catch (Exception ex)
@@ -58,7 +57,7 @@ namespace Agent.Plugins.Implementation
                 if (resourceId.Contains("stage", StringComparison.OrdinalIgnoreCase))
                 {
                     workflowIdentifier = "main_oa-demo-web-stage.yml";
-                } 
+                }
                 else if (resourceId.Contains("canary", StringComparison.OrdinalIgnoreCase))
                 {
                     workflowIdentifier = "main_oa-demo-web-canary.yml";

@@ -18,9 +18,9 @@ public sealed class SourceCodeAgentEvals
 {
     public TestContext TestContext { get; set; }
 
-    private IHost _host;
-    private ChatConfiguration _chatConfiguration;
-    private string _llmDeploymentName;
+    private IHost _host = null!;
+    private ChatConfiguration _chatConfiguration = null!;
+    private string? _llmDeploymentName;
 
     private static int _iterationCount = 10; // Default value
 
@@ -28,7 +28,7 @@ public sealed class SourceCodeAgentEvals
     static SourceCodeAgentEvals()
     {
         // Retrieve the IterationCount from environment variables or a default value
-        string iterationCountEnv = Environment.GetEnvironmentVariable("IterationCount");
+        string? iterationCountEnv = Environment.GetEnvironmentVariable("IterationCount");
         if (int.TryParse(iterationCountEnv, out int parsedIterations))
         {
             Console.WriteLine($"Static Constructor: IterationCount is {parsedIterations}");
@@ -44,7 +44,7 @@ public sealed class SourceCodeAgentEvals
     public async Task TestInitialize()
     {
         var builder = TestHelpers.BuildTestApp(out _llmDeploymentName);
-        _host = builder.Build();
+        _host = builder.Build() ?? throw new InvalidOperationException("Failed to build the host.");
         IChatClient client = _host.Services.GetRequiredService<IChatClient>();
         _chatConfiguration = new ChatConfiguration(client);
 
@@ -57,6 +57,7 @@ public sealed class SourceCodeAgentEvals
         await _host.StopAsync();
         _host.Dispose();
     }
+
 
     private static IEnumerable<object[]> TestData_Iterations()
     {

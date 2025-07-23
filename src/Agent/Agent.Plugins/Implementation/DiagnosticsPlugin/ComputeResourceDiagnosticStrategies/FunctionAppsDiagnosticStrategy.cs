@@ -1,5 +1,4 @@
 using Agent.Core.Helpers;
-using Agent.Logging;
 using Agent.Plugins.Interface;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
@@ -8,8 +7,8 @@ namespace Agent.Plugins.Implementation.DiagnosticsPlugin.ComputeResourceDiagnost
 
 internal class FunctionAppsDiagnosticStrategy : ComputeResourceDiagnosticStrategyBase
 {
-    private readonly ArmHelper _armHelper;    
-    private readonly AppServiceDiagnosticStrategy _appServiceDiagnosticStrategy; 
+    private readonly ArmHelper _armHelper;
+    private readonly AppServiceDiagnosticStrategy _appServiceDiagnosticStrategy;
 
     public FunctionAppsDiagnosticStrategy(ILogger<DiagnosticsPlugin> logger, ArmHelper armHelper)
         : base(logger)
@@ -33,7 +32,7 @@ internal class FunctionAppsDiagnosticStrategy : ComputeResourceDiagnosticStrateg
             return false;
         }
 
-        if (jsonObject["properties"] == null || !jsonObject["properties"].HasValues)
+        if (!(jsonObject["properties"] is JObject properties) || !properties.HasValues)
         {
             _logger.LogInternalError($"'sku' not found in the ARM resource properties for {resourceId}.");
             return false;

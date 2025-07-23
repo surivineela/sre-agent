@@ -5,7 +5,6 @@
 using System.ComponentModel;
 using System.Text.Json.Serialization;
 using Agent.Core.Models;
-using Agent.Logging;
 using Agent.Plugins.Clients;
 using Agent.Plugins.Interface;
 using Azure.Search.Documents.Models;
@@ -20,7 +19,7 @@ namespace Agent.Plugins.Implementation
         private record SearchChunk
         {
             [JsonPropertyName("chunk")]
-            public string Chunk { get; set; }
+            public string Chunk { get; set; } = string.Empty;
         }
         private readonly IAzureSearchClient _searchClient;
         private readonly ILogger<AzureDocSearchPlugin> _logger;

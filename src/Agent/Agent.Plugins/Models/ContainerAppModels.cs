@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -17,8 +17,8 @@ namespace Agent.Plugins.Models
         Container[] Containers,
         Container[] InitContainers,
         ContainerAppConfigurations? Configurations = null,
-        IReadOnlyList<RevisionInfo> Revisions = null,
-        AppHealthInfo AppHealthInfo = null);
+        IReadOnlyList<RevisionInfo>? Revisions = null,
+        AppHealthInfo? AppHealthInfo = null);
 
     public sealed record Container(
         string Name,

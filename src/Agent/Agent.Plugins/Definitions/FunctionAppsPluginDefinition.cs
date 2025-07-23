@@ -4,7 +4,6 @@
 
 using System.ComponentModel;
 using Agent.Plugins.Models;
-using Agent.Framework;
 using Agent.Plugins.Interface;
 using Agent.Core.Models;
 
@@ -33,7 +32,7 @@ namespace Agent.Plugins.Definitions
         [Description("PREFERRED METHOD FOR FUNCTION APP DETAILS: Gets detailed information about a specific Azure Function App by its resource ID. " +
             "Returns a FunctionAppDescriptor with resource ID, name, kind, location, SKU, state, resource group, and runtime details. " +
             "Always use this specialized method for Function Apps instead of generic resource search functions for more complete and accurate information.")]
-        public async Task<FunctionAppDescriptor> GetFunctionAppInfoAsync(
+        public async Task<FunctionAppDescriptor?> GetFunctionAppInfoAsync(
             [Description("The full Azure resource ID of the Function App to retrieve information for.")] string resourceId)
         {
             return await _functionAppPlugin.GetFunctionAppInfoAsync(resourceId);

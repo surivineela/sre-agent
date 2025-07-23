@@ -7,7 +7,6 @@ using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Models.Charts;
-using Agent.Logging;
 using Agent.Plugins.Interface;
 using Microsoft.Extensions.Logging;
 using ScottPlot;
@@ -18,7 +17,7 @@ namespace Agent.Plugins
     public class ChartPlugin : IChartPlugin
     {
         private readonly ILogger? _logger;
-        private readonly IAgentOutboundCommunicationService? _outboundService;
+        private readonly IAgentOutboundCommunicationService _outboundService;
 
         public Guid? ThreadId { get; set; }
 

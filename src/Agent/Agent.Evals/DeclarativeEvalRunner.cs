@@ -6,9 +6,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Evals.Models;
 using Agent.Framework;
 using Agent.Plugins;
-using Agent.Plugins.Definitions;
 using Agent.Plugins.Interface;
-using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
 using Agent.Tests.Common;
 using Agent.Tests.Common.Mocks;
@@ -17,7 +15,6 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.Evaluation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Moq;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -149,8 +146,8 @@ public class DeclarativeEvalRunner
         SetupSkipReplayFunctions(_currentEvalConfig);
         SetupFuzzyMatchFunctions(_currentEvalConfig);
 
-        var groundedContext = evaluation.GroundedContext;
-        var exampleResponse = evaluation.ExampleResponse;
+        var groundedContext = evaluation?.GroundedContext;
+        var exampleResponse = evaluation?.ExampleResponse;
 
         TestContext.WriteLine($"Test: {testDisplayName}");
         TestContext.WriteLine($"Message: {userMessage}");
@@ -161,8 +158,8 @@ public class DeclarativeEvalRunner
         List<ChatMessage>? fullConversation = null;
         var autoReplyHelper = new AutoReplyHelper(_agentStateAssessmentClient)
         {
-            DefaultReply = evaluation.AutoReply.DefaultReply,
-            GroundedContext = groundedContext
+            DefaultReply = evaluation?.AutoReply?.DefaultReply ?? string.Empty,
+            GroundedContext = groundedContext ?? string.Empty
         };
 
         try
@@ -194,7 +191,7 @@ public class DeclarativeEvalRunner
                 if (reply != null)
                 {
                     // send the reply and then resume waiting.
-                    await _threadManager.CreateMessage(thread.Id, new CreateMessageRequest(reply, "testUser", "Test User"));                    
+                    await _threadManager.CreateMessage(thread.Id, new CreateMessageRequest(reply, "testUser", "Test User"));
                     continue;
                 }
 
@@ -205,21 +202,21 @@ public class DeclarativeEvalRunner
 
                 evalFrameworkMightBeStuckCount++;
 
-                if(evalFrameworkMightBeStuckCount >= 3)
+                if (evalFrameworkMightBeStuckCount >= 3)
                 {
                     Assert.Inconclusive($"⚠️ Eval framework had trouble determining the next step. This code probably needs an update. The agent context state is {agentContext.ContextState}, the autoreply assessed state is: {autoReplyHelper.AssessedState}. ");
                 }
-                
+
             }
 
             var combinedAgentResponse = fullConversation.CombineAgentResponses();
-            var evalResult = await combinedAgentResponse.EvaluateAsync(TestContext, _chatConfiguration, fullConversation, groundedContext, exampleResponse, _llmDeploymentName);
+            var evalResult = await combinedAgentResponse.EvaluateAsync(TestContext, _chatConfiguration, fullConversation, groundedContext ?? string.Empty, exampleResponse ?? string.Empty, _llmDeploymentName);
 
             TestContext.WriteLine(string.Empty);
             if (fullConversation != null)
                 TestContext.WriteMessages(fullConversation);
 
-            var assertions = evaluation.Assertions;
+            var assertions = evaluation?.Assertions;
             var equivalenceScore = evalResult?.Equivalence?.Value ?? 0;
             var groundednessScore = evalResult?.Groundedness?.Value ?? 0;
 
@@ -330,7 +327,7 @@ public class DeclarativeEvalRunner
     {
         var yaml = File.ReadAllText(yamlFilePath);
         var deserializer = new DeserializerBuilder()
-            .WithNamingConvention(CamelCaseNamingConvention.Instance)            
+            .WithNamingConvention(CamelCaseNamingConvention.Instance)
             .Build();
 
         return deserializer.Deserialize<DeclarativeEvalConfiguration>(yaml);
@@ -380,7 +377,7 @@ public class DeclarativeEvalRunner
 
             try
             {
-                services.AddSingleton(pluginType, Activator.CreateInstance(pluginType, args: [null]));
+                services.AddSingleton(pluginType, Activator.CreateInstance(pluginType, args: [null])!);
             }
             catch (Exception ex)
             {

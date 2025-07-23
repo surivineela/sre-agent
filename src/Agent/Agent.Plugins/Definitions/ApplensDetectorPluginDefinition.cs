@@ -2,11 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System;
 using System.ComponentModel;
-using System.Threading.Tasks;
 using Agent.Core.Models;
-using Agent.Framework;
 using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Definitions
@@ -48,12 +45,12 @@ namespace Agent.Plugins.Definitions
             [Description("Resource Type")] string resourceType,
             [Description("Resource Name")] string resourceName,
             [Description("The ID of the detector to run")] string detectorId,
-            [Description("Optional start time for the analysis in ISO 8601 format")] string startTime = null,
-            [Description("Optional end time for the analysis in ISO 8601 format")] string endTime = null)
+            [Description("Optional start time for the analysis in ISO 8601 format")] string startTime = "",
+            [Description("Optional end time for the analysis in ISO 8601 format")] string endTime = "")
         {
             DateTime? startTimeDate = TryParseDateTime(startTime);
             DateTime? endTimeDate = TryParseDateTime(endTime);
-            
+
             string resourceId = $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/{provider}/{resourceType}/{resourceName}";
 
             return _plugin.InvokeDetector(resourceId, detectorId, startTimeDate, endTimeDate);
@@ -79,12 +76,12 @@ namespace Agent.Plugins.Definitions
             [Description("Resource Type")] string resourceType,
             [Description("Resource Name")] string resourceName,
             [Description("The ID of the analysis to run")] string analysisId,
-            [Description("Optional start time for the analysis in ISO 8601 format")] string startTime = null,
-            [Description("Optional end time for the analysis in ISO 8601 format")] string endTime = null)
+            [Description("Optional start time for the analysis in ISO 8601 format")] string startTime = "",
+            [Description("Optional end time for the analysis in ISO 8601 format")] string endTime = "")
         {
             DateTime? startTimeDate = TryParseDateTime(startTime);
             DateTime? endTimeDate = TryParseDateTime(endTime);
-            
+
             string resourceId = $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/{provider}/{resourceType}/{resourceName}";
 
             return _plugin.InvokeAnalysis(resourceId, analysisId, startTimeDate, endTimeDate);

@@ -8,7 +8,6 @@ using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Models.ICM;
 using Agent.Core.Services;
-using Agent.Logging;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OperationalAgent.Core.Extensions;
@@ -204,7 +203,7 @@ namespace Agent.Plugins.IcmPlugin
             }
         }
 
-        public async Task<HttpResponseMessage> SendICMWorkflowRequest(string workflowName, string body, string tenantId = null)
+        public async Task<HttpResponseMessage> SendICMWorkflowRequest(string workflowName, string body, string tenantId = "")
         {
             var httpClient = await _httpClientLazy!.Value;
             _logger.LogExternalInformation($"[IcmWorkflowClient] Sending ICM Workflow Request. WorkflowName: {workflowName}, Body: {body}");
@@ -252,7 +251,7 @@ namespace Agent.Plugins.IcmPlugin
             }
         }
 
-        public async Task<Incident> GetIncidentAsync(string incidentId)
+        public async Task<Incident?> GetIncidentAsync(string incidentId)
         {
             var payload = JsonConvert.SerializeObject(new { incidentId });
             var response = await SendICMWorkflowRequest(_icmWorkflowSettings.GetIncidentWorkflowName, payload);
@@ -268,7 +267,7 @@ namespace Agent.Plugins.IcmPlugin
             }
         }
 
-        public async Task<SubscriptionDetail> GetSubscriptionDetail(string subscriptionId)
+        public async Task<SubscriptionDetail?> GetSubscriptionDetail(string subscriptionId)
         {
             var response = await SendICMWorkflowRequest(_icmWorkflowSettings.SubscriptionDetailWorkflowName, JsonConvert.SerializeObject(new { SubscriptionId = subscriptionId }));
             if (response.IsSuccessStatusCode)
@@ -283,7 +282,7 @@ namespace Agent.Plugins.IcmPlugin
         }
 
 
-        public async Task<AcaSubscriptionUsage> GetSubscriptionUsage(string subscriptionId)
+        public async Task<AcaSubscriptionUsage?> GetSubscriptionUsage(string subscriptionId)
         {
             var response = await SendICMWorkflowRequest(_icmWorkflowSettings.SubscriptionUsageWorkflowName, JsonConvert.SerializeObject(new { SubscriptionId = subscriptionId }));
             if (response.IsSuccessStatusCode)
@@ -376,26 +375,29 @@ namespace Agent.Plugins.IcmPlugin
         public async Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId, DateTimeOffset? queryFrom = null)
         {
             var payload = queryFrom.HasValue
-                     ? JsonConvert.SerializeObject(new
-                     {
-                         incidentId,
-                         QueryFrom = queryFrom.Value.ToString("s", System.Globalization.CultureInfo.InvariantCulture)
-                     })
-                     : JsonConvert.SerializeObject(new { incidentId });
+                ? JsonConvert.SerializeObject(new
+                {
+                    incidentId,
+                    QueryFrom = queryFrom.Value.ToString("s", System.Globalization.CultureInfo.InvariantCulture)
+                })
+                : JsonConvert.SerializeObject(new { incidentId });
 
             var response = await SendICMWorkflowRequest(_icmWorkflowSettings.GetIncidentDiscussionEntriesWorkflowName, payload);
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
                 var discussionEntries = JsonConvert.DeserializeObject<List<DiscussionEntry>>(content);
-                return discussionEntries;
+
+                // Return empty list if deserialization yields null
+                return discussionEntries ?? new List<DiscussionEntry>();
             }
             else
             {
                 Console.WriteLine($"Failed to fetch discussion entries for incidentId: {incidentId}");
-                return null;
+                return new List<DiscussionEntry>();
             }
         }
+
 
         public async Task<string> AddTagToIncident(string incidentId, string tag)
         {
@@ -494,11 +496,11 @@ namespace Agent.Plugins.IcmPlugin
     {
         public void Dispose() { }
 
-        public Task<Incident> GetIncidentAsync(string incidentId) => Task.FromResult<Incident>(null);
+        public Task<Incident?> GetIncidentAsync(string incidentId) => Task.FromResult<Incident?>(null);
 
-        public Task<SubscriptionDetail> GetSubscriptionDetail(string subscriptionId) => Task.FromResult<SubscriptionDetail>(null);
+        public Task<SubscriptionDetail?> GetSubscriptionDetail(string subscriptionId) => Task.FromResult<SubscriptionDetail?>(null);
 
-        public Task<AcaSubscriptionUsage> GetSubscriptionUsage(string subscriptionId) => Task.FromResult<AcaSubscriptionUsage>(null);
+        public Task<AcaSubscriptionUsage?> GetSubscriptionUsage(string subscriptionId) => Task.FromResult<AcaSubscriptionUsage?>(null);
 
         public Task<string> GetSubscriptionQuota(string subscriptionId, string region, string quotaType) =>
             Task.FromResult("ICM Plugin is disabled");
@@ -528,15 +530,15 @@ namespace Agent.Plugins.IcmPlugin
         public bool ProcessImages => false;
         public bool IsEnabled() { return false; }
 
-        public Task<HttpResponseMessage> SendICMWorkflowRequest(string workflowName, string body, string tenantId = null) =>
+        public Task<HttpResponseMessage> SendICMWorkflowRequest(string workflowName, string body, string tenantId = "") =>
             Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.NotImplemented));
     }
     public interface IICMWorkflowClient : IDisposable
     {
-        Task<HttpResponseMessage> SendICMWorkflowRequest(string workflowName, string body, string tenantId = null);
-        Task<Incident> GetIncidentAsync(string incidentId);
-        Task<SubscriptionDetail> GetSubscriptionDetail(string subscriptionId);
-        Task<AcaSubscriptionUsage> GetSubscriptionUsage(string subscriptionId);
+        Task<HttpResponseMessage> SendICMWorkflowRequest(string workflowName, string body, string tenantId = "");
+        Task<Incident?> GetIncidentAsync(string incidentId);
+        Task<SubscriptionDetail?> GetSubscriptionDetail(string subscriptionId);
+        Task<AcaSubscriptionUsage?> GetSubscriptionUsage(string subscriptionId);
         Task<string> GetSubscriptionQuota(string subscriptionId, string region, string quotaType);
         Task<string> SetSubscriptionQuota(string subscriptionId, string region, string quotaType, string quotaLimit);
         Task<string> GetEnvironmentQuota(string environmentUrl, string region, string quotaType);

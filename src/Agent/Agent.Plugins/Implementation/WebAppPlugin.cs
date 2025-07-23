@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Services;
-using Agent.Logging;
 using Agent.Plugins.Interface;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -54,10 +53,10 @@ public class WebAppPlugin : IWebAppPlugin
                     // Try to extract worker reboot link from the response
                     var webWorkers = webApp?.web_workers as IEnumerable<dynamic>;
                     var workerRebootLink = webWorkers?.FirstOrDefault()?.reboot_link?.ToString();
-                    
+
                     if (!string.IsNullOrEmpty(workerRebootLink))
                     {
-                        return workerRebootLink;
+                        return workerRebootLink ?? string.Empty;
                     }
                 }
                 catch (Exception ex)

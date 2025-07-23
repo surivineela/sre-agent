@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Mocks;
@@ -18,7 +13,7 @@ public class MockGrafanaPlugin : IGrafanaPlugin
         throw new NotImplementedException();
     }
 
-    public Task<string> ModifyGrafanaDashboard(string description, string dashboardName, string existingDashboardUid = null)
+    public Task<string> ModifyGrafanaDashboard(string description, string dashboardName, string existingDashboardUid = "")
     {
         throw new NotImplementedException();
     }

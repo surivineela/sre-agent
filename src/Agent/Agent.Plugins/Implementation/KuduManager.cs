@@ -1,4 +1,3 @@
-using Azure.ResourceManager.AppService;
 using Agent.Core.Helpers;
 
 /// <summary>
@@ -16,6 +15,8 @@ public sealed class KuduManager
     {
         _resourceId = resourceId;
         _armHelper = armHelper;
+        _os = string.Empty;
+        _kuduHostName = string.Empty;
     }
 
     public string OS => _os;
@@ -31,11 +32,21 @@ public sealed class KuduManager
                 throw new ArgumentException("Resource ID cannot be null or empty.", nameof(resourceId));
 
             KuduManager manager = new KuduManager(resourceId, armHelper);
-            WebSiteResource site = await armHelper.GetWebSiteResourceAsync(resourceId);
-            manager._kuduHostName = site?.Data?.EnabledHostNames?.FirstOrDefault(h => h.Contains(".scm."));
-            manager._os = site.Data.Kind.Contains("linux", StringComparison.OrdinalIgnoreCase) ? "Linux" : "Windows";
-            WebSiteConfigResource config = await site.GetWebSiteConfig().GetAsync();
-            manager._is32Bit = config?.Data.Use32BitWorkerProcess ?? false;
+            var site = await armHelper.GetWebSiteResourceAsync(resourceId);
+
+            manager._kuduHostName = site?.Data?.EnabledHostNames?
+                .Where(h => !string.IsNullOrEmpty(h))
+                .FirstOrDefault(h => h.Contains(".scm.")) ?? string.Empty;
+
+            manager._os = site?.Data?.Kind != null && site.Data.Kind.Contains("linux", StringComparison.OrdinalIgnoreCase)
+                ? "Linux"
+                : "Windows";
+
+            var config = site?.GetWebSiteConfig() is var configOperation && configOperation != null
+                ? await configOperation.GetAsync()
+                : null;
+
+            manager._is32Bit = config?.Value.Data.Use32BitWorkerProcess ?? false;
             Console.WriteLine($"[KuduManager] Initialized KuduManager for {resourceId}");
             return manager;
         }

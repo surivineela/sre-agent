@@ -10,14 +10,11 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Web;
-using Agent.Core;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.JsonConverters;
 using Agent.Core.Models;
-using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
-using Agent.Logging;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
 using Agent.Plugins.Services.Interfaces;
@@ -133,7 +130,7 @@ namespace Agent.Plugins.Implementation
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, $"Error in {nameof(ListContainerAppRevisionsAsync)}(resourceId: '{resourceId}'");
-                return null;
+                return new List<RevisionInfo>();
             }
         }
 
@@ -176,7 +173,7 @@ namespace Agent.Plugins.Implementation
 
                 if (latestRevision != null)
                 {
-                    int trafficWeight = latestRevision.Data.TrafficWeight ?? 0;
+                    int trafficWeight = latestRevision?.Data?.TrafficWeight ?? 0;
                     bool isActive = trafficWeight > 0;
 
                     return new RevisionInfo(
@@ -314,7 +311,7 @@ namespace Agent.Plugins.Implementation
                 var containerAppResource = armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
                 var containerApp = await containerAppResource.GetAsync();
 
-                if (containerApp.Value.Data.ManagedEnvironmentId == null)
+                if (string.IsNullOrEmpty(containerApp.Value.Data.ManagedEnvironmentId))
                 {
                     _logger.LogInternalWarning($"Container App {resourceId} does not have a managed environment ID");
                     return result;
@@ -492,7 +489,7 @@ namespace Agent.Plugins.Implementation
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, $"Error in GetRevisionLogsAsync with resourceId {resourceId}, revisionName {revisionName}");
-                return null;
+                return string.Empty;
             }
         }
 
@@ -548,7 +545,7 @@ namespace Agent.Plugins.Implementation
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, $"Error in GetContainerAppLogs with resourceId {resourceId}, revisionName {revisionName}");
-                return null;
+                return string.Empty;
             }
         }
 
@@ -711,7 +708,7 @@ namespace Agent.Plugins.Implementation
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, $"Error getting image reference for resource {resourceId}");
-                return null;
+                return string.Empty;
             }
         }
 
@@ -827,11 +824,12 @@ namespace Agent.Plugins.Implementation
                     return result;
                 }
 
-                result.Details["ProvisioningState"] = containerApp.Value.Data.ProvisioningState.ToString();
+                result.Details["ProvisioningState"] = result.Details["ProvisioningState"] = containerApp?.Value?.Data?.ProvisioningState?.ToString() ?? string.Empty;
 
-                if (containerApp.Value.Data.ProvisioningState != ContainerAppProvisioningState.Succeeded)
+
+                if (containerApp?.Value?.Data?.ProvisioningState != ContainerAppProvisioningState.Succeeded)
                 {
-                    result.Messages.Add($"Container app is in {containerApp.Value.Data.ProvisioningState} state, not Succeeded.");
+                    result.Messages.Add($"Container app is in {containerApp?.Value?.Data?.ProvisioningState} state, not Succeeded.");
                     return result;
                 }
 
@@ -846,7 +844,7 @@ namespace Agent.Plugins.Implementation
                 }
 
                 var revisions = containerAppResource.GetContainerAppRevisions();
-                ContainerAppRevisionResource latestRevision = null;
+                ContainerAppRevisionResource? latestRevision = null;
 
                 await foreach (var revision in revisions.GetAllAsync())
                 {
@@ -863,12 +861,12 @@ namespace Agent.Plugins.Implementation
                     return result;
                 }
 
-                result.Details["RevisionState"] = latestRevision.Data.ProvisioningState.ToString();
-                result.Details["RevisionTrafficWeight"] = (latestRevision.Data.TrafficWeight ?? 0).ToString();
+                result.Details["RevisionState"] = latestRevision?.Data?.ProvisioningState?.ToString() ?? string.Empty;
+                result.Details["RevisionTrafficWeight"] = (latestRevision?.Data?.TrafficWeight ?? 0).ToString();
 
-                if (latestRevision.Data.ProvisioningState != ContainerAppRevisionProvisioningState.Provisioned)
+                if (latestRevision?.Data?.ProvisioningState != ContainerAppRevisionProvisioningState.Provisioned)
                 {
-                    result.Messages.Add($"Latest revision is in {latestRevision.Data.ProvisioningState} state, not Provisioned.");
+                    result.Messages.Add($"Latest revision is in {latestRevision?.Data?.ProvisioningState} state, not Provisioned.");
                     return result;
                 }
 
@@ -919,13 +917,17 @@ namespace Agent.Plugins.Implementation
                 }
 
                 // Step 5: If the app has external ingress and transport is not tcp, check if it's responding
-                if (containerApp.Value.Data.Configuration?.Ingress != null &&
-                    containerApp.Value.Data.Configuration.Ingress.External == true &&
-                    !string.IsNullOrEmpty(containerApp.Value.Data.Configuration.Ingress.Fqdn) &&
-                    (containerApp.Value.Data.Configuration.Ingress.Transport == null ||
-                     !containerApp.Value.Data.Configuration.Ingress.Transport.ToString().Equals("tcp", StringComparison.OrdinalIgnoreCase)))
+                var config = containerApp?.Value?.Data?.Configuration;
+                var ingress = config?.Ingress;
+
+                if (ingress != null &&
+                    ingress.External == true &&
+                    !string.IsNullOrEmpty(ingress.Fqdn) &&
+                    (ingress.Transport == null ||
+                     !string.Equals(ingress.Transport?.ToString(), "tcp", StringComparison.OrdinalIgnoreCase)))
+
                 {
-                    string fqdn = containerApp.Value.Data.Configuration.Ingress.Fqdn;
+                    string fqdn = ingress.Fqdn;
                     result.Details["Hostname"] = fqdn;
 
                     bool endpointReachable = await IsEndpointReachable(fqdn);
@@ -946,15 +948,13 @@ namespace Agent.Plugins.Implementation
                 bool hasValidReplicas = (canScaleToZero && replicas.Count >= 0) || (!canScaleToZero && readyReplicas > 0);    // Otherwise need running replicas
 
                 bool isHealthy =
-                    containerApp.Value.Data.ProvisioningState == ContainerAppProvisioningState.Succeeded &&
+                    containerApp?.Value?.Data?.ProvisioningState == ContainerAppProvisioningState.Succeeded &&
                     latestRevision.Data.ProvisioningState == ContainerAppRevisionProvisioningState.Provisioned &&
                     hasValidReplicas;
 
                 // If app has external HTTP ingress, it must also be reachable
-                if (containerApp.Value.Data.Configuration?.Ingress != null &&
-                    containerApp.Value.Data.Configuration.Ingress.External == true &&
-                    (containerApp.Value.Data.Configuration.Ingress.Transport == null ||
-                     !containerApp.Value.Data.Configuration.Ingress.Transport.ToString().Equals("tcp", StringComparison.OrdinalIgnoreCase)))
+                if (ingress != null &&
+                    ingress.External == true)
                 {
                     isHealthy = isHealthy && bool.TryParse(result.Details["EndpointReachable"], out bool endpointReachable) && endpointReachable;
                 }
@@ -1001,7 +1001,7 @@ namespace Agent.Plugins.Implementation
                 if (string.IsNullOrWhiteSpace(newImageReference))
                 {
                     return ImageUpdateResult.Failure("Invalid container image reference format",
-                        null, newImageReference, details);
+                        string.Empty, newImageReference, details);
                 }
 
                 // Create a data object for the update
@@ -1014,7 +1014,7 @@ namespace Agent.Plugins.Implementation
                 if (updateData.Template?.Containers == null || updateData.Template.Containers.Count == 0)
                 {
                     return ImageUpdateResult.Failure("No containers found in the Container App template",
-                        null, newImageReference, details);
+                        string.Empty, newImageReference, details);
                 }
 
                 // Store the original image for logging
@@ -1064,12 +1064,12 @@ namespace Agent.Plugins.Implementation
                 details["ErrorType"] = ex.GetType().Name;
                 details["ErrorMessage"] = ex.Message;
                 return ImageUpdateResult.Failure($"Error updating image: {ex.Message}",
-                    null, newImageReference, details);
+                    string.Empty, newImageReference, details);
             }
 
             _logger.LogInternalError($"Failed to update Container App {resourceId}");
             return ImageUpdateResult.Failure($"Failed to update Container App image",
-                null, newImageReference, details);
+                string.Empty, newImageReference, details);
         }
 
         private async Task<RollbackResult> RollbackContainerApp(string resourceId)
@@ -1491,10 +1491,10 @@ namespace Agent.Plugins.Implementation
             {
                 var authResponseBody = await authResponse.Content.ReadAsStringAsync();
                 var token = JsonSerializer.Deserialize<JsonElement>(authResponseBody).GetProperty("token").GetString();
-                return token;
+                return token ?? string.Empty;
             }
 
-            return null;
+            return string.Empty;
         }
 
 
@@ -1774,7 +1774,7 @@ namespace Agent.Plugins.Implementation
                 Configurations: null,
                 Containers: [],
                 InitContainers: [],
-                Revisions: null); // Not including revisions for now
+                Revisions: []); // Not including revisions for now
 
             if (!limited)
             {
@@ -1932,7 +1932,7 @@ namespace Agent.Plugins.Implementation
                 return containerApp.Value.Data.Template.Containers[0].Image;
             }
 
-            return null;
+            return string.Empty;
         }
 
         private static async Task SendResize(WebSocket socket, int x, int y, CancellationToken token)
@@ -2018,22 +2018,27 @@ namespace Agent.Plugins.Implementation
             {
                 // Get Container App Details.
                 ResourceIdentifier resourceIdentifer = new ResourceIdentifier(resourceId);
-                string subscriptionId = resourceIdentifer.SubscriptionId;
+                string subscriptionId = resourceIdentifer?.SubscriptionId ?? string.Empty;
                 var armClient = await _armClientFactory.GetArmOperationClient();
                 var containerAppResource = armClient.GetContainerAppResource(resourceIdentifer);
                 var containerApp = await containerAppResource.GetAsync();
                 var activeRevisions = containerAppResource.GetContainerAppRevisions();
                 var firstActiveRevision = activeRevisions.FirstOrDefault(r => r.Data.IsActive == true);
-                var firstReplica = await firstActiveRevision.GetContainerAppReplicas().FirstOrDefault().GetAsync();
 
-                string execEndPoint = firstReplica.Value.Data.Containers.First().ExecEndpoint;
+                var firstReplicaResource = firstActiveRevision?.GetContainerAppReplicas().FirstOrDefault();
+
+                Response<ContainerAppReplicaResource>? firstReplica = firstReplicaResource != null
+                    ? await firstReplicaResource.GetAsync()
+                    : null;
+
+                string execEndPoint = firstReplica?.Value?.Data?.Containers?.First().ExecEndpoint ?? string.Empty;
 
                 var uriBuilder = new UriBuilder(execEndPoint);
                 var query = HttpUtility.ParseQueryString(uriBuilder.Query);
                 query.Add("command", "/bin/bash");
                 uriBuilder.Query = query.ToString();
 
-                string token = await _armHelper.GetProxyApiTokenAsync(subscriptionId, resourceIdentifer.ResourceGroupName, containerApp.Value.Data.Name);
+                string token = await _armHelper.GetProxyApiTokenAsync(subscriptionId, resourceIdentifer?.ResourceGroupName ?? string.Empty, containerApp.Value.Data.Name);
 
                 var webSocket = new ClientWebSocket();
                 webSocket.Options.SetRequestHeader("Authorization", $"Bearer {token}");
@@ -2391,17 +2396,44 @@ Here are the logs in JSON format:
 
             var logsAndComponents = await _graphDbPlugin.FetchActivityLogsAndComponents(resourceId);
             var logs = logsAndComponents.ActivityLogs;
-            var successfulDeployments =
-                                 logs.Where(l => l.TryGetValue("operationName", out var operationName) &&
-                                            l.TryGetValue("authorizationScope", out var authorizationScope) &&
-                                            l.TryGetValue("status", out var status) &&
-                                            //operationName.ToString().Contains("containerApps/write", StringComparison.OrdinalIgnoreCase) &&
-                                            status.ToString().Equals("Succeeded", StringComparison.OrdinalIgnoreCase) &&
-                                            authorizationScope.ToString().Contains(containerAppName, StringComparison.OrdinalIgnoreCase));
+
+            var successfulDeployments = logs.Where(l =>
+            {
+                if (!l.TryGetValue("operationName", out var operationName)) return false;
+                if (!l.TryGetValue("authorizationScope", out var authorizationScope)) return false;
+                if (!l.TryGetValue("status", out var status)) return false;
+
+                // Check for null before ToString()
+                var statusStr = status?.ToString();
+                var authScopeStr = authorizationScope?.ToString();
+
+                if (string.IsNullOrEmpty(statusStr) || string.IsNullOrEmpty(authScopeStr))
+                    return false;
+
+                // Uncomment if you want to filter by operationName:
+                // var operationNameStr = operationName?.ToString() ?? string.Empty;
+
+                return statusStr.Equals("Succeeded", StringComparison.OrdinalIgnoreCase)
+                       && authScopeStr.Contains(containerAppName, StringComparison.OrdinalIgnoreCase);
+            });
+
+
             var times = successfulDeployments
-                      .Select(log => DateTimeOffset.Parse(log["eventTimestamp"].ToString()))
-                      .OrderByDescending(t => t)
-                      .ToList();
+                 .Select(log =>
+                 {
+                     if (log.TryGetValue("eventTimestamp", out var timestampObj) && timestampObj != null)
+                     {
+                         if (DateTimeOffset.TryParse(timestampObj.ToString(), out var timestamp))
+                         {
+                             return (DateTimeOffset?)timestamp;
+                         }
+                     }
+                     return null;
+                 })
+                 .OfType<DateTimeOffset>()  // filters out nulls automatically
+                 .OrderByDescending(t => t)
+                 .ToList();
+
             var s = JsonSerializer.Serialize(times, new JsonSerializerOptions { WriteIndented = true });
             var d = await GetContainerUpdateDeploymentInformation(s, "");
             return times;

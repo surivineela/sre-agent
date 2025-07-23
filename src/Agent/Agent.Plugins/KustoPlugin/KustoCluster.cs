@@ -11,14 +11,14 @@ namespace Agent.Plugins.Kusto
     {
         [Required]
         [YamlMember(Alias = "region")]
-        public string Region { get; set; }
+        public string? Region { get; set; }
 
         [Required]
         [YamlMember(Alias = "clusterUri")]
-        public string ClusterUri { get; set; }
+        public string? ClusterUri { get; set; }
 
         [Required]
         [YamlMember(Alias = "database")]
-        public string Database { get; set; }
+        public string? Database { get; set; }
     }
 }

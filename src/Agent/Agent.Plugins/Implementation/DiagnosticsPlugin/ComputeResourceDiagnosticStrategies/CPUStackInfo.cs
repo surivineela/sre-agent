@@ -5,7 +5,7 @@ namespace Agent.Plugins.Implementation.DiagnosticsPlugin.ComputeResourceDiagnost
 public sealed class FunctionNode
 {
     [JsonPropertyName("FunctionName")]
-    public string FunctionName { get; set; }
+    public string? FunctionName { get; set; }
 
     [JsonPropertyName("TimeSpent")]
     public double? TimeSpent { get; set; }
@@ -75,8 +75,8 @@ public static class CPUFunctionAnalyzer
     {
         var aggregated = AggregateByFunctionName(nodes);
         return aggregated.Values
-            .Where(n => n.InclusiveMetricPercent.HasValue)
-            .OrderByDescending(n => n.InclusiveMetricPercent.Value)
+            .Where(n => n != null && n.InclusiveMetricPercent.HasValue)
+            .OrderByDescending(n => n.InclusiveMetricPercent!.Value)
             .Take(count)
             .ToList();
     }
@@ -94,7 +94,9 @@ public static class CPUFunctionAnalyzer
     {
         var aggregated = AggregateByFunctionName(nodes);
         return aggregated.Values
-            .Where(n => !IsSystemMethod(n.FunctionName) && !n.FunctionName.StartsWith("Process64"))
+            .Where(n => !string.IsNullOrEmpty(n.FunctionName) &&
+                        !IsSystemMethod(n.FunctionName) &&
+                        !n.FunctionName.StartsWith("Process64", StringComparison.Ordinal))
             .ToList();
     }
 
@@ -105,5 +107,5 @@ public static class CPUFunctionAnalyzer
 
     public static string PrintSummary(FunctionNode node)
         => $"- {node.FunctionName}\n  TimeSpent: {node.TimeSpent}, Exclusive: {node.ExclusiveTime}, Inclusive %: {node.InclusiveMetricPercent?.ToString("F3") ?? "N/A"}";
-    
+
 }

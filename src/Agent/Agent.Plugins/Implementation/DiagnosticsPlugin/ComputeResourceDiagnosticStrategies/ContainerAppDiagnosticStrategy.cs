@@ -4,7 +4,6 @@ using System.Text.RegularExpressions;
 using System.Web;
 using Agent.Core.Helpers;
 using Azure.Core;
-using Agent.Logging;
 using Microsoft.Extensions.Logging;
 using Agent.Core.Interfaces;
 using System.Net;
@@ -16,14 +15,14 @@ namespace Agent.Plugins.Implementation.DiagnosticsPlugin.ComputeResourceDiagnost
 internal sealed class ContainerAppDiagnosticStrategy : ComputeResourceDiagnosticStrategyBase
 {
     private readonly ArmHelper _armHelper;
-    private readonly IArmClientFactory _armClientFactory; 
+    private readonly IArmClientFactory _armClientFactory;
 
     public ContainerAppDiagnosticStrategy(ILogger<DiagnosticsPlugin> logger, ArmHelper armHelper, IArmClientFactory armClientFactory)
         : base(logger)
     {
         _armHelper = armHelper;
         _armClientFactory = armClientFactory;
-        
+
         _analysisHandlers = new Dictionary<AnalysisType, Func<string, ComputeResourceInfo, AnalysisType, string, Task<string>>>
         {
             { AnalysisType.Memory, AnalyzeMemoryAsync },
@@ -96,22 +95,25 @@ internal sealed class ContainerAppDiagnosticStrategy : ComputeResourceDiagnostic
         {
             // Get Container App Details.
             ResourceIdentifier resourceIdentifer = new ResourceIdentifier(resourceId);
-            string subscriptionId = resourceIdentifer.SubscriptionId;
+            string subscriptionId = resourceIdentifer.SubscriptionId ?? string.Empty;
             var armClient = await _armClientFactory.GetArmOperationClient();
             var containerAppResource = armClient.GetContainerAppResource(resourceIdentifer);
             var containerApp = await containerAppResource.GetAsync();
             var activeRevisions = containerAppResource.GetContainerAppRevisions();
             var firstActiveRevision = activeRevisions.FirstOrDefault(r => r.Data.IsActive == true);
-            var firstReplica = await firstActiveRevision.GetContainerAppReplicas().FirstOrDefault().GetAsync();
+            var firstReplica = firstActiveRevision?.GetContainerAppReplicas().FirstOrDefault() is { } first
+                ? await first.GetAsync()
+                : null;
 
-            string execEndPoint = firstReplica.Value.Data.Containers.First().ExecEndpoint;
+
+            string execEndPoint = firstReplica?.Value?.Data?.Containers?.First().ExecEndpoint ?? string.Empty;
 
             var uriBuilder = new UriBuilder(execEndPoint);
             var query = HttpUtility.ParseQueryString(uriBuilder.Query);
             query.Add("command", "/bin/bash");
             uriBuilder.Query = query.ToString();
 
-            string token = await _armHelper.GetProxyApiTokenAsync(subscriptionId, resourceIdentifer.ResourceGroupName, containerApp.Value.Data.Name);
+            string token = await _armHelper.GetProxyApiTokenAsync(subscriptionId, resourceIdentifer.ResourceGroupName ?? string.Empty, containerApp.Value.Data.Name);
 
             var webSocket = new ClientWebSocket();
             webSocket.Options.SetRequestHeader("Authorization", $"Bearer {token}");

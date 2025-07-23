@@ -58,7 +58,7 @@ public sealed class DiagnosticsPlugin : IDiagnosticsPlugin
         ComputeResourceInfo computeResourceInfo = await GetComputeResourceInfoAsync(resourceId, additionalProperties);
 
         // Step 2. Based on the Compute Info -> Dispatch to the right analysis type.
-        IComputeResourceDiagnosticStrategy diagnosticStrategy = _computeDiagnosticStrategies.FirstOrDefault(strategy => strategy.CanHandle(computeResourceInfo));
+        IComputeResourceDiagnosticStrategy? diagnosticStrategy = _computeDiagnosticStrategies.FirstOrDefault(strategy => strategy.CanHandle(computeResourceInfo));
 
         // Step 3. Return the result.
         if (diagnosticStrategy != null)

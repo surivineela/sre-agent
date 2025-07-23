@@ -8,44 +8,44 @@ namespace Agent.Plugins.Models;
 
 public class WebAppModel
 {
-    public string ResourceId { get; set; }
-    public string Name { get; set; }
-    public string Location { get; set; }
+    public string ResourceId { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Location { get; set; } = string.Empty;
     public string SlotName { get; set; } = "Production";
 }
 
 public class StampSiteModel
 {
     [JsonProperty("name")]
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     [JsonProperty("web_workers")]
-    public List<WebWorkerDetails> WebWorkers { get; set; }
+    public List<WebWorkerDetails> WebWorkers { get; set; } = new();
 
     [JsonProperty("hostnames")]
-    public List<HostnameDetails> Hostnames { get; set; }
+    public List<HostnameDetails> Hostnames { get; set; } = new();
 }
 
 public class WebWorkerDetails
 {
     [JsonProperty("instance_name")]
-    public string InstanceName { get; set; }
+    public string InstanceName { get; set; } = string.Empty;
 
     [JsonProperty("reboot_link")]
-    public string RebootLink { get; set; }
+    public string RebootLink { get; set; } = string.Empty;
 
     [JsonProperty("reimage_link")]
-    public string ReimageLink { get; set; }
+    public string ReimageLink { get; set; } = string.Empty;
 }
 
 public class HostnameDetails
 {
     [JsonProperty("hostname")]
-    public string Hostname { get; set; }
-    
+    public string Hostname { get; set; } = string.Empty;
+
     [JsonProperty("link")]
-    public string Link { get; set; }
-    
+    public string Link { get; set; } = string.Empty;
+
     [JsonProperty("hostname_type")]
     public int HostnameType { get; set; }
 }

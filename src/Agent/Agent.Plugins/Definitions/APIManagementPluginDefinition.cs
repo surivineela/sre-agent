@@ -4,7 +4,6 @@ using Agent.Core.Models;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
 using Azure.ResourceManager.ApiManagement;
-using Azure.ResourceManager.ApiManagement.Models;
 using static Agent.Plugins.Helpers.APIManagementHelper;
 
 namespace Agent.Plugins.Definitions
@@ -61,7 +60,7 @@ namespace Agent.Plugins.Definitions
             "If neither is provided, defaults to the past 24 hours up to 0 hours ago.")]
         public async Task<string> GetAPIMErrorLogsAsync(
             [Description("The full Azure resource ID of the API Management instance (format: /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.ApiManagement/service/{serviceName}).")] string apiManagementResourceId,
-            [Description("Optional. Filter by HTTP status code (e.g., 500, 404). If not provided, all failed responses are included.")] string statusCode = null,
+            [Description("Optional. Filter by HTTP status code (e.g., 500, 404). If not provided, all failed responses are included.")] string statusCode = "",
             [Description("Optional. Number of log entries to retrieve. Defaults to 6.")] int top = 6,
             [Description("Optional. Number of hours ago to start the range (e.g., 24 for 24 hours ago). Defaults to 24.")] int startHoursAgo = 24,
             [Description("Optional. Number of hours ago to end the range (e.g., 0 for now, 1 for 1 hour ago). Defaults to 0.")] int endHoursAgo = 0)
@@ -133,7 +132,7 @@ namespace Agent.Plugins.Definitions
             "This method queries the API Management service for its defined APIs.")]
         public async Task<List<APIManagementApiDescriptor>> GetAPIMApisAsync(
             [Description("Full Azure resource ID of the API Management instance (e.g. /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.ApiManagement/service/{serviceName})")] string apiManagementResourceId,
-            [Description("Optional name of the workspace within the API Management instance.")] string? workspaceName = null)
+            [Description("Optional name of the workspace within the API Management instance.")] string workspaceName = "")
         {
             return await _apiManagementPlugin.GetAPIMApisAsync(apiManagementResourceId, workspaceName);
         }
@@ -142,10 +141,10 @@ namespace Agent.Plugins.Definitions
             "Retrieves detailed information about a specific API in the Azure API Management instance by its name. " +
             "Returns an APIManagementApiDescriptor with properties like Id, Name, Type, and detailed properties including display name, revision, description, subscription requirements, service URL, backend ID, path, protocols, authentication settings, and subscription key parameter names. " +
             "This method queries the API Management service for the specified API.")]
-        public async Task<APIManagementApiDescriptor> GetAPIDetailsByNameAsync(
+        public async Task<APIManagementApiDescriptor?> GetAPIDetailsByNameAsync(
             [Description("Full Azure resource ID of the API Management instance (e.g. /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.ApiManagement/service/{serviceName})")] string apiManagementResourceId,
             [Description("The name of the API to retrieve details for.")] string apiName,
-            [Description("Optional name of the workspace within the API Management instance.")] string? workspaceName = null)
+            [Description("Optional name of the workspace within the API Management instance.")] string workspaceName = "")
         {
             return await _apiManagementPlugin.GetAPIDetailsByNameAsync(apiManagementResourceId, apiName, workspaceName);
         }
@@ -157,7 +156,7 @@ namespace Agent.Plugins.Definitions
         public async Task<List<APIManagementApiOperationSummary>> GetAPIOperationsByApiAsync(
             [Description("Full Azure resource ID of the API Management instance (e.g. /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.ApiManagement/service/{serviceName})")] string apiManagementResourceId,
             [Description("The name of the API to retrieve operations for.")] string apiName,
-            [Description("Optional name of the workspace within the API Management instance.")] string? workspaceName = null)
+            [Description("Optional name of the workspace within the API Management instance.")] string workspaceName = "")
 
         {
             return await _apiManagementPlugin.GetAPIOperationsByApiAsync(apiManagementResourceId, apiName, workspaceName);
@@ -167,17 +166,17 @@ namespace Agent.Plugins.Definitions
             "Retrieves detailed information about a specific operation in an API within the Azure API Management instance. " +
             "Returns a markdown table with columns: OperationId, Name, Policies, Method, Responses, Properties, etc. " +
             "This method queries the API Management service for detailed operation information.")]
-        public async Task<APIManagementApiOperationDescriptor> GetAPIOperationDetailedInfoAsync(
+        public async Task<APIManagementApiOperationDescriptor?> GetAPIOperationDetailedInfoAsync(
             [Description("Full Azure resource ID of the API Management instance (e.g. /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.ApiManagement/service/{serviceName})")] string apiManagementResourceId,
             [Description("The name of the API to retrieve operations for.")] string apiName,
             [Description("The name of the operation to retrieve detailed information for.")] string operationName,
-            [Description("Optional name of the workspace within the API Management instance.")] string? workspaceName = null)
+            [Description("Optional name of the workspace within the API Management instance.")] string workspaceName = "")
         {
             return await _apiManagementPlugin.GetAPIOperationDetailedInfoAsync(apiManagementResourceId, apiName, operationName, workspaceName);
         }
 
         [Description("Gets policies for a specific API in the API Management instance.")]
-        public async Task<ApiPolicyResource> GetPoliciesByApiAsync(
+        public async Task<ApiPolicyResource?> GetPoliciesByApiAsync(
             [Description("Full Azure resource ID of the API Management instance (e.g. /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.ApiManagement/service/{serviceName})")] string apiManagementResourceId,
             [Description("The name of the API.")] string apiName)
         {
@@ -185,7 +184,7 @@ namespace Agent.Plugins.Definitions
         }
 
         [Description("Gets policies for a specific operation in the API Management instance.")]
-        public async Task<ApiOperationPolicyResource> GetPoliciesByOperationAsync(
+        public async Task<ApiOperationPolicyResource?> GetPoliciesByOperationAsync(
             [Description("Full Azure resource ID of the API Management instance (e.g. /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.ApiManagement/service/{serviceName})")] string apiManagementResourceId,
             [Description("The name of the API.")] string apiName,
             [Description("The name of the operation.")] string operationId)
@@ -198,7 +197,7 @@ namespace Agent.Plugins.Definitions
             "Returns the policy resource containing the XML policy configuration. " +
             "Note: This only retrieves global/tenant-level policies, not API-specific or operation-level policies." +
             "Note: If this policy does not include <backend> <forward-request /> </backend>, then the user will not get the response body from their backend")]
-        public async Task<ApiManagementPolicyResource> GetGlobalApimPolicyAsync(
+        public async Task<ApiManagementPolicyResource?> GetGlobalApimPolicyAsync(
             [Description("Full Azure resource ID of the API Management instance (e.g. /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.ApiManagement/service/{serviceName})")] string apiManagementResourceId)
         {
             return await _apiManagementPlugin.GetGlobalApimPolicyAsync(apiManagementResourceId);

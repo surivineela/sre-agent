@@ -28,7 +28,7 @@ namespace Agent.Plugins.Definitions
         [Description("PREFERRED METHOD FOR APP SERVICE DETAILS: Gets detailed information about a specific Azure App Service by its resource ID. " +
             "Returns an AppServiceDescriptor with resource ID, name, kind, location, SKU, state, and resource group. " +
             "Always use this specialized method for App Services instead of generic resource search functions for more complete and accurate information.")]
-        public async Task<AppServiceDescriptor> GetAppServiceInfoAsync(string resourceId)
+        public async Task<AppServiceDescriptor?> GetAppServiceInfoAsync(string resourceId)
         {
             return await _appServicePlugin.GetAppServiceInfoAsync(resourceId);
         }

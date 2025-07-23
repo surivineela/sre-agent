@@ -17,17 +17,17 @@ namespace Agent.Plugins.Models
         /// <summary>
         /// Error message if monitoring failed
         /// </summary>
-        public string Error { get; set; }
+        public string? Error { get; set; }
 
         /// <summary>
         /// Name of the container app
         /// </summary>
-        public string ContainerAppName { get; set; }
+        public string? ContainerAppName { get; set; }
 
         /// <summary>
         /// Resource ID of the container app
         /// </summary>
-        public string ResourceId { get; set; }
+        public string? ResourceId { get; set; }
 
         /// <summary>
         /// Calculated availability percentage
@@ -37,7 +37,7 @@ namespace Agent.Plugins.Models
         /// <summary>
         /// Generated chart data in base64 format
         /// </summary>
-        public string ChartData { get; set; }
+        public string? ChartData { get; set; }
 
         /// <summary>
         /// Whether the availability is below the acceptable threshold
@@ -47,7 +47,7 @@ namespace Agent.Plugins.Models
         /// <summary>
         /// Results of container log inspection if there was low availability
         /// </summary>
-        public LogInspectionResult LogInspectionResult { get; set; }
+        public LogInspectionResult? LogInspectionResult { get; set; }
     }
 
     /// <summary>
@@ -58,7 +58,7 @@ namespace Agent.Plugins.Models
         /// <summary>
         /// Resource ID of the container app
         /// </summary>
-        public string ResourceId { get; set; }
+        public string? ResourceId { get; set; }
 
         /// <summary>
         /// Whether an image pull failure was detected
@@ -68,17 +68,17 @@ namespace Agent.Plugins.Models
         /// <summary>
         /// Type of failure detected
         /// </summary>
-        public string FailureType { get; set; }
+        public string? FailureType { get; set; }
 
         /// <summary>
         /// Details of the error
         /// </summary>
-        public string ErrorDetails { get; set; }
+        public string? ErrorDetails { get; set; }
 
         /// <summary>
         /// Image reference that failed to pull
         /// </summary>
-        public string ImageReference { get; set; }
+        public string? ImageReference { get; set; }
 
         /// <summary>
         /// Type of registry the image is from
@@ -94,12 +94,12 @@ namespace Agent.Plugins.Models
         /// <summary>
         /// Resource ID of the container app
         /// </summary>
-        public string ResourceId { get; set; }
+        public string? ResourceId { get; set; }
 
         /// <summary>
         /// Image reference being checked
         /// </summary>
-        public string ImageReference { get; set; }
+        public string? ImageReference { get; set; }
 
         /// <summary>
         /// Whether authentication is successful
@@ -109,12 +109,12 @@ namespace Agent.Plugins.Models
         /// <summary>
         /// Error message if authentication failed
         /// </summary>
-        public string ErrorMessage { get; set; }
+        public string? ErrorMessage { get; set; }
 
         /// <summary>
         /// Potential solution to fix the authentication issue
         /// </summary>
-        public string PotentialSolution { get; set; }
+        public string? PotentialSolution { get; set; }
     }
 
     /// <summary>
@@ -125,12 +125,12 @@ namespace Agent.Plugins.Models
         /// <summary>
         /// Resource ID of the container app
         /// </summary>
-        public string ResourceId { get; set; }
+        public string? ResourceId { get; set; }
 
         /// <summary>
         /// Image reference being checked
         /// </summary>
-        public string ImageReference { get; set; }
+        public string? ImageReference { get; set; }
 
         /// <summary>
         /// Type of registry being verified
@@ -150,23 +150,23 @@ namespace Agent.Plugins.Models
         /// <summary>
         /// Reason for failure if verification failed
         /// </summary>
-        public string FailureReason { get; set; }
+        public string? FailureReason { get; set; }
 
         /// <summary>
         /// Detailed error message
         /// </summary>
-        public string ErrorDetails { get; set; }
+        public string? ErrorDetails { get; set; }
 
         /// <summary>
         /// Recommended action to fix the issue
         /// </summary>
-        public string RecommendedAction { get; set; }
+        public string? RecommendedAction { get; set; }
     }
 
     public class ImagePullingResult
     {
         public bool IsSuccessful { get; set; }
-        public string FailureReason { get; set; }
+        public string? FailureReason { get; set; }
     }
 
     /// <summary>
@@ -177,7 +177,7 @@ namespace Agent.Plugins.Models
         /// <summary>
         /// Resource ID of the container app or web app
         /// </summary>
-        public string ResourceId { get; set; }
+        public string? ResourceId { get; set; }
 
         /// <summary>
         /// Whether the rollback was successful
@@ -187,27 +187,27 @@ namespace Agent.Plugins.Models
         /// <summary>
         /// The current image reference before rollback
         /// </summary>
-        public string CurrentImage { get; set; }
+        public string? CurrentImage { get; set; }
 
         /// <summary>
         /// The image reference that was rolled back to
         /// </summary>
-        public string RolledBackToImage { get; set; }
+        public string? RolledBackToImage { get; set; }
 
         /// <summary>
         /// The name/ID of the previous revision or deployment that was used for rollback
         /// </summary>
-        public string PreviousRevision { get; set; }
+        public string? PreviousRevision { get; set; }
 
         /// <summary>
         /// Error message if rollback failed
         /// </summary>
-        public string ErrorMessage { get; set; }
+        public string? ErrorMessage { get; set; }
 
         /// <summary>
         /// Potential solution to fix the rollback issue
         /// </summary>
-        public string PotentialSolution { get; set; }
+        public string? PotentialSolution { get; set; }
     }
 
     /// <summary>
@@ -218,7 +218,7 @@ namespace Agent.Plugins.Models
         /// <summary>
         /// Resource ID of the container app or web app
         /// </summary>
-        public string ResourceId { get; set; }
+        public string? ResourceId { get; set; }
 
         /// <summary>
         /// Whether the update was successful
@@ -228,27 +228,27 @@ namespace Agent.Plugins.Models
         /// <summary>
         /// The previous image reference before update
         /// </summary>
-        public string PreviousImage { get; set; }
+        public string? PreviousImage { get; set; }
 
         /// <summary>
         /// The new image reference after update
         /// </summary>
-        public string NewImage { get; set; }
+        public string? NewImage { get; set; }
 
         /// <summary>
         /// Name of the container that was updated (for multi-container apps)
         /// </summary>
-        public string ContainerName { get; set; }
+        public string? ContainerName { get; set; }
 
         /// <summary>
         /// Error message if update failed
         /// </summary>
-        public string ErrorMessage { get; set; }
+        public string? ErrorMessage { get; set; }
 
         /// <summary>
         /// Potential solution to fix the update issue
         /// </summary>
-        public string PotentialSolution { get; set; }
+        public string? PotentialSolution { get; set; }
 
         /// <summary>
         /// When the update was performed
@@ -269,7 +269,7 @@ namespace Agent.Plugins.Models
         /// <summary>
         /// The image reference that was attempted to pull
         /// </summary>
-        public string ImageReference { get; set; }
+        public string? ImageReference { get; set; }
 
         /// <summary>
         /// Registry type of the image
@@ -279,22 +279,22 @@ namespace Agent.Plugins.Models
         /// <summary>
         /// Authentication method used for the pull attempt
         /// </summary>
-        public string AuthenticationMethod { get; set; }
+        public string? AuthenticationMethod { get; set; }
 
         /// <summary>
         /// Detailed error message if pull failed
         /// </summary>
-        public string ErrorMessage { get; set; }
+        public string? ErrorMessage { get; set; }
 
         /// <summary>
         /// Technical details about the pull operation
         /// </summary>
-        public string Details { get; set; }
+        public string? Details { get; set; }
 
         /// <summary>
         /// Suggested fix if the pull failed
         /// </summary>
-        public string SuggestedFix { get; set; }
+        public string? SuggestedFix { get; set; }
 
         /// <summary>
         /// Time taken in seconds to attempt the pull
@@ -326,13 +326,13 @@ namespace Agent.Plugins.Models
     public class DiagnosticResult
     {
         public bool DnsResolved { get; set; }
-        public List<string> IpAddresses { get; set; }
+        public List<string>? IpAddresses { get; set; }
         public bool HttpsAccessible { get; set; }
         public bool IsRegistryApi { get; set; }
         public bool RequiresAuth { get; set; }
-        public string AuthScheme { get; set; }
+        public string? AuthScheme { get; set; }
         public int StatusCode { get; set; }
-        public string Error { get; set; }
+        public string? Error { get; set; }
     }
 
     /// <summary>
@@ -342,8 +342,8 @@ namespace Agent.Plugins.Models
     {
         public bool IsConnected { get; set; }
         public int HttpStatusCode { get; set; }
-        public string ErrorMessage { get; set; }
-        public string PotentialSolution { get; set; }
+        public string? ErrorMessage { get; set; }
+        public string? PotentialSolution { get; set; }
     }
 
     /// <summary>
@@ -351,19 +351,19 @@ namespace Agent.Plugins.Models
     /// </summary>
     public class ImageReferenceInfo
     {
-        public string Registry { get; set; }
-        public string Repository { get; set; }
-        public string Tag { get; set; }
+        public string? Registry { get; set; }
+        public string? Repository { get; set; }
+        public string? Tag { get; set; }
         public RegistryType RegistryType { get; set; }
         public bool RequiresAuth { get; set; }
     }
 
     public class RegistryAuthConfig
     {
-        public string RegistryServer { get; set; }
-        public string Username { get; set; }
-        public string PasswordReference { get; set; }
-        public string IdentityReference { get; set; }
+        public string? RegistryServer { get; set; }
+        public string? Username { get; set; }
+        public string? PasswordReference { get; set; }
+        public string? IdentityReference { get; set; }
         public bool IsSystemManagedIdentity { get; set; }
     }
 
@@ -384,8 +384,8 @@ namespace Agent.Plugins.Models
 
     public class ContainerDiagnosticResult
     {
-        public string ResourceId { get; set; }
-        public string ResourceType { get; set; }
+        public string? ResourceId { get; set; }
+        public string? ResourceType { get; set; }
         public bool HasIssues { get; set; }
         public List<DiagnosticIssue> Issues { get; set; }
         public Dictionary<string, string> ResourceProperties { get; set; }
@@ -401,10 +401,10 @@ namespace Agent.Plugins.Models
 
     public class DiagnosticIssue
     {
-        public string Category { get; set; }
-        public string Severity { get; set; }
-        public string Description { get; set; }
-        public string Impact { get; set; }
+        public string? Category { get; set; }
+        public string? Severity { get; set; }
+        public string? Description { get; set; }
+        public string? Impact { get; set; }
         public List<string> PossibleSolutions { get; set; }
         public Dictionary<string, string> Context { get; set; }
 
@@ -424,22 +424,22 @@ namespace Agent.Plugins.Models
         /// Whether the image update operation was successful
         /// </summary>
         public bool IsSuccess { get; set; }
-        
+
         /// <summary>
         /// Reason for failure, if the update was not successful
         /// </summary>
-        public string FailureReason { get; set; }
-        
+        public string? FailureReason { get; set; }
+
         /// <summary>
         /// Original image reference before the update
         /// </summary>
-        public string OriginalImageReference { get; set; }
-        
+        public string? OriginalImageReference { get; set; }
+
         /// <summary>
         /// New image reference that was applied
         /// </summary>
-        public string NewImageReference { get; set; }
-        
+        public string? NewImageReference { get; set; }
+
         /// <summary>
         /// Additional details about the update operation
         /// </summary>
@@ -448,7 +448,7 @@ namespace Agent.Plugins.Models
         /// <summary>
         /// Creates a successful image update result
         /// </summary>
-        public static ImageUpdateResult Success(string originalImage, string newImage, Dictionary<string, string> details = null)
+        public static ImageUpdateResult Success(string originalImage, string newImage, Dictionary<string, string>? details = null)
         {
             return new ImageUpdateResult
             {
@@ -462,7 +462,7 @@ namespace Agent.Plugins.Models
         /// <summary>
         /// Creates a failed image update result
         /// </summary>
-        public static ImageUpdateResult Failure(string reason, string originalImage = null, string newImage = null, Dictionary<string, string> details = null)
+        public static ImageUpdateResult Failure(string reason, string originalImage = "", string newImage = "", Dictionary<string, string>? details = null)
         {
             return new ImageUpdateResult
             {
@@ -484,17 +484,17 @@ namespace Agent.Plugins.Models
         /// Whether the rollback operation was successful
         /// </summary>
         public bool IsSuccess { get; set; }
-        
+
         /// <summary>
         /// Reason for failure, if the rollback was not successful
         /// </summary>
-        public string FailureReason { get; set; }
-        
+        public string? FailureReason { get; set; }
+
         /// <summary>
         /// Name of the revision that was rolled back to, if successful
         /// </summary>
-        public string TargetRevisionName { get; set; }
-        
+        public string? TargetRevisionName { get; set; }
+
         /// <summary>
         /// Additional details about the rollback operation
         /// </summary>
@@ -503,7 +503,7 @@ namespace Agent.Plugins.Models
         /// <summary>
         /// Creates a successful rollback result
         /// </summary>
-        public static RollbackResult Success(string revisionName, Dictionary<string, string> details = null)
+        public static RollbackResult Success(string revisionName, Dictionary<string, string>? details = null)
         {
             return new RollbackResult
             {
@@ -516,7 +516,7 @@ namespace Agent.Plugins.Models
         /// <summary>
         /// Creates a failed rollback result
         /// </summary>
-        public static RollbackResult Failure(string reason, Dictionary<string, string> details = null)
+        public static RollbackResult Failure(string reason, Dictionary<string, string>? details = null)
         {
             return new RollbackResult
             {
@@ -536,14 +536,14 @@ namespace Agent.Plugins.Models
         /// Whether the Container App is considered healthy
         /// </summary>
         public bool IsHealthy { get; set; }
-        
+
         /// <summary>
         /// Detailed status information
         /// <summary>
         /// Detailed status information
         /// </summary>
         public Dictionary<string, string> Details { get; set; } = [];
-        
+
         /// <summary>
         /// Descriptive messages about the health status
         /// </summary>

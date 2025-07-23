@@ -1,6 +1,5 @@
 using Evaluation.Evaluators;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.AI.Evaluation.Quality;
 using Microsoft.Extensions.AI.Evaluation;
 using Agent.Evals.Evaluators;
 using Agent.Evals.Common;
@@ -15,7 +14,7 @@ public static class EvaluatorExtensions
     {
         return new EvaluationResult
         {
-            Value = int.Parse(metric.Value),
+            Value = int.Parse(metric.Value ?? "0"),
             Reason = metric.Reason,
         };
     }
@@ -71,12 +70,13 @@ public static class EvaluatorExtensions
 
     public static ChatResponse CombineAgentResponses(this List<ChatMessage>? chatMessages)
     {
-        var combinedText = string.Join($"{Environment.NewLine}{Environment.NewLine}", chatMessages
+        var combinedText = string.Join($"{Environment.NewLine}{Environment.NewLine}",
+            (chatMessages ?? Enumerable.Empty<ChatMessage>())
             .Where(x => x.Role == ChatRole.Assistant)
             .Where(x => !string.IsNullOrEmpty(x.Text))
             .Select(x => x.Text)
-            .ToList());
-        
+        );
+
         return new ChatResponse(new ChatMessage(ChatRole.Assistant, combinedText));
     }
 }

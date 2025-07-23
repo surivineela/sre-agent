@@ -194,7 +194,7 @@ Returns a JSON object with validation details:
         {
             var subscriptionDetails = await _icmWorkflowClient.GetSubscriptionDetail(subscriptionId);
 
-            string offerType = subscriptionDetails?.OfferType;
+            string offerType = subscriptionDetails?.OfferType ?? string.Empty;
 
             if (string.IsNullOrEmpty(offerType))
             {

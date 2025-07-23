@@ -208,7 +208,11 @@ public class GraphService : IGraphService
             foreach (var aksResource in aksResources)
             {
                 // Replace direct property access with GetFirstValueAsString method
-                string aksResourceId = GetFirstValueAsString(aksResource["properties"] as IDictionary<string, object>, "resourceId");
+                var properties = aksResource?["properties"] as IDictionary<string, object>;
+                string aksResourceId = properties != null
+                    ? GetFirstValueAsString(properties, "resourceId")
+                    : string.Empty;
+
                 if (string.IsNullOrWhiteSpace(aksResourceId))
                 {
                     _logger.LogInternalWarning("AKS resource ID is null or empty, skipping query for deployments and statefulsets.");
@@ -296,13 +300,21 @@ public class GraphService : IGraphService
         {
             var properties = item["properties"] as IDictionary<string, object>;
 
+            string kind = string.Empty;
+            if (properties?.TryGetValue("resourceKind", out var kindValue) == true && kindValue != null)
+            {
+                kind = kindValue.ToString() ?? string.Empty;
+            }
+
             var appGroupItem = new AppGroupItem
             {
                 Name = item["name"]?.ToString() ?? string.Empty,
-                Kind = properties != null && properties.TryGetValue("resourceKind", out var value) ? value as string : string.Empty,
+                Kind = properties?.TryGetValue("resourceKind", out var val) == true && val is string str ? str : string.Empty,
                 Type = item["type"]?.ToString() ?? string.Empty,
                 ResourceId = item["id"],
-                AppHealthInfo = properties != null && properties.ContainsKey("appHealthInfo") ? properties["appHealthInfo"] as AppHealthInfo : null,
+                AppHealthInfo = properties != null && properties.TryGetValue("appHealthInfo", out var healthInfo)
+                                ? healthInfo as AppHealthInfo
+                                : null,
                 SubItems = subItems
             };
             appGroupItems.Add(appGroupItem);
@@ -388,7 +400,7 @@ public class GraphService : IGraphService
             var item = new AppGroupItem
             {
                 Name = node["name"],
-                Kind = properties != null && properties.TryGetValue("resourceKind", out var kindValue) ? kindValue as string : string.Empty,
+                Kind = properties?.TryGetValue("resourceKind", out var val) == true && val is string str ? str : string.Empty,
                 Type = node["type"],
                 ResourceId = relatedResourceId,
                 AppHealthInfo = properties != null && properties.ContainsKey("appHealthInfo") ? properties["appHealthInfo"] as AppHealthInfo : null,
@@ -421,7 +433,7 @@ public class GraphService : IGraphService
         {
             if (node is IDictionary<string, object> dict)
             {
-                AppHealthInfo appHealthInfo = null;
+                AppHealthInfo? appHealthInfo = new AppHealthInfo();
 
                 if (dict.TryGetValue("properties", out var propertiesObj) && propertiesObj != null)
                 {
@@ -453,7 +465,7 @@ public class GraphService : IGraphService
                     ResourceGroupName = node["resourceGroupName"],
                     SubscriptionId = node["subscriptionId"],
                     ResourceId = node["resourceId"],
-                    AppHealthInfo = appHealthInfo
+                    AppHealthInfo = appHealthInfo ?? new AppHealthInfo(),
                 };
 
                 resources.Add(armResourceNode);
@@ -526,7 +538,7 @@ public class GraphService : IGraphService
                         {
                             var token = await _azureDevOpsWorkItemPlugin.GetToken();
                             var authToken = await _threadRepository.CreateOrUpdateAzureDevOpsAccessTokenAsync(new(token.AccessToken, ExpiresOn: token.ExpiresOn), resourceId);
-                            var sourceCodeLinkageStatus = new { Status = "Linked", RepositoryUrl = repoUrl, LoginCallbackUrl = (string)null };
+                            var sourceCodeLinkageStatus = new { Status = "Linked", RepositoryUrl = repoUrl, LoginCallbackUrl = string.Empty };
                             ((IDictionary<string, object>)item)["sourceCodeLinkageStatus"] = sourceCodeLinkageStatus;
                         }
 
@@ -539,7 +551,7 @@ public class GraphService : IGraphService
                     else
                     {
                         // No-Op since the the azDoAccessTokenConfigured is true. Ensure the repo is linked.
-                        var sourceCodeLinkageStatus = new { Status = "Linked", RepositoryUrl = repoUrl, LoginCallbackUrl = (string)null };
+                        var sourceCodeLinkageStatus = new { Status = "Linked", RepositoryUrl = repoUrl, LoginCallbackUrl = string.Empty };
                         ((IDictionary<string, object>)item)["sourceCodeLinkageStatus"] = sourceCodeLinkageStatus;
                     }
                 }
@@ -548,10 +560,10 @@ public class GraphService : IGraphService
                 if (!string.IsNullOrEmpty(repoUrl) && GithubRegexMatch(repoUrl))
                 {
                     var loginUrl = _githubIssuePlugin.GenerateLoginLink();
-                    var sourceCodeLinkageStatus =
-                        githubAccessTokenConfigured
-                        ? new { Status = "Linked", RepositoryUrl = repoUrl, LoginCallbackUrl = (string)null }
-                        : new { Status = "RequiresAuth", RepositoryUrl = repoUrl, LoginCallbackUrl = loginUrl };
+                    var sourceCodeLinkageStatus = githubAccessTokenConfigured
+                     ? new { Status = "Linked", RepositoryUrl = repoUrl, LoginCallbackUrl = string.Empty }
+                     : new { Status = "RequiresAuth", RepositoryUrl = repoUrl, LoginCallbackUrl = loginUrl };
+
 
                     ((IDictionary<string, object>)item)["sourceCodeLinkageStatus"] = sourceCodeLinkageStatus;
                 }
@@ -560,7 +572,7 @@ public class GraphService : IGraphService
                 if (!string.IsNullOrWhiteSpace(_dashboardSettings.GrafanaUrl) &&
                     !string.IsNullOrWhiteSpace(_dashboardSettings.GrafanaApiKey))
                 {
-                    if (_dashboardsToProcessByResourceType.TryGetValue(resourceType, out string dashboardType))
+                    if (_dashboardsToProcessByResourceType.TryGetValue(resourceType, out string? dashboardType))
                     {
                         string baseUrl = $"{_dashboardSettings.GrafanaUrl}/d/{dashboardType}";
                         var queryParams = new Dictionary<string, string>
@@ -596,11 +608,14 @@ public class GraphService : IGraphService
 
                             foreach (var dashboard in dashboards.EnumerateArray())
                             {
-                                if (dashboard.TryGetProperty("url", out var urlElement) &&
-                                    urlElement.GetString().Contains(dashboardType, StringComparison.OrdinalIgnoreCase))
+                                if (dashboard.TryGetProperty("url", out var urlElement))
                                 {
-                                    dashboardUrl = $"{_dashboardSettings.GrafanaUrl}{urlElement.GetString()}";
-                                    break;
+                                    var url = urlElement.GetString();
+                                    if (!string.IsNullOrEmpty(url) && url.Contains(dashboardType, StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        dashboardUrl = $"{_dashboardSettings.GrafanaUrl}{url}";
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -618,13 +633,13 @@ public class GraphService : IGraphService
                     else
                     {
                         // Dashboard settings not fully configured
-                        ((IDictionary<string, object>)item)["dashboardUrl"] = null;
+                        ((IDictionary<string, object>)item)["dashboardUrl"] = string.Empty;
                     }
                 }
                 else
                 {
                     // No dashboard available for this resource type
-                    ((IDictionary<string, object>)item)["dashboardUrl"] = null;
+                    ((IDictionary<string, object>)item)["dashboardUrl"] = string.Empty;
                 }
             }
             catch (Exception ex)
@@ -633,7 +648,7 @@ public class GraphService : IGraphService
                 // Ensure the property exists even if there's an error
                 try
                 {
-                    ((IDictionary<string, object>)item)["dashboardUrl"] = null;
+                    ((IDictionary<string, object>)item)["dashboardUrl"] = string.Empty;
                 }
                 catch
                 {
@@ -649,7 +664,7 @@ public class GraphService : IGraphService
     {
         if (!properties.TryGetValue(key, out var value) || value == null)
         {
-            return null;
+            return string.Empty;
         }
 
         // Handle the IEnumerableSelectIterator using non-generic IEnumerable
@@ -658,11 +673,11 @@ public class GraphService : IGraphService
             var enumerator = enumerable.GetEnumerator();
             if (enumerator.MoveNext() && enumerator.Current != null)
             {
-                return enumerator.Current.ToString();
+                return enumerator.Current.ToString() ?? string.Empty;
             }
         }
 
-        return value.ToString();
+        return value.ToString() ?? string.Empty;
     }
 
     private string AddQueryParameters(string url, Dictionary<string, string> parameters)

@@ -36,7 +36,7 @@ namespace Agent.Plugins.Mocks
                 throw new ArgumentException($"Resource {appResourceId} not found");
             }
             var status = _tlsStatuses[appResourceId];
-            return status.MinimumTlsVersion;
+            return status.MinimumTlsVersion ?? string.Empty;
         }
 
         public Task<string> SetMinimumTlsVersion(string appResourceId, string minimumTlsVersion)
@@ -152,7 +152,7 @@ namespace Agent.Plugins.Mocks
             throw new NotImplementedException();
         }
 
-        public Task<string> GetAzCliHelpAsync(string helpTopic, string grepPattern = null)
+        public Task<string> GetAzCliHelpAsync(string helpTopic, string grepPattern = "")
         {
             // Mock implementation for testing
             var mockHelp = $"Mock help for Azure CLI topic: {helpTopic}";
@@ -186,14 +186,14 @@ namespace Agent.Plugins.Mocks
                 // Extract storage account name from URI host
                 string host = uri.Host;
                 string[] hostParts = host.Split('.');
-                
+
                 if (hostParts.Length < 4 || !host.Contains(".blob.core.windows.net"))
                 {
                     return Task.FromResult($"Error: URI does not appear to be a valid Azure Blob Storage URI: {storageServiceUri}");
                 }
-                
+
                 string storageAccountName = hostParts[0];
-                
+
                 // Generate a mock resource ID for the storage account using the provided subscription ID
                 return Task.FromResult($"/subscriptions/{subscriptionId}/resourceGroups/mock-resource-group/providers/Microsoft.Storage/storageAccounts/{storageAccountName}");
             }

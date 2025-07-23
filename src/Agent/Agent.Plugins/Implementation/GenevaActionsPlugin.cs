@@ -1,6 +1,4 @@
-using System;
 using System.Text.Json.Serialization;
-using System.Threading;
 using System.Runtime.Caching;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
@@ -13,11 +11,8 @@ using Agent.Plugins.Kusto;
 using Agent.Plugins.KustoPlugin;
 using Agent.Plugins.Models;
 using Microsoft.Azure.Cosmos;
-using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph.Models;
 using Newtonsoft.Json;
-using Octokit;
 using Author = Agent.Core.Models.Api.v1.Author;
 using Message = Agent.Core.Models.Api.v1.Message;
 
@@ -210,7 +205,7 @@ No approval request found for document ID: {documentId}. Please ensure the docum
             {
                 message = $"Geneva Action execution was rejected by {approvalStatus?.Data?.ApprovalDocumentCompleteDetails?.Principal}. Status: {status}. Comments: {approvalStatus?.Data?.ApprovalDocumentCompleteDetails?.Comments}";
                 _logger.LogInternalInformation(message);
-                
+
                 // Update the approval status in our cache
                 var cachedRequestDetails = GetApprovalRequestDetails(documentId);
                 if (cachedRequestDetails != null)
@@ -223,13 +218,13 @@ No approval request found for document ID: {documentId}. Please ensure the docum
                     };
                     UpdateApprovalRequestStatus(ThreadId!.Value, cachedRequestDetails.ActionName, cachedRequestDetails.InputParameters, documentId, cachedRequestDetails, _genevaActionsSettings);
                 }
-                
+
                 return message;
             }
         }
 
         message = $"Geneva Action approved by {approvalStatus?.Data?.ApprovalDocumentCompleteDetails?.Principal}. Proceeding with execution.";
-        
+
         // Update the approval status in our cache to approved
         var approvedRequestDetails = GetApprovalRequestDetails(documentId);
         if (approvedRequestDetails != null)
@@ -237,7 +232,7 @@ No approval request found for document ID: {documentId}. Please ensure the docum
             approvedRequestDetails.ApprovalStatus = OnebranchApprovalStatus.Approved;
             UpdateApprovalRequestStatus(ThreadId!.Value, approvedRequestDetails.ActionName, approvedRequestDetails.InputParameters, documentId, approvedRequestDetails, _genevaActionsSettings);
         }
-        
+
         await _threadRepository.AddMessageAsync(ThreadId!.Value, new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"), message!));
         return message;
     }
@@ -421,10 +416,10 @@ In order to potentially resolve the incident, the following Geneva Action '{acti
     {
         var cacheKey = GenerateCacheKey(threadId, actionName, inputParameters);
         var documentCacheKey = GenerateCacheKeyByDocumentId(documentId);
-        
+
         // Add with default expiration (no automatic expiration for pending requests)
         var policy = new CacheItemPolicy();
-        
+
         try
         {
             _approvalRequestsCache.Add(cacheKey, details, policy);
@@ -441,10 +436,10 @@ In order to potentially resolve the incident, the following Geneva Action '{acti
     {
         var cacheKey = GenerateCacheKey(threadId, actionName, inputParameters);
         var documentCacheKey = GenerateCacheKeyByDocumentId(documentId);
-        
+
         var removed1 = _approvalRequestsCache.Remove(cacheKey) != null;
         var removed2 = _approvalRequestsCache.Remove(documentCacheKey) != null;
-        
+
         return removed1 || removed2;
     }
 
@@ -464,9 +459,9 @@ In order to potentially resolve the incident, the following Geneva Action '{acti
     {
         var cacheKey = GenerateCacheKey(threadId, actionName, inputParameters);
         var documentCacheKey = GenerateCacheKeyByDocumentId(documentId);
-        
+
         CacheItemPolicy policy;
-        
+
         // If approved, set configurable expiration
         if (details.ApprovalStatus == OnebranchApprovalStatus.Approved)
         {
@@ -480,7 +475,7 @@ In order to potentially resolve the incident, the following Geneva Action '{acti
             // For other statuses, use default policy (no automatic expiration)
             policy = new CacheItemPolicy();
         }
-        
+
         _approvalRequestsCache.Set(cacheKey, details, policy);
         _approvalRequestsCache.Set(documentCacheKey, details, policy);
     }
@@ -489,8 +484,8 @@ In order to potentially resolve the incident, the following Geneva Action '{acti
     {
         [JsonPropertyName("id")]
         [JsonProperty("id")]
-        public string Id { get; set; }
-        public T Content { get; set; }
+        public string? Id { get; set; }
+        public T? Content { get; set; }
 
         [JsonPropertyName("_ts")]
         [JsonProperty("_ts")]

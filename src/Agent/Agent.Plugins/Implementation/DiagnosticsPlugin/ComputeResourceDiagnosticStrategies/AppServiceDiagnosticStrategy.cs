@@ -1,7 +1,6 @@
 using System.Text;
 using System.Text.RegularExpressions;
 using Agent.Core.Helpers;
-using Agent.Logging;
 using Agent.Plugins.Interface;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -97,11 +96,11 @@ internal class AppServiceDiagnosticStrategy : ComputeResourceDiagnosticStrategyB
         }
     }
 
-    public sealed class KuduCommandResult 
+    public sealed class KuduCommandResult
     {
-        public string Output { get; set; }
-        public string Error { get; set; }
-        public int ExitCode { get; set; }
+        public string? Output { get; set; }
+        public string? Error { get; set; }
+        public int? ExitCode { get; set; }
     }
 
     internal async Task<string> AnalyzeCpuAsync(string resourceId, ComputeResourceInfo info, AnalysisType type, string additionalProperties)
@@ -127,7 +126,7 @@ internal class AppServiceDiagnosticStrategy : ComputeResourceDiagnosticStrategyB
             runAnalysisCommand = await ExecKudu($"./dotnet-cpu.sh {traceFile}");
             var result = System.Text.Json.JsonSerializer.Deserialize<KuduCommandResult>(runAnalysisCommand);
             string pattern = @">>STARTING ANALYSIS<<([\s\S]*?)>>COMPLETED ANALYSIS<<";
-            Match match = Regex.Match(result.Output, pattern);
+            Match match = result?.Output != null ? Regex.Match(result.Output, pattern) : Match.Empty;
             string analysisResult = "";
             if (match.Success)
             {

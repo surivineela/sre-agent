@@ -209,36 +209,40 @@ namespace Agent.Plugins
                     // First, deserialize the result to a more strongly-typed structure we can work with
                     string tempJson = JsonSerializer.Serialize(result);
 
-                    var typedResult = JsonSerializer.Deserialize<List<Dictionary<string, object>>>(tempJson);
+                    var typedResult = JsonSerializer.Deserialize<List<Dictionary<string, object>>>(tempJson)
+                  ?? new List<Dictionary<string, object>>();
+
 
                     // Filter out pods, services, and nodes from each item
                     foreach (var item in typedResult)
                     {
-                        if (item.ContainsKey("objects"))
+                        if (item.TryGetValue("objects", out var objectsValue) && objectsValue is IEnumerable<object> objectsEnumerable)
                         {
-                            // Get the objects array
-                            var objectsJson = JsonSerializer.Serialize(item["objects"]);
-                            var objects = JsonSerializer.Deserialize<List<Dictionary<string, object>>>(objectsJson);
+                            var objects = objectsEnumerable
+                                .OfType<Dictionary<string, object>>()
+                                .ToList();
 
-                            // Filter the objects
                             var filteredObjects = objects.Where(obj =>
                             {
-                                if (obj.ContainsKey("resourceType"))
+                                if (obj.TryGetValue("resourceType", out var resourceTypeValue) &&
+                                    resourceTypeValue is IEnumerable<object> resourceTypeList)
                                 {
-                                    var resourceTypeJson = JsonSerializer.Serialize(obj["resourceType"]);
-                                    var resourceTypes = JsonSerializer.Deserialize<List<string>>(resourceTypeJson);
+                                    var resourceTypes = resourceTypeList
+                                        .OfType<string>()
+                                        .ToList();
 
-                                    // Check if the first resource type ends with /services, /pods or /nodes
                                     if (resourceTypes.Count > 0)
                                     {
-                                        string resourceType = resourceTypes[0];
-                                        return !resourceType.EndsWith("/services") && !resourceType.EndsWith("/pods") && !resourceType.EndsWith("/nodes");
+                                        var resourceType = resourceTypes[0];
+                                        return !resourceType.EndsWith("/services") &&
+                                               !resourceType.EndsWith("/pods") &&
+                                               !resourceType.EndsWith("/nodes");
                                     }
                                 }
+
                                 return true; // Keep objects without resourceType
                             }).ToList();
 
-                            // Replace the objects array with the filtered one
                             item["objects"] = filteredObjects;
                         }
                     }
@@ -460,7 +464,7 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
                             var base64Image = responseObject.GetProperty("image_base64").GetString();
 
                             _logger.LogInternalInformation("Successfully generated graph visualization");
-                            return base64Image;
+                            return base64Image ?? string.Empty;
                         }
                         else
                         {
@@ -569,7 +573,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                     _logger.LogDebug($"Processing application entry point: {entryPoint.Name} ({entryPoint.Type})");
 
                     var resourceId = ((IEnumerable<object>)entryPoint.Properties["resourceId"]).First().ToString();
-                    var components = await GetApplicationComponentsSummary(resourceId, 3);
+                    var components = await GetApplicationComponentsSummary(resourceId ?? string.Empty, 3);
 
                     if (components.Count == 0)
                     {
@@ -870,7 +874,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error retrieving resource ID for {resourceName} of type {resourceType}: {ex.Message}", ex);   
+                throw new Exception($"Error retrieving resource ID for {resourceName} of type {resourceType}: {ex.Message}", ex);
             }
         }
         #region Additional Methods
@@ -947,16 +951,20 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                 dashboardResponse.EnsureSuccessStatusCode();
                 var dashboardsContent = await dashboardResponse.Content.ReadAsStringAsync();
                 var dashboards = JsonSerializer.Deserialize<JsonElement>(dashboardsContent);
-                string dashboardUrl = null;
+                string dashboardUrl = string.Empty;
                 foreach (var dashboard in dashboards.EnumerateArray())
                 {
-                    if (dashboard.TryGetProperty("url", out var urlElement) &&
-                        urlElement.GetString().Contains(dashboardType, StringComparison.OrdinalIgnoreCase))
+                    if (dashboard.TryGetProperty("url", out var urlElement))
                     {
-                        dashboardUrl = $"{urlElement.GetString()}";
-                        break;
+                        var url = urlElement.GetString();
+                        if (!string.IsNullOrEmpty(url) && url.Contains(dashboardType, StringComparison.OrdinalIgnoreCase))
+                        {
+                            dashboardUrl = url;
+                            break;
+                        }
                     }
                 }
+
 
                 if (string.IsNullOrEmpty(dashboardUrl))
                 {
@@ -1072,18 +1080,19 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                     // Create a new dictionary for each resource
                     var propertyBag = new Dictionary<string, object>();
                     // Add label
-                    propertyBag["subscriptionId"] = item["subscriptionId"]?.ToString();
-                    propertyBag["resourceGroupName"] = item["resourceGroupName"]?.ToString();
-                    propertyBag["resourceName"] = item["resourceName"]?.ToString();
-                    propertyBag["resourceType"] = item["resourceType"]?.ToString();
+                    propertyBag["subscriptionId"] = item?.subscriptionId?.ToString() ?? string.Empty;
+                    propertyBag["resourceGroupName"] = item?.resourceGroupName?.ToString() ?? string.Empty;
+                    propertyBag["resourceName"] = item?.resourceName?.ToString() ?? string.Empty;
+                    propertyBag["resourceType"] = item?.resourceType?.ToString() ?? string.Empty;
 
-                    if (!string.IsNullOrEmpty(item["clusterResourceId"]?.ToString()))
+
+                    if (!string.IsNullOrEmpty(item?["clusterResourceId"]?.ToString()))
                     {
-                        propertyBag["clusterResourceId"] = item["clusterResourceId"].ToString();
+                        propertyBag["clusterResourceId"] = item?["clusterResourceId"].ToString() ?? string.Empty;
                     }
-                    if (!string.IsNullOrEmpty(item["namespace"]?.ToString()))
+                    if (!string.IsNullOrEmpty(item?["namespace"]?.ToString()))
                     {
-                        propertyBag["namespace"] = item["namespace"].ToString();
+                        propertyBag["namespace"] = item?["namespace"].ToString() ?? string.Empty;
                     }
 
                     resources.Add(propertyBag);
@@ -1519,11 +1528,11 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                 foreach (var item in result)
                 {
                     var propertyBag = new Dictionary<string, object>();
-                    propertyBag["subscriptionId"] = item["subscriptionId"]?.ToString();
-                    propertyBag["resourceGroupName"] = item["resourceGroupName"]?.ToString();
-                    propertyBag["resourceType"] = item["resourceType"]?.ToString();
-                    propertyBag["resourceId"] = item["resourceId"]?.ToString();
-                    propertyBag["location"] = item["location"]?.ToString();
+                    propertyBag["subscriptionId"] = item["subscriptionId"]?.ToString() ?? string.Empty;
+                    propertyBag["resourceGroupName"] = item["resourceGroupName"]?.ToString() ?? string.Empty;
+                    propertyBag["resourceType"] = item["resourceType"]?.ToString() ?? string.Empty;
+                    propertyBag["resourceId"] = item["resourceId"]?.ToString() ?? string.Empty;
+                    propertyBag["location"] = item["location"]?.ToString() ?? string.Empty;
 
                     resources.Add(propertyBag);
                 }
@@ -1590,7 +1599,12 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                     foreach (var id in rgs)
                     {
                         var logs = await FetchActivityLogsForResource(id.Replace("_", "/"), hoursBack);
-                        var distinctLogs = logs.Where(l => l["operationName"].ToString().Contains("deployments/write")).ToList();
+                        var distinctLogs = logs
+                            .Where(l => l != null
+                                        && l.ContainsKey("operationName")
+                                        && l["operationName"]?.ToString()?.Contains("deployments/write", StringComparison.OrdinalIgnoreCase) == true)
+                            .ToList();
+
                         var distinct = logs.Select(l => l["operationName"].ToString()).Distinct().ToList();
 
                         if (logs.Count > 0)
@@ -1606,11 +1620,18 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                     }
 
                     allActivityLogs = allActivityLogs
-                        .OrderByDescending(log =>
-                            log.ContainsKey("eventTimestamp") ?
-                            DateTimeOffset.Parse(log["eventTimestamp"].ToString()) :
-                            DateTimeOffset.MinValue)
-                        .ToList();
+                     .OrderByDescending(log =>
+                     {
+                         if (log != null && log.TryGetValue("eventTimestamp", out var timestampValue) && timestampValue != null)
+                         {
+                             if (DateTimeOffset.TryParse(timestampValue.ToString(), out var timestamp))
+                             {
+                                 return timestamp;
+                             }
+                         }
+                         return DateTimeOffset.MinValue;
+                     })
+                     .ToList();
 
                     _logger.LogInternalInformation($"Total activity logs collected: {allActivityLogs.Count}");
                     return (allActivityLogs, components);
@@ -1646,7 +1667,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
             _logger.LogInternalInformation($"[FetchAndSummarizeActivityLogs] Invoked with resourceId: {resourceId}");
             (List<Dictionary<string, object>> allActivityLogs, List<Node> components) = await FetchActivityLogsAndComponents(resourceId, hoursBack, threadId);
             var logsJson = JsonSerializer.Serialize(allActivityLogs, new JsonSerializerOptions { WriteIndented = true });
-            var summary = await SummarizeLogsWithLLM(logsJson, components?.ToString());
+            var summary = await SummarizeLogsWithLLM(logsJson, components?.ToString() ?? string.Empty);
             return summary;
         }
 
@@ -1715,7 +1736,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                     string appHealthInfoJson = properties["appHealthInfo"].ToString();
 
                     // Deserialize the JSON string to AppHealthInfo object
-                    AppHealthInfo healthInfo = JsonSerializer.Deserialize<AppHealthInfo>(appHealthInfoJson);
+                    AppHealthInfo? healthInfo = JsonSerializer.Deserialize<AppHealthInfo>(appHealthInfoJson);
 
                     return FormatHealthInfoMessage(healthInfo, resourceId);
                 }
@@ -1790,30 +1811,30 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                             ["resourceId"] = resourceId,
                             ["resourceName"] = resourceIdentifier.Name,
                             ["resourceType"] = resourceIdentifier.ResourceType.ToString(),
-                            ["eventTimestamp"] = eventData.EventTimestamp?.ToString("o"),
-                            ["operationName"] = eventData.OperationName?.Value,
-                            ["caller"] = eventData.Caller,
-                            ["status"] = eventData.Status?.Value,
-                            ["correlationId"] = eventData.CorrelationId,
-                            ["category"] = eventData.Category?.Value,
-                            ["level"] = eventData.Level?.ToString()
+                            ["eventTimestamp"] = eventData?.EventTimestamp?.ToString("o") ?? string.Empty,
+                            ["operationName"] = eventData?.OperationName?.Value ?? string.Empty,
+                            ["caller"] = eventData?.Caller ?? string.Empty,
+                            ["status"] = eventData?.Status?.Value ?? string.Empty,
+                            ["correlationId"] = eventData?.CorrelationId ?? string.Empty,
+                            ["category"] = eventData?.Category?.Value ?? string.Empty,
+                            ["level"] = eventData?.Level?.ToString() ?? string.Empty
                         };
 
                         // Add caller IP if available
-                        if (eventData.HttpRequest != null)
+                        if (eventData?.HttpRequest != null)
                         {
                             log["callerIpAddress"] = eventData.HttpRequest.ClientIpAddress;
                         }
 
                         // Add authorization details if available
-                        if (eventData.Authorization != null)
+                        if (eventData?.Authorization != null)
                         {
                             log["authorizationAction"] = eventData.Authorization.Action;
                             log["authorizationScope"] = eventData.Authorization.Scope;
                         }
 
                         // Add properties
-                        if (eventData.Properties != null)
+                        if (eventData?.Properties != null)
                         {
                             log["properties"] = JsonSerializer.Serialize(eventData.Properties);
                         }
@@ -1900,7 +1921,7 @@ Please provide a highly concise summary with sections for each of the above poin
 
         #region Dummy Screenshot & LLM Summary Methods
 
-        private async Task<ScreenshotResponse> CaptureDashboardScreenshotAsync(string dashboardUrl)
+        private async Task<ScreenshotResponse?> CaptureDashboardScreenshotAsync(string dashboardUrl)
         {
             try
             {
@@ -1991,61 +2012,67 @@ Please provide a highly concise summary with sections for each of the above poin
             }
         }
 
-        private string FormatHealthInfoMessage(AppHealthInfo healthInfo, string resourceId)
+        private string FormatHealthInfoMessage(AppHealthInfo? healthInfo, string resourceId)
         {
-            var resourceName = resourceId.Split('/').Last();
+            var resourceName = resourceId?.Split('/')?.Last() ?? "Unknown";
             var sb = new StringBuilder();
 
             sb.AppendLine($"## Health Scorecard for {resourceName}");
             sb.AppendLine();
 
             // Overall health state
-            sb.AppendLine($"**Overall Health State**: {GetHealthStateEmoji(healthInfo.Health)} {healthInfo.Health}");
+            sb.AppendLine($"**Overall Health State**: {GetHealthStateEmoji(healthInfo?.Health)} {healthInfo?.Health}");
             sb.AppendLine();
 
             // Key metrics section
             sb.AppendLine("### Key Metrics");
 
-            if (healthInfo.Availability.HasValue)
+            if (healthInfo?.Availability.HasValue == true)
             {
                 sb.AppendLine($"- **Availability**: {healthInfo.Availability.Value:P2}");
             }
 
-            if (healthInfo.AvgCpuUsage.HasValue)
+            if (healthInfo?.AvgCpuUsage.HasValue == true)
             {
                 sb.AppendLine($"- **CPU Usage**: {healthInfo.AvgCpuUsage.Value:P2}");
             }
 
-            if (healthInfo.AvgMemoryUsage.HasValue)
+            if (healthInfo?.AvgMemoryUsage.HasValue == true)
             {
                 sb.AppendLine($"- **Memory Usage**: {healthInfo.AvgMemoryUsage.Value:P2}");
             }
 
-            if (healthInfo.AvgLatencyInMs.HasValue)
+            if (healthInfo?.AvgLatencyInMs.HasValue == true)
             {
                 sb.AppendLine($"- **Average Latency**: {healthInfo.AvgLatencyInMs.Value:N2} ms");
             }
 
-            if (healthInfo.Transactions.HasValue)
+            if (healthInfo?.Transactions.HasValue == true)
             {
                 sb.AppendLine($"- **Transaction Volume**: {healthInfo.Transactions.Value:N0} requests");
             }
 
             // Activity status
             sb.AppendLine();
-            sb.AppendLine($"**Activity Status**: {(healthInfo.IsActive ? "🟢 Active" : "🔴 Inactive")}");
+            sb.AppendLine($"**Activity Status**: {(healthInfo?.IsActive == true ? "🟢 Active" : "🔴 Inactive")}");
 
-            if (healthInfo.TimeSinceLastActivity.HasValue)
+            if (healthInfo?.TimeSinceLastActivity.HasValue == true)
             {
                 var timeSince = DateTime.UtcNow - healthInfo.TimeSinceLastActivity.Value;
                 sb.AppendLine($"**Last Activity**: {FormatTimeSpan(timeSince)} ago");
             }
 
             sb.AppendLine();
-            sb.AppendLine($"*Last updated: {healthInfo.LastDataCaptureTimeStampInUTC.ToString("yyyy-MM-dd HH:mm:ss")} UTC*");
+
+            string lastUpdated = healthInfo != null
+                 ? healthInfo.LastDataCaptureTimeStampInUTC.ToString("yyyy-MM-dd HH:mm:ss")
+                 : "Unknown";
+
+            sb.AppendLine($"*Last updated: {lastUpdated} UTC*");
 
             return sb.ToString();
         }
+
 
         private string FormatTimeSpan(TimeSpan timeSpan)
         {
@@ -2067,7 +2094,7 @@ Please provide a highly concise summary with sections for each of the above poin
             }
         }
 
-        private string GetHealthStateEmoji(ScorecardHealthState healthState)
+        private string GetHealthStateEmoji(ScorecardHealthState? healthState)
         {
             return healthState switch
             {
@@ -2081,7 +2108,7 @@ Please provide a highly concise summary with sections for each of the above poin
         public class ScreenshotResponse
         {
             [JsonPropertyName("screenshot")]
-            public string Screenshot { get; set; }
+            public string? Screenshot { get; set; }
         }
 
         #endregion

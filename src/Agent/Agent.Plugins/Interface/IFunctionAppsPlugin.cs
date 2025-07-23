@@ -9,5 +9,5 @@ public interface IFunctionAppsPlugin
 {
     Task<IReadOnlyList<FunctionAppDescriptor>> ListFunctionAppsAsync(Guid subscriptionId);
 
-    Task<FunctionAppDescriptor> GetFunctionAppInfoAsync(string resourceId);
+    Task<FunctionAppDescriptor?> GetFunctionAppInfoAsync(string resourceId);
 }

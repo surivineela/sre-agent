@@ -2,12 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Agent.Core.Helpers;
-using Agent.Logging;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
 using Microsoft.Extensions.Logging;
@@ -92,14 +88,14 @@ public class FunctionAppConfigurationChecksPlugin : IFunctionAppConfigurationChe
 
             // Call the ARM helper method to get the Event Grid subscriptions
             string responseJson = await _armHelper.GetEventGridSubscriptionsAsync(storageAccountResourceId);
-            
+
             // Check for error response
             if (responseJson.Contains("ResourceNotFound"))
             {
                 _logger.LogInternalWarning($"Event Grid subscriptions retrieval failed - resource not found: {storageAccountResourceId}");
                 return new List<EventGridSubscriptionInfo>();
             }
-            
+
             // Parse the response
             return ParseEventGridSubscriptionsResponse(responseJson);
         }
@@ -117,21 +113,21 @@ public class FunctionAppConfigurationChecksPlugin : IFunctionAppConfigurationChe
         try
         {
             var responseDoc = JsonDocument.Parse(responseJson);
-            
+
             // Check if the response has the expected structure
-            if (responseDoc.RootElement.TryGetProperty("responses", out var responsesElement) && 
+            if (responseDoc.RootElement.TryGetProperty("responses", out var responsesElement) &&
                 responsesElement.ValueKind == JsonValueKind.Array)
             {
                 // Process each response in the array
                 foreach (var response in responsesElement.EnumerateArray())
                 {
                     // Check for successful HTTP status code
-                    if (response.TryGetProperty("httpStatusCode", out var statusCodeElement) && 
+                    if (response.TryGetProperty("httpStatusCode", out var statusCodeElement) &&
                         statusCodeElement.GetInt32() == 200 &&
                         response.TryGetProperty("content", out var contentElement))
                     {
                         // Process the content if it contains value array
-                        if (contentElement.TryGetProperty("value", out var valueArray) && 
+                        if (contentElement.TryGetProperty("value", out var valueArray) &&
                             valueArray.ValueKind == JsonValueKind.Array)
                         {
                             foreach (var subscription in valueArray.EnumerateArray())
@@ -146,7 +142,7 @@ public class FunctionAppConfigurationChecksPlugin : IFunctionAppConfigurationChe
                     }
                 }
             }
-            else if (responseDoc.RootElement.TryGetProperty("value", out var valueArray) && 
+            else if (responseDoc.RootElement.TryGetProperty("value", out var valueArray) &&
                      valueArray.ValueKind == JsonValueKind.Array)
             {
                 // Alternative structure where response might be direct without the 'responses' wrapper
@@ -168,51 +164,54 @@ public class FunctionAppConfigurationChecksPlugin : IFunctionAppConfigurationChe
         return result;
     }
 
-    private EventGridSubscriptionInfo ParseEventGridSubscription(JsonElement subscription)
+    private EventGridSubscriptionInfo? ParseEventGridSubscription(JsonElement subscription)
     {
         try
         {
             var info = new EventGridSubscriptionInfo
             {
-                Id = subscription.TryGetProperty("id", out var id) ? id.GetString() : null,
-                Name = subscription.TryGetProperty("name", out var name) ? name.GetString() : null,
-                Type = subscription.TryGetProperty("type", out var type) ? type.GetString() : null
+                Id = subscription.TryGetProperty("id", out var id) ? id.GetString() ?? string.Empty : string.Empty,
+                Name = subscription.TryGetProperty("name", out var name) ? name.GetString() ?? string.Empty : string.Empty,
+                Type = subscription.TryGetProperty("type", out var type) ? type.GetString() ?? string.Empty : string.Empty
             };
 
             // Extract properties
             if (subscription.TryGetProperty("properties", out var properties))
             {
                 // Extract topic
-                info.Topic = properties.TryGetProperty("topic", out var topic) ? topic.GetString() : null;
-                
+                info.Topic = properties.TryGetProperty("topic", out var topic) ? topic.GetString() ?? string.Empty : string.Empty;
+
                 // Extract provisioningState
-                info.ProvisioningState = properties.TryGetProperty("provisioningState", out var state) ? state.GetString() : null;
-                
+                info.ProvisioningState = properties.TryGetProperty("provisioningState", out var state) ? state.GetString() ?? string.Empty : string.Empty;
+
                 // Extract destination information
                 if (properties.TryGetProperty("destination", out var destination))
                 {
-                    info.DestinationType = destination.TryGetProperty("endpointType", out var endpointType) ? endpointType.GetString() : null;
-                    
+                    info.DestinationType = destination.TryGetProperty("endpointType", out var endpointType) ? endpointType.GetString() ?? string.Empty : string.Empty;
+
                     if (destination.TryGetProperty("properties", out var destProps))
                     {
-                        info.EndpointUrl = destProps.TryGetProperty("endpointBaseUrl", out var url) ? url.GetString() : null;
-                        
+                        info.EndpointUrl = destProps.TryGetProperty("endpointBaseUrl", out var url) ? url.GetString() ?? string.Empty : string.Empty;
+
                         // TLS version
                         if (destProps.TryGetProperty("minimumTlsVersionAllowed", out var tlsVersion))
                         {
-                            info.MinimumTlsVersion = tlsVersion.GetString();
+                            info.MinimumTlsVersion = tlsVersion.GetString() ?? string.Empty;
                         }
                     }
                 }
-                
+
                 // Extract filter information
                 if (properties.TryGetProperty("filter", out var filter))
                 {
-                    info.SubjectBeginsWith = filter.TryGetProperty("subjectBeginsWith", out var begins) ? begins.GetString() : null;
-                    info.SubjectEndsWith = filter.TryGetProperty("subjectEndsWith", out var ends) ? ends.GetString() : null;
-                    
+                    info.SubjectBeginsWith = filter.TryGetProperty("subjectBeginsWith", out var begins)
+                        ? begins.GetString() ?? string.Empty
+                        : string.Empty;
+
+                    info.SubjectEndsWith = filter.TryGetProperty("subjectEndsWith", out var ends) ? ends.GetString() ?? string.Empty : string.Empty;
+
                     // Extract included event types
-                    if (filter.TryGetProperty("includedEventTypes", out var eventTypes) && 
+                    if (filter.TryGetProperty("includedEventTypes", out var eventTypes) &&
                         eventTypes.ValueKind == JsonValueKind.Array)
                     {
                         info.IncludedEventTypes = new List<string>();
@@ -220,12 +219,12 @@ public class FunctionAppConfigurationChecksPlugin : IFunctionAppConfigurationChe
                         {
                             if (eventType.ValueKind == JsonValueKind.String)
                             {
-                                info.IncludedEventTypes.Add(eventType.GetString());
+                                info.IncludedEventTypes.Add(eventType.GetString() ?? string.Empty);
                             }
                         }
                     }
                 }
-                
+
                 // Extract retry policy
                 if (properties.TryGetProperty("retryPolicy", out var retryPolicy))
                 {
@@ -233,7 +232,7 @@ public class FunctionAppConfigurationChecksPlugin : IFunctionAppConfigurationChe
                     {
                         info.MaxDeliveryAttempts = attempts.GetInt32();
                     }
-                    
+
                     if (retryPolicy.TryGetProperty("eventTimeToLiveInMinutes", out var ttl))
                     {
                         info.EventTimeToLiveInMinutes = ttl.GetInt32();

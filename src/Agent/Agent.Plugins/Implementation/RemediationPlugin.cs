@@ -2,25 +2,16 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
-using Agent.Core;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
-using Agent.Core.Models;
-using Agent.Core.Models.Api.v1;
-using Agent.Logging;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
-using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Resources.Models;
 using Azure.ResourceManager.Sql.Models;
 using Azure.ResourceManager.Storage.Models;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph.Models;
-using ScottPlot.Colormaps;
-using ScottPlot.Hatches;
 
 namespace Agent.Plugins.Implementation
 {
@@ -297,7 +288,11 @@ namespace Agent.Plugins.Implementation
                             {
                                 if (container.Data.PublicAccess != StoragePublicAccessType.None)
                                 {
-                                    _logger.LogInternalInformation($"Disabling public access to container: {container.Data.Name}");
+                                    if (_logger != null)
+                                    {
+                                        _logger.LogInternalInformation($"Disabling public access to container: {container.Data.Name}");
+                                    }
+
                                     container.Data.PublicAccess = StoragePublicAccessType.None;
                                     await container.UpdateAsync(container.Data);
                                 }
@@ -374,7 +369,7 @@ namespace Agent.Plugins.Implementation
                 remediationActionFunc: async (resource) =>
                 {
                     _logger?.LogInternalInformation($"Setting local auth support for Sql Server");
-                    if(resource.Data.Administrators?.AdministratorType == SqlAdministratorType.ActiveDirectory)
+                    if (resource.Data.Administrators?.AdministratorType == SqlAdministratorType.ActiveDirectory)
                     {
                         _logger?.LogInternalInformation($"Setting local auth support for Sql Server");
                         await _armHelper.SetSqlServerEntraAuthSupport(resourceId, featureState);
@@ -410,7 +405,7 @@ namespace Agent.Plugins.Implementation
                     _logger?.LogInternalInformation($"Setting SCM authentication support for App Service");
                     await _armHelper.SetWebSiteScmAuthenticationSupport(resourceId, featureState);
                 });
-        }   
+        }
 
         private static string GetSkuFamily(string sku)
         {

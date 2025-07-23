@@ -13,8 +13,6 @@ using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Plugins.Interface;
 using Agent.Plugins.KustoPlugin;
-using Agent.Plugins.Kusto;
-using Agent.Plugins.TeamsPlugin;
 using Agent.Plugins.Tools;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -105,7 +103,7 @@ namespace Agent.Plugins.Kusto
 
             var logMessage = $"[execute_kusto_query_on_cluster][{DateTime.UtcNow}] Invoked with cluster: {cluster}, database: {database}\nquery:\n{fullQuery.Substring(0, Math.Min(100, fullQuery.Length))}...";
             _logger.LogInternalInformation(logMessage);
-            KustoQueryResult result = null;
+            KustoQueryResult result = new KustoQueryResult();
             try
             {
                 cluster = cluster.Replace(".kusto.windows.net", "");
@@ -138,7 +136,7 @@ namespace Agent.Plugins.Kusto
         public async Task<KustoQueryResult> ExecuteKustoQuery(
             [Description("The region of the target Kusto cluster.")] string region,
             [Description("The Kusto query to execute.")] string query,
-            [Description("Optional group name for the Kusto cluster.")] string groupName
+            [Description("Optional group name for the Kusto cluster.")] string? groupName
             )
         {
             try
@@ -152,17 +150,17 @@ namespace Agent.Plugins.Kusto
                     _logger.LogInternalError("No regional clusters are configured in Kusto settings.");
                     throw new InvalidOperationException("No regional clusters are configured in Kusto settings.");
                 }
-                var cluster = GetCluster(region, groupName);
+                var cluster = GetCluster(region, groupName ?? string.Empty);
 
                 var stopwatch = System.Diagnostics.Stopwatch.StartNew();
                 _logger.LogInternalInformation($"execute_kusto_query called with {region} / {query}");
 
                 var normalizedRegion = RegionNormalizationRegex().Replace(region, string.Empty).ToLowerInvariant();
-                using var reader = await _kustoClient.PerformQueryAsync(cluster.ClusterUri, cluster.Database, query);
+                using var reader = await _kustoClient.PerformQueryAsync(cluster.ClusterUri ?? string.Empty, cluster.Database ?? string.Empty, query);
 
                 stopwatch.Stop();
                 var ret = new KustoQueryResult(reader, query);
-                ret.Message = CreateChatMessage(query, normalizedRegion, ret.RowCount, (int)stopwatch.ElapsedMilliseconds, groupName);
+                ret.Message = CreateChatMessage(query, normalizedRegion, ret.RowCount, (int)stopwatch.ElapsedMilliseconds, groupName ?? string.Empty);
 
                 return ret;
             }
@@ -192,7 +190,7 @@ namespace Agent.Plugins.Kusto
                 var reader = await _kustoClient.PerformQueryAsync($"https://{cluster}.kusto.windows.net", database, fullQuery);
                 var ret = new KustoQueryResult(reader, fullQuery);
                 stopwatch.Stop();
-                ret.Message = CreateChatMessage(fullQuery, cluster, ret.RowCount, (int)stopwatch.ElapsedMilliseconds, string.Empty, database: database);
+                ret.Message = CreateChatMessage(fullQuery, cluster, ret.RowCount, (int)stopwatch.ElapsedMilliseconds, string.Empty, database);
                 return ret;
             }
             catch (Exception ex)
@@ -245,7 +243,7 @@ namespace Agent.Plugins.Kusto
             var query = ".show functions | project Name, Folder, DocString, Parameters";
             var result = new List<KustoFunctionInfo>();
             var cluster = GetCluster(region, string.Empty);
-            using var reader = await _kustoClient.PerformQueryAsync(cluster.ClusterUri, cluster.Database, query);
+            using var reader = await _kustoClient.PerformQueryAsync(cluster.ClusterUri ?? string.Empty, cluster.Database ?? string.Empty, query);
             while (reader.Read())
             {
                 result.Add(new KustoFunctionInfo
@@ -266,7 +264,7 @@ namespace Agent.Plugins.Kusto
             [Description("The name of the Kusto function to invoke.")] string functionName,
             [Description("The region of the Kusto cluster.")] string region,
             Dictionary<string, string>? args = null,
-            [Description("Optional group name for the Kusto cluster.")] string groupName = "")
+            [Description("Optional group name for the Kusto cluster.")] string? groupName = null)
         {
             string argList = args != null && args.Count > 0
                 ? string.Join(", ", args.Select(kvp => $"{kvp.Key}={QuoteIfNeeded(kvp.Value)}"))
@@ -277,11 +275,11 @@ namespace Agent.Plugins.Kusto
             try
             {
                 var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-                var cluster = GetCluster(region, groupName);
-                using var reader = await _kustoClient.PerformQueryAsync(cluster.ClusterUri, cluster.Database, query);
+                var cluster = GetCluster(region, groupName ?? string.Empty);
+                using var reader = await _kustoClient.PerformQueryAsync(cluster.ClusterUri ?? string.Empty, cluster.Database ?? string.Empty, query);
                 var ret = new KustoQueryResult(reader, query);
                 stopwatch.Stop();
-                ret.Message = CreateChatMessage(query, region, ret.RowCount, (int)stopwatch.ElapsedMilliseconds, functionName: functionName, groupName: groupName);
+                ret.Message = CreateChatMessage(query, region, ret.RowCount, (int)stopwatch.ElapsedMilliseconds, functionName: functionName, groupName: groupName ?? string.Empty);
                 return ret;
             }
             catch (Exception ex)
@@ -296,7 +294,7 @@ namespace Agent.Plugins.Kusto
             return $"\"{value}\"";
         }
 
-        public ChatMessage CreateChatMessage(string query, string regionOrClusterUri, int count, int queryExecutionTimeInMilliSeconds, string groupName, string? database = null, string? functionName = null)
+        public ChatMessage CreateChatMessage(string query, string regionOrClusterUri, int count, int queryExecutionTimeInMilliSeconds, string? database = null, string? functionName = null, string? groupName = null)
         {
             if (string.IsNullOrWhiteSpace(query))
             {
@@ -319,7 +317,7 @@ namespace Agent.Plugins.Kusto
                 KustoCluster? cluster = null;
                 try
                 {
-                    cluster = GetCluster(region, groupName);
+                    cluster = GetCluster(region, string.Empty);
                 }
                 catch (Exception ex)
                 {
@@ -328,7 +326,7 @@ namespace Agent.Plugins.Kusto
 
                 if (cluster != null)
                 {
-                    adxUri = cluster.ClusterUri;
+                    adxUri = cluster.ClusterUri ?? string.Empty;
                     database = cluster.Database;
                 }
             }
@@ -342,8 +340,11 @@ namespace Agent.Plugins.Kusto
                 }
             }
 
-            adxUri = adxUri.Replace(".kusto.windows.net", "");
-            adxUri = adxUri.Replace("https://", "");
+            if (!string.IsNullOrEmpty(adxUri))
+            {
+                adxUri = adxUri.Replace(".kusto.windows.net", "");
+                adxUri = adxUri.Replace("https://", "");
+            }
 
             adxUri = $"https://dataexplorer.azure.com/clusters/{adxUri}/{database}?query={EncodeQuery(query)}";
 
@@ -472,7 +473,7 @@ namespace Agent.Plugins.Kusto
             return queryResult.Result;
         }
 
-        public async Task<string> ExecuteLocalFunctionAsync(string functionName, string region, Dictionary<string, string> args, string groupName, SamplingOptions? samplingOptions = null)
+        public async Task<string> ExecuteLocalFunctionAsync(string functionName, string region, Dictionary<string, string> args, string? groupName, SamplingOptions? samplingOptions = null)
         {
             region = region.NormalizeLocation();
             SamplingParameterHelper.AddSamplingParameters(args, samplingOptions);
@@ -482,11 +483,11 @@ namespace Agent.Plugins.Kusto
             if (File.Exists(fileName))
             {
                 var formatted = FormatQuery(args, fileName);
-                queryResult = await ExecuteKustoQuery(region, formatted, groupName);
+                queryResult = await ExecuteKustoQuery(region, formatted, groupName ?? string.Empty);
             }
             else
             {
-                queryResult = await ExecuteFunctionAsync(functionName, region, args, groupName);
+                queryResult = await ExecuteFunctionAsync(functionName, region, args, groupName ?? string.Empty);
             }
 
             if (queryResult.Result.Length > TokenLimit)

@@ -8,7 +8,6 @@ using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DataModels;
 using Agent.Graph.Interfaces;
-using Agent.Logging;
 using Agent.Plugins.Interface;
 using Azure.ResourceManager.AlertsManagement.Models;
 using Microsoft.Azure.Cosmos;
@@ -133,7 +132,7 @@ public class PagerDutyIncidentPlugin(ILogger<PagerDutyIncidentPlugin> logger,
         return incidents;
     }
 
-    private async Task<T> GetDocumentAsync<T>(string id, string partitionKey) where T : ICosmosDocument
+    private async Task<T?> GetDocumentAsync<T>(string id, string partitionKey) where T : ICosmosDocument
     {
         try
         {

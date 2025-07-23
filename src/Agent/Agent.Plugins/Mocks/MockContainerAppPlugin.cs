@@ -273,7 +273,7 @@ namespace Agent.Plugins.Mocks
         {
             if (_containerApps.TryGetValue(resourceId, out var containerApp))
             {
-                string currentImage = null;
+                string currentImage = string.Empty;
 
                 if (_containerImageReferences.TryGetValue(resourceId, out var existingImage))
                 {
@@ -296,7 +296,7 @@ namespace Agent.Plugins.Mocks
                     { "MockUpdate", "true" }
                 };
 
-                return Task.FromResult(ImageUpdateResult.Success(currentImage, newImageReference, details));
+                return Task.FromResult(ImageUpdateResult.Success(currentImage ?? string.Empty, newImageReference, details));
             }
 
             return Task.FromResult(ImageUpdateResult.Failure($"Container app with resource ID {resourceId} not found"));
@@ -316,7 +316,8 @@ namespace Agent.Plugins.Mocks
                 return Task.FromResult(containerApp.Containers.First().Image);
             }
 
-            return Task.FromResult<string>(null);
+            return Task.FromResult(string.Empty);
+
         }
 
         public Task<bool> VerifyExternalRegistryAsync(string resourceId, string imageReference)

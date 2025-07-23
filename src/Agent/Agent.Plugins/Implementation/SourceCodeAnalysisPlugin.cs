@@ -21,7 +21,7 @@ public class SourceCodeAnalysisPlugin : ISourceCodeAnalysisPlugin
         _githubIssuePlugin = githubIssuePlugin;
         _logger = logger;
 
-        if (_gitHubClient.Credentials != null && !string.IsNullOrEmpty(_gitHubClient.Credentials.Password)) 
+        if (_gitHubClient.Credentials != null && !string.IsNullOrEmpty(_gitHubClient.Credentials.Password))
         {
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _gitHubClient.Credentials.Password);
         }
@@ -34,16 +34,24 @@ public class SourceCodeAnalysisPlugin : ISourceCodeAnalysisPlugin
     public async Task<string> QueryRepositoryBasedOnError(string resourceId, string errorDescription)
     {
         var searchResults = await GetSemanticSearchResult(resourceId, errorDescription);
-        
+
         if (searchResults is null || !searchResults.Any())
         {
             return "No search results found.";
         }
 
         var top5Results = searchResults.Take(5);
-        var resultStrings = top5Results.Select(result => 
-            $"File: {result.Location.Path}\nScore: {result.Distance:F2}\nContent: {result.Chunk.Text} at {result.Chunk.Range.Start} to {result.Chunk.Range.End}\n");
-        
+        var resultStrings = top5Results.Select(result =>
+        {
+            var filePath = result?.Location?.Path ?? "Unknown";
+            var score = result?.Distance ?? 0.0;
+            var content = result?.Chunk?.Text ?? "No content";
+            var start = result?.Chunk?.Range?.Start.ToString() ?? "N/A";
+            var end = result?.Chunk?.Range?.End.ToString() ?? "N/A";
+
+            return $"File: {filePath}\nScore: {score:F2}\nContent: {content} at {start} to {end}\n";
+        });
+
         return string.Join("\n---\n", resultStrings);
     }
 
@@ -100,7 +108,7 @@ public class SourceCodeAnalysisPlugin : ISourceCodeAnalysisPlugin
                 PropertyNameCaseInsensitive = true
             });
 
-            return res?.Results;
+            return res?.Results ?? new List<SemanticSearchResult>();
         }
 
         catch (Exception e)

@@ -23,7 +23,7 @@ public class MockKubePlugin : IKubePlugin
     private Dictionary<string, string> _mockStatefulSetRevisions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase); // Key: resourceId:namespace:name
 
     // Property to set the resource ID directly in tests if needed
-    public string MockAKSResourceId { get; set; }
+    public string MockAKSResourceId { get; set; } = string.Empty;
 
     public MockKubePlugin()
     {
@@ -201,7 +201,7 @@ public class MockKubePlugin : IKubePlugin
             case "namespace":
                 return GetKubeNamespacesAsync(resourceId);
             case "deployment":
-                return GetKubeDeploymentsAsync(resourceId, _namespace);
+                return GetKubeDeploymentsAsync(resourceId, _namespace ?? string.Empty);
             case "statefulset":
                 var key = $"{resourceId}:{_namespace}";
                 if (_mockStatefulSets.TryGetValue(key, out var statefulSets))
@@ -233,7 +233,7 @@ public class MockKubePlugin : IKubePlugin
 
     // GetKubeResourceSpecStatusAsync: Use configured mock data (_mockSpecs).
     // This combines the previous GetKubeDeploymentSpecStatusAsync, GetKubeStatefulsetSpecStatusAsync, GetKubePodSpecStatusAsync etc.
-    public Task<string> GetKubeResourceSpecStatusAsync(string resourceId, string _namespace, string apiGroup, string kind, string name)
+    public Task<string> GetKubeResourceSpecStatusAsync(string resourceId, string? _namespace, string apiGroup, string kind, string name)
     {
         var key = $"{resourceId}:{_namespace}:{apiGroup}:{kind}:{name}";
         // Handle potential variations (e.g., pod spec might be requested with empty apiGroup)
@@ -262,7 +262,7 @@ public class MockKubePlugin : IKubePlugin
 
 
     // GetKubeResourceEventsAsync: Use configured mock data (_mockEvents).
-    public Task<string> GetKubeResourceEventsAsync(string resourceId, string _namespace, string apiGroup, string kind, string name)
+    public Task<string> GetKubeResourceEventsAsync(string resourceId, string? _namespace, string apiGroup, string kind, string name)
     {
         var key = $"{resourceId}:{_namespace}:{apiGroup}:{kind}:{name}";
         if (_mockEvents.TryGetValue(key, out var events))
@@ -479,7 +479,7 @@ public class MockKubePlugin : IKubePlugin
         throw new NotImplementedException();
     }
 
-    public Task<string> GetKubeResourceMetricsRangeAsync(string resourceId, string _namespace, string kind, string name, string metricsType, string startTime, string endTime) // Parameter names match interface
+    public Task<string> GetKubeResourceMetricsRangeAsync(string resourceId, string? _namespace, string kind, string name, string metricsType, string startTime, string endTime) // Parameter names match interface
     {
         // Simple random implementation if needed for other tests, but prefer explicit configuration
         Console.WriteLine($"WARN: MockKubePlugin: GetKubeResourceMetricsRangeAsync started ");

@@ -13,6 +13,6 @@ namespace Agent.Plugins.Interface
         Task<List<MetricDefinition>> ListMetricsForAzureResource(string resourceId);
 
         Task<IReadOnlyList<MetricTimeSeriesElement>> QueryMetricValuesForAzureResource(
-            string resourceId, string metricNamespace, string metricName, DateTimeOffset startTime, DateTimeOffset endTime, string dimensionFilter = null);
+            string resourceId, string metricNamespace, string metricName, DateTimeOffset startTime, DateTimeOffset endTime, string dimensionFilter = "");
     }
 }

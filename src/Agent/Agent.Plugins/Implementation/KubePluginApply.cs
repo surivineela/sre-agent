@@ -2,7 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Logging;
 using Agent.Plugins.Interface;
 using k8s;
 using k8s.Models;
@@ -410,7 +409,7 @@ namespace Agent.Plugins
                     _crawlerTriggerService.TriggerKubernetesCrawl(
                         resourceId,
                         namespaceName,
-                        resourceName,
+                        resourceName ?? string.Empty,
                         k8sObj.ApiVersion.Contains("/") ? k8sObj.ApiVersion.Split('/')[0] : group,
                         k8sObj.ApiVersion.Contains("/") ? k8sObj.ApiVersion.Split('/')[1] : k8sObj.ApiVersion,
                         k8sObj.Kind);
@@ -622,7 +621,7 @@ namespace Agent.Plugins
                     _crawlerTriggerService.TriggerKubernetesCrawl(
                         resourceId,
                         namespaceName,
-                        resourceName,
+                        resourceName ?? string.Empty,
                         k8sObj.ApiVersion.Contains("/") ? k8sObj.ApiVersion.Split('/')[0] : group,
                         k8sObj.ApiVersion.Contains("/") ? k8sObj.ApiVersion.Split('/')[1] : k8sObj.ApiVersion,
                         k8sObj.Kind);

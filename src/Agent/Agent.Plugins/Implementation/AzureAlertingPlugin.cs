@@ -2,18 +2,11 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.ComponentModel;
 using Agent.Core.Configuration;
-using Agent.Logging;
 using Agent.Plugins.Interface;
-using Agent.Plugins.IcmPlugin;
-using Agent.Plugins.KustoPlugin;
 using Agent.Plugins.Models;
 using Microsoft.Azure.Cosmos;
-using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel;
-using Newtonsoft.Json;
 using Agent.Plugins.Kusto;
 using Agent.Core.Extensions;
 
@@ -57,22 +50,22 @@ namespace Agent.Plugins.Implementation
 
             if (alertDetails != null)
             {
-                var kustoQuery = alertDetails.PrimaryKustoQuery.KustoQuery;
+                var kustoQuery = alertDetails?.PrimaryKustoQuery?.KustoQuery;
                 if (useCorrelationIdForKustoQuery)
                 {
                     kustoQuery = kustoQuery + "\n" +
                         $"| where CorrelationId == '{correlationId}'";
                 }
-                var kustoResult = await _kustoClient.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery);
+                var kustoResult = await _kustoClient.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery ?? string.Empty);
                 return kustoResult.Result;
             }
 
             return $"Alert details not found for alert {incidentTitle}";
         }
 
-        private async Task<AlertDetailsBase> GetAzureAlertingDetailsByTitle(string incidentTitle)
+        private async Task<AlertDetailsBase?> GetAzureAlertingDetailsByTitle(string incidentTitle)
         {
-            if(incidentTitle.StartsWith("[Public] "))
+            if (incidentTitle.StartsWith("[Public] "))
             {
                 incidentTitle = incidentTitle.Substring(9);
             }
@@ -91,7 +84,7 @@ namespace Agent.Plugins.Implementation
 
                     if (alertDetails != null && alertDetails.Count > 0)
                     {
-                        return alertDetails.FirstOrDefault();
+                        return alertDetails?.FirstOrDefault();
                     }
                 }
                 catch (Exception ex)

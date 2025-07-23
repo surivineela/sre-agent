@@ -1,7 +1,6 @@
 using Agent.Plugins.Models;
 using static Agent.Plugins.Helpers.APIManagementHelper;
 using Azure.ResourceManager.ApiManagement;
-using Azure.ResourceManager.ApiManagement.Models;
 
 namespace Agent.Plugins.Interface
 {
@@ -23,11 +22,11 @@ namespace Agent.Plugins.Interface
 
         Task<List<APIManagementApiDescriptor>> GetAPIMApisAsync(string apiManagementResourceId, string workspaceName);
 
-        Task<APIManagementApiDescriptor> GetAPIDetailsByNameAsync(string apiManagementResourceId, string apiName, string workspaceName);
+        Task<APIManagementApiDescriptor?> GetAPIDetailsByNameAsync(string apiManagementResourceId, string apiName, string workspaceName);
 
         Task<List<APIManagementApiOperationSummary>> GetAPIOperationsByApiAsync(string apiManagementResourceId, string apiName, string workspaceName);
 
-        Task<APIManagementApiOperationDescriptor> GetAPIOperationDetailedInfoAsync(string apiManagementResourceId, string apiName, string operationName, string workspaceName);
+        Task<APIManagementApiOperationDescriptor?> GetAPIOperationDetailedInfoAsync(string apiManagementResourceId, string apiName, string operationName, string workspaceName);
 
         Task<VirtualNetworkDetails?> GetVNetConfigurationForApiManagementAsync(string apimResourceId);
 
@@ -41,11 +40,11 @@ namespace Agent.Plugins.Interface
 
         Task<bool> APIMModifyNSGRuleAsync(string nsgResourceId, string ruleName, string? priority = null, string? access = null, string? direction = null, string? protocol = null, string? sourcePortRange = null, string? destinationPortRange = null, string? sourceAddressPrefix = null, string? destinationAddressPrefix = null, string? description = null);
 
-        Task<ApiPolicyResource> GetPoliciesByApiAsync(string apiManagementResourceId, string apiName);
+        Task<ApiPolicyResource?> GetPoliciesByApiAsync(string apiManagementResourceId, string apiName);
 
-        Task<ApiOperationPolicyResource> GetPoliciesByOperationAsync(string apiManagementResourceId, string apiName, string operationId);
+        Task<ApiOperationPolicyResource?> GetPoliciesByOperationAsync(string apiManagementResourceId, string apiName, string operationId);
 
-        Task<ApiManagementPolicyResource> GetGlobalApimPolicyAsync(string apiManagementResourceId);
+        Task<ApiManagementPolicyResource?> GetGlobalApimPolicyAsync(string apiManagementResourceId);
 
         Task<string> ScaleAPIMInstanceAsync(string apimResourceId, int newUnitCount);
     }

@@ -48,7 +48,7 @@ namespace Agent.Plugins
 
         private static readonly ISerializer _configJsonSerializer = new SerializerBuilder().ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitNull).Build();
 
-        private ThreadContext Context { get; set; }
+        private ThreadContext? Context { get; set; }
         private const string AKSNodePoolLabel = "kubernetes.azure.com/agentpool";
         private const string LegacyAKSNodePoolLabel = "agentpool";
 
@@ -162,7 +162,7 @@ namespace Agent.Plugins
             {
                 case "deployment":
                 case "deployments":
-                    return await GetKubeDeploymentsAsync(resourceId, _namespace);
+                    return await GetKubeDeploymentsAsync(resourceId, _namespace ?? string.Empty);
                 case "service":
                 case "services":
                     var services = await client.CoreV1.ListNamespacedServiceAsync(_namespace);
@@ -277,7 +277,11 @@ namespace Agent.Plugins
 
             foreach (var pod in podList.Split(", ").Where(p => !string.IsNullOrEmpty(p)))
             {
-                _logger.LogInternalInformation("Diagnosing pod: {Pod} for component: {Name}", pod, name);
+                if (_logger != null)
+                {
+                    _logger.LogInternalInformation("Diagnosing pod: {Pod} for component: {Name}", pod, name);
+                }
+
                 podResults[pod] = new Dictionary<string, string>();
                 podTasks.Add(GetKubePodSpecStatusAsync(resourceId, _namespace, pod)
                     .ContinueWith(task => podResults[pod]["PodYaml"] = task.IsCompletedSuccessfully ? task.Result : task.Exception!.ToString()));
@@ -628,7 +632,7 @@ namespace Agent.Plugins
 
             if (string.IsNullOrEmpty(containerName))
             {
-                containerName = podObj.Spec.Containers.FirstOrDefault()?.Name;
+                containerName = podObj!.Spec?.Containers?.FirstOrDefault()?.Name ?? string.Empty;
             }
 
             // get logs of this pod with HTTP messages
@@ -711,7 +715,7 @@ namespace Agent.Plugins
                     apiGroup, version, _namespace, plural);
 
                 // Parse the response using System.Text.Json
-                using var jsonDoc = JsonDocument.Parse(response.Body.ToString());
+                using var jsonDoc = JsonDocument.Parse(response?.Body?.ToString() ?? string.Empty);
                 var resourceNames = new List<string>();
 
                 if (jsonDoc.RootElement.TryGetProperty("items", out var items) && items.ValueKind == JsonValueKind.Array)
@@ -767,7 +771,7 @@ namespace Agent.Plugins
             return matchingBucket != default ? matchingBucket : SupportedBuckets.Last();
         }
 
-        public async Task<string> GetKubeResourceMetricsRangeAsync(string AKSClusterResourceId, string _namespace, string kind, string name, string metricsType, string startTime, string endTime)
+        public async Task<string> GetKubeResourceMetricsRangeAsync(string AKSClusterResourceId, string? _namespace, string kind, string name, string metricsType, string startTime, string endTime)
         {
             var prometheusQueryEndpoint = await _prometheusEndpointService.GetPrometheusEndpointAsync(AKSClusterResourceId);
             // If we still don't have an endpoint, cannot proceed
@@ -785,7 +789,7 @@ namespace Agent.Plugins
             }
 
             // Build the PromQL queries based on the specified metric type
-            string[] queries = BuildPromQueries(metricsType, _namespace, kind, name, "");
+            string[] queries = BuildPromQueries(metricsType, _namespace ?? string.Empty, kind, name, "");
             DateTime startDate = ParseDateTime(startTime);
             DateTime endDate = ParseDateTime(endTime);
             var step = CalculateGranularity(startDate, endDate);
@@ -890,7 +894,7 @@ namespace Agent.Plugins
         /// </summary>
         /// <param name="aksClusterResourceId">The AKS cluster resource ID</param>
         /// <returns>The Prometheus query endpoint URL if found, null otherwise</returns>
-        public async Task<string> GetKubeResourceEventsAsync(string resourceId, string _namespace, string apiGroup, string kind, string name)
+        public async Task<string> GetKubeResourceEventsAsync(string resourceId, string? _namespace, string apiGroup, string kind, string name)
         {
             try
             {
@@ -951,7 +955,7 @@ namespace Agent.Plugins
                                 metadataObj is IDictionary<string, object> metadata &&
                                 metadata.TryGetValue("uid", out var uidObj))
                             {
-                                uid = uidObj.ToString();
+                                uid = uidObj?.ToString() ?? string.Empty;
                             }
                             else
                             {
@@ -1013,15 +1017,15 @@ namespace Agent.Plugins
                     case "node":
                         return await GetKubeNodeSpecStatusAsync(resourceId, name);
                     case "deployment":
-                        return await GetKubeDeploymentSpecStatusAsync(resourceId, _namespace, name);
+                        return await GetKubeDeploymentSpecStatusAsync(resourceId, _namespace ?? string.Empty, name);
                     case "replicaset":
-                        return await GetKubeReplicasetSpecStatusAsync(resourceId, _namespace, name);
+                        return await GetKubeReplicasetSpecStatusAsync(resourceId, _namespace ?? string.Empty, name);
                     case "statefulset":
-                        return await GetKubeStatefulsetSpecStatusAsync(resourceId, _namespace, name);
+                        return await GetKubeStatefulsetSpecStatusAsync(resourceId, _namespace ?? string.Empty, name);
                     case "daemonset":
-                        return await GetKubeDaemonsetSpecStatusAsync(resourceId, _namespace, name);
+                        return await GetKubeDaemonsetSpecStatusAsync(resourceId, _namespace ?? string.Empty, name);
                     case "pod":
-                        return await GetKubePodSpecStatusAsync(resourceId, _namespace, name);
+                        return await GetKubePodSpecStatusAsync(resourceId, _namespace ?? string.Empty, name);
                     case "service":
                         var service = await client.CoreV1.ReadNamespacedServiceAsync(name, _namespace);
                         if (service == null)
@@ -1431,8 +1435,8 @@ namespace Agent.Plugins
                     else // Fallback: Check latest time of *any* condition
                     {
                         var latestConditionTime = deployment.Status?.Conditions?
-                            .Where(c => c.LastUpdateTime.HasValue)
-                            .Max(c => (DateTimeOffset?)c.LastUpdateTime.Value);
+                            .Where(c => c != null && c.LastUpdateTime.HasValue)
+                            .Max(c => (DateTimeOffset?)c.LastUpdateTime!.Value);
 
                         if (latestConditionTime.HasValue && latestConditionTime >= cutoffTime)
                         {
@@ -1475,12 +1479,12 @@ namespace Agent.Plugins
 
                     // Use LastTransitionTime for StatefulSet Conditions
                     var latestConditionTime = sts.Status?.Conditions?
-                        .Where(c => c.LastTransitionTime.HasValue)
-                        .Max(c => (DateTimeOffset?)c.LastTransitionTime.Value);
+                        .Where(c => c != null && c.LastTransitionTime.HasValue)
+                        .Max(c => (DateTimeOffset?)c.LastTransitionTime!.Value);
 
                     if (latestConditionTime.HasValue && latestConditionTime >= cutoffTime)
                     {
-                        string id = $"{sts.Metadata.NamespaceProperty}/{sts.Metadata.Name} (StatefulSet)";
+                        string id = $"{sts?.Metadata?.NamespaceProperty}/{sts?.Metadata?.Name} (StatefulSet)";
                         recentlyUpdated.Add(id);
                         _logger?.LogDebug("Found recently updated StatefulSet: {WorkloadId}, LatestConditionTime: {UpdateTime}, GenerationMatch: {GenerationMatch}",
                              id, latestConditionTime?.ToString("o"), generationMatch);
@@ -1488,12 +1492,13 @@ namespace Agent.Plugins
                     else if (!generationMatch && sts.Metadata?.CreationTimestamp < DateTime.UtcNow.AddMinutes(-minutesAgo * 2)) // Check if spec changed recently (fallback)
                     {
                         var metadataUpdateTime = sts.Metadata?.ManagedFields?
-                               .Where(mf => mf.Operation == "Update" && mf.Time.HasValue)
-                               .Max(mf => (DateTimeOffset?)mf.Time.Value);
+                            .Where(mf => mf != null && mf.Operation == "Update" && mf.Time.HasValue)
+                            .Max(mf => (DateTimeOffset?)mf.Time!.Value);
+
 
                         if (metadataUpdateTime.HasValue && metadataUpdateTime >= cutoffTime)
                         {
-                            string id = $"{sts.Metadata.NamespaceProperty}/{sts.Metadata.Name} (StatefulSet)";
+                            string id = $"{sts?.Metadata?.NamespaceProperty}/{sts?.Metadata?.Name} (StatefulSet)";
                             if (!recentlyUpdated.Contains(id)) // Avoid duplicates
                             {
                                 recentlyUpdated.Add(id);
@@ -2316,7 +2321,7 @@ namespace Agent.Plugins
                 }
             }
 
-            if (exitCode != 0 && !stdout.Contains(analysisStartMarker)) // If failed and no analysis was even started by script
+            if (exitCode != 0 && stdout != null && !stdout.Contains(analysisStartMarker)) // If failed and no analysis was even started by script
             {
                 _logger?.LogError("Memory analysis script failed for pod '{PodName}'. ExitCode: {ExitCode}. Full Stdout:\n{FullStdout}\nFull Stderr:\n{FullStderr}",
                                     podName, exitCode, stdout, stderr);
