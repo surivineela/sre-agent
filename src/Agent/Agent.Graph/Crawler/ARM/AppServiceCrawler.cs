@@ -74,12 +74,12 @@ public class AppServiceCrawler : GenericArmResourceCrawler
                 }
 
                 // Get stack version from site config
-                AppServicePlanData appServicePlanData = null;
+                AppServicePlanData? appServicePlanData = null;
                 if (!string.IsNullOrEmpty(webApp.Data.AppServicePlanId))
                 {
                     try
                     {
-                        var planResourceId = new ResourceIdentifier(webApp.Data.AppServicePlanId);
+                        var planResourceId = new ResourceIdentifier(webApp.Data.AppServicePlanId!);
                         var planResource = _armClient.GetAppServicePlanResource(planResourceId);
                         var plan = await planResource.GetAsync();
                         if (plan.Value != null)
@@ -100,9 +100,9 @@ public class AppServiceCrawler : GenericArmResourceCrawler
 
                 var metadata = GetStackVersion(webConfig.Data);
 
-                appServiceNode.SkuName = appServicePlanData?.Sku?.Name;
-                appServiceNode.SkuTier = appServicePlanData?.Sku?.Tier;
-                appServiceNode.SkuSize = appServicePlanData?.Sku?.Size;
+                appServiceNode.SkuName = appServicePlanData?.Sku?.Name ?? string.Empty;
+                appServiceNode.SkuTier = appServicePlanData?.Sku?.Tier ?? string.Empty;
+                appServiceNode.SkuSize = appServicePlanData?.Sku?.Size ?? string.Empty;
                 appServiceNode.SkuCapacity = appServicePlanData?.Sku?.Capacity;
 
                 // Set additional properties from site config
@@ -127,7 +127,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
                     appServiceNode.IPSecurityRestrictionsDefaultAction = webConfig.Data.IPSecurityRestrictionsDefaultAction.Value.ToString();
                 }
 
-                if (webConfig.Data?.IsAutoHealEnabled is true)
+                if (webConfig.Data.IsAutoHealEnabled is true)
                 {
                     if (webConfig.Data.AutoHealRules != null)
                     {
@@ -154,8 +154,18 @@ public class AppServiceCrawler : GenericArmResourceCrawler
                     _logger.LogDebug($"Processing container app based function app: {appServiceNode.ResourceId}");
                     // Container app function apps have different available properties
                     //appServiceNode.Functions = appServiceNode.Functions ?? new List<AppServiceNode.Function>();
-                    var containerAppEnvironmentResourceIdentifier = new ResourceIdentifier(webApp.Data.ManagedEnvironmentId);
-                    var containerAppEnvironmentNode = new ContainerAppEnvironmentNode(containerAppEnvironmentResourceIdentifier.ResourceType, webApp.Data.ManagedEnvironmentId, containerAppEnvironmentResourceIdentifier.SubscriptionId, containerAppEnvironmentResourceIdentifier.ResourceGroupName, containerAppEnvironmentResourceIdentifier.Name, containerAppEnvironmentResourceIdentifier.Location);
+                    ResourceIdentifier containerAppEnvironmentResourceIdentifier = new ResourceIdentifier(webApp.Data.ManagedEnvironmentId) ?? throw new Exception("Failed to parse managed environment id");
+                    string subscriptionId = containerAppEnvironmentResourceIdentifier.SubscriptionId ?? throw new Exception("Failed to extract subscription id from managed env resource id");
+                    string rgName = containerAppEnvironmentResourceIdentifier.ResourceGroupName ?? throw new Exception("Failed to extract resource group name from managed env resource id");
+                    string location = containerAppEnvironmentResourceIdentifier.Location ?? throw new Exception("Failed to extract location from managed env resource id");
+                    string name = containerAppEnvironmentResourceIdentifier.Name ?? throw new Exception("Failed to extract name from managed env resource id");
+                    var containerAppEnvironmentNode = new ContainerAppEnvironmentNode(
+                        containerAppEnvironmentResourceIdentifier.ResourceType,
+                        webApp.Data.ManagedEnvironmentId,
+                        subscriptionId,
+                        rgName,
+                        name,
+                        location);
                     await _graphDbClient.AddOrUpdateNodeAsync(containerAppEnvironmentNode);
 
                     var edge = new ArmResourceEdge(containerAppEnvironmentNode.GetNodeId(), appServiceNode.GetNodeId(), Constants.Relationships.HostedOn);
@@ -253,7 +263,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
 
             foreach (var binding in bindingsList)
             {
-                string hostnameValue = null;
+                string? hostnameValue = null;
 
                 // Handle the case where binding.Data.Name is in format "app-name/hostname.domain.com"
                 if (!string.IsNullOrEmpty(binding.Data.Name) && binding.Data.Name.Contains("/"))
@@ -291,21 +301,21 @@ public class AppServiceCrawler : GenericArmResourceCrawler
         // Link to App Service Plan if it exists
         if (!string.IsNullOrEmpty(webApp.Data.AppServicePlanId))
         {
-            AppServicePlanNode appServicePlanNode = null;
+            AppServicePlanNode? appServicePlanNode = null;
 
             try
             {
-                var planId = new ResourceIdentifier(webApp.Data.AppServicePlanId);
+                var planId = new ResourceIdentifier(webApp.Data.AppServicePlanId!);
                 appServicePlanNode = new AppServicePlanNode(
                     resourceType: "Microsoft.Web/serverfarms",
-                    resourceId: webApp.Data.AppServicePlanId,
-                    subscriptionId: planId.SubscriptionId,
-                    resourceGroupName: planId.ResourceGroupName,
+                    resourceId: webApp.Data.AppServicePlanId!,
+                    subscriptionId: planId?.SubscriptionId ?? throw new InvalidOperationException("Subscription ID cannot be null."),
+                    resourceGroupName: planId.ResourceGroupName ?? throw new InvalidOperationException("Resource group cannot be null"),
                     resourceName: planId.Name,
                     location: webApp.Data.Location);
 
                 // TODO: this should be only put on appserviceplan node
-                appServiceNode.PlanType = await GetAppServicePlanTypeAsync(webApp.Data.AppServicePlanId);
+                appServiceNode.PlanType = await GetAppServicePlanTypeAsync(webApp.Data.AppServicePlanId!);
                 await _graphDbClient.AddOrUpdateNodeAsync(appServiceNode);
 
                 // Add the App Service Plan node
@@ -334,18 +344,18 @@ public class AppServiceCrawler : GenericArmResourceCrawler
         // Link to VNet if available
         if (!string.IsNullOrEmpty(webApp.Data.VirtualNetworkSubnetId))
         {
-            ArmResourceNode subnetNode = null;
-            ArmResourceNode vnetNode = null;
+            ArmResourceNode? subnetNode = null;
+            ArmResourceNode? vnetNode = null;
 
             try
             {
-                var subnetId = new ResourceIdentifier(webApp.Data.VirtualNetworkSubnetId);
+                var subnetId = new ResourceIdentifier(webApp.Data.VirtualNetworkSubnetId!);
                 subnetNode = new ArmResourceNode(
                     resourceType: subnetId.ResourceType,
                     resourceKind: ResourceKindHelper.getResourceKind(subnetId.ResourceType, null),
-                    resourceId: webApp.Data.VirtualNetworkSubnetId,
-                    subscriptionId: subnetId.SubscriptionId,
-                    resourceGroupName: subnetId.ResourceGroupName,
+                    resourceId: webApp.Data.VirtualNetworkSubnetId!,
+                    subscriptionId: subnetId.SubscriptionId ?? throw new InvalidOperationException("Subscription ID cannot be null."),
+                    resourceGroupName: subnetId.ResourceGroupName ?? throw new InvalidOperationException("Resource group cannot be null."),
                     resourceName: subnetId.Name,
                     location: webApp.Data.Location);
 
@@ -360,12 +370,12 @@ public class AppServiceCrawler : GenericArmResourceCrawler
                 edge2.AddNetworkIngressEdgeProperties();
                 await _graphDbClient.AddOrUpdateEdgeAsync(edge2);
 
-                var vnetResourceId = subnetId.Parent;
+                ResourceIdentifier vnetResourceId = subnetId.Parent ?? throw new InvalidOperationException("SubnetId parent resource identifier cannot be null.");
                 vnetNode = new ArmResourceNode(
                     vnetResourceId.ResourceType,
                     vnetResourceId.ToString(),
-                    vnetResourceId.SubscriptionId,
-                    vnetResourceId.ResourceGroupName,
+                    vnetResourceId.SubscriptionId ?? throw new InvalidOperationException("Subscription Id cannot be null"),
+                    vnetResourceId.ResourceGroupName ?? throw new InvalidOperationException("Resource group name cannot be null"),
                     vnetResourceId.Name);
 
                 await _graphDbClient.AddOrUpdateNodeAsync(vnetNode);
@@ -394,9 +404,9 @@ public class AppServiceCrawler : GenericArmResourceCrawler
             if (string.IsNullOrEmpty(value)) continue;
 
             // Look for SQL connection strings in app settings
-            ArmResourceNode sqlNode = null;
-            ArmResourceNode postgreSqlNode = null;
-            ArmResourceNode redisNode = null;
+            ArmResourceNode? sqlNode = null;
+            ArmResourceNode? postgreSqlNode = null;
+            ArmResourceNode? redisNode = null;
 
             try
             {
@@ -455,7 +465,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
         var appSettingsDict = appSettings.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         if (_postgreSqlHelper.HasPostgreSqlEnvironmentVariables(appSettingsDict))
         {
-            ArmResourceNode postgreSqlEnvNode = null;
+            ArmResourceNode? postgreSqlEnvNode = null;
             try
             {
                 postgreSqlEnvNode = await _postgreSqlHelper.GetPostgreSqlResourceFromEnvironmentVariablesAsync(
@@ -507,10 +517,10 @@ public class AppServiceCrawler : GenericArmResourceCrawler
             return $"node:{config.NodeVersion}";
         }
 
-        return null;
+        return string.Empty;
     }
 
-    private async Task<string> GetAppServicePlanTypeAsync(string appServicePlanId)
+    private async Task<string?> GetAppServicePlanTypeAsync(string appServicePlanId)
     {
         try
         {
@@ -580,7 +590,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
         try
         {
             // Fix for CS1503 error - Convert BinaryData to string if necessary
-            string configString = data.Config is BinaryData binaryData
+            string? configString = data.Config is BinaryData binaryData
                 ? binaryData.ToString()
                 : data.Config?.ToString();
 
@@ -599,7 +609,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
             }
 
             var configJson = JsonDocument.Parse(configString);
-            var resourceIdentifier = new ResourceIdentifier(data.Id);
+            var resourceIdentifier = new ResourceIdentifier(data.Id!);
             var nameSplit = data.Name.Split('/');
             var functionName = data.Name;
             if (nameSplit.Length > 1)
@@ -608,10 +618,10 @@ public class AppServiceCrawler : GenericArmResourceCrawler
             }
             var function = new FunctionNode.Function
             {
-                Id = data.Id,
-                SubscriptionId = resourceIdentifier.SubscriptionId,
-                ResourceGroupName = resourceIdentifier.ResourceGroupName,
-                Location = resourceIdentifier.Location,
+                Id = data.Id!,
+                SubscriptionId = resourceIdentifier.SubscriptionId ?? throw new InvalidOperationException("SubscriptionId cannot be null"),
+                ResourceGroupName = resourceIdentifier.ResourceGroupName ?? throw new InvalidOperationException("Resource group name cannot be null"),
+                Location = resourceIdentifier.Location ?? throw new InvalidOperationException("Location cannot be null"),
                 Name = functionName,
                 TriggerType = "Unknown", // TODO: bring over code from AAPT-Antares-Antux
                 BindingDetails = new Dictionary<string, object>(),
@@ -655,7 +665,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
 
         try
         {
-            var resourceIdentifier = new ResourceIdentifier(data.Id);
+            var resourceIdentifier = new ResourceIdentifier(data.Id!);
             var nameSplit = data.Name.Split('/');
             var workflowName = data.Name;
             if (nameSplit.Length > 1)
@@ -664,10 +674,10 @@ public class AppServiceCrawler : GenericArmResourceCrawler
             }
             var workflow = new WorkflowNode.Workflow
             {
-                Id = data.Id,
-                SubscriptionId = resourceIdentifier.SubscriptionId,
-                ResourceGroupName = resourceIdentifier.ResourceGroupName,
-                Location = resourceIdentifier.Location,
+                Id = data.Id!,
+                SubscriptionId = resourceIdentifier.SubscriptionId ?? throw new InvalidOperationException("SubscriptionId cannot be null"),
+                ResourceGroupName = resourceIdentifier.ResourceGroupName ?? throw new InvalidOperationException("Resource group name cannot be null"),
+                Location = resourceIdentifier.Location ?? throw new InvalidOperationException("Location cannot be null"),
                 Name = workflowName,
             };
 

@@ -35,6 +35,12 @@ public class SubscriptionCrawler : IResourceCrawler
         var subscription = _armClient.GetSubscriptions().Get(subNode.SubscriptionId);
         var subName = subscription?.Value?.Data?.DisplayName;
 
+        if (string.IsNullOrEmpty(subName))
+        {
+            _logger.LogInternalWarning($"Subscription name is null or empty for subscription ID {subNode.SubscriptionId}");
+            yield break; // Exit if we cannot get the subscription name
+        }
+       
         var nodeProperties = subNode.GetNodeProperties();
         nodeProperties["subscriptionName"] = subName;
         await _graphDbClient.AddOrUpdateNodeAsync(subNode.GetNodeLabel(), subNode.GetNodeId(), subNode.GetResourceType(), nodeProperties);

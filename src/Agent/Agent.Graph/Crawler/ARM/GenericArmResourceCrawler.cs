@@ -13,6 +13,7 @@ using Azure.ResourceManager.ManagedServiceIdentities;
 using Azure.ResourceManager.Models;
 using Azure.ResourceManager.Resources;
 using Microsoft.Extensions.Logging;
+using ScottPlot.TickGenerators.TimeUnits;
 
 namespace Agent.Graph.Crawler.ARM;
 
@@ -50,13 +51,13 @@ public class GenericArmResourceCrawler : IResourceCrawler
             yield break;
         }
         var id = new ResourceIdentifier(armNode.ResourceId);
-        if (id == null)
+        if (id is null)
         {
             _logger.LogInternalWarning($"Invalid resource id: {armNode.ResourceId}");
             yield break;
         }
 
-        Response<GenericResource> resp = null;
+        Response<GenericResource>? resp = null;
         try
         {
             resp = await _armClient.GetGenericResource(id).GetAsync();
@@ -95,8 +96,8 @@ public class GenericArmResourceCrawler : IResourceCrawler
 
         if (resp == null || resp.Value == null || !resp.Value.HasData)
         {
-            _logger.LogInternalWarning($"Failed to get resource: {armNode.ResourceId}");
-
+            _logger.LogInternalWarning($"Failed to get response for resource: {armNode.ResourceId}");
+            yield break;
         }
 
         var location = resp.Value.Data.Location;
@@ -108,15 +109,9 @@ public class GenericArmResourceCrawler : IResourceCrawler
         {
             if (identity.ManagedServiceIdentityType == ManagedServiceIdentityType.SystemAssigned || identity.ManagedServiceIdentityType == ManagedServiceIdentityType.SystemAssignedUserAssigned)
             {
-                var identityResp = await resp.Value.GetSystemAssignedIdentity().GetAsync();
-                if (resp == null || resp.Value == null || !resp.Value.HasData)
-                {
-                    _logger.LogInternalWarning($"Failed to get system assigned identity for resource: {armNode.ResourceId}");
-                }
-
                 var identityResourceId = resp.Value.Id;
-                var resourceId = new ResourceIdentifier(identityResourceId);
-                var identityNode = new ManagedIdentityNode(resourceId.ResourceType, identityResourceId, resourceId.SubscriptionId, resourceId.ResourceGroupName, resourceId.Name, ManagedIdentityNode.SystemAssignedManagedIdentityType);
+                var resourceId = new ResourceIdentifier(identityResourceId!);
+                var identityNode = new ManagedIdentityNode(resourceId.ResourceType, identityResourceId!, resourceId.SubscriptionId!, resourceId.ResourceGroupName!, resourceId.Name, ManagedIdentityNode.SystemAssignedManagedIdentityType);
                 await _graphDbClient.AddOrUpdateNodeAsync(identityNode);
 
                 yield return identityNode;
@@ -127,8 +122,8 @@ public class GenericArmResourceCrawler : IResourceCrawler
                 foreach (var uami in identity.UserAssignedIdentities)
                 {
                     var identityResourceId = uami.Key;
-                    var resourceId = new ResourceIdentifier(identityResourceId);
-                    var identityNode = new ManagedIdentityNode(resourceId.ResourceType, identityResourceId, resourceId.SubscriptionId, resourceId.ResourceGroupName, resourceId.Name, ManagedIdentityNode.UserAssignedManagedIdentityType);
+                    var resourceId = new ResourceIdentifier(identityResourceId!);
+                    var identityNode = new ManagedIdentityNode(resourceId.ResourceType, identityResourceId!, resourceId.SubscriptionId!, resourceId.ResourceGroupName!, resourceId.Name, ManagedIdentityNode.UserAssignedManagedIdentityType);
                     await _graphDbClient.AddOrUpdateNodeAsync(identityNode);
 
                     var edge = new ArmResourceEdge(node.GetNodeId(), identityNode.GetNodeId(), Constants.Relationships.HasIdentity);
@@ -186,15 +181,16 @@ public class GenericArmResourceCrawler : IResourceCrawler
                 break;
             case JsonValueKind.String:
                 {
-                    ArmResourceNode node = null;
+                    ArmResourceNode? node = null;
 
                     try
                     {
+                        var rootString = root.GetString();
                         // "/" means tenant
-                        if (root.GetString() != "/")
+                        if (rootString != "/" && rootString != null)
                         {
-                            var id = new ResourceIdentifier(root.GetString());
-                            node = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(id);
+                            var id = new ResourceIdentifier(rootString);
+                            node = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(id!);
                         }
                     }
                     catch { }

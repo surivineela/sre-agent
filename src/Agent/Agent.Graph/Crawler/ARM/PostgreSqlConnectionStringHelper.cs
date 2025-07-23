@@ -38,7 +38,7 @@ public class PostgreSqlConnectionStringHelper
         _graphDbClient = graphDbClient;
     }
 
-    public async Task<ArmResourceNode> GetPostgreSqlResourceFromConnectionStringAsync(
+    public async Task<ArmResourceNode?> GetPostgreSqlResourceFromConnectionStringAsync(
         GraphNode workloadNode,
         string value,
         string sourceType,
@@ -47,7 +47,7 @@ public class PostgreSqlConnectionStringHelper
         try
         {
             var parsedData = ParsePostgreSqlConnectionString(value, sourceName);
-            if (parsedData == null) return null;
+            if (parsedData == null || parsedData.Host == null) return null;
 
             var rawHost = parsedData.Host;
             var database = parsedData.Database;
@@ -95,7 +95,7 @@ public class PostgreSqlConnectionStringHelper
             return null;
         }
     }
-    public bool IsPostgreSqlConnectionString(string value, string keyName = null)
+    public bool IsPostgreSqlConnectionString(string value, string? keyName = null)
     {
         if (string.IsNullOrWhiteSpace(value)) return false;
 
@@ -242,7 +242,7 @@ public class PostgreSqlConnectionStringHelper
         return false;
     }
 
-    public PostgreSqlConnectionFormat DetectFormat(string value, string keyName = null)
+    public PostgreSqlConnectionFormat DetectFormat(string value, string? keyName = null)
     {
         if (string.IsNullOrWhiteSpace(value)) return PostgreSqlConnectionFormat.Unknown;
 
@@ -299,6 +299,11 @@ public class PostgreSqlConnectionStringHelper
         string resourceType)
     {
         var postgresResourceId = new ResourceIdentifier(server.Data.Id.ToString());
+        if (postgresResourceId is null)
+        {
+            _logger.LogInternalError(sourceName, $"PostgreSqlResourceId cannot be null for resource type {resourceType}.");
+            throw new ArgumentNullException(nameof(postgresResourceId), "PostgreSqlResourceId cannot be null.");
+        }            
 
         // Create PostgreSqlFlexServerNode for flexible servers, ArmResourceNode for others
         ArmResourceNode postgresNode;
@@ -306,18 +311,18 @@ public class PostgreSqlConnectionStringHelper
         {
             postgresNode = new PostgreSqlFlexServerNode(
                 resourceType: resourceType,
-                resourceId: postgresResourceId,
-                subscriptionId: postgresResourceId.SubscriptionId,
-                resourceGroupName: postgresResourceId.ResourceGroupName,
+                resourceId: postgresResourceId!,
+                subscriptionId: postgresResourceId.SubscriptionId!,
+                resourceGroupName: postgresResourceId.ResourceGroupName!,
                 resourceName: postgresResourceId.Name);
         }
         else
         {
             postgresNode = new ArmResourceNode(
                 resourceType: resourceType,
-                resourceId: postgresResourceId,
-                subscriptionId: postgresResourceId.SubscriptionId,
-                resourceGroupName: postgresResourceId.ResourceGroupName,
+                resourceId: postgresResourceId!,
+                subscriptionId: postgresResourceId.SubscriptionId!,
+                resourceGroupName: postgresResourceId.ResourceGroupName!,
                 resourceName: postgresResourceId.Name);
         }
 
@@ -394,7 +399,7 @@ public class PostgreSqlConnectionStringHelper
         return "connectionString";
     }
 
-    private PostgreSqlConnectionData ParsePostgreSqlConnectionString(string connectionString, string keyName = null)
+    private PostgreSqlConnectionData? ParsePostgreSqlConnectionString(string connectionString, string? keyName = null)
     {
         if (string.IsNullOrWhiteSpace(connectionString)) return null;
 
@@ -503,7 +508,7 @@ public class PostgreSqlConnectionStringHelper
                 {
                     if (!string.IsNullOrEmpty(key))
                     {
-                        parameters[key] = queryParams[key];
+                        parameters[key] = queryParams[key]!;
                     }
                 }
             }
@@ -537,7 +542,7 @@ public class PostgreSqlConnectionStringHelper
                     {
                         if (!string.IsNullOrEmpty(key))
                         {
-                            parameters[key] = queryParams[key];
+                            parameters[key] = queryParams[key]!;
                         }
                     }
                 }
@@ -582,7 +587,10 @@ public class PostgreSqlConnectionStringHelper
                        match.Groups[3].Success ? match.Groups[3].Value :
                        match.Groups[4].Value;
 
-            parameters[key] = value?.Replace("\\ ", " "); // Handle escaped spaces
+            if (value != null)
+            {
+                parameters[key] = value.Replace("\\ ", " "); // Handle escaped spaces
+            }
         }
 
         return parameters;
@@ -727,8 +735,8 @@ public class PostgreSqlConnectionStringHelper
         return normalized;
     }
 
-    private PostgreSqlConnectionData CreateConnectionData(Dictionary<string, string> parameters,
-        PostgreSqlConnectionFormat format, string originalConnectionString, string keyName)
+    private PostgreSqlConnectionData? CreateConnectionData(Dictionary<string, string> parameters,
+        PostgreSqlConnectionFormat format, string originalConnectionString, string? keyName)
     {
         var data = new PostgreSqlConnectionData
         {
@@ -767,7 +775,7 @@ public class PostgreSqlConnectionStringHelper
 
         // Detect Azure specifics
         data.IsAzureManaged = data.Host?.Contains(".postgres.database.azure.com", StringComparison.OrdinalIgnoreCase) == true;
-        if (data.IsAzureManaged)
+        if (data.IsAzureManaged && data.Host != null)
         {
             data.AzureServerType = DetermineAzureServerType(data.Host);
         }
@@ -782,7 +790,7 @@ public class PostgreSqlConnectionStringHelper
         return data.Host != null ? data : null;
     }
 
-    private string DetectDriverFamily(string connectionString, string keyName, Dictionary<string, string> parameters)
+    private string DetectDriverFamily(string connectionString, string? keyName, Dictionary<string, string> parameters)
     {
         if (string.IsNullOrEmpty(connectionString)) return "unknown";
 
@@ -877,12 +885,19 @@ public class PostgreSqlConnectionStringHelper
         return "flexible";
     }
 
-    public async Task<ArmResourceNode> TryLinkPostgreSqlResourceById(GraphNode workloadNode, string possiblePostgreSqlResource, string sourceType, string sourceName)
+    public async Task<ArmResourceNode?> TryLinkPostgreSqlResourceById(GraphNode workloadNode, string possiblePostgreSqlResource, string sourceType, string sourceName)
     {
         try
         {
             var postgresId = new ResourceIdentifier(possiblePostgreSqlResource);
-            var resourceType = postgresId.ResourceType.ToString();            // Validate it's a PostgreSQL resource
+            if (postgresId is null)
+            {
+                _logger.LogInternalWarning($"Invalid PostgreSQL resource ID: {possiblePostgreSqlResource}");
+                return null;
+            }
+
+            var resourceType = postgresId.ResourceType.ToString();
+            // Validate it's a PostgreSQL resource
             if (!resourceType.Contains("Microsoft.DBforPostgreSQL", StringComparison.OrdinalIgnoreCase))
             {
                 return null;
@@ -894,18 +909,18 @@ public class PostgreSqlConnectionStringHelper
             {
                 postgresNode = new PostgreSqlFlexServerNode(
                     resourceType: resourceType,
-                    resourceId: postgresId,
-                    subscriptionId: postgresId.SubscriptionId,
-                    resourceGroupName: postgresId.ResourceGroupName,
+                    resourceId: postgresId!,
+                    subscriptionId: postgresId.SubscriptionId!,
+                    resourceGroupName: postgresId.ResourceGroupName!,
                     resourceName: postgresId.Name);
             }
             else
             {
                 postgresNode = new ArmResourceNode(
                     resourceType: resourceType,
-                    resourceId: postgresId,
-                    subscriptionId: postgresId.SubscriptionId,
-                    resourceGroupName: postgresId.ResourceGroupName,
+                    resourceId: postgresId!,
+                    subscriptionId: postgresId.SubscriptionId!,
+                    resourceGroupName: postgresId.ResourceGroupName!,
                     resourceName: postgresId.Name);
             }
 
@@ -931,7 +946,7 @@ public class PostgreSqlConnectionStringHelper
     /// <summary>
     /// New overload to handle multiple environment variables for Individual Variables pattern
     /// </summary>
-    public async Task<ArmResourceNode> GetPostgreSqlResourceFromEnvironmentVariablesAsync(
+    public async Task<ArmResourceNode?> GetPostgreSqlResourceFromEnvironmentVariablesAsync(
         GraphNode workloadNode,
         Dictionary<string, string> environmentVariables,
         string sourceType)
@@ -939,7 +954,7 @@ public class PostgreSqlConnectionStringHelper
         try
         {
             var connectionData = BuildConnectionFromEnvironmentVariables(environmentVariables);
-            if (connectionData == null) return null;
+            if (connectionData == null || connectionData.Host == null) return null;
 
             var rawHost = connectionData.Host;
             var database = connectionData.Database;
@@ -1016,7 +1031,7 @@ public class PostgreSqlConnectionStringHelper
     /// <summary>
     /// Builds connection data from individual environment variables with proper precedence
     /// </summary>
-    private PostgreSqlConnectionData BuildConnectionFromEnvironmentVariables(Dictionary<string, string> environmentVariables)
+    private PostgreSqlConnectionData? BuildConnectionFromEnvironmentVariables(Dictionary<string, string> environmentVariables)
     {
         // Step 1: Check for direct connection string variables first (highest precedence)
         var connectionStringVars = new[] {
@@ -1129,6 +1144,11 @@ public class PostgreSqlConnectionStringHelper
         var normalized = NormalizeParameters(parameters);
         var connectionData = CreateConnectionData(normalized, PostgreSqlConnectionFormat.IndividualVars,
             string.Join(", ", sourceVars), null);
+        if (connectionData == null)
+        {
+            return null;
+        }
+
         connectionData.SourceVariables = sourceVars;
 
         return connectionData;
@@ -1136,26 +1156,26 @@ public class PostgreSqlConnectionStringHelper
 
     private class PostgreSqlConnectionData
     {
-        public string Host { get; set; }
-        public string Database { get; set; }
+        public string? Host { get; set; }
+        public string? Database { get; set; }
         public int Port { get; set; } = 5432;
-        public string Username { get; set; }
-        public string SslMode { get; set; }
-        public string AuthenticationType { get; set; }
-        public string ApplicationName { get; set; }
-        public string DriverFamily { get; set; }
-        public string AuthMethod { get; set; }
+        public string? Username { get; set; }
+        public string? SslMode { get; set; }
+        public string? AuthenticationType { get; set; }
+        public string? ApplicationName { get; set; }
+        public string? DriverFamily { get; set; }
+        public string? AuthMethod { get; set; }
         public bool IsAzureManaged { get; set; }
-        public string AzureServerType { get; set; }
+        public string? AzureServerType { get; set; }
         public bool IsHighAvailability { get; set; }
-        public List<string> HostList { get; set; }
+        public List<string>? HostList { get; set; }
         public PostgreSqlConnectionFormat Format { get; set; }
-        public string OriginalConnectionString { get; set; }
-        public string KeyName { get; set; }
+        public required string OriginalConnectionString { get; set; }
+        public string? KeyName { get; set; }
         public Dictionary<string, string> Parameters { get; set; } = new Dictionary<string, string>();
 
         // New properties for Individual Variables support
-        public string Service { get; set; }
-        public List<string> SourceVariables { get; set; }
+        public string? Service { get; set; }
+        public List<string>? SourceVariables { get; set; }
     }
 }

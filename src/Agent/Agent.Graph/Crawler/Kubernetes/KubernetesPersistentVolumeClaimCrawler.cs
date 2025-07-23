@@ -32,7 +32,7 @@ public class KubernetesPersistentVolumeClaimCrawler : IResourceCrawler
         var pvcNode = (KubernetesNamespacedResourceNode)node;
         _logger.LogDebug($"Crawling Kubernetes persistent volume claim: {pvcNode.GetNodeId()}");
 
-        var pvc = (V1PersistentVolumeClaim)pvcNode.ResourceObject;
+        var pvc = (V1PersistentVolumeClaim?)pvcNode.ResourceObject;
         if (pvc == null)
         {
             pvc = await _k8sService.GetPersistentVolumeClaimAsync(pvcNode.ClusterResourceId, pvcNode.Namespace, pvcNode.ResourceName);

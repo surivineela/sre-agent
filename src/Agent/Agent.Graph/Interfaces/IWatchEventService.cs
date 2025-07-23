@@ -8,7 +8,7 @@ namespace Agent.Graph.Interfaces;
 
 public class WatchEvent
 {
-    public object EventData { get; set; }
+    public required object EventData { get; set; }
 }
 
 public interface IWatchEventService

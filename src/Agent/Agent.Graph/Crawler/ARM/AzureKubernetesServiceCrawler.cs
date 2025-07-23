@@ -170,7 +170,7 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
             _logger.LogInternalWarning($"No permission to list persistent volumes under cluster {aksNode.ResourceId}");
         }
 
-        foreach (var pv in persistentVolumes.Items)
+        foreach (var pv in persistentVolumes.Items ?? [])
         {
             _logger.LogDebug($"PersistentVolume: {pv.Name()} in cluster: {aksNode.GetNodeId()}");
             var pvNode = new KubernetesResourceNode(pv, aksNode.ResourceId, aksNode.SubscriptionId, aksNode.ResourceGroupName, aksNode.Location, pv.Name(), Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesPersistentVolumeType, pv.Annotations(), pv.Labels());
@@ -250,16 +250,16 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
                                     amw.TryGetProperty("prometheusQueryEndpoint", out var prometheusEndpointElement) &&
                                     amw.TryGetProperty("amwLocation", out var locationElement))
                                 {
-                                    string resourceId = resourceIdElement.GetString();
+                                    string resourceId = resourceIdElement.GetString() ?? string.Empty;
                                     string prometheusQueryEndpoint = prometheusEndpointElement.ValueKind != JsonValueKind.Null ?
-                                        prometheusEndpointElement.GetString() : null;
+                                        prometheusEndpointElement.GetString() ?? string.Empty : string.Empty;
                                     string location = locationElement.ValueKind != JsonValueKind.Null ?
-                                        locationElement.GetString() : null;
+                                        locationElement.GetString() ?? string.Empty : string.Empty;
 
                                     // Parse the resource ID to extract necessary components
                                     var resourceIdentifier = new ResourceIdentifier(resourceId);
-                                    string subscriptionId = resourceIdentifier.SubscriptionId;
-                                    string resourceGroupName = resourceIdentifier.ResourceGroupName;
+                                    string subscriptionId = resourceIdentifier.SubscriptionId ?? throw new InvalidOperationException("Subscription Id is required");
+                                    string resourceGroupName = resourceIdentifier.ResourceGroupName ?? throw new InvalidOperationException("Resource group name is requried");
                                     string resourceName = resourceIdentifier.Name;
 
                                     _logger.LogDebug($"Found Azure Monitor workspace: {resourceName} with Prometheus endpoint: {prometheusQueryEndpoint}");
@@ -300,13 +300,18 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
         {
             foreach (var agentPool in clusterData.AgentPoolProfiles)
             {
-                if (agentPool.VnetSubnetId != null)
+                if (agentPool.VnetSubnetId is not null)
                 {
-                    var subnetResourceId = new ResourceIdentifier(agentPool.VnetSubnetId);
+                    var subnetResourceId = new ResourceIdentifier(agentPool.VnetSubnetId!);
 
                     // Extract VNet resource ID from subnet ID
                     // Subnet ID format: /subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.Network/virtualNetworks/{vnet}/subnets/{subnet}
                     var vnetResourceId = subnetResourceId.Parent;
+                    if (vnetResourceId is null)
+                        {
+                        _logger.LogInternalWarning($"Failed to extract VNet resource ID from subnet ID: {agentPool.VnetSubnetId}");
+                        continue;
+                    }
 
                     // Create VNet node
                     var vnetNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(vnetResourceId.ToString());
@@ -323,9 +328,9 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
                     // Create Subnet node
                     var subnetNode = new ArmResourceNode(
                         Constants.VirtualNetworkType,
-                        agentPool.VnetSubnetId,
-                        subnetResourceId.SubscriptionId,
-                        subnetResourceId.ResourceGroupName,
+                        agentPool.VnetSubnetId!,
+                        subnetResourceId.SubscriptionId!,
+                        subnetResourceId.ResourceGroupName!,
                         subnetResourceId.Name,
                         aksNode.Location);
 
@@ -360,8 +365,8 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
                     aksNode.ResourceName + "-system",
                     aksNode.Location);
 
-                systemIdentityNode.PrincipalId = clusterData.Identity.PrincipalId.ToString();
-                systemIdentityNode.TenantId = clusterData.Identity.TenantId?.ToString();
+                systemIdentityNode.PrincipalId = clusterData.Identity.PrincipalId.ToString()!;
+                systemIdentityNode.TenantId = clusterData.Identity.TenantId?.ToString()!;
 
                 await _graphDbClient.AddOrUpdateNodeAsync(systemIdentityNode);
                 var edge = new ArmResourceEdge(aksNode.GetNodeId(), systemIdentityNode.GetNodeId(), Constants.Relationships.HasIdentity);
@@ -384,8 +389,8 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
                     await _graphDbClient.AddOrUpdateNodeAsync(identityNode);
                     var edge = new ArmResourceEdge(aksNode.GetNodeId(), identityNode.GetNodeId(), Constants.Relationships.HasIdentity);
                     edge.AddOrUpdateEdgeProperty("identityType", "user-assigned");
-                    edge.AddOrUpdateEdgeProperty("clientId", identity.Value.ClientId?.ToString());
-                    edge.AddOrUpdateEdgeProperty("principalId", identity.Value.PrincipalId?.ToString());
+                    edge.AddOrUpdateEdgeProperty("clientId", identity.Value.ClientId?.ToString()!);
+                    edge.AddOrUpdateEdgeProperty("principalId", identity.Value.PrincipalId?.ToString()!);
                     await _graphDbClient.AddOrUpdateEdgeAsync(edge);
                     _logger.LogDebug($"Connected AKS cluster {aksNode.ResourceName} to user-assigned identity {identityNode.ResourceName}");
                     yield return identityNode;
@@ -430,6 +435,10 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
                         if (disk.TryGetProperty("id", out var diskIdElement))
                         {
                             var diskResourceId = diskIdElement.GetString();
+                            if (string.IsNullOrEmpty(diskResourceId))
+                            {
+                                continue;
+                            }
                             var diskNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(diskResourceId);
 
                             if (diskNode != null)
@@ -504,7 +513,16 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
                             resource.TryGetProperty("type", out var typeElement))
                         {
                             var resourceId = resourceIdElement.GetString();
-                            var resourceType = typeElement.GetString().ToLowerInvariant();
+                            if (string.IsNullOrEmpty(resourceId))
+                            {
+                                continue; // Skip if resource ID is null or empty
+                            }
+
+                            var resourceType = typeElement.GetString()?.ToLowerInvariant();
+                            if (string.IsNullOrEmpty(resourceType))
+                            {
+                                continue; // Skip if resource type is null or empty
+                            }
 
                             var resourceNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(resourceId);
                             if (resourceNode != null)
@@ -610,6 +628,10 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
                         if (acr.TryGetProperty("id", out var acrIdElement))
                         {
                             var acrResourceId = acrIdElement.GetString();
+                            if (string.IsNullOrEmpty(acrResourceId))
+                            {
+                                continue; // Skip if ACR resource ID is null or empty
+                            }
 
                             // Check if this ACR has role assignments from the AKS identity
                             bool hasConnection = await CheckACRConnection(aksNode, clusterData, acrResourceId);
@@ -655,7 +677,7 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
             // Collect all possible principal IDs that might have ACR access
             if (clusterData.Identity?.PrincipalId != null)
             {
-                principalIds.Add(clusterData.Identity.PrincipalId.ToString());
+                principalIds.Add(clusterData.Identity.PrincipalId.ToString()!);
             }
 
             if (clusterData.IdentityProfile != null && clusterData.IdentityProfile.ContainsKey("kubeletidentity"))
@@ -663,7 +685,7 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
                 var kubeletIdentity = clusterData.IdentityProfile["kubeletidentity"];
                 if (kubeletIdentity.ObjectId != null)
                 {
-                    principalIds.Add(kubeletIdentity.ObjectId.ToString());
+                    principalIds.Add(kubeletIdentity.ObjectId.ToString()!);
                 }
             }
 

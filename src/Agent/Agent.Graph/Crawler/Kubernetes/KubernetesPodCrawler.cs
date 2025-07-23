@@ -27,7 +27,7 @@ public class KubernetesPodCrawler : IResourceCrawler
         var podNode = (KubernetesNamespacedResourceNode)node;
         _logger.LogDebug($"Crawling Kubernetes pod: {podNode.GetNodeId()}");
 
-        var pod = (V1Pod)podNode.ResourceObject;
+        var pod = (V1Pod?)podNode.ResourceObject;
         if (pod == null)
         {
             pod = await _k8sService.GetPodAsync(podNode.ClusterResourceId, podNode.Namespace, podNode.ResourceName);

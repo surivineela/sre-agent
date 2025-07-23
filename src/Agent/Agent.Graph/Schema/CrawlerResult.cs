@@ -16,8 +16,7 @@ namespace Agent.Graph.Schema
         public bool HasCompletedInitialGraphCrawl { get; set; }
         public int CrawledCount { get; set; }
         public int TotalVisibleResources { get; set; }
-        public IDictionary<string, object> Properties { get; set; }
 
-        public IDictionary<string, CrawlProgress> ProgressByResourceType { get; set; }
+        public IDictionary<string, CrawlProgress> ProgressByResourceType { get; set; } = new Dictionary<string, CrawlProgress>();
     }
 }

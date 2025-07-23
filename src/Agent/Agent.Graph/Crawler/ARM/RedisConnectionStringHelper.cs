@@ -21,7 +21,7 @@ public class RedisConnectionStringHelper
         _armClient = armClient;
     }
 
-    public async Task<ArmResourceNode> GetRedisResourceFromConnectionStringAsync(
+    public async Task<ArmResourceNode?> GetRedisResourceFromConnectionStringAsync(
         IGraphDatabaseClient graphDbClient,
         ArmResourceNode workloadNode,
         string connectionString)
@@ -30,7 +30,7 @@ public class RedisConnectionStringHelper
         {
             var options = ConfigurationOptions.Parse(connectionString);
             var endpoint = options.EndPoints.First();
-            string hostName = endpoint.ToString();
+            string hostName = endpoint.ToString()!;
             if (hostName.StartsWith("Unspecified/", StringComparison.OrdinalIgnoreCase))
             {
                 hostName = hostName.Substring("Unspecified/".Length);
@@ -61,7 +61,7 @@ public class RedisConnectionStringHelper
                         resourceType: "Microsoft.Cache/redis",
                         resourceId: redisResourceId,
                         subscriptionId: workloadNode.SubscriptionId,
-                        resourceGroupName: ExtractResourceGroupName(cache.Data.Id),
+                        resourceGroupName: ExtractResourceGroupName(cache.Data.Id!),
                         resourceName: cache.Data.Name);
 
                     await graphDbClient.AddOrUpdateNodeAsync(redisNode);

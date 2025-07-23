@@ -37,7 +37,7 @@ public class KubernetesPersistentVolumeCrawler : IResourceCrawler
         var pvNode = (KubernetesResourceNode)node;
         _logger.LogDebug($"Crawling Kubernetes persistent volume: {pvNode.GetNodeId()}");
 
-        var pv = (V1PersistentVolume)pvNode.ResourceObject;
+        var pv = (V1PersistentVolume?)pvNode.ResourceObject;
         if (pv == null)
         {
             pv = await _k8sService.GetPersistentVolumeAsync(pvNode.ClusterResourceId, pvNode.ResourceName);
@@ -82,11 +82,16 @@ public class KubernetesPersistentVolumeCrawler : IResourceCrawler
     private async IAsyncEnumerable<GraphNode> HandleAzureDiskVolume(V1PersistentVolume pv, KubernetesResourceNode pvNode)
     {
         var diskId = ResourceIdentifier.Parse(pv.Spec.Csi.VolumeHandle);
+        if (diskId is null)
+        {
+            _logger.LogDebug($"Unrecognized volume handle format for Azure disk: {pv.Spec.Csi.VolumeHandle}. Possibly this is not auto provisioned by AKS");
+            yield break;
+        }
         var diskNode = new ArmResourceNode(
-            resourceId: diskId,
+            resourceId: diskId!,
             resourceType: diskId.ResourceType,
-            subscriptionId: diskId.SubscriptionId,
-            resourceGroupName: diskId.ResourceGroupName,
+            subscriptionId: diskId.SubscriptionId!,
+            resourceGroupName: diskId.ResourceGroupName!,
             resourceName: diskId.Name);
 
         await _graphDbClient.AddOrUpdateNodeAsync(diskNode);
@@ -139,12 +144,12 @@ public class KubernetesPersistentVolumeCrawler : IResourceCrawler
         var element = json.EnumerateArray().First();
 
         var storageNode = new ArmResourceNode(
-            resourceId: element.GetProperty("id").GetString(),
+            resourceId: element.GetProperty("id").GetString()!,
             resourceType: Constants.StorageType,
-            subscriptionId: element.GetProperty("subscriptionId").GetString(),
-            resourceGroupName: element.GetProperty("resourceGroup").GetString(),
-            resourceName: element.GetProperty("name").GetString(),
-            location: element.GetProperty("location").GetString());
+            subscriptionId: element.GetProperty("subscriptionId").GetString()!,
+            resourceGroupName: element.GetProperty("resourceGroup").GetString()!,
+            resourceName: element.GetProperty("name").GetString()!,
+            location: element.GetProperty("location").GetString()!);
 
         await _graphDbClient.AddOrUpdateNodeAsync(storageNode);
         var edge = new ArmResourceEdge(pvNode.GetNodeId(), storageNode.GetNodeId(), Constants.Relationships.BackedBy);

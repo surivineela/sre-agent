@@ -15,13 +15,13 @@ namespace Agent.Graph.Services;
 
 public class WatchEventSource
 {
-    public string SubscriptionId { get; set; }
+    public required string SubscriptionId { get; set; }
     public string? ResourceGroupName { get; set; }
     public ResourceIdentifier? ResourceId { get; set; }
 
     public string ToQueryString()
     {
-        if (ResourceId != null)
+        if (ResourceId is not null)
         {
             return $"resourceUri eq '{ResourceId.ToString()}'";
         }

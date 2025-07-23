@@ -16,14 +16,14 @@ public class PagerDutyService : IPagerDutyService
     private readonly string _pagerDutyApiKey = string.Empty;
     private readonly ILogger<PagerDutyService> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly IncidentManagementSettings? _settings;
+    private readonly IncidentManagementSettings _settings;
 
     public PagerDutyService(ILogger<PagerDutyService> logger, IHttpClientFactory httpClientFactory, IncidentManagementSettings settings)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
         _settings = settings;
-        if (_settings != null && _settings.Type == IncidentManagementType.PagerDuty && !string.IsNullOrEmpty(_settings.ConnectionKey))
+        if (_settings.Type == IncidentManagementType.PagerDuty && !string.IsNullOrEmpty(_settings.ConnectionKey))
         {
             _pagerDutyApiKey = _settings.ConnectionKey;
         }

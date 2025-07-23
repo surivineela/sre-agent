@@ -29,7 +29,7 @@ internal class CrawlProgressCounter(int crawledCount, int crawlingCount, int pen
 
 internal class QueuedCrawlRequest
 {
-    public GraphNode Node { get; set; }
+    public required GraphNode Node { get; set; }
     public DateTime QueuedAt { get; set; }
     public int RetryCount { get; set; }
 }
@@ -88,7 +88,7 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
         List<GraphNode> roots = new List<GraphNode>();
         foreach (var rootId in rootIds)
         {
-            GraphNode rootNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(rootId);
+            GraphNode? rootNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(rootId);
             if (rootNode != null)
             {
                 roots.Add(rootNode);
@@ -108,10 +108,9 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
             last = id;
         }
 
-        HashSet<string> typeFiltersSet = null;
+        var typeFiltersSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         if (typeFilters != null)
-        {
-            typeFiltersSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        {            
             foreach (var filter in typeFilters)
             {
                 typeFiltersSet.Add(filter);
@@ -189,9 +188,9 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
                         else if (armOperationType == ArmResourceOperationType.Delete)
                         {
                             _logger.LogInternalInformation($"Deleting resource: {eventData.HttpRequest?.Method ?? "unknown method"} {eventData.ResourceId ?? "unknown resource"}.");
-                            if (!string.IsNullOrEmpty(eventData.ResourceId))
+                            if (eventData.ResourceId is not null)
                             {
-                                await _graphDbClient.SoftDeleteResourceById(eventData.ResourceId);
+                                await _graphDbClient.SoftDeleteResourceById(eventData.ResourceId!);
                             }
                             return;
                         }
@@ -203,7 +202,7 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
                                 return;
                             }
 
-                            GraphNode node = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(eventData.ResourceId);
+                            GraphNode? node = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(eventData.ResourceId!);
                             if (node != null)
                             {
                                 _logger.LogInternalInformation($"Crawling on event: {eventData.HttpRequest?.Method ?? "unknown method"} {eventData.ResourceId}.");
@@ -252,7 +251,7 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
                             location: null,
                             clusterResourceId: eventData.ClusterResourceId,
                             namespaceName: eventData.Namespace,
-                            resourceName: eventData.ResourceName,
+                            resourceName: eventData.ResourceName!,
                             group: eventData.Group,
                             apiVersion: eventData.ApiVersion,
                             kind: eventData.Kind
@@ -275,9 +274,9 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
         }, cancellationToken ?? CancellationToken.None);
     }
 
-    private async Task Crawl(IList<GraphNode> nodes, HashSet<string> scopeFilters, HashSet<string> typeFilters = null, bool cascade = true, CancellationToken? cancellationToken = null)
+    private async Task Crawl(IList<GraphNode> nodes, HashSet<string> scopeFilters, HashSet<string> typeFilters, bool cascade = true, CancellationToken? cancellationToken = null)
     {
-        _logger.LogInternalInformation($"Crawling resources: {string.Join(", ", nodes.Select(n => n.GetNodeId()))}. Cascade = {cascade}. Scope Filters = {string.Join(", ", scopeFilters ?? Enumerable.Empty<string>())}. Type Filters = {string.Join(", ", typeFilters ?? Enumerable.Empty<string>())}");
+        _logger.LogInternalInformation($"Crawling resources: {string.Join(", ", nodes.Select(n => n.GetNodeId()))}. Cascade = {cascade}. Scope Filters = {string.Join(", ", scopeFilters)}. Type Filters = {string.Join(", ", typeFilters)}");
         _isCrawling = true;
         HashSet<string> crawled = new();
         try
@@ -298,7 +297,7 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
 
             foreach (var node in nodes)
             {
-                if (typeFilters == null || FilterResourceType(typeFilters, node))
+                if (FilterResourceType(typeFilters, node))
                 {
                     toCrawl.Enqueue(node);
                     Interlocked.Increment(ref _pendingCount);
@@ -581,7 +580,7 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
     //    _logger.LogInternalInformation($"Done cleaning up");
     //}
 
-    private (string, string, ResourceIdentifier?) ParseResourceId(string resourceId)
+    private (string?, string?, ResourceIdentifier?) ParseResourceId(string resourceId)
     {
         if (string.IsNullOrEmpty(resourceId))
         {
@@ -614,6 +613,11 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
             }
 
             var (subscriptionId, resourceGroupName, resource) = ParseResourceId(resourceId);
+            if (string.IsNullOrEmpty(subscriptionId))
+            {
+                _logger.LogInternalWarning($"Invalid resource ID: {resourceId}. Subscription ID is missing.");
+                continue;
+            }
 
             sources.Add(new WatchEventSource
             {
@@ -632,9 +636,9 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
         foreach (var resourceId in resourceIds)
         {
             var (subscriptionId, resourceGroupName, id) = ParseResourceId(resourceId);
-            if (id != null)
+            if (id is not null)
             {
-                aksClusters.Add(id);
+                aksClusters.Add(id!);
                 continue;
             }
 
@@ -664,12 +668,15 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
             }
 
             var (subscriptionId, resourceGroupName, resource) = ParseResourceId(aksCluster);
-            sources.Add(new WatchEventSource
+            if (!string.IsNullOrEmpty(subscriptionId))
             {
-                SubscriptionId = subscriptionId,
-                ResourceGroupName = resourceGroupName,
-                ResourceId = resource
-            });
+                sources.Add(new WatchEventSource
+                {
+                    SubscriptionId = subscriptionId,
+                    ResourceGroupName = resourceGroupName,
+                    ResourceId = resource
+                });
+            }
         }
 
         return sources;
@@ -731,7 +738,7 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
         // Add null checks for each property that could be null
         if (eventData == null ||
             eventData.Category?.Value == null ||
-            eventData.ResourceId == null ||
+            eventData.ResourceId is null ||
             eventData.HttpRequest == null ||
             eventData.HttpRequest.Method == null ||
             string.IsNullOrEmpty(eventData.Status?.Value))
@@ -753,7 +760,7 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
         }
 
         if (eventData.Category.Value == "Administrative"
-            && eventData.ResourceId != null
+            && eventData.ResourceId is not null
             && eventData.HttpRequest != null
             && !string.IsNullOrEmpty(eventData.Status.Value)
             && (eventData.Status.Value == "Accepted" || eventData.Status.Value == "Succeeded"))
@@ -788,7 +795,7 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
                                 {
                                     _logger.LogInternalInformation($"Processing triggered crawl for resource: {resourceId}");
 
-                                    GraphNode node = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(resourceId);
+                                    GraphNode? node = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(resourceId);
                                     if (node != null)
                                     {
                                         // Check if the resource still exists before crawling
@@ -1004,7 +1011,7 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
         };
     }
 
-    private void ProcessQueuedCrawlRequests(object state)
+    private void ProcessQueuedCrawlRequests(object? state)
     {
         _ = Task.Run(async () =>
         {

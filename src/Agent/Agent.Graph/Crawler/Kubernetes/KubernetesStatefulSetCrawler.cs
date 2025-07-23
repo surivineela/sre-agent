@@ -20,12 +20,13 @@ public class KubernetesStatefulSetCrawler : IResourceCrawler
     public KubernetesStatefulSetCrawler(
         ILogger<KubernetesStatefulSetCrawler> logger,
         IGraphDatabaseClient graphDbClient,
-        IKubernetesService k8sService)
+        IKubernetesService k8sService,
+        ArmClient armClient)
     {
         _logger = logger;
         _graphDbClient = graphDbClient;
         _k8sService = k8sService;
-        _armClient = null;
+        _armClient = armClient;
         _sqlHelper = new SqlConnectionStringHelper(logger, _armClient, _graphDbClient);
         _postgresHelper = new PostgreSqlConnectionStringHelper(logger, _armClient, _graphDbClient);
     }
@@ -35,7 +36,7 @@ public class KubernetesStatefulSetCrawler : IResourceCrawler
         var statefulSetNode = (KubernetesNamespacedResourceNode)node;
         _logger.LogDebug($"Crawling stateful set: {statefulSetNode.GetNodeId()}");
 
-        var statefulSet = (V1StatefulSet)statefulSetNode.ResourceObject;
+        var statefulSet = (V1StatefulSet?)statefulSetNode.ResourceObject;
         if (statefulSet == null)
         {
             statefulSet = await _k8sService.GetStatefulSetAsync(

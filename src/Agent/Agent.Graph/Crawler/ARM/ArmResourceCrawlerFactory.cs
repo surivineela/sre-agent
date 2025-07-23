@@ -134,7 +134,7 @@ public class ArmResourceCrawlerFactory
 
             if (Constants.KubernetesStatefulSetType.Equals(k8sNode.Kind, StringComparison.OrdinalIgnoreCase))
             {
-                return new KubernetesStatefulSetCrawler(_loggerFactory.CreateLogger<KubernetesStatefulSetCrawler>(), _graphDbClient, _k8sService);
+                return new KubernetesStatefulSetCrawler(_loggerFactory.CreateLogger<KubernetesStatefulSetCrawler>(), _graphDbClient, _k8sService, armClient);
             }
 
             if (Constants.KubernetesNodeType.Equals(k8sNode.Kind, StringComparison.OrdinalIgnoreCase))
@@ -158,14 +158,14 @@ public class ArmResourceCrawlerFactory
         throw new NotImplementedException();
     }
 
-    public static ArmResourceNode CreateResourceNodeFromResourceIdentifier(string resourceId)
+    public static ArmResourceNode? CreateResourceNodeFromResourceIdentifier(string resourceId)
     {
         if (string.IsNullOrEmpty(resourceId))
         {
             return null;
         }
         var id = new ResourceIdentifier(resourceId);
-        if (id == null || string.IsNullOrEmpty(id.SubscriptionId))
+        if (id is null || string.IsNullOrEmpty(id.SubscriptionId))
         {
             return null;
         }
@@ -178,6 +178,11 @@ public class ArmResourceCrawlerFactory
         if (!string.IsNullOrEmpty(id.SubscriptionId) && !string.IsNullOrEmpty(id.ResourceGroupName) && string.Equals(id.ResourceType.Type, "resourcegroups", StringComparison.OrdinalIgnoreCase))
         {
             return new ResourceGroupNode(id.SubscriptionId, id.ResourceGroupName);
+        }
+
+        if (string.IsNullOrEmpty(id.ResourceGroupName))
+        {
+            throw new Exception($"Resource identifier '{resourceId}' does not contain a valid resource group name.");
         }
 
         if (Constants.ContainerAppEnvironmentType.Equals(id.ResourceType, StringComparison.OrdinalIgnoreCase))
@@ -220,7 +225,7 @@ public class ArmResourceCrawlerFactory
         return new ArmResourceNode(id.ResourceType, id.ToString(), id.SubscriptionId, id.ResourceGroupName, id.Name);
     }
 
-    public static KubernetesResourceNode CreateKubernetesResourceNode(IKubernetesObject? k8sObject, string subscriptionId, string resourceGroupName, string? location, string clusterResourceId, string? namespaceName, string resourceName, string group, string apiVersion, string kind)
+    public static KubernetesResourceNode CreateKubernetesResourceNode(IKubernetesObject? k8sObject, string? subscriptionId, string? resourceGroupName, string? location, string clusterResourceId, string? namespaceName, string resourceName, string group, string apiVersion, string kind)
     {
         if (!string.IsNullOrEmpty(namespaceName))
         {

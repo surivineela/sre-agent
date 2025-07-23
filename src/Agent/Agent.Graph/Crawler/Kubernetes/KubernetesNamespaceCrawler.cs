@@ -29,7 +29,7 @@ namespace Agent.Graph.Crawler.Kubernetes
             var nsNode = (KubernetesResourceNode)node;
             _logger.LogDebug($"Crawling Kubernetes namespace: {nsNode.GetNodeId()}");
 
-            var ns = (V1Namespace)nsNode.ResourceObject;
+            var ns = (V1Namespace?)nsNode.ResourceObject;
             if (ns == null)
             {
                 ns = await _k8sService.GetNamespaceAsync(nsNode.ClusterResourceId, nsNode.ResourceName);
@@ -45,7 +45,7 @@ namespace Agent.Graph.Crawler.Kubernetes
             // list all deployments
             var deployments = await _k8sService.GetDeploymentsAsync(nsNode.ClusterResourceId, nsNode.ResourceName);
             _logger.LogDebug($"Found {deployments.Items?.Count} deployments in namespace: {nsNode.GetNodeId()}");
-            foreach (var deployment in deployments.Items)
+            foreach (var deployment in deployments.Items ?? [])
             {
                 _logger.LogDebug($"Deployment: {deployment.Name()} in namespace: {nsNode.GetNodeId()}");
                 var deploymentNode = new KubernetesNamespacedResourceNode(deployment, nsNode.ClusterResourceId, nsNode.ResourceName, nsNode.SubscriptionId, nsNode.ResourceGroupName, nsNode.Location, deployment.Name(), "apps", Constants.KubernetesV1Version, Constants.KubernetesDeploymentType, deployment.Annotations(), deployment.Labels());
@@ -58,7 +58,7 @@ namespace Agent.Graph.Crawler.Kubernetes
             // list all statefulsets
             var statefulSets = await _k8sService.GetStatefulSetsAsync(nsNode.ClusterResourceId, nsNode.ResourceName);
             _logger.LogDebug($"Found {statefulSets.Items?.Count} statefulsets in namespace: {nsNode.GetNodeId()}");
-            foreach (var statefulSet in statefulSets.Items)
+            foreach (var statefulSet in statefulSets.Items ?? [])
             {
                 _logger.LogDebug($"StatefulSet: {statefulSet.Name()} in namespace: {nsNode.GetNodeId()}");
                 var statefulSetNode = new KubernetesNamespacedResourceNode(statefulSet, nsNode.ClusterResourceId, nsNode.ResourceName, nsNode.SubscriptionId, nsNode.ResourceGroupName, nsNode.Location, statefulSet.Name(), "apps", Constants.KubernetesV1Version, Constants.KubernetesStatefulSetType, statefulSet.Annotations(), statefulSet.Labels());
@@ -71,7 +71,7 @@ namespace Agent.Graph.Crawler.Kubernetes
             // list all daemonsets
             var daemonSets = await _k8sService.GetDaemonSetsAsync(nsNode.ClusterResourceId, nsNode.ResourceName);
             _logger.LogDebug($"Found {daemonSets.Items?.Count} daemonsets in namespace: {nsNode.GetNodeId()}");
-            foreach (var daemonSet in daemonSets.Items)
+            foreach (var daemonSet in daemonSets.Items ?? [])
             {
                 _logger.LogDebug($"DaemonSet: {daemonSet.Name()} in namespace: {nsNode.GetNodeId()}");
                 var daemonSetNode = new KubernetesNamespacedResourceNode(daemonSet, nsNode.ClusterResourceId, nsNode.ResourceName, nsNode.SubscriptionId, nsNode.ResourceGroupName, nsNode.Location, daemonSet.Name(), "apps", Constants.KubernetesV1Version, Constants.KubernetesDaemonSetType, daemonSet.Annotations(), daemonSet.Labels());
@@ -84,7 +84,7 @@ namespace Agent.Graph.Crawler.Kubernetes
             // list all services
             var services = await _k8sService.GetServicesAsync(nsNode.ClusterResourceId, nsNode.ResourceName);
             _logger.LogDebug($"Found {services.Items?.Count} services in namespace: {nsNode.GetNodeId()}");
-            foreach (var service in services.Items)
+            foreach (var service in services.Items ?? [])
             {
                 _logger.LogDebug($"Service: {service.Name()} in namespace: {nsNode.GetNodeId()}");
                 var serviceNode = new KubernetesNamespacedResourceNode(service, nsNode.ClusterResourceId, nsNode.ResourceName, nsNode.SubscriptionId, nsNode.ResourceGroupName, nsNode.Location, service.Name(), Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesServiceType, service.Annotations(), service.Labels());
@@ -97,7 +97,7 @@ namespace Agent.Graph.Crawler.Kubernetes
             // list all config maps
             var configMaps = await _k8sService.GetConfigMapsAsync(nsNode.ClusterResourceId, nsNode.ResourceName);
             _logger.LogDebug($"Found {configMaps.Items?.Count} config maps in namespace: {nsNode.GetNodeId()}");
-            foreach (var configMap in configMaps.Items)
+            foreach (var configMap in configMaps.Items ?? [])
             {
                 _logger.LogDebug($"ConfigMap: {configMap.Name()} in namespace: {nsNode.GetNodeId()}");
                 var configMapNode = new KubernetesNamespacedResourceNode(configMap, nsNode.ClusterResourceId, nsNode.ResourceName, nsNode.SubscriptionId, nsNode.ResourceGroupName, nsNode.Location, configMap.Name(), Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesConfigMapType, configMap.Annotations(), configMap.Labels());
@@ -120,7 +120,7 @@ namespace Agent.Graph.Crawler.Kubernetes
             }
 
             _logger.LogDebug($"Found {secrets.Items?.Count} secrets in namespace: {nsNode.GetNodeId()}");
-            foreach (var secret in secrets.Items)
+            foreach (var secret in secrets.Items ?? [])
             {
                 _logger.LogDebug($"Secret: {secret.Name()} in namespace: {nsNode.GetNodeId()}");
                 var secretNode = new KubernetesNamespacedResourceNode(secret, nsNode.ClusterResourceId, nsNode.ResourceName, nsNode.SubscriptionId, nsNode.ResourceGroupName, nsNode.Location, secret.Name(), Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesSecretType, secret.Annotations(), secret.Labels());
@@ -134,7 +134,7 @@ namespace Agent.Graph.Crawler.Kubernetes
             // list all pvcs
             var persistentVolumeClaims = await _k8sService.GetPersistentVolumeClaimsAsync(nsNode.ClusterResourceId, nsNode.ResourceName);
             _logger.LogDebug($"Found {persistentVolumeClaims.Items?.Count} persistent volume claims in namespace: {nsNode.GetNodeId()}");
-            foreach (var pvc in persistentVolumeClaims.Items)
+            foreach (var pvc in persistentVolumeClaims.Items ?? [])
             {
                 _logger.LogDebug($"PersistentVolumeClaim: {pvc.Name()} in namespace: {nsNode.GetNodeId()}");
                 var pvcNode = new KubernetesNamespacedResourceNode(pvc, nsNode.ClusterResourceId, nsNode.ResourceName, nsNode.SubscriptionId, nsNode.ResourceGroupName, nsNode.Location, pvc.Name(), Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesPersistentVolumeClaimType, pvc.Annotations(), pvc.Labels());

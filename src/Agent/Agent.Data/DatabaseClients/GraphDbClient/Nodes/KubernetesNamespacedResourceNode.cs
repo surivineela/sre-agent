@@ -23,8 +23,8 @@ public class KubernetesNamespacedResourceNode : KubernetesResourceNode
         string group,
         string apiVersion,
         string kind,
-        IDictionary<string, string> annotations = null,
-        IDictionary<string, string> labels = null) : base(k8sObject, clusterResourceId, subscriptionId, resourceGroupName, location, resourceName, group, apiVersion, kind, annotations, labels)
+        IDictionary<string, string>? annotations = null,
+        IDictionary<string, string>? labels = null) : base(k8sObject, clusterResourceId, subscriptionId, resourceGroupName, location, resourceName, group, apiVersion, kind, annotations, labels)
     {
         UpdateTs = DateTime.UtcNow.Ticks;
         Namespace = @namespace.ToLowerInvariant();

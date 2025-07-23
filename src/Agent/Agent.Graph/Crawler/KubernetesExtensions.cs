@@ -55,7 +55,7 @@ public static partial class KubernetesExtensions
         return labelSelector.ToString();
     }
 
-    public static async Task<ArmResourceNode> TryMatchAndLinkSqlResourcesAsync(this V1EnvVar env, KubernetesNamespacedResourceNode node, SqlConnectionStringHelper sqlHelper, IGraphDatabaseClient graphDbClient, string sourceType, ILogger logger)
+    public static async Task<ArmResourceNode?> TryMatchAndLinkSqlResourcesAsync(this V1EnvVar env, KubernetesNamespacedResourceNode node, SqlConnectionStringHelper sqlHelper, IGraphDatabaseClient graphDbClient, string sourceType, ILogger logger)
     {
         var val = string.Empty;
         if (env.Value != null)
@@ -64,7 +64,7 @@ public static partial class KubernetesExtensions
         }
         // TODO: valueFrom
 
-        ArmResourceNode sqlNode = null;
+        ArmResourceNode? sqlNode = null;
         if (sqlHelper.IsSqlConnectionString(val))
         {
             sqlNode = await sqlHelper.GetSqlResourceFromConnectionStringAsync(
@@ -81,7 +81,7 @@ public static partial class KubernetesExtensions
         return sqlNode;
     }
 
-    public static async Task<ArmResourceNode> TryMatchAndLinkPostgreSqlResourcesAsync(
+    public static async Task<ArmResourceNode?> TryMatchAndLinkPostgreSqlResourcesAsync(
         this V1EnvVar env,
         KubernetesNamespacedResourceNode node,
         PostgreSqlConnectionStringHelper postgresHelper,
@@ -95,7 +95,7 @@ public static partial class KubernetesExtensions
             val = env.Value;
         }
 
-        ArmResourceNode postgresNode = null;
+        ArmResourceNode? postgresNode = null;
         if (postgresHelper.IsPostgreSqlConnectionString(val))
         {
             postgresNode = await postgresHelper.GetPostgreSqlResourceFromConnectionStringAsync(
@@ -113,7 +113,7 @@ public static partial class KubernetesExtensions
     }
 
     // try to extract service name and service namespace if the env value is a service url
-    public async static Task<KubernetesNamespacedResourceNode> TryMatchAndLinkServiceAsync(this V1EnvVar env, KubernetesNamespacedResourceNode node, IKubernetesService k8sService, IGraphDatabaseClient graphDbClient, ILogger logger)
+    public async static Task<KubernetesNamespacedResourceNode?> TryMatchAndLinkServiceAsync(this V1EnvVar env, KubernetesNamespacedResourceNode node, IKubernetesService k8sService, IGraphDatabaseClient graphDbClient, ILogger logger)
     {
         var serviceName = string.Empty;
         var serviceNamespace = string.Empty;
@@ -166,7 +166,7 @@ public static partial class KubernetesExtensions
         return null;
     }
 
-    public async static Task<KubernetesNamespacedResourceNode> TryLinkEnvReferenceAsync(this V1EnvVar env, KubernetesNamespacedResourceNode node, IKubernetesService k8sService, IGraphDatabaseClient graphDbClient, ILogger logger)
+    public async static Task<KubernetesNamespacedResourceNode?> TryLinkEnvReferenceAsync(this V1EnvVar env, KubernetesNamespacedResourceNode node, IKubernetesService k8sService, IGraphDatabaseClient graphDbClient, ILogger logger)
     {
         if (env.ValueFrom == null)
         {
@@ -219,7 +219,7 @@ public static partial class KubernetesExtensions
         return null;
     }
 
-    public async static Task<KubernetesNamespacedResourceNode> TryLinkVolumeReferenceAsync(this V1Volume volume, KubernetesNamespacedResourceNode node, IKubernetesService k8sService, IGraphDatabaseClient graphDbClient, ILogger logger)
+    public async static Task<KubernetesNamespacedResourceNode?> TryLinkVolumeReferenceAsync(this V1Volume volume, KubernetesNamespacedResourceNode node, IKubernetesService k8sService, IGraphDatabaseClient graphDbClient, ILogger logger)
     {
         if (volume.Secret != null)
         {
@@ -310,14 +310,14 @@ public static partial class KubernetesExtensions
         }
         else
         {
-            pNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(node.ClusterResourceId);
+            pNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(node.ClusterResourceId) ?? throw new Exception("Failed to create resource node from resource identifier");
         }
 
         var edge = new ArmResourceEdge(pNode.GetNodeId(), node.GetNodeId(), Constants.Relationships.Contains);
         await graphDbClient.AddOrUpdateEdgeAsync(edge);
     }
 
-    public static async Task<ArmResourceNode> TryProcessPostgreSqlEnvironmentVariablesAsync(
+    public static async Task<ArmResourceNode?> TryProcessPostgreSqlEnvironmentVariablesAsync(
         this V1Container container,
         GraphNode parentNode,
         PostgreSqlConnectionStringHelper postgresHelper,
@@ -349,7 +349,7 @@ public static partial class KubernetesExtensions
         return null;
     }
 
-    public static async Task<ArmResourceNode> TryProcessPostgreSqlEnvironmentVariablesAsync(
+    public static async Task<ArmResourceNode?> TryProcessPostgreSqlEnvironmentVariablesAsync(
         this Azure.ResourceManager.AppContainers.Models.ContainerAppContainer container,
         GraphNode parentNode,
         PostgreSqlConnectionStringHelper postgresHelper,

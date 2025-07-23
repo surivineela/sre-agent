@@ -76,10 +76,10 @@ namespace Agent.Graph.Crawler.ARM
                 var subnetResourceId = new ResourceIdentifier(apiManagementNode.SubnetResourceId);
                 var vnetResourceId = subnetResourceId.Parent;
 
-                if (vnetResourceId != null)
+                if (vnetResourceId is not null)
                 {
                     // Create VNet node
-                    var vnetNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(vnetResourceId.ToString());
+                    var vnetNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(vnetResourceId.ToString())!;
                     await _graphDbClient.AddOrUpdateNodeAsync(vnetNode);
 
                     // Connect APIM -> VNet
@@ -93,8 +93,8 @@ namespace Agent.Graph.Crawler.ARM
                     var subnetNode = new ArmResourceNode(
                         Constants.VirtualNetworkType,
                         apiManagementNode.SubnetResourceId,
-                        subnetResourceId.SubscriptionId,
-                        subnetResourceId.ResourceGroupName,
+                        subnetResourceId.SubscriptionId!,
+                        subnetResourceId.ResourceGroupName!,
                         subnetResourceId.Name,
                         apiManagementNode.Location);
 
@@ -125,10 +125,10 @@ namespace Agent.Graph.Crawler.ARM
                     var apimBackendNode = new APIManagementBackendNode(
                         resourceIdObj.ResourceType,
                         backendInfo.BackendResourceId,
-                        resourceIdObj.SubscriptionId,
-                        resourceIdObj.ResourceGroupName,
+                        resourceIdObj.SubscriptionId!,
+                        resourceIdObj.ResourceGroupName!,
                         resourceIdObj.Name,
-                        resourceIdObj.Location
+                        resourceIdObj.Location!
                     );
 
                     apimBackendNode.PopulateAPIMBackendResource(backendInfo);

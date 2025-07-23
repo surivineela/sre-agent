@@ -46,9 +46,9 @@ public class ManagedIdentityCrawler : IResourceCrawler
 
             var identity = resp.Value.Data;
             identityNode.Location = identity.Location;
-            identityNode.TenantId = identity.TenantId.ToString();
-            identityNode.PrincipalId = identity.PrincipalId.ToString();
-            identityNode.ClientId = identity.ClientId.ToString();
+            identityNode.TenantId = identity.TenantId.ToString()!;
+            identityNode.PrincipalId = identity.PrincipalId.ToString()!;
+            identityNode.ClientId = identity.ClientId.ToString()!;
 
             await _graphDbClient.AddOrUpdateNodeAsync(identityNode);
         }
@@ -71,9 +71,9 @@ public class ManagedIdentityCrawler : IResourceCrawler
 
             var identity = identityResp.Value.Data;
             identityNode.Location = identity.Location;
-            identityNode.TenantId = identity.TenantId.ToString();
-            identityNode.PrincipalId = identity.PrincipalId.ToString();
-            identityNode.ClientId = identity.ClientId.ToString();
+            identityNode.TenantId = identity.TenantId.ToString()!;
+            identityNode.PrincipalId = identity.PrincipalId.ToString()!;
+            identityNode.ClientId = identity.ClientId.ToString()!;
             await _graphDbClient.AddOrUpdateNodeAsync(identityNode);
         }
 
@@ -86,9 +86,19 @@ public class ManagedIdentityCrawler : IResourceCrawler
         {
             var roleId = item.GetProperty("roleId").GetString();
             var scope = item.GetProperty("scope").GetString();
+            if(string.IsNullOrEmpty(roleId) || string.IsNullOrEmpty(scope))
+            {
+                _logger.LogInternalWarning($"Role ID or scope is null or empty for principal {principalId}");
+                continue;
+            }
 
             // TODO: better logic to handle scope
-            ArmResourceNode targetResourceNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(scope);
+            ArmResourceNode? targetResourceNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(scope);
+            if (targetResourceNode == null)
+            {
+                _logger.LogInternalWarning($"Failed to create resource node from scope {scope}");
+                yield break;
+            }
 
             await _graphDbClient.AddOrUpdateNodeAsync(targetResourceNode);
 

@@ -38,7 +38,7 @@ public class KubernetesDaemonSetCrawler : IResourceCrawler
         var daemonSetNode = (KubernetesNamespacedResourceNode)node;
         _logger.LogDebug($"Crawling daemonset: {daemonSetNode.GetNodeId()}");
 
-        var daemonSet = (V1DaemonSet)daemonSetNode.ResourceObject;
+        var daemonSet = (V1DaemonSet?)daemonSetNode.ResourceObject;
         if (daemonSet == null)
         {
             daemonSet = await _k8sService.GetDaemonSetAsync(
@@ -109,7 +109,7 @@ public class KubernetesDaemonSetCrawler : IResourceCrawler
                     foreach (var volumeMount in container.VolumeMounts)
                     {
                         var volume = daemonSet.Spec.Template.Spec.Volumes?.FirstOrDefault(v => v.Name == volumeMount.Name);
-                        if (!knownVolumes.Contains(volume.Name))
+                        if (volume != null && !knownVolumes.Contains(volume.Name))
                         {
                             knownVolumes.Add(volume.Name);
                             var refNode = await volume.TryLinkVolumeReferenceAsync(daemonSetNode, _k8sService, _graphDbClient, _logger);

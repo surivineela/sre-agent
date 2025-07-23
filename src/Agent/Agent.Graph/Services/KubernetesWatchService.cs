@@ -79,7 +79,7 @@ public class KubernetesWatchService : IWatchEventService
                         {
                             K8sObject = ns,
                             SubscriptionId = source.SubscriptionId,
-                            ResourceGroupName = source.ResourceGroupName,
+                            ResourceGroupName = source.ResourceGroupName ?? throw new InvalidOperationException("Resource group is required"),
                             ClusterResourceId = resourceId,
                             Namespace = null,
                             ResourceName = namespaceName,
@@ -109,12 +109,12 @@ public class KubernetesWatchService : IWatchEventService
 public class KubernetesEventData
 {
     public IKubernetesObject? K8sObject { get; set; }
-    public string SubscriptionId { get; set; }
-    public string ResourceGroupName { get; set; }
-    public string ClusterResourceId { get; set; }
+    public string SubscriptionId { get; set; } = string.Empty;
+    public string ResourceGroupName { get; set; } = string.Empty;
+    public string ClusterResourceId { get; set; } = string.Empty;
     public string? Namespace { get; set; }
-    public string ResourceName { get; set; }
-    public string Group { get; set; }
-    public string ApiVersion { get; set; }
-    public string Kind { get; set; }
+    public string? ResourceName { get; set; }
+    public string Group { get; set; } = string.Empty;
+    public string ApiVersion { get; set; } = string.Empty;
+    public string Kind { get; set; } = string.Empty;
 }

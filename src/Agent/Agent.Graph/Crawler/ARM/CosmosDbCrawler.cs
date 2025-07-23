@@ -63,9 +63,9 @@ public class CosmosDbCrawler : GenericArmResourceCrawler
         {
             var databaseNode = new ArmResourceNode(
                 resourceType: "Microsoft.DocumentDB/databaseAccounts/sqlDatabases",
-                resourceId: database.Id,
-                subscriptionId: armResourceId.SubscriptionId,
-                resourceGroupName: armResourceId.ResourceGroupName,
+                resourceId: database.Id!,
+                subscriptionId: armResourceId.SubscriptionId!,
+                resourceGroupName: armResourceId.ResourceGroupName!,
                 resourceName: database.Data.Name);
 
             await _graphDbClient.AddOrUpdateNodeAsync(databaseNode);
@@ -79,7 +79,7 @@ public class CosmosDbCrawler : GenericArmResourceCrawler
         }
     }
 
-    private string SerializeLocations(IReadOnlyList<CosmosDBAccountLocation> locations)
+    private string? SerializeLocations(IReadOnlyList<CosmosDBAccountLocation> locations)
     {
         if (locations == null || locations.Count == 0)
             return null;
@@ -87,7 +87,7 @@ public class CosmosDbCrawler : GenericArmResourceCrawler
         return string.Join(",", locations.Select(l => l.LocationName));
     }
 
-    private string SerializeIPRules(IList<CosmosDBIPAddressOrRange> rules)
+    private string? SerializeIPRules(IList<CosmosDBIPAddressOrRange> rules)
     {
         if (rules == null || rules.Count == 0)
             return null;

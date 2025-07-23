@@ -12,7 +12,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient;
 public class KubernetesResourceNode : GraphNode
 {
     // Set to the k8s resource object to avoid fetching it twice
-    public IKubernetesObject ResourceObject { get; set; }
+    public IKubernetesObject? ResourceObject { get; set; }
 
     [GraphProperty("subscriptionId")]
     public string SubscriptionId { get; set; }
@@ -38,14 +38,14 @@ public class KubernetesResourceNode : GraphNode
 
     [GraphProperty("kind")]
     public string Kind { get; set; }
-    public IDictionary<string, string> Annotations { get; set; }
-    public IDictionary<string, string> Labels { get; set; }
+    public IDictionary<string, string>? Annotations { get; set; }
+    public IDictionary<string, string>? Labels { get; set; }
 
     [GraphJsonProperty("appHealthInfo")]
     public AppHealthInfo AppHealthInfo { get; set; }
 
     public KubernetesResourceNode(
-        IKubernetesObject k8sObject,
+        IKubernetesObject? k8sObject,
         string clusterResourceId,
         string? subscriptionId,
         string? resourceGroupName,
@@ -54,8 +54,8 @@ public class KubernetesResourceNode : GraphNode
         string group,
         string apiVersion,
         string kind,
-        IDictionary<string, string> annotations = null,
-        IDictionary<string, string> labels = null)
+        IDictionary<string, string>? annotations = null,
+        IDictionary<string, string>? labels = null)
     {
         SubscriptionId = subscriptionId?.ToLowerInvariant();
         ResourceGroupName = resourceGroupName?.ToLowerInvariant();

@@ -118,9 +118,9 @@ public class PostgreSqlFlexServerCrawler : GenericArmResourceCrawler
                     {
                         if (serverData.Network.PublicNetworkAccess.HasValue)
                             postgreSqlNode.PublicNetworkAccess = serverData.Network.PublicNetworkAccess.ToString();
-                        if (serverData.Network.DelegatedSubnetResourceId != null)
+                        if (serverData.Network.DelegatedSubnetResourceId is not null)
                             postgreSqlNode.DelegatedSubnetResourceId = serverData.Network.DelegatedSubnetResourceId.ToString();
-                        if (serverData.Network.PrivateDnsZoneArmResourceId != null)
+                        if (serverData.Network.PrivateDnsZoneArmResourceId is not null)
                             postgreSqlNode.PrivateDnsZoneArmResourceId = serverData.Network.PrivateDnsZoneArmResourceId.ToString();
                     }
 
@@ -179,8 +179,8 @@ public class PostgreSqlFlexServerCrawler : GenericArmResourceCrawler
                         var subnetNode = new ArmResourceNode(
                             resourceType: subnetResourceId.ResourceType,
                             resourceId: postgreSqlNode.DelegatedSubnetResourceId,
-                            subscriptionId: subnetResourceId.SubscriptionId,
-                            resourceGroupName: subnetResourceId.ResourceGroupName,
+                            subscriptionId: subnetResourceId.SubscriptionId!,
+                            resourceGroupName: subnetResourceId.ResourceGroupName!,
                             resourceName: subnetResourceId.Name);
 
                         await _graphDbClient.AddOrUpdateNodeAsync(subnetNode);
@@ -195,12 +195,12 @@ public class PostgreSqlFlexServerCrawler : GenericArmResourceCrawler
                         crossResourceNodes.Add(subnetNode);
 
                         // Also create VNet node if we have subnet
-                        var vnetResourceId = subnetResourceId.Parent;
+                        var vnetResourceId = subnetResourceId.Parent!;
                         var vnetNode = new ArmResourceNode(
                             resourceType: vnetResourceId.ResourceType,
                             resourceId: vnetResourceId.ToString(),
-                            subscriptionId: vnetResourceId.SubscriptionId,
-                            resourceGroupName: vnetResourceId.ResourceGroupName,
+                            subscriptionId: vnetResourceId.SubscriptionId!,
+                            resourceGroupName: vnetResourceId.ResourceGroupName!,
                             resourceName: vnetResourceId.Name);
 
                         await _graphDbClient.AddOrUpdateNodeAsync(vnetNode);
@@ -215,8 +215,8 @@ public class PostgreSqlFlexServerCrawler : GenericArmResourceCrawler
                         var dnsNode = new ArmResourceNode(
                             resourceType: dnsResourceId.ResourceType,
                             resourceId: postgreSqlNode.PrivateDnsZoneArmResourceId,
-                            subscriptionId: dnsResourceId.SubscriptionId,
-                            resourceGroupName: dnsResourceId.ResourceGroupName,
+                            subscriptionId: dnsResourceId.SubscriptionId!,
+                            resourceGroupName: dnsResourceId.ResourceGroupName!,
                             resourceName: dnsResourceId.Name);
 
                         await _graphDbClient.AddOrUpdateNodeAsync(dnsNode);
@@ -248,8 +248,8 @@ public class PostgreSqlFlexServerCrawler : GenericArmResourceCrawler
                             var keyVaultNode = new ArmResourceNode(
                                 resourceType: kvResourceId.ResourceType,
                                 resourceId: keyVaultResourceId,
-                                subscriptionId: kvResourceId.SubscriptionId,
-                                resourceGroupName: kvResourceId.ResourceGroupName,
+                                subscriptionId: kvResourceId.SubscriptionId!,
+                                resourceGroupName: kvResourceId.ResourceGroupName!,
                                 resourceName: kvResourceId.Name);
 
                             await _graphDbClient.AddOrUpdateNodeAsync(keyVaultNode);
@@ -278,9 +278,9 @@ public class PostgreSqlFlexServerCrawler : GenericArmResourceCrawler
                         var databaseData = database.Data;
                         var databaseNode = new ArmResourceNode(
                             resourceType: "Microsoft.DBforPostgreSQL/flexibleServers/databases",
-                            resourceId: database.Id,
-                            subscriptionId: armResourceId.SubscriptionId,
-                            resourceGroupName: armResourceId.ResourceGroupName,
+                            resourceId: database.Id!,
+                            subscriptionId: armResourceId.SubscriptionId!,
+                            resourceGroupName: armResourceId.ResourceGroupName!,
                             resourceName: databaseData.Name);
 
                         // Add enhanced database-specific properties
@@ -314,9 +314,9 @@ public class PostgreSqlFlexServerCrawler : GenericArmResourceCrawler
                         var ruleData = rule.Data;
                         var ruleNode = new ArmResourceNode(
                             resourceType: "Microsoft.DBforPostgreSQL/flexibleServers/firewallRules",
-                            resourceId: rule.Id,
-                            subscriptionId: armResourceId.SubscriptionId,
-                            resourceGroupName: armResourceId.ResourceGroupName,
+                            resourceId: rule.Id!,
+                            subscriptionId: armResourceId.SubscriptionId!,
+                            resourceGroupName: armResourceId.ResourceGroupName!,
                             resourceName: ruleData.Name);
 
                         var properties = ruleNode.GetNodeProperties();

@@ -36,7 +36,7 @@ public class KubernetesDeploymentCrawler : IResourceCrawler
         var deploymentNode = (KubernetesNamespacedResourceNode)node;
         _logger.LogDebug($"Crawling deployment: {deploymentNode.GetNodeId()}");
 
-        var deployment = (V1Deployment)deploymentNode.ResourceObject;
+        var deployment = (V1Deployment?)deploymentNode.ResourceObject;
         if (deployment == null)
         {
             deployment = await _k8sService.GetDeploymentAsync(
@@ -108,7 +108,7 @@ public class KubernetesDeploymentCrawler : IResourceCrawler
                     foreach (var volumeMount in container.VolumeMounts)
                     {
                         var volume = deployment.Spec.Template.Spec.Volumes?.FirstOrDefault(v => v.Name == volumeMount.Name);
-                        if (!knownVolumes.Contains(volume.Name))
+                        if (volume != null && !knownVolumes.Contains(volume.Name))
                         {
                             knownVolumes.Add(volume.Name);
                             var refNode = await volume.TryLinkVolumeReferenceAsync(deploymentNode, _k8sService, _graphDbClient, _logger);

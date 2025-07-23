@@ -10,7 +10,6 @@ using Agent.Data.AgentMemory;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.Repositories;
 using Agent.Framework;
-using Agent.Graph.Crawler.Legacy;
 using Agent.Graph.Crawler.Metrics;
 using Agent.Logging;
 using Agent.Plugins;
@@ -221,7 +220,6 @@ public static class TestHelpers
         builder.Services.AddSingleton<IReasoningLoopFactory, ReasoningLoopFactory>();
 
         builder.Services.AddSingleton(TracerProvider.Default.GetTracer("SREAgentTests"));
-        builder.Services.AddSingleton<IGraphDatabaseClient, InMemoryGraphManager>();
         builder.Services.AddSingleton(Mock.Of<CustomerLogger>());
         builder.Services.AddSingleton(Mock.Of<CustomerAuditLogger>());
 

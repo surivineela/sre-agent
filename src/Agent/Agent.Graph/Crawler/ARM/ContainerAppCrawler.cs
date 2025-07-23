@@ -135,12 +135,12 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
             foreach (var result in jsonResults.EnumerateArray())
             {
                 var kvNode = new ArmResourceNode(
-                    resourceId: result.GetProperty("id").GetString(),
-                    subscriptionId: result.GetProperty("subscriptionId").GetString(),
-                    resourceGroupName: result.GetProperty("resourceGroup").GetString(),
-                    resourceName: result.GetProperty("name").GetString(),
+                    resourceId: result.GetProperty("id").GetString()!,
+                    subscriptionId: result.GetProperty("subscriptionId").GetString()!,
+                    resourceGroupName: result.GetProperty("resourceGroup").GetString()!,
+                    resourceName: result.GetProperty("name").GetString()!,
                     resourceType: Constants.KeyVaultType,
-                    location: result.GetProperty("location").GetString()
+                    location: result.GetProperty("location").GetString()!
                 );
                 await _graphDbClient.AddOrUpdateNodeAsync(kvNode);
 
@@ -224,7 +224,7 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
         {
             cappNode.HostNames.Add(capp.Configuration.Ingress.Fqdn);
         }
-        if (capp.Configuration.Ingress?.CustomDomains?.Count > 0)
+        if (capp.Configuration?.Ingress.CustomDomains?.Count > 0)
         {
             foreach (var customDomain in capp.Configuration.Ingress.CustomDomains)
             {

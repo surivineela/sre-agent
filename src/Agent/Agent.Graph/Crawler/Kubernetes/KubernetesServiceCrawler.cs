@@ -27,7 +27,7 @@ public class KubernetesServiceCrawler : IResourceCrawler
         var serviceNode = (KubernetesNamespacedResourceNode)node;
         _logger.LogDebug($"Crawling Kubernetes service: {serviceNode.GetNodeId()}");
 
-        var service = (V1Service)serviceNode.ResourceObject;
+        var service = (V1Service?)serviceNode.ResourceObject;
         if (service == null)
         {
             service = await _k8sService.GetServiceAsync(serviceNode.ClusterResourceId, serviceNode.Namespace, serviceNode.ResourceName);
@@ -98,7 +98,7 @@ public class KubernetesServiceCrawler : IResourceCrawler
                 }
                 break;
             case "statefulset":
-                var statefulSetNode = new KubernetesNamespacedResourceNode(pod, serviceNode.ClusterResourceId, serviceNode.Namespace, serviceNode.SubscriptionId, serviceNode.ResourceGroupName, serviceNode.Location, pod.OwnerReferences().FirstOrDefault()?.Name, Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesStatefulSetType);
+                var statefulSetNode = new KubernetesNamespacedResourceNode(pod, serviceNode.ClusterResourceId, serviceNode.Namespace, serviceNode.SubscriptionId, serviceNode.ResourceGroupName, serviceNode.Location, pod.OwnerReferences().First()?.Name!, Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesStatefulSetType);
                 await _graphDbClient.AddOrUpdateNodeAsync(statefulSetNode);
                 var edge2 = new ArmResourceEdge(serviceNode.GetNodeId(), statefulSetNode.GetNodeId(), Constants.Relationships.Connected);
                 edge2.AddNetworkIngressEdgeProperties();

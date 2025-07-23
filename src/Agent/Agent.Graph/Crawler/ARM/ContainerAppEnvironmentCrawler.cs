@@ -55,7 +55,7 @@ public class ContainerAppEnvironmentCrawler : GenericArmResourceCrawler
         // update current node properties
         var env = envResp.Value.Data;
         envNode.Internal = env.VnetConfiguration?.IsInternal;
-        envNode.InfrastructureSubnetId = env.VnetConfiguration?.InfrastructureSubnetId;
+        envNode.InfrastructureSubnetId = env.VnetConfiguration?.InfrastructureSubnetId!;
         envNode.StaticIp = env.StaticIP.ToString();
         envNode.LogDestination = env.AppLogsConfiguration.Destination;
         envNode.ZoneRedundant = env.IsZoneRedundant;
@@ -97,11 +97,11 @@ public class ContainerAppEnvironmentCrawler : GenericArmResourceCrawler
         // network
         if (env.VnetConfiguration?.InfrastructureSubnetId is not null)
         {
-            var id = env.VnetConfiguration?.InfrastructureSubnetId;
+            ResourceIdentifier id = env.VnetConfiguration?.InfrastructureSubnetId!;
 
             // subnet
-            var subnetResourceId = new ResourceIdentifier(id);
-            var subnetNode = new ArmResourceNode(subnetResourceId.ResourceType, id, subnetResourceId.SubscriptionId, subnetResourceId.ResourceGroupName, subnetResourceId.Name);
+            var subnetResourceId = new ResourceIdentifier(id!);
+            var subnetNode = new ArmResourceNode(subnetResourceId.ResourceType, id!, subnetResourceId.SubscriptionId!, subnetResourceId.ResourceGroupName!, subnetResourceId.Name);
             await _graphDbClient.AddOrUpdateNodeAsync(subnetNode);
 
             var edge1 = new ArmResourceEdge(envNode.GetNodeId(), subnetNode.GetNodeId(), Constants.Relationships.Connected);
@@ -112,15 +112,15 @@ public class ContainerAppEnvironmentCrawler : GenericArmResourceCrawler
             edge2.AddNetworkIngressEdgeProperties();
             await _graphDbClient.AddOrUpdateEdgeAsync(edge2);
 
-            var vnetResourceId = subnetResourceId.Parent;
-            var vnetNode = new ArmResourceNode(vnetResourceId.ResourceType, vnetResourceId.ToString(), vnetResourceId.SubscriptionId, vnetResourceId.ResourceGroupName, vnetResourceId.Name);
+            var vnetResourceId = subnetResourceId.Parent!;
+            var vnetNode = new ArmResourceNode(vnetResourceId.ResourceType, vnetResourceId.ToString(), vnetResourceId.SubscriptionId!, vnetResourceId.ResourceGroupName!, vnetResourceId.Name);
             await _graphDbClient.AddOrUpdateNodeAsync(vnetNode);
             // crawl the whole vnet
             yield return vnetNode;
 
             var lbId = envNode.LbId;
-            var lbResourceId = new ResourceIdentifier(lbId);
-            var lbNode = new ArmResourceNode(lbResourceId.ResourceType, lbId, lbResourceId.SubscriptionId, lbResourceId.ResourceGroupName, lbResourceId.Name);
+            var lbResourceId = new ResourceIdentifier(lbId!);
+            var lbNode = new ArmResourceNode(lbResourceId.ResourceType, lbId!, lbResourceId.SubscriptionId!, lbResourceId.ResourceGroupName!, lbResourceId.Name);
             await _graphDbClient.AddOrUpdateNodeAsync(lbNode);
 
             var edge = new ArmResourceEdge(lbNode.GetNodeId(), envNode.GetNodeId(), Constants.Relationships.Connected);
@@ -143,7 +143,7 @@ public class ContainerAppEnvironmentCrawler : GenericArmResourceCrawler
             var subscriptionId = item.GetProperty("subscriptionId").GetString();
             var resourceGroupName = item.GetProperty("resourceGroup").GetString();
             var resourceName = item.GetProperty("name").GetString();
-            var containerAppNode = new ContainerAppNode(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName);
+            var containerAppNode = new ContainerAppNode(resourceType!, resourceId!, subscriptionId!, resourceGroupName!, resourceName!);
 
             await _graphDbClient.AddOrUpdateNodeAsync(containerAppNode);
 

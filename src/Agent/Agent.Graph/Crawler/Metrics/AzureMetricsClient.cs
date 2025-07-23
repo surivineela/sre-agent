@@ -39,7 +39,7 @@ public class AzureMetricsClient : IAzureMetricsClient
             _logger.LogInternalInformation($"Getting weekly cost for resourceId: {resourceId} ending on {endTime}");
 
             var resourceIdentifier = new ResourceIdentifier(resourceId);
-            string subscriptionId = resourceIdentifier.SubscriptionId;
+            string subscriptionId = resourceIdentifier.SubscriptionId!;
 
             // Time range (last 7 days)
             DateTime startTime = endTime.AddDays(-7);

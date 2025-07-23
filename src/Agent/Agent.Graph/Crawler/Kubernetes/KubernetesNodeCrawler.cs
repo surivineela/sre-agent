@@ -31,7 +31,7 @@ public class KubernetesNodeCrawler : IResourceCrawler
         var nodeNode = (KubernetesResourceNode)node;
         _logger.LogDebug($"Crawling Kubernetes node: {nodeNode.GetNodeId()}");
 
-        var aksNode = (V1Node)nodeNode.ResourceObject;
+        var aksNode = (V1Node?)nodeNode.ResourceObject;
         if (aksNode == null)
         {
             aksNode = await _k8sService.GetNodeAsync(nodeNode.ClusterResourceId, nodeNode.ResourceName);

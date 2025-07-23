@@ -112,15 +112,15 @@ public class AKSMetricsCollector : IResourceMetricsCollector
             switch (workloadType)
             {
                 case "deployment":
-                    var client = await _kubernetesClientFactory.CreateKubernetesClientFromResourceIdForCrawlerAsync(aksResourceId);
+                    var client = await _kubernetesClientFactory.CreateKubernetesClientFromResourceIdForCrawlerAsync(aksResourceId) ?? throw new Exception("Unable to create Kubernetes client");
                     var status = await client.AppsV1.ReadNamespacedDeploymentStatusAsync(workloadName, _namespace);
-                    return (double)status.Status.AvailableReplicas / (double)status.Status.Replicas * 100;
+                    return (double)status.Status.AvailableReplicas! / (double)status.Status.Replicas! * 100;
                 case "statefulset":
-                    var client2 = await _kubernetesClientFactory.CreateKubernetesClientFromResourceIdForCrawlerAsync(aksResourceId);
+                    var client2 = await _kubernetesClientFactory.CreateKubernetesClientFromResourceIdForCrawlerAsync(aksResourceId) ?? throw new Exception("Unable to create Kubernetes client");
                     var status2 = await client2.AppsV1.ReadNamespacedStatefulSetStatusAsync(workloadName, _namespace);
-                    return (double)status2.Status.AvailableReplicas / (double)status2.Status.Replicas * 100;
+                    return (double)status2.Status.AvailableReplicas! / (double)status2.Status.Replicas * 100;
                 case "pod":
-                    var client3 = await _kubernetesClientFactory.CreateKubernetesClientFromResourceIdForCrawlerAsync(aksResourceId);
+                    var client3 = await _kubernetesClientFactory.CreateKubernetesClientFromResourceIdForCrawlerAsync(aksResourceId) ?? throw new Exception("Unable to create Kubernetes client");
                     var status3 = await client3.CoreV1.ReadNamespacedPodStatusAsync(workloadName, _namespace);
                     return (double)status3.Status.ContainerStatuses.Count(s => s.Ready) / (double)status3.Status.ContainerStatuses.Count * 100;
                 default:

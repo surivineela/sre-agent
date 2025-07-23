@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -6,9 +6,9 @@ namespace Agent.Graph.Schema
 {
     public class ApplicationGraph
     {
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public SimpleNode EntryPoint { get; set; }
+        public required string Id { get; set; }
+        public required string Name { get; set; }
+        public required SimpleNode EntryPoint { get; set; }
         public List<SimpleNode> Nodes { get; set; } = new List<SimpleNode>();
     }
 
@@ -25,7 +25,7 @@ namespace Agent.Graph.Schema
             Name = node.Name;
             Type = node.Type;
             ResourceId = node.Properties.TryGetValue("resourceId", out var resourceId) 
-                ? ((IEnumerable<object>)resourceId).First().ToString()
+                ? ((IEnumerable<object>)resourceId).First().ToString() ?? string.Empty
                 : string.Empty;
         }
     }

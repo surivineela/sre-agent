@@ -24,7 +24,7 @@ public class SqlConnectionStringHelper
         _graphDbClient = graphDbClient;
     }
 
-    public async Task<ArmResourceNode> GetSqlResourceFromConnectionStringAsync(
+    public async Task<ArmResourceNode?> GetSqlResourceFromConnectionStringAsync(
         GraphNode workloadNode,
         string value,
         string sourceType,
@@ -61,10 +61,10 @@ public class SqlConnectionStringHelper
                 var sqlResourceId = new ResourceIdentifier(server.Data.Id.ToString());
                 var sqlNode = new ArmResourceNode(
                     resourceType: "Microsoft.Sql/servers",
-                    resourceId: sqlResourceId,
-                    subscriptionId: sqlResourceId.SubscriptionId,
-                    resourceGroupName: sqlResourceId.ResourceGroupName,
-                    resourceName: sqlResourceId.ResourceGroupName);
+                    resourceId: sqlResourceId!,
+                    subscriptionId: sqlResourceId.SubscriptionId!,
+                    resourceGroupName: sqlResourceId.ResourceGroupName!,
+                    resourceName: sqlResourceId.ResourceGroupName!);
 
                 if (sqlNode != null)
                 {
@@ -104,16 +104,16 @@ public class SqlConnectionStringHelper
         return value.Contains(".database.windows.net", StringComparison.OrdinalIgnoreCase);
     }
 
-    public async Task<ArmResourceNode> TryLinkSqlResourceById(GraphNode workloadNode, string possibleSqlResource, string sourceType, string sourceName)
+    public async Task<ArmResourceNode?> TryLinkSqlResourceById(GraphNode workloadNode, string possibleSqlResource, string sourceType, string sourceName)
     {
         try
         {
             var sqlId = new ResourceIdentifier(possibleSqlResource);
             var sqlNode = new ArmResourceNode(
                 resourceType: "Microsoft.Sql/servers",
-                resourceId: sqlId,
-                subscriptionId: sqlId.SubscriptionId,
-                resourceGroupName: sqlId.ResourceGroupName,
+                resourceId: sqlId!,
+                subscriptionId: sqlId.SubscriptionId!,
+                resourceGroupName: sqlId.ResourceGroupName!,
                 resourceName: sqlId.Name);
 
             var properties = sqlNode.GetNodeProperties();
