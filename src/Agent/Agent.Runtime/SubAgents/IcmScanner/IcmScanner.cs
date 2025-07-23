@@ -48,8 +48,9 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 await ScanAllIncidentsAsync(cancellationToken,filters);
                 if(isScanSucceeded)
                 {
-                    //Once scan scceeded, update the last scan time to startTime - 20sec to give overlap between scans
-                    lastScanTime = await UpdateLastScanTimeDocAsync(scanStartTime.AddSeconds(-20));
+                    //Once scan scceeded, update the last scan time to startTime - 50sec to give overlap between scans
+                    //Since there is 30sec lag for ICM API to update incident status
+                    lastScanTime = await UpdateLastScanTimeDocAsync(scanStartTime.AddSeconds(-50));
                 } else
                 {
                     logger.LogInternalWarning("[IcmScanner] IcM scanner failed to scan incidents, last scan time will not be updated.");
