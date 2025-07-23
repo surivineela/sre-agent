@@ -41,7 +41,7 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
         {
             sb.AppendLine("Below are how past incidents with similar symptoms were investigated:");
             result[0]
-                .Select((x, i) => $"{i}. Title: {x.Title}. Initial symptoms: {x.InitialSymptoms}. Symptoms: {x.SymptomsObserved}. Steps followed: {x.StepsFollowed}. Root cause: {x.RootCause}. Pitfalls: {x.Pitfalls}.")
+                .Select((x, i) => $"({i}) Title: {x.Title}. Initial symptoms: {x.InitialSymptoms}. Symptoms: {x.SymptomsObserved}. Steps followed: {x.StepsFollowed}. Root cause: {x.RootCause}. Pitfalls: {x.Pitfalls}.")
                 .ForEach(s => sb.AppendLine(s));
         }
 
@@ -49,7 +49,7 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
         {
             sb.AppendLine("Below are how past incidents on the same resource were investigated:");
             result[1]
-                .Select((x, i) => $"{i}. Title: {x.Title}. Initial symptoms: {x.InitialSymptoms}. Symptoms: {x.SymptomsObserved}. Steps followed: {x.StepsFollowed}. Root cause: {x.RootCause}. Pitfalls: {x.Pitfalls}.")
+                .Select((x, i) => $"({i}) Title: {x.Title}. Initial symptoms: {x.InitialSymptoms}. Symptoms: {x.SymptomsObserved}. Steps followed: {x.StepsFollowed}. Root cause: {x.RootCause}. Pitfalls: {x.Pitfalls}.")
                 .ForEach(s => sb.AppendLine(s));
         }
 

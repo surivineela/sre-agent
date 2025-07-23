@@ -559,7 +559,7 @@ public class Program
             {
                 return sp.GetRequiredService<ToolFactory<AgentContext>>();
             })
-           
+
             .AddSingleton<IAgentFactory<AgentContext>, AgentFactory<AgentContext>>(sp =>
             {
                 var configuration = sp.GetRequiredService<IConfiguration>();
@@ -571,7 +571,7 @@ public class Program
                     ? Path.Combine(AppContext.BaseDirectory, "AgentsV2", "ACA-FirstParty")
                     : Path.Combine(AppContext.BaseDirectory, "AgentsV2");
 
-                return new AgentFactory<AgentContext>(
+                var factory = new AgentFactory<AgentContext>(
                     logger: sp.GetRequiredService<ILogger<AgentFactory<AgentContext>>>(),
                     toolFactory: sp.GetRequiredService<IToolFactory<AgentContext>>(),
                     assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
@@ -584,6 +584,13 @@ public class Program
                     promptEnders: [Core.Constants.SREAgentFinalInstructions],
                     defaultOutputType: typeof(DefaultAgentOutput)
                 );
+
+                if (AgentMemoryEnabled(builder))
+                {
+                    factory.LoadExtendedAgentsFromFolder(Path.Combine(AppContext.BaseDirectory, "AgentsRAG"), isCustomAgent: false);
+                }
+
+                return factory;
             })
             .AddSingleton<IDiagnosticsPlugin, DiagnosticsPlugin>()
             .AddSingleton<IMetaAgentFunctionAppDiagnosticsPlugin, FunctionAppDiagnosticsPlugin>()
@@ -1024,11 +1031,15 @@ public class Program
         };
     }
 
-    private static void ConfigureAgentMemory(WebApplicationBuilder builder)
+    private static bool AgentMemoryEnabled(WebApplicationBuilder builder)
     {
         var agentMemorySettings = builder.Configuration.GetSection("AppSettings:Core:AgentMemory").Get<AgentMemorySettings>();
-        var enableAgentMemory = agentMemorySettings?.Enabled ?? false;
-        builder.Services.AddAgentMemory(enableAgentMemory);
+        return agentMemorySettings?.Enabled ?? false;
+    }
+
+    private static void ConfigureAgentMemory(WebApplicationBuilder builder)
+    {
+        builder.Services.AddAgentMemory(AgentMemoryEnabled(builder));
     }
 
     private static Agent.Core.Configuration.AzureSearchSettings GetAzureSearchSettings(IConfiguration configuration)
