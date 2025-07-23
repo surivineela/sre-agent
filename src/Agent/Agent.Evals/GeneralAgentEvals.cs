@@ -1,6 +1,4 @@
-using System.Linq;
 using System.Text.Json;
-using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Microsoft.Extensions.AI;
 
@@ -276,11 +274,13 @@ public class GeneralAgentEvals
                 Assert.IsTrue(functionsMatch,
                     $"Function call {i + 1}: Expected '{expectedDisplayName}' but got '{actual.Name}'");
 
-                if (functionsMatch)
+                if (functionsMatch
+                    && !IsHandoffToolCall(actual.Name)) // can't compare input args for handoff as it is free flow text
                 {
                     // Compare arguments
                     var expectedArgs = JsonSerializer.Serialize(expected.Arguments, new JsonSerializerOptions { WriteIndented = false });
                     var actualArgs = JsonSerializer.Serialize(actual.Arguments, new JsonSerializerOptions { WriteIndented = false });
+
                     var argsMatch = expectedArgs == actualArgs;
                     TestContext.WriteLine($"  Arguments match: {(argsMatch ? "✅" : "❌")}");
 
@@ -341,6 +341,12 @@ public class GeneralAgentEvals
 
         TestContext.WriteLine($"\n=== TEST COMPLETED ===");
         TestContext.WriteLine("Use the console output above to analyze the differences between expected and actual behavior.");
+    }
+
+    private static bool IsHandoffToolCall(string toolName)
+    {
+        return toolName.StartsWith("transfer_to_", StringComparison.OrdinalIgnoreCase)
+            || toolName.Equals("handoffback", StringComparison.OrdinalIgnoreCase);
     }
 
     private static void ValidateToolCallOutputWithAssertions(ChatResponse response, GeneralTestCase testCase, TestContext testContext)

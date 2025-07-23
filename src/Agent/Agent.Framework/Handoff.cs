@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Framework;
@@ -10,9 +11,7 @@ public class Handoff<TContext> : AIFunction where TContext : class
 {
     public string AgentName { get; }
 
-    public Type? InputType { get; }
-
-    public string TransferMessage => HandoffMessage;
+    public string TransferMessage { get; } = HandoffMessage;
 
     public const string HandoffMessage = "Handoff is complete. Analyze the current state of the conversation, think about the required next steps, and continue handling the task";
 
@@ -25,6 +24,8 @@ public class Handoff<TContext> : AIFunction where TContext : class
     #endregion
 
     #region AIFunction overrides
+
+    public override JsonElement JsonSchema { get; }
 
     protected override ValueTask<object?> InvokeCoreAsync(
         AIFunctionArguments arguments,
@@ -42,15 +43,15 @@ public class Handoff<TContext> : AIFunction where TContext : class
         string name,
         string description,
         string agentName,
-        Type? inputType,
         Func<RunContextWrapper<TContext>, Task<Agent<TContext>>> onInvokeHandoff
     )
     {
         Name = name;
         Description = description;
         AgentName = agentName;
-        InputType = inputType;
         OnInvokeHandoff = onInvokeHandoff;
+
+        JsonSchema = ConstructReasoningSchema(name, description);
     }
 
     public static string DefaultToolName(Agent<TContext> agent)
@@ -73,32 +74,40 @@ public class Handoff<TContext> : AIFunction where TContext : class
             name: toolNameOverride ?? DefaultToolName(agent),
             description: toolDescriptionOverride ?? DefaultToolDescription(agent),
             agentName: agent.Name,
-            inputType: null,
             onInvokeHandoff: (_) => Task.FromResult(agent)
         );
     }
 
-    // todo: support handoff with input
-
-    // public static Handoff<TContext> Create<TInput>(
-    //     Agent<TContext> agent,
-    //     Func<RunContextWrapper<TContext>, TInput, Task> onHandoff,
-    //     string? toolNameOverride = null,
-    //     string? toolDescriptionOverride = null
-    // )
-    // {
-    //     return new Handoff<TContext>(
-    //         name: toolNameOverride ?? DefaultToolName(agent),
-    //         description: toolDescriptionOverride ?? DefaultToolDescription(agent),
-    //         agentName: agent.Name,
-    //         inputType: typeof(TInput),
-    //         onInvokeHandoff: async (context, input) =>
-    //         {
-    //             var typedContext = new RunContextWrapper<TContext>((TContext)context.Context!);
-    //             var deserializedInput = JsonSerializer.Deserialize<TInput>(input) ?? throw new InvalidOperationException("Failed to deserialize input");
-    //             await onHandoff(typedContext, deserializedInput);
-    //             return agent;
-    //         }
-    //     );
-    // }
+    public static JsonElement ConstructReasoningSchema(string handoffMethodName, string handoffMethodDescription)
+    {
+        return JsonSerializer.SerializeToElement(new
+        {
+            title = handoffMethodName,
+            description = handoffMethodDescription,
+            type = "object",
+            properties = new
+            {
+                subtask = new
+                {
+                    description =
+                    """
+                    1 line description of what specific task this agent must do.
+                    Example: Check the open port of container app myapp.
+                    """,
+                    type = "string"
+                },
+                selectionReasoning = new
+                {
+                    description =
+                    """
+                    1 line description of why this specific agent was picked for that task.
+                    Must clearly mention the agent capability that drove the selection.
+                    Example: container_apps_agent is able to check container app configuration.
+                    """,
+                    type = "string"
+                }
+            },
+            required = new[] { "subtask", "selectionReasoning" }
+        });
+    }
 }

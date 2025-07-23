@@ -38,6 +38,14 @@ public static class Runner
             var matchingResult = manualToolResults.FirstOrDefault(o => o.FunctionCall.CallId == manualToolCall.FunctionCall.CallId)
                 ?? throw new Exception("No matching result found for manual tool call");
 
+            if (config.EnableDebugOutput)
+            {
+                if (displayModelOutput is not null)
+                {
+                    await displayModelOutput($"{DateTimeOffset.UtcNow:O}\nCompleted Manually Invoked Tool: {manualToolCall.FunctionCall.Name}");
+                }
+            }
+
             // todo: review: this may remove the text reasoning produced by the model
             if (!matchingResult.SkipToolCall)
             {
@@ -351,14 +359,6 @@ public static class Runner
 
             var trajectoryString = trajectory.GetFilteredTrajectory();
 
-            if (config.EnableDebugOutput)
-            {
-                if (displayModelOutput is not null)
-                {
-                    await displayModelOutput($"{DateTimeOffset.UtcNow:O}\nCritic input trajectory: {trajectoryString}");
-                }
-            }
-
             var agentTools = await hooks.ResolveFactoryTools(contextWrapper, currentAgent);
 
             var criticResult = await Critic.CriticAsync(
@@ -386,6 +386,14 @@ public static class Runner
             {
                 logger.LogWarning("Critic result indicates failure: {CriticResult}", criticResult);
 
+                if (config.EnableDebugOutput)
+                {
+                    if (displayModelOutput is not null)
+                    {
+                        await displayModelOutput($"{DateTimeOffset.UtcNow:O}\nCritic failed the turn:\n{criticResult}");
+                    }
+                }
+
                 if (failureHook is not null)
                 {
                     failureHook();
@@ -408,6 +416,13 @@ public static class Runner
             else
             {
                 logger.LogInformation("Critic approved response: {CriticResult}", criticResult);
+                if (config.EnableDebugOutput)
+                {
+                    if (displayModelOutput is not null)
+                    {
+                        await displayModelOutput($"{DateTimeOffset.UtcNow:O}\nCritic approved the turn.");
+                    }
+                }
             }
         }
         else
@@ -718,8 +733,7 @@ public static class Runner
                         {
                             if (displayModelOutput is not null)
                             {
-                                var resultString = FunctionResultTrajectoryItem.ResultToString(result);
-                                await displayModelOutput($"{DateTimeOffset.UtcNow:O}\nCompleted Agent Invocation as Tool: {tool.Name}\n\n{resultString}");
+                                await displayModelOutput($"{DateTimeOffset.UtcNow:O}\nCompleted Agent Invocation as Tool: {tool.Name}");
                             }
                         }
 
@@ -765,8 +779,7 @@ public static class Runner
                         {
                             if (displayModelOutput is not null)
                             {
-                                var resultString = FunctionResultTrajectoryItem.ResultToString(result);
-                                await displayModelOutput($"{DateTimeOffset.UtcNow:O}\nCompleted Auto Invoked Tool: {tool.Name}\n\n{resultString}");
+                                await displayModelOutput($"{DateTimeOffset.UtcNow:O}\nCompleted Auto Invoked Tool: {tool.Name}");
                             }
                         }
 
