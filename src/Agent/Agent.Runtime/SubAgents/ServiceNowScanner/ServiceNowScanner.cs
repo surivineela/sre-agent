@@ -130,7 +130,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
                 {
                     // Use Number as document ID instead of IncidentId (sys_id)
                     var incidentDocument = await GetDocumentAsync<ServiceNowIncidentDocument>(incident.Number, incident.Number);
-                    if (incidentDocument != null)
+                    if (incident != null)
                     {
                         incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident);
                         if (incidentDocument == null)
@@ -169,7 +169,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
         }
     }
 
-    private async Task<ServiceNowIncidentDocument?> UpsertIncidentDocumentIfNeededAsync(ServiceNowIncidentDocument incidentDocument, ServiceNowIncident incident, CancellationToken cancellationToken = default)
+    private async Task<ServiceNowIncidentDocument?> UpsertIncidentDocumentIfNeededAsync(ServiceNowIncidentDocument? incidentDocument, ServiceNowIncident incident, CancellationToken cancellationToken = default)
     {
         try
         {
