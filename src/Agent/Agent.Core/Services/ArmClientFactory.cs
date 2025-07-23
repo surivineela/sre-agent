@@ -2,12 +2,10 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Threading.RateLimiting;
 using Agent.Core.Interfaces;
-using Agent.Core.Models;
 using Azure.Core;
 using Azure.ResourceManager;
-using System.Collections.Generic;
-using System.Threading.RateLimiting;
 
 namespace Agent.Core.Services;
 
@@ -99,10 +97,10 @@ public class ArmClientFactory : IArmClientFactory
         // - Retry policy provides second-level resilience
         var defaultRateLimiterOptions = new TokenBucketRateLimiterOptions
         {
-            TokenLimit = 10,          // Allow burst of 10 requests
+            TokenLimit = 100,          // Allow burst of requests
             ReplenishmentPeriod = TimeSpan.FromSeconds(1),
-            TokensPerPeriod = 10,     // 10 requests per second per resource provider
-            QueueLimit = 20,          // Queue up to 20 requests when rate limit is hit
+            TokensPerPeriod = 100,     // requests per second per resource provider
+            QueueLimit = 200,          // Max requests to queue when rate limit is hit
             QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
             AutoReplenishment = true
         };
@@ -110,10 +108,10 @@ public class ArmClientFactory : IArmClientFactory
         // Configure higher limits for 'default' provider (non-provider specific operations)
         var defaultProviderOptions = new TokenBucketRateLimiterOptions
         {
-            TokenLimit = 20,          // Double the burst capacity
+            TokenLimit = 100,          // Adjusted burst capacity for default provider
             ReplenishmentPeriod = TimeSpan.FromSeconds(1),
-            TokensPerPeriod = 20,     // Double the sustained rate
-            QueueLimit = 20,
+            TokensPerPeriod = 100,     // Adjusted sustained rate for default provider
+            QueueLimit = 200,
             QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
             AutoReplenishment = true
         };

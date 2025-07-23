@@ -16,10 +16,10 @@ public class ResourceProviderRateLimitConfig
     /// </summary>
     public TokenBucketRateLimiterOptions DefaultOptions { get; set; } = new()
     {
-        TokenLimit = 10,
+        TokenLimit = 100,
         ReplenishmentPeriod = TimeSpan.FromSeconds(1),
-        TokensPerPeriod = 10,
-        QueueLimit = 20,
+        TokensPerPeriod = 100,
+        QueueLimit = 200,
         QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
         AutoReplenishment = true
     };

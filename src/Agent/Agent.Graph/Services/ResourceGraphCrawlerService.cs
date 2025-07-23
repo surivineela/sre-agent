@@ -976,29 +976,29 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
             },
             "microsoft.App/containerapps" => new TokenBucketRateLimiterOptions
             {
-                TokenLimit = 10,         // Max 5 tokens in bucket
+                TokenLimit = 100,         // Max tokens in bucket
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                QueueLimit = 10,        // Max 10 queued requests
-                ReplenishmentPeriod = TimeSpan.FromSeconds(30), // Replenish 30 seconds
-                TokensPerPeriod = 10,    // Add 10 tokens per 30 seconds (20 tokens per minute)
+                QueueLimit = 200,        // Max queued requests
+                ReplenishmentPeriod = TimeSpan.FromSeconds(30), // Replenish seconds
+                TokensPerPeriod = 100,    // Add tokens per 30 seconds
                 AutoReplenishment = true
             },
             _ when resourceType.StartsWith("k8s:") => new TokenBucketRateLimiterOptions
             {
-                TokenLimit = 15,
+                TokenLimit = 50,
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                QueueLimit = 30,
+                QueueLimit = 100,
                 ReplenishmentPeriod = TimeSpan.FromSeconds(10),
-                TokensPerPeriod = 20,
+                TokensPerPeriod = 50,
                 AutoReplenishment = true
             },
             _ => new TokenBucketRateLimiterOptions // Default for other resource types
             {
-                TokenLimit = 10,
+                TokenLimit = 100,
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                QueueLimit = 10,
+                QueueLimit = 200,
                 ReplenishmentPeriod = TimeSpan.FromSeconds(30), // Replenish 30 seconds
-                TokensPerPeriod = 10,    // Add 10 tokens per 30 seconds (20 tokens per minute)
+                TokensPerPeriod = 100,    // Add tokens per ReplenishmentPeriod
                 AutoReplenishment = true
             }
         };
