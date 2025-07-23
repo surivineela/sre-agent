@@ -22,7 +22,7 @@ public sealed class SubscriptionNode : ArmResourceNode
             { "updateTs", UpdateTs },
             { "resourceId", ResourceId },
             { "subscriptionId", SubscriptionId },
-            { "subscriptionName", SubscriptionName },
+            { "subscriptionName", string.IsNullOrEmpty(SubscriptionName) ? SubscriptionId: SubscriptionName },
             { "isDeleted", IsDeleted}
         };
     }

@@ -2,7 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 using Agent.Plugins.Services.Interfaces;
-using Agent.Runtime.Services;
 using Gremlin.Net.Driver;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;

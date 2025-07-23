@@ -44,9 +44,9 @@ public class ResourceGroupCrawler : IResourceCrawler
         var subNode = new SubscriptionNode(rgNode.SubscriptionId);
         var subscriptions = _armClient.GetSubscriptions();
         var subscription = subscriptions.Get(subNode.SubscriptionId);
-        var subName = subscription?.Value?.Data?.DisplayName;
+        var subName =  subscription?.Value?.Data?.DisplayName;
         var nodeProperties = subNode.GetNodeProperties();
-        nodeProperties["subscriptionName"] = subName;
+        nodeProperties["subscriptionName"] = string.IsNullOrEmpty(subName) ? subNode.SubscriptionId : subName;
 
         await _graphDbClient.AddOrUpdateNodeAsync(
                subNode.GetNodeLabel(),
