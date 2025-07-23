@@ -47,6 +47,32 @@ public class SearchIndexService : ISearchIndexService
         _embeddingGenerator = embeddingGenerator;
     }
 
+
+    public async Task DeleteIndexIfExistsAsync()
+    {
+        try
+        {
+            _logger.LogInternalInformation("Deleting search index...");
+            var index = await _indexClient.GetIndexAsync(_indexName);
+
+            if (!index.HasValue)
+            {
+                _logger.LogInternalInformation("Search index does not exist, skipping deletion.");
+                return;
+            }
+
+            var searchIndex = index.Value;
+
+            await _indexClient.DeleteIndexAsync(searchIndex);
+
+            _logger.LogInternalInformation("Search index deleted successfully");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to delete search index");
+        }
+    }
+
     /// <summary>
     /// Creates or updates the search index with the current schema
     /// </summary>
@@ -77,9 +103,9 @@ public class SearchIndexService : ISearchIndexService
             }
 
             var deleteActions = memories.Select(memory =>
-                new IndexDocumentsAction<AgentMemory>(IndexActionType.Delete, memory)).ToList();
+                new IndexDocumentsAction<AgentMemory>(IndexActionType.Delete, memory)).ToArray();
 
-            var batch = IndexDocumentsBatch.Create(deleteActions.ToArray());
+            var batch = IndexDocumentsBatch.Create(deleteActions);
             var response = await _searchClient.IndexDocumentsAsync(batch);
 
             var allSucceeded = response.Value.Results.All(r => r.Succeeded);

@@ -36,6 +36,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
 using OpenTelemetry.Trace;
+using Agent.Data;
 
 namespace Agent.Evals;
 
@@ -368,6 +369,18 @@ public static class TestHelpers
         builder.RegisterServicesForAgentFrameworkEval();
         var host = builder.Build();
         return TestHost.Create(host);
+    }
+
+    public static bool IsAgentMemoryEnabled(this HostApplicationBuilder builder)
+    {
+        var agentMemorySettings = builder.Configuration.GetSection("AppSettings:Core:AgentMemory").Get<AgentMemorySettings>();
+        return agentMemorySettings?.Enabled ?? false;
+    }
+
+    public static void ConfigureAgentMemory(this HostApplicationBuilder builder)
+    {
+        builder.Services.AddAgentMemory(
+            enableAgentMemory: builder.IsAgentMemoryEnabled());
     }
 }
 

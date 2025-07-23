@@ -25,4 +25,6 @@ public interface ISearchIndexService
     /// Deletes memories
     /// </summary>
     Task<bool> DeleteContentsAsync(List<AgentMemory> memories);
+
+    Task DeleteIndexIfExistsAsync();
 }

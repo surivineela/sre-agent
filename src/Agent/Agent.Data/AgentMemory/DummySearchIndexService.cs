@@ -26,6 +26,11 @@ public class DummySearchIndexService : ISearchIndexService
         return Task.FromResult(true);
     }
 
+    public Task DeleteIndexIfExistsAsync()
+    {
+        return Task.CompletedTask;
+    }
+
     public Task<bool> IndexContentAsync(BaseIndexableContent content)
     {
         _logger.LogInternalInformation($"DummySearchIndexService: IndexContentAsync called with BaseIndexableContent ID: {content.Id}");
