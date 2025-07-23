@@ -217,7 +217,9 @@ tools:
   - GetEnvironmentQuotaOperationResult
   - GetSubscriptionDetail
   - GetSubscriptionUsage
-  - HandoffBack
+
+common_tools:
+  - rca_agent_tools
 
 common_prompts:
   - format_guidelines

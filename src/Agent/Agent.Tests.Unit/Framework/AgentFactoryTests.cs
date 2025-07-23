@@ -72,7 +72,8 @@ public class AgentFactoryTests
                 assembliesToScan: [Assembly.GetExecutingAssembly()]
             ),
             modeConfigurator: _mockAgentModeConfigurator.Object,
-            assembliesToScan: [Assembly.GetExecutingAssembly()]
+            assembliesToScan: [Assembly.GetExecutingAssembly()],
+            commonToolsYamlDirectory: null
         );
 
         var agent1 = agentFactory.GetAgent("TestAgent1");
@@ -100,7 +101,8 @@ public class AgentFactoryTests
             assembliesToScan: [],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
-            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts")
+            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
+            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools")
         );
 
         var agent1 = agentFactory.GetAgent("agent1");
@@ -120,6 +122,10 @@ public class AgentFactoryTests
         Assert.Contains(prompt1.Prompt, agent1.Instructions);
 
         Assert.Contains(agent2.Name, agent1.Handoffs.Select(h => h.AgentName));
+
+        // Test that common tools are loaded
+        Assert.Contains("TestTool1", agent1.FactoryTools);
+        Assert.Contains("TestTool2", agent1.FactoryTools);
     }
 
     [Fact]
@@ -153,7 +159,8 @@ public class AgentFactoryTests
             logger: _mockLogger.Object,
             toolFactory: toolFactory,
             assembliesToScan: [Assembly.GetExecutingAssembly()],
-            modeConfigurator: _mockAgentModeConfigurator.Object
+            modeConfigurator: _mockAgentModeConfigurator.Object,
+            commonToolsYamlDirectory: null
         );
 
         var agent = agentFactory.GetAgent("TestAgent1");
@@ -188,7 +195,8 @@ public class AgentFactoryTests
                 assembliesToScan: [Assembly.GetExecutingAssembly()]
             ),
             assembliesToScan: [Assembly.GetExecutingAssembly()],
-            modeConfigurator: _mockAgentModeConfigurator.Object
+            modeConfigurator: _mockAgentModeConfigurator.Object,
+            commonToolsYamlDirectory: null
         );
 
         var agent = agentFactory.GetAgent("TestAgent1");
@@ -211,6 +219,7 @@ public class TestAgent1Descriptor : IAgentDescriptor
     public int MaxReflectionCount { get; set; } = 0;
     public string CustomReflectionNote { get; set; } = "Test Custom Reflection Note";
     public List<string> CommonPrompts { get; set; } = ["test_prompt"];
+    public List<string> CommonTools { get; set; } = [];
     public string CriticPromptPath { get; set; } = string.Empty;
     public bool CriticOnHandOff { get; set; } = false;
     public float? Temperature { get; set; } = null;
@@ -229,6 +238,7 @@ public class TestAgent2Descriptor : IAgentDescriptor
     public int MaxReflectionCount { get; set; } = 0;
     public string CustomReflectionNote { get; set; } = "Test Custom Reflection Note";
     public List<string> CommonPrompts { get; set; } = [];
+    public List<string> CommonTools { get; set; } = [];
     public string CriticPromptPath { get; set; } = string.Empty;
     public bool CriticOnHandOff { get; set; } = false;
     public float? Temperature { get; set; } = null;

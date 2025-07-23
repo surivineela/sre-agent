@@ -20,6 +20,7 @@ public interface IAgentDescriptor
     public string CriticPromptPath { get; set; }
     public bool CriticOnHandOff { get; set; }
     public List<string> CommonPrompts { get; set; }
+    public List<string> CommonTools { get; set; }
     public float? Temperature { get; set; }
     public string? OutputType { get; set; }
 }

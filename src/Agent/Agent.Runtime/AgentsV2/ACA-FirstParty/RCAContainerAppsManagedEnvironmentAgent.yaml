@@ -107,9 +107,10 @@ tools:
   - GetPrivateEndpointConnectionProvisioningState
   - GetPrivateEndpointConnectionFrontendVmssProvisioningState
   - GetLogsByCorrelationId
-  - PlotTimeSeriesData
   - GetAKSNodeAlerts
-  - HandoffBack
+
+common_tools:
+  - rca_agent_tools
 
 common_prompts:
   - format_guidelines

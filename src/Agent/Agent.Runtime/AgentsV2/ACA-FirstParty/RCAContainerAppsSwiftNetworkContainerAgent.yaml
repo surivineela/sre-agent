@@ -218,10 +218,11 @@ tools:
   - TrackSwiftILBGreKeyConflicts
   - GetASIPageForManagedClusterLoadBalancer
   - GetVipAndDipAvailabilityUrls
-  - HandoffBack
+
+common_tools:
+  - rca_agent_tools
 
 common_prompts:
-  - notify_user
   - format_guidelines
   - guard_rail
   - handoff_back

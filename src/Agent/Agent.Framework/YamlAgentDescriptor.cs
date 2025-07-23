@@ -45,6 +45,9 @@ internal class YamlAgentDescriptor : IAgentDescriptor
     [YamlMember(Alias = "common_prompts")]
     public List<string> CommonPrompts { get; set; } = [];
 
+    [YamlMember(Alias = "common_tools")]
+    public List<string> CommonTools { get; set; } = [];
+
     [YamlMember(Alias = "temperature")]
     public float? Temperature { get; set; } = null;
 

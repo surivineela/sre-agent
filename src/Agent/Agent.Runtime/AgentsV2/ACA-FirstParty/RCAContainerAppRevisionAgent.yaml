@@ -161,8 +161,6 @@ handoffs:
 tools:
   - GetSystemComponentErrorEvents
   - GetSystemComponentCpuUsage
-  - GetASIPageForRevision
-  - GetASIPageForManagedEnvironment
   - GetManagedEnvironmentConfigureInfo
   - GetManagedEnvironmentProvisioningStatus
   - GetEnvironmentQuota
@@ -186,8 +184,6 @@ tools:
   - GetLegionVKEventsForContainerAppPod
   - GetLegionHostShutdownTimes 
   - GetContainerAppReplicaCountChanges
-  - PlotTimeSeriesData
-  - HandoffBack
 
 common_prompts:
   - format_guidelines

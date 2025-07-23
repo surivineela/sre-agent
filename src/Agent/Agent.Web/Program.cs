@@ -580,6 +580,7 @@ public class Program
                     modeConfigurator: modeConfigurator,
                     agentsYamlDirectory: agentsDirectory,
                     commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonPrompts"),
+                    commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonTools"),
                     promptStarters: [Core.Constants.SREAgentPromptStarter],
                     promptEnders: [Core.Constants.SREAgentFinalInstructions],
                     defaultOutputType: typeof(DefaultAgentOutput)

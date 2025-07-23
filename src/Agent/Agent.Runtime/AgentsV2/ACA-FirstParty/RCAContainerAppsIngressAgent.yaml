@@ -250,9 +250,9 @@ tools:
   - GetContainerAppStatus
   - GetContainerAppAdminEvents
   - GetContainerAppReplicaCountChanges
-  - PlotTimeSeriesData
-  - HandoffBack
 
+common_tools:
+  - rca_agent_tools
 
 common_prompts:
   - format_guidelines

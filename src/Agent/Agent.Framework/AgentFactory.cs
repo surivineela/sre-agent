@@ -29,11 +29,13 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
     private readonly Dictionary<string, Agent<TContext>> _agents = [];
     private readonly Dictionary<string, IAgentDescriptor> _agentDescriptors = [];
     private readonly Dictionary<string, IPromptDescriptor> _promptDescriptors = [];
+    private readonly Dictionary<string, List<string>> _commonToolsDescriptors = [];
     private readonly ILogger<AgentFactory<TContext>> _logger;
     private readonly IToolFactory<TContext> _toolFactory;
     private readonly IEnumerable<Assembly> _assembliesToScan;
     private readonly string? _agentsYamlDirectory;
     private readonly string? _commonPromptsYamlDirectory;
+    private readonly string? _commonToolsYamlDirectory;
     private readonly IEnumerable<string>? _promptStarters;
     private readonly IEnumerable<string>? _promptEnders;
     private readonly Type? _defaultOutputType;
@@ -46,6 +48,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         IAgentModeConfigurator<TContext> modeConfigurator,
         string? agentsYamlDirectory = null,
         string? commonPromptsYamlDirectory = null,
+        string? commonToolsYamlDirectory = null,
         IEnumerable<string>? promptStarters = null,
         IEnumerable<string>? promptEnders = null,
         Type? defaultOutputType = null
@@ -56,6 +59,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         _assembliesToScan = assembliesToScan;
         _agentsYamlDirectory = agentsYamlDirectory;
         _commonPromptsYamlDirectory = commonPromptsYamlDirectory;
+        _commonToolsYamlDirectory = commonToolsYamlDirectory;
         _promptStarters = promptStarters;
         _promptEnders = promptEnders;
         _modeConfigurator = modeConfigurator;
@@ -153,6 +157,21 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             }
 
             agent.Instructions.AddCommonPrompt(commonPrompt.Prompt);
+        }
+
+        // Add common tools to the agent
+        foreach (var commonToolName in agentDescriptor.CommonTools)
+        {
+            if (!_commonToolsDescriptors.TryGetValue(commonToolName, out var commonTools))
+            {
+                _logger.LogWarning("Agent descriptor {descriptorName} has a common tool {commonToolName} that does not exist.",
+                    agentDescriptor.Name, commonToolName);
+
+                throw new Exception($"Agent descriptor {agentDescriptor.Name} has a common tool {commonToolName} that does not exist.");
+            }
+
+            // Add all tools from the common tool definition to the agent's tools list
+            agent.FactoryTools.AddRange(commonTools);
         }
 
         if (_promptEnders is not null)
@@ -267,6 +286,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
     {
         LoadCommonPromptsFromAssembly();
         LoadCommonPromptsFromYaml();
+        LoadCommonToolsFromYaml();
         LoadAgentFromAssembly();
         LoadAgentFromYaml();
         UpdateHandoffs();
@@ -469,6 +489,60 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             throw new InvalidOperationException("Failed to parse YAML into PromptDescriptor", ex);
         }
     }
+
+    private void LoadCommonToolsFromYaml()
+    {
+        if (_commonToolsYamlDirectory is null)
+        {
+            return;
+        }
+
+        var yamlFiles = Directory.GetFiles(_commonToolsYamlDirectory, "*.yaml", SearchOption.AllDirectories)
+            .Concat(Directory.GetFiles(_commonToolsYamlDirectory, "*.yml", SearchOption.AllDirectories));
+
+        foreach (var yamlFile in yamlFiles)
+        {
+            LoadCommonToolsFromFile(yamlFile);
+        }
+    }
+
+    private void LoadCommonToolsFromFile(string filePath)
+    {
+        try
+        {
+            if (!File.Exists(filePath))
+            {
+                throw new FileNotFoundException("YAML file not found", filePath);
+            }
+
+            string yamlContent = File.ReadAllText(filePath);
+            var toolsDescriptor = LoadCommonToolsFromYaml(yamlContent);
+            _commonToolsDescriptors[toolsDescriptor.Name] = toolsDescriptor.Tools;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to load common tools from file {filePath}.", filePath);
+            throw;
+        }
+    }
+
+    private static YamlCommonToolsDescriptor LoadCommonToolsFromYaml(string yamlContent)
+    {
+        try
+        {
+            var deserializer = new DeserializerBuilder()
+                .WithNamingConvention(UnderscoredNamingConvention.Instance)
+                .Build();
+
+            var toolsDescriptor = deserializer.Deserialize<YamlCommonToolsDescriptor>(yamlContent);
+            return toolsDescriptor;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Failed to parse YAML into CommonToolsDescriptor", ex);
+        }
+    }
+
     public bool AgentExists(string agentName)
     {
         return _agents.ContainsKey(agentName);
@@ -494,6 +568,11 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
     public List<IPromptDescriptor> GetAllCommonPrompts()
     {
         return [.. _promptDescriptors.Values];
+    }
+
+    public Dictionary<string, List<string>> GetAllCommonTools()
+    {
+        return _commonToolsDescriptors.ToDictionary(kv => kv.Key, kv => kv.Value.ToList());
     }
 
     public List<IAgentDescriptor> GetAllAgentDescriptors()

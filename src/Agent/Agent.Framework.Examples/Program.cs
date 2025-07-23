@@ -285,7 +285,8 @@ class Program
             toolFactory: toolsRepository,
             assembliesToScan: [],
             modeConfigurator: modeConfigurator,
-            agentsYamlDirectory: Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "agents")
+            agentsYamlDirectory: Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "agents"),
+            commonToolsYamlDirectory: null
         );
 
         var chatHistory = new List<ChatMessage>();

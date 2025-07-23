@@ -138,8 +138,9 @@ tools:
   - GetContainerAppCpuExceedsThreshold
   - GetContainerAppMemoryExceedsThreshold
   - GetContainerAppOrJobOOMKills
-  - PlotTimeSeriesData
-  - HandoffBack
+
+common_tools:
+  - rca_agent_tools
 
 common_prompts:
   - format_guidelines

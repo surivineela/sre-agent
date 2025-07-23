@@ -1,0 +1,5 @@
+name: test_common_tools
+
+tools:
+- TestTool1
+- TestTool2

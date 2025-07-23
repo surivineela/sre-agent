@@ -155,14 +155,9 @@ tools:
 - GetSwiftBootstrapAgentPodHealthStatus
 - GetDNSConfigUpdateStatus
 - CheckIfDNSServerFailedToResolveDot
-- PlotTimeSeriesData
-- HandoffBack
-# - GetASIPageForManagedCluster
-# - GetInitialInvestigationReportAsync
-# - GetIssueInvestigationTimeRange
-# - AddDiscussionEntry
-# - WasAgentHelpfulInDebuggingIssueAsync
 
+common_tools:
+- rca_agent_tools
 
 common_prompts:
   - format_guidelines

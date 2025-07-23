@@ -157,9 +157,10 @@ tools:
   - AddDiscussionEntryRCAContainerApp
   - AddWebPortalLinkToIncidentRCAContainerApp
   - ResolveIncidentRCAContainerApp
-  - OneLinerToRCA
   - SearchContainerAppsResourcesByName
-  - HandoffBack
+
+common_tools:
+  - rca_agent_tools
 
 common_prompts:
   - format_guidelines

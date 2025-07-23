@@ -12,5 +12,8 @@ tools:
   - TestAutoTool
   - TestManualTool
 
+common_tools:
+  - test_common_tools
+
 common_prompts:
   - prompt1

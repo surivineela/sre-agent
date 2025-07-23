@@ -1,0 +1,10 @@
+name: rca_agent_tools
+
+tools:
+  - OneLinerToRCA
+  - GetASIPageForManagedCluster
+  - GetASIPageForContainerAppJob
+  - GetASIPageForManagedEnvironment
+  - GetASIPageForRevision
+  - PlotTimeSeriesData
+  - HandoffBack

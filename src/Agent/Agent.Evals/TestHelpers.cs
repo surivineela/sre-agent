@@ -261,6 +261,7 @@ public static class TestHelpers
                 modeConfigurator: modeConfigurator,
                 agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "AgentsV2"),
                 commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonPrompts"),
+                commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonTools"),
                 promptStarters: [Core.Constants.SREAgentPromptStarter],
                 promptEnders: [Core.Constants.SREAgentFinalInstructions],
                 defaultOutputType: typeof(DefaultAgentOutput)

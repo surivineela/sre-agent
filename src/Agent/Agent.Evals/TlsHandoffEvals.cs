@@ -105,7 +105,8 @@ public class TlsHandoffEvals
                     .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true),
                 modeConfigurator: modeConfigurator,
                 agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "AgentsV2"),
-                commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonPrompts")
+                commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonPrompts"),
+                commonToolsYamlDirectory: null
             );
         });
 
