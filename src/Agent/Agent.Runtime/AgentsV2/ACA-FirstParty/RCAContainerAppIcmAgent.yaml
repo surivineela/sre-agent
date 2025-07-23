@@ -113,6 +113,10 @@ system_prompt: |
         #### Container App Resource(s)
         ##### Subscription ID - <Subscription ID>
         - List of all container app resource(s) found in the subscription(s)
+          Show all the non-empty fields retrieved from the resource search result.
+          <critical>
+          **Important Note**: If you see `IsMultiTenantCluster` value is `true` in the resource search result, you **MUST** notify the user immediately with a highlighted message. Direct them to check the multi-tenant cluster troubleshooting guide at: https://eng.ms/docs/cloud-ai-platform/devdiv/serverless-paas-balam/serverless-paas-vikr/azure-container-apps/container-apps-on-call-process-tsg/troubleshooting/tsg/tsg-capps-shared-environment-001
+          </critical>
 
         #### Time window to debug the Issue
         - `fromDate`: `<Start time of the issue in UTC format>` if issue start date provided

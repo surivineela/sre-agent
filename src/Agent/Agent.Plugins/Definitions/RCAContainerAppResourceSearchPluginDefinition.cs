@@ -16,17 +16,18 @@ namespace Agent.Plugins.Definitions
 
         [Description("""
         Purpose:
-        Searches ContainerApp, ContainerAppsJob, ManagedEnvironment, ManagedCluster, SessionPool resources by the given resource name.
+        Searches ContainerApp,ContainerAppsJob,ManagedEnvironment,ManagedCluster,SessionPool resources by the given resource name.
 
         Scenario:
         Use this tool to search resources that match the specified name. Verify that the resource name is correct and exists.
 
         Output:
         Returns table data in CSV format with TAB separators. Column headers:
-        - ResourceType: Type of the resource (ContainerApp, ContainerAppsJob, ManagedEnvironment, ManagedCluster, SessionPool)
-        - region: region of the resource
+        - ResourceType: Type of the resource (ContainerApp,ContainerAppsJob,ManagedEnvironment,ManagedCluster,SessionPool)
+        - region
         - subscription: subscriptionId of the resource
         - managedClusterName
+        - IsMultiTenantCluster: Indicates if the managed cluster is multi-tenant
         - managedEnvironmentName
         - containerAppName
         - containerAppsJobName

@@ -6,6 +6,7 @@ let searchSubscription = "##subscriptionId##";
 let containerAppSearchResult = All("ContainerAppDBState")
 | where TIMESTAMP between (fromTime-1d .. toTime)
 | where resourceName != ""
+| where isempty(searchRegin) or Tenant == searchRegin
 | where containerAppName =~ resourceName or containerAppsJobName =~ resourceName
 | extend ResourceType = iif(isempty(containerAppName), "ContainerAppsJob", "ContainerApp")
 | extend managedEnvironmentResourceGroup = tostring(split(environmentId,"/")[4])
@@ -18,21 +19,26 @@ let containerAppSearchResult = All("ContainerAppDBState")
   workloadProfileType) by containerAppName,containerAppsJobName,managedClusterName
 | join kind=inner (All("ManagedEnvironmentDBState")
 | where TIMESTAMP between (fromTime-1d .. toTime)
-| summarize arg_max(TIMESTAMP,customHelmValues) by managedClusterName
+| where isempty(searchRegin) or Tenant == searchRegin
+| summarize arg_max(TIMESTAMP,customHelmValues,managedClusterType) by managedClusterName
 | extend jobsConsumptionV2OnLegion=parse_json(customHelmValues)["jobsConsumptionV2OnLegion"]
 | extend consumptionV2OnLegion=parse_json(customHelmValues)["consumptionV2OnLegion"]
+| extend IsMultiTenantCluster = iif(managedClusterType=="Virtual" or managedClusterType=="Host", "True", "False")
 | project-away customHelmValues
 ) on $left.managedClusterName==$right.managedClusterName
 | extend IsRunOnLegion = iif(workloadProfileType=="Consumption" and jobsConsumptionV2OnLegion!=false and consumptionV2OnLegion !=false,"True","False");
 let environmentSearchResult = All("ManagedEnvironmentDBState")
 | where TIMESTAMP between (fromTime-1d .. toTime)
 | where resourceName != ""
+| where isempty(searchRegin) or Tenant == searchRegin
 | where environmentName =~ resourceName or managedClusterName =~ resourceName
 | extend ResourceType = iif(managedClusterName =~ resourceName, "ManagedCluster", "ManagedEnvironment")
+| extend IsMultiTenantCluster = iif(managedClusterType=="Virtual" or managedClusterType=="Host", "True", "False")
 | summarize arg_max(TIMESTAMP,ResourceType,region=Tenant,subscription,
   managedEnvironmentName=environmentName,
   managedEnvironmentResourceGroup=resourceGroup,
-  environmentProvisioningState) by managedClusterName;
+  environmentProvisioningState,
+  IsMultiTenantCluster) by managedClusterName;
 let sessionPoolSearchResult = AllSession("SessionPoolDBState")
 | where PreciseTimeStamp  between (fromTime-1d .. toTime)
 | where resourceName != ""
@@ -44,5 +50,5 @@ union containerAppSearchResult,environmentSearchResult,sessionPoolSearchResult
 | where ResourceType != ""
 | where isempty(searchRegin) or region =~ searchRegin
 | where isempty(searchSubscription) or subscription =~ searchSubscription
-| project ResourceType,region,SubscriptionID=subscription,managedClusterName,managedEnvironmentName,containerAppName,containerAppsJobName,IsRunOnLegion,provisioningState,sessionPoolName,ContainerAppResourceGroupName=containerAppResourceGroup,ManagedEnvironmentResourceGroupName=managedEnvironmentResourceGroup,environmentProvisioningState,sessionPoolResourceGroupName=sessionPoolResourceGroup
+| project ResourceType,region,SubscriptionID=subscription,managedClusterName,IsMultiTenantCluster,managedEnvironmentName,containerAppName,containerAppsJobName,IsRunOnLegion,provisioningState,sessionPoolName,ContainerAppResourceGroupName=containerAppResourceGroup,ManagedEnvironmentResourceGroupName=managedEnvironmentResourceGroup,environmentProvisioningState,sessionPoolResourceGroupName=sessionPoolResourceGroup
 
