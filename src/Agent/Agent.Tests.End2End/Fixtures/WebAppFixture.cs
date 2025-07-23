@@ -17,18 +17,21 @@ namespace Agent.Tests.End2End.Fixtures
     public class WebAppFixture
     {
         private readonly IMessageSink _sink;
-        private WebApp _webApp;
+        private WebApp? _webApp;
 
-        public ConfigFixture ConfigFixture { get; }
+        public ConfigFixture ConfigFixture { get; } = new ConfigFixture();
 
 
         public WebAppFixture(IMessageSink sink)
         {
             _sink = sink;
-            TestSettings testSettings = ConfigFixture.Configuration.GetRequiredSection("TestSettings").Get<TestSettings>();
+            TestSettings? testSettings = ConfigFixture.Configuration.GetRequiredSection("TestSettings").Get<TestSettings>();
 
-            _webApp = new WebApp(testSettings, sink);
-            _webApp.EnsureWebAppExists().GetAwaiter().GetResult();
+            if (testSettings != null)
+            {
+                _webApp = new WebApp(testSettings, sink);
+                _webApp.EnsureWebAppExists().GetAwaiter().GetResult();
+            }
         }
     }
 }

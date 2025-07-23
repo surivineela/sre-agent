@@ -15,7 +15,7 @@ namespace E2ETests.Tests
     {
         private readonly CombinedFixture _fixture;
         private readonly ITestOutputHelper _output;
-        private readonly TestSettings _testSettings;
+        private readonly TestSettings? _testSettings;
 
         public BasicScenarios(CombinedFixture fixture, ITestOutputHelper testOutputHelper)
         {
@@ -35,6 +35,7 @@ namespace E2ETests.Tests
         [Fact]
         public async Task CanTrackApp()
         {
+            Assert.NotNull(_testSettings);
             var response = await Helper.SendMessage(_fixture, _output, $"start monitoring {Helper.GetWebAppName(_testSettings.SubscriptionId)}");
             await Task.Delay(TimeSpan.FromSeconds(15));
             Assert.True(await Helper.MatchesNaturalLanguagePrompt(_fixture, _output, "monitoring started"));

@@ -6,7 +6,6 @@ using Azure.AI.OpenAI;
 using Azure.Identity;
 using Xunit.Abstractions;
 
-using E2ETests.Models;
 using OpenAI.Chat;
 using E2ETests;
 using Agent.Tests.Common;
@@ -24,20 +23,14 @@ namespace Agent.Tests.End2End.Fixtures
         private const int _port = 7777;
         private bool _disposed;
         private readonly IMessageSink _sink;
-        private WebApp _webApp;
 
-        public ConfigFixture ConfigFixture { get; }
+        public ConfigFixture ConfigFixture { get; } = new ConfigFixture();
 
 
         public AzureFunctionsFixture(IMessageSink sink)
         {
             _sink = sink;
 
-            StartFunctionApp();
-        }
-
-        public void StartFunctionApp()
-        {
             var functionApp1Folder = Path.GetFullPath(@"../../../../OperationalAgentRuntimeSK");
             _sink.WriteLine(functionApp1Folder);
             var processFactory = new AzureFunctionProcessFactory();
@@ -56,7 +49,7 @@ namespace Agent.Tests.End2End.Fixtures
             this.Client = new HttpClient();
             this.Client.BaseAddress = new Uri($"http://localhost:{_port}");
         }
-
+        
         public ChatClient GetChatClient()
         {
             // Extract configuration values
@@ -103,7 +96,6 @@ namespace Agent.Tests.End2End.Fixtures
                     this.Client?.Dispose();
 
                     FunctionApp1Process?.Dispose();
-                    _webApp.EnsureWebAppDeleted().GetAwaiter().GetResult();
                 }
 
                 _disposed = true;

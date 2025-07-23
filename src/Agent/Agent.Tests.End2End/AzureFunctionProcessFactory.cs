@@ -26,6 +26,10 @@ namespace E2ETests
 
                 using (var process = Process.Start(processStartInfo))
                 {
+                    if (process == null)
+                    {
+                        return false;
+                    }
                     var output = process.StandardOutput.ReadToEnd();
                     var error = process.StandardError.ReadToEnd();
                     process.WaitForExit();
