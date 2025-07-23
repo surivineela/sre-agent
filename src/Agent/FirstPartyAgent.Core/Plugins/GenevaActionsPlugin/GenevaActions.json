@@ -47,6 +47,12 @@
     "WorkflowInputParameters": [ "incidentId", "redisCacheName" ]
   },
   {
+    "ActionName": "GetRunningVMsOfTheRedisCache",
+    "TenantId": "e988c3c5-e0e8-402b-92b2-e05bfe1798bf",
+    "WorkflowName": "SREAgentGetRunningVMsOfTheCache/triggers/When_a_HTTP_request_is_received/execute?teamId=WINDOWSAZURECACHE%5CAutomation",
+    "WorkflowInputParameters": [ "cacheName", "region" ]
+  },
+  {
     "IsAllowedOnExternalSubs": true,
     "ActionName": "GetSubscriptionRiskReputationScore",
     "TenantId": "8b4ee84d-c4b2-47db-b046-c4e863852b3c",
