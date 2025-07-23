@@ -107,7 +107,8 @@ export const getResourceTypeFriendlyName = (azureType?: string, subType?: string
     }
 
     const t = azureType.toLowerCase();
-    const match = Object.keys(FRIENDLY_NAMES).find(k => t.includes(k));
+    const sortedKeys = Object.keys(FRIENDLY_NAMES).sort((a, b) => b.length - a.length);
+    const match = sortedKeys.find(k => t.includes(k));
 
     if (match) {
         return FRIENDLY_NAMES[match];
