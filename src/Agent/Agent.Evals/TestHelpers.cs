@@ -6,6 +6,7 @@ using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
+using Agent.Data;
 using Agent.Data.AgentMemory;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.Repositories;
@@ -35,7 +36,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
 using OpenTelemetry.Trace;
-using Agent.Data;
 
 namespace Agent.Evals;
 
@@ -206,11 +206,11 @@ public static class TestHelpers
             return new Agent.Plugins.ChartPlugin(logger, outboundService);
         });
         builder.Services.AddTransient<IAgent, MetaAgent>();
-        builder.Services.AddSingleton<Agent.Plugins.ChartPluginDefinition>();
+        builder.Services.AddSingleton<ChartPluginDefinition>();
         builder.Services.AddSingleton(Mock.Of<IAuthenticationService>());
         builder.Services.AddSingleton<ITitleGenerationService, TitleGenerationService>();
 
-        builder.Services.AddSingleton<Agent.Plugins.Interface.IGraphDBPlugin, GraphDBPlugin>();
+        builder.Services.AddSingleton<IGraphDBPlugin, GraphDBPlugin>();
         // builder.Services.AddSingleton<Agent.Plugins.Interface.IGraphDBPlugin>(sp => sp.GetRequiredService<GraphDBPlugin>());
         builder.Services.AddSingleton<GraphDBPluginDefinition>();
         builder.Services.AddSingleton<UserInteractionPluginDefinition>();
@@ -282,6 +282,7 @@ public static class TestHelpers
         builder.Services.AddTransient<KubePluginDefinition>();
         builder.Services.AddTransient<IKubePlugin, KubePlugin>();
         builder.Services.AddTransient<SearchPluginDefinition>();
+        builder.Services.AddSingleton(Mock.Of<IGraphDatabaseClient>());
         builder.Services.AddSingleton(Mock.Of<ISearchPlugin>());
         builder.Services.AddTransient<ArmPluginDefinition>();
         builder.Services.AddTransient<IArmPlugin, ArmPlugin>();
