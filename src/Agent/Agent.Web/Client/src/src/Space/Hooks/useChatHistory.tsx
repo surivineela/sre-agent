@@ -34,7 +34,7 @@ export const useChatHistory = (
     const messageClient = MessageClient.getInstance(sreAgentEndpoint);
 
     const timestampCutOffForFetchingLatestMessages = useMemo(() => {
-        return chatHistory[chatHistory.length - 1]?.[0]?.timeStamp;
+        return chatHistory[0]?.[0]?.timeStamp;
     }, [chatHistory]);
 
     const fetchPage = async (
