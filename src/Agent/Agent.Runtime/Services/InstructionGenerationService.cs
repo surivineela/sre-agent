@@ -358,7 +358,7 @@ public class InstructionGenerationRequest
     /// <summary>
     /// Custom Instructions provided by the user
     /// </summary>
-    public required string CustomInstructions { get; set; }
+    public string? CustomInstructions { get; set; }
 
     /// <summary>
     /// List of incidents to generate learnings from
@@ -373,7 +373,7 @@ public class InstructionGenerationRequest
     /// <summary>
     /// Existing instructions to improve upon, if any
     /// </summary>
-    public required string ExistingInstructions { get; set; } = string.Empty;
+    public string? ExistingInstructions { get; set; }
 }
 
 

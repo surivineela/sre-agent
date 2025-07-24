@@ -118,7 +118,7 @@ jobs:
           --no-restore \
           --configuration ${{ env.BUILD_CONFIGURATION }} \
           -p:SkipReactBuild=true \
-          -p:WarningLevel=0 \
+          -p:WarningLevel=4 \
           /clp:ErrorOnly \
           --verbosity quiet
 
