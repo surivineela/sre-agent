@@ -41,6 +41,7 @@ public class ToolsRepository : IToolsRepository
         RegisterPlugin<ChartPluginDefinition>();
         RegisterPlugin<RecordActionsPluginDefinition>();
         RegisterPlugin<AzureDevOpsWorkItemPluginDefinition>();
+        RegisterPlugin<RepositoryPluginDefintion>();
 
         // Not all tools were registered, so registering individually
         Register200<GrafanaPluginDefinition>(x => x.ModifyGrafanaDashboard);
@@ -102,7 +103,7 @@ public class ToolsRepository : IToolsRepository
         Register200<GitHubIssuePluginDefinition>(x => x.CreateGithubIssue);
         Register200<GitHubIssuePluginDefinition>(x => x.CreateGithubIssueComment);
         Register200<GitHubIssuePluginDefinition>(x => x.FetchGithubIssue);
-        Register200<GitHubIssuePluginDefinition>(x => x.FindConnectedRepo);
+        Register200<GitHubIssuePluginDefinition>(x => x.FindConnectedGitHubRepo);
         RegisterPlugin<SourceCodeErrorAnalysisAgentPluginDefinition>();
 
         RegisterPlugin<AzureSupportCenterPluginDefinition>();

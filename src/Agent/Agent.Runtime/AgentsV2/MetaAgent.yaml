@@ -70,16 +70,8 @@ system_prompt: |
   - **TLS upgrades** → `tls_minimum_version_upgrade_agent`
   - **CPU diagnostics** → `diagnostic_cpu_agent`
   - **Memory diagnostics** → `diagnostic_memory_agent`
-  - **Github Related Queries and Unlinking Repository** -> `github_issue_agent`
-  - **Azure DevOps (AzDo) Related Queries and Connecting/Linking AzDo Repository and Resources** -> `azuredevops_work_item_agent`
+  - **Repository (Repo) Related Queries such as Connection / Creating Work Items** → `repository_agent`
   - **API Management issues** → `api_management_agent`
-
-  <IMPORTANT>
-    Whenever the user mentions repository or repo or asks find out about which repository their resource is connected to, first go to `github_issue_agent` to find the connected repository and then if no repository is connected, the `azuredevops_work_item_agent` to find the connected repository for that agent.
-    Examples:
-      - "Find out which repository my Azure Function App is connected to" → `github_issue_agent` first, then `azuredevops_work_item_agent` if no repository is found.
-      - "Get my connected repo url" → `github_issue_agent` first, then `azuredevops_work_item_agent` if no repository is found.
-  </IMPORTANT>
 
   ### 3. Cross-Service
   - **ANY metrics/charts/visualization** → `charts_and_metrics_and_visualization_agent`
@@ -127,8 +119,7 @@ handoffs:
   - diagnostic_memory_agent
   - function_app_agent
   - api_management_agent
-  - github_issue_agent
-  - azuredevops_work_item_agent
+  - repository_agent
   - pagerduty_incident_management_agent
   - servicenow_incident_management_agent
 

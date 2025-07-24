@@ -38,7 +38,7 @@ public sealed class AksQaAgentFactory
         _toolsRegistry.RegisterTool<NSGRulePluginDefinition>(x => x.RemoveNSGRuleAsync);
         _toolsRegistry.RegisterTool<GitHubIssuePluginDefinition>(x => x.CreateGithubIssue);
         _toolsRegistry.RegisterTool<GitHubIssuePluginDefinition>(x => x.FetchGithubIssue);
-        _toolsRegistry.RegisterTool<GitHubIssuePluginDefinition>(x => x.FindConnectedRepo);
+        _toolsRegistry.RegisterTool<GitHubIssuePluginDefinition>(x => x.FindConnectedGitHubRepo);
         _toolsRegistry.RegisterTool<HelperAgentsPluginDefinition>(x => x.StartDiagnosisAgent);
         _durableTaskClient = durableTaskClient;
     }

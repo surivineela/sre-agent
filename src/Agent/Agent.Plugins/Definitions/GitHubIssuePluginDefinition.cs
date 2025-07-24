@@ -4,7 +4,6 @@
 
 using System.ComponentModel;
 using Agent.Core.Models;
-using Agent.Framework;
 using Agent.Plugins.Helpers;
 using Agent.Plugins.Interface;
 using Microsoft.SemanticKernel;
@@ -167,7 +166,7 @@ resolved
 
     [KernelFunction("find_connected_repo")]
     [Description("Find the GitHub repository URL where source code for an Azure resource like webapp, container app, aks pod etc is hosted. This helps identify the correct repository for creating GitHub issues related to code problems such as memory leaks, deadlocks, performance issues, or bugs discovered in Azure resources. The function uses a graph database to trace the relationship between deployed resources and their source code repositories.")]
-    public async Task<string> FindConnectedRepo(
+    public async Task<string> FindConnectedGitHubRepo(
     [Description("The Azure resource ID for which to find the connected repository. Must be in the format '/subscriptions/{subId}/resourceGroups/{rgName}/providers/{provider}/{resourceType}/{resourceName}' or a unique identifier for the resource in your environment.")] string resourceId)
     {
         return await _gitHubIssuePlugin.FindConnectedRepo(resourceId);
@@ -180,7 +179,7 @@ resolved
     }
 
     [Description("Gets the type of Infrastructure as Code (IaC) - this is the most likely type of IaC used.")] 
-    public async Task<string> GetIaCForGithub(
+    public async Task<string> GetIaCForGitHub(
         [Description("GitHub repository URL, e.g. https://github.com/owner/repo-name.git")] string repoUrl,
         [Description("Branch - assume main unless otherwise specified.")] string branch = "main",
         [Description("Comma separated file patterns to match for retrieving files (e.g. '*.bicep,*.json')")] string fileMatches = "*bicep,*yaml,*yml,*json,*tf*")

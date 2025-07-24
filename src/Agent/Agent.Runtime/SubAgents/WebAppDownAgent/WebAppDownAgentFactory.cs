@@ -27,7 +27,7 @@ public sealed class WebAppDownAgentFactory
 
         registry.RegisterTool<GitHubIssuePluginDefinition>(x => x.CreateGithubIssue);
         registry.RegisterTool<GitHubIssuePluginDefinition>(x => x.FetchGithubIssue);
-        registry.RegisterTool<GitHubIssuePluginDefinition>(x => x.FindConnectedRepo);
+        registry.RegisterTool<GitHubIssuePluginDefinition>(x => x.FindConnectedGitHubRepo);
 
         registry.RegisterPlugin<ControlFlowPluginDefinition>();
 

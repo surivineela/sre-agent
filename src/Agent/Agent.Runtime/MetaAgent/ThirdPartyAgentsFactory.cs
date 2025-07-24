@@ -398,6 +398,7 @@ $@"## Facts
         var azureMonitorMetricsPluginDefinition = new AzureMonitorMetricsPluginDefinition(_azureMonitorMetricsPlugin);
         var diagnosticsPluginDefinition = new DiagnosticsPluginDefinition(_diagnosticsPlugin);
         var azureDevOpsWorkItemPluginDefinition = new AzureDevOpsWorkItemPluginDefinition(_azureDevOpsWorkItemPlugin);
+        var repositoryPluginDefinition = new RepositoryPluginDefintion(); 
         var sourceCodeErrorAnalysisPluginDefinition = new SourceCodeErrorAnalysisAgentPluginDefinition(_sourceCodeAnalysisPlugin);
 
 

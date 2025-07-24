@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Azure.ResourceManager.AppService.Models;
 
@@ -146,9 +147,6 @@ public static class ToolDescriptionHelper
             // Metrics functions
             "GetFunctionAppRequestAvailability" => "Checking Function App availability metrics...",
 
-            // GitHub functions
-            "CreateGithubIssue" => "Creating GitHub issue...",
-
             // Helper Agent functions
             "StartDiagnosisAgent" => "Starting resource diagnosis...",
 
@@ -264,10 +262,11 @@ public static class ToolDescriptionHelper
             "HandoffBack" => "Continuing with the investigation...",
 
             // GitHub Issue Plugin functions (from GithubIssueAgent.yaml)
-            "FetchGithubIssue" => "Fetching GitHub issue details...",
-            "FindConnectedRepo" => "Finding connected GitHub repository...",
-            "CreateGithubIssueComment" => "Adding comment to GitHub issue...",
-            "FetchGithubSecurityDependabotAlerts" => "Fetching GitHub security alerts...",
+            nameof(GitHubIssuePlugin.CreateGithubIssue) => "Creating GitHub issue...",
+            nameof(GitHubIssuePlugin.FetchGithubIssue) => "Fetching GitHub issue details...",
+            nameof(GitHubIssuePlugin.FindConnectedRepo) => "Finding connected GitHub repository...",
+            nameof(GitHubIssuePlugin.CreateGithubIssueComment) => "Adding comment to GitHub issue...",
+            nameof(GitHubIssuePlugin.FetchGithubSecurityDependabotAlerts) => "Fetching GitHub security alerts...",
 
             // Kubectl Plugin functions
             "RunKubectlWriteCommand" => "Executing Kubernetes write command...",
@@ -391,15 +390,17 @@ public static class ToolDescriptionHelper
             "APIMRemoveNSGRule" => "Removing network security group rule for API Management...",
 
             // AzDo Tools
-            nameof(AzureDevOpsWorkItemPluginDefinition.ConnectRepositoryToResource) => "Connecting to Repository...",
-            nameof(AzureDevOpsWorkItemPluginDefinition.FindConnectedRepository) => "Finding Connected Repository...",
+            nameof(AzureDevOpsWorkItemPluginDefinition.ConnectRepositoryToResourceForAzureDevOps) => "Connecting to Azure DevOps Repository...",
+            nameof(AzureDevOpsWorkItemPluginDefinition.FindConnectedRepositoryForAzureDevOps) => "Finding Connected Azure DevOps Repository...",
             nameof(AzureDevOpsWorkItemPluginDefinition.CreateAzureDevOpsWorkItem) => "Creating Azure Dev Ops Work Item...",
-            nameof(AzureDevOpsWorkItemPluginDefinition.DisconnectRepositoryFromResource) => "Disconnecting Azure Dev Ops Repository...",
+            nameof(AzureDevOpsWorkItemPluginDefinition.DisconnectRepositoryFromResourceForAzureDevOps) => "Disconnecting Azure Dev Ops Repository...",
 
             // Diagnostic Analysis Tools
             nameof(DiagnosticsPluginDefinition.GetCPUAnalysis) => "Conducting CPU Analysis...",
             nameof(DiagnosticsPluginDefinition.GetMemoryAnalysis) => "Conducting Memory Analysis...",
             nameof(DiagnosticsPluginDefinition.GetLatencyAnalysis) => "Conducting Latency Analysis...",
+
+            nameof(RepositoryPluginDefintion.GetRepositoryType) => "Getting the Repository Type...",
 
             // Default case
             _ => DefaultSafeDescription

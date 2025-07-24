@@ -31,8 +31,8 @@ handoff_description: "Handoff to this agent for GitHub issue management during t
 tools:
 - CreateGithubIssue
 - FetchGithubIssue
-- FindConnectedRepo
-- GetIaCForGithub
+- FindConnectedGitHubRepo
+- GetIaCForGitHub
 - DisconnectRepositoryFromResourceForGitHub
 - HandoffBack
 

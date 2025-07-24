@@ -24,20 +24,20 @@ public class AzureDevOpsWorkItemPluginDefinition
     }
 
     [Description("Finds the connected or linked Azure DevOps (AzDo/TFS) repository for a given Azure Resource ID. Locates associated repos, git repositories, source code repositories, or code bases linked to Azure resources. Works with any Azure resource type (App Service, Function App, Container Instance, AKS, etc.). Use for requests to find, locate, discover, identify, or get the repository, repo, source code, git repo, or code base connected to Azure resources. Handles variations like 'what repo is linked to this resource', 'find the source code', 'get the repository', 'where is the code', etc.")]
-    public async Task<string> FindConnectedRepository([Description("The resource ID of the Azure Resource for example: /subscriptions/be8d491e-109c-4ee1-aaee-dc7615af0a42/resourceGroups/mrsharm-operations-agent-3p-rg/providers/Microsoft.App/containerApps/memory-leak-app/containerapp")] string resourceId)
+    public async Task<string> FindConnectedRepositoryForAzureDevOps([Description("The resource ID of the Azure Resource for example: /subscriptions/be8d491e-109c-4ee1-aaee-dc7615af0a42/resourceGroups/mrsharm-operations-agent-3p-rg/providers/Microsoft.App/containerApps/memory-leak-app/containerapp")] string resourceId)
     {
         return await _azureDevOpsWorkItemPlugin.FindConnectedRepository(resourceId);
     }
 
     [Description("Connects or links an Azure Resource to an Azure DevOps (AzDo) repository. For example: 'Connect the albumapicsharp-2 app with the https://dev.azure.com/iactest7758/TestApp/_git/TestApp repository' or 'Link the memory-leak-app app with the https://dev.azure.com/iactest7758/TestApp/_git/TestApp repository'.")]
-    public async Task<string> ConnectRepositoryToResource([Description("The resource ID of the Azure Resource for example:  /subscriptions/be8d491e-109c-4ee1-aaee-dc7615af0a42/resourceGroups/mrsharm-operations-agent-3p-rg/providers/Microsoft.App/containerApps/memory-leak-app/containerapp")] string resourceId,
-                                                          [Description("The Azure DevOps repository url.")] string repositoryUrl)
+    public async Task<string> ConnectRepositoryToResourceForAzureDevOps([Description("The resource ID of the Azure Resource for example:  /subscriptions/be8d491e-109c-4ee1-aaee-dc7615af0a42/resourceGroups/mrsharm-operations-agent-3p-rg/providers/Microsoft.App/containerApps/memory-leak-app/containerapp")] string resourceId,
+                                                                        [Description("The Azure DevOps repository url.")] string repositoryUrl)
     {
         return await _azureDevOpsWorkItemPlugin.ConnectRepository(resourceId, repositoryUrl);
     }
 
     [Description("Disconnects or unlinks an Azure Resource from an Azure DevOps (AzDo) repository. For example: 'Disconnect the albumapicsharp-2 app from the connected repository' or 'Unlink the memory-leak-app app from the from the connected repository'.")]
-    public async Task<string> DisconnectRepositoryFromResource([Description("The resource ID of the Azure Resource for example: /subscriptions/be8d491e-109c-4ee1-aaee-dc7615af0a42/resourceGroups/mrsharm-operations-agent-3p-rg/providers/Microsoft.App/containerApps/memory-leak-app/containerapp")] string resourceId)
+    public async Task<string> DisconnectRepositoryFromResourceForAzureDevOps([Description("The resource ID of the Azure Resource for example: /subscriptions/be8d491e-109c-4ee1-aaee-dc7615af0a42/resourceGroups/mrsharm-operations-agent-3p-rg/providers/Microsoft.App/containerApps/memory-leak-app/containerapp")] string resourceId)
     {
         return await _azureDevOpsWorkItemPlugin.DisconnectRepository(resourceId);
     }

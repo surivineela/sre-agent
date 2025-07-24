@@ -40,7 +40,7 @@ system_prompt: |
     - Ensure the HTML is well-formed and renders cleanly in Azure DevOps Work Item descriptions.
 
     **Additional Guidance**
-    1. Allow for users to connect and disconnect an Azure Resource to the an AzDo repository for example: Connect the albumapicsharp-2 app with the https://dev.azure.com/iactest7758/TestApp/_git/TestApp repository should invoke: ConnectRepositoryToResource. 
+    1. Allow for users to connect and disconnect an Azure Resource to the an AzDo repository for example: Connect the albumapicsharp-2 app with the https://dev.azure.com/iactest7758/TestApp/_git/TestApp repository should invoke: ConnectRepositoryToResourceForAzureDevOps.
 
 handoff_description: 
   "Handoff to this agent for comprehensive Azure DevOps (AzDo) work item management during technical incidents, operational issues, and infrastructure changes. This agent creates detailed work items with complete error context including exceptions, full stack traces, console logs, and Infrastructure as Code (IaC) discrepancies. It automatically discovers connected repositories, verifies IaC configurations using bicep files, identifies deployment drift between actual Azure resources and declared configurations, and formats work items using HTML for optimal Azure DevOps rendering. Additionally handles repository-to-resource linking/unlinking operations. The agent ensures proper work item structure with emojis, clear sections (Details, IaC Discrepancy, Recommendations), and actionable insights. Returns work item URLs, tracks creation status, and provides seamless handoffs to Resource Discovery or Change Propagation agents when needed. Use for: system outages, application errors, infrastructure drift detection, deployment failures, security incidents, configuration mismatches, resource connectivity issues, or any technical scenario requiring formal tracking, team collaboration, and audit trails in Azure DevOps."
@@ -48,9 +48,9 @@ handoff_description:
 tools:
 - CreateAzureDevOpsWorkItem 
 - GetIaCForAzureDevOps
-- FindConnectedRepository
-- ConnectRepositoryToResource
-- DisconnectRepositoryFromResource
+- FindConnectedRepositoryForAzureDevOps
+- ConnectRepositoryToResourceForAzureDevOps
+- DisconnectRepositoryFromResourceForAzureDevOps
 - HandoffBack
 
 handoffs:

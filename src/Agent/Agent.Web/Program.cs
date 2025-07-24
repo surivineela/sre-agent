@@ -401,6 +401,7 @@ public class Program
             .AddTransient<CpuAnalysisPluginDefinition>()
             .AddTransient<AppCodeAnalysisPluginDefinition>()
             .AddTransient<DiagnosticsPluginDefinition>()
+            .AddTransient<RepositoryPluginDefintion>()
             .AddTransient<AzureDevOpsWorkItemPluginDefinition>()
             .AddTransient<SourceCodeErrorAnalysisAgentPluginDefinition>()
             .AddTransient<RoleAssignmentPluginDefinition>()

@@ -13,19 +13,16 @@ namespace Agent.Plugins.Implementation.DiagnosticsPlugin;
 
 public sealed class DiagnosticsPlugin : IDiagnosticsPlugin
 {
-    private readonly IAuthenticationService _authService;
     private readonly IArmClientFactory _armClientFactory;
     private readonly ILogger<DiagnosticsPlugin> _logger; 
     private readonly IEnumerable<IComputeResourceDiagnosticStrategy> _computeDiagnosticStrategies;
     private readonly ArmHelper _armHelper;
 
-    public DiagnosticsPlugin(IAuthenticationService authenticationService,
-                             IArmClientFactory armClientFactory,
+    public DiagnosticsPlugin(IArmClientFactory armClientFactory,
                              ArmHelper armHelper,
                              ILogger<DiagnosticsPlugin> logger,
                              IKubePlugin kubePlugin)
     {
-        _authService = authenticationService;
         _armClientFactory = armClientFactory;
 
         // Register Compute Diagnostic Strategies.
