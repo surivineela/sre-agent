@@ -19,7 +19,6 @@ export const useActivities = () => {
     const [selectedThread, setSelectedThread] = useState<Thread | null>(null);
     const [threadContentAndActionKey, setThreadContentAndActionKey] = useState<string>(Guid.newGuid());
     const [activeThreadId, setActiveThreadId] = useState<string>('');
-    const [threadPollingTriggerId, setThreadPollingTriggerId] = useState<number>(0);
 
     const untouched = useRef<boolean>(true);
     const threadMenuHandleRef = useRef<ThreadMenuHandle>(null);
@@ -28,13 +27,6 @@ export const useActivities = () => {
     const proxy = useContext(AzPortalContext);
 
     const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
-
-    const pollNewThreadsImmediately = () => setThreadPollingTriggerId(prev => prev + 1);
-
-    const promoteThread = useCallback((threadId: string) => {
-        // poll thread immediately to make the recently updated the thread on top.
-        threadMenuHandleRef.current?.promoteThread(threadId, pollNewThreadsImmediately);
-    }, []);
 
     const selectThread = useCallback(
         (thread: Thread | null) => {
@@ -53,8 +45,6 @@ export const useActivities = () => {
     const addThread = useCallback(
         (threadId: string, newThreadToSelect?: Thread) => {
             untouched.current = false;
-            // poll thread immediately to get the thread just added.
-            pollNewThreadsImmediately();
 
             if (newThreadToSelect) {
                 selectThread(newThreadToSelect);
@@ -171,13 +161,11 @@ export const useActivities = () => {
     return {
         selectedThread,
         addThread,
-        promoteThread,
         deleteThread,
         selectThread,
         updateThreadLastReadTime,
         threadContentAndActionKey,
         activeThreadId,
-        threadPollingTriggerId,
         threadMenuHandleRef,
     };
 };

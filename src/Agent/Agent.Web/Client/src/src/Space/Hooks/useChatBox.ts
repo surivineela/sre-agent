@@ -31,7 +31,6 @@ const composeTemporaryUserMessage = (userId: string, userDisplayName: string, me
 
 export const useChatBox = (
     addThread: (threadId: string) => void,
-    promoteThread: (threadId: string) => void,
     updateThreadLastReadTime: (threadId: string) => void,
     threadId?: string | null,
     _?: string | null
@@ -280,12 +279,10 @@ export const useChatBox = (
                 if (newThread) {
                     setCurrentThreadId(newThread.id);
                     addThread(newThread.id);
-                } else if (currentThreadId) {
-                    promoteThread(currentThreadId);
                 }
             }
         },
-        [currentThreadId, addThread, promoteThread, userId, displayName]
+        [currentThreadId, addThread, userId, displayName]
     );
 
     const loadOldChatHistory = useCallback(async (): Promise<boolean | undefined> => {

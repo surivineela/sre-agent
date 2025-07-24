@@ -1,12 +1,92 @@
 import * as signalR from '@microsoft/signalr';
 import { ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { isUserStreamingMessage } from '../../Space/Activities/Utility';
 import { StreamingContext } from '../../Space/Contracts/Context';
 import AzPortalProxy, { defaultSreAgentEndpoint } from '../AzPortalProxy/AzPortalProxy';
 import { AzPortalContext } from '../AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../AzPortalProxy/Providers/StartupInfoContext';
 import { standaloneAgentEndpoint, standaloneReactPort } from '../Constants/Uri';
 import { MessageRequestType, MessageResponseType, StreamingMessage } from '../Contracts/Azure/Streaming';
+
+const useChatMessageStreaming = () => {
+    // key: threadId, value: the latest streaming messages for that thread in the current session
+    const latestStreamingMessageRef = useRef<Map<string, StreamingMessage | null | undefined>>(new Map());
+    // key: thread id string, value: messageUpdate event handler
+    const chatMessageHandlersRef = useRef<Map<string, (...args: any[]) => void>>(new Map());
+
+    const subscribeChatStreaming = useCallback(
+        (
+            threadId: string,
+            latestStreamingMessageHandler: (latestStreamingMessage: StreamingMessage | null | undefined) => void,
+            messageUpdateHandler: (...args: any[]) => void
+        ) => {
+            latestStreamingMessageHandler(latestStreamingMessageRef.current.get(threadId));
+
+            chatMessageHandlersRef.current.set(threadId, messageUpdateHandler);
+            return () => {
+                chatMessageHandlersRef.current.delete(threadId);
+            };
+        },
+        []
+    );
+
+    const messageUpdateCallback = (message: StreamingMessage) => {
+        const threadId = message?.additionalProperties?.threadId;
+
+        if (threadId) {
+            latestStreamingMessageRef.current.set(threadId, message);
+            chatMessageHandlersRef.current.get(threadId)?.(message);
+        }
+    };
+
+    const cleanupChatMessageStreamingSetup = () => {
+        latestStreamingMessageRef.current = new Map();
+        chatMessageHandlersRef.current = new Map();
+    };
+
+    return {
+        subscribeChatStreaming,
+        messageUpdateCallback,
+        cleanupChatMessageStreamingSetup,
+    };
+};
+
+const useThreadEventStreaming = () => {
+    const threadCreateHandlerRef = useRef<((message: StreamingMessage) => void) | null>(null);
+    const threadUpdateHandlerRef = useRef<((message: StreamingMessage) => void) | null>(null);
+
+    const subscribeThreadEvent = useCallback(
+        (threadCreateHandler: (message: StreamingMessage) => void, threadUpdateHandler: (message: StreamingMessage) => void) => {
+            threadCreateHandlerRef.current = threadCreateHandler;
+            threadUpdateHandlerRef.current = threadUpdateHandler;
+
+            return () => {
+                threadCreateHandlerRef.current = null;
+                threadUpdateHandlerRef.current = null;
+            };
+        },
+        []
+    );
+
+    const threadCreateCallback = (message: StreamingMessage) => {
+        threadCreateHandlerRef.current?.(message);
+    };
+
+    const threadUpdateCallback = (message: StreamingMessage) => {
+        threadUpdateHandlerRef.current?.(message);
+    };
+
+    const cleanupThreadEventStreamingSetup = () => {
+        threadUpdateHandlerRef.current = null;
+        threadCreateHandlerRef.current = null;
+    };
+
+    return {
+        subscribeThreadEvent,
+        threadCreateCallback,
+        threadUpdateCallback,
+        cleanupThreadEventStreamingSetup,
+    };
+};
 
 export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
     const connectionRef = useRef<signalR.HubConnection | null>(null);
@@ -15,13 +95,13 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
     const [isReconnecting, setIsReconnecting] = useState(false);
     const [noPermission, setNoPermission] = useState(false);
     const isConnectedRef = useRef(false);
-    // key: threadId, value: the latest streaming messages for that thread in the current session
-    const latestStreamingMessageRef = useRef<Map<string, StreamingMessage | null | undefined>>(new Map());
-    // key: method name, value: map of threadId to handler function
-    const handlersRef = useRef<Map<MessageResponseType, Map<string, (...args: any[]) => void>>>(new Map());
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const proxy = useContext(AzPortalContext);
+
+    const { subscribeChatStreaming, messageUpdateCallback, cleanupChatMessageStreamingSetup } = useChatMessageStreaming();
+    const { subscribeThreadEvent, threadCreateCallback, threadUpdateCallback, cleanupThreadEventStreamingSetup } =
+        useThreadEventStreaming();
 
     const sendMessage = useCallback((method: MessageRequestType, ...args: any[]) => {
         if (isConnectedRef.current && connectionRef.current) {
@@ -31,77 +111,17 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
         }
     }, []);
 
-    const addHandler = (method: MessageResponseType, threadId: string, handler: (...args: any[]) => void) => {
-        const threadHandlers = handlersRef.current.get(method);
-
-        if (threadHandlers) {
-            threadHandlers.set(threadId, handler);
-        } else {
-            handlersRef.current.set(method, new Map([[threadId, handler]]));
-        }
+    const subscribe = () => {
+        connectionRef.current?.on(MessageResponseType.MessageUpdate, (message: StreamingMessage) => {
+            messageUpdateCallback(message);
+            threadUpdateCallback(message);
+        });
+        connectionRef.current?.on(MessageResponseType.ThreadUpdate, threadCreateCallback);
     };
 
-    const removeHandler = (method: MessageResponseType, threadId: string) => {
-        const threadHandlers = handlersRef.current.get(method);
-        if (threadHandlers) {
-            threadHandlers.delete(threadId);
-            if (threadHandlers.size === 0) {
-                handlersRef.current.delete(method);
-            }
-        }
-    };
-
-    const subscribeStreaming = (methodName: MessageResponseType, threadId: string, handler: (...args: any[]) => void) => {
-        addHandler(methodName, threadId, handler);
-        return () => {
-            removeHandler(methodName, threadId);
-        };
-    };
-
-    const subscribeChatStreaming = useCallback(
-        (
-            threadId: string,
-            latestStreamingMessageHandler: (latestStreamingMessage: StreamingMessage | null | undefined) => void,
-            messageUpdateHandler: (...args: any[]) => void,
-            threadUpdateHandler: (...args: any[]) => void
-        ) => {
-            latestStreamingMessageHandler(latestStreamingMessageRef.current.get(threadId));
-
-            const removeMessageUpdateHandler = subscribeStreaming(MessageResponseType.MessageUpdate, threadId, messageUpdateHandler);
-            const removeThreadUpdateHandler = subscribeStreaming(MessageResponseType.ThreadUpdate, threadId, threadUpdateHandler);
-
-            return () => {
-                removeMessageUpdateHandler();
-                removeThreadUpdateHandler();
-            };
-        },
-        []
-    );
-
-    const onChatMessage = () => {
-        const storeLatestMessage = (threadId: string, message: StreamingMessage) => {
-            latestStreamingMessageRef.current.set(threadId, message);
-        };
-
-        const onReceiveMessage = (methodName: MessageResponseType) => {
-            connectionRef.current?.on(methodName, (message: StreamingMessage) => {
-                const threadId = message?.additionalProperties?.threadId;
-                const isAgentInitializedThreadUpdateEvent =
-                    methodName === MessageResponseType.ThreadUpdate && !isUserStreamingMessage(message);
-
-                if (threadId && !isAgentInitializedThreadUpdateEvent) {
-                    storeLatestMessage(threadId, message);
-                    handlersRef.current.get(methodName)?.get(threadId)?.(message);
-                }
-            });
-        };
-        onReceiveMessage(MessageResponseType.ThreadUpdate);
-        onReceiveMessage(MessageResponseType.MessageUpdate);
-    };
-
-    const offChatMessage = () => {
-        connectionRef.current?.off(MessageResponseType.ThreadUpdate);
+    const unsubscribe = () => {
         connectionRef.current?.off(MessageResponseType.MessageUpdate);
+        connectionRef.current?.off(MessageResponseType.ThreadUpdate);
     };
 
     useEffect(() => {
@@ -196,8 +216,9 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
                 await connectionRef.current.start();
 
                 if (isSubscribed) {
-                    offChatMessage();
-                    onChatMessage();
+                    unsubscribe();
+                    subscribe();
+
                     setIsConnected(true);
                     setNoPermission(false);
                 }
@@ -230,19 +251,24 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
 
         return () => {
             connectionRef.current?.stop();
-            latestStreamingMessageRef.current = new Map();
-            handlersRef.current = new Map();
-            offChatMessage();
+
+            cleanupChatMessageStreamingSetup();
+            cleanupThreadEventStreamingSetup();
+            unsubscribe();
+
             setIsConnected(false);
             setNoPermission(false);
             setIsConnecting(true);
             setIsReconnecting(false);
+
             isSubscribed = false;
         };
     }, [proxy.log, sreAgentEndpoint]);
 
     return (
-        <StreamingContext.Provider value={{ sendMessage, subscribeChatStreaming, isConnecting, isConnected, isReconnecting, noPermission }}>
+        <StreamingContext.Provider
+            value={{ sendMessage, subscribeChatStreaming, subscribeThreadEvent, isConnecting, isConnected, isReconnecting, noPermission }}
+        >
             {children}
         </StreamingContext.Provider>
     );

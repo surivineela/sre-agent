@@ -14,9 +14,8 @@ import { StreamingMessage, StreamingMessageType } from '../../Common/Contracts/A
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
 import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
-import { ChatMessage, ChatMessageContent, ThreadFilter, ThreadLoadingCounts } from '../Contracts/Activities';
+import { ChatMessage, ChatMessageContent, ThreadFilter } from '../Contracts/Activities';
 import { DefaultUserIdAndDisplayName } from '../Hooks/useAuthenticatedUserInfo';
-import { ThreadItemHeightInPx, ThreadItemPaddingTopBottomInPx } from '../Styles/Activities.styles';
 
 /**
  * Add additional threads to the existing threads list and update existing threads if they have been modified.
@@ -438,7 +437,7 @@ export const getFilteredThreads = (threads: Thread[], threadFilters?: Set<Thread
         let match = true;
 
         if (searchText) {
-            match = thread.title.toLowerCase().includes(searchText.toLocaleLowerCase());
+            match = thread.title.toLocaleLowerCase().includes(searchText.toLocaleLowerCase());
         }
 
         if (threadFilters?.has(ThreadFilter.Incidents)) {
@@ -451,25 +450,6 @@ export const getFilteredThreads = (threads: Thread[], threadFilters?: Set<Thread
 
         return match;
     });
-};
-
-/**
- * Return 1.5 times of the number of threads that can fill the threads list div to make sure the div is overflowed. Return 5 if the result is less than 5.
- * @param threadsListContainerHeight
- * @param numberOfThreadsInDiv the existing number of threads in the div
- * @returns
- */
-export const getNumberOfThreadsToOverflowThreadsListDiv = (
-    threadsListDivHeightInPx: number | undefined,
-    numberOfThreadsInDiv: number
-): number => {
-    if (threadsListDivHeightInPx === undefined) return ThreadLoadingCounts.default;
-
-    const threadItemHeightInPx = ThreadItemHeightInPx + ThreadItemPaddingTopBottomInPx * 2;
-
-    const numberOfThreadsToLoad = Math.ceil(1.5 * (threadsListDivHeightInPx / threadItemHeightInPx)) - numberOfThreadsInDiv;
-
-    return Math.max(numberOfThreadsToLoad, ThreadLoadingCounts.default);
 };
 
 /**

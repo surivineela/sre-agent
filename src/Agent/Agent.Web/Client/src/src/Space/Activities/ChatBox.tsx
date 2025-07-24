@@ -18,7 +18,7 @@ import AzureSREWelcome from './AzureSREWelcome';
 import { ChatSuggestions } from './ChatSuggestions';
 import { getGroupedMessages } from './Utility';
 
-export const ChatBox = ({ addThread, promoteThread, updateThreadLastReadTime, threadId, threadSource }: IChatBoxProps) => {
+export const ChatBox = ({ addThread, updateThreadLastReadTime, threadId, threadSource }: IChatBoxProps) => {
     const { hasChatPermissions } = useContext(KnowledgeGraphBuildStatusContext);
     const intl = useIntl();
 
@@ -39,7 +39,7 @@ export const ChatBox = ({ addThread, promoteThread, updateThreadLastReadTime, th
         onScroll,
         showNewMessageButton,
         onClickNewMessageButton,
-    } = useChatBox(addThread, promoteThread, updateThreadLastReadTime, threadId);
+    } = useChatBox(addThread, updateThreadLastReadTime, threadId);
 
     const threadAgentModeData = useThreadAgentMode(threadId, threadSource);
 

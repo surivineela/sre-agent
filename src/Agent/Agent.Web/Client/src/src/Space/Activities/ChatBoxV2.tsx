@@ -16,7 +16,7 @@ import { ChatBoxStyles } from '../Styles/Activities.styles';
 import AzureSREWelcome from './AzureSREWelcome';
 import { ChatSuggestions } from './ChatSuggestions';
 
-export const ChatBoxV2 = ({ addThread, promoteThread, updateThreadLastReadTime, threadId, threadSource }: IChatBoxProps) => {
+export const ChatBoxV2 = ({ addThread, updateThreadLastReadTime, threadId, threadSource }: IChatBoxProps) => {
     const {
         chatHistory,
         newMessages,
@@ -39,7 +39,7 @@ export const ChatBoxV2 = ({ addThread, promoteThread, updateThreadLastReadTime, 
         downButtonState,
         onClickDownButton,
         getGroupedChatMessages,
-    } = useChatBoxV2(addThread, promoteThread, updateThreadLastReadTime, threadId, threadSource);
+    } = useChatBoxV2(addThread, updateThreadLastReadTime, threadId, threadSource);
 
     const threadAgentModeData = useThreadAgentMode(threadId, threadSource);
 

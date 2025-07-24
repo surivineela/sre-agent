@@ -22,7 +22,6 @@ export interface AgentContextProps {
 export interface IThreadsMenuProps {
     selectThread: (thread: Thread | null) => void;
     deleteThread?: (thread: Thread) => void;
-    threadPollingTriggerId: number;
     collapsed?: boolean;
     setCollapsed: (collapsed: boolean) => void;
 }
@@ -33,7 +32,6 @@ export interface IThreadContentProps {
     expandActions: () => void;
     addThread: (threadId: string, newThreadToSelect?: Thread) => void;
     deleteThread: (thread: Thread) => void;
-    promoteThread: (threadId: string) => void;
     updateThreadLastReadTime: (threadId: string) => void;
 }
 
@@ -45,17 +43,11 @@ export interface IThreadActivitiesProps {
 
 export type ThreadMenuHandle = {
     removeThreadFromList: (thread: Thread) => void;
-    promoteThread: (threadId: string, promote: () => void) => void;
     updateThreadLastReadTime: (threadId: string) => void;
-};
-
-export type ThreadListHandle = {
-    getThreadListHeight: () => number;
 };
 
 export interface IChatBoxProps {
     addThread: (threadId: string, newThreadToSelect?: Thread) => void;
-    promoteThread: (threadId: string) => void;
     updateThreadLastReadTime: (threadId: string) => void;
     threadId?: string;
     threadSource?: string;
@@ -141,16 +133,11 @@ export interface IChatBoxFooterV2Props {
 }
 
 export class ThreadLoadingCounts {
-    public static readonly default = 5;
-    public static readonly scroll = 10;
+    public static readonly default = 20;
 }
 
 export class ThreadPollingCounts {
     public static readonly default = 5;
-}
-
-export class ThreadPollingInterval {
-    public static readonly default = 10000;
 }
 
 export class MessagePollingInterval {

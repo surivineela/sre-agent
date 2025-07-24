@@ -34,6 +34,10 @@ type StreamingContextProps = {
         messageUpdateHandler: (...args: any[]) => void,
         threadUpdateHandler: (...args: any[]) => void
     ) => () => void;
+    subscribeThreadEvent: (
+        threadCreateHandler: (message: StreamingMessage) => void,
+        threadUpdateHandler: (message: StreamingMessage) => void
+    ) => () => void;
     isConnecting: boolean;
     isConnected: boolean;
     isReconnecting: boolean;
@@ -91,6 +95,8 @@ export const StreamingContext = createContext<StreamingContextProps>({
             _threadUpdateHandler: (...args: any[]) => void
         ) =>
         () => {},
+    subscribeThreadEvent:
+        (_threadCreateHandler: (message: StreamingMessage) => void, _threadUpdateHandler: (message: StreamingMessage) => void) => () => {},
     isConnecting: true,
     isConnected: false,
     isReconnecting: false,

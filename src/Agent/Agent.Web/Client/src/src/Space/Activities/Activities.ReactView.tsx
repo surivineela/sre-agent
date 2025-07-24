@@ -12,13 +12,11 @@ const Activities: FC = () => {
     const {
         selectedThread,
         addThread,
-        promoteThread,
         deleteThread,
         selectThread,
         updateThreadLastReadTime,
         threadContentAndActionKey,
         activeThreadId,
-        threadPollingTriggerId,
         threadMenuHandleRef,
     } = useActivities();
 
@@ -43,7 +41,6 @@ const Activities: FC = () => {
                         <ThreadsMenu
                             selectThread={selectThread}
                             deleteThread={deleteThread}
-                            threadPollingTriggerId={threadPollingTriggerId}
                             ref={threadMenuHandleRef}
                             {...resizableChildProps}
                         />
@@ -53,7 +50,6 @@ const Activities: FC = () => {
                     thread={selectedThread}
                     addThread={addThread}
                     deleteThread={deleteThread}
-                    promoteThread={promoteThread}
                     updateThreadLastReadTime={updateThreadLastReadTime}
                     actionsCollapsed={actionsCollapsed}
                     expandActions={() => setActionsCollapsed(false)}

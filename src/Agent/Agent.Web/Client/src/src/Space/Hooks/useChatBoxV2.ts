@@ -38,7 +38,6 @@ interface ThreadCreateRequest {
 
 export const useChatBoxV2 = (
     addThread: (threadId: string) => void,
-    promoteThread: (threadId: string) => void,
     updateThreadLastReadTime: (threadId: string) => void,
     threadId?: string | null,
     threadSource?: string | null
@@ -83,7 +82,6 @@ export const useChatBoxV2 = (
     const typingCharsTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
     const isCancellingStreamingRef = useRef<boolean>(false);
     const addThreadRef = useRef(addThread);
-    const promoteThreadRef = useRef(promoteThread);
 
     const { chatHistory, isLoadingInitialChatHistory, loadOlderMessagesRef, newestMessageTimestampInOldMessages } = useChatHistory(
         threadId,
@@ -263,9 +261,7 @@ export const useChatBoxV2 = (
         }
 
         if (isUserStreamingMessage(currentMessageChunk)) {
-            if (currentThreadIdRef.current) {
-                promoteThreadRef.current(currentThreadIdRef.current);
-            } else if (threadIdFromStream) {
+            if (!currentThreadIdRef.current && threadIdFromStream) {
                 setCurrentThreadId(threadIdFromStream);
                 if (!isNewThreadAdded.current) {
                     addThreadRef.current(threadIdFromStream);

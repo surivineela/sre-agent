@@ -1,41 +1,45 @@
 import { Button } from '@fluentui/react-button';
+import { mergeClasses, Skeleton, SkeletonItem } from '@fluentui/react-components';
 import { Dialog, DialogTrigger } from '@fluentui/react-dialog';
 import { AddRegular, PanelLeftContractRegular, PanelLeftExpandRegular, SearchRegular } from '@fluentui/react-icons';
 import { tokens } from '@fluentui/react-theme';
 import { ForwardedRef, forwardRef, useContext } from 'react';
 import { useIntl } from 'react-intl';
+import { KnowledgeGraphBuildStatusContext } from '../../Common/Providers/KnowledgeGraphBuildStatusProvider';
+import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
 import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import ThreadFiltersAndIncidentStatus from '../Components/ThreadFiltersAndIncidentStatus';
+import ThreadItem from '../Components/ThreadItem';
 import ThreadSearchDialog from '../Components/ThreadSearchDialog';
-import ThreadsList from '../Components/ThreadsList';
 import { IThreadsMenuProps, ThreadMenuHandle } from '../Contracts/Activities';
 import { AgentContext } from '../Contracts/Context';
 import { useMetrics } from '../Hooks/useMetrics';
 import { useThreadsMenu } from '../Hooks/useThreadsMenu';
-import { getExpandCollapseButtonStyles, useThreadMenuStyle } from '../Styles/Activities.styles';
+import { getExpandCollapseButtonStyles, skeletonStyle, useThreadMenuStyle } from '../Styles/Activities.styles';
 
 const expandCollapseButtonStyles = getExpandCollapseButtonStyles('left');
 
 export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
     (props: IThreadsMenuProps, ref: ForwardedRef<ThreadMenuHandle>) => {
-        const { selectThread, deleteThread, threadPollingTriggerId, collapsed, setCollapsed } = props;
+        const { selectThread, deleteThread, collapsed, setCollapsed } = props;
 
         const {
-            hasChatPermissions,
             threads,
-            isLoadingInitialThreads,
-            loadMoreOldThreads,
-            hasMoreOldThreads,
-            threadListHandleRef,
+            threadListDivRef,
+            intersectionObserverRef,
             threadFilters,
             updateThreadFilters,
             unreadThreadIds,
             oldestThreadModifiedTimestamp,
-        } = useThreadsMenu(threadPollingTriggerId, ref);
+            onScroll,
+            moreThreadsToLoad,
+        } = useThreadsMenu(ref);
 
         const threadMenuStyles = useThreadMenuStyle();
+        const { scrollable } = useScrollableComponentStyles();
 
         const { activeThreadId } = useContext(AgentContext);
+        const { hasChatPermissions } = useContext(KnowledgeGraphBuildStatusContext);
 
         const intl = useIntl();
 
@@ -100,17 +104,30 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
                     />
                 )}
                 {!collapsed && hasChatPermissions && (
-                    <ThreadsList
-                        ref={threadListHandleRef}
-                        threads={threads}
-                        isLoadingInitialThreads={isLoadingInitialThreads}
-                        selectThread={selectThread}
-                        deleteThread={deleteThread}
-                        hasMoreOldThreads={hasMoreOldThreads}
-                        loadMoreOldThreads={loadMoreOldThreads}
-                        activeThreadId={activeThreadId}
-                        unreadThreadIds={unreadThreadIds}
-                    />
+                    <div
+                        className={mergeClasses(scrollable, threadMenuStyles.threadListContainer)}
+                        role="tree"
+                        ref={threadListDivRef}
+                        onScroll={onScroll}
+                    >
+                        {threads.map(thread => {
+                            return (
+                                <ThreadItem
+                                    key={thread.id}
+                                    thread={thread}
+                                    selectThread={selectThread}
+                                    deleteThread={deleteThread}
+                                    isActive={activeThreadId === thread.id}
+                                    isThreadUnread={unreadThreadIds.has(thread.id)}
+                                />
+                            );
+                        })}
+                        {moreThreadsToLoad && (
+                            <Skeleton style={skeletonStyle} ref={intersectionObserverRef}>
+                                <SkeletonItem />
+                            </Skeleton>
+                        )}
+                    </div>
                 )}
             </div>
         );
