@@ -705,8 +705,48 @@ public class ArmHelper
 
             // Step 3: Wait for the DaaS session to complete and retrieve the report data path.
             var result = await WaitForDaaSSessionCompletionWithRetriesAsync(appServiceResource, sessionId);
-            string partialPath = result["ActiveInstances"]?[0]?["Logs"]?[0]?["Reports"]?[0]?["PartialPath"]?.ToString() ?? string.Empty;
-            string instance = result["ActiveInstances"]?[0]?["Name"]?.ToString() ?? "";
+            var activeInstances = result["ActiveInstances"];
+            if (activeInstances == null || !activeInstances.HasValues)
+            {
+                string errorMessage = $"No active instances found for ResourceId: {appServiceResource}. The App Service may not have any running instances.";
+                _logger.LogInternalError(errorMessage);
+                throw new Exception(errorMessage);
+            }
+
+            var firstInstance = activeInstances[0];
+            var logs = firstInstance?["Logs"];
+            if (logs == null || !logs.HasValues)
+            {
+                string errorMessage = $"No logs found for ResourceId: {appServiceResource}. The profiling session may not have generated any logs.";
+                _logger.LogInternalError(errorMessage);
+                throw new Exception(errorMessage);
+            }
+
+            var reports = logs[0]?["Reports"];
+            if (reports == null || !reports.HasValues)
+            {
+                string errorMessage = $"No reports found for ResourceId: {appServiceResource}. The profiling session may not have generated any reports.";
+                _logger.LogInternalError(errorMessage);
+                throw new Exception(errorMessage);
+            }
+
+            var firstReport = reports[0];
+            if (firstReport?["PartialPath"] == null)
+            {
+                string errorMessage = $"Failed to get CPU analysis for ResourceId: {appServiceResource}. PartialPath is missing from the report.";
+                _logger.LogInternalError(errorMessage);
+                throw new Exception(errorMessage);
+            }
+
+            if (firstInstance?["Name"] == null)
+            {
+                string errorMessage = $"Failed to get CPU analysis for ResourceId: {appServiceResource}. Instance name is missing.";
+                _logger.LogInternalError(errorMessage);
+                throw new Exception(errorMessage);
+            }
+
+            string partialPath = firstReport["PartialPath"]?.ToString() ?? "";
+            string instance = firstInstance["Name"]?.ToString() ?? "";
 
             if (string.IsNullOrEmpty(partialPath) || string.IsNullOrEmpty(instance))
             {
@@ -772,6 +812,18 @@ public class ArmHelper
             return cpuStackDataContent;
         }
 
+        catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
+        {
+            string errorMessage = CreateTimeoutErrorMessage("HTTP timeout", appServiceResource, ex.Message);
+            _logger.LogInternalError(errorMessage);
+            throw new Exception(errorMessage, ex);
+        }
+        catch (HttpRequestException ex) when (ex.Message.Contains("timeout", StringComparison.OrdinalIgnoreCase))
+        {
+            string errorMessage = CreateTimeoutErrorMessage("HTTP request timeout", appServiceResource, ex.Message);
+            _logger.LogInternalError(errorMessage);
+            throw new Exception(errorMessage, ex);
+        }
         catch (Exception e)
         {
             string errorMessage = $"Failed to Get CPU Analysis for: {appServiceResource} with exception: {e.Message}";
@@ -2613,7 +2665,18 @@ public class ArmHelper
                     await Task.Delay(TimeSpan.FromSeconds(10));
                 }
             }
-
+            catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
+            {
+                string errorMessage = $"HTTP timeout occurred while checking DaaS session status for: {appServiceResource} and sessionId: {sessionId}. This timeout is likely due to insufficient computational resources on the App Service. Consider scaling up the App Service Plan to a higher SKU tier (e.g., Standard, Premium, or Premium v2/v3) to provide more CPU and memory resources for the profiling operation. Exception: {ex.Message}";
+                _logger.LogInternalError(errorMessage);
+                throw new Exception(errorMessage, ex);
+            }
+            catch (HttpRequestException ex) when (ex.Message.Contains("timeout", StringComparison.OrdinalIgnoreCase))
+            {
+                string errorMessage = $"HTTP request timeout occurred while checking DaaS session status for: {appServiceResource} and sessionId: {sessionId}. This timeout is likely due to insufficient computational resources on the App Service. Consider scaling up the App Service Plan to a higher SKU tier (e.g., Standard, Premium, or Premium v2/v3) to provide more CPU and memory resources for the profiling operation. Exception: {ex.Message}";
+                _logger.LogInternalError(errorMessage);
+                throw new Exception(errorMessage, ex);
+            }
             catch (Exception ex)
             {
                 string errorMessage = $"Error checking session status for ResourceId: {appServiceResource} and sessionId: {sessionId} - {ex.Message}";
@@ -2783,6 +2846,11 @@ public class ArmHelper
     }
 
     #region Private Methods
+
+    private static string CreateTimeoutErrorMessage(string timeoutType, string appServiceResource, string exceptionMessage)
+    {
+        return $"{timeoutType} occurred while getting CPU analysis for: {appServiceResource}. This timeout is likely due to insufficient computational resources on the App Service. Consider scaling up the App Service Plan to a higher SKU tier (e.g., Standard, Premium, or Premium v2/v3) to provide more CPU and memory resources for the profiling operation. Exception: {exceptionMessage}";
+    }
 
     private async Task<List<T>> GetResourceSettings<T>(
     List<string> resourceIds,

@@ -30,7 +30,22 @@ internal class AppServiceDiagnosticStrategy : ComputeResourceDiagnosticStrategyB
     {
         string memoryDumpFile = Path.GetFileName(Path.GetTempFileName() + ".dmp");
         KuduManager kuduManager = await KuduManager.Initialize(resourceId, _armHelper);
-        int pid = await _armHelper.GetDefaultProcessIdForWebAppAsync(resourceId, kuduManager.OS, kuduManager.KuduHostName);
+        int pid = -1;
+
+        try
+        {
+            pid = await _armHelper.GetDefaultProcessIdForWebAppAsync(resourceId, kuduManager.OS, kuduManager.KuduHostName);
+        }
+        catch (HttpRequestException e) when (e.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+        {
+            _logger.LogInternalError($"500 Internal Server Error encountered while retrieving process ID for resource: {resourceId}. This might be due to a system restart or insufficient computational resources.");
+            throw new InvalidOperationException("Failed to retrieve process ID due to server error. Consider checking system health or resource availability.", e);
+        }
+        catch (Exception e)
+        {
+            _logger.LogInternalError($"Unexpected error encountered while retrieving process ID for resource: {resourceId}. Error: {e.Message}");
+            throw;
+        }
 
         if (kuduManager.OS == "Linux")
         {
