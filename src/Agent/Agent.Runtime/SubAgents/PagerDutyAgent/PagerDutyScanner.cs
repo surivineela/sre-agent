@@ -53,13 +53,13 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
 
         while (!cancellationToken.IsCancellationRequested)
         {
-            await ScannAllIncidentsAsync(cancellationToken);
+            await ScanAllIncidentsAsync(cancellationToken);
 
             await Task.Delay(ScanInterval, cancellationToken);
         }
     }
 
-    private async Task ScannAllIncidentsAsync(CancellationToken cancellationToken)
+    private async Task ScanAllIncidentsAsync(CancellationToken cancellationToken)
     {
         uint page = 0;
         while (true)
@@ -83,14 +83,11 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                 foreach (var incident in response.Incidents)
                 {
                     var incidentDocument = await GetDocumentAsync<PagerDutyIncidentDocument>(incident.IncidentId, incident.IncidentId);
-                    if (incidentDocument != null)
-                    {
-                        incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident, cancellationToken);
+                    incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident, cancellationToken);
 
-                        var realtedResourceIds = await UpdateResourceGraph(incidentDocument, incident);
+                    var relatedResourceIds = await UpdateResourceGraph(incidentDocument, incident);
 
-                        await NotifyUserAsync(incidentDocument, realtedResourceIds);
-                    }
+                    await NotifyUserAsync(incidentDocument, relatedResourceIds);
                 }
             }
             catch (Exception ex)
@@ -225,7 +222,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
         return null;
     }
 
-    private async Task<PagerDutyIncidentDocument> UpsertIncidentDocumentIfNeededAsync(PagerDutyIncidentDocument incidentDocument, Graph.Interfaces.PagerDutyIncident incident, CancellationToken cancellationToken = default)
+    private async Task<PagerDutyIncidentDocument> UpsertIncidentDocumentIfNeededAsync(PagerDutyIncidentDocument? incidentDocument, Graph.Interfaces.PagerDutyIncident incident, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -343,8 +340,8 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
         catch (Exception ex)
         {
             logger.LogInternalError(ex, "Error upserting incident document for PagerDuty incident {incidentId}", incident.IncidentId);
+            throw;
         }
-        return incidentDocument;
     }
 
     private async Task<List<string>> UpdateResourceGraph(PagerDutyIncidentDocument incidentDocument, Graph.Interfaces.PagerDutyIncident incident)
