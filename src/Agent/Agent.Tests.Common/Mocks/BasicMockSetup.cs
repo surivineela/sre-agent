@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
 
 namespace Agent.Tests.Common.Mocks;
+
 public class BasicMockSetup
 {
     public TimeProvider TimeProvider { get; set; }
@@ -18,6 +19,7 @@ public class BasicMockSetup
     public MockCommunicationService CommunicationService { get; set; }
     public MockContainerAppPlugin ContainerAppPlugin { get; set; }
     public MockNSGRulePlugin NSGRulePlugin { get; set; }
+    public MockSearchEndpointService SearchEndpointService { get; set; }
 
     public MockGrafanaPlugin GrafanaPlugin { get; set; }
     public MockGraphDBPlugin GraphDBPlugin { get; set; }
@@ -41,6 +43,7 @@ public class BasicMockSetup
 
         NSGRulePlugin = new MockNSGRulePlugin();
         ContainerAppPlugin = new MockContainerAppPlugin(NSGRulePlugin);
+        SearchEndpointService = new MockSearchEndpointService();
     }
 
 }

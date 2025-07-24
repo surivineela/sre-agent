@@ -36,6 +36,7 @@ public static class ServiceCollectionExtensionsForMocks
 
         services.AddSingleton<INSGRulePlugin>(mocks.NSGRulePlugin);
         services.AddSingleton<IContainerAppPlugin>(mocks.ContainerAppPlugin);
+        services.AddSingleton<ISearchEndpointService>(mocks.SearchEndpointService);
     }
 
     public static void AddMockServices(this IServiceCollection services, MetaAgentMockSetup mocks)
@@ -66,7 +67,7 @@ public static class ServiceCollectionExtensionsForMocks
 
         services.AddSingleton<ThreadManagementService>();
         services.AddSingleton<IAgentInboundCommunicationService, InboundCommunicationService>();
-        services.AddSingleton<IStreamingService>(sp => 
+        services.AddSingleton<IStreamingService>(sp =>
         {
             var logger = sp.GetRequiredService<ILoggerFactory>()
                 .CreateLogger<MockStreamingService>();
