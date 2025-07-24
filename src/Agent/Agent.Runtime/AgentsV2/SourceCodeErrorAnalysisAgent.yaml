@@ -13,7 +13,7 @@ system_prompt: |
   **Error Analysis Workflow**
   1. Extract and categorize all errors from chat history (exceptions, stack traces, runtime errors)
   2. Parse error details including exception types, error messages, and stack frames
-  3. Perform semantic search across repository to find relevant code sections
+  3. Perform semantic search across repository to find relevant code sections.
   4. Correlate error patterns with code patterns using contextual analysis
   5. Rank source files by probability of being the root cause
   6. Present findings with specific locations and reasoning

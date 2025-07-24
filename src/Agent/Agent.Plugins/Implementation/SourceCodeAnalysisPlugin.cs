@@ -1,3 +1,4 @@
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -25,10 +26,6 @@ public class SourceCodeAnalysisPlugin : ISourceCodeAnalysisPlugin
         {
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _gitHubClient.Credentials.Password);
         }
-
-        _httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("GitHubEmbeddingSearchClient", "1.0"));
-        _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        _httpClient.DefaultRequestHeaders.Add("X-GitHub-Api-Version", "2024-05-14");
     }
 
     public async Task<string> QueryRepositoryBasedOnError(string resourceId, string errorDescription)
@@ -76,36 +73,49 @@ public class SourceCodeAnalysisPlugin : ISourceCodeAnalysisPlugin
             throw new ArgumentException(errorMessage);
         }
 
+        // Ensure the repository is indexed by attempting indexing twice if necessary.
+        for (int attempt = 0; attempt < 2; attempt++)
+        {
+            if (await IsRepositoryIndexed(repoUrl))
+            {
+                break;
+            }
+
+            _logger.LogInternalInformation("Repository not indexed. Attempting to index: Attempt {AttemptNumber}", attempt + 1);
+            await ForceRepositoryIndexing(repoUrl);
+
+            // Add a delay to allow indexing to take effect before rechecking.
+            await Task.Delay(5000);
+        }
+
+        if (!await IsRepositoryIndexed(repoUrl))
+        {
+            string errorMessage = $"Failed to index repository after multiple attempts: {repoUrl}";
+            _logger.LogInternalError(errorMessage);
+            throw new InvalidOperationException(errorMessage);
+        }
+
         // This method throws. 
         var (owner, repo) = GitHubHelper.ParseGitHubUrl(repoUrl);
-
-        // Step 1. Check the embeddings API for any existing IaC type for the repoUrl and branch.
-        // Create a valid request
-        var requestBody = new SemanticSearchRequest
+        using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.github.com/embeddings/code/search");
+        request.Headers.UserAgent.Add(new ProductInfoHeaderValue("GitHubEmbeddingSearchClient", "1.0"));
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        request.Headers.Add("X-GitHub-Api-Version", "2024-05-14");
+        request.Content = new StringContent(JsonSerializer.Serialize(new SemanticSearchRequest
         {
             Prompt = query,
             ScopingQuery = $"repo:{owner}/{repo}",
-            IncludeEmbeddings = false,
-            //Limit = 10,
-            //EmbeddingModel = "text-embedding-3-small-512"
-        };
-
-        string json = JsonSerializer.Serialize(requestBody, new JsonSerializerOptions
-        {
-            WriteIndented = true
-        });
-
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
+            IncludeEmbeddings = false
+        }), Encoding.UTF8, "application/json");
 
         try
         {
-            // Endpoint from the OpenAPI spec
-            var response = await _httpClient.PostAsync("https://api.github.com/embeddings/code/search", content);
+            var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
             var responseString = await response.Content.ReadAsStringAsync();
             var res = JsonSerializer.Deserialize<SemanticSearchResponse>(responseString, new JsonSerializerOptions
             {
-                PropertyNameCaseInsensitive = true
+            PropertyNameCaseInsensitive = true
             });
 
             return res?.Results ?? new List<SemanticSearchResult>();
@@ -114,6 +124,82 @@ public class SourceCodeAnalysisPlugin : ISourceCodeAnalysisPlugin
         catch (Exception e)
         {
             _logger.LogInternalError(e, "Error fetching semantic search results from GitHub API", resourceId);
+            throw;
+        }
+    }
+
+    public async Task<bool> IsRepositoryIndexed(string repoUrl)
+    {
+        (string owner, string repo) = GitHubHelper.ParseGitHubUrl(repoUrl);
+        var endpoint = $"https://api.github.com/repos/{owner}/{repo}/copilot_internal/embeddings_index";
+
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
+            request.Headers.UserAgent.ParseAdd("IndexingStatusClient/1.0");
+
+            var response = await _httpClient.SendAsync(request);
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                var indexStatus = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                bool semanticCodeSearchOk = indexStatus.TryGetProperty("semantic_code_search_ok", out var searchOkProp) && searchOkProp.GetBoolean();
+                return semanticCodeSearchOk;
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                _logger.LogInternalWarning("Repository not found or token does not have access: {Endpoint}", endpoint);
+                return false;
+            }
+            else
+            {
+                _logger.LogInternalWarning("Unexpected status code {StatusCode} from {Endpoint}", response.StatusCode, endpoint);
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error checking repository index status", repoUrl);
+            throw;
+        }
+    }
+
+    public async Task<string> ForceRepositoryIndexing(string repoUrl)
+    {
+        (string owner, string repo) = GitHubHelper.ParseGitHubUrl(repoUrl);
+
+        string endpoint = $"https://api.github.com/repos/{owner}/{repo}/copilot_internal/embeddings_index";
+        try
+        {
+            // GitHub API requires User-Agent and Authorization headers
+            using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
+            request.Headers.UserAgent.ParseAdd("RepositoryIndexer/1.0");
+
+            var response = await _httpClient.SendAsync(request);
+            var responseStatus = response.StatusCode switch
+            {
+                System.Net.HttpStatusCode.Created => "Indexing task queued successfully (201 Created).",
+                System.Net.HttpStatusCode.NotFound => "Repository not found or access denied (404 Not Found).",
+                System.Net.HttpStatusCode.ServiceUnavailable => "Auto indexing not allowed right now (503 Service Unavailable). Try again later.",
+                _ => $"Unexpected response: {response.StatusCode}"
+            };
+
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInternalInformation($"Indexing task queued successfully for repository: {repoUrl}");
+                await Task.Delay(10_000); // Wait for 10 seconds to allow the task to be queued
+            }
+            else
+            {
+                _logger.LogInternalInformation("Failed to queue indexing task for repository {RepositoryId}: {ResponseStatus}", repoUrl, responseStatus);
+            }
+
+            return responseStatus;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error forcing repository indexing", repoUrl);
             throw;
         }
     }
