@@ -29,15 +29,15 @@ public class TlsHandoffEvals
 {
     public TestContext TestContext { get; set; }
     private ChatConfiguration? _chatConfiguration;
-    private IHost? _host;
+    private IHost _host = null!;
 
     private static int _iterationCount = 1;
     private string? _llmDeploymentName;
 
-    private E2EMockSetup _mocks;
-    private DurableTaskClient _durableTaskClient;
-    private ThreadManagementService _threadManager;
-    private IThreadRepository _threadRepo;
+    private E2EMockSetup _mocks = null!;
+    private DurableTaskClient _durableTaskClient = null!;
+    private ThreadManagementService _threadManager = null!;
+    private IThreadRepository _threadRepo = null!;
 
     static TlsHandoffEvals()
     {
@@ -151,7 +151,7 @@ public class TlsHandoffEvals
         foreach (var webApp in webApps)
         {
             var properties = await graphDBPlugin.GetResourceDetailedProperties(webApp.ResourceId);
-            tlsStatus.Add(new TlsStatus(webApp.ResourceId, webApp.ResourceName, webApp.Location, (string)properties["minTlsVersion"]));
+            tlsStatus.Add(new TlsStatus(webApp.ResourceId, webApp.ResourceName ?? string.Empty, webApp.Location ?? string.Empty, (string)properties["minTlsVersion"]));
         }
         _mocks.BasicMocks.ArmPlugin.ConfigureTlsStatus(tlsStatus.ToDictionary(x => x.ResourceId));
     }
@@ -174,8 +174,12 @@ public class TlsHandoffEvals
             OrchestrationState orchestrationState = await _threadRepo.WaitForSubAgentAssignment(thread.Id, tokenSource.Token);
             orchestrationMetadata = await _durableTaskClient.GetInstanceAsync(orchestrationState.OrchestrationInstanceId, true, tokenSource.Token);
 
+            // should not be null
+            Assert.IsNotNull(orchestrationMetadata);
+
             var agentInput = orchestrationMetadata.ReadInputAs<TlsBestPracticesAgentInput>();
 
+            Assert.IsNotNull(agentInput);
             Assert.IsTrue(agentInput.Input.DesiredVersion == "1.3", $"The agent input should be 1.3, but it is {agentInput.Input.DesiredVersion}");
             Assert.IsTrue(agentInput.Input.AppsInViolation.Count == 1, $"The agent input should have only one app in violation, but it has {agentInput.Input.AppsInViolation.Count}");
             Assert.IsTrue(agentInput.Input.AppsInViolation[0].ResourceId == "/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourcegroups/pbatum-sre-web-eas-lin/providers/microsoft.web/sites/pbatum-sre-web-eas3", $"The agent input should have the app pbatum-sre-web-eas3 in violation, but it has {agentInput.Input.AppsInViolation[0].ResourceId}");
@@ -232,7 +236,7 @@ public class TlsHandoffEvals
         var evalResult = await agentResponse.EvaluateAsync(TestContext, _chatConfiguration, fullConversation.SkipLast(1), groundedContext, exampleResponse, _llmDeploymentName);
 
         TestContext.WriteMessages(fullConversation);
-        Assert.IsTrue(evalResult.Equivalence.Value >= 4, $"Low equivalence score: {evalResult.Equivalence.Value}, {evalResult.Equivalence.Reason}");
-        Assert.IsTrue(evalResult.Groundedness.Value >= 4, $"Low groundedness score: {evalResult.Groundedness.Value}, {evalResult.Groundedness.Reason}");
+        Assert.IsTrue(evalResult?.Equivalence?.Value >= 4, $"Low equivalence score: {evalResult.Equivalence.Value}, {evalResult.Equivalence.Reason}");
+        Assert.IsTrue(evalResult?.Groundedness?.Value >= 4, $"Low groundedness score: {evalResult.Groundedness.Value}, {evalResult.Groundedness.Reason}");
     }
 }

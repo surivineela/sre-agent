@@ -22,8 +22,8 @@ public sealed class CVEEvals
 {
     public TestContext TestContext { get; set; }
 
-    private IHost _host;
-    private ChatConfiguration _chatConfiguration;
+    private IHost? _host;
+    private ChatConfiguration? _chatConfiguration;
     private string? _llmDeploymentName;
 
     private static int _iterationCount = 10; // Default value
@@ -32,7 +32,7 @@ public sealed class CVEEvals
     static CVEEvals()
     {
         // Retrieve the IterationCount from environment variables or a default value
-        string iterationCountEnv = Environment.GetEnvironmentVariable("IterationCount");
+        string iterationCountEnv = Environment.GetEnvironmentVariable("IterationCount") ?? string.Empty;
         if (int.TryParse(iterationCountEnv, out int parsedIterations))
         {
             Console.WriteLine($"Static Constructor: IterationCount is {parsedIterations}");
@@ -58,7 +58,7 @@ public sealed class CVEEvals
     [TestCleanup]
     public async Task TestCleanup()
     {
-        await _host.StopAsync();
+        await _host!.StopAsync();
         _host.Dispose();
     }
 
@@ -125,7 +125,7 @@ public sealed class CVEEvals
         services.AddSingleton<SinkService>(sinkService);
 
         // Step 3: Register other required dependencies
-        var chatClient = _chatConfiguration.ChatClient
+        var chatClient = _chatConfiguration!.ChatClient
             .AsBuilder()
             .UseFunctionInvocation()
             .Build();
@@ -228,7 +228,7 @@ public sealed class CVEEvals
         services.AddSingleton<IGithubIssuePlugin>(mockGithubIssuePlugin);
 
         // Step 3: Register other required dependencies
-        var chatClient = _chatConfiguration.ChatClient
+        var chatClient = _chatConfiguration!.ChatClient
             .AsBuilder()
             .UseFunctionInvocation()
             .Build();

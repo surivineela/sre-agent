@@ -23,6 +23,11 @@ public abstract class CustomRatingEvaluatorWithReasoning : IEvaluator
 
         try
         {
+            if (chatConfiguration is null)
+            {
+                throw new InvalidOperationException("ChatConfiguration is required for evaluation.");
+            }
+
             ChatResponse evaluationResponse =
             await chatConfiguration.ChatClient.GetResponseAsync(
                 evaluationMessages,
@@ -38,6 +43,12 @@ public abstract class CustomRatingEvaluatorWithReasoning : IEvaluator
         catch (ClientResultException)
         {
             Thread.Sleep(Random.Shared.Next(500, 1000));
+
+            if (chatConfiguration is null)
+            {
+                throw new InvalidOperationException("ChatConfiguration is required for evaluation.");
+            }
+
             ChatResponse evaluationResponse =
             await chatConfiguration.ChatClient.GetResponseAsync(
                 evaluationMessages,
@@ -59,7 +70,7 @@ public abstract class CustomRatingEvaluatorWithReasoning : IEvaluator
     private static void Interpret(StringMetric metric)
     {
         var metricString = metric.Value;
-        if (string.IsNullOrWhiteSpace(metric.Value))
+        if (string.IsNullOrWhiteSpace(metricString))
         {
             metric.Interpretation =
                 new EvaluationMetricInterpretation(
@@ -81,7 +92,7 @@ public abstract class CustomRatingEvaluatorWithReasoning : IEvaluator
         }
 
         var metricStringLine1 = metricString?.Split('\n')[0];
-        if (string.IsNullOrEmpty(metricStringLine1) && metricStringLine1.Length > 1)
+        if (string.IsNullOrEmpty(metricStringLine1) && metricStringLine1!.Length > 1)
         {
             metric.Interpretation =
                 new EvaluationMetricInterpretation(

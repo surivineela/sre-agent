@@ -69,7 +69,7 @@ public class MetaAgentEvals
     [TestCleanup]
     public async Task TestCleanup()
     {
-        await _host.StopAsync();
+        await _host!.StopAsync();
         _host.Dispose();
     }
 

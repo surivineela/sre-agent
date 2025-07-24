@@ -17,7 +17,7 @@ public class RelevanceEvaluator : IEvaluator
 
     public IReadOnlyCollection<string> EvaluationMetricNames => [RelevanceMetricName];
 
-    public async ValueTask<Microsoft.Extensions.AI.Evaluation.EvaluationResult> EvaluateAsync(IEnumerable<ChatMessage> messages, ChatResponse modelResponse, ChatConfiguration? chatConfiguration = null, IEnumerable<EvaluationContext>? additionalContext = null, CancellationToken cancellationToken = default)
+    public async ValueTask<Microsoft.Extensions.AI.Evaluation.EvaluationResult> EvaluateAsync(IEnumerable<ChatMessage> messages, ChatResponse modelResponse, ChatConfiguration? chatConfiguration, IEnumerable<EvaluationContext>? additionalContext = null, CancellationToken cancellationToken = default)
     {
         string evaluationPrompt = GetEvaluationPrompt(modelResponse.Text);
         ChatMessage[] evaluationMessages = [
@@ -28,6 +28,11 @@ public class RelevanceEvaluator : IEvaluator
 
         try
         {
+            if (chatConfiguration is null)
+            {
+                throw new InvalidOperationException("ChatConfiguration is required for evaluation.");
+            }
+
             ChatResponse evaluationResponse =
             await chatConfiguration.ChatClient.GetResponseAsync(
                 evaluationMessages,
@@ -43,6 +48,11 @@ public class RelevanceEvaluator : IEvaluator
         catch (ClientResultException)
         {
             Thread.Sleep(Random.Shared.Next(500, 1000));
+            if (chatConfiguration is null)
+            {
+                throw new InvalidOperationException("ChatConfiguration is required for evaluation.");
+            }
+
             ChatResponse evaluationResponse =
             await chatConfiguration.ChatClient.GetResponseAsync(
                 evaluationMessages,
@@ -64,7 +74,7 @@ public class RelevanceEvaluator : IEvaluator
     private static void Interpret(StringMetric metric)
     {
         var metricString = metric.Value;
-        if (string.IsNullOrWhiteSpace(metric.Value))
+        if (string.IsNullOrWhiteSpace(metricString))
         {
             metric.Interpretation =
                 new EvaluationMetricInterpretation(
@@ -86,7 +96,7 @@ public class RelevanceEvaluator : IEvaluator
         }
 
         var metricStringLine1 = metricString?.Split('\n')[0];
-        if (string.IsNullOrEmpty(metricStringLine1) && metricStringLine1.Length > 1)
+        if (string.IsNullOrEmpty(metricStringLine1) && metricStringLine1!.Length > 1)
         {
             metric.Interpretation =
                 new EvaluationMetricInterpretation(
@@ -97,7 +107,7 @@ public class RelevanceEvaluator : IEvaluator
         }
 
         var metricIntString = metricStringLine1.Substring(0, 1);
-       
+
         if (string.IsNullOrWhiteSpace(metricIntString))
         {
             metric.Interpretation =

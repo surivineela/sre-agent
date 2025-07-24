@@ -22,13 +22,13 @@ public class TlsBestPracticesEvals
     private IHost _host = null!;
     private ChatConfiguration _chatConfiguration = null!;
     private string? _llmDeploymentName;
-    private BasicMockSetup _mocks;
+    private BasicMockSetup _mocks = null!;
     private static int _iterationCount = 1;
 
     private const string BaseResourceId = "/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourceGroups/my-resource-group/providers/Microsoft.Web/sites";
-    private DurableTaskClient _durableTaskClient;
-    private TlsBestPracticeAgentFactory _agentFactory;
-    private IThreadRepository _threadRepository;
+    private DurableTaskClient _durableTaskClient = null!;
+    private TlsBestPracticeAgentFactory _agentFactory = null!;
+    private IThreadRepository _threadRepository = null!;
 
     private List<TlsStatus> _testApps = new List<TlsStatus>
     {
@@ -88,7 +88,7 @@ public class TlsBestPracticesEvals
         var tokenSource = new CancellationTokenSource();
         tokenSource.CancelAfter(TimeSpan.FromMinutes(5));
 
-        EvalInput evalInput = new EvalInput(_chatConfiguration, this.TestContext, _llmDeploymentName);
+        EvalInput evalInput = new EvalInput(_chatConfiguration, this.TestContext, _llmDeploymentName ?? string.Empty);
         evalInput.GroundedContext = """
             ## Ground Truth:
             1. Recieve the list of applications that need to be updated to the specified TLS version
@@ -176,7 +176,7 @@ public class TlsBestPracticesEvals
 
         _mocks.MetricsPlugin.UnhealthyResourceIds.Add(_testApps[1].ResourceId);
 
-        EvalInput evalInput = new EvalInput(_chatConfiguration, this.TestContext, _llmDeploymentName);
+        EvalInput evalInput = new EvalInput(_chatConfiguration, this.TestContext, _llmDeploymentName ?? string.Empty);
         evalInput.GroundedContext = """
             ## Ground Truth:
             1. Recieve the list of applications that need to be updated to the specified TLS version
@@ -271,7 +271,7 @@ public class TlsBestPracticesEvals
         var tokenSource = new CancellationTokenSource();
         tokenSource.CancelAfter(TimeSpan.FromMinutes(5));
 
-        EvalInput evalInput = new EvalInput(_chatConfiguration, this.TestContext, _llmDeploymentName);
+        EvalInput evalInput = new EvalInput(_chatConfiguration, this.TestContext, _llmDeploymentName ?? string.Empty);
         evalInput.GroundedContext = """
             ## Ground Truth:
             1. Recieve the list of applications that need to be updated to the specified TLS version
@@ -373,7 +373,7 @@ public class TlsBestPracticesEvals
         var tokenSource = new CancellationTokenSource();
         tokenSource.CancelAfter(TimeSpan.FromMinutes(5));
 
-        EvalInput evalInput = new EvalInput(_chatConfiguration, this.TestContext, _llmDeploymentName);
+        EvalInput evalInput = new EvalInput(_chatConfiguration, this.TestContext, _llmDeploymentName ?? string.Empty);
         evalInput.GroundedContext = """
             ## Ground Truth:
             1. Recieve the list of applications that need to be updated to the specified TLS version

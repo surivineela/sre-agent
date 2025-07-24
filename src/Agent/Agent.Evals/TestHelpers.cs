@@ -312,7 +312,15 @@ public static class TestHelpers
         {
             _ when msg.Role == ChatRole.Assistant && !string.IsNullOrEmpty(msg.Text) => new ChatResponse(msg),
             _ when msg.Contents.OfType<FunctionCallContent>().SingleOrDefault() is { Name: "NotifyUser" } functionCall =>
-                new ChatResponse(new ChatMessage(ChatRole.Assistant, functionCall.Arguments["message"].ToString())),
+                new ChatResponse(
+                    new ChatMessage(
+                        ChatRole.Assistant,
+                        functionCall?.Arguments != null &&
+                        functionCall.Arguments.TryGetValue("message", out var message)
+                            ? message?.ToString() ?? string.Empty
+                            : string.Empty
+                    )
+                ),
             _ => null
         };
 

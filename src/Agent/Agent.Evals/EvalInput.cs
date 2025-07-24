@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Agent.Evals.Common;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.Evaluation;
@@ -12,9 +7,9 @@ public class EvalInput
 {
     public ChatConfiguration ChatConfiguration { get; private set; }
     public TestContext TestContext { get; private set; }
-    public string LlmDeploymentName { get; private set; } 
-    public string GroundedContext { get; set; }
-    public string ExampleResponse { get; set; }
+    public string LlmDeploymentName { get; private set; }
+    public string GroundedContext { get; set; } = string.Empty;
+    public string ExampleResponse { get; set; } = string.Empty;
 
     public EvalInput(
         ChatConfiguration chatConfiguration,

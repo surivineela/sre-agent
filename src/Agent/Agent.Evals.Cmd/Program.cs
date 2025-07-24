@@ -1,13 +1,9 @@
 using Agent.Evals.Cmd.Helpers;
 using System.ComponentModel;
-using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using System.Text;
 using System.Xml;
 using Azure.Messaging.EventHubs.Producer;
-using Azure.Core;
-using Azure.Identity;
-using Azure.Security.KeyVault.Secrets;
 using Azure.Messaging.EventHubs;
 using Agent.Evals.Common;
 using System.Collections;
@@ -47,7 +43,7 @@ public class Program
                 return;
             }
 
-            foreach(var f in files)
+            foreach (var f in files)
             {
                 await ProcessFile(f);
             }
@@ -61,7 +57,7 @@ public class Program
     }
 
     public static async Task ProcessFile(string testResultFile)
-    { 
+    {
         Console.WriteLine($"Try to load {testResultFile}");
         XmlDocument doc = new();
         doc.Load(testResultFile);
@@ -80,7 +76,7 @@ public class Program
         Console.WriteLine("Build-related environment variables:");
         foreach (DictionaryEntry entry in Environment.GetEnvironmentVariables())
         {
-            string key = entry.Key.ToString();
+            string key = entry.Key?.ToString() ?? string.Empty;
             if (key.StartsWith("Build", StringComparison.OrdinalIgnoreCase))
             {
                 Console.WriteLine($"  {key} = {entry.Value}");
@@ -118,131 +114,139 @@ public class Program
             }
         }
 
-        foreach (XmlNode definition in testDefinitionsNode.ChildNodes)
+        if (testDefinitionsNode != null)
         {
-            var testName = definition.Attributes?.GetNamedItem("name")?.Value;
-            var testId = definition.Attributes?.GetNamedItem("id")?.Value;
-            if (string.IsNullOrEmpty(testName) || string.IsNullOrEmpty(testId))
+            foreach (XmlNode definition in testDefinitionsNode.ChildNodes)
             {
-                continue;
-            }
-
-            foreach (XmlNode unittest in definition.ChildNodes)
-            {
-                if (unittest.Name == "TestMethod")
+                var testName = definition.Attributes?.GetNamedItem("name")?.Value;
+                var testId = definition.Attributes?.GetNamedItem("id")?.Value;
+                if (string.IsNullOrEmpty(testName) || string.IsNullOrEmpty(testId))
                 {
-                    var className = unittest.Attributes?.GetNamedItem("className")?.Value;
-                    var testMethodName = unittest.Attributes?.GetNamedItem("name")?.Value;
+                    continue;
+                }
 
-                    if (!string.IsNullOrEmpty(testMethodName))
+                foreach (XmlNode unittest in definition.ChildNodes)
+                {
+                    if (unittest.Name == "TestMethod")
                     {
-                        testIdToTestInfoMap[testId] = (testMethodName, className);
+                        var className = unittest.Attributes?.GetNamedItem("className")?.Value;
+                        var testMethodName = unittest.Attributes?.GetNamedItem("name")?.Value;
+
+                        if (!string.IsNullOrEmpty(testMethodName))
+                        {
+                            testIdToTestInfoMap[testId] = (testMethodName, className ?? string.Empty);
+                        }
                     }
                 }
             }
         }
 
-        foreach (XmlNode testResult in resultsNode.ChildNodes)
+
+        if (resultsNode != null)
         {
-            var testId = testResult.Attributes?.GetNamedItem("testId")?.Value;
-            var outcome = testResult.Attributes?.GetNamedItem("outcome")?.Value;
-
-            bool hasPassed = string.Equals(outcome, "Passed", StringComparison.OrdinalIgnoreCase);
-
-            if (string.IsNullOrEmpty(testId))
+            foreach (XmlNode testResult in resultsNode.ChildNodes)
             {
-                continue;
-            }
+                var testId = testResult.Attributes?.GetNamedItem("testId")?.Value;
+                var outcome = testResult.Attributes?.GetNamedItem("outcome")?.Value;
 
-            (var testName, var className) = testIdToTestInfoMap[testId];
+                bool hasPassed = string.Equals(outcome, "Passed", StringComparison.OrdinalIgnoreCase);
 
-            foreach (XmlNode childNode in testResult.ChildNodes)
-            {
-                if (childNode.Name == "Output")
+                if (string.IsNullOrEmpty(testId))
                 {
-                    var stdOut = childNode.ChildNodes[0].InnerText;
+                    continue;
+                }
 
-                    // Parse AdditionalInfo in kusto with parse-kv:
-                    // | parse-kv AdditionalInfo as (TestRunId:string, Branch:string) with (pair_delimiter=",", kv_delimiter=":")
-                    var runInfoBuilder = new StringBuilder();
-                    runInfoBuilder.Append($"TestRunId:{testRunId},");
-                    runInfoBuilder.Append($"Branch:{buildBranch},");
+                (var testName, var className) = testIdToTestInfoMap[testId];
 
-                    // If the test fails before any eval data was emitted, we still need a test result with HasPassed = false
-                    var topLevelResult = new TestResult
+                foreach (XmlNode childNode in testResult.ChildNodes)
+                {
+                    if (childNode != null && childNode.Name == "Output" && childNode.ChildNodes[0] != null)
                     {
-                        TestId = $"{testId}__{Guid.NewGuid()}",
-                        TestMethod = testName,
-                        ClassName = className,
-                        BuildId = buildId,
-                        BuildNumber = buildNumber,
-                        StartTime = testResult.Attributes?.GetNamedItem("startTime")?.Value,
-                        EndTime = testResult.Attributes?.GetNamedItem("endTime")?.Value,
-                        HasPassed = hasPassed,
-                        AdditionalInfo = runInfoBuilder.ToString(),
-                    };
+                        var stdOut = childNode.ChildNodes[0]!.InnerText;
 
-                    var modelNamePattern = "\"LLMDeploymentName\":\"(.*?)\"";
-                    var match = Regex.Match(stdOut, modelNamePattern);
-                    topLevelResult.LLMDeploymentName = match.Success ? match.Groups[1].Value : "Unknown";
-                    testResults[topLevelResult.TestId] = topLevelResult;
+                        // Parse AdditionalInfo in kusto with parse-kv:
+                        // | parse-kv AdditionalInfo as (TestRunId:string, Branch:string) with (pair_delimiter=",", kv_delimiter=":")
+                        var runInfoBuilder = new StringBuilder();
+                        runInfoBuilder.Append($"TestRunId:{testRunId},");
+                        runInfoBuilder.Append($"Branch:{buildBranch},");
 
-                    foreach (var line in stdOut.Split('\n'))
-                    {
-                        if (!line.Contains("{\"WordCount"))
+                        // If the test fails before any eval data was emitted, we still need a test result with HasPassed = false
+                        var topLevelResult = new TestResult
                         {
-                            continue;
-                        }
-
-                        var evalsGuid = Guid.NewGuid().ToString();
-                        var jsonStartIndex = line.IndexOf("{");
-                        var jsonString = line.Substring(jsonStartIndex);
-                        var evaluationResults = JsonSerializer.Deserialize<EvaluationResults>(jsonString);
-
-                        if (evaluationResults == null)
-                        {
-                            Console.WriteLine($"Fail to parse test result {stdOut}");
-                            continue;
-                        }
-
-                        var result = new TestResult
-                        {
-                            TestId = $"{testId}__{evalsGuid}",
+                            TestId = $"{testId}__{Guid.NewGuid()}",
                             TestMethod = testName,
                             ClassName = className,
-                            BuildId = buildId,
-                            BuildNumber = buildNumber,
-                            StartTime = testResult.Attributes?.GetNamedItem("startTime")?.Value,
-                            EndTime = testResult.Attributes?.GetNamedItem("endTime")?.Value,
+                            BuildId = buildId ?? string.Empty,
+                            BuildNumber = buildNumber ?? string.Empty,
+                            StartTime = testResult.Attributes?.GetNamedItem("startTime")?.Value ?? string.Empty,
+                            EndTime = testResult.Attributes?.GetNamedItem("endTime")?.Value ?? string.Empty,
+                            HasPassed = hasPassed,
+                            AdditionalInfo = runInfoBuilder.ToString(),
                         };
 
-                        result.WordCountRating = evaluationResults.WordCount?.Value;
-                        result.WordCountReasoning = evaluationResults.WordCount?.Reason;
-                        result.CoherenceRating = evaluationResults.Coherence?.Value;
-                        result.CoherenceReasoning = evaluationResults.Coherence?.Reason;
-                        result.FluencyRating = evaluationResults.Fluency?.Value;
-                        result.FluencyReasoning = evaluationResults.Fluency?.Reason;
-                        result.EquivalenceRating = evaluationResults.Equivalence?.Value;
-                        result.EquivalenceReasoning = evaluationResults.Equivalence?.Reason;
-                        result.GroundednessRating = evaluationResults.Groundedness?.Value;
-                        result.GroundednessReasoning = evaluationResults.Groundedness?.Reason;
-                        result.HasPassed = hasPassed;
-                        result.LLMDeploymentName = evaluationResults.LLMDeploymentName;
+                        var modelNamePattern = "\"LLMDeploymentName\":\"(.*?)\"";
+                        var match = Regex.Match(stdOut, modelNamePattern);
+                        topLevelResult.LLMDeploymentName = match.Success ? match.Groups[1].Value : "Unknown";
+                        testResults[topLevelResult.TestId] = topLevelResult;
 
-                        var additionalInfoBuilder = new StringBuilder(runInfoBuilder.ToString());
-                        if(!string.IsNullOrEmpty(evaluationResults.UserInput))
+                        foreach (var line in stdOut.Split('\n'))
                         {
-                            additionalInfoBuilder.Append($"UserInput:{evaluationResults.UserInput.Replace(",", Uri.EscapeDataString(","))},");
-                        }
-                        if(!string.IsNullOrEmpty(evaluationResults.ModelResponse))
-                        {
-                            additionalInfoBuilder.Append($"ModelResponse:{evaluationResults.ModelResponse.Replace(",", Uri.EscapeDataString(","))},");
-                        }
-                        result.AdditionalInfo = additionalInfoBuilder.ToString();
+                            if (!line.Contains("{\"WordCount"))
+                            {
+                                continue;
+                            }
 
-                        testResults[result.TestId] = result;
+                            var evalsGuid = Guid.NewGuid().ToString();
+                            var jsonStartIndex = line.IndexOf("{");
+                            var jsonString = line.Substring(jsonStartIndex);
+                            var evaluationResults = JsonSerializer.Deserialize<EvaluationResults>(jsonString);
+
+                            if (evaluationResults == null)
+                            {
+                                Console.WriteLine($"Fail to parse test result {stdOut}");
+                                continue;
+                            }
+
+                            var result = new TestResult
+                            {
+                                TestId = $"{testId}__{evalsGuid}",
+                                TestMethod = testName,
+                                ClassName = className,
+                                BuildId = buildId ?? string.Empty,
+                                BuildNumber = buildNumber ?? string.Empty,
+                                StartTime = testResult.Attributes?.GetNamedItem("startTime")?.Value ?? string.Empty,
+                                EndTime = testResult.Attributes?.GetNamedItem("endTime")?.Value ?? string.Empty,
+                            };
+
+                            result.WordCountRating = evaluationResults.WordCount?.Value;
+                            result.WordCountReasoning = evaluationResults.WordCount?.Reason;
+                            result.CoherenceRating = evaluationResults.Coherence?.Value;
+                            result.CoherenceReasoning = evaluationResults.Coherence?.Reason;
+                            result.FluencyRating = evaluationResults.Fluency?.Value;
+                            result.FluencyReasoning = evaluationResults.Fluency?.Reason;
+                            result.EquivalenceRating = evaluationResults.Equivalence?.Value;
+                            result.EquivalenceReasoning = evaluationResults.Equivalence?.Reason;
+                            result.GroundednessRating = evaluationResults.Groundedness?.Value;
+                            result.GroundednessReasoning = evaluationResults.Groundedness?.Reason;
+                            result.HasPassed = hasPassed;
+                            result.LLMDeploymentName = evaluationResults.LLMDeploymentName;
+
+                            var additionalInfoBuilder = new StringBuilder(runInfoBuilder.ToString());
+                            if (!string.IsNullOrEmpty(evaluationResults.UserInput))
+                            {
+                                additionalInfoBuilder.Append($"UserInput:{evaluationResults.UserInput.Replace(",", Uri.EscapeDataString(","))},");
+                            }
+                            if (!string.IsNullOrEmpty(evaluationResults.ModelResponse))
+                            {
+                                additionalInfoBuilder.Append($"ModelResponse:{evaluationResults.ModelResponse.Replace(",", Uri.EscapeDataString(","))},");
+                            }
+                            result.AdditionalInfo = additionalInfoBuilder.ToString();
+
+                            testResults[result.TestId] = result;
+                        }
                     }
                 }
+
             }
         }
 

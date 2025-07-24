@@ -4,15 +4,15 @@ public class TestResult
 {
     public DateTime PreciseTimeStamp => DateTime.UtcNow;
 
-    public string BuildId { get; set; }
+    public string BuildId { get; set; } = string.Empty;
 
-    public string BuildNumber { get; set; }
+    public string BuildNumber { get; set; } = string.Empty;
 
-    public string TestId { get; set; }
+    public string TestId { get; set; } = string.Empty;
 
-    public string TestMethod { get; set; }
+    public string TestMethod { get; set; } = string.Empty;
 
-    public string ClassName { get; set; }
+    public string ClassName { get; set; } = string.Empty;
 
     public int? WordCountRating { get; set; }
 
@@ -34,11 +34,11 @@ public class TestResult
 
     public string? GroundednessReasoning { get; set; }
 
-    public string StartTime { get; set; }
+    public string StartTime { get; set; } = string.Empty;
 
-    public string EndTime { get; set; }
+    public string EndTime { get; set; } = string.Empty;
 
-    public string Duration { get; set; }
+    public string Duration { get; set; } = string.Empty;
 
     public List<string> ErrorInfo { get; set; } = new List<string>();
 
