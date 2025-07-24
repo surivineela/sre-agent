@@ -377,7 +377,10 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                     throw new InvalidOperationException("Agent context is null for thread: " + threadMessage.ThreadId);
                 }
 
-                responseMessageId = await _sinkService.SinkAgentMessageAsync(agentContext.ThreadId, agentResponse);
+                //responseMessageId = await _sinkService.SinkAgentMessageAsync(agentContext.ThreadId, agentResponse);
+                responseMessageId = Guid.NewGuid();
+                await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(agentContext.ThreadId, orchestrationInstanceId, new ChatMessage(ChatRole.Assistant, agentResponse), responseMessageId);
+                await _agentOutboundCommunicationService.SignalProcessingComplete(threadMessage.ThreadId, responseMessageId);
             }
             else
             {
