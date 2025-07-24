@@ -82,6 +82,12 @@ public partial class TrajectoryEval
     [TestMethod]
     public async Task TrajectoryRetrievalTest()
     {
+        if (_host is null)
+        {
+            Console.WriteLine("Skip TrajectoryRetrievalTest because feature flag is off");
+            return;
+        }
+
         var agentMemoryClient = _host!.Services.GetRequiredService<IAgentMemoryClient>();
         var indexSerivce = _host.Services.GetRequiredService<ISearchIndexService>();
         var embeddingGenerator = _host.Services.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>();
