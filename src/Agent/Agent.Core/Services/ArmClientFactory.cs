@@ -6,6 +6,7 @@ using System.Threading.RateLimiting;
 using Agent.Core.Interfaces;
 using Azure.Core;
 using Azure.ResourceManager;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Core.Services;
 
@@ -14,10 +15,12 @@ public class ArmClientFactory : IArmClientFactory
     private readonly IAuthenticationService _authService;
 
     private Lazy<ArmClient> _crawlerClient;
+    private readonly ILogger<ArmClientFactory> _logger;
 
-    public ArmClientFactory(IAuthenticationService authService)
+    public ArmClientFactory(IAuthenticationService authService, ILogger<ArmClientFactory> logger)
     {
         _authService = authService;
+        _logger = logger;
 
         _crawlerClient = new Lazy<ArmClient>(() => ConstructArmClient(_authService.GetCrawlerCredential()));
     }
@@ -125,10 +128,9 @@ public class ArmClientFactory : IArmClientFactory
             }
         };
 
-        var rateLimitPolicy = new TokenBucketRateLimitPolicy(rateLimitConfig);
+        var rateLimitPolicy = new TokenBucketRateLimitPolicy(rateLimitConfig, _logger);
         options.AddPolicy(rateLimitPolicy, HttpPipelinePosition.PerCall);
 
         return new ArmClient(cred, default, options);
     }
 }
-
