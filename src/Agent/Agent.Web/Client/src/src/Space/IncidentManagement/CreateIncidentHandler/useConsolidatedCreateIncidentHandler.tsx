@@ -190,6 +190,7 @@ export const useConsolidatedCreateIncidentHandler = (
                 incidents: values.incidentIds ?? [],
                 tools: tools?.map(tool => tool.name) ?? [],
                 customInstructions: values.incidentProcessingGuide ?? '',
+                existingInstructions: '',
             })
             .then(toolsUpdateResult => {
                 setGeneratingUpdatedTools(false);

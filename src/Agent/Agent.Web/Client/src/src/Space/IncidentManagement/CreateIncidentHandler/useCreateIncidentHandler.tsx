@@ -161,6 +161,7 @@ export const useCreateIncidentHandler = (
                 incidents: selectedIncidentIds ?? [],
                 tools: selectedToolNames ?? [],
                 customInstructions: customInstructions,
+                existingInstructions: '',
             })
             .then(instructionsResult => {
                 setGeneratingInstructions(false);
