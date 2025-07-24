@@ -29,15 +29,15 @@ namespace Agent.Plugins.Definitions
 
         [Description(@"
         Purpose:
-        Generates a thread link for the current conversation in the Agent Azure Portal.
+        Generates a Agent Web Portal Thread Link for the current conversation in the Agent Azure Portal.
 
         Scenario:
-        Use this tool to provide a user-friendly portal link for the current conversation.
+        Use this tool to provide a Agent Web Portal Thread Link for the current conversation.
 
         Output:
-        No direct return value. Updates the thread with a portal link message.
+        Successfully genenrated link result.
         ")]
-        public async Task GetAgentWebPortalThreadLink()
+        public async Task<string> GetAgentWebPortalThreadLink()
         {
             var templateUrl = _generalSettings.PortalThreadIdLink;
             if (_env.IsDevelopment())
@@ -52,6 +52,7 @@ namespace Agent.Plugins.Definitions
                 new TextContent($"You can view this conversation in a more compact and user-friendly format using the [Azure portal thread link]({threadLink}).{Environment.NewLine + Environment.NewLine}**Thread ID:** {currentThreadId}")
             ]);
             await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(currentThreadId, string.Empty, msg);
+            return "Thread link updated in chat successfully.";
         }
     }
 }
