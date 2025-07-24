@@ -277,12 +277,6 @@ public static class TestHelpers
         });
 
         builder.Services.AddSingleton<ISearchEndpointService, SearchEndpointService>();
-        builder.Services.AddSingleton<AgentActionLogger>();
-        builder.Services.AddSingleton<IAgentActionLogExporter>(sp =>
-        {
-            var logger = sp.GetRequiredService<ILogger<AgentActionLogConsoleExporter>>();
-            return new AgentActionLogConsoleExporter(logger, false); // Enable batch processing for better performance
-        });
 
         builder.Services.AddSingleton<SearchHelper>();
         builder.Services.AddTransient<KubePluginDefinition>();
@@ -298,14 +292,6 @@ public static class TestHelpers
 
         // Runtime–modifier for agent-mode switching
         builder.Services.AddSingleton<IAgentRuntimeModifier<AgentContext>, AgentRuntimeModifier>();
-
-        // Action-logging (console exporter is fine for tests)
-        builder.Services.AddSingleton<AgentActionLogger>();
-        builder.Services.AddSingleton<IAgentActionLogExporter>(sp =>
-        {
-            var logger = sp.GetRequiredService<ILogger<AgentActionLogConsoleExporter>>();
-            return new AgentActionLogConsoleExporter(logger);
-        });
 
         // Search endpoint & helper (document-retrieval support)
         builder.Services.AddSearchEndpointHttpClient();

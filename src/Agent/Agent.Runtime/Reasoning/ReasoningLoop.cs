@@ -40,7 +40,6 @@ public class ReasoningLoop : IDisposable
     private readonly IAgentFactory<AgentContext> _agentFactory;
     private readonly ActionSettings _actionSettings;
     private readonly Tracer _tracer;
-    private readonly AgentActionLogger _actionLogger;
     private readonly bool _enableReasoningDebugOutput;
     private readonly ISearchEndpointService _searchEndpointService;
     private readonly SearchHelper _searchHelper;
@@ -103,7 +102,6 @@ public class ReasoningLoop : IDisposable
         ActionSettings actionSettings,
         Tracer tracer,
         IAgentFactory<AgentContext> agentFactory,
-        IAgentActionLogExporter actionLogExporter,
         bool enableReasoningDebugOutput,
         ISearchEndpointService searchEndpointService,
         SearchHelper searchHelper,
@@ -132,9 +130,6 @@ public class ReasoningLoop : IDisposable
         _actionSettings = actionSettings;
         _tracer = tracer;
         _agentFactory = agentFactory;
-        _actionLogger = new AgentActionLogger(
-            _loggerFactory.CreateLogger<AgentActionLogger>(),
-            actionLogExporter);
         _enableReasoningDebugOutput = enableReasoningDebugOutput;
         _searchEndpointService = searchEndpointService;
         _searchHelper = searchHelper ?? throw new ArgumentNullException(nameof(searchHelper));
@@ -1003,13 +998,13 @@ public class ReasoningLoop : IDisposable
                 _currentAgentSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
                 _currentAgentSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.InvokeAgent);
 
-                _actionLogger.LogAction(
+                _logger.LogAgentAction(
                     action: "InvokeAgent",
                     parameter: agent.Name,
                     status: "Success",
                     duration: 0,
                     threadId: _context.ThreadId.ToString(),
-                    subagent: agent.Name);
+                    subAgentName: agent.Name);
                 return Task.CompletedTask;
             },
             OnAgentEnd = (context, agent, output) =>
@@ -1045,13 +1040,13 @@ public class ReasoningLoop : IDisposable
                 _currentToolSpan.SetAttribute(TraceAttribute.ModelTemperature, agent.Temperature.ToString());
                 _currentToolSpan.SetAttribute(TraceAttribute.ToolDescription, tool.Description);
 
-                _actionLogger.LogAction(
+                _logger.LogAgentAction(
                     action: "InvokeTool",
                     parameter: tool.Name,
                     status: "Success",
                     duration: 0,
                     threadId: _context.ThreadId.ToString(),
-                    subagent: agent.Name);
+                    subAgentName: agent.Name);
 
                 // Stream auto tools to avoid missing them (manual tools are handled separately)
                 if (((AIFunction)tool).GetToolMode() == ToolMode.Auto)
@@ -1115,13 +1110,13 @@ public class ReasoningLoop : IDisposable
                 _currentGenerationSpan?.End();
                 _currentGenerationSpan = null;
 
-                _actionLogger.LogAction(
+                _logger.LogAgentAction(
                     action: "GenerateModelResponse",
                     parameter: response?.Usage?.TotalTokenCount?.ToString() ?? "0",
                     status: "Success",
                     duration: 0,
                     threadId: _context.ThreadId.ToString(),
-                    subagent: agent?.Name ?? "Unknown",
+                    subAgentName: agent?.Name ?? "Unknown",
                     inputToken: response?.Usage?.InputTokenCount ?? 0,
                     outputToken: response?.Usage?.OutputTokenCount ?? 0);
                 return Task.CompletedTask;
@@ -1139,13 +1134,13 @@ public class ReasoningLoop : IDisposable
                 _currentCriticSpan.End();
                 _currentCriticSpan = null;
 
-                _actionLogger.LogAction(
+                _logger.LogAgentAction(
                     action: "CriticEvaluation",
                     parameter: wasApproved ? "Approved" : "Failed",
                     status: "Success",
                     duration: 0,
                     threadId: _context.ThreadId.ToString(),
-                    subagent: agent.Name);
+                    subAgentName: agent.Name);
                 return Task.CompletedTask;
             }
         };

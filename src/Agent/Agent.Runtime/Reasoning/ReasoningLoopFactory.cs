@@ -34,7 +34,6 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     private readonly IToolFactory<AgentContext> _toolFactory;
     private readonly IThreadRepository _threadRepository;
     private readonly ActionSettings _actionSettings;
-    private readonly IAgentActionLogExporter _actionLogExporter;
 
     private readonly Tracer _tracer;
 
@@ -62,7 +61,6 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         ActionSettings actionSettings,
         CoreSettings coreSettings,
         Tracer tracer,
-        IAgentActionLogExporter actionLogExporter,
         IHostEnvironment hostEnvironment,
         ISearchEndpointService searchEndpointService,
         SearchHelper searchHelper,
@@ -81,7 +79,6 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         _toolFactory = toolFactory;
         _actionSettings = actionSettings;
         _tracer = tracer;
-        _actionLogExporter = actionLogExporter;
         _enableReasoningDebugOutput = coreSettings.EnableReasoningOutput
             && hostEnvironment.IsDevelopment(); // only enable debug output in dev environment
         _searchEndpointService = searchEndpointService;
@@ -151,7 +148,6 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             actionSettings: _actionSettings,
             tracer: _tracer,
             agentFactory: _agentFactory,
-            actionLogExporter: _actionLogExporter,
             enableReasoningDebugOutput: _enableReasoningDebugOutput,
             searchEndpointService: _searchEndpointService,
             searchHelper: _searchHelper,

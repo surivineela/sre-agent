@@ -85,6 +85,7 @@ using Agent.Runtime.TrajectoryEvaluator;
 using Agent.Web.Services;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using FirstPartyAgent.Core.FirstPartyAgents;
+using k8s.KubeConfigModels;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Connector.Authentication;
@@ -473,10 +474,10 @@ public class Program
             .AddTransient<IICMPlugin, ICMPlugin>()
             .AddTransient<IAzureAlertingPlugin, AzureAlertingPlugin>()
             .AddTransient<IWebAppPlugin, WebAppPlugin>()
-            
-            
 
-            
+
+
+
 
             //.AddSingleton<AppServiceRemediationAgentFactory>()
             .AddSingleton<KubernetesAgentFactory>()
@@ -1008,6 +1009,48 @@ public class Program
         });
         builder.Services.AddSingleton(TracerProvider.Default.GetTracer("SREAgent"));
 
+        // Configure OpenTelemetry Logging
+        builder.Services.AddOpenTelemetry().WithLogging(loggingBuilder =>
+        {
+            loggingBuilder
+                .SetResourceBuilder(ResourceBuilder.CreateDefault()
+                    .AddService(serviceName: "SREAgent", serviceVersion: "1.1.0"))
+                .AddProcessor(sp =>
+                {
+                    // Create Azure Data Explorer Log Exporter only if configuration is available
+                    // Get Azure Data Explorer configuration
+                    var ClusterUri = GetInternalKustoClusterConfiguration("ClusterUri");
+                    var DatabaseName = GetInternalKustoClusterConfiguration("DatabaseName");
+                    var CertificatePath = GetInternalKustoClusterConfiguration("CertificatePath");
+                    var FirstPartyAppClientId = GetInternalKustoClusterConfiguration("FirstPartyAppClientId");
+                    var FirstPartyAppTenantId = GetInternalKustoClusterConfiguration("FirstPartyAppTenantId");
+
+                    // Only create the Azure Data Explorer exporter if ClusterUri is configured
+                    if (!string.IsNullOrEmpty(ClusterUri))
+                    {
+                        // Create the exporter with configuration
+                        var exporter = new AzureDataExplorerLogExporter(
+                            new AzureDataExplorerLogExporterOptions(
+                                clusterUri: ClusterUri,
+                                databaseName: DatabaseName,
+                                tableName: "AgentActionEvents",
+                                populateColumns: null,
+                                firstPartyAppCertificatePath: CertificatePath,
+                                firstPartyAppClientId: FirstPartyAppClientId,
+                                firstPartyAppTenantId: FirstPartyAppTenantId));
+
+                        // Create the processor with the exporter
+                        return new AgentActionLogProcessor(exporter);
+                    }
+                    else
+                    {
+                        // In test or development environments without Azure Data Explorer configuration,
+                        // return a no-op processor that doesn't export anything
+                        return new AgentActionLogProcessor(null);
+                    }
+                });
+        });
+
         builder.RegisterDataConnectors();
 
         return builder;
@@ -1124,7 +1167,6 @@ public class Program
 
         ConfigureKustoLoggers(builder);
         ConfigureApplicationInsightsLoggers(builder);
-        ConfigureAgentActionLoggers(builder);
     }
 
     private static void ConfigureKustoLoggers(WebApplicationBuilder builder)
@@ -1206,43 +1248,6 @@ public class Program
                 //tracingBuilder.AddConsoleExporter();
             }
         });
-    }
-
-
-    private static void ConfigureAgentActionLoggers(WebApplicationBuilder builder)
-    {
-        var ClusterUri = GetInternalKustoClusterConfiguration("ClusterUri");
-        var DatabaseName = GetInternalKustoClusterConfiguration("DatabaseName");
-        var CertificatePath = GetInternalKustoClusterConfiguration("CertificatePath");
-        var FirstPartyAppClientId = GetInternalKustoClusterConfiguration("FirstPartyAppClientId");
-        var FirstPartyAppTenantId = GetInternalKustoClusterConfiguration("FirstPartyAppTenantId");
-
-        builder.Services.AddSingleton<AgentActionLogger>();
-        if (builder.Environment.IsProduction())
-        {
-            // Add IAgentActionLogExporter as a singleton service
-            builder.Services.AddSingleton<IAgentActionLogExporter>(sp =>
-            {
-                var logger = sp.GetRequiredService<ILogger<AgentActionLogADXExporter>>();
-                return new AgentActionLogADXExporter(
-                    ClusterUri,
-                    DatabaseName,
-                    "AgentActionEvents",
-                    CertificatePath,
-                    FirstPartyAppClientId,
-                    FirstPartyAppTenantId,
-                    logger);
-            });
-        }
-        else
-        {
-            // Fallback to console exporter if no ADX configuration is provided
-            builder.Services.AddSingleton<IAgentActionLogExporter>(sp =>
-            {
-                var logger = sp.GetRequiredService<ILogger<AgentActionLogConsoleExporter>>();
-                return new AgentActionLogConsoleExporter(logger, false); // Enable batch processing for better performance
-            });
-        }
     }
 
     private static string GetKustoClusterConfiguration(string key)

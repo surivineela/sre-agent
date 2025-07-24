@@ -39,8 +39,6 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
     private readonly ActionSettings _actionSettings;
     private readonly bool _useAgentFramework;
 
-    private readonly AgentActionLogger _actionLogger;
-
     private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
 
     public InboundCommunicationService(
@@ -56,7 +54,6 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         IServiceProvider serviceProvider,
         IReasoningLoopManager reasoningLoopManager,
         CoreSettings coreSettings,
-        AgentActionLogger actionLogger,
         ActionSettings actionSettings,
         IAgentOutboundCommunicationService agentOutboundCommunicationService)
     {
@@ -72,7 +69,6 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         _serviceProvider = serviceProvider;
         _reasoningLoopManager = reasoningLoopManager;
         _useAgentFramework = coreSettings.UseAgentFramework;
-        _actionLogger = actionLogger;
         _actionSettings = actionSettings;
         _agentOutboundCommunicationService = agentOutboundCommunicationService;
     }
@@ -425,7 +421,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
             if (threadMessageFeedback.IsPositive)
             {
-                _actionLogger.LogAction(
+                _logger.LogAgentAction(
                     action: "ThumbsUp",
                     parameter: $"{threadMessageFeedback.ThreadId}",
                     status: "Success",
@@ -434,7 +430,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             }
             else
             {
-                _actionLogger.LogAction(
+                _logger.LogAgentAction(
                     action: "ThumbsDown",
                     parameter: $"{threadMessageFeedback.ThreadId}",
                     status: "Success",

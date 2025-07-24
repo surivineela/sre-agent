@@ -4,7 +4,7 @@ using Agent.Logging;
 namespace Microsoft.Extensions.Logging;
 #pragma warning restore IDE0130 // Extension methods should be in the same namespace as the containing type
 
-public static class LoggerExtensions
+public static partial class LoggerExtensions
 {
     public static void LogInternalInformation<T>(this ILogger<T> logger, string message, params object?[] args)
     {
@@ -100,7 +100,7 @@ public static class LoggerExtensions
 
     public static void LogInternalError<T>(this ILogger<T> logger, string message, params object?[] args)
     {
-        LogInternalErrorHelper(logger, message, args);  
+        LogInternalErrorHelper(logger, message, args);
     }
 
     public static void LogInternalError(this ILogger logger, string message, params object?[] args)
@@ -171,4 +171,57 @@ public static class LoggerExtensions
         args = args.Prepend(AzureDataExplorerLogger.InternalLogType).ToArray();
         logger.LogDebug($"{{{AzureDataExplorerLogger.LogTypeName}}}>>> {message}", args);
     }
+
+
+    /// <summary>
+    /// Logs an agent action with structured information using LoggerMessage source generation
+    /// </summary>
+    /// <param name="logger">The logger instance</param>
+    /// <param name="action">The action being performed</param>
+    /// <param name="parameter">Parameters associated with the action</param>
+    /// <param name="status">The status/result of the action</param>
+    /// <param name="duration">The duration of the action in milliseconds</param>
+    /// <param name="threadId">Thread identifier</param>
+    /// <param name="subAgentName">Sub-agent name</param>
+    /// <param name="inputToken">Input token count</param>
+    /// <param name="outputToken">Output token count</param>
+    /// <param name="threadSource">Thread source</param>
+    [LoggerMessage(
+        EventId = 1001,
+        Level = LogLevel.Information,
+        Message = "Agent Action: {Action} with parameters {Parameter} completed with status {Status} in {Duration}ms for thread {ThreadId}, subAgent: {SubAgentName}, inputTokens: {InputToken}, outputTokens: {OutputToken}, threadSource: {ThreadSource}")]
+    public static partial void LogAgentAction(
+        this ILogger logger,
+        string action,
+        string parameter,
+        string status,
+        long duration,
+        string threadId,
+        string subAgentName = "",
+        long inputToken = 0,
+        long outputToken = 0,
+        string threadSource = "");
+
+    /// <summary>
+    /// Logs an agent action with exception information using LoggerMessage source generation
+    /// </summary>
+    /// <param name="logger">The logger instance</param>
+    /// <param name="exception">The exception that occurred</param>
+    /// <param name="action">The action being performed</param>
+    /// <param name="parameter">Parameters associated with the action</param>
+    /// <param name="status">The status/result of the action</param>
+    /// <param name="duration">The duration of the action in milliseconds</param>
+    /// <param name="threadId">Thread identifier</param>
+    [LoggerMessage(
+        EventId = 1002,
+        Level = LogLevel.Error,
+        Message = "Agent Action: {Action} with parameters {Parameter} failed with status {Status} in {Duration}ms for thread {ThreadId}")]
+    public static partial void LogAgentActionError(
+        this ILogger logger,
+        Exception exception,
+        string action,
+        string parameter,
+        string status,
+        long duration,
+        string threadId);
 }

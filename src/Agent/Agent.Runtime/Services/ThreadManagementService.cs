@@ -5,7 +5,6 @@
 using System.Text.Json;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
-using Agent.Logging;
 using Microsoft.Extensions.AI;
 using Thread = Agent.Core.Models.Api.v1.Thread;
 using Agent.Runtime.MetaAgent.Interfaces;
@@ -21,7 +20,6 @@ public class ThreadManagementService(
     IThreadRepository repository,
     ITitleGenerationService titleGenerationService,
     ILogger<ThreadManagementService> logger,
-    AgentActionLogger actionLogger,
     CoreSettings coreSettings)
 {
     public async Task<Thread> CreateUserInitiatedThread(CreateThreadRequest request, Guid? userDefinedThreadId = null)
@@ -122,12 +120,14 @@ public class ThreadManagementService(
             Timestamp: DateTime.UtcNow
         ));
         stopwatch.Stop();
-        actionLogger.LogAction(
+        logger.LogAgentAction(
             action: "CreateUserInitiatedThread",
             parameter: $"{thread.Id}",
             status: "Success",
             duration: stopwatch.ElapsedMilliseconds,
-            threadId: thread.Id.ToString());
+            threadId: thread.Id.ToString(),
+            subAgentName: "ThreadManagementService",
+            threadSource: thread.Source.ToString());
 
         return thread;
     }

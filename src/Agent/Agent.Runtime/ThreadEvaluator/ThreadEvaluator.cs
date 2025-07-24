@@ -27,14 +27,13 @@ public class ThreadEvaluator
     private readonly IThreadRepository _threadRepository;
     private readonly IChatClient _chatClient;
     private readonly Tracer _tracer;
-    private readonly AgentActionLogger _actionLogger;    // Configurable time windows for thread filtering
+    // Configurable time windows for thread filtering
     private readonly TimeSpan _evaluationHistoryRange; // How far back to search for threads
     private readonly TimeSpan _coolDownPeriod;         // Minimum time since last modification before evaluation
     public ThreadEvaluator(
       ILogger<ThreadEvaluator> logger,
       IThreadRepository threadRepository,
       IChatClient chatClient,
-      AgentActionLogger actionLogger,
       Tracer tracer,
       TimeSpan? evaluationHistoryRange = null,
       TimeSpan? coolDownPeriod = null)
@@ -42,7 +41,6 @@ public class ThreadEvaluator
         _logger = logger;
         _threadRepository = threadRepository;
         _chatClient = chatClient;
-        _actionLogger = actionLogger;
         _tracer = tracer;
 
         // Allow overriding default time windows
@@ -241,7 +239,7 @@ public class ThreadEvaluator
             }
 
             // span.SetAttribute("sat_score", evaluationResult.SATScore);
-            _actionLogger.LogAction(
+            _logger.LogAgentAction(
                 action: "evaluate.thread",
                 parameter: JsonSerializer.Serialize(evaluationResult),
                 status: "success",
