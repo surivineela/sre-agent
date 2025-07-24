@@ -53,4 +53,13 @@ internal class YamlAgentDescriptor : IAgentDescriptor
 
     [YamlMember(Alias = "output_type")]
     public string? OutputType { get; set; } = null;
+
+    [YamlMember(Alias = "user_prompt_override")]
+    public string? UserPromptOverride { get; set; } = null;
+
+    [YamlMember(Alias = "disable_document_retrieval")]
+    public bool DisableDocumentRetrieval { get; set; } = false;
+
+    [YamlMember(Alias = "enable_handoff_prompt_override")]
+    public bool EnableHandoffPromptOverride { get; set; } = false;
 }

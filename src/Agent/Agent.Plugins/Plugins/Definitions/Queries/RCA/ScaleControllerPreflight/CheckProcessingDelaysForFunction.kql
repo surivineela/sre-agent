@@ -1,14 +1,12 @@
-let start = datetime("##startTime##");
-let end = datetime("##endTime##");
-let stampName = "##stampName##";
-let siteName = "##siteName##";
-let functionName = "##functionName##";
+let _start = datetime("##startTime##");
+let _end = datetime("##endTime##");
+let _siteName = "##siteName##";
+let _functionName = "##functionName##";
 FunctionsLogs
-| where PreciseTimeStamp between(start .. end)
-| where EventPrimaryStampName == stampName
-| where AppName == siteName
-| where FunctionName == functionName
+| where PreciseTimeStamp between(_start .. _end)
+| where AppName == _siteName
+| where FunctionName == _functionName
 | where Summary startswith "Trigger Details"
 | parse Summary with * "EnqueueTimeUtc:" EnqueueTimeUtc ", SequenceNumber" * // Maybe AI can help with figure outing enqueue time?
-| project PreciseTimeStamp, EnqueueTimeUtc
+| project PreciseTimeStamp, EnqueueTimeUtc, EventStampName
 | take 100

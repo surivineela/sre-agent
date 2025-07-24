@@ -119,7 +119,10 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             FactoryTools = agentDescriptor.Tools,
             // TODO: parallel tool calls not supported in the framework yet, ignore agent-level overrides
             AllowParallelToolCalls = false, // agentDescriptor.AllowParallelToolCalls,
-            OutputType = GetOutputType(agentDescriptor)
+            OutputType = GetOutputType(agentDescriptor),
+            UserPromptOverride = agentDescriptor.UserPromptOverride,
+            DisableDocumentRetrieval = agentDescriptor.DisableDocumentRetrieval,
+            EnableHandoffPromptOverride = agentDescriptor.EnableHandoffPromptOverride
         };
 
         if (!string.IsNullOrEmpty(agentDescriptor.CriticPromptPath))

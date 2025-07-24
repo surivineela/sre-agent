@@ -6,6 +6,6 @@ namespace Agent.Plugins.Interface
 {
     public interface IAgentInteractionPlugin
     {
-        Task<string> ShareAgentResultAsync(string calledAgentName, string analysisSummary, string? context = null);
+        Task<string> ShareAgentResultAsync(string calledAgentName, string analysisSummary, string? context = null, int resultSummaryLimit = 4096);
     }
 }

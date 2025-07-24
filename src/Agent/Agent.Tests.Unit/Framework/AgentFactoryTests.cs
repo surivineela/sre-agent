@@ -225,6 +225,9 @@ public class TestAgent1Descriptor : IAgentDescriptor
     public float? Temperature { get; set; } = null;
     public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
     public string? OutputType { get; set; } = null;
+    public string? UserPromptOverride { get; set; } = null;
+    public bool DisableDocumentRetrieval { get; set; } = false;
+    public bool EnableHandoffPromptOverride { get; set; } = false;
 }
 
 public class TestAgent2Descriptor : IAgentDescriptor
@@ -244,6 +247,9 @@ public class TestAgent2Descriptor : IAgentDescriptor
     public float? Temperature { get; set; } = null;
     public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
     public string? OutputType { get; set; } = null;
+    public string? UserPromptOverride { get; set; } = null;
+    public bool DisableDocumentRetrieval { get; set; } = false;
+    public bool EnableHandoffPromptOverride { get; set; } = false;
 }
 
 public class TestCommonPrompt : IPromptDescriptor

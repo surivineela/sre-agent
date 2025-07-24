@@ -27,7 +27,7 @@ namespace Agent.Plugins.Definitions
             [Description("The complete analysis summary and findings from the called agent (NOT raw query results)")] string analysisSummary,
             [Description("Optional context about why this agent was called or what analysis was performed")] string? context = null)
         {
-            return await _agentInteractionPlugin.ShareAgentResultAsync(calledAgentName, analysisSummary, context);
+            return await _agentInteractionPlugin.ShareAgentResultAsync(calledAgentName, analysisSummary, context, resultSummaryLimit: 10000);
         }
     }
 }

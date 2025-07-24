@@ -488,6 +488,13 @@ public static class Runner
         List<ChatMessage> modelInput = [new ChatMessage(ChatRole.System, systemPrompt)];
         modelInput.AddRange(originalInput);
         modelInput.AddRange(generatedMessages);
+        
+        // Process handoff prompt override if current agent has UserPromptOverride
+        if (!string.IsNullOrEmpty(agent.UserPromptOverride))
+        {
+            modelInput = ProcessHandoffPromptOverride(modelInput, agent);
+        }
+        
         // tool invocations like metrics query depend on current time
         modelInput.Add(new ChatMessage(ChatRole.System, $"The current date is {DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss zzz}"));
 
@@ -505,7 +512,7 @@ public static class Runner
             response = await chatClient.GetResponseAsync(modelInput, chatOptions);
         }
 
-        await hooks.OnModelGenerationEnd(contextWrapper, agent, response);
+       await hooks.OnModelGenerationEnd(contextWrapper, agent, response);
 
         trajectory.Append(response);
 
@@ -978,5 +985,66 @@ public static class Runner
         {
             _recentHandoffs.Clear();
         }
+    }
+
+    private static List<ChatMessage> ProcessHandoffPromptOverride<TContext>(List<ChatMessage> modelInput, Agent<TContext> agent)
+        where TContext : class
+    {
+        const string OverrideHeader = "[RCA_HANDOFF_OVERRIDE]";
+        
+        // Look for User messages with the override header
+        for (int i = 0; i < modelInput.Count; i++)
+        {
+            var message = modelInput[i];
+            if (message.Role == ChatRole.User && 
+                message.Text != null && 
+                message.Text.Contains(OverrideHeader, StringComparison.OrdinalIgnoreCase))
+            {
+                // Extract the original user query from the message
+                var originalUserQuery = ExtractUserQueryFromOverrideMessage(message.Text, OverrideHeader);
+                
+                // Replace the message content with agent's UserPromptOverride
+                var newContent = $"{agent.UserPromptOverride}\n\nUser question goes below:\n{originalUserQuery}";
+                
+                modelInput[i] = new ChatMessage(ChatRole.User, newContent);
+                
+                // Log the override action (using simple console for now to avoid logger factory issues)
+                Console.WriteLine($"[Runner] Applied handoff prompt override for agent {agent.Name}");
+                break;
+            }
+        }
+
+        return modelInput;
+    }
+
+    private static string ExtractUserQueryFromOverrideMessage(string messageText, string header)
+    {
+        var lines = messageText.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        var userQueryLines = new List<string>();
+        bool foundUserSection = false;
+
+        foreach (var line in lines)
+        {
+            // Skip the header line
+            if (line.Trim().Equals(header, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            // Look for "User question goes below:" section
+            if (line.Contains("User question goes below:", StringComparison.OrdinalIgnoreCase))
+            {
+                foundUserSection = true;
+                continue;
+            }
+
+            // If we found the user section, collect all following lines as user query
+            if (foundUserSection)
+            {
+                userQueryLines.Add(line);
+            }
+        }
+
+        return userQueryLines.Count > 0 ? string.Join('\n', userQueryLines).Trim() : messageText;
     }
 }

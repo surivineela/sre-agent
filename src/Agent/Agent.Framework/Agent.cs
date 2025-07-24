@@ -51,6 +51,12 @@ public class Agent<TContext>(string name) where TContext : class
 
     public bool AllowParallelToolCalls { get; set; } = false;
 
+    public string? UserPromptOverride { get; set; } = null;
+
+    public bool DisableDocumentRetrieval { get; set; } = false;
+
+    public bool EnableHandoffPromptOverride { get; set; } = false;
+
     public virtual ChatToolMode ChatToolMode { get; set; } = ChatToolMode.Auto;
 
     public virtual float Temperature { get; set; } = 0.3f;

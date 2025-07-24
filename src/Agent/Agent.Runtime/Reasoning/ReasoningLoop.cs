@@ -385,18 +385,43 @@ public class ReasoningLoop : IDisposable
                             }
 
                             StringBuilder sb = new StringBuilder();
-                            sb.AppendLine("Try your best to answer the user's questions. Keep in mind:");
-                            sb.AppendLine(" - If you find a suitable agent to handoff to, call transfer_to_{agentName} tool directly");
-                            sb.AppendLine(" - If there's no suitable agent to handoff to, call HandoffBack directly");
-                            //sb.AppendLine(" - **NEVER** tell the user you're going to handoff");
-                            //sb.AppendLine(" - **NEVER** tell the user what you are handing off for or why you are handing off");
-                            //sb.AppendLine(" - **NEVER** mention anything related to handoff in your notifyUserMessage");
-                            sb.AppendLine(" - Use transfer_to_{agentName} or HandoffBack if you are done solving an issue");
-
-                            var docMsg = await RetrieveDocumentsFromSearch(_chatHistory!, chatMessage.Message.Text);
-                            if (!string.IsNullOrEmpty(docMsg))
+                            
+                            // Check if current agent has UserPromptOverride configured
+                            if (!string.IsNullOrEmpty(_currentAgent.UserPromptOverride))
                             {
-                                sb.AppendLine(docMsg);
+                                _logger.LogInternalInformation("[{threadId}]Using UserPromptOverride from agent {agentName}", 
+                                    _context.ThreadId, _currentAgent.Name);
+                                sb.AppendLine(_currentAgent.UserPromptOverride);
+                            }
+                            else
+                            {
+                                // Default behavior
+                                sb.AppendLine("Try your best to answer the user's questions. Keep in mind:");
+                                sb.AppendLine(" - If you find a suitable agent to handoff to, call transfer_to_{agentName} tool directly");
+                                sb.AppendLine(" - If there's no suitable agent to handoff to, call HandoffBack directly");
+                                //sb.AppendLine(" - **NEVER** tell the user you're going to handoff");
+                                //sb.AppendLine(" - **NEVER** tell the user what you are handing off for or why you are handing off");
+                                //sb.AppendLine(" - **NEVER** mention anything related to handoff in your notifyUserMessage");
+                                sb.AppendLine(" - Use transfer_to_{agentName} or HandoffBack if you are done solving an issue");
+                            }
+
+                            // Only perform document retrieval if not disabled
+                            // When UserPromptOverride is used, document retrieval can be optionally disabled
+                            bool shouldRetrieveDocuments = !_currentAgent.DisableDocumentRetrieval || 
+                                                         string.IsNullOrEmpty(_currentAgent.UserPromptOverride);
+                            
+                            if (shouldRetrieveDocuments)
+                            {
+                                var docMsg = await RetrieveDocumentsFromSearch(_chatHistory!, chatMessage.Message.Text);
+                                if (!string.IsNullOrEmpty(docMsg))
+                                {
+                                    sb.AppendLine(docMsg);
+                                }
+                            }
+                            else
+                            {
+                                _logger.LogInternalInformation("[{threadId}]Document retrieval disabled for agent {agentName}", 
+                                    _context.ThreadId, _currentAgent.Name);
                             }
 
                             sb.AppendLine("User question goes below:");

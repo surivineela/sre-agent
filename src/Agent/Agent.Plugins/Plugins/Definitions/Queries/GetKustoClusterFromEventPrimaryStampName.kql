@@ -1,5 +1,5 @@
-let eventPrimaryStampName = "##eventPrimaryStampName##";
+let _eventPrimaryStampName = "##eventPrimaryStampName##";
 GetRegions
-| parse eventPrimaryStampName with "waws-prod-" abbreviation "-" *
+| parse _eventPrimaryStampName with "waws-prod-" abbreviation "-" *
 | where AntaresAbbreviation == abbreviation 
 | project KustoCluster

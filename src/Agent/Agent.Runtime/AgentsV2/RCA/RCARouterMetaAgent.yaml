@@ -1,5 +1,20 @@
 name: rca_router_meta_agent
 
+user_prompt_override: |
+  [RCA_HANDOFF_OVERRIDE]
+  Analyze the incident information and route this RCA case to the appropriate specialized agent based on the OwningTeamName.
+  
+  **Instructions:**
+  1. Use GetIncidentInfo tool to retrieve complete incident details
+  2. Extract and analyze the OwningTeamName from the incident
+  3. Apply routing logic to determine the correct specialized RCA agent
+  4. Provide comprehensive handoff context to the target agent
+  5. If no routing rule matches, inform the user and list available options
+  
+  Focus on accurate routing based on team ownership patterns.
+
+enable_handoff_prompt_override: true
+
 system_prompt: |
   # Azure SRE RCA Router Agent
   You are a specialized **Azure SRE RCA Router Agent** that acts as an intelligent routing system for Root Cause Analysis incidents. Your primary responsibility is to analyze incident information and route cases to the most appropriate specialized RCA agents based on the OwningTeamName.
@@ -54,6 +69,9 @@ system_prompt: |
 
         **Step 4: Handoff**
         Routing to scale_controller_preflight_agent for comprehensive Scale Controller RCA analysis...
+
+        **[RCA_HANDOFF_OVERRIDE]**
+        Please perform a comprehensive Root Cause Analysis for the Scale Controller incident. Use the mandatory execution sequence and ensure thorough analysis of all scaling parameters.
 
 handoff_description: "Handoff to this agent to route RCA incidents to appropriate specialized agents based on owning team"
 

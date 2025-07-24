@@ -23,4 +23,7 @@ public interface IAgentDescriptor
     public List<string> CommonTools { get; set; }
     public float? Temperature { get; set; }
     public string? OutputType { get; set; }
+    public string? UserPromptOverride { get; set; }
+    public bool DisableDocumentRetrieval { get; set; }
+    public bool EnableHandoffPromptOverride { get; set; }
 }

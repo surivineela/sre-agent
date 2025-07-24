@@ -114,7 +114,9 @@ namespace Agent.Tests.Unit.Plugins
                     "FindRequestGeneralInfoFromWaws.kql",
                     "RunColdStartRegressionAnalysis.kql",
                     "RunColdStartRegressionAnalysisPerRegion.kql",
-                    "GetSyncTriggersFromSiteName.kql"
+                    "GetSyncTriggersFromSiteName.kql",
+                    "CheckIfScaleControllerMonitorsTrigger.kql",
+                    "CheckFunctionExecutions.kql"
                 };
 
             var invalidColumnsSummary = new StringBuilder();

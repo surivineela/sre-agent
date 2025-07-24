@@ -12,18 +12,18 @@ namespace Agent.Plugins.AgentInteraction
     public class AgentInteractionPlugin : IAgentInteractionPlugin
     {
         private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
-        private const int ResultSummaryLimit = 1000;  // Limit for result summary length
 
         public AgentInteractionPlugin(IAgentOutboundCommunicationService agentOutboundCommunicationService)
         {
             _agentOutboundCommunicationService = agentOutboundCommunicationService;
         }
 
-        public async Task<string> ShareAgentResultAsync(string calledAgentName, string analysisSummary, string? context = null)
+        public async Task<string> ShareAgentResultAsync(string calledAgentName, string analysisSummary, string? context = null, int resultSummaryLimit = 4096)
         {
+            
             // If the result is too long, summarize it
-            var displayResult = analysisSummary.Length > ResultSummaryLimit 
-                ? $"{analysisSummary.Substring(0, ResultSummaryLimit)}... (truncated)"
+            var displayResult = analysisSummary.Length > resultSummaryLimit 
+                ? $"{analysisSummary.Substring(0, resultSummaryLimit)}... (truncated)"
                 : analysisSummary;
 
             // Create the chat message

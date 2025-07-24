@@ -1,13 +1,14 @@
-let start = datetime("##startTime##");
-let end = datetime("##endTime##");
-let stampName = "##eventPrimaryStampName##";
-let siteName = "##siteName##";
-let functionName = "##functionName##";
+let _start = datetime("##startTime##");
+let _end = datetime("##endTime##");
+let _stampName = "##eventPrimaryStampName##";
+let _siteName = "##siteName##";
+let _functionName = "##functionName##";
 ScaleControllerEvents
-| where PreciseTimeStamp between(start .. end)
-| where EventPrimaryStampName == stampName
-| where SiteName == siteName
-| where Message startswith "Agg"
-| where Message matches regex strcat('"', functionName, '"') 
-| summarize Count = count() by bin(PreciseTimeStamp, 1h)
-| project Count, PreciseTimeStamp
+| where PreciseTimeStamp between(_start .. _end)
+| where EventPrimaryStampName == _stampName
+| where SiteName == _siteName
+| where Message contains "AggregateScaleStatus"
+| where Message matches regex strcat('"Host.Functions.', _functionName, '"') 
+| summarize Count = count() by bin(PreciseTimeStamp, 1h), EventPrimaryStampName
+| project Count, PreciseTimeStamp, EventPrimaryStampName
+| order by PreciseTimeStamp asc
