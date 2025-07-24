@@ -4,7 +4,6 @@
 
 using Agent.Core.Interfaces;
 using Agent.Core.Services;
-using Agent.Logging;
 using Agent.Runtime.Models;
 using Microsoft.Extensions.Logging;
 
@@ -36,6 +35,11 @@ public class ApplicationHealthStep : BaseReasoningStep
         try
         {
             var thread = await _repository.GetThreadAsync(context.ThreadId);
+            if (thread == null)
+            {
+                _logger.LogInternalWarning($"Agent thread is null, threadId: {context.ThreadId}");
+                throw new InvalidOperationException($"Agent thread is null: {context.ThreadId}");
+            }
             var result = await _service.AnalyzeApplicationHealth(alert, thread);
 
             if (!string.IsNullOrEmpty(result))
@@ -84,6 +88,11 @@ public class ActivityLogAnalysisStep : BaseReasoningStep
         try
         {
             var thread = await _repository.GetThreadAsync(context.ThreadId);
+            if (thread == null)
+            {
+                _logger.LogInternalWarning($"Agent thread is null, threadId: {context.ThreadId}");
+                throw new InvalidOperationException($"Agent thread is null: {context.ThreadId}");
+            }
             var result = await _service.AnalyzeActivityLogsForResource(alert, thread);
 
             if (!string.IsNullOrEmpty(result))
@@ -133,6 +142,11 @@ public class ConnectedComponentsAnalysisStep : BaseReasoningStep
         try
         {
             var thread = await _repository.GetThreadAsync(context.ThreadId);
+            if (thread == null)
+            {
+                _logger.LogInternalWarning($"Agent thread is null, threadId: {context.ThreadId}");
+                throw new InvalidOperationException($"Agent thread is null: {context.ThreadId}");
+            }
             var result = await _service.AnalyzeConnectedComponents(alert, thread);
 
             if (!string.IsNullOrEmpty(result))
@@ -181,6 +195,11 @@ public class LogQueryAnalysisStep : BaseReasoningStep
         try
         {
             var thread = await _repository.GetThreadAsync(context.ThreadId);
+            if (thread == null)
+            {
+                _logger.LogInternalWarning($"Agent thread is null, threadId: {context.ThreadId}");
+                throw new InvalidOperationException($"Agent thread is null: {context.ThreadId}");
+            }
             var result = await _service.AnalyzeLogQueries(alert, thread);
 
             if (!string.IsNullOrEmpty(result))
@@ -227,6 +246,11 @@ public class LogQueriesGenericAnalysisStep : BaseReasoningStep
         try
         {
             var thread = await _repository.GetThreadAsync(context.ThreadId);
+            if (thread == null)
+            {
+                _logger.LogInternalWarning($"Agent thread is null, threadId: {context.ThreadId}");
+                throw new InvalidOperationException($"Agent thread is null: {context.ThreadId}");
+            }
             var result = await _service.AnalyzeGenericLogQueries(alert, thread);
 
             if (!string.IsNullOrEmpty(result))
@@ -275,6 +299,11 @@ public class MetricsAnalysisStep : BaseReasoningStep
         try
         {
             var thread = await _repository.GetThreadAsync(context.ThreadId);
+            if (thread == null)
+            {
+                _logger.LogInternalWarning($"Agent thread is null, threadId: {context.ThreadId}");
+                throw new InvalidOperationException($"Agent thread is null: {context.ThreadId}");
+            }
             var result = await _service.AnalyzeResourceMetrics(alert, thread);
 
             if (!string.IsNullOrEmpty(result))

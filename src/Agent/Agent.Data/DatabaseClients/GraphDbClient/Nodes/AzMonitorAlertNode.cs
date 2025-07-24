@@ -9,7 +9,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 public class AzMonitorAlertNode : GraphNode
 {
     [GraphProperty("incidentId")]
-    public string IncidentId { get; set; }
+    public string IncidentId { get; set; } = string.Empty;
     public override string GetHashString()
     {
         return GetNodeId();

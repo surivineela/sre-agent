@@ -1,10 +1,7 @@
-using System.Threading;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
-using Agent.Logging;
-using Grpc.Core;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 
@@ -83,7 +80,7 @@ namespace Agent.Runtime.SubAgents
             // Do the scan itself, likely querying graph and/or ARM.
             var appsInViolation = await GetResourcesInViolationAsync();
             var groupedAppsInViolation = appsInViolation.GroupBy(x => x.ResourceProviderName).ToList();
-            foreach(var group in groupedAppsInViolation)
+            foreach (var group in groupedAppsInViolation)
             {
                 var resourceProviderName = group.Key; // eg; "microsoft.storage/storageaccounts"
                 if (group.Count() > 0)
@@ -126,7 +123,7 @@ namespace Agent.Runtime.SubAgents
                     var message = new ThreadMessage(
                         ThreadId: thread.Id,
                         AgentContextId: agentContext.Id,
-                        MessageId: thread.StartMessage.Id,
+                        MessageId: thread.StartMessage?.Id ?? new Guid(),
                         Message: "Detected resources that have unsafe key-based access enabled.",
                         UserId: "",
                         DisplayName: "",

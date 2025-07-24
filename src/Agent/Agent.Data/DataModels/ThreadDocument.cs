@@ -35,8 +35,8 @@ public record ThreadDocument(
         new ThreadDocument(
             thread.Id.ToString(),
             thread.Title,
-            thread.StartMessage.Id.ToString(),
-            thread.LastMessage?.Id.ToString(),
+            thread.StartMessage?.Id.ToString() ?? string.Empty,
+            thread.LastMessage?.Id.ToString() ?? string.Empty,
             thread.CreatedTimestamp,
             thread.ModifiedTimestamp,
             thread.Source,
@@ -47,7 +47,7 @@ public record ThreadDocument(
         )
         {
             IncidentId = thread.Status?.IncidentStatus?.IncidentId ?? string.Empty,
-            IncidentStatus = thread.Status?.IncidentStatus?.Status,
+            IncidentStatus = thread.Status?.IncidentStatus?.Status ?? string.Empty,
             LastReadTime = thread.LastReadTime,
             AgentMode = thread.AgentMode
         };

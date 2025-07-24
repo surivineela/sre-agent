@@ -2,15 +2,11 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Reflection;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
-using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
-using Agent.Logging;
 using Agent.Runtime.Reasoning;
 using Microsoft.DurableTask.Client;
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.Services
@@ -43,7 +39,13 @@ namespace Agent.Runtime.Services
         {
             _logger.LogInternalInformation($"Getting approval for thread {threadId} with approval id {approvalId}");
 
-            return await _threadRepository.GetApprovalAsync(threadId, Guid.Parse(approvalId));
+            var approval = await _threadRepository.GetApprovalAsync(threadId, Guid.Parse(approvalId));
+            if (approval == null)
+            {
+                _logger.LogInternalError($"Approval is not found with id {approvalId}", approvalId);
+                throw new InvalidOperationException($"Approval is not found");
+            }
+            return approval;
         }
 
         public async Task<IList<Approval>> GetApprovals(Guid threadId)

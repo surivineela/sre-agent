@@ -7,8 +7,8 @@ public class AzureDevOpsAccessTokenDocument(
 {
     public static string ContainerName => AgentDataConfiguration.ThreadContainerName;
     public const string KeyName = "AzureDevOpsAccessToken";
-    public string Id { get; set; }
-    public string DocumentType => KeyName; 
+    public string Id { get; set; } = string.Empty;
+    public string DocumentType => KeyName;
     public string PartitionKey => KeyName;
     public string AccessToken { get; set; } = AccessToken;
     public DateTime? CreatedAt { get; set; } = CreatedAt;

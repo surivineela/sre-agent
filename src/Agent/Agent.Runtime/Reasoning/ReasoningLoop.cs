@@ -7,7 +7,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Channels;
-using System.Linq;
 using Agent.Core.Attributes;
 using Agent.Core.Configuration;
 using Agent.Core.Exceptions;
@@ -351,6 +350,12 @@ public class ReasoningLoop : IDisposable
                     await ChangeAgentContextStateAsync(ContextStateEnum.Processing);
                 }
 
+                if (agentChatHistory == null)
+                {
+                    _logger.LogInternalError("[{threadId}] AgentChatHistory is null", _context.ThreadId);
+                    throw new InvalidOperationException("AgentChatHistory is null");
+                }
+
                 switch (reasoningLoopMessage)
                 {
                     case ReasoningLoopChatMessage chatMessage:
@@ -645,7 +650,7 @@ public class ReasoningLoop : IDisposable
 
             _currentAgent = runResult.LastAgent;
             _context = _context with { CurrentAgent = _currentAgent.Name };
-            _context = await _threadRepository.UpdateAgentContextAsync(_context);
+            _context = await _threadRepository.UpdateAgentContextAsync(_context) ?? _context with { CurrentAgent = _currentAgent.Name }; // avoid context is null
 
             // handle manual tool calls
             while (runResult.ManualToolCalls != null && runResult.ManualToolCalls.Count > 0)
@@ -967,13 +972,13 @@ public class ReasoningLoop : IDisposable
         {
             var parentSpan = _currentAgentSpan ?? _rootSpan;
             var errorSpan = _tracer.StartActiveSpan("error", SpanKind.Internal, parentSpan);
-            errorSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+            errorSpan.SetAttribute(TraceAttribute.ThreadId, _context?.ThreadId.ToString());
             errorSpan.SetAttribute(TraceAttribute.OperationName, "error");
             errorSpan.SetAttribute("error.message", $"{ex.GetType()}: {ex.Message}");
             errorSpan.SetAttribute("error.stacktrace", ex.StackTrace);
             errorSpan.End();
 
-            _logger.LogInternalError(ex, "[{threadId}]An error occurred during reasoning loop.", _context.ThreadId);
+            _logger.LogInternalError(ex, "[{threadId}]An error occurred during reasoning loop.", _context?.ThreadId);
         }
         finally
         {
@@ -1256,6 +1261,13 @@ public class ReasoningLoop : IDisposable
         var lastMessage = _chatHistory?.LastOrDefault();
         // Check if lastMessage exists and has contents before accessing First()
         var lastContent = lastMessage?.Contents?.FirstOrDefault();
+
+        if (agentChatHistory == null)
+        {
+            _logger.LogInternalError("[{threadId}] AgentChatHistory is null", _context.ThreadId);
+            throw new InvalidOperationException("AgentChatHistory is null");
+        }
+
 
         // if lastContent is a tool call, we need to invoke the tool first
         if (lastContent != null && lastContent is FunctionCallContent functionCall)

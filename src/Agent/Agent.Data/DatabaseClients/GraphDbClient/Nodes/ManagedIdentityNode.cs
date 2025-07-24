@@ -10,11 +10,11 @@ public sealed class ManagedIdentityNode : ArmResourceNode
     [GraphProperty("identityType")]
     public string IdentityType { set; get; }
     [GraphProperty("tenantId")]
-    public string TenantId { get; set; }
+    public string? TenantId { get; set; }
     [GraphProperty("principalId")]
-    public string PrincipalId { get; set; }
+    public string? PrincipalId { get; set; }
     [GraphProperty("clientId")]
-    public string ClientId { get; set; }
+    public string? ClientId { get; set; }
 
     public const string UserAssignedManagedIdentityType = "UserAssigned";
     public const string SystemAssignedManagedIdentityType = "System";
@@ -25,7 +25,7 @@ public sealed class ManagedIdentityNode : ArmResourceNode
         string resourceGroupName,
         string resourceName,
         string type,
-        string location = null)
+        string? location = null)
         : base(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName, location)
     {
         IdentityType = type;

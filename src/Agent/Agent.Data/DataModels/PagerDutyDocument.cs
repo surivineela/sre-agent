@@ -30,7 +30,7 @@ public record PagerDutyIncidentDocument(
     public string Status { get; set; } = Status;
     public string IncidentType { get; set; } = IncidentType;
     public string Priority { get; set; } = Priority;
-    public string Severity { get; set; }
+    public string Severity { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string ExtractedKnowledge { get; set; } = string.Empty;

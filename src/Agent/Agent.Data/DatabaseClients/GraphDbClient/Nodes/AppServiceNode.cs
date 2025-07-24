@@ -64,13 +64,13 @@ public class AppServiceNode : ArmResourceNode
 
     // sku
     [GraphProperty("skuName")]
-    public string SkuName { get; set; }
+    public string? SkuName { get; set; }
 
     [GraphProperty("skuTier")]
-    public string SkuTier { get; set; }
+    public string? SkuTier { get; set; }
 
     [GraphProperty("skuSize")]
-    public string SkuSize { get; set; }
+    public string? SkuSize { get; set; }
 
     [GraphProperty("skuCapacity")]
     public int? SkuCapacity { get; set; }
@@ -81,8 +81,8 @@ public class AppServiceNode : ArmResourceNode
     public class SlotSwapStatus
     {
         public DateTime TimestampUtc { get; set; }
-        public string SourceSlotName { get; set; }
-        public string DestinationSlotName { get; set; }
+        public string SourceSlotName { get; set; } = string.Empty;
+        public string DestinationSlotName { get; set; } = string.Empty;
     }
 
     public AppServiceNode(string resourceType,
@@ -91,7 +91,7 @@ public class AppServiceNode : ArmResourceNode
         string resourceGroupName,
         string resourceName,
         string resourceKind,
-        string location = null)
+        string? location = null)
         : base(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName, resourceKind, null, location)
     {
         ResourceKind = resourceKind;

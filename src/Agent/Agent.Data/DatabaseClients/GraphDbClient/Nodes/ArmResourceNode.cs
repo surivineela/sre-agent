@@ -13,9 +13,9 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
 {
     public interface IResourceGraphNode
     {
-        public string GetNodeLabel();
+        public string? GetNodeLabel();
         public string GetNodeId();
-        public string GetResourceType();
+        public string? GetResourceType();
         public string? GetResourceKind();
         public IDictionary<string, object> GetNodeProperties();
     }
@@ -99,7 +99,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             // Set the properties on the current instance.
             foreach (var prop in graphProperties)
             {
-                if (properties.TryGetValue(prop.GraphPropertyName, out var value))
+                if (prop != null && !string.IsNullOrEmpty(prop.GraphPropertyName) && properties.TryGetValue(prop.GraphPropertyName, out var value))
                 {
                     var property = GetType().GetProperty(prop.PropertyName);
                     if (property != null && property.CanWrite)
@@ -183,9 +183,9 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
 
         public abstract string GetResourceType();
 
-        public abstract string? GetResourceKind();
+        public abstract string GetResourceKind();
 
-        public abstract void SetResourceKind(string? NewResourceKind);
+        public abstract void SetResourceKind(string NewResourceKind);
 
         public abstract string GetHashString();
 
@@ -257,27 +257,27 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
 
     public class ArmResourceNode : GraphNode
     {
-        public string ResourceType { get; set; }
+        public string ResourceType { get; set; } = string.Empty;
 
-        public string? ResourceKind { get; set; }
+        public string ResourceKind { get; set; } = string.Empty;
 
         [GraphProperty("resourceId")]
-        public string ResourceId { get; set; }
+        public string ResourceId { get; set; } = string.Empty;
 
         [GraphProperty("subscriptionId")]
-        public string SubscriptionId { get; set; }
+        public string SubscriptionId { get; set; } = string.Empty;
 
         [GraphProperty("resourceGroupName")]
-        public string ResourceGroupName { get; set; }
+        public string? ResourceGroupName { get; set; }
 
         [GraphProperty("resourceName")]
-        public string ResourceName { get; set; }
+        public string? ResourceName { get; set; }
 
         [GraphProperty("location")]
-        public string Location { get; set; }
+        public string? Location { get; set; }
 
         [GraphJsonProperty("appHealthInfo")]
-        public AppHealthInfo AppHealthInfo { get; set; }
+        public AppHealthInfo? AppHealthInfo { get; set; }
 
         [GraphJsonProperty("remarks")]
         public string? Remarks { get; set; }
@@ -288,10 +288,10 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             : base(properties) { }
 
         public ArmResourceNode(string resourceType, string subscriptionId)
-            : this(resourceType, null, subscriptionId, null, null) { }
+            : this(resourceType, string.Empty, subscriptionId, string.Empty, string.Empty) { }
 
         public ArmResourceNode(string resourceType, string subscriptionId, string resourceGroupName, string location)
-            : this(resourceType, null, subscriptionId, resourceGroupName, null, location) { }
+            : this(resourceType, string.Empty, subscriptionId, resourceGroupName, string.Empty, location) { }
 
         public ArmResourceNode(string resourceType,
             string resourceId,
@@ -300,18 +300,18 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             string resourceName,
             string? resourceKind = null,
             string? remarks = null,
-            string location = null,
-            AppHealthInfo appHealthInfo = null)
+            string? location = null,
+            AppHealthInfo? appHealthInfo = null)
         {
             UpdateTs = DateTime.UtcNow.Ticks;
             ResourceKind = ResourceKindHelper.getResourceKind(resourceType, resourceKind);
-            ResourceType = resourceType?.ToLowerInvariant();
-            ResourceId = resourceId?.ToLowerInvariant();
-            SubscriptionId = subscriptionId?.ToLowerInvariant();
-            ResourceGroupName = resourceGroupName?.ToLowerInvariant();
-            ResourceName = resourceName?.ToLowerInvariant();
-            Location = location?.NormalizeLocation();
-            AppHealthInfo = appHealthInfo;
+            ResourceType = resourceType ?? string.Empty.ToLowerInvariant();
+            ResourceId = resourceId ?? string.Empty.ToLowerInvariant();
+            SubscriptionId = subscriptionId ?? string.Empty.ToLowerInvariant();
+            ResourceGroupName = resourceGroupName ?? string.Empty.ToLowerInvariant();
+            ResourceName = resourceName ?? string.Empty.ToLowerInvariant();
+            Location = location?.NormalizeLocation() ?? string.Empty;
+            AppHealthInfo = appHealthInfo ?? new AppHealthInfo();
             Remarks = remarks;
         }
 
@@ -321,7 +321,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             //return parts[parts.Length - 1];
 
             // use full arm type to avoid potential conflict
-            return ResourceType?.ToLower();
+            return ResourceType?.ToLower() ?? string.Empty;
         }
 
         public override string GetNodeId()
@@ -334,12 +334,12 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             return ResourceType;
         }
 
-        public override string? GetResourceKind()
+        public override string GetResourceKind()
         {
             return ResourceKind;
         }
 
-        public override void SetResourceKind(string? NewResourceKind)
+        public override void SetResourceKind(string NewResourceKind)
         {
             ResourceKind = NewResourceKind;
         }

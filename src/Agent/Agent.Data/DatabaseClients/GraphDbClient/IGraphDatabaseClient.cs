@@ -40,7 +40,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             string sourceNodeId,
             string targetNodeId,
             string relationshipType,
-            IDictionary<string, object> properties = null);
+            IDictionary<string, object>? properties = null);
 
         /// <summary>
         /// Adds or updates a node in the graph from a GraphEdge

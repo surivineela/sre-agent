@@ -35,7 +35,7 @@ namespace Agent.Graph.Crawler.ARM
             {
                 _logger.LogInternalInformation($"Processing API Management Azure Backend Resource ID: {armResourceId}");
                 var origNodeId = await _graphDbClient.GetNodeId(armResourceId);
-                var apimToOrigBackendEdge = new ArmResourceEdge(apimBackendNode.GetNodeId(), origNodeId, Constants.Relationships.Linked);
+                var apimToOrigBackendEdge = new ArmResourceEdge(apimBackendNode.GetNodeId() ?? string.Empty, origNodeId, Constants.Relationships.Linked);
                 await _graphDbClient.AddOrUpdateEdgeAsync(apimToOrigBackendEdge);
             }
         }

@@ -15,13 +15,13 @@ public class KubernetesResourceNode : GraphNode
     public IKubernetesObject? ResourceObject { get; set; }
 
     [GraphProperty("subscriptionId")]
-    public string SubscriptionId { get; set; }
+    public string? SubscriptionId { get; set; }
 
     [GraphProperty("resourceGroupName")]
-    public string ResourceGroupName { get; set; }
+    public string? ResourceGroupName { get; set; }
 
     [GraphProperty("location")]
-    public string Location { get; set; }
+    public string? Location { get; set; }
 
     // the cluster arm resource id
     [GraphProperty("clusterResourceId")]
@@ -42,7 +42,7 @@ public class KubernetesResourceNode : GraphNode
     public IDictionary<string, string>? Labels { get; set; }
 
     [GraphJsonProperty("appHealthInfo")]
-    public AppHealthInfo AppHealthInfo { get; set; }
+    public AppHealthInfo? AppHealthInfo { get; set; }
 
     public KubernetesResourceNode(
         IKubernetesObject? k8sObject,
@@ -57,9 +57,9 @@ public class KubernetesResourceNode : GraphNode
         IDictionary<string, string>? annotations = null,
         IDictionary<string, string>? labels = null)
     {
-        SubscriptionId = subscriptionId?.ToLowerInvariant();
-        ResourceGroupName = resourceGroupName?.ToLowerInvariant();
-        Location = location?.ToLowerInvariant();
+        SubscriptionId = subscriptionId ?? string.Empty.ToLowerInvariant();
+        ResourceGroupName = resourceGroupName ?? string.Empty.ToLowerInvariant();
+        Location = location ?? string.Empty.ToLowerInvariant();
         UpdateTs = DateTime.UtcNow.Ticks;
         ResourceObject = k8sObject;
         ClusterResourceId = clusterResourceId.ToLowerInvariant();
@@ -145,12 +145,8 @@ public class KubernetesResourceNode : GraphNode
     {
         // Extract the subscription ID from the cluster resource ID
         var id = new ResourceIdentifier(ClusterResourceId);
-        if (id == null)
-        {
-            return string.Empty;
-        }
 
-        return id.SubscriptionId;
+        return id.SubscriptionId ?? string.Empty;
     }
 }
 

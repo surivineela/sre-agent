@@ -110,7 +110,7 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
 
         var typeFiltersSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         if (typeFilters != null)
-        {            
+        {
             foreach (var filter in typeFilters)
             {
                 typeFiltersSet.Add(filter);

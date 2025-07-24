@@ -44,7 +44,7 @@ public class ResourceGroupCrawler : IResourceCrawler
         var subNode = new SubscriptionNode(rgNode.SubscriptionId);
         var subscriptions = _armClient.GetSubscriptions();
         var subscription = subscriptions.Get(subNode.SubscriptionId);
-        var subName =  subscription?.Value?.Data?.DisplayName;
+        var subName = subscription?.Value?.Data?.DisplayName;
         var nodeProperties = subNode.GetNodeProperties();
         nodeProperties["subscriptionName"] = string.IsNullOrEmpty(subName) ? subNode.SubscriptionId : subName;
 
@@ -72,7 +72,8 @@ public class ResourceGroupCrawler : IResourceCrawler
                 {
                     var location = resource.GetProperty("location").GetString();
                     if (location == null)
-                    {   _logger.LogInternalWarning($"Location is null for resource {envNode.ResourceId}");
+                    {
+                        _logger.LogInternalWarning($"Location is null for resource {envNode.ResourceId}");
                         continue;
                     }
                     envNode.Location = location;
@@ -156,7 +157,7 @@ public class ResourceGroupCrawler : IResourceCrawler
                     {
                         _logger.LogInternalWarning($"Location is null for resource {storageNode.ResourceId}");
                         continue;
-                    }                  
+                    }
                     storageNode.Location = location;
 
                     await _graphDbClient.AddOrUpdateNodeAsync(storageNode);
@@ -268,7 +269,7 @@ public class ResourceGroupCrawler : IResourceCrawler
 
         var props = new Dictionary<string, string>
         {
-            { "resourceGroupName", rgNode.ResourceGroupName },
+            { "resourceGroupName", rgNode.ResourceGroupName ?? string.Empty },
             { "subscriptionId", rgNode.SubscriptionId },
         };
         await CrawlerExtensions.SoftDeleteStaleNodesWithFilter(_graphDbClient, props, deleteBefore);

@@ -20,9 +20,9 @@ public sealed class SubscriptionNode : ArmResourceNode
         return new Dictionary<string, object>
         {
             { "updateTs", UpdateTs },
-            { "resourceId", ResourceId },
-            { "subscriptionId", SubscriptionId },
-            { "subscriptionName", string.IsNullOrEmpty(SubscriptionName) ? SubscriptionId: SubscriptionName },
+            { "resourceId", ResourceId ?? string.Empty },
+            { "subscriptionId", SubscriptionId ?? string.Empty },
+            { "subscriptionName", string.IsNullOrEmpty(SubscriptionName) ? SubscriptionId ?? string.Empty: SubscriptionName },
             { "isDeleted", IsDeleted}
         };
     }

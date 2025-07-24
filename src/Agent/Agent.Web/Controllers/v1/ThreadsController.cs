@@ -12,16 +12,12 @@ using Agent.Data.DataModels;
 using Agent.Framework;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
-using Microsoft.Extensions.AI;
 using Action = Agent.Core.Models.Api.v1.Action;
 using Thread = Agent.Core.Models.Api.v1.Thread;
-using Agent.Runtime.MetaAgent.Interfaces;
-using Microsoft.DurableTask.Client;
 using Agent.Web.Models.WelcomeMessage;
 using Agent.Runtime.Services;
 using Agent.Plugins.Interface;
 using Agent.Runtime.Reasoning;
-using Agent.Runtime.ThreadEvaluator;
 using Agent.Plugins.Services.Interfaces;
 
 namespace Agent.Web.Controllers.v1
@@ -395,7 +391,7 @@ namespace Agent.Web.Controllers.v1
             await agentInboundCommunicationService.ProcessAlertMessageAsync(new ThreadMessage(
                 ThreadId: thread.Id,
                 AgentContextId: agentContext.Id,
-                MessageId: thread.StartMessage.Id,
+                MessageId: thread.StartMessage?.Id ?? new Guid(),
                 Message: messageBuilder.ToString(),
                 UserId: "incident-system", // TODO: distinguish between pager duty and icm or any other tool
                 DisplayName: request.Source ?? "Incident System",
@@ -701,7 +697,7 @@ namespace Agent.Web.Controllers.v1
 
                 return CreatedAtAction(
                     nameof(GetThreadEvaluation),
-                    new { evaluationId = createdEvaluation.Id },
+                    new { evaluationId = createdEvaluation?.Id ?? new Guid() },
                     createdEvaluation);
             }
             catch (Exception ex)

@@ -77,8 +77,8 @@ public class ContainerAppNode : ArmResourceNode
 
     public class Container
     {
-        public string Name { get; set; }
-        public string Image { get; set; }
+        public string? Name { get; set; }
+        public string? Image { get; set; }
         public string? Cpu { get; set; }
         public string? Memory { get; set; }
     }
@@ -94,7 +94,7 @@ public class ContainerAppNode : ArmResourceNode
         string subscriptionId,
         string resourceGroupName,
         string resourceName,
-        string location = null)
+        string? location = null)
         : base(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName, location)
     {
         HostNames = [];
@@ -132,10 +132,10 @@ public class ContainerAppNode : ArmResourceNode
             for (int i = 0; i < Containers.Count; i++)
             {
                 var container = Containers[i];
-                props.Add($"container_{i}_name", container.Name);
-                props.Add($"container_{i}_image", container.Image);
-                props.Add($"container_{i}_cpu", container.Cpu);
-                props.Add($"container_{i}_memory", container.Memory);
+                props.Add($"container_{i}_name", container.Name ?? string.Empty);
+                props.Add($"container_{i}_image", container.Image ?? string.Empty);
+                props.Add($"container_{i}_cpu", container.Cpu ?? string.Empty);
+                props.Add($"container_{i}_memory", container.Memory ?? string.Empty);
             }
         }
 
@@ -145,10 +145,10 @@ public class ContainerAppNode : ArmResourceNode
             for (int i = 0; i < InitContainers.Count; i++)
             {
                 var container = InitContainers[i];
-                props.Add($"initContainer_{i}_name", container.Name);
-                props.Add($"initContainer_{i}_image", container.Image);
-                props.Add($"initContainer_{i}_cpu", container.Cpu);
-                props.Add($"initContainer_{i}_memory", container.Memory);
+                props.Add($"initContainer_{i}_name", container.Name ?? string.Empty);
+                props.Add($"initContainer_{i}_image", container.Image ?? string.Empty);
+                props.Add($"initContainer_{i}_cpu", container.Cpu ?? string.Empty);
+                props.Add($"initContainer_{i}_memory", container.Memory ?? string.Empty);
             }
         }
 
@@ -157,9 +157,9 @@ public class ContainerAppNode : ArmResourceNode
             for (int i = 0; i < Traffic.Count; i++)
             {
                 var trafficConfig = Traffic[i];
-                props.Add($"traffic_{i}_revisionName", trafficConfig.RevisionName);
+                props.Add($"traffic_{i}_revisionName", trafficConfig.RevisionName ?? string.Empty);
                 props.Add($"traffic_{i}_weight", trafficConfig.Weight);
-                props.Add($"traffic_{i}_label", trafficConfig.Label);
+                props.Add($"traffic_{i}_label", trafficConfig.Label ?? string.Empty);
                 props.Add($"traffic_{i}_latestRevision", trafficConfig.LatestRevision);
             }
         }
@@ -169,10 +169,10 @@ public class ContainerAppNode : ArmResourceNode
             for (int i = 0; i < Registries.Count; i++)
             {
                 var registry = Registries[i];
-                props.Add($"registry_{i}_server", registry.Server);
-                props.Add($"registry_{i}_username", registry.Username);
-                props.Add($"registry_{i}_passwordSecretRef", registry.PasswordSecretRef);
-                props.Add($"registry_{i}_identity", registry.Identity);
+                props.Add($"registry_{i}_server", registry.Server ?? string.Empty);
+                props.Add($"registry_{i}_username", registry.Username ?? string.Empty);
+                props.Add($"registry_{i}_passwordSecretRef", registry.PasswordSecretRef ?? string.Empty);
+                props.Add($"registry_{i}_identity", registry.Identity ?? string.Empty);
             }
         }
 
@@ -181,9 +181,11 @@ public class ContainerAppNode : ArmResourceNode
 
     private void SetNodeProperties(IDictionary<string, object> properties)
     {
-        if (properties.TryGetValue("hostNames", out var hostnames) && hostnames is string)
+        if (properties.TryGetValue("hostNames", out var hostnames) &&
+            hostnames is not null &&
+            !string.IsNullOrWhiteSpace(hostnames.ToString()))
         {
-            HostNames = [.. hostnames.ToString().Split(',')];
+            HostNames = hostnames.ToString()!.Split(',').Select(h => h.Trim()).ToList();
         }
 
         Containers = properties.Keys
@@ -216,7 +218,11 @@ public class ContainerAppNode : ArmResourceNode
             .Select(g => new TrafficConfiguration
             {
                 RevisionName = properties.TryGetValue(g.Key + "_revisionName", out var value) ? value.ToString() : null,
-                Weight = properties.TryGetValue(g.Key + "_weight", out var weight) ? int.Parse(weight.ToString()) : 0,
+                Weight = properties.TryGetValue(g.Key + "_weight", out var weight) &&
+                    weight != null &&
+                    int.TryParse(weight.ToString(), out var parsedWeight)
+                    ? parsedWeight
+                    : 0,
                 Label = properties.TryGetValue(g.Key + "_label", out var label) ? label.ToString() : null,
                 LatestRevision = properties.TryGetValue(g.Key + "_latestRevision", out var latestRevision) && bool.TryParse(latestRevision.ToString(), out var result) && result
             })

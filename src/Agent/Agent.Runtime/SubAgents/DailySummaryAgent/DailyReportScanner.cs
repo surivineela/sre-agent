@@ -371,7 +371,8 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                             var screenshotResponses = new List<ScreenshotResponse>();
                             // TODO: This line will always result in a null reference exception because _armResourceNodes was not initialized.
                             // This is likely a dead code.
-                            var armResourceNodes = _armResourceNodes.Where(a => a.ResourceType.Equals(resourceType, StringComparison.OrdinalIgnoreCase));
+                            var armResourceNodes = _armResourceNodes
+                                .Where(a => string.Equals(a.ResourceType, resourceType, StringComparison.OrdinalIgnoreCase));
 
                             foreach (var armResourceNode in armResourceNodes)
                             {
@@ -500,7 +501,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
 
         private string? GetParameterizedDashboardUrl(string dashboardUrl, ArmResourceNode armResourceNode)
         {
-            if (armResourceNode == null)
+            if (armResourceNode == null || armResourceNode.ResourceType == null)
             {
                 return dashboardUrl;
             }
@@ -520,10 +521,10 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             var baseVariables = new Dictionary<string, string>
             {
                 { "var-ds", "azure-monitor-oob" },
-                { "var-ns", armResourceNode.ResourceType.ToLowerInvariant() },
-                { "var-sub", armResourceNode.SubscriptionId },
-                { "var-rg", armResourceNode.ResourceGroupName.ToLowerInvariant() },
-                { "var-resource", armResourceNode.ResourceName.ToLowerInvariant() }
+                { "var-ns", armResourceNode.ResourceType ?? string.Empty.ToLowerInvariant()},
+                { "var-sub", armResourceNode.SubscriptionId ?? string.Empty},
+                { "var-rg", armResourceNode.ResourceGroupName ?? string.Empty.ToLowerInvariant() },
+                { "var-resource", armResourceNode.ResourceName ?? string.Empty.ToLowerInvariant()}
             };
             var additionalVariables = dashboardType switch
             {
@@ -532,18 +533,18 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 },
                 "azure-container-apps-container-app-view" => new Dictionary<string, string>
                 {
-                    { "var-containerapp", armResourceNode.ResourceName.ToLowerInvariant() }
+                    { "var-containerapp", armResourceNode.ResourceName ?? string.Empty.ToLowerInvariant() }
                 },
                 "azure-insights-cosmos-db" => new Dictionary<string, string>
                 {
                 },
                 "azure-redis" => new Dictionary<string, string>
                 {
-                    { "var-name", armResourceNode.ResourceName.ToLowerInvariant() }
+                    { "var-name", armResourceNode.ResourceName ?? string.Empty.ToLowerInvariant() }
                 },
                 "azure-app-service" => new Dictionary<string, string>
                 {
-                    { "var-name", armResourceNode.ResourceName.ToLowerInvariant() }
+                    { "var-name", armResourceNode.ResourceName ?? string.Empty.ToLowerInvariant() }
                 },
                 _ => []
             };

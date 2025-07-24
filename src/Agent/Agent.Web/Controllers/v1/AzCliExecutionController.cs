@@ -10,10 +10,8 @@ using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
-using Agent.Logging;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.Reasoning;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.AI;
 
@@ -126,17 +124,14 @@ namespace Agent.Web.Controllers.v1
             switch (request.Action.ToLower())
             {
                 case "run":
-                    AzCliExecution executionDoc = await _threadRepository.GetAzCliExecutionAsync(threadGuid, executionGuid);
+                    AzCliExecution? executionDoc = await _threadRepository.GetAzCliExecutionAsync(threadGuid, executionGuid);
 
-                    if (executionDoc.AgentContextId == null)
+                    if (executionDoc == null || executionDoc.AgentContextId == null)
                     {
                         return NotFound(new { error = "AgentContextId not set in the executionDoc" });
                     }
 
-#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
                     AgentContext agentContext = await _threadRepository.GetAgentContextAsync(agentContextId: executionDoc.AgentContextId.Value, threadId: threadGuid);
-#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
-
                     _ = Task.Run(async () =>
                     {
                         try

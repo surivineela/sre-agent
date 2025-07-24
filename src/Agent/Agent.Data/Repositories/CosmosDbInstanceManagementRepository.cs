@@ -8,7 +8,6 @@ using Agent.Core.Configuration;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
 using Agent.Data.Helpers;
-using Agent.Logging;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
@@ -66,7 +65,7 @@ public class CosmosDbInstanceManagementRepository(
                 var leaderLease = await GetLeaderLeaseAsync();
                 logger.LogInternalInformation("Failed to acquire leader lease for instance {InstanceId}, acquired by {LeaseHolder}", instanceId, leaderLease?.LeaseHolder);
 
-                return (leaderLease, false);
+                return (leaderLease!, false);
             }
         }
         else if (leaderLeaseDoc.LeaseExpiration < DateTimeOffset.UtcNow
@@ -107,7 +106,7 @@ public class CosmosDbInstanceManagementRepository(
                 var leaderLease = await GetLeaderLeaseAsync();
                 logger.LogInternalInformation("Failed to acquire leader lease for instance {InstanceId}, acquired by {LeaseHolder}", instanceId, leaderLease?.LeaseHolder);
 
-                return (leaderLease, false);
+                return (leaderLease!, false);
             }
         }
         else if (leaderLeaseDoc.LeaseHolder == instanceId)

@@ -1,9 +1,4 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Agent.Core;
 using Agent.Data.DatabaseClients.Attributes;
-using Azure.ResourceManager.ApiManagement.Models;
 
 namespace Agent.Data.DatabaseClients.GraphDbClient
 {
@@ -14,7 +9,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         [GraphJsonProperty("apiConnectionInfo")] public List<APIConnectionInfo>? ApiConnectionInfo { get; set; } // Internal use for structured connection details
         [GraphProperty("apimBackendEndpoint")] public string? APIMBackendEndpoint { get; set; }
 
-        public APIManagementBackendNode(string resourceType, string resourceId, string subscriptionId, string resourceGroupName, string resourceName, string location = null)
+        public APIManagementBackendNode(string resourceType, string resourceId, string subscriptionId, string resourceGroupName, string resourceName, string? location = null)
             : base(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName, location)
         {
         }

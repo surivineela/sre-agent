@@ -40,7 +40,7 @@ public class InMemoryInstanceManagementRepository(
                 return Task.FromResult((_leaderLease, true));
             }
 
-            return Task.FromResult((_leaderLease, false));
+            return Task.FromResult((_leaderLease!, false));
         }
     }
 
@@ -69,7 +69,7 @@ public class InMemoryInstanceManagementRepository(
                 return Task.FromResult((lease, true));
             }
 
-            return Task.FromResult((_leaderLease, false));
+            return Task.FromResult((_leaderLease!, false));
         }
     }
 
@@ -87,7 +87,7 @@ public class InMemoryInstanceManagementRepository(
     {
         if (_workerInstances.TryGetValue(instanceId, out var instance))
         {
-            return Task.FromResult(instance);
+            return Task.FromResult((WorkerInstance?)instance);
         }
 
         return Task.FromResult<WorkerInstance?>(null);

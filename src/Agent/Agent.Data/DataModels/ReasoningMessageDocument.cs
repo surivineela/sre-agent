@@ -32,6 +32,6 @@ public record ReasoningMessageDocument(
             Id: Guid.Parse(Id),
             AgentContextId: Guid.Parse(AgentContextId),
             Role: (ReasoningMessageRoleEnum)Role,
-            SerializedChatMessage: SerializedChatMessage
+            SerializedChatMessage: SerializedChatMessage ?? string.Empty
         );
 }

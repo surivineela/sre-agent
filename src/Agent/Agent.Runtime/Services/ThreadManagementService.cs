@@ -104,7 +104,10 @@ public class ThreadManagementService(
 
         // TODO(jianbo): thread context is not used in the new agent framework, remove it later
         var threadContext = new ThreadContext(thread.Id, AgentTypeEnum.Meta);
-        threadContext.AddMessage(thread.StartMessage);
+        if (thread.StartMessage != null)
+        {
+            threadContext.AddMessage(thread.StartMessage);
+        }
         await repository.AddThreadContextAsync(threadContext);
 
         // Start the background title generation task (fire and forget)
@@ -113,7 +116,7 @@ public class ThreadManagementService(
         (
             ThreadId: thread.Id,
             AgentContextId: agentContext.Id,
-            MessageId: thread.StartMessage.Id,
+            MessageId: thread.StartMessage?.Id ?? new Guid(),
             Message: request.StartMessage.Text,
             UserId: request.StartMessage.UserId,
             DisplayName: request.StartMessage.DisplayName,

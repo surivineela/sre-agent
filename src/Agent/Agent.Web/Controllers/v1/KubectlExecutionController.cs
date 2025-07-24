@@ -5,7 +5,6 @@ using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
-using Agent.Logging;
 using Agent.Plugins.Interface;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.Reasoning;
@@ -122,13 +121,12 @@ namespace Agent.Web.Controllers.v1
             {
                 case "run":
                     var executionDoc = await _threadRepository.GetKubectlExecutionAsync(threadGuid, executionGuid);
-                    if (executionDoc.AgentContextId == null)
+                    if (executionDoc == null || executionDoc.AgentContextId == null)
                     {
                         return NotFound(new { error = "AgentContextId not set in the executionDoc" });
                     }
-#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+
                     AgentContext agentContext = await _threadRepository.GetAgentContextAsync(agentContextId: executionDoc.AgentContextId.Value, threadId: threadGuid);
-#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
                     // Update execution with user info
 
                     // Extract the resource ID from the command or use a placeholder

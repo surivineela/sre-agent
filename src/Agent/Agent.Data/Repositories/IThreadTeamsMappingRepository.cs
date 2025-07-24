@@ -13,7 +13,7 @@ public interface IThreadTeamsMappingRepository
     /// </summary>
     /// <param name="threadId">The thread ID to look up</param>
     /// <returns>The thread-teams mapping or null if not found</returns>
-    Task<ThreadTeamsMapping> GetMappingByThreadIdAsync(string threadId);
+    Task<ThreadTeamsMapping?> GetMappingByThreadIdAsync(string threadId);
 
     /// <summary>
     /// Adds a new thread-teams mapping
@@ -34,13 +34,13 @@ public interface IThreadTeamsMappingRepository
     /// </summary>
     /// <param name="conversationId">The Teams conversation ID to look up</param>
     /// <returns>The thread-teams mapping or null if not found</returns>
-    Task<ThreadTeamsMapping> GetMappingByConversationIdAsync(string conversationId);
+    Task<ThreadTeamsMapping?> GetMappingByConversationIdAsync(string conversationId);
 
     /// <summary>
     /// Gets the first thread-teams mapping with a non-empty ServiceUrl and ChannelId
     /// </summary>
     /// <returns>The thread-teams mapping or null if none is found</returns>
-    Task<ThreadTeamsMapping> GetFirstOrDefaultChannel();
+    Task<ThreadTeamsMapping?> GetFirstOrDefaultChannel();
 
     /// <summary>
     /// Gets a list of all active thread-teams mappings

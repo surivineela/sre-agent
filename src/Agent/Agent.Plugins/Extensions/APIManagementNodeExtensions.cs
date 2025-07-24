@@ -1,7 +1,5 @@
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Plugins.Models;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Agent.Plugins.Extensions
 {
@@ -12,11 +10,11 @@ namespace Agent.Plugins.Extensions
             if (!verbose)
             {
                 return new APIManagementDescriptor(
-                    ResourceId: apiManagementNode.ResourceId,
-                    Name: apiManagementNode.ResourceName,
-                    Type: apiManagementNode.ResourceType,
-                    Location: apiManagementNode.Location,
-                    ResourceGroup: apiManagementNode.ResourceGroupName
+                    ResourceId: apiManagementNode.ResourceId ?? string.Empty,
+                    Name: apiManagementNode.ResourceName ?? string.Empty,
+                    Type: apiManagementNode.ResourceType ?? string.Empty,
+                    Location: apiManagementNode.Location ?? string.Empty,
+                    ResourceGroup: apiManagementNode.ResourceGroupName ?? string.Empty
                 );
             }
 
@@ -30,16 +28,16 @@ namespace Agent.Plugins.Extensions
                         ResourceUri: kvp.Value.ResourceUri,
                         BackendResourceId: kvp.Value.BackendResourceId,
                         ArmResourceId: kvp.Value.ArmResourceId,
-                        ConnectedAPIInfo: kvp.Value.Connections?.Select(c => new APIManagementBackendConnectionDescriptor(c.Name, c.Level.ToString())).ToList() ?? new List<APIManagementBackendConnectionDescriptor>()    )
+                        ConnectedAPIInfo: kvp.Value.Connections?.Select(c => new APIManagementBackendConnectionDescriptor(c.Name, c.Level.ToString())).ToList() ?? new List<APIManagementBackendConnectionDescriptor>())
                 ).ToList();
             }
 
             return new APIManagementDescriptor(
-                ResourceId: apiManagementNode.ResourceId,
-                Name: apiManagementNode.ResourceName,
-                Type: apiManagementNode.ResourceType,
-                Location: apiManagementNode.Location,
-                ResourceGroup: apiManagementNode.ResourceGroupName,
+                ResourceId: apiManagementNode.ResourceId ?? string.Empty,
+                Name: apiManagementNode.ResourceName ?? string.Empty,
+                Type: apiManagementNode.ResourceType ?? string.Empty,
+                Location: apiManagementNode.Location ?? string.Empty,
+                ResourceGroup: apiManagementNode.ResourceGroupName ?? string.Empty,
 
                 PublisherEmail: apiManagementNode.PublisherEmail,
                 PublisherName: apiManagementNode.PublisherName,

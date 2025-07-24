@@ -184,7 +184,8 @@ namespace Agent.Plugins.Implementation
 
                         for (int i = 0; i < columns.Count; i++)
                         {
-                            string columnName = columns[i]["name"]?.ToString().ToLowerInvariant() ?? string.Empty;
+                            string columnName = columns[i]["name"]?.ToString()?.ToLowerInvariant() ?? string.Empty;
+
                             if (columnName == "name")
                             {
                                 nameIndex = i;

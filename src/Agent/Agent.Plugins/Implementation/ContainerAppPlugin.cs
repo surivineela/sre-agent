@@ -1764,12 +1764,12 @@ namespace Agent.Plugins.Implementation
         private static ContainerAppDescriptor TranslateNodeToDescriptor(ContainerAppNode containerApp, bool limited = false)
         {
             var result = new ContainerAppDescriptor(
-                ResourceId: containerApp.ResourceId,
-                Name: containerApp.ResourceName,
-                Location: containerApp.Location,
+                ResourceId: containerApp.ResourceId ?? string.Empty,
+                Name: containerApp.ResourceName ?? string.Empty,
+                Location: containerApp.Location ?? string.Empty,
                 WorkloadProfile: containerApp.WorkloadProfileName ?? string.Empty,
                 State: containerApp.ProvisioningState ?? string.Empty,
-                ResourceGroup: containerApp.ResourceGroupName,
+                ResourceGroup: containerApp.ResourceGroupName ?? string.Empty,
                 EnvironmentId: containerApp.EnvironmentId ?? string.Empty,
                 Configurations: null,
                 Containers: [],
@@ -1803,14 +1803,14 @@ namespace Agent.Plugins.Implementation
                             .ToArray()),
                     Containers = containerApp.Containers
                         .Select(c => new Models.Container(
-                            Name: c.Name,
+                            Name: c.Name ?? string.Empty,
                             Image: c.Image ?? string.Empty,
                             Cpu: c.Cpu ?? string.Empty,
                             Memory: c.Memory ?? string.Empty))
                         .ToArray(),
                     InitContainers = containerApp.InitContainers
                         .Select(c => new Models.Container(
-                            Name: c.Name,
+                            Name: c.Name ?? string.Empty,
                             Image: c.Image ?? string.Empty,
                             Cpu: c.Cpu ?? string.Empty,
                             Memory: c.Memory ?? string.Empty))
@@ -1824,7 +1824,7 @@ namespace Agent.Plugins.Implementation
                 {
                     Containers = containerApp.Containers
                         .Select(c => new Models.Container(
-                            Name: c.Name,
+                            Name: c.Name ?? string.Empty,
                             Image: c.Image ?? string.Empty,
                             Cpu: c.Cpu ?? string.Empty,
                             Memory: c.Memory ?? string.Empty))

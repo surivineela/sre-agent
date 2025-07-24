@@ -49,7 +49,7 @@ public sealed class ContainerAppEnvironmentNode : ArmResourceNode
         string subscriptionId,
         string resourceGroupName,
         string resourceName,
-        string location = null)
+        string? location = null)
         : base(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName, location)
     {
         WorkloadProfiles = new List<WorkloadProfileName>();

@@ -123,7 +123,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
                 string subscriptionId,
                 string resourceGroupName,
                 string resourceName,
-                string location = null)
+                string? location = null)
                 : base(resourceType,
                       resourceId,
                       subscriptionId,
@@ -159,7 +159,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             var hostnames = apimInstance.HostnameConfigurations?
                 .Select(h => h.HostName?.ToString())
                 .Where(hn => !string.IsNullOrWhiteSpace(hn))
-                .ToList() ?? new List<string>();
+                .ToList() ?? [];
 
             HostNames = JsonSerializer.Serialize(hostnames);
 
@@ -247,7 +247,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
                 }
                 catch
                 {
-                    return null;
+                    return new Dictionary<string, ApiInfo>();
                 }
             }
 
@@ -257,14 +257,14 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         private Dictionary<string, List<BackendConnection>> BuildBackendUsageMapFromPolicies(ApiManagementServiceResource apimResource)
         {
             var connectionMap = new Dictionary<string, List<BackendConnection>>();
-            
+
             foreach (ApiResource api in apimResource.GetApis().GetAll())
             {
                 string apiName = api.Data.Name;
                 CollectApiLevelBackendConnections(api, apiName, connectionMap);
                 CollectOperationLevelBackendConnections(api, apiName, connectionMap);
             }
-            
+
             return connectionMap;
         }
 
@@ -307,11 +307,11 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         }
 
         private Dictionary<string, BackendResourceInfo> BuildBackendResourceMap(
-            ApiManagementServiceResource apimResource, 
+            ApiManagementServiceResource apimResource,
             Dictionary<string, List<BackendConnection>> connectionMap)
         {
             var backendResourceMap = new Dictionary<string, BackendResourceInfo>();
-            
+
             foreach (var backend in apimResource.GetApiManagementBackends().GetAll())
             {
                 var resourceUri = backend.Data.Uri?.ToString() ?? string.Empty;
@@ -322,7 +322,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
 
                 const string managementUriPrefix = "https://management.azure.com";
                 string? armResourceId = null;
-                
+
                 if (!string.IsNullOrEmpty(armResourceUri) && armResourceUri.StartsWith(managementUriPrefix, StringComparison.OrdinalIgnoreCase))
                 {
                     armResourceId = armResourceUri.Substring(managementUriPrefix.Length);
@@ -344,7 +344,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
                     };
                 }
             }
-            
+
             return backendResourceMap;
         }
     }

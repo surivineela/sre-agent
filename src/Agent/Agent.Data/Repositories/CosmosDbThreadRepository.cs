@@ -44,14 +44,14 @@ public class CosmosDbThreadRepository : IThreadRepository
 
     #region Thread Operations
 
-    public async Task<Thread> GetThreadAsync(Guid threadId)
+    public async Task<Thread?> GetThreadAsync(Guid threadId)
     {
         _logger.LogInternalInformation("Trying to get thread: {Id}", threadId);
         try
         {
             // First get the thread document
             string threadIdStr = threadId.ToString();
-            ThreadDocument threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
+            ThreadDocument? threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
 
             if (threadDoc == null)
             {
@@ -60,7 +60,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             }
 
             // Then get the start message
-            MessageDocument startMessageDoc = await GetDocumentAsync<MessageDocument>(threadDoc.MessageId, threadIdStr);
+            MessageDocument? startMessageDoc = await GetDocumentAsync<MessageDocument>(threadDoc.MessageId, threadIdStr);
 
             if (startMessageDoc == null)
             {
@@ -70,7 +70,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
             // last message may be null if thread was created before we started saving last message id
             // & a new message has not been added to the thread
-            Message lastMessageDocDomainModel;
+            Message? lastMessageDocDomainModel;
             if (threadDoc.LastMessageId == null)
             {
                 _logger.LogInternalInformation("last message {startMessageId} not found for thread: {Id}", threadDoc.MessageId, threadDoc.Id);
@@ -78,7 +78,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             }
             else
             {
-                MessageDocument lastMessageDoc = await GetDocumentAsync<MessageDocument>(
+                MessageDocument? lastMessageDoc = await GetDocumentAsync<MessageDocument>(
                     threadDoc.LastMessageId,
                     threadDoc.Id
                 );
@@ -147,13 +147,13 @@ public class CosmosDbThreadRepository : IThreadRepository
             foreach (var threadDoc in await iterator.ReadNextAsync())
             {
                 // Get the start message for each thread
-                MessageDocument startMessageDoc = await GetDocumentAsync<MessageDocument>(
+                MessageDocument? startMessageDoc = await GetDocumentAsync<MessageDocument>(
                     threadDoc.MessageId,
                     threadDoc.Id
                 );
                 // last message may be null if thread was created before we started saving last message id
                 // & a new message has not been added to the thread
-                Message lastMessageDocDomainModel;
+                Message? lastMessageDocDomainModel;
                 if (threadDoc.LastMessageId == null)
                 {
                     _logger.LogInternalInformation("last message {startMessageId} not found for thread: {Id}", threadDoc.MessageId, threadDoc.Id);
@@ -161,7 +161,7 @@ public class CosmosDbThreadRepository : IThreadRepository
                 }
                 else
                 {
-                    MessageDocument lastMessageDoc = await GetDocumentAsync<MessageDocument>(
+                    MessageDocument? lastMessageDoc = await GetDocumentAsync<MessageDocument>(
                         threadDoc.LastMessageId,
                         threadDoc.Id
                     );
@@ -228,7 +228,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             foreach (var threadDoc in await iterator.ReadNextAsync())
             {
                 // Get the start message for each thread
-                MessageDocument startMessageDoc = await GetDocumentAsync<MessageDocument>(
+                MessageDocument? startMessageDoc = await GetDocumentAsync<MessageDocument>(
                     threadDoc.MessageId,
                     threadDoc.Id
                 );
@@ -236,7 +236,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
                 // last message may be null if thread was created before we started saving last message id
                 // & a new message has not been added to the thread
-                Message lastMessageDocDomainModel;
+                Message? lastMessageDocDomainModel;
                 if (threadDoc.LastMessageId == null)
                 {
                     _logger.LogInternalInformation("last message {startMessageId} not found for thread: {Id}", threadDoc.MessageId, threadDoc.Id);
@@ -244,7 +244,7 @@ public class CosmosDbThreadRepository : IThreadRepository
                 }
                 else
                 {
-                    MessageDocument lastMessageDoc = await GetDocumentAsync<MessageDocument>(
+                    MessageDocument? lastMessageDoc = await GetDocumentAsync<MessageDocument>(
                         threadDoc.LastMessageId,
                         threadDoc.Id
                     );
@@ -283,11 +283,11 @@ public class CosmosDbThreadRepository : IThreadRepository
         {
             if (severity == ActionSeverity.Critical)
             {
-                threads = threads.Where(t => t.Status.ActionsStatus?.HasCriticalActions == true).ToList();
+                threads = threads.Where(t => t?.Status?.ActionsStatus?.HasCriticalActions == true).ToList();
             }
             else if (severity == ActionSeverity.Warning)
             {
-                threads = threads.Where(t => t.Status.ActionsStatus?.HasWarningActions == true).ToList();
+                threads = threads.Where(t => t?.Status?.ActionsStatus?.HasWarningActions == true).ToList();
             }
         }
 
@@ -300,17 +300,23 @@ public class CosmosDbThreadRepository : IThreadRepository
         if (thread.Id == Guid.Empty)
             thread = thread with { Id = Guid.NewGuid() };
 
-        if (thread.StartMessage.Id == Guid.Empty)
+        if (thread.StartMessage?.Id == Guid.Empty)
             thread = thread with
             {
                 StartMessage = thread.StartMessage with { Id = Guid.NewGuid() }
             };
 
-        if (thread.LastMessage.Id == Guid.Empty)
+        if (thread?.LastMessage?.Id == Guid.Empty)
             thread = thread with
             {
                 LastMessage = thread.LastMessage with { Id = Guid.NewGuid() }
             };
+
+        if (thread == null)
+        {
+            _logger.LogInternalError("Input Thread is null in Creating Threads");
+            throw new InvalidOperationException("thread is null");
+        }
 
         // Then create the thread
         ThreadDocument threadDoc = ThreadDocument.FromDomainModel(thread);
@@ -395,14 +401,14 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
-    public async Task<Thread> UpdateThreadTitleAsync(Guid threadId, string newTitle)
+    public async Task<Thread?> UpdateThreadTitleAsync(Guid threadId, string newTitle)
     {
         string threadIdStr = threadId.ToString();
 
         try
         {
             // Get the current thread document
-            ThreadDocument threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
+            ThreadDocument? threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
 
             if (threadDoc == null)
             {
@@ -425,7 +431,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             );
 
             // Get the start message to construct the complete Thread domain model
-            MessageDocument startMessageDoc = await GetDocumentAsync<MessageDocument>(
+            MessageDocument? startMessageDoc = await GetDocumentAsync<MessageDocument>(
                 threadDoc.MessageId,
                 threadIdStr
             );
@@ -434,7 +440,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
             // last message may be null if thread was created before we started saving last message id
             // & a new message has not been added to the thread
-            Message lastMessageDocDomainModel;
+            Message? lastMessageDocDomainModel;
             if (threadDoc.LastMessageId == null)
             {
                 _logger.LogInternalInformation("last message {startMessageId} not found for thread: {Id}", threadDoc.MessageId, threadDoc.Id);
@@ -442,7 +448,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             }
             else
             {
-                MessageDocument lastMessageDoc = await GetDocumentAsync<MessageDocument>(
+                MessageDocument? lastMessageDoc = await GetDocumentAsync<MessageDocument>(
                     threadDoc.LastMessageId,
                     threadDoc.Id
                 );
@@ -481,14 +487,14 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
-    public async Task<Thread> UpdateThreadReadMarkAsync(Guid threadId, DateTime lastReadTime)
+    public async Task<Thread?> UpdateThreadReadMarkAsync(Guid threadId, DateTime lastReadTime)
     {
         string threadIdStr = threadId.ToString();
 
         try
         {
             // Get the current thread document
-            ThreadDocument threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
+            ThreadDocument? threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
 
             if (threadDoc == null)
             {
@@ -520,14 +526,14 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
-    public async Task<Thread> UpdateThreadEvaluatedTimestampAsync(Guid threadId, DateTime evaluatedTimestamp)
+    public async Task<Thread?> UpdateThreadEvaluatedTimestampAsync(Guid threadId, DateTime evaluatedTimestamp)
     {
         string threadIdStr = threadId.ToString();
 
         try
         {
             // Get the current thread document
-            ThreadDocument threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
+            ThreadDocument? threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
 
             if (threadDoc == null)
             {
@@ -564,14 +570,14 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
-    public async Task<Thread> UpdateTrajectoryGeneratedTimestampAsync(Guid threadId, DateTime evaluatedTimestamp)
+    public async Task<Thread?> UpdateTrajectoryGeneratedTimestampAsync(Guid threadId, DateTime evaluatedTimestamp)
     {
         string threadIdStr = threadId.ToString();
 
         try
         {
             // Get the current thread document
-            ThreadDocument threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
+            ThreadDocument? threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
 
             if (threadDoc == null)
             {
@@ -608,14 +614,14 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
-    public async Task<Thread> UpdateThreadAgentModeAsync(Guid threadId, string? agentMode)
+    public async Task<Thread?> UpdateThreadAgentModeAsync(Guid threadId, string? agentMode)
     {
         string threadIdStr = threadId.ToString();
 
         try
         {
             // Get the current thread document
-            ThreadDocument threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
+            ThreadDocument? threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
 
             if (threadDoc == null)
             {
@@ -659,14 +665,14 @@ public class CosmosDbThreadRepository : IThreadRepository
 
     #region Message Operations
 
-    public async Task<Message> GetMessageAsync(Guid threadId, Guid messageId)
+    public async Task<Message?> GetMessageAsync(Guid threadId, Guid messageId)
     {
         try
         {
             string threadIdStr = threadId.ToString();
             string messageIdStr = messageId.ToString();
 
-            MessageDocument messageDoc = await GetDocumentAsync<MessageDocument>(messageIdStr, threadIdStr);
+            MessageDocument? messageDoc = await GetDocumentAsync<MessageDocument>(messageIdStr, threadIdStr);
 
             return messageDoc?.ToDomainModel();
         }
@@ -773,7 +779,7 @@ public class CosmosDbThreadRepository : IThreadRepository
                         .Where(e => e.Id == messageDoc.AzCliExecution.Id.ToString());
 
                     using var executionIterator = executionQuery.ToFeedIterator();
-                    CliExecutionDocument executionDoc = null;
+                    CliExecutionDocument? executionDoc = null;
                     if (executionIterator.HasMoreResults)
                     {
                         var executionResults = await executionIterator.ReadNextAsync();
@@ -806,7 +812,7 @@ public class CosmosDbThreadRepository : IThreadRepository
                         .Where(e => e.Id == messageDoc.KubectlExecution.Id.ToString());
 
                     using var executionIterator = executionQuery.ToFeedIterator();
-                    KubectlExecutionDocument executionDoc = null;
+                    KubectlExecutionDocument? executionDoc = null;
                     if (executionIterator.HasMoreResults)
                     {
                         var executionResults = await executionIterator.ReadNextAsync();
@@ -858,7 +864,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         // Update the thread's modified timestamp
         try
         {
-            ThreadDocument threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
+            ThreadDocument? threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
             if (threadDoc != null)
             {
                 ThreadDocument updatedThreadDoc = threadDoc with { ModifiedTimestamp = DateTime.UtcNow };
@@ -878,7 +884,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         // Update the threads latest message
         try
         {
-            ThreadDocument threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
+            ThreadDocument? threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
             if (threadDoc != null)
             {
                 ThreadDocument updatedThreadDoc = threadDoc with { LastMessageId = message.Id.ToString() };
@@ -898,7 +904,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         return message;
     }
 
-    public async Task<Message> UpdateMessageAsync(Guid threadId, Message message)
+    public async Task<Message?> UpdateMessageAsync(Guid threadId, Message message)
     {
         if (message.Id == Guid.Empty)
         {
@@ -912,7 +918,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         try
         {
             // Check if the message exists
-            MessageDocument existingMessage = await GetDocumentAsync<MessageDocument>(messageIdStr, threadIdStr);
+            MessageDocument? existingMessage = await GetDocumentAsync<MessageDocument>(messageIdStr, threadIdStr);
             if (existingMessage == null)
             {
                 _logger.LogInternalWarning("Cannot update message: Message {MessageId} not found in thread {ThreadId}",
@@ -936,7 +942,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             // Update the thread's modified timestamp so that the incident cleanup timer doesn't close the issue when its taking longer to investigate
             try
             {
-                ThreadDocument threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
+                ThreadDocument? threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
                 if (threadDoc != null)
                 {
                     ThreadDocument updatedThreadDoc = threadDoc with { ModifiedTimestamp = DateTime.UtcNow };
@@ -976,7 +982,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         try
         {
             // Check if this is a start message
-            ThreadDocument threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
+            ThreadDocument? threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
             if (threadDoc != null && threadDoc.MessageId == messageIdStr)
             {
                 // Can't delete start message without deleting thread
@@ -1000,14 +1006,14 @@ public class CosmosDbThreadRepository : IThreadRepository
     #endregion
 
     #region ThreadContext Operations
-    public async Task<ThreadContext> GetThreadContextAsync(Guid threadId)
+    public async Task<ThreadContext?> GetThreadContextAsync(Guid threadId)
     {
         try
         {
             string threadIdStr = threadId.ToString();
             var threadContextDocId = ThreadContextDocument.GetId(threadIdStr);
 
-            ThreadContextDocument threadContextDoc = await GetDocumentAsync<ThreadContextDocument>(threadContextDocId, threadContextDocId);
+            ThreadContextDocument? threadContextDoc = await GetDocumentAsync<ThreadContextDocument>(threadContextDocId, threadContextDocId);
 
             return threadContextDoc?.ToDomainModel();
         }
@@ -1044,7 +1050,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         return threads;
     }
 
-    public async Task<ThreadContext> AddThreadContextAsync(ThreadContext threadContext)
+    public async Task<ThreadContext?> AddThreadContextAsync(ThreadContext threadContext)
     {
         // Ensure IDs are set
         if (threadContext.ThreadId == Guid.Empty)
@@ -1057,7 +1063,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         return threadContext;
     }
 
-    public async Task<ThreadContext> UpdateThreadContextAsync(ThreadContext threadContext)
+    public async Task<ThreadContext?> UpdateThreadContextAsync(ThreadContext threadContext)
     {
         // Ensure IDs are set
         if (threadContext.ThreadId == Guid.Empty)
@@ -1121,7 +1127,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         return actions;
     }
 
-    public async Task<Action> AddOrUpdateActionAsync(Guid threadId, Action action)
+    public async Task<Action?> AddOrUpdateActionAsync(Guid threadId, Action action)
     {
         // Ensure ID is set
         if (action.Id == Guid.Empty)
@@ -1135,7 +1141,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
         return action;
     }
-    public async Task<Action> GetActionAsync(Guid threadId, Guid actionId)
+    public async Task<Action?> GetActionAsync(Guid threadId, Guid actionId)
     {
         string threadIdStr = threadId.ToString();
         string actionIdStr = actionId.ToString();
@@ -1216,7 +1222,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
     #region Helper Methods
 
-    private async Task<T> GetDocumentAsync<T>(string id, string partitionKey) where T : ICosmosDocument
+    private async Task<T?> GetDocumentAsync<T>(string id, string partitionKey) where T : ICosmosDocument
     {
         try
         {
@@ -1232,7 +1238,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
-    private async Task<(T document, string etag)> GetDocumentWithEtagAsync<T>(string id, string partitionKey) where T : ICosmosDocument
+    private async Task<(T? document, string? etag)> GetDocumentWithEtagAsync<T>(string id, string partitionKey) where T : ICosmosDocument
     {
         try
         {
@@ -1250,7 +1256,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
     private async Task<Status?> GetThreadStatus(Thread thread)
     {
-        Status status = null;
+        Status? status = null;
 
         // update Actions Status Properties for each thread
         var threadIdsWithCriticalActions = await GetThreadIdsWithActionSeverityAsync(ActionSeverity.Critical);
@@ -1267,35 +1273,35 @@ public class CosmosDbThreadRepository : IThreadRepository
                 HasCriticalActions = hasCriticalActions,
                 HasWarningActions = hasWarningActions
             },
-            IncidentStatus = thread.Status.IncidentStatus
+            IncidentStatus = thread?.Status?.IncidentStatus
         };
 
         // add incident status
-        if (thread.Source == ThreadSource.Incident)
+        if (thread?.Source == ThreadSource.Incident)
         {
             if (thread.Status != null && !string.IsNullOrEmpty(thread.IncidentSource?.IncidentId))
             {
                 // check for incident in cosmos and apply status
                 // check pager duty first
-                PagerDutyIncidentDocument pagerDutyIncident = await GetDocumentAsync<PagerDutyIncidentDocument>(thread.IncidentSource.IncidentId, thread.IncidentSource.IncidentId);
+                PagerDutyIncidentDocument? pagerDutyIncident = await GetDocumentAsync<PagerDutyIncidentDocument>(thread?.IncidentSource?.IncidentId ?? string.Empty, thread?.IncidentSource?.IncidentId ?? string.Empty);
 
                 if (pagerDutyIncident != null)
                 {
                     status.IncidentStatus = new IncidentStatus
                     {
-                        IncidentId = thread.IncidentSource.IncidentId,
+                        IncidentId = thread?.IncidentSource?.IncidentId,
                         Status = pagerDutyIncident.Status
                     };
                 }
                 else
                 {
                     // check azmon incident
-                    AzMonitorAlertDocument azMonIncident = await GetDocumentAsync<AzMonitorAlertDocument>(thread.Status?.IncidentStatus?.IncidentId, thread.Status?.IncidentStatus?.IncidentId);
+                    AzMonitorAlertDocument? azMonIncident = await GetDocumentAsync<AzMonitorAlertDocument>(thread?.Status?.IncidentStatus?.IncidentId ?? string.Empty, thread?.Status?.IncidentStatus?.IncidentId ?? string.Empty);
                     if (azMonIncident != null)
                     {
                         status.IncidentStatus = new IncidentStatus
                         {
-                            IncidentId = thread.Status?.IncidentStatus?.IncidentId,
+                            IncidentId = thread?.Status?.IncidentStatus?.IncidentId,
                             Status = azMonIncident.Status
                         };
                     }
@@ -1310,14 +1316,14 @@ public class CosmosDbThreadRepository : IThreadRepository
 
     #region Message Operations
 
-    public async Task<MessageFeedback> GetMessageFeedbackAsync(Guid threadId, Guid messageFeedbackId)
+    public async Task<MessageFeedback?> GetMessageFeedbackAsync(Guid threadId, Guid messageFeedbackId)
     {
         try
         {
             string threadIdStr = threadId.ToString();
             string messageFeedbackIdStr = messageFeedbackId.ToString();
 
-            MessageFeedbackDocument messageFeedbackDoc = await GetDocumentAsync<MessageFeedbackDocument>(messageFeedbackIdStr, threadIdStr);
+            MessageFeedbackDocument? messageFeedbackDoc = await GetDocumentAsync<MessageFeedbackDocument>(messageFeedbackIdStr, threadIdStr);
 
             return messageFeedbackDoc?.ToDomainModel();
         }
@@ -1354,7 +1360,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         return messageFeedbacks;
     }
 
-    public async Task<MessageFeedback> GetMessageFeedbackNeedingRCAAsync()
+    public async Task<MessageFeedback?> GetMessageFeedbackNeedingRCAAsync()
     {
         var messageFeedbacks = new List<MessageFeedback>();
 
@@ -1380,7 +1386,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         return null;
     }
 
-    public async Task<MessageFeedback> AddOrUpdateMessageFeedbackAsync(Guid threadId, MessageFeedback messageFeedback)
+    public async Task<MessageFeedback?> AddOrUpdateMessageFeedbackAsync(Guid threadId, MessageFeedback messageFeedback)
     {
         // Ensure ID is set
         if (messageFeedback.Id == Guid.Empty)
@@ -1418,20 +1424,27 @@ public class CosmosDbThreadRepository : IThreadRepository
     #endregion
 
     #region AgentContext Operations
-    public async Task<AgentContext?> GetAgentContextAsync(Guid agentContextId, Guid threadId)
+    public async Task<AgentContext> GetAgentContextAsync(Guid agentContextId, Guid threadId)
     {
         try
         {
             string threadIdStr = threadId.ToString();
             string agentContextIdStr = agentContextId.ToString();
 
-            AgentContextDocument agentContextDocument = await GetDocumentAsync<AgentContextDocument>(agentContextIdStr, threadIdStr);
+            AgentContextDocument? agentContextDocument = await GetDocumentAsync<AgentContextDocument>(agentContextIdStr, threadIdStr);
 
-            return agentContextDocument?.ToDomainModel();
+            var agentContext = agentContextDocument?.ToDomainModel();
+            if (agentContext == null)
+            {
+                _logger.LogInternalError($"Error in getting AgentContext. Agent context is null, agentContextId: {agentContextId}, thread: {threadId}");
+                throw new InvalidOperationException($"Error in getting AgentContext. Agent context is null, agentContextId: {agentContextId}, thread: {threadId}");
+            }
+            return agentContext;
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
-            return null;
+            _logger.LogInternalError($"Error in getting AgentContext. Agent context not found, agentContextId: {agentContextId}, thread: {threadId}");
+            throw new InvalidOperationException($"Error in getting AgentContext. Agent context not found, agentContextId: {agentContextId}, thread: {threadId}");
         }
     }
 
@@ -1480,7 +1493,8 @@ public class CosmosDbThreadRepository : IThreadRepository
 
         if (agentContext.ThreadId == Guid.Empty)
         {
-            return null;
+            _logger.LogInternalError("Agent context has empty thread Id, error creating agent context.");
+            throw new InvalidOperationException("Agent context has empty thread Id, error creating agent context.");
         }
 
         // Create the sub-agent thread document
@@ -1499,7 +1513,8 @@ public class CosmosDbThreadRepository : IThreadRepository
 
         if (agentContext.ThreadId == Guid.Empty)
         {
-            return null;
+            _logger.LogInternalError("Agent context has empty thread Id, error updating agent context.");
+            throw new InvalidOperationException("Agent context has empty thread Id, error updating agent context.");
         }
 
         // Create the sub-agent thread document
@@ -1568,14 +1583,14 @@ public class CosmosDbThreadRepository : IThreadRepository
     #endregion
 
     #region ReasoningMessage Operations
-    public async Task<ReasoningMessage> GetReasoningMessageAsync(Guid reasoningMessageId, Guid agentContextId)
+    public async Task<ReasoningMessage?> GetReasoningMessageAsync(Guid reasoningMessageId, Guid agentContextId)
     {
         try
         {
             string agentContextIdStr = agentContextId.ToString();
             string reasoningMessageIdStr = reasoningMessageId.ToString();
 
-            ReasoningMessageDocument reasoningMessageDocument = await GetDocumentAsync<ReasoningMessageDocument>(reasoningMessageIdStr, agentContextIdStr);
+            ReasoningMessageDocument? reasoningMessageDocument = await GetDocumentAsync<ReasoningMessageDocument>(reasoningMessageIdStr, agentContextIdStr);
 
             return reasoningMessageDocument?.ToDomainModel();
         }
@@ -1585,7 +1600,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
-    public async Task<ReasoningMessage> CreateReasoningMessageAsync(ReasoningMessage reasoningMessage)
+    public async Task<ReasoningMessage?> CreateReasoningMessageAsync(ReasoningMessage reasoningMessage)
     {
         // Ensure IDs are set
         if (reasoningMessage.Id == Guid.Empty)
@@ -1627,13 +1642,13 @@ public class CosmosDbThreadRepository : IThreadRepository
     #endregion
 
     #region AgentChatHistory Operations
-    public async Task<AgentChatHistory> GetAgentChatHistoryAsync(Guid agentContextId)
+    public async Task<AgentChatHistory?> GetAgentChatHistoryAsync(Guid agentContextId)
     {
         try
         {
             string agentContextIdStr = agentContextId.ToString();
 
-            AgentChatHistoryDocument agentChatHistoryDocument = await GetDocumentAsync<AgentChatHistoryDocument>(AgentChatHistoryDocument.GetDocumentId(agentContextIdStr), agentContextIdStr);
+            AgentChatHistoryDocument? agentChatHistoryDocument = await GetDocumentAsync<AgentChatHistoryDocument>(AgentChatHistoryDocument.GetDocumentId(agentContextIdStr), agentContextIdStr);
 
             return agentChatHistoryDocument?.ToDomainModel();
         }
@@ -1643,7 +1658,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
-    public async Task<AgentChatHistory> CreateAgentChatHistoryAsync(AgentChatHistory agentChatHistory)
+    public async Task<AgentChatHistory?> CreateAgentChatHistoryAsync(AgentChatHistory agentChatHistory)
     {
         // Ensure IDs are set
         if (agentChatHistory.AgentContextId == Guid.Empty)
@@ -1657,7 +1672,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         return agentChatHistory;
     }
 
-    public async Task<AgentChatHistory> UpdateAgentChatHistoryAsync(AgentChatHistory agentChatHistory)
+    public async Task<AgentChatHistory?> UpdateAgentChatHistoryAsync(AgentChatHistory agentChatHistory)
     {
         // Ensure IDs are set
         if (agentChatHistory.AgentContextId == Guid.Empty)
@@ -1671,7 +1686,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         return agentChatHistory;
     }
 
-    public async Task<AgentChatHistory> AddReasoningMessagesToChatHistoryAsync(AgentChatHistory agentChatHistory, params IEnumerable<ReasoningMessage> reasoningMessages)
+    public async Task<AgentChatHistory?> AddReasoningMessagesToChatHistoryAsync(AgentChatHistory agentChatHistory, params IEnumerable<ReasoningMessage> reasoningMessages)
     {
         // Ensure IDs are set
         if (agentChatHistory.AgentContextId == Guid.Empty)
@@ -1721,22 +1736,23 @@ public class CosmosDbThreadRepository : IThreadRepository
             {
                 foreach (var message in reasoningMessages)
                 {
-                    existingDocument.ReasoningMessageIds.Add(message.Id.ToString());
+                    existingDocument?.ReasoningMessageIds.Add(message.Id.ToString());
 
-                    if (message.Role == ReasoningMessageRoleEnum.User)
+                    if (message?.Role == ReasoningMessageRoleEnum.User && existingDocument != null)
                     {
                         existingDocument.LatestUserMessageId = message.Id.ToString();
                     }
+
                 }
 
                 var updateResponse = await _client.GetContainer<AgentChatHistoryDocument>(_databaseName).ReplaceItemAsync(
                     existingDocument,
-                    existingDocument.Id,
-                    new PartitionKey(existingDocument.PartitionKey),
+                    existingDocument?.Id,
+                    new PartitionKey(existingDocument?.PartitionKey),
                     new ItemRequestOptions { IfMatchEtag = etag }
                 );
 
-                return updateResponse.Resource.ToDomainModel();
+                return updateResponse?.Resource?.ToDomainModel();
             }
             catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.PreconditionFailed)
             {
@@ -1780,14 +1796,14 @@ public class CosmosDbThreadRepository : IThreadRepository
     #endregion
 
     #region ApprovalV2 Operations
-    public async Task<ApprovalV2> GetApprovalV2Async(Guid approvalIdV2, Guid agentContextId)
+    public async Task<ApprovalV2?> GetApprovalV2Async(Guid approvalIdV2, Guid agentContextId)
     {
         try
         {
             string approvalIdStr = approvalIdV2.ToString();
             string agentContextIdStr = agentContextId.ToString();
 
-            ApprovalV2Document approvalV2Document = await GetDocumentAsync<ApprovalV2Document>(approvalIdStr, agentContextIdStr);
+            ApprovalV2Document? approvalV2Document = await GetDocumentAsync<ApprovalV2Document>(approvalIdStr, agentContextIdStr);
 
             return approvalV2Document?.ToDomainModel();
         }
@@ -1814,7 +1830,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         return approvalV2s;
     }
 
-    public async Task<ApprovalV2> CreateApprovalV2Async(ApprovalV2 approvalV2)
+    public async Task<ApprovalV2?> CreateApprovalV2Async(ApprovalV2 approvalV2)
     {
         // Ensure IDs are set
         if (approvalV2.Id == Guid.Empty)
@@ -1833,7 +1849,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         return approvalV2;
     }
 
-    public async Task<ApprovalV2> UpdateApprovalV2Async(ApprovalV2 approvalV2)
+    public async Task<ApprovalV2?> UpdateApprovalV2Async(ApprovalV2 approvalV2)
     {
         // Ensure IDs are set
         if (approvalV2.Id == Guid.Empty)
@@ -1852,7 +1868,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         return approvalV2;
     }
 
-    public async Task<Approval> CreateApprovalAsync(Approval approval)
+    public async Task<Approval?> CreateApprovalAsync(Approval approval)
     {
         // Ensure IDs are set
         if (approval.Id == Guid.Empty)
@@ -1871,14 +1887,14 @@ public class CosmosDbThreadRepository : IThreadRepository
         return approval;
     }
 
-    public async Task<Approval> GetApprovalAsync(Guid threadId, Guid approvalId)
+    public async Task<Approval?> GetApprovalAsync(Guid threadId, Guid approvalId)
     {
         try
         {
             string id = approvalId.ToString();
             string partitionKey = threadId.ToString();
 
-            ApprovalDocument approvalDocument = await GetDocumentAsync<ApprovalDocument>(id, partitionKey);
+            ApprovalDocument? approvalDocument = await GetDocumentAsync<ApprovalDocument>(id, partitionKey);
 
             return approvalDocument?.ToDomainModel();
         }
@@ -1890,7 +1906,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
     // there might be multiple approvals with same title due to oboToken expiration
     // always get the approval with latest created timestamp
-    public async Task<Approval> GetApprovalAsync(Guid threadId, string title)
+    public async Task<Approval?> GetApprovalAsync(Guid threadId, string title)
     {
         try
         {
@@ -1923,7 +1939,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
-    public async Task<Approval> UpdateApprovalAsync(Approval approval)
+    public async Task<Approval?> UpdateApprovalAsync(Approval approval)
     {
         var approvalDocument = ApprovalDocument.FromDomainModel(approval);
         await _client.GetContainer<ApprovalDocument>(_databaseName).UpsertItemAsync(approvalDocument, new PartitionKey(approvalDocument.PartitionKey));
@@ -1954,17 +1970,17 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
-            return null;
+            return new List<Approval>();
         }
     }
     #endregion
 
     #region GitHubAccessToken Operations
-    public async Task<GitHubAccessToken> GetGitHubAccessTokenAsync()
+    public async Task<GitHubAccessToken?> GetGitHubAccessTokenAsync()
     {
         try
         {
-            GitHubAccessTokenDocument gitHubAccessTokenDocument = await GetDocumentAsync<GitHubAccessTokenDocument>("GitHubAccessToken", "GitHubAccessToken");
+            GitHubAccessTokenDocument? gitHubAccessTokenDocument = await GetDocumentAsync<GitHubAccessTokenDocument>("GitHubAccessToken", "GitHubAccessToken");
             return gitHubAccessTokenDocument?.ToDomainModel();
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
@@ -1973,7 +1989,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
-    public async Task<GitHubAccessToken> CreateOrUpdateGitHubAccessTokenAsync(GitHubAccessToken gitHubAccessToken)
+    public async Task<GitHubAccessToken?> CreateOrUpdateGitHubAccessTokenAsync(GitHubAccessToken gitHubAccessToken)
     {
         // Create the GitHub access token document
         GitHubAccessTokenDocument gitHubAccessTokenDoc = GitHubAccessTokenDocument.FromDomainModel(gitHubAccessToken);
@@ -2000,11 +2016,11 @@ public class CosmosDbThreadRepository : IThreadRepository
 
     #region AzureDevOps
 
-    public async Task<AzureDevOpsAccessToken> GetAzureDevOpsAccessTokenAsync(string resourceId)
+    public async Task<AzureDevOpsAccessToken?> GetAzureDevOpsAccessTokenAsync(string resourceId)
     {
         try
         {
-            AzureDevOpsAccessTokenDocument azureDevOpsAccessTokenDocument = await GetDocumentAsync<AzureDevOpsAccessTokenDocument>($"{AzureDevOpsAccessTokenDocument.KeyName}_{resourceId}_{AzureDevOpsAccessTokenDocument._sessionGuid}", AzureDevOpsAccessTokenDocument.KeyName);
+            AzureDevOpsAccessTokenDocument? azureDevOpsAccessTokenDocument = await GetDocumentAsync<AzureDevOpsAccessTokenDocument>($"{AzureDevOpsAccessTokenDocument.KeyName}_{resourceId}_{AzureDevOpsAccessTokenDocument._sessionGuid}", AzureDevOpsAccessTokenDocument.KeyName);
             return azureDevOpsAccessTokenDocument?.ToDomainModel();
         }
 
@@ -2014,7 +2030,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
-    public async Task<AzureDevOpsAccessToken> CreateOrUpdateAzureDevOpsAccessTokenAsync(AzureDevOpsAccessToken azureDevOpsAccessToken, string resourceId)
+    public async Task<AzureDevOpsAccessToken?> CreateOrUpdateAzureDevOpsAccessTokenAsync(AzureDevOpsAccessToken azureDevOpsAccessToken, string resourceId)
     {
         // Create the Azure DevOps access token document
         AzureDevOpsAccessTokenDocument azureDevOpsAccessDoc = AzureDevOpsAccessTokenDocument.FromDomainModel(azureDevOpsAccessToken, resourceId);
@@ -2041,14 +2057,14 @@ public class CosmosDbThreadRepository : IThreadRepository
 
     #region AzCliExecution Operations
 
-    public async Task<AzCliExecution> GetAzCliExecutionAsync(Guid threadId, Guid executionId)
+    public async Task<AzCliExecution?> GetAzCliExecutionAsync(Guid threadId, Guid executionId)
     {
         try
         {
             string threadIdStr = threadId.ToString();
             string executionIdStr = executionId.ToString();
 
-            CliExecutionDocument executionDoc = await GetDocumentAsync<CliExecutionDocument>(executionIdStr, threadIdStr);
+            CliExecutionDocument? executionDoc = await GetDocumentAsync<CliExecutionDocument>(executionIdStr, threadIdStr);
 
             return executionDoc?.ToDomainModel();
         }
@@ -2058,7 +2074,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
-    public async Task<AzCliExecution> CreateAzCliExecutionAsync(Guid threadId, AzCliExecution execution)
+    public async Task<AzCliExecution?> CreateAzCliExecutionAsync(Guid threadId, AzCliExecution execution)
     {
         // Ensure ID is set
         if (execution.Id == Guid.Empty)
@@ -2075,7 +2091,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         return execution;
     }
 
-    public async Task<AzCliExecution> UpdateAzCliExecutionAsync(Guid threadId, AzCliExecution execution)
+    public async Task<AzCliExecution?> UpdateAzCliExecutionAsync(Guid threadId, AzCliExecution execution)
     {
         string threadIdStr = threadId.ToString();
 
@@ -2085,7 +2101,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         return execution;
     }
 
-    public async Task<AzCliExecution> UpdateAzCliExecutionOutputAsync(Guid threadId, Guid executionId, string output, string? error = null)
+    public async Task<AzCliExecution?> UpdateAzCliExecutionOutputAsync(Guid threadId, Guid executionId, string output, string? error = null)
     {
         string threadIdStr = threadId.ToString();
         string executionIdStr = executionId.ToString();
@@ -2116,7 +2132,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
-    public async Task<AzCliExecution> ListPendingAzCliExecutionAsync(Guid threadId)
+    public async Task<AzCliExecution?> ListPendingAzCliExecutionAsync(Guid threadId)
     {
         try
         {
@@ -2147,14 +2163,14 @@ public class CosmosDbThreadRepository : IThreadRepository
 
     #region KubectlExecution Operations
 
-    public async Task<KubectlExecution> GetKubectlExecutionAsync(Guid threadId, Guid executionId)
+    public async Task<KubectlExecution?> GetKubectlExecutionAsync(Guid threadId, Guid executionId)
     {
         try
         {
             string threadIdStr = threadId.ToString();
             string executionIdStr = executionId.ToString();
 
-            KubectlExecutionDocument executionDoc = await GetDocumentAsync<KubectlExecutionDocument>(executionIdStr, threadIdStr);
+            KubectlExecutionDocument? executionDoc = await GetDocumentAsync<KubectlExecutionDocument>(executionIdStr, threadIdStr);
 
             return executionDoc?.ToDomainModel();
         }
@@ -2164,7 +2180,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
-    public async Task<KubectlExecution> CreateKubectlExecutionAsync(Guid threadId, KubectlExecution execution)
+    public async Task<KubectlExecution?> CreateKubectlExecutionAsync(Guid threadId, KubectlExecution execution)
     {
         // Ensure ID is set
         if (execution.Id == Guid.Empty)
@@ -2181,7 +2197,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         return execution;
     }
 
-    public async Task<KubectlExecution> UpdateKubectlExecutionAsync(Guid threadId, KubectlExecution execution)
+    public async Task<KubectlExecution?> UpdateKubectlExecutionAsync(Guid threadId, KubectlExecution execution)
     {
         string threadIdStr = threadId.ToString();
 
@@ -2191,7 +2207,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         return execution;
     }
 
-    public async Task<KubectlExecution> UpdateKubectlExecutionOutputAsync(Guid threadId, Guid executionId, string output, string? error = null)
+    public async Task<KubectlExecution?> UpdateKubectlExecutionOutputAsync(Guid threadId, Guid executionId, string output, string? error = null)
     {
         string threadIdStr = threadId.ToString();
         string executionIdStr = executionId.ToString();
@@ -2222,7 +2238,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
-    public async Task<KubectlExecution> ListPendingKubectlExecutionAsync(Guid threadId)
+    public async Task<KubectlExecution?> ListPendingKubectlExecutionAsync(Guid threadId)
     {
         try
         {
@@ -2253,7 +2269,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
     #region ThreadEvaluateResult Operations
 
-    public async Task<ThreadEvaluateResult> GetThreadEvaluateResultAsync(Guid evaluationId)
+    public async Task<ThreadEvaluateResult?> GetThreadEvaluateResultAsync(Guid evaluationId)
     {
         _logger.LogInternalInformation("Trying to get thread evaluation: {Id}", evaluationId);
         try
@@ -2277,7 +2293,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
-    public async Task<ThreadEvaluateResult> GetThreadEvaluateResultByThreadIdAsync(Guid threadId)
+    public async Task<ThreadEvaluateResult?> GetThreadEvaluateResultByThreadIdAsync(Guid threadId)
     {
         _logger.LogInternalInformation("Trying to get thread evaluation by thread ID: {ThreadId}", threadId);
         try
@@ -2328,7 +2344,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         return results;
     }
 
-    public async Task<ThreadEvaluateResult> CreateThreadEvaluateResultAsync(ThreadEvaluateResult evaluateResult)
+    public async Task<ThreadEvaluateResult?> CreateThreadEvaluateResultAsync(ThreadEvaluateResult evaluateResult)
     {
         _logger.LogInternalInformation("Creating thread evaluation: {Id}", evaluateResult.Id);
 
@@ -2346,7 +2362,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         return resultToStore;
     }
 
-    public async Task<ThreadEvaluateResult> UpdateThreadEvaluateResultAsync(ThreadEvaluateResult evaluateResult)
+    public async Task<ThreadEvaluateResult?> UpdateThreadEvaluateResultAsync(ThreadEvaluateResult evaluateResult)
     {
         _logger.LogInternalInformation("Updating thread evaluation: {Id}", evaluateResult.Id);
 

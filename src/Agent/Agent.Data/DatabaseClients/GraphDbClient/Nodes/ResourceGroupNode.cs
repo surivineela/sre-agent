@@ -10,7 +10,7 @@ public sealed class ResourceGroupNode : ArmResourceNode
     public ResourceGroupNode(
         string subscriptionId,
         string resoureGroupName,
-        string location = null) : base(Type, subscriptionId, resoureGroupName, location)
+        string? location = null) : base(Type, subscriptionId, resoureGroupName, location ?? string.Empty)
     {
         ResourceName = resoureGroupName.ToLowerInvariant();
         ResourceId = $"/subscriptions/{SubscriptionId}/resourcegroups/{ResourceGroupName}";
@@ -21,9 +21,9 @@ public sealed class ResourceGroupNode : ArmResourceNode
         var properties = new Dictionary<string, object>
         {
             { "updateTs", UpdateTs },
-            { "resourceId", ResourceId },
-            { "subscriptionId", SubscriptionId },
-            { "resourceGroupName", ResourceGroupName },
+            { "resourceId", ResourceId ?? string.Empty },
+            { "subscriptionId", SubscriptionId ?? string.Empty},
+            { "resourceGroupName", ResourceGroupName ?? string.Empty },
             { "isDeleted", IsDeleted}
         };
 

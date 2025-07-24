@@ -6,7 +6,6 @@ using System.Text.Json;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.Repositories;
-using Agent.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.Communication;
@@ -86,7 +85,7 @@ public class CosmosThreadOrchestrationManager : IThreadOrchestrationManager
             return;
         }
 
-        ThreadContext threadContext;
+        ThreadContext? threadContext;
         try
         {
             threadContext = await _threadRepository.GetThreadContextAsync(threadId);
@@ -97,6 +96,12 @@ public class CosmosThreadOrchestrationManager : IThreadOrchestrationManager
         {
             _logger.LogInternalError(ex, "Failed to get or create thread context, threadId: {ThreadId}", threadIdStr);
             throw;
+        }
+
+        if (threadContext == null)
+        {
+            _logger.LogInternalError("Failed to get or create thread context, threadId: {ThreadId}", threadIdStr);
+            throw new InvalidOperationException("Failed to get or create thread context");
         }
 
         threadContext.OrchestrationState = new OrchestrationState

@@ -7,7 +7,6 @@ using System.Text;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
 using Agent.Data.Helpers;
-using Agent.Logging;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 
@@ -29,13 +28,13 @@ public class CosmosDbThreadTeamsMappingRepository : IThreadTeamsMappingRepositor
         _databaseName = databaseName;
     }
 
-    public async Task<ThreadTeamsMapping> GetMappingByThreadIdAsync(string threadId)
+    public async Task<ThreadTeamsMapping?> GetMappingByThreadIdAsync(string threadId)
     {
 
         try
         {
             // First get the thread document
-            ThreadTeamsMappingDocument threadDoc = await GetDocumentAsync<ThreadTeamsMappingDocument>($"teams_{threadId}", $"teams_{threadId}");
+            ThreadTeamsMappingDocument? threadDoc = await GetDocumentAsync<ThreadTeamsMappingDocument>($"teams_{threadId}", $"teams_{threadId}");
 
             if (threadDoc == null)
                 return null;
@@ -85,7 +84,7 @@ public class CosmosDbThreadTeamsMappingRepository : IThreadTeamsMappingRepositor
         }
     }
 
-    public async Task<ThreadTeamsMapping> GetMappingByConversationIdAsync(string conversationId)
+    public async Task<ThreadTeamsMapping?> GetMappingByConversationIdAsync(string conversationId)
     {
         if (string.IsNullOrEmpty(conversationId))
         {
@@ -108,7 +107,7 @@ public class CosmosDbThreadTeamsMappingRepository : IThreadTeamsMappingRepositor
             if (resultSet.HasMoreResults)
             {
                 FeedResponse<ThreadTeamsMappingDocument> response = await resultSet.ReadNextAsync();
-                ThreadTeamsMappingDocument document = response.FirstOrDefault();
+                ThreadTeamsMappingDocument? document = response.FirstOrDefault();
                 return document?.ToDomainModel();
             }
 
@@ -120,7 +119,7 @@ public class CosmosDbThreadTeamsMappingRepository : IThreadTeamsMappingRepositor
         }
     }
 
-    public async Task<ThreadTeamsMapping> GetFirstOrDefaultChannel()
+    public async Task<ThreadTeamsMapping?> GetFirstOrDefaultChannel()
     {
         try
         {
@@ -137,7 +136,7 @@ public class CosmosDbThreadTeamsMappingRepository : IThreadTeamsMappingRepositor
             if (resultSet.HasMoreResults)
             {
                 FeedResponse<ThreadTeamsMappingDocument> response = await resultSet.ReadNextAsync();
-                ThreadTeamsMappingDocument document = response.FirstOrDefault();
+                ThreadTeamsMappingDocument? document = response.FirstOrDefault();
                 return document?.ToDomainModel();
             }
 
@@ -333,7 +332,7 @@ public class CosmosDbThreadTeamsMappingRepository : IThreadTeamsMappingRepositor
 
     #region Helper Methods
 
-    private async Task<T> GetDocumentAsync<T>(string id, string partitionKey) where T : ICosmosDocument
+    private async Task<T?> GetDocumentAsync<T>(string id, string partitionKey) where T : ICosmosDocument
     {
         try
         {

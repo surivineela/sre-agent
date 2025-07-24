@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
 using System.Text;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
@@ -339,7 +338,7 @@ namespace Agent.Runtime.Services
                 await _inboundCommunicationService.ProcessAlertMessageAsync(new ThreadMessage(
                     ThreadId: thread.Id,
                     AgentContextId: agentContext.Id,
-                    MessageId: thread.StartMessage.Id,
+                    MessageId: thread.StartMessage?.Id ?? new Guid(),
                     Message: "Process the incident as per custom instructions provided",
                     UserId: "incident-system",
                     DisplayName: "Incident System",
@@ -406,7 +405,7 @@ namespace Agent.Runtime.Services
                 await _inboundCommunicationService.ProcessAlertMessageAsync(new ThreadMessage(
                     ThreadId: thread.Id,
                     AgentContextId: agentContext.Id,
-                    MessageId: thread.StartMessage.Id,
+                    MessageId: thread.StartMessage?.Id ?? new Guid(),
                     Message: messageBuilder.ToString(),
                     UserId: "incident-system",
                     DisplayName: request.Source ?? "Incident System",

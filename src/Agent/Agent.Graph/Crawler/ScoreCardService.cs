@@ -8,7 +8,6 @@ using Agent.Data.Repositories;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Crawler.Metrics;
 using Microsoft.Extensions.Logging;
-using Microsoft.OperationalAgent.Core.Extensions;
 
 namespace Agent.Graph.Crawler;
 
@@ -207,7 +206,7 @@ public class ScoreCardService
                     if (!string.IsNullOrEmpty(value))
                     {
                         labels[labelKey] = value;
-                    }                    
+                    }
                 }
             }
 
@@ -280,7 +279,7 @@ public class ScoreCardService
                 {
                     await _appHealthHistoryRepository.UpdateAppHealthHistoryAsync(
                         node.ResourceId,
-                        node.ResourceName,
+                        node.ResourceName ?? string.Empty,
                         node.ResourceType,
                         appHealthInfo);
 

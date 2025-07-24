@@ -25,7 +25,7 @@ namespace Agent.Data.Repositories
         /// </summary>
         /// <param name="appId">ID of the app or resource</param>
         /// <returns>App health history document or null if not found</returns>
-        Task<AppHealthHistoryDocument> GetAppHealthHistoryAsync(string appId);
+        Task<AppHealthHistoryDocument?> GetAppHealthHistoryAsync(string appId);
 
         /// <summary>
         /// Prunes old data points from the health history array that are older than the specified time
@@ -34,4 +34,4 @@ namespace Agent.Data.Repositories
         /// <returns>Number of documents updated and total data points removed</returns>
         Task<(int DocumentsUpdated, int DataPointsRemoved)> PruneAppHealthHistoryAsync(DateTime olderThan);
     }
-} 
+}

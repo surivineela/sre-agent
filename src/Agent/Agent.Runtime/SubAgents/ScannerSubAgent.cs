@@ -17,7 +17,6 @@ namespace Agent.Runtime.SubAgents
         private readonly SinkService _sinkService;
         private readonly IThreadRepository _repository;
         private readonly bool _isConcludingThreadAfterOpeningMessages;
-
         public ScannerSubAgent(
             string name,
             IChatClient chatClient,
@@ -46,8 +45,12 @@ namespace Agent.Runtime.SubAgents
         public virtual async Task PrepareAgentForUserInput(AgentContext agentContext)
         {
             var agentChatHistory = await _repository.GetAgentChatHistoryAsync(agentContext.Id);
-            await this.InitChatHistoryFromMessageQueueAsync(agentChatHistory);
+            if (agentChatHistory == null)
+            {
+                return;
+            }
 
+            await this.InitChatHistoryFromMessageQueueAsync(agentChatHistory);
             var startingMessages = await this.PrepareAgentForUserInput();
             foreach (var messageToAddToChatHistory in startingMessages)
             {

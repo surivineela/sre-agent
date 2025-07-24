@@ -96,7 +96,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
     {
         var outboundConfig = new OutboundConfiguration { Teams = new Teams { Enabled = true } };
         (var thread, var agentContext) = await CreateAgentInitiatedThread(title, message, source, agentTypeEnum, outboundConfig);
-        await _teamsPlugin.CreateTeamsThread(thread.Id.ToString(), thread.StartMessage.Text, thread.StartMessage.Id.ToString());
+        await _teamsPlugin.CreateTeamsThread(thread.Id.ToString(), thread.StartMessage?.Text ?? string.Empty, thread.StartMessage?.Id.ToString() ?? string.Empty);
 
         return thread;
     }
@@ -165,14 +165,14 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
             // Check if an orchestration already exists for this thread
             AgentContext? agentContext = await _repository.GetAgentContextAsync(agentContextId: threadMessage.AgentContextId, threadId: threadMessage.ThreadId);
-            AgentChatHistory agentChatHistory = await _repository.GetAgentChatHistoryAsync(threadMessage.AgentContextId);
+            AgentChatHistory? agentChatHistory = await _repository.GetAgentChatHistoryAsync(threadMessage.AgentContextId);
 
             orchestrationInstanceId = agentContext != null ? await _threadService.GetOrchestrationInstanceId(agentContext.ThreadId) : orchestrationInstanceId;
 
             // we don't need to sink user message if the message is the start message
             var thread = await _repository.GetThreadAsync(threadMessage.ThreadId);
             ReasoningMessage? reasoningMessage = null;
-            if (threadMessage.MessageId != thread.StartMessage?.Id)
+            if (threadMessage.MessageId != thread?.StartMessage?.Id)
             {
                 await _sinkService.SinkUserMessageAsync(threadMessage);
                 reasoningMessage = new ReasoningMessage(
@@ -182,7 +182,10 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                     SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.User, threadMessage.Message)));
                 await _repository.CreateReasoningMessageAsync(reasoningMessage);
 
-                await _repository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, reasoningMessage);
+                if (agentChatHistory != null)
+                {
+                    await _repository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, reasoningMessage);
+                }
             }
 
             if (!string.IsNullOrEmpty(orchestrationInstanceId))
@@ -190,7 +193,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                 var existingOrchestration = await _durableTaskClient.GetInstanceAsync(orchestrationInstanceId,
                     getInputsAndOutputs: true, CancellationToken.None);
 
-                if (existingOrchestration != null)
+                if (existingOrchestration != null && thread != null)
                 {
                     // Check for failed orchestrations and clean them if needed
                     var cleaned = await _threadService.CleanOrchestration(
@@ -228,7 +231,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                             throw new NotSupportedException($"Scanner agent type {agentContext.AgentType} is not supported.");
                     }
 
-                    if (scannerSubAgent != null)
+                    if (scannerSubAgent != null && agentChatHistory != null)
                     {
                         agentResponse = await scannerSubAgent.DoWork(agentContext: agentContext, agentChatHistory: agentChatHistory, threadMessage.Message);
                     }
@@ -249,15 +252,18 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                     };
 
                     await _repository.CreateReasoningMessageAsync(handoffReasoningMessage);
-                    await _repository.AddReasoningMessagesToChatHistoryAsync(handoffToChatHistory, handoffReasoningMessage);
+                    if (handoffToChatHistory != null)
+                    {
+                        await _repository.AddReasoningMessagesToChatHistoryAsync(handoffToChatHistory, handoffReasoningMessage);
+                    }
 
                     return new InboundServiceResponse(threadMessage.ThreadId, responseMessageId, orchestrationInstanceId);
                 }
-                else if (agentContext != null && agentContext.AgentType == AgentTypeEnum.Incident)
+                else if (agentContext != null && agentContext.AgentType == AgentTypeEnum.Incident && agentChatHistory != null)
                 {
                     agentResponse = await _incidentHandlerAgent.ProcessIncidentAsync(agentContext: agentContext, agentChatHistory: agentChatHistory);
                 }
-                else if (agentContext != null)
+                else if (agentContext != null && agentChatHistory != null)
                 {
                     // Process the message with MetaAgent
                     agentResponse = await _metaAgent.ProcessUserMessageAsync(agentContext: agentContext, agentChatHistory: agentChatHistory);
@@ -316,14 +322,14 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
             // Check if an orchestration already exists for this thread
             AgentContext? agentContext = await _repository.GetAgentContextAsync(agentContextId: threadMessage.AgentContextId, threadId: threadMessage.ThreadId);
-            AgentChatHistory agentChatHistory = await _repository.GetAgentChatHistoryAsync(threadMessage.AgentContextId);
+            AgentChatHistory? agentChatHistory = await _repository.GetAgentChatHistoryAsync(threadMessage.AgentContextId);
 
             orchestrationInstanceId = agentContext != null ? await _threadService.GetOrchestrationInstanceId(agentContext.ThreadId) : orchestrationInstanceId;
 
             // we don't need to sink user message if the message is the start message
             var thread = await _repository.GetThreadAsync(threadMessage.ThreadId);
             ReasoningMessage? reasoningMessage = null;
-            if (threadMessage.MessageId != thread.StartMessage.Id)
+            if (threadMessage.MessageId != thread?.StartMessage?.Id)
             {
                 await _sinkService.SinkUserMessageAsync(threadMessage);
                 reasoningMessage = new ReasoningMessage(
@@ -333,14 +339,17 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                     SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.User, threadMessage.Message)));
                 await _repository.CreateReasoningMessageAsync(reasoningMessage);
 
-                await _repository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, reasoningMessage);
+                if (agentChatHistory != null)
+                {
+                    await _repository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, reasoningMessage);
+                }
             }
 
             if (!string.IsNullOrEmpty(orchestrationInstanceId))
             {
                 var existingOrchestration = await _durableTaskClient.GetInstanceAsync(orchestrationInstanceId,
                     getInputsAndOutputs: true, CancellationToken.None);
-                if (existingOrchestration != null)
+                if (existingOrchestration != null && thread != null)
                 {
                     // Check for failed orchestrations and clean them if needed
                     var cleaned = await _threadService.CleanOrchestration(
@@ -363,11 +372,11 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
                 var agentResponse = string.Empty;
 
-                if (agentContext != null && agentContext.AgentType == AgentTypeEnum.Incident)
+                if (agentContext != null && agentContext.AgentType == AgentTypeEnum.Incident && agentChatHistory != null)
                 {
                     agentResponse = await _incidentHandlerAgent.ProcessIncidentAsync(agentContext: agentContext, agentChatHistory: agentChatHistory);
                 }
-                else if (agentContext != null)
+                else if (agentContext != null && agentChatHistory != null)
                 {
                     // Process the message with MetaAgent
                     agentResponse = await _metaAgent.ProcessUserMessageAsync(agentContext: agentContext, agentChatHistory: agentChatHistory);
@@ -520,9 +529,17 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         var agentChatHistory = new AgentChatHistory(AgentContextId: agentContext.Id, ReasoningMessageIds: new List<Guid> { startReasoningMessage.Id });
 
         await _repository.CreateThreadAsync(thread);
-        await _repository.AddMessageAsync(thread.Id, thread.StartMessage);
+        if (thread.StartMessage != null)
+        {
+            await _repository.AddMessageAsync(thread.Id, thread.StartMessage);
+        }
+
         await _agentOutboundCommunicationService.NotifyThreadEvent(thread.Id, thread);
-        await _agentOutboundCommunicationService.NotifyGenericAgentMessage(thread.Id, thread.StartMessage, null);
+        if (thread.StartMessage != null)
+        {
+            await _agentOutboundCommunicationService.NotifyGenericAgentMessage(thread.Id, thread.StartMessage, null);
+        }
+
         await _repository.CreateAgentContextAsync(agentContext);
         (thread, agentContext) = await UpdateAgentModeIfNeed(thread, agentContext, overrideAgentMode);
 
@@ -561,7 +578,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         await ProcessAlertMessageAsync(new ThreadMessage(
             ThreadId: thread.Id,
             AgentContextId: agentContext.Id,
-            MessageId: thread.StartMessage.Id,
+            MessageId: thread.StartMessage?.Id ?? new Guid(),
             Message: "",
             UserId: "incident-system",
             DisplayName: incidentSource.IncidentType.ToString(),

@@ -25,13 +25,13 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
                 JsonValueKind.Number when graphSon.TryGetDecimal(out var decimalValue) => decimalValue,
 
 
-                _ => base.ToObject(graphSon)
+                _ => base.ToObject(graphSon) ?? string.Empty
             };
     }
 
     public class GremlinGraphDatabaseClient : IGraphDatabaseClient
     {
-        public static Lazy<GremlinClient> _gremlinClient;
+        private readonly Lazy<GremlinClient> _gremlinClient;
         private readonly ILogger<GremlinGraphDatabaseClient> _logger;
         private readonly AsyncPolicy _retryPolicy;
 
@@ -67,7 +67,19 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
                             return TimeSpan.FromSeconds(Math.Pow(2, retryAttempt));
                         }
 
-                        var retryDuration = TimeSpan.Parse(respEx.StatusAttributes["x-ms-retry-after-ms"].ToString());
+                        TimeSpan retryDuration;
+                        if (respEx.StatusAttributes != null &&
+                            respEx.StatusAttributes.TryGetValue("x-ms-retry-after-ms", out var value) &&
+                            value != null &&
+                            int.TryParse(value.ToString(), out int retryMs))
+                        {
+                            retryDuration = TimeSpan.FromMilliseconds(retryMs);
+                        }
+                        else
+                        {
+                            retryDuration = TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)); // default
+                        }
+
                         if (retryDuration.TotalMilliseconds <= 0)
                         {
                             return TimeSpan.FromSeconds(Math.Pow(2, retryAttempt));
@@ -159,7 +171,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             }
         }
 
-        public async Task<bool> AddOrUpdateEdgeAsync(string sourceNodeId, string targetNodeId, string relationshipType, IDictionary<string, object> properties = null)
+        public async Task<bool> AddOrUpdateEdgeAsync(string sourceNodeId, string targetNodeId, string relationshipType, IDictionary<string, object>? properties = null)
         {
             var sanitizedSourceNodeId = GetSanitizedCosmosDBId(sourceNodeId);
             var sanitizedTargetNodeId = GetSanitizedCosmosDBId(targetNodeId);
@@ -221,7 +233,10 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             {
                 _logger.LogInternalError(e, $"Exception: {e.Message}. Query: {query}");
 
-                return new ResultSet<T>([], null);
+                return new ResultSet<T>(
+                    new List<T>(),
+                    new Dictionary<string, object>()
+                );
             }
         }
 
@@ -297,7 +312,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
 
         public Task<bool> AddOrUpdateNodeAsync(GraphNode node)
         {
-            return AddOrUpdateNodeAsync(node.GetNodeLabel(), node.GetNodeId(), node.GetResourceType(), node.GetNodeProperties(), node.GetResourceKind());
+            return AddOrUpdateNodeAsync(node.GetNodeLabel(), node.GetNodeId() ?? string.Empty, node.GetResourceType() ?? string.Empty, node.GetNodeProperties(), node.GetResourceKind());
         }
 
         public Task<bool> AddOrUpdateEdgeAsync(GraphEdge edge)

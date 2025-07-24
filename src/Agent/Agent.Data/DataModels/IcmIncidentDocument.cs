@@ -45,13 +45,13 @@ public class IcmIncidentDocument : Incident, IIncidentDocument
         Id = incident.IncidentId;
         CreatedAt = incident.CreatedDate;
         Description = incident.Summary;
-        Priority = incident.Severity;        
+        Priority = incident.Severity;
     }
 
     public static string ContainerName => AgentDataConfiguration.ThreadContainerName; // Cosmos DB container name
     public string DocumentType => "IcmIncident";
 
-    public string Id { get; init; }
+    public string Id { get; init; } = string.Empty;
 
     public string PartitionKey => Id; // Use incident id as partition key
 

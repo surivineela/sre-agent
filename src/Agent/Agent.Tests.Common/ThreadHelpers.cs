@@ -1,13 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Microsoft.Extensions.AI;
-using Microsoft.Identity.Client;
 
 namespace Agent.Tests.Common;
 public static class ThreadHelpers
@@ -36,6 +29,10 @@ public static class ThreadHelpers
         {
             await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
             var threadContext = await threadRepository.GetThreadContextAsync(threadId);
+            if (threadContext == null)
+            {
+                throw new ArgumentNullException(nameof(threadContext));
+            }
             orchestrationState = threadContext.OrchestrationState;
         }
 

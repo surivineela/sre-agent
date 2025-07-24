@@ -4,7 +4,6 @@
 
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
-using Agent.Logging;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.Extensions.Logging;
 using Action = Agent.Core.Models.Api.v1.Action;
@@ -43,12 +42,15 @@ namespace Agent.Data.Repositories
 
         #region Thread Operations
 
-        public Task<Thread> GetThreadAsync(Guid threadId)
+        public Task<Thread?> GetThreadAsync(Guid threadId)
         {
             _logger.LogInternalInformation("Trying to get thread: {Id}", threadId);
             _threads.TryGetValue(threadId, out var thread);
 
-            thread.Status = GetThreadStatusAsync(thread).Result;
+            if (thread != null)
+            {
+                thread.Status = GetThreadStatusAsync(thread).Result;
+            }
 
             return Task.FromResult(thread);
         }
@@ -71,14 +73,16 @@ namespace Agent.Data.Repositories
 
             if (queryOptions is not null)
             {
-                threads = queryOptions.ApplyTo(threads) as IQueryable<Thread>;
+                if (queryOptions.ApplyTo(threads) is IQueryable<Thread> filtered)
+                {
+                    threads = filtered;
+                }
             }
 
             foreach (var thread in threads)
             {
                 thread.Status = GetThreadStatusAsync(thread).Result;
             }
-
             if (severity is not null)
             {
                 if (severity == ActionSeverity.Critical)
@@ -95,6 +99,7 @@ namespace Agent.Data.Repositories
             {
                 threads = threads.Where(t => t.Type == threadType);
             }
+
             return Task.FromResult(threads.AsEnumerable());
         }
 
@@ -109,7 +114,7 @@ namespace Agent.Data.Repositories
 
             if (incidentType != null)
             {
-                threads = threads.Where(t => t.IncidentSource.IncidentType == incidentType);
+                threads = threads.Where(t => t.IncidentSource != null && t.IncidentSource.IncidentType == incidentType);
             }
 
             if (createdAfter.HasValue)
@@ -119,7 +124,10 @@ namespace Agent.Data.Repositories
 
             if (queryOptions is not null)
             {
-                threads = queryOptions.ApplyTo(threads) as IQueryable<Thread>;
+                if (queryOptions.ApplyTo(threads) is IQueryable<Thread> filtered)
+                {
+                    threads = filtered;
+                }
             }
 
             foreach (var thread in threads)
@@ -136,13 +144,16 @@ namespace Agent.Data.Repositories
             if (thread.Id == Guid.Empty)
                 thread = thread with { Id = Guid.NewGuid() };
 
-            if (thread.StartMessage.Id == Guid.Empty)
+            if (thread.StartMessage?.Id == Guid.Empty)
                 thread = thread with { StartMessage = thread.StartMessage with { Id = Guid.NewGuid() } };
 
             _threads[thread.Id] = thread;
 
             // Also store the start message
-            _messages[(thread.Id, thread.StartMessage.Id)] = thread.StartMessage;
+            if (thread.StartMessage != null)
+            {
+                _messages[(thread.Id, thread.StartMessage.Id)] = thread.StartMessage;
+            }
 
             return Task.FromResult(thread);
         }
@@ -191,12 +202,12 @@ namespace Agent.Data.Repositories
             return Task.FromResult(true);
         }
 
-        public Task<Thread> UpdateThreadTitleAsync(Guid threadId, string newTitle)
+        public Task<Thread?> UpdateThreadTitleAsync(Guid threadId, string newTitle)
         {
             if (!_threads.TryGetValue(threadId, out var thread))
             {
                 _logger.LogInternalWarning("Cannot update title: Thread {ThreadId} not found", threadId);
-                return Task.FromResult<Thread>(null);
+                return Task.FromResult<Thread?>(null);
             }
 
             // Update the title and modified timestamp
@@ -209,15 +220,15 @@ namespace Agent.Data.Repositories
             _threads[threadId] = updatedThread;
 
             _logger.LogInternalInformation("Successfully updated title for thread {ThreadId}", threadId);
-            return Task.FromResult(updatedThread);
+            return Task.FromResult<Thread?>(updatedThread);
         }
 
-        public Task<Thread> UpdateThreadReadMarkAsync(Guid threadId, DateTime lastReadTime)
+        public Task<Thread?> UpdateThreadReadMarkAsync(Guid threadId, DateTime lastReadTime)
         {
             if (!_threads.TryGetValue(threadId, out var existingThread))
             {
                 _logger.LogInternalWarning("Cannot update thread: Thread {ThreadId} not found", threadId);
-                return Task.FromResult<Thread>(null);
+                return Task.FromResult<Thread?>(null);
             }
 
             // Update the thread with new values and keep the modified timestamp current
@@ -229,15 +240,15 @@ namespace Agent.Data.Repositories
 
             _threads[threadId] = updatedThread;
             _logger.LogInternalInformation("Successfully updated thread {ThreadId}", threadId);
-            return Task.FromResult(updatedThread);
+            return Task.FromResult<Thread?>(updatedThread);
         }
 
-        public Task<Thread> UpdateThreadEvaluatedTimestampAsync(Guid threadId, DateTime evaluatedTimestamp)
+        public Task<Thread?> UpdateThreadEvaluatedTimestampAsync(Guid threadId, DateTime evaluatedTimestamp)
         {
             if (!_threads.TryGetValue(threadId, out var existingThread))
             {
                 _logger.LogInternalWarning("Cannot update evaluated timestamp: Thread {ThreadId} not found", threadId);
-                return Task.FromResult<Thread>(null);
+                return Task.FromResult<Thread?>(null);
             }
 
             // Update the thread with new evaluated timestamp
@@ -248,30 +259,30 @@ namespace Agent.Data.Repositories
 
             _threads[threadId] = updatedThread;
             _logger.LogInternalInformation("Successfully updated evaluated timestamp for thread {ThreadId}", threadId);
-            return Task.FromResult(updatedThread);
+            return Task.FromResult<Thread?>(updatedThread);
         }
 
-        public Task<Thread> UpdateTrajectoryGeneratedTimestampAsync(Guid threadId, DateTime evaluatedTimestamp)
+        public Task<Thread?> UpdateTrajectoryGeneratedTimestampAsync(Guid threadId, DateTime evaluatedTimestamp)
         {
             if (!_threads.TryGetValue(threadId, out var existingThread))
             {
                 _logger.LogInternalWarning("Cannot update trajectory generated timestamp: Thread {ThreadId} not found", threadId);
-                return Task.FromResult<Thread>(null);
+                return Task.FromResult<Thread?>(null);
             }
 
             // Update the thread with new trajectory generated timestamp
             var updatedThread = existingThread with
             {
                 TrajectoryGeneratedTimestamp = evaluatedTimestamp
-            };  
+            };
 
             _threads[threadId] = updatedThread;
             _logger.LogInternalInformation("Successfully updated trajectory generated timestamp for thread {ThreadId}", threadId);
-            return Task.FromResult(updatedThread);
+            return Task.FromResult<Thread?>(updatedThread);
         }
 
 
-        public async Task<Thread> UpdateThreadAgentModeAsync(Guid threadId, string? agentMode)
+        public async Task<Thread?> UpdateThreadAgentModeAsync(Guid threadId, string? agentMode)
         {
             if (!_threads.TryGetValue(threadId, out var existingThread))
             {
@@ -304,7 +315,7 @@ namespace Agent.Data.Repositories
         #region Helper Functions
         private Task<Status?> GetThreadStatusAsync(Thread thread)
         {
-            Status status = null;
+            Status? status = null;
 
             var criticalActionThreads = GetThreadIdsWithActionSeverityAsync(ActionSeverity.Critical).Result;
             var warningActionThreads = GetThreadIdsWithActionSeverityAsync(ActionSeverity.Warning).Result;
@@ -356,13 +367,13 @@ namespace Agent.Data.Repositories
                 }
             }
 
-            return Task.FromResult(status);
+            return Task.FromResult<Status?>(status);
         }
         #endregion
 
         #region Message Operations
 
-        public Task<Message> GetMessageAsync(Guid threadId, Guid messageId)
+        public Task<Message?> GetMessageAsync(Guid threadId, Guid messageId)
         {
             _messages.TryGetValue((threadId, messageId), out var message);
             return Task.FromResult(message);
@@ -410,7 +421,7 @@ namespace Agent.Data.Repositories
                 messages = queryOptions.ApplyTo(messages) as IQueryable<Message>;
             }
 
-            return Task.FromResult(messages.AsEnumerable());
+            return Task.FromResult((messages ?? Enumerable.Empty<Message>()).AsEnumerable());
         }
 
         public Task<Message> AddMessageAsync(Guid threadId, Message message)
@@ -437,7 +448,7 @@ namespace Agent.Data.Repositories
         {
             // Check if this is a start message
             if (_threads.TryGetValue(threadId, out var thread) &&
-                thread.StartMessage.Id == messageId)
+                thread.StartMessage?.Id == messageId)
             {
                 // Can't delete start message without deleting thread
                 return Task.FromResult(false);
@@ -450,7 +461,7 @@ namespace Agent.Data.Repositories
 
         #region Message Feedback Operations
 
-        public Task<MessageFeedback> GetMessageFeedbackAsync(Guid threadId, Guid messageFeedbackId)
+        public Task<MessageFeedback?> GetMessageFeedbackAsync(Guid threadId, Guid messageFeedbackId)
         {
             _messageFeedbacks.TryGetValue((threadId, messageFeedbackId), out var messageFeedback);
             return Task.FromResult(messageFeedback);
@@ -469,10 +480,10 @@ namespace Agent.Data.Repositories
                 messageFeedbacks = queryOptions.ApplyTo(messageFeedbacks) as IQueryable<MessageFeedback>;
             }
 
-            return Task.FromResult(messageFeedbacks.AsEnumerable());
+            return Task.FromResult((messageFeedbacks ?? Enumerable.Empty<MessageFeedback>()).AsEnumerable());
         }
 
-        public Task<MessageFeedback> GetMessageFeedbackNeedingRCAAsync()
+        public Task<MessageFeedback?> GetMessageFeedbackNeedingRCAAsync()
         {
             var messageFeedback = _messageFeedbacks
                .Where(kvp => kvp.Value.RootCause == null)
@@ -482,7 +493,7 @@ namespace Agent.Data.Repositories
             return Task.FromResult(messageFeedback);
         }
 
-        public Task<MessageFeedback> AddOrUpdateMessageFeedbackAsync(Guid threadId, MessageFeedback messageFeedback)
+        public Task<MessageFeedback?> AddOrUpdateMessageFeedbackAsync(Guid threadId, MessageFeedback messageFeedback)
         {
             // Ensure ID is set
             if (messageFeedback.Id == Guid.Empty)
@@ -490,7 +501,7 @@ namespace Agent.Data.Repositories
 
             _messageFeedbacks[(threadId, messageFeedback.Id)] = messageFeedback;
 
-            return Task.FromResult(messageFeedback);
+            return Task.FromResult<MessageFeedback?>(messageFeedback);
         }
 
         public Task<bool> DeleteMessageFeedbackAsync(Guid threadId, Guid messageFeedbackId)
@@ -502,7 +513,7 @@ namespace Agent.Data.Repositories
 
         #region ThreadContext Operations
 
-        public Task<ThreadContext> GetThreadContextAsync(Guid threadId)
+        public Task<ThreadContext?> GetThreadContextAsync(Guid threadId)
         {
             _threadContexts.TryGetValue(threadId, out var action);
             return Task.FromResult(action);
@@ -517,10 +528,10 @@ namespace Agent.Data.Repositories
                 threadContexts = queryOptions.ApplyTo(threadContexts) as IOrderedQueryable<ThreadContext>;
             }
 
-            return Task.FromResult(threadContexts.AsEnumerable());
+            return Task.FromResult((threadContexts ?? Enumerable.Empty<ThreadContext>()).AsEnumerable());
         }
 
-        public Task<ThreadContext> AddThreadContextAsync(ThreadContext context)
+        public Task<ThreadContext?> AddThreadContextAsync(ThreadContext context)
         {
             // Ensure ID is set
             if (context.ThreadId == Guid.Empty)
@@ -528,10 +539,10 @@ namespace Agent.Data.Repositories
 
             _threadContexts[context.ThreadId] = context;
 
-            return Task.FromResult(context);
+            return Task.FromResult<ThreadContext?>(context);
         }
 
-        public Task<ThreadContext> UpdateThreadContextAsync(ThreadContext context)
+        public Task<ThreadContext?> UpdateThreadContextAsync(ThreadContext context)
         {
             // Ensure ID is set
             if (context.ThreadId == Guid.Empty)
@@ -539,7 +550,7 @@ namespace Agent.Data.Repositories
 
             _threadContexts[context.ThreadId] = context;
 
-            return Task.FromResult(context);
+            return Task.FromResult<ThreadContext?>(context);
         }
 
         public Task<bool> DeleteThreadContextAsync(Guid threadId)
@@ -565,10 +576,10 @@ namespace Agent.Data.Repositories
                 actions = queryOptions.ApplyTo(actions) as IQueryable<Action>;
             }
 
-            return Task.FromResult(actions.AsEnumerable());
+            return Task.FromResult((actions ?? Enumerable.Empty<Action>()).AsEnumerable());
         }
 
-        public Task<Action> AddOrUpdateActionAsync(Guid threadId, Action action)
+        public Task<Action?> AddOrUpdateActionAsync(Guid threadId, Action action)
         {
             // Ensure ID is set
             if (action.Id == Guid.Empty)
@@ -576,10 +587,10 @@ namespace Agent.Data.Repositories
 
             _actions[(threadId, action.Id)] = action;
 
-            return Task.FromResult(action);
+            return Task.FromResult<Action?>(action);
         }
 
-        public Task<Action> GetActionAsync(Guid threadId, Guid actionId)
+        public Task<Action?> GetActionAsync(Guid threadId, Guid actionId)
         {
             try
             {
@@ -626,7 +637,7 @@ namespace Agent.Data.Repositories
         public Task<AgentContext> GetAgentContextAsync(Guid agentContextId, Guid threadId)
         {
             _agentContexts.TryGetValue((threadId, agentContextId), out var agentContext);
-            return Task.FromResult(agentContext);
+            return Task.FromResult(agentContext!);
         }
 
         public Task<IEnumerable<AgentContext>> GetAgentContextsForThreadAsync(Guid threadId)
@@ -647,13 +658,13 @@ namespace Agent.Data.Repositories
         public Task<AgentContext> CreateAgentContextAsync(AgentContext agentContext)
         {
             _agentContexts[(agentContext.ThreadId, agentContext.Id)] = agentContext;
-            return Task.FromResult(agentContext);
+            return Task.FromResult<AgentContext>(agentContext);
         }
 
         public Task<AgentContext> UpdateAgentContextAsync(AgentContext agentContext)
         {
             _agentContexts[(agentContext.ThreadId, agentContext.Id)] = agentContext;
-            return Task.FromResult(agentContext);
+            return Task.FromResult<AgentContext>(agentContext);
         }
 
         public Task<bool> UpdateAgentContextAssignmentInfoAsync(
@@ -666,7 +677,7 @@ namespace Agent.Data.Repositories
 
             if (agentContext == null)
             {
-                Task.FromResult(false);
+                return Task.FromResult(false);
             }
 
             AgentContext updated = agentContext with
@@ -692,16 +703,16 @@ namespace Agent.Data.Repositories
         #endregion
 
         #region ReasoningMessage Operations
-        public Task<ReasoningMessage> GetReasoningMessageAsync(Guid reasoningMessageId, Guid agentContextId)
+        public Task<ReasoningMessage?> GetReasoningMessageAsync(Guid reasoningMessageId, Guid agentContextId)
         {
             _reasoningMessages.TryGetValue((agentContextId, reasoningMessageId), out var reasoningMessage);
             return Task.FromResult(reasoningMessage);
         }
 
-        public Task<ReasoningMessage> CreateReasoningMessageAsync(ReasoningMessage reasoningMessage)
+        public Task<ReasoningMessage?> CreateReasoningMessageAsync(ReasoningMessage reasoningMessage)
         {
             _reasoningMessages[(reasoningMessage.AgentContextId, reasoningMessage.Id)] = reasoningMessage;
-            return Task.FromResult(reasoningMessage);
+            return Task.FromResult<ReasoningMessage?>(reasoningMessage);
         }
 
         public Task<bool> DeleteReasoningMessageAsync(Guid reasoningMessageId, Guid agentContextId)
@@ -716,25 +727,25 @@ namespace Agent.Data.Repositories
         #endregion
 
         #region AgentContext Operations
-        public Task<AgentChatHistory> GetAgentChatHistoryAsync(Guid agentContextId)
+        public Task<AgentChatHistory?> GetAgentChatHistoryAsync(Guid agentContextId)
         {
             _agentChatHistories.TryGetValue(agentContextId, out var agentChatHistory);
             return Task.FromResult(agentChatHistory);
         }
 
-        public Task<AgentChatHistory> CreateAgentChatHistoryAsync(AgentChatHistory agentChatHistory)
+        public Task<AgentChatHistory?> CreateAgentChatHistoryAsync(AgentChatHistory agentChatHistory)
         {
             _agentChatHistories[agentChatHistory.AgentContextId] = agentChatHistory;
-            return Task.FromResult(agentChatHistory);
+            return Task.FromResult<AgentChatHistory?>(agentChatHistory);
         }
 
-        public Task<AgentChatHistory> UpdateAgentChatHistoryAsync(AgentChatHistory agentChatHistory)
+        public Task<AgentChatHistory?> UpdateAgentChatHistoryAsync(AgentChatHistory agentChatHistory)
         {
             _agentChatHistories[agentChatHistory.AgentContextId] = agentChatHistory;
-            return Task.FromResult(agentChatHistory);
+            return Task.FromResult<AgentChatHistory?>(agentChatHistory);
         }
 
-        public Task<AgentChatHistory> AddReasoningMessagesToChatHistoryAsync(AgentChatHistory agentChatHistory, params IEnumerable<ReasoningMessage> reasoningMessages)
+        public Task<AgentChatHistory?> AddReasoningMessagesToChatHistoryAsync(AgentChatHistory agentChatHistory, params IEnumerable<ReasoningMessage> reasoningMessages)
         {
             foreach (var reasoningMessage in reasoningMessages)
             {
@@ -743,7 +754,7 @@ namespace Agent.Data.Repositories
             }
 
             _agentChatHistories[agentChatHistory.AgentContextId] = agentChatHistory;
-            return Task.FromResult(agentChatHistory);
+            return Task.FromResult<AgentChatHistory?>(agentChatHistory);
         }
 
         public Task<bool> DeleteAgentChatHistoryAsync(Guid agentContextId)
@@ -758,7 +769,7 @@ namespace Agent.Data.Repositories
         #endregion
 
         #region ApprovalV2 Operations
-        public Task<ApprovalV2> GetApprovalV2Async(Guid approvalIdV2, Guid agentContextId)
+        public Task<ApprovalV2?> GetApprovalV2Async(Guid approvalIdV2, Guid agentContextId)
         {
             _approvalv2s.TryGetValue((agentContextId, approvalIdV2), out var approvalV2);
             return Task.FromResult(approvalV2);
@@ -769,39 +780,39 @@ namespace Agent.Data.Repositories
             return Task.FromResult(_approvalv2s.Values.AsEnumerable());
         }
 
-        public Task<ApprovalV2> CreateApprovalV2Async(ApprovalV2 approvalV2)
+        public Task<ApprovalV2?> CreateApprovalV2Async(ApprovalV2 approvalV2)
         {
             _approvalv2s[(approvalV2.AgentContextId, approvalV2.Id)] = approvalV2;
-            return Task.FromResult(approvalV2);
+            return Task.FromResult<ApprovalV2?>(approvalV2);
         }
 
-        public Task<ApprovalV2> UpdateApprovalV2Async(ApprovalV2 approvalV2)
+        public Task<ApprovalV2?> UpdateApprovalV2Async(ApprovalV2 approvalV2)
         {
             _approvalv2s[(approvalV2.AgentContextId, approvalV2.Id)] = approvalV2;
-            return Task.FromResult(approvalV2);
+            return Task.FromResult<ApprovalV2?>(approvalV2);
         }
 
-        public Task<Approval> CreateApprovalAsync(Approval approval)
+        public Task<Approval?> CreateApprovalAsync(Approval approval)
         {
             _approvals[(Guid.Parse(approval.ThreadId), approval.Id)] = approval;
-            return Task.FromResult(approval);
+            return Task.FromResult<Approval?>(approval);
         }
 
-        public Task<Approval> GetApprovalAsync(Guid threadId, Guid approvalId)
+        public Task<Approval?> GetApprovalAsync(Guid threadId, Guid approvalId)
         {
             return Task.FromResult(_approvals.TryGetValue((threadId, approvalId), out var approval) ? approval : null);
         }
 
-        public Task<Approval> GetApprovalAsync(Guid threadId, string title)
+        public Task<Approval?> GetApprovalAsync(Guid threadId, string title)
         {
-            var approval = _approvals.Values.FirstOrDefault(a => a.ThreadId == threadId.ToString() && a.Title == title, null);
+            var approval = _approvals.Values.FirstOrDefault(a => a.ThreadId == threadId.ToString() && a.Title == title);
             return Task.FromResult(approval);
         }
 
-        public Task<Approval> UpdateApprovalAsync(Approval approval)
+        public Task<Approval?> UpdateApprovalAsync(Approval approval)
         {
             _approvals[(Guid.Parse(approval.ThreadId), approval.Id)] = approval;
-            return Task.FromResult(approval);
+            return Task.FromResult<Approval?>(approval);
         }
 
         public Task<IList<Approval>> GetApprovalsAsync(Guid threadId)
@@ -813,12 +824,12 @@ namespace Agent.Data.Repositories
             return Task.FromResult((IList<Approval>)approvals);
         }
 
-        public Task<GitHubAccessToken> GetGitHubAccessTokenAsync()
+        public Task<GitHubAccessToken?> GetGitHubAccessTokenAsync()
         {
             throw new NotImplementedException();
         }
 
-        public Task<GitHubAccessToken> CreateOrUpdateGitHubAccessTokenAsync(GitHubAccessToken gitHubAccessToken)
+        public Task<GitHubAccessToken?> CreateOrUpdateGitHubAccessTokenAsync(GitHubAccessToken gitHubAccessToken)
         {
             throw new NotImplementedException();
         }
@@ -828,67 +839,67 @@ namespace Agent.Data.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<Message> UpdateMessageAsync(Guid threadId, Message message)
+        public Task<Message?> UpdateMessageAsync(Guid threadId, Message message)
         {
             throw new NotImplementedException();
         }
 
-        public Task<AzCliExecution> GetAzCliExecutionAsync(Guid threadId, Guid executionId)
+        public Task<AzCliExecution?> GetAzCliExecutionAsync(Guid threadId, Guid executionId)
         {
             throw new NotImplementedException();
         }
 
-        public Task<AzCliExecution> CreateAzCliExecutionAsync(Guid threadId, AzCliExecution execution)
+        public Task<AzCliExecution?> CreateAzCliExecutionAsync(Guid threadId, AzCliExecution execution)
         {
             throw new NotImplementedException();
         }
 
-        public Task<AzCliExecution> UpdateAzCliExecutionAsync(Guid threadId, AzCliExecution execution)
+        public Task<AzCliExecution?> UpdateAzCliExecutionAsync(Guid threadId, AzCliExecution execution)
         {
             throw new NotImplementedException();
         }
 
-        public Task<AzCliExecution> UpdateAzCliExecutionOutputAsync(Guid threadId, Guid executionId, string output, string? error = null)
+        public Task<AzCliExecution?> UpdateAzCliExecutionOutputAsync(Guid threadId, Guid executionId, string output, string? error = null)
         {
             throw new NotImplementedException();
         }
 
-        public Task<AzCliExecution> ListPendingAzCliExecutionAsync(Guid threadId)
+        public Task<AzCliExecution?> ListPendingAzCliExecutionAsync(Guid threadId)
         {
             throw new NotImplementedException();
         }
 
-        public Task<KubectlExecution> GetKubectlExecutionAsync(Guid threadId, Guid executionId)
+        public Task<KubectlExecution?> GetKubectlExecutionAsync(Guid threadId, Guid executionId)
         {
             throw new NotImplementedException();
         }
 
-        public Task<KubectlExecution> CreateKubectlExecutionAsync(Guid threadId, KubectlExecution execution)
+        public Task<KubectlExecution?> CreateKubectlExecutionAsync(Guid threadId, KubectlExecution execution)
         {
             throw new NotImplementedException();
         }
 
-        public Task<KubectlExecution> UpdateKubectlExecutionAsync(Guid threadId, KubectlExecution execution)
+        public Task<KubectlExecution?> UpdateKubectlExecutionAsync(Guid threadId, KubectlExecution execution)
         {
             throw new NotImplementedException();
         }
 
-        public Task<KubectlExecution> UpdateKubectlExecutionOutputAsync(Guid threadId, Guid executionId, string output, string? error = null)
+        public Task<KubectlExecution?> UpdateKubectlExecutionOutputAsync(Guid threadId, Guid executionId, string output, string? error = null)
         {
             throw new NotImplementedException();
         }
 
-        public Task<KubectlExecution> ListPendingKubectlExecutionAsync(Guid threadId)
+        public Task<KubectlExecution?> ListPendingKubectlExecutionAsync(Guid threadId)
         {
             throw new NotImplementedException();
         }
 
-        public Task<AzureDevOpsAccessToken> CreateOrUpdateAzureDevOpsAccessTokenAsync(AzureDevOpsAccessToken azDoToken, string resourceId)
+        public Task<AzureDevOpsAccessToken?> CreateOrUpdateAzureDevOpsAccessTokenAsync(AzureDevOpsAccessToken azDoToken, string resourceId)
         {
             throw new NotImplementedException();
         }
 
-        public Task<AzureDevOpsAccessToken> GetAzureDevOpsAccessTokenAsync(string resourceId)
+        public Task<AzureDevOpsAccessToken?> GetAzureDevOpsAccessTokenAsync(string resourceId)
         {
             throw new NotImplementedException();
         }
@@ -902,14 +913,14 @@ namespace Agent.Data.Repositories
 
         #region ThreadEvaluateResult Operations
 
-        public Task<ThreadEvaluateResult> GetThreadEvaluateResultAsync(Guid evaluationId)
+        public Task<ThreadEvaluateResult?> GetThreadEvaluateResultAsync(Guid evaluationId)
         {
             _logger.LogInternalInformation("Trying to get thread evaluation: {Id}", evaluationId);
             _threadEvaluateResults.TryGetValue(evaluationId, out var result);
             return Task.FromResult(result);
         }
 
-        public Task<ThreadEvaluateResult> GetThreadEvaluateResultByThreadIdAsync(Guid threadId)
+        public Task<ThreadEvaluateResult?> GetThreadEvaluateResultByThreadIdAsync(Guid threadId)
         {
             _logger.LogInternalInformation("Trying to get thread evaluation by thread ID: {ThreadId}", threadId);
             var result = _threadEvaluateResults.Values.FirstOrDefault(r => r.ThreadId == threadId);
@@ -924,13 +935,17 @@ namespace Agent.Data.Repositories
 
             if (queryOptions is not null)
             {
-                results = queryOptions.ApplyTo(results) as IQueryable<ThreadEvaluateResult>;
+                var applied = queryOptions.ApplyTo(results);
+                if (applied is IQueryable<ThreadEvaluateResult> typed)
+                {
+                    results = typed;
+                }
             }
 
             return Task.FromResult(results.AsEnumerable());
         }
 
-        public Task<ThreadEvaluateResult> CreateThreadEvaluateResultAsync(ThreadEvaluateResult evaluateResult)
+        public Task<ThreadEvaluateResult?> CreateThreadEvaluateResultAsync(ThreadEvaluateResult evaluateResult)
         {
             _logger.LogInternalInformation("Creating thread evaluation: {Id}", evaluateResult.Id);
 
@@ -942,21 +957,21 @@ namespace Agent.Data.Repositories
             }
 
             _threadEvaluateResults[resultToStore.Id] = resultToStore;
-            return Task.FromResult(resultToStore);
+            return Task.FromResult<ThreadEvaluateResult?>(resultToStore);
         }
 
-        public Task<ThreadEvaluateResult> UpdateThreadEvaluateResultAsync(ThreadEvaluateResult evaluateResult)
+        public Task<ThreadEvaluateResult?> UpdateThreadEvaluateResultAsync(ThreadEvaluateResult evaluateResult)
         {
             _logger.LogInternalInformation("Updating thread evaluation: {Id}", evaluateResult.Id);
 
             if (!_threadEvaluateResults.ContainsKey(evaluateResult.Id))
             {
                 _logger.LogInternalWarning("Cannot update thread evaluation: {Id} not found", evaluateResult.Id);
-                return Task.FromResult<ThreadEvaluateResult>(null);
+                return Task.FromResult<ThreadEvaluateResult?>(null);
             }
 
             _threadEvaluateResults[evaluateResult.Id] = evaluateResult;
-            return Task.FromResult(evaluateResult);
+            return Task.FromResult<ThreadEvaluateResult?>(evaluateResult);
         }
 
         public Task<bool> DeleteThreadEvaluateResultAsync(Guid evaluationId)

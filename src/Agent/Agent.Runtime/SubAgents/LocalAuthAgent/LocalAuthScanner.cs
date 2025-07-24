@@ -113,7 +113,7 @@ public class LocalAuthScanner(
         var message = new ThreadMessage(
             ThreadId: thread.Id,
             AgentContextId: agentContext.Id,
-            MessageId: thread.StartMessage.Id,
+            MessageId: thread.StartMessage?.Id ?? new Guid(),
             Message: userMessage,
             UserId: "",
             DisplayName: "",

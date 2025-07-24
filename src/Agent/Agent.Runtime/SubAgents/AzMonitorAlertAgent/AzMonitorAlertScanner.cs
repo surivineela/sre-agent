@@ -14,7 +14,6 @@ using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Data.DataModels;
-using Agent.Logging;
 using Agent.Plugins.Interface;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.MetaAgent.Interfaces;
@@ -196,7 +195,7 @@ public class AzMonitorAlertScanner
             await _inboundCommunicationService.ProcessAlertMessageAsync(new ThreadMessage(
                    ThreadId: thread.Id,
                    AgentContextId: agentContext.Id,
-                   MessageId: thread.StartMessage.Id,
+                   MessageId: thread.StartMessage?.Id ?? new Guid(),
                    Message: $"An automated investigation has been completed for this alert with the following hypotheses and findings: {investigationResult.Summary}\n\nPlease validate these hypotheses by checking the supporting evidence. If the hypotheses seem incomplete or insufficient, conduct additional targeted investigation focusing on metrics, logs, and recent changes. Your goal is to either confirm one of these hypotheses with high confidence or discover the actual root cause if it differs from what was identified by the automated analysis. Based on the initial findings, find an appropriate subagent to handle the remediation. CRITICAL: Be as autonomous as possible without asking for permission to take actions.",
                    UserId: "agent-default",
                    DisplayName: "Azure SRE Agent",

@@ -8,7 +8,6 @@ using System.Text.Json.Serialization;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
-using Agent.Logging;
 using Agent.Plugins;
 using Agent.Plugins.Interface;
 using Azure.Core;
@@ -105,7 +104,14 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
                             llmSummary,
                         }
                     ));
-            await PersistReasoningMessageAsync(agentChatHistory, reasoningMessage);
+            if (agentChatHistory != null)
+            {
+                await PersistReasoningMessageAsync(agentChatHistory, reasoningMessage);
+            }
+            else
+            {
+                _logger.LogInternalWarning($"Agent chat history is null");
+            }
 
             var resultWithStepIdentifier = $"ACTIVITY LOGS ANALYSIS\n{llmSummary}";
             return resultWithStepIdentifier;
@@ -209,7 +215,14 @@ CRITICAL:
                             llmHealthSummary,
                         }
                     ));
-            await PersistReasoningMessageAsync(agentChatHistory, reasoningMessage);
+            if (agentChatHistory != null)
+            {
+                await PersistReasoningMessageAsync(agentChatHistory, reasoningMessage);
+            }
+            else
+            {
+                _logger.LogInternalWarning($"Agent chat history is null");
+            }
 
             var resultWithStepIdentifier = $"CONNECTED COMPONENTS ANALYSIS\n{llmHealthSummary}";
             return resultWithStepIdentifier;
@@ -286,7 +299,14 @@ CRITICAL:
                            llmSummary,
                        }
                    ));
-                await PersistReasoningMessageAsync(agentChatHistory, reasoningMessage);
+                if (agentChatHistory != null)
+                {
+                    await PersistReasoningMessageAsync(agentChatHistory, reasoningMessage);
+                }
+                else
+                {
+                    _logger.LogInternalWarning($"Agent chat history is null");
+                }
 
                 var resultWithStepIdentifier = $"APPLICATION HEALTH ANALYSIS\n{llmSummary}";
                 return resultWithStepIdentifier;
@@ -487,7 +507,14 @@ ONLY mention findings directly relevant to this alert condition.";
                             analysisResult,
                         }
                     ));
-            await PersistReasoningMessageAsync(agentChatHistory, reasoningMessage);
+            if (agentChatHistory != null)
+            {
+                await PersistReasoningMessageAsync(agentChatHistory, reasoningMessage);
+            }
+            else
+            {
+                _logger.LogInternalWarning($"Agent chat history is null");
+            }
 
             var resultWithStepIdentifier = $"LOG QUERIES ANALYSIS\n{analysisResult}";
             return resultWithStepIdentifier;
@@ -600,7 +627,15 @@ BEGIN by calling ListAvailableMetrics now.";
                     timeRange = new { startTime = startTime.ToString("yyyy-MM-dd HH:mm:ss UTC"), endTime = endTime.ToString("yyyy-MM-dd HH:mm:ss UTC") }
                 })
             );
-            await PersistReasoningMessageAsync(agentChatHistory, reasoningMessage);
+
+            if (agentChatHistory != null)
+            {
+                await PersistReasoningMessageAsync(agentChatHistory, reasoningMessage);
+            }
+            else
+            {
+                _logger.LogInternalWarning($"Agent chat history is null");
+            }
 
             var resultWithStepIdentifier = $"RESOURCE METRICS ANALYSIS\n{llmSummary}";
             return resultWithStepIdentifier;
@@ -877,7 +912,15 @@ CRITICAL RULES:
                             queriesExecuted = queryResults.Select(q => q.QueryName).ToList()
                         }
                     ));
-            await PersistReasoningMessageAsync(agentChatHistory, reasoningMessage);
+
+            if (agentChatHistory != null)
+            {
+                await PersistReasoningMessageAsync(agentChatHistory, reasoningMessage);
+            }
+            else
+            {
+                _logger.LogInternalWarning($"Agent chat history is null");
+            }
 
             var resultWithStepIdentifier = $"GENERIC LOG QUERIES ANALYSIS\n{analysisResult}";
             return resultWithStepIdentifier;

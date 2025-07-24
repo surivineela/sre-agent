@@ -926,21 +926,21 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                 {
                     { "var-ds", "azure-monitor-oob" },
                     { "var-ns", resourceType },
-                    { "var-sub", resource.SubscriptionId },
-                    { "var-rg", resource.ResourceGroupName.ToLowerInvariant() },
-                    { "var-resource", resource.ResourceName.ToLowerInvariant() }
+                    { "var-sub", resource.SubscriptionId ?? string.Empty },
+                    { "var-rg", resource.ResourceGroupName?.ToLowerInvariant() ?? string.Empty },
+                    { "var-resource", resource.ResourceName?.ToLowerInvariant() ?? string.Empty }
                 };
 
                 switch (dashboardType)
                 {
                     case "azure-container-apps-container-app-view":
-                        queryParams["var-containerapp"] = resource.ResourceName.ToLowerInvariant();
+                        queryParams["var-containerapp"] = resource.ResourceName?.ToLowerInvariant() ?? string.Empty;
                         break;
                     case "azure-redis":
-                        queryParams["var-name"] = resource.ResourceName.ToLowerInvariant();
+                        queryParams["var-name"] = resource.ResourceName?.ToLowerInvariant() ?? string.Empty;
                         break;
                     case "azure-app-service-monitoring":
-                        queryParams["var-name"] = resource.ResourceName.ToLowerInvariant();
+                        queryParams["var-name"] = resource.ResourceName?.ToLowerInvariant() ?? string.Empty;
                         break;
                 }
 

@@ -308,7 +308,7 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
                     // Subnet ID format: /subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.Network/virtualNetworks/{vnet}/subnets/{subnet}
                     var vnetResourceId = subnetResourceId.Parent;
                     if (vnetResourceId is null)
-                        {
+                    {
                         _logger.LogInternalWarning($"Failed to extract VNet resource ID from subnet ID: {agentPool.VnetSubnetId}");
                         continue;
                     }
@@ -361,9 +361,9 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
                     ManagedIdentityNode.SystemAssignedManagedIdentityType,
                     aksNode.ResourceId, // System MI uses the parent resource ID
                     aksNode.SubscriptionId,
-                    aksNode.ResourceGroupName,
+                    aksNode.ResourceGroupName ?? string.Empty,
                     aksNode.ResourceName + "-system",
-                    aksNode.Location);
+                    aksNode.Location ?? string.Empty);
 
                 systemIdentityNode.PrincipalId = clusterData.Identity.PrincipalId.ToString()!;
                 systemIdentityNode.TenantId = clusterData.Identity.TenantId?.ToString()!;

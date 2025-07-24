@@ -2,15 +2,10 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Helpers;
-using Agent.Core.Extensions;
-using Agent.Logging;
 using Microsoft.DurableTask;
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
-using System.Text.Json.Nodes;
 using System.Text.Json;
 
 namespace Agent.Runtime.SubAgents.Core;
@@ -31,7 +26,7 @@ public class PersistThreadContextActivity : TaskActivity<PersistThreadContextInp
 
     public override async Task<ThreadContext> RunAsync(TaskActivityContext context, PersistThreadContextInput input)
     {
-        ThreadContext threadContext;
+        ThreadContext? threadContext;
         try
         {
             threadContext = input.ThreadContext ?? await _repository.GetThreadContextAsync(input.ThreadId);
@@ -39,6 +34,12 @@ public class PersistThreadContextActivity : TaskActivity<PersistThreadContextInp
             // This is still helpful as we can get the thread context for state checking.
             // TODO(jianbosun): why there can be null thread context? Need to check those proactively created threads (e.g. CosmosDbAgent).
             threadContext ??= await _repository.AddThreadContextAsync(new ThreadContext(input.ThreadId, AgentTypeEnum.Meta, true));
+
+            if (threadContext == null)
+            {
+                _logger.LogInternalError($"Failed to get or create thread context, threadId: {input.ThreadId}");
+                throw new InvalidOperationException("Failed to get or create thread context");
+            }
         }
         catch (Exception ex)
         {
@@ -55,9 +56,16 @@ public class PersistThreadContextActivity : TaskActivity<PersistThreadContextInp
             TimeStamp = input.TimeStamp
         };
         _logger.LogInternalInformation("Persisting thread context, threadId: {ThreadId}, state: {OrchestrationState}", input.ThreadId, JsonSerializer.Serialize(threadContext.OrchestrationState));
+
         try
         {
             threadContext = await _repository.UpdateThreadContextAsync(threadContext);
+
+            if (threadContext == null)
+            {
+                _logger.LogInternalError($"Failed to update thread context, threadId: {input.ThreadId}");
+                throw new InvalidOperationException("Failed to upate create thread context");
+            }
         }
         catch (Exception ex)
         {

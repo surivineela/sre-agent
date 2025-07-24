@@ -2,14 +2,12 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Collections.Concurrent;
 using System.Xml;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Models.Streaming;
 using Agent.Core.Configuration;
 using Agent.Data.Repositories;
-using Agent.Logging;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Builder.Teams;
@@ -24,7 +22,6 @@ using Microsoft.Bot.Connector;
 using Microsoft.Extensions.AI;
 using Thread = Agent.Core.Models.Api.v1.Thread;
 using Attachment = Microsoft.Bot.Schema.Attachment;
-using Agent.Core.Helpers;
 using Agent.Core.Extensions;
 using System.Text.Json;
 using Agent.Runtime.MetaAgent.Interfaces;
@@ -305,7 +302,10 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
             ));
         message = await _threadRepository.AddMessageAsync(thread.Id, message);
         await _agentOutboundCommunicationService.NotifyThreadEvent(thread.Id, thread);
-        await _agentOutboundCommunicationService.NotifyGenericAgentMessage(thread.Id, thread.StartMessage, null);
+        if (thread.StartMessage != null)
+        {
+            await _agentOutboundCommunicationService.NotifyGenericAgentMessage(thread.Id, thread.StartMessage, null);
+        }
 
         var agentContext = await _threadRepository.CreateAgentContextAsync(new AgentContext(
             Id: Guid.NewGuid(),
@@ -332,16 +332,20 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
 
         var agentChatHistory = await _threadRepository.CreateAgentChatHistoryAsync(new AgentChatHistory(
             AgentContextId: agentContext.Id,
-            ReasoningMessageIds: new List<Guid>{ systemPromptReasoningMessage.Id, startReasoningMessage.Id }
+            ReasoningMessageIds: new List<Guid> { systemPromptReasoningMessage?.Id ?? new Guid(), startReasoningMessage?.Id ?? new Guid() }
         ));
 
         var threadContext = new ThreadContext(thread.Id, AgentTypeEnum.Meta);
-        threadContext.AddMessage(thread.StartMessage);
+        if (thread.StartMessage != null)
+        {
+            threadContext.AddMessage(thread.StartMessage);
+        }
+
         threadContext.OutboundConfiguration = new OutboundConfiguration { Teams = new Teams { Enabled = true } };
         await _threadRepository.AddThreadContextAsync(threadContext);
 
         // Start the background title generation task (fire and forget)
-        _ = _titleGenerationService.GenerateTitleAndUpdateThreadAsync(thread.Id, thread.StartMessage.Text);
+        _ = _titleGenerationService.GenerateTitleAndUpdateThreadAsync(thread.Id, thread.StartMessage?.Text ?? string.Empty);
 
         await _conversationThreadMapping.AddMappingAsync(new ThreadTeamsMapping(
             $"teams_{newThreadId}",
@@ -617,7 +621,8 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
                 {
                     // Create message activity
                     var text = message.Text;
-                    if (message.Author.Role == Role.User) {
+                    if (message.Author.Role == Role.User)
+                    {
                         text = $"From User {message.Author.DisplayName}:\n{text}";
                     }
                     var activity = MessageFactory.Text(text);

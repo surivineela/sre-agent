@@ -2,7 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Data.DatabaseClients.GraphDbClient; 
+using Agent.Data.DatabaseClients.GraphDbClient;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.ApiManagement;
@@ -34,7 +34,7 @@ namespace Agent.Graph.Crawler.ARM
             var apiManagementNode = (APIManagementNode)node;
             _logger.LogInternalInformation($"Crawling API Management {apiManagementNode.ResourceId}");
 
-            var armResourceId = new ResourceIdentifier(apiManagementNode.ResourceId);
+            var armResourceId = new ResourceIdentifier(apiManagementNode.ResourceId ?? string.Empty);
             var resourceGroupId = ResourceGroupResource.CreateResourceIdentifier(armResourceId.SubscriptionId, armResourceId.ResourceGroupName);
 
             var resourceGroup = _armClient.GetResourceGroupResource(resourceGroupId);
@@ -83,7 +83,7 @@ namespace Agent.Graph.Crawler.ARM
                     await _graphDbClient.AddOrUpdateNodeAsync(vnetNode);
 
                     // Connect APIM -> VNet
-                    var apimToVnetEdge = new ArmResourceEdge(apiManagementNode.GetNodeId(), vnetNode.GetNodeId(), Constants.Relationships.Connected);
+                    var apimToVnetEdge = new ArmResourceEdge(apiManagementNode.GetNodeId() ?? string.Empty, vnetNode.GetNodeId() ?? string.Empty, Constants.Relationships.Connected);
                     apimToVnetEdge.AddOrUpdateEdgeProperty(Constants.ConnectionType, Constants.ConnectionTypeNetwork);
                     await _graphDbClient.AddOrUpdateEdgeAsync(apimToVnetEdge);
                     _logger.LogDebug($"Connected API Management {apiManagementNode.ResourceName} to VNet {vnetNode.ResourceName}");
@@ -101,7 +101,7 @@ namespace Agent.Graph.Crawler.ARM
                     await _graphDbClient.AddOrUpdateNodeAsync(subnetNode);
 
                     // Connect VNet -> Subnet
-                    var vnetToSubnetEdge = new ArmResourceEdge(vnetNode.GetNodeId(), subnetNode.GetNodeId(), Constants.Relationships.Connected);
+                    var vnetToSubnetEdge = new ArmResourceEdge(vnetNode.GetNodeId() ?? string.Empty, subnetNode.GetNodeId() ?? string.Empty, Constants.Relationships.Connected);
                     vnetToSubnetEdge.AddOrUpdateEdgeProperty(Constants.ConnectionType, Constants.ConnectionTypeNetwork);
                     await _graphDbClient.AddOrUpdateEdgeAsync(vnetToSubnetEdge);
                     _logger.LogDebug($"Connected VNet {vnetNode.ResourceName} to Subnet {subnetNode.ResourceName}");
@@ -135,7 +135,7 @@ namespace Agent.Graph.Crawler.ARM
                     await _graphDbClient.AddOrUpdateNodeAsync(apimBackendNode);
 
                     // Connect APIM -> Backend
-                    var apimToBackendEdge = new ArmResourceEdge(apiManagementNode.GetNodeId(), apimBackendNode.GetNodeId(), Constants.Relationships.Connected);
+                    var apimToBackendEdge = new ArmResourceEdge(apiManagementNode.GetNodeId() ?? string.Empty, apimBackendNode.GetNodeId() ?? string.Empty, Constants.Relationships.Connected);
                     apimToBackendEdge.AddOrUpdateEdgeProperty(Constants.ConnectionType, Constants.APIManagementBackend);
                     await _graphDbClient.AddOrUpdateEdgeAsync(apimToBackendEdge);
                     _logger.LogDebug($"Connected API Management {apiManagementNode.ResourceName} to Backend {apimBackendNode.ResourceName}");
