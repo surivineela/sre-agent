@@ -1080,19 +1080,19 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                     // Create a new dictionary for each resource
                     var propertyBag = new Dictionary<string, object>();
                     // Add label
-                    propertyBag["subscriptionId"] = item?.subscriptionId?.ToString() ?? string.Empty;
-                    propertyBag["resourceGroupName"] = item?.resourceGroupName?.ToString() ?? string.Empty;
-                    propertyBag["resourceName"] = item?.resourceName?.ToString() ?? string.Empty;
-                    propertyBag["resourceType"] = item?.resourceType?.ToString() ?? string.Empty;
+                    propertyBag["subscriptionId"] = item?["subscriptionId"]?.ToString() ?? string.Empty;
+                    propertyBag["resourceGroupName"] = item?["resourceGroupName"]?.ToString() ?? string.Empty;
+                    propertyBag["resourceName"] = item?["resourceName"]?.ToString() ?? string.Empty;
+                    propertyBag["resourceType"] = item?["resourceType"]?.ToString() ?? string.Empty;
 
 
                     if (!string.IsNullOrEmpty(item?["clusterResourceId"]?.ToString()))
                     {
-                        propertyBag["clusterResourceId"] = item?["clusterResourceId"].ToString() ?? string.Empty;
+                        propertyBag["clusterResourceId"] = item?["clusterResourceId"]?.ToString() ?? string.Empty;
                     }
                     if (!string.IsNullOrEmpty(item?["namespace"]?.ToString()))
                     {
-                        propertyBag["namespace"] = item?["namespace"].ToString() ?? string.Empty;
+                        propertyBag["namespace"] = item?["namespace"]?.ToString() ?? string.Empty;
                     }
 
                     resources.Add(propertyBag);

@@ -42,7 +42,7 @@ public static class Runner
             {
                 if (displayModelOutput is not null)
                 {
-                    await displayModelOutput($"{DateTimeOffset.UtcNow:O}\nCompleted Manually Invoked Tool: {manualToolCall.FunctionCall.Name}");
+                    await displayModelOutput($"[DEBUG]\n\nCompleted Manually Invoked Tool: {manualToolCall.FunctionCall.Name}");
                 }
             }
 
@@ -217,11 +217,11 @@ public static class Runner
                             {
                                 if (content is TextContent t)
                                 {
-                                    await displayModelOutput($"Agent: {currentAgent.Name}\nResponse:{t.Text}");
+                                    await displayModelOutput($"[DEBUG]\n\nAgent: {currentAgent.Name}\n\nResponse:{t.Text}");
                                 }
                                 else if (content is FunctionCallContent f)
                                 {
-                                    await displayModelOutput($"{DateTimeOffset.UtcNow:O}\nAgent: {currentAgent.Name}"
+                                    await displayModelOutput($"[DEBUG]\nAgent: {currentAgent.Name}"
                                         + $"\nFunction Call: {f.Name}"
                                         + $"\nParameters: {(f.RawRepresentation as OpenAI.Chat.ChatToolCall)!.FunctionArguments.ToString()}");
                                 }
@@ -341,7 +341,7 @@ public static class Runner
             {
                 if (displayModelOutput is not null)
                 {
-                    await displayModelOutput($"{DateTimeOffset.UtcNow:O}\nGathering critique: Agent: {currentAgent.Name}. Turn #{trajectory.GetCriticCount(currentAgent.Name)}/{currentAgent.MaxReflectionCount}");
+                    await displayModelOutput($"[DEBUG]\n\nGathering critique: Agent: {currentAgent.Name}. Turn #{trajectory.GetCriticCount(currentAgent.Name)}/{currentAgent.MaxReflectionCount}");
                 }
             }
 
@@ -353,7 +353,7 @@ public static class Runner
             {
                 if (displayModelOutput is not null)
                 {
-                    await displayModelOutput($"{DateTimeOffset.UtcNow:O}\nSummarized User Query: {userQuery}");
+                    await displayModelOutput($"[DEBUG]\n\nSummarized User Query: {userQuery}");
                 }
             }
 
@@ -367,14 +367,6 @@ public static class Runner
                 trajectoryString,
                 agentTools,
                 config.ChatClient);
-
-            if (config.EnableDebugOutput)
-            {
-                if (displayModelOutput is not null)
-                {
-                    await displayModelOutput($"{DateTimeOffset.UtcNow:O}\nCritic response: {criticResult}");
-                }
-            }
 
             var rejected = criticResult.Contains("\"overall_assessment\": \"FAIL\"")
                 || criticResult.Contains("\"overall_assessment\":\"FAIL\"");
@@ -390,7 +382,7 @@ public static class Runner
                 {
                     if (displayModelOutput is not null)
                     {
-                        await displayModelOutput($"{DateTimeOffset.UtcNow:O}\nCritic failed the turn:\n{criticResult}");
+                        await displayModelOutput($"[DEBUG]\n\nCritic failed the turn:\n\n{criticResult}");
                     }
                 }
 
@@ -420,7 +412,7 @@ public static class Runner
                 {
                     if (displayModelOutput is not null)
                     {
-                        await displayModelOutput($"{DateTimeOffset.UtcNow:O}\nCritic approved the turn.");
+                        await displayModelOutput($"[DEBUG]\n\nCritic approved the turn.");
                     }
                 }
             }
@@ -680,7 +672,7 @@ public static class Runner
                     {
                         if (displayModelOutput is not null)
                         {
-                            await displayModelOutput($"Handoff Completed. Previous Agent: {agent.Name} -> New Agent: {newAgent.Name}");
+                            await displayModelOutput($"[DEBUG]\n\nHandoff Completed. Previous Agent: {agent.Name} -> New Agent: {newAgent.Name}");
                         }
                     }
 
@@ -733,7 +725,7 @@ public static class Runner
                         {
                             if (displayModelOutput is not null)
                             {
-                                await displayModelOutput($"{DateTimeOffset.UtcNow:O}\nCompleted Agent Invocation as Tool: {tool.Name}");
+                                await displayModelOutput($"[DEBUG]\n\nCompleted Agent Invocation as Tool: {tool.Name}");
                             }
                         }
 
@@ -779,7 +771,7 @@ public static class Runner
                         {
                             if (displayModelOutput is not null)
                             {
-                                await displayModelOutput($"{DateTimeOffset.UtcNow:O}\nCompleted Auto Invoked Tool: {tool.Name}");
+                                await displayModelOutput($"[DEBUG]\n\nCompleted Auto Invoked Tool: {tool.Name}");
                             }
                         }
 
