@@ -25,7 +25,7 @@ public class Handoff<TContext> : AIFunction where TContext : class
 
     #region AIFunction overrides
 
-    public override JsonElement JsonSchema { get; }
+    // public override JsonElement JsonSchema { get; }
 
     protected override ValueTask<object?> InvokeCoreAsync(
         AIFunctionArguments arguments,
@@ -51,7 +51,7 @@ public class Handoff<TContext> : AIFunction where TContext : class
         AgentName = agentName;
         OnInvokeHandoff = onInvokeHandoff;
 
-        JsonSchema = ConstructReasoningSchema(name, description);
+        // JsonSchema = ConstructReasoningSchema(name, description);
     }
 
     public static string DefaultToolName(Agent<TContext> agent)

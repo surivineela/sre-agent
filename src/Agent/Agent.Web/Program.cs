@@ -33,7 +33,6 @@ using Agent.Plugins.Implementation.DiagnosticsPlugin;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Kusto;
 using Agent.Plugins.Kusto.Tools;
-using Agent.Plugins.KustoPlugin;
 using Agent.Plugins.Services;
 using Agent.Plugins.Services.Interfaces;
 using Agent.Plugins.Tools;
@@ -83,9 +82,7 @@ using Agent.Runtime.TeamsChatServices;
 using Agent.Runtime.ThreadEvaluator;
 using Agent.Runtime.TrajectoryEvaluator;
 using Agent.Web.Services;
-using Azure.Monitor.OpenTelemetry.Exporter;
 using FirstPartyAgent.Core.FirstPartyAgents;
-using k8s.KubeConfigModels;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Connector.Authentication;
@@ -656,9 +653,8 @@ public class Program
         //Overwrite KustoClient from ValidateAndRegisterFirstPartyTypes if is not Container FirstParty Agent
         if (!isFirstPartyAgent)
         {
-            builder.Services.AddSingleton<KustoClient>(sp =>
+            builder.Services.AddSingleton<KustoConnector>(sp =>
             {
-                var logger = sp.GetRequiredService<ILogger<KustoClient>>();
                 var actionSettings = sp.GetRequiredService<ActionSettings>();
                 var kustoAuthSetting = new ConnectorAuthSettings()
                 {
@@ -669,12 +665,17 @@ public class Program
                 {
                     kustoAuthSetting.AuthenticationType = ConnectorAuthType.User;
                 }
-                var kustoSetting = new KustoConnector()
+                return new KustoConnector()
                 {
                     Auth = kustoAuthSetting,
                     Enabled = true,
                     RegionalClusterGroups = []
                 };
+            });
+            builder.Services.AddSingleton<KustoClient>(sp =>
+            {
+                var logger = sp.GetRequiredService<ILogger<KustoClient>>();
+                var kustoSetting = sp.GetRequiredService<KustoConnector>();
                 return new KustoClient(logger, kustoSetting);
             });
         }
@@ -753,7 +754,7 @@ public class Program
         {
             builder.Services.AddTransient<AzureSearchPluginDefinition>(sp =>
             {
-                 return new AzureSearchPluginDefinition(sp.GetRequiredService<IAzureSearchPlugin>());
+                return new AzureSearchPluginDefinition(sp.GetRequiredService<IAzureSearchPlugin>());
             });
             builder.Services.AddTransient<IAzureSearchPlugin>(sp =>
             {

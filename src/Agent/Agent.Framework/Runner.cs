@@ -221,9 +221,9 @@ public static class Runner
                                 }
                                 else if (content is FunctionCallContent f)
                                 {
-                                    await displayModelOutput($"[DEBUG]\nAgent: {currentAgent.Name}"
-                                        + $"\nFunction Call: {f.Name}"
-                                        + $"\nParameters: {(f.RawRepresentation as OpenAI.Chat.ChatToolCall)!.FunctionArguments.ToString()}");
+                                    await displayModelOutput($"[DEBUG]\n\nAgent: {currentAgent.Name}"
+                                        + $"\n\nFunction Call: {f.Name}"
+                                        + $"\n\nParameters: {(f.RawRepresentation as OpenAI.Chat.ChatToolCall)!.FunctionArguments.ToString()}");
                                 }
                             }
                         }
