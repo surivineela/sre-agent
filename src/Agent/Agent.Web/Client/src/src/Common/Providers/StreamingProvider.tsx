@@ -2,9 +2,10 @@ import * as signalR from '@microsoft/signalr';
 import { ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { isUserStreamingMessage } from '../../Space/Activities/Utility';
 import { StreamingContext } from '../../Space/Contracts/Context';
-import AzPortalProxy from '../AzPortalProxy/AzPortalProxy';
+import AzPortalProxy, { defaultSreAgentEndpoint } from '../AzPortalProxy/AzPortalProxy';
 import { AzPortalContext } from '../AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../AzPortalProxy/Providers/StartupInfoContext';
+import { standaloneAgentEndpoint, standaloneReactPort } from '../Constants/Uri';
 import { MessageRequestType, MessageResponseType, StreamingMessage } from '../Contracts/Azure/Streaming';
 
 export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
@@ -114,8 +115,9 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
             setIsConnecting(true);
 
             const isLocalHost = window.location.hostname.toLowerCase() === 'localhost';
-            const isReactLocalhost = isLocalHost && window.location.port === '5173';
-            const endpoint = isReactLocalhost ? 'https://localhost:7023' : sreAgentEndpoint;
+            const isReactLocalhost =
+                isLocalHost && window.location.port === standaloneReactPort && sreAgentEndpoint === defaultSreAgentEndpoint;
+            const endpoint = isReactLocalhost ? standaloneAgentEndpoint : sreAgentEndpoint;
 
             connectionRef.current = new signalR.HubConnectionBuilder()
                 // ToDo: Sanitize the endpoint
