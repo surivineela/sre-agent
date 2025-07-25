@@ -138,7 +138,7 @@ jobs:
         IterationCount: ${{ github.event_name == 'pull_request' && '1' || '5' }}
         SkipReactBuild: 'true'
       timeout-minutes: 50
-      continue-on-error: true
+      continue-on-error: false
 
     - name: 📢 Publish evaluation test results
       uses: serverless-paas-balam/actions-test-reporter@main
@@ -150,7 +150,7 @@ jobs:
         use-actions-summary: 'true'
         post-pr-comment: 'true'
         token: ${{ secrets.GITHUB_TOKEN }}
-        fail-on-error: false
+        fail-on-error: true
 
     - name: 📋 Upload evaluation test results
       uses: actions/upload-artifact@v4
