@@ -585,7 +585,7 @@ public class Program
                     defaultOutputType: typeof(DefaultAgentOutput)
                 );
 
-                if (AgentMemoryEnabled(builder))
+                if (TrajectoryRetrievalEnabled(builder))
                 {
                     factory.LoadExtendedAgentsFromFolder(Path.Combine(AppContext.BaseDirectory, "AgentsRAG"), isCustomAgent: false);
                 }
@@ -1081,6 +1081,12 @@ public class Program
     {
         var agentMemorySettings = builder.Configuration.GetSection("AppSettings:Core:AgentMemory").Get<AgentMemorySettings>();
         return agentMemorySettings?.Enabled ?? false;
+    }
+
+    private static bool TrajectoryRetrievalEnabled(WebApplicationBuilder builder)
+    {
+        var agentMemorySettings = builder.Configuration.GetSection("AppSettings:Core:AgentMemory").Get<AgentMemorySettings>();
+        return agentMemorySettings?.TrajectoryRetrievalEnabled ?? false;
     }
 
     private static void ConfigureAgentMemory(WebApplicationBuilder builder)
