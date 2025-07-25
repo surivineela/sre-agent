@@ -25,7 +25,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
                 JsonValueKind.Number when graphSon.TryGetDecimal(out var decimalValue) => decimalValue,
 
 
-                _ => base.ToObject(graphSon) ?? string.Empty
+                _ => base.ToObject(graphSon)
             };
     }
 
@@ -233,10 +233,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             {
                 _logger.LogInternalError(e, $"Exception: {e.Message}. Query: {query}");
 
-                return new ResultSet<T>(
-                    new List<T>(),
-                    new Dictionary<string, object>()
-                );
+                return new ResultSet<T>([], null);
             }
         }
 
