@@ -160,7 +160,6 @@ public class Program
                         if (IsAgentMemoryConfigurationValid(agentMemorySettings))
                         {
                             logger.LogInternalInformation("Agent Memory is enabled and configured. Setting up Agent Memory services...");
-                            await app.Services.CreateDocumentBlobContainerIfNotExists();
                             await app.Services.SetupAgentMemoryIndexAsync();
                             logger.LogInternalInformation("Agent Memory setup completed successfully.");
                         }
@@ -1304,8 +1303,11 @@ public class Program
     /// <returns>True if configuration is valid, false otherwise</returns>
     private static bool IsAgentMemoryConfigurationValid(AgentMemorySettings settings)
     {
-        return !string.IsNullOrEmpty(settings.StorageAccountName) &&
-               !string.IsNullOrEmpty(settings.BlobStorageResourceId) &&
+        bool storageAccountValid = !settings.StorageAccountEnabled || 
+            (!string.IsNullOrEmpty(settings.StorageAccountName) && 
+             !string.IsNullOrEmpty(settings.BlobStorageResourceId));
+
+        return storageAccountValid &&
                !string.IsNullOrEmpty(settings.AzureAISearchName) &&
                !string.IsNullOrEmpty(settings.AzureAISearchIndexName) &&
                !string.IsNullOrEmpty(settings.AzureAISearchIndexerName) &&

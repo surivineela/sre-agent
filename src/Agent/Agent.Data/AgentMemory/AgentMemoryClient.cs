@@ -37,6 +37,11 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
 
     async Task<bool> IAgentMemoryClient.UploadDocumentAsync(string fileName, Stream documentStream)
     {
+        if (!agentMemorySettings.StorageAccountEnabled)
+        {
+            return false;
+        }
+
         // Validation checks
         if (string.IsNullOrWhiteSpace(fileName))
         {

@@ -28,15 +28,22 @@ public static class AgentMemoryConfiguration
     {
         if (enableAgentMemory)
         {
+            // Only register blob client if storage account is enabled
             serviceCollection.AddKeyedSingleton(AgentMemoryBlobClient, (serviceProvider, _) =>
             {
                 var agentMemorySettings = serviceProvider.GetRequiredService<AgentMemorySettings>();
+                
+                // If storage account is disabled, return a dummy blob client
+                if (!agentMemorySettings.StorageAccountEnabled)
+                {
+                    return new BlobServiceClient(new Uri("https://dummy.blob.core.windows.net"));
+                }
+                
                 var authService = serviceProvider.GetRequiredService<IAuthenticationService>();
                 var tokenCredential = authService.GetAgentMemoryBlobStorageCredential();
                 return new BlobServiceClient(
                     new Uri($"https://{agentMemorySettings.StorageAccountName}.{agentMemorySettings.BlobStorageDomainSuffix}"),
                     tokenCredential);
-
             });
 
             // Register the repository
@@ -98,16 +105,6 @@ public static class AgentMemoryConfiguration
 
 
         return serviceCollection;
-    }
-
-    public static async Task CreateDocumentBlobContainerIfNotExists(this IServiceProvider serviceProvider)
-    {
-        using var scope = serviceProvider.CreateScope();
-
-        var blobClient = scope.ServiceProvider.GetRequiredKeyedService<BlobServiceClient>(AgentMemoryBlobClient);
-        var hostEnvironment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
-        await blobClient.GetBlobContainerClient(AgentNameHelper.GetCustomerUploadedDocumentBlobContainerName(hostEnvironment.IsProduction()))
-            .CreateIfNotExistsAsync();
     }
 
     public static async Task SetupAgentMemoryIndexAsync(this IServiceProvider serviceProvider)
