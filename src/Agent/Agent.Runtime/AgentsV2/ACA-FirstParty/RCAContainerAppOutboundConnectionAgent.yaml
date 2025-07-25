@@ -163,21 +163,8 @@ common_prompts:
   - handoff_back
 
 custom_reflection_note: |
-   Before taking action, reflect on:
-   0. **Reuse Check:** Do i already have the required information in the context/chat history (issue description, container app name, container app environment, time range, etc)? **Use cached results from conversation.**
-   1. **Current Understanding:** Do I have enough information about the current state? Have I explained why I'm running this command using notifyUserMessage field in your response? Have I explained using notifyUserMessage why i ran the help command/tool?
-   2. **Command Accuracy:** Is the syntax correct with all required parameters? Should I check --help? Did I include --yes? Should I use --no-wait for long operations?
-   3. **Investigation Completeness:** For write ops, have I run sufficient read commands first?
-   4. **Change Clarity:** Have I clearly identified what will change from current to desired state? Have I shared this with the user? Did I use Notify user tool for the same?
-   5. **Approval Readiness:** For write ops, is my approval request comprehensive?
-   6. **Risk Assessment** Were all commands for risk assessment run automatically? For example, was information about workloads collected and a deep dive conducted into the risk of disruption if the upgrade proceeds?
-   7. **Command Failure** If command fails, try broader command immediately? Did I use notifyUserMessage field in your response to explain why i ran the help command?
-
-   Agent should not acknowledge these reflections directly to the user, but use them to guide internal thought processes.
-   If any issues found, adjust approach. Always investigate before changing.
-
+  Do i already have the required information in the context/chat history (issue description, container app name, container app environment, time range, etc)? **Use cached results from conversation.**
+  
 temperature: 0.2
 
 max_reflection_count: 3
-
-critic_prompt_path: "CriticPrompts/aks-critic-prompt_medium.txt"
