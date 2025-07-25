@@ -142,24 +142,9 @@ public class ReasoningLoop : IDisposable
         var globalDefaultMode = actionSettings.Mode.ToString() ?? AgentModes.Review;
         if (!string.IsNullOrEmpty(context.AgentMode) && !string.Equals(context.AgentMode, globalDefaultMode, StringComparison.OrdinalIgnoreCase))
         {
-            // Validate if the requested agent mode is allowed based on the global default mode
-            if (AgentModes.IsValidModeChange(globalDefaultMode, context.AgentMode))
-            {
-                _logger.LogInternalInformation("Setting agent mode to {AgentMode} for thread {ThreadId} (global default: {GlobalMode})",
-                    context.AgentMode, context.ThreadId, globalDefaultMode);
-                _ = Task.Run(async () => await _agentRuntimeModifier.SetAgentMode(context, context.AgentMode, notifyUser: false));
-            }
-            else
-            {
-                _logger.LogInternalWarning("Invalid agent mode '{RequestedMode}' for thread {ThreadId}. {ValidationMessage}",
-                    context.AgentMode, context.ThreadId, AgentModes.GetValidationErrorMessage(globalDefaultMode));
-
-                _ = Task.Run(async () => await _agentRuntimeModifier.SetAgentMode(context, globalDefaultMode, notifyUser: true));
-
-                // Don't set the invalid mode, keep the global default
-                _logger.LogInternalInformation("Keeping global default mode '{GlobalMode}' for thread {ThreadId}",
-                    globalDefaultMode, context.ThreadId);
-            }
+            _logger.LogInternalInformation("Setting agent mode to {AgentMode} for thread {ThreadId} (global default: {GlobalMode})",
+                context.AgentMode, context.ThreadId, globalDefaultMode);
+            _ = Task.Run(async () => await _agentRuntimeModifier.SetAgentMode(context, context.AgentMode, notifyUser: false));
         }
 
         _logger.LogInternalInformation("Experimental Flag: AgentMemoryEnabled: {agentMemoryEnabled}", _agentMemoryEnabled);
@@ -390,11 +375,11 @@ public class ReasoningLoop : IDisposable
                             }
 
                             StringBuilder sb = new StringBuilder();
-                            
+
                             // Check if current agent has UserPromptOverride configured
                             if (!string.IsNullOrEmpty(_currentAgent.UserPromptOverride))
                             {
-                                _logger.LogInternalInformation("[{threadId}]Using UserPromptOverride from agent {agentName}", 
+                                _logger.LogInternalInformation("[{threadId}]Using UserPromptOverride from agent {agentName}",
                                     _context.ThreadId, _currentAgent.Name);
                                 sb.AppendLine(_currentAgent.UserPromptOverride);
                             }
@@ -412,9 +397,9 @@ public class ReasoningLoop : IDisposable
 
                             // Only perform document retrieval if not disabled
                             // When UserPromptOverride is used, document retrieval can be optionally disabled
-                            bool shouldRetrieveDocuments = !_currentAgent.DisableDocumentRetrieval || 
+                            bool shouldRetrieveDocuments = !_currentAgent.DisableDocumentRetrieval ||
                                                          string.IsNullOrEmpty(_currentAgent.UserPromptOverride);
-                            
+
                             if (shouldRetrieveDocuments)
                             {
                                 var docMsg = await RetrieveDocumentsFromSearch(_chatHistory!, chatMessage.Message.Text);
@@ -425,7 +410,7 @@ public class ReasoningLoop : IDisposable
                             }
                             else
                             {
-                                _logger.LogInternalInformation("[{threadId}]Document retrieval disabled for agent {agentName}", 
+                                _logger.LogInternalInformation("[{threadId}]Document retrieval disabled for agent {agentName}",
                                     _context.ThreadId, _currentAgent.Name);
                             }
 
@@ -1436,6 +1421,7 @@ public class ReasoningLoop : IDisposable
 
             // if in agent mode, return auto approved
             var currentAgentMode = _agentRuntimeModifier.GetThreadAgentMode(_context);
+            _logger.LogInternalInformation($"Checking approval for tool {toolCall.Tool.Name}. Current agent mode: {currentAgentMode}");
             if (string.Compare(currentAgentMode, ActionMode.Autonomous.ToString(), StringComparison.OrdinalIgnoreCase) == 0)
             {
                 return new CheckApprovalActivityOutput()

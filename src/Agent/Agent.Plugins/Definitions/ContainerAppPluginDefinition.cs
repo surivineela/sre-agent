@@ -221,7 +221,7 @@ namespace Agent.Plugins.Definitions
             return await _containerAppPlugin.ModifyContainerAppScaleRuleAsync(resourceId, ruleName, modificationType, scaleRuleType, parsedMetadata);
         }
 
-        [Description("Get the logs of a specific revision of a Container App instance, highlighting configuration, errors, and diagnostic issues." + 
+        [Description("Get the logs of a specific revision of a Container App instance, highlighting configuration, errors, and diagnostic issues." +
         "This method also surfaces port forwarding errors and other connectivity problems in the log output, making it easier to troubleshoot deployment and runtime issues.")]
         [AgentTool(ToolMode.Auto)]
         public async Task<string> GetRevisionLogsAsync(
@@ -233,7 +233,7 @@ namespace Agent.Plugins.Definitions
             return await _containerAppPlugin.GetContainerAppLogsAsync(resourceId, revisionName);
         }
 
-        [Description("Get the logs the latest revision of a Container App instance, highlighting configuration, errors, and diagnostic issues." + 
+        [Description("Get the logs the latest revision of a Container App instance, highlighting configuration, errors, and diagnostic issues." +
         "This method also surfaces port forwarding errors and other connectivity problems in the log output, making it easier to troubleshoot deployment and runtime issues.")]
         public async Task<string> GetContainerAppLogsAsync(
             [Description("The resource ID of the Container App instance.")]
@@ -291,10 +291,11 @@ namespace Agent.Plugins.Definitions
             return await _containerAppPlugin.VerifyExternalRegistryAsync(resourceId, imageReference);
         }
 
+        [RequiresApproval]
         [KernelFunction("rollback_to_last_working_image")]
         [Description("Rolls back a Container App to the last known working revision. This is useful when a new image deployment causes image pull failures. Returns detailed information about the rollback operation including success status, target revision, and reasons for failure if applicable. Note that this tool requires explicit user's approval before it can be used.")]
         public async Task<RollbackResult> RollbackToLastKnownWorkingRevision(
-            [Description("Resource ID of the Container App whose revision needs to be rolled back")]
+                    [Description("Resource ID of the Container App whose revision needs to be rolled back")]
             string resourceId)
         {
             return await _containerAppPlugin.RollbackToLastKnownWorkingRevision(resourceId);

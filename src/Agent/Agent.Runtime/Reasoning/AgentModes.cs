@@ -68,7 +68,7 @@ public static class AgentModes
     /// <param name="requestMode">The requested agent mode</param>
     /// <returns>True if mode is any of these three available modes, otherwise false</returns>
     public static bool IsModeValid(string requestMode)
-    { 
+    {
         return All.Any(m => string.Equals(m, requestMode.Trim(), StringComparison.OrdinalIgnoreCase));
     }
 }

@@ -63,6 +63,7 @@ tools:
   - GetDeploymentTimes
   - HandoffBack
   - CloseAzureMonitorAlert
+  - RollbackToLastKnownWorkingRevision
 
 common_prompts:
   - format_guidelines
