@@ -557,9 +557,8 @@ export const ActivitiesResources = defineMessages({
     actionsPivotHeader: { defaultMessage: 'Actions', id: 'wL7VAE' },
     chatInputPlaceholder: { defaultMessage: 'I want to...', id: 'PxLzzW' },
     knowledgeGraphBuildStatus: {
-        defaultMessage:
-            'Gathering info about your resources, which might take a few minutes. You can still chat about other topics while the data loads.',
-        id: 'ciMXhP',
+        defaultMessage: 'Building knowledge about your resources... {percent}% done. You can chat about other topics in the meantime.',
+        id: '2Rfala',
     },
     newMessagesButtonText: {
         defaultMessage: 'New messages',

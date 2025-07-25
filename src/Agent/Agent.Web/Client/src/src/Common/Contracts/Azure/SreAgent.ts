@@ -168,11 +168,17 @@ export interface Message {
 }
 
 export interface KnowledgeGraphBuildStatus {
-    crawledCount: number;
-    hasCompletedInitialGraphCrawl: boolean;
     isCrawling: boolean;
-    properties: any;
+    hasCompletedInitialGraphCrawl: boolean;
+    crawledCount: number;
     totalVisibleResources: number;
+    properties: Record<string, any>;
+    progressByResourceType: Record<string, CrawlProgress>;
+}
+
+export interface CrawlProgress {
+    crawledCount: number;
+    totalCount: number;
 }
 
 export interface AzCliExecution {

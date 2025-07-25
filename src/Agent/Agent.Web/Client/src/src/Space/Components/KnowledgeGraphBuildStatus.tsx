@@ -19,13 +19,15 @@ const useKnowledgeGraphBuildStatusStyles = makeStyles({
 
 const KnowledgeGraphBuildStatus = () => {
     const { root } = useKnowledgeGraphBuildStatusStyles();
-    const { isKnowledgeGraphBuildCompleted, hasChatPermissions } = useContext(KnowledgeGraphBuildStatusContext);
+    const { isKnowledgeGraphBuildCompleted, hasChatPermissions, progressPercent } = useContext(KnowledgeGraphBuildStatusContext);
     const intl = useIntl();
 
     return isKnowledgeGraphBuildCompleted && hasChatPermissions ? null : (
         <div className={root}>
             {hasChatPermissions && <Spinner size={'extra-tiny'} />}
-            <Text block={true}>{hasChatPermissions && intl.formatMessage(ActivitiesResources.knowledgeGraphBuildStatus)}</Text>
+            <Text block={true}>
+                {hasChatPermissions && intl.formatMessage(ActivitiesResources.knowledgeGraphBuildStatus, { percent: progressPercent })}
+            </Text>
         </div>
     );
 };

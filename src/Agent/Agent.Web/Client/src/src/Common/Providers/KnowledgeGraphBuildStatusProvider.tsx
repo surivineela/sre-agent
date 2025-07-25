@@ -8,16 +8,19 @@ import { getAgentHeaders } from '../Helpers/headers';
 interface KnowledgeGraphBuildStatusContextProps {
     isKnowledgeGraphBuildCompleted: boolean;
     hasChatPermissions: boolean;
+    progressPercent: number;
 }
 
 export const KnowledgeGraphBuildStatusContext = createContext<KnowledgeGraphBuildStatusContextProps>({
     isKnowledgeGraphBuildCompleted: true,
     hasChatPermissions: true,
+    progressPercent: 100,
 });
 
 export const KnowledgeGraphBuildStatusProvider = ({ children }: { children?: ReactNode }) => {
     const [isKnowledgeGraphBuildCompleted, setIsKnowledgeGraphBuildCompleted] = useState(true);
     const [hasChatPermissions, setHasChatPermissions] = useState(true);
+    const [progressPercent, setProgressPercent] = useState(100);
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const proxy = useContext(AzPortalContext);
@@ -57,6 +60,7 @@ export const KnowledgeGraphBuildStatusProvider = ({ children }: { children?: Rea
                     if (consecutivePermissionErrors >= maxRetries) {
                         setHasChatPermissions(false);
                         setIsKnowledgeGraphBuildCompleted(true);
+                        setProgressPercent(100);
                         return { data: undefined, permissionsError: true };
                     }
                 } else {
@@ -83,6 +87,18 @@ export const KnowledgeGraphBuildStatusProvider = ({ children }: { children?: Rea
                 const isCompleted = result.data?.hasCompletedInitialGraphCrawl ?? false;
                 setIsKnowledgeGraphBuildCompleted(isCompleted);
 
+                // Calculate progress percent
+                let percent = 100;
+                if (
+                    result.data &&
+                    typeof result.data.crawledCount === 'number' &&
+                    typeof result.data.totalVisibleResources === 'number' &&
+                    result.data.totalVisibleResources > 0
+                ) {
+                    percent = Math.min(100, Math.floor((result.data.crawledCount / result.data.totalVisibleResources) * 100));
+                }
+                setProgressPercent(percent);
+
                 const interval = isCompleted ? 20000 : 5000;
 
                 timeoutId = setTimeout(() => {
@@ -103,7 +119,7 @@ export const KnowledgeGraphBuildStatusProvider = ({ children }: { children?: Rea
     }, [getProgress, hasChatPermissions]);
 
     return (
-        <KnowledgeGraphBuildStatusContext.Provider value={{ isKnowledgeGraphBuildCompleted, hasChatPermissions }}>
+        <KnowledgeGraphBuildStatusContext.Provider value={{ isKnowledgeGraphBuildCompleted, hasChatPermissions, progressPercent }}>
             {children}
         </KnowledgeGraphBuildStatusContext.Provider>
     );

@@ -313,6 +313,20 @@
       "value": "Manage IoT Hub device registry."
     }
   ],
+  "2Rfala": [
+    {
+      "type": 0,
+      "value": "Building knowledge about your resources... "
+    },
+    {
+      "type": 1,
+      "value": "percent"
+    },
+    {
+      "type": 0,
+      "value": "% done. You can chat about other topics in the meantime."
+    }
+  ],
   "2hB9SP": [
     {
       "type": 0,
@@ -2883,12 +2897,6 @@
     {
       "type": 0,
       "value": "Operate Azure Machine Learning compute resources."
-    }
-  ],
-  "ciMXhP": [
-    {
-      "type": 0,
-      "value": "Gathering info about your resources, which might take a few minutes. You can still chat about other topics while the data loads."
     }
   ],
   "cn2YEB": [
