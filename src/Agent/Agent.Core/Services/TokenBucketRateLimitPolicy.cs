@@ -37,8 +37,11 @@ public class TokenBucketRateLimitPolicy : HttpPipelinePolicy, IDisposable
 
         // Regex to extract resource provider from ARM URLs, patterns:
         // resource group: /subscriptions/{subscriptionId}?api-version=2022-12-01 or /subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}
+        // default: /tenants
+        // default: /subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}?api-version=2022-09-01
+        // app: /subscriptions/{subscriptionId}/providers/microsoft.app?api-version=2022-09-01
         // network: /subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/microsoft.network/networksecuritygroups
-        _resourceProviderRegex = new Regex(@"/providers/([^/]+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        _resourceProviderRegex = new Regex(@"(?i)providers/([^/?]+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
     }
 
     private string ExtractResourceProvider(HttpMessage message)
