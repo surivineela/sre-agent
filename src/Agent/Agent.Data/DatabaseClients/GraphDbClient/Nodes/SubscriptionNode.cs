@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 namespace Agent.Data.DatabaseClients.GraphDbClient;
+
 public sealed class SubscriptionNode : ArmResourceNode
 {
     public const string Type = "subscriptions";
@@ -20,10 +21,10 @@ public sealed class SubscriptionNode : ArmResourceNode
         return new Dictionary<string, object>
         {
             { "updateTs", UpdateTs },
-            { "resourceId", ResourceId ?? string.Empty },
-            { "subscriptionId", SubscriptionId ?? string.Empty },
-            { "subscriptionName", string.IsNullOrEmpty(SubscriptionName) ? SubscriptionId ?? string.Empty: SubscriptionName },
-            { "isDeleted", IsDeleted}
+            { "resourceId", ResourceId },
+            { "subscriptionId", SubscriptionId },
+            { "subscriptionName", string.IsNullOrEmpty(SubscriptionName) ? SubscriptionId : SubscriptionName },
+            { "isDeleted", IsDeleted }
         };
     }
 }

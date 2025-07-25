@@ -684,7 +684,7 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
 
     private bool FilterResourceType(HashSet<string> filters, GraphNode node)
     {
-        if (filters == null)
+        if (filters == null || filters.Count == 0)
         {
             return true;
         }

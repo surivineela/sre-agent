@@ -305,11 +305,11 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         {
             UpdateTs = DateTime.UtcNow.Ticks;
             ResourceKind = ResourceKindHelper.getResourceKind(resourceType, resourceKind);
-            ResourceType = resourceType ?? string.Empty.ToLowerInvariant();
-            ResourceId = resourceId ?? string.Empty.ToLowerInvariant();
-            SubscriptionId = subscriptionId ?? string.Empty.ToLowerInvariant();
-            ResourceGroupName = resourceGroupName ?? string.Empty.ToLowerInvariant();
-            ResourceName = resourceName ?? string.Empty.ToLowerInvariant();
+            ResourceType = resourceType.ToLowerInvariant();
+            ResourceId = resourceId.ToLowerInvariant();
+            SubscriptionId = subscriptionId.ToLowerInvariant();
+            ResourceGroupName = resourceGroupName.ToLowerInvariant();
+            ResourceName = resourceName.ToLowerInvariant();
             Location = location?.NormalizeLocation() ?? string.Empty;
             AppHealthInfo = appHealthInfo ?? new AppHealthInfo();
             Remarks = remarks;
@@ -321,7 +321,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             //return parts[parts.Length - 1];
 
             // use full arm type to avoid potential conflict
-            return ResourceType?.ToLower() ?? string.Empty;
+            return ResourceType;
         }
 
         public override string GetNodeId()

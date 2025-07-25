@@ -57,9 +57,9 @@ public class KubernetesResourceNode : GraphNode
         IDictionary<string, string>? annotations = null,
         IDictionary<string, string>? labels = null)
     {
-        SubscriptionId = subscriptionId ?? string.Empty.ToLowerInvariant();
-        ResourceGroupName = resourceGroupName ?? string.Empty.ToLowerInvariant();
-        Location = location ?? string.Empty.ToLowerInvariant();
+        SubscriptionId = subscriptionId?.ToLowerInvariant() ?? string.Empty;
+        ResourceGroupName = resourceGroupName?.ToLowerInvariant() ?? string.Empty;
+        Location = location?.NormalizeLocation() ?? string.Empty;
         UpdateTs = DateTime.UtcNow.Ticks;
         ResourceObject = k8sObject;
         ClusterResourceId = clusterResourceId.ToLowerInvariant();

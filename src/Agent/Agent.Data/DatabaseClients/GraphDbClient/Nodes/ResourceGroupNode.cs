@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 namespace Agent.Data.DatabaseClients.GraphDbClient;
+
 public sealed class ResourceGroupNode : ArmResourceNode
 {
     public const string Type = "resourcegroups";
@@ -21,8 +22,8 @@ public sealed class ResourceGroupNode : ArmResourceNode
         var properties = new Dictionary<string, object>
         {
             { "updateTs", UpdateTs },
-            { "resourceId", ResourceId ?? string.Empty },
-            { "subscriptionId", SubscriptionId ?? string.Empty},
+            { "resourceId", ResourceId},
+            { "subscriptionId", SubscriptionId},
             { "resourceGroupName", ResourceGroupName ?? string.Empty },
             { "isDeleted", IsDeleted}
         };
