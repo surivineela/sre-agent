@@ -27,6 +27,7 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
     private readonly ThreadService _threadService;
     private readonly IThreadRepository _threadRepository;
     private readonly AsyncReaderWriterLock _lock = new();
+    private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
 
     private readonly IChatClient _chatClient;
     private readonly ILogger<IncidentHandlerAgent> _logger;
@@ -44,7 +45,8 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
         Tracer tracer,
         ThreadService threadService,
         IThreadRepository threadRepository,
-        ActionSettings actionSettings
+        ActionSettings actionSettings,
+        IAgentOutboundCommunicationService agentOutboundCommunicationService
         )
     {
         _chatClient = chatClient;
@@ -59,6 +61,7 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
             "IncidentHandlerAgent: Constructor invoked. Loading agent factory of type: {AgentFactoryType}",
             _agentsFactory.GetType());
         _actionSettings = actionSettings;
+        _agentOutboundCommunicationService = agentOutboundCommunicationService;
     }
 
     public async IAsyncEnumerable<ChatResponseUpdate> ProcessIncidentStream(AgentContext agentContext, AgentChatHistory agentChatHistory)
@@ -122,6 +125,8 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
 
         StringBuilder agentResponse = new StringBuilder();
         bool hasRecordedResposne = false;
+        bool isProcessingToolCalls = false;
+        var orchestrationInstanceId = await _threadService.GetOrchestrationInstanceId(agentContext.ThreadId);
 
         _logger.LogInternalInformation(
             "[IncidentHandlerAgent] ProcessIncidentStream: Starting to process streaming responses for ThreadId: {ThreadId}",
@@ -131,6 +136,42 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
         {
             bufferedResponses.Add(response);
             agentResponse.Append(response.Text);
+
+            // Handle tool call notifications during streaming
+            if (response.FinishReason == ChatFinishReason.ToolCalls && !isProcessingToolCalls)
+            {
+                isProcessingToolCalls = true;
+                
+                // Send initial "processing tools" notification
+                await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                    threadGuid,
+                    orchestrationInstanceId,
+                    new ChatMessage(ChatRole.Assistant, "🔄 Processing tools and gathering information...")
+                );
+            }
+
+            // Handle individual function calls in the streaming response
+            if (response.Contents != null)
+            {
+                foreach (var content in response.Contents)
+                {
+                    if (content is FunctionCallContent functionCall)
+                    {
+                        var toolName = functionCall.Name;
+                        var toolDescription = GetToolCallDescription(toolName);
+                        
+                        await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                            threadGuid,
+                            orchestrationInstanceId,
+                            new ChatMessage(ChatRole.Assistant, $"🔧 {toolDescription}")
+                        );
+
+                        _logger.LogInternalInformation(
+                            "[IncidentHandlerAgent] ProcessIncidentStream: Sent tool call notification for {ToolName} in thread {ThreadId}",
+                            toolName, threadGuid);
+                    }
+                }
+            }
 
             if (response.FinishReason == ChatFinishReason.Stop && !hasRecordedResposne)
             {
@@ -200,11 +241,25 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
             generationSpan.SetAttribute(TraceAttribute.ModelTotalTokensCount, response?.Usage?.TotalTokenCount?.ToString() ?? string.Empty);
             generationSpan.SetAttribute(TraceAttribute.ModelTemperature, "0.7");
 
-            await response.UpdateAgentChatHistoryAsync(agentChatHistory, _threadRepository, agentContext.Id);
+            //await response.UpdateAgentChatHistoryAsync(agentChatHistory, _threadRepository, agentContext.Id);
+
+            
+            if (response != null)
+            {
+                var orchestrationInstanceId = agentContext != null ? await _threadService.GetOrchestrationInstanceId(agentContext.ThreadId) : string.Empty;
+
+                foreach (var message in response.Messages)
+                {
+                    await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                   threadGuid,
+                   orchestrationInstanceId,
+                   message);
+                }
+            }
 
             _logger.LogInternalInformation(
                 "[IncidentHandlerAgent] ProcessIncidentAsync: Successfully processed incident for AgentContextId: {AgentContextId}, ThreadId: {ThreadId}",
-                agentContext.Id, threadGuid);
+                agentContext != null ? agentContext.Id : Guid.Empty, threadGuid);
 
             return response?.Messages?.LastOrDefault()?.Text ?? string.Empty;
         }
@@ -265,18 +320,11 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
                 agentContext.Id, threadGuid);
 
             var response = await ChatClientHelper.ExecuteWithRetryAsync(
-                async () => await _chatClient.GetResponseAsync(
+                async () => await GetResponseWithStreamingNotificationsAsync(
                     chatHistory,
-                    new ChatOptions
-                    {
-                        Tools = selectedTools,
-                        ToolMode = ChatToolMode.Auto,
-                        AdditionalProperties = new AdditionalPropertiesDictionary
-                        {
-                            //["AllowParallelToolCalls"] = false,
-                        },
-                        Temperature = 0.7f,
-                    }
+                    selectedTools,
+                    threadGuid,
+                    agentContext
                 ),
                 _logger, 10);
 
@@ -294,6 +342,131 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
                 agentContext.Id, threadGuid);
             throw;
         }
+    }
+
+    /// <summary>
+    /// Gets model response with streaming tool call notifications to the UI
+    /// </summary>
+    private async Task<ChatResponse> GetResponseWithStreamingNotificationsAsync(
+        List<ChatMessage> chatHistory,
+        List<AITool>? selectedTools,
+        Guid threadGuid,
+        AgentContext agentContext)
+    {
+        var streamingResponse = _chatClient.GetStreamingResponseAsync(
+            chatHistory,
+            new ChatOptions
+            {
+                Tools = selectedTools,
+                ToolMode = ChatToolMode.Auto,
+                AdditionalProperties = new AdditionalPropertiesDictionary
+                {
+                    //["AllowParallelToolCalls"] = false,
+                },
+                Temperature = 0.7f,
+            });
+
+        var orchestrationInstanceId = await _threadService.GetOrchestrationInstanceId(agentContext.ThreadId);
+        var responseMessages = new List<ChatMessage>();
+        var currentMessageBuilder = new StringBuilder();
+        var currentFunctionCalls = new List<FunctionCallContent>();
+        
+        bool isProcessingToolCalls = false;
+
+        await foreach (var update in streamingResponse)
+        {
+            // Check if we're starting to process tool calls
+            if (update.FinishReason == ChatFinishReason.ToolCalls && !isProcessingToolCalls)
+            {
+                isProcessingToolCalls = true;
+                
+                // Send initial "processing tools" notification
+                await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                    threadGuid,
+                    orchestrationInstanceId,
+                    new ChatMessage(ChatRole.Assistant, "🔄 Processing tools and gathering information...")
+                );
+            }
+
+            // Collect text content
+            if (!string.IsNullOrEmpty(update.Text))
+            {
+                currentMessageBuilder.Append(update.Text);
+            }
+
+            // Handle function calls in the streaming response
+            if (update.Contents != null)
+            {
+                foreach (var content in update.Contents)
+                {
+                    if (content is FunctionCallContent functionCall)
+                    {
+                        currentFunctionCalls.Add(functionCall);
+                        
+                        // Send notification for each tool call
+                        var toolName = functionCall.Name;
+                        var toolDescription = GetToolCallDescription(toolName);
+                        
+                        await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                            threadGuid,
+                            orchestrationInstanceId,
+                            new ChatMessage(ChatRole.Assistant, $"🔧 {toolDescription}")
+                        );
+
+                        _logger.LogInternalInformation(
+                            "[IncidentHandlerAgent] GetResponseWithStreamingNotifications: Sent tool call notification for {ToolName} in thread {ThreadId}",
+                            toolName, threadGuid);
+                    }
+                }
+            }
+        }
+
+        // Build the final response
+        var finalMessage = new ChatMessage(ChatRole.Assistant, currentMessageBuilder.ToString());
+        if (currentFunctionCalls.Count > 0)
+        {
+            // Add function calls to the message contents
+            var allContents = new List<AIContent> { new TextContent(currentMessageBuilder.ToString()) };
+            allContents.AddRange(currentFunctionCalls);
+            finalMessage = new ChatMessage(ChatRole.Assistant, allContents);
+        }
+
+        responseMessages.Add(finalMessage);
+
+        return new ChatResponse(responseMessages);
+    }
+
+    /// <summary>
+    /// Gets a user-friendly description for tool calls to display in the UI
+    /// </summary>
+    private string GetToolCallDescription(string toolName)
+    {
+        return toolName switch
+        {
+            // Kusto/Query tools
+            "execute_kusto_query_on_cluster" => "Executing Kusto query to analyze data...",
+            "kusto_query" => "Running data analysis query...",
+            
+            // Azure CLI tools
+            "run_az_cli_read_commands" => "Running Azure CLI Read command...",
+            "run_az_cli_commands" => "Executing Azure CLI operations...",
+            
+            // Resource discovery
+            "list_resources_by_type" => "Discovering Azure resources...",
+            "get_resource_details" => "Getting resource details...",
+            
+            // Chart/Visualization tools
+            "plot_scatter" => "Creating scatter plot visualization...",
+            "plot_time_series_data" => "Generating time series chart...",
+            "plot_pie_chart" => "Creating pie chart...",
+            "plot_bar_chart" => "Generating bar chart...",
+            
+            // Transfer tools
+            var transfer when transfer.StartsWith("transfer_to_") => "Transferring to specialized agent...",
+            
+            // Default
+            _ => $"Executing {toolName.Replace("_", " ")}..."
+        };
     }
 
     /// <summary>
