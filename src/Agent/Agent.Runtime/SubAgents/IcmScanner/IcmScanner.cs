@@ -117,14 +117,8 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 foreach (var incident in incidents)
                 {
                     var incidentDocument = await GetDocumentAsync<IcmIncidentDocument>(incident.IncidentId, incident.IncidentId);
-                    if (incident != null)
-                    {
-                        incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident);
-                        if (incidentDocument != null)
-                        {
-                            await NotifyUserAsync(incidentDocument, new List<string>());
-                        }
-                    }
+                    incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident);                  
+                    await NotifyUserAsync(incidentDocument, new List<string>());
                 }
             }
             catch (Exception ex)
@@ -152,11 +146,11 @@ public class IcmScanner(ILogger<IcmScanner> logger,
         }
     }
 
-    private async Task<IcmIncidentDocument?> UpsertIncidentDocumentIfNeededAsync(IcmIncidentDocument? incidentDocument, Incident incident, CancellationToken cancellationToken = default)
+    private async Task<IcmIncidentDocument> UpsertIncidentDocumentIfNeededAsync(IcmIncidentDocument? incidentDocument, Incident incident, CancellationToken cancellationToken = default)
     {
         try
         {
-            if (incidentDocument is null && incident is not null)
+            if (incidentDocument is null)
             {
                 logger.LogInternalInformation("[IcmScanner] Creating new incident document for IcM by id {incidentId}", incident.IncidentId);
 
@@ -165,7 +159,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
 
                 logger.LogInternalInformation("[IcmScanner] Created new incident document for IcM incident {incidentId}", incident.IncidentId);
             }
-            else if (incident is not null && incidentDocument is not null && incidentDocument.Id == incident.IncidentId)
+            else if (incidentDocument.Id == incident.IncidentId)
             {
                 //var patchOperationList = new List<PatchOperation>();
                 //// PatchOperation.Add is used to update existing fields or add new fields if they don't exist.
@@ -217,8 +211,8 @@ public class IcmScanner(ILogger<IcmScanner> logger,
         catch (Exception ex)
         {
             logger.LogInternalError(ex, "[IcmScanner] Error upserting incident document for IcM incident {incidentId}", incident.IncidentId);
+            throw;
         }
-        return incidentDocument;
     }
 
     private async Task<DateTime> UpdateLastScanTimeDocAsync(DateTime lastScanTime)

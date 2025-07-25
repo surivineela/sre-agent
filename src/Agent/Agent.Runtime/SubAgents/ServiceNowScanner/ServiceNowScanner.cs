@@ -130,15 +130,8 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
                 {
                     // Use Number as document ID instead of IncidentId (sys_id)
                     var incidentDocument = await GetDocumentAsync<ServiceNowIncidentDocument>(incident.Number, incident.Number);
-                    if (incident != null)
-                    {
-                        incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident);
-                        if (incidentDocument == null)
-                        {
-                            throw new Exception($"Failed to upsert incident document for incident {incident.IncidentId} with number {incident.Number}");
-                        }
-                        await NotifyUserAsync(incidentDocument, new List<string>());
-                    }
+                    incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident);
+                    await NotifyUserAsync(incidentDocument, new List<string>());
                 }
                 
                 //Between each page, wait for 1 minute
@@ -169,11 +162,11 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
         }
     }
 
-    private async Task<ServiceNowIncidentDocument?> UpsertIncidentDocumentIfNeededAsync(ServiceNowIncidentDocument? incidentDocument, ServiceNowIncident incident, CancellationToken cancellationToken = default)
+    private async Task<ServiceNowIncidentDocument> UpsertIncidentDocumentIfNeededAsync(ServiceNowIncidentDocument? incidentDocument, ServiceNowIncident incident, CancellationToken cancellationToken = default)
     {
         try
         {
-            if (incidentDocument is null && incident is not null)
+            if (incidentDocument is null)
             {
                 logger.LogInternalInformation("Creating new incident document for ServiceNow incident {incidentId} with number {incidentNumber}", incident.IncidentId, incident.Number);
 
@@ -186,7 +179,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
 
                 logger.LogInternalInformation("Created new incident document for ServiceNow incident {incidentNumber}", incident.Number);
             }
-            else if (incident is not null && incidentDocument is not null && incidentDocument.Id == incident.Number)
+            else if (incidentDocument.Id == incident.Number)
             {
                 var updatedDoc = new ServiceNowIncidentDocument(incident)
                 {
@@ -197,14 +190,18 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
                 incidentDocument = await container.UpsertItemAsync(updatedDoc, new PartitionKey(updatedDoc.PartitionKey), cancellationToken: cancellationToken);
             }
 
+            if (incidentDocument == null)
+            {
+                throw new Exception($"Failed to upsert incident document for incident {incident.IncidentId} with number {incident.Number} because incidentDocument was null");
+            }
+
             return incidentDocument;
         }
         catch (Exception ex)
         {
             logger.LogInternalError(ex, "Error upserting incident document for ServiceNow incident {incidentId} with number {incidentNumber}", incident.IncidentId, incident.Number);
-        }
-        
-        return incidentDocument;
+            throw;
+        }       
     }
 
     private async Task<DateTime> UpdateLastScanTimeDocAsync(DateTime lastScanTime)

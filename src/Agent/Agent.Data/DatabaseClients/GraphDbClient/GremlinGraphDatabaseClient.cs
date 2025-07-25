@@ -16,7 +16,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
     // https://stackoverflow.com/questions/68092798/gremlin-net-deserialize-number-property/72316108#72316108
     public class CustomGraphSON2Reader : GraphSON2Reader
     {
-        public override dynamic ToObject(JsonElement graphSon) =>
+        public override dynamic? ToObject(JsonElement graphSon) =>
             graphSon.ValueKind switch
             {
                 // numbers
@@ -233,7 +233,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             {
                 _logger.LogInternalError(e, $"Exception: {e.Message}. Query: {query}");
 
-                return new ResultSet<T>([], null);
+                return new ResultSet<T>([], new Dictionary<string, object>());
             }
         }
 
