@@ -117,10 +117,13 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 foreach (var incident in incidents)
                 {
                     var incidentDocument = await GetDocumentAsync<IcmIncidentDocument>(incident.IncidentId, incident.IncidentId);
-                    if (incidentDocument != null)
+                    if (incident != null)
                     {
                         incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident);
-                        await NotifyUserAsync(incidentDocument, new List<string>());
+                        if (incidentDocument != null)
+                        {
+                            await NotifyUserAsync(incidentDocument, new List<string>());
+                        }
                     }
                 }
             }
@@ -149,7 +152,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
         }
     }
 
-    private async Task<IcmIncidentDocument> UpsertIncidentDocumentIfNeededAsync(IcmIncidentDocument incidentDocument, Incident incident, CancellationToken cancellationToken = default)
+    private async Task<IcmIncidentDocument?> UpsertIncidentDocumentIfNeededAsync(IcmIncidentDocument? incidentDocument, Incident incident, CancellationToken cancellationToken = default)
     {
         try
         {
