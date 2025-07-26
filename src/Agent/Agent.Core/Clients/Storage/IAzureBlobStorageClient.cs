@@ -12,6 +12,7 @@ namespace Agent.Core.Clients.Storage
         Task UploadFromLocalFilePathAsync(string containerName, string localFilePath);
         Task<bool> DeleteBlobContentsAsync(string containerName, string blobName);
         Task<Stream> DownloadBlobContentsAsStreamAsync(string containerName, string blobName);
+        Task<Stream> DownloadBlobContentsAsStreamAsync(Uri blobUrl);
         Task CopyBlobContentsAsync(Uri sourceBlobUri, string containerName, string blobName);
         Task CreateContainerIfNotExistAsync(string containerName, PublicAccessType accessType);
         Task<bool> CheckBlobExistsAsync(string containerName, string blobName);

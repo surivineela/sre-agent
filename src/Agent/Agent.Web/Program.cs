@@ -4,12 +4,12 @@
 
 using System.Diagnostics;
 using Agent.Core.Clients.Search;
+using Agent.Core.Clients.Storage;
 using Agent.Core.Configuration;
 using Agent.Core.Extensions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
-using Agent.Core.Models.Search;
 using Agent.Core.Plugins.Definitions;
 using Agent.Core.Services;
 using Agent.Core.Services.TokenService;
@@ -543,6 +543,7 @@ public class Program
             .AddSingleton<KustoMetadataIndex<KustoExampleQueryDocument>>()
             .AddSingleton<IKeyVaultService, KeyVaultService>()
             .AddSingleton<ObserverClientService>()
+            .AddSingleton<IAzureBlobStorageClient, AzureBlobStorageClient>()
 
             .AddSingleton(sp =>
             {

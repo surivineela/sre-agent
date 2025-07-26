@@ -31,7 +31,7 @@ public class DataConnectorConfigurationTest
         await using AgentTestApp target = new AgentTestApp(_outputHelper, webHostBuilder =>
         {
             webHostBuilder.ConfigureServices(services => services.AddSingleton<TestDataConnectorVerifier>());
-            webHostBuilder.ConfigureAppConfiguration( (context, config) => config.AddJsonStream(configStream));
+            webHostBuilder.ConfigureAppConfiguration((context, config) => config.AddJsonStream(configStream));
         });
 
         TestDataConnectorVerifier verifier = target.Services.GetRequiredService<TestDataConnectorVerifier>();
@@ -42,7 +42,7 @@ public class DataConnectorConfigurationTest
         while (!cts.IsCancellationRequested)
         {
             // Wait for the data connectors to be initialized and run
-            if (verifier.DataConnectors.Count == verifier.DataConnectorsSettings.Count)
+            if (verifier.DataConnectors.Count == verifier.DataConnectorsSettings.Connectors.Count)
             {
                 break;
             }
@@ -50,13 +50,13 @@ public class DataConnectorConfigurationTest
             await Task.Delay(1000, cts.Token);
         }
 
-        Assert.Equal(verifier.DataConnectorsSettings.Count, verifier.DataConnectors.Count);
+        Assert.Equal(verifier.DataConnectorsSettings.Connectors.Count, verifier.DataConnectors.Count);
 
         // verify that there is a one-to-one mapping betwen the data connector settings and the data connector instances
-        foreach (var connectorSetting in verifier.DataConnectorsSettings)
+        foreach (DataConnectorInstanceSettings connectorSetting in verifier.DataConnectorsSettings.Connectors)
         {
             // Find the corresponding data connector instance for this setting
-            KeyValuePair<IDataConnector, DataConnectorSettings?> matchingConnector = Assert.Single(
+            KeyValuePair<IDataConnector, DataConnectorInstanceSettings?> matchingConnector = Assert.Single(
                 verifier.DataConnectors,
                 dc => dc.Value?.Name == connectorSetting.Name);
 
@@ -107,14 +107,18 @@ public class DataConnectorConfigurationTest
             {
                 "Core":
                 {
-                    "DataConnectors": [
+                    "DataConnectors": {
+                        "Types": {
+                            "TestConnector1": { }
+                        },
+                        "Connectors": [
                         {
                             "Name": "test1",
                             "DataConnectorType": "TestConnector1",
                             "DataSource": "whatever",
                             "Identity": ""
                         }
-                    ]
+                    ]}
                 }
             }
         }
@@ -127,7 +131,12 @@ public class DataConnectorConfigurationTest
             {
                 "Core":
                 {
-                    "DataConnectors": [
+                    "DataConnectors": {
+                        "Types": {
+                            "TestConnector1": { },
+                            "TestConnector2": { }
+                        },
+                        "Connectors": [
                         {
                             "Name": "test1",
                             "DataConnectorType": "TestConnector1",
@@ -140,7 +149,7 @@ public class DataConnectorConfigurationTest
                             "DataSource": "whatever",
                             "Identity": ""
                         }
-                    ]
+                    ]}
                 }
             }
         }
@@ -153,7 +162,12 @@ public class DataConnectorConfigurationTest
             {
                 "Core":
                 {
-                    "DataConnectors": [
+                    "DataConnectors":  {
+                        "Types": {
+                            "TestConnector1": { },
+                            "TestConnector2": { }
+                        },
+                        "Connectors": [
                         {
                             "Name": "test1-a",
                             "DataConnectorType": "TestConnector1",
@@ -172,7 +186,7 @@ public class DataConnectorConfigurationTest
                             "DataSource": "whatever",
                             "Identity": ""
                         }
-                    ]
+                    ]}
                 }
             }
         }
@@ -182,19 +196,19 @@ public class DataConnectorConfigurationTest
 
 internal class TestDataConnectorVerifier
 {
-    public List<DataConnectorSettings> DataConnectorsSettings { get; }
+    public DataConnectorSettings DataConnectorsSettings { get; }
 
-    public List<KeyValuePair<IDataConnector, DataConnectorSettings?>> DataConnectors { get; }
+    public List<KeyValuePair<IDataConnector, DataConnectorInstanceSettings?>> DataConnectors { get; }
 
-    public TestDataConnectorVerifier(IOptions<List<DataConnectorSettings>> options)
+    public TestDataConnectorVerifier(IOptions<DataConnectorSettings> options)
     {
         DataConnectorsSettings = options.Value ?? throw new ArgumentNullException(nameof(options));
-        DataConnectors = new List<KeyValuePair<IDataConnector, DataConnectorSettings?>>(DataConnectorsSettings.Count);
+        DataConnectors = new List<KeyValuePair<IDataConnector, DataConnectorInstanceSettings?>>(DataConnectorsSettings.Connectors.Count);
     }
 
-    public void AddConnector(IDataConnector instance, DataConnectorSettings? settings)
+    public void AddConnector(IDataConnector instance, DataConnectorInstanceSettings? settings)
     {
-        DataConnectors.Add(new KeyValuePair<IDataConnector, DataConnectorSettings?>(instance, settings));
+        DataConnectors.Add(new KeyValuePair<IDataConnector, DataConnectorInstanceSettings?>(instance, settings));
     }
 }
 
@@ -202,7 +216,7 @@ internal class TestDataConnectorVerifier
 internal class TestDataConnector1 : IDataConnector
 {
     private readonly TestDataConnectorVerifier? _verifier;
-    private DataConnectorSettings? _settings;
+    private DataConnectorInstanceSettings? _settings;
 
     public TestDataConnector1(IServiceProvider sp)
     {
@@ -212,9 +226,9 @@ internal class TestDataConnector1 : IDataConnector
 
     public TimeSpan Interval => TimeSpan.FromSeconds(5);
 
-    public Task InitAsync(DataConnectorSettings settings, CancellationToken stoppingToken)
+    public Task InitAsync(DataConnectorInstanceSettings instanceSettings, DataConnectorTypeSettings typeSettings, CancellationToken stoppingToken)
     {
-        _settings = settings;
+        _settings = instanceSettings;
 
         return Task.CompletedTask;
     }
@@ -230,7 +244,7 @@ internal class TestDataConnector1 : IDataConnector
 internal class TestDataConnector2 : IDataConnector
 {
     private readonly TestDataConnectorVerifier? _verifier;
-    private DataConnectorSettings? _settings;
+    private DataConnectorInstanceSettings? _settings;
 
     public TestDataConnector2(IServiceProvider sp)
     {
@@ -240,9 +254,9 @@ internal class TestDataConnector2 : IDataConnector
 
     public TimeSpan Interval => TimeSpan.FromSeconds(5);
 
-    public Task InitAsync(DataConnectorSettings settings, CancellationToken stoppingToken)
+    public Task InitAsync(DataConnectorInstanceSettings instanceSettings, DataConnectorTypeSettings typeSettings, CancellationToken stoppingToken)
     {
-        _settings = settings;
+        _settings = instanceSettings;
 
         return Task.CompletedTask;
     }

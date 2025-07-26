@@ -11,6 +11,6 @@ namespace Agent.Core.DataConnectors;
 /// Used internally to pass the data connector and its settings to the data connector service.
 /// </summary>
 /// <param name="DataConnector"></param>
-/// <param name="Settings"></param>
+/// <param name="InstanceSettings"></param>
 [EditorBrowsable(EditorBrowsableState.Never)]
-public record DataConnectorInstance(IDataConnector DataConnector, DataConnectorSettings Settings);
+public record DataConnectorInstance(IDataConnector DataConnector, DataConnectorInstanceSettings InstanceSettings, DataConnectorTypeSettings TypeSettings);

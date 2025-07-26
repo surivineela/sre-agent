@@ -7,7 +7,6 @@ using System.Data;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
-using Agent.Core.Models.Search;
 using Agent.Plugins.Kusto;
 using Agent.Plugins.KustoPlugin;
 using Agent.Plugins.Tools;

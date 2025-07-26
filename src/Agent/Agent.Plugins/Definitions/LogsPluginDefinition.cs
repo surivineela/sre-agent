@@ -6,15 +6,12 @@ using System.ComponentModel;
 using System.Data;
 using System.Text;
 using Agent.Core.Clients.Search;
+using Agent.Core.DataConnectors;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
-using Agent.Core.Models.Search;
 using Agent.Framework;
 using Agent.Plugins.DataConnectors.KustoMetadata;
 using Agent.Plugins.Kusto;
-using Azure.Search.Documents;
-using Azure.Search.Documents.Indexes.Models;
-using Azure.Search.Documents.Models;
 using Kusto.Data.Exceptions;
 using Microsoft.Extensions.Logging;
 
@@ -23,34 +20,35 @@ namespace Agent.Plugins.Definitions
     [AgentToolPlugin(Category = ToolCategories.LogQuery)]
     public class LogsPluginDefinition : ContextToolTarget<AgentContext>
     {
-        private const int MaxTables = 5;
+        private const int MaxTables = 2;
 
         private static readonly TimeSpan MaxQueryTime = TimeSpan.FromSeconds(90);
 
-        private readonly KustoMetadataIndex<KustoTableMetadata> _kustoMetadataIndex;
+        private readonly DataConnectorIndex _dataConnectorIndex;
         private readonly KustoClient _kustoClient;
         private readonly ISearchIndexingClient _searchClient;
         private readonly ILogger<LogsPluginDefinition> _logger;
 
         public LogsPluginDefinition(
             ISearchIndexingClient searchClient,
-            KustoMetadataIndex<KustoTableMetadata> kustoMetadataIndex,
+            DataConnectorIndexProvider kustoMetadataIndex,
             KustoClient kustoClient,
             ILogger<LogsPluginDefinition> logger
             )
         {
-            _kustoMetadataIndex = kustoMetadataIndex ?? throw new ArgumentNullException(nameof(kustoMetadataIndex));
             _searchClient = searchClient ?? throw new ArgumentNullException(nameof(searchClient));
             _kustoClient = kustoClient ?? throw new ArgumentNullException(nameof(kustoClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+            _dataConnectorIndex = kustoMetadataIndex.GetDataConnectorIndex<KustoTableIndexerDataConnector>();
         }
 
         [Description("This tool gets information about kusto tables that are relevant to a user's chat message. The information includes table names, their column schema, and sample log messages.")]
         public async Task<string> GetKustoTableMetadataAsync(string chatMessage, CancellationToken cancellationToken = default)
         {
-            _logger.LogInternalInformation("Searching index {Index} with query: {Query}", _kustoMetadataIndex.IndexName, chatMessage);
+            _logger.LogInternalInformation("Searching index with query: {Query}", chatMessage);
 
-            IAsyncEnumerable<SearchResult<KustoTableMetadata>> tables = await SearchKustoTableMetadataAsync(chatMessage, _kustoMetadataIndex.IndexName, MaxTables);
+            IAsyncEnumerable<DataConnectorSearchResult<KustoTableMetadata>> tables = _dataConnectorIndex.SearchAsync<KustoTableMetadata>(chatMessage, string.Empty, MaxTables);
 
             return await PreprocessAsync(tables);
         }
@@ -94,17 +92,17 @@ namespace Agent.Plugins.Definitions
             }
         }
 
-        private async Task<string> PreprocessAsync(IAsyncEnumerable<SearchResult<KustoTableMetadata>> tables)
+        private async Task<string> PreprocessAsync(IAsyncEnumerable<DataConnectorSearchResult<KustoTableMetadata>> tables)
         {
             StringBuilder sb = new StringBuilder();
 
             sb.AppendLine("# Kusto Table Information");
 
-            await foreach (SearchResult<KustoTableMetadata> result in tables)
+            await foreach (DataConnectorSearchResult<KustoTableMetadata> result in tables)
             {
-                KustoTableMetadata table = result.Document;
+                KustoTableMetadata table = result.OriginalDocument;
 
-                _logger.LogInternalInformation("Processing search results. Table: {Table}. Search score: {Score}", table.TableName, result.Score);
+                _logger.LogInternalInformation("Processing search results. Table: {Table}. Search score: {Score}", table.TableName, result.SearchResult.Score);
 
                 sb.AppendLine($"## Cluster URI `{table.ClusterUri}`");
                 sb.AppendLine($"## Database `{table.DatabaseName}`");
@@ -141,45 +139,6 @@ namespace Agent.Plugins.Definitions
             }
 
             return sb.ToString();
-        }
-
-        private async Task<IAsyncEnumerable<SearchResult<KustoTableMetadata>>> SearchKustoTableMetadataAsync(string query, string indexName, int max)
-        {
-            SearchOptions searchOptions = new SearchOptions()
-            {
-                QueryType = SearchQueryType.Simple,
-                Size = max,
-                VectorSearch = new VectorSearchOptions()
-                {
-                    Queries =
-                    {
-                        new VectorizableTextQuery(query)
-                        {
-                            Fields = { _kustoMetadataIndex.VectorFieldName },
-                            KNearestNeighborsCount = max,
-                        }
-                    }
-                }
-            };
-
-            if (_kustoMetadataIndex.SemanticSearchTitleField != null)
-            {
-                SemanticSearchOptions semanticSearchOptions = new SemanticSearchOptions();
-
-                foreach (SearchField field in _kustoMetadataIndex.SemanticSearchContentFields)
-                {
-                    semanticSearchOptions.SemanticFields.Add(field.Name);
-                }
-
-                searchOptions.SemanticSearch = semanticSearchOptions;
-            }
-
-            SearchResults<KustoTableMetadata> searchResults = await _searchClient.SearchAsync<KustoTableMetadata>(
-                indexName: indexName,
-                searchText: query,
-                searchOptions: searchOptions);
-
-            return searchResults.GetResultsAsync();
         }
     }
 }

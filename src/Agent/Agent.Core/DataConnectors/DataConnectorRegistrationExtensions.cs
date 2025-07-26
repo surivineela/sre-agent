@@ -3,6 +3,7 @@
 // -----------------------------------------------------------
 
 using System.Reflection;
+using Agent.Core.Clients.Storage;
 using Agent.Core.Configuration;
 using Agent.Core.DataConnectors;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,7 +24,9 @@ public static class DataConnectorRegistrationExtensions
     /// <exception cref="InvalidOperationException"></exception>
     public static IHostApplicationBuilder RegisterDataConnectors(this IHostApplicationBuilder hostBuilder)
     {
-        hostBuilder.Services.Configure<List<DataConnectorSettings>>(
+        hostBuilder.Services.AddSingleton<DataConnectorIndexProvider>();
+
+        hostBuilder.Services.Configure<DataConnectorSettings>(
             hostBuilder.Configuration.GetSection("AppSettings:Core:DataConnectors"));
 
         Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
@@ -47,32 +50,42 @@ public static class DataConnectorRegistrationExtensions
 
         hostBuilder.Services.AddHostedService(sp =>
         {
-            IOptions<List<DataConnectorSettings>> options = sp.GetRequiredService<IOptions<List<DataConnectorSettings>>>();
+            IOptions<DataConnectorSettings> options = sp.GetRequiredService<IOptions<DataConnectorSettings>>();
             
-            List<DataConnectorSettings> dataConnectorSettings = options.Value;
+            List<DataConnectorInstanceSettings> dataConnectorInstanceSettings = options.Value.Connectors;
+            Dictionary<string, DataConnectorTypeSettings> dataConnectorTypeSettings = options.Value.Types;
 
-            List<DataConnectorInstance> registrations = new List<DataConnectorInstance>(dataConnectorSettings.Count);
+            List<DataConnectorInstance> dataConnectorInstances = new List<DataConnectorInstance>(dataConnectorInstanceSettings.Count);
 
-            foreach (DataConnectorSettings dataConnectorSetting in dataConnectorSettings)
+            foreach (DataConnectorInstanceSettings dataConnectorInstanceSetting in dataConnectorInstanceSettings)
             {
-                Type? connectorType = dataConnectorTypes.FirstOrDefault(t => t.GetCustomAttribute<DataConnectorAttribute>()?.Type.Equals(dataConnectorSetting.DataConnectorType, StringComparison.OrdinalIgnoreCase) == true);
+                Type? connectorType = dataConnectorTypes.FirstOrDefault(t => t.GetCustomAttribute<DataConnectorAttribute>()?.Type.Equals(dataConnectorInstanceSetting.DataConnectorType, StringComparison.OrdinalIgnoreCase) == true);
 
                 if (connectorType == null)
                 {
                     throw new InvalidOperationException(
-                        $"No data connector type found for '{dataConnectorSetting.DataConnectorType}'. Available data connector types are: {string.Join(", ", dataConnectorTypes.Select(type => $"{type.GetCustomAttribute<DataConnectorAttribute>()?.Type} ({type.Name})"))}.");
+                        $"No data connector type found for '{dataConnectorInstanceSetting.DataConnectorType}'. Available data connector types are: {string.Join(", ", dataConnectorTypes.Select(type => $"{type.GetCustomAttribute<DataConnectorAttribute>()?.Type} ({type.Name})"))}.");
+                }
+
+                if (!dataConnectorTypeSettings.TryGetValue(dataConnectorInstanceSetting.DataConnectorType, out DataConnectorTypeSettings? dataConnectorTypeSetting))
+                {
+                    throw new InvalidOperationException(
+                        $"No settings found for data connector type '{dataConnectorInstanceSetting.DataConnectorType}'.");
                 }
 
                 IDataConnector dataConnecterInstance = sp.GetRequiredKeyedService<IDataConnector>(connectorType);
 
-                registrations.Add(new DataConnectorInstance(
+                dataConnectorInstances.Add(new DataConnectorInstance(
                     DataConnector: dataConnecterInstance,
-                    Settings: dataConnectorSetting));
+                    InstanceSettings: dataConnectorInstanceSetting,
+                    TypeSettings: dataConnectorTypeSetting));
             }
 
-
             return new DataConnectorService(
-                registrations,
+                dataConnectorInstances,
+                options.Value,
+                sp.GetRequiredService<DataConnectorIndexProvider>(),
+                sp.GetRequiredService<IAzureBlobStorageClient>(),
                 sp.GetRequiredService<ILogger<DataConnectorService>>());
             });
 

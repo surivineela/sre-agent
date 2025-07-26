@@ -9,14 +9,10 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
     using Agent.Core.Clients.Storage;
     using Agent.Core.Configuration;
     using Agent.Core.DataConnectors;
-    using Agent.Core.Interfaces;
-    using Agent.Core.Models.Search;
-    using Azure.Core;
     using Microsoft.DurableTask;
     using Microsoft.DurableTask.Client;
     using Microsoft.Extensions.AI;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
 
     [DataConnector("KustoDataIndexer")]
     public class KustoTableIndexerDataConnector : IDataConnector
@@ -29,9 +25,6 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
         /// </summary>
         private static ConcurrentDictionary<string, KustoTableIndexerDataConnector> Instances { get; } = new ConcurrentDictionary<string, KustoTableIndexerDataConnector>();
 
-        private static readonly SemaphoreSlim SemaphoreSlim = new SemaphoreSlim(1, 1);
-
-        private const string BlobContainerName = "kustometadata";
         private const string TableRootPath = "tables";
         private const string ExampleQueriesRootPath = "examples";
 
@@ -39,11 +32,11 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
         private readonly ILogger<KustoTableIndexerDataConnector> _logger;
         private readonly IChatClient _chatClient;
         private readonly ILoggerFactory _loggerFactory;
-        private readonly KustoMetadataIndex<KustoTableMetadata> _kustoMetadataIndex;
-        private readonly KustoMetadataIndex<KustoExampleQueryDocument> _kustExampleQueryIndex;
+        private readonly DataConnectorIndex _kustoMetadataIndex;
         private readonly IAzureBlobStorageClient _azureBlobStorageClient;
 
-        private DataConnectorSettings? _dataConnectorSettings;
+        private DataConnectorInstanceSettings? _dataConnectorInstanceSettings;
+        private DataConnectorTypeSettings? _dataConnectorTypeSettings;
 
         internal static KustoTableIndexerDataConnector GetDataConnector(string name)
         {
@@ -60,21 +53,17 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
         public KustoTableIndexerDataConnector(
             IChatClient chatClient,
             ILoggerFactory loggerFactory,
-            KustoMetadataIndex<KustoTableMetadata> kustoMetadataIndex,
-            KustoMetadataIndex<KustoExampleQueryDocument> kustExampleQueryIndex,
-            IAuthenticationService authService,
-            IOptions<StorageSettings> storageSettings,
+            DataConnectorIndexProvider kustoMetadataIndexProvider,
+            IAzureBlobStorageClient storageClient,
             DurableTaskClient durableTaskClient)
         {
             _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
             _logger = loggerFactory.CreateLogger<KustoTableIndexerDataConnector>();
             _chatClient = chatClient ?? throw new ArgumentNullException(nameof(chatClient));
             _durableTaskClient = durableTaskClient ?? throw new ArgumentNullException(nameof(durableTaskClient));
-            _kustoMetadataIndex = kustoMetadataIndex ?? throw new ArgumentNullException(nameof(kustoMetadataIndex));
-            _kustExampleQueryIndex = kustExampleQueryIndex ?? throw new ArgumentNullException(nameof(kustExampleQueryIndex));
+            _kustoMetadataIndex = kustoMetadataIndexProvider.GetDataConnectorIndex("KustoDataIndexer");
 
-            TokenCredential credential = authService.GetStorageCredential();
-            _azureBlobStorageClient = new AzureBlobStorageClient(new Uri(storageSettings.Value.BlobEndpoint), credential);
+            _azureBlobStorageClient = storageClient;
         }
 
         public TimeSpan Interval
@@ -85,56 +74,36 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
             }
         }
 
-        public Task InitAsync(DataConnectorSettings settings, CancellationToken stoppingToken)
+        public Task InitAsync(DataConnectorInstanceSettings instanceSettings, DataConnectorTypeSettings typeSettings, CancellationToken stoppingToken)
         {
-            _dataConnectorSettings = settings ?? throw new ArgumentNullException(nameof(settings));
+            _dataConnectorInstanceSettings = instanceSettings ?? throw new ArgumentNullException(nameof(instanceSettings));
+            _dataConnectorTypeSettings = typeSettings ?? throw new ArgumentNullException(nameof(typeSettings));
 
-            _logger.LogInternalInformation($"Using managed identity resource ID {settings.Identity} for Kusto summarizer.");
+            _logger.LogInternalInformation($"Using managed identity resource ID {instanceSettings.Identity} for Kusto summarizer.");
 
-            KustoSummarizer = new KustoTableSummarizer(_chatClient, new Uri(settings.DataSource), settings.Identity, _loggerFactory);
+            KustoSummarizer = new KustoTableSummarizer(_chatClient, new Uri(instanceSettings.DataSource), instanceSettings.Identity, _loggerFactory);
 
             // temporary workaround for DTS task classes 
-            Instances[settings.Name] = this;
+            Instances[instanceSettings.Name] = this;
 
             return Task.CompletedTask;
         }
 
         public async Task RunAsync(CancellationToken stoppingToken)
         {
-            Uri clusterUri = new Uri(_dataConnectorSettings!.DataSource);
+            Uri clusterUri = new Uri(_dataConnectorInstanceSettings!.DataSource);
 
             _logger.LogInternalInformation("Processing cluster: {ClusterUri}", clusterUri);
 
-            await SemaphoreSlim.WaitAsync(stoppingToken);
-            try
-            {
-                _logger.LogInternalInformation("Setting up storage and indexers for {Connector}, {ClusterUri}", _dataConnectorSettings!.Name, clusterUri);
-
-                await _azureBlobStorageClient.CreateContainerIfNotExistAsync(BlobContainerName, Azure.Storage.Blobs.Models.PublicAccessType.None);
-
-                await _kustoMetadataIndex.CreateOrUpdateIndex(
-                    blobContainer: BlobContainerName,
-                    blobRootPath: TableRootPath);
-
-                await _kustExampleQueryIndex.CreateOrUpdateIndex(
-                    blobContainer: BlobContainerName,
-                    blobRootPath: ExampleQueriesRootPath);
-
-            }
-            finally
-            {
-                SemaphoreSlim.Release();
-            }
-
             // Create a unique orchestration instance ID for this table
-            string orchestrationInstanceId = $"KustoTableIndexer-{clusterUri.Host}-{_dataConnectorSettings.Name}";
+            string orchestrationInstanceId = $"KustoTableIndexer-{clusterUri.Host}-{_dataConnectorInstanceSettings.Name}";
 
             // Check if there is an orchestration running for this table
             OrchestrationMetadata? existingInstance = await _durableTaskClient.GetInstanceAsync(orchestrationInstanceId, stoppingToken);
 
             KustoConnectionInfo kustoTableIndexInput = new KustoConnectionInfo
             (
-                DataConnectorName: _dataConnectorSettings!.Name,
+                DataConnectorName: _dataConnectorInstanceSettings!.Name,
                 ClusterUri: clusterUri,
                 ManagedIdentityClientId: string.Empty,
                 DatabaseFilter: [],
@@ -181,7 +150,6 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
         internal async Task RunIndexerAsync()
         {
             await _kustoMetadataIndex.RunIndexerAsync();
-            await _kustExampleQueryIndex.RunIndexerAsync();
         }
 
         internal Task UploadKustoMetadataToBlob(KustoTableMetadata data)
@@ -204,9 +172,9 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
 
         private async Task UploadJsonToBlob(string blobName, BinaryData data)
         {
-            await _azureBlobStorageClient.UploadBlobContentsAsync(BlobContainerName, blobName, data);
+            await _azureBlobStorageClient.UploadBlobContentsAsync(_dataConnectorTypeSettings!.Storage!.BlobStorageContainerName!, blobName, data);
 
-            _logger.LogInternalInformation("Uploaded JSON documentation for {BlobName} to container {Container}", blobName, BlobContainerName);
+            _logger.LogInternalInformation("Uploaded JSON documentation for {BlobName} to container {Container}", blobName, _dataConnectorTypeSettings.Storage!.BlobStorageContainerName);
         }
 
         private static string GetBlobNameForKustoTableMetadata(KustoTableMetadata metadata)

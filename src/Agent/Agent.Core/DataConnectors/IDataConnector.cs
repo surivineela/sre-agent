@@ -16,10 +16,11 @@ public interface IDataConnector
     /// <summary>
     /// Called one time after the data connector is instantiated, but before RunAsync is called.
     /// </summary>
-    /// <param name="settings"></param>
+    /// <param name="instanceSettings"></param>
+    /// <param name="typeSettings"></param>
     /// <param name="stoppingToken"></param>
     /// <returns></returns>
-    Task InitAsync(DataConnectorSettings settings, CancellationToken stoppingToken);
+    Task InitAsync(DataConnectorInstanceSettings instanceSettings, DataConnectorTypeSettings typeSettings, CancellationToken stoppingToken);
 
     /// <summary>
     /// Performs the work of the data connector. This method is called periodically based on the <see cref="Interval"/> property.

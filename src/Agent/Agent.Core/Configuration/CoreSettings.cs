@@ -25,7 +25,7 @@ namespace Agent.Core.Configuration
         [Required]
         public KustoClusterConfiguration KustoClusterConfiguration { get; set; } = new();
 
-        public List<DataConnectorSettings> DataConnectors { get; init; } = [];
+        public DataConnectorSettings DataConnectors { get; init; } = new();
 
         [Required]
         public bool UseAgentFramework { get; set; } = false;

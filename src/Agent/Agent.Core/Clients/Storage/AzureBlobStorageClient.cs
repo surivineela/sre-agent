@@ -3,10 +3,13 @@
 // ------------------------------------------------------------
 
 using System.Net;
+using Agent.Core.Configuration;
+using Agent.Core.Interfaces;
 using Azure;
 using Azure.Core;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Microsoft.Extensions.Options;
 
 namespace Agent.Core.Clients.Storage
 {
@@ -15,11 +18,17 @@ namespace Agent.Core.Clients.Storage
         private const int HttpResponseSuccessMin = 200;
         private const int HttpResponseSucessMax = 299;
 
+        private IAuthenticationService _authService;
         private readonly BlobServiceClient _blobServiceClient;
 
-        public AzureBlobStorageClient(Uri connectionUri, TokenCredential tokenCredential)
+        public AzureBlobStorageClient(
+            IAuthenticationService authService,
+            IOptions<StorageSettings> storageSettings)
         {
-            _blobServiceClient = new BlobServiceClient(connectionUri, tokenCredential);
+            _authService = authService;
+
+            TokenCredential credential = _authService.GetStorageCredential();
+            _blobServiceClient = new BlobServiceClient(new Uri(storageSettings.Value.BlobEndpoint), credential);
         }
 
         public async Task<List<string>> ListContainerNamesAsync()
@@ -48,7 +57,7 @@ namespace Agent.Core.Clients.Storage
                 }
 
             }
-           
+
             return blobContainersList;
         }
 
@@ -79,48 +88,20 @@ namespace Agent.Core.Clients.Storage
             }
         }
 
-
-        public async Task<MemoryStream> DownloadBlobContentsAsMemoryStreamAsync(string containerName, string blobName)
-        {
-            var memoryStream = new MemoryStream();
-
-            try
-            {
-                var client = _blobServiceClient.GetBlobContainerClient(containerName);
-                if (await client.ExistsAsync())
-                {
-                    var blobClient = client.GetBlobClient(blobName);
-
-                    if (await blobClient.ExistsAsync())
-                    {
-                        BlobDownloadInfo download = await blobClient.DownloadAsync();
-                        await download.Content.CopyToAsync(memoryStream);
-                        memoryStream.Position = 0; // Reset the position to the beginning of the stream
-                    }
-                    else
-                    {
-                        throw new RequestFailedException($"blob {blobName} does not exist");
-                    }
-                }
-                else
-                {
-                    throw new RequestFailedException($"container {containerName} does not exist");
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new RequestFailedException($"Memory stream download failed due to exception {ex}");
-            }
-
-            return memoryStream;
-        }
-
         public async Task<Stream> DownloadBlobContentsAsStreamAsync(string containerName, string blobName)
         {
             var blobContainerClient = await GetBlobContainerClient(containerName);
             var blobClient = blobContainerClient.GetBlobClient(blobName);
             var content = await blobClient.OpenReadAsync();
             return content;
+        }
+
+        public async Task<Stream> DownloadBlobContentsAsStreamAsync(Uri blobUrl)
+        {
+            BlobClient blobClient = new BlobClient(blobUrl, _authService.GetStorageCredential());
+
+            Response<BlobDownloadStreamingResult> download = await blobClient.DownloadStreamingAsync();
+            return download.Value.Content;
         }
 
         public async Task<bool> DeleteBlobContentsAsync(string containerName, string blobName)

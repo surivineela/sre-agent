@@ -7,15 +7,9 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
     using System.Data;
     using System.Linq;
     using System.Text;
-    using Agent.Core.Clients.Storage;
-    using Agent.Core.Configuration;
-    using Agent.Core.Interfaces;
-    using Agent.Core.Models.Search;
     using Azure;
-    using Azure.Core;
     using Microsoft.DurableTask;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
 
     public record KustoConnectionInfo(string DataConnectorName, Uri ClusterUri, string ManagedIdentityClientId, IEnumerable<string> DatabaseFilter, IEnumerable<string> TableFilter);
 
@@ -285,17 +279,10 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
     public class KustoTableIndexSummarizeAndUploadActivity : TaskActivity<KustoTableIndexSummaryInput, bool>
     {
         private readonly ILogger<KustoTableIndexSummarizeAndUploadActivity> _logger;
-        private readonly IAzureBlobStorageClient _blogStorageClient;
 
         public KustoTableIndexSummarizeAndUploadActivity(
-            IAuthenticationService authService,
-            IOptions<StorageSettings> storageSettings,
             ILogger<KustoTableIndexSummarizeAndUploadActivity> logger)
         {
-            // Create a new client for this specific index using Managed Identity
-            TokenCredential credential = authService.GetStorageCredential();
-            _blogStorageClient = new AzureBlobStorageClient(new Uri(storageSettings.Value.BlobEndpoint), credential);
-
             _logger = logger;
         }
 
@@ -399,10 +386,12 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
                 ClusterUri = clusterUri.ToString(),
                 DatabaseName = databaseName,
                 TableName = tableName,
+                Title = tableName,
                 TableDescription = tableDescription,
                 LogMessageSamples = new List<KustoLogMessageSamples>(logMessageSamples),
                 Columns = new List<KustoColumnMetadata>(columns),
-                MetadataConcat = sb.ToString()
+                Contents = sb.ToString(),
+                Filter = "Table"
             };
 
             await dataConnector.UploadKustoMetadataToBlob(tableMetadata);
@@ -413,6 +402,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
                 ClusterUri = clusterUri.ToString(),
                 DatabaseName = databaseName,
                 TableName = tableName,
+                Title = tableName,
                 ExampleQueries = exampleQueries.Any()
                     ? exampleQueries.ToList()
                     : new List<KustoExampleQueryAndDescription>
@@ -424,7 +414,8 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
                             Query = ""
                         }
                     },
-                MetadataConcat = $"{tableDescription} {string.Join(" ", exampleQueries.Select(q => $"{q.Description} {q.Query}"))}"
+                Contents = $"{tableDescription} {string.Join(" ", exampleQueries.Select(q => $"{q.Description} {q.Query}"))}",
+                Filter = "Example"
             };
 
             await dataConnector.UploadKustoExampleQueriesToBlob(exampleQueryDoc);
