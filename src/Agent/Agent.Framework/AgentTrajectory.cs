@@ -84,6 +84,15 @@ public sealed class AgentTrajectory
         _autoHandoffEnabled = autoHandOffToStartEnabled;
     }
 
+    public AgentTrajectory(IReadOnlyList<string> initialAgentStack, bool autoHandOffToStartEnabled)
+    {
+        _startingAgent = initialAgentStack[0];
+        _agentStack = [.. initialAgentStack];
+        _autoHandoffEnabled = autoHandOffToStartEnabled;
+    }
+
+    public IReadOnlyList<string> AgentStack => _agentStack;
+
     /// <summary>
     /// Gets the critic count for a specific agent
     /// </summary>
@@ -133,19 +142,9 @@ public sealed class AgentTrajectory
                 _trajectoryItems.Add(new AgentTextTrajectoryItem(activeRole, text));
 
                 if (_autoHandoffEnabled
-                    && message.Role == ChatRole.Assistant)
+                    && IsEndOfTurnMessage(message))
                 {
-                    try
-                    {
-                        var op = JsonSerializer.Deserialize<Dictionary<string, string>>(text);
-                        if (op is not null
-                            && op.TryGetValue("state", out var reasoningState)
-                            && string.Equals("CompletedSuccessfully", reasoningState, StringComparison.OrdinalIgnoreCase))
-                        {
-                            _agentStack = [_startingAgent];
-                        }
-                    }
-                    catch { }
+                    _agentStack = [_startingAgent];
                 }
             }
             else if (content is FunctionCallContent functionCallContent)
@@ -208,6 +207,29 @@ public sealed class AgentTrajectory
                 throw new Exception($"Unknown content type: {content.GetType()}");
             }
         }
+    }
+
+    public static bool IsEndOfTurnMessage(ChatMessage message)
+    {
+        if (message.Role == ChatRole.Assistant
+            && message.Contents.Last() is TextContent t)
+        {
+            try
+            {
+                var op = JsonSerializer.Deserialize<Dictionary<string, string>>(t.Text);
+                if (op is not null
+                    && op.TryGetValue("state", out var reasoningState)
+                    && (
+                        string.Equals("CompletedSuccessfully", reasoningState, StringComparison.OrdinalIgnoreCase)
+                        || string.Equals("RequestFailed", reasoningState, StringComparison.OrdinalIgnoreCase)))
+                {
+                    return true;
+                }
+            }
+            catch { }
+        }
+
+        return false;
     }
 
     public void Append(FunctionResultContent functionResult)

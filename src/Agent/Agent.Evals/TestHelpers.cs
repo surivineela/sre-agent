@@ -199,11 +199,11 @@ public static class TestHelpers
         });
         builder.Services.AddSingleton<IIncidentHandlerAgent, IncidentHandlerAgent>();
         builder.Services.AddSingleton<IAgentOutboundCommunicationService, OutboundCommunicationService>();
-        builder.Services.AddSingleton<Agent.Plugins.Interface.IChartPlugin>(sp =>
+        builder.Services.AddSingleton<IChartPlugin>(sp =>
         {
-            var logger = sp.GetRequiredService<ILoggerFactory>().CreateLogger<Agent.Plugins.ChartPlugin>();
+            var logger = sp.GetRequiredService<ILoggerFactory>().CreateLogger<ChartPlugin>();
             var outboundService = sp.GetRequiredService<IAgentOutboundCommunicationService>();
-            return new Agent.Plugins.ChartPlugin(logger, outboundService);
+            return new ChartPlugin(logger, outboundService);
         });
         builder.Services.AddTransient<IAgent, MetaAgent>();
         builder.Services.AddSingleton<ChartPluginDefinition>();
@@ -211,8 +211,8 @@ public static class TestHelpers
         builder.Services.AddSingleton<ITitleGenerationService, TitleGenerationService>();
 
         builder.Services.AddSingleton<IGraphDBPlugin, GraphDBPlugin>();
-        // builder.Services.AddSingleton<Agent.Plugins.Interface.IGraphDBPlugin>(sp => sp.GetRequiredService<GraphDBPlugin>());
         builder.Services.AddSingleton<GraphDBPluginDefinition>();
+        builder.Services.AddSingleton(Mock.Of<IGraphDatabaseClient>());
         builder.Services.AddSingleton<UserInteractionPluginDefinition>();
         builder.Services.AddSingleton<AgentControlFlowPluginDefinition>();
 
@@ -282,7 +282,6 @@ public static class TestHelpers
         builder.Services.AddTransient<KubePluginDefinition>();
         builder.Services.AddTransient<IKubePlugin, KubePlugin>();
         builder.Services.AddTransient<SearchPluginDefinition>();
-        builder.Services.AddSingleton(Mock.Of<IGraphDatabaseClient>());
         builder.Services.AddSingleton(Mock.Of<ISearchPlugin>());
         builder.Services.AddTransient<ArmPluginDefinition>();
         builder.Services.AddTransient<IArmPlugin, ArmPlugin>();

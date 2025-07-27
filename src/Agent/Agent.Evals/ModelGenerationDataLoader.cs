@@ -118,7 +118,9 @@ public static class ModelGenerationDataLoader
         foreach (var span in spansProp.EnumerateArray().Reverse())
         {
             if (span.TryGetProperty("operationName", out var opName)
-                && string.Equals(opName.GetString(), "model_generation", StringComparison.OrdinalIgnoreCase))
+                && (
+                    string.Equals(opName.GetString(), "model_generation", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(opName.GetString(), "model.generation", StringComparison.OrdinalIgnoreCase)))
             {
                 lastModelSpan = span;
                 break;

@@ -20,7 +20,6 @@ public record ThreadEvaluateResult(
     int KubectlCallCount,
     double KubectlSuccessRate,
     string EvaluationSummary,
-
     double SATScore,
     string Category,
     int Resolved,
@@ -33,7 +32,4 @@ public record ThreadEvaluateResult(
     string PriorityReason,
     DateTime EvaluatedTimestamp,
     AgentTypeEnum AgentType
-)
-{
-
-}
+);

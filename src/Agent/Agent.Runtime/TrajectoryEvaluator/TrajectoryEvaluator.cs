@@ -4,10 +4,10 @@
 
 using System.Text;
 using System.Text.Json;
-using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.AgentMemory;
+using Agent.Runtime.Helpers;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
@@ -188,11 +188,10 @@ public class TrajectoryEvaluator
         {
             _logger.LogInternalInformation($"Generating trajectory for thread {thread.Id} from source {thread.Source}: {thread.Title}");
 
-            // Get agent contexts to analyze tool calls
             var agentContexts = await _threadRepository.GetAgentContextsForThreadAsync(thread.Id);
-            var agentContextsList = agentContexts.ToList();
+            var agentContext = agentContexts.FirstOrDefault();
 
-            if (!agentContextsList.Any())
+            if (agentContext is null)
             {
                 _logger.LogInternalWarning($"No agent contexts found for thread {thread.Id}, skipping trajectory generation");
                 // Update timestamp anyway to avoid retrying this thread
@@ -200,12 +199,14 @@ public class TrajectoryEvaluator
                 return thread;
             }
 
-            var chatMessages = await GetChatMessages(agentContextsList.First());
+            var chatMessages = await EvaluationHelper.GetChatMessages(_threadRepository, agentContext, _logger);
 
-            // todo: pass in start agent and autohandoff from the thread info
+            // todo: pass in autohandoff from the thread info
+            var startAgent = agentContext.AgentHandoffChain.FirstOrDefault(defaultValue: "meta_agent");
             var trajectoryInfo = await TrajectoryExtractor.GenerateTrajectoryAsync_v3(
-                _chatClient,
-                chatMessages,
+                chatClient: _chatClient,
+                chatMessages: chatMessages,
+                startAgent: startAgent,
                 cancellationToken: cancellationToken);
 
             var trajectory = trajectoryInfo.Trajectory;
@@ -245,19 +246,6 @@ public class TrajectoryEvaluator
 
         // Return the updated thread
         return thread;
-    }
-
-    private async Task<IReadOnlyList<ChatMessage>> GetChatMessages(AgentContext agentContext)
-    {
-        var agentChatHistory = await _threadRepository.GetAgentChatHistoryAsync(agentContext.Id);
-        if (agentChatHistory == null)
-        {
-            _logger.LogInternalError("No chat history found for agent context {agentContextId}, this should never happen.", agentContext.Id);
-            return [];
-        }
-
-        var reasoningMessages = await agentChatHistory.GetReasoningMessagesAsync(_threadRepository);
-        return reasoningMessages.GetChatMessages();
     }
 
     /// <summary>
