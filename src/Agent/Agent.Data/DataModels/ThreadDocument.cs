@@ -19,7 +19,8 @@ public record ThreadDocument(
     DateTime EvaluatedTimestamp = default,
     DateTime TrajectoryGeneratedTimestamp = default,
     IncidentSource? IncidentSource = null,
-    ThreadType? ThreadType = ThreadType.Prod
+    ThreadType? ThreadType = ThreadType.Prod,
+    FeatureConfig? FeatureConfig = null
 ) : ICosmosDocument
 {
     public string DocumentType => "Thread";
@@ -43,7 +44,8 @@ public record ThreadDocument(
             thread.EvaluatedTimestamp,
             thread.TrajectoryGeneratedTimestamp,
             IncidentSource: thread.IncidentSource,
-            ThreadType: thread.Type
+            ThreadType: thread.Type,
+            FeatureConfig: thread.FeatureConfig
         )
         {
             IncidentId = thread.Status?.IncidentStatus?.IncidentId ?? string.Empty,
@@ -54,15 +56,16 @@ public record ThreadDocument(
 
     public Thread ToDomainModel(Message startMessage, Message? lastMessage) =>
         new Thread(
-            Guid.Parse(Id),
-            Title,
-            startMessage,
-            lastMessage,
-            CreatedTimestamp,
-            ModifiedTimestamp,
-            Source,
+            Id: Guid.Parse(Id),
+            Title: Title,
+            StartMessage: startMessage,
+            LastMessage: lastMessage,
+            CreatedTimestamp: CreatedTimestamp,
+            ModifiedTimestamp: ModifiedTimestamp,
+            Source: Source,
             IncidentSource: IncidentSource,
-            Type: ThreadType
+            Type: ThreadType,
+            FeatureConfig: FeatureConfig
         )
         {
             LastReadTime = LastReadTime,

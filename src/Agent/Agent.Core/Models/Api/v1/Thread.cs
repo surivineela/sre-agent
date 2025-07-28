@@ -31,7 +31,12 @@ namespace Agent.Core.Models.Api.v1
         Test  // For testing purposes, agent will run in Readonly mode
     }
 
-    public record IncidentSource(IncidentType IncidentType, string IncidentId);
+    public sealed record IncidentSource(
+        IncidentType IncidentType,
+        string IncidentId);
+
+    public sealed record FeatureConfig(
+        bool? AutoHandoffEnabled);
 
     //Theread type: PROD/TEST
     public record Thread(
@@ -45,7 +50,8 @@ namespace Agent.Core.Models.Api.v1
         string? WaitReason = null,
         DateTime? WaitUntil = null,
         IncidentSource? IncidentSource = null,
-        ThreadType? Type = ThreadType.Prod
+        ThreadType? Type = ThreadType.Prod,
+        FeatureConfig? FeatureConfig = null
     )
     {
         public Status? Status { get; set; } = null;

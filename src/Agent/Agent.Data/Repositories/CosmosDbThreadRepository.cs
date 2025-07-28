@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Net;
+using System.Text.Json;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
@@ -19,10 +20,10 @@ namespace Agent.Data.Repositories;
 // Rest of the file remains unchanged
 public class CosmosDbThreadRepository : IThreadRepository
 {
+    private static readonly JsonSerializerOptions _jsonOptions = JsonSerializerOptions.Web;
+
     private readonly ILogger<CosmosDbThreadRepository> _logger;
-
     private readonly string _databaseName;
-
     private readonly CosmosClient _client;
 
     // Set EnsureStableOrdering to false to avoid odata overwrites `order by` clause.
@@ -486,6 +487,64 @@ public class CosmosDbThreadRepository : IThreadRepository
             throw;
         }
     }
+
+    async Task<FeatureConfig?> IThreadRepository.UpdateThreadFeatureSetAsync(Guid threadId, Func<FeatureConfig?, FeatureConfig> featureUpdate)
+    {
+        try
+        {
+            var threadIdStr = threadId.ToString();
+
+            // Get the current thread document
+            var threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
+
+            if (threadDoc is null)
+            {
+                _logger.LogInternalWarning($"Cannot update featureSet: Thread {threadId} not found");
+                return null;
+            }
+
+            var existingConfig = threadDoc.FeatureConfig;
+            var updatedConfig = featureUpdate(existingConfig);
+
+            // no-op update. return early
+            if (updatedConfig == existingConfig)
+            {
+                _logger.LogInternalInformation($"No update featureSet needed for thread {threadId}. " +
+                    $"Existing Feature Config {JsonSerializer.Serialize(existingConfig, _jsonOptions)}");
+                return existingConfig;
+            }
+
+            // Update the title and modified timestamp
+            var updatedThreadDoc = threadDoc with
+            {
+                FeatureConfig = updatedConfig,
+                ModifiedTimestamp = DateTime.UtcNow
+            };
+
+            // Save the updated document
+            var response = await _client.GetContainer<ThreadDocument>(_databaseName).ReplaceItemAsync(
+                updatedThreadDoc,
+                updatedThreadDoc.Id,
+                new PartitionKey(updatedThreadDoc.PartitionKey)
+            );
+
+            _logger.LogInternalInformation($"Successfully updated featureSet for thread {threadId}. " +
+                $"New Feature Config {JsonSerializer.Serialize(updatedConfig, _jsonOptions)}");
+
+            return response.Resource.FeatureConfig;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            _logger.LogInternalWarning($"Cannot update featureSet: Thread {threadId} not found");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Error updating featureSet for thread {threadId}");
+        }
+
+        return null;
+    }
+
 
     public async Task<Thread?> UpdateThreadReadMarkAsync(Guid threadId, DateTime lastReadTime)
     {

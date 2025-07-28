@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Microsoft.AspNetCore.OData.Query;
@@ -19,6 +20,8 @@ namespace Agent.Data.Repositories
     /// </summary>
     public class InMemoryThreadRepository : IThreadRepository
     {
+        private static readonly JsonSerializerOptions _jsonOptions = JsonSerializerOptions.Web;
+
         private readonly Dictionary<Guid, Thread> _threads = new();
         private readonly Dictionary<Guid, ThreadContext> _threadContexts = new();
         private readonly Dictionary<(Guid ThreadId, Guid MessageId), Message> _messages = new();
@@ -221,6 +224,28 @@ namespace Agent.Data.Repositories
 
             _logger.LogInternalInformation("Successfully updated title for thread {ThreadId}", threadId);
             return Task.FromResult<Thread?>(updatedThread);
+        }
+
+        Task<FeatureConfig?> IThreadRepository.UpdateThreadFeatureSetAsync(Guid threadId, Func<FeatureConfig?, FeatureConfig> featureUpdate)
+        {
+            if (!_threads.TryGetValue(threadId, out var thread))
+            {
+                _logger.LogInternalWarning($"Cannot update featureSet: Thread {threadId} not found");
+                return Task.FromResult<FeatureConfig?>(null);
+            }
+
+            // Update the feature set and modified timestamp
+            var updatedThread = thread with
+            {
+                FeatureConfig = featureUpdate(thread.FeatureConfig),
+                ModifiedTimestamp = DateTime.UtcNow
+            };
+
+            _threads[threadId] = updatedThread;
+
+            _logger.LogInternalInformation($"Successfully updated featureSet for thread {threadId}. " +
+                $"New Feature Config {JsonSerializer.Serialize(updatedThread.FeatureConfig, _jsonOptions)}");
+            return Task.FromResult<FeatureConfig?>(updatedThread.FeatureConfig);
         }
 
         public Task<Thread?> UpdateThreadReadMarkAsync(Guid threadId, DateTime lastReadTime)

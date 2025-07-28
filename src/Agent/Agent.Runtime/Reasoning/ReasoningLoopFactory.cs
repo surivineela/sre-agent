@@ -9,9 +9,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.AgentMemory;
 using Agent.Framework;
-using Agent.Logging;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
@@ -134,6 +132,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         var defaultStartingAgent = _agentFactory.GetAgent(defaultStartingAgentName);
         var currentStartingAgent = _agentFactory.GetAgent(currentStartingAgentName);
 
+        var effectiveFeatureConfig = await TrySetThreadFeatureConfig(context.ThreadId);
+
         // Create and return a new instance of ReasoningLoop
         var loop = new ReasoningLoop(
             loggerFactory: _loggerFactory,
@@ -155,10 +155,36 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             agentMemoryClient: _agentMemoryClient,
             searchIndexService: _searchIndexService,
             agentMemoryEnabled: _agentMemoryEnabled,
-            autoHandoffEnabled: _enableAutoHandOff,
+            autoHandoffEnabled: effectiveFeatureConfig?.AutoHandoffEnabled ?? false,
             agentRuntimeModifier: _agentRuntimeModifier);
 
         await loop.LoadChatHistoryAsync();
         return loop;
+    }
+
+    private Task<FeatureConfig?> TrySetThreadFeatureConfig(Guid threadId)
+    {
+        return _threadRepository.UpdateThreadFeatureSetAsync(
+            threadId: threadId,
+            featureUpdate: featureConfig =>
+            {
+                // no feature set.. then create
+                if (featureConfig is null)
+                {
+                    return new(AutoHandoffEnabled: _enableAutoHandOff);
+                }
+
+                // if autohandoff not set => we can update
+                if (featureConfig.AutoHandoffEnabled is null)
+                {
+                    return featureConfig with
+                    {
+                        AutoHandoffEnabled = _enableAutoHandOff
+                    };
+                }
+
+                // otherwise honor the restored autohandoff
+                return featureConfig;
+            });
     }
 }
