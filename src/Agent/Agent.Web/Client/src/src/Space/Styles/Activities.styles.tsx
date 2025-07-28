@@ -1,4 +1,4 @@
-import { makeStyles, tokens } from '@fluentui/react-components';
+import { GriffelStyle, makeStyles, tokens } from '@fluentui/react-components';
 import { IButtonStyles } from '@fluentui/react/lib/Button';
 import { IStyle, mergeStyleSets } from '@fluentui/react/lib/Styling';
 import { useTheme } from '@fluentui/react/lib/Theme';
@@ -93,18 +93,19 @@ export const useChatBoxStyles = makeStyles({
 
 export const ChatBoxStyles = mergeStyleSets({
     chatBox: {
-        height: 'calc(100vh - 25px)',
+        height: 'calc(100vh - 100px)',
         borderRadius: tokens.borderRadiusXLarge,
         minWidth: '300px',
         marginRight: '4px',
         boxShadow: tokens.shadow4,
+        marginBottom: '5px',
     },
     chatBoxInner: {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
         alignItems: 'stretch',
-        height: 'calc(95% - 15px)',
+        height: '100%',
         fontSize: '16px',
         backgroundColor: tokens.colorNeutralForegroundInverted,
         borderRadius: tokens.borderRadiusXLarge,
@@ -158,73 +159,92 @@ export const ChatBoxStyles = mergeStyleSets({
     },
 });
 
-export const ChatBoxV2Styles = mergeStyleSets({
-    chatBox: {
-        height: 'calc(100vh - 25px)',
-        borderRadius: tokens.borderRadiusXLarge,
-        minWidth: '300px',
-        marginRight: '4px',
-        boxShadow: tokens.shadow4,
-    },
-    chatBoxInner: {
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        alignItems: 'stretch',
-        height: 'calc(95% - 15px)',
-        fontSize: '16px',
-        backgroundColor: tokens.colorNeutralForegroundInverted,
-        borderRadius: tokens.borderRadiusXLarge,
-        boxShadow: tokens.shadow4,
-        selectors: {
-            // Allegedly styles on the below get copied to anything that portals within it (Dialogs, etc)
-            '&[data-portal-node="true"]': {
-                height: 'auto',
-                width: 'auto',
-                padding: 0,
+export interface ChatBoxV2StyleProps {
+    chatBox?: GriffelStyle;
+    chatBoxInner?: GriffelStyle;
+    chatContainer?: GriffelStyle;
+    chat?: GriffelStyle;
+    userMessage?: GriffelStyle;
+    agentMessage?: GriffelStyle;
+    hideAgentMessageHeader?: GriffelStyle;
+}
+
+export const getChatBoxV2Styles = (styleProps?: ChatBoxV2StyleProps) =>
+    mergeStyleSets({
+        chatBox: {
+            height: 'calc(100vh - 100px)',
+            borderRadius: tokens.borderRadiusXLarge,
+            minWidth: '300px',
+            marginRight: '4px',
+            boxShadow: tokens.shadow4,
+            marginBottom: '5px',
+            ...styleProps?.chatBox,
+        },
+        chatBoxInner: {
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            alignItems: 'stretch',
+            height: '100%',
+            fontSize: '16px',
+            backgroundColor: tokens.colorNeutralForegroundInverted,
+            borderRadius: tokens.borderRadiusXLarge,
+            boxShadow: tokens.shadow4,
+            selectors: {
+                // Allegedly styles on the below get copied to anything that portals within it (Dialogs, etc)
+                '&[data-portal-node="true"]': {
+                    height: 'auto',
+                    width: 'auto',
+                    padding: 0,
+                },
             },
+            ...styleProps?.chatBoxInner,
         },
-    },
-    chatContainer: {
-        height: '100%',
-        padding: '20px 10px 0px 20px',
-        borderRadius: tokens.borderRadiusLarge,
-    },
-    chat: {
-        height: '100%',
-        maxWidth: '1000px',
-        margin: 'auto',
-    },
-    userMessage: {
-        wordBreak: 'normal',
-        overflowWrap: 'anywhere',
-        whiteSpace: 'normal',
-        fontSize: '14px',
-        lineHeight: '240x',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-end',
-    },
-    agentMessage: {
-        fontSize: '14px',
-        lineHeight: '20px',
-        '.fai-CopilotMessage__content': {
-            width: '90%',
-            gap: `${tokens.spacingVerticalL}`,
+        chatContainer: {
+            height: '100%',
+            padding: '20px 10px 0px 20px',
+            borderRadius: tokens.borderRadiusLarge,
+            ...styleProps?.chatContainer,
         },
-    },
-    hideAgentMessageHeader: {
-        '.fai-CopilotMessage__accessibleHeading': {
-            display: 'none',
+        chat: {
+            height: '100%',
+            maxWidth: '1000px',
+            margin: 'auto',
+            ...styleProps?.chat,
         },
-        '.fai-CopilotMessage__avatar': {
-            display: 'none',
+        userMessage: {
+            wordBreak: 'normal',
+            overflowWrap: 'anywhere',
+            whiteSpace: 'normal',
+            fontSize: '14px',
+            lineHeight: '240x',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-end',
+            ...styleProps?.userMessage,
         },
-        '.fai-CopilotMessage__name': {
-            display: 'none',
+        agentMessage: {
+            fontSize: '14px',
+            lineHeight: '20px',
+            '.fai-CopilotMessage__content': {
+                width: '90%',
+                gap: `${tokens.spacingVerticalL}`,
+            },
+            ...styleProps?.agentMessage,
         },
-    },
-});
+        hideAgentMessageHeader: {
+            '.fai-CopilotMessage__accessibleHeading': {
+                display: 'none',
+            },
+            '.fai-CopilotMessage__avatar': {
+                display: 'none',
+            },
+            '.fai-CopilotMessage__name': {
+                display: 'none',
+            },
+            ...styleProps?.hideAgentMessageHeader,
+        },
+    });
 
 const textFieldMaxWidth = '1000px';
 

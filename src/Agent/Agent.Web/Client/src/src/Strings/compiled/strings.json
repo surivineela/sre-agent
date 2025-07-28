@@ -531,6 +531,16 @@
       "value": "Create new"
     }
   ],
+  "5X0whH": [
+    {
+      "type": 0,
+      "value": "Failed to run the test. Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
   "5fVEet": [
     {
       "type": 0,
@@ -633,6 +643,12 @@
     {
       "type": 0,
       "value": "Create Grafana dashboard in the same resource group"
+    }
+  ],
+  "6LZ2qn": [
+    {
+      "type": 0,
+      "value": "These incidents match your filter criteria. If an incident is missing, go back to the previous step and modify the filter parameters."
     }
   ],
   "6LnpNj": [
@@ -1691,6 +1707,12 @@
       "value": "Deleting incident handler"
     }
   ],
+  "MhTfXm": [
+    {
+      "type": 0,
+      "value": "Select an incident and run the test to see the results here."
+    }
+  ],
   "MlX0aZ": [
     {
       "type": 0,
@@ -2105,6 +2127,12 @@
     {
       "type": 0,
       "value": "Full access to IoT Hub data."
+    }
+  ],
+  "RDflWE": [
+    {
+      "type": 0,
+      "value": "Select an incident"
     }
   ],
   "RH8rNM": [
@@ -3519,6 +3547,12 @@
       "value": "Edit QnA Maker knowledge bases."
     }
   ],
+  "mZ0R9v": [
+    {
+      "type": 0,
+      "value": "Run test"
+    }
+  ],
   "mgYBYo": [
     {
       "type": 0,
@@ -4353,6 +4387,12 @@
     {
       "type": 0,
       "value": "All"
+    }
+  ],
+  "zaYxwd": [
+    {
+      "type": 0,
+      "value": "Incident"
     }
   ],
   "zcyAwy": [

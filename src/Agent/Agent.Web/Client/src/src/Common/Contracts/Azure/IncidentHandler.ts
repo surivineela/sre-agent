@@ -36,7 +36,10 @@ export interface IncidentFilterDocumentPayload {
     incidentType?: string;
     alertId?: string;
     titleContains?: string;
+    agentMode?: AgentMode;
 }
+
+export type IncidentDocumentType = 'PagerDutyIncident' | 'IcmIncident';
 
 export interface IncidentDocument {
     createdAt: string;
@@ -50,6 +53,7 @@ export interface IncidentDocument {
     title: string;
     description: string;
     extractedKnowledge: string;
+    documentType: IncidentDocumentType;
 }
 
 export interface ToolInfo {
@@ -94,6 +98,22 @@ export interface IncidentFilterPayload {
     AlertId?: string;
     TitleContains?: string;
     AgentMode?: AgentMode;
+}
+
+export interface TestHandlerPayload {
+    title: string;
+    description: string;
+    incidentId?: string;
+    severity?: string;
+    source?: string;
+    isTest?: boolean;
+    incidentHandler?: IncidentHandler;
+    incidentFilter?: IncidentFilterDocumentPayload;
+}
+
+export interface TestHandlerResponse {
+    threadId: string;
+    message: string;
 }
 
 export type WithSelection<T> = T & {

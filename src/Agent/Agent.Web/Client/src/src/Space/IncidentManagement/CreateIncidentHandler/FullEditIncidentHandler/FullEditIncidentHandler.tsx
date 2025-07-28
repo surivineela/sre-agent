@@ -17,7 +17,6 @@ export const FullEditIncidentHandler: FC = () => {
                 display: 'flex',
                 flexDirection: 'row',
                 gap: 12,
-                height: '100%',
             }}
         >
             <div

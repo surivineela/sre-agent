@@ -1,6 +1,6 @@
 import { CopilotChat, CopilotProvider } from '@fluentui-copilot/react-copilot';
 import { mergeClasses } from '@fluentui/react-components';
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
 import ChatBoxFooterV2 from '../Components/ChatBoxFooterV2';
@@ -12,11 +12,11 @@ import { IChatBoxProps } from '../Contracts/Activities';
 import { ChatBoxContext, ThreadAgentModeContext } from '../Contracts/Context';
 import { useChatBoxV2 } from '../Hooks/useChatBoxV2';
 import { useThreadAgentMode } from '../Hooks/useThreadAgentMode';
-import { ChatBoxStyles } from '../Styles/Activities.styles';
+import { getChatBoxV2Styles } from '../Styles/Activities.styles';
 import AzureSREWelcome from './AzureSREWelcome';
 import { ChatSuggestions } from './ChatSuggestions';
 
-export const ChatBoxV2 = ({ addThread, updateThreadLastReadTime, threadId, threadSource }: IChatBoxProps) => {
+export const ChatBoxV2 = ({ addThread, updateThreadLastReadTime, threadId, threadSource, stylesProps }: IChatBoxProps) => {
     const {
         chatHistory,
         newMessages,
@@ -47,13 +47,15 @@ export const ChatBoxV2 = ({ addThread, updateThreadLastReadTime, threadId, threa
 
     const { scrollable } = useScrollableComponentStyles();
 
+    const chatBoxStyles = useMemo(() => getChatBoxV2Styles(stylesProps), [stylesProps]);
+
     return (
         <ChatBoxContext.Provider value={{ getGroupedChatMessages }}>
             <ThreadAgentModeContext.Provider value={{ ...threadAgentModeData }}>
-                <div className={ChatBoxStyles.chatBox}>
-                    <CopilotProvider mode="canvas" className={ChatBoxStyles.chatBoxInner}>
-                        <div className={mergeClasses(scrollable, ChatBoxStyles.chatContainer)} ref={messagesDivRef} onScroll={onScroll}>
-                            <CopilotChat className={ChatBoxStyles.chat}>
+                <div className={chatBoxStyles.chatBox}>
+                    <CopilotProvider mode="canvas" className={chatBoxStyles.chatBoxInner}>
+                        <div className={mergeClasses(scrollable, chatBoxStyles.chatContainer)} ref={messagesDivRef} onScroll={onScroll}>
+                            <CopilotChat className={chatBoxStyles.chat}>
                                 <div ref={intersectionObserverRef} />
 
                                 {isLoading && !isWelcomeThread && <ChatLoading />}

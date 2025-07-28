@@ -9,6 +9,8 @@ import {
     IncidentQueryResponse,
     InstructionGenerationRequest,
     InstructionGenerationResponse,
+    TestHandlerPayload,
+    TestHandlerResponse,
     ToolInfo,
 } from '../Contracts/Azure/IncidentHandler.ts';
 import { getAgentHeaders } from '../Helpers/headers.ts';
@@ -18,7 +20,8 @@ export type LogFunction = (info: ITelemetryInfo) => void;
 
 export class IncidentHandlerClient extends DataPlaneClient {
     private static _instance: IncidentHandlerClient;
-    private readonly _apiPathPrefix = '/api/v1/incidentplayground';
+    private readonly _apiBasePathPrefix = '/api/v1';
+    private readonly _apiIncidentPlaygroundPathPrefix = `${this._apiBasePathPrefix}/incidentplayground`;
     private _log?: LogFunction;
 
     public static getInstance(sreAgentEndpoint: string, log: LogFunction): IncidentHandlerClient {
@@ -34,7 +37,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
     }
 
     public checkConnectivity = async (): Promise<Response<boolean>> => {
-        const url = this.getRequestUrl(`${this._apiPathPrefix}/checkConnectivity`);
+        const url = this.getRequestUrl(`${this._apiIncidentPlaygroundPathPrefix}/checkConnectivity`);
         try {
             const { data } = await axios.get<boolean>(url, {
                 headers: getAgentHeaders(),
@@ -59,7 +62,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
     };
 
     public listHandlers = async (): Promise<Response<IncidentHandler[]>> => {
-        const url = this.getRequestUrl(`${this._apiPathPrefix}/handlers`);
+        const url = this.getRequestUrl(`${this._apiIncidentPlaygroundPathPrefix}/handlers`);
         try {
             const { data } = await axios.get<IncidentHandler[]>(url, {
                 headers: getAgentHeaders(),
@@ -84,7 +87,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
     };
 
     public listIncidentFilters = async (): Promise<Response<IncidentFilter[]>> => {
-        const url = this.getRequestUrl(`${this._apiPathPrefix}/filters`);
+        const url = this.getRequestUrl(`${this._apiIncidentPlaygroundPathPrefix}/filters`);
         try {
             const { data } = await axios.get<IncidentFilter[]>(url, {
                 headers: getAgentHeaders(),
@@ -109,7 +112,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
     };
 
     public deleteIncidentFilter = async (id: string): Promise<Response<IncidentFilter[]>> => {
-        const url = this.getRequestUrl(`${this._apiPathPrefix}/filters/${id}`);
+        const url = this.getRequestUrl(`${this._apiIncidentPlaygroundPathPrefix}/filters/${id}`);
         try {
             await axios.delete<IncidentFilter>(url, {
                 headers: getAgentHeaders(),
@@ -133,7 +136,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
     };
 
     public createIncidentFilter = async (body: IncidentFilterPayload): Promise<Response<IncidentFilter>> => {
-        const url = this.getRequestUrl(`${this._apiPathPrefix}/filters/${body.Id}`);
+        const url = this.getRequestUrl(`${this._apiIncidentPlaygroundPathPrefix}/filters/${body.Id}`);
         try {
             const { data } = await axios.put<IncidentFilter>(url, body, {
                 headers: getAgentHeaders(),
@@ -158,7 +161,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
     };
 
     public updateIncidentFilter = async (body: IncidentFilterPayload): Promise<Response<IncidentFilter>> => {
-        const url = this.getRequestUrl(`${this._apiPathPrefix}/filters/${body.Id}`);
+        const url = this.getRequestUrl(`${this._apiIncidentPlaygroundPathPrefix}/filters/${body.Id}`);
         try {
             const { data } = await axios.post<IncidentFilter>(url, body, {
                 headers: getAgentHeaders(),
@@ -183,7 +186,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
     };
 
     public enableIncidentFilter = async (id: string): Promise<Response<IncidentFilter>> => {
-        const url = this.getRequestUrl(`${this._apiPathPrefix}/filters/${id}/enable`);
+        const url = this.getRequestUrl(`${this._apiIncidentPlaygroundPathPrefix}/filters/${id}/enable`);
         try {
             const { data } = await axios.post<IncidentFilter>(url, {
                 headers: getAgentHeaders(),
@@ -208,7 +211,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
     };
 
     public disableIncidentFilter = async (id: string): Promise<Response<IncidentFilter>> => {
-        const url = this.getRequestUrl(`${this._apiPathPrefix}/filters/${id}/disable`);
+        const url = this.getRequestUrl(`${this._apiIncidentPlaygroundPathPrefix}/filters/${id}/disable`);
         try {
             const { data } = await axios.post<IncidentFilter>(url, {
                 headers: getAgentHeaders(),
@@ -233,7 +236,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
     };
 
     public getFilterFieldOptions = async (): Promise<Response<any>> => {
-        const url = this.getRequestUrl(`${this._apiPathPrefix}/filterFieldOptions`);
+        const url = this.getRequestUrl(`${this._apiIncidentPlaygroundPathPrefix}/filterFieldOptions`);
         try {
             const { data } = await axios.get<any>(url, {
                 headers: getAgentHeaders(),
@@ -258,7 +261,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
     };
 
     public generateInstructions = async (request: InstructionGenerationRequest): Promise<Response<InstructionGenerationResponse>> => {
-        const url = this.getRequestUrl(`${this._apiPathPrefix}/generateInstructions`);
+        const url = this.getRequestUrl(`${this._apiIncidentPlaygroundPathPrefix}/generateInstructions`);
         try {
             const { data } = await axios.post<InstructionGenerationResponse>(url, request, {
                 headers: getAgentHeaders(),
@@ -283,7 +286,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
     };
 
     public queryIncidents = async (request: IncidentQueryRequest): Promise<Response<IncidentQueryResponse>> => {
-        const url = this.getRequestUrl(`${this._apiPathPrefix}/queryIncidents`);
+        const url = this.getRequestUrl(`${this._apiIncidentPlaygroundPathPrefix}/queryIncidents`);
         try {
             const { data } = await axios.post<IncidentQueryResponse>(url, request, {
                 headers: getAgentHeaders(),
@@ -308,7 +311,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
     };
 
     public getIncident = async (incidentId: string): Promise<Response<IncidentDocument>> => {
-        const url = this.getRequestUrl(`${this._apiPathPrefix}/getIncident/${incidentId}`);
+        const url = this.getRequestUrl(`${this._apiIncidentPlaygroundPathPrefix}/getIncident/${incidentId}`);
         try {
             const { data } = await axios.get<IncidentDocument>(url, {
                 headers: getAgentHeaders(),
@@ -333,7 +336,9 @@ export class IncidentHandlerClient extends DataPlaneClient {
     };
 
     public listTools = async (searchString: string = ''): Promise<Response<ToolInfo[]>> => {
-        const url = this.getRequestUrl(`${this._apiPathPrefix}/listTools?searchString=${encodeURIComponent(searchString)}`);
+        const url = this.getRequestUrl(
+            `${this._apiIncidentPlaygroundPathPrefix}/listTools?searchString=${encodeURIComponent(searchString)}`
+        );
         try {
             const { data } = await axios.get<ToolInfo[]>(url, {
                 headers: getAgentHeaders(),
@@ -358,7 +363,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
     };
 
     public createHandler = async (request: IncidentHandler): Promise<Response<IncidentHandler>> => {
-        const url = this.getRequestUrl(`${this._apiPathPrefix}/handlers/${request.id}`);
+        const url = this.getRequestUrl(`${this._apiIncidentPlaygroundPathPrefix}/handlers/${request.id}`);
         try {
             const { data } = await axios.put<IncidentHandler>(url, request, {
                 headers: getAgentHeaders(),
@@ -383,7 +388,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
     };
 
     public updateHandler = async (request: IncidentHandler): Promise<Response<IncidentHandler>> => {
-        const url = this.getRequestUrl(`${this._apiPathPrefix}/handlers/${request.id}`);
+        const url = this.getRequestUrl(`${this._apiIncidentPlaygroundPathPrefix}/handlers/${request.id}`);
         try {
             const { data } = await axios.post<IncidentHandler>(url, request, {
                 headers: getAgentHeaders(),
@@ -408,7 +413,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
     };
 
     public getHandler = async (handlerId: string): Promise<Response<IncidentHandler>> => {
-        const url = this.getRequestUrl(`${this._apiPathPrefix}/handlers/${handlerId}`);
+        const url = this.getRequestUrl(`${this._apiIncidentPlaygroundPathPrefix}/handlers/${handlerId}`);
         try {
             const { data } = await axios.get<IncidentHandler>(url, {
                 headers: getAgentHeaders(),
@@ -433,7 +438,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
     };
 
     public deleteHandler = async (handlerId: string): Promise<Response<void>> => {
-        const url = this.getRequestUrl(`${this._apiPathPrefix}/handlers/${handlerId}`);
+        const url = this.getRequestUrl(`${this._apiIncidentPlaygroundPathPrefix}/handlers/${handlerId}`);
         try {
             await axios.delete<IncidentHandler>(url, {
                 headers: getAgentHeaders(),
@@ -448,6 +453,31 @@ export class IncidentHandlerClient extends DataPlaneClient {
                 action: 'deleteHandler',
                 actionModifier: 'failed',
                 data: `Failed to delete handler: ${errorMessage}`,
+            });
+            return {
+                isSuccessful: false,
+                error: error,
+            };
+        }
+    };
+
+    public testHandler = async (request: TestHandlerPayload): Promise<Response<TestHandlerResponse>> => {
+        const url = this.getRequestUrl(`${this._apiBasePathPrefix}/IncidentWebhook/${request.source}`);
+        try {
+            const { data } = await axios.post<TestHandlerResponse>(url, request, {
+                headers: getAgentHeaders(),
+            });
+            return {
+                isSuccessful: true,
+                content: data,
+            };
+        } catch (error) {
+            const errorMessage = this.getErrorMessage(error);
+            this._log?.({
+                logLevel: 'error',
+                action: 'testHandler',
+                actionModifier: 'failed',
+                data: `Failed to test handler: ${errorMessage}`,
             });
             return {
                 isSuccessful: false,

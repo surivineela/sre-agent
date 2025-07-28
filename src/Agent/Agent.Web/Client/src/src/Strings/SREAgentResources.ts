@@ -1170,6 +1170,17 @@ export const IncidentHandlerCreateResources = defineMessages({
     },
     addToolsTitle: { defaultMessage: 'Add tools', id: '5fVEet' },
     testHandlerTitle: { defaultMessage: 'Test handler', id: '5lBLYV' },
+    incidentLabel: { defaultMessage: 'Incident', id: 'zaYxwd' },
+    incidentPlaceholder: { defaultMessage: 'Select an incident', id: 'RDflWE' },
+    testHandlerEmptyMessage: {
+        defaultMessage: 'Select an incident and run the test to see the results here.',
+        id: 'MhTfXm',
+    },
+    testHandlerRunButton: { defaultMessage: 'Run test', id: 'mZ0R9v' },
+    testHandlerRunFailure: {
+        defaultMessage: 'Failed to run the test. Error: {errorMessage}',
+        id: '5X0whH',
+    },
     next: { defaultMessage: 'Next', id: '9+Ddtu' },
     skip: { defaultMessage: 'Skip', id: '/4tOwT' },
     cancel: { defaultMessage: 'Cancel', id: '47FYwb' },
@@ -1219,6 +1230,11 @@ export const IncidentHandlerCreateResources = defineMessages({
     selectedIncidentsEmptyText: { defaultMessage: 'No incidents selected', id: 'QQX4Pv' },
     filterStep: { defaultMessage: 'Create incident handler', id: 'C3qF2+' },
     previewIncidentsStep: { defaultMessage: 'Preview incidents', id: '69FfbB' },
+    previewIncidentsDescription: {
+        defaultMessage:
+            'These incidents match your filter criteria. If an incident is missing, go back to the previous step and modify the filter parameters.',
+        id: '6LZ2qn',
+    },
     incidentsAndGuidanceStep: { defaultMessage: 'Add instructions', id: 'HjTHxo' },
     reviewAndTestStep: { defaultMessage: 'Review + test', id: '3PxUNi' },
     deployStep: { defaultMessage: 'Deploy incident handler', id: 'iFDVT4' },

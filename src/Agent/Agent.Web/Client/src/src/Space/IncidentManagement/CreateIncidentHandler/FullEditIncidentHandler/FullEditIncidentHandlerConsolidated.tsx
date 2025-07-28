@@ -74,6 +74,7 @@ export const FullEditIncidentHandlerConsolidated: FC = () => {
                     width: '100%',
                     overflowY: 'auto',
                     paddingLeft: '12px',
+                    marginRight: '12px',
                 }}
             >
                 {currentStep === IncidentHandlerCreateSteps.FilterStep ? (

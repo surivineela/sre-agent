@@ -120,7 +120,7 @@ export const PreviewIncidentsStep: FC = () => {
                 height: 'calc(100% - 20px)',
             }}
         >
-            <Text size={300}>{'Lorem impsum'}</Text>
+            <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.previewIncidentsDescription)}</Text>
             <Dropdown
                 id="timespanDropdown"
                 style={{ maxWidth: 300 }}

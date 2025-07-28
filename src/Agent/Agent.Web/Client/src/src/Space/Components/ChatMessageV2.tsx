@@ -15,7 +15,7 @@ import { shouldGroupWithPreviousMessageV2 } from '../Activities/Utility';
 import { IChatMessageV2Props } from '../Contracts/Activities';
 import { ThreadAgentModeContext } from '../Contracts/Context';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
-import { ChatBoxV2Styles as ChatBoxStyles, nameAndTimestampContainerStyle, useChatBoxStyles } from '../Styles/Activities.styles';
+import { getChatBoxV2Styles, nameAndTimestampContainerStyle, useChatBoxStyles } from '../Styles/Activities.styles';
 import AgentMessage from './AgentMessage';
 import AgentMessageLoadingComponent from './AgentMessageLoadingComponent';
 import ChatMessageFooter from './ChatMessageFooter';
@@ -152,6 +152,7 @@ const ChatMessageV2 = ({
     isWaitingForStreamingMessages,
 }: IChatMessageV2Props) => {
     const chatStyles = useChatBoxStyles();
+    const chatBoxStyles = getChatBoxV2Styles();
     const intl = useIntl();
 
     const { userIdAndDisplayName } = useAuthenticatedUserInfo();
@@ -230,8 +231,8 @@ const ChatMessageV2 = ({
                         key={message.id}
                         style={{ font: 'Segoe UI', lineHeight: '20px', wordBreak: 'unset', maxWidth: '90%' }}
                         className={mergeClasses(
-                            ChatBoxStyles.agentMessage,
-                            hideMessageHeader ? ChatBoxStyles.hideAgentMessageHeader : undefined
+                            chatBoxStyles.agentMessage,
+                            hideMessageHeader ? chatBoxStyles.hideAgentMessageHeader : undefined
                         )}
                     >
                         {message.contents.map((content, index) => {
@@ -264,7 +265,7 @@ const ChatMessageV2 = ({
             );
         default:
             return (
-                <div className={ChatBoxStyles.userMessage} key={message.id}>
+                <div className={chatBoxStyles.userMessage} key={message.id}>
                     {hideMessageHeader ? null : (
                         <div style={nameAndTimestampContainerStyle}>
                             {message.author.userId !== userIdAndDisplayName.userId && (

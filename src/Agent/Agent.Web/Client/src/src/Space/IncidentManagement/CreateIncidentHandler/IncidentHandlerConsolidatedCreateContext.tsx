@@ -38,6 +38,12 @@ export interface IncidentHandlerConsolidatedCreateMetadata {
     isLoadingInitialIncidents: boolean;
     hasMoreOldIncidents: boolean;
     loadMoreOldIncidents: (overflowDiv: boolean) => Promise<boolean | undefined>;
+    createTestThread: () => void;
+    createTestThreadFailure?: string;
+    creatingTestThread?: boolean;
+    testIncident?: IncidentDocument;
+    setTestIncident: React.Dispatch<React.SetStateAction<IncidentDocument | undefined>>;
+    testIncidentThreadId?: string;
 
     priorityOptions: string[];
     impactedServiceOptions: string[];
@@ -73,6 +79,12 @@ export const IncidentHandlerConsolidatedCreateContext = React.createContext<Inci
     isLoadingInitialIncidents: false,
     hasMoreOldIncidents: true,
     loadMoreOldIncidents: () => Promise.resolve(true),
+    createTestThread: () => {},
+    createTestThreadFailure: undefined,
+    creatingTestThread: false,
+    testIncident: undefined,
+    setTestIncident: () => {},
+    testIncidentThreadId: undefined,
 
     priorityOptions: [],
     impactedServiceOptions: [],

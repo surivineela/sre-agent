@@ -9,6 +9,7 @@ import {
     MessageMetaData,
     Thread,
 } from '../../Common/Contracts/Azure/SreAgent';
+import { ChatBoxV2StyleProps } from '../Styles/Activities.styles';
 
 export interface IActivitiesProps {
     resourceId: string;
@@ -51,6 +52,7 @@ export interface IChatBoxProps {
     updateThreadLastReadTime: (threadId: string) => void;
     threadId?: string;
     threadSource?: string;
+    stylesProps?: ChatBoxV2StyleProps;
 }
 
 export interface IChatMessageProps {
