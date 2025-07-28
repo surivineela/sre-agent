@@ -8,6 +8,11 @@
     {
       "placeholder": "API Key",
       "_justification": "False positive - just a string"
+    },
+    {
+      "file": "\\src\\Agent\\Agent.Evals\\Data\\HandOffEvaluations\\traces-prod-paas-containerapp-cpu-diagnostics.json",
+      "hash": "9befb5f4dba0f1b6dc2b82251890c0de9cc4f81f22461efdf8292cfcfc4e083c",
+      "_justification": "False positive - this is not a real Azure SQL connection string."
     }
   ]
 }
