@@ -28,7 +28,13 @@ namespace Agent.Core.Clients.Storage
             _authService = authService;
 
             TokenCredential credential = _authService.GetStorageCredential();
-            _blobServiceClient = new BlobServiceClient(new Uri(storageSettings.Value.BlobEndpoint), credential);
+            var blobEndpoint = storageSettings.Value.BlobEndpoint;
+            if( string.IsNullOrEmpty(blobEndpoint))
+            {
+                blobEndpoint = "https://dummy-sre-blob.blob.core.windows.net/";
+            }
+
+            _blobServiceClient = new BlobServiceClient(new Uri(blobEndpoint), credential);
         }
 
         public async Task<List<string>> ListContainerNamesAsync()

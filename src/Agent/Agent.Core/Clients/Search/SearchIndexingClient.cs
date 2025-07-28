@@ -24,8 +24,13 @@ public class SearchIndexingClient : ISearchIndexingClient
     public SearchIndexingClient(IAuthenticationService authService, IndexingSettings indexingSettings, ILogger<SearchIndexingClient> logger)
     {
         TokenCredential credential = authService.GetSearchEndpointCredential();
-        _searchIndexClient = new SearchIndexClient(new Uri(indexingSettings.SearchEndpoint), credential);
-        _searchIndexerClient = new SearchIndexerClient(new Uri(indexingSettings.SearchEndpoint), credential);
+        var searchEndpoint = indexingSettings.SearchEndpoint;
+        if (string.IsNullOrEmpty(searchEndpoint))
+        {
+            searchEndpoint = "https://dummy-sre-search.azurewebsites.net";
+        }
+        _searchIndexClient = new SearchIndexClient(new Uri(searchEndpoint), credential);
+        _searchIndexerClient = new SearchIndexerClient(new Uri(searchEndpoint), credential);
         _logger = logger;
     }
 
