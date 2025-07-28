@@ -25,7 +25,7 @@ namespace Agent.Plugins.Definitions
         Retrieves the underlying infrastructure layer (AKS or Legion) for a container app.
 
         Scenario:
-        Use this tool to determine the infrastructure type for a specific container app.
+        Use this tool to determine the underlying infrastructure layer for a container app in a specific region and time range.
 
         Output:
         Returns tab-separated table data in CSV format. Column headers:
@@ -56,10 +56,11 @@ namespace Agent.Plugins.Definitions
 
         [Description(@"""
         Purpose:
-        Checks if metrics were missed for a container app in the specified time range.
+        Checks if metrics were missed for a container app or job in the specified time range.
 
         Scenario:
-        Use this tool to identify if any metrics are missing for a given metric name and container app.
+        Use this tool to when investigating missing metrics issues for a given metric name and container app.
+        This tool checks if the metric was missed for a given time frame
 
         Output:
         Returns tab-separated table data in CSV format. Column headers:
@@ -89,7 +90,8 @@ namespace Agent.Plugins.Definitions
         Retrieves missed times for MDM pod heartbeats in a managed cluster within a time range.
 
         Scenario:
-        Use this tool to find times when MDM pod heartbeats were missed.
+        Use this tool when investigating missing metrics issues and potential issues with the MDM pod.
+        This tool identifies times when the MDM pod hearbeats are not reported.
 
         Output:
         Returns tab-separated table data in CSV format. Column headers:
@@ -117,7 +119,8 @@ namespace Agent.Plugins.Definitions
         Retrieves times when a specific metric was missed for a container app in the specified time range.
 
         Scenario:
-        Use this tool to get timestamps where the specified metric was not reported.
+        Use this tool when investigating missing metrics issues for a given metric name and container app.
+        This tool retrieves the time when the specified metric was missed.
 
         Output:
         Returns tab-separated table data in CSV format. Column headers:
@@ -148,7 +151,9 @@ namespace Agent.Plugins.Definitions
         Retrieves times when the billing pod was undergoing leader election in a managed cluster within a time range.
 
         Scenario:
-        Use this tool to find leader election events for the billing pod.
+        Use this tool when investigating metrics loss issues.
+        When the billing pod is undergoing leader election, it may not report metrics.
+        This tool identifies times when the billing pod was undergoing leader election.
 
         Output:
         Returns tab-separated table data in CSV format. Column headers:
@@ -173,10 +178,12 @@ namespace Agent.Plugins.Definitions
 
         [Description(@"""
         Purpose:
-        Retrieves times when the VK pod was undergoing leader election in a managed cluster within a time range.
+        Retrieves times when the VK (Virtual Kubelet) pod was undergoing leader election in a managed cluster within a time range.
 
         Scenario:
-        Use this tool to find leader election events for the VK pod.
+        Use this tool when investigating metrics loss issues.
+        When the VK pod is undergoing leader election, it may not report metrics for Container apps and Jobs running on Legion..
+        Use this tool to find leader election events for the VK (Virtual Kubelet) pod.
 
         Output:
         Returns tab-separated table data in CSV format. Column headers:
@@ -204,6 +211,8 @@ namespace Agent.Plugins.Definitions
         Retrieves AKS Kubelet runtime errors for a managed cluster within a time range.
 
         Scenario:
+        Use this tool when invvestigating metrics loss issues for Container Apps and Jobs running on AKS.
+        Kubelet runtime errors can indicate issues with the AKS cluster's kubelet operations.
         Use this tool to get Kubelet runtime errors for a specific AKS cluster.
 
         Output:
