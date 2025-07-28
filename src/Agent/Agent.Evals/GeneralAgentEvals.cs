@@ -15,11 +15,28 @@ public class GeneralAgentEvals
 
     private static GeneralTestCase[] LoadTestCasesFromFiles()
     {
-        var dataFolderPath = Path.Combine(AppContext.BaseDirectory, "Data", "HandOff");
-        var data = ModelGenerationDataLoader.LoadChatMessagesFromJsonFiles(dataFolderPath);
-        var result = data.Select(kvp => GeneralTestCase.FromModelGenerationContent(kvp.Value, kvp.Key))
-            .ToArray();
-        return result;
+        var dataFolders = new[]
+        {
+            "HandOff",
+            "AzCliCommandAgent",
+            "AKSAgent"
+        };
+
+        var allTestCases = new List<GeneralTestCase>();
+
+        foreach (var folder in dataFolders)
+        {
+            var dataFolderPath = Path.Combine(AppContext.BaseDirectory, "Data", folder);
+            if (Directory.Exists(dataFolderPath))
+            {
+                var data = ModelGenerationDataLoader.LoadChatMessagesFromJsonFiles(dataFolderPath);
+                var testCases = data.Select(kvp => GeneralTestCase.FromModelGenerationContent(kvp.Value, $"{folder}_{kvp.Key}"))
+                    .ToArray();
+                allTestCases.AddRange(testCases);
+            }
+        }
+
+        return allTestCases.ToArray();
     }
 
     [TestMethod]
@@ -277,22 +294,22 @@ public class GeneralAgentEvals
                 if (functionsMatch
                     && !IsHandoffToolCall(actual.Name)) // can't compare input args for handoff as it is free flow text
                 {
-                    // Compare arguments
-                    var expectedArgs = JsonSerializer.Serialize(expected.Arguments, new JsonSerializerOptions { WriteIndented = false });
-                    var actualArgs = JsonSerializer.Serialize(actual.Arguments, new JsonSerializerOptions { WriteIndented = false });
-
-                    var argsMatch = expectedArgs == actualArgs;
+                    // Compare arguments using smart comparison
+                    var argsMatch = TestHelpers.AreArgumentsEquivalent(expected.Arguments ?? new object(), actual.Arguments ?? new object());
                     TestContext.WriteLine($"  Arguments match: {(argsMatch ? "✅" : "❌")}");
 
-                    // Assert that arguments match
-                    Assert.IsTrue(argsMatch,
-                        $"Function call {i + 1} arguments mismatch. Expected: {expectedArgs}, Actual: {actualArgs}");
-
+                    // If smart comparison fails, show detailed comparison for debugging
                     if (!argsMatch)
                     {
+                        var expectedArgs = JsonSerializer.Serialize(expected.Arguments, new JsonSerializerOptions { WriteIndented = false });
+                        var actualArgs = JsonSerializer.Serialize(actual.Arguments, new JsonSerializerOptions { WriteIndented = false });
                         TestContext.WriteLine($"  Expected args: {expectedArgs}");
                         TestContext.WriteLine($"  Actual args: {actualArgs}");
                     }
+
+                    // Assert that arguments match
+                    Assert.IsTrue(argsMatch,
+                        $"Function call {i + 1} arguments mismatch. Expected: {JsonSerializer.Serialize(expected.Arguments, new JsonSerializerOptions { WriteIndented = false })}, Actual: {JsonSerializer.Serialize(actual.Arguments, new JsonSerializerOptions { WriteIndented = false })}");
                 }
             }
             else if (i < expectedFunctionCalls.Count)

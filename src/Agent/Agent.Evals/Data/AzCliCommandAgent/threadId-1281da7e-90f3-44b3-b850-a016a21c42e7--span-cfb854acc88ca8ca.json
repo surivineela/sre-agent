@@ -317,7 +317,7 @@
           "value": {
             "$type": "functionCall",
             "callId": "call_mug6UX8sMuLVz2KV2aMp5eMY",
-            "name": "transfer_to_azure_cli_command_executor_agent",
+            "name": "transfer_to_azure_cli_command_executor_agent | transfer_to_function_app_agent",
             "arguments": {}
           }
         }

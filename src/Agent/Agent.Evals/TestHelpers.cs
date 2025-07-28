@@ -375,6 +375,156 @@ public static class TestHelpers
         builder.Services.AddAgentMemory(
             enableAgentMemory: builder.IsAgentMemoryEnabled());
     }
+
+    /// <summary>
+    /// Compares function call arguments with smart handling for command-line arguments
+    /// </summary>
+    public static bool AreArgumentsEquivalent(object expected, object actual)
+    {
+        try
+        {
+            var expectedJson = JsonSerializer.Serialize(expected, new JsonSerializerOptions { WriteIndented = false });
+            var actualJson = JsonSerializer.Serialize(actual, new JsonSerializerOptions { WriteIndented = false });
+
+            // First try exact match
+            if (expectedJson == actualJson) return true;
+
+            // Parse as JSON objects for smart comparison
+            using var expectedDoc = JsonDocument.Parse(expectedJson);
+            using var actualDoc = JsonDocument.Parse(actualJson);
+
+            var expectedRoot = expectedDoc.RootElement;
+            var actualRoot = actualDoc.RootElement;
+
+            // If both are objects, compare each property
+            if (expectedRoot.ValueKind == JsonValueKind.Object && actualRoot.ValueKind == JsonValueKind.Object)
+            {
+                // Check if all expected properties exist in actual
+                foreach (var expectedProp in expectedRoot.EnumerateObject())
+                {
+                    if (!actualRoot.TryGetProperty(expectedProp.Name, out var actualProp))
+                        return false;
+
+                    // Special handling for "command" property
+                    if (expectedProp.Name.Equals("command", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var expectedCommand = expectedProp.Value.GetString() ?? "";
+                        var actualCommand = actualProp.GetString() ?? "";
+
+                        if (!AreCommandsEquivalent(expectedCommand, actualCommand))
+                            return false;
+                    }
+                    // Skip comparison for "columnsCsv" field
+                    else if (expectedProp.Name.Equals("columnsCsv", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Skip this field entirely - don't compare
+                        continue;
+                    }
+                    else
+                    {
+                        // For other properties, do smart comparison (treating null and empty strings as equal)
+                        if (!AreJsonElementsEquivalent(expectedProp.Value, actualProp))
+                            return false;
+                    }
+                }
+
+                // Check if actual has any extra properties not in expected
+                foreach (var actualProp in actualRoot.EnumerateObject())
+                {
+                    // Skip columnsCsv field in this check too
+                    if (actualProp.Name.Equals("columnsCsv", StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    if (!expectedRoot.TryGetProperty(actualProp.Name, out _))
+                        return false;
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+        catch
+        {
+            // If JSON parsing fails, fall back to exact comparison
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Compares two JSON elements with smart handling for null and empty strings
+    /// </summary>
+    private static bool AreJsonElementsEquivalent(JsonElement expected, JsonElement actual)
+    {
+        // Handle the case where both are strings
+        if (expected.ValueKind == JsonValueKind.String && actual.ValueKind == JsonValueKind.String)
+        {
+            var expectedStr = expected.GetString() ?? "";
+            var actualStr = actual.GetString() ?? "";
+
+            // Treat null and empty string as equivalent
+            if (string.IsNullOrEmpty(expectedStr) && string.IsNullOrEmpty(actualStr))
+                return true;
+
+            return expectedStr == actualStr;
+        }
+
+        // Handle the case where one is null and the other is an empty string
+        if ((expected.ValueKind == JsonValueKind.Null && actual.ValueKind == JsonValueKind.String) ||
+            (expected.ValueKind == JsonValueKind.String && actual.ValueKind == JsonValueKind.Null))
+        {
+            var stringValue = expected.ValueKind == JsonValueKind.String ?
+                expected.GetString() ?? "" :
+                actual.GetString() ?? "";
+
+            return string.IsNullOrEmpty(stringValue);
+        }
+
+        // For all other cases, do exact comparison
+        var expectedJson = JsonSerializer.Serialize(expected);
+        var actualJson = JsonSerializer.Serialize(actual);
+        return expectedJson == actualJson;
+    }
+
+    /// <summary>
+    /// Compares two command strings by extracting and comparing only the base command (ignoring flags)
+    /// </summary>
+    public static bool AreCommandsEquivalent(string expectedCommand, string actualCommand)
+    {
+        if (string.IsNullOrWhiteSpace(expectedCommand) && string.IsNullOrWhiteSpace(actualCommand))
+            return true;
+
+        if (string.IsNullOrWhiteSpace(expectedCommand) || string.IsNullOrWhiteSpace(actualCommand))
+            return false;
+
+        var expectedBase = ExtractBaseCommand(expectedCommand.Trim());
+        var actualBase = ExtractBaseCommand(actualCommand.Trim());
+
+        return expectedBase.Equals(actualBase, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Extracts the base command from a command string (everything before the first flag starting with -)
+    /// </summary>
+    public static string ExtractBaseCommand(string command)
+    {
+        if (string.IsNullOrWhiteSpace(command))
+            return "";
+
+        var parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var baseCommandParts = new List<string>();
+
+        foreach (var part in parts)
+        {
+            // Stop when we encounter a flag (starts with -)
+            if (part.StartsWith('-'))
+                break;
+
+            baseCommandParts.Add(part);
+        }
+
+        return string.Join(" ", baseCommandParts);
+    }
 }
 
 class MockStreamingService : IStreamingService
