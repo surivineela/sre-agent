@@ -112,7 +112,7 @@ public class ICMPlugin : IICMPlugin
         incident.Summary = await ProcessComplexICMContent(incident.Summary, !ProcessImages);
         incident.DiscussionEntry = await ProcessComplexICMContent(incident.DiscussionEntry, !ProcessImages);
         //kernel.Data["incidentDetails"] = incident;
-        await SetupIncidentProcessing(incidentId, incident);
+        //await SetupIncidentProcessing(incidentId, incident);
         return incident;
     }
 
