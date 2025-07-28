@@ -3,6 +3,6 @@ let toDate = datetime("##toDate##");
 let podName = "##podName##";
 SessionPoolEvents
 | where TIMESTAMP between (fromDate .. toDate)
-| where _ContainerGroupId != "" and _ContainerGroupId ~= podName
+| where _ContainerGroupId != "" and _ContainerGroupId =~ podName
 | where  Level <= 2
 | project PreciseTimeStamp, ManagedClusterName = EnvironmentName, PodName=_ContainerGroupId, Message=Log

@@ -26,7 +26,7 @@ Purpose:
 Retrieves session pool information for a specific session pool within a time range.
 
 Scenario:
-Use this tool to get the latest configuration and state of a session pool for troubleshooting or analysis.
+Use this tool as the initial step in any session pool investigation to determine the container type (Code Interpreter vs Custom Container) and extract essential details like managed cluster name, legion pod pool name.
 
 Output:
 Returns table data in CSV format with TAB separators. Column headers:
@@ -242,7 +242,8 @@ Purpose:
 Retrieves error events for a code interpreter session pod by pod name within a time range.
 
 Scenario:
-Use this tool to get error events for a specific pod when investigating pod-level issues or runtime failures in code interpreter sessions.
+Use this tool when investigating pod failures or runtime issues for a code interpreter session.
+It can be used to analyze pod error events after retrieving pod allocation information of a code interpreter session.
 
 Output:
 Returns table data in CSV format with TAB separators. Column headers:
@@ -272,7 +273,7 @@ Purpose:
 Retrieves error logs for a code interpreter session pod by pod name within a time range.
 
 Scenario:
-Use this tool to fetch error logs for a specific pod when investigating detailed pod-level failures or container runtime issues.
+Use this tool to investigate detailed pod-level failures or container runtime issues after retrieving pod allocation information of a code interpreter session.
 
 Output:
 Returns table data in CSV format with TAB separators. Column headers:
