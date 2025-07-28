@@ -53,18 +53,6 @@
       "value": "Resource group"
     }
   ],
-  "+wotuJ": [
-    {
-      "type": 0,
-      "value": "Agent mode is restricted to Read Only by global configuration"
-    }
-  ],
-  "+xLAmy": [
-    {
-      "type": 0,
-      "value": "No agent modes available"
-    }
-  ],
   "/2OpVO": [
     {
       "type": 0,
@@ -2835,12 +2823,6 @@
     {
       "type": 0,
       "value": "Cognitive Services Language Writer"
-    }
-  ],
-  "az0OgB": [
-    {
-      "type": 0,
-      "value": "Failed to fetch available agent modes"
     }
   ],
   "bKgVBL": [

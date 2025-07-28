@@ -161,7 +161,7 @@ export const MessageTypingSpeedInMilliseconds = 10;
 export const MessageTypingCharactersPer10Ms = 5;
 
 export interface IAgentModeInfo {
-    mode: AgentMode;
+    name: AgentMode;
     displayName: string;
     description: string;
     isRestricted?: boolean;

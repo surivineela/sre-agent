@@ -1348,21 +1348,9 @@ export const AgentModeResources = defineMessages({
         defaultMessage: 'Failed to update the agent mode.',
         id: 'wVpXzO',
     },
-    fetchAgentModesFailureMessage: {
-        defaultMessage: 'Failed to fetch available agent modes',
-        id: 'az0OgB',
-    },
     fetchAgentModeFailureMessage: {
         defaultMessage: 'Failed to fetch agent mode',
         id: 'CJEYfo',
-    },
-    agentsModesUnavailableMessage: {
-        defaultMessage: 'No agent modes available',
-        id: '+xLAmy',
-    },
-    agentModeRestrictionMessage: {
-        defaultMessage: 'Agent mode is restricted to Read Only by global configuration',
-        id: '+wotuJ',
     },
     agentModeTooltip: {
         defaultMessage: 'Change agent mode for this thread',

@@ -20,14 +20,6 @@ const useAgentModeSelectorStyles = makeStyles({
         flexDirection: 'column',
         boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
     },
-    restrictionMessage: {
-        color: tokens.colorPaletteRedForeground2,
-        fontStyle: 'italic',
-        marginTop: '8px',
-        padding: '6px 8px',
-        backgroundColor: tokens.colorPaletteRedBackground1,
-        borderRadius: '4px',
-    },
     currentModeValue: {
         color: tokens.colorBrandForeground1,
         display: 'flex',
@@ -43,7 +35,6 @@ const useAgentModeSelectorStyles = makeStyles({
 const AgentModeSelector = (props: IAgentModeSelectorProps) => {
     const {
         agentModes,
-        agentModesInfo,
         isUpdatingAgentMode,
         threadAgentMode,
         isButtonDisabled,
@@ -51,10 +42,9 @@ const AgentModeSelector = (props: IAgentModeSelectorProps) => {
         showButtonLoadingSpinner,
         updateThreadAgentMode,
         updatingAgentModeError,
-        getAgentModeInfo,
     } = useAgentModeSelector(props);
 
-    const { menuSurface, restrictionMessage, currentModeValue, errorMessage } = useAgentModeSelectorStyles();
+    const { menuSurface, currentModeValue, errorMessage } = useAgentModeSelectorStyles();
 
     const checkedValues = useMemo(() => {
         const checked: Record<string, string[]> = {};
@@ -92,16 +82,15 @@ const AgentModeSelector = (props: IAgentModeSelectorProps) => {
                     }}
                 >
                     {agentModes.map((mode, index) => {
-                        const modeInfo = getAgentModeInfo(mode.toLowerCase());
                         const showSelectedStyle =
-                            equals(mode, threadAgentMode || '', AntUxStringComparison.IgnoreCase) && !isUpdatingAgentMode;
+                            equals(mode.name, threadAgentMode || '', AntUxStringComparison.IgnoreCase) && !isUpdatingAgentMode;
                         return (
                             <MenuItemCheckbox
                                 key={index}
                                 name={'agentMode'}
-                                subText={modeInfo.description}
-                                value={modeInfo.mode.toLowerCase()}
-                                onClick={() => updateThreadAgentMode(mode)}
+                                subText={mode.description}
+                                value={mode.name.toLowerCase()}
+                                onClick={() => updateThreadAgentMode(mode.name)}
                                 disabled={isUpdatingAgentMode}
                             >
                                 <Text
@@ -109,17 +98,12 @@ const AgentModeSelector = (props: IAgentModeSelectorProps) => {
                                     weight={showSelectedStyle ? 'semibold' : undefined}
                                     size={showSelectedStyle ? 300 : undefined}
                                 >
-                                    {modeInfo.displayName}
+                                    {mode.displayName}
                                 </Text>
                             </MenuItemCheckbox>
                         );
                     })}
                 </MenuList>
-                {agentModesInfo.info && (
-                    <Text size={200} className={restrictionMessage}>
-                        {agentModesInfo.info}
-                    </Text>
-                )}
             </MenuPopover>
         </Menu>
     );
