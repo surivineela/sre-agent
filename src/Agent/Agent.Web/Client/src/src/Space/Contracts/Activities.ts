@@ -123,7 +123,7 @@ export interface IChatBoxFooterProps {
 
 export interface IChatBoxFooterV2Props {
     sendMessage: (message: string) => Promise<void>;
-    disableInput: boolean;
+    isLoading: boolean;
     downButtonState: { visible: boolean; flash: boolean };
     onClickDownButton: () => void;
     prompts: string[];

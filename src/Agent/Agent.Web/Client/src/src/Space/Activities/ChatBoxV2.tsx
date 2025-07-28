@@ -135,7 +135,7 @@ export const ChatBoxV2 = ({ addThread, updateThreadLastReadTime, threadId, threa
 
                         <ChatBoxFooterV2
                             sendMessage={sendMessage}
-                            disableInput={isLoading}
+                            isLoading={isLoading}
                             downButtonState={downButtonState}
                             onClickDownButton={onClickDownButton}
                             prompts={prompts}

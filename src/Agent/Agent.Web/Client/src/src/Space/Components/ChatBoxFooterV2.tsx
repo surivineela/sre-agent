@@ -37,7 +37,7 @@ const DownButton = ({ downButtonState, onClick }: { downButtonState: { visible: 
 
 const ChatBoxFooterV2 = ({
     sendMessage,
-    disableInput,
+    isLoading,
     onClickDownButton,
     downButtonState,
     prompts,
@@ -62,8 +62,8 @@ const ChatBoxFooterV2 = ({
     const { isConnected } = useContext(StreamingContext);
 
     const disableInputInteraction = useMemo(() => {
-        return disableInput || !isConnected || isCancellingStreaming;
-    }, [disableInput, isConnected, isCancellingStreaming]);
+        return isLoading || !isConnected || isCancellingStreaming;
+    }, [isLoading, isConnected, isCancellingStreaming]);
 
     const SendOrCancelButtonIcon = () => {
         const color = disableInputInteraction ? 'undefined' : tokens.colorBrandForeground1;
@@ -73,20 +73,22 @@ const ChatBoxFooterV2 = ({
     const chatInputHandleSendClick = useCallback(() => {
         const messageToSend = input?.trim() ?? '';
 
-        if (messageToSend) {
+        if (messageToSend && !disableInputInteraction && !isTyping) {
             setInput('');
             setHistoryIndex(-1);
             setOriginalInput('');
             sendMessage(messageToSend);
         }
-    }, [input, sendMessage]);
+    }, [input, sendMessage, disableInputInteraction, isTyping]);
 
     const handlePromptClick = useCallback(
         (prompt: string) => {
-            sendMessage(prompt);
-            setOpen(false);
+            if (!disableInputInteraction && !isTyping) {
+                sendMessage(prompt);
+                setOpen(false);
+            }
         },
-        [sendMessage]
+        [sendMessage, disableInputInteraction, isTyping]
     );
 
     const PromptSection = useCallback(
@@ -132,7 +134,7 @@ const ChatBoxFooterV2 = ({
                         if (event.key.toLowerCase() === 'g') {
                             // Stop the event from propagating to the global shortcuts
                             event.stopPropagation();
-                        } else if (event.key.toLowerCase() === 'enter' && !event.shiftKey && !disableInputInteraction) {
+                        } else if (event.key.toLowerCase() === 'enter' && !event.shiftKey) {
                             chatInputHandleSendClick();
                             event.preventDefault();
                             event.stopPropagation();
@@ -175,7 +177,7 @@ const ChatBoxFooterV2 = ({
                                     appearance="outline"
                                     icon={<Lightbulb16Regular />}
                                     onClick={() => setOpen(!open)}
-                                    disabled={disableInputInteraction}
+                                    disabled={disableInputInteraction || isTyping}
                                 >
                                     {intl.formatMessage(PromptResources.promptLibrary)}
                                 </Button>
