@@ -1,0 +1,9 @@
+{
+  "comprehensiveEvaluationQueries": [
+    "container app iot-dashboard unable to connect to Redis backend NSG deny rule port 6380",
+    "ACA Job failed to execute after migration missing managed identity MandatorySecretKeyNotFound errors",
+    "Key Vault secret fetch failures due to missing managed identity system component pod restarts",
+    "Redis SSL-only port 6380 NSG rules container app subnet connectivity investigation",
+    "container app connectivity issues Redis backend Key Vault secret access problems"
+  ]
+}

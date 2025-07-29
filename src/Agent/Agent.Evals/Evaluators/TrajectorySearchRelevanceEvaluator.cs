@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
 using Agent.Data.AgentMemory;
 using Agent.Logging;
 using Microsoft.Extensions.AI;
@@ -17,12 +18,27 @@ namespace Agent.Evals.Evaluators;
 public class TrajectorySearchRelevanceEvaluator : IEvaluator
 {
     public const string TrajectoryRelevanceMetricName = "TrajectoryRelevance";
+    public const string DiversityMetricName = "Diversity";
+    public const string RankingQualityMetricName = "RankingQuality";
+    public const string ActionabilityMetricName = "Actionability";
+
+    public const string PrecisionMetricName = "Precision";
+    public const string RecallMetricName = "Recall";
+    public const string F1ScoreMetricName = "F1Score";
 
     private readonly IChatClient _chatClient;
     private readonly ILogger<TrajectorySearchRelevanceEvaluator> _logger;
 
     /// <inheritdoc/>
-    public IReadOnlyCollection<string> EvaluationMetricNames => [TrajectoryRelevanceMetricName];
+    public IReadOnlyCollection<string> EvaluationMetricNames => [
+        TrajectoryRelevanceMetricName,
+        PrecisionMetricName,
+        RecallMetricName,
+        F1ScoreMetricName,
+        DiversityMetricName,
+        RankingQualityMetricName,
+        ActionabilityMetricName
+    ];
 
     public TrajectorySearchRelevanceEvaluator(IChatClient chatClient, ILogger<TrajectorySearchRelevanceEvaluator> logger)
     {
@@ -48,12 +64,13 @@ public class TrajectorySearchRelevanceEvaluator : IEvaluator
     }
 
     /// <summary>
-    /// Evaluates trajectory search results for relevance to the search query.
+    /// Evaluates trajectory search results for relevance to the search query using LLM as judge.
+    /// Only evaluates metrics that can be reasonably assessed without ground truth.
     /// </summary>
     /// <param name="searchQuery">The search query used to find trajectories</param>
     /// <param name="searchResults">The retrieved trajectory search results</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Evaluation result with relevance score and explanation</returns>
+    /// <returns>Evaluation result with LLM-assessable relevance metrics</returns>
     public async Task<EvaluationResult> EvaluateTrajectorySearchAsync(
         string searchQuery,
         IList<SearchDocumentResult> searchResults,
@@ -61,49 +78,73 @@ public class TrajectorySearchRelevanceEvaluator : IEvaluator
     {
         try
         {
-            if (searchResults == null || !searchResults.Any())
+            if (searchResults == null || searchResults.Count == 0)
             {
-                var emptyMetric = new StringMetric(TrajectoryRelevanceMetricName,
-                    "0",
-                    "No search results to evaluate");
-                return new EvaluationResult(emptyMetric);
+                var zeroMetrics = new[]
+                {
+                    CreateNumericMetric(TrajectoryRelevanceMetricName, "Overall Relevance", 0, 4, 2),
+                    CreateNumericMetric(DiversityMetricName,        "Diversity",         0, 0.8, 0.4),
+                    CreateNumericMetric(RankingQualityMetricName,   "Ranking Quality",   0, 4, 2),
+                    CreateNumericMetric(ActionabilityMetricName,    "Actionability",     0, 4, 2)
+                };
+                return new EvaluationResult(zeroMetrics);
             }
 
             _logger.LogInternalInformation("Evaluating trajectory search relevance for query: {Query} with {Count} results",
                 searchQuery, searchResults.Count);
 
-            var systemPrompt = @"You are an expert evaluator for trajectory search results. A trajectory represents a documented incident resolution process containing symptoms, root causes, and resolution steps.
+            // LLM-based evaluation prompt - only for metrics that don't require ground truth
+            var systemPrompt = @"You are an expert evaluator for trajectory search results in an SRE (Site Reliability Engineering) context. A trajectory represents a documented incident resolution process containing symptoms, root causes, and resolution steps.
 
-Your task is to evaluate how well the retrieved trajectories match the search query intent. Consider:
+Your task is to provide an evaluation of how well the retrieved trajectories match the search query intent. You will evaluate only dimensions that can be assessed from the available information.
 
-1. **Relevance**: Do the trajectories address the same or similar problems as described in the search query?
-2. **Symptom Matching**: Do the symptoms in the trajectories align with what might be expected from the query?
-3. **Root Cause Alignment**: Are the root causes in the trajectories relevant to the problem space of the query?
-4. **Solution Applicability**: Would the resolution steps be helpful for someone with the query's problem?
-5. **Quality**: Are the trajectories well-documented with clear symptoms, causes, and solutions?
+Evaluate these four dimensions:
 
-Rate the overall relevance on a scale of 1-5:
-- 1: Completely irrelevant trajectories
-- 2: Mostly irrelevant with some tangential connection
-- 3: Somewhat relevant but missing key aspects
-- 4: Highly relevant with good alignment
-- 5: Excellent relevance and quality
+1. **Overall Relevance (1-5)**:
+   - 5: Trajectories perfectly address the search query problem
+   - 4: Trajectories address similar problems with high relevance
+   - 3: Trajectories are moderately relevant to the query
+   - 2: Trajectories have limited relevance to the query
+   - 1: Trajectories are mostly unrelated to the query
 
-Provide your rating and a brief explanation of your assessment.";
+2. **Diversity (0.0-1.0)**:
+   - 1.0: Excellent variety in problem types, Azure services, and resolution approaches
+   - 0.8: Good variety in at least two categories
+   - 0.5: Moderate variety, some redundancy in solutions
+   - 0.2: Limited variety, mostly similar approaches
+   - 0.0: No variety, all trajectories cover identical scenarios
 
-            var userPrompt = $@"Search Query: ""{searchQuery}""
+3. **Ranking Quality (1-5)**:
+   - 5: Perfect ordering with most relevant results first
+   - 4: Good ordering with minor improvements possible
+   - 3: Acceptable ordering with some relevant results first
+   - 2: Poor ordering with relevant results scattered
+   - 1: Random or reversed ordering relative to relevance
 
-Retrieved Trajectories:
-{FormatTrajectories(searchResults)}
+4. **Actionability (1-5)**:
+   - 5: Trajectories provide complete, detailed steps to solve the problem
+   - 4: Trajectories provide clear guidance with minor gaps
+   - 3: Trajectories provide adequate guidance requiring some interpretation
+   - 2: Trajectories provide limited guidance requiring significant work
+   - 1: Trajectories provide minimal actionable information
 
-Please evaluate the relevance of these trajectories to the search query. Provide:
-1. A relevance score (1-5)
-2. A brief explanation of your assessment
-3. Any specific strengths or weaknesses you observe
+When evaluating, consider:
+- **Symptom Matching**: Do symptoms align with what might be expected from the query?
+- **Root Cause Alignment**: Are root causes relevant to the problem space?
+- **Solution Applicability**: Would resolution steps help solve the query's problem?
+- **Technical Depth**: Are trajectories well-documented with clear technical details?
 
-Format your response as:
-Score: [1-5]
-Explanation: [Your detailed assessment]";
+You MUST return ONLY a valid JSON object with exactly this structure:
+{
+  ""overall_relevance"": <integer between 1-5>,
+  ""diversity"": <number between 0.0-1.0>,
+  ""ranking_quality"": <integer between 1-5>,
+  ""actionability"": <integer between 1-5>
+}
+
+Return ONLY the JSON object. No explanation text, no comments, no introduction, and no additional formatting.";
+
+            var userPrompt = $@"Search Query: ""{searchQuery}"" Retrieved Trajectories: {FormatTrajectories(searchResults)}";
 
             var messages = new List<ChatMessage>
             {
@@ -116,18 +157,64 @@ Explanation: [Your detailed assessment]";
 
             _logger.LogInternalInformation("Completed trajectory search relevance evaluation");
 
-            // Extract score from evaluation response
-            var score = ExtractScoreFromEvaluation(evaluation);
-            var metric = new StringMetric(TrajectoryRelevanceMetricName, evaluation, evaluation);
+            // Parse metrics from the evaluation response
+            var metrics = ParseLLMEvaluation(evaluation, searchResults.Count);
 
-            // Add interpretation
-            InterpretMetric(metric, score);
-
-            return new EvaluationResult(metric);
+            return new EvaluationResult(metrics.ToArray());
         }
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Error evaluating trajectory search relevance");
+            var errorMetric = new StringMetric(TrajectoryRelevanceMetricName,
+                "0",
+                $"Error during evaluation: {ex.Message}");
+            return new EvaluationResult(errorMetric);
+        }
+    }
+
+    /// <summary>
+    /// Evaluates trajectory search results with ground truth comparison.
+    /// Calculates precision, recall, and F1-score using actual ground truth data.
+    /// </summary>
+    /// <param name="searchQuery">The search query used to find trajectories</param>
+    /// <param name="searchResults">The retrieved trajectory search results</param>
+    /// <param name="groundTruthTrajectories">Expected relevant trajectories for the query</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Evaluation result with precision, recall, and F1-score</returns>
+    public EvaluationResult EvaluateTrajectorySearchWithGroundTruthAsync(
+        string searchQuery,
+        IList<SearchDocumentResult> searchResults,
+        HashSet<string> groundTruthTrajectoryIds,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (groundTruthTrajectoryIds is null || !groundTruthTrajectoryIds.Any())
+                throw new ArgumentException("Ground‑truth list must not be null or empty", nameof(groundTruthTrajectoryIds));
+
+            searchResults ??= Array.Empty<SearchDocumentResult>();
+
+            var groundTruthIdSet = new HashSet<string>(groundTruthTrajectoryIds, StringComparer.OrdinalIgnoreCase);
+            var retrievedIdSet = new HashSet<string>(searchResults.Select(r => r.Title), StringComparer.OrdinalIgnoreCase);
+
+            int relevantRetrieved = retrievedIdSet.Count(id => groundTruthIdSet.Contains(id));
+
+            double precision = retrievedIdSet.Count > 0 ? (double) relevantRetrieved / retrievedIdSet.Count : 0.0;
+            double recall = groundTruthTrajectoryIds.Count > 0 ? (double) relevantRetrieved / groundTruthTrajectoryIds.Count : 0.0;
+            double f1Score = (precision + recall) > 0 ? 2 * (precision * recall) / (precision + recall) : 0.0;
+
+            var metrics = new List<NumericMetric>
+            {
+                CreateNumericMetric(PrecisionMetricName, "Precision", precision, 0.8, 0.4),
+                CreateNumericMetric(RecallMetricName, "Recall", recall, 0.8, 0.4),
+                CreateNumericMetric(F1ScoreMetricName, "F1-Score", f1Score, 0.8, 0.4)
+            };
+
+            return new EvaluationResult(metrics.ToArray());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error evaluating trajectory search with ground truth");
             var errorMetric = new StringMetric(TrajectoryRelevanceMetricName,
                 "0",
                 $"Error during evaluation: {ex.Message}");
@@ -142,7 +229,7 @@ Explanation: [Your detailed assessment]";
         for (int i = 0; i < trajectories.Count; i++)
         {
             var trajectory = trajectories[i];
-            var trajectoryText = $@"Trajectory {i + 1}:
+            var trajectoryText = $@"Trajectory {i + 1} (ID: {trajectory.Id}):
 - Title: {trajectory.Title ?? "N/A"}
 - Symptoms Observed: {trajectory.SymptomsObserved ?? "N/A"}
 - Initial Symptoms: {trajectory.InitialSymptoms ?? "N/A"}
@@ -158,47 +245,61 @@ Explanation: [Your detailed assessment]";
         return string.Join("\n\n", formatted);
     }
 
-    private static int ExtractScoreFromEvaluation(string evaluation)
+    private static NumericMetric[] ParseLLMEvaluation(string evaluation, int resultCount)
     {
-        // Try to extract score from "Score: X" pattern
-        var scoreMatch = System.Text.RegularExpressions.Regex.Match(evaluation, @"Score:\s*(\d+)",
-            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-
-        if (scoreMatch.Success && int.TryParse(scoreMatch.Groups[1].Value, out int score))
+        try
         {
-            return Math.Clamp(score, 1, 5);
-        }
+            using var doc = JsonDocument.Parse(evaluation);
+            int rel = doc.RootElement.GetProperty("overall_relevance").GetInt32();
+            double div = doc.RootElement.GetProperty("diversity").GetDouble();
+            int rank = doc.RootElement.GetProperty("ranking_quality").GetInt32();
+            int act = doc.RootElement.GetProperty("actionability").GetInt32();
 
-        // Default to neutral score if no clear score found
-        return 3;
+            return new[]
+            {
+                CreateNumericMetric(TrajectoryRelevanceMetricName, "Overall Relevance", rel, 4, 2),
+                CreateNumericMetric(DiversityMetricName,        "Diversity",         div, 0.8, 0.4),
+                CreateNumericMetric(RankingQualityMetricName,   "Ranking Quality",   rank,4, 2),
+                CreateNumericMetric(ActionabilityMetricName,    "Actionability",     act, 4, 2)
+            };
+        }
+        catch
+        {
+            return new[]
+            {
+                CreateNumericMetric(TrajectoryRelevanceMetricName, "Overall Relevance", 0, 4, 2),
+                CreateNumericMetric(DiversityMetricName,        "Diversity",         0, 0.8, 0.4),
+                CreateNumericMetric(RankingQualityMetricName,   "Ranking Quality",   0, 4, 2),
+                CreateNumericMetric(ActionabilityMetricName,    "Actionability",     0, 4, 2)
+            };
+        }
     }
 
-    private static void InterpretMetric(StringMetric metric, int score)
+    public static NumericMetric CreateNumericMetric(string name, string displayName, double value, double goodThreshold, double acceptableThreshold)
     {
-        metric.Interpretation = score switch
+        var metric = new NumericMetric(name, value, $"{displayName}: {value:F3}")
         {
-            5 => new EvaluationMetricInterpretation(
-                EvaluationRating.Good,
-                reason: $"Excellent trajectory relevance with score {score}"),
-            4 => new EvaluationMetricInterpretation(
-                EvaluationRating.Good,
-                reason: $"High trajectory relevance with score {score}"),
-            3 => new EvaluationMetricInterpretation(
-                EvaluationRating.Inconclusive,
-                reason: $"Moderate trajectory relevance with score {score}"),
-            2 => new EvaluationMetricInterpretation(
-                EvaluationRating.Unacceptable,
-                failed: true,
-                reason: $"Low trajectory relevance with score {score}"),
-            1 => new EvaluationMetricInterpretation(
-                EvaluationRating.Unacceptable,
-                failed: true,
-                reason: $"Poor trajectory relevance with score {score}"),
-            _ => new EvaluationMetricInterpretation(
-                EvaluationRating.Unknown,
-                failed: true,
-                reason: $"Invalid score {score}")
+            Interpretation = value >= goodThreshold
+                ? new(EvaluationRating.Good, reason: $"Excellent {displayName}")
+                : value >= acceptableThreshold
+                    ? new(EvaluationRating.Inconclusive, reason: $"Moderate {displayName}")
+                    : new(EvaluationRating.Unacceptable, failed: true, reason: $"Poor {displayName}")
         };
+        return metric;
+    }
+
+    private static StringMetric CreateStringMetric(string name, double value, string displayName)
+    {
+        var metric = new StringMetric(name, $"{displayName}: {value:F3}", $"{displayName}: {value:F3}");
+        metric.Interpretation = value switch
+        {
+            >= 0.8 => new EvaluationMetricInterpretation(EvaluationRating.Good, reason: $"Excellent {displayName}"),
+            >= 0.6 => new EvaluationMetricInterpretation(EvaluationRating.Good, reason: $"Good {displayName}"),
+            >= 0.4 => new EvaluationMetricInterpretation(EvaluationRating.Inconclusive, reason: $"Moderate {displayName}"),
+            >= 0.2 => new EvaluationMetricInterpretation(EvaluationRating.Unacceptable, failed: true, reason: $"Poor {displayName}"),
+            _ => new EvaluationMetricInterpretation(EvaluationRating.Unacceptable, failed: true, reason: $"Very poor {displayName}")
+        };
+        return metric;
     }
 }
 

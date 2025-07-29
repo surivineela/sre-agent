@@ -1,0 +1,16 @@
+{
+  "groundTruthMappings": {
+    "container app redis connectivity issues": [
+      "Container App to Redis Connectivity Investigation (NSG Rule Analysis)"
+    ],
+    "ACA Job failed to execute after migration": [
+      "ACA Job Execution Failure Post-Migration – Secret/Identity RCA (ICM 651054095)"
+    ],
+    "NSG configuration issues": [
+      "Container App to Redis Connectivity Investigation (NSG Rule Analysis)"
+    ],
+    "managed identity configuration issues": [
+      "ACA Job Execution Failure Post-Migration – Secret/Identity RCA (ICM 651054095)"
+    ]
+  }
+}

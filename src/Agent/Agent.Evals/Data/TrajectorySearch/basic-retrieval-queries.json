@@ -1,0 +1,10 @@
+{
+  "basicRetrievalQueries": [
+    "container app redis connectivity issues",
+    "AKS pods failing", 
+    "Missing or misconfigured managed identity after migration",
+    "Container app iot-dashboard unable to connect to Redis backend",
+    "Connection errors from frontend to backend in AKS cluster",
+    "ACA Job failed to execute after migration"
+  ]
+}
