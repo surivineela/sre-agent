@@ -3,11 +3,13 @@
 // ------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using Agent.Core.Models;
 using Agent.Framework;
+using Agent.Plugins.DataConnectors.TSG;
 using Agent.Plugins.Interface;
 
 namespace Agent.Plugins;
@@ -24,9 +26,10 @@ public class AzureSearchPluginDefinition
 
     
     [Description("Retrieve troubleshooting guide (TSG) content based on search text.")]
-    public Task<SearchResult> GetTsgContent(
-        [Description("Text to search for in the TSG content")] string searchText)
+    public async Task<IReadOnlyList<TsgDocumentMetadata>> GetTsgContent(
+        [Description("Text to search for in the TSG content")] string searchText,
+        [Description("Maximum number of results to return (default: 5)")] int maxResults = 5)
     {
-        return _azureSearchPlugin.GetTsgContent(searchText, default);
+        return await _azureSearchPlugin.GetTsgContent(searchText, maxResults, default);
     }
 }

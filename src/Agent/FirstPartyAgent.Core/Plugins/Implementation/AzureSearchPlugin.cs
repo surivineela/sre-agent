@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Models;
+using Agent.Plugins.DataConnectors.TSG;
 using Agent.Plugins.Helpers;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
@@ -106,14 +107,15 @@ namespace FirstPartyAgent.Core.Plugins
             );
         }
 
-        public async Task<SearchResult> GetTsgContent(
+        public async Task<IReadOnlyList<TsgDocumentMetadata>> GetTsgContent(
             string searchText,
+            int maxResults = 5,
             CancellationToken cancellationToken = default)
         {
-            return await KernelFunctionHelpers.TryAction(
-            nameof(AzureSearchPlugin),
-            async () =>
+            try
             {
+                _logger.LogInformation($"[{nameof(AzureSearchPlugin)}] Performing action '{nameof(GetTsgContent)}'...");
+
                 if (string.IsNullOrWhiteSpace(searchText))
                 {
                     throw new ArgumentException("Search text cannot be empty", nameof(searchText));
@@ -131,23 +133,42 @@ namespace FirstPartyAgent.Core.Plugins
                 }
                 var tsgSearchClient = new AzureSearchClient(_tsgSettings.AiSearchSettings);
 
-                _logger.LogInformation($"Searching TSG content with index: {searchIndex}, query: {searchText}");
+                _logger.LogInformation($"Searching TSG content with index: {searchIndex}, query: {searchText}, maxResults: {maxResults}");
 
-                var document = await tsgSearchClient.GetTopDocumentAsync<SearchResult>(
+                var searchResults = await tsgSearchClient.SearchAsync<TsgDocumentMetadata>(
                     searchIndex,
                     searchText,
+                    options =>
+                    {
+                        options.Size = maxResults;
+                        options.QueryType = SearchQueryType.Semantic;
+                        options.SemanticSearch = new()
+                        {
+                            SemanticConfigurationName = "default",
+                            QueryCaption = new(QueryCaptionType.Extractive)
+                        };
+                    },
                     cancellationToken);
 
-                if (document == null)
+                if (searchResults?.TotalCount == 0)
                 {
                     _logger.LogWarning("No TSG content found for the query");
-                    return new SearchResult();
+                    return Array.Empty<TsgDocumentMetadata>();
                 }
 
-                return document;
-            },
-            _logger
-            );
+                var results = searchResults?.GetResults()
+                    .Take(maxResults)
+                    .Select(r => r.Document)
+                    .ToList() ?? new List<TsgDocumentMetadata>();
+
+                _logger.LogInformation($"[{nameof(AzureSearchPlugin)}] Completed action '{nameof(GetTsgContent)}'. Found {results.Count} TSG documents");
+                return results;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error occurred while executing TSG content search");
+                throw;
+            }
         }
     }
 }

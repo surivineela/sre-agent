@@ -6,6 +6,7 @@ using System.Diagnostics;
 using Agent.Core.Clients.Search;
 using Agent.Core.Clients.Storage;
 using Agent.Core.Configuration;
+using Agent.Core.DataConnectors;
 using Agent.Core.Extensions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
@@ -25,8 +26,10 @@ using Agent.Graph.Services;
 using Agent.Logging;
 using Agent.Plugins;
 using Agent.Plugins.Clients;
+using Agent.Plugins.DataConnectors;
 using Agent.Plugins.DataConnectors.Documentation;
 using Agent.Plugins.DataConnectors.KustoMetadata;
+using Agent.Plugins.DataConnectors.TSG;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Implementation;
 using Agent.Plugins.Implementation.DiagnosticsPlugin;
@@ -764,12 +767,12 @@ public class Program
             {
                 return new AzureSearchPluginDefinition(sp.GetRequiredService<IAzureSearchPlugin>());
             });
+
             builder.Services.AddTransient<IAzureSearchPlugin>(sp =>
             {
                 return new AzureSearchPlugin(
                     sp.GetRequiredService<ILogger<AzureSearchPlugin>>(),
-                    sp.GetRequiredService<Agent.Core.Configuration.ExternalSettings>());
-
+                    sp.GetRequiredService<DataConnectorIndexProvider>());
             });
         }
 
@@ -812,7 +815,7 @@ public class Program
             b.AddTasks(r =>
             {
                 DurableHelper.AddAllGeneratedTasks(r);
-                KustoMetadataExtensions.AddAllGeneratedTasks(r);  // every assembly that has durable tasks needs to register explicitly.
+                PluginsDurableTaskExtensions.AddAllGeneratedTasks(r);  // Registers all plugin tasks (Kusto, TSG, etc.) in Agent.Plugins assembly
             });
 
             string durableConnectionString = builder.ResolveDtsConnectionString();

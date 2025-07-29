@@ -7,6 +7,7 @@ using FirstPartyAgent.Core.Models;
 using FirstPartyAgent.Core.Plugins;
 using Newtonsoft.Json;
 using Agent.Core.Models;
+using Agent.Plugins.DataConnectors.TSG;
 
 namespace FirstPartyAgent.Tests.Integration.Mocks
 {
@@ -23,23 +24,34 @@ namespace FirstPartyAgent.Tests.Integration.Mocks
             return searchResults;
         }
 
-        public async Task<SearchResult> GetTsgContent(string searchText, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<TsgDocumentMetadata>> GetTsgContent(string searchText, int maxResults = 5, CancellationToken cancellationToken = default)
         {
             if (searchText?.Contains("MockNoResponse", StringComparison.OrdinalIgnoreCase) == true)
             {
-                return new SearchResult();
+                return Array.Empty<TsgDocumentMetadata>();
             }
             
-            return await Task.FromResult(new SearchResult
+            var mockResults = new List<TsgDocumentMetadata>();
+            for (int i = 0; i < Math.Min(maxResults, 3); i++) // Return up to 3 mock results or maxResults, whichever is smaller
             {
-                Title = $"Mock TSG Result for: {searchText}",
-                Content = $"This is a mock troubleshooting guide content for the query: '{searchText}'. It contains steps to diagnose and resolve the issue.",
-                Confidence = "0.85",
-                Source = "Mock TSG Repository",
-                ResultType = "TSG",
-                Rank = 1,
-                Link = "https://example.com/mock-tsg-content"
-            });
+                mockResults.Add(new TsgDocumentMetadata
+                {
+                    Id = $"mock-tsg-{i + 1}",
+                    Title = $"Mock TSG Result {i + 1} for: {searchText}",
+                    Contents = $"This is mock troubleshooting guide content #{i + 1} for the query: '{searchText}'. It contains steps to diagnose and resolve the issue.",
+                    Filter = "Mock Documentation",
+                    Source = "Mock Documentation",
+                    DocumentType = "troubleshooting-guide",
+                    ServiceName = $"Mock Service {i + 1}",
+                    Tags = new List<string> { "mock", "test", $"category-{i}" },
+                    LastModified = DateTime.UtcNow.AddDays(-i),
+                    IndexedAt = DateTime.UtcNow,
+                    Url = $"https://example.com/mock-tsg-content-{i + 1}",
+                    MetadataConcat = $"Mock TSG Result {i + 1} troubleshooting-guide mock test"
+                });
+            }
+
+            return await Task.FromResult(mockResults);
         }
 
         private Task<IEnumerable<SearchResult<IndexedGitHubIssueModel>>> GetSearchResult(string issueDescription)

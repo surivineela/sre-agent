@@ -3,15 +3,15 @@
 // ------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Agent.Core.Configuration;
-using Agent.Core.Models;
+using Agent.Core.DataConnectors;
 using Agent.Logging;
+using Agent.Plugins.DataConnectors.TSG;
 using Agent.Plugins.Interface;
-using Azure;
-using Azure.Identity;
-using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
 using Microsoft.Extensions.Logging;
 
@@ -19,30 +19,34 @@ namespace Agent.Plugins.Implementation
 {
     /// <summary>
     /// Implementation of IAzureSearchPlugin that provides TSG content retrieval
-    /// using Azure Cognitive Search
+    /// using the TSG DataConnector and Azure Cognitive Search
     /// </summary>
     public class AzureSearchPlugin : IAzureSearchPlugin
     {
         private readonly ILogger<AzureSearchPlugin> _logger;
-        private readonly AzureSearchSettings _searchSettings;
-        private readonly TsgCrawlerSettings _tsgCrawlerSettings;
+        private readonly DataConnectorIndexProvider _dataConnectorIndexProvider;
 
-        public AzureSearchPlugin(ILogger<AzureSearchPlugin> logger, ExternalSettings externalSettings)
+        public AzureSearchPlugin(
+            ILogger<AzureSearchPlugin> logger, 
+            DataConnectorIndexProvider dataConnectorIndexProvider)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _searchSettings = externalSettings.AzureSearch ?? throw new ArgumentNullException(nameof(externalSettings.AzureSearch));
-            _tsgCrawlerSettings = externalSettings.TsgCrawler ?? throw new ArgumentNullException(nameof(externalSettings.TsgCrawler));
+            _dataConnectorIndexProvider = dataConnectorIndexProvider ?? throw new ArgumentNullException(nameof(dataConnectorIndexProvider));
         }
 
         /// <summary>
-        /// Retrieves TSG content based on search text
+        /// Retrieves TSG content based on search text using the TSG DataConnector
         /// </summary>
         /// <param name="searchText">Text to search for in the TSG content</param>
+        /// <param name="maxResults">Maximum number of results to return</param>
         /// <param name="cancellationToken">Cancellation token</param>
-        /// <returns>Search result containing TSG content</returns>
-        public async Task<SearchResult> GetTsgContent(string searchText, CancellationToken cancellationToken = default)
+        /// <returns>List of TSG documents matching the search criteria</returns>
+        public async Task<IReadOnlyList<TsgDocumentMetadata>> GetTsgContent(
+            string searchText, 
+            int maxResults = 5, 
+            CancellationToken cancellationToken = default)
         {
-            _logger.LogInternalInformation($"Retrieving TSG content for search text: {searchText}");
+            _logger.LogInternalInformation($"Retrieving TSG content for search text: {searchText}, maxResults: {maxResults}");
 
             try
             {
@@ -51,74 +55,28 @@ namespace Agent.Plugins.Implementation
                     throw new ArgumentException("Search text cannot be empty", nameof(searchText));
                 }
 
-                // Use TsgCrawlerSettings.AiSearchSettings as primary search configuration
-                var searchIndex = _tsgCrawlerSettings.AiSearchSettings.SearchIndexes.FirstOrDefault()?.IndexName;
-                if (string.IsNullOrWhiteSpace(searchIndex))
+                if (maxResults <= 0)
                 {
-                    _logger.LogInternalWarning("TSG search index not found in TsgCrawlerSettings, falling back to default settings");
-                    searchIndex = _searchSettings.SearchIndexes.FirstOrDefault()?.IndexName;
-                    
-                    if (string.IsNullOrWhiteSpace(searchIndex))
-                    {
-                        throw new InvalidOperationException("TSG search index not found in any settings");
-                    }
+                    throw new ArgumentException("Max results must be greater than 0", nameof(maxResults));
                 }
 
-                var searchClient = GetSearchClientFromTsgSettings(searchIndex);
-                _logger.LogInternalInformation($"Searching TSG content with index: {searchIndex}, query: {searchText}");
-
-                var searchOptions = new SearchOptions
-                {
-                    IncludeTotalCount = true,
-                    Size = 1 // Only retrieve the top result
-                };
-
-                // Configure search options based on index settings from TsgCrawlerSettings
-                var searchIndexSettings = _tsgCrawlerSettings.AiSearchSettings.SearchIndexes
-                    .FirstOrDefault(index => index.IndexName.Equals(searchIndex, StringComparison.OrdinalIgnoreCase));
-
-                if (searchIndexSettings != null)
-                {
-                    if (searchIndexSettings.SemanticSearchEnabled)
-                    {
-                        searchOptions.SemanticSearch = new SemanticSearchOptions
-                        {
-                            SemanticConfigurationName = "default"
-                        };
-                        if (!searchIndexSettings.VectorSearchEnabled)
-                        {
-                            searchOptions.QueryType = SearchQueryType.Semantic;
-                        }
-                    }
-
-                    foreach (var field in searchIndexSettings.FieldsToSelect)
-                    {
-                        if (!string.IsNullOrWhiteSpace(field))
-                        {
-                            searchOptions.Select.Add(field);
-                        }
-                    }
-
-                    if (!searchIndexSettings.SemanticSearchEnabled && !searchIndexSettings.VectorSearchEnabled)
-                    {
-                        searchOptions.QueryType = SearchQueryType.Full;
-                    }
-                }
-                else
-                {
-                    searchOptions.QueryType = SearchQueryType.Full;
-                }
-
-                var searchResults = await searchClient.SearchAsync<SearchResult>(searchText, searchOptions, cancellationToken);
+                // Get the DataConnectorIndex for TSG data connector
+                 var tsgIndex = _dataConnectorIndexProvider.GetDataConnectorIndex<TsgCrawlerDataConnector>();
                 
-                var resultList = searchResults.Value.GetResults().ToList();
-                if (resultList.Count == 0)
+                var results = new List<TsgDocumentMetadata>();
+
+                // Use the DataConnectorIndex.SearchAsync method directly
+                await foreach (var searchResult in tsgIndex.SearchAsync<TsgDocumentMetadata>(searchText, string.Empty, maxResults))
                 {
-                    _logger.LogInternalWarning("No TSG content found for the query");
-                    return new SearchResult();
+                    if (cancellationToken.IsCancellationRequested)
+                        break;
+
+                    results.Add(searchResult.OriginalDocument);
                 }
 
-                return resultList[0].Document;
+                _logger.LogInternalInformation($"Found {results.Count} TSG documents for query: {searchText}");
+
+                return results;
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
@@ -127,55 +85,34 @@ namespace Agent.Plugins.Implementation
             }
         }
 
-        private SearchClient GetSearchClientFromTsgSettings(string searchIndex)
+        /// <summary>
+        /// Lookup related GitHub issues based on issue URL and descriptions
+        /// </summary>
+        /// <param name="issueUrl">The GitHub issue URL</param>
+        /// <param name="issueDescriptions">List of issue descriptions to search for</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>List of related GitHub issues</returns>
+        public async Task<IEnumerable<object>> LookupRelatedGitHubIssues(
+            string issueUrl, 
+            List<string> issueDescriptions, 
+            CancellationToken cancellationToken = default)
         {
-            var settings = _tsgCrawlerSettings.AiSearchSettings;
-            
-            if (!string.IsNullOrWhiteSpace(settings.SearchApiKeyOverride))
-            {
-                var credential = new AzureKeyCredential(settings.SearchApiKeyOverride);
-                return new SearchClient(new Uri(settings.SearchServiceUri), searchIndex, credential);
-            }
-            else if (!string.IsNullOrWhiteSpace(settings.UserAssignedMIClientId))
-            {
-                var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
-                {
-                    ManagedIdentityClientId = settings.UserAssignedMIClientId
-                });
-                return new SearchClient(new Uri(settings.SearchServiceUri), searchIndex, credential);
-            }
-            else
-            {
-                // Fall back to the regular search client
-                return GetSearchClient(searchIndex);
-            }
-        }
+            _logger.LogInternalInformation($"Looking up related GitHub issues for: {issueUrl}");
 
-        private SearchClient GetSearchClient(string searchIndex)
-        {
-            if (!string.IsNullOrWhiteSpace(_searchSettings.SearchApiKeyOverride))
+            try
             {
-                var credential = new AzureKeyCredential(_searchSettings.SearchApiKeyOverride);
-                return new SearchClient(new Uri(_searchSettings.SearchServiceUri), searchIndex, credential);
-            }
-            else if (!string.IsNullOrWhiteSpace(_searchSettings.UserAssignedMIClientId))
-            {
-                var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
-                {
-                    ManagedIdentityClientId = _searchSettings.UserAssignedMIClientId
-                });
-                return new SearchClient(new Uri(_searchSettings.SearchServiceUri), searchIndex, credential);
-            }
-            else
-            {
-                var missingConfig = IsDevelopment() ? "SearchApiKeyOverride" : "UserAssignedMIClientId";
-                throw new ArgumentException($"Configuration for {missingConfig} is missing or invalid.");
-            }
-        }
+                // TODO: Implement GitHub issue search functionality
+                // This should search through indexed GitHub issues and return related ones
+                // For now, return empty list as placeholder
 
-        private static bool IsDevelopment()
-        {
-            return Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
+                await Task.CompletedTask; // Placeholder to avoid compiler warning
+                return new List<object>();
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _logger.LogInternalError(ex, $"Error looking up related GitHub issues for: {issueUrl}");
+                throw;
+            }
         }
     }
 }

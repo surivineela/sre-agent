@@ -3,7 +3,12 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
-using Agent.Core.Models;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Agent.Plugins.DataConnectors.TSG;
+using Agent.Plugins.Interface;
 using Azure.Search.Documents.Models;
 using FirstPartyAgent.Constants;
 using FirstPartyAgent.Core.Configuration;
@@ -13,9 +18,9 @@ using Microsoft.SemanticKernel;
 
 namespace FirstPartyAgent.Core.Plugins.Definitions
 {
-    public class AzureSearchPluginDefinition(IAzureSearchPlugin plugin)
+    public class AzureSearchPluginDefinition(Agent.Plugins.Interface.IAzureSearchPlugin plugin)
     {
-        private readonly IAzureSearchPlugin _plugin = plugin;
+        private readonly Agent.Plugins.Interface.IAzureSearchPlugin _plugin = plugin;
 
         [KernelFunction(KernelFunctionNames.AzureSearch.LookupRelatedGitHubIssues)]
         [Description("Perform a semantic search using Azure Search to get top 5 high confidence results.")]
@@ -25,16 +30,18 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
             CancellationToken cancellationToken = default)
         {
             var result = await _plugin.LookupRelatedGitHubIssues(issueUrl, issueSummaries, cancellationToken);
-            return result;
+            // Cast from objects to the expected type
+            return result.Cast<SearchResult<IndexedGitHubIssueModel>>();
         }
 
         [KernelFunction(KernelFunctionNames.AzureSearch.GetTsgContent)]
-        [Description("Retrieve TSG (Troubleshooting Guide) content from Azure Search based on search text.")]
-        public async Task<SearchResult> GetTsgContent(
+        [Description("Retrieve TSG (Troubleshooting Guide) content from Azure Search based on search text. Returns up to maxResults documents with relevant troubleshooting content and metadata.")]
+        public async Task<IReadOnlyList<TsgDocumentMetadata>> GetTsgContent(
             [Description("Text to search for in the TSG content")] string searchText,
+            [Description("Maximum number of results to return (default: 5)")] int maxResults = 5,
             CancellationToken cancellationToken = default)
         {
-            var result = await _plugin.GetTsgContent(searchText, cancellationToken);
+            var result = await _plugin.GetTsgContent(searchText, maxResults, cancellationToken);
             return result;
         }
     }
