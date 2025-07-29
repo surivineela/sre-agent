@@ -23,7 +23,6 @@ export enum ProvisioningState {
 export enum AgentMode {
     autonomous = 'autonomous',
     review = 'review',
-    /** renamed to "chat" (but back-compatible for now); double check usage in incident handlers (API: IncidentPlayground/filterFieldOptions) */
     readonly = 'readonly',
 }
 
