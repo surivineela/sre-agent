@@ -186,18 +186,18 @@ Returns tab-separated table data in CSV format. Column headers:
                 });
         }
 
-                [Description("""
-Purpose:
-Retrieves a direct App Service Insights (ASI) page URL for a specific revision.
+        [Description("""
+        Purpose:
+        Retrieves a direct App Service Insights (ASI) page URL for a specific revision.
 
-Scenario:
-Use this tool to get a diagnostic insights link for a container app revision over a specified time range.
+        Scenario:
+        Use this tool to get a diagnostic insights link for a container app revision over a specified time range.
 
-Output:
-Returns a string containing the ASI page URL:
-- ASIPageUrl: Direct URL to the ASI diagnostics page for the specified revision
-"""
-)]
+        Output:
+        Returns a string containing the ASI page URL:
+        - ASIPageUrl: Direct URL to the ASI diagnostics page for the specified revision
+        """
+        )]
         public async Task<string> GetASIPageForRevision(
             [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
@@ -227,21 +227,21 @@ Returns a string containing the ASI page URL:
             return $"ASI Page for revsions {adxUri}";
         }
 
-                [Description("""
-Purpose:
-Retrieves replica counts and HTTP request counts for a revision over time.
+        [Description("""
+        Purpose:
+        Retrieves replica counts and HTTP request counts for a revision over time.
 
-Scenario:
-Use this tool to diagnose scaling issues and detect periods where replicas exist but no traffic is received.
+        Scenario:
+        Use this tool to diagnose scaling issues and detect periods where replicas exist but no traffic is received.
 
-Output:
-Returns tab-separated table data in CSV format. Column headers:
-- Timestamp: Timestamp for the data point
-- ReplicaCount: Number of active replicas at the timestamp
-- Status: HTTP response status (e.g., 200, 503)
-- Requests: Number of HTTP requests for that status
-"""
-)]
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - Timestamp: Timestamp for the data point
+        - ReplicaCount: Number of active replicas at the timestamp
+        - Status: HTTP response status (e.g., 200, 503)
+        - Requests: Number of HTTP requests for that status
+        """
+        )]
         public Task<string> GetRevisionTrafficWithReplicaCount(
             [Description("Azure region.")] string region,
             [Description("Start time.")] DateTime fromDate,
@@ -437,14 +437,18 @@ Returns tab-separated table data in CSV format. The first line contains these co
         }
 
         [Description(@"""
-Retrieves revision spec changes for a given revision and time range.
-Use this tool to get changes in the revision specification over time.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- TIMESTAMP: Time of the spec change.
-- PreviousSpec: Previous revision spec.
-- spec: Current revision spec.
-"""
-)]
+        Purpose:
+        Retrieves revision spec changes for a given revision and time range.
+
+        Scenario:
+        Use this tool to get changes in the revision specification over time.
+
+        Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+        - TIMESTAMP: Time of the spec change.
+        - PreviousSpec: Previous revision spec.
+        - spec: Current revision spec.
+        """
+        )]
         public Task<string> GetRevisionSpecChanges(
             [Description("Azure region.")] string region,
             [Description("Start time.")] DateTime fromDate,
@@ -466,20 +470,25 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         }
 
         [Description(@"""
-Retrieves all ARM (Azure Resource Manager) operations for the container app.
-Use this tool to get ARM operation events and their health status for a container app.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- StartTime: Timestamp of the operation.
-- Content: Operation method and status code.
-- GroupBy: Managed cluster name.
-- requestBody: Request body content.
-- durationInMilliseconds: Duration of the operation.
-- env_dt_traceId: Trace ID.
-- env_dt_spanId: Span ID.
-- correlationId: Correlation ID.
-- Health: Health status of the operation.
-"""
-)]
+        Purpose:
+        Retrieves all ARM (Azure Resource Manager) operations for the container app.
+
+        Scenario:
+        Use this tool to get ARM operation events and their health status for a container app.
+
+        Output:
+        Returns tab-separated table data in CSV format. The first line contains these column headers:
+        - StartTime: Timestamp of the operation.
+        - Content: Operation method and status code.
+        - GroupBy: Managed cluster name.
+        - requestBody: Request body content.
+        - durationInMilliseconds: Duration of the operation.
+        - env_dt_traceId: Trace ID.
+        - env_dt_spanId: Span ID.
+        - correlationId: Correlation ID.
+        - Health: Health status of the operation.
+        """
+        )]
         public Task<string> GetArmOperations(
             [Description("Azure region.")] string region,
             [Description("Start time.")] DateTime fromDate,
@@ -541,16 +550,21 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         }
 
         [Description(@"""
-Retrieves the latest pod heartbeat status for a revision.
-Use this tool to get the latest pod status and heartbeat timestamp for a revision.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- PodName: Name of the pod.
-- ManagedClusterName: Name of the cluster.
-- Status: Current pod status or 'Shut Down'.
-- PreciseTimeStamp: Last heartbeat timestamp.
-- legionPodName: Legion pod name if applicable.
-"""
-)]
+        Purpose:
+        Retrieves the latest pod heartbeat status for a revision.
+
+        Scenario:
+        Use this tool to check the pod status for a revision.
+
+        Output:
+        Returns tab-separated table data in CSV format. The first line contains these column headers:
+        - PodName: Name of the pod.
+        - ManagedClusterName: Name of the cluster.
+        - Status: Current pod status or 'Shut Down'.
+        - PreciseTimeStamp: Last heartbeat timestamp.
+        - legionPodName: Legion pod name if applicable.
+        """
+        )]
         public Task<string> GetPodHeartbeatStatus(
             [Description("Azure region.")] string region,
             [Description("Start of the time range.")] DateTime fromDate,
@@ -572,14 +586,19 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         }
 
         [Description(@"""
-Retrieves Legion errors for a given revision.
-Use this tool to get Legion error events for a revision.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- TIMESTAMP: Timestamp of the error event.
-- PodName: Name of the pod.
-- severityText: Severity of the error.
-"""
-)]
+        Purpose:
+        Retrieves Legion errors for a given revision.
+
+        Scenario:
+        Use this tool to check Legion error events for a revision.
+
+        Output:
+        Returns tab-separated table data in CSV format. The first line contains these column headers:
+        - TIMESTAMP: Timestamp of the error event.
+        - PodName: Name of the pod.
+        - severityText: Severity of the error.
+        """
+        )]
         public Task<string> GetLegionErrors(
             [Description("Azure region.")] string region,
             [Description("Start time.")] DateTime fromDate,
@@ -665,9 +684,14 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
 
         [Description(
         """
+        Purpose:
         Retrieve HTTP request counts by response status codes for a revision over time every 30min which gives traffic pattern to align it any failures.
+        
+        Scenario:
         Use this tool to analyze traffic patterns and HTTP response status codes for a revision.
-        Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+
+        Output:
+        Returns tab-separated table data in CSV format. The first line contains these column headers:
         - Timestamp: Timestamp of start of 30min timeslot.
         - Status: HTTP response status (e.g., 2xx, 5xx).
         - Requests: Number of HTTP requests for that status.
@@ -695,10 +719,15 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
 
         [Description(
             """
+            Purpose:
             Retrieve number of readiness/liveness/startup probe failures happened at every 30mins timeslots for a specific Azure container app revision.
-            Use this tool to get the health probe failures for a revision.
-            Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-            - TimeSlot: 30min slots of time.
+
+            Scenario:
+            Use this tool to check whether the revision has unexpected probe failures.
+
+            Output:
+            Returns tab-separated table data in CSV format. The first line contains these column headers:
+            - TimeSlot: 30-minute slots of time.
             - msg: Log message of the probe failure.
             - FailureCount: Number of times the probe failure happened with the same message within the timeslot.
             """
@@ -720,12 +749,18 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         }
 
         [Description(@"""
-Retrieves the latest health probe settings for a container app.
-Use this tool to get the health probe configuration for a container app.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- containers: List of containers in the container app with each probe setting if set by the customer.
-"""
-)]
+        Purpose:
+        Retrieves the latest health probe settings for a container app.
+
+
+        Scenario:
+        Use this tool to get the health probe configuration for a container app.
+
+        Output:
+        Returns tab-separated table data in CSV format. The first line contains these column headers:
+        - containers: List of containers in the container app with each probe setting if set by the customer.
+        """
+        )]
         public Task<string> GetHealthProbeSettings(
             [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
@@ -745,14 +780,18 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         }
 
         [Description(@"""
-Retrieves node availability failure events for a container app revision.
-Use this tool to get node unavailability events for a revision.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- PreciseTimeStamp: Timestamp of the event.
-- ReplicaName: Name of the replica where the failure occurred.
-- msg: Log message of the node unavailability.
-"""
-)]
+        Purpose:
+        Retrieves node availability failure events for a container app revision.
+
+        Scenario:
+        Use this tool to check node availability for a revision.
+
+        Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+        - PreciseTimeStamp: Timestamp of the event.
+        - ReplicaName: Name of the replica where the failure occurred.
+        - msg: Log message of the node unavailability.
+        """
+        )]
         public Task<string> GetNodeAvailabilityFailures(
             [Description("Azure region.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
@@ -770,13 +809,17 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         }
 
         [Description(@"""
-Retrieves container app replica count changes over time for a given time frame and application.
-Use this tool to directly confirm if and when the container app scaled out or in, especially during suspected autoscaling issue. The output will display different time periods with corresponding replica counts.
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
-- StartTime: Start time of the period.
-- EndTime: End time of the period.
-- ReplicaCount: Number of replicas during the period.
-"""
+        Purpose:
+        Retrieves container app replica count changes over time for a given time frame and application.
+
+        Scenario:
+        Use this tool to directly confirm if and when the container app scaled out or in, especially during suspected autoscaling issues. The output will display different time periods with corresponding replica counts.
+
+        Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+        - StartTime: Start time of the period.
+        - EndTime: End time of the period.
+        - ReplicaCount: Number of replicas during the period.
+        """
 )]
         public Task<string> GetContainerAppReplicaCountChanges(
             [Description("Azure region.")] string region,
@@ -795,12 +838,17 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         }
 
         [Description(@"""
-Generates a dashboard link for customer issues related to container app revisions.
-Use this tool to generate a dashboard link for revision-related investigations.
-Output: Returns a string containing the dashboard URL.
-- DashboardUrl: Direct URL to the dashboard for the specified revision.
-"""
-)]
+        Purpose:
+        Generates a dashboard link for customer issues related to container app revisions.
+
+        Scenario:
+        Use this tool to generate a dashboard link for revision-related investigations.
+
+        Output:
+        Returns a string containing the dashboard URL.
+        - DashboardUrl: Direct URL to the dashboard for the specified revision.
+        """
+        )]
         public string GenerateRevisionCustomerIssuesDashboardLink(
             [Description("Start time for the dashboard.")] string startTime,
             [Description("End time for the dashboard.")] string endTime,
@@ -815,25 +863,25 @@ Output: Returns a string containing the dashboard URL.
         }
 
         [Description("""
-Purpose:
-Retrieve the base information, configuration, and state for an Azure Container App or an Azure Container Apps job.
+        Purpose:
+        Retrieve the base information, configuration, and state for an Azure Container App or an Azure Container Apps job.
 
-Scenario:
-Use this tool when you need to search for a specific container app or job and gather its basic details.
+        Scenario:
+        Use this tool when you need to search for a specific container app or job and gather its basic details.
 
-Output:
-Returns table data in CSV format with TAB separators. Column headers:
-- Region
-- ContainerAppName
-- ResourceType
-- ResourceGroup
-- Subscription
-- ManagedEnvironmentId
-- managedClusterName
-- createdTimeUtc
-- provisioningState: Current provisioning state
-- workloadProfileType: Type of workload profile
-"""
+        Output:
+        Returns table data in CSV format with TAB separators. Column headers:
+        - Region
+        - ContainerAppName
+        - ResourceType
+        - ResourceGroup
+        - Subscription
+        - ManagedEnvironmentId
+        - managedClusterName
+        - createdTimeUtc
+        - provisioningState: Current provisioning state
+        - workloadProfileType: Type of workload profile
+        """
         )]
         public async Task<string> GetContainerAppInformation(
             [Description("Azure region.")] string region,

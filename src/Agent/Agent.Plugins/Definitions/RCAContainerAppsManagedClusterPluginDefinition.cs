@@ -124,7 +124,7 @@ namespace Agent.Plugins.Definitions
         Retrieves system component error events for the given managed cluster.
 
         Scenario:
-        Use this tool to get error events from system components to help diagnose root causes.
+        Use this tool to when need to check system components error.
 
         Output:
         Returns tab-separated table data in CSV format. Column headers:
