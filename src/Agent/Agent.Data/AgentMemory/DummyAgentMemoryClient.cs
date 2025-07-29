@@ -31,6 +31,7 @@ public class DummyAgentMemoryClient() : IAgentMemoryClient
         bool exhaustiveKnn = false,
         string? filter = null,
         bool enableHybridSearch = false,
+        bool enableSemanticSearch = false,
         CancellationToken cancellationToken = default)
     {
         // Dummy implementation for testing purposes

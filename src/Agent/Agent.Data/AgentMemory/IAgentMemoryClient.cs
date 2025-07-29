@@ -57,6 +57,7 @@ public interface IAgentMemoryClient
         bool exhaustiveKnn = false,
         string? filter = null,
         bool enableHybridSearch = false,
+        bool enableSemanticSearch = false,
         CancellationToken cancellationToken = default);
 
     /// <summary>

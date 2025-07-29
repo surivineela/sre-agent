@@ -149,10 +149,13 @@ public class Program
             _ = Task.Run(async () =>
             {
                 var logger = app.Services.GetRequiredService<ILogger<Program>>();
+                logger.LogInternalInformation("Application started. Running startup tasks...");
                 try
                 {
+                    logger.LogInternalInformation("Creating necessary cosmos containers...");
                     await app.Services.CreateCosmosContainerIfNotExists(app.Configuration);
 
+                    logger.LogInternalInformation("Setting up Agent Memory...");
                     var agentMemorySettings = app.Configuration.GetSection("AppSettings:Core:AgentMemory").Get<AgentMemorySettings>();
                     if (agentMemorySettings is not null && agentMemorySettings.Enabled)
                     {
@@ -167,6 +170,10 @@ public class Program
                         {
                             logger.LogInternalWarning("Agent Memory is enabled but required configuration settings are missing or invalid. Skipping Agent Memory setup.");
                         }
+                    }
+                    else
+                    {
+                        logger.LogInternalInformation("Agent Memory is not enabled. Skipping Agent Memory setup.");
                     }
                 }
                 catch (Exception ex)
@@ -1304,8 +1311,8 @@ public class Program
     /// <returns>True if configuration is valid, false otherwise</returns>
     private static bool IsAgentMemoryConfigurationValid(AgentMemorySettings settings)
     {
-        bool storageAccountValid = !settings.StorageAccountEnabled || 
-            (!string.IsNullOrEmpty(settings.StorageAccountName) && 
+        bool storageAccountValid = !settings.StorageAccountEnabled ||
+            (!string.IsNullOrEmpty(settings.StorageAccountName) &&
              !string.IsNullOrEmpty(settings.BlobStorageResourceId));
 
         return storageAccountValid &&

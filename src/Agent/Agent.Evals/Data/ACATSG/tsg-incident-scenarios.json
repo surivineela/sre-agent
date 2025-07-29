@@ -1,0 +1,1170 @@
+﻿[
+  {
+    "fileName": "TSG-Arc-ArcBridge-001.md",
+    "incidents": [
+      "ArcProxy process repeatedly restarts unexpectedly, causing intermittent service disruptions in the ArcBridge component.",
+      "Event logs show frequent \u201CArcProxy service terminated unexpectedly\u201D errors followed by automatic restarts.",
+      "System monitoring alerts trigger due to abnormal ArcProxy restart patterns detected by the monitoring logic.",
+      "Users report temporary loss of connectivity or degraded performance in services dependent on ArcBridge, corresponding with ArcProxy restarts.",
+      "Increased latency or timeout errors are observed in applications utilizing ArcBridge functions during ArcProxy restarts.",
+      "Traces and diagnostics reveal that ArcProxy fails to maintain a stable connection to required backend services, leading to restarts.",
+      "Automated health checks for ArcBridge report failures or unhealthy status due to repeated ArcProxy process terminations.",
+      "Incident management systems (IcM) create tickets indicating abnormal ArcProxy restart frequency exceeding defined thresholds.",
+      "ArcBridge-dependent workflows or transactions fail to complete, with logs indicating ArcProxy instability as the root cause.",
+      "After a system update or configuration change, ArcProxy begins restarting abnormally, resulting in degraded service reliability."
+    ]
+  },
+  {
+    "fileName": "TSG-Arc-ArcBridge-002.md",
+    "incidents": [
+      "ArcBridge API requests consistently returning HTTP 503 Service Unavailable errors for more than 3% of attempted connections over a 24-hour period.",
+      "Automated monitoring alerting on ArcBridge API health indicating service availability has dropped below the 97% SLA threshold.",
+      "End users reporting intermittent failures when trying to access resources that depend on ArcBridge API, with error logs showing timeout or connectivity issues.",
+      "Incident Management (IcM) ticket triggered by a monitoring rule that detects consecutive ArcBridge API downtime events within a defined time window.",
+      "Application logs showing repeated \u0022ArcBridge API not reachable\u0022 errors during peak usage hours, resulting in failed transactions.",
+      "Dashboard metrics indicating a significant spike in ArcBridge API failure rates, impacting dependent microservices\u0027 ability to function normally.",
+      "Customer complaints that integrations relying on ArcBridge API experience degraded performance or frequent disconnections.",
+      "System traces revealing that ArcBridge API endpoints are responding with increased latency and occasional dropped connections.",
+      "Periodic ArcBridge API health checks failing, with evidence in event logs of unhandled exceptions or connection resets.",
+      "Service dependency checks failing in deployment pipelines due to inability to reach ArcBridge API endpoints reliably."
+    ]
+  },
+  {
+    "fileName": "TSG-Arc-ConnectedEnv-Availability-001.md",
+    "incidents": [
+      "The ConnectedEnvironments Resource Provider (RP) is returning HTTP 5xx errors when attempting to create or update resources, resulting in failed deployments.",
+      "Automated monitoring has triggered an IcM alert due to the ConnectedEnvironments RP availability dropping below the 97% SLA threshold within a 24-hour window.",
+      "Users are experiencing intermittent timeouts when accessing ConnectedEnvironments resources, with operations failing after extended wait periods.",
+      "Event logs show repeated \u0022Resource Provider Unavailable\u0022 errors when issuing API requests to ConnectedEnvironments endpoints.",
+      "Customer reports that resource provisioning requests remain in a \u0022Pending\u0022 or \u0022Failed\u0022 state for extended periods without progressing.",
+      "Operations relying on the ConnectedEnvironments RP are consistently failing during specific timeframes, as identified in monitoring dashboards.",
+      "Diagnostic traces reveal that requests to the ConnectedEnvironments RP are being throttled or rejected due to internal availability issues.",
+      "Service health dashboard displays a warning or critical alert specifically for ConnectedEnvironments resource operations.",
+      "Attempting to scale or modify an existing ConnectedEnvironment resource results in repeated error messages indicating the backend service is not responding.",
+      "Periodic failures are observed in automated workflows or CI/CD pipelines that depend on the ConnectedEnvironments RP, causing deployment rollbacks or delays."
+    ]
+  },
+  {
+    "fileName": "TSG-Arc-ConnectedEnv-Availability-002.md",
+    "incidents": [
+      "API calls to the ConnectedEnvironments Resource Provider (RP) consistently taking significantly longer to complete than normal, exceeding expected service level objectives.",
+      "User operations against ConnectedEnvironments resources (such as create, update, or delete) timing out or failing due to backend API latency.",
+      "Automated monitoring alert triggered for \u0022ConnectedEnvironments RP API Duration\u0022 breaching the abnormal threshold for a sustained period.",
+      "Customers reporting degraded performance or unresponsive behavior in the portal when managing Arc-connected environments.",
+      "Error logs showing repeated \u0022Request Timeout\u0022 or \u0022Gateway Timeout\u0022 errors when interacting with the ConnectedEnvironments API endpoints.",
+      "Service health dashboard displaying warnings or incidents related to increased ConnectedEnvironments RP API response times.",
+      "Downstream services or workflows failing or being delayed due to slow responses from the ConnectedEnvironments RP API.",
+      "Increased queue lengths or backlog in platform services dependent on timely responses from the ConnectedEnvironments RP.",
+      "Sudden spike in average or 95th percentile API duration metrics for the ConnectedEnvironments RP, as visible in telemetry or dashboards.",
+      "Support cases from customers noting excessive delays or failed provisioning of Arc-connected environment resources."
+    ]
+  },
+  {
+    "fileName": "TSG-Arc-ConnectedEnv-KubeEnvironmentsJob-001.md",
+    "incidents": [
+      "KubeOperation jobs within Arc Connected Environments are taking significantly longer to complete than expected, impacting system workflows.",
+      "Monitoring alerts are triggered due to abnormal increases in execution time for KubeEnvironmentsJob operations.",
+      "Event logs show repeated warnings or errors indicating \u201CKubeOperation execution exceeded threshold\u201D for specific job instances.",
+      "Users report delays in deployment or update processes managed via KubeEnvironmentsJob within Arc-enabled Kubernetes clusters.",
+      "Automated workflows that rely on timely completion of KubeEnvironmentsJob are failing or timing out due to prolonged execution.",
+      "Performance dashboards display a sudden spike in average KubeOperation execution duration across multiple environments.",
+      "System traces indicate that the KubeEnvironmentsJob step is consistently the bottleneck in Arc Connected Environment operations.",
+      "Scheduled maintenance or scaling operations stall or fail because the KubeEnvironmentsJob is not finishing in the expected time frame.",
+      "Support tickets are opened for Arc Connected Environments due to job processing hanging or not progressing past the KubeOperation step.",
+      "Customers observe downstream issues such as delayed configuration changes or resource provisioning, traced back to slow KubeOperation execution."
+    ]
+  },
+  {
+    "fileName": "TSG-Arc-ConnectedEnv-TimerTrigger-001.md",
+    "incidents": [
+      "A scheduled timer-triggered function in the Arc Connected Environment does not execute at the configured time, resulting in missed task execution.",
+      "Logs show repeated warning or error messages indicating \u0022Timer trigger did not fire\u0022 or \u0022Timer schedule missed\u0022 for a specific function.",
+      "A periodic background job expected to run every hour is observed to skip multiple cycles or run at irregular intervals.",
+      "Monitoring alerts are generated due to timer-based workflows not completing within their expected timeframes in the Arc Connected Environment.",
+      "Event logs reveal no trace of the timer trigger invocation, even though the function is enabled and configured correctly.",
+      "Users report that automated tasks, such as data sync or maintenance routines, are not being executed as per the defined schedule.",
+      "The function\u0027s status remains in a \u0022Ready\u0022 or \u0022Idle\u0022 state, with no evidence of recent timer-triggered executions.",
+      "A scheduled job shows \u0022Last run time\u0022 significantly delayed compared to its expected schedule, creating downstream processing delays.",
+      "Dashboard metrics indicate a drop in the expected frequency of timer-triggered events, affecting dependent services.",
+      "System health checks or monitoring probes display failures related to timer execution or overdue scheduled jobs."
+    ]
+  },
+  {
+    "fileName": "TSG-AzMonAlerting-LiveUpdate.md",
+    "incidents": [
+      "Metric alerts in Azure Monitor are firing unexpectedly in a specific region despite the need to temporarily suppress them for maintenance activities.",
+      "A batch of metric alerts across multiple Azure regions need to be disabled quickly due to a planned outage, but manual updates are too slow or error-prone.",
+      "A user receives repeated alert notifications for a resource after it has been decommissioned and needs to disable all associated metric alerts efficiently.",
+      "An operations team needs to enable a set of previously disabled metric alerts after completing infrastructure updates, but struggles to ensure all alerts are re-enabled across all regions.",
+      "The Azure Portal shows that some metric alerts are disabled in one region but remain enabled in others, causing confusion about the current monitoring state.",
+      "Attempts to update the status of metric alerts via the Azure Portal fail due to permission or UI issues, requiring a scripted approach to batch update the alert states.",
+      "An incident in IcM references a specific alert rule, and the user needs to quickly locate and disable this alert to prevent further escalations or notifications.",
+      "Automated deployment scripts have left some metric alerts in an incorrect state (enabled or disabled), and a batch update is required to synchronize alert status across environments.",
+      "After moving resources between regions, users observe that metric alerts are still firing in the old region and need to batch disable those alerts to prevent noise.",
+      "Error messages appear when attempting to update metric alert status due to missing PowerShell modules or insufficient permissions, and the TSG provides guidance to resolve these issues."
+    ]
+  },
+  {
+    "fileName": "TSG-Capps-AKS-Pod-Status-001.md",
+    "incidents": [
+      "A pod in the AKS cluster is stuck in the \u0022ImagePullBackOff\u0022 status and fails to start.",
+      "A pod repeatedly restarts and enters a CrashLoopBackOff state, preventing the application from running stably.",
+      "The pod status shows \u0022OOMKilled\u0022 indicating the container was terminated due to exceeding memory limits.",
+      "A pod fails to start due to a container runtime error, with the status indicating an issue with the container engine.",
+      "A customer reports that their container app is not serving traffic, and the associated pod shows a \u0022Terminated\u0022 status with an unclear reason.",
+      "After a deployment, a pod remains in the \u0022Pending\u0022 state with an error indicating resource allocation issues.",
+      "A developer is unable to determine why a pod transitioned from \u0022Running\u0022 to \u0022Failed\u0022 without clear logs from the application itself.",
+      "A pod disappears from service and the only clue is an abnormal exit code or status reason visible in the pod status history.",
+      "A user observes intermittent downtime and needs to trace the timeline of pod restarts and their respective failure reasons.",
+      "The AKS control plane reports a pod as \u0022Unknown\u0022 status, and investigation is needed to check the last known status and failure cause."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-Aspire-Auth.md",
+    "incidents": [
+      "User receives a 403 Forbidden error when attempting to access the .NET Aspire dashboard, and is never redirected to the Microsoft Entra ID login page.",
+      "Users are unable to initiate the authentication process for the Aspire dashboard, with browser remaining on the initial URL and no login prompt appearing.",
+      "Application logs show no entries related to \u0022redirecting to https://login.microsoftonline.com\u0022 when users attempt dashboard access.",
+      "Users within a Virtual Network experience persistent 403 errors when accessing the Aspire dashboard, despite having correct permissions.",
+      "Outbound network traffic to Microsoft Entra ID endpoints (login.microsoftonline.com) is blocked, resulting in failed authentication attempts for the dashboard.",
+      "Users belonging to an authorized security group are still denied access (403 Forbidden) to the Aspire dashboard after being redirected to the Microsoft Entra ID login page and authenticating.",
+      "Audit logs confirm successful authentication with Microsoft Entra ID, but access to the Aspire dashboard is blocked with a 403 error due to missing explicit user role assignments.",
+      "After recent changes to firewall or network security group rules, all users are suddenly unable to access the Aspire dashboard and receive 403 errors without authentication prompts.",
+      "A user is able to sign in at Microsoft Entra ID, but upon redirect back to the Aspire dashboard, receives a 403 error despite being in a group with assigned permissions.",
+      "Explicitly assigning the Contributor or Owner role to a user\u0027s account resolves persistent 403 Forbidden errors that were not fixed by group-based permissions."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-Availability-002.md",
+    "incidents": [
+      "Regional Container Apps availability drops below 97% as indicated by the canary ping metrics on the Regional Data Plane cluster dashboard.",
+      "A sudden spike in failed canary pings across multiple clusters, with error messages such as \u0022No such host is known,\u0022 but successful pings are still being logged intermittently.",
+      "All canary pings for a specific managed cluster fail, and investigation shows the cluster is VNet-enabled with an admin email ending in @microsoft.com, indicating possible internal network policy blocks.",
+      "All canary pings for a managed cluster fail and the cluster\u2019s subscription status is found to be suspended, preventing normal operation of the canary app.",
+      "Canary pings fail with errors like \u0022A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond (IP:Port),\u0022 indicating a network connectivity issue between the canary worker and the cluster.",
+      "A significant increase in the number of canary pod restarts or a decrease in the number of running canary pods, correlating with a drop in regional availability.",
+      "Regional canary ping failures are observed with no obvious compute issues (pods stable), suggesting API server or networking layer problems within the AKS cluster.",
+      "Canary ping logs show persistent DNS resolution errors despite a recent DNS-related release being fully rolled out to the region.",
+      "AKS-related errors such as \u0022503\u0022 responses or \u0022failed calling webhook\u0022 are observed in kube-audit logs during the timeframe of canary ping failures.",
+      "Organic customer traffic to a region drops in parallel with increased canary ping failures, indicating a likely customer-impacting outage."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-Availability-003.md",
+    "incidents": [
+      "Users receive frequent 500 Internal Server Error responses when attempting to deploy or update Container Apps resources via PUT requests in a specific Azure region.",
+      "Deployment of a new Container App fails with an error message indicating \u0022failed calling webhook \u0027vcontainerapp.kb.io\u0027: Post \u0027https://k8se-containerapp-webhooks-service...\u0027: context deadline exceeded.\u0022",
+      "Multiple PUT operations for Container Apps resources across several subscriptions return status code 500 with error details pointing to \u0022Internal error occurred: failed calling webhook\u0022 in the API response.",
+      "Observed elevated API system error rate (\u003E3%) for PUT requests on the containerapps resource type, as indicated by monitoring dashboards or Kusto queries.",
+      "Container App provisioning remains in a failed or incomplete state, with the managed environment showing ProvisioningState as \u0022Failed\u0022 or \u0022Unknown\u0022 when checked via PowerShell.",
+      "Pods in the \u0022k8se-system\u0022 or \u0022k8se-apps\u0022 namespaces are not running or are crash-looping, leading to deployment or update failures for Container Apps.",
+      "Kusto logs for the Container App controller show repeated error messages or exceptions related to webhook timeouts or failed API calls during Container App creation or update.",
+      "Users report that new or updated Container Apps are not accessible or appear to be stuck in a \u0022pending\u0022 state, with no obvious user error in configuration.",
+      "Health checks or monitoring tools (like ASI) indicate that the managed cluster for Container Apps is unhealthy, causing request failures for resource operations.",
+      "Repeated internal server errors are seen only when PUT operations target specific managed environments, suggesting an environment-specific backend issue."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-Availability-004.md",
+    "incidents": [
+      "Multiple system pods in non-VNet clusters are stuck in \u0027Pending\u0027 state and not transitioning to \u0027Running\u0027.",
+      "DPAR system pod continuously crashes with log errors indicating inability to process specific metric patterns.",
+      "S2C system pod remains in \u0027Pending\u0027 state due to missing priority configuration, causing dependent services to be unavailable.",
+      "LogProcessor and AzSecPack pods are in \u0027Not Ready\u0027 state on GPU nodes, with logs showing memory allocation failures for the network rules standby sidecar.",
+      "Billing pod repeatedly crashes when there is a large number of customer pod failures, leading to missing or delayed billing data.",
+      "System pods across more than five non-VNet clusters are observed in a \u0027CrashLoopBackOff\u0027 state after cluster updates.",
+      "Pods report \u0027Insufficient Memory\u0027 or \u0027Insufficient GPU\u0027 errors in the event logs, preventing system services from starting.",
+      "Kubernetes dashboard displays several system pods with status \u0027Unknown\u0027 or \u0027ContainerCreating\u0027 for extended periods in non-VNet clusters.",
+      "Cluster monitoring tools alert on degraded availability due to multiple critical system pods not being ready simultaneously.",
+      "User attempts to retrieve logs from system pods but receives errors due to pods being stuck in initialization or crash states."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-Billing-001.md",
+    "incidents": [
+      "Billing dashboard displays partial data or is missing recent billing records due to backend query failures.",
+      "Users see error messages such as \u0022Partial query failure: Low memory condition (E_LOW_MEMORY_CONDITION)\u0022 in the billing dashboard.",
+      "Automated alerts (Sev2 IcM) are triggered indicating billing Kusto queries have failed due to low memory conditions.",
+      "Billing reports are incomplete or contain gaps, with some expected usage data not appearing in exports.",
+      "The billing system logs UtilsException errors with details indicating \u0022Request is invalid and cannot be executed\u0022 during query execution.",
+      "High latency or timeouts are observed when loading billing data in the dashboard, correlating with backend query errors.",
+      "Container Apps billing metrics and usage data are not updating, resulting in discrepancies between expected and reported values.",
+      "Multiple occurrences of AggregateException with \u0022One or more errors occurred\u0022 are seen in billing service logs.",
+      "Support or operations teams receive incident notifications referencing \u0022bad allocation\u0022 and memory allocation failures during billing query runs.",
+      "Attempts to manually run the billing Kusto query in Azure Data Explorer fail with \u0022HasErrors=True\u0022 and truncated result sets."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-Billing-002.md",
+    "incidents": [
+      "A sudden 200% or greater increase in billed dollars for a specific region over the last 24 hours compared to the previous 14-day average, triggering a Sev2 IcM alert.",
+      "Customers in a specific region report unexpected high billing charges on their subscriptions, far exceeding historical averages for their usage.",
+      "The billing meter for \u0022Billablerequests\u0022 in a region such as switzerlandnorth shows a 243% spike on the Container Apps billing dashboard without a corresponding increase in deployed apps or traffic.",
+      "A newly opened region displays idle CPU/memory billing that is significantly higher than projected, raising concerns of misconfigured metering or erroneous billing.",
+      "A region experiences a sharp increase in active CPU or memory billed, but monitoring tools do not show a matching increase in app deployments or user traffic.",
+      "After a recent Control Plane or Data Plane release, there is a dramatic and unexplained rise in billing for multiple meters within an affected region.",
+      "The traffic dashboard shows stable or declining user requests, but the billing dashboard simultaneously shows a substantial increase in billed requests.",
+      "Support receives reports of overbilling from several customers in the same region, with usage metrics not aligning with the amounts invoiced.",
+      "An alert is raised listing several customer subscriptions in a region with 200%\u002B billing spikes, but no evidence of organic growth, new deployments, or fraud events is found.",
+      "After investigating a Sev2 IcM alert, it is found that the incident correlates with a recent software deployment, but no billing-related changes were intended in the release notes."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-Billing-003.md",
+    "incidents": [
+      "Billing dashboard shows no records being collected for active customer Container Apps, despite ongoing usage.",
+      "Function app execution chart in ACA-Billing-Health-Verification dashboard shows gaps longer than 5 minutes between executions.",
+      "Customers report missing or delayed billing statements for their deployed Container Apps.",
+      "Billing function app logs are missing or not being generated, resulting in inability to track billing activity.",
+      "Exception charts in the dashboard display repeated function execution failures or critical errors for the billing app.",
+      "Geneva Action query for recent billing periods shows no new billing period processed in the last 90 minutes.",
+      "Billing data for recent periods is not updated or is significantly behind when compared to Container Apps activity.",
+      "Function app appears healthy but billing records are not being ingested into the billing system.",
+      "Sudden drop to zero in the number of processed billing records in the dashboard, not explained by customer activity.",
+      "False positive alerts are triggered in monitoring systems due to lack of function app logs, despite the app running normally."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-CanaryFunction-Capacity.md",
+    "incidents": [
+      "Users observe failed deployment of new container apps with error: \u0022Canary function capacity exceeded. Please try again later.\u0022",
+      "Monitoring alerts indicate that the canary function in a specific region is not processing any requests and is stuck in a pending state.",
+      "Automatic health probes for the canary function report timeouts and inability to allocate resources due to insufficient capacity.",
+      "ICM ticket generated with Kusto query results showing repeated \u0022Insufficient capacity for azfunc-canary\u0022 errors.",
+      "Customers report increased latency or timeouts when creating or updating Container Apps resources in a given region.",
+      "The canary function autoscale events fail to trigger because the maximum configured instance count has been reached.",
+      "App Service Plan metrics show the canary function consistently at 100% CPU or memory usage with no additional scaling.",
+      "Developers receive \u0022429 - Too Many Requests\u0022 HTTP responses from the canary function endpoint during testing or rollout.",
+      "Regional dashboard displays a warning or error indicating that canary tests are not completing due to lack of available function instances.",
+      "Scaling operations on the canary function app fail with a message indicating that the current capacity setting is insufficient for the workload."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-Cert-001.md",
+    "incidents": [
+      "Frequent \u0022Keyset does not exist\u0022 exceptions are logged in the application within a short period, causing repeated failures in certificate-based operations.",
+      "The application logs display \u0022private key is missing for certificate\u0022 errors during attempts to access secrets or certificates from Azure Key Vault.",
+      "Control plane WebApp or FunctionApp experiences intermittent authentication or decryption failures due to missing private key files.",
+      "Automated deployment or restart of the WebApp/FunctionApp results in a sudden spike in \u0022Keyset does not exist\u0022 errors, leading to service disruption.",
+      "Background job Function App fails to process tasks that require certificate-based signing or encryption, citing missing keyset errors.",
+      "After multiple restarts, the application is unable to read or use existing certificates, resulting in cascading failures across dependent services.",
+      "Certificate-bound API endpoints return 500 Internal Server Error, and logs show correlation with key file deletion events.",
+      "Performance degradation is observed as the app repeatedly retries certificate operations, increasing load and error rates due to missing keys.",
+      "Access to secure resources fails for specific app instances, while others remain unaffected, with error logs pointing to key file cleanup by the App Service worker.",
+      "Repeated alerts in monitoring systems indicate a high frequency of \u0022Keyset does not exist\u0022 or \u0022private key is missing\u0022 events localized to specific instances or regions."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-ConsumptionV2-Connection_Reset.md",
+    "incidents": [
+      "Legion pods running in customer subnets experience frequent connection resets, causing intermittent application outages.",
+      "Consumption V2 app logs show repeated \u0022connection reset by peer\u0022 errors when attempting to communicate over the customer VNet.",
+      "Users report failed API requests or timeouts when accessing services hosted on legion pods connected to specific subnets.",
+      "Monitoring dashboards indicate a spike in connection reset events for pods on the legion cluster, with no similar issues on AKS node pools.",
+      "Automated health checks for the Consumption V2 application consistently fail with TCP connection reset errors for pods running in legion environments.",
+      "Kusto queries reveal PacketSequence logs containing \u0022R(V)\u0022 without corresponding \u0022F\u0022, indicating unexpected connection resets at the pod level.",
+      "Pods in the legion cluster fail to maintain persistent connections to backend services, resulting in degraded performance or partial unavailability.",
+      "Network monitoring tools detect a high rate of TCP reset packets originating from legion pods within certain customer subnets.",
+      "After a cluster update, new pods scheduled on legion (not AKS) begin to exhibit connection instability and reset behaviors.",
+      "Customers report intermittent connectivity loss for applications backed by Consumption V2 pods deployed on the legion infrastructure."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-ContainerAppProvisionFailed.md",
+    "incidents": [
+      "A newly created container app fails to appear in the Azure portal, and its provisioning state remains stuck at \u0027Failed\u0027 for over 10 minutes.",
+      "Provisioning of a container app fails with the error message: \u0022App \u003Capp-name\u003E has been marked as failed because its provisioning state hasn\u0027t changed for 600 seconds.\u0022",
+      "A container app deployment attempt results in the error: \u0022Updated provisioning state for app \u003Capp-name\u003E to Failed\u0022 with no further progress.",
+      "Container app provisioning fails and control plane logs do not show the \u0022Finish to create or update container app\u0022 message, indicating the app was never created on the cluster.",
+      "A container app creation fails and logs reveal an \u0022Unauthorized error from cluster\u0022 message during provisioning.",
+      "Provisioning of a container app with custom domain settings fails due to webhook call errors, leaving a dangling app record in the database with provision state \u0027Failed\u0027.",
+      "User sees a sev2 alert triggered for ContainerAppDBState due to multiple container apps reporting a \u0027Failed\u0027 provision state above threshold.",
+      "Container app deployment fails and data plane logs show reconcile errors with detailed error messages indicating user or system misconfiguration.",
+      "A container app repeatedly fails to provision after multiple retries, with each attempt resulting in a \u0027Failed\u0027 state and similar error logs.",
+      "An attempt to update an existing container app results in the app being marked as \u0027Failed\u0027 in the provisioning state without any clear user action or intervention."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-Dapr-001.md",
+    "incidents": [
+      "Multiple Azure Container Apps clusters simultaneously generating elevated volumes of Dapr fatal error logs within a short time frame.",
+      "A sudden spike in Dapr error logs across several managed clusters compared to historical averages, causing alert fatigue for operations teams.",
+      "Instances where Dapr sidecars in container apps repeatedly crash or restart, with error logs indicating runtime failures.",
+      "Significant increase in fatal Dapr logs reporting issues such as component initialization failures or binding errors across multiple clusters.",
+      "Clusters exhibiting degraded performance or unresponsiveness in microservices due to an uptick in Dapr error events.",
+      "Intermittent failures in service-to-service communication within Azure Container Apps, with corresponding Dapr error or fatal logs.",
+      "Deployment of a new Dapr component version resulting in clusters exceeding their normal error log thresholds.",
+      "Unexpected authentication or authorization errors in Dapr logs appearing simultaneously across several clusters.",
+      "Failure of Dapr state management or pub/sub components, as evidenced by correlated error log surges.",
+      "Anomalies in Dapr health check logs leading to cascading failures in dependent container app workloads."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-DeletePod-001.md",
+    "incidents": [
+      "A specific Pod in a managed cluster is stuck in \u0022CrashLoopBackOff\u0022 state and needs to be forcibly deleted to allow for redeployment.",
+      "A Pod is showing as \u0022Terminating\u0022 for an extended period and is not being removed automatically by Kubernetes.",
+      "An application Pod is unresponsive and does not restart automatically despite multiple failures, requiring manual intervention for deletion.",
+      "A Pod in the \u0022Pending\u0022 state is blocking resource allocation in a namespace and manual deletion is needed to free up resources.",
+      "A Pod is running outdated or incorrect configuration and does not update after redeployment, necessitating a forced delete to trigger a fresh instance.",
+      "The \u0022GetManagedClusterPod\u0022 action returns the Pod as present but it is not reachable via network or service endpoints.",
+      "After a failed deployment, the Pod is left in an unknown or error state and automated remediation does not resolve the issue.",
+      "A Pod is consuming excessive CPU/memory, impacting other workloads, and needs to be deleted from the cluster.",
+      "Geneva portal monitoring indicates a Pod health alert or anomaly, and manual deletion is required as part of the troubleshooting process.",
+      "User attempts to access a service endpoint and receives errors due to an underlying unhealthy Pod that cannot be recovered without deletion."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-DIMissing-001.md",
+    "incidents": [
+      "Application fails to start in the staging environment with the error message: \u0022Unable to resolve service for type \u0027UserProfileRepository\u0027\u0022.",
+      "A web API endpoint returns HTTP 500 and logs show an exception \u0022Unable to resolve service for type \u0027ILogger\u003CMyService\u003E\u0027 while attempting to activate \u0027MyService\u0027\u0022.",
+      "During deployment, the background worker service crashes immediately with a stack trace referencing \u0022Unable to resolve service for type \u0027ICacheProvider\u0027\u0022.",
+      "User authentication fails and the logs contain \u0022System.InvalidOperationException: Unable to resolve service for type \u0027ITokenValidator\u0027\u0022.",
+      "A scheduled job does not execute and the job processing logs show \u0022Unable to resolve service for type \u0027IJobDependency\u0027 when activating \u0027JobExecutor\u0027\u0022.",
+      "After a new build is deployed, health checks fail due to dependency injection errors, specifically: \u0022Unable to resolve service for type \u0027INotificationService\u0027\u0022.",
+      "The staging region application throws an exception during startup: \u0022System.InvalidOperationException: Unable to resolve service for type \u0027IConfigProvider\u0027 required by constructor\u0022.",
+      "Attempts to access the admin dashboard result in a blank page, and server logs reference \u0022Unable to resolve service for type \u0027IPermissionChecker\u0027\u0022.",
+      "Feature flag toggles do not work after a deployment, and the application logs show \u0022Unable to resolve service for type \u0027IFeatureFlagService\u0027\u0022.",
+      "REST API endpoints intermittently fail in staging, with logs capturing \u0022Unable to resolve service for type \u0027IDataAccessLayer\u0027 while activating controller\u0022."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-ExtraDNSRecords.md",
+    "incidents": [
+      "A new Azure Container Apps cluster deployment fails with a \u0022failed\u0022 provisioning status and the error message \u0022Post Deployment setup failed.\u0022",
+      "During cluster creation, the deployment logs show the error: \u0022You have reached or exceeded the maximum number of record resources in zone \u0027region.azurecontainerapps.io\u0027.\u0022",
+      "Attempts to provision additional external endpoints for existing clusters result in DNS record creation failures with quota-exceeded errors.",
+      "Automated cluster scaling operations that require new DNS records are blocked due to exceeding the DNS records limit in the regional zone.",
+      "Cluster provisioning requests stall or time out, and diagnostics reveal unresolved DNS record resource quota errors.",
+      "Repeated failures in cluster provisioning are observed in a specific region, all associated with the same DNS record resource exhaustion message.",
+      "Deployment pipelines for Container Apps clusters are interrupted with errors referencing DNS record limits in \u0027region.azurecontainerapps.io\u0027.",
+      "Service health dashboards indicate a pattern of failed cluster deployments, with detailed logs pointing to DNS resource exhaustion as the root cause.",
+      "Attempts to delete old clusters do not free up DNS resources, resulting in a persistent inability to create new clusters due to record count limits.",
+      "Support teams receive alerts or tickets about cluster provisioning failures, where investigation reveals the DNS zone has not had records properly deleted, leading to exhaustion."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-Fraud-001.md",
+    "incidents": [
+      "Multiple new Azure Container Apps are created simultaneously across several regions under a single subscription, where the subscription type is Pay-as-you-go or customer-led, raising suspicion of fraudulent activity.",
+      "Container Apps within a subscription are observed with randomly generated, short (typically 4-character) names, and these apps appear in a short time span.",
+      "Each Container App under a suspicious subscription shows exactly 3-4 revisions, and each revision\u2019s suffix is a simple incrementing number (e.g., \u201C1\u201D, \u201C2\u201D, \u201C3\u201D, \u201C4\u201D).",
+      "All revisions of a Container App share the same image path, indicating no real deployment changes, but have high minimum and maximum replica counts set to 10.",
+      "A subscription triggers fraud alerts on the monitoring dashboard due to a high number of Container Apps with identical revision patterns and replica settings.",
+      "Attempts to validate a subscription in Azure Fraud Profiler (Sherlock) result in a fraud score higher than 90, suggesting a high probability of fraudulent activity.",
+      "Anomalous burst of resource creation detected on the dashboard, with multiple Container Apps deployed across new or unusual regions for a single customer subscription.",
+      "A \u201Cfalse positive\u201D is suspected when the dashboard flags a real customer\u2019s subscription as potential fraud due to matching some, but not all, fraud patterns (e.g., EA or internal subscriptions flagged by mistake).",
+      "A newly created subscription bypasses RRS-based quota controls despite a low fraud score, raising concerns of a possible bug in the fraud detection system.",
+      "Repeated incidents where a CSP or EA subscription exhibits rapid, large-scale container app creation with typical fraud signatures, indicating a possible account takeover rather than traditional fraud."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-Fraud-002.md",
+    "incidents": [
+      "An alert is triggered indicating an abnormal spike in CPU consumption for Container Apps in a specific Azure region within the last 4 hours, significantly exceeding the 30-day baseline.",
+      "Billing dashboards show a sudden, unexplained increase in CPU usage charges for one or more Container App subscriptions, with no corresponding legitimate activity or planned events.",
+      "A fraud detection alert identifies a subscription with a CPU MeterLabel and a high fraud score (\u003E90) in Azure Fraud Profiler, suggesting likely fraudulent activity.",
+      "Container App billing records reveal a sharp spike in usage after a period of missing or delayed billing data, corresponding with the resumption of stuck billing records.",
+      "The top CPU-consuming subscriptions for Container Apps in a region are flagged, and review indicates the majority are associated with newly created or suspicious accounts.",
+      "A legitimate customer reports throttling or service disruptions due to proactive suspension of their subscription following a false positive CPU spike alert.",
+      "A subscription previously marked as suspicious is observed to have generated excessive managed cluster creation activity across multiple regions in a short timespan.",
+      "Operational teams receive an alert about a region-specific CPU usage anomaly, but analysis shows it aligns with a major product launch or announcement, indicating a potential false alarm.",
+      "A managed cluster is automatically suspended in all regions after its associated subscription is linked to the CPU consumption anomaly and confirmed as fraudulent.",
+      "A pattern emerges where only subscriptions with specific offer categories (excluding Azure_EA) are being flagged for abnormal CPU usage spikes, requiring targeted investigation."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-Http-Errors-001.md",
+    "incidents": [
+      "Users receive HTTP 404 Not Found errors when accessing specific routes in a container app, with Envoy logs showing ResponseCodeDetails: route_not_found.",
+      "Clients observe intermittent HTTP 503 Service Unavailable responses, with Envoy logs indicating ResponseFlags: UF (upstream connection failure).",
+      "Requests to the app return HTTP 502 Bad Gateway, and ResponseFlags in EnvoyFrontEndLogsTable show URX, indicating the upstream request was reset before a response was received.",
+      "API calls to the container app suddenly start returning HTTP 429 Too Many Requests, and the logs show ResponseCodeDetails: overload, pointing to Envoy Overload Manager triggering due to resource exhaustion.",
+      "Certain app endpoints are accessible, but others consistently return HTTP 404, with missing ContainerAppName or RevisionName fields in the logs, indicating possible issues in app/revision reconciliation.",
+      "GRPC service-to-service calls result in HTTP 200 but have non-zero GrpcStatus codes in Envoy logs, signifying underlying GRPC errors.",
+      "Requests to the app hang for several seconds and then fail with HTTP 504 Gateway Timeout, with the logs showing elevated RequestDuration and upstream connection errors.",
+      "Users report immediate disconnections or connection resets when making requests, and EnvoyFrontEndLogsTable entries show ResponseFlags: URX or UF with failed upstream host information.",
+      "All requests to a custom domain configured for a container app return HTTP 404, and Envoy logs show Authority is set to the custom domain but with route_not_found in ResponseCodeDetails.",
+      "After a new revision deployment, all requests to the app fail with HTTP 404, and both ContainerAppName and RevisionName are empty in logs, suggesting the new revision failed to reconcile into Envoy configuration."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-Http-Overload-Errors-001.md",
+    "incidents": [
+      "Users receive frequent HTTP 503 Service Unavailable errors when attempting to access containerized applications via the Envoy frontend.",
+      "Application endpoints intermittently fail to load, returning a 503 error with the response code detail \u0022overload\u0022 in Envoy logs.",
+      "Automated health checks for services behind Envoy consistently fail due to Envoy responding with 503 overload errors.",
+      "Sudden spikes in traffic lead to a sharp increase in 503 responses from Envoy, with logs indicating memory usage exceeding the configured 1GB per instance threshold.",
+      "Active connections to applications are dropped or refused, and Envoy logs show the ResponseCodeDetails as \u0022overload.\u0022",
+      "Billing service log buffers grow excessively, causing Envoy\u0027s memory consumption to exceed limits and trigger overload protection, resulting in 503 errors.",
+      "Scaling up new app revisions or increasing the number of deployed apps causes Envoy to start returning 503 overload errors due to increased config size.",
+      "Monitoring dashboards show Envoy instances at or near 100% memory utilization, coinciding with a surge in 503 overload responses.",
+      "Clients experience slow or failed HTTP/2 or gRPC requests routed through Envoy, with the connection logs indicating overload as the root cause.",
+      "During periods of high activity, CPU usage for \u0060k8se-billing\u0060 pods reaches 100%, indirectly contributing to Envoy overload and resulting in widespread 503 errors."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-LoadBalancer-001.md",
+    "incidents": [
+      "Outbound connections from pods in the cluster are intermittently failing with \u0022SNAT port exhaustion\u0022 errors, resulting in connectivity issues to external services.",
+      "Pods experience frequent timeouts or dropped connections when attempting to connect to internet endpoints, especially during periods of high outbound traffic.",
+      "Users observe the error message \u0022Failed to allocate SNAT port\u0022 in the cluster logs, correlating with increased node or pod counts.",
+      "After scaling up the AKS managed cluster node count, new pods are unable to establish outbound connections due to insufficient allocated outbound ports.",
+      "The Azure Portal shows only one outbound IP configured for the managed cluster, and workloads are failing to scale due to outbound IP/port limits.",
+      "Attempts to update both the IP count and allocated outbound ports simultaneously result in an error indicating another load balancer operation is in progress.",
+      "Cluster administrators notice a sudden increase in failed outbound requests after adding more nodes, with diagnostic logs indicating port exhaustion as the root cause.",
+      "Application pods are unable to reach critical third-party APIs, with network traces showing SYN packet drops consistent with SNAT resource depletion.",
+      "Outbound traffic from the cluster is being routed through a single IP, leading to throttling or blacklisting by external services due to overuse of the same public IP.",
+      "The \u0022AllocatedPorts\u0022 property in the LoadBalancerProfile is set to a non-multiple of 8, resulting in configuration errors during load balancer profile updates."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-ManagedSubscriptions80%Fragmented.md",
+    "incidents": [
+      "Users are unable to create new environments in a region due to hitting the managed subscription capacity limit, receiving an error indicating \u201CMaximum environments reached for this subscription.\u201D",
+      "Attempts to deploy additional container app environments fail with a quota exceeded message, even though the core quota is not fully utilized.",
+      "Automated environment scaling operations are suspended with logs showing \u201CEnvironment creation suspended: subscription at 80%\u002B capacity.\u201D",
+      "Provisioning new environments intermittently fails in specific subscriptions, and capacity monitoring dashboards show the average environment count at or above 80% of the allowed maximum.",
+      "Admin dashboards display an alert or notification stating \u201CManaged Subscription 80% Fragmented\u201D or similar, warning of imminent capacity exhaustion.",
+      "An environment deployment pipeline fails at the environment creation step, referencing a lack of available slots in the assigned subscription.",
+      "Users report that core limits appear to have headroom, but environment creation is still blocked due to the maxEnvironments limit.",
+      "Environment creation requests are delayed or queued, with logs showing capacity checks preventing immediate provisioning.",
+      "Capacity monitoring queries show certain subscriptions with high core capacity but a low maxEnvironments setting, limiting overall deployment ability despite available compute resources.",
+      "Alerts are triggered in regional monitoring systems indicating that managed subscription utilization is at or above 80%, prompting pre-emptive mitigation actions."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-MissingAzSecPack-001.md",
+    "incidents": [
+      "A test cluster in Azure is flagged as non-compliant in a security audit due to missing AzSecPack tags on its VM Scale Sets (VMSS).",
+      "The compliance report for a managed cluster subscription shows a warning or error indicating that AzSecPack is not present or configured.",
+      "Automated security policy remediation fails for a VMSS because the required tags (\u0060AzSecPackAutoConfigReady=true\u0060, \u0060EnableAzSecPackIdentityPolicy=true\u0060) are missing.",
+      "A new VMSS resource deployed in a test environment does not inherit AzSecPack security policies and thus fails internal compliance checks.",
+      "The Azure Policy \u201Cazsecpack msi policy for vmss\u201D reports non-compliance for certain resources within a test subscription.",
+      "Manual or automated security scans identify individual VMs without the \u0060forceautoconfig=true\u0060 tag, causing exceptions in compliance dashboards.",
+      "Attempts to remediate security policy violations through the Azure Policy Remediation blade do not succeed because required tags have not been added to all VMSS or VMs.",
+      "A resource owner receives an alert indicating their test cluster is not compliant with mandated security policies due to missing AzSecPack configuration.",
+      "The deployment pipeline for managed clusters fails a compliance gate or policy check due to missing AzSecPack-related tags on newly created resources.",
+      "A VMSS in an MC_* resource group is missing from the list of compliant resources in the latest security compliance report, with a specific note referencing missing AzSecPack tags."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-No-ManagedCluster-Creations.md",
+    "incidents": [
+      "No new managed clusters (neither VNET nor Non-VNET) have been created in a specific Azure region for the past 6 hours, as observed in monitoring dashboards.",
+      "Cluster creation operations are being triggered by integration tests, but no successful clusters are appearing in logs or dashboards for a low-traffic region.",
+      "Automated alerts indicate a sustained absence of cluster creation events for Non-VNET managed clusters in a given region, despite regular test schedules.",
+      "Attempting to provision a managed cluster via the portal or API returns no error, but the new cluster does not appear in the resource list, and no creation event is detected in the system logs.",
+      "Recent code deployment correlates with a sudden stop in managed cluster creation activity, with error logs or failures observed in the relevant function app.",
+      "Function app responsible for processing cluster creation requests is found to be stopped or unresponsive, resulting in no new managed clusters being created or detected.",
+      "Integration test reports consistently show failures tied to cluster provisioning steps, and system logs confirm no creation events in the expected time window.",
+      "Region-specific monitoring shows a drop to zero in managed cluster creation metrics, while other regions continue to show normal creation activity.",
+      "No \u0022Create Managed Cluster\u0022 log entries are found in diagnostic logs for the past several hours, despite expected cluster creation triggers being in place.",
+      "Automated pipeline or scheduled job that triggers managed cluster creation reports successful execution, but no clusters are actually being created or registered in the system."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-Nodepool.md",
+    "incidents": [
+      "AKS cluster nodes are hitting DiskPressure and workloads are being evicted due to insufficient OS disk space on the current node pool.",
+      "Attempting to add a new node pool to an AKS cluster fails with a specific error message in Geneva Actions, such as \u0022provisioning failed\u0022 or \u0022invalid VM size format\u0022.",
+      "Node pool provision status is stuck in a \u0022failed\u0022 or \u0022provisioning\u0022 state and the node pool does not appear as ready in the cluster.",
+      "After a manual operation on the cluster, the node pool information in Azure Service Insights is not in sync with the actual AKS cluster state.",
+      "Unable to deploy additional workloads due to reaching the core quota limit on the current node pool, resulting in pod scheduling failures.",
+      "Deleting a node pool from an AKS cluster leaves pods orphaned or causes prolonged downtime because the node pool was not drained gracefully.",
+      "Node pools added for workload profiles are missing required taints and labels, causing pods to be scheduled onto incorrect node pools.",
+      "Geneva Actions show discrepancies between listed node pools and what is present in the AKS cluster due to failed or incomplete synchronization.",
+      "Automated node pool monitoring logs in Jarvis indicate \u0022ManagedClusterNodePoolDBState\u0022 inconsistencies or errors for a specific cluster region.",
+      "Removing an old node pool as part of a migration leaves the cluster in an unhealthy state because the process was not performed gracefully."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-Otel-001.md",
+    "incidents": [
+      "OpenTelemetry Collector repeatedly crashes on startup with the error message \u0022failed to build pipelines\u0022 in the logs.",
+      "Application logs display errors indicating failure to export telemetry data to the OpenTelemetry agent due to an inaccessible endpoint.",
+      "No telemetry data from the application appears in Azure Application Insights, despite the collector being configured and running.",
+      "The otel-collector container or service restarts continuously, with crash loop events visible in Kubernetes or container logs.",
+      "Log entries in the OpenTelemetryCollectorEvents table show error messages referencing \u0022failed to build pipelines\u0022 within the last 24 hours.",
+      "Log entries in ContainerAppControllerEvents indicate issues with \u0022otelConfiguration\u0022 and failed attempts to connect to AppInsights.",
+      "Attempts to validate the telemetry ingestion path result in connection errors or authentication failures related to the Application Insights connection string.",
+      "Monitoring dashboards in Azure show persistent gaps or missing metrics/traces after updating or redeploying the OpenTelemetry collector configuration.",
+      "Users report that enabling telemetry through environment variables or configuration files has no effect, with no data appearing in Application Insights.",
+      "After rotating or updating Application Insights keys or connection strings, the OpenTelemetry collector stops sending data, and error logs reference invalid or missing connection information."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-Otel-002.md",
+    "incidents": [
+      "OpenTelemetry Collector logs show repeated \u0022403 Forbidden\u0022 errors when attempting to send data to DataDog.",
+      "DataDog Log Explorer continually redirects the user to the onboarding page (https://app.datadoghq.com/logs/onboarding) despite correct configuration.",
+      "Customer is unable to view ingested logs in DataDog even though telemetry data appears to be sent from the OpenTelemetry Collector.",
+      "API key authentication errors are present in the OpenTelemetry Collector event logs, indicating possible expired or incorrect API key usage.",
+      "Log ingestion from Azure Container Apps via OpenTelemetry Collector is not visible in DataDog, with no agent errors but persistent onboarding redirects.",
+      "User receives no log data in DataDog after initial setup, and agent logs indicate API key-related authentication failures.",
+      "Intermittent log data delay in DataDog with agent logs showing occasional ingestion endpoint unavailability.",
+      "Trace and metric data appear in DataDog, but log data is missing and onboarding redirect persists.",
+      "Customer observes DataDog ingestion errors in the OpenTelemetry Collector logs without apparent configuration issues.",
+      "Repeated failed attempts to authenticate with DataDog API due to using an Application Key instead of an API Key in the OpenTelemetry Collector configuration."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-Policy-001.md",
+    "incidents": [
+      "A new policy assignment unexpectedly appears in one or more managed subscriptions, causing changes in resource behavior.",
+      "ContainerApps control plane resources start failing provisioning due to newly enforced policy rules.",
+      "Users receive \u0022Request disallowed by policy\u0022 errors when attempting to deploy resources in managed subscriptions.",
+      "Previously available resource types or actions are now blocked due to a newly assigned policy definition.",
+      "Automated deployments to underlying clusters fail with policy compliance violations.",
+      "A subscription owner receives Azure Policy compliance alerts for subscriptions that previously had none.",
+      "Configuration drift is detected after a policy assignment changes the expected state of resources in managed subscriptions.",
+      "Existing ContainerApp services become non-compliant after a policy is assigned, triggering compliance remediation tasks.",
+      "Sudden increase in policy evaluation failures or denied operations in managed subscriptions.",
+      "Unexpected resource deletion or modification occurs after assignment of a policy with a deny or modify effect."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-PrivateEndpoint-Availability-001.md",
+    "incidents": [
+      "Multiple managed environments with private endpoints experience over 10 consecutive canary ping failures within a 45-minute window, resulting in automated availability alerts.",
+      "Canary app ping failures return \u0022Response status code does not indicate success: 403 (Forbidden)\u0022 when the canaryIpAddress matches the cluster ingressIP instead of the frontendVmssFrontendIP.",
+      "Managed environments with private endpoints show persistent canary ping failures, and the associated managedClusterProvisioningState or frontendVmssProvisioningState is not in a \u0022Succeeded\u0022 state.",
+      "Canary ping requests to clusters with private endpoint enabled are not being forwarded to the frontend VMSS due to missing or incorrect allowed IPs for the Resource Provider (RP) outbound IPs.",
+      "Connectivity tests fail for clusters with private endpoints because publicNetworkAccess is incorrectly set to \u0022Enabled,\u0022 contrary to expected configuration.",
+      "Envoy logs for a failed cluster indicate that canary ping traffic is reaching the front end, but the requests are not successfully processed or are dropped, resulting in availability issues.",
+      "Frontend VMSS connection logs show that canary ping traffic is not being received or is being blocked for specific clusters with private endpoints.",
+      "After updating private endpoint metadata, canary app pings continue to fail due to outdated or incomplete allowed IP configurations on the frontend VMSS.",
+      "Clusters with private endpoints intermittently succeed and fail canary pings, indicating a transient connectivity or configuration issue.",
+      "Canary app log analysis reveals that all clusters failing pings share the same subnet, suggesting a possible network routing or firewall misconfiguration affecting private endpoint accessibility."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-PrivateEndpoint-FrontendVmssProvisionFailed.md",
+    "incidents": [
+      "Provisioning a new Azure Container Apps environment with Private Endpoint fails, and the deployment status shows \u0022frontend vmss provision failed\u0022 in the portal.",
+      "Multiple frontend VMSS instances associated with Private Endpoint support report a persistent \u0022Failed\u0022 provisioning state in monitoring dashboards.",
+      "After configuring a Private Endpoint for a managed ACA environment, inbound application traffic is not reaching the environment, and logs indicate the reverse proxy VMSS did not start.",
+      "Control plane logs for the environment show error messages related to \u0022ProvisionFrontendVmssHandler\u0022 background job failures during VMSS creation.",
+      "Helm chart installation for Private Link support fails, with the error message referencing inability to deploy or initialize the required frontend VMSS.",
+      "Attempting to scale out an ACA environment with private endpoint results in new frontend VMSS instances failing to provision, blocking the scaling operation.",
+      "PrivateEndpointConnection resources show \u0022Failed\u0022 status during or after deployment, with associated frontend VMSSes not created or stuck in failed state.",
+      "ContainerAppsAdminEvents logs display exceptions or errors correlated with frontend VMSS provisioning attempts, particularly in the context of TcpBridge artifact access or permissions.",
+      "Recent changes to networking or storage account role assignments result in new or existing frontend VMSS instances failing to download/upload TcpBridge, causing provision failures.",
+      "Azure portal alerts indicate that the number of failed frontend VMSS provisions for a given managed ACA environment has exceeded the incident threshold (e.g., more than 2 failures within 1.5 hours)."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-PrivateEndpoint-PrivateEndpointConnectionProvisionFailed.md",
+    "incidents": [
+      "A newly created Container App fails to connect via Private Endpoint, showing the provisioning state as \u0027Failed\u0027 in the Azure Portal.",
+      "During deployment of a Container App environment, the private endpoint connection resource enters a \u0027Failed\u0027 state with no further progress.",
+      "An error log appears in ContainerAppsAdminEvents indicating \u0022Set private endpoint connection \u003Cname\u003E provisioningState to Failed.\u0022",
+      "Frontend VMSS provisioning for a private endpoint fails due to an unsupported VM SKU in the selected Azure region.",
+      "Attempts to deploy a private endpoint connection result in errors related to TcpBridge artifact download/upload permissions, possibly after recent role or network configuration changes.",
+      "Provisioning a private endpoint connection fails with an error about failed REST calls to the Network Resource Provider (NRP), as seen in control plane logs.",
+      "Incident triggered by a PrivateLinkDBState alert due to multiple private endpoint connections with a \u0027Failed\u0027 state exceeding the defined threshold.",
+      "User receives errors indicating NRP integration issues during private endpoint connection provisioning, with related errors visible in NRP logs.",
+      "Private endpoint connection provisioning fails after changes to the global storage account, affecting access to required artifacts.",
+      "Provisioning attempts generate trace logs with specific env_dt_traceId values indicating exceptions or unhandled errors during the private endpoint setup process."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-ProvisionAndUpgrade-001.md",
+    "incidents": [
+      "A managed cluster in Azure appears in the portal with a status of \u0027UpgradeFailed\u0027 after attempting a Kubernetes version upgrade, and the upgrade does not complete.",
+      "Attempting to perform a k4apps version upgrade results in the cluster entering the \u0027UpgradeFailed\u0027 state, with the error message indicating \u0022SubnetIsFull\u0022 or \u0022PublicIPCountLimitReached\u0022.",
+      "A \u0027No change\u0027 upgrade operation fails to propagate new secrets or settings to the cluster, with logs showing the process PID changed during the upgrade, indicating an unexpected process restart.",
+      "Cluster upgrade fails with the error code \u0027RequestDisallowedByPolicy\u0027, preventing the managed cluster upgrade from proceeding.",
+      "An AKS cluster upgrade fails, and the Applens detector for \u0022aks-cluster-update-failures\u0022 shows an error message related to NSG, DNS, or UDR misconfiguration in a customer vnet environment.",
+      "Upgrade attempts on a cluster using a customer vnet fail immediately, and investigation reveals the vnet subscription is disabled.",
+      "The AKS team\u0027s Kusto logs display a \u0027QuotaExceeded\u0027 error during cluster upgrade, preventing the operation due to resource limits.",
+      "Manual attempts to update a managed cluster fail with \u0027MissingSubscriptionRegistration\u0027 errors, blocking the upgrade process.",
+      "Cluster upgrade operations fail with \u0027OperationNotAllowed\u0027 errors mentioning quota or too many requests, as seen in AsyncQoSEvents logs.",
+      "After initiating a cluster upgrade, the cluster remains in an \u0027updating\u0027 state for an extended period and eventually transitions to \u0027UpgradeFailed\u0027, with ContainerAppsAdminEvents showing recent critical errors."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-Quota-001.md",
+    "incidents": [
+      "User attempting to provision a new Cloud Application receives the error: \u0022No subscriptions available for provisioning.\u0022",
+      "Cloud Application provisioning workflow fails with a message stating that the subscription quota has been exceeded.",
+      "On the provisioning dashboard, the \u0022Available Subscriptions\u0022 list is empty despite the user having active subscriptions.",
+      "Automated deployment scripts for Cloud Applications return a failure indicating \u0022No eligible subscriptions\u0022 found.",
+      "User is unable to select a target subscription when trying to deploy a Cloud Application in the portal.",
+      "Provisioning API requests for Cloud Applications return a 403 Forbidden error with details referencing subscription availability.",
+      "Users with recently created accounts are unable to initiate Cloud Application provisioning due to missing subscription assignments.",
+      "An administrator is notified by monitoring tools that provisioning requests are being rejected due to lack of available subscriptions.",
+      "Provisioning attempts succeed for other services but consistently fail for Cloud Applications with subscription-related errors."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-Quota-002.md",
+    "incidents": [
+      "Users report that new applications cannot be deployed to the cluster and receive an \u0022Insufficient CPU\u0022 scheduling error.",
+      "Existing workloads are being evicted or rescheduled with messages indicating CPU resource constraints on certain nodes.",
+      "Pods remain in Pending state with the event log showing \u00220/5 nodes are available: Insufficient cpu.\u0022",
+      "Cluster monitoring dashboards show one or more nodes consistently at 100% CPU utilization, leading to performance degradation.",
+      "Autoscaling operations fail because nodes cannot be scheduled due to lack of available CPU resources.",
+      "Users observe increased latency or timeouts in workloads running on specific nodes with high CPU usage.",
+      "Scheduled jobs are delayed or not executed with error messages relating to unavailable CPU resources.",
+      "The cluster events log frequently records failed pod scheduling attempts due to \u0022Insufficient cpu.\u0022",
+      "Critical services experience degraded performance or restart loops related to CPU starvation on overloaded nodes.",
+      "Cluster administrators receive alerts or notifications about nodes being tainted as unschedulable due to CPU exhaustion."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-Quota-003.md",
+    "incidents": [
+      "Deployment of new Azure Container Apps fails with error: \u0022QuotaExceeded: Core limit reached for subscription.\u0022",
+      "Scaling out existing Container Apps results in failure with message: \u0022Insufficient cores available in the managed subscription.\u0022",
+      "Attempting to provision additional container app environments returns: \u0022Unable to allocate cores, quota exceeded.\u0022",
+      "Automated CI/CD pipeline deployments are halted due to core resource quota limitations in the subscription.",
+      "Users receive alerts or notifications indicating that the managed subscription is approaching or has reached its core quota limit.",
+      "Requests for new compute resources in Azure Portal are denied due to low available core capacity.",
+      "Sudden inability to launch new workloads or containers in an environment that previously supported them, with errors referencing resource limits.",
+      "Performance degradation or failures in existing container apps when attempting to autoscale, traced to core quota exhaustion.",
+      "Azure Portal displays warnings or errors about \u0022Low core quota\u0022 when accessing the resource group or subscription.",
+      "Support tickets or monitoring tools flag repeated failures on resource allocation operations due to core quota restrictions."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-Quota-004.md",
+    "incidents": [
+      "Users receive an alert indicating that the Container Apps environment creation has failed due to \u0022Max Buffer Limit reached\u0022 for their subscription.",
+      "Attempts to create new Container Apps in a specific region result in a quota exceeded error, referencing the subscription\u0027s quotaId.",
+      "The Azure portal displays an error message such as \u0022Quota limit reached: Cannot create additional environments under this subscription in region X.\u0022",
+      "Automated deployment pipelines fail with errors indicating regional quota exhaustion for Container Apps environments.",
+      "An API call to provision a new KubeEnvironment returns a failure with a \u0022quota limit\u0022 or \u0022buffer limit\u0022 exceeded message tied to the subscription.",
+      "Existing environments continue to operate, but attempts to scale or add new Container Apps are blocked due to hitting a hard subscription quota.",
+      "Support tickets reference a specific quotaId and users observe that the number of KubeEnvironments in the database exceeds the configured quota limit.",
+      "Monitoring tools or dashboards show that the number of environments for a subscription surpasses the limit set in SubscriptionQuotaRules.json.",
+      "Users with restricted OfferTypes receive quota-related errors despite not having reached published limits in documentation, due to regional overrides.",
+      "An alert is triggered in Geneva logs corresponding to \u0022absolute\u0022 quota limit breaches for Container Apps in a particular subscription or region."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-Quota-005.md",
+    "incidents": [
+      "Cluster provisioning fails with the error: \u0022Microsoft.Rest.Azure.CloudException: Virtual Machine size: \u0027Standard_D4_v3\u0027 is not supported for subscription xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx in location \u0027eastus\u0027\u0022.",
+      "Attempting to deploy a new Azure Container Apps environment results in an error stating the requested VM size is not available in the selected region for the managed subscription.",
+      "Automated deployment pipelines for container apps stop, and logs show exceptions indicating \u0022The VM size of AgentPoolProfile: \u0027Standard_E2s_v3\u0027 is not allowed in your subscription\u0022.",
+      "User attempts to scale an existing Azure Container Apps workload, but receives a failure with a message that the specified VM size is not supported for their subscription in the current region.",
+      "Multiple managed subscriptions simultaneously experience failures in provisioning AKS clusters, each returning a similar VM size not supported error message.",
+      "After a recent regional update, deployments to that region start failing with VM size quota errors for all managed subscriptions in that region.",
+      "A specific managed subscription in a given region cannot access the required VM size, leading to repeated deployment errors and blocking new workload creation.",
+      "Following a configuration change, managed subscription environments that previously worked start returning errors about disallowed VM sizes for agent or system pools.",
+      "Deployment monitoring dashboards show an increase in error logs with messages about VM size not being permitted for certain subscriptions, correlated with recent configuration or region changes.",
+      "Requests to provision new Container Apps environments in a specific region are intermittently failing, with support cases citing VM size quota issues for managed subscriptions."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-Quota-006.md",
+    "incidents": [
+      "New deployments of standardDASv4Family VMs in a managed subscription in eastus fail with \u0022QuotaExceeded\u0022 errors.",
+      "Scaling up existing Container Apps deployments in a specific region fails with an error indicating insufficient vCPU quota for the standardDASv4Family.",
+      "Automated provisioning scripts for managed clusters return errors such as \u0022QuotaNotAvailableForResource\u0022 when attempting to allocate new VMs in the standardDASv4Family.",
+      "Azure Portal displays a warning banner in the Usage \u002B quotas section for a subscription, indicating that the standardDASv4Family core quota is close to or at its limit.",
+      "Attempts to add nodes to an AKS node pool using the standardDASv4Family SKU result in operation failures due to quota exhaustion.",
+      "A Geneva Action run to increase vCPU quota for standardDASv4Family in a subscription returns a \u0022QuotaNotAvailableForResource\u0022 error message despite a successful HTTP status code.",
+      "Cluster autoscaling operations stall or fail for managed clusters using standardDASv4Family cores in a particular region, with logs referencing quota limitations.",
+      "Users are unable to upgrade the VM SKU for managed clusters in a specific region because the required standardDASv4Family quota is not available.",
+      "Manual requests to increase quota through Azure Portal for standardDASv4Family fail, and the portal prompts to create a support ticket due to capacity constraints.",
+      "System monitoring alerts are triggered for managed subscriptions indicating that the usage of standardDASv4Family cores has reached or exceeded 90% of the available quota in a region."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-Quota-007.md",
+    "incidents": [
+      "Customers receive the error \u0022ManagedEnvironmentNoAvailableCapacityInRegion\u0022 when attempting to create a new Container Apps Environment in West Europe with a newly created subscription.",
+      "Quota increase requests for serverless or dedicated GPU resources in West US 3 or North Europe are denied due to reaching the maximum allowed GPU quota per subscription.",
+      "Attempts to deploy new workloads or scale existing workloads in a subscription fail with error messages indicating the environment or GPU quota has been exceeded (e.g., \u0022Quota limit reached for ManagedEnvironmentConsumptionCores\u0022 or similar).",
+      "Existing customers in West Europe with non-EA subscriptions experience failures when trying to expand production workloads due to regional capacity restrictions.",
+      "Requests to create new Container App Environments in restricted regions (such as West Europe) for new subscriptions are failing, even though the customer previously could create environments in other regions.",
+      "Customers are unable to add additional cores (general purpose, memory optimized, or compute optimized) to their Container Apps environment due to subscription-level quota enforcement.",
+      "Serverless GPU workloads (T4 or A100) in Australia East or West US 3 fail to start or scale out, with error messages referencing insufficient quota or no available GPU capacity.",
+      "Attempts to increase SessionPool resources for a subscription are blocked by existing quota limits, preventing session-based application scaling.",
+      "Quota increase requests for GPU resources are delayed or denied for non-EA/non-internal customers, resulting in inability to provision new GPU workloads.",
+      "Users report failures when updating node pools due to subnet IP limitations or insufficient managed subscription capacity while attempting to increase environment consumption core quotas."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-Quota-008.md",
+    "incidents": [
+      "A customer requests an increase in SubscriptionNCA100Gpus quota in North Europe and receives a message that A100 GPUs are unavailable in that region.",
+      "A user submits a GPU quota request for ConsumptionT4Gpus in Australia East and is unsure if the region supports that quota type.",
+      "A quota request for more than 10 SubscriptionConsumptionNCA100Gpus in West US 3 is delayed or denied, with no clear escalation path.",
+      "A customer is granted a dedicated A100 GPU quota when they only require serverless or T4 GPUs, leading to unnecessary resource allocation.",
+      "A user attempts to increase SubscriptionConsumptionT4Gpus quota in Sweden Central and is uncertain if their customer type (EA, PAYG, Internal, Other) impacts the approval limits.",
+      "A customer requests SubscriptionConsumptionNCA100Gpus in a region not listed as supported (e.g., East US), and receives a \u0022region not supported\u0022 error.",
+      "A PAYG customer requests more than 5 SubscriptionConsumptionNCA100Gpus in West US 3 and the request is not processed or lacks proper escalation.",
+      "A user requests a GPU quota increase without specifying quota type or GPU type, resulting in confusion or incorrect resource assignment.",
+      "An \u0022Other\u0022 customer requests more than 1 ConsumptionT4Gpus in Australia East, and the request is not approved or properly escalated.",
+      "A customer requests a GPU quota for ConsumptionNCA100GpusPerNewV2Env in North Europe and is told the region is unsupported, causing deployment failures."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-RP-001.md",
+    "incidents": [
+      "Users are unable to create new Azure Container Apps and receive the error: \u0022Internal server error from ContainerApps Resource Provider.\u0022",
+      "Deployment of a new container app hangs indefinitely and eventually fails with a timeout.",
+      "Scaling operations for existing container apps fail, showing the message: \u0022Failed to update scale settings due to RP error.\u0022",
+      "Portal displays a warning banner stating, \u0022ContainerApps Resource Provider is experiencing degraded performance.\u0022",
+      "Requests to update environment variables on a container app return a 500 error from the backend.",
+      "Automated scripts that deploy multiple container apps simultaneously report intermittent failures with \u0022RP unavailable\u0022 errors.",
+      "Deletion of a container app resource returns the error: \u0022Resource Provider operation failed, please try again later.\u0022",
+      "Users observe that the Container Apps blade in the Azure portal is slow to load or fails with a \u0022Could not retrieve resources\u0022 message.",
+      "ARM template deployments for Container Apps partially succeed, with some resources failing due to RP operation timeouts.",
+      "Monitoring tools show that the success rate for ContainerApps operations has dropped below 90%, with spikes in failed requests."
+    ]
+  },
+  {
+    "fileName": "TSG-Capps-RP-Background-Func-Err.md",
+    "incidents": [
+      "Scheduled timer-triggered Azure Function Apps in a managed container environment are not executing as expected, with no timer events firing.",
+      "Operations in the Azure Container Apps control plane are stuck or not progressing due to background function failures.",
+      "The Function App host logs repeatedly show errors stating \u0022Did not find any initialized language workers.\u0022",
+      "The Function App is observed to crash repeatedly, restarting continuously without processing any requests.",
+      "A spike in exceptions is recorded for a particular function in the Function App, causing downstream service delays.",
+      "No crash logs are present in the Container Apps Admin table, yet timer functions are not running or being scheduled.",
+      "Managed Clusters Kube Operations are pending or stalled, correlated with background function execution issues.",
+      "Attempts to trigger the Function App manually result in errors or the function stays in a \u0022starting\u0022 or \u0022initializing\u0022 state indefinitely.",
+      "Geneva monitoring alerts for the Function App indicate failures to find a running worker process or unhealthy worker status.",
+      "Service health dashboards show elevated failure rates for background functions in production, with affected endpoints matching the \u0060capps-azfunc-bgtasks-xxxxx\u0060 naming pattern."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-SAL-Deletion.md",
+    "incidents": [
+      "Attempting to delete a VNET or subnet used by a deleted managed cluster fails with a \u0022resource in use\u0022 or \u0022dependency\u0022 error due to a lingering SAL token.",
+      "Customer receives an error message stating that the subnet cannot be deleted because it is still associated with an active SAL token, despite the cluster being removed.",
+      "Azure Portal displays a failed operation when trying to remove a subnet, with activity logs indicating SAL token presence as the blocking resource.",
+      "Only one SAL deletion event (either CX SAL or Legion SAL) is observed in the ContainerAppsAdminEvents logs instead of both, resulting in incomplete cleanup.",
+      "Automated cluster cleanup jobs report success for cluster deletion, but subsequent attempts to reuse the subnet in a new deployment fail due to existing SAL association.",
+      "Customer\u0027s CRI (Customer Reported Incident) notes inability to delete or modify the subnet linked to a previously deleted Container Apps managed cluster.",
+      "Geneva monitoring alerts indicate mismatched SAL token deletion events, with one token persisting after cleanup operations.",
+      "Terraform or ARM template deployments to modify or delete the impacted subnet fail validation checks citing existing resource locks or associations.",
+      "Subnet deletion requests remain in \u0022Deleting\u0022 state indefinitely in the Azure Portal, with backend logs showing missing Legion SAL token removal.",
+      "Manual attempts to delete SAL tokens via standard portal or CLI methods do not succeed, requiring intervention with the geneva action workaround described in the TSG."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-ScheduledForDelete-001.md",
+    "incidents": [
+      "Timer-triggered functions in Azure Container Apps Function Apps are not executing as scheduled due to their managed environment being stuck in a \u0022deleting\u0022 state.",
+      "Attempts to delete a Container App managed environment remain in progress for hours or days without completion, and the environment cannot be recreated or modified.",
+      "Resource group deletions for managed clusters are blocked with error messages indicating dependent resources (such as VNets or VMSS) are not removed.",
+      "Activity logs for the managed cluster resource group show persistent \u0022deleting vnet error\u0022 messages, even though the associated AKS resource has already been deleted.",
+      "Manual deletion attempts of the managed cluster resource group (MC_xxx_rg) fail due to leaked virtual machine scale sets (VMSS) still present within the resource group.",
+      "Function Apps deployed in a managed environment report failures or delays starting up, and investigation reveals their hosting environment is \u0022ScheduledForDelete\u0022 or \u0022Deleting\u0022 for an extended period.",
+      "Azure portal or CLI shows the managed environment for Container Apps in a perpetual \u0022deleting\u0022 state, preventing deployment or scaling operations for apps within that environment.",
+      "Automated deployment pipelines fail with errors related to environment deletion, such as \u0022Resource group for managed cluster xxx is still deleting, extend operation xxx.\u0022",
+      "Attempts to connect or configure networking components (such as VNets) for Container Apps fail due to unresolved deletion of dependent resources in the managed resource group.",
+      "Resource clean-up scripts or automation report persistent failures or timeouts when deleting managed cluster environments, with logs indicating stuck resources preventing completion."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-Sessions-001.md",
+    "incidents": [
+      "Session creation requests in a specific Azure region fail with an \u0022ARM authentication error\u0022 message and are not processed.",
+      "Users are unable to start new sessions in Container Apps, receiving an \u0022AAD validation failed\u0022 error in the portal or logs.",
+      "Automated deployment pipelines in a particular region fail at the session initialization stage with access denied errors related to ARM permissions.",
+      "The Sessions API returns HTTP 401 or 403 errors when attempting to create or manage session pools in certain environments.",
+      "After a recent hotfix or deployment, session-related operations begin failing in a specific region due to overwritten AADValidationToken permissions in the deployment template.",
+      "Monitoring alerts for \u0022Sessions Auth Error\u0022 repeatedly trigger for one or more regions, but permissions appear correct in the deployment template.",
+      "Attempts to execute commands within a session pool result in \u0022authorization failed\u0022 errors, despite previously working configurations.",
+      "Session pool creation is successful in some regions but consistently fails with authentication errors in others.",
+      "Sudden spike in failed session operations across multiple subscriptions, correlating with recent changes to deployment templates or ARM permissions.",
+      "Session availability drops in a region, and logs indicate repeated failures due to missing or invalid AAD validation tokens in the deployment configuration."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-Sessions-Allocation-Error.md",
+    "incidents": [
+      "Users experience significantly delayed session startup times, with session allocation frequently taking longer than 300ms (P75 latency breach).",
+      "New user sessions intermittently fail to initialize, causing login or application launch errors for end users.",
+      "End users report timeout errors or \u0022Session allocation failed\u0022 messages when attempting to establish new connections.",
+      "Monitoring systems alert on \u0022Sessions-002: Sessions Allocation Error\u0022 for specific regions, indicating regional degradation.",
+      "Support teams observe a spike in session allocation latency in application performance dashboards, especially in the northeurope region.",
+      "Application logs show repeated failures or slow responses during the \u0022GetInstance Allocation - Legion Call\u0022 process.",
+      "Session pool dashboards indicate capacity exhaustion or allocation bottlenecks, leading to resource unavailability.",
+      "Incident response teams trace multiple slow or failed allocation events back to errors in the Legion RCP service.",
+      "Automated tests for application session launch consistently fail due to allocation timeouts in backend services.",
+      "Legion SystemLogs reveal error entries or prolonged allocation operations associated with specific env_trace_id values during impacted periods."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-Sessions-Auth.md",
+    "incidents": [
+      "Users are unable to create new session pools in a specific region, receiving an \u0022ARM authentication failed\u0022 error message.",
+      "Session-related API calls in the affected region consistently return 401 Unauthorized errors despite valid credentials.",
+      "Automated workloads depending on session creation in a particular region start failing with access denied errors referencing Azure Active Directory (AAD) validation.",
+      "Session establishment or execution commands intermittently fail in a subset of regions, with error logs indicating missing AADValidationToken permissions.",
+      "After a recent deployment or hotfix, all new session requests in one region are rejected due to missing ARM permissions in the deployment template.",
+      "Monitoring alerts report elevated session authentication failures specifically tied to ARM authorization issues in one or more regions.",
+      "Users report that session APIs previously working in a region now fail, and investigation reveals the AADValidationToken permission is no longer present in the deployment template.",
+      "Session creation attempts across multiple subscriptions suddenly begin failing, with logs referencing ARM resource provider authentication issues.",
+      "A spike in session authentication errors is detected by alerting systems, correlating with a recent template update or hotfix deployment.",
+      "Session API tests run via documentation instructions consistently fail in one region, always reporting access or authentication errors related to ARM/AAD."
+    ]
+  },
+  {
+    "fileName": "TSG-CApps-Shared-Environment-001.md",
+    "incidents": [
+      "A customer attempting to onboard a subscription to a shared environment receives the error \u0022The parameter Resource owner AIAgents does not exist, please connect to container app team to onboard it first. has an invalid value\u0022 during the Geneva action.",
+      "A customer is unable to delete a subnet previously used for a multi-tenant environment and receives a \u0022Conflict\u0022 error with details indicating \u0022UnauthorizedClientApplication\u0022 and a failed attempt to delete the service association link (SAL).",
+      "The onboarding process for a subscription fails due to authentication errors when triggering the first party Geneva action to onboard the subscription with the allowed resource owner.",
+      "A user observes that after deleting a container app environment, the subnet associated with that environment still cannot be deleted due to a lingering service association link (SAL).",
+      "A customer receives an error stating \u0022No available capacity of host managed cluster\u0022 when attempting to provision new environments in a shared multi-tenant environment.",
+      "During onboarding in a new region, the Common Hobo team is unable to onboard the resource owner due to missing or incorrect parameters, preventing further subscription onboarding steps.",
+      "The Managed Cluster details tab in the Azure portal shows that \u0022Is Multi Tenant Cluster\u0022 is not enabled for an expected multi-tenant container app environment, causing confusion or deployment failures.",
+      "A user finds that the virtual managed cluster is not being created or mapped correctly to the shared environment for the Azure OpenAI service after onboarding steps are performed.",
+      "When viewing the Multi Tenant Feature Details tab, related host/virtual clusters do not appear as expected, indicating a possible failure in the onboarding or environment setup process.",
+      "Attempts to scale out the environment fail because the max capacity or max virtual managed clusters settings are not correctly configured for the resource owner, resulting in unallocated capacity."
+    ]
+  },
+  {
+    "fileName": "TSG-Capps-Slow-Env-Creation.md",
+    "incidents": [
+      "A user reports that creating a new Azure Container Apps environment with a custom VNET has been stuck in \u0022Provisioning\u0022 status for over 45 minutes, with no error messages.",
+      "The provisioning of a V2 Non-VNET Container Apps environment consistently takes longer than 30 minutes, delaying application deployment pipelines.",
+      "Multiple environment creation requests in a subscription show extended wait times, and a spike in environment provisioning is observed, possibly due to depleted pre-provisioned cluster buffers.",
+      "Cluster creation logs for V1 VNET environments reveal repeated \u0022Async AKS Provision Operation Status: InProgress\u0022 messages for over an hour, suggesting the AKS provisioning process is stalled.",
+      "Operation handler execution times for \u0022ProvisionAksHandler\u0022 show high operation duration (\u003E1 hour) and a high execution count (\u003E100), but the average seconds between executions remain within 30-40 seconds, indicating a specific step is stuck.",
+      "Error details from the AKS provisioning operation reveal \u0022Pods not in Running status\u0022 for core components like coredns and metrics-server, with messages about network misconfiguration.",
+      "Environment provisioning delays are correlated with high average seconds between operation handler executions (\u003E60 seconds), indicating a region-wide slowdown in operation processing due to a high volume of queued operations.",
+      "Provisioning attempts for environments with workload profiles enabled (hasWorkloadProfiles=\u0027True\u0027) are consistently exceeding the 30-minute threshold, regardless of VNET configuration.",
+      "Users observe that environment creation requests are not being fulfilled from the pre-provisioned pool and instead trigger new cluster provisioning, leading to longer wait times after a recent spike in environment creation.",
+      "An operations team notices that provisioning delays only occur in regions where Durable Functions for asynchronous operation processing are not yet enabled, as shown by the configuration absence."
+    ]
+  },
+  {
+    "fileName": "TSG-ConsumptionV2OnAKS.md",
+    "incidents": [
+      "Users in West Europe report frequent HTTP 502 or 504 errors when accessing apps, accompanied by \u201Cconnection reset by peer\u201D messages in logs.",
+      "Application pods running Consumption V2 workloads are being scheduled on Legion nodes instead of AKS nodes, despite recent configuration changes.",
+      "Customer is unable to scale Consumption V2 apps due to insufficient node capacity, resulting in \u201Cpending\u201D pods and delayed deployments.",
+      "Mounting Azure Files volumes on Consumption V2 workloads via Private Link intermittently fails, with CSI driver logs showing race condition errors.",
+      "Application logs display intermittent connectivity drops for backend services hosted on ACA, specifically in clusters listed as \u201Chigh temperature\u201D in the monitoring dashboard.",
+      "After attempting to migrate Consumption V2 workloads to AKS, users still see pods running on Legion nodes when inspected via Kusto Logs or the Geneva GetManagedClusterPod action.",
+      "Pods intended to run on AKS remain unscheduled due to IP exhaustion in the customer subnet, leading to resource allocation errors.",
+      "Deployment of a new node pool for Consumption V2 workloads fails or results in \u201Cinsufficient resources\u201D messages due to improper SKU selection or inadequate core/memory sizing.",
+      "Applications using Azure Files as persistent storage experience mount failures, with errors referencing Private Link configurations and CSI plugin timeouts.",
+      "Manual workload migration steps are performed, but subsequent validation shows that workload pods are still being scheduled on Legion, indicating a misconfiguration of helm chart values."
+    ]
+  },
+  {
+    "fileName": "TSG-Dotnet-trace.md",
+    "incidents": [
+      "A .NET application running in a Kubernetes container is experiencing intermittent high CPU usage, but the container does not have any diagnostic tools installed to collect runtime performance traces.",
+      "Attempts to install dotnet-trace, dotnet-counters, or other diagnostic tools inside a customer\u2019s container fail due to lack of package managers or restricted shell access.",
+      "A critical production container is exhibiting resource starvation symptoms (e.g., slow response times, frequent timeouts), and support needs to obtain a trace without disrupting the running workload.",
+      "Running dotnet-trace on a containerized app results in a hang or fails to locate the .NET process, preventing collection of trace data.",
+      "The dotnet process inside the container is not visible when running diagnostic commands, making it unclear which process ID to target for tracing.",
+      "Attempts to run dotnet-dump inside the container fail due to missing dependencies or the tool not being present, and an alternative method is required to obtain a memory dump.",
+      "Attempts to copy large .nettrace or dump files out of a containerized environment fail due to file transfer interruptions or lack of file transfer utilities.",
+      "A non-dotnet app in the same container environment needs performance tracing, but dotnet-trace is nonfunctional or incompatible, requiring use of perfcollect instead.",
+      "Support engineers need to gain access to a container\u2019s process namespace to install or execute debugging tools that are not included in the original container image.",
+      "Downloading diagnostic tools with curl inside the container fails due to missing curl, requiring installation of curl and dependencies from a privileged context."
+    ]
+  },
+  {
+    "fileName": "TSG-EasyAuth-Use-Federated-Identity.md",
+    "incidents": [
+      "Users receive \u0022Invalid client secret\u0022 errors when attempting to authenticate to the container app using Azure AD after switching to Managed Identity.",
+      "Authentication to the container app fails with an error indicating \u0022AADSTS7000215: Invalid client secret provided\u0022 despite the managed identity being configured.",
+      "The container app is unable to obtain tokens via Azure AD, and logs show authentication failures referencing missing or misconfigured federated credentials.",
+      "Users are unable to sign in to the application with Microsoft Entra ID, and the authentication configuration page shows missing or incorrect federated identity credentials.",
+      "The container app fails to access other Azure resources using managed identity, with errors indicating that the identity is not recognized as a federated credential.",
+      "A GET request to the Microsoft Graph API for federatedIdentityCredentials does not show the expected Managed Identity Object ID in the \u0022subject\u0022 property.",
+      "Attempts to configure EasyAuth to use Managed Identity as the client secret do not work, and authentication settings in the Azure portal do not update as expected.",
+      "After configuring the federated credential, the application still requires a manual client secret, indicating that EasyAuth override with Managed Identity is not effective.",
+      "Errors appear in diagnostic logs stating that the federated identity credentials are not found for the app registration when users try to authenticate.",
+      "The application authentication suddenly stops working after an update, and investigation reveals that the App Registration/Managed Identity Client ID was mistakenly used instead of the Object ID in the federated credential setup."
+    ]
+  },
+  {
+    "fileName": "TSG-Image-Vulnerability-Remediation001.md",
+    "incidents": [
+      "A vulnerability scanner flags cappsinttestregistrypublic.azurecr.io/containerstress as having outdated package versions, even though a Dependabot PR updating the image has already been approved.",
+      "A test deployment using cappsinttestregistryprivate.azurecr.io/nginx is blocked due to a security policy that rejects images with unpatched CVEs reported in the latest scan.",
+      "Automated scanning tools in Azure DevOps report that cappsinttestregistrypublic.azurecr.io/httpprobeapp is missing the latest security updates after recent dependency changes.",
+      "The vulnerability dashboard continues to display high-severity vulnerabilities for cappsinttestregistrypublic.azurecr.io/clientwithnonroot despite recent remediation PRs being merged but not pushed.",
+      "During a routine audit, cappsinttestregistrypublic.azurecr.io/ordersapp is listed as non-compliant because its image reference in the Dockerfile points to an older, vulnerable tag.",
+      "Service tree vulnerability scans identify cappsinttestregistryprivate.azurecr.io/managedidentityapp as running a container image with critical security vulnerabilities, despite recent approval of a fix in the code repository.",
+      "Attempting to pull cappsinttestregistrypublic.azurecr.io/proxy results in image pull failures due to a missing or outdated image tag after remediation steps were partially completed.",
+      "A compliance report indicates that cappsinttestregistrypublic.azurecr.io/daprapp is using an image with expired base layers, causing the container deployment to be blocked in certain environments.",
+      "Security alerts are triggered for cappsinttestregistrypublic.azurecr.io/kuar because the image was not rebuilt and pushed after the Dockerfile was updated to remediate known vulnerabilities.",
+      "Dependabot PRs for cappsinttestregistrypublic.azurecr.io/pinger are approved, but the vulnerability scan results do not change, revealing that the new image version was not pushed to the ACR."
+    ]
+  },
+  {
+    "fileName": "TSG-Images-Kurad-001.md",
+    "incidents": [
+      "Docker image build fails with \u0022no such file or directory: bin/blue/amd64/kuard\u0022 when running \u0060docker build\u0060.",
+      "After pushing the image, the new kuard version tag (e.g., \u0060blue\u0060 or \u0060green\u0060) does not appear in the Azure Container Registry when running \u0060az acr repository show-tags\u0060.",
+      "Receiving \u0022authentication required\u0022 or \u0022unauthorized: authentication required\u0022 error when attempting to push images to ACR.",
+      "Docker push command fails with \u0022denied: requested access to the resource is denied\u0022 when pushing the kuard image.",
+      "ACR login using \u0060az acr login\u0060 reports \u0022ERROR: The Resource \u0027Microsoft.ContainerRegistry/registries/your-acr-name\u0027 under resource group was not found.\u0022",
+      "Updated Dockerfile changes are not reflected in the running container after redeployment because the image was not rebuilt or retagged correctly.",
+      "Attempting to build the Docker image results in errors related to a missing or misconfigured ENTRYPOINT.",
+      "Image push to ACR completes without errors, but the latest tag does not show up in the repository list when verified.",
+      "The built image runs locally but fails to start in Azure due to incorrect binary path or permissions in the Dockerfile.",
+      "Trying to push to ACR results in a \u0022manifest unknown\u0022 error due to incorrect image naming or tagging during the build process."
+    ]
+  },
+  {
+    "fileName": "TSG-JavaAgent-General.md",
+    "incidents": [
+      "Application pods fail to start due to \u0022Failed to pull java agent image.\u0022 error in Container App events.",
+      "Application pods start but log \u0022Failed to setup java agent.\u0022 during initialization, and diagnostics data is missing.",
+      "Java agent initialization fails in the init container, causing the main application container to enter CrashLoopBackOff state.",
+      "Java diagnostics are not available in Azure Monitor for one or more Container Apps after enabling the Java agent.",
+      "Multiple Container App revisions show repeated failures during deployment with errors referencing Java agent setup.",
+      "Pod logs show missing or misconfigured environment variables related to JAVA_TOOL_OPTIONS after enabling Java diagnostics.",
+      "The init container \u0022k8se-java-agent-setup\u0022 repeatedly fails, resulting in delayed or failed app deployments.",
+      "Users observe degraded application performance or increased startup time after Java agent is enabled, with related errors in logs.",
+      "Cluster-wide alert triggers: \u0022[Java Diagnostic] Failed to set up Java Agent for more than 5 times,\u0022 indicating persistent setup failures.",
+      "Config map updates for Java agent runtime configurations are not propagated, resulting in the agent running with outdated or default settings."
+    ]
+  },
+  {
+    "fileName": "TSG-JavaComponent-Java-Component-ARM-Request-succeeded-rate-less-than-95%.md",
+    "incidents": [
+      "Users observe ARM request failures for Java components, resulting in a success rate dropping below 95% in Azure Spring Apps metrics.",
+      "Repeated error messages stating \u0022Failed to create config map external-auth-config-map for JavaComponent configserver in k8se-system namespace\u0022 appear in logs for Java components.",
+      "ARM provisioning requests for new or updated Java components consistently report a provisioningState of \u0022Failed\u0022 in monitoring dashboards.",
+      "Customers using vnet-injection with v1 architecture report that Java components cannot be deployed or updated, and no retries are attempted after a failure.",
+      "Operational logs for Java components show a pattern of failed operations with error messages in ContainerAppControllerEvents, such as stack traces or specific operation names failing.",
+      "Users notice that certain Java components fail ARM operations in specific environments while others succeed, suggesting an environment-specific or configuration issue.",
+      "Kusto queries reveal a high number of failed ARM operations for Java components within the last 10 hours, correlated with deployment or scaling activities.",
+      "Alerts are triggered in Azure Monitor indicating the ARM request succeeded rate for Java components has fallen below the configured 95% threshold, with no obvious transient issues.",
+      "During attempted updates or configuration changes to Java components, the operation fails silently or with non-descriptive error messages, and subsequent attempts do not resolve the issue.",
+      "Java component pods in Kubernetes show related event failures, including missing config maps or errors in the k8s event logs associated with ARM operations."
+    ]
+  },
+  {
+    "fileName": "TSG-JavaMetrics-Java-Metrics-not-found.md",
+    "incidents": [
+      "Java application deployed in Azure Container Apps is not displaying any Java-specific metrics in Azure Monitor, even though the app is running.",
+      "Java metrics are visible in the Jarvis dashboard but not appearing in Azure Monitor, causing confusion about monitoring data consistency.",
+      "No Java metrics are collected for a Container App because the Java Metrics feature flag is disabled or not properly set in the app configuration.",
+      "Java metrics are missing after the Container App has been scaled to zero replicas by the autoscaler, resulting in no running pods.",
+      "The runtime metrics processor pod in the k8se-system namespace is not running or repeatedly restarting, and Java metrics are not flowing through the system.",
+      "The k8se-jmxmetricssc sidecar container in the user pod is not in a Ready state or has a high restart count, leading to missing Java metrics.",
+      "Logs from the k8se-jmxmetricssc sidecar show repeated \u0022error on readJmxBeans\u0022 messages, indicating issues reading JMX data from the Java application.",
+      "The runtime metrics processor pod shows abnormally high CPU or memory usage in resource monitoring, correlating with missing or delayed Java metrics.",
+      "Geneva MDM pod logs or status indicate issues, such as errors or restarts, which block the transmission of Java metrics to downstream monitoring.",
+      "Environment variables related to JMX configuration in the Java container are misconfigured or conflicting, causing the sidecar to fail to collect metrics."
+    ]
+  },
+  {
+    "fileName": "TSG-Jobs-Basic-001.md",
+    "incidents": [
+      "A user triggers a manual Container Apps Job via the /start API, but the job fails to create and returns a 400 or higher status code.",
+      "A scheduled Container Apps Job does not start at the expected cron time, and no execution is observed in the monitoring logs.",
+      "An event-triggered Container Apps Job fails to execute in response to a Service Bus or Azure Blob event, with no corresponding entry in the EventProcessorEvents table.",
+      "A job execution is created but repeatedly stops and restarts before completion, indicating possible node failures or resource constraints.",
+      "Job creation attempts are returning specific error messages in the ContainerAppsAdminEvents log, such as \u0022Resource quota exceeded\u0022 or \u0022Invalid configuration.\u0022",
+      "A job execution is visible in the Data Plane logs but fails to complete, with the error field in ContainerAppControllerEvents indicating a failure reason such as \u0022Image pull failed\u0022 or \u0022CrashLoopBackOff.\u0022",
+      "A user observes that a job execution started but was prematurely terminated due to a node scale down event, as indicated in the EventProcessorEvents.",
+      "Attempts to create jobs of type \u0022scheduled\u0022 or \u0022event-triggered\u0022 do not result in any executions, with investigation showing errors in the Data Plane logs related to controllerKind \u0022ContainerAppJob.\u0022",
+      "A job execution repeatedly fails to restart after being stopped, exceeding the configured replicaRetryLimit, and is not rescheduled.",
+      "Users notice slow or missing job executions in environments that previously worked, with log queries showing recent node-impacting events affecting job availability."
+    ]
+  },
+  {
+    "fileName": "TSG-KEDA-001.md",
+    "incidents": [
+      "Container app fails to scale up when incoming HTTP request traffic increases, resulting in slow responses or dropped connections.",
+      "Container app remains at maximum replica count even though incoming traffic has decreased, causing unnecessary resource consumption and costs.",
+      "Scaling events show no change in replica count despite observed metric values (e.g., CPU, HTTP requests) exceeding configured thresholds in the ScaledObject.",
+      "Unexpected error in the KEDA logs: \u0022System Event: Scaled down replica set \u003CrevisionName\u003E to 0 from 2.\u0022 despite ongoing user traffic.",
+      "Replica count oscillates rapidly (pods scale up and down repeatedly) due to misconfigured scaling thresholds or conflicting metric types.",
+      "Observed metric value in HTTP Scaler events does not match actual incoming traffic as seen in Envoy logs, leading to incorrect scaling behavior.",
+      "Pods do not scale out even though CPU utilization exceeds the target value set in the KEDA ScaledObject configuration.",
+      "MDM dashboard shows a discrepancy between the number of user requests and the number of active replicas, leading to under- or over-provisioning.",
+      "Container app stays at zero replicas and does not activate on new events, despite event source being active and correctly configured.",
+      "Scaling calculations appear off by approximately 10% when using AverageValue metric type, resulting in one less or one more replica than expected."
+    ]
+  },
+  {
+    "fileName": "TSG-Kusto-logs-ingestion-delay.md",
+    "incidents": [
+      "Logs generated by container apps are present in Dgrep but are missing or significantly delayed in Kusto queries, resulting in incomplete analytics dashboards.",
+      "A sudden drop to zero in GDS ingestion metrics on the monitoring dashboard, even though upstream logging sources remain active and healthy.",
+      "Error or alert indicating \u201CLog ingestion delay detected: Ingestion time exceeds 30 minutes\u201D for specific tenants or regions in Kusto.",
+      "Control plane or data plane logs are not appearing in Kusto tables, while they are visible and timely in Dgrep, pointing to a possible GDS ingestion failure.",
+      "Performance alert or dashboard shows Kusto cluster CPU pegged at or near 100%, corresponding with delayed or missing logs in Kusto.",
+      "Recent changes to Kusto ingestion configuration (KustoConfig.Public.json) coincide with logs not appearing or ingestion metrics dropping to zero in certain regions.",
+      "ReceivedEvents query in CcDiag namespace indicates high \u0060maDelay\u0060 or \u0060idleTime\u0060 values, showing bottlenecks between monitoring agent, GDS, and Kusto.",
+      "Logs for specific tenants or subscriptions (such as test subscriptions) are missing from Kusto due to deleted or invalid cluster references, causing false positive alerts.",
+      "QosEvents query for a specific blob name shows \u201Clog delivery failed\u201D status, with logs not being ingested into Kusto for a specific region or tenant.",
+      "After a suspected GDS bug or deployment, ingestion to Kusto stops for all or some tenants, but logs are still present and accessible in Dgrep, isolating the issue to the GDS-Kusto path."
+    ]
+  },
+  {
+    "fileName": "TSG-Managed-Certificates.md",
+    "incidents": [
+      "Provisioning a managed certificate for a root domain (e.g., example.com) fails with a \u0022domain ownership validation failed\u0022 error due to missing or incorrect TXT or @ DNS records.",
+      "Managed certificate provisioning for a subdomain (e.g., www.example.com) is stuck in a pending state because the CNAME or TXT record in DNS is misconfigured or missing.",
+      "Renewal of an existing managed certificate fails with an error such as \u0022failed to renew managed certificate\u0022 after the user changes the CNAME record in DNS after initial certificate issuance.",
+      "Attempting to bind a managed certificate to a container app in a VNET with restrictive NSG or DNS settings results in a \u0022certificate validation timeout\u0022 or \u0022unable to contact DigiCert\u0022 error.",
+      "Provisioning a managed certificate for a custom domain returns an error indicating \u0022unsupported domain suffix\u0022 when trying to use a domain not ending with azurecontainerapps.io or trafficmanager.net.",
+      "Customer receives an error \u0022cannot issue managed certificate for internal environment\u0022 when attempting to provision a certificate for an internal, non-publicly resolvable domain.",
+      "Traffic Manager-based custom domain fails certificate provisioning with a message indicating DNS validation could not be completed for a CNAME pointing to a trafficmanager.net endpoint.",
+      "The thumbprint field is missing in the ContainerAppSecretEvents log after certificate provisioning, indicating the managed certificate was not successfully issued.",
+      "HTTPS access to the container app using the custom domain fails with a browser warning about an invalid or expired certificate, and secret events log shows managed certificate renewal did not complete.",
+      "Customer receives an error \u0022Multiple matching DNS records found\u0022 during certificate validation, caused by duplicate or conflicting DNS entries for the custom domain."
+    ]
+  },
+  {
+    "fileName": "TSG-Mariner.md",
+    "incidents": [
+      "After performing a Mariner upgrade on a V1 AKS cluster with VNET integration, the cluster enters a failed state and none of the node pools come online.",
+      "Cluster nodes remain in a NotReady state after migration to Azure Linux (Mariner), with workloads unable to be scheduled.",
+      "Autoscaling fails to add new nodes to the cluster post-Mariner upgrade, with scaling operations stuck or failing.",
+      "During or after the migration to Mariner, user workloads fail to start due to images not being pulled, and cluster logs show DNS resolution failures for mcr.microsoft.com.",
+      "The upgrade process to Mariner appears to complete, but the cluster becomes unreachable via the Kubernetes API and kubectl commands time out.",
+      "Cluster status dashboards show a spike in errors and transition to a failed state shortly after the Mariner upgrade is initiated.",
+      "Diagnostic logs reveal errors indicating that new Mariner VM nodes cannot resolve external container registry URLs due to DNS misconfiguration.",
+      "After Mariner upgrade, network connectivity between cluster nodes and external resources (such as container registries) is lost, caused by misconfigured NSG or UDR rules.",
+      "Custom DNS settings in the VNET prevent new Mariner nodes from communicating with Azure services, resulting in cluster degradation immediately following the upgrade.",
+      "Attempts to roll back to Ubuntu OS after a failed Mariner upgrade are unsuccessful, and the cluster remains in a degraded or failed state."
+    ]
+  },
+  {
+    "fileName": "TSG-Networking-001.md",
+    "incidents": [
+      "Users are unable to reach the managed cluster\u2019s public ingress IP from a specific VM, resulting in failed connectivity tests.",
+      "Traffic sent from a source VM to the cluster\u2019s ingress IP intermittently fails, correlating with periods marked as \u201Cunhealthy\u201D in the Phynet Analysis tab.",
+      "Application workloads deployed in the cluster are inaccessible from external VMs, despite correct security group and firewall configurations.",
+      "EagleEye\u2019s VmToVip tool reports a loss of connectivity between the source VM and the cluster\u2019s public IP, with corresponding ICM (Incident) records visible.",
+      "Users observe that pings or TCP connections to the cluster ingress IP time out or are dropped when initiated from their VM.",
+      "Network monitoring tools show that connectivity between the source VM and the cluster ingress IP is healthy at some times but experiences consistent packet loss or failures during specific intervals.",
+      "The EagleEye tool flags a canary dip, with the analysis correlating to a reported outage or degraded network performance between the VM and the cluster ingress IP.",
+      "Attempts to access cluster services from a VM fail, while access from other sources (such as the internet or different VMs) succeeds, indicating a possible network path issue.",
+      "During periods of reported customer impact, the EagleEye tool highlights one or more incidents (ICMs) that coincide with the observed connectivity failures."
+    ]
+  },
+  {
+    "fileName": "TSG-Networking-DNS-Debugging.md",
+    "incidents": [
+      "Pods are unable to resolve internal cluster domains such as \u0060*.cluster.legion.local\u0060, resulting in \u0022NXDOMAIN\u0022 or \u0022SERVFAIL\u0022 errors when using tools like \u0060nslookup\u0060 or \u0060dig\u0060.",
+      "Applications in the cluster experience intermittent DNS resolution failures for customer-specific domains, while public domains (e.g., \u0060google.com\u0060) resolve successfully.",
+      "DNS queries from pods are timing out or taking significantly longer than expected, causing slow application startup or degraded performance.",
+      "When running \u0060nslookup \u003Ccustomer-domain\u003E\u0060 from a pod, the query succeeds when directed at the customer\u0027s private DNS server IP directly, but fails when using the cluster DNS (lgn-core-dns) IP.",
+      "Some pods are able to resolve DNS queries, but others in the same namespace or deployment cannot, indicating inconsistent DNS behavior across pods.",
+      "CoreDNS pods show consistently high values for the \u0060coredns_forward_healthcheck_broken_total{}\u0060 metric, indicating repeated health check failures to upstream DNS servers.",
+      "A recent change to the \u0060custom-coredns\u0060 ConfigMap results in all DNS queries failing in the cluster, and CoreDNS pods log errors related to invalid configuration.",
+      "After deploying a new application, service discovery via DNS fails, and service names cannot be resolved within the cluster.",
+      "CoreDNS pods are marked healthy in Kubernetes, but DNS resolution within pods is broken, and direct queries to CoreDNS pods on port 1053 also fail.",
+      "DNS queries to external or fallback domains (e.g., Azure DNS) work, but queries to customer private domains do not resolve, suggesting CoreDNS is skipping or marking the private DNS servers as unhealthy."
+    ]
+  },
+  {
+    "fileName": "TSG-Networking-DnsTracer.md",
+    "incidents": [
+      "Pods in a specific namespace are unable to resolve external domain names, resulting in \u0022DNS resolution failed\u0022 errors in application logs.",
+      "Intermittent high DNS query latency is causing slow application startup times or timeouts when resolving service names.",
+      "Multiple pods are receiving NXDOMAIN responses when querying internal Kubernetes service DNS names that should exist.",
+      "A particular pod is making repeated DNS queries to a nameserver with no response addresses returned, leading to application connectivity failures.",
+      "DNS queries from pods on a specific node are not reaching the cluster DNS service, resulting in \u0022No route to nameserver\u0022 errors.",
+      "The cluster DNS server pod is receiving an unusually high volume of DNS requests, causing increased CPU usage and degraded DNS resolution performance.",
+      "Applications are resolving incorrect IP addresses for certain domain names, as observed in the dnsResponseAddresses field.",
+      "Some DNS queries are being sent using unexpected protocols or ports, leading to failures in name resolution.",
+      "A subset of DNS requests consistently receive SERVFAIL response codes, preventing applications from accessing required external resources.",
+      "Pods are generating excessive outgoing DNS traffic, possibly indicating a misconfiguration or DNS amplification behavior."
+    ]
+  },
+  {
+    "fileName": "TSG-Performance-001.md",
+    "incidents": [
+      "A controller pod in the k4apps deployment is repeatedly being killed with an OOMKilled (Out of Memory) status in Kubernetes.",
+      "The k4apps controller is consistently running at 100% CPU utilization, causing other workloads in the cluster to experience scheduling delays.",
+      "API response times from the controller\u2019s endpoints are significantly slower than normal, leading to timeouts or degraded user experience.",
+      "Kubernetes health checks for the controller pod are failing due to the application becoming unresponsive under heavy load.",
+      "A sudden spike in memory consumption is observed in the controller, with memory usage steadily increasing over time until the pod is evicted.",
+      "The controller logs show frequent garbage collection pauses or warnings about memory pressure from the Go runtime.",
+      "Deployment of a new version of the controller results in immediate high CPU usage, despite no increase in incoming workload.",
+      "Prometheus or other monitoring systems alert that the controller pod\u2019s resource usage (CPU/memory) has breached defined thresholds.",
+      "Heap dump analysis reveals a specific object type (e.g., job cache) is consuming most of the memory in the controller process.",
+      "During incident response, administrators observe that restarting the controller pod temporarily resolves high resource usage, but the issue quickly recurs."
+    ]
+  },
+  {
+    "fileName": "TSG-Sessions-PodPoolCapacity.md",
+    "incidents": [
+      "Users are unable to start new session executions due to Session Pod Pool capacity dropping below 75%, with error messages indicating \u0022Unable to allocate new session pod.\u0022",
+      "Session creation requests fail intermittently, with logs showing PoolActualSize significantly less than PoolExpectedSize over time.",
+      "Sustained low pod pool capacity observed on the sessions dashboard, with capacity trending downward for multiple hours.",
+      "Session Pod Pool metrics indicate PoolExpectedSize is much higher than actual pod usage, suggesting a possible pod leak, and leading to exhaustion of available pods.",
+      "Capacity remains below threshold even after scaling out the PodPool, and Legion dashboard shows that Legion Nested VM capacity is nearly exhausted.",
+      "Frequent pod crashes or high pod eviction counts reported by ListPod Geneva Action, resulting in reduced available pods and user failures.",
+      "Pod pool shows mismatched image versions between the image cache and the pool specification, leading to failed or unstable session pod startups.",
+      "High number of session allocation attempts from specific tenants detected, resulting in persistent low capacity and inability for other users to create sessions.",
+      "After scaling up the PodPool, capacity does not recover above 80% and Legion Stamps Quota Usage dashboard indicates the region is at or near quota limits.",
+      "Long wait times for starting sessions, with backend logs reflecting \u0022Begin New GetInstance Allocation - Legion Call\u0022 requests stalling or not being fulfilled due to insufficient pod resources."
+    ]
+  },
+  {
+    "fileName": "TSG-SourceToCloud-ControlPlane.md",
+    "incidents": [
+      "Cloud Build jobs fail to complete, displaying \u0022Build Failed\u0022 status in the Azure portal for Source To Cloud container apps.",
+      "Users encounter errors indicating \u0022Unable to create builder resource: Microsoft.App\\builders\u0022 when attempting to initiate a build.",
+      "Builds consistently fail for all projects in a specific Azure region, while working in others.",
+      "Builds are stuck in the \u0022Queued\u0022 or \u0022In Progress\u0022 state for extended periods and never transition to \u0022Succeeded\u0022 or \u0022Failed\u0022.",
+      "Error message \u0022Failed to retrieve build logs for ARM ID\u0022 appears when accessing build diagnostics.",
+      "Attempting to create a new build returns a \u0022Resource not found: Microsoft.App\\builders\\builds\u0022 error.",
+      "Multiple users report simultaneous build failures correlated to a known regional outage or service degradation.",
+      "Build failures with traceable errors related to control plane operations, such as \u0022Control plane request timeout\u0022 or \u0022Internal server error\u0022.",
+      "Users are unable to trace or diagnose individual build failures due to missing or incomplete trace logs in the dashboard.",
+      "Performance degradation observed in build completion times, with builds taking significantly longer than historical averages."
+    ]
+  },
+  {
+    "fileName": "TSG-SourceToCloud-Diversion.md",
+    "incidents": [
+      "After uploading an artifact using \u0060az containerapp up --source\u0060, the build process fails with a VNet-related error indicating inability to reach storage endpoints.",
+      "A container app deployment fails to pull an image from a private registry, and inspection shows the image source is being resolved to an IP address rather than a domain name.",
+      "Attempts to create a builder for SourceToCloud deployments result in immediate failure, with error messages referencing S2C builder creation issues.",
+      "Deployment logs show failed attempts to create an internal storage account with a name starting with \u0060s2c\u0060, causing the deployment to halt.",
+      "Creating private registry services as part of a SourceToCloud build fails, with errors indicating resource provisioning issues or misconfiguration.",
+      "When using the Azure SDK to initiate a build in a V1 environment, the process fails with errors unique to S2C and V1 environment compatibility.",
+      "During SourceToCloud deployment, the managed environment VNet is unable to resolve \u0060mcr.microsoft.com\u0060, resulting in image pull failures for base images.",
+      "Builds using the S2C pathway stall with background task logs showing repeated failures related to strict customer subnet or firewall rules blocking required endpoints.",
+      "Users migrating from Azure Spring Apps using JAR deployment experience build failures when using S2C, often with unclear or preview feature deprecation warnings.",
+      "Attempts to build or deploy container apps using ZIP deploy or the \u0060--source\u0060 option succeed in infra VNets but consistently fail in customer VNets due to unresolved DNS or connectivity issues."
+    ]
+  },
+  {
+    "fileName": "TSG-VK-Metrics-001.md",
+    "incidents": [
+      "Pod metrics reporting is consistently failing for a specific pod, with logs showing \u0022Failed to fetch pod metrics\u0022 errors.",
+      "Billing and usage reports are inaccurate or missing for certain pods, leading to customer complaints about incorrect usage data.",
+      "Virtual Kubelet logs repeatedly show \u0022Error happened when sending out http request to fetch metrics\u0022 for multiple pods in a specific cluster region.",
+      "Customer observes that usage statistics for one or more pods are not updating in the Azure portal, resulting in stale or outdated metrics.",
+      "Log analytics queries indicate frequent \u0022Metrics JSON Marshal Error for pod\u0022 messages, suggesting serialization problems during metric collection.",
+      "Attempts to retrieve pod metrics repeatedly return HTTP 500 errors, particularly after a pod has recently been deleted.",
+      "Support teams are unable to charge customers correctly due to missing or incomplete pod metrics in the billing pipeline.",
+      "Automated monitoring alerts are triggered due to a drop in metrics polling rate below 99% for certain VK-managed pods.",
+      "Investigation reveals \u0022Error happened when reading response body of StatsSummary for pod\u0022 in VK logs, causing gaps in metrics dashboards.",
+      "Metrics polling failures are observed only for pods that have recently been removed, but VK continues to attempt to poll their metrics for over 30 minutes."
+    ]
+  },
+  {
+    "fileName": "TSG-VK-Overall.md",
+    "incidents": [
+      "A pod in Azure Container Apps is stuck in a \u0022Pending\u0022 or \u0022Unknown\u0022 status for an extended period and does not transition to \u0022Running\u0022.",
+      "The RunningStateDetails field for a specific pod shows an error message such as \u0022Failed to start container\u0022 or \u0022Container exited unexpectedly\u0022.",
+      "A user observes that the pod\u0027s RunningState is \u0022Terminated\u0022 or \u0022CrashLoopBackOff\u0022 with no clear reason in the UI.",
+      "Pod logs indicate that requests to Legion (e.g., PutPod, GetPodStatus) are returning HTTP error codes like 500 or 404, resulting in failed pod operations.",
+      "The pod\u0027s availability metrics in the ASI portal suddenly drop, and workloads become unresponsive or unavailable.",
+      "The VK Pod has restarted unexpectedly, and reviewing previous logs shows errors such as \u0022Timeout communicating with Legion\u0022 or \u0022Heartbeat missed\u0022.",
+      "A container within a pod is listed as \u0022Waiting\u0022 with no further progress, and PodMessage or RunningStateDetails indicate image pull or startup errors.",
+      "Attempting to delete or update a pod via Kubernetes API results in no change, and LegionVKVirtualKubeletEvents logs show failed or missing responses from Legion.",
+      "A pod\u0027s logs contain repeated \u0022Sending requests from virtual kubelet\u0022 messages without corresponding successful responses, indicating possible communication issues.",
+      "Pod lifecycle events in Legion Kusto tables show failed operations or error messages such as \u0022Resource allocation failed\u0022 or \u0022Pod scheduling denied by Legion\u0022."
+    ]
+  }
+]

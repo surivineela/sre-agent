@@ -248,11 +248,12 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
         bool exhaustiveKnn = false,
         string? filter = null,
         bool enableHybridSearch = false,
+        bool enableSemanticSearch = false,
         CancellationToken cancellationToken = default)
     {
         var searchOptions = new SearchOptions
         {
-            Filter = filter,
+            Filter = "type eq 'document' " + (string.IsNullOrEmpty(filter) ? "" : $"and ({filter})"),
             Size = (int)Math.Min(k, maxK),
             Select = { "title", "chunk_id", "chunk", "parent_id" },
             IncludeTotalCount = true,
@@ -269,14 +270,13 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
                 : null,
         });
 
-        searchOptions.QueryType = SearchQueryType.Semantic;
+        searchOptions.QueryType = enableSemanticSearch ? SearchQueryType.Semantic : SearchQueryType.Simple;
         searchOptions.SemanticSearch = new SemanticSearchOptions
         {
             SemanticConfigurationName = Constants.SemanticSearchConfig,
             // QueryCaption = new QueryCaption(QueryCaptionType.Extractive),
             // QueryAnswer = new QueryAnswer(QueryAnswerType.Extractive)
         };
-
 
         var response = await searchClient.SearchAsync<SearchDocumentResult>(
                 searchText: enableHybridSearch ? query : "*",
