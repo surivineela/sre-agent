@@ -16,6 +16,7 @@ const useThreadFiltersAndIncidentStatusStyles = makeStyles({
         display: 'flex',
         alignItems: 'center',
         gap: `${tokens.spacingHorizontalS}`,
+        flexWrap: 'wrap',
     },
 });
 
