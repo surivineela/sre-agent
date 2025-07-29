@@ -88,7 +88,7 @@ namespace Agent.Plugins.Definitions
         Retrieves the ccpNamespace of an ACA's managed cluster, required for other AKS queries.
 
         Scenario:
-        Use this tool to get the ccpNamespace for a managed cluster.
+        Use this method when you need to obtain the CCP namespace for an AKS cluster before performing other AKS cluster-specific queries that require this namespace identifier.
 
         Output:
         Returns tab-separated table data in CSV format. Column headers:
@@ -156,8 +156,9 @@ namespace Agent.Plugins.Definitions
         Retrieves system component CPU usage for the given managed cluster.
 
         Scenario:
-        Use this tool to identify system components consuming more than 50% of their allocated CPU limits.
-
+        Use this tool to analyze CPU utilization across system components in a managed cluster. 
+        Check whether high CPU usage is contributing to performance issues within the cluster.
+        
         Output:
         Returns tab-separated table data in CSV format. Column headers:
         - TimestampUtc: Timestamp of the metric
