@@ -201,24 +201,33 @@ public class AppServiceCrawler : GenericArmResourceCrawler
                         {
                             if (func.HasData)
                             {
-                                var functionNode = new FunctionNode(ParseFunctionConfig(func.Data));
-                                await _graphDbClient.AddOrUpdateNodeAsync(functionNode);
+                                var fnFunc = ParseFunctionConfig(func.Data);
+                                if (fnFunc != null)
+                                {
+                                    var functionNode = new FunctionNode(fnFunc);
+                                    await _graphDbClient.AddOrUpdateNodeAsync(functionNode);
 
-                                var edge = new ArmResourceEdge(appServiceNode.GetNodeId(), functionNode.GetNodeId(), Constants.Relationships.Contains);
-                                await _graphDbClient.AddOrUpdateEdgeAsync(edge);
+                                    var edge = new ArmResourceEdge(appServiceNode.GetNodeId(), functionNode.GetNodeId(), Constants.Relationships.Contains);
+                                    await _graphDbClient.AddOrUpdateEdgeAsync(edge);
+                                }
                             }
                         }
-                    } else
+                    }
+                    else
                     {
                         await foreach (var workflow in webApp.GetSiteWorkflows().GetAllAsync())
                         {
                             if (workflow.HasData)
                             {
-                                var workflowNode = new WorkflowNode(ParseWorkflowConfig(workflow.Data));
-                                await _graphDbClient.AddOrUpdateNodeAsync(workflowNode);
+                                var wnWorkflow = ParseWorkflowConfig(workflow.Data);
+                                if (wnWorkflow != null)
+                                {
+                                    var workflowNode = new WorkflowNode(wnWorkflow);
+                                    await _graphDbClient.AddOrUpdateNodeAsync(workflowNode);
 
-                                var edge = new ArmResourceEdge(appServiceNode.GetNodeId(), workflowNode.GetNodeId(), Constants.Relationships.Contains);
-                                await _graphDbClient.AddOrUpdateEdgeAsync(edge);
+                                    var edge = new ArmResourceEdge(appServiceNode.GetNodeId(), workflowNode.GetNodeId(), Constants.Relationships.Contains);
+                                    await _graphDbClient.AddOrUpdateEdgeAsync(edge);
+                                }
                             }
                         }
                     }
@@ -571,20 +580,12 @@ public class AppServiceCrawler : GenericArmResourceCrawler
                 value.Contains("password=", StringComparison.OrdinalIgnoreCase));
     }
 
-    private FunctionNode.Function ParseFunctionConfig(FunctionEnvelopeData data)
+    private FunctionNode.Function? ParseFunctionConfig(FunctionEnvelopeData data)
     {
         if (data == null)
         {
-            return new FunctionNode.Function
-            {
-                Name = "unknown",
-                TriggerType = "Unknown",
-                BindingDetails = new Dictionary<string, object>(),
-                RuntimeInfo = new Dictionary<string, string>(),
-                PerformanceCharacteristics = new Dictionary<string, object>(),
-                OperationalMetadata = new Dictionary<string, object>(),
-                MonitoringSettings = new Dictionary<string, object>()
-            };
+            // A node must have non-empty Id (used as vertex id in graph db) otherwise it will be failed to be added to the graph
+            return null;
         }
 
         try
@@ -596,16 +597,8 @@ public class AppServiceCrawler : GenericArmResourceCrawler
 
             if (string.IsNullOrEmpty(configString))
             {
-                return new FunctionNode.Function
-                {
-                    Name = data.Name ?? "unknown",
-                    TriggerType = "Unknown",
-                    BindingDetails = new Dictionary<string, object>(),
-                    RuntimeInfo = new Dictionary<string, string>(),
-                    PerformanceCharacteristics = new Dictionary<string, object>(),
-                    OperationalMetadata = new Dictionary<string, object>(),
-                    MonitoringSettings = new Dictionary<string, object>()
-                };
+                // A node must have non-empty Id (used as vertex id in graph db) otherwise it will be failed to be added to the graph
+                return null;
             }
 
             var configJson = JsonDocument.Parse(configString);
@@ -619,9 +612,9 @@ public class AppServiceCrawler : GenericArmResourceCrawler
             var function = new FunctionNode.Function
             {
                 Id = data.Id!,
-                SubscriptionId = resourceIdentifier.SubscriptionId ?? throw new InvalidOperationException("SubscriptionId cannot be null"),
-                ResourceGroupName = resourceIdentifier.ResourceGroupName ?? throw new InvalidOperationException("Resource group name cannot be null"),
-                Location = resourceIdentifier.Location ?? throw new InvalidOperationException("Location cannot be null"),
+                SubscriptionId = resourceIdentifier.SubscriptionId,
+                ResourceGroupName = resourceIdentifier.ResourceGroupName,
+                Location = resourceIdentifier.Location,
                 Name = functionName,
                 TriggerType = "Unknown", // TODO: bring over code from AAPT-Antares-Antux
                 BindingDetails = new Dictionary<string, object>(),
@@ -636,31 +629,16 @@ public class AppServiceCrawler : GenericArmResourceCrawler
         catch (Exception ex)
         {
             _logger.LogInternalWarning($"Failed to parse function config for {data.Name}: {ex.Message}");
-            return new FunctionNode.Function
-            {
-                Name = data.Name ?? "unknown",
-                TriggerType = "Unknown",
-                BindingDetails = new Dictionary<string, object>(),
-                RuntimeInfo = new Dictionary<string, string>(),
-                PerformanceCharacteristics = new Dictionary<string, object>(),
-                OperationalMetadata = new Dictionary<string, object>(),
-                MonitoringSettings = new Dictionary<string, object>()
-            };
+            // A node must have non-empty Id (used as vertex id in graph db) otherwise it will be failed to be added to the graph
+            return null;
         }
     }
 
-    private WorkflowNode.Workflow ParseWorkflowConfig(WorkflowEnvelopeData data)
+    private WorkflowNode.Workflow? ParseWorkflowConfig(WorkflowEnvelopeData data)
     {
         if (data == null)
         {
-            return new WorkflowNode.Workflow
-            {
-                Id = "unknown",
-                Name = "unknown",
-                SubscriptionId = "unknown",
-                ResourceGroupName = "unknown",
-                Location = "unknown",
-            };
+            return null;
         }
 
         try
@@ -675,9 +653,9 @@ public class AppServiceCrawler : GenericArmResourceCrawler
             var workflow = new WorkflowNode.Workflow
             {
                 Id = data.Id!,
-                SubscriptionId = resourceIdentifier.SubscriptionId ?? throw new InvalidOperationException("SubscriptionId cannot be null"),
-                ResourceGroupName = resourceIdentifier.ResourceGroupName ?? throw new InvalidOperationException("Resource group name cannot be null"),
-                Location = resourceIdentifier.Location ?? throw new InvalidOperationException("Location cannot be null"),
+                SubscriptionId = resourceIdentifier.SubscriptionId ?? "unknown",
+                ResourceGroupName = resourceIdentifier.ResourceGroupName ?? "unknown",
+                Location = resourceIdentifier.Location ?? "unknown",
                 Name = workflowName,
             };
 
@@ -686,14 +664,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
         catch (Exception ex)
         {
             _logger.LogInternalWarning($"Failed to parse function config for {data.Name}: {ex.Message}");
-            return new WorkflowNode.Workflow
-            {
-                Id = "unknown",
-                Name = data.Name ?? "unknown",
-                SubscriptionId = "unknown",
-                ResourceGroupName = "unknown",
-                Location = "unknown",
-            };
+            return null;
         }
     }
 }
