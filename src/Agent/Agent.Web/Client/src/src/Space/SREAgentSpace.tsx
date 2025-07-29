@@ -40,39 +40,20 @@ const inStandaloneMode = AzPortalProxy.inStandaloneMode;
 const query = `traces | where timestamp > ago(1d)`;
 const source = `PaasServerless.SreAgentSpace`;
 
-const TabsListWrapper: FC = () => {
-    const environmentContext = useContext(EnvironmentContext);
-    const theme = useContext(ThemeContext);
-    const sreAgentContext = useContext(SreAgentContext);
+interface ControlPlaneDependentTabsProps {
+    appInsightsResourceId: string | undefined;
+    setAppInsightsResourceId: (resourceId: string) => void;
+}
 
+const ControlPlaneDependentTabs = ({ appInsightsResourceId, setAppInsightsResourceId }: ControlPlaneDependentTabsProps) => {
+    const environmentContext = useContext(EnvironmentContext);
+    const sreAgentContext = useContext(SreAgentContext);
     const {
         incidentManagement: { isIncidentManagementConnected },
         agent: { setMode, setAccessLevel },
     } = sreAgentContext;
+
     const intl = useIntl();
-    const location = useLocation();
-    const navigate = useNavigate();
-
-    const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
-
-    const selectedValue = useMemo(() => {
-        if (location.pathname?.startsWith('/views/activities')) {
-            return TabValues.Activities;
-        }
-        if (location.pathname?.startsWith('/views/resourcegraph')) {
-            return TabValues.Graph;
-        }
-        if (location.pathname?.startsWith('/views/settings')) {
-            return TabValues.Settings;
-        }
-        if (location.pathname?.startsWith('/views/incidentmanagement')) {
-            return TabValues.IncidentManagement;
-        }
-        return TabValues.Activities;
-    }, [location.pathname]);
-
-    const [appInsightsResourceId, setAppInsightsResourceId] = useState<string>();
-
     const styles = useSreAgentSpaceStyles();
 
     const { agent, agentLoaded } = useSreAgent(environmentContext.resourceId);
@@ -95,9 +76,73 @@ const TabsListWrapper: FC = () => {
         if (response) {
             setAppInsightsResourceId(response);
         }
-    }, [environmentContext.resourceId, agent?.properties.logConfiguration?.applicationInsightsConfiguration?.appId]);
+    }, [
+        environmentContext.resourceId,
+        agent?.properties.logConfiguration?.applicationInsightsConfiguration?.appId,
+        setAppInsightsResourceId,
+    ]);
 
-    const onLogsClick = useCallback(async () => {
+    useEffect(() => {
+        if (agent) {
+            fetchAppInsightsId();
+            setMode(agent.properties.actionConfiguration?.mode ?? '');
+            setAccessLevel(agent.properties.actionConfiguration?.accessLevel ?? AgentAccessLevel.low);
+        }
+    }, [agent, fetchAppInsightsId, setAccessLevel, setMode]);
+
+    return (
+        <>
+            {isIncidentManagementEnabled && (
+                <Tab id="IncidentManagement" value={TabValues.IncidentManagement} disabled={!agentLoaded}>
+                    {intl.formatMessage(SreAgentTabResources.incidentManagement)}
+                </Tab>
+            )}
+            <Tab id="Settings" value={TabValues.Settings}>
+                {intl.formatMessage(SreAgentTabResources.settings)}
+            </Tab>{' '}
+            <LineHorizontal120Regular className={styles.lineIconStyle} />
+            <Tab id="Logs" value={TabValues.Logs} disabled={!agentLoaded || !appInsightsResourceId}>
+                <div className={styles.logsMenuItemContainer}>
+                    <Open16Regular />
+                    {intl.formatMessage(SreAgentTabResources.logs)}
+                </div>
+            </Tab>
+        </>
+    );
+};
+
+const TabsListWrapper: FC = () => {
+    const theme = useContext(ThemeContext);
+    const sreAgentContext = useContext(SreAgentContext);
+    const { isCrossTenantPortalMode } = useContext(EnvironmentContext);
+
+    const {
+        agent: { setMode },
+    } = sreAgentContext;
+    const intl = useIntl();
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    const [appInsightsResourceId, setAppInsightsResourceId] = useState<string>();
+    const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
+
+    const selectedValue = useMemo(() => {
+        if (location.pathname?.startsWith('/views/activities')) {
+            return TabValues.Activities;
+        }
+        if (location.pathname?.startsWith('/views/resourcegraph')) {
+            return TabValues.Graph;
+        }
+        if (location.pathname?.startsWith('/views/settings')) {
+            return TabValues.Settings;
+        }
+        if (location.pathname?.startsWith('/views/incidentmanagement')) {
+            return TabValues.IncidentManagement;
+        }
+        return TabValues.Activities;
+    }, [location.pathname]);
+
+    const onLogsClick = useCallback(() => {
         if (appInsightsResourceId) {
             window.open(
                 `https://portal.azure.com#view/Microsoft_OperationsManagementSuite_Workspace/Logs.ReactView/query/${query}/resourceId/${encodeURIComponent(
@@ -132,22 +177,10 @@ const TabsListWrapper: FC = () => {
     );
 
     useEffect(() => {
-        if (agent && !inStandaloneMode) {
-            fetchAppInsightsId();
-            setMode(agent.properties.actionConfiguration?.mode ?? '');
-            setAccessLevel(agent.properties.actionConfiguration?.accessLevel ?? AgentAccessLevel.low);
-        }
-    }, [agent, fetchAppInsightsId, setAccessLevel, setMode]);
-
-    useEffect(() => {
         if (inStandaloneMode) {
             setMode('standalone');
         }
     }, [setMode]);
-
-    const onSendFeedback = useCallback(() => {
-        setIsFeedbackDialogOpen(true);
-    }, []);
 
     return (
         <div>
@@ -159,35 +192,23 @@ const TabsListWrapper: FC = () => {
                     <Tab id="Knowledge" value={TabValues.Graph}>
                         {intl.formatMessage(SreAgentTabResources.resourceMapping)}
                     </Tab>
-                    {!inStandaloneMode && (
-                        <>
-                            {isIncidentManagementEnabled && (
-                                <Tab id="IncidentManagement" value={TabValues.IncidentManagement} disabled={!agentLoaded}>
-                                    {intl.formatMessage(SreAgentTabResources.incidentManagement)}
-                                </Tab>
-                            )}
-                            <Tab id="Settings" value={TabValues.Settings}>
-                                {intl.formatMessage(SreAgentTabResources.settings)}
-                            </Tab>{' '}
-                            <LineHorizontal120Regular className={styles.lineIconStyle} />
-                            <Tab id="Logs" value={TabValues.Logs} disabled={!agentLoaded}>
-                                <div className={styles.logsMenuItemContainer}>
-                                    <Open16Regular />
-                                    {intl.formatMessage(SreAgentTabResources.logs)}
-                                </div>
-                            </Tab>
-                        </>
+                    {!inStandaloneMode && !isCrossTenantPortalMode && (
+                        <ControlPlaneDependentTabs
+                            appInsightsResourceId={appInsightsResourceId}
+                            setAppInsightsResourceId={setAppInsightsResourceId}
+                        />
                     )}
                 </TabList>
                 <Button
                     style={{ fontWeight: 'normal' }}
                     appearance="transparent"
                     icon={<PersonFeedback20Regular />}
-                    onClick={() => onSendFeedback()}
+                    onClick={() => setIsFeedbackDialogOpen(true)}
                 >
                     {intl.formatMessage(SreAgentTabResources.feedback)}
                 </Button>
             </div>
+
             <FeedbackDialog isOpen={isFeedbackDialogOpen} setIsOpen={setIsFeedbackDialogOpen} />
             <Outlet />
         </div>

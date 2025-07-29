@@ -67,7 +67,7 @@ interface ThreadActionsMenuProps {
 const ThreadActionsMenu = ({ thread, handleThreadDelete }: ThreadActionsMenuProps) => {
     const { infoContent, threadIdHighlight, section, sectionTitle } = useStyles();
     const intl = useIntl();
-    const { resourceId } = useContext(EnvironmentContext);
+    const { resourceId, isCrossTenantPortalMode } = useContext(EnvironmentContext);
     const threadDeepLink = useThreadDeepLink(resourceId, thread.id);
 
     const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false);
@@ -133,9 +133,11 @@ Thread ID: ${thread.id}`;
                         <MenuItem icon={<InfoRegular />} onClick={() => setIsInfoDialogOpen(true)}>
                             {intl.formatMessage(SreAgentResources.info)}
                         </MenuItem>
-                        <MenuItem icon={<CopyRegular />} onClick={() => copyToClipboard(threadDeepLink)}>
-                            {intl.formatMessage(SreAgentResources.copyLinkToThread)}
-                        </MenuItem>
+                        {!isCrossTenantPortalMode && (
+                            <MenuItem icon={<CopyRegular />} onClick={() => copyToClipboard(threadDeepLink)}>
+                                {intl.formatMessage(SreAgentResources.copyLinkToThread)}
+                            </MenuItem>
+                        )}
                         <MenuItem icon={<DeleteRegular />} onClick={() => setIsDeleteDialogOpen(true)}>
                             {intl.formatMessage(SreAgentResources.delete)}
                         </MenuItem>

@@ -162,9 +162,11 @@ export default class AzPortalProxy {
                 AzPortalProxy.envInfo = {
                     ...AzPortalProxy.envInfo,
                     effectiveLocale: envInfo.effectiveLocale,
-                    resourceId: envInfo.resourceId,
-                    armEndpoint: envInfo.armEndpoint,
+                    // The below two will be `null` for cross-tenant
+                    resourceId: envInfo.resourceId ?? '',
+                    armEndpoint: envInfo.armEndpoint ?? '',
                     sreAgentEndpoint: envInfo.sreAgentEndpoint ?? defaultSreAgentEndpoint,
+                    isCrossTenantPortalMode: !envInfo.resourceId && !envInfo.armEndpoint,
                 };
                 this.setEnvironmentInfo(AzPortalProxy.envInfo);
                 break;

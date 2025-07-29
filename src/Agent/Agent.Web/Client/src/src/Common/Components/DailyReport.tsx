@@ -239,7 +239,7 @@ const HealthPerformanceIcon = ({ color }: { color: string }) => (
 // Main component that renders the entire dashboard
 const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
     // Get resource information at component level
-    const { resourceId } = useContext(EnvironmentContext);
+    const { resourceId, isCrossTenantPortalMode } = useContext(EnvironmentContext);
     const intl = useIntl();
     // Create formatted path for incident links
     const formattedResourcePath = resourceId
@@ -1171,7 +1171,7 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                                         </div>
                                                     )}
 
-                                                    {incident.ThreadLink && (
+                                                    {!isCrossTenantPortalMode && incident.ThreadLink && (
                                                         <div style={{ marginTop: '16px' }}>
                                                             <Button
                                                                 appearance="outline"
@@ -1328,7 +1328,7 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                                         </div>
                                                     )}
 
-                                                    {incident.ThreadLink && (
+                                                    {!isCrossTenantPortalMode && incident.ThreadLink && (
                                                         <div style={{ marginTop: '16px' }}>
                                                             <Button
                                                                 appearance="outline"

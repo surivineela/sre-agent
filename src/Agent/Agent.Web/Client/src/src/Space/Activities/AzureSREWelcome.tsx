@@ -237,7 +237,7 @@ interface AzureSREWelcomeProps {
 }
 
 const AzureSREWelcome = ({ threadId, addThread }: AzureSREWelcomeProps) => {
-    const { sreAgentEndpoint } = useContext(EnvironmentContext);
+    const { sreAgentEndpoint, isCrossTenantPortalMode } = useContext(EnvironmentContext);
 
     const styles = useWelcomeStyles();
     const intl = useIntl();
@@ -459,7 +459,7 @@ const AzureSREWelcome = ({ threadId, addThread }: AzureSREWelcomeProps) => {
                 <>
                     <FakeAgentMessage content={intl.formatMessage(WelcomeResources.finishedAnalyzingResources)} />
 
-                    {!AzPortalProxy.inStandaloneMode && <ResourceGroupsCard />}
+                    {!AzPortalProxy.inStandaloneMode && !isCrossTenantPortalMode && <ResourceGroupsCard />}
 
                     <Card className={styles.sectionCard} style={{ backgroundColor: tokens.colorNeutralBackground1 }}>
                         <div className={styles.sectionHeader}>
