@@ -214,6 +214,8 @@ extends:
         #
         - task: DotNetCoreCLI@2
           displayName: '🦾 Build Agent solution'
+          env:
+            SRE_UX_VERSION: $(Build.BuildNumber)
           inputs:
             command: build
             projects: '$(BuildSolution)'
