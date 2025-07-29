@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Agent.Framework;
+using Agent.Core.Models.Api.v1;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Evals;
@@ -15,6 +16,10 @@ public class GeneralAgentEvals
 
     private static GeneralTestCase[] LoadTestCasesFromFiles()
     {
+        // Check for environment variables to filter tests
+        var targetFolder = Environment.GetEnvironmentVariable("TEST_FOLDER");
+        var targetFile = Environment.GetEnvironmentVariable("TEST_FILE");
+
         var dataFolders = new[]
         {
             "HandOff",
@@ -22,7 +27,18 @@ public class GeneralAgentEvals
             "AKSAgent"
         };
 
+        // If a specific folder is requested, only use that folder
+        if (!string.IsNullOrEmpty(targetFolder))
+        {
+            dataFolders = dataFolders.Where(f => f.Equals(targetFolder, StringComparison.OrdinalIgnoreCase)).ToArray();
+            if (dataFolders.Length == 0)
+            {
+                throw new ArgumentException($"Folder '{targetFolder}' not found. Available folders: {string.Join(", ", new[] { "HandOff", "AzCliCommandAgent", "AKSAgent" })}");
+            }
+        }
+
         var allTestCases = new List<GeneralTestCase>();
+        var allAvailableFiles = new List<string>();
 
         foreach (var folder in dataFolders)
         {
@@ -30,10 +46,36 @@ public class GeneralAgentEvals
             if (Directory.Exists(dataFolderPath))
             {
                 var data = ModelGenerationDataLoader.LoadChatMessagesFromJsonFiles(dataFolderPath);
+
+                // Collect all available files for error reporting
+                allAvailableFiles.AddRange(data.Keys.Select(key => $"{folder}/{key}"));
+
+                // If a specific file is requested, filter the data
+                if (!string.IsNullOrEmpty(targetFile))
+                {
+                    var filteredData = data.Where(kvp => kvp.Key.Contains(targetFile, StringComparison.OrdinalIgnoreCase)).ToList();
+                    if (filteredData.Count > 0)
+                    {
+                        data = filteredData.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                    }
+                    else
+                    {
+                        // Skip this folder if no matching files found, don't throw exception yet
+                        continue;
+                    }
+                }
+
                 var testCases = data.Select(kvp => GeneralTestCase.FromModelGenerationContent(kvp.Value, $"{folder}_{kvp.Key}"))
                     .ToArray();
                 allTestCases.AddRange(testCases);
             }
+        }
+
+        // If a specific file was requested but no test cases were found across all folders, throw exception
+        if (!string.IsNullOrEmpty(targetFile) && allTestCases.Count == 0)
+        {
+            var availableFiles = string.Join(", ", allAvailableFiles);
+            throw new ArgumentException($"File '{targetFile}' not found in any folder. Available files: {availableFiles}");
         }
 
         return allTestCases.ToArray();
@@ -63,6 +105,9 @@ public class GeneralAgentEvals
         {
             response = await chatClient.GetResponseAsync(modelInput, chatOptions);
         }
+
+        // Check and handle handoff state without tool call - similar to ReasoningLoop
+        response = await HandleHandoffCorrectionIfNeeded(agent, modelInput, response, chatClient, chatOptions);
 
         // Validate based on expected output type
         switch (testCase.ExpectedOutputType)
@@ -161,7 +206,6 @@ public class GeneralAgentEvals
         }
 
         // Call the LLM with the same setup as RunSingleTurnAsync
-        TestContext.WriteLine($"\n=== CALLING LLM ===");
         ChatResponse response;
 
         try
@@ -177,14 +221,8 @@ public class GeneralAgentEvals
                 response = await chatClient.GetResponseAsync(modelInput, chatOptions);
             }
 
-            TestContext.WriteLine($"LLM call completed successfully");
-            TestContext.WriteLine($"Finish reason: {response.FinishReason}");
-            TestContext.WriteLine($"Response contains {response.Messages.Count} messages");
-
-            if (response.Usage != null)
-            {
-                TestContext.WriteLine($"Token usage - Input: {response.Usage.InputTokenCount}, Output: {response.Usage.OutputTokenCount}, Total: {response.Usage.TotalTokenCount}");
-            }
+            // Check and handle handoff state without tool call - similar to ReasoningLoop
+            response = await HandleHandoffCorrectionIfNeeded(agent, modelInput, response, chatClient, chatOptions, TestContext);
         }
         catch (Exception ex)
         {
@@ -638,6 +676,91 @@ Respond with only 'SIMILAR' if they convey the same meaning, or 'DIFFERENT' if t
         return expectedFunctionName.Contains('|')
             ? $"[{string.Join(" | ", expectedFunctionName.Split('|', StringSplitOptions.RemoveEmptyEntries).Select(name => name.Trim()))}]"
             : expectedFunctionName;
+    }
+
+    /// <summary>
+    /// Checks if agent has structured output with handoff state but no tool call, and handles correction similar to ReasoningLoop
+    /// </summary>
+    /// <param name="agent">The agent being tested</param>
+    /// <param name="modelInput">The current model input (will be modified if correction is needed)</param>
+    /// <param name="response">The current response from the LLM</param>
+    /// <param name="chatClient">The chat client for making additional calls</param>
+    /// <param name="chatOptions">The chat options to use</param>
+    /// <param name="testContext">Test context for logging (optional)</param>
+    /// <returns>The corrected response if handoff correction was applied, otherwise the original response</returns>
+    private static async Task<ChatResponse> HandleHandoffCorrectionIfNeeded(
+        Agent<AgentContext> agent,
+        List<ChatMessage> modelInput,
+        ChatResponse response,
+        IChatClient chatClient,
+        ChatOptions chatOptions,
+        TestContext? testContext = null)
+    {
+        // Only check if agent has structured output and there's a response
+        if (!agent.HasStructuredOutput || response.Messages.Count == 0)
+        {
+            return response;
+        }
+
+        var lastMessage = response.Messages.Last();
+        var hasToolCall = lastMessage.Contents?.OfType<FunctionCallContent>().Any() == true;
+
+        // Only proceed if there's no tool call but there's text content
+        if (hasToolCall || string.IsNullOrEmpty(lastMessage.Text))
+        {
+            return response;
+        }
+
+        try
+        {
+            testContext?.WriteLine($"Checking structured output for handoff state without tool call...");
+            var jsonElement = JsonSerializer.Deserialize<JsonElement>(lastMessage.Text);
+
+            if (jsonElement.TryGetProperty("state", out var stateProperty))
+            {
+                var state = stateProperty.GetString();
+                testContext?.WriteLine($"Agent state: {state}");
+
+                // Check if agent indicated handoff but didn't make tool call
+                if (state == "HandOff_OutOfScope" || state == "HandOff_Continue")
+                {
+                    testContext?.WriteLine($"Agent indicated handoff state '{state}' but made no tool call. Adding prompt for second attempt, similar to ReasoningLoop logic.");
+
+                    // Add the agent's response to the conversation
+                    modelInput.Add(lastMessage);
+
+                    // Add user prompt asking agent to make the proper tool call
+                    var promptMessage = new ChatMessage(ChatRole.User,
+                        $"You mentioned the request is in state {state}, but did not actually perform any handoffs (transfer_to_* or HandOffBack). " +
+                        "Reflect if any more processing work is required. If yes, set the state to Processing and continue taking actions in your scope. " +
+                        "Otherwise if you are actually done, then call the right handoff tool.");
+
+                    modelInput.Add(promptMessage);
+
+                    testContext?.WriteLine($"\n=== CALLING LLM AGAIN (Handoff Correction) ===");
+                    testContext?.WriteLine($"Added user prompt: {promptMessage.Text}");
+
+                    // Make second LLM call
+                    ChatResponse correctedResponse;
+                    if (agent.HasStructuredOutput)
+                    {
+                        (correctedResponse, _) = await chatClient.GetResponseAsync(modelInput, agent.OutputType, chatOptions);
+                    }
+                    else
+                    {
+                        correctedResponse = await chatClient.GetResponseAsync(modelInput, chatOptions);
+                    }
+                    return correctedResponse;
+                }
+            }
+        }
+        catch (JsonException)
+        {
+            // If we can't parse JSON, just continue with original response
+            testContext?.WriteLine("Could not parse structured output as JSON, continuing with original response");
+        }
+
+        return response;
     }
 
     #region Test Case Classes

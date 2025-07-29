@@ -158,6 +158,7 @@ namespace Agent.Plugins
 Execute az commands for Azure resource read operations. Commands run IMMEDIATELY without approval.
 USAGE: Provide complete az cli command string. ALWAYS specify --subscription parameter with valid subscriptionId/guid.
 ALLOWED: Only 'list', 'show', 'get' commands.
+FORBIDDEN: 'aks command invoke' NOT allowed.
 EXAMPLES:
 - List: 'az containerapp list -g MyRG --subscription <subId>'
 - Show with query: 'az containerapp show -g MyRG -n MyApp --query properties.configuration.ingress --subscription <subId>'
@@ -178,7 +179,7 @@ BEST PRACTICES:
 Execute az commands for Azure resource write operations. Requires user approval before execution.
 USAGE: Provide complete az cli command string. ALWAYS specify --subscription parameter with valid subscriptionId/guid.
 ALLOWED: 'create', 'update', 'set', 'scale', 'start', 'stop', 'restart', 'add'
-FORBIDDEN: 'delete', 'remove' commands NOT allowed for safety.
+FORBIDDEN: 'delete', 'remove', 'aks command invoke' commands NOT allowed for safety.
 EXAMPLES:
 - Create: 'az containerapp create -g MyRG -n MyApp --subscription <subId> --image myimage:latest'
 - Update: 'az webapp update -g MyRG -n MyApp --set httpsOnly=true --subscription <subId>'

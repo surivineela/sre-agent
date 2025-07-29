@@ -1,0 +1,292 @@
+{
+  "agentName": "meta_agent",
+  "modelInput": [
+    {
+      "role": "user",
+      "contents": [
+        {
+          "type": "TextContent",
+          "value": {
+            "$type": "text",
+            "text": "Try your best to answer the user's questions. Keep in mind:\n - If you find a suitable agent to handoff to, call transfer_to_{agentName} tool directly\n - If there's no suitable agent to handoff to, call HandoffBack directly\n - Use transfer_to_{agentName} or HandoffBack if you are done solving an issue\nUser question goes below:\nwhat you can do for me ?\n"
+          }
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "type": "TextContent",
+          "value": {
+            "$type": "text",
+            "text": "{\"reasoningScratchPad\":\"User is asking about my capabilities as Azure SRE Agent. My role is to orchestrate the resolution of Azure infrastructure and DevOps issues by delegating to specialized agents. I can help with troubleshooting, diagnostics, resource discovery, configuration, metrics visualization, and repository integration for Azure resources. If the user's query is about Azure resources, I can initiate investigations, diagnose issues, and automate remediations by leveraging my subagents. If the user has a specific Azure-related problem, I can guide them through the resolution process by delegating to the right specialized agent.\",\"notifyUserMessage\":\"I can help you troubleshoot, diagnose, and resolve issues with your Microsoft Azure resources, including web apps, AKS clusters, container apps, function apps, API management, and more. I can also assist with resource discovery, configuration changes, metrics analysis, and integrating your Azure resources with repositories like GitHub or Azure DevOps. If you have a specific Azure-related question or problem, just let me know and I'll get started!\",\"state\":\"CompletedSuccessfully\",\"stateExplanation\":\"User asked about my capabilities. I provided a summary of what I can do as Azure SRE Agent.\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "contents": [
+        {
+          "type": "TextContent",
+          "value": {
+            "$type": "text",
+            "text": "Try your best to answer the user's questions. Keep in mind:\n - If you find a suitable agent to handoff to, call transfer_to_{agentName} tool directly\n - If there's no suitable agent to handoff to, call HandoffBack directly\n - Use transfer_to_{agentName} or HandoffBack if you are done solving an issue\nUser question goes below:\nok, list all my aks clusters\n"
+          }
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "type": "FunctionCallContent",
+          "value": {
+            "$type": "functionCall",
+            "callId": "call_al2po7ASI1VQMu2z2BkuplAz",
+            "name": "transfer_to_resource_discovery_agent",
+            "arguments": {}
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "contents": [
+        {
+          "type": "FunctionResultContent",
+          "value": {
+            "$type": "functionResult",
+            "callId": "call_al2po7ASI1VQMu2z2BkuplAz",
+            "result": "Handoff is complete. Analyze the current state of the conversation, think about the required next steps, and continue handling the task"
+          }
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "type": "FunctionCallContent",
+          "value": {
+            "$type": "functionCall",
+            "callId": "call_ZqpTy7Wq7n74lnqXwbdFq19C",
+            "name": "ListResourcesByType",
+            "arguments": {
+              "resourceType": "Microsoft.ContainerService/managedClusters",
+              "propertyName": "",
+              "propertyValue": "",
+              "skip": 0,
+              "take": -1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "contents": [
+        {
+          "type": "FunctionResultContent",
+          "value": {
+            "$type": "functionResult",
+            "callId": "call_ZqpTy7Wq7n74lnqXwbdFq19C",
+            "result": [
+              {
+                "subscriptionId": "5b6786e7-4668-46b2-89e6-001c8ac90967",
+                "resourceGroupName": "mltest",
+                "resourceName": "sre-agent-jianbo",
+                "resourceType": "microsoft.containerservice/managedclusters"
+              },
+              {
+                "subscriptionId": "5b6786e7-4668-46b2-89e6-001c8ac90967",
+                "resourceGroupName": "aks-agent-demo",
+                "resourceName": "demo-aks",
+                "resourceType": "microsoft.containerservice/managedclusters"
+              },
+              {
+                "subscriptionId": "5b6786e7-4668-46b2-89e6-001c8ac90967",
+                "resourceGroupName": "aks-demo-rg",
+                "resourceName": "aks-dotnet-test",
+                "resourceType": "microsoft.containerservice/managedclusters"
+              },
+              {
+                "subscriptionId": "5b6786e7-4668-46b2-89e6-001c8ac90967",
+                "resourceGroupName": "aks-demo-rg",
+                "resourceName": "aks-slow-backend",
+                "resourceType": "microsoft.containerservice/managedclusters"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "type": "TextContent",
+          "value": {
+            "$type": "text",
+            "text": "{\"reasoningScratchPad\":\"I have successfully listed all AKS clusters present in the knowledge graph for the user's subscriptions. There are 4 AKS clusters, which is within the operational limit of 5 resources. I will present them in a clear, numbered table for easy review. No further action is needed unless the user requests more details or operations on these clusters.\",\"notifyUserMessage\":\"✅ Here are all the AKS clusters I found in your environment:\\n\\n| Idx | Type                                    | Subscription                          | Resource Group     | Name               | \\n|-----|-----------------------------------------|---------------------------------------|-------------------|--------------------|\\n| 1   | Microsoft.ContainerService/managedClusters | 5b6786e7-4668-46b2-89e6-001c8ac90967 | mltest            | sre-agent-jianbo   |\\n| 2   | Microsoft.ContainerService/managedClusters | 5b6786e7-4668-46b2-89e6-001c8ac90967 | aks-agent-demo    | demo-aks           |\\n| 3   | Microsoft.ContainerService/managedClusters | 5b6786e7-4668-46b2-89e6-001c8ac90967 | aks-demo-rg       | aks-dotnet-test    |\\n| 4   | Microsoft.ContainerService/managedClusters | 5b6786e7-4668-46b2-89e6-001c8ac90967 | aks-demo-rg       | aks-slow-backend   |\\n\\nLet me know if you want details or actions on any of these AKS clusters!\",\"state\":\"CompletedSuccessfully\",\"stateExplanation\":\"All AKS clusters have been listed within the operational limit. The user's request is fully answered.\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "contents": [
+        {
+          "type": "TextContent",
+          "value": {
+            "$type": "text",
+            "text": "Try your best to answer the user's questions. Keep in mind:\n - If you find a suitable agent to handoff to, call transfer_to_{agentName} tool directly\n - If there's no suitable agent to handoff to, call HandoffBack directly\n - Use transfer_to_{agentName} or HandoffBack if you are done solving an issue\nUser question goes below:\nget the deployments in default namespace in demo-aks\n"
+          }
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "type": "TextContent",
+          "value": {
+            "$type": "text",
+            "text": "{\"reasoningScratchPad\":\"User wants to list all deployments in the 'default' namespace of the 'demo-aks' AKS cluster. My workflow is: 1) Identify the AKS cluster resource (demo-aks), 2) Use its resource ID to filter Kubernetes deployments in the 'default' namespace. Since both AKS clusters and Kubernetes native resources are available in the knowledge graph, I will attempt to list Deployments with the clusterResourceId set to demo-aks and filter for the 'default' namespace. If deployments are not found (possibly due to sync lag), I will hand off for direct cluster query.\",\"notifyUserMessage\":\"🔍 Locating all deployments in the **default** namespace of AKS cluster **demo-aks**...\",\"state\":\"Processing\",\"stateExplanation\":\"Starting Kubernetes resource discovery by identifying the AKS cluster and searching for deployments in the specified namespace.\"}"
+          }
+        },
+        {
+          "type": "FunctionCallContent",
+          "value": {
+            "$type": "functionCall",
+            "callId": "call_jGW3Wa6YFkAW3drdRUePsJPH",
+            "name": "GetResourceIdForResourceName",
+            "arguments": {
+              "resourceName": "demo-aks",
+              "resourceType": "microsoft.containerservice/managedclusters"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "contents": [
+        {
+          "type": "FunctionResultContent",
+          "value": {
+            "$type": "functionResult",
+            "callId": "call_jGW3Wa6YFkAW3drdRUePsJPH",
+            "result": "/subscriptions/5b6786e7-4668-46b2-89e6-001c8ac90967/resourcegroups/aks-agent-demo/providers/microsoft.containerservice/managedclusters/demo-aks"
+          }
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "type": "FunctionCallContent",
+          "value": {
+            "$type": "functionCall",
+            "callId": "call_u0WyhpGZoiWeay4hDk9oDRUZ",
+            "name": "ListResourcesByType",
+            "arguments": {
+              "resourceType": "Deployment",
+              "propertyName": "clusterResourceId",
+              "propertyValue": "/subscriptions/5b6786e7-4668-46b2-89e6-001c8ac90967/resourcegroups/aks-agent-demo/providers/microsoft.containerservice/managedclusters/demo-aks",
+              "skip": 0,
+              "take": -1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "contents": [
+        {
+          "type": "FunctionResultContent",
+          "value": {
+            "$type": "functionResult",
+            "callId": "call_u0WyhpGZoiWeay4hDk9oDRUZ",
+            "result": []
+          }
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "type": "TextContent",
+          "value": {
+            "$type": "text",
+            "text": "{\"reasoningScratchPad\":\"I have identified the AKS cluster 'demo-aks' and attempted to list all Kubernetes deployments in the 'default' namespace using the knowledge graph. However, no deployments were found. This could mean either there are no deployments in that namespace, or the knowledge graph has not yet synced the latest Kubernetes resources from this cluster. According to my workflow, if Kubernetes native resources are not found, I must hand off to a specialized agent for direct cluster queries.\",\"notifyUserMessage\":\"⚠️ I could not find any deployments in the **default** namespace of AKS cluster **demo-aks** using my current knowledge graph. This may mean there are no deployments, or the latest Kubernetes resources have not yet been synced. Further investigation with direct cluster access may be needed.\",\"state\":\"HandOff_Continue\",\"stateExplanation\":\"Kubernetes deployments were not found in the knowledge graph. Specialized agent with direct cluster access is required for further investigation.\"}"
+          }
+        },
+        {
+          "type": "FunctionCallContent",
+          "value": {
+            "$type": "functionCall",
+            "callId": "call_FKEPnVJA1kIqYIFWDlTJPEuj",
+            "name": "HandoffBack",
+            "arguments": {},
+            "additionalProperties": {
+              "userDescription": "Continuing with the investigation..."
+            }
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "contents": [
+        {
+          "type": "FunctionResultContent",
+          "value": {
+            "$type": "functionResult",
+            "callId": "call_FKEPnVJA1kIqYIFWDlTJPEuj",
+            "result": "Handoff is complete. Analyze the current state of the conversation, think about the required next steps, and continue handling the task"
+          }
+        }
+      ]
+    },
+    {
+      "role": "system",
+      "contents": [
+        {
+          "type": "TextContent",
+          "value": {
+            "$type": "text",
+            "text": "The current date is 2025-07-29 13:16:33 +08:00"
+          }
+        }
+      ]
+    }
+  ],
+  "modelOutput": [
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "type": "TextContent",
+          "value": {
+            "$type": "text",
+            "text": "{\"reasoningScratchPad\":\"I attempted to list deployments in the default namespace of the demo-aks cluster using the knowledge graph, but none were found. This could be due to either no deployments existing or a sync lag. Since I cannot query the cluster directly myself, and there is no specialized agent for direct Kubernetes resource queries outside of the AKS general agent, the correct next step is to hand off to the AKS general agent for direct cluster inspection.\",\"notifyUserMessage\":\"Proceeding to retrieve deployments in the default namespace of the **demo-aks** AKS cluster using direct cluster access for the most accurate results.\",\"state\":\"HandOff_Continue\",\"stateExplanation\":\"Knowledge graph did not return deployments; next, the AKS general agent should attempt a direct query to the cluster.\"}"
+          }
+        },
+        {
+          "type": "FunctionCallContent",
+          "value": {
+            "$type": "functionCall",
+            "callId": "call_HnPFbKj6IgdYmDvKQY0NqzzJ",
+            "name": "transfer_to_aks_general_agent",
+            "arguments": {}
+          }
+        }
+      ]
+    }
+  ]
+}
