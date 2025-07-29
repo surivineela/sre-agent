@@ -10,5 +10,5 @@ SystemLogs
 | where PodName == local_PodName
 | where ResourceNamespace == local_ResourceNamespace
 | extend geneva_url = strcat("https://portal.microsoftgeneva.com/trace/details/", env_dt_traceId, "/?fromDate=", globalFrom-1h, "&toDate=", globalTo+1h)
-| distinct LegionEnvironmentName, PodName, ResourceNamespace, PodGuid, CenturionRoleId, NestedRoleId, geneva_url, env_dt_traceId, KustoCluster
+| distinct LegionEnvironmentName, PodName, ResourceNamespace, PodGuid, CenturionRoleId, NestedRoleId, geneva_url, env_dt_traceId
 | order by CenturionRoleId desc

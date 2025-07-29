@@ -30,7 +30,7 @@ namespace Agent.Plugins.Definitions
         Output:
         Returns tab-separated table data in CSV format. Column headers:
         - connectionState: The type of connection termination (e.g., Gracefully closed, TCP Handshake Failure, Reset, Half-close, Idle timeout)
-        - count_: Number of connections in each state
+        - Count: Number of connections in each state
         """
         )]
         public Task<string> GracefulConnectionCount(
@@ -173,7 +173,6 @@ namespace Agent.Plugins.Definitions
         - NestedRoleId: Nested role identifier
         - geneva_url: Direct link to Geneva trace logs
         - env_dt_traceId: Trace identifier for the log entry
-        - KustoCluster: Name of the Kusto cluster
         """
         )]
         public Task<string> GetPodGuidFromName(
