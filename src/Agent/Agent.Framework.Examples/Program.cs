@@ -127,6 +127,12 @@ class MockStreamingService : IStreamingService
             threadId, type, message);
         return Task.CompletedTask;
     }
+
+    public Task StreamActionUpdateAsync(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Mock: Streaming action for thread {ThreadId}", threadId);
+        return Task.CompletedTask;
+    }
 }
 
 class Program

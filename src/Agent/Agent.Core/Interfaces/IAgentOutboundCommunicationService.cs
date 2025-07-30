@@ -35,6 +35,11 @@ public interface IAgentOutboundCommunicationService
     Task NotifyCompletionAsync(AgentContext context, string subAgentIdentifier, string status, string? summary = null);
 
     /// <summary>
+    /// Notifies about an action
+    /// </summary>
+    Task NotifyActionAsync(Guid threadId, Models.Api.v1.Action action);
+
+    /// <summary>
     /// Notifies a generic agent message to stream, does not save context to thread
     /// </summary>
     Task NotifyGenericAgentMessage(Guid threadId, Message message, StreamMessageType? type);

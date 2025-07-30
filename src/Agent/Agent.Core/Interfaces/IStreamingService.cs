@@ -27,6 +27,19 @@ namespace Agent.Core.Interfaces
         /// <summary>
         /// Streams a message directly to clients for the specified thread
         /// </summary>
+        /// <param name="threadId"></param>
+        /// <param name="message"></param>
+        /// <param name="type"></param>
+        /// <param name="messageId"></param>
+        /// <param name="recordedDateTime"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        Task StreamActionUpdateAsync(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default);
+
+
+        /// <summary>
+        /// Streams a message directly to clients for the specified thread
+        /// </summary>
         /// <param name="threadId">The thread ID to stream the message to</param>
         /// <param name="message">The message content to stream</param>
         /// <param name="type">The type of message being streamed, if null just pure normal text</param>

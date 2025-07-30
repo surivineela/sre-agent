@@ -31,16 +31,19 @@ namespace Agent.Runtime.SubAgents.Core
         private readonly IChatClient _chatClient;
         private readonly IToolsRepository _toolsRepository;
         private readonly IThreadRepository _threadRepository;
+        private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
 
         public RecordActionActivity(ILogger<RecordActionActivity> logger,
             IChatClient chatClient,
             IToolsRepository toolsRepository,
-            IThreadRepository threadRepository)
+            IThreadRepository threadRepository,
+            IAgentOutboundCommunicationService outboundCommunicationService)
         {
             _logger = logger;
             _chatClient = chatClient;
             _toolsRepository = toolsRepository;
             _threadRepository = threadRepository;
+            _outboundCommunicationService = outboundCommunicationService;
         }
 
         public override async Task<Action?> RunAsync(TaskActivityContext context, RecordActionInput input)
@@ -122,6 +125,7 @@ namespace Agent.Runtime.SubAgents.Core
                 Severity: ActionSeverity.Critical
             );
 
+            await _outboundCommunicationService.NotifyActionAsync(input.ThreadId, action);
             await _threadRepository.AddOrUpdateActionAsync(input.ThreadId, action);
 
             return action;

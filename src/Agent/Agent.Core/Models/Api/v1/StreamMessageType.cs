@@ -39,8 +39,14 @@ public enum StreamMessageType
     /// Kubectl Execution message type.
     /// </summary>
     Kubectl,
+
     /// <summary>
     /// Thread creation or update message type.
     /// </summary>
     ThreadEvent,
+
+    /// <summary>
+    /// Action update message type.
+    /// </summary>
+    Action,
 }

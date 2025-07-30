@@ -536,6 +536,13 @@ class MockStreamingService : IStreamingService
         _logger = logger;
     }
 
+    public Task StreamActionUpdateAsync(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInternalInformation("Mock: Streaming message for action {ThreadId}: {Message}",
+            threadId, message);
+        return Task.CompletedTask;
+    }
+
     public Task StreamChatResponseUpdateAsync(Guid threadId, ChatResponseUpdate update, CancellationToken cancellationToken = default)
     {
         _logger.LogInternalInformation("Mock: Streaming message for thread {ThreadId}: {Message}",

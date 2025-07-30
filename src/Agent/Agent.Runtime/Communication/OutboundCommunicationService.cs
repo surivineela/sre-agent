@@ -212,6 +212,23 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         return UpdateThreadWithAgentMessageAsync(context, new(ChatRole.Assistant, message));
     }
 
+    public async Task NotifyActionAsync(Guid threadId, Core.Models.Api.v1.Action action)
+    {
+        if (threadId == Guid.Empty)
+        {
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
+        }
+        try
+        {
+            string jsonString = JsonSerializer.Serialize(action, _serializerOptions);
+            await _streamingService.StreamActionUpdateAsync(threadId, jsonString, StreamMessageType.Action);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to stream action update for thread {ThreadId}", threadId);
+        }
+    }
+
     public async Task AppendAgentToolCallMessage(Guid threadId, AIFunction aiTool, Guid? messageId = null, string? callId = null, CancellationToken cancellationToken = default)
     {
         if (threadId == Guid.Empty)
