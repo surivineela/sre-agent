@@ -95,11 +95,11 @@ public sealed class DeferredToolFunction<TContext> : IDeferredToolFunction where
     private AIFunction CreateFromReflection(Guid? threadId, string? agentMode)
     {
         var instance = _sp.GetRequiredService(_pluginType!);
-        
+
         // Check if this is a write operation in read-only mode
         var writeActionAttr = _methodInfo!.GetCustomAttribute<WriteActionAttribute>();
         var isReadOnlyMode = IsReadOnlyMode(agentMode);
-        
+
         if (writeActionAttr != null && isReadOnlyMode && !writeActionAttr.RunInReadOnlyMode)
         {
             // Create a wrapper that returns mock responses instead of executing
@@ -150,8 +150,7 @@ public sealed class DeferredToolFunction<TContext> : IDeferredToolFunction where
 
     private bool IsReadOnlyMode(string? agentMode)
     {
-        return string.Equals(agentMode, ActionMode.Chat.ToString(), StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(agentMode, ActionMode.ReadOnly.ToString(), StringComparison.OrdinalIgnoreCase);
+        return string.Equals(agentMode, ActionMode.ReadOnly.ToString(), StringComparison.OrdinalIgnoreCase);
     }
 
     private AIFunction CreateReadOnlyMockFunction(object instance, Guid? threadId, string? customMessage)

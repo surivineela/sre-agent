@@ -2434,10 +2434,7 @@ namespace Agent.Plugins
             var baseMessage = "Failed to run kubectl command. Error from AKS API Server: Forbidden.\n\n";
 
             // Determine roles based on current agent mode
-            bool isReadOnlyMode =
-                string.Equals(threadAgentMode, ActionMode.Chat.ToString(), StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(threadAgentMode, ActionMode.ReadOnly.ToString(), StringComparison.OrdinalIgnoreCase);
-
+            bool isReadOnlyMode = string.Equals(threadAgentMode, ActionMode.ReadOnly.ToString(), StringComparison.OrdinalIgnoreCase);
 
             if (isReadOnlyMode)
             {

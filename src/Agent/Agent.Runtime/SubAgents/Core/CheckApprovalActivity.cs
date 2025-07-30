@@ -69,7 +69,7 @@ public class CheckApprovalActivity : TaskActivity<CheckApprovalActivityInput, Ch
                 };
             }
 
-            if (_actionSettings.Mode == ActionMode.Chat || _actionSettings.Mode == ActionMode.ReadOnly)
+            if (_actionSettings.Mode == ActionMode.ReadOnly)
             {
                 _logger.LogInternalInformation("[{ThreadId}] approval is not required for tool {FunctionName} in read-only mode", input.ThreadId, targetFunction);
 

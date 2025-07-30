@@ -68,7 +68,7 @@ public class WriteActionActivity : TaskActivity<WriteActionActivityInput, WriteA
             _logger.LogInternalInformation("WriteActionActivity Found function with WriteAction attribute: {FunctionName} with {Arguments}", targetFunction, input.FunctionCall.Arguments);
 
             // Check if actionMode is Chat (previously ReadOnly)
-            if (_actionSettings.Mode == ActionMode.Chat || _actionSettings.Mode == ActionMode.ReadOnly)
+            if (_actionSettings.Mode == ActionMode.ReadOnly)
             {
                 var prompt = $"You are in read-only mode. You should provide suggestions to user for what to do next. " +
                 "Please format your suggestions in a user-friendly way:\n" +

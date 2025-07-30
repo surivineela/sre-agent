@@ -697,8 +697,7 @@ public class ReasoningLoop : IDisposable
                 {
                     var checkWriteActionResult = CheckWriteActionInReadOnlyMode(toolCall);
                     var currentAgentMode = _agentRuntimeModifier.GetThreadAgentMode(_context);
-                    if ((string.Equals(currentAgentMode, ActionMode.Chat.ToString(), StringComparison.OrdinalIgnoreCase) ||
-                       string.Equals(currentAgentMode, ActionMode.ReadOnly.ToString(), StringComparison.OrdinalIgnoreCase)) &&
+                    if (string.Equals(currentAgentMode, ActionMode.ReadOnly.ToString(), StringComparison.OrdinalIgnoreCase) &&
                        checkWriteActionResult.NeedSkip)
                     {
                         var chatMessage = new ChatMessage(ChatRole.System, checkWriteActionResult.Prompt);
