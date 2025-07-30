@@ -36,6 +36,7 @@ ContainerAppControllerEvents
 | extend legionRevisionName = iff(WorkloadProfileName has "consumption", Name, "")
 | extend WorkloadProfileNameUpdated = iff(isempty(WorkloadProfileName) and isempty(WorkloadProfileType), "V1 Environment", WorkloadProfileName)
 | extend AppReadyForTrafficState = tostring(parsedJson.status.appReadyForTrafficState)
+| where isnotempty(Name)
 | distinct Name, ManagedClusterName = EnvironmentName, ContainerAppName, Namespace, ReadyReplicas, CreationTimestamp, WorkloadProfileNameUpdated, RestartTime, AppType, 
     HttpOptionsEnabled, HttpOptionsExternal, HttpOptionsPort, Http2Enabled, HttpsOnly, Stopped, MinReplicaCount, MaxReplicaCount,
     HttpScalingRuleName, HttpScalingRuleConcurrentRequests, ObservedGeneration, RevisionProvisioningState, RevisionHealthStatus, 

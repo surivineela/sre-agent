@@ -40,4 +40,5 @@ Heartbeats
         state contains "Running", "Healthy", "Unhealthy"
     )
 | order by StartTime asc
+| where isnotempty(RevisionName)
 | project StartTime, EndTime, RevisionName, State, HealthStatus
