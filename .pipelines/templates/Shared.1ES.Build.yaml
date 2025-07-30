@@ -214,6 +214,8 @@ extends:
         #
         - task: DotNetCoreCLI@2
           displayName: '🦾 Build Agent solution'
+          env:
+            SRE_UX_VERSION: $(Build.BuildNumber)
           inputs:
             command: build
             projects: '$(BuildSolution)'
@@ -222,6 +224,8 @@ extends:
 
         - task: DotNetCoreCLI@2
           displayName: '🔨 Publish Agent.Web'
+          env:
+            SRE_UX_VERSION: $(Build.BuildNumber) # UX builds again here, so env vars must be the same so the hash matches
           inputs:
             command: 'publish'
             publishWebProjects: false
