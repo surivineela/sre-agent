@@ -73,6 +73,12 @@ namespace Agent.Core.Services
         public async Task<ServiceNowIncident> GetIncidentAsync(string incidentSystemId)
         {
             CheckEnabled();
+
+            if (string.IsNullOrEmpty(incidentSystemId))
+            {
+                throw new ArgumentException("Incident system ID cannot be null or empty.", nameof(incidentSystemId));
+            }
+
             _logger.LogInternalInformation("GetIncidentAsync: Fetching incident {incidentSystemId}", incidentSystemId);
             try
             {
