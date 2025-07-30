@@ -97,7 +97,7 @@ public class AuthenticationService : IAuthenticationService
             return GetDefaultAzureCredential();
         }
 
-        return GetManagedIdentityCredential(GetActionIdentity());
+        return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
     }
 
     public TokenCredential GetSearchPluginCredential()

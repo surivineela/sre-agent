@@ -28,4 +28,4 @@ public interface IIndexableContent
     /// Additional metadata for the content
     /// </summary>
     Dictionary<string, object> Metadata { get; }
-}
+} 
