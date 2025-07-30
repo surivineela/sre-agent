@@ -21,18 +21,21 @@ import {
     Toaster,
     tokens,
 } from '@fluentui/react-components';
-import axios from 'axios';
-import { memo, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
+import { memo, ReactNode, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { FaGithub } from 'react-icons/fa';
 import { VscAzureDevops } from 'react-icons/vsc'; // Azure DevOps icon
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
+import { StreamingMessage } from '../../Common/Contracts/Azure/Streaming';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
+import { Guid } from '../../Common/Helpers/Guid';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { isPaasResourceType } from '../../Common/Helpers/Resources';
 import { ResourceInfoResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { StreamingContext } from '../Contracts/Context';
 import { GraphContext, GraphNode, ResourceExtended } from '../Contracts/Graph';
+import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
 import { getPropertyValue, useResourceInfo } from '../Hooks/useResourceInfo';
 import HealthStatus from './HealthStatus';
 import { getAppHealthInfo } from './Utility';
@@ -443,30 +446,34 @@ const AppHealthInfo = memo(({ resource }: { resource?: ResourceExtended }) => {
     const location = useLocation();
     const navigate = useNavigate();
     const intl = useIntl();
-    const { sreAgentEndpoint } = useContext(EnvironmentContext);
+    const { subscribeResourceInfoThreadCreateEventStreaming, startMessageStreamingOnNewThread } = useContext(StreamingContext);
+    const {
+        userIdAndDisplayName: { userId, displayName },
+    } = useAuthenticatedUserInfo();
+
+    const [isSendingReport, setSendingReport] = useState(false);
+    const newThreadId = useRef<string | null>(null);
 
     const appHealthInfo = getAppHealthInfo(resource);
 
-    const [isSendingReport, setSendingReport] = useState(false);
-
-    const createThread = async (resourceId: string) => {
-        const url = `${sreAgentEndpoint}/api/v1/threads`;
-
-        const response = await axios.post(
-            url,
-            {
-                startMessage: {
-                    text: `Resource ${resourceId} is unhealthy could you help diagnose what is wrong?`,
-                    userId: 'web-client-user',
-                    displayName: 'Web Client User',
-                },
-            },
-            {
-                headers: getAgentHeaders(),
+    useEffect(() => {
+        const unsubscribe = subscribeResourceInfoThreadCreateEventStreaming((message: StreamingMessage) => {
+            const threadId = message?.additionalProperties?.threadId;
+            if (threadId && newThreadId.current && threadId === newThreadId.current) {
+                const currentThreadId = newThreadId.current;
+                newThreadId.current = null;
+                setSendingReport(false);
+                navigate({
+                    ...location,
+                    pathname: `/views/activities/threads/${currentThreadId}`,
+                });
             }
-        );
-        return response?.data;
-    };
+        });
+
+        return () => {
+            unsubscribe();
+        };
+    }, [subscribeResourceInfoThreadCreateEventStreaming, navigate, location]);
 
     return (
         appHealthInfo && (
@@ -480,12 +487,14 @@ const AppHealthInfo = memo(({ resource }: { resource?: ResourceExtended }) => {
                         health={appHealthInfo.Health}
                         showReportButton={true}
                         onClickReportButton={async () => {
+                            newThreadId.current = Guid.newGuid();
                             setSendingReport(true);
-                            const thread = await createThread(getPropertyValue(resource?.properties?.resourceId));
-                            setSendingReport(false);
-                            navigate({
-                                ...location,
-                                pathname: thread?.id ? `/views/activities/threads/${thread.id}` : '/views/activities',
+                            startMessageStreamingOnNewThread(newThreadId.current, {
+                                startMessage: {
+                                    text: `Resource ${getPropertyValue(resource?.properties?.resourceId)} is unhealthy could you help diagnose what is wrong?`,
+                                    userId,
+                                    displayName,
+                                },
                             });
                         }}
                         isSendingReport={isSendingReport}

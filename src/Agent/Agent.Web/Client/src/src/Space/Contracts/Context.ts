@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 import { AgentAccessLevel } from '../../Common/Contracts/Azure/SreAgent';
-import { MessageRequestType, StreamingMessage } from '../../Common/Contracts/Azure/Streaming';
+import { StreamingMessage } from '../../Common/Contracts/Azure/Streaming';
 import { AgentContextProps, ChatMessage } from './Activities';
 
 type SreAgentContextProps = {
@@ -27,17 +27,19 @@ type SreAgentContextProps = {
 };
 
 type StreamingContextProps = {
-    sendMessage: (message: MessageRequestType, ...args: any[]) => void;
+    startMessageStreamingOnNewThread: (newThreadId: string, threadCreateRequest: any) => void;
+    startMessageStreamingOnExistingThread: (threadId: string, messageCreateRequest: any) => void;
+    cancelMessageStreaming: (threadId: string) => void;
     subscribeChatStreaming: (
         threadId: string,
         latestStreamingMessageHandler: (latestStreamingMessage: StreamingMessage | null | undefined) => void,
-        messageUpdateHandler: (...args: any[]) => void,
-        threadUpdateHandler: (...args: any[]) => void
+        messageUpdateHandler: (...args: any[]) => void
     ) => () => void;
-    subscribeThreadEvent: (
+    subscribeThreadMenuEventStreaming: (
         threadCreateHandler: (message: StreamingMessage) => void,
         threadUpdateHandler: (message: StreamingMessage) => void
     ) => () => void;
+    subscribeResourceInfoThreadCreateEventStreaming: (threadCreateHandler: (message: StreamingMessage) => void) => () => void;
     isConnecting: boolean;
     isConnected: boolean;
     isReconnecting: boolean;
@@ -86,17 +88,19 @@ export const AgentContext = createContext<AgentContextProps>({
 });
 
 export const StreamingContext = createContext<StreamingContextProps>({
-    sendMessage: (_message: MessageRequestType, ..._args: any[]) => {},
+    startMessageStreamingOnNewThread: (_newThreadId: string, _threadCreateRequest: any) => {},
+    startMessageStreamingOnExistingThread: (_threadId: string, _messageCreateRequest: any) => {},
+    cancelMessageStreaming: (_threadId: string) => {},
     subscribeChatStreaming:
         (
             _threadId: string,
             _latestStreamingMessageHandler: (latestStreamingMessage: StreamingMessage | null | undefined) => void,
-            _messageUpdateHandler: (...args: any[]) => void,
-            _threadUpdateHandler: (...args: any[]) => void
+            _messageUpdateHandler: (...args: any[]) => void
         ) =>
         () => {},
-    subscribeThreadEvent:
+    subscribeThreadMenuEventStreaming:
         (_threadCreateHandler: (message: StreamingMessage) => void, _threadUpdateHandler: (message: StreamingMessage) => void) => () => {},
+    subscribeResourceInfoThreadCreateEventStreaming: (_threadCreateHandler: (message: StreamingMessage) => void) => () => {},
     isConnecting: true,
     isConnected: false,
     isReconnecting: false,

@@ -3,9 +3,10 @@ import debounce from 'lodash/debounce';
 import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
-import { MessageRequestType, StreamingMessage } from '../../Common/Contracts/Azure/Streaming';
+import { StreamingMessage } from '../../Common/Contracts/Azure/Streaming';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
+import { MessageCreateRequest } from '../../Common/Providers/StreamingProvider';
 import { PromptResources } from '../../Strings/SREAgentResources';
 import {
     composeDefaultAgentMessage,
@@ -26,16 +27,6 @@ import { StreamingContext } from '../Contracts/Context';
 import { useAuthenticatedUserInfo } from './useAuthenticatedUserInfo';
 import { useChatHistory } from './useChatHistory';
 
-interface MessageCreateRequest {
-    text: string;
-    userId: string;
-    displayName: string;
-}
-
-interface ThreadCreateRequest {
-    startMessage: MessageCreateRequest;
-}
-
 export const useChatBoxV2 = (
     addThread: (threadId: string) => void,
     updateThreadLastReadTime: (threadId: string) => void,
@@ -45,7 +36,8 @@ export const useChatBoxV2 = (
     const intl = useIntl();
 
     const proxy = useContext(AzPortalContext);
-    const { sendMessage, subscribeChatStreaming } = useContext(StreamingContext);
+    const { startMessageStreamingOnNewThread, startMessageStreamingOnExistingThread, cancelMessageStreaming, subscribeChatStreaming } =
+        useContext(StreamingContext);
 
     const {
         userIdAndDisplayName: { userId, displayName },
@@ -142,23 +134,15 @@ export const useChatBoxV2 = (
         clearTimeout(typingCharsTimeout.current);
     };
 
-    const createThread = (threadId: string, threadCreateRequest: ThreadCreateRequest) => {
-        sendMessage(MessageRequestType.CreateThread, threadId, threadCreateRequest, false);
-    };
-
-    const createMessage = (threadId: string, messageCreateRequest: MessageCreateRequest) => {
-        sendMessage(MessageRequestType.CreateMessage, threadId, messageCreateRequest, false);
-    };
-
     const cancelStreaming = useCallback(() => {
         setIsCancellingStreaming(true);
     }, []);
 
     useEffect(() => {
         if (isCancellingStreaming && currentThreadId) {
-            sendMessage(MessageRequestType.CancelThread, currentThreadId);
+            cancelMessageStreaming(currentThreadId);
         }
-    }, [isCancellingStreaming, currentThreadId, sendMessage]);
+    }, [isCancellingStreaming, currentThreadId, cancelMessageStreaming]);
 
     const getGroupedChatMessages = useCallback(
         (message: ChatMessage, isStreamingMessage?: boolean): ChatMessage[] => {
@@ -204,10 +188,10 @@ export const useChatBoxV2 = (
                 //ToDo: Handle errors of sendMessage, createThread and pollResponses
                 if (currentThreadId) {
                     // Issue a request to create a new message in the current thread
-                    createMessage(currentThreadId, messageRequest);
+                    startMessageStreamingOnExistingThread(currentThreadId, messageRequest);
                 } else {
                     // Issue a request to create a new thread
-                    createThread(userDefinedThreadIdRef.current, {
+                    startMessageStreamingOnNewThread(userDefinedThreadIdRef.current, {
                         startMessage: messageRequest,
                     });
                 }
@@ -348,15 +332,8 @@ export const useChatBoxV2 = (
     useEffect(() => {
         let isSubscribed = true;
 
-        const queueMessageChunk = (messageChunk?: StreamingMessage) => {
-            if (messageChunk && isSubscribed) {
-                messageChunkQueue.current.push(messageChunk);
-                attemptToProcessMessageChunk();
-            }
-        };
-
         const latestStreamingMessageHandler = (messageChunk?: StreamingMessage | null) => {
-            if (messageChunk && !isFinalStreamingMessage(messageChunk) && !isUserStreamingMessage(messageChunk)) {
+            if (messageChunk && !isFinalStreamingMessage(messageChunk)) {
                 setStreamingMessage(prev => {
                     return prev === undefined ? composeDefaultAgentMessage() : prev;
                 });
@@ -367,18 +344,16 @@ export const useChatBoxV2 = (
         };
 
         const messageUpdateHandler = (messageChunk?: StreamingMessage) => {
-            queueMessageChunk(messageChunk);
-        };
-
-        const threadUpdateHandler = (messageChunk?: StreamingMessage) => {
-            queueMessageChunk(messageChunk);
+            if (messageChunk && isSubscribed) {
+                messageChunkQueue.current.push(messageChunk);
+                attemptToProcessMessageChunk();
+            }
         };
 
         const unsubscribeChatStreaming = subscribeChatStreaming(
             currentThreadIdRef.current || userDefinedThreadIdRef.current,
             latestStreamingMessageHandler,
-            messageUpdateHandler,
-            threadUpdateHandler
+            messageUpdateHandler
         );
 
         return () => {

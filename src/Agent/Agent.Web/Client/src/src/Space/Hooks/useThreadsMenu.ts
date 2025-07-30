@@ -15,7 +15,7 @@ import { StreamingContext } from '../Contracts/Context';
 import { useThreadList } from './useThreadList';
 
 export const useThreadsMenu = (ref: Ref<ThreadMenuHandle>) => {
-    const { subscribeThreadEvent } = useContext(StreamingContext);
+    const { subscribeThreadMenuEventStreaming } = useContext(StreamingContext);
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
 
     const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
@@ -120,12 +120,12 @@ export const useThreadsMenu = (ref: Ref<ThreadMenuHandle>) => {
             }
         };
 
-        const unsubscribeThreadEvent = subscribeThreadEvent(threadCreateHandler, threadUpdateHandler);
+        const unsubscribe = subscribeThreadMenuEventStreaming(threadCreateHandler, threadUpdateHandler);
 
         return () => {
-            unsubscribeThreadEvent();
+            unsubscribe();
         };
-    }, [subscribeThreadEvent, updateThreadInfo]);
+    }, [subscribeThreadMenuEventStreaming, updateThreadInfo]);
 
     useEffect(() => {
         if (!isLoadingInitialThreads && threadUpdateQueue.current.length > 0) {

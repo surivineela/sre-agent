@@ -1,5 +1,5 @@
 import * as signalR from '@microsoft/signalr';
-import { ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { MutableRefObject, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { StreamingContext } from '../../Space/Contracts/Context';
 import AzPortalProxy, { defaultSreAgentEndpoint } from '../AzPortalProxy/AzPortalProxy';
 import { AzPortalContext } from '../AzPortalProxy/Providers/AzPortalProxyContext';
@@ -7,10 +7,41 @@ import { EnvironmentContext } from '../AzPortalProxy/Providers/StartupInfoContex
 import { standaloneAgentEndpoint, standaloneReactPort } from '../Constants/Uri';
 import { MessageRequestType, MessageResponseType, StreamingMessage } from '../Contracts/Azure/Streaming';
 
-const useChatMessageStreaming = () => {
+export interface MessageCreateRequest {
+    text: string;
+    userId: string;
+    displayName: string;
+}
+
+export interface ThreadCreateRequest {
+    startMessage: MessageCreateRequest;
+}
+
+const useLatestStreamingMessages = () => {
     // key: threadId, value: the latest streaming messages for that thread in the current session
     const latestStreamingMessageRef = useRef<Map<string, StreamingMessage | null | undefined>>(new Map());
-    // key: thread id string, value: messageUpdate event handler
+
+    const latestMessageUpdateCallback = (message: StreamingMessage) => {
+        const threadId = message?.additionalProperties?.threadId;
+
+        if (threadId) {
+            latestStreamingMessageRef.current.set(threadId, message);
+        }
+    };
+
+    const cleanupLatestStreamingMessages = () => {
+        latestStreamingMessageRef.current = new Map();
+    };
+
+    return {
+        latestStreamingMessageRef,
+        latestMessageUpdateCallback,
+        cleanupLatestStreamingMessages,
+    };
+};
+
+const useChatBoxEventStreaming = (latestStreamingMessageRef: MutableRefObject<Map<string, StreamingMessage | null | undefined>>) => {
+    // key: threadId, value: the latest streaming messages for that thread in the current session
     const chatMessageHandlersRef = useRef<Map<string, (...args: any[]) => void>>(new Map());
 
     const subscribeChatStreaming = useCallback(
@@ -29,32 +60,30 @@ const useChatMessageStreaming = () => {
         []
     );
 
-    const messageUpdateCallback = (message: StreamingMessage) => {
+    const messageUpdateCallbackFromChatBox = (message: StreamingMessage) => {
         const threadId = message?.additionalProperties?.threadId;
 
         if (threadId) {
-            latestStreamingMessageRef.current.set(threadId, message);
             chatMessageHandlersRef.current.get(threadId)?.(message);
         }
     };
 
     const cleanupChatMessageStreamingSetup = () => {
-        latestStreamingMessageRef.current = new Map();
         chatMessageHandlersRef.current = new Map();
     };
 
     return {
         subscribeChatStreaming,
-        messageUpdateCallback,
+        messageUpdateCallbackFromChatBox,
         cleanupChatMessageStreamingSetup,
     };
 };
 
-const useThreadEventStreaming = () => {
+const useThreadMenuEventStreaming = () => {
     const threadCreateHandlerRef = useRef<((message: StreamingMessage) => void) | null>(null);
     const threadUpdateHandlerRef = useRef<((message: StreamingMessage) => void) | null>(null);
 
-    const subscribeThreadEvent = useCallback(
+    const subscribeThreadMenuEventStreaming = useCallback(
         (threadCreateHandler: (message: StreamingMessage) => void, threadUpdateHandler: (message: StreamingMessage) => void) => {
             threadCreateHandlerRef.current = threadCreateHandler;
             threadUpdateHandlerRef.current = threadUpdateHandler;
@@ -67,24 +96,50 @@ const useThreadEventStreaming = () => {
         []
     );
 
-    const threadCreateCallback = (message: StreamingMessage) => {
+    const threadCreateCallbackFromThreadMenu = (message: StreamingMessage) => {
         threadCreateHandlerRef.current?.(message);
     };
 
-    const threadUpdateCallback = (message: StreamingMessage) => {
+    const threadUpdateCallbackFromThreadMenu = (message: StreamingMessage) => {
         threadUpdateHandlerRef.current?.(message);
     };
 
-    const cleanupThreadEventStreamingSetup = () => {
+    const cleanupThreadMenuEventStreamingSetup = () => {
         threadUpdateHandlerRef.current = null;
         threadCreateHandlerRef.current = null;
     };
 
     return {
-        subscribeThreadEvent,
-        threadCreateCallback,
-        threadUpdateCallback,
-        cleanupThreadEventStreamingSetup,
+        subscribeThreadMenuEventStreaming,
+        threadCreateCallbackFromThreadMenu,
+        threadUpdateCallbackFromThreadMenu,
+        cleanupThreadMenuEventStreamingSetup,
+    };
+};
+
+const useResourceInfoThreadCreateEventStreaming = () => {
+    const threadCreateHandlerRef = useRef<((message: StreamingMessage) => void) | null>(null);
+
+    const subscribeResourceInfoThreadCreateEventStreaming = useCallback((threadCreateHandler: (message: StreamingMessage) => void) => {
+        threadCreateHandlerRef.current = threadCreateHandler;
+
+        return () => {
+            threadCreateHandlerRef.current = null;
+        };
+    }, []);
+
+    const threadCreateCallbackFromResourceInfo = (message: StreamingMessage) => {
+        threadCreateHandlerRef.current?.(message);
+    };
+
+    const cleanupResourceInfoThreadCreateEventStreamingSetup = () => {
+        threadCreateHandlerRef.current = null;
+    };
+
+    return {
+        subscribeResourceInfoThreadCreateEventStreaming,
+        threadCreateCallbackFromResourceInfo,
+        cleanupResourceInfoThreadCreateEventStreamingSetup,
     };
 };
 
@@ -99,24 +154,51 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const proxy = useContext(AzPortalContext);
 
-    const { subscribeChatStreaming, messageUpdateCallback, cleanupChatMessageStreamingSetup } = useChatMessageStreaming();
-    const { subscribeThreadEvent, threadCreateCallback, threadUpdateCallback, cleanupThreadEventStreamingSetup } =
-        useThreadEventStreaming();
+    const { latestStreamingMessageRef, latestMessageUpdateCallback, cleanupLatestStreamingMessages } = useLatestStreamingMessages();
+    const { subscribeChatStreaming, messageUpdateCallbackFromChatBox, cleanupChatMessageStreamingSetup } =
+        useChatBoxEventStreaming(latestStreamingMessageRef);
+    const {
+        subscribeThreadMenuEventStreaming,
+        threadCreateCallbackFromThreadMenu,
+        threadUpdateCallbackFromThreadMenu,
+        cleanupThreadMenuEventStreamingSetup,
+    } = useThreadMenuEventStreaming();
+    const {
+        subscribeResourceInfoThreadCreateEventStreaming,
+        threadCreateCallbackFromResourceInfo,
+        cleanupResourceInfoThreadCreateEventStreamingSetup,
+    } = useResourceInfoThreadCreateEventStreaming();
 
-    const sendMessage = useCallback((method: MessageRequestType, ...args: any[]) => {
+    const sendMessage = (method: MessageRequestType, ...args: any[]) => {
         if (isConnectedRef.current && connectionRef.current) {
             connectionRef.current.invoke(method, ...args).catch(() => {
                 //error handling
             });
         }
+    };
+
+    const startMessageStreamingOnNewThread = useCallback((newThreadId: string, threadCreateRequest: ThreadCreateRequest) => {
+        sendMessage(MessageRequestType.CreateThread, newThreadId, threadCreateRequest, false);
+    }, []);
+
+    const startMessageStreamingOnExistingThread = useCallback((threadId: string, messageCreateRequest: MessageCreateRequest) => {
+        sendMessage(MessageRequestType.CreateMessage, threadId, messageCreateRequest, false);
+    }, []);
+
+    const cancelMessageStreaming = useCallback((threadId: string) => {
+        sendMessage(MessageRequestType.CancelThread, threadId);
     }, []);
 
     const subscribe = () => {
         connectionRef.current?.on(MessageResponseType.MessageUpdate, (message: StreamingMessage) => {
-            messageUpdateCallback(message);
-            threadUpdateCallback(message);
+            latestMessageUpdateCallback(message);
+            messageUpdateCallbackFromChatBox(message);
+            threadUpdateCallbackFromThreadMenu(message);
         });
-        connectionRef.current?.on(MessageResponseType.ThreadUpdate, threadCreateCallback);
+        connectionRef.current?.on(MessageResponseType.ThreadUpdate, (message: StreamingMessage) => {
+            threadCreateCallbackFromThreadMenu(message);
+            threadCreateCallbackFromResourceInfo(message);
+        });
     };
 
     const unsubscribe = () => {
@@ -252,8 +334,10 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
         return () => {
             connectionRef.current?.stop();
 
+            cleanupLatestStreamingMessages();
             cleanupChatMessageStreamingSetup();
-            cleanupThreadEventStreamingSetup();
+            cleanupThreadMenuEventStreamingSetup();
+            cleanupResourceInfoThreadCreateEventStreamingSetup();
             unsubscribe();
 
             setIsConnected(false);
@@ -267,7 +351,18 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
 
     return (
         <StreamingContext.Provider
-            value={{ sendMessage, subscribeChatStreaming, subscribeThreadEvent, isConnecting, isConnected, isReconnecting, noPermission }}
+            value={{
+                startMessageStreamingOnNewThread,
+                startMessageStreamingOnExistingThread,
+                cancelMessageStreaming,
+                subscribeChatStreaming,
+                subscribeThreadMenuEventStreaming,
+                subscribeResourceInfoThreadCreateEventStreaming,
+                isConnecting,
+                isConnected,
+                isReconnecting,
+                noPermission,
+            }}
         >
             {children}
         </StreamingContext.Provider>
