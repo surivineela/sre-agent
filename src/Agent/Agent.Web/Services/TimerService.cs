@@ -356,6 +356,9 @@ public class TimerService : IHostedService, IDisposable
     /// </summary>
     public void StartCrawlerTimer(CancellationToken cancellationToken)
     {
+        var random = new Random();
+        // to avoid peak connections to graph on agent restarts
+        var jitter = TimeSpan.FromMilliseconds(random.Next(1, 10000));
         _crawlerTimer = new Timer(async _ =>
         {
             if (_crawlerTimerIsRunning)
@@ -390,7 +393,7 @@ public class TimerService : IHostedService, IDisposable
             {
                 _crawlerTimerIsRunning = false; // Ensure flag resets even if CrawlAsync() fails
             }
-        }, null, TimeSpan.Zero, TimeSpan.FromMinutes(_timerSettings.BackgroundCrawlIntervalInMinutes));
+        }, null, jitter, TimeSpan.FromMinutes(_timerSettings.BackgroundCrawlIntervalInMinutes));
     }
 
     public void StartTlsTimer(CancellationToken cancellationToken)

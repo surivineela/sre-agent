@@ -31,7 +31,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
 
     public class GremlinGraphDatabaseClient : IGraphDatabaseClient
     {
-        private readonly Lazy<GremlinClient> _gremlinClient;
+        private Lazy<GremlinClient> _gremlinClient;
         private readonly ILogger<GremlinGraphDatabaseClient> _logger;
         private readonly AsyncPolicy _retryPolicy;
 
@@ -48,7 +48,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         public GremlinGraphDatabaseClient(GraphSettings graphSettings, ILogger<GremlinGraphDatabaseClient> logger)
         {
             _logger = logger;
-            _gremlinClient = new Lazy<GremlinClient>(() => CreateGremlinClient(graphSettings));
+            _gremlinClient = new Lazy<GremlinClient>(() => CreateGremlinClient(graphSettings), LazyThreadSafetyMode.ExecutionAndPublication);
             _retryPolicy = BuildRetryPolicy();
         }
 
@@ -113,10 +113,42 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
                 password: graphSettings.ApiKey
             );
 
-            return new GremlinClient(
-                gremlinServer,
-                messageSerializer: new GraphSON2MessageSerializer(new CustomGraphSON2Reader())
-            );
+            var random = new Random();
+
+            var policy = Policy.Handle<Exception>()
+                .WaitAndRetry(retryCount: 5,
+                    sleepDurationProvider: retryAttempt =>
+                    {
+                        var delay = TimeSpan.FromSeconds(Math.Max(30, Math.Pow(2, retryAttempt)));
+                        var jitter = TimeSpan.FromMilliseconds(random.Next(0, 1000));
+                        return delay.Add(jitter);
+                    },
+                    onRetry: (exception, timeSpan, context) =>
+                    {
+                        _logger.LogInternalWarning($"Error connecting to Gremlin server. Retrying in {timeSpan.TotalSeconds} seconds. Exception: {exception.Message}");
+                    });
+
+            return policy.Execute(() =>
+                {
+                    return new GremlinClient(
+                        gremlinServer,
+                        messageSerializer: new GraphSON2MessageSerializer(new CustomGraphSON2Reader())
+                    );
+                });
+        }
+
+        private GremlinClient GetGremlinClientValue()
+        {
+            try
+            {
+                return _gremlinClient.Value;
+            }
+            catch (Exception)
+            {
+                // reset the lazy object to re-initialize next time
+                _gremlinClient = new Lazy<GremlinClient>(() => CreateGremlinClient(new GraphSettings()), LazyThreadSafetyMode.ExecutionAndPublication);
+                throw;
+            }
         }
 
         public async Task<bool> AddOrUpdateNodeAsync(string nodelabel, string nodeId, string resourceType, IDictionary<string, object> properties, string? resourceKind)
@@ -269,7 +301,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             {
                 if (this.GraphName == DefaultGraphName)
                 {
-                    return await _gremlinClient.Value.SubmitAsync<T>(query);
+                    return await GetGremlinClientValue().SubmitAsync<T>(query);
                 }
                 else
                 {
@@ -280,7 +312,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
                         .AddArgument(Tokens.ArgsAliases, new Dictionary<string, string> { { "g", this.GraphName } })
                         .AddArgument(Tokens.ArgsGremlin, query);
 
-                    return await _gremlinClient.Value.SubmitAsync<T>(msgBuilder.Create());
+                    return await GetGremlinClientValue().SubmitAsync<T>(msgBuilder.Create());
                 }
             });
         }
