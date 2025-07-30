@@ -423,25 +423,6 @@ public class Program
             .AddTransient<AgentControlFlowPluginDefinition>()
             .AddTransient<APIManagementPluginDefinition>()
             .AddTransient<AgentMemoryPluginDefinition>()
-            .AddTransient<RCAContainerAppsMetaAgentPluginDefinition>()
-            .AddTransient<RCAContainerAppsIngressPluginDefinition>()
-            .AddTransient<RCAContainerAppAspirePluginDefinition>()
-            .AddTransient<RCAContainerAppCorednsPluginDefinition>()
-            .AddTransient<RCAContainerAppOutboundConnectionPluginDefinition>()
-            .AddTransient<RCAContainerAppsManagedEnvironmentPluginDefinition>()
-            .AddTransient<RCAContainerAppsManagedClusterPluginDefinition>()
-            .AddTransient<RCAContainerAppsJobsPluginDefinition>()
-            .AddTransient<RCAContainerAppsSessionsPluginDefinition>()
-            .AddTransient<RCAContainerAppCustomerLogsPluginDefinition>()
-            .AddTransient<RCAContainerAppIcMPluginDefinition>()
-            .AddTransient<RCAContainerAppCustomerMetricsPluginDefinition>()
-            .AddTransient<RCAContainerAppQuotaPluginDefinition>()
-            .AddTransient<RCAContainerAppRevisionPluginDefinition>()
-            .AddSingleton<IKustoDashboardPlugin, KustoDashboardPlugin>()
-            .AddTransient<RCAContainerAppResourceCheckPluginDefinition>()
-            .AddTransient<RCAContainerAppResourceSearchPluginDefinition>()
-            .AddTransient<RCAContainerAppsSwiftNetworkContainerPluginDefinition>()
-            .AddTransient<RCAContainerAppPlatformUpgradesPluginDefinition>()
             .AddTransient<GenevaActionsPluginDefinition>()
             .AddTransient<ICMPluginDefinition>()
             .AddTransient<AzureAlertingPluginDefinition>()
@@ -642,6 +623,28 @@ public class Program
 
         if (isFirstPartyAgent)
         {
+            // Register ACA First Party tools
+            builder.Services
+                .AddTransient<RCAContainerAppsMetaAgentPluginDefinition>()
+                .AddTransient<RCAContainerAppsIngressPluginDefinition>()
+                .AddTransient<RCAContainerAppAspirePluginDefinition>()
+                .AddTransient<RCAContainerAppCorednsPluginDefinition>()
+                .AddTransient<RCAContainerAppOutboundConnectionPluginDefinition>()
+                .AddTransient<RCAContainerAppsManagedEnvironmentPluginDefinition>()
+                .AddTransient<RCAContainerAppsManagedClusterPluginDefinition>()
+                .AddTransient<RCAContainerAppsJobsPluginDefinition>()
+                .AddTransient<RCAContainerAppsSessionsPluginDefinition>()
+                .AddTransient<RCAContainerAppCustomerLogsPluginDefinition>()
+                .AddTransient<RCAContainerAppIcMPluginDefinition>()
+                .AddTransient<RCAContainerAppCustomerMetricsPluginDefinition>()
+                .AddTransient<RCAContainerAppQuotaPluginDefinition>()
+                .AddTransient<RCAContainerAppRevisionPluginDefinition>()
+                .AddSingleton<IKustoDashboardPlugin, KustoDashboardPlugin>()
+                .AddTransient<RCAContainerAppResourceCheckPluginDefinition>()
+                .AddTransient<RCAContainerAppResourceSearchPluginDefinition>()
+                .AddTransient<RCAContainerAppsSwiftNetworkContainerPluginDefinition>()
+                .AddTransient<RCAContainerAppPlatformUpgradesPluginDefinition>();
+
             builder.Services.AddSingleton<IAgentsFactory, FirstPartyAgentsFactory>();
             builder.Services.AddSingleton<IToolsRepository, FirstPartyToolsRepository>();
             builder.Services.AddSingleton<ITitleGenerationService, FirstPartyTitleGenerationService>();
