@@ -2,6 +2,8 @@ import {
     Caption1,
     Dropdown,
     Field,
+    MessageBar,
+    MessageBarBody,
     Option,
     OptionOnSelectData,
     SelectionEvents,
@@ -16,7 +18,7 @@ import { useParams } from 'react-router-dom';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { KnowledgeGraphBuildStatusContext } from '../../Common/Providers/KnowledgeGraphBuildStatusProvider';
-import { GraphResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { ActivitiesResources, GraphResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { ResourceExtended, Subscription } from '../Contracts/Graph';
 import { useResourceSelectorStyles } from '../Styles/Graph.styles';
 
@@ -29,7 +31,7 @@ interface IResourceSelectorProps {
 const ResourceSelector = ({ onAppGroupUpdate }: IResourceSelectorProps) => {
     const { groupId: initialGroupId } = useParams();
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
-    const { hasChatPermissions } = useContext(KnowledgeGraphBuildStatusContext);
+    const { hasChatPermissions, isKnowledgeGraphBuildCompleted, progressPercent } = useContext(KnowledgeGraphBuildStatusContext);
     const intl = useIntl();
 
     const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
@@ -254,6 +256,13 @@ const ResourceSelector = ({ onAppGroupUpdate }: IResourceSelectorProps) => {
                     </Dropdown>
                 )}
             </Field>
+            {!isKnowledgeGraphBuildCompleted && progressPercent !== 100 && (
+                <MessageBar intent={'info'} shape={'rounded'} layout={'multiline'}>
+                    <MessageBarBody>
+                        {intl.formatMessage(ActivitiesResources.knowledgeGraphBuildStatus, { percent: progressPercent })}
+                    </MessageBarBody>
+                </MessageBar>
+            )}
         </div>
     );
 };
