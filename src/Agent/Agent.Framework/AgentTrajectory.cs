@@ -190,7 +190,7 @@ public sealed class AgentTrajectory
                 }
 
                 // execute the saved handoff if approved.
-                if (resultString.Equals(Handoff<string>.HandoffMessage, StringComparison.OrdinalIgnoreCase))
+                if (resultString.StartsWith(Handoff<string>.GetTransferMessage(), StringComparison.OrdinalIgnoreCase))
                 {
                     if (_activeHandoff == HandOffToolName)
                     {

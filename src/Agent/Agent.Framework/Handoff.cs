@@ -11,9 +11,19 @@ public class Handoff<TContext> : AIFunction where TContext : class
 {
     public string AgentName { get; }
 
-    public string TransferMessage { get; } = HandoffMessage;
+    public static string GetTransferMessage(string handoffReasoning = "")
+    {
+        if (string.IsNullOrEmpty(handoffReasoning))
+        {
+            return "Handoff is complete. Analyze the current state of the conversation, think about the required next steps, and continue handling the task.";
+        }
+        else
+        {
+            return $"Handoff is complete. Analyze the current state of the conversation, think about the required next steps, and continue handling the task. Your subtask is: {handoffReasoning}";
+        }
+    }
 
-    public const string HandoffMessage = "Handoff is complete. Analyze the current state of the conversation, think about the required next steps, and continue handling the task";
+    public const string ReasoningParam = "subtask";
 
     #region AITool overrides
 
@@ -25,7 +35,7 @@ public class Handoff<TContext> : AIFunction where TContext : class
 
     #region AIFunction overrides
 
-    // public override JsonElement JsonSchema { get; }
+    public override JsonElement JsonSchema { get; }
 
     protected override ValueTask<object?> InvokeCoreAsync(
         AIFunctionArguments arguments,
@@ -43,6 +53,7 @@ public class Handoff<TContext> : AIFunction where TContext : class
         string name,
         string description,
         string agentName,
+        bool enableHandoffReasoning,
         Func<RunContextWrapper<TContext>, Task<Agent<TContext>>> onInvokeHandoff
     )
     {
@@ -51,7 +62,9 @@ public class Handoff<TContext> : AIFunction where TContext : class
         AgentName = agentName;
         OnInvokeHandoff = onInvokeHandoff;
 
-        // JsonSchema = ConstructReasoningSchema(name, description);
+        JsonSchema = enableHandoffReasoning
+            ? ConstructReasoningSchema(name, description)
+            : ConstructEmptySchema();
     }
 
     public static string DefaultToolName(Agent<TContext> agent)
@@ -66,6 +79,7 @@ public class Handoff<TContext> : AIFunction where TContext : class
 
     public static Handoff<TContext> Create(
         Agent<TContext> agent,
+        bool enableHandoffReasoning = false,
         string? toolNameOverride = null,
         string? toolDescriptionOverride = null
     )
@@ -74,6 +88,7 @@ public class Handoff<TContext> : AIFunction where TContext : class
             name: toolNameOverride ?? DefaultToolName(agent),
             description: toolDescriptionOverride ?? DefaultToolDescription(agent),
             agentName: agent.Name,
+            enableHandoffReasoning: enableHandoffReasoning,
             onInvokeHandoff: (_) => Task.FromResult(agent)
         );
     }
@@ -108,6 +123,12 @@ public class Handoff<TContext> : AIFunction where TContext : class
                 }
             },
             required = new[] { "subtask", "selectionReasoning" }
-        });
+        },
+        AIJsonUtilities.DefaultOptions);
+    }
+
+    public static JsonElement ConstructEmptySchema()
+    {
+        return JsonSerializer.SerializeToElement(new { }, AIJsonUtilities.DefaultOptions);
     }
 }

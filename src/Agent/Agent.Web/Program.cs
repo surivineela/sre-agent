@@ -29,7 +29,6 @@ using Agent.Plugins.Clients;
 using Agent.Plugins.DataConnectors;
 using Agent.Plugins.DataConnectors.Documentation;
 using Agent.Plugins.DataConnectors.KustoMetadata;
-using Agent.Plugins.DataConnectors.TSG;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Implementation;
 using Agent.Plugins.Implementation.DiagnosticsPlugin;
@@ -419,8 +418,9 @@ public class Program
             .AddTransient<FunctionAppConfigurationChecksPluginDefinition>()
             .AddTransient<FunctionAppDeploymentChecksPluginDefinition>()
             .AddTransient<FunctionsFlexConsumptionCRIPluginDefinition>()
-            .AddTransient<UserInteractionPluginDefinition>()
             .AddTransient<AgentControlFlowPluginDefinition>()
+            .AddTransient<AgentReasoningControlFlowPluginDefinition>()
+            .AddTransient<UserInteractionPluginDefinition>()
             .AddTransient<APIManagementPluginDefinition>()
             .AddTransient<AgentMemoryPluginDefinition>()
             .AddTransient<GenevaActionsPluginDefinition>()
@@ -462,10 +462,6 @@ public class Program
             .AddTransient<IICMPlugin, ICMPlugin>()
             .AddTransient<IAzureAlertingPlugin, AzureAlertingPlugin>()
             .AddTransient<IWebAppPlugin, WebAppPlugin>()
-
-
-
-
 
             //.AddSingleton<AppServiceRemediationAgentFactory>()
             .AddSingleton<KubernetesAgentFactory>()
@@ -513,7 +509,7 @@ public class Program
             .AddSingleton<ThreadService>()
             .AddSingleton<ThreadManagementService>()
             .AddSingleton<IAgentInboundCommunicationService, InboundCommunicationService>()
-            .AddSingleton<IStreamingService, Agent.Web.Services.SignalRStreamingService>()
+            .AddSingleton<IStreamingService, SignalRStreamingService>()
             .AddSingleton<IAgentOutboundCommunicationService, OutboundCommunicationService>()
             .AddSingleton<IApprovalService, ApprovalService>()
             .AddSingleton<IRemoteWriteService, RemoteWriteService>()
@@ -553,7 +549,7 @@ public class Program
             .AddSingleton<IAgentFactory<AgentContext>, AgentFactory<AgentContext>>(sp =>
             {
                 var configuration = sp.GetRequiredService<IConfiguration>();
-                var azureSettings = configuration.GetSection("AppSettings:Core:Azure").Get<AzureSettings>();
+                var experimentalSettings = configuration.GetSection("AppSettings:Core:Experimental").Get<ExperimentalSettings>();
                 var modeConfigurator = sp.GetRequiredService<IAgentModeConfigurator<AgentContext>>();
 
                 // Use ACA-FirstParty subfolder for first party agents, otherwise use full AgentsV2 directory
@@ -573,7 +569,8 @@ public class Program
                     commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonTools"),
                     promptStarters: [Core.Constants.SREAgentPromptStarter],
                     promptEnders: [Core.Constants.SREAgentFinalInstructions],
-                    defaultOutputType: typeof(DefaultAgentOutput)
+                    defaultOutputType: typeof(DefaultAgentOutput),
+                    enableHandoffReasoning: experimentalSettings?.EnableHandoffReasoning ?? false
                 );
 
                 if (TrajectoryRetrievalEnabled(builder))

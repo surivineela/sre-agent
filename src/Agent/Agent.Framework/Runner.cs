@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
@@ -488,13 +489,13 @@ public static class Runner
         List<ChatMessage> modelInput = [new ChatMessage(ChatRole.System, systemPrompt)];
         modelInput.AddRange(originalInput);
         modelInput.AddRange(generatedMessages);
-        
+
         // Process handoff prompt override if current agent has UserPromptOverride
         if (!string.IsNullOrEmpty(agent.UserPromptOverride))
         {
             modelInput = ProcessHandoffPromptOverride(modelInput, agent);
         }
-        
+
         // tool invocations like metrics query depend on current time
         modelInput.Add(new ChatMessage(ChatRole.System, $"The current date is {DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss zzz}"));
 
@@ -512,7 +513,7 @@ public static class Runner
             response = await chatClient.GetResponseAsync(modelInput, chatOptions);
         }
 
-       await hooks.OnModelGenerationEnd(contextWrapper, agent, response);
+        await hooks.OnModelGenerationEnd(contextWrapper, agent, response);
 
         trajectory.Append(response);
 
@@ -671,7 +672,9 @@ public static class Runner
 
                     await hooks.OnHandoff(contextWrapper, agent, newAgent);
 
-                    var handoffResult = new FunctionResultContent(functionCall.CallId, handoff.TransferMessage);
+                    var handoffResponse = GetHandoffTransferMessage<TContext>(functionCall);
+
+                    var handoffResult = new FunctionResultContent(functionCall.CallId, handoffResponse);
                     newStepItems.Add(modelResponseMessage);
                     newStepItems.Add(new ChatMessage(ChatRole.Tool, [handoffResult]));
 
@@ -679,7 +682,7 @@ public static class Runner
                     {
                         if (displayModelOutput is not null)
                         {
-                            await displayModelOutput($"[DEBUG]\n\nHandoff Completed. Previous Agent: {agent.Name} -> New Agent: {newAgent.Name}");
+                            await displayModelOutput($"[DEBUG]\n\nHandoff Completed. Previous Agent: {agent.Name} -> New Agent: {newAgent.Name}.");
                         }
                     }
 
@@ -895,6 +898,22 @@ public static class Runner
         }
     }
 
+    private static string GetHandoffTransferMessage<TContext>(
+        FunctionCallContent functionCall)
+        where TContext : class
+    {
+        var handoffReasoning = string.Empty;
+        if (functionCall.Arguments is not null
+            && functionCall.Arguments.TryGetValue(Handoff<TContext>.ReasoningParam, out var reasoningObject)
+            && reasoningObject is JsonElement reasoningElement
+            && reasoningElement.ValueKind == JsonValueKind.String)
+        {
+            handoffReasoning = reasoningElement.GetString()!;
+        }
+
+        return Handoff<TContext>.GetTransferMessage(handoffReasoning);
+    }
+
     private static string GetToolErrorMessage(FunctionCallContent functionCall, Exception ex)
     {
         var message = $"Error: Function {functionCall.Name} failed, {ex.Message}";
@@ -991,23 +1010,23 @@ public static class Runner
         where TContext : class
     {
         const string OverrideHeader = "[RCA_HANDOFF_OVERRIDE]";
-        
+
         // Look for User messages with the override header
         for (int i = 0; i < modelInput.Count; i++)
         {
             var message = modelInput[i];
-            if (message.Role == ChatRole.User && 
-                message.Text != null && 
+            if (message.Role == ChatRole.User &&
+                message.Text != null &&
                 message.Text.Contains(OverrideHeader, StringComparison.OrdinalIgnoreCase))
             {
                 // Extract the original user query from the message
                 var originalUserQuery = ExtractUserQueryFromOverrideMessage(message.Text, OverrideHeader);
-                
+
                 // Replace the message content with agent's UserPromptOverride
                 var newContent = $"{agent.UserPromptOverride}\n\nUser question goes below:\n{originalUserQuery}";
-                
+
                 modelInput[i] = new ChatMessage(ChatRole.User, newContent);
-                
+
                 // Log the override action (using simple console for now to avoid logger factory issues)
                 Console.WriteLine($"[Runner] Applied handoff prompt override for agent {agent.Name}");
                 break;

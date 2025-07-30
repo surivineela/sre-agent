@@ -51,6 +51,7 @@ public class HandOffEvaluation
             yield return new object[]
             {
                 new HandOffEvaluationTestCase(
+                    TraceFileName: handoffTest.TraceFileName,
                     ThreadId: Guid.NewGuid(),
                     StartAgent: "meta_agent",
                     AutoHandoffEnabled: handoffTest.AutoHandoffEnabled,
@@ -133,7 +134,9 @@ public class HandOffEvaluation
             var expectedResult = testCase.ExpectedHandoffSuccess[i];
             if (expectedResult is not null)
             {
-                Assert.AreEqual(expectedResult, result.HandoffsAreCorrect);
+                Assert.AreEqual(expectedResult, result.HandoffsAreCorrect,
+                    $"Failed evaluation #{i + 1} for {testCase.TraceFileName}. " +
+                    $"Expected Evaluation: {expectedResult}. Prompt Evaluation: {result.HandoffsAreCorrect}");
             }
         }
 
@@ -147,6 +150,7 @@ public class HandOffEvaluation
         bool?[] ExpectedHandoffSuccess);
 
     public sealed record HandOffEvaluationTestCase(
+        string TraceFileName,
         Guid ThreadId,
         string StartAgent,
         bool AutoHandoffEnabled,

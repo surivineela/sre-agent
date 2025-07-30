@@ -4,9 +4,11 @@
 
 using System.Reflection;
 using Agent.Core.Attributes;
+using Agent.Core.Configuration;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Agent.Plugins;
+using Agent.Plugins.Definitions;
 using Agent.Plugins.Tools;
 using Agent.Runtime.Reasoning.Models; // Using the new location for YAML models
 using Microsoft.Extensions.AI;
@@ -172,12 +174,12 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
     private readonly IConfiguration _configuration;
     private readonly IEnumerable<Assembly> _assemblies;
     private readonly Dictionary<string, IDeferredToolFunction> _tools = new();
+    private readonly bool _handoffReasoningEnabled;
 
     public ToolFactory(
         ILogger<ToolFactory<TContext>> logger,
         IServiceProvider serviceProvider,
         IEnumerable<Assembly> assembliesToScan
-
     )
     {
         _logger = logger;
@@ -185,6 +187,10 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
         _assemblies = assembliesToScan;
         _hostEnvironment = _serviceProvider.GetRequiredService<IHostEnvironment>();
         _configuration = _serviceProvider.GetRequiredService<IConfiguration>();
+
+        var experimentalSettings = _configuration.GetSection("AppSettings:Core:Experimental").Get<ExperimentalSettings>();
+        _handoffReasoningEnabled = experimentalSettings?.EnableHandoffReasoning ?? false;
+
         FindAndRegisterAllTools(BehaviorOnNameConflict.ThrowException);
     }
 
@@ -301,6 +307,26 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
                 if (attribute is null)
                 {
                     _logger.LogInternalWarning("Type {pluginType} does not have AgentToolPluginAttribute.", pluginType.FullName);
+                    continue;
+                }
+
+                // ignore disabled plugins
+                if (!attribute.IsEnabled)
+                {
+                    continue;
+                }
+
+                // if handoff reasoning enabled, ignore AgentControlFlowPluginDefinition
+                if (_handoffReasoningEnabled
+                    && pluginType == typeof(AgentControlFlowPluginDefinition))
+                {
+                    continue;
+                }
+
+                // and vice versa, if handoff reasoning disabled, ignore AgentReasoningControlFlowPluginDefinition
+                if (!_handoffReasoningEnabled
+                    && pluginType == typeof(AgentReasoningControlFlowPluginDefinition))
+                {
                     continue;
                 }
 

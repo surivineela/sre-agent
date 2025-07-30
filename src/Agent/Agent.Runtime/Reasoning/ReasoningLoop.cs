@@ -43,6 +43,8 @@ public class ReasoningLoop : IDisposable
     private readonly ISearchEndpointService _searchEndpointService;
     private readonly SearchHelper _searchHelper;
     private readonly FeatureConfigModel _featureConfig;
+
+    // feature properties
     private readonly bool _enableDocumentRetrieval;
     private readonly bool _agentMemoryEnabled;
     private readonly bool _autoHandOffEnabled;
@@ -609,14 +611,14 @@ public class ReasoningLoop : IDisposable
             ChatClient = _chatClient,
             LoggerFactory = _loggerFactory,
             EnableDebugOutput = _enableReasoningDebugOutput,
-            ThreadId = _context.ThreadId,
+            ThreadId = _context.ThreadId
         };
 
         try
         {
             var runHooks = CreateRunHooks();
 
-            Agent.Core.ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
+            Core.ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -652,9 +654,10 @@ public class ReasoningLoop : IDisposable
                     toolCallMessageId);
 
                 // TODO: move handoff back to Agent.Framework so we don't have to manipulate the chat history so much outside the runner
-                if (toolCall.Tool.UnderlyingMethod?.Name == nameof(AgentControlFlowPluginDefinition.HandoffBack))
+                if (toolCall.Tool.UnderlyingMethod?.Name == nameof(AgentControlFlowPluginDefinition.HandoffBack)
+                    || toolCall.Tool.UnderlyingMethod?.Name == nameof(AgentReasoningControlFlowPluginDefinition.HandoffBack))
                 {
-                    string output;
+                    var handoffOutput = GetHandoffBackTransferMessage(toolCall);
                     if (_context.AgentHandoffChain.Count > 1)
                     {
                         // pop agent off the chain
@@ -663,15 +666,6 @@ public class ReasoningLoop : IDisposable
                         var newAgent = _agentFactory.GetAgent(agentName);
 
                         runResult = runResult.WithNewAgent(newAgent);
-
-                        _context = await _threadRepository.UpdateAgentContextAsync(_context);
-
-                        output = Handoff<AgentContext>.HandoffMessage;
-                        toolResults.Add(new ManualToolCallResult()
-                        {
-                            FunctionCall = toolCall.FunctionCall,
-                            Output = output
-                        });
                     }
                     else
                     {
@@ -683,15 +677,14 @@ public class ReasoningLoop : IDisposable
                         {
                             AgentHandoffChain = [_defaultStartingAgent.Name]
                         };
-                        _context = await _threadRepository.UpdateAgentContextAsync(_context);
-
-                        output = Handoff<AgentContext>.HandoffMessage;
-                        toolResults.Add(new ManualToolCallResult()
-                        {
-                            FunctionCall = toolCall.FunctionCall,
-                            Output = output
-                        });
                     }
+
+                    _context = await _threadRepository.UpdateAgentContextAsync(_context);
+                    toolResults.Add(new ManualToolCallResult()
+                    {
+                        FunctionCall = toolCall.FunctionCall,
+                        Output = handoffOutput
+                    });
                 }
                 else
                 {
@@ -971,6 +964,20 @@ public class ReasoningLoop : IDisposable
         }
 
         return new ReasoningLoopIterationResult { IsContinuation = false };
+    }
+
+    private static string GetHandoffBackTransferMessage(ManualToolCall toolCall)
+    {
+        var handoffReasoning = string.Empty;
+        if (toolCall.FunctionCall.Arguments is not null
+            && toolCall.FunctionCall.Arguments.TryGetValue(AgentReasoningControlFlowPluginDefinition.ReasoningParam, out var reasoningObject)
+            && reasoningObject is JsonElement reasoningElement
+            && reasoningElement.ValueKind == JsonValueKind.String)
+        {
+            handoffReasoning = reasoningElement.GetString()!;
+        }
+
+        return Handoff<AgentContext>.GetTransferMessage(handoffReasoning);
     }
 
     private Task DisplayModelResponse(string t)

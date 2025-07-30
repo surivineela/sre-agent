@@ -226,7 +226,7 @@ namespace Agent.Data.Repositories
             return Task.FromResult<Thread?>(updatedThread);
         }
 
-        Task<Thread?> IThreadRepository.UpdateThreadFeatureSetAsync(Guid threadId, Func<FeatureConfig?, FeatureConfig> featureUpdate)
+        Task<Thread?> IThreadRepository.UpdateThreadFeatureSetAsync(Guid threadId, FeatureConfig featureConfig)
         {
             if (!_threads.TryGetValue(threadId, out var thread))
             {
@@ -234,15 +234,10 @@ namespace Agent.Data.Repositories
                 return Task.FromResult<Thread?>(null);
             }
 
-            // round trip the model update in document
-            var documentConfig = thread.FeatureConfig?.ToDocument();
-            var updatedConfig = featureUpdate(documentConfig);
-            var updatedConfigModel = updatedConfig.ToModel();
-
             // Update the feature set and modified timestamp
             var updatedThread = thread with
             {
-                FeatureConfig = updatedConfigModel,
+                FeatureConfig = featureConfig.ToModel(),
                 ModifiedTimestamp = DateTime.UtcNow
             };
 

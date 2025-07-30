@@ -40,6 +40,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
     private readonly IEnumerable<string>? _promptEnders;
     private readonly Type? _defaultOutputType;
     private readonly IAgentModeConfigurator<TContext> _modeConfigurator;
+    private readonly bool _enableHandoffReasoning;
 
     public AgentFactory(
         ILogger<AgentFactory<TContext>> logger,
@@ -51,7 +52,8 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         string? commonToolsYamlDirectory = null,
         IEnumerable<string>? promptStarters = null,
         IEnumerable<string>? promptEnders = null,
-        Type? defaultOutputType = null
+        Type? defaultOutputType = null,
+        bool enableHandoffReasoning = false
     )
     {
         _toolFactory = toolFactory;
@@ -64,6 +66,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         _promptEnders = promptEnders;
         _modeConfigurator = modeConfigurator;
         _defaultOutputType = defaultOutputType;
+        _enableHandoffReasoning = enableHandoffReasoning;
         InitializeAgents();
     }
 
@@ -241,7 +244,11 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
                 }
             }
 
-            agent.Handoffs = agentDescriptor.Handoffs.Select(h => Handoff<TContext>.Create(_agents[h])).ToList();
+            agent.Handoffs = agentDescriptor.Handoffs
+                .Select(h => Handoff<TContext>.Create(
+                    agent: _agents[h],
+                    enableHandoffReasoning: _enableHandoffReasoning))
+                .ToList();
         }
     }
 

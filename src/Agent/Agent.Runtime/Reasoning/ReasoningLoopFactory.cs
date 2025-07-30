@@ -37,16 +37,13 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     // regional search
     private readonly ISearchEndpointService _searchEndpointService;
     private readonly SearchHelper _searchHelper;
-    private readonly SearchEndpointSettings _searchEndpointSettings;
 
     // agent memory
     private readonly IAgentMemoryClient _agentMemoryClient;
     private readonly ISearchIndexService _searchIndexService;
-    private readonly AgentMemorySettings _agentMemorySettings;
 
     // experimental features
-    private readonly bool _enableAutoHandOff;
-
+    private readonly FeatureConfigModel _featureConfig;
     private readonly bool _enableReasoningDebugOutput;
 
     public ReasoningLoopFactory(
@@ -83,12 +80,15 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             && hostEnvironment.IsDevelopment(); // only enable debug output in dev environment
         _searchEndpointService = searchEndpointService;
         _searchHelper = searchHelper;
-        _searchEndpointSettings = azureSettings.SearchEndpoint;
-        _agentMemorySettings = coreSettings.AgentMemory;
         _agentMemoryClient = agentMemoryClient;
         _searchIndexService = searchIndexService;
-        _enableAutoHandOff = coreSettings.Experimental is not null
-            && coreSettings.Experimental.AutoHandoffToMeta;
+
+        _featureConfig = new FeatureConfigModel(
+            AutoHandoffEnabled: coreSettings.Experimental?.AutoHandoffToMeta ?? false,
+            RegionalSearchEnabled: azureSettings.SearchEndpoint.EnableDocumentRetrieval,
+            AgentMemoryEnabled: coreSettings.AgentMemory.Enabled,
+            TrajectoryRetrievalEnabled: coreSettings.AgentMemory.TrajectoryRetrievalEnabled,
+            HandoffReasoningEnabled: coreSettings.Experimental?.EnableHandoffReasoning ?? false);
     }
 
     public async Task<ReasoningLoop> Create(AgentContext context)
@@ -134,7 +134,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         var defaultStartingAgent = _agentFactory.GetAgent(defaultStartingAgentName);
         var currentStartingAgent = _agentFactory.GetAgent(currentStartingAgentName);
 
-        var effectiveFeatureConfig = await TrySetThreadFeatureConfig(context.ThreadId);
+        // update thread doc with enabled features on reasoning loop creation
+        await UpdateThreadFeatureConfig(context.ThreadId);
 
         // Create and return a new instance of ReasoningLoop
         var loop = new ReasoningLoop(
@@ -155,34 +156,17 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             searchHelper: _searchHelper,
             agentMemoryClient: _agentMemoryClient,
             searchIndexService: _searchIndexService,
-            featureConfig: effectiveFeatureConfig,
+            featureConfig: _featureConfig,
             agentRuntimeModifier: _agentRuntimeModifier);
 
         await loop.LoadChatHistoryAsync();
         return loop;
     }
 
-    private async Task<FeatureConfigModel> TrySetThreadFeatureConfig(Guid threadId)
+    private Task UpdateThreadFeatureConfig(Guid threadId)
     {
-        var threadConfig = await _threadRepository.UpdateThreadFeatureSetAsync(
+        return _threadRepository.UpdateThreadFeatureSetAsync(
             threadId: threadId,
-            featureUpdate: featureConfig =>
-            {
-                // if no feature set => new thread => create as per config
-                if (featureConfig is null)
-                {
-                    return new(
-                        AutoHandoffEnabled: _enableAutoHandOff,
-                        RegionalSearchEnabled: _searchEndpointSettings.EnableDocumentRetrieval,
-                        AgentMemoryEnabled: _agentMemorySettings.Enabled,
-                        TrajectoryRetrievalEnabled: _agentMemorySettings.TrajectoryRetrievalEnabled,
-                        HandoffReasoningEnabled: false); // todo: implement
-                }
-
-                // otherwise honor the restored autohandoff
-                return featureConfig;
-            });
-
-        return threadConfig?.FeatureConfig ?? FeatureConfigModel.Default;
+            featureConfig: _featureConfig.ToDocument());
     }
 }

@@ -447,7 +447,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
-    async Task<Thread?> IThreadRepository.UpdateThreadFeatureSetAsync(Guid threadId, Func<FeatureConfig?, FeatureConfig> featureUpdate)
+    async Task<Thread?> IThreadRepository.UpdateThreadFeatureSetAsync(Guid threadId, FeatureConfig featureConfig)
     {
         try
         {
@@ -462,34 +462,22 @@ public class CosmosDbThreadRepository : IThreadRepository
                 return null;
             }
 
-            var existingConfig = threadDoc.FeatureConfig;
-            var updatedConfig = featureUpdate(existingConfig);
-
-            // no-op update. return early
-            if (updatedConfig == existingConfig)
+            // Update the feature config and modified timestamp
+            var updatedThreadDoc = threadDoc with
             {
-                _logger.LogInternalInformation($"No update featureSet needed for thread {threadId}. " +
-                    $"Existing Feature Config {WebJsonSerializer.Serialize(existingConfig)}");
-            }
-            else
-            {
-                // Update the title and modified timestamp
-                var updatedThreadDoc = threadDoc with
-                {
-                    FeatureConfig = updatedConfig,
-                    ModifiedTimestamp = DateTime.UtcNow
-                };
+                FeatureConfig = featureConfig,
+                ModifiedTimestamp = DateTime.UtcNow
+            };
 
-                // Save the updated document
-                await _client.GetContainer<ThreadDocument>(_databaseName).ReplaceItemAsync(
-                    updatedThreadDoc,
-                    updatedThreadDoc.Id,
-                    new PartitionKey(updatedThreadDoc.PartitionKey)
-                );
+            // Save the updated document
+            await _client.GetContainer<ThreadDocument>(_databaseName).ReplaceItemAsync(
+                updatedThreadDoc,
+                updatedThreadDoc.Id,
+                new PartitionKey(updatedThreadDoc.PartitionKey)
+            );
 
-                _logger.LogInternalInformation($"Successfully updated featureSet for thread {threadId}. " +
-                    $"New Feature Config {WebJsonSerializer.Serialize(updatedConfig)}");
-            }
+            _logger.LogInternalInformation($"Successfully updated featureSet for thread {threadId}. " +
+                $"New Feature Config {WebJsonSerializer.Serialize(featureConfig)}");
 
             var updatedThread = await GetThreadAsync(threadId);
             return updatedThread;
