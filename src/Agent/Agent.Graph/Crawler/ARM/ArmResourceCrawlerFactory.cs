@@ -20,15 +20,17 @@ public class ArmResourceCrawlerFactory
     private readonly IArmClientFactory _armClientFactory;
     private readonly IGraphDatabaseClient _graphDbClient;
     private readonly IKubernetesService _k8sService;
+    private readonly IHttpClientFactory _httpClientFactory;
 
     public ArmResourceCrawlerFactory(ILoggerFactory loggerFactory, AzureResourceGraphClient graphClient, IArmClientFactory armClientFactory, IGraphDatabaseClient graphDbClient,
-        [FromKeyedServices("Crawler")] IKubernetesService k8sService)
+        [FromKeyedServices("Crawler")] IKubernetesService k8sService, IHttpClientFactory httpClientFactory)
     {
         _loggerFactory = loggerFactory;
         _graphClient = graphClient;
         _armClientFactory = armClientFactory;
         _graphDbClient = graphDbClient;
         _k8sService = k8sService;
+        _httpClientFactory = httpClientFactory;
     }
 
     public IResourceCrawler CreateFromNode(GraphNode node)
@@ -106,6 +108,10 @@ public class ArmResourceCrawlerFactory
             if (Constants.ApiManagementBackendType.Equals(armNode.ResourceType, StringComparison.OrdinalIgnoreCase))
             {
                 return new APIManagementBackendCrawler(_loggerFactory.CreateLogger<APIManagementBackendCrawler>(), _graphDbClient, _graphClient, armClient);
+            }
+            if (Constants.ApiCenterType.Equals(armNode.ResourceType, StringComparison.OrdinalIgnoreCase))
+            {
+                return new APICenterCrawler(_loggerFactory.CreateLogger<APICenterCrawler>(), _graphDbClient, _graphClient, armClient, _httpClientFactory);
             }
 
             return new GenericArmResourceCrawler(_loggerFactory.CreateLogger<GenericArmResourceCrawler>(), _graphDbClient, armClient);
@@ -220,6 +226,10 @@ public class ArmResourceCrawlerFactory
         if (Constants.ApiManagementBackendType.Equals(id.ResourceType, StringComparison.OrdinalIgnoreCase))
         {
             return new APIManagementBackendNode(id.ResourceType, id.ToString(), id.SubscriptionId, id.ResourceGroupName, id.Name);
+        }
+        if (Constants.ApiCenterType.Equals(id.ResourceType, StringComparison.OrdinalIgnoreCase))
+        {
+            return new APICenterNode(id.ResourceType, id.ToString(), id.SubscriptionId, id.ResourceGroupName, id.Name);
         }
 
         return new ArmResourceNode(id.ResourceType, id.ToString(), id.SubscriptionId, id.ResourceGroupName, id.Name);

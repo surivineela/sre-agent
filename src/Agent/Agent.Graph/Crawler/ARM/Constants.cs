@@ -34,6 +34,7 @@ public class Constants
     public const string ApiManagementType = "Microsoft.ApiManagement/service";
     public const string NetworkSecurityGroupType = "Microsoft.Network/networkSecurityGroups";
     public const string ApiManagementBackendType = "Microsoft.ApiManagement/service/backends";
+    public const string ApiCenterType = "Microsoft.ApiCenter/services";
 
     // New constants for App Service Web/Function Apps and App Service Plans.
     public const string AppServiceType = "Microsoft.Web/sites";

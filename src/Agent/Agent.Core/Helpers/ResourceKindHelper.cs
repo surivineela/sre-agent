@@ -33,6 +33,7 @@ public static class ResourceKindHelper
     public const string ManagedDiskType = "Microsoft.Compute/disks";
     public const string ApiManagementType = "Microsoft.ApiManagement/service";
     public const string ApiManagementBackendType = "Microsoft.ApiManagement/service/backends";
+    public const string ApiCenterType = "Microsoft.ApiCenter/services";
 
     // New constants for App Service Web/Function Apps and App Service Plans.
     public const string AppServiceType = "Microsoft.Web/sites";
@@ -61,6 +62,10 @@ public static class ResourceKindHelper
         // Networking
         [VirtualNetworkType] = "vnet",
         [VirtualNetworkSubnetType] = "subnet",
+
+        [ApiManagementType] = "apimanagement",
+        [ApiManagementBackendType] = "apimanagementbackend",
+        [ApiCenterType] = "apicenter"
     };
 
     public static string getResourceKind(string type, string? kind)
