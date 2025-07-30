@@ -1,4 +1,4 @@
-import { Ref, useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import { Ref, useCallback, useContext, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ThreadClient } from '../../Common/Clients/ThreadClient';
 import { Thread } from '../../Common/Contracts/Azure/SreAgent';
@@ -6,7 +6,7 @@ import { StreamingMessage } from '../../Common/Contracts/Azure/Streaming';
 import {
     getFilteredThreads,
     getUpdatedUnreadThreadIds,
-    isUserStreamingMessage,
+    isFinalStreamingMessage,
     processThreads,
     removeThreadIdsFromUnreadThreads,
 } from '../Activities/Utility';
@@ -23,15 +23,27 @@ export const useThreadsMenu = (ref: Ref<ThreadMenuHandle>) => {
     const [threadFilters, setThreadFilters] = useState<Set<ThreadFilter>>(new Set<ThreadFilter>());
 
     const threadUpdateQueue = useRef<Thread[]>([]);
+    const threadItemDivsRef = useRef<Map<string, HTMLDivElement>>(new Map<string, HTMLDivElement>());
+    const updatedThreadItemPositions = useRef<Map<string, DOMRect>>(new Map<string, DOMRect>());
 
-    const { threads, setThreads, setUnreadThreadIds, unreadThreadIds, isLoadingInitialThreads, ...rest } = useThreadList(
+    const { threads, setThreads, setUnreadThreadIds, unreadThreadIds, isLoadingInitialChatMessages, ...rest } = useThreadList(
         undefined,
         threadFilters,
         undefined
     );
 
     const oldestThreadModifiedTimestamp = useMemo(() => threads[threads.length - 1]?.modifiedTimestamp, [threads]);
-    const newestThreadId = useMemo(() => threads[0]?.id, [threads]);
+
+    const threadFiltersRef = useRef<Set<ThreadFilter>>(threadFilters);
+    const isLoadingInitialChatMessagesRef = useRef(isLoadingInitialChatMessages);
+
+    useEffect(() => {
+        threadFiltersRef.current = threadFilters;
+    }, [threadFilters]);
+
+    useEffect(() => {
+        isLoadingInitialChatMessagesRef.current = isLoadingInitialChatMessages;
+    }, [isLoadingInitialChatMessages]);
 
     const updateThreadFilters = useCallback((filter: ThreadFilter) => {
         setThreadFilters(prev => {
@@ -61,24 +73,56 @@ export const useThreadsMenu = (ref: Ref<ThreadMenuHandle>) => {
         return undefined;
     };
 
-    const updateThreadInfo = useCallback(
-        async (thread: Thread) => {
-            if (!isLoadingInitialThreads) {
-                setThreads(prevThreads => {
-                    const { threads: totalThreads, addedThreads } = processThreads(
-                        prevThreads,
-                        getFilteredThreads([thread], threadFilters, undefined),
-                        true
-                    );
-                    setUnreadThreadIds(prev => getUpdatedUnreadThreadIds(prev, addedThreads));
-                    return totalThreads;
-                });
-            } else {
-                threadUpdateQueue.current.push(thread);
+    const updateThreadList = (threadsToBeUpdated: Thread[]) => {
+        // Record the current position of each thread that is about to be updated
+        threadsToBeUpdated.forEach(thread => {
+            const dom = threadItemDivsRef.current.get(thread.id);
+            if (dom) {
+                updatedThreadItemPositions.current.set(thread.id, dom.getBoundingClientRect());
             }
-        },
-        [isLoadingInitialThreads, threadFilters]
-    );
+        });
+
+        setThreads(prevThreads => {
+            const { threads: totalThreads, addedThreads } = processThreads(
+                prevThreads,
+                getFilteredThreads(threadsToBeUpdated, threadFiltersRef.current, undefined),
+                true
+            );
+            setUnreadThreadIds(prev => getUpdatedUnreadThreadIds(prev, addedThreads));
+            return totalThreads;
+        });
+    };
+
+    const updateThreadInfo = async (thread: Thread) => {
+        if (!isLoadingInitialChatMessagesRef.current) {
+            updateThreadList([thread]);
+        } else {
+            threadUpdateQueue.current.push(thread);
+        }
+    };
+
+    useLayoutEffect(() => {
+        threads.forEach(thread => {
+            const first = updatedThreadItemPositions.current.get(thread.id);
+            const dom = threadItemDivsRef.current.get(thread.id);
+            const last = dom?.getBoundingClientRect();
+
+            if (!first || !dom || !last) {
+                return;
+            }
+
+            const deltaY = first.top - last.top;
+            dom.style.transform = `translateY(${deltaY}px)`;
+            dom.style.transition = 'none';
+
+            requestAnimationFrame(() => {
+                dom.style.transform = '';
+                dom.style.transition = 'transform 350ms ease';
+            });
+        });
+
+        updatedThreadItemPositions.current.clear();
+    }, [threads]);
 
     useImperativeHandle(ref, () => ({
         removeThreadFromList: (thread: Thread) => {
@@ -110,9 +154,7 @@ export const useThreadsMenu = (ref: Ref<ThreadMenuHandle>) => {
 
         const threadUpdateHandler = async (message: StreamingMessage) => {
             const threadId = message.additionalProperties?.threadId;
-            const text = message.contents?.[0]?.text || '';
-            // If a new agent message is received, update the thread if it is not already the newest thread
-            if (threadId && text && !isUserStreamingMessage(message) && newestThreadId !== threadId) {
+            if (threadId && isFinalStreamingMessage(message)) {
                 const updatedThread = await getThread(threadId);
                 if (updatedThread) {
                     updateThreadInfo(updatedThread);
@@ -125,23 +167,15 @@ export const useThreadsMenu = (ref: Ref<ThreadMenuHandle>) => {
         return () => {
             unsubscribe();
         };
-    }, [subscribeThreadMenuEventStreaming, updateThreadInfo]);
+    }, [subscribeThreadMenuEventStreaming]);
 
     useEffect(() => {
-        if (!isLoadingInitialThreads && threadUpdateQueue.current.length > 0) {
+        if (!isLoadingInitialChatMessages && threadUpdateQueue.current.length > 0) {
             const threadsToBeUpdated = [...threadUpdateQueue.current];
             threadUpdateQueue.current = [];
-            setThreads(prevThreads => {
-                const { threads: totalThreads, addedThreads } = processThreads(
-                    prevThreads,
-                    getFilteredThreads(threadsToBeUpdated, threadFilters, undefined),
-                    true
-                );
-                setUnreadThreadIds(prev => getUpdatedUnreadThreadIds(prev, addedThreads));
-                return totalThreads;
-            });
+            updateThreadList(threadsToBeUpdated);
         }
-    }, [isLoadingInitialThreads, threadFilters]);
+    }, [isLoadingInitialChatMessages]);
 
     return {
         threads,
@@ -150,6 +184,7 @@ export const useThreadsMenu = (ref: Ref<ThreadMenuHandle>) => {
         oldestThreadModifiedTimestamp,
         unreadThreadIds,
         updateThreadLastReadTime,
+        threadItemDivsRef,
         ...rest,
     };
 };

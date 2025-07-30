@@ -360,6 +360,7 @@ export const useThreadMenuStyle = () => {
         cursor: 'pointer',
         height: `${ThreadItemHeightInPx}px`,
         width: '100%',
+        willChange: 'transform',
     };
 
     const activeThreadItem: IStyle = {

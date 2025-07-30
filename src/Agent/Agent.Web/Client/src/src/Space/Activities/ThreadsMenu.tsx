@@ -33,6 +33,7 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
             oldestThreadModifiedTimestamp,
             onScroll,
             moreThreadsToLoad,
+            threadItemDivsRef,
         } = useThreadsMenu(ref);
 
         const threadMenuStyles = useThreadMenuStyle();
@@ -119,6 +120,7 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
                                     deleteThread={deleteThread}
                                     isActive={activeThreadId === thread.id}
                                     isThreadUnread={unreadThreadIds.has(thread.id)}
+                                    ref={(el: HTMLDivElement) => threadItemDivsRef.current.set(thread.id, el)}
                                 />
                             );
                         })}

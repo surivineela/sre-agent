@@ -2,7 +2,7 @@ import { Menu, MenuButton, MenuItem, MenuList, MenuPopover, MenuTrigger } from '
 import { CopyRegular, Delete20Regular, MoreHorizontal20Regular } from '@fluentui/react-icons';
 import { Text } from '@fluentui/react-text';
 import { mergeStyles } from '@fluentui/react/lib/Styling';
-import { memo, useContext, useMemo, useState } from 'react';
+import { forwardRef, memo, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import DeleteThreadDialog from '../../Common/Components/DeleteThreadDialog';
@@ -13,19 +13,15 @@ import { SreAgentResources } from '../../Strings/SREAgentResources';
 import { useThreadMenuStyle } from '../Styles/Activities.styles';
 import { useActionsStatusBarStyles } from '../Styles/Incident.styles';
 
-const ThreadItem = ({
-    thread,
-    selectThread,
-    deleteThread,
-    isActive,
-    isThreadUnread,
-}: {
+interface IThreadItemProps {
     thread: Thread;
     selectThread: (thread: Thread | null) => void;
     deleteThread?: (thread: Thread) => void;
     isActive: boolean;
     isThreadUnread: boolean;
-}) => {
+}
+
+const ThreadItem = forwardRef<HTMLDivElement, IThreadItemProps>(({ thread, selectThread, deleteThread, isActive, isThreadUnread }, ref) => {
     const ThreadMenuStyles = useThreadMenuStyle();
     const styles = useActionsStatusBarStyles();
     const intl = useIntl();
@@ -59,6 +55,7 @@ const ThreadItem = ({
 
     return (
         <div
+            ref={ref}
             onClick={() => {
                 if (!isActive) {
                     selectThread(thread);
@@ -152,6 +149,6 @@ const ThreadItem = ({
             />
         </div>
     );
-};
+});
 
 export default memo(ThreadItem);

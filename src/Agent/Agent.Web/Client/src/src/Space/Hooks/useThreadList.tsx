@@ -16,7 +16,7 @@ export const useThreadList = (
     const [moreThreadsToLoad, setMoreThreadsToLoad] = useState<boolean>(true);
     const [unreadThreadIds, setUnreadThreadIds] = useState<Set<string>>(new Set<string>());
     const [isIntersecting, setIsIntersecting] = useState<boolean>(false);
-    const [isLoadingInitialThreads, setIsLoadingInitialThreads] = useState<boolean>(true);
+    const [isLoadingInitialChatMessages, setIsLoadingInitialChatMessages] = useState<boolean>(true);
 
     const { hasChatPermissions } = useContext(KnowledgeGraphBuildStatusContext);
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
@@ -55,7 +55,7 @@ export const useThreadList = (
     };
 
     const loadThreads = useCallback(async (): Promise<boolean | undefined> => {
-        if (!isLoadingThreads.current && !isLoadingInitialThreads) {
+        if (!isLoadingThreads.current && !isLoadingInitialChatMessages) {
             const callId = loadThreadsCallId.current;
             isLoadingThreads.current = true;
 
@@ -79,7 +79,7 @@ export const useThreadList = (
                 return undefined;
             }
         }
-    }, [threadFilters, searchText, isLoadingInitialThreads]);
+    }, [threadFilters, searchText, isLoadingInitialChatMessages]);
 
     const handleScroll = debounce(() => {
         loadThreads();
@@ -101,7 +101,7 @@ export const useThreadList = (
             const entry = entries[0];
             setIsIntersecting(entry.isIntersecting);
         });
-        if (observer && intersectionObserverRef.current && !isLoadingInitialThreads) {
+        if (observer && intersectionObserverRef.current && !isLoadingInitialChatMessages) {
             observer.observe(intersectionObserverRef.current);
         }
 
@@ -109,7 +109,7 @@ export const useThreadList = (
             observer?.disconnect();
             setIsIntersecting(false);
         };
-    }, [isLoadingInitialThreads]);
+    }, [isLoadingInitialChatMessages]);
 
     useEffect(() => {
         let isSubscribed = true;
@@ -142,7 +142,7 @@ export const useThreadList = (
         return () => {
             loadThreadsCallId.current += 1;
         };
-    }, [threadFilters, searchText, isLoadingInitialThreads]);
+    }, [threadFilters, searchText, isLoadingInitialChatMessages]);
 
     useEffect(() => {
         oldestThread.current = threads[threads.length - 1];
@@ -153,11 +153,11 @@ export const useThreadList = (
 
         if (!hasChatPermissions) {
             setThreads([]);
-            setIsLoadingInitialThreads(false);
+            setIsLoadingInitialChatMessages(false);
             return;
         }
 
-        setIsLoadingInitialThreads(true);
+        setIsLoadingInitialChatMessages(true);
         setMoreThreadsToLoad(true);
 
         const setInitialThreads = async () => {
@@ -180,7 +180,7 @@ export const useThreadList = (
                 const { threads: totalThreads, addedThreads } = processThreads([], initialThreads, false);
                 setThreads(totalThreads);
                 setUnreadThreadIds(prev => getUpdatedUnreadThreadIds(prev, addedThreads));
-                setIsLoadingInitialThreads(false);
+                setIsLoadingInitialChatMessages(false);
             }
 
             isLoadingThreads.current = false;
@@ -199,7 +199,7 @@ export const useThreadList = (
         setUnreadThreadIds,
         unreadThreadIds,
         moreThreadsToLoad,
-        isLoadingInitialThreads,
+        isLoadingInitialChatMessages,
 
         threadListDivRef,
         intersectionObserverRef,
