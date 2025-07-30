@@ -7,7 +7,9 @@ using System.Text.Json;
 using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Core.Services;
 using Agent.Framework;
+using Agent.Plugins;
 using Agent.Runtime.Helpers;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -275,32 +277,57 @@ public class ThreadEvaluator
             {
                 // Get reasoning messages for this context to find tool calls
                 var reasoningMessages = await GetReasoningMessagesForContext(context.Id);
-                foreach (var reasoningMessage in reasoningMessages)
+                var chatMessages = EvaluationHelper.GetChatMessagesForReasoningMessages(reasoningMessages, _logger);
+                var functionCalls = new Dictionary<string, FunctionCallContent>();
+                foreach (var message in chatMessages)
                 {
-                    // Look for tool calls in reasoning messages
-                    if (reasoningMessage.Role == ReasoningMessageRoleEnum.Tool)
+                    var functionCall = message.Contents.OfType<FunctionCallContent>().ToList();
+                    if (functionCall.Count > 0)
                     {
-                        metrics.TotalToolCalls++;
-
-                        // Deserialize the chat message to get content
-                        string content = GetContentFromReasoningMessage(reasoningMessage);
-
-                        // Determine tool type and success based on message content
-                        var isSuccess = !content.ToLower().Contains("error") &&
-                                       !content.ToLower().Contains("failed");
-
-                        if (content.Contains("az ") || content.Contains("azure"))
+                        foreach (var call in functionCall)
                         {
-                            metrics.AzCliCalls++;
-                            if (isSuccess) metrics.AzCliSuccesses++;
+                            functionCalls[call.CallId] = call;
                         }
-                        else if (content.Contains("kubectl"))
-                        {
-                            metrics.KubectlCalls++;
-                            if (isSuccess) metrics.KubectlSuccesses++;
-                        }
+                    }
 
-                        if (isSuccess) metrics.TotalSuccesses++;
+                    var functionResult = message.Contents.OfType<FunctionResultContent>().ToList();
+                    foreach (var result in functionResult)
+                    {
+                        if (functionCalls.TryGetValue(result.CallId, out var call))
+                        {
+                            metrics.TotalToolCalls++;
+                            if (call.Name == EvaluationHelper.GetToolCallName(nameof(ArmPluginDefinition.RunAzCliReadCommandsAsync)) ||
+                               call.Name == EvaluationHelper.GetToolCallName(nameof(ArmPluginDefinition.RunAzCliWriteCommandsAsync)))
+                            {
+                                metrics.AzCliCalls++;
+                                string output = result.Result?.ToString() ?? string.Empty;
+                                if (!output.Contains(ExternalProcessCommand.ProcessFailureMessage))
+                                {
+                                    metrics.AzCliSuccesses++;
+                                    metrics.TotalSuccesses++;
+                                }
+                            }
+                            else if (call.Name == EvaluationHelper.GetToolCallName(nameof(KubePluginDefinition.RunKubectlReadCommandAsync)) ||
+                                     call.Name == EvaluationHelper.GetToolCallName(nameof(KubePluginDefinition.RunKubectlWriteCommandAsync)))
+                            {
+                                metrics.KubectlCalls++;
+                                string output = result.Result?.ToString() ?? string.Empty;
+                                if (!output.Contains(ExternalProcessCommand.ProcessFailureMessage))
+                                {
+                                    metrics.KubectlSuccesses++;
+                                    metrics.TotalSuccesses++;
+                                }
+                            }
+                            else
+                            {
+                                string output = result.Result?.ToString() ?? string.Empty;
+                                if (!output.ToLower().Contains("error") &&
+                                       !output.ToLower().Contains("failed"))
+                                {
+                                    metrics.TotalSuccesses++;
+                                }
+                            }
+                        }
                     }
                 }
             }

@@ -8,6 +8,7 @@ namespace Agent.Core.Services;
 
 public class ExternalProcessCommand
 {
+    public const string ProcessFailureMessage = "Process failed with:";
     private ILogger _logger;
     private readonly string _exe;
     private readonly string[] _arguments;
@@ -94,7 +95,7 @@ public class ExternalProcessCommand
             }
             catch { }
 
-            return "[Unexpected Exception]: command execution timed out after 1 minute.";
+            throw new InvalidOperationException($"{ProcessFailureMessage} timeout after {_timeout.TotalSeconds} seconds.");
         }
 
         // Check for errors
@@ -102,7 +103,7 @@ public class ExternalProcessCommand
         {
             var errorMessage = errorBuilder.ToString();
             _logger.LogInternalError($"Process '{_exe} {string.Join(" ", _arguments)}' failed with exit code {process.ExitCode}: {errorMessage}");
-            throw new InvalidOperationException($"Process failed with exit code {process.ExitCode}: {errorMessage}");
+            throw new InvalidOperationException($"{ProcessFailureMessage} exit code {process.ExitCode}: {errorMessage}");
         }
 
         return outputBuilder.ToString();

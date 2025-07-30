@@ -61,6 +61,11 @@ public static partial class LoggerExtensions
         LogInternalWarningHelper(logger, message, args);
     }
 
+    public static void LogInternalWarning(this ILogger logger, Exception exception, string message, params object?[] args)
+    {
+        LogInternalWarningHelper(logger, exception, message, args);
+    }
+
     public static void LogInternalWarning<T>(this ILogger<T> logger, Exception exception, string message, params object?[] args)
     {
         LogInternalWarningHelper(logger, exception, message, args);
