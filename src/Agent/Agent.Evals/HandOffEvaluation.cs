@@ -88,6 +88,10 @@ public class HandOffEvaluation
             LastMessage: null,
             CreatedTimestamp: DateTime.UtcNow.AddHours(-1),
             ModifiedTimestamp: DateTime.UtcNow,
+            FeatureConfig: FeatureConfigModel.Default with
+            {
+                AutoHandoffEnabled = testCase.AutoHandoffEnabled
+            },
             Source: ThreadSource.Agent
         );
 

@@ -226,18 +226,23 @@ namespace Agent.Data.Repositories
             return Task.FromResult<Thread?>(updatedThread);
         }
 
-        Task<FeatureConfig?> IThreadRepository.UpdateThreadFeatureSetAsync(Guid threadId, Func<FeatureConfig?, FeatureConfig> featureUpdate)
+        Task<Thread?> IThreadRepository.UpdateThreadFeatureSetAsync(Guid threadId, Func<FeatureConfig?, FeatureConfig> featureUpdate)
         {
             if (!_threads.TryGetValue(threadId, out var thread))
             {
                 _logger.LogInternalWarning($"Cannot update featureSet: Thread {threadId} not found");
-                return Task.FromResult<FeatureConfig?>(null);
+                return Task.FromResult<Thread?>(null);
             }
+
+            // round trip the model update in document
+            var documentConfig = thread.FeatureConfig?.ToDocument();
+            var updatedConfig = featureUpdate(documentConfig);
+            var updatedConfigModel = updatedConfig.ToModel();
 
             // Update the feature set and modified timestamp
             var updatedThread = thread with
             {
-                FeatureConfig = featureUpdate(thread.FeatureConfig),
+                FeatureConfig = updatedConfigModel,
                 ModifiedTimestamp = DateTime.UtcNow
             };
 
@@ -245,7 +250,7 @@ namespace Agent.Data.Repositories
 
             _logger.LogInternalInformation($"Successfully updated featureSet for thread {threadId}. " +
                 $"New Feature Config {JsonSerializer.Serialize(updatedThread.FeatureConfig, _jsonOptions)}");
-            return Task.FromResult<FeatureConfig?>(updatedThread.FeatureConfig);
+            return Task.FromResult<Thread?>(updatedThread);
         }
 
         public Task<Thread?> UpdateThreadReadMarkAsync(Guid threadId, DateTime lastReadTime)

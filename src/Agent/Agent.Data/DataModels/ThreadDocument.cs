@@ -45,7 +45,7 @@ public record ThreadDocument(
             thread.TrajectoryGeneratedTimestamp,
             IncidentSource: thread.IncidentSource,
             ThreadType: thread.Type,
-            FeatureConfig: thread.FeatureConfig
+            FeatureConfig: thread.FeatureConfig?.ToDocument()
         )
         {
             IncidentId = thread.Status?.IncidentStatus?.IncidentId ?? string.Empty,
@@ -62,10 +62,10 @@ public record ThreadDocument(
             LastMessage: lastMessage,
             CreatedTimestamp: CreatedTimestamp,
             ModifiedTimestamp: ModifiedTimestamp,
+            FeatureConfig: FeatureConfig?.ToModel() ?? FeatureConfigModel.Default,
             Source: Source,
             IncidentSource: IncidentSource,
-            Type: ThreadType,
-            FeatureConfig: FeatureConfig
+            Type: ThreadType
         )
         {
             LastReadTime = LastReadTime,

@@ -489,6 +489,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             LastMessage: startMessage,
             CreatedTimestamp: now,
             ModifiedTimestamp: now,
+            FeatureConfig: null,  // will be populated when reasoning loop is created
             Source: source,
             IncidentSource: incidentSource,
             Type: threadType
@@ -542,7 +543,6 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         await _repository.CreateReasoningMessageAsync(startReasoningMessage);
 
         await _repository.CreateAgentChatHistoryAsync(agentChatHistory);
-
 
         return (thread, agentContext);
     }

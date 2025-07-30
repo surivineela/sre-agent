@@ -3,7 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Net;
-using System.Text.Json;
+using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
@@ -20,8 +20,6 @@ namespace Agent.Data.Repositories;
 // Rest of the file remains unchanged
 public class CosmosDbThreadRepository : IThreadRepository
 {
-    private static readonly JsonSerializerOptions _jsonOptions = JsonSerializerOptions.Web;
-
     private readonly ILogger<CosmosDbThreadRepository> _logger;
     private readonly string _databaseName;
     private readonly CosmosClient _client;
@@ -83,7 +81,7 @@ public class CosmosDbThreadRepository : IThreadRepository
                     threadDoc.LastMessageId,
                     threadDoc.Id
                 );
-                lastMessageDocDomainModel = lastMessageDoc == null ? null : lastMessageDoc.ToDomainModel();
+                lastMessageDocDomainModel = lastMessageDoc?.ToDomainModel();
             }
 
             // Convert to domain model
@@ -418,63 +416,24 @@ public class CosmosDbThreadRepository : IThreadRepository
             }
 
             // Update the title and modified timestamp
-            ThreadDocument updatedThreadDoc = threadDoc with
+            var updatedThreadDoc = threadDoc with
             {
                 Title = newTitle,
                 ModifiedTimestamp = DateTime.UtcNow
             };
 
             // Save the updated document
-            var response = await _client.GetContainer<ThreadDocument>(_databaseName).ReplaceItemAsync(
+            await _client.GetContainer<ThreadDocument>(_databaseName).ReplaceItemAsync(
                 updatedThreadDoc,
                 updatedThreadDoc.Id,
                 new PartitionKey(updatedThreadDoc.PartitionKey)
             );
 
-            // Get the start message to construct the complete Thread domain model
-            MessageDocument? startMessageDoc = await GetDocumentAsync<MessageDocument>(
-                threadDoc.MessageId,
-                threadIdStr
-            );
-
-            // Get the last message to construct the complete Thread domain model
-
-            // last message may be null if thread was created before we started saving last message id
-            // & a new message has not been added to the thread
-            Message? lastMessageDocDomainModel;
-            if (threadDoc.LastMessageId == null)
-            {
-                _logger.LogInternalInformation("last message {startMessageId} not found for thread: {Id}", threadDoc.MessageId, threadDoc.Id);
-                lastMessageDocDomainModel = null;
-            }
-            else
-            {
-                MessageDocument? lastMessageDoc = await GetDocumentAsync<MessageDocument>(
-                    threadDoc.LastMessageId,
-                    threadDoc.Id
-                );
-                lastMessageDocDomainModel = lastMessageDoc == null ? null : lastMessageDoc.ToDomainModel();
-            }
-
-            if (startMessageDoc == null)
-            {
-                _logger.LogInternalWarning("Start message {MessageId} not found for thread {ThreadId}",
-                    threadDoc.MessageId, threadId);
-
-                // Return a partial Thread model without the start message
-                return new Thread(
-                    Id: threadId,
-                    Title: newTitle,
-                    StartMessage: null,
-                    LastMessage: lastMessageDocDomainModel,
-                    CreatedTimestamp: threadDoc.CreatedTimestamp,
-                    ModifiedTimestamp: updatedThreadDoc.ModifiedTimestamp
-                );
-            }
+            var updatedThread = await GetThreadAsync(threadId);
 
             // Return the complete updated Thread domain model
             _logger.LogInternalInformation("Successfully updated title for thread {ThreadId}", threadId);
-            return updatedThreadDoc.ToDomainModel(startMessageDoc.ToDomainModel(), lastMessageDocDomainModel);
+            return updatedThread;
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
@@ -488,7 +447,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
-    async Task<FeatureConfig?> IThreadRepository.UpdateThreadFeatureSetAsync(Guid threadId, Func<FeatureConfig?, FeatureConfig> featureUpdate)
+    async Task<Thread?> IThreadRepository.UpdateThreadFeatureSetAsync(Guid threadId, Func<FeatureConfig?, FeatureConfig> featureUpdate)
     {
         try
         {
@@ -510,28 +469,30 @@ public class CosmosDbThreadRepository : IThreadRepository
             if (updatedConfig == existingConfig)
             {
                 _logger.LogInternalInformation($"No update featureSet needed for thread {threadId}. " +
-                    $"Existing Feature Config {JsonSerializer.Serialize(existingConfig, _jsonOptions)}");
-                return existingConfig;
+                    $"Existing Feature Config {WebJsonSerializer.Serialize(existingConfig)}");
+            }
+            else
+            {
+                // Update the title and modified timestamp
+                var updatedThreadDoc = threadDoc with
+                {
+                    FeatureConfig = updatedConfig,
+                    ModifiedTimestamp = DateTime.UtcNow
+                };
+
+                // Save the updated document
+                await _client.GetContainer<ThreadDocument>(_databaseName).ReplaceItemAsync(
+                    updatedThreadDoc,
+                    updatedThreadDoc.Id,
+                    new PartitionKey(updatedThreadDoc.PartitionKey)
+                );
+
+                _logger.LogInternalInformation($"Successfully updated featureSet for thread {threadId}. " +
+                    $"New Feature Config {WebJsonSerializer.Serialize(updatedConfig)}");
             }
 
-            // Update the title and modified timestamp
-            var updatedThreadDoc = threadDoc with
-            {
-                FeatureConfig = updatedConfig,
-                ModifiedTimestamp = DateTime.UtcNow
-            };
-
-            // Save the updated document
-            var response = await _client.GetContainer<ThreadDocument>(_databaseName).ReplaceItemAsync(
-                updatedThreadDoc,
-                updatedThreadDoc.Id,
-                new PartitionKey(updatedThreadDoc.PartitionKey)
-            );
-
-            _logger.LogInternalInformation($"Successfully updated featureSet for thread {threadId}. " +
-                $"New Feature Config {JsonSerializer.Serialize(updatedConfig, _jsonOptions)}");
-
-            return response.Resource.FeatureConfig;
+            var updatedThread = await GetThreadAsync(threadId);
+            return updatedThread;
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
@@ -606,8 +567,9 @@ public class CosmosDbThreadRepository : IThreadRepository
                 EvaluatedTimestamp = evaluatedTimestamp
             };
 
+            // ToDo: All updates should honor etag
             // Save the updated document
-            var response = await _client.GetContainer<ThreadDocument>(_databaseName).ReplaceItemAsync(
+            await _client.GetContainer<ThreadDocument>(_databaseName).ReplaceItemAsync(
                 updatedThreadDoc,
                 threadIdStr,
                 new PartitionKey(threadIdStr)
@@ -651,7 +613,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             };
 
             // Save the updated document
-            var response = await _client.GetContainer<ThreadDocument>(_databaseName).ReplaceItemAsync(
+            await _client.GetContainer<ThreadDocument>(_databaseName).ReplaceItemAsync(
                 updatedThreadDoc,
                 threadIdStr,
                 new PartitionKey(threadIdStr)

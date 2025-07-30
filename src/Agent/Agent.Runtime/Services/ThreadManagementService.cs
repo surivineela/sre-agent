@@ -3,13 +3,13 @@
 // ------------------------------------------------------------
 
 using System.Text.Json;
+using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
-using Microsoft.Extensions.AI;
-using Thread = Agent.Core.Models.Api.v1.Thread;
 using Agent.Runtime.MetaAgent.Interfaces;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Agent.Core.Configuration;
+using Thread = Agent.Core.Models.Api.v1.Thread;
 
 namespace Agent.Runtime.Services;
 
@@ -31,11 +31,12 @@ public class ThreadManagementService(
         string temporaryTitle = request.StartMessage.Text.Length <= 50 ? request.StartMessage.Text : request.StartMessage.Text.Substring(0, 47) + "...";
 
         var message = new Message(
-                Id: messageId,
-                TimeStamp: DateTime.UtcNow,
-                Author: new Author(Role.User, request.StartMessage.UserId, request.StartMessage.DisplayName),
-                Text: request.StartMessage.Text
-            );
+            Id: messageId,
+            TimeStamp: DateTime.UtcNow,
+            Author: new Author(Role.User, request.StartMessage.UserId, request.StartMessage.DisplayName),
+            Text: request.StartMessage.Text
+        );
+
         var thread = new Thread(
             Id: threadId,
             Title: temporaryTitle,
@@ -43,6 +44,7 @@ public class ThreadManagementService(
             LastMessage: message,
             CreatedTimestamp: DateTime.UtcNow,
             ModifiedTimestamp: DateTime.UtcNow,
+            FeatureConfig: null,  // will be populated when reasoning loop is created
             Source: request.Source ?? ThreadSource.Conversation
         );
 

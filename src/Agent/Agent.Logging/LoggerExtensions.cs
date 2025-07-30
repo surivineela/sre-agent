@@ -194,7 +194,7 @@ public static partial class LoggerExtensions
     [LoggerMessage(
         EventId = 1001,
         Level = LogLevel.Information,
-        Message = "Agent Action: {Action} with parameters {Parameter} completed with status {Status} in {Duration}ms for thread {ThreadId}, subAgent: {SubAgentName}, inputTokens: {InputToken}, outputTokens: {OutputToken}, threadSource: {ThreadSource}")]
+        Message = "Agent Action: {Action} with parameters {Parameter} completed with status {Status} in {Duration}ms for thread {ThreadId}, subAgent: {SubAgentName}, inputTokens: {InputToken}, outputTokens: {OutputToken}, threadSource: {ThreadSource}, featureConfig: {FeatureConfig}")]
     public static partial void LogAgentAction(
         this ILogger logger,
         string action,
@@ -205,7 +205,8 @@ public static partial class LoggerExtensions
         string subAgentName = "",
         long inputToken = 0,
         long outputToken = 0,
-        string threadSource = "");
+        string threadSource = "",
+        string featureConfig = "");
 
     /// <summary>
     /// Logs an agent action with exception information using LoggerMessage source generation

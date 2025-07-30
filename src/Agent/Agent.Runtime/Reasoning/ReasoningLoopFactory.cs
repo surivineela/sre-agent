@@ -32,16 +32,19 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     private readonly IToolFactory<AgentContext> _toolFactory;
     private readonly IThreadRepository _threadRepository;
     private readonly ActionSettings _actionSettings;
-
     private readonly Tracer _tracer;
 
+    // regional search
     private readonly ISearchEndpointService _searchEndpointService;
     private readonly SearchHelper _searchHelper;
-    private readonly bool _enableDocumentRetrieval;
+    private readonly SearchEndpointSettings _searchEndpointSettings;
+
+    // agent memory
     private readonly IAgentMemoryClient _agentMemoryClient;
     private readonly ISearchIndexService _searchIndexService;
-    private readonly bool _agentMemoryEnabled;
+    private readonly AgentMemorySettings _agentMemorySettings;
 
+    // experimental features
     private readonly bool _enableAutoHandOff;
 
     private readonly bool _enableReasoningDebugOutput;
@@ -64,7 +67,6 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         SearchHelper searchHelper,
         IAgentMemoryClient agentMemoryClient,
         ISearchIndexService searchIndexService,
-        AgentMemorySettings agentMemorySettings,
         IMeterFactory meterFactory)
     {
         _loggerFactory = loggerFactory;
@@ -81,10 +83,10 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             && hostEnvironment.IsDevelopment(); // only enable debug output in dev environment
         _searchEndpointService = searchEndpointService;
         _searchHelper = searchHelper;
-        _enableDocumentRetrieval = azureSettings.SearchEndpoint.EnableDocumentRetrieval;
+        _searchEndpointSettings = azureSettings.SearchEndpoint;
+        _agentMemorySettings = coreSettings.AgentMemory;
         _agentMemoryClient = agentMemoryClient;
         _searchIndexService = searchIndexService;
-        _agentMemoryEnabled = agentMemorySettings.Enabled;
         _enableAutoHandOff = coreSettings.Experimental is not null
             && coreSettings.Experimental.AutoHandoffToMeta;
     }
@@ -151,40 +153,36 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             enableReasoningDebugOutput: _enableReasoningDebugOutput,
             searchEndpointService: _searchEndpointService,
             searchHelper: _searchHelper,
-            enableDocumentRetrieval: _enableDocumentRetrieval,
             agentMemoryClient: _agentMemoryClient,
             searchIndexService: _searchIndexService,
-            agentMemoryEnabled: _agentMemoryEnabled,
-            autoHandoffEnabled: effectiveFeatureConfig?.AutoHandoffEnabled ?? false,
+            featureConfig: effectiveFeatureConfig,
             agentRuntimeModifier: _agentRuntimeModifier);
 
         await loop.LoadChatHistoryAsync();
         return loop;
     }
 
-    private Task<FeatureConfig?> TrySetThreadFeatureConfig(Guid threadId)
+    private async Task<FeatureConfigModel> TrySetThreadFeatureConfig(Guid threadId)
     {
-        return _threadRepository.UpdateThreadFeatureSetAsync(
+        var threadConfig = await _threadRepository.UpdateThreadFeatureSetAsync(
             threadId: threadId,
             featureUpdate: featureConfig =>
             {
-                // no feature set.. then create
+                // if no feature set => new thread => create as per config
                 if (featureConfig is null)
                 {
-                    return new(AutoHandoffEnabled: _enableAutoHandOff);
-                }
-
-                // if autohandoff not set => we can update
-                if (featureConfig.AutoHandoffEnabled is null)
-                {
-                    return featureConfig with
-                    {
-                        AutoHandoffEnabled = _enableAutoHandOff
-                    };
+                    return new(
+                        AutoHandoffEnabled: _enableAutoHandOff,
+                        RegionalSearchEnabled: _searchEndpointSettings.EnableDocumentRetrieval,
+                        AgentMemoryEnabled: _agentMemorySettings.Enabled,
+                        TrajectoryRetrievalEnabled: _agentMemorySettings.TrajectoryRetrievalEnabled,
+                        HandoffReasoningEnabled: false); // todo: implement
                 }
 
                 // otherwise honor the restored autohandoff
                 return featureConfig;
             });
+
+        return threadConfig?.FeatureConfig ?? FeatureConfigModel.Default;
     }
 }

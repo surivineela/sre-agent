@@ -35,9 +35,6 @@ namespace Agent.Core.Models.Api.v1
         IncidentType IncidentType,
         string IncidentId);
 
-    public sealed record FeatureConfig(
-        bool? AutoHandoffEnabled);
-
     //Theread type: PROD/TEST
     public record Thread(
         Guid Id,
@@ -46,12 +43,12 @@ namespace Agent.Core.Models.Api.v1
         Message? LastMessage,
         DateTime CreatedTimestamp,
         DateTime ModifiedTimestamp,
+        FeatureConfigModel? FeatureConfig,
         ThreadSource Source = ThreadSource.Conversation,
         string? WaitReason = null,
         DateTime? WaitUntil = null,
         IncidentSource? IncidentSource = null,
-        ThreadType? Type = ThreadType.Prod,
-        FeatureConfig? FeatureConfig = null
+        ThreadType? Type = ThreadType.Prod
     )
     {
         public Status? Status { get; set; } = null;

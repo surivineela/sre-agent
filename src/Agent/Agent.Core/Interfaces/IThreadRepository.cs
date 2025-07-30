@@ -22,7 +22,7 @@ public interface IThreadRepository
     Task<Thread?> UpdateThreadEvaluatedTimestampAsync(Guid threadId, DateTime evaluatedTimestamp);
     Task<Thread?> UpdateTrajectoryGeneratedTimestampAsync(Guid threadId, DateTime evaluatedTimestamp);
     Task<Thread?> UpdateThreadAgentModeAsync(Guid threadId, string? agentMode);
-    Task<FeatureConfig?> UpdateThreadFeatureSetAsync(Guid threadId, Func<FeatureConfig?, FeatureConfig> featureUpdate);
+    Task<Thread?> UpdateThreadFeatureSetAsync(Guid threadId, Func<FeatureConfig?, FeatureConfig> featureUpdate);
 
     Task<Message?> GetMessageAsync(Guid threadId, Guid messageId);
     Task<IEnumerable<Message>> GetMessagesAsync(Guid threadId, ODataQueryOptions? queryOptions = null);

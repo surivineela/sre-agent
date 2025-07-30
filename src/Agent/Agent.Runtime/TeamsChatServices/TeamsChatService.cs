@@ -2,29 +2,29 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
 using System.Xml;
+using Agent.Core.Configuration;
+using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Models.Streaming;
-using Agent.Core.Configuration;
 using Agent.Data.Repositories;
+using Agent.Runtime.MetaAgent.Interfaces;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Builder.Teams;
 using Microsoft.Bot.Builder.TraceExtensions;
+using Microsoft.Bot.Connector;
 using Microsoft.Bot.Connector.Authentication;
 using Microsoft.Bot.Schema;
 using Microsoft.Bot.Schema.Teams;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using Activity = Microsoft.Bot.Schema.Activity;
-using Microsoft.Bot.Connector;
-using Microsoft.Extensions.AI;
-using Thread = Agent.Core.Models.Api.v1.Thread;
 using Attachment = Microsoft.Bot.Schema.Attachment;
-using Agent.Core.Extensions;
-using System.Text.Json;
-using Agent.Runtime.MetaAgent.Interfaces;
+using Thread = Agent.Core.Models.Api.v1.Thread;
 
 namespace Agent.Runtime.TeamsChatServices;
 
@@ -298,7 +298,8 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
             StartMessage: message,
             LastMessage: message, // when the thread is first created the start message is the last message
             CreatedTimestamp: DateTime.UtcNow,
-            ModifiedTimestamp: DateTime.UtcNow
+            ModifiedTimestamp: DateTime.UtcNow,
+            FeatureConfig: null   // will be populated when reasoning loop is created
             ));
         message = await _threadRepository.AddMessageAsync(thread.Id, message);
         await _agentOutboundCommunicationService.NotifyThreadEvent(thread.Id, thread);

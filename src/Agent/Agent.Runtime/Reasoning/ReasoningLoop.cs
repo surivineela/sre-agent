@@ -42,6 +42,7 @@ public class ReasoningLoop : IDisposable
     private readonly bool _enableReasoningDebugOutput;
     private readonly ISearchEndpointService _searchEndpointService;
     private readonly SearchHelper _searchHelper;
+    private readonly FeatureConfigModel _featureConfig;
     private readonly bool _enableDocumentRetrieval;
     private readonly bool _agentMemoryEnabled;
     private readonly bool _autoHandOffEnabled;
@@ -104,11 +105,9 @@ public class ReasoningLoop : IDisposable
         bool enableReasoningDebugOutput,
         ISearchEndpointService searchEndpointService,
         SearchHelper searchHelper,
-        bool enableDocumentRetrieval,
         IAgentMemoryClient agentMemoryClient,
         ISearchIndexService searchIndexService,
-        bool agentMemoryEnabled,
-        bool autoHandoffEnabled,
+        FeatureConfigModel featureConfig,
         IAgentRuntimeModifier<AgentContext> agentRuntimeModifier)
     {
         _loggerFactory = loggerFactory;
@@ -132,11 +131,12 @@ public class ReasoningLoop : IDisposable
         _enableReasoningDebugOutput = enableReasoningDebugOutput;
         _searchEndpointService = searchEndpointService;
         _searchHelper = searchHelper ?? throw new ArgumentNullException(nameof(searchHelper));
-        _enableDocumentRetrieval = enableDocumentRetrieval;
         _agentMemoryClient = agentMemoryClient;
         _searchIndexService = searchIndexService;
-        _agentMemoryEnabled = agentMemoryEnabled;
-        _autoHandOffEnabled = autoHandoffEnabled;
+        _featureConfig = featureConfig;
+        _autoHandOffEnabled = featureConfig.AutoHandoffEnabled;
+        _enableDocumentRetrieval = featureConfig.RegionalSearchEnabled;
+        _agentMemoryEnabled = featureConfig.AgentMemoryEnabled;
         _agentRuntimeModifier = agentRuntimeModifier;
 
         var globalDefaultMode = actionSettings.Mode.ToString() ?? AgentModes.Review;
@@ -1019,7 +1019,8 @@ public class ReasoningLoop : IDisposable
                     status: "Success",
                     duration: 0,
                     threadId: _context.ThreadId.ToString(),
-                    subAgentName: agent.Name);
+                    subAgentName: agent.Name,
+                    featureConfig: WebJsonSerializer.Serialize(_featureConfig));
                 return Task.CompletedTask;
             },
             OnAgentEnd = (context, agent, output) =>
@@ -1061,7 +1062,8 @@ public class ReasoningLoop : IDisposable
                     status: "Success",
                     duration: 0,
                     threadId: _context.ThreadId.ToString(),
-                    subAgentName: agent.Name);
+                    subAgentName: agent.Name,
+                    featureConfig: WebJsonSerializer.Serialize(_featureConfig));
 
                 // Stream auto tools to avoid missing them (manual tools are handled separately)
                 if (((AIFunction)tool).GetToolMode() == ToolMode.Auto)
@@ -1133,7 +1135,8 @@ public class ReasoningLoop : IDisposable
                     threadId: _context.ThreadId.ToString(),
                     subAgentName: agent?.Name ?? "Unknown",
                     inputToken: response?.Usage?.InputTokenCount ?? 0,
-                    outputToken: response?.Usage?.OutputTokenCount ?? 0);
+                    outputToken: response?.Usage?.OutputTokenCount ?? 0,
+                    featureConfig: WebJsonSerializer.Serialize(_featureConfig));
                 return Task.CompletedTask;
             },
             OnCriticEnd = (context, agent, userQuery, criticResult, wasApproved) =>
@@ -1155,7 +1158,8 @@ public class ReasoningLoop : IDisposable
                     status: "Success",
                     duration: 0,
                     threadId: _context.ThreadId.ToString(),
-                    subAgentName: agent.Name);
+                    subAgentName: agent.Name,
+                    featureConfig: WebJsonSerializer.Serialize(_featureConfig));
                 return Task.CompletedTask;
             }
         };
