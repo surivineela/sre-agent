@@ -178,8 +178,6 @@ LoadBalancerID
 
 # Aspire Related
 AuthFailureCount
-Count403
-OtherCount
 StateVerificationFailureCount
 hasWorkloadProfiles
 customVnet
@@ -191,7 +189,6 @@ Count404Errors
 IsAspireEnabled
 environmentName
 EnvironmentName
-SuccessCount
 
 # Miscellaneous 
 NumberOfApps

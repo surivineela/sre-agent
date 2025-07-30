@@ -1,13 +1,10 @@
 let region = "##region##";
-let envName = "##environmentName##";
-// Check if there are any DotNet components in this environment with successful creation
+let managedClusterName = "##managedClusterName##";
 let recordsCount = toscalar(
-    DotNetComponentDBState
-    | where environmentName contains envName
-    // Sort by ascending timestamp to get the first records
-    | sort by PreciseTimeStamp asc
-    // Check for successful Create operations
-    | where operationType == "Create" and provisioningState == "Succeeded"
+    ExternalAuthEvents
+    | where EnvironmentName contains managedClusterName
+    | where msg contains "request recieved"
+    // Look for any successful auth events
     | take 1
     | count
 );
