@@ -1314,16 +1314,18 @@ public class Program
     /// <returns>True if configuration is valid, false otherwise</returns>
     private static bool IsAgentMemoryConfigurationValid(AgentMemorySettings settings)
     {
-        bool storageAccountValid = !settings.StorageAccountEnabled ||
-            (!string.IsNullOrEmpty(settings.StorageAccountName) &&
-             !string.IsNullOrEmpty(settings.BlobStorageResourceId));
+        var storageAccountValid = !settings.StorageAccountEnabled
+            ||
+            (!string.IsNullOrEmpty(settings.StorageAccountName)
+            && !string.IsNullOrEmpty(settings.BlobStorageContainerName)
+            && !string.IsNullOrEmpty(settings.BlobStorageResourceId)
+            && !string.IsNullOrEmpty(settings.AzureAISearchIndexerName)
+            && !string.IsNullOrEmpty(settings.AzureAISearchSkillSetName)
+            && !string.IsNullOrEmpty(settings.AzureAISearchDataSourceName));
 
-        return storageAccountValid &&
-               !string.IsNullOrEmpty(settings.AzureAISearchName) &&
-               !string.IsNullOrEmpty(settings.AzureAISearchIndexName) &&
-               !string.IsNullOrEmpty(settings.AzureAISearchIndexerName) &&
-               !string.IsNullOrEmpty(settings.AzureAISearchSkillSetName) &&
-               !string.IsNullOrEmpty(settings.AzureAISearchDataSourceName) &&
-               !string.IsNullOrEmpty(settings.ManagedIdentityResourceId);
+        return storageAccountValid
+            && !string.IsNullOrEmpty(settings.AzureAISearchName)
+            && !string.IsNullOrEmpty(settings.AzureAISearchIndexName)
+            && !string.IsNullOrEmpty(settings.ManagedIdentityResourceId);
     }
 }

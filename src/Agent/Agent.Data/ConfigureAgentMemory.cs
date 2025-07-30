@@ -2,16 +2,13 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Text.Json;
 using Agent.Core.Configuration;
-using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Data.AgentMemory;
-using Azure.Core.Serialization;
+using Azure;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Indexes;
 using Azure.Storage.Blobs;
-using Gremlin.Net.Structure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -32,13 +29,13 @@ public static class AgentMemoryConfiguration
             serviceCollection.AddKeyedSingleton(AgentMemoryBlobClient, (serviceProvider, _) =>
             {
                 var agentMemorySettings = serviceProvider.GetRequiredService<AgentMemorySettings>();
-                
+
                 // If storage account is disabled, return a dummy blob client
                 if (!agentMemorySettings.StorageAccountEnabled)
                 {
                     return new BlobServiceClient(new Uri("https://dummy.blob.core.windows.net"));
                 }
-                
+
                 var authService = serviceProvider.GetRequiredService<IAuthenticationService>();
                 var tokenCredential = authService.GetAgentMemoryBlobStorageCredential();
                 return new BlobServiceClient(
@@ -83,6 +80,14 @@ public static class AgentMemoryConfiguration
             serviceCollection.AddKeyedSingleton(AgentMemoryIndexerClient, (serviceProvider, _) =>
             {
                 var agentMemorySettings = serviceProvider.GetRequiredService<AgentMemorySettings>();
+
+                // If storage account is disabled, return a dummy blob client
+                if (!agentMemorySettings.StorageAccountEnabled)
+                {
+                    return new SearchIndexerClient(
+                        new Uri("https://dummy.search.windows.net"),
+                        new AzureKeyCredential("dummy"));
+                }
 
                 var authService = serviceProvider.GetRequiredService<IAuthenticationService>();
                 var tokenCredential = authService.GetAgentMemoryAzureAISearchCredential();

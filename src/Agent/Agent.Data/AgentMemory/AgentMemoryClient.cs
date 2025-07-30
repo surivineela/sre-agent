@@ -16,28 +16,57 @@ using Microsoft.Extensions.Logging;
 
 namespace Agent.Data.AgentMemory;
 
-public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
-                               [FromKeyedServices(AgentMemoryConfiguration.AgentMemoryBlobClient)] BlobServiceClient agentBlobClient,
-                               [FromKeyedServices(AgentMemoryConfiguration.AgentMemoryIndexerClient)] SearchIndexerClient indexerClient,
-                               [FromKeyedServices(AgentMemoryConfiguration.AgentMemoryAISearchClient)] SearchClient searchClient,
-                               IHostEnvironment hostEnvironment,
-                               AgentMemorySettings agentMemorySettings,
-                               OpenAISettings openAISettings,
-                               ISearchIndexService searchIndexService) : IAgentMemoryClient
+public class AgentMemoryClient : IAgentMemoryClient
 {
-    private readonly string blobContainerName = string.IsNullOrEmpty(agentMemorySettings.BlobStorageContainerName)
-        ? AgentNameHelper.GetCustomerUploadedDocumentBlobContainerName(hostEnvironment.IsProduction())
-        : agentMemorySettings.BlobStorageContainerName;
-    private readonly string aiSearchDataSourceName = agentMemorySettings.AzureAISearchDataSourceName;
-    private readonly string aiSearchIndexName = agentMemorySettings.AzureAISearchIndexName;
-    private readonly string aiSearchIndexerName = agentMemorySettings.AzureAISearchIndexerName;
-    private readonly string aiSearchSkillsetName = agentMemorySettings.AzureAISearchSkillSetName;
+    private readonly ILogger<AgentMemoryClient> _logger;
+    private readonly BlobServiceClient _agentBlobClient;
+    private readonly SearchIndexerClient _indexerClient;
+    private readonly SearchClient _searchClient;
+    private readonly IHostEnvironment _hostEnvironment;
+    private readonly AgentMemorySettings _agentMemorySettings;
+    private readonly OpenAISettings _openAISettings;
+    private readonly ISearchIndexService _searchIndexService;
+
+    private readonly string _blobContainerName;
+    private readonly string _aiSearchDataSourceName;
+    private readonly string _aiSearchIndexName;
+    private readonly string _aiSearchIndexerName;
+    private readonly string _aiSearchSkillsetName;
+
     // Maximum number of results to return in a search query
     private const uint maxK = 100;
 
+    public AgentMemoryClient(
+        ILogger<AgentMemoryClient> logger,
+        [FromKeyedServices(AgentMemoryConfiguration.AgentMemoryBlobClient)] BlobServiceClient agentBlobClient,
+        [FromKeyedServices(AgentMemoryConfiguration.AgentMemoryIndexerClient)] SearchIndexerClient indexerClient,
+        [FromKeyedServices(AgentMemoryConfiguration.AgentMemoryAISearchClient)] SearchClient searchClient,
+        IHostEnvironment hostEnvironment,
+        AgentMemorySettings agentMemorySettings,
+        OpenAISettings openAISettings,
+        ISearchIndexService searchIndexService)
+    {
+        _logger = logger;
+        _agentBlobClient = agentBlobClient;
+        _indexerClient = indexerClient;
+        _searchClient = searchClient;
+        _hostEnvironment = hostEnvironment;
+        _agentMemorySettings = agentMemorySettings;
+        _openAISettings = openAISettings;
+        _searchIndexService = searchIndexService;
+
+        _blobContainerName = string.IsNullOrEmpty(_agentMemorySettings.BlobStorageContainerName)
+            ? AgentNameHelper.GetCustomerUploadedDocumentBlobContainerName(_hostEnvironment.IsProduction())
+            : _agentMemorySettings.BlobStorageContainerName;
+        _aiSearchDataSourceName = _agentMemorySettings.AzureAISearchDataSourceName;
+        _aiSearchIndexName = _agentMemorySettings.AzureAISearchIndexName;
+        _aiSearchIndexerName = _agentMemorySettings.AzureAISearchIndexerName;
+        _aiSearchSkillsetName = _agentMemorySettings.AzureAISearchSkillSetName;
+    }
+
     async Task<bool> IAgentMemoryClient.UploadDocumentAsync(string fileName, Stream documentStream)
     {
-        if (!agentMemorySettings.StorageAccountEnabled)
+        if (!_agentMemorySettings.StorageAccountEnabled)
         {
             return false;
         }
@@ -45,51 +74,51 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
         // Validation checks
         if (string.IsNullOrWhiteSpace(fileName))
         {
-            logger.LogInternalError("Upload failed: fileName is null or empty");
+            _logger.LogInternalError("Upload failed: fileName is null or empty");
             return false;
         }
 
         if (documentStream == null)
         {
-            logger.LogInternalError("Upload failed: documentStream is null");
+            _logger.LogInternalError("Upload failed: documentStream is null");
             return false;
         }
 
         if (documentStream.Length == 0)
         {
-            logger.LogInternalError($"Upload failed: documentStream for '{fileName}' is empty");
+            _logger.LogInternalError($"Upload failed: documentStream for '{fileName}' is empty");
             return false;
         }
 
         if (!documentStream.CanRead)
         {
-            logger.LogInternalError($"Upload failed: documentStream for '{fileName}' is not readable");
+            _logger.LogInternalError($"Upload failed: documentStream for '{fileName}' is not readable");
             return false;
         }
 
         try
         {
-            logger.LogInternalInformation($"Uploading document '{fileName}' ({documentStream.Length} bytes) to container '{blobContainerName}'");
+            _logger.LogInternalInformation($"Uploading document '{fileName}' ({documentStream.Length} bytes) to container '{_blobContainerName}'");
 
-            var blobClient = agentBlobClient.GetBlobContainerClient(blobContainerName)
+            var blobClient = _agentBlobClient.GetBlobContainerClient(_blobContainerName)
                 .GetBlobClient(fileName);
 
             var response = await blobClient.UploadAsync(documentStream, overwrite: true);
 
             if (response?.Value != null)
             {
-                logger.LogInternalInformation($"Successfully uploaded document '{fileName}' to container '{blobContainerName}'. ETag: {response.Value.ETag}");
+                _logger.LogInternalInformation($"Successfully uploaded document '{fileName}' to container '{_blobContainerName}'. ETag: {response.Value.ETag}");
                 return true;
             }
             else
             {
-                logger.LogInternalError($"Upload failed: No response received for document '{fileName}'");
+                _logger.LogInternalError($"Upload failed: No response received for document '{fileName}'");
                 return false;
             }
         }
         catch (Exception ex)
         {
-            logger.LogInternalError(ex, $"Upload failed: Exception occurred while uploading document '{fileName}': {ex.Message}");
+            _logger.LogInternalError(ex, $"Upload failed: Exception occurred while uploading document '{fileName}': {ex.Message}");
             return false;
         }
     }
@@ -101,36 +130,48 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
 
     public async Task RunIndexerAsync()
     {
-        logger.LogInternalInformation("Running the indexer...");
-        await indexerClient.RunIndexerAsync(aiSearchIndexerName).ConfigureAwait(false);
-        logger.LogInternalInformation("Indexer is Running!");
+        if (!_agentMemorySettings.StorageAccountEnabled)
+        {
+            _logger.LogInternalWarning($"NoOp on {nameof(RunIndexerAsync)} as storage account is disabled");
+            return;
+        }
+
+        _logger.LogInternalInformation("Running the indexer...");
+        await _indexerClient.RunIndexerAsync(_aiSearchIndexerName).ConfigureAwait(false);
+        _logger.LogInternalInformation("Indexer is Running!");
     }
 
-    internal async Task CreateOrUpdateIndexerAsync()
+    private async Task CreateOrUpdateIndexerAsync()
     {
         try
         {
             // Create or update the search index
-            logger.LogInternalInformation("Creating/updating search index...");
-            await searchIndexService.CreateOrUpdateIndexAsync();
-            logger.LogInternalInformation("Search index created/updated successfully");
+            _logger.LogInternalInformation("Creating/updating search index...");
+            await _searchIndexService.CreateOrUpdateIndexAsync();
+            _logger.LogInternalInformation("Search index created/updated successfully");
+
+            if (!_agentMemorySettings.StorageAccountEnabled)
+            {
+                _logger.LogInternalWarning($"Skipping other subresource update {nameof(CreateOrUpdateIndexerAsync)} as storage account is disabled");
+                return;
+            }
 
             // Create or update data source connection
-            logger.LogInternalInformation("Creating/updating data source connection...");
+            _logger.LogInternalInformation("Creating/updating data source connection...");
             var dataSource = new SearchIndexerDataSourceConnection(
-                aiSearchDataSourceName,
+                _aiSearchDataSourceName,
                 SearchIndexerDataSourceType.AzureBlob,
-                connectionString: $"ResourceId={agentMemorySettings.BlobStorageResourceId}",
-                container: new SearchIndexerDataContainer(blobContainerName));
+                connectionString: $"ResourceId={_agentMemorySettings.BlobStorageResourceId}",
+                container: new SearchIndexerDataContainer(_blobContainerName));
 
             dataSource.IndexerPermissionOptions ??= new List<IndexerPermissionOption>();
-            dataSource.Identity = new SearchIndexerDataUserAssignedIdentity(new ResourceIdentifier(agentMemorySettings.ManagedIdentityResourceId));
-            await indexerClient.CreateOrUpdateDataSourceConnectionAsync(dataSource);
-            logger.LogInternalInformation("Data source connection created/updated successfully");
+            dataSource.Identity = new SearchIndexerDataUserAssignedIdentity(new ResourceIdentifier(_agentMemorySettings.ManagedIdentityResourceId));
+            await _indexerClient.CreateOrUpdateDataSourceConnectionAsync(dataSource);
+            _logger.LogInternalInformation("Data source connection created/updated successfully");
 
             // Create or update skillset
-            logger.LogInternalInformation("Creating/updating skillset...");
-            var skillset = new SearchIndexerSkillset(aiSearchSkillsetName, new List<SearchIndexerSkill>
+            _logger.LogInternalInformation("Creating/updating skillset...");
+            var skillset = new SearchIndexerSkillset(_aiSearchSkillsetName, new List<SearchIndexerSkill>
             {
                 new SplitSkill(
                     new List<InputFieldMappingEntry>
@@ -159,10 +200,10 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
                 )
                 {
                     Context = "/document/pages/*",
-                    ResourceUri = new Uri(openAISettings.Endpoint),
-                    DeploymentName = openAISettings.EmbeddingGeneratorDeploymentName,
-                    ModelName = openAISettings.EmbeddingGeneratorModelName,
-                    AuthenticationIdentity = new SearchIndexerDataUserAssignedIdentity(new ResourceIdentifier(agentMemorySettings.ManagedIdentityResourceId))
+                    ResourceUri = new Uri(_openAISettings.Endpoint),
+                    DeploymentName = _openAISettings.EmbeddingGeneratorDeploymentName,
+                    ModelName = _openAISettings.EmbeddingGeneratorModelName,
+                    AuthenticationIdentity = new SearchIndexerDataUserAssignedIdentity(new ResourceIdentifier(_agentMemorySettings.ManagedIdentityResourceId))
                 },
                 // https://learn.microsoft.com/en-us/azure/search/cognitive-search-skill-conditional
                 new ConditionalSkill(
@@ -183,7 +224,7 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
             {
                 IndexProjection = new SearchIndexerIndexProjection(new[]
                 {
-                    new SearchIndexerIndexProjectionSelector(aiSearchIndexName, parentKeyFieldName: "parent_id", sourceContext: "/document/pages/*", mappings: new[]
+                    new SearchIndexerIndexProjectionSelector(_aiSearchIndexName, parentKeyFieldName: "parent_id", sourceContext: "/document/pages/*", mappings: new[]
                     {
                         new InputFieldMappingEntry("chunk")
                         {
@@ -210,12 +251,12 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
                     }
                 }
             };
-            await indexerClient.CreateOrUpdateSkillsetAsync(skillset);
-            logger.LogInternalInformation("Skillset created/updated successfully");
+            await _indexerClient.CreateOrUpdateSkillsetAsync(skillset);
+            _logger.LogInternalInformation("Skillset created/updated successfully");
 
             // Create or update indexer
-            logger.LogInternalInformation("Creating/updating indexer...");
-            var indexer = new SearchIndexer(aiSearchIndexerName, dataSource.Name, aiSearchIndexName)
+            _logger.LogInternalInformation("Creating/updating indexer...");
+            var indexer = new SearchIndexer(_aiSearchIndexerName, dataSource.Name, _aiSearchIndexName)
             {
                 Description = "Indexer to chunk documents, generate embeddings, and add to the index",
                 Schedule = new IndexingSchedule(TimeSpan.FromDays(1))
@@ -230,16 +271,15 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
                 },
                 SkillsetName = skillset.Name,
             };
-            await indexerClient.CreateOrUpdateIndexerAsync(indexer);
-            logger.LogInternalInformation("Indexer created/updated successfully");
+            await _indexerClient.CreateOrUpdateIndexerAsync(indexer);
+            _logger.LogInternalInformation("Indexer created/updated successfully");
         }
         catch (Exception ex)
         {
-            logger.LogInternalError(ex, "Failed to create or update Azure AI Search indexer infrastructure");
+            _logger.LogInternalError(ex, "Failed to create or update Azure AI Search indexer infrastructure");
             throw;
         }
     }
-
 
     public async Task<IList<SearchDocumentResult>> SearchCustomerDocumentsAsync(
         string query,
@@ -278,21 +318,28 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
             // QueryAnswer = new QueryAnswer(QueryAnswerType.Extractive)
         };
 
-        var response = await searchClient.SearchAsync<SearchDocumentResult>(
-                searchText: enableHybridSearch ? query : "*",
-                options: searchOptions,
-                cancellationToken: cancellationToken);
+        var response = await _searchClient.SearchAsync<SearchDocumentResult>(
+            searchText: enableHybridSearch ? query : "*",
+            options: searchOptions,
+            cancellationToken: cancellationToken);
         var results = new List<SearchDocumentResult>();
         await foreach (var result in response.Value.GetResultsAsync())
         {
-            logger.LogInternalInformation($"Found document: {result.Document.Title} with chunk_id: {result.Document.ChunkId}, parent_id: {result.Document.ParentId}, score: {result.Document.SearchScore}, reranker score: {result.Document.RerankerScore}");
+            _logger.LogInternalInformation($"Found document: {result.Document.Title} with chunk_id: {result.Document.ChunkId}, parent_id: {result.Document.ParentId}, score: {result.Document.SearchScore}, reranker score: {result.Document.RerankerScore}");
             results.Add(result.Document);
         }
 
         return results;
     }
 
-    public async Task<IList<SearchDocumentResult>> SearchTrajectoriesAsync(string query, uint k = 5, float? vectorSimilarityThreshold = null, bool exhaustiveKnn = false, string? filter = null, bool enableHybridSearch = false, CancellationToken cancellationToken = default)
+    public async Task<IList<SearchDocumentResult>> SearchTrajectoriesAsync(
+        string query,
+        uint k = 5,
+        float? vectorSimilarityThreshold = null,
+        bool exhaustiveKnn = false,
+        string? filter = null,
+        bool enableHybridSearch = false,
+        CancellationToken cancellationToken = default)
     {
         var searchOptions = new SearchOptions
         {
@@ -322,22 +369,28 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
             // QueryAnswer = new QueryAnswer(QueryAnswerType.Extractive)
         };
 
-
-        var response = await searchClient.SearchAsync<SearchDocumentResult>(
+        var response = await _searchClient.SearchAsync<SearchDocumentResult>(
                 searchText: enableHybridSearch ? query : "*",
                 options: searchOptions,
                 cancellationToken: cancellationToken);
         var results = new List<SearchDocumentResult>();
         await foreach (var result in response.Value.GetResultsAsync())
         {
-            logger.LogInternalInformation($"Found document: {result.Document.Title} with chunk_id: {result.Document.ChunkId}, parent_id: {result.Document.ParentId}, score: {result.Document.SearchScore}, reranker score: {result.Document.RerankerScore}");
+            _logger.LogInternalInformation($"Found document: {result.Document.Title} with chunk_id: {result.Document.ChunkId}, parent_id: {result.Document.ParentId}, score: {result.Document.SearchScore}, reranker score: {result.Document.RerankerScore}");
             results.Add(result.Document);
         }
 
         return results;
     }
 
-    public async Task<IList<SearchDocumentResult>> SearchUserMemoriesAsync(string query, uint k = 5, float? vectorSimilarityThreshold = null, bool exhaustiveKnn = false, string? filter = null, bool enableHybridSearch = false, CancellationToken cancellationToken = default)
+    public async Task<IList<SearchDocumentResult>> SearchUserMemoriesAsync(
+        string query,
+        uint k = 5,
+        float? vectorSimilarityThreshold = null,
+        bool exhaustiveKnn = false,
+        string? filter = null,
+        bool enableHybridSearch = false,
+        CancellationToken cancellationToken = default)
     {
         var searchOptions = new SearchOptions
         {
@@ -365,15 +418,14 @@ public class AgentMemoryClient(ILogger<AgentMemoryClient> logger,
             SemanticConfigurationName = Constants.SemanticSearchConfig,
         };
 
-
-        var response = await searchClient.SearchAsync<SearchDocumentResult>(
+        var response = await _searchClient.SearchAsync<SearchDocumentResult>(
                 searchText: enableHybridSearch ? query : "*",
                 options: searchOptions,
                 cancellationToken: cancellationToken);
         var results = new List<SearchDocumentResult>();
         await foreach (var result in response.Value.GetResultsAsync())
         {
-            logger.LogInternalInformation($"Found user memory: {result.Document.Title} with chunk: {result.Document.Chunk}, score: {result.Document.SearchScore}, reranker score: {result.Document.RerankerScore}");
+            _logger.LogInternalInformation($"Found user memory: {result.Document.Title} with chunk: {result.Document.Chunk}, score: {result.Document.SearchScore}, reranker score: {result.Document.RerankerScore}");
             results.Add(result.Document);
         }
 
