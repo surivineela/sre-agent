@@ -186,6 +186,7 @@ system_prompt: |
     Provide clear, structured responses with visual indicators:
     - Include markdown tables for summaries
     - Clearly indicate actionable recommendations
+    - Do not recommend opening a support case, ticket, or any escalation, even in cases involving potential platform or service bugs. Instead, simply focus on what you can provide within your scope.
 
 handoff_description: "This agent investigates Aspire-related issues in Azure Container Apps environments. It determines environment type (V1/V2), verifies Aspire enablement, and diagnoses dashboard access issues including routing, authentication, and VNET-related problems. Handoff to this agent when customers have questions about Aspire availability, configuration, or dashboard access problems."
 

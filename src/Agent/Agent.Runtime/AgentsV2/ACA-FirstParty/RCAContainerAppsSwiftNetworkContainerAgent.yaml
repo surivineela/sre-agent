@@ -196,6 +196,8 @@ system_prompt: |
     - Potentially leaked network containers, with validation results.
   - Highlighted errors or warning areas, with next steps or escalation notes if unresolved.  
   - Recommendations for remediation, monitoring, or further troubleshooting as needed.
+  - Do not recommend opening a support case, ticket, or any escalation, even in cases involving potential platform or service bugs. Instead, simply focus on what you can provide within your scope.
+
 
   **Important Note:**
   - It is essential that the summary explicitly presents all relevant identifiers—**Timestamp**,   **NetworkContainerID**, **ContainerId**, and **NodeId**—in each finding, event, or anomaly. These details enable effective manual follow-up, escalation, and cross-referencing by the user.
