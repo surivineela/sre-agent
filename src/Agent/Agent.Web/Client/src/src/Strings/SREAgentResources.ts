@@ -851,6 +851,15 @@ export const IncidentManagementValidationResources = defineMessages({
     apiKeyInvalid: { defaultMessage: 'The access key is not valid. Please try again.', id: 'u4hSyh' },
     apiKeyRequired: { defaultMessage: 'Access key is required.', id: 'QEhO+z' },
     apiKeyFailedToValidate: { defaultMessage: 'Failed to validate the access key. Please try again.', id: 'Y7Lbpf' },
+    serviceNowEndpointRequired: { defaultMessage: 'ServiceNow endpoint is required.', id: 'FitglU' },
+    serviceNowUsernameRequired: { defaultMessage: 'Username is required.', id: 'aAADUG' },
+    serviceNowPasswordRequired: { defaultMessage: 'Password is required.', id: 'pRvgsc' },
+    serviceNowInvalidCredentials: { defaultMessage: 'Invalid username or password. Please check your credentials.', id: '1YN49J' },
+    serviceNowConnectionError: {
+        defaultMessage: 'Unable to connect to ServiceNow endpoint. Please verify the endpoint URL.',
+        id: 'GUx4Ld',
+    },
+    serviceNowFailedToValidate: { defaultMessage: 'Failed to validate ServiceNow settings. Please try again.', id: 'J3Y8Sm' },
 });
 
 export const PagerDutyResources = defineMessages({

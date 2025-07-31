@@ -18,7 +18,12 @@ import {
 } from '../../../Strings/SREAgentResources';
 import { SreAgentContext } from '../../Contracts/Context';
 import { IncidentManagementFormValues, IncidentManagementPlatform } from '../../Contracts/IncidentManagement';
-import { PagerDutyApiKeyValidationResult, validatePagerDutyApiKey } from '../ValidationHelper';
+import {
+    PagerDutyApiKeyValidationResult,
+    ServiceNowValidationResult,
+    validatePagerDutyApiKey,
+    validateServiceNowSettings,
+} from '../ValidationHelper';
 import { useSreAgent } from './useSreAgent';
 
 const getIncidentManagementPlatform = (agent?: ArmObj<Agent>): IncidentManagementPlatform => {
@@ -150,31 +155,138 @@ export function useIncidentManagement(resourceId: string) {
         [intl]
     );
 
+    const getServiceNowValidationErrorMessage = useCallback(
+        (validationResult: ServiceNowValidationResult, field: 'endpoint' | 'username' | 'password') => {
+            switch (validationResult) {
+                case 'valid':
+                    return undefined;
+                case 'missingEndpoint':
+                    return field === 'endpoint'
+                        ? intl.formatMessage(IncidentManagementValidationResources.serviceNowEndpointRequired)
+                        : undefined;
+                case 'missingUsername':
+                    return field === 'username'
+                        ? intl.formatMessage(IncidentManagementValidationResources.serviceNowUsernameRequired)
+                        : undefined;
+                case 'missingPassword':
+                    return field === 'password'
+                        ? intl.formatMessage(IncidentManagementValidationResources.serviceNowPasswordRequired)
+                        : undefined;
+                case 'invalidCredentials':
+                    return field === 'username' || field === 'password'
+                        ? intl.formatMessage(IncidentManagementValidationResources.serviceNowInvalidCredentials)
+                        : undefined;
+                case 'connectionError':
+                    return field === 'endpoint'
+                        ? intl.formatMessage(IncidentManagementValidationResources.serviceNowConnectionError)
+                        : undefined;
+                case 'unknownError':
+                    return intl.formatMessage(IncidentManagementValidationResources.serviceNowFailedToValidate);
+                default:
+                    return undefined;
+            }
+        },
+        [intl]
+    );
+
     const validate = useCallback(
         (formValues: IncidentManagementFormValues): Promise<FormikErrors<IncidentManagementFormValues>> => {
-            if (formValues.platform !== IncidentManagementPlatform.PagerDuty) {
+            if (formValues.platform === IncidentManagementPlatform.PagerDuty) {
+                if (!formValues.connectionKey) {
+                    validationGuid.current = undefined;
+                    latestValidationResult.current = { connectionKey: getValidationErrorMessage('missingKey') };
+                    return Promise.resolve(latestValidationResult.current);
+                } else {
+                    const guid = Guid.newGuid();
+                    validationGuid.current = guid;
+                    return validatePagerDutyApiKey(formValues.connectionKey).then(validationResult => {
+                        if (validationGuid.current !== guid) {
+                            return latestValidationResult.current;
+                        }
+
+                        latestValidationResult.current =
+                            validationResult === 'validKey' ? {} : { connectionKey: getValidationErrorMessage(validationResult) };
+                        return latestValidationResult.current;
+                    });
+                }
+            } else if (formValues.platform === IncidentManagementPlatform.ServiceNow) {
+                const errors: FormikErrors<IncidentManagementFormValues> = {};
+
+                if (!formValues.endpoint) {
+                    errors.endpoint = intl.formatMessage(IncidentManagementValidationResources.serviceNowEndpointRequired);
+                }
+                if (!formValues.username) {
+                    errors.username = intl.formatMessage(IncidentManagementValidationResources.serviceNowUsernameRequired);
+                }
+                if (!formValues.password) {
+                    errors.password = intl.formatMessage(IncidentManagementValidationResources.serviceNowPasswordRequired);
+                }
+
+                // If basic validation fails, return early
+                if (Object.keys(errors).length > 0) {
+                    validationGuid.current = undefined;
+                    latestValidationResult.current = errors;
+                    return Promise.resolve(latestValidationResult.current);
+                }
+
+                // If all fields are present, validate ServiceNow connection
+                if (formValues.endpoint && formValues.username && formValues.password) {
+                    const guid = Guid.newGuid();
+                    validationGuid.current = guid;
+                    return validateServiceNowSettings(
+                        formValues.endpoint,
+                        formValues.username,
+                        formValues.password,
+                        environmentContext.sreAgentEndpoint
+                    )
+                        .then(validationResult => {
+                            if (validationGuid.current !== guid) {
+                                return latestValidationResult.current;
+                            }
+
+                            if (validationResult === 'valid') {
+                                latestValidationResult.current = {};
+                            } else {
+                                // Set the error on the most relevant field based on the validation result
+                                const endpointError = getServiceNowValidationErrorMessage(validationResult, 'endpoint');
+                                const usernameError = getServiceNowValidationErrorMessage(validationResult, 'username');
+                                const passwordError = getServiceNowValidationErrorMessage(validationResult, 'password');
+
+                                latestValidationResult.current = {};
+                                if (endpointError) {
+                                    latestValidationResult.current.endpoint = endpointError;
+                                } else if (usernameError) {
+                                    latestValidationResult.current.username = usernameError;
+                                } else if (passwordError) {
+                                    latestValidationResult.current.password = passwordError;
+                                } else {
+                                    // Default to endpoint for unknown errors
+                                    latestValidationResult.current.endpoint = intl.formatMessage(
+                                        IncidentManagementValidationResources.serviceNowFailedToValidate
+                                    );
+                                }
+                            }
+                            return latestValidationResult.current;
+                        })
+                        .catch(() => {
+                            if (validationGuid.current !== guid) {
+                                return latestValidationResult.current;
+                            }
+                            latestValidationResult.current = {
+                                endpoint: intl.formatMessage(IncidentManagementValidationResources.serviceNowFailedToValidate),
+                            };
+                            return latestValidationResult.current;
+                        });
+                }
+            } else {
                 validationGuid.current = undefined;
                 latestValidationResult.current = {};
                 return Promise.resolve(latestValidationResult.current);
-            } else if (!formValues.connectionKey) {
-                validationGuid.current = undefined;
-                latestValidationResult.current = { connectionKey: getValidationErrorMessage('missingKey') };
-                return Promise.resolve(latestValidationResult.current);
-            } else {
-                const guid = Guid.newGuid();
-                validationGuid.current = guid;
-                return validatePagerDutyApiKey(formValues.connectionKey).then(validationResult => {
-                    if (validationGuid.current !== guid) {
-                        return latestValidationResult.current;
-                    }
-
-                    latestValidationResult.current =
-                        validationResult === 'validKey' ? {} : { connectionKey: getValidationErrorMessage(validationResult) };
-                    return latestValidationResult.current;
-                });
             }
+
+            return Promise.resolve({});
         },
-        [getValidationErrorMessage]
+        [intl, getValidationErrorMessage, getServiceNowValidationErrorMessage, environmentContext.sreAgentEndpoint]
     );
 
     const save = useCallback(
@@ -182,6 +294,7 @@ export function useIncidentManagement(resourceId: string) {
             if (!agent) {
                 return;
             }
+
             const notificationId = azPortalContext.startNotification(
                 intl.formatMessage(IncidentManagementNotificationResources.saveTitle),
                 intl.formatMessage(IncidentManagementNotificationResources.saveStarted)

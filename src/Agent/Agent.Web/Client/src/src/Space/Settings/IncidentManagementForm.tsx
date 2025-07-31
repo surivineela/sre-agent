@@ -241,7 +241,6 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                                             setFieldValue('endpoint', undefined, false);
                                             setFieldValue('username', undefined, false);
                                             setFieldValue('password', undefined, false);
-                                            setFieldValue('instanceName', undefined, false);
                                         }
                                     }
                                 }}
@@ -411,6 +410,7 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                                             setFieldValue('endpoint', newValue?.value);
                                         }}
                                         disabled={saving || !isApiKeyEditable}
+                                        contentAfter={isValidating && !isSubmitting ? <Spinner size={'tiny'} /> : null}
                                     />
                                 </Field>
 
@@ -434,6 +434,7 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                                             setFieldValue('username', newValue?.value);
                                         }}
                                         disabled={saving || !isApiKeyEditable}
+                                        contentAfter={isValidating && !isSubmitting ? <Spinner size={'tiny'} /> : null}
                                     />
                                 </Field>
 
@@ -458,29 +459,7 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                                             setFieldValue('password', newValue?.value);
                                         }}
                                         disabled={saving || !isApiKeyEditable}
-                                    />
-                                </Field>
-
-                                <Field
-                                    id="instanceNameField"
-                                    label={intl.formatMessage(ServiceNowResources.serviceNowInstanceName)}
-                                    orientation="horizontal"
-                                    required={true}
-                                    validationMessage={
-                                        formikProps.touched.instanceName && !isValidating ? formikProps.errors.instanceName : undefined
-                                    }
-                                    style={{ maxWidth: '80%', marginTop: 16 }}
-                                >
-                                    <Input
-                                        style={styles.plainTextFieldStyles}
-                                        id="instanceName"
-                                        value={isApiKeyEditable ? values.instanceName : undefined}
-                                        placeholder={isApiKeyEditable ? undefined : ''}
-                                        onChange={(_event, newValue) => {
-                                            setFieldTouched('instanceName', true, false);
-                                            setFieldValue('instanceName', newValue?.value);
-                                        }}
-                                        disabled={saving || !isApiKeyEditable}
+                                        contentAfter={isValidating && !isSubmitting ? <Spinner size={'tiny'} /> : null}
                                     />
                                 </Field>
                             </>
@@ -555,7 +534,7 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                                         !isValid ||
                                         (values.platform === IncidentManagementPlatform.PagerDuty && !values.connectionKey) ||
                                         (values.platform === IncidentManagementPlatform.ServiceNow &&
-                                            (!values.endpoint || !values.username || !values.password || !values.instanceName))
+                                            (!values.endpoint || !values.username || !values.password))
                                     }
                                 >
                                     {intl.formatMessage(SreAgentResources.save)}

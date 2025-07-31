@@ -255,6 +255,12 @@
       "value": "New incident handler"
     }
   ],
+  "1YN49J": [
+    {
+      "type": 0,
+      "value": "Invalid username or password. Please check your credentials."
+    }
+  ],
   "1YPTmM": [
     {
       "type": 0,
@@ -1407,6 +1413,12 @@
       "value": "Subscription ID"
     }
   ],
+  "FitglU": [
+    {
+      "type": 0,
+      "value": "ServiceNow endpoint is required."
+    }
+  ],
   "FnKIAW": [
     {
       "type": 0,
@@ -1441,6 +1453,12 @@
     {
       "type": 0,
       "value": "- in progress"
+    }
+  ],
+  "GUx4Ld": [
+    {
+      "type": 0,
+      "value": "Unable to connect to ServiceNow endpoint. Please verify the endpoint URL."
     }
   ],
   "GgiTLF": [
@@ -1549,6 +1567,12 @@
     {
       "type": 0,
       "value": "More options"
+    }
+  ],
+  "J3Y8Sm": [
+    {
+      "type": 0,
+      "value": "Failed to validate ServiceNow settings. Please try again."
     }
   ],
   "J6XCfl": [
@@ -2859,6 +2883,12 @@
       "value": "Yes"
     }
   ],
+  "aAADUG": [
+    {
+      "type": 0,
+      "value": "Username is required."
+    }
+  ],
   "aB1tjk": [
     {
       "type": 0,
@@ -3917,6 +3947,12 @@
     {
       "type": 0,
       "value": "App Configuration Reader"
+    }
+  ],
+  "pRvgsc": [
+    {
+      "type": 0,
+      "value": "Password is required."
     }
   ],
   "pSfQh6": [
