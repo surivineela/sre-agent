@@ -218,7 +218,7 @@ public class TrajectoryEvaluator
                     var trajectoryString = JsonSerializer.Serialize(trajectory, _jsonSerializerOptions);
                     await SaveTrajectoryAsync(thread.Id, trajectoryString, trajectoryInfo.PromptHash, cancellationToken);
 
-                    var vector = await _embeddingGenerator.GenerateVectorAsync(trajectory.SymptomsObserved, null, cancellationToken);
+                    var vector = await _embeddingGenerator.GenerateVectorForAgentMemoryAsync(trajectory.SymptomsObserved, cancellationToken);
                     var memory = AgentMemory.FromTrajectory(
                         id: thread.Id.ToString(),
                         trajectoryData: trajectory,

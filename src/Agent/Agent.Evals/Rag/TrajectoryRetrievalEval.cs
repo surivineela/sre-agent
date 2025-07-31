@@ -97,7 +97,7 @@ public partial class TrajectoryEval
         foreach (var query in basicQueries)
         {
             var result = await agentMemoryClient.SearchTrajectoriesAsync(query, enableHybridSearch: true);
-    
+
             // Assert that we get at least some results
             Assert.IsTrue(result.Count > 0, $"Basic query '{query}' should return results");
         }
@@ -110,7 +110,7 @@ public partial class TrajectoryEval
         var chatClient = _host.Services.GetRequiredService<IChatClient>();
         var loggerFactory = _host.Services.GetRequiredService<ILoggerFactory>();
         var logger = loggerFactory.CreateLogger<TrajectorySearchRelevanceEvaluator>();
-        
+
         await TestComprehensiveEvaluation(agentMemoryClient, chatClient, logger);
     }
 
@@ -137,7 +137,7 @@ public partial class TrajectoryEval
             NumericMetric rankingQualityMetric = evaluationResult.Get<NumericMetric>(TrajectorySearchRelevanceEvaluator.RankingQualityMetricName);
             NumericMetric actionabilityMetric = evaluationResult.Get<NumericMetric>(TrajectorySearchRelevanceEvaluator.ActionabilityMetricName);
 
-          
+
             // Assert minimum quality thresholds
             //Assert.IsTrue(relevanceMetric.Value >= 4, $"Overall Relevance should be at least 4 (Good), got {relevanceMetric.Value} for query '{query}'");
             //Assert.IsTrue(diversityMetric.Value >= 0.6, $"Diversity should be at least 0.6 (Good), got {diversityMetric.Value:F3} for query '{query}'");
@@ -145,13 +145,13 @@ public partial class TrajectoryEval
             //Assert.IsTrue(actionabilityMetric.Value >= 4, $"Actionability should be at least 4 (Good), got {actionabilityMetric.Value} for query '{query}'");
 
             // Assert that interpretation ratings are at least Good
-            // Assert.IsTrue(relevanceMetric.Interpretation?.Rating >= EvaluationRating.Good, 
+            // Assert.IsTrue(relevanceMetric.Interpretation?.Rating >= EvaluationRating.Good,
             //    $"Relevance interpretation should be at least Good, got {relevanceMetric.Interpretation?.Rating} for query '{query}'");
-            // Assert.IsTrue(diversityMetric.Interpretation?.Rating >= EvaluationRating.Good, 
+            // Assert.IsTrue(diversityMetric.Interpretation?.Rating >= EvaluationRating.Good,
             //    $"Diversity interpretation should be at least Good, got {diversityMetric.Interpretation?.Rating} for query '{query}'");
-            // Assert.IsTrue(rankingQualityMetric.Interpretation?.Rating >= EvaluationRating.Good, 
+            // Assert.IsTrue(rankingQualityMetric.Interpretation?.Rating >= EvaluationRating.Good,
             //    $"Ranking Quality interpretation should be at least Good, got {rankingQualityMetric.Interpretation?.Rating} for query '{query}'");
-            // Assert.IsTrue(actionabilityMetric.Interpretation?.Rating >= EvaluationRating.Good, 
+            // Assert.IsTrue(actionabilityMetric.Interpretation?.Rating >= EvaluationRating.Good,
             //    $"Actionability interpretation should be at least Good, got {actionabilityMetric.Interpretation?.Rating} for query '{query}'");
         }
 
@@ -179,14 +179,14 @@ public partial class TrajectoryEval
         var chatClient = _host.Services.GetRequiredService<IChatClient>();
         var loggerFactory = _host.Services.GetRequiredService<ILoggerFactory>();
         var logger = loggerFactory.CreateLogger<TrajectorySearchRelevanceEvaluator>();
-        
+
         await TestGroundTruthEvaluation(agentMemoryClient, chatClient, logger);
     }
 
     private async Task TestGroundTruthEvaluation(IAgentMemoryClient agentMemoryClient, IChatClient chatClient, ILogger<TrajectorySearchRelevanceEvaluator> logger)
     {
         Console.WriteLine("\n=== Ground Truth Evaluation ===");
-        
+
         var trajectoryEvaluator = new TrajectorySearchRelevanceEvaluator(chatClient, logger);
 
         // Load ground truth mappings from data file
@@ -196,7 +196,7 @@ public partial class TrajectoryEval
         {
             // Always want it to return 1 result. Can tweak this in the future if needed
             var searchResults = await agentMemoryClient.SearchTrajectoriesAsync(query, 1, enableHybridSearch: true);
-            
+
             var evaluation = trajectoryEvaluator.EvaluateTrajectorySearchWithGroundTruthAsync(
                 query,
                 searchResults,
@@ -236,7 +236,7 @@ public partial class TrajectoryEval
     private static string[] LoadBasicSearchQueries()
     {
         var dataFilePath = Path.Combine(AppContext.BaseDirectory, "Data", "TrajectorySearch", "basic-retrieval-queries.json");
-        
+
         if (!File.Exists(dataFilePath))
         {
             throw new FileNotFoundException($"Basic retrieval queries data file not found: {dataFilePath}");
@@ -246,7 +246,7 @@ public partial class TrajectoryEval
         {
             var jsonContent = File.ReadAllText(dataFilePath);
             var data = JsonSerializer.Deserialize<BasicRetrievalQueriesData>(jsonContent, JsonSerializerOptions.Web);
-            
+
             if (data?.BasicRetrievalQueries == null || data.BasicRetrievalQueries.Length == 0)
             {
                 throw new InvalidOperationException($"No basic retrieval queries found in data file: {dataFilePath}");
@@ -268,7 +268,7 @@ public partial class TrajectoryEval
     private static string[] LoadComprehensiveEvaluationQueries()
     {
         var dataFilePath = Path.Combine(AppContext.BaseDirectory, "Data", "TrajectorySearch", "comprehensive-evaluation-queries.json");
-        
+
         if (!File.Exists(dataFilePath))
         {
             throw new FileNotFoundException($"Comprehensive evaluation queries data file not found: {dataFilePath}");
@@ -278,7 +278,7 @@ public partial class TrajectoryEval
         {
             var jsonContent = File.ReadAllText(dataFilePath);
             var data = JsonSerializer.Deserialize<ComprehensiveEvaluationQueriesData>(jsonContent, JsonSerializerOptions.Web);
-            
+
             if (data?.ComprehensiveEvaluationQueries == null || data.ComprehensiveEvaluationQueries.Length == 0)
             {
                 throw new InvalidOperationException($"No comprehensive evaluation queries found in data file: {dataFilePath}");
@@ -300,7 +300,7 @@ public partial class TrajectoryEval
     private static Dictionary<string, HashSet<string>> LoadGroundTruthMappings()
     {
         var dataFilePath = Path.Combine(AppContext.BaseDirectory, "Data", "TrajectorySearch", "ground-truth-mappings.json");
-        
+
         if (!File.Exists(dataFilePath))
         {
             throw new FileNotFoundException($"Ground truth mappings data file not found: {dataFilePath}");
@@ -310,7 +310,7 @@ public partial class TrajectoryEval
         {
             var jsonContent = File.ReadAllText(dataFilePath);
             var data = JsonSerializer.Deserialize<GroundTruthMappingsData>(jsonContent, JsonSerializerOptions.Web);
-            
+
             if (data?.GroundTruthMappings == null || data.GroundTruthMappings.Count == 0)
             {
                 throw new InvalidOperationException($"No ground truth mappings found in data file: {dataFilePath}");
@@ -325,7 +325,7 @@ public partial class TrajectoryEval
                 }
                 result[query] = new HashSet<string>(expectedTrajectoryIds);
             }
-            
+
             return result;
         }
         catch (JsonException ex)
@@ -342,7 +342,7 @@ public partial class TrajectoryEval
         var embeddingGenerator = _host.Services.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>();
 
         Console.WriteLine("Setting up search index...");
-        
+
         // rebuild the index
         await indexSerivce.DeleteIndexIfExistsAsync();
         await indexSerivce.CreateOrUpdateIndexAsync();
@@ -364,7 +364,7 @@ public partial class TrajectoryEval
         {
             var trajectoryContent = await File.ReadAllTextAsync(trajectoryFile);
             var trajectory = JsonSerializer.Deserialize<ProcessedTrajectoryOutput_v3>(trajectoryContent, JsonSerializerOptions.Web);
-            var embedding = await embeddingGenerator.GenerateVectorAsync(trajectory!.SymptomsObserved);
+            var embedding = await embeddingGenerator.GenerateVectorForAgentMemoryAsync(trajectory!.SymptomsObserved);
             var agentMemory = AgentMemory.FromTrajectory(Guid.NewGuid().ToString(), trajectory, [.. embedding.Span]);
 
             // Index the trajectory content
@@ -373,5 +373,5 @@ public partial class TrajectoryEval
 
         Console.WriteLine("Index setup completed.");
     }
-   
+
 }

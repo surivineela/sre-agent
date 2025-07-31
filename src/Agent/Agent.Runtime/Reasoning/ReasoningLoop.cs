@@ -1576,7 +1576,7 @@ public class ReasoningLoop : IDisposable
 
             var memoryId = $"memory_{_context.ThreadId}_{DateTime.UtcNow.Ticks}";
 
-            var vector = await _embeddingGenerator.GenerateVectorAsync(memoryContent, null, cancellationToken);
+            var vector = await _embeddingGenerator.GenerateVectorForAgentMemoryAsync(memoryContent, cancellationToken);
 
             var memory = AgentMemory.FromUserMemory(
                 id: memoryId,

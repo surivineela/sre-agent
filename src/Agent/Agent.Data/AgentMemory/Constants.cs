@@ -13,7 +13,7 @@ public static class Constants
     public const string VectorSearchExhaustiveKnnProfile = "exhaustiveKnnProfile";
     public const string VectorSearchHnswConfig = "hnswConfig";
     public const string VectorSearchExhaustiveKnnConfig = "exhaustiveKnn";
-    public const int ModelDimensions = 1536;
+    public const int VectorDimension = 1536;
     public const string SemanticSearchConfig = "semanticConfig";
 
     public static readonly JsonObjectSerializer JsonSerializer = new(

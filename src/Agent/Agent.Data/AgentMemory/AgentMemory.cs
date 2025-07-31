@@ -31,7 +31,7 @@ public class AgentMemory
     [SearchableField]
     public string Chunk { get; set; } = string.Empty;
 
-    [VectorSearchField(VectorSearchDimensions = 1536, VectorSearchProfileName = Constants.VectorSearchHnswProfile, IsHidden = true)]
+    [VectorSearchField(VectorSearchDimensions = Constants.VectorDimension, VectorSearchProfileName = Constants.VectorSearchHnswProfile, IsHidden = true)]
     public List<float> Vector { get; set; } = [];
 
     // Fields for trajectory-specific metadata
@@ -155,7 +155,7 @@ public class AgentMemory
 
     private static DateTimeOffset? ParseIncidentTime(string? incidentTimeString)
     {
-        return !string.IsNullOrEmpty(incidentTimeString) && !incidentTimeString.Equals("N/A", StringComparison.OrdinalIgnoreCase) 
+        return !string.IsNullOrEmpty(incidentTimeString) && !incidentTimeString.Equals("N/A", StringComparison.OrdinalIgnoreCase)
             && DateTimeOffset.TryParse(incidentTimeString, out var parsedTime) ? parsedTime : null;
     }
 }

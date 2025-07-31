@@ -134,7 +134,7 @@ namespace Agent.Web.Controllers.v1
 
             try
             {
-                var embedding = await embeddingGenerator.GenerateVectorAsync(trajectoryOutput.SymptomsObserved);
+                var embedding = await embeddingGenerator.GenerateVectorForAgentMemoryAsync(trajectoryOutput.SymptomsObserved);
                 var memory = AgentMemory.FromTrajectory(
                     id: Guid.NewGuid().ToString(),
                     trajectoryData: trajectoryOutput,
