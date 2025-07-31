@@ -3,8 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Reflection;
-using Agent.Runtime.Reasoning.Models;
-using YamlDotNet.Serialization;
+using Agent.Framework;
 
 public interface IToolArgumentTransformer
 {

@@ -2,12 +2,13 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Net.Http.Json;
+using System.Text.Json.Serialization;
 using Agent.Core.Configuration;
 using Agent.Data.DataModels;
 using Agent.Graph.Interfaces;
 using Microsoft.Extensions.Logging;
-using System.Net.Http.Json;
-using System.Text.Json.Serialization;
+using Microsoft.Extensions.Options;
 
 namespace Agent.Graph.Services;
 
@@ -16,14 +17,22 @@ public class PagerDutyService : IPagerDutyService
     private readonly string _pagerDutyApiKey = string.Empty;
     private readonly ILogger<PagerDutyService> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly IncidentManagementSettings _settings;
+    private readonly IncidentManagementSettings? _settings;
+    private IncidentManagementSettings _current;
 
-    public PagerDutyService(ILogger<PagerDutyService> logger, IHttpClientFactory httpClientFactory, IncidentManagementSettings settings)
+    public PagerDutyService(ILogger<PagerDutyService> logger, IHttpClientFactory httpClientFactory, IOptionsMonitor<IncidentManagementSettings> monitor)
     {
+        _current = monitor.CurrentValue;
+        monitor.OnChange(newConfig =>
+        {
+            _current = newConfig;
+            // Optionally log or re-initialize internal caches
+        });
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
-        _settings = settings;
-        if (_settings.Type == IncidentManagementType.PagerDuty && !string.IsNullOrEmpty(_settings.ConnectionKey))
+
+        _settings = _current;
+        if (_settings != null && _settings.Type == IncidentManagementType.PagerDuty && !string.IsNullOrEmpty(_settings.ConnectionKey))
         {
             _pagerDutyApiKey = _settings.ConnectionKey;
         }
@@ -256,7 +265,7 @@ public class PagerDutyService : IPagerDutyService
     {
         RunBasicValidations(incidentId);
         using var client = CreateHttpClient();
-        client.DefaultRequestHeaders.Add("From", _settings.OboUser);
+        client.DefaultRequestHeaders.Add("From", _settings?.OboUser);
         var request = new HttpRequestMessage(HttpMethod.Post, $"https://api.pagerduty.com/incidents/{incidentId}/notes");
         request.Content = JsonContent.Create(new PostIncidentNoteRequest(new IncidentNote(note)));
 
@@ -279,7 +288,7 @@ public class PagerDutyService : IPagerDutyService
         RunBasicValidations(incidentId);
 
         using var client = CreateHttpClient();
-        client.DefaultRequestHeaders.Add("From", _settings.OboUser);
+        client.DefaultRequestHeaders.Add("From", _settings?.OboUser);
         var request = new HttpRequestMessage(HttpMethod.Put, $"https://api.pagerduty.com/incidents/{incidentId}");
         request.Content = JsonContent.Create(CreateResolveIncidentRequest());
 
@@ -302,7 +311,7 @@ public class PagerDutyService : IPagerDutyService
         RunBasicValidations(incidentId);
 
         using var client = CreateHttpClient();
-        client.DefaultRequestHeaders.Add("From", _settings.OboUser);
+        client.DefaultRequestHeaders.Add("From", _settings?.OboUser);
         var request = new HttpRequestMessage(HttpMethod.Put, $"https://api.pagerduty.com/incidents/{incidentId}");
         request.Content = JsonContent.Create(CreateAcknowledgeIncidentRequest());
         var response = await client.SendAsync(request);

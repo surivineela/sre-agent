@@ -159,4 +159,20 @@ public class ReplayToolFactory<TContext> : IToolFactory<TContext> where TContext
     {
         _innerFactory.FindAndRegisterAllTools(onNameConflict);
     }
+
+    public Task LoadExtendedToolsFromCosmosOnDemandAsync()
+    {
+        return _innerFactory.LoadExtendedToolsFromCosmosOnDemandAsync();
+    }
+
+    public void RegisterExtendedToolFromModel(string extendedToolName, string extendedToolYaml)
+    {
+        _innerFactory.RegisterExtendedToolFromModel(extendedToolName, extendedToolYaml);
+    }
+
+    public bool RegisterTool(YamlToolDefinitionBase tool, BehaviorOnNameConflict onNameConflict)
+    {
+        _innerFactory.RegisterTool(tool, onNameConflict);
+        return true;
+    }
 }

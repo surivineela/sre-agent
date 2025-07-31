@@ -2,7 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Plugins;
+
 using Microsoft.Extensions.AI;
 
 /// <summary>

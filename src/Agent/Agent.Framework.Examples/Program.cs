@@ -213,7 +213,8 @@ class Program
                 serviceProvider: sp,
                 assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
                     .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
-                    .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true));
+                    .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true),
+                extendedAgentRepository: sp.GetRequiredService<IExtendedAgentRepository>());
         });
 
         builder.Services.AddSingleton<BotFrameworkAuthentication, ConfigurationBotFrameworkAuthentication>();

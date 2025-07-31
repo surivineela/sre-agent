@@ -149,7 +149,38 @@ Otherwise, there may be required settings which are not auto-populated by the pr
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.TeamsBot);
             ConvertSettingsForTeamsBot(sc, configuration);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.Dashboard);
+            sc.AddSingleton<IPluginSettingsTypeRegistry>(sp =>
+            {
+                var registry = new PluginSettingsTypeRegistry();
+
+                // Register all known plugin settings types
+                registry.Register<IncidentManagementSettings>("IncidentManagement");
+
+                return registry;
+            });
+
+
+            sc.AddSingleton<IReloadableSettingsStore, ReloadableSettingsStore>();
+            sc.AddSingleton<ReloadableOptionsChangeTokenSource<IncidentManagementSettings>>();
+            sc.AddSingleton<IOptionsChangeTokenSource<IncidentManagementSettings>>(sp =>
+                sp.GetRequiredService<ReloadableOptionsChangeTokenSource<IncidentManagementSettings>>());
+
+            // Get fallback from core configuration
+            sc.AddSingleton<IConfigureOptions<IncidentManagementSettings>>(sp =>
+            {
+                var store = sp.GetRequiredService<IReloadableSettingsStore>();
+                var registry = sp.GetRequiredService<IPluginSettingsTypeRegistry>();
+
+                // The fallback: injected from your application's strongly typed configuration
+                var fallback = sp.GetRequiredService<TAppSettings>().Core.External.IncidentManagement;
+
+                return new ReloadableOptionsConfigurator<IncidentManagementSettings>(store, registry, fallback);
+            });
+
+
+
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.IncidentManagement);
+
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.GenevaActions);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.ICMWorkflows);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.OneBranchApprovalService);

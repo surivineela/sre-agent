@@ -3,7 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Data.DatabaseClients.GraphDbClient;
-using Agent.Plugins.Kusto;
+using Agent.Data.DataModels;
 using Agent.Plugins.Services.Interfaces;
 using Agent.Plugins.Tools;
 

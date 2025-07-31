@@ -4,8 +4,7 @@
 
 using System.Reflection;
 using System.Reflection.Emit;
-using Agent.Runtime.Reasoning.Models;
-using Microsoft.Extensions.AI;
+using Agent.Framework;
 
 public static class ToolParameterTypeGenerator
 {

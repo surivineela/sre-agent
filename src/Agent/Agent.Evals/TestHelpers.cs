@@ -188,6 +188,7 @@ public static class TestHelpers
         builder.Services.AddSingleton(Mock.Of<IHostEnvironment>());
 
         builder.Services.AddSingleton<IIncidentHandlerAgent, IncidentHandlerAgent>();
+        builder.Services.AddSingleton<IExtendedAgentRepository, InMemoryExtendedAgentRepository>();
         builder.Services.AddSingleton<ThreadManagementService>();
         builder.Services.AddSingleton<IAgentInboundCommunicationService, InboundCommunicationService>();
         builder.Services.AddSingleton<IAgentRuntimeModifier<AgentContext>, AgentRuntimeModifier>();
@@ -242,7 +243,8 @@ public static class TestHelpers
                 serviceProvider: sp,
                 assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
                     .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
-                    .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true));
+                    .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true),
+                extendedAgentRepository: sp.GetRequiredService<IExtendedAgentRepository>());
 
             var replay = new ReplayToolFactory<AgentContext>(inner, toolReplaySerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web));
             return replay;

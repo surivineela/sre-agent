@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    
+    <!-- Global Tool Configuration -->
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>srectl</ToolCommandName>
+    <PackageId>SREAgent.CLI</PackageId>
+    <Version>1.0.1</Version>
+    <Authors>SRE Agent Team</Authors>
+    <Description>SRE Agent CLI Tool for creating and managing agents</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Identity" />
+    <PackageReference Include="System.CommandLine" />
+    <PackageReference Include="System.CommandLine.NamingConventionBinder" />
+    <PackageReference Include="YamlDotNet" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Agent.Framework\Agent.Framework.csproj" />
+    <ProjectReference Include="..\Agent.Data\Agent.Data.csproj" />
+  </ItemGroup>
+
+</Project>

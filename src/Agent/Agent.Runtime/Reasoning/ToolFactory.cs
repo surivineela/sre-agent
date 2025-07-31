@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Reflection;
+using Agent.Core.Interfaces;
 using Agent.Core.Attributes;
 using Agent.Core.Configuration;
 using Agent.Core.Models.Api.v1;
@@ -10,7 +11,7 @@ using Agent.Framework;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Tools;
-using Agent.Runtime.Reasoning.Models; // Using the new location for YAML models
+using Agent.Web.Services;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,6 +19,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -174,12 +176,14 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
     private readonly IConfiguration _configuration;
     private readonly IEnumerable<Assembly> _assemblies;
     private readonly Dictionary<string, IDeferredToolFunction> _tools = new();
+    private readonly IExtendedAgentRepository? _extendedAgentRepository;
     private readonly bool _handoffReasoningEnabled;
 
     public ToolFactory(
         ILogger<ToolFactory<TContext>> logger,
         IServiceProvider serviceProvider,
-        IEnumerable<Assembly> assembliesToScan
+        IEnumerable<Assembly> assembliesToScan,
+        IExtendedAgentRepository? extendedAgentRepository = null
     )
     {
         _logger = logger;
@@ -191,6 +195,7 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
         var experimentalSettings = _configuration.GetSection("AppSettings:Core:Experimental").Get<ExperimentalSettings>();
         _handoffReasoningEnabled = experimentalSettings?.EnableHandoffReasoning ?? false;
 
+        _extendedAgentRepository = extendedAgentRepository;
         FindAndRegisterAllTools(BehaviorOnNameConflict.ThrowException);
     }
 
@@ -213,7 +218,7 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
         {
             // Step 1: Parse YAML as a generic object and convert it to JSON
             var deserializer = new DeserializerBuilder()
-                .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                .WithNamingConvention(UnderscoredNamingConvention.Instance)
                 .Build();
 
             var yamlObject = deserializer.Deserialize<object>(yamlContent);
@@ -231,14 +236,29 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
             }
 
             var typeName = typeToken.ToString();
-            if (!JsonToolConverter.TryResolve(typeName, out var concreteType))
+            if (!JsonPolymorphicToolConverter.TryResolve(typeName, out var concreteType))
             {
                 _logger.LogInternalWarning($"Unknown tool type '{typeName}' in YAML.");
                 return;
             }
 
             // Step 3: Deserialize to concrete type and cast to base type
-            var toolDef = (YamlToolDefinitionBase)jObj.ToObject(concreteType)!;
+            var jsonSerializer = JsonSerializer.Create(new JsonSerializerSettings
+            {
+                ContractResolver = new DefaultContractResolver
+                {
+                    NamingStrategy = new SnakeCaseNamingStrategy()
+                }
+            });
+
+            var toolDefObject = jObj.ToObject(concreteType, jsonSerializer);
+            if (toolDefObject is null)
+            {
+                _logger.LogInternalWarning("Failed to deserialize YAML content to tool definition.");
+                return;
+            }
+
+            var toolDef = (YamlToolDefinitionBase)toolDefObject;
 
             // Step 4: Handle name conflicts
             if (_tools.ContainsKey(toolDef.Name))
@@ -355,11 +375,12 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
                 throw;
             }
         }
+
         var toolsYamlDirectory = Path.Combine(AppContext.BaseDirectory, "ToolsV2");
         if (Directory.Exists(toolsYamlDirectory))
         {
             var yamlFiles = Directory.GetFiles(toolsYamlDirectory, "*.yaml", SearchOption.AllDirectories)
-                                     .Concat(Directory.GetFiles(toolsYamlDirectory, "*.yml", SearchOption.AllDirectories));
+                .Concat(Directory.GetFiles(toolsYamlDirectory, "*.yml", SearchOption.AllDirectories));
 
             foreach (var file in yamlFiles)
             {
@@ -373,7 +394,39 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
         return DoFindAIFunction(name, null);
     }
 
-    private bool RegisterTool(string name, IDeferredToolFunction function, BehaviorOnNameConflict onNameConflict)
+    public bool RegisterTool(YamlToolDefinitionBase tool, BehaviorOnNameConflict onNameConflict)
+    {
+     
+        if (string.IsNullOrWhiteSpace(tool.Name))
+        {
+            _logger.LogInternalError("Function name cannot be null or whitespace.");
+            return false;
+        }
+
+        if (_tools.ContainsKey(tool.Name))
+        {
+            switch (onNameConflict)
+            {
+                case BehaviorOnNameConflict.ThrowException:
+                    throw new InvalidOperationException($"Function '{tool.Name}' already exists.");
+                case BehaviorOnNameConflict.Ignore:
+                    _logger.LogInternalWarning("Function '{functionName}' already exists. Ignoring the new function.", tool.Name);
+                    return false;
+
+                case BehaviorOnNameConflict.Overwrite:
+                    _logger.LogInternalWarning("Function '{functionName}' already exists. Overwriting the existing function.", tool.Name);
+                    break;
+            }
+        }
+
+        var toolFunction = new YamlToolFunction<TContext>(_serviceProvider, _assemblies, tool);
+        _tools[tool.Name] = toolFunction;
+
+        _logger.LogInternalInformation("Function '{functionName}' registered successfully.", tool.Name);
+        return true;
+    }
+
+    public bool RegisterTool(string name, IDeferredToolFunction function, BehaviorOnNameConflict onNameConflict)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -422,6 +475,109 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
         _logger.LogInternalWarning("Function '{functionName}' not found.", name);
         function = null;
         return false;
+    }
+
+    /// <summary>
+    /// Loads extended tools from Cosmos DB during initialization
+    /// </summary>
+    private void LoadExtendedToolsFromCosmos()
+    {
+        //if (_extendedAgentRepository == null)
+        //{
+        //    _logger.LogInternalDebug("ExtendedAgentRepository is not available. Skipping extended tools from Cosmos DB.");
+        //    return;
+        //}
+
+        try
+        {
+            _logger.LogInternalInformation("Loading extended tools from Cosmos DB...");
+
+            // Load all extended tools synchronously during initialization
+            //var extendedTools = _extendedAgentRepository.GetToolsAsync(limit: 1000).GetAwaiter().GetResult();
+
+            //foreach (var extendedTool in extendedTools)
+            //{
+            //    try
+            //    {
+            //       // RegisterExtendedToolFromModel(extendedTool.Name, extendedTool.ToYaml());
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        _logger.LogInternalError(ex, "Failed to load extended tool {ToolName} from Cosmos DB during initialization", extendedTool.Name);
+            //        // Continue loading other tools even if one fails
+            //    }
+            //}
+
+            //_logger.LogInternalInformation("Successfully loaded {Count} extended tools from Cosmos DB", extendedTools.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, "Failed to load extended tools from Cosmos DB during initialization. Continuing without them.");
+        }
+    }
+
+    // In LoadExtendedToolsFromCosmosOnDemandAsync, fix possible null reference for connectorDocument
+    public async Task LoadExtendedToolsFromCosmosOnDemandAsync()
+    {
+        if (_extendedAgentRepository == null)
+        {
+            _logger.LogInternalWarning("ExtendedAgentRepository is not available. Cannot load extended tools on demand.");
+            return;
+        }
+
+        try
+        {
+            _logger.LogInternalInformation("Loading extended tools from Cosmos DB on demand...");
+
+            // Load all extended tools
+            var extendedTools = await _extendedAgentRepository.GetToolsAsync(limit: 1000);
+
+            // Load new ones
+            foreach (var extendedTool in extendedTools)
+            {
+                try
+                {
+                    var concretetool = DocumentToRuntimeMapper.ToRuntimeTool(extendedTool);
+                    if (concretetool.Connector != null)
+                    {
+                        var connectorDocument = await _extendedAgentRepository.GetConnectorByNameAsync(concretetool.Connector);
+                        if (connectorDocument != null)
+                        {
+                            concretetool.ConnectorData = DocumentToRuntimeMapper.ToRuntimeConnector(connectorDocument);
+                        }
+                    }
+                    RegisterTool(concretetool, BehaviorOnNameConflict.Overwrite);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError(ex, "Failed to load extended tool {ToolName} from Cosmos DB on demand", extendedTool.Name);
+                    // Continue loading other tools even if one fails
+                }
+            }
+
+            _logger.LogInternalInformation("Successfully loaded {Count} extended tools from Cosmos DB on demand", extendedTools.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to load extended tools from Cosmos DB on demand");
+            throw;
+        }
+    }
+
+    public void RegisterExtendedToolFromModel(string extendedToolName, string extendedToolYaml)
+    {
+        try
+        {
+            // Register using existing YAML registration logic
+            RegisterFromYaml(extendedToolYaml, BehaviorOnNameConflict.Overwrite);
+
+            _logger.LogInternalDebug("Successfully registered extended tool {ToolName} from Cosmos DB", extendedToolName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to register extended tool {ToolName} from model", extendedToolName);
+            throw;
+        }
     }
 
     public bool HasTool(string name)

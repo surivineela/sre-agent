@@ -2,39 +2,32 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Plugins.Kusto;
-using Agent.Runtime.Reasoning.Models;
+using Agent.Data.DataModels;
+using Agent.Framework.Reasoning.Models;
 using YamlDotNet.Serialization;
 
 namespace Agent.Plugins.Tools
 {
-    public class KustoRegionalGroupSettings
-    {
-        [YamlMember(Alias = "name")]
-        public string Name { get; set; } = string.Empty;
-
-        [YamlMember(Alias = "regions")]
-        public List<KustoCluster> Regions { get; set; } = new();
-    }
-
+    //[DataConnector("Kusto")]
     public class KustoConnector : DataConnectorDefinitionBase
     {
-        [YamlMember(Alias = "clusterUrl")]
+        [YamlMember(Alias = "cluster_url")]
         public string ClusterUrl { get; set; } = default!;
 
         [YamlMember(Alias = "database")]
         public string Database { get; set; } = default!;
 
-        [YamlMember(Alias = "clusterHint")]
+        [YamlMember(Alias = "cluster_hint")]
         public string? ClusterHint { get; set; }
 
-        [YamlMember(Alias = "regionalClusterGroups")]
+        [YamlMember(Alias = "regional_cluster_groups")]
         public List<KustoRegionalGroupSettings> RegionalClusterGroups { get; set; } = new();
+
+        public KustoConnector()
+        { }
 
         public override void Validate()
         {
-           
         }
     }
-
 }

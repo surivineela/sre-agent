@@ -12,35 +12,35 @@ query: |
   | take 1
 file: Logs/GetControllerLogs.kql  
 database: AppLogsDB               
-clusterHint: capps-westus         
+cluster_hint: capps-westus         
 
 parameters:
   - name: fromDate
     type: string
     required: true
     description: Start time for filtering the logs
-    mapTo: args
+    map_to: args
     target: dictionary:args:string
 
   - name: toDate
     type: string
     required: true
     description: End time for filtering the logs
-    mapTo: args
+    map_to: args
     target: dictionary:args:string
 
   - name: region
     type: string
     required: true
     description: Azure region of the managed environment
-    mapTo: region
+    map_to: region
     target: direct
 
   - name: managedClusterName
     type: string
     required: true
     description: Name of the Kubernetes cluster
-    mapTo: args
+    map_to: args
     target: dictionary:args:string
 
   - name: groupName
@@ -48,7 +48,7 @@ parameters:
     required: false
     default: ContainerApps
     description: The Azure resource group or logical grouping for the query
-    mapTo: groupName
+    map_to: groupName
     target: direct
 
   - name: sampling
@@ -56,7 +56,7 @@ parameters:
     required: false
     default: false
     description: Whether to use sampling on large datasets
-    mapTo: direct
+    map_to: direct
 
 attributes:
   - ApprovalRequired
@@ -65,4 +65,4 @@ metadata:
   owner: platform-networking
   version: 1.0
   tags: [ingress, envoy, diagnostics]
-  lastUpdated: 2025-07-17
+  last_updated: 2025-07-17

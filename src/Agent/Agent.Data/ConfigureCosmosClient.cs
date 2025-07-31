@@ -20,6 +20,7 @@ public static class AgentDataConfiguration
     public const string InstanceAssignmentsContainerName = "instanceAssignments";
     public const string LeaseContainerName = "changeFeedLeases";
     public const string ReasoningLoopContainerName = "reasoningloopdocs";
+    public const string ExtendedAgentContainerName = "extendedagents";
     public const string ReasoningLoopEncryptionKeyName = "reansoningloopkey";
     public const string ReasoningLoopDocumentEncryptedPath = "/encryptedProperties";
 
@@ -47,7 +48,7 @@ public static class AgentDataConfiguration
             //var keyResolver = new KeyResolver(tokenCredential);
 
             return new CosmosClient(endpoint, tokenCredential, cosmosOptions);
-                        //.WithEncryption(keyResolver, KeyEncryptionKeyResolverName.AzureKeyVault);
+            //.WithEncryption(keyResolver, KeyEncryptionKeyResolverName.AzureKeyVault);
         });
 
         // Register the repository
@@ -124,6 +125,17 @@ public static class AgentDataConfiguration
             return new CosmosDbAppHealthHistoryRepository(cosmosClient, cosmosDatabaseName, logger);
         });
 
+        // Register the Extended Agent repository
+        serviceCollection.AddSingleton<IExtendedAgentRepository>(serviceProvider =>
+        {
+            var cosmosDbSettings = serviceProvider.GetRequiredService<CosmosDBSettings>();
+            var cosmosDatabaseName = cosmosDbSettings.Docs.Database;
+
+            var cosmosClient = serviceProvider.GetRequiredService<CosmosClient>();
+            var logger = serviceProvider.GetRequiredService<ILogger<CosmosDbExtendedAgentRepository>>();
+            return new CosmosDbExtendedAgentRepository(cosmosClient, cosmosDatabaseName, logger);
+        });
+
         return serviceCollection;
     }
 
@@ -169,6 +181,12 @@ public static class AgentDataConfiguration
 
         await database.Database.CreateContainerIfNotExistsAsync(
             id: AgentContextContainerName,
+            partitionKeyPath: "/partitionKey",
+            throughput: null // Use the database level shared RU first.
+        );
+
+        await database.Database.CreateContainerIfNotExistsAsync(
+            id: ExtendedAgentContainerName,
             partitionKeyPath: "/partitionKey",
             throughput: null // Use the database level shared RU first.
         );

@@ -4,7 +4,7 @@
 
 using YamlDotNet.Serialization;
 
-namespace Agent.Runtime.Reasoning.Models;
+namespace Agent.Framework.Reasoning.Models;
 
 // ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
@@ -13,7 +13,7 @@ namespace Agent.Runtime.Reasoning.Models;
 /// <summary>
 /// Base class for all YAML-defined data connectors (Kusto, SQL, API, etc.)
 /// </summary>
-public abstract class DataConnectorDefinitionBase
+public class DataConnectorDefinitionBase
 {
     [YamlMember(Alias = "name")]
     public string Name { get; set; } = string.Empty;
@@ -33,5 +33,15 @@ public abstract class DataConnectorDefinitionBase
     [YamlMember(Alias = "metadata")]
     public YamlMetadata Metadata { get; set; } = new();
 
-    public abstract void Validate();
+    public virtual void Validate()
+    {
+        if (string.IsNullOrWhiteSpace(Name))
+        {
+            throw new ArgumentException("Name cannot be null or empty.", nameof(Name));
+        }
+        if (string.IsNullOrWhiteSpace(Type))
+        {
+            throw new ArgumentException("Type cannot be null or empty.", nameof(Type));
+        }
+    }
 }

@@ -5,8 +5,16 @@
 using System.ComponentModel.DataAnnotations;
 using YamlDotNet.Serialization;
 
-namespace Agent.Plugins.Kusto
+namespace Agent.Data.DataModels
 {
+    public class KustoRegionalGroupSettings
+    {
+        [YamlMember(Alias = "name")]
+        public string Name { get; set; } = string.Empty;
+
+        [YamlMember(Alias = "regions")]
+        public List<KustoCluster> Regions { get; set; } = new();
+    }
     public class KustoCluster
     {
         [Required]
@@ -14,7 +22,7 @@ namespace Agent.Plugins.Kusto
         public string? Region { get; set; }
 
         [Required]
-        [YamlMember(Alias = "clusterUri")]
+        [YamlMember(Alias = "cluster_uri")]
         public string? ClusterUri { get; set; }
 
         [Required]

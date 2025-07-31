@@ -1,15 +1,16 @@
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Hosting;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using Agent.Core.Services.TokenService;
+using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Models.ICM;
-using Agent.Core.Configuration;
-using Microsoft.AspNetCore.WebUtilities;
+using Agent.Core.Services.TokenService;
 using Agent.Logging;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Agent.Core.Services
 {
@@ -44,6 +45,7 @@ namespace Agent.Core.Services
     {
         private readonly bool IsDevelopment;
         private readonly ICMAPISettings _icmApiSettings;
+        private IncidentManagementSettings _current;
         private readonly HttpClient _httpClient;
         private readonly int TimeoutInSeconds = 60;
         private readonly string IcmAPIPathPrefix;
@@ -52,11 +54,17 @@ namespace Agent.Core.Services
         private readonly string _identity = string.Empty;
         private readonly LoggingHttpMessageHandler _loggingHandler;
 
-        public ICMAPIClient(IHostEnvironment environment, IncidentManagementSettings incidentManagementSettings, ILogger<ICMAPIClient> logger, ActionSettings actionSettings, LoggingHttpMessageHandler loggingHandler)
+        public ICMAPIClient(IHostEnvironment environment, IOptionsMonitor<IncidentManagementSettings> monitor, ILogger<ICMAPIClient> logger, ActionSettings actionSettings, LoggingHttpMessageHandler loggingHandler)
         {
             _logger = logger;
             _loggingHandler = loggingHandler;
-            _icmApiSettings = incidentManagementSettings.ICMAPI;
+            _current = monitor.CurrentValue;
+            monitor.OnChange(newConfig =>
+            {
+                _current = newConfig;
+                // Optionally log or re-initialize internal caches
+            });
+            _icmApiSettings = _current.ICMAPI;
             IsDevelopment = environment.IsDevelopment();
             _identity = actionSettings.Identity ?? string.Empty;
             //if (!_icmApiSettings.Enabled)

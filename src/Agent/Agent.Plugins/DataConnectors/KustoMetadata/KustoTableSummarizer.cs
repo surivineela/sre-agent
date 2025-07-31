@@ -10,7 +10,7 @@ using System.Text.Json;
 using Agent.Plugins.Kusto;
 using Agent.Plugins.KustoPlugin;
 using Agent.Plugins.Tools;
-using Agent.Runtime.Reasoning.Models;
+using Agent.Framework.Reasoning.Models;
 using Kusto.Data.Exceptions;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;

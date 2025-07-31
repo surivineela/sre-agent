@@ -1,12 +1,13 @@
 // ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
+using Agent.Data.Tools;
 
 using System.Diagnostics.CodeAnalysis;
 
 namespace Agent.Plugins.Tools
 {
-    public static class JsonToolConverter
+    public static class JsonPolymorphicToolConverter
     {
         private static readonly Dictionary<string, Type> _typeMap = new(StringComparer.OrdinalIgnoreCase)
         {

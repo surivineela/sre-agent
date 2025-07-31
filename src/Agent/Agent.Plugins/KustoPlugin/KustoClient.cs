@@ -7,7 +7,7 @@ using System.Data;
 using System.Security.Cryptography.X509Certificates;
 using Agent.Plugins.KustoPlugin;
 using Agent.Plugins.Tools;
-using Agent.Runtime.Reasoning.Models;
+using Agent.Framework.Reasoning.Models;
 using Azure.Identity;
 using Kusto.Data.Common;
 using Microsoft.Extensions.Logging;

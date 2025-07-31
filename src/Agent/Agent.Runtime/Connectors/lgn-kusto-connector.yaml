@@ -1,0 +1,29 @@
+name: lgn-kusto-connector
+enabled: true
+type: Kusto
+description: Connector for accessing Kusto data across multiple regional clusters.
+auth:
+  authentication_type: UAMI
+  authority: ""
+  authority_host: ""
+  application_client_id: ""
+  application_certificate: ""
+  managed_identity_client_id: "5cc4f734-a234-443c-9092-04e06a2b80c2"
+  managed_identity_resource_id: ""
+metadata:
+owner: sre-agent-team@microsoft.com
+version: "1.0.0"
+tags:
+- legion
+- telemetry
+- multi-region
+last_updated: 2025-07-17
+cluster_url: "https://legionweu.westeurope.kusto.windows.net"
+database: "legion"
+cluster_hint: ""
+regional_cluster_groups:
+    - name: Legion
+      regions:
+      - region: westeurope
+        database: legion
+        cluster_uri: https://legionweu.westeurope.kusto.windows.net

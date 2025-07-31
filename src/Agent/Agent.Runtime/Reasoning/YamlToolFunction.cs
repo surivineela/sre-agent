@@ -2,8 +2,6 @@ using System.Reflection;
 using System.Text.Json;
 using Agent.Framework;
 using Agent.Plugins.Tools;
-using Agent.Runtime.Reasoning.Models;
-using Agent.Runtime.SubAgents;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -123,12 +121,40 @@ public class YamlToolFunction<TContext> : IDeferredToolFunction where TContext :
         {
             aware.SetToolDefinition(_toolDef);
         }
-        var result = method.Invoke(instance, invokeArgs);
+        try
+        {
+            var result = method.Invoke(instance, invokeArgs);
 
-        if (result is Task<string> taskStr) return await taskStr;
-        if (result is Task task) { await task; return null; }
+            if (result is Task<string> taskStr) return await taskStr;
+            if (result is Task task) { await task; return null; }
 
-        return result?.ToString();
+            return result?.ToString();
+        }
+
+        catch (TargetParameterCountException ex)
+        {
+            // Get the expected parameters' names and types from the MethodInfo object.
+            // This creates a readable list like: "string message", "int retries"
+            var expectedParams = method.GetParameters()
+                                       .Select(p => $"{p.ParameterType.Name} {p.Name}");
+
+            // Get the types of the arguments that were actually provided.
+            // This handles null arguments gracefully by outputting "null".
+            var providedArgTypes = invokeArgs.Select(a => a?.GetType().Name ?? "null");
+
+            // Build a detailed, multi-line error message for logging or the exception.
+            // This clearly shows the mismatch between what was expected and what was given.
+            var errorMessage = $"""
+        Error invoking method '{method.Name}' on type '{pluginType.Name}'. Parameter count mismatch.
+        - Expected Parameters ({method.GetParameters().Length}): {string.Join(", ", expectedParams)}
+        - Provided Arguments ({invokeArgs.Length}): [{string.Join(", ", providedArgTypes)}]
+        """;
+
+            // Throw a new, more informative exception.
+            // It's crucial to pass the original exception 'ex' as the inner exception
+            // to preserve the full stack trace and original error context.
+            throw new InvalidOperationException(errorMessage, ex);
+        }
     }
 
     public static Dictionary<string, object?> ConvertArgsToDictionary(JsonElement jsonArgs)

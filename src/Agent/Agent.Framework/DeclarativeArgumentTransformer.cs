@@ -5,14 +5,14 @@
 using System.Collections;
 using System.Globalization;
 using System.Reflection;
-using Agent.Runtime.Reasoning.Models;
+using Agent.Framework;
 
 public class DeclarativeArgumentTransformer : IToolArgumentTransformer
 {
     public object?[] TransformArguments(MethodInfo method, Dictionary<string, object?> flatArgs, YamlToolDefinitionBase toolDef)
     {
         var parameters = method.GetParameters();
-        var finalArgs = new object?[parameters.Length];
+        var finalArgs = new List<object?>(parameters.Length);
 
         // Step 1: Group parameters by mapTo and value type
         var groupedByMapTo = new Dictionary<string, (string valueTypeName, Dictionary<string, object?> values)>(StringComparer.OrdinalIgnoreCase);
@@ -28,7 +28,7 @@ public class DeclarativeArgumentTransformer : IToolArgumentTransformer
             if (targetParts.Length != 3 || !targetParts[0].Equals("dictionary", StringComparison.OrdinalIgnoreCase))
                 continue;
 
-            var valueType = targetParts[2]; // string, int, bool, etc.
+            var valueType = targetParts[2];
 
             if (!groupedByMapTo.TryGetValue(mapTo, out var entry))
             {
@@ -59,22 +59,21 @@ public class DeclarativeArgumentTransformer : IToolArgumentTransformer
         }
 
         // Step 3: Populate method parameters
-        for (int i = 0; i < parameters.Length; i++)
+        foreach (var paramInfo in parameters)
         {
-            var paramInfo = parameters[i];
             var name = paramInfo.Name!;
+            object? argument;
 
             if (typedDictionaries.TryGetValue(name, out var typedDictValue))
             {
-                finalArgs[i] = typedDictValue;
+                argument = typedDictValue;
             }
             else if (flatArgs.TryGetValue(name, out var directVal))
             {
-                finalArgs[i] = Convert.ChangeType(directVal, paramInfo.ParameterType);
+                argument = Convert.ChangeType(directVal, paramInfo.ParameterType);
             }
             else
             {
-                // Fallback: check if any parameter directly maps to this argument
                 var match = toolDef.Parameters.FirstOrDefault(p =>
                     p.MapTo?.Equals(name, StringComparison.OrdinalIgnoreCase) == true &&
                     (p.Target?.Equals("direct", StringComparison.OrdinalIgnoreCase) == true ||
@@ -82,16 +81,18 @@ public class DeclarativeArgumentTransformer : IToolArgumentTransformer
 
                 if (match != null && flatArgs.TryGetValue(match.Name, out var val))
                 {
-                    finalArgs[i] = Convert.ChangeType(val, paramInfo.ParameterType);
+                    argument = Convert.ChangeType(val, paramInfo.ParameterType);
                 }
                 else
                 {
-                    finalArgs[i] = GetDefault(paramInfo.ParameterType);
+                    argument = GetDefault(paramInfo.ParameterType);
                 }
             }
+
+            finalArgs.Add(argument);
         }
 
-        return finalArgs.Where(p => p != null).ToArray();
+        return finalArgs.ToArray();
     }
 
     private static object? GetDefault(Type type)

@@ -50,7 +50,13 @@ public interface IToolFactory<TContext> where TContext : class
     public bool HasTool(string name);
 
     void FindAndRegisterAllTools(BehaviorOnNameConflict onNameConflict);
+
     public List<ToolInfo> FetchAvailableToolInfo();
+
+    public Task LoadExtendedToolsFromCosmosOnDemandAsync();
+
+    public void RegisterExtendedToolFromModel(string extendedToolName, string extendedToolYaml);
+    bool RegisterTool(YamlToolDefinitionBase tool, BehaviorOnNameConflict onNameConflict);
 }
 
 public class ToolInfo

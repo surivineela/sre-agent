@@ -2,10 +2,12 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Data.DataModels;
+using Agent.Framework;
 using Agent.Plugins.Interface;
 using Agent.Plugins.KustoPlugin;
+using Agent.Data.Tools;
 using Agent.Plugins.Tools;
-using Agent.Runtime.Reasoning.Models;
 
 namespace Agent.Plugins.Kusto.Tools
 {
@@ -15,9 +17,13 @@ namespace Agent.Plugins.Kusto.Tools
         private readonly KustoPluginFactory _kustoFactory;
         private KustoToolDefinition? _definition;
 
-        public KustoToolType(KustoPluginFactory kustoFactory)
+
+        public KustoToolType(
+            KustoPluginFactory kustoFactory
+            )
         {
             _kustoFactory = kustoFactory;
+
         }
 
         public void SetToolDefinition(YamlToolDefinitionBase definition)
@@ -30,39 +36,55 @@ namespace Agent.Plugins.Kusto.Tools
             string groupName = "ContainerApps";
             SamplingOptions? samplingOptions = null;
 
-            if (_definition == null) throw new InvalidOperationException("Tool definition was not set.");
-            var kustoChat = _kustoFactory.Create(_definition.GetConnector<KustoConnector>());
+            if (_definition == null)
+            {
+                throw new InvalidOperationException("Tool definition was not set.");
+            }
+            if (_definition.ConnectorData == null)
+            {
+                throw new InvalidOperationException("Connector data is not set in the tool definition.");
+            }
+            var connector = (KustoConnector)_definition.ConnectorData;
+
+            var kustoChat = _kustoFactory.Create(connector);
+
             switch (_definition.Mode)
             {
                 case KustoExecutionMode.Function:
-
-                    return await kustoChat.ExecuteLocalFunctionAsync(_definition.Function ?? string.Empty, region, args, groupName, samplingOptions);
+                    return await kustoChat.ExecuteLocalFunctionAsync(_definition.Function!, region, args, groupName, samplingOptions);
 
                 case KustoExecutionMode.Query:
-                    var formmatedQuery = KustoPlugin.FormatQuery(_definition.Query ?? string.Empty, args);
+                    var formmatedQuery = KustoPlugin.FormatQuery(_definition.Query!, args);
                     var result = await kustoChat.ExecuteKustoQueryInternal(region, formmatedQuery, groupName);
                     return result.Result;
 
                 case KustoExecutionMode.Script:
-                    break;
+
+                //var kustoChat = _kustoFactory.Create(_definition.GetConnector<KustoConnector>());
+                //switch (_definition.Mode)
+                //{
+                //    case KustoExecutionMode.Function:
+
+                //        return await kustoChat.ExecuteLocalFunctionAsync(_definition.Function ?? string.Empty, region, args, groupName, samplingOptions);
 
                 default:
-                    break;
+                    return string.Empty; // Return empty string for unsupported modes or unhandled cases
+                  
+                    //}
+                   ///  return string.Empty; // Return empty string for unsupported modes or unhandled cases
+            }         //TODO unify kustosettings and kusto connector
             }
-            return string.Empty; // Return empty string for unsupported modes or unhandled casesz   
-            //TODO unify kustosettings and kusto connector
         }
-    }
 
-    [ToolTypeAttribute("KustoQuery")]
-    public class KustoQuery
-    {
-        private readonly IKustoPlugin _kustoChat;
-
-        public KustoQuery(IKustoPlugin kustoChat)
+        [ToolTypeAttribute("KustoQuery")]
+        public class KustoQuery
         {
-            _kustoChat = kustoChat;
-        }
+            private readonly IKustoPlugin _kustoChat;
+
+            public KustoQuery(IKustoPlugin kustoChat)
+            {
+                _kustoChat = kustoChat;
+            }
 
         public async Task<KustoQueryResult> Run(string query, string region, Dictionary<string, string> args, string groupName = "ContainerApps")
         {

@@ -4,6 +4,7 @@
 
 using System.ComponentModel;
 using System.Reflection;
+using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Agent.Framework.Models;
@@ -24,6 +25,7 @@ public class AgentFactoryTests
     private readonly Mock<ILogger<AgentFactory<AgentContext>>> _mockLogger;
     private readonly Mock<ILogger<ToolFactory<AgentContext>>> _mockToolFactoryLogger;
     private readonly Mock<IAgentModeConfigurator<AgentContext>> _mockAgentModeConfigurator;
+    private readonly Mock<IExtendedAgentRepository> _mockExtendedAgentRepository;
     private readonly IServiceProvider _serviceProvider;
     private readonly ServiceCollection _services;
 
@@ -32,6 +34,7 @@ public class AgentFactoryTests
         _mockLogger = new Mock<ILogger<AgentFactory<AgentContext>>>();
         _mockToolFactoryLogger = new Mock<ILogger<ToolFactory<AgentContext>>>();
         _mockAgentModeConfigurator = new Mock<IAgentModeConfigurator<AgentContext>>();
+        _mockExtendedAgentRepository = new Mock<IExtendedAgentRepository>();
         _services = new ServiceCollection();
         _services.AddSingleton(_mockLogger.Object);
         _services.AddSingleton(_mockToolFactoryLogger.Object);
@@ -69,7 +72,8 @@ public class AgentFactoryTests
             toolFactory: new ToolFactory<AgentContext>(
                 logger: _mockToolFactoryLogger.Object,
                 serviceProvider: _serviceProvider,
-                assembliesToScan: [Assembly.GetExecutingAssembly()]
+                assembliesToScan: [Assembly.GetExecutingAssembly()],
+                extendedAgentRepository: _mockExtendedAgentRepository.Object
             ),
             modeConfigurator: _mockAgentModeConfigurator.Object,
             assembliesToScan: [Assembly.GetExecutingAssembly()],
@@ -96,7 +100,8 @@ public class AgentFactoryTests
             toolFactory: new ToolFactory<AgentContext>(
                 logger: _mockToolFactoryLogger.Object,
                 serviceProvider: _serviceProvider,
-                assembliesToScan: [Assembly.GetExecutingAssembly()]
+                assembliesToScan: [Assembly.GetExecutingAssembly()],
+                extendedAgentRepository: _mockExtendedAgentRepository.Object
             ),
             assembliesToScan: [],
             modeConfigurator: _mockAgentModeConfigurator.Object,
@@ -150,7 +155,8 @@ public class AgentFactoryTests
         var toolFactory = new ToolFactory<AgentContext>(
             logger: _mockToolFactoryLogger.Object,
             serviceProvider: _serviceProvider,
-            assembliesToScan: [Assembly.GetExecutingAssembly()]
+            assembliesToScan: [Assembly.GetExecutingAssembly()],
+            extendedAgentRepository: _mockExtendedAgentRepository.Object
         );
 
         // Act
@@ -192,7 +198,8 @@ public class AgentFactoryTests
             toolFactory: new ToolFactory<AgentContext>(
                 logger: _mockToolFactoryLogger.Object,
                 serviceProvider: _serviceProvider,
-                assembliesToScan: [Assembly.GetExecutingAssembly()]
+                assembliesToScan: [Assembly.GetExecutingAssembly()],
+                extendedAgentRepository: _mockExtendedAgentRepository.Object
             ),
             assembliesToScan: [Assembly.GetExecutingAssembly()],
             modeConfigurator: _mockAgentModeConfigurator.Object,
@@ -225,6 +232,7 @@ public class TestAgent1Descriptor : IAgentDescriptor
     public float? Temperature { get; set; } = null;
     public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
     public string? OutputType { get; set; } = null;
+    List<string> IAgentDescriptor.Tools { get; set; } = [];
     public string? UserPromptOverride { get; set; } = null;
     public bool DisableDocumentRetrieval { get; set; } = false;
     public bool EnableHandoffPromptOverride { get; set; } = false;
@@ -247,6 +255,7 @@ public class TestAgent2Descriptor : IAgentDescriptor
     public float? Temperature { get; set; } = null;
     public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
     public string? OutputType { get; set; } = null;
+    List<string> IAgentDescriptor { get; set; } = [];
     public string? UserPromptOverride { get; set; } = null;
     public bool DisableDocumentRetrieval { get; set; } = false;
     public bool EnableHandoffPromptOverride { get; set; } = false;

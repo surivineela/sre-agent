@@ -2,19 +2,11 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Runtime.Reasoning.Models;
+using Agent.Data.DataModels;
+using Agent.Framework;
 using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
-using System.IO;
-namespace Agent.Plugins.Tools
+namespace Agent.Data.Tools
 {
-    public enum KustoExecutionMode
-    {
-        Function,
-        Query,
-        Script
-    }
-
     /// <summary>
     /// YAML tool definition for Kusto tools (functions, queries, scripts).
     /// </summary>
@@ -22,8 +14,6 @@ namespace Agent.Plugins.Tools
     {
         [YamlMember(Alias = "mode")]
         public KustoExecutionMode Mode { get; set; } = KustoExecutionMode.Function;
-
-       
 
         [YamlMember(Alias = "function")]
         public string? Function { get; set; }
@@ -37,11 +27,13 @@ namespace Agent.Plugins.Tools
         [YamlMember(Alias = "database")]
         public string Database { get; set; } = string.Empty;
 
-        [YamlMember(Alias = "clusterHint")]
+        [YamlMember(Alias = "cluster_hint")]
         public string? ClusterHint { get; set; }
 
-        public KustoConnector GetConnector() => GetConnector<KustoConnector>();
-        
+  
+
+     
+
         public override void Validate()
         {
             if (string.IsNullOrWhiteSpace(Database))

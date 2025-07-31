@@ -35,7 +35,9 @@ public static class CappsFirstPartyRegistrationExtensions
             .BindConfiguration("AppSettings:Core:External:ICMWorkflows")
             .ValidateDataAnnotations();
 
-
+        builder.Services.AddOptionsWithValidateOnStart<KustoConnector>()
+            .BindConfiguration("AppSettings:Core:External:Kusto")
+            .ValidateDataAnnotations();
 
         builder.Services.AddOptionsWithValidateOnStart<FirstPartyAgent.Common.Configuration.GeneralSettings>()
         .BindConfiguration("AppSettings:Core:External:GeneralSettings")
@@ -47,7 +49,11 @@ public static class CappsFirstPartyRegistrationExtensions
             var icmWorkflowSettings = sp.GetRequiredService<IOptions<FirstPartyAgent.Common.Configuration.ICMWorkflowSettings>>();
             return icmWorkflowSettings.Value;
         });
-
+        builder.Services.AddSingleton(sp =>
+        {
+            var kustoSettings = sp.GetRequiredService<IOptions<KustoConnector>>();
+            return kustoSettings.Value;
+        });
         builder.Services.AddSingleton(sp =>
         {
             var generalSettings = sp.GetRequiredService<IOptions<GeneralSettings>>();

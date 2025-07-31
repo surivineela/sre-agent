@@ -1,0 +1,200 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
+using Agent.Framework;
+using Agent.Runtime.Interfaces;
+using Agent.Runtime.Models.ExtendedAgents;
+using Agent.Web.Models.ExtendedAgents;
+using Agent.Web.Models.ExtendedAgents.Response;
+using Agent.Web.Services;
+using Microsoft.AspNetCore.Mvc;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
+
+namespace Agent.Web.Controllers.v1;
+
+[ApiController]
+[Route("api/v1/extendedAgent")]
+public class ExtendedAgentController : ControllerBase
+{
+    private readonly IResourceDeploymentService _resourceDeploymentService;
+    private readonly IExtendedAgentService _extendedAgentService;
+    private readonly ILogger<ExtendedAgentController> _logger;
+
+    public ExtendedAgentController(
+         IExtendedAgentService extendedAgentService,
+        ILogger<ExtendedAgentController> logger,
+
+        IResourceDeploymentService agentService
+       )
+    {
+        _resourceDeploymentService = agentService;
+
+        _logger = logger;
+
+        _extendedAgentService = extendedAgentService;
+    }
+
+    /// <summary>
+    /// Apply agent and tools configuration
+    /// </summary>
+    /// <returns>Apply response with operation details</returns>
+    [HttpPut("apply")]
+    [Consumes("application/yaml", "application/x-yaml", "text/yaml", "text/plain")]
+    [ProducesResponseType(typeof(ExtendedAgentApplyResponse), StatusCodes.Status202Accepted)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<ExtendedAgentApplyResponse>> ApplyAgentConfiguration([FromBody] string yaml)
+    {
+        try
+        {
+            // Parse agent section
+            var deserializer = new DeserializerBuilder()
+                .WithNamingConvention(UnderscoredNamingConvention.Instance)
+                .IgnoreUnmatchedProperties()
+                .Build();
+
+            var yamlObject = deserializer.Deserialize(new StringReader(yaml));
+
+            var jsonString = JsonSerializer.Serialize(yamlObject);
+
+            // Now parse it into GenericResourceModel
+            var generic = JsonSerializer.Deserialize<GenericResourceModel>(jsonString);
+
+            if (generic == null || string.IsNullOrEmpty(generic.Kind))
+            {
+                return BadRequest(new ExtendedAgentErrorResponse
+                {
+                    ErrorCode = "VALIDATION_FAILED",
+                    Message = "Invalid YAML format or missing required fields",
+                    Details = new ExtendedAgentErrorDetails(
+                        [new ExtendedAgentErrorField("yamlContent", "YAML content is required and must contain 'kind' and 'spec' fields")]
+                    )
+                });
+            }
+
+            var resource = YamlResourceRouter.DeserializeResource(generic.Kind, yaml);
+
+            var result = new ExtendedAgentApply();
+            switch (resource)
+            {
+                case AgentDeploymentModel agent:
+                    await _resourceDeploymentService.ApplyAsync(agent);
+                    result = new ExtendedAgentApply
+                    {
+                        Status = ExtendedAgentApplyStatus.Accepted,
+                        Message = "Agent and tools deployment initiated",
+                        OperationId = "",
+                        Timestamp = DateTime.UtcNow,
+                        Details = new ExtendedAgentApplyDetails
+                        {
+                            AgentName = agent.Spec.Agent?.Name,
+                            ToolsCount = agent.Spec.Tools?.Count ?? 0,
+                        }
+                    };
+                    break;
+
+                case ToolsDeploymentModel tool:
+                    await _resourceDeploymentService.ApplyAsync(tool);
+
+                    break;
+
+                case ConnectorsDeploymentModel connector:
+                    await _resourceDeploymentService.ApplyAsync(connector);
+                    break;
+                case PluginConfigDeploymentModel pluginConfig:
+                    await _resourceDeploymentService.ApplyAsync(pluginConfig);
+                    break;
+
+
+
+                default:
+                    return BadRequest($"Unsupported kind: {generic.Kind}");
+            }
+
+            var webResponse = ExtendedAgentApplyResponse.FromRuntime(result);
+
+            return Accepted(webResponse);
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// List all agents
+    /// </summary>
+    /// <param name="page">Page number (1-based, default: 1)</param>
+    /// <param name="limit">Number of agents per page (1-200, default: 50)</param>
+    /// <param name="search">Search agents by name or description</param>
+    /// <returns>List of agents with pagination</returns>
+    [HttpGet("agents")]
+    [ProducesResponseType(typeof(ExtendedAgentsListResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<ExtendedAgentsListResponse>> ListAgents(
+        [FromQuery][Range(1, 200)] int limit = 50,
+        [FromQuery][Range(1, int.MaxValue)] int page = 1,
+        [FromQuery] string? search = null)
+    {
+        try
+        {
+            var result = await _extendedAgentService.GetAgentsAsync(page, limit, search);
+            var webResponse = PaginatedResponse<YamlAgentDescriptor>.FromPaginatedList(result);
+            return Ok(webResponse);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error in ListAgents");
+            return StatusCode(500, new ExtendedAgentErrorResponse
+            {
+                ErrorCode = "INTERNAL_ERROR",
+                Message = "An internal error occurred while retrieving agents"
+            });
+        }
+    }
+
+
+    /// <summary>
+    /// List all tools
+    /// </summary>
+    /// <param name="page">Page number (1-based, default: 1)</param>
+    /// <param name="limit">Number of tools to return per page (1-200, default: 50)</param>
+    /// <param name="search">Search tools by name or description</param>
+    /// <returns>List of tools with pagination</returns>
+    [HttpGet("tools")]
+    [ProducesResponseType(typeof(ExtendedAgentToolsResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<ExtendedAgentToolsResponse>> ListTools(
+        [FromQuery][Range(1, 200)] int limit = 50,
+        [FromQuery][Range(1, int.MaxValue)] int page = 1,
+        [FromQuery] string? search = null)
+    {
+        try
+        {
+            var result = await _extendedAgentService.GetToolsAsync(page, limit, search);
+            var response = PaginatedResponse<YamlToolDefinitionBase>.FromPaginatedList(result);
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error in ListTools");
+            return StatusCode(500, new ExtendedAgentErrorResponse
+            {
+                ErrorCode = "INTERNAL_ERROR",
+                Message = "An internal error occurred while retrieving tools"
+            });
+        }
+    }
+
+}

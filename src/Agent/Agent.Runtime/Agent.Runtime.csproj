@@ -95,6 +95,11 @@
     <None Update="AgentsV2\RCA\ScaleControllerPreflight\*.yaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Connectors\lgn-kusto-connector.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+
+
     <None Update="AgentsV2\RepositoryAgents\AzureDevOpsWorkItemAgent.yaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -177,6 +182,9 @@
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
     <None Update="SubAgents\WebAppDownAgent\WebAppDownPlan.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="ToolsV2\GetEnvoyControllerLogs - Copy.yaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="ToolsV2\SingleAction.yaml">

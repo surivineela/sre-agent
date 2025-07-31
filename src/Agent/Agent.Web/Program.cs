@@ -48,13 +48,14 @@ using Agent.Runtime.MetaAgent;
 using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.MetaAgent.SubAgentPlugins;
 using Agent.Runtime.Reasoning;
-using Agent.Runtime.Reasoning.Models;
+using Agent.Framework.Reasoning.Models;
 using Agent.Runtime.Services;
 using Agent.Runtime.Services.AzMonitorAlertInvestigation;
 using Agent.Runtime.Services.AzMonitorAlertInvestigationService;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.AppCodeAnalysisAgent;
 using Agent.Runtime.SubAgents.AppReliabilityAgent;
+
 //using Agent.Runtime.SubAgents.AppServiceRemediation;
 using Agent.Runtime.SubAgents.AzMonitorAlertAgent;
 using Agent.Runtime.SubAgents.ContainerAppsRemediation;
@@ -539,7 +540,9 @@ public class Program
                     serviceProvider: sp,
                     assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
                         .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
-                        .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true));
+                        .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true),
+                    extendedAgentRepository: sp.GetService<IExtendedAgentRepository>()
+                    );
             })
             .AddSingleton<IToolFactory<AgentContext>, ToolFactory<AgentContext>>(sp =>
             {
@@ -656,10 +659,17 @@ public class Program
         }
         builder.ValidateAndRegisterFirstPartyTypes();
         builder.RegisterFunctionsFirstPartyTypes();
+        builder.Services.AddScoped<IExtendedAgentService, ExtendedAgentService>();
+        //builder.Services.AddScoped<IExtendedAgentService, ExtendedAgentService>();
+
+        builder.Services.AddScoped<IResourceDeploymentService, ResourceDeploymentService>();
+        builder.Services.AddSingleton<IAgentYamlTranslatorFactory, AgentYamlTranslatorFactory>();
+
+        builder.Services.AddSingleton<IYamlValidatorFactory, YamlValidatorFactory>();
         builder.Services.AddSingleton<CustomAgentFileService>();
         builder.Services.AddSingleton<ICustomAgentFileService>(
             sp => sp.GetRequiredService<CustomAgentFileService>());
-        builder.Services.AddHostedService<CustomAgentFilesBackgroundService>();
+        builder.Services.AddHostedService<ExtendedAgentBackgroundService>();
 
         //Overwrite KustoClient from ValidateAndRegisterFirstPartyTypes if is not Container FirstParty Agent
         if (!isFirstPartyAgent)
@@ -709,6 +719,7 @@ public class Program
                 builder.Services.AddSingleton<IServiceNowAPIClient, NullableServiceNowAPIClient>();
                 builder.Services.AddSingleton<IIncidentScanner, PagerDutyScanner>();
                 break;
+
             case IncidentManagementType.Icm:
                 builder.Services.AddSingleton<IPagerDutyService, NullablePagerDutyService>();
                 builder.Services.AddSingleton<LoggingHttpMessageHandler>();
@@ -720,12 +731,14 @@ public class Program
                 var actionSettings = serviceProvider.GetRequiredService<ActionSettings>();
                 ICMAPITokenService.Instance.Initialize(actionSettings, incidentManagementSettings.ICMAPI, logger);
                 break;
+
             case IncidentManagementType.ServiceNow:
                 builder.Services.AddSingleton<IPagerDutyService, NullablePagerDutyService>();
                 builder.Services.AddSingleton<IICMAPIClient, NullableICMAPIClient>();
                 builder.Services.AddSingleton<IServiceNowAPIClient, ServiceNowAPIClient>();
                 builder.Services.AddSingleton<IIncidentScanner, ServiceNowScanner>();
                 break;
+
             default:
                 builder.Services.AddSingleton<IPagerDutyService, NullablePagerDutyService>();
                 builder.Services.AddSingleton<IICMAPIClient, NullableICMAPIClient>();
@@ -758,7 +771,6 @@ public class Program
                        .ConfigureAzureOpenAIClient()
                        .ConfigureIChatClient()
                        .ConfigureIEmbeddingGenerator();
-
 
         var searchSettings = GetAzureSearchSettings(builder.Configuration);
         if (searchSettings.Enabled)
@@ -854,7 +866,12 @@ public class Program
 
         // Add services to the container.
         builder.Services.AddHttpContextAccessor();
-        builder.Services.AddControllersWithViews()
+        builder.Services.AddControllersWithViews
+            (options =>
+            {
+                // Register YAML formatter
+                options.InputFormatters.Insert(0, new YamlInputFormatter());
+            })
             .AddJsonOptions(options =>
             {
                 // Allow HTML in JSON responses
@@ -896,7 +913,6 @@ public class Program
 
                 // }
 
-
                 // Set up populate columns delegate
                 PopulateColumnsDelegate populateColumns = (activity, trace) =>
                 {
@@ -921,7 +937,6 @@ public class Program
                         azureSettings.AgentTraceEventHub.CertificatePath,
                         azureSettings.AgentTraceEventHub.FirstPartyAppClientId,
                         azureSettings.AgentTraceEventHub.FirstPartyAppTenantId)));
-
                 }
                 else if (builder.Environment.IsProduction() && !string.IsNullOrEmpty(azureSettings?.AgentTraceKusto.ClusterUri))
                 {
@@ -993,7 +1008,6 @@ public class Program
                 {
                     try
                     {
-
                         // Create and add ADX exporter for outbound request traces
                         outboundExporters.Add(new AzureDataExplorerExporter(new AzureDataExplorerExporterOptions(
                             ClusterUri,
@@ -1016,8 +1030,6 @@ public class Program
                     logger,
                     outboundExporters);
             });
-
-
         });
         builder.Services.AddSingleton(TracerProvider.Default.GetTracer("SREAgent"));
 

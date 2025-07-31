@@ -18,8 +18,11 @@ public sealed class YamlParameter
     [YamlMember(Alias = "description")]
     public string Description { get; set; } = string.Empty;
 
-    [YamlMember(Alias = "mapTo")]
-    public string? MapTo { get; set; } // default to Name if null
+    [YamlMember(Alias = "map_to")]
+    public string MapTo { get; set; } = string.Empty; // default to Name if null
+
+    [YamlMember(Alias = "required")]
+    public bool Required { get; set; } = false;
 
     [YamlMember(Alias = "target")]
     public string Target { get; set; } = "direct"; // "direct", "dictionary:name", "array:name", "ignored"

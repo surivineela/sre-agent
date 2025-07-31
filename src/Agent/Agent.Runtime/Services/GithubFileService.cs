@@ -50,22 +50,20 @@ namespace Agent.Runtime.Services
         /// <param name="repoPath">GitHub repo path (see ListFilesInRepoPath)</param>
         /// <param name="folderPath">Local folder to save files to</param>
         /// <returns>Dictionary of file path (relative to repo root) to local file path</returns>
-        public async Task<CustomAgentFiles> DownloadYamlFilesInRepoPath(string repoPath, string folderPath)
+        public async Task<CustomAgentFiles> DownloadFilesInRepoPath(string repoPath, string folderPath)
         {
             var agentFiles = new CustomAgentFiles(
                 yaml: new Dictionary<string, string>(),
-                kql: new Dictionary<string, string>(),
+                tools: new Dictionary<string, string>(),
                 appsettings: new Dictionary<string, string>()
             );
 
             // Ensure clean folder state
             if (Directory.Exists(folderPath))
                 Directory.Delete(folderPath, recursive: true);
-
             Directory.CreateDirectory(folderPath);
 
             await DownloadFilesRecursive(repoPath, folderPath, agentFiles);
-
             return agentFiles;
         }
 
@@ -79,8 +77,10 @@ namespace Agent.Runtime.Services
                 {
                     // Parse the repo path to get owner, repo, branch, and current path
                     var (owner, repo, branch, currentPath) = ParseGitHubRepoPath(repoPath);
+
                     // Build the new path for the subdirectory
                     var newPath = string.IsNullOrEmpty(currentPath) ? file.Name : $"{currentPath}/{file.Name}";
+
                     // Reconstruct the repo path for the subdirectory
                     var subRepoPath = $"https://github.com/{owner}/{repo}/tree/{branch}/{newPath}";
                     await DownloadFilesRecursive(subRepoPath, folderPath, agentFiles);
@@ -91,21 +91,35 @@ namespace Agent.Runtime.Services
                     if (ext == ".yaml" || ext == ".yml" || ext == ".kql" || ext == ".json")
                     {
                         var content = await _httpClient.GetStringAsync(file.DownloadUrl);
-
                         var localFilePath = Path.Combine(folderPath, file.Path.Replace('/', Path.DirectorySeparatorChar));
                         var localDir = Path.GetDirectoryName(localFilePath);
+
                         if (!string.IsNullOrEmpty(localDir))
                             Directory.CreateDirectory(localDir);
 
                         await File.WriteAllTextAsync(localFilePath, content);
 
-                        // Update the appropriate dictionary
-                        if (ext == ".yaml" || ext == ".yml")
-                            agentFiles.yaml[file.Path] = localFilePath;
-                        else if (ext == ".kql")
-                            agentFiles.kql[file.Path] = localFilePath;
-                        else if (ext == ".json")
-                            agentFiles.appsettings[file.Path] = localFilePath;
+                        // Check if the file is in a tools folder (case-insensitive)
+                        var normalizedPath = file.Path.Replace('\\', '/').ToLowerInvariant();
+                        var isInToolsFolder = normalizedPath.Contains("/tools/") || normalizedPath.StartsWith("tools/");
+
+                        if (isInToolsFolder)
+                        {
+                            // Store the local file path for tools
+                            agentFiles.tools[file.Path] = localFilePath;
+                        }
+                        else
+                        {
+                            // Categorize non-tools files by extension
+                            if (ext == ".yaml" || ext == ".yml" || ext == ".kql")
+                            {
+                                agentFiles.yaml[file.Path] = localFilePath;
+                            }
+                            else if (ext == ".json")
+                            {
+                                agentFiles.appsettings[file.Path] = localFilePath;
+                            }
+                        }
                     }
                 }
             }
@@ -166,7 +180,7 @@ namespace Agent.Runtime.Services
             return Task.FromResult(emptyList);
         }
 
-        public Task<CustomAgentFiles> DownloadYamlFilesInRepoPath(string repoPath, string folderPath)
+        public Task<CustomAgentFiles> DownloadFilesInRepoPath(string repoPath, string folderPath)
         {
             return Task.FromResult(
                 new CustomAgentFiles(
@@ -186,11 +200,11 @@ namespace Agent.Runtime.Services
         Task<IReadOnlyList<RepositoryContent>> ListFilesInRepoPath(string repoPath);
 
         /// <summary>
-        /// Downloads all .yaml/.yml files in a given repository path and saves them to the specified local folder.
+        /// Downloads all files in a given repository path and saves them to the specified local folder.
         /// </summary>
         /// <param name="repoPath">GitHub repo path (see ListFilesInRepoPath)</param>
         /// <param name="folderPath">Local folder to save files to</param>
         /// <returns>Dictionary of file path (relative to repo root) to local file path</returns>
-        Task<CustomAgentFiles> DownloadYamlFilesInRepoPath(string repoPath, string folderPath);
+        Task<CustomAgentFiles> DownloadFilesInRepoPath(string repoPath, string folderPath);
     }
 }
