@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using System.Web;
 using Agent.Core;
 using Agent.Core.Interfaces;
+using Agent.Core.Models;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Plugins.Interface;
 using Agent.Plugins.KustoPlugin;
@@ -55,6 +56,7 @@ namespace Agent.Plugins.Kusto
         }
     }
 
+    [AgentToolPlugin(IsFirstPartyOnly = true, Category = ToolCategories.LogQuery)]
     public partial class KustoPlugin : IKustoPlugin
     {
         private readonly ILogger<KustoPlugin> _logger;
@@ -92,52 +94,36 @@ namespace Agent.Plugins.Kusto
             _agentOutboundCommunicationService = agentOutboundCommunicationService;
         }
 
+     
+        [KernelFunction("execute_kusto_query_on_cluster")]
         [Description("Executes a fully qualified Kusto query on a specific cluster and database, returning the result in JSON format.")]
         public async Task<string> ExecuteClusterKustoQuery(
             [Description("The short name of the target Kusto cluster (without URL schema or suffix).")] string cluster,
             [Description("The name of the target Kusto database.")] string database,
-            [Description("The full Kusto query to execute.")] string fullQuery)
+            [Description("The full Kusto query to execute.")] string fullQuery
+            )
         {
-            cluster = cluster.Replace(".kusto.windows.net", "");
-            cluster = cluster.Replace("https://", "");
-
-            var logMessage = $"[execute_kusto_query_on_cluster][{DateTime.UtcNow}] Invoked with cluster: {cluster}, database: {database}\nquery:\n{fullQuery.Substring(0, Math.Min(100, fullQuery.Length))}...";
-            _logger.LogInternalInformation(logMessage);
-            KustoQueryResult result = new KustoQueryResult();
-            try
-            {
-                cluster = cluster.Replace(".kusto.windows.net", "");
-                cluster = cluster.Replace("https://", "");
-                var reader = await _kustoClient.PerformQueryAsync($"https://{cluster}.kusto.windows.net", database, fullQuery);
-                result = new KustoQueryResult(reader, fullQuery);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogInternalError($"An error occurred while executing Kusto Query: {ex.Message}");
-            }
-
-            if (result != null && result.Result != null)
-            {
-                if (result.RowCount == 0 && !result.Result.StartsWith("An error occurred while executing Kusto Query"))
-                {
-                    return "ZERO_ROWS_RETURNED";
-                }
-                return result.Result;
-            }
-            else
-            {
-                _logger.LogInternalInformation($"Kusto query execution failed. Result: {result?.Result}, Message: {result?.Message}");
-                return $"Kusto query execution failed.";
-            }
+            return (await ExecuteClusterKustoQueryInternal(cluster, database, fullQuery)).Result;
+            
         }
 
         [KernelFunction("execute_kusto_query")]
         [Description("Executes a Kusto query on a regional cluster and returns the result as a JSON string.")]
-        public async Task<KustoQueryResult> ExecuteKustoQuery(
+        public async Task<string> ExecuteKustoQuery(
             [Description("The region of the target Kusto cluster.")] string region,
             [Description("The Kusto query to execute.")] string query,
             [Description("Optional group name for the Kusto cluster.")] string? groupName
             )
+        {
+           return (await ExecuteKustoQueryInternal(region, query, groupName)).Result;
+        }
+
+
+       public async Task<KustoQueryResult> ExecuteKustoQueryInternal(
+           string region,
+          string query,
+           string? groupName
+           )
         {
             try
             {
@@ -171,34 +157,6 @@ namespace Agent.Plugins.Kusto
             }
         }
 
-        [KernelFunction("execute_kusto_query_on_cluster")]
-        [Description("Executes a fully qualified Kusto query on a specific cluster and database, returning the result in JSON format.")]
-        public async Task<KustoQueryResult> ExecuteClusterKustoQuery(
-            [Description("The short name of the target Kusto cluster (without URL schema or suffix).")] string cluster,
-            [Description("The name of the target Kusto database.")] string database,
-            [Description("The full Kusto query to execute.")] string fullQuery,
-            DateTime? NowOverride
-            )
-        {
-            cluster = cluster.Replace(".kusto.windows.net", "");
-            cluster = cluster.Replace("https://", "");
-
-            var logMessage = $"[execute_kusto_query_on_cluster][{DateTime.UtcNow}] Invoked with cluster: {cluster}, database: {database}\nquery:\n{fullQuery.Substring(0, Math.Min(100, fullQuery.Length))}...";
-            try
-            {
-                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-                var reader = await _kustoClient.PerformQueryAsync($"https://{cluster}.kusto.windows.net", database, fullQuery);
-                var ret = new KustoQueryResult(reader, fullQuery);
-                stopwatch.Stop();
-                ret.Message = CreateChatMessage(fullQuery, cluster, ret.RowCount, (int)stopwatch.ElapsedMilliseconds, string.Empty, database);
-                return ret;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogInternalError($"An error occurred while executing Kusto Query: {ex.Message}");
-                return CreateErrorResult(fullQuery, ex.Message);
-            }
-        }
 
         internal static string GetKqlFilePath(string functionName, string baseDirectory)
         {
@@ -260,11 +218,21 @@ namespace Agent.Plugins.Kusto
 
         [KernelFunction("execute_kusto_function")]
         [Description("Executes a user-defined Kusto function with named arguments on the regional Kusto cluster and returns the results.")]
-        public async Task<KustoQueryResult> ExecuteFunctionAsync(
+        public async Task<string> ExecuteFunctionAsync(
             [Description("The name of the Kusto function to invoke.")] string functionName,
             [Description("The region of the Kusto cluster.")] string region,
             Dictionary<string, string>? args = null,
             [Description("Optional group name for the Kusto cluster.")] string? groupName = null)
+        {
+           return (await ExecuteFunctionInternalAsync(functionName, region, args, groupName)).Result;
+        }
+
+
+            public async Task<KustoQueryResult> ExecuteFunctionInternalAsync(
+             string functionName,
+          string region,
+            Dictionary<string, string>? args = null,
+            string? groupName = null)
         {
             string argList = args != null && args.Count > 0
                 ? string.Join(", ", args.Select(kvp => $"{kvp.Key}={QuoteIfNeeded(kvp.Value)}"))
@@ -288,7 +256,6 @@ namespace Agent.Plugins.Kusto
                 return CreateErrorResult(query, ex.Message, functionName);
             }
         }
-
         private static string QuoteIfNeeded(string value)
         {
             return $"\"{value}\"";
@@ -449,6 +416,46 @@ namespace Agent.Plugins.Kusto
             return query;
         }
 
+             public async Task<KustoQueryResult> ExecuteClusterKustoQueryInternal(
+            string cluster,
+           string database,
+            string fullQuery
+            )
+        {
+            cluster = cluster.Replace(".kusto.windows.net", "");
+            cluster = cluster.Replace("https://", "");
+
+            var logMessage = $"[execute_kusto_query_on_cluster][{DateTime.UtcNow}] Invoked with cluster: {cluster}, database: {database}\nquery:\n{fullQuery.Substring(0, Math.Min(100, fullQuery.Length))}...";
+            try
+            {
+                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+                var reader = await _kustoClient.PerformQueryAsync($"https://{cluster}.kusto.windows.net", database, fullQuery);
+                var result = new KustoQueryResult(reader, fullQuery);
+                stopwatch.Stop();
+                if (result.Result != null && result.Result != string.Empty)
+                {
+                    if (result.RowCount == 0 && !result.Result.StartsWith("An error occurred while executing Kusto Query"))
+                    {
+                        result.Result = "ZERO_ROWS_RETURNED";
+
+                    }
+                    return result;
+                }
+                else
+                {
+                    _logger.LogInternalInformation($"Kusto query execution failed. Result: {result?.Result}, Message: {result?.Message}");
+                    result = CreateErrorResult(fullQuery, "Kusto query execution failed.");
+                }
+                result.Message = CreateChatMessage(fullQuery, cluster, result.RowCount, (int)stopwatch.ElapsedMilliseconds, string.Empty, database);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError($"An error occurred while executing Kusto Query: {ex.Message}");
+                return CreateErrorResult(fullQuery, ex.Message);
+            }
+        }
+
         public async Task<string> ExecuteLocalFunctionOnClusterAsync(string functionName, string clusterName, string databaseName, Dictionary<string, string> args)
         {
             var fileName = GetKqlFilePath(functionName);
@@ -456,7 +463,7 @@ namespace Agent.Plugins.Kusto
             if (File.Exists(fileName))
             {
                 var formatted = FormatQuery(args, fileName);
-                queryResult = await ExecuteClusterKustoQuery(clusterName, databaseName, formatted, null);
+                queryResult = await ExecuteClusterKustoQueryInternal(clusterName, databaseName, formatted);
             }
             else
             {
@@ -483,11 +490,11 @@ namespace Agent.Plugins.Kusto
             if (File.Exists(fileName))
             {
                 var formatted = FormatQuery(args, fileName);
-                queryResult = await ExecuteKustoQuery(region, formatted, groupName ?? string.Empty);
+                queryResult = await ExecuteKustoQueryInternal(region, formatted, groupName ?? string.Empty);
             }
             else
             {
-                queryResult = await ExecuteFunctionAsync(functionName, region, args, groupName ?? string.Empty);
+                queryResult = await ExecuteFunctionInternalAsync(functionName, region, args, groupName ?? string.Empty);
             }
 
             if (queryResult.Result.Length > TokenLimit)

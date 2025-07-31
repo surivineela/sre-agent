@@ -87,8 +87,8 @@ namespace FirstPartyAgent.Core.Plugins
                 var log = $"[execute_kusto_query_on_cluster][{DateTime.UtcNow}] Invoked with cluster: {clusterName}, database: {databaseName}\nquery:\n{kustoQuery.Substring(0, Math.Min(100, kustoQuery.Length))}...";
 
                 await kernel.LogInformation(log, _logger, _teamsClient);
-                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery );
-                return kustoResult;
+                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQueryInternal(clusterName, databaseName, kustoQuery );
+                return kustoResult.Result;
             }
             return $"Alert details not found for alertId {alertId}";
         }

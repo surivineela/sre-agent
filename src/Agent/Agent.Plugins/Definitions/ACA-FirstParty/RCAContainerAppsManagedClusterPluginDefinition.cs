@@ -42,7 +42,7 @@ namespace Agent.Plugins.Definitions
          [Description("Name of the resource group hosting the ACA environment.")] string resourceGroupName,
          [Description("Azure subscription ID.")] string subscriptionId)
         {
-            var clusterName = await _kustoPlugin.ExecuteFunctionAsync("GetManagedClusterName", region,
+            var clusterName = await _kustoPlugin.ExecuteFunctionInternalAsync("GetManagedClusterName", region,
                 new Dictionary<string, string> {
             { "containerAppNameParam", containerAppName },
             { "resourceGroupParam", resourceGroupName },

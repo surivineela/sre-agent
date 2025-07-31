@@ -40,7 +40,7 @@ namespace Agent.Plugins.Kusto.Tools
 
                 case KustoExecutionMode.Query:
                     var formmatedQuery = KustoPlugin.FormatQuery(_definition.Query ?? string.Empty, args);
-                    var result = await kustoChat.ExecuteKustoQuery(region, formmatedQuery, groupName);
+                    var result = await kustoChat.ExecuteKustoQueryInternal(region, formmatedQuery, groupName);
                     return result.Result;
 
                 case KustoExecutionMode.Script:
@@ -66,7 +66,7 @@ namespace Agent.Plugins.Kusto.Tools
 
         public async Task<KustoQueryResult> Run(string query, string region, Dictionary<string, string> args, string groupName = "ContainerApps")
         {
-            return await _kustoChat.ExecuteKustoQuery(query, region, groupName);
+            return await _kustoChat.ExecuteKustoQueryInternal(region, query, groupName);
         }
     }
 }

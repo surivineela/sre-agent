@@ -207,7 +207,7 @@ Returns tab-separated table data in CSV format. Column headers:
             [Description("Name of the resource group.")] string resourceGroupName,
             [Description("Azure subscription ID.")] string subscriptionId)
         {
-            var clusterName = await _kustoPlugin.ExecuteFunctionAsync("GetManagedClusterName", region,
+            var clusterName = await _kustoPlugin.ExecuteFunctionInternalAsync("GetManagedClusterName", region,
                 new Dictionary<string, string> {
                         { "containerAppNameParam", containerAppName },
                         { "resourceGroupParam", resourceGroupName },
@@ -359,7 +359,7 @@ Returns tab-separated table data in CSV format. Column headers:
     | order by Timestamp asc, Revision asc;
     ";
 
-            var result = await _kustoPlugin.ExecuteKustoQuery(region, query);
+            var result = await _kustoPlugin.ExecuteKustoQueryInternal(region, query);
 
             return result.Result;
         }
