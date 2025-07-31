@@ -2,14 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Collections.Concurrent;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading;
-using Agent.Core.Clients.Storage;
 using Agent.Core.Configuration;
 using Agent.Core.DataConnectors;
-using Agent.Logging;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -29,10 +23,9 @@ namespace Agent.Plugins.DataConnectors.TSG
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IHostEnvironment _hostEnvironment;
         private readonly DataConnectorIndex _tsgMetadataIndex;
-        private readonly IAzureBlobStorageClient _azureBlobStorageClient;
+        private readonly DataConnectorStorage<TsgCrawlerDataConnector> _storage;
 
         private DataConnectorInstanceSettings? _dataConnectorInstanceSettings;
-        private DataConnectorTypeSettings? _dataConnectorTypeSettings;
         private TsgAzureDevOpsClient? _azureDevOpsClient;
         private readonly SemaphoreSlim _processingLock = new SemaphoreSlim(1, 1);
 
@@ -40,15 +33,15 @@ namespace Agent.Plugins.DataConnectors.TSG
             ILoggerFactory loggerFactory,
             IHttpClientFactory httpClientFactory,
             IHostEnvironment hostEnvironment,
-            DataConnectorIndexProvider tsgMetadataIndexProvider,
-            IAzureBlobStorageClient storageClient)
+            DataConnectorIndex tsgMetadataIndex,
+            DataConnectorStorage<TsgCrawlerDataConnector> storage)
         {
             _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
             _logger = loggerFactory.CreateLogger<TsgCrawlerDataConnector>();
             _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
             _hostEnvironment = hostEnvironment ?? throw new ArgumentNullException(nameof(hostEnvironment));
-            _tsgMetadataIndex = tsgMetadataIndexProvider.GetDataConnectorIndex("TsgCrawler");
-            _azureBlobStorageClient = storageClient ?? throw new ArgumentNullException(nameof(storageClient));
+            _tsgMetadataIndex = tsgMetadataIndex;
+            _storage = storage ?? throw new ArgumentNullException(nameof(storage));
         }
 
         /// <summary>
@@ -59,10 +52,9 @@ namespace Agent.Plugins.DataConnectors.TSG
         /// <summary>
         /// Initialize the TSG data connector
         /// </summary>
-        public Task InitAsync(DataConnectorInstanceSettings instanceSettings, DataConnectorTypeSettings typeSettings, CancellationToken stoppingToken)
+        public Task InitAsync(DataConnectorInstanceSettings instanceSettings, CancellationToken stoppingToken)
         {
             _dataConnectorInstanceSettings = instanceSettings ?? throw new ArgumentNullException(nameof(instanceSettings));
-            _dataConnectorTypeSettings = typeSettings ?? throw new ArgumentNullException(nameof(typeSettings));
 
             _logger.LogInternalInformation($"Using managed identity resource ID {instanceSettings.Identity} for TSG crawler.");
 
@@ -294,9 +286,7 @@ namespace Agent.Plugins.DataConnectors.TSG
 
         private async Task UploadJsonToBlob(string blobName, BinaryData data)
         {
-            await _azureBlobStorageClient.UploadBlobContentsAsync(_dataConnectorTypeSettings!.Storage!.BlobStorageContainerName!, blobName, data);
-
-            _logger.LogInternalInformation("Uploaded JSON documentation for {BlobName} to container {Container}", blobName, _dataConnectorTypeSettings.Storage!.BlobStorageContainerName);
+            await _storage.UploadBlobContentsAsync(blobName, data);
         }
 
         private static string GetBlobNameForTsgDocument(TsgDocumentMetadata metadata)

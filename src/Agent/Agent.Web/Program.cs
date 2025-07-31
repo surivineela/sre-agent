@@ -772,7 +772,7 @@ public class Program
             {
                 return new AzureSearchPlugin(
                     sp.GetRequiredService<ILogger<AzureSearchPlugin>>(),
-                    sp.GetRequiredService<DataConnectorIndexProvider>());
+                    sp.GetRequiredService<DataConnectorIndex>());
             });
         }
 

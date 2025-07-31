@@ -20,7 +20,7 @@ public interface IDataConnector
     /// <param name="typeSettings"></param>
     /// <param name="stoppingToken"></param>
     /// <returns></returns>
-    Task InitAsync(DataConnectorInstanceSettings instanceSettings, DataConnectorTypeSettings typeSettings, CancellationToken stoppingToken);
+    Task InitAsync(DataConnectorInstanceSettings instanceSettings, CancellationToken stoppingToken);
 
     /// <summary>
     /// Performs the work of the data connector. This method is called periodically based on the <see cref="Interval"/> property.

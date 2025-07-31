@@ -36,6 +36,12 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' = {
     }
   }
 }
+resource dataConnectorContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-05-01' = {
+  name: '${storageAccount.name}/default/dataconnectors'
+  properties: {
+    publicAccess: 'None'
+  }
+}
 
 // Settings
 resource storageResourceIdSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {

@@ -5,7 +5,6 @@
 using System.ComponentModel;
 using System.Data;
 using System.Text;
-using Agent.Core.Clients.Search;
 using Agent.Core.DataConnectors;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
@@ -26,21 +25,18 @@ namespace Agent.Plugins.Definitions
 
         private readonly DataConnectorIndex _dataConnectorIndex;
         private readonly KustoClient _kustoClient;
-        private readonly ISearchIndexingClient _searchClient;
         private readonly ILogger<LogsPluginDefinition> _logger;
 
         public LogsPluginDefinition(
-            ISearchIndexingClient searchClient,
-            DataConnectorIndexProvider kustoMetadataIndex,
+            DataConnectorIndex kustoMetadataIndex,
             KustoClient kustoClient,
             ILogger<LogsPluginDefinition> logger
             )
         {
-            _searchClient = searchClient ?? throw new ArgumentNullException(nameof(searchClient));
             _kustoClient = kustoClient ?? throw new ArgumentNullException(nameof(kustoClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-            _dataConnectorIndex = kustoMetadataIndex.GetDataConnectorIndex<KustoTableIndexerDataConnector>();
+            _dataConnectorIndex = kustoMetadataIndex;
         }
 
         [Description("This tool gets information about kusto tables that are relevant to a user's chat message. The information includes table names, their column schema, and sample log messages.")]

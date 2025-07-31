@@ -2,17 +2,9 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Agent.Core.Configuration;
 using Agent.Core.DataConnectors;
-using Agent.Logging;
 using Agent.Plugins.DataConnectors.TSG;
 using Agent.Plugins.Interface;
-using Azure.Search.Documents.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Plugins.Implementation
@@ -24,14 +16,14 @@ namespace Agent.Plugins.Implementation
     public class AzureSearchPlugin : IAzureSearchPlugin
     {
         private readonly ILogger<AzureSearchPlugin> _logger;
-        private readonly DataConnectorIndexProvider _dataConnectorIndexProvider;
+        private readonly DataConnectorIndex _dataConnectorIndex;
 
         public AzureSearchPlugin(
             ILogger<AzureSearchPlugin> logger, 
-            DataConnectorIndexProvider dataConnectorIndexProvider)
+            DataConnectorIndex dataConnectorIndex)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _dataConnectorIndexProvider = dataConnectorIndexProvider ?? throw new ArgumentNullException(nameof(dataConnectorIndexProvider));
+            _dataConnectorIndex = dataConnectorIndex ?? throw new ArgumentNullException(nameof(dataConnectorIndex));
         }
 
         /// <summary>
@@ -59,14 +51,11 @@ namespace Agent.Plugins.Implementation
                 {
                     throw new ArgumentException("Max results must be greater than 0", nameof(maxResults));
                 }
-
-                // Get the DataConnectorIndex for TSG data connector
-                 var tsgIndex = _dataConnectorIndexProvider.GetDataConnectorIndex<TsgCrawlerDataConnector>();
                 
                 var results = new List<TsgDocumentMetadata>();
 
                 // Use the DataConnectorIndex.SearchAsync method directly
-                await foreach (var searchResult in tsgIndex.SearchAsync<TsgDocumentMetadata>(searchText, string.Empty, maxResults))
+                await foreach (var searchResult in _dataConnectorIndex.SearchAsync<TsgDocumentMetadata>(searchText, string.Empty, maxResults))
                 {
                     if (cancellationToken.IsCancellationRequested)
                         break;

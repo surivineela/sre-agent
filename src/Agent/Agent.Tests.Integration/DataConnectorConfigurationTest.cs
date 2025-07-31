@@ -38,11 +38,11 @@ public class DataConnectorConfigurationTest
 
         // the background service that runs the data connectors is asynchronous to app startup
         // so we need to poll and wait for the data connectors to be initialized and run
-        using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
         while (!cts.IsCancellationRequested)
         {
             // Wait for the data connectors to be initialized and run
-            if (verifier.DataConnectors.Count == verifier.DataConnectorsSettings.Connectors.Count)
+            if (verifier.DataConnectors.Count == verifier.DataConnectorsInstances.Count)
             {
                 break;
             }
@@ -50,10 +50,10 @@ public class DataConnectorConfigurationTest
             await Task.Delay(1000, cts.Token);
         }
 
-        Assert.Equal(verifier.DataConnectorsSettings.Connectors.Count, verifier.DataConnectors.Count);
+        Assert.Equal(verifier.DataConnectorsInstances.Count, verifier.DataConnectors.Count);
 
         // verify that there is a one-to-one mapping betwen the data connector settings and the data connector instances
-        foreach (DataConnectorInstanceSettings connectorSetting in verifier.DataConnectorsSettings.Connectors)
+        foreach (DataConnectorInstanceSettings connectorSetting in verifier.DataConnectorsInstances)
         {
             // Find the corresponding data connector instance for this setting
             KeyValuePair<IDataConnector, DataConnectorInstanceSettings?> matchingConnector = Assert.Single(
@@ -94,7 +94,17 @@ public class DataConnectorConfigurationTest
             {
                 "Core":
                 {
-                    "DataConnectors": []
+                    "DataConnectorSettings": {
+                        "SearchSettings": {
+                            "IndexName": "dataconnector-index",
+                            "SkillsetName": "dataconnector-skillsets",
+                            "IndexerName": "dataconnector-indexer",
+                            "DataSourceName": "dataconnector-datasource"
+                        },
+                        "StorageSettings": {
+                            "BlobStorageContainerName": "dataconnectors"
+                        }
+                    }
                 }
             }
         }
@@ -107,18 +117,24 @@ public class DataConnectorConfigurationTest
             {
                 "Core":
                 {
-                    "DataConnectors": {
-                        "Types": {
-                            "TestConnector1": { }
+                    "DataConnectorSettings": {
+                        "SearchSettings": {
+                            "IndexName": "dataconnector-index",
+                            "SkillsetName": "dataconnector-skillsets",
+                            "IndexerName": "dataconnector-indexer",
+                            "DataSourceName": "dataconnector-datasource"
                         },
-                        "Connectors": [
-                        {
-                            "Name": "test1",
-                            "DataConnectorType": "TestConnector1",
-                            "DataSource": "whatever",
-                            "Identity": ""
+                        "StorageSettings": {
+                            "BlobStorageContainerName": "dataconnectors"
                         }
-                    ]}
+                     },
+                    "DataConnectors": [
+                    {
+                        "Name": "test1",
+                        "DataConnectorType": "TestConnector1",
+                        "DataSource": "whatever",
+                        "Identity": ""
+                    }]
                 }
             }
         }
@@ -131,25 +147,30 @@ public class DataConnectorConfigurationTest
             {
                 "Core":
                 {
-                    "DataConnectors": {
-                        "Types": {
-                            "TestConnector1": { },
-                            "TestConnector2": { }
+                    "DataConnectorSettings": {
+                        "SearchSettings": {
+                            "IndexName": "dataconnector-index",
+                            "SkillsetName": "dataconnector-skillsets",
+                            "IndexerName": "dataconnector-indexer",
+                            "DataSourceName": "dataconnector-datasource"
                         },
-                        "Connectors": [
-                        {
-                            "Name": "test1",
-                            "DataConnectorType": "TestConnector1",
-                            "DataSource": "whatever",
-                            "Identity": ""
-                        },
-                        {
-                            "Name": "test2",
-                            "DataConnectorType": "TestConnector2",
-                            "DataSource": "whatever",
-                            "Identity": ""
+                        "StorageSettings": {
+                            "BlobStorageContainerName": "dataconnectors"
                         }
-                    ]}
+                    },
+                    "DataConnectors": [
+                    {
+                        "Name": "test1",
+                        "DataConnectorType": "TestConnector1",
+                        "DataSource": "whatever",
+                        "Identity": ""
+                    },
+                    {
+                        "Name": "test2",
+                        "DataConnectorType": "TestConnector2",
+                        "DataSource": "whatever",
+                        "Identity": ""
+                    }]
                 }
             }
         }
@@ -162,31 +183,36 @@ public class DataConnectorConfigurationTest
             {
                 "Core":
                 {
-                    "DataConnectors":  {
-                        "Types": {
-                            "TestConnector1": { },
-                            "TestConnector2": { }
+                    "DataConnectorSettings":  {
+                        "SearchSettings": {
+                            "IndexName": "dataconnector-index",
+                            "SkillsetName": "dataconnector-skillsets",
+                            "IndexerName": "dataconnector-indexer",
+                            "DataSourceName": "dataconnector-datasource"
                         },
-                        "Connectors": [
-                        {
-                            "Name": "test1-a",
-                            "DataConnectorType": "TestConnector1",
-                            "DataSource": "whatever",
-                            "Identity": ""
-                        },
-                        {
-                            "Name": "test1-b",
-                            "DataConnectorType": "TestConnector1",
-                            "DataSource": "whatever",
-                            "Identity": ""
-                        },
-                        {
-                            "Name": "test2",
-                            "DataConnectorType": "TestConnector2",
-                            "DataSource": "whatever",
-                            "Identity": ""
+                        "StorageSettings": {
+                            "BlobStorageContainerName": "dataconnectors"
                         }
-                    ]}
+                    },
+                    "DataConnectors": [
+                    {
+                        "Name": "test1-a",
+                        "DataConnectorType": "TestConnector1",
+                        "DataSource": "whatever",
+                        "Identity": ""
+                    },
+                    {
+                        "Name": "test1-b",
+                        "DataConnectorType": "TestConnector1",
+                        "DataSource": "whatever",
+                        "Identity": ""
+                    },
+                    {
+                        "Name": "test2",
+                        "DataConnectorType": "TestConnector2",
+                        "DataSource": "whatever",
+                        "Identity": ""
+                    }]
                 }
             }
         }
@@ -196,14 +222,14 @@ public class DataConnectorConfigurationTest
 
 internal class TestDataConnectorVerifier
 {
-    public DataConnectorSettings DataConnectorsSettings { get; }
+    public List<DataConnectorInstanceSettings> DataConnectorsInstances { get; }
 
     public List<KeyValuePair<IDataConnector, DataConnectorInstanceSettings?>> DataConnectors { get; }
 
-    public TestDataConnectorVerifier(IOptions<DataConnectorSettings> options)
+    public TestDataConnectorVerifier(IOptions<List<DataConnectorInstanceSettings>> dataConnectorInstances)
     {
-        DataConnectorsSettings = options.Value ?? throw new ArgumentNullException(nameof(options));
-        DataConnectors = new List<KeyValuePair<IDataConnector, DataConnectorInstanceSettings?>>(DataConnectorsSettings.Connectors.Count);
+        DataConnectorsInstances = dataConnectorInstances.Value ?? throw new ArgumentNullException(nameof(dataConnectorInstances));
+        DataConnectors = new List<KeyValuePair<IDataConnector, DataConnectorInstanceSettings?>>(dataConnectorInstances.Value.Count);
     }
 
     public void AddConnector(IDataConnector instance, DataConnectorInstanceSettings? settings)
@@ -226,7 +252,7 @@ internal class TestDataConnector1 : IDataConnector
 
     public TimeSpan Interval => TimeSpan.FromSeconds(5);
 
-    public Task InitAsync(DataConnectorInstanceSettings instanceSettings, DataConnectorTypeSettings typeSettings, CancellationToken stoppingToken)
+    public Task InitAsync(DataConnectorInstanceSettings instanceSettings, CancellationToken stoppingToken)
     {
         _settings = instanceSettings;
 
@@ -254,7 +280,7 @@ internal class TestDataConnector2 : IDataConnector
 
     public TimeSpan Interval => TimeSpan.FromSeconds(5);
 
-    public Task InitAsync(DataConnectorInstanceSettings instanceSettings, DataConnectorTypeSettings typeSettings, CancellationToken stoppingToken)
+    public Task InitAsync(DataConnectorInstanceSettings instanceSettings, CancellationToken stoppingToken)
     {
         _settings = instanceSettings;
 

@@ -2,7 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Net;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Azure;
@@ -47,24 +46,6 @@ namespace Agent.Core.Clients.Storage
             }
 
             return containerNames;
-        }
-
-        public async Task<List<BlobContainerItem>> GetBlobContainersAsync()
-        {
-            var blobContainersList = new List<BlobContainerItem>();
-
-            var blobContainers = _blobServiceClient.GetBlobContainersAsync();
-
-            if (blobContainers != null)
-            {
-                await foreach (var container in blobContainers)
-                {
-                    blobContainersList.Add(container);
-                }
-
-            }
-
-            return blobContainersList;
         }
 
         public async Task UploadBlobContentsAsync(string containerName, string blobName, BinaryData contents, BlobUploadOptions? blobUploadOptions = null)
@@ -122,18 +103,6 @@ namespace Agent.Core.Clients.Storage
             return response.Value;
         }
 
-        public async Task DeleteContainerAsync(string containerName)
-        {
-            var container = await GetBlobContainerClient(containerName);
-
-            // Delete the specified container and handle the exception.
-            var response = await container.DeleteAsync();
-            if (response is not null && !IsResponseSuccess(response.Status) && response.Status != (int)HttpStatusCode.NotFound)
-            {
-                throw new RequestFailedException($"Blob container delete request received failed response status {response.ToString()}");
-            }
-        }
-
         public async Task CopyBlobContentsAsync(Uri sourceBlobUri, string containerName, string blobName)
         {
             var blobContainerClient = await GetBlobContainerClient(containerName);
@@ -148,12 +117,6 @@ namespace Agent.Core.Clients.Storage
             }
 
             await response.WaitForCompletionAsync();
-        }
-
-        public async Task CreateContainerIfNotExistAsync(string containerName, PublicAccessType accessType)
-        {
-            var client = _blobServiceClient.GetBlobContainerClient(containerName);
-            await client.CreateIfNotExistsAsync(accessType);
         }
 
         public async Task<bool> CheckBlobExistsAsync(string containerName, string blobName)

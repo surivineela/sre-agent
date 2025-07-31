@@ -6,7 +6,6 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
 {
     using System.Collections.Concurrent;
     using System.Threading;
-    using Agent.Core.Clients.Storage;
     using Agent.Core.Configuration;
     using Agent.Core.DataConnectors;
     using Microsoft.DurableTask;
@@ -33,10 +32,9 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
         private readonly IChatClient _chatClient;
         private readonly ILoggerFactory _loggerFactory;
         private readonly DataConnectorIndex _kustoMetadataIndex;
-        private readonly IAzureBlobStorageClient _azureBlobStorageClient;
+        private readonly DataConnectorStorage<KustoTableIndexerDataConnector> _storage;
 
         private DataConnectorInstanceSettings? _dataConnectorInstanceSettings;
-        private DataConnectorTypeSettings? _dataConnectorTypeSettings;
 
         internal static KustoTableIndexerDataConnector GetDataConnector(string name)
         {
@@ -53,17 +51,16 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
         public KustoTableIndexerDataConnector(
             IChatClient chatClient,
             ILoggerFactory loggerFactory,
-            DataConnectorIndexProvider kustoMetadataIndexProvider,
-            IAzureBlobStorageClient storageClient,
+            DataConnectorIndex kustoMetadataIndex,
+            DataConnectorStorage<KustoTableIndexerDataConnector> storage,
             DurableTaskClient durableTaskClient)
         {
             _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
             _logger = loggerFactory.CreateLogger<KustoTableIndexerDataConnector>();
             _chatClient = chatClient ?? throw new ArgumentNullException(nameof(chatClient));
             _durableTaskClient = durableTaskClient ?? throw new ArgumentNullException(nameof(durableTaskClient));
-            _kustoMetadataIndex = kustoMetadataIndexProvider.GetDataConnectorIndex("KustoDataIndexer");
-
-            _azureBlobStorageClient = storageClient;
+            _kustoMetadataIndex = kustoMetadataIndex;
+            _storage = storage;
         }
 
         public TimeSpan Interval
@@ -74,10 +71,9 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
             }
         }
 
-        public Task InitAsync(DataConnectorInstanceSettings instanceSettings, DataConnectorTypeSettings typeSettings, CancellationToken stoppingToken)
+        public Task InitAsync(DataConnectorInstanceSettings instanceSettings, CancellationToken stoppingToken)
         {
             _dataConnectorInstanceSettings = instanceSettings ?? throw new ArgumentNullException(nameof(instanceSettings));
-            _dataConnectorTypeSettings = typeSettings ?? throw new ArgumentNullException(nameof(typeSettings));
 
             _logger.LogInternalInformation($"Using managed identity resource ID {instanceSettings.Identity} for Kusto summarizer.");
 
@@ -172,9 +168,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
 
         private async Task UploadJsonToBlob(string blobName, BinaryData data)
         {
-            await _azureBlobStorageClient.UploadBlobContentsAsync(_dataConnectorTypeSettings!.Storage!.BlobStorageContainerName!, blobName, data);
-
-            _logger.LogInternalInformation("Uploaded JSON documentation for {BlobName} to container {Container}", blobName, _dataConnectorTypeSettings.Storage!.BlobStorageContainerName);
+            await _storage.UploadBlobContentsAsync(blobName, data);
         }
 
         private static string GetBlobNameForKustoTableMetadata(KustoTableMetadata metadata)

@@ -13,4 +13,4 @@ namespace Agent.Core.DataConnectors;
 /// <param name="DataConnector"></param>
 /// <param name="InstanceSettings"></param>
 [EditorBrowsable(EditorBrowsableState.Never)]
-public record DataConnectorInstance(IDataConnector DataConnector, DataConnectorInstanceSettings InstanceSettings, DataConnectorTypeSettings TypeSettings);
+public record DataConnectorInstance(IDataConnector DataConnector, DataConnectorInstanceSettings InstanceSettings);

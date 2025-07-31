@@ -13,6 +13,7 @@ using Azure.Search.Documents;
 using Azure.Search.Documents.Indexes;
 using Azure.Search.Documents.Indexes.Models;
 using Azure.Search.Documents.Models;
+using Microsoft.Extensions.Options;
 
 namespace Agent.Core.DataConnectors;
 
@@ -36,13 +37,12 @@ public class DataConnectorIndex
         get;
     }
 
-    internal DataConnectorIndex(
+    public DataConnectorIndex(
         ISearchIndexingClient searchIndexingClient,
         IAzureBlobStorageClient azureBlobStorageClient,
         IndexingSettings indexingSettings,
         OpenAISettings openAiSettings,
-        DataConnectorSearchSettings searchSettings,
-        DataConnectorStorageSettings storageSettings)
+        IOptions<DataConnectorSettings> dataConnectorSettings)
     {
         _azureBlobStorageClient = azureBlobStorageClient;
         _searchIndexingClient = searchIndexingClient;
@@ -74,8 +74,8 @@ public class DataConnectorIndex
         }
 
         SemanticSearchContentFields = contentFields.AsReadOnly();
-        _searchSettings = searchSettings;
-        _storageSettings = storageSettings;
+        _searchSettings = dataConnectorSettings.Value.Search;
+        _storageSettings = dataConnectorSettings.Value.Storage;
     }
 
     public async Task CreateOrUpdateIndex()

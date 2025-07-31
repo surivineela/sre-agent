@@ -25,7 +25,12 @@ namespace Agent.Core.Configuration
         [Required]
         public KustoClusterConfiguration KustoClusterConfiguration { get; set; } = new();
 
-        public DataConnectorSettings DataConnectors { get; init; } = new();
+        public DataConnectorSettings DataConnectorSettings { get; init; } = new();
+
+        /// <summary>
+        /// Instances of data connectors to be used by the agent. These are provided by the user and can be configured to connect to different data sources.
+        /// </summary>
+        public List<DataConnectorInstanceSettings> DataConnectors { get; init; } = [];
 
         [Required]
         public bool UseAgentFramework { get; set; } = false;

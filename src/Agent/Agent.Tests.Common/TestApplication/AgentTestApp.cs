@@ -3,10 +3,13 @@
 // ------------------------------------------------------------
 
 using System.Diagnostics;
+using Agent.Core.Clients.Search;
+using Agent.Core.Clients.Storage;
+using Agent.Tests.Common.Mocks;
 using Agent.Tests.Common.XUnit;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Xunit.Abstractions;
 
@@ -39,6 +42,9 @@ namespace Agent.Tests.Common.TestApplication
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder.OverrideOtelLoggingForTestOutput(_output);
+
+            ReplaceServicesWithMocks(builder);
+
             _configureWebHost(builder);
         }
 
@@ -60,6 +66,15 @@ namespace Agent.Tests.Common.TestApplication
                 // don't timeout while stepping through code in the debugger
                 client.Timeout = TimeSpan.MaxValue;
             }
+        }
+
+        private static void ReplaceServicesWithMocks(IWebHostBuilder builder)
+        {
+            builder.ConfigureServices(services =>
+            {
+                services.ReplaceAll<ISearchIndexingClient, MockSearchIndexingClient>(ServiceLifetime.Singleton);
+                services.ReplaceAll<IAzureBlobStorageClient, MockAzureBlobStorageClient>(ServiceLifetime.Singleton);
+            });
         }
     }
 }
