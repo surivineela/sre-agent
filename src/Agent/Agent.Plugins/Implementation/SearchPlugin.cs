@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Helpers;
+using Agent.Core.Services;
 using Agent.Logging;
 using Agent.Plugins.Interface;
 using Microsoft.Extensions.Logging;
@@ -23,10 +24,16 @@ namespace Agent.Plugins.Implementation
             _searchHelper = searchHelper ?? throw new ArgumentNullException(nameof(searchHelper));
         }
 
-        public async Task<List<SearchDocument>> SearchAsync(string searchText)
+        public async Task<List<SearchDocument>> SearchDocumentsAsync(string searchText)
         {
             _logger.LogInternalInformation($"SearchPlugin received search request for: '{searchText}'");
-            return await _searchHelper.SearchAsync(searchText);
+            return await _searchHelper.SearchAsync(searchText, SearchRequest.TypeDocument, false);
+        }
+
+        public Task<List<SearchDocument>> SearchRunbooksAsync(string searchText)
+        {
+            _logger.LogInternalInformation($"SearchPlugin received runbook search request for: '{searchText}'");
+            return _searchHelper.SearchAsync(searchText, SearchRequest.TypeRunbook, true);
         }
     }
 }

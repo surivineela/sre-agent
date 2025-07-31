@@ -24,6 +24,7 @@ using Agent.Runtime.SubAgents.Core;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
+using Agent.Core.Services;
 
 namespace Agent.Runtime.Reasoning;
 
@@ -2016,7 +2017,7 @@ public class ReasoningLoop : IDisposable
         IReadOnlyList<SearchDocument> results = [];
         try
         {
-            results = await _searchHelper.SearchAsync(query, span, _context.ThreadId.ToString());
+            results = await _searchHelper.SearchAsync(query, SearchRequest.TypeDocument, false, span, _context.ThreadId.ToString());
         }
         catch (Exception ex)
         {

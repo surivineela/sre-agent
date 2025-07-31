@@ -30,7 +30,7 @@ public class MockSearchEndpointService : ISearchEndpointService
         return Task.FromResult<IReadOnlyList<SearchDocument>>(_documents.Values.ToList());
     }
 
-    public Task<IReadOnlyList<SearchDocument>> SearchDocumentsAsync(string query, float[]? vectors, SearchType searchType, int? top = null)
+    public Task<IReadOnlyList<SearchDocument>> SearchDocumentsAsync(string query, string documentType, float[]? vectors, SearchType searchType, int? top = null, bool retrieveFullDocument = false)
     {
         var results = new List<SearchDocument>();
 

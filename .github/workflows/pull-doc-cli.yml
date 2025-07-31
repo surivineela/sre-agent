@@ -31,6 +31,7 @@ on:
         options:
           - azure-cli-docs
           - sre-agent-docs
+          - kubernetes-runbooks
       script_max_chunk_size:
         description: 'Max chunk size parameter for the PowerShell script (e.g., 1800)'
         required: false
@@ -71,7 +72,7 @@ jobs:
               ;;
           esac
         else
-          echo "No region specified, using provided storage_account and container_name"
+          echo "No region specified, using provided storage_account"
           STORAGE_ACCOUNT="${{ github.event.inputs.storage_account }}"
           CONTAINER_NAME="${{ github.event.inputs.container_name }}"
         fi
@@ -93,12 +94,23 @@ jobs:
           SCRIPT_PATH="scripts/preprocess-azure-docs.ps1"
           SCRIPT_SOURCE_PATH="azure-docs-cli/articles/sre-agent"
           SCRIPT_OUTPUT_FOLDER="azuredocs"
+          DOC_TYPE="document"
+          REPO_REF="main"
+        elif [ "${{ github.event.inputs.pull_doc_option }}" = "kubernetes-runbooks" ]; then
+          DOC_REPO="robusta-dev/holmesgpt"
+          SCRIPT_PATH="scripts/preprocess-kubernetes-runbooks.ps1"
+          SCRIPT_SOURCE_PATH="azure-docs-cli/holmes/plugins/runbooks"
+          SCRIPT_OUTPUT_FOLDER="kubernetes-runbooks"
+          DOC_TYPE="runbook"
+          REPO_REF="master"
         else
           # Default to azure-cli-docs
           DOC_REPO="MicrosoftDocs/azure-docs-cli"
           SCRIPT_PATH="scripts/preprocess-az-cli-doc.ps1"
           SCRIPT_SOURCE_PATH="azure-docs-cli/docs-ref-autogen/Latest-version/latest"
           SCRIPT_OUTPUT_FOLDER="azclidoc-full"
+          DOC_TYPE="document"
+          REPO_REF="main"
         fi
 
         TIMESTAMP=$(date -u +"%Y%m%d-%H%M%S")
@@ -109,12 +121,16 @@ jobs:
         echo "Resolved script_output_folder: $SCRIPT_OUTPUT_FOLDER"
         echo "Resolved github_repo: $DOC_REPO"
         echo "Resolved upload_container_name: $UPLOAD_CONTAINER_NAME"
+        echo "Resolved doc_type: $DOC_TYPE"
+        echo "Resolved repo_ref: $REPO_REF"
 
         echo "script_path=$SCRIPT_PATH" >> $GITHUB_OUTPUT
         echo "script_source_path=$SCRIPT_SOURCE_PATH" >> $GITHUB_OUTPUT
         echo "script_output_folder=$SCRIPT_OUTPUT_FOLDER" >> $GITHUB_OUTPUT
         echo "github_repo=$DOC_REPO" >> $GITHUB_OUTPUT
         echo "upload_container_name=$UPLOAD_CONTAINER_NAME" >> $GITHUB_OUTPUT
+        echo "doc_type=$DOC_TYPE" >> $GITHUB_OUTPUT
+        echo "repo_ref=$REPO_REF" >> $GITHUB_OUTPUT
 
     - name: 'Echo Workflow Inputs and Variables'
       run: |
@@ -123,11 +139,15 @@ jobs:
             echo "AZURE_SUBSCRIPTION_ID=${{ vars.AZURE_SUBSCRIPTION_ID }}"
             echo "STORAGE_ACCOUNT_NAME=${{ steps.resolve-region.outputs.storage_account }}"
             echo "CONTAINER_NAME=${{ steps.resolve-region.outputs.container_name }}"
+            echo "UPLOAD_CONTAINER_NAME=${{ steps.resolve-option.outputs.upload_container_name }}"
             echo "DOC_REPO=${{steps.resolve-option.outputs.github_repo}}"
+            echo "REPO_REF=${{ steps.resolve-option.outputs.repo_ref }}"
             echo "SCRIPT_PATH=${{ steps.resolve-option.outputs.script_path }}"
             echo "SCRIPT_SOURCE_PATH=${{ steps.resolve-option.outputs.script_source_path }}"
             echo "SCRIPT_OUTPUT_FOLDER=${{ steps.resolve-option.outputs.script_output_folder }}"
             echo "SCRIPT_MAX_CHUNK_SIZE=${{ github.event.inputs.script_max_chunk_size }}"
+            echo "DOC_TYPE=${{ steps.resolve-option.outputs.doc_type }}"
+
 
     - name: 'Azure Login using OIDC'
       uses: azure/login@v1
@@ -150,7 +170,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: ${{ steps.resolve-option.outputs.github_repo }}
-        ref: main
+        ref: ${{ steps.resolve-option.outputs.repo_ref }}
         fetch-depth: 1 # Shallow clone for speed
         path: azure-docs-cli
 
@@ -188,6 +208,7 @@ jobs:
         SOURCE_DIRECTORY="${{ github.workspace }}/${{ steps.resolve-option.outputs.script_output_folder }}"
         STORAGE_ACCOUNT="${{ steps.resolve-region.outputs.storage_account }}"
         UPLOAD_CONTAINER_NAME="${{ steps.resolve-option.outputs.upload_container_name }}"
+        DOC_TYPE="${{ steps.resolve-option.outputs.doc_type }}"
 
         if [ -d "$SOURCE_DIRECTORY" ] && [ "$(ls -A "$SOURCE_DIRECTORY")" ]; then
 
@@ -200,6 +221,7 @@ jobs:
           azcopy copy "$SOURCE_DIRECTORY/*" \
             "https://$STORAGE_ACCOUNT.blob.core.windows.net/$UPLOAD_CONTAINER_NAME/" \
             --recursive \
+            --metadata "type=$DOC_TYPE" \
             --overwrite=true 2>&1 | tee azcopy_copy_output.log || true
           AZCOPY_EXIT_CODE=${PIPESTATUS[0]}
 
@@ -231,6 +253,8 @@ jobs:
         CONTAINER_NAME="${{ steps.resolve-region.outputs.container_name }}"
         UPLOAD_CONTAINER_NAME="${{ steps.resolve-option.outputs.upload_container_name }}"
         DEST_PREFIX="${{ steps.resolve-option.outputs.script_output_folder }}"
+
+        az storage container create --account-name $STORAGE_ACCOUNT --name $CONTAINER_NAME --auth-mode login
 
         SOURCE_PATH=$UPLOAD_CONTAINER_NAME
         DESTINATION_PATH="$CONTAINER_NAME/$DEST_PREFIX"

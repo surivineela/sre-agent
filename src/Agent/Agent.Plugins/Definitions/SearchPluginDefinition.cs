@@ -20,7 +20,7 @@ namespace Agent.Plugins.Definitions
         }
 
         [Description("""
-            Peforms a semantic search for documents in a knowledge base. The knowledge base contains up-to-date documentation that may be newer than your own knowledge.
+            Performs a search for documents in a knowledge base. The knowledge base contains up-to-date documentation that may be newer than your own knowledge.
             The knowledge base contains following topics:
             - Az CLI documentation
             - Kubectl documentation
@@ -29,7 +29,18 @@ namespace Agent.Plugins.Definitions
         public async Task<List<SearchDocument>> SearchDocumentsAsync(
             [Description("The plain text question/query to be searched in the knowledge base")] string searchText)
         {
-            return await _plugin.SearchAsync(searchText);
+            return await _plugin.SearchDocumentsAsync(searchText);
+        }
+
+        [Description("""
+            Performs a search for runbooks for troubleshooting in a knowledge base. The knowledge base contains highly expertised runbooks for different areas.
+            The knowledge base contains runbooks for following topics:
+            - Kubernetes.
+            """)]
+        public async Task<List<SearchDocument>> SearchRunbooksAsync(
+            [Description("The plain text question/query to be searched in the knowledge base")] string searchText)
+        {
+            return await _plugin.SearchRunbooksAsync(searchText);
         }
     }
 }

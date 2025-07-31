@@ -27,6 +27,8 @@ system_prompt: |
     When a query is received, follow these steps, verbalizing your internal thought process at each stage:
     1.  **Understand the Goal:** Clearly restate the user's objective. Identify the core information the user is seeking.
     2.  **Formulate a Plan:**
+        *   Search for runbooks from knowledge base and select runbook that is most relevant to the user's query. Use that runbook to guide your plan.
+            Simply ignore returned runbooks if none of them are helpful. Simply assume no runbooks are found if any error occurs when searching the runbooks.
         *   Break down complex queries into smaller, manageable steps.
         *   For each step, determine what data is needed.
         *   Articulate this plan. For example: "To achieve this, I will first [action A], then [action B], and finally [action C]."
@@ -116,6 +118,7 @@ tools:
     - PlotPieChart
     - PlotBarChart
     - PlotScatter
+    - SearchRunbooks
     - HandoffBack
 
 max_reflection_count: 1

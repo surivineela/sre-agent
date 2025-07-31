@@ -37,7 +37,11 @@ public class SearchHelper
         _tracer = tracer;
     }
 
-    public async Task<List<SearchDocument>> SearchAsync(string searchText, TelemetrySpan? parentSpan = null, string? threadId = null)
+    public async Task<List<SearchDocument>> SearchAsync(string searchText,
+                                                        string documentType,
+                                                        bool retrieveFullDocument = false,
+                                                        TelemetrySpan? parentSpan = null,
+                                                        string? threadId = null)
     {
         if (string.IsNullOrEmpty(_searchEndpointSettings.SearchEndpointUrl) || !_searchEndpointSettings.EnableDocumentRetrieval)
         {
@@ -72,10 +76,14 @@ public class SearchHelper
                 span.SetAttribute(TraceAttribute.ThreadId, threadId);
                 span.SetAttribute(TraceAttribute.OperationName, "query.search.endpoint");
             }
-            var results = await _searchEndpointService.SearchDocumentsAsync(searchText, vector, searchType);
+            var results = await _searchEndpointService.SearchDocumentsAsync(searchText,
+                                                                            documentType,
+                                                                            vector,
+                                                                            searchType,
+                                                                            retrieveFullDocument: retrieveFullDocument);
             span?.End();
 
-            _logger.LogInternalInformation($"Search returned {results.Count} results from ISearchEndpointService.");
+            _logger.LogInternalInformation($"Search returned {results.Count} results from search endpoint.");
 
             // Before returning results, process them, this is to avoid context length exceeded error in ProcessUserMessageAsync in metaagent
             var optimizedResults = new List<SearchDocument>();

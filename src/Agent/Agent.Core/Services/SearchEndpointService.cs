@@ -22,10 +22,15 @@ public enum SearchType
 
 public class SearchRequest
 {
+    public const string TypeDocument = "document";
+    public const string TypeRunbook = "runbook";
     public SearchType SearchType { get; set; } = SearchType.Hybrid;
     public string SearchText { get; set; } = string.Empty;
+    public string DocumentType { get; set; } = TypeDocument;
     public float[]? Vector { get; set; }
     public int? Top { get; set; }
+    public List<string>? Categories { get; set; }
+    public bool RetrieveFullDocument { get; set; } = false;
 }
 
 public class SearchEndpointService : ISearchEndpointService
@@ -53,7 +58,12 @@ public class SearchEndpointService : ISearchEndpointService
             "/search/documents");
     }
 
-    public async Task<IReadOnlyList<SearchDocument>> SearchDocumentsAsync(string query, float[]? vectors, SearchType searchType, int? top = null)
+    public async Task<IReadOnlyList<SearchDocument>> SearchDocumentsAsync(string query,
+                                                                        string documentType,
+                                                                        float[]? vectors,
+                                                                        SearchType searchType,
+                                                                        int? top = null,
+                                                                        bool retrieveFullDocument = false)
     {
         top = top ?? _defaultTop;
         _logger.LogInternalInformation($"Getting top {top} documents with term {query} from search endpoint");
@@ -61,8 +71,10 @@ public class SearchEndpointService : ISearchEndpointService
         var searchRequest = new SearchRequest
         {
             SearchText = query,
+            DocumentType = documentType,
             Top = top,
-            SearchType = searchType
+            SearchType = searchType,
+            RetrieveFullDocument = retrieveFullDocument
         };
 
         if (vectors != null && vectors.Length > 0)
