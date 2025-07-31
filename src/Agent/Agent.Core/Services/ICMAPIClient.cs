@@ -17,7 +17,7 @@ namespace Agent.Core.Services
     {
         //bool IsEnabled();
         Task<Incident> GetIncidentAsync(string incidentId);
-        Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains);
+        Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains, string? owningTeamId = null, string? incidentType = null);
         Task<List<CustomField>> GetCustomFieldsAsync(string incidentId);
         Task<List<SearchItem>> SearchIncidentsAsync(string searchString);
         Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId);
@@ -256,7 +256,7 @@ namespace Agent.Core.Services
             }
         }
 
-        public async Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains)
+        public async Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains, string? owningTeamId = null, string? incidentType = null)
         {
             var modifiedDate = lastModifiedDate.HasValue ? lastModifiedDate.Value : DateTime.UtcNow.AddDays(-30); // Default to 30 days ago if no date is provided
 
@@ -265,15 +265,23 @@ namespace Agent.Core.Services
                 throw new ArgumentException("lastModifiedDate cannot be more than 90 days ago.", nameof(lastModifiedDate));
             }
 
+            // Validation: If OwningTeamId is specified, IncidentType must also be specified to limit search results
+            if (!string.IsNullOrWhiteSpace(owningTeamId) && string.IsNullOrWhiteSpace(incidentType))
+            {
+                throw new ArgumentException("IncidentType must be specified when OwningTeamId is provided to limit search results.", nameof(incidentType));
+            }
+
             owningServiceId = owningServiceId ?? _icmApiSettings.OwningServiceId;
             var serviceIdFilter = !string.IsNullOrWhiteSpace(owningServiceId) ? $" and OwningServiceId eq {owningServiceId}" : string.Empty;
             var titleFilter = !string.IsNullOrWhiteSpace(titleContains) ? $" and contains(Title, '{titleContains}')" : string.Empty;
+            var teamIdFilter = !string.IsNullOrWhiteSpace(owningTeamId) ? $" and OwningTeamId eq {owningTeamId}" : string.Empty;
+            var incidentTypeFilter = !string.IsNullOrWhiteSpace(incidentType) ? $" and Type eq '{incidentType}'" : string.Empty;
             var queryParams = new Dictionary<string, string?>()
             {
                 ["$top"] = limit.ToString(),
                 ["$skip"] = offset.ToString(),
                 ["$orderby"] = "LastModifiedDate desc",
-                ["$filter"] = $"LastModifiedDate gt {modifiedDate.ToString("yyyy-MM-ddTHH:mm:ss'Z'")}{serviceIdFilter}{titleFilter}"
+                ["$filter"] = $"LastModifiedDate gt {modifiedDate.ToString("yyyy-MM-ddTHH:mm:ss'Z'")}{serviceIdFilter}{titleFilter}{teamIdFilter}{incidentTypeFilter}"
             };
 
             return await GetIncidentsAsyncInternal(queryParams);
@@ -874,7 +882,7 @@ namespace Agent.Core.Services
             throw new NotImplementedException();
         }
 
-        public Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains)
+        public Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains, string? owningTeamId = null, string? incidentType = null)
         {
             throw new NotImplementedException();
         }

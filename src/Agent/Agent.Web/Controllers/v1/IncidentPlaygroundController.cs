@@ -247,7 +247,8 @@ public class IncidentPlaygroundController : ControllerBase
             payload.IncidentType,
             payload.AlertId,
             payload.TitleContains,
-            true
+            true,
+            OwningTeamId: payload.OwningTeamId
         );
 
         if (!string.IsNullOrWhiteSpace(payload.AgentMode))

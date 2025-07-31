@@ -15,7 +15,8 @@ public record IncidentFilterDocument(
     string AlertId,
     string TitleContains,
     bool IsEnabled = true,
-    string AgentMode = ""
+    string AgentMode = "",
+    string OwningTeamId = ""
 ) : ICosmosDocument
 {
     public static string ContainerName => AgentDataConfiguration.ThreadContainerName; // Cosmos DB container name
@@ -30,6 +31,7 @@ public record IncidentFilterDocument(
     public string TitleContains { get; set; } = TitleContains;
     public bool IsEnabled { get; set; } = IsEnabled;
     public string AgentMode { get; set; } = AgentMode;
+    public string OwningTeamId { get; set; } = OwningTeamId;
 }
 
 
@@ -44,4 +46,5 @@ public class IncidentFilterDocumentPayload
     public string TitleContains { get; set; } = string.Empty;
     public bool IsEnabled { get; set; } = true;
     public string AgentMode { get; set; } = string.Empty;
+    public string OwningTeamId { get; set; } = string.Empty;
 }

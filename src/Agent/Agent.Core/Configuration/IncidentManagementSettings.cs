@@ -34,6 +34,14 @@ namespace Agent.Core.Configuration
         public string? OboUser { get; set; }
 
         public ICMAPISettings ICMAPI { get; set; } = new();
+
+        public AutomatedRCASettings AutomatedRCA { get; set; } = new();
+    }
+
+    public class AutomatedRCASettings
+    {
+        public bool Enabled { get; set; } = false;
+        public string WebBaseUrl { get; set; } = string.Empty;
     }
 
     public class ICMAPISettings
