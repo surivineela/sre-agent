@@ -324,18 +324,14 @@ namespace Agent.Plugins.Definitions
             [Description("Azure region of the managed environment.")] string region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
-            [Description("Name of the managed environment.")] string environmentName,
-            [Description("Name of the resource group.")] string resourceGroupName,
-            [Description("Azure subscription ID.")] string subscriptionId)
+            [Description("Name of the managed cluster")] string managedClusterName)
         {
             return await _kustoPlugin.ExecuteLocalFunctionAsync("GetManagedEnvironmentOperationErrors", region,
                 new Dictionary<string, string>
                 {
                     { "fromDate", fromDate.ToString() },
                     { "toDate", toDate.ToString() },
-                    { "environmentName", environmentName },
-                    { "resourceGroupName", resourceGroupName },
-                    { "subscriptionId", subscriptionId }
+                    { "managedClusterName", managedClusterName }
                 });
         }
 
