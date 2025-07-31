@@ -6,6 +6,7 @@ export enum SettingNames {
     ShowAgentModeForThread = 'showAgentModeForThread',
     Streaming = 'streaming',
     ConsolidatedCreate = 'consolidatedCreate',
+    DataConnections = 'dataConnections',
 }
 
 const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
@@ -15,10 +16,12 @@ const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
     'portal.azure.com': {},
     'ms.portal.azure.com': {
         [SettingNames.ConsolidatedCreate]: true,
+        [SettingNames.DataConnections]: true,
     },
     localhost: {
         [SettingNames.ShowAgentModeForThread]: true,
         [SettingNames.ConsolidatedCreate]: true,
+        [SettingNames.DataConnections]: true,
     },
 };
 

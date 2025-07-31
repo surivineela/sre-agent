@@ -953,6 +953,7 @@ export const SettingsTabResources = defineMessages({
     basics: { defaultMessage: 'Basics', id: 'itC9lG' },
     grafanaDashboard: { defaultMessage: 'Grafana dashboard', id: '2zi2Yj' },
     managedResources: { defaultMessage: 'Managed resource groups', id: 'yilQrD' },
+    dataConnections: { defaultMessage: 'Data connections', id: 'yImvmS' },
 });
 
 export const GrafanaDashboardResources = defineMessages({
@@ -1391,4 +1392,37 @@ export const ServiceNowResources = defineMessages({
         defaultMessage: 'Add a default incident handler for the agent to use for High priority incidents.',
         id: 'x65I0c',
     },
+});
+
+export const DataConnectionsResources = defineMessages({
+    name: { defaultMessage: 'Name', id: 'HAlOn1' },
+    dataConnectionType: { defaultMessage: 'Type', id: '+U6ozc' },
+    dataSource: { defaultMessage: 'Data Source', id: 'uudb6D' },
+    keyVaultUri: { defaultMessage: 'Key Vault URI', id: 'auFFJa' },
+    identity: { defaultMessage: 'Identity', id: 'tShbyC' },
+    noDataConnections: { defaultMessage: 'No data connections configured', id: 'SIuIBn' },
+    createDataConnection: { defaultMessage: 'Create Data Connection', id: 'mYEHjx' },
+    editDataConnection: { defaultMessage: 'Edit Data Connection', id: 'WD0bzy' },
+    editDataConnectionDescription: { defaultMessage: 'Update the data connection configuration.', id: 'gUxC3M' },
+    namePlaceholder: { defaultMessage: 'Enter connection name', id: 'pxfpJw' },
+    typePlaceholder: { defaultMessage: 'Enter connection type', id: 'qzXheo' },
+    dataSourcePlaceholder: { defaultMessage: 'Enter data source', id: 'Drs4w4' },
+    keyVaultUriPlaceholder: { defaultMessage: 'Enter Key Vault URI', id: '69sjgc' },
+    identityPlaceholder: { defaultMessage: 'Enter identity', id: 'yoEvbh' },
+    duplicateNameError: { defaultMessage: 'A data connection with this name already exists', id: '30BIRO' },
+    deletingDataConnection: { defaultMessage: 'Deleting Data Connection', id: 'QHt/Jd' },
+    deletingDataConnectionDescription: { defaultMessage: 'Deleting data connection "{name}"', id: 'ZxRi/i' },
+    dataConnectionDeleted: { defaultMessage: 'Data connection "{name}" has been deleted successfully', id: 'qyW7Lq' },
+    deleteDataConnectionFailed: { defaultMessage: 'Failed to delete data connection', id: 'lSRgS0' },
+    deleteDataConnectionWithMessageFailed: { defaultMessage: 'Failed to delete data connection with error: {error}', id: 'eF75q+' },
+    creatingDataConnection: { defaultMessage: 'Creating Data Connection', id: 'oQJOpc' },
+    creatingDataConnectionDescription: { defaultMessage: 'Creating data connection "{name}"', id: '+9hKHE' },
+    dataConnectionCreated: { defaultMessage: 'Data connection "{name}" has been created successfully', id: 'R1bTYZ' },
+    createDataConnectionFailed: { defaultMessage: 'Failed to create data connection', id: '6TAs24' },
+    createDataConnectionWithMessageFailed: { defaultMessage: 'Failed to create data connection with error: {error}', id: 'UUPmeu' },
+    updatingDataConnection: { defaultMessage: 'Updating Data Connection', id: 'MBLfuL' },
+    updatingDataConnectionDescription: { defaultMessage: 'Updating data connection "{name}"', id: 'bYJT9s' },
+    dataConnectionUpdated: { defaultMessage: 'Data connection "{name}" has been updated successfully', id: 'zx5LNX' },
+    updateDataConnectionFailed: { defaultMessage: 'Failed to update data connection', id: 'SRIFSx' },
+    updateDataConnectionWithMessageFailed: { defaultMessage: 'Failed to update data connection with error: {error}', id: 'sHlOQh' },
 });

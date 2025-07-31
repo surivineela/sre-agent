@@ -11,6 +11,20 @@
       "value": "Delete thread?"
     }
   ],
+  "+9hKHE": [
+    {
+      "type": 0,
+      "value": "Creating data connection \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
   "+DBMRK": [
     {
       "type": 0,
@@ -339,6 +353,12 @@
       "value": "Grafana dashboard"
     }
   ],
+  "30BIRO": [
+    {
+      "type": 0,
+      "value": "A data connection with this name already exists"
+    }
+  ],
   "3BubSI": [
     {
       "type": 0,
@@ -621,6 +641,12 @@
       "value": "Preview incidents"
     }
   ],
+  "69sjgc": [
+    {
+      "type": 0,
+      "value": "Enter Key Vault URI"
+    }
+  ],
   "6ENgmY": [
     {
       "type": 0,
@@ -661,6 +687,12 @@
     {
       "type": 0,
       "value": "User-assigned Managed Identity"
+    }
+  ],
+  "6TAs24": [
+    {
+      "type": 0,
+      "value": "Failed to create data connection"
     }
   ],
   "6UyZlH": [
@@ -1225,6 +1257,12 @@
       "value": "Failed to delete logic app"
     }
   ],
+  "Drs4w4": [
+    {
+      "type": 0,
+      "value": "Enter data source"
+    }
+  ],
   "Dx3Xj3": [
     {
       "type": 0,
@@ -1689,6 +1727,12 @@
       "value": "Incident ID"
     }
   ],
+  "MBLfuL": [
+    {
+      "type": 0,
+      "value": "Updating Data Connection"
+    }
+  ],
   "MCSjdU": [
     {
       "type": 0,
@@ -2057,6 +2101,12 @@
       "value": "Agent"
     }
   ],
+  "QHt/Jd": [
+    {
+      "type": 0,
+      "value": "Deleting Data Connection"
+    }
+  ],
   "QIY3dQ": [
     {
       "type": 0,
@@ -2115,6 +2165,20 @@
     {
       "type": 0,
       "value": "Full access to IoT Hub data."
+    }
+  ],
+  "R1bTYZ": [
+    {
+      "type": 0,
+      "value": "Data connection \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been created successfully"
     }
   ],
   "RDflWE": [
@@ -2183,6 +2247,12 @@
       "value": "Cognitive Services Data Reader"
     }
   ],
+  "SIuIBn": [
+    {
+      "type": 0,
+      "value": "No data connections configured"
+    }
+  ],
   "SL7+hl": [
     {
       "type": 0,
@@ -2203,6 +2273,12 @@
     {
       "type": 0,
       "value": "Core application group health + performance"
+    }
+  ],
+  "SRIFSx": [
+    {
+      "type": 0,
+      "value": "Failed to update data connection"
     }
   ],
   "SRf69j": [
@@ -2355,6 +2431,16 @@
       "value": "Go to map"
     }
   ],
+  "UUPmeu": [
+    {
+      "type": 0,
+      "value": "Failed to create data connection with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "UV4Dx5": [
     {
       "type": 0,
@@ -2467,6 +2553,12 @@
     {
       "type": 0,
       "value": "Approve"
+    }
+  ],
+  "WD0bzy": [
+    {
+      "type": 0,
+      "value": "Edit Data Connection"
     }
   ],
   "WHleoJ": [
@@ -2747,6 +2839,20 @@
       "value": " managed resource groups to your SRE Agent"
     }
   ],
+  "ZxRi/i": [
+    {
+      "type": 0,
+      "value": "Deleting data connection \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
   "a5msuh": [
     {
       "type": 0,
@@ -2825,6 +2931,12 @@
       "value": "Cognitive Services Language Writer"
     }
   ],
+  "auFFJa": [
+    {
+      "type": 0,
+      "value": "Key Vault URI"
+    }
+  ],
   "bKgVBL": [
     {
       "type": 0,
@@ -2841,6 +2953,20 @@
     {
       "type": 0,
       "value": "New"
+    }
+  ],
+  "bYJT9s": [
+    {
+      "type": 0,
+      "value": "Updating data connection \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
     }
   ],
   "blSyDZ": [
@@ -2993,6 +3119,16 @@
       "value": "Read-only actions in the project. Readers can't create or update the project."
     }
   ],
+  "eF75q+": [
+    {
+      "type": 0,
+      "value": "Failed to delete data connection with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "eFKqV0": [
     {
       "type": 0,
@@ -3115,6 +3251,12 @@
     {
       "type": 0,
       "value": "Connects to"
+    }
+  ],
+  "gUxC3M": [
+    {
+      "type": 0,
+      "value": "Update the data connection configuration."
     }
   ],
   "gZ5fZs": [
@@ -3475,6 +3617,12 @@
       "value": "AzureML Data Scientist"
     }
   ],
+  "lSRgS0": [
+    {
+      "type": 0,
+      "value": "Failed to delete data connection"
+    }
+  ],
   "levHvg": [
     {
       "type": 0,
@@ -3527,6 +3675,12 @@
     {
       "type": 0,
       "value": "Edit QnA Maker knowledge bases."
+    }
+  ],
+  "mYEHjx": [
+    {
+      "type": 0,
+      "value": "Create Data Connection"
     }
   ],
   "mZ0R9v": [
@@ -3665,6 +3819,12 @@
       "value": "Cost Management Contributor"
     }
   ],
+  "oQJOpc": [
+    {
+      "type": 0,
+      "value": "Creating Data Connection"
+    }
+  ],
   "oTNrPz": [
     {
       "type": 0,
@@ -3789,6 +3949,12 @@
       "value": "Manage Application Insights components."
     }
   ],
+  "pxfpJw": [
+    {
+      "type": 0,
+      "value": "Enter connection name"
+    }
+  ],
   "q/uwLT": [
     {
       "type": 0,
@@ -3823,6 +3989,26 @@
     {
       "type": 0,
       "value": "Backend Endpoint"
+    }
+  ],
+  "qyW7Lq": [
+    {
+      "type": 0,
+      "value": "Data connection \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been deleted successfully"
+    }
+  ],
+  "qzXheo": [
+    {
+      "type": 0,
+      "value": "Enter connection type"
     }
   ],
   "r2x5ZI": [
@@ -3933,6 +4119,16 @@
       "value": "Enter title keywords"
     }
   ],
+  "sHlOQh": [
+    {
+      "type": 0,
+      "value": "Failed to update data connection with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "sI+CCC": [
     {
       "type": 0,
@@ -4009,6 +4205,12 @@
       "value": "The selected resource group is being set up"
     }
   ],
+  "tShbyC": [
+    {
+      "type": 0,
+      "value": "Identity"
+    }
+  ],
   "tshYzs": [
     {
       "type": 0,
@@ -4073,6 +4275,12 @@
     {
       "type": 0,
       "value": "Time"
+    }
+  ],
+  "uudb6D": [
+    {
+      "type": 0,
+      "value": "Data Source"
     }
   ],
   "v8lolG": [
@@ -4305,6 +4513,12 @@
       "value": "These previous incidents match the selected incident type. The agent can learn from a maximum of 5 incidents."
     }
   ],
+  "yImvmS": [
+    {
+      "type": 0,
+      "value": "Data connections"
+    }
+  ],
   "yVc78v": [
     {
       "type": 0,
@@ -4339,6 +4553,12 @@
     {
       "type": 0,
       "value": "API Management Service Operator Role"
+    }
+  ],
+  "yoEvbh": [
+    {
+      "type": 0,
+      "value": "Enter identity"
     }
   ],
   "yoK+he": [
@@ -4405,6 +4625,20 @@
     {
       "type": 0,
       "value": "Prompt library"
+    }
+  ],
+  "zx5LNX": [
+    {
+      "type": 0,
+      "value": "Data connection \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been updated successfully"
     }
   ]
 }

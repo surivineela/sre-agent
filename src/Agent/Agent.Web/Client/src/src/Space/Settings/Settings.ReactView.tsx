@@ -2,10 +2,12 @@ import { INavLinkGroup, initializeIcons, Nav } from '@fluentui/react';
 import { FC, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
 import GrafanaDashboard from '../../GrafanaDashboard/GrafanaDashboard.ReactView';
 import { SettingsTabResources } from '../../Strings/SREAgentResources';
 import AccessControl from './AccessControl.ReactView';
 import Basics from './Basics.ReactView';
+import DataConnections from './DataConnections.ReactView';
 import IncidentManagement from './IncidentManagement.ReactView';
 import ManagedResources from './ManagedResources.ReactView';
 import { navStyles, useSettingsStyles } from './Styles/Settings.styles';
@@ -16,6 +18,7 @@ export enum SettingsKeys {
     Basics = 'basics',
     GrafanaDashboard = 'grafanaDashboard',
     managedResources = 'managedResourcesGroups',
+    DataConnections = 'dataConnections',
 }
 
 const Settings: FC = () => {
@@ -24,6 +27,7 @@ const Settings: FC = () => {
     const { menuItem } = useParams();
     const location = useLocation();
     const navigate = useNavigate();
+    const showDataConnections = useConfigSetting(SettingNames.DataConnections);
 
     const [iconsInitialized, setIconsInitialized] = useState(false);
     const selectedKey = useMemo(() => {
@@ -57,6 +61,15 @@ const Settings: FC = () => {
                         url: '',
                         key: SettingsKeys.GrafanaDashboard,
                     },
+                    ...(showDataConnections
+                        ? [
+                              {
+                                  name: intl.formatMessage(SettingsTabResources.dataConnections),
+                                  url: '',
+                                  key: SettingsKeys.DataConnections,
+                              },
+                          ]
+                        : []),
                     {
                         name: intl.formatMessage(SettingsTabResources.accessControl),
                         url: '',
@@ -65,7 +78,7 @@ const Settings: FC = () => {
                 ],
             },
         ],
-        [intl]
+        [intl, showDataConnections]
     );
 
     useEffect(() => {
@@ -91,6 +104,7 @@ const Settings: FC = () => {
                     {selectedKey === SettingsKeys.managedResources && <ManagedResources />}
                     {selectedKey === SettingsKeys.IncidentManagement && <IncidentManagement />}
                     {selectedKey === SettingsKeys.GrafanaDashboard && <GrafanaDashboard />}
+                    {selectedKey === SettingsKeys.DataConnections && showDataConnections && <DataConnections />}
                     {selectedKey === SettingsKeys.AccessControl && <AccessControl />}
                 </div>
             </div>

@@ -1,3 +1,10 @@
+export interface DataConnector {
+    name: string;
+    dataConnectorType: string;
+    dataSource: string;
+    identity: string;
+}
+
 export interface Agent {
     provisioningState: ProvisioningState;
     agentEndpoint: string;
@@ -10,6 +17,7 @@ export interface Agent {
     logConfiguration?: LogConfiguration;
     incidentManagementConfiguration?: IncidentManagementConfiguration | null;
     dashboardConfiguration: DashboardConfiguration;
+    dataConnectors?: DataConnector[];
 }
 
 export enum ProvisioningState {
