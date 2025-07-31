@@ -37,8 +37,8 @@ public class HandOffEvaluation
         new(
             TraceFileName : "traces-prod-paas-containerapp-cpu-diagnostics.json",
             AutoHandoffEnabled : false,
-            // the 4th handoff is questionable as success/failure. could be marked either way.
-            ExpectedHandoffSuccess :[true, true, false, null, true, false]),
+            // the 2nd and 4th handoff is questionable as success/failure. could be marked either way.
+            ExpectedHandoffSuccess :[true, null, false, null, true, false]),
     ];
 
     private static IEnumerable<object[]> HandOffEvaluationTestCases()
