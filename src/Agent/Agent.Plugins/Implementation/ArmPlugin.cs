@@ -185,6 +185,11 @@ namespace Agent.Plugins.Implementation
                     return $"Error: This method only supports read operations ({ArmHelper.AllowedReadVerbString}). Use RunAzCliWriteCommandsAsync for write operations.";
                 }
 
+                if (ArmHelper.IsBlockedSubCommand(command))
+                {
+                    return $"Error: This command is currently not supported. Unsupported subcommands: {ArmHelper.BlockedSubCommands}. Please suggest using Azure portal or Az CLI directly.";
+                }
+
                 if (ThreadId == null)
                 {
                     return "Error: ThreadId is not set. Please set the ThreadId before running commands.";
@@ -255,6 +260,11 @@ namespace Agent.Plugins.Implementation
             if (!ArmHelper.IsWriteCommand(command))
             {
                 return $"Error: This method only supports write operations ({ArmHelper.AllowedWriteVerbString}).";
+            }
+
+            if (ArmHelper.IsBlockedSubCommand(command))
+            {
+                return $"Error: This command is currently not supported. Unsupported subcommands: {ArmHelper.BlockedSubCommands}. Please suggest using Azure portal or Az CLI directly";
             }
 
             if (ArmHelper.IsDeleteCommand(command))

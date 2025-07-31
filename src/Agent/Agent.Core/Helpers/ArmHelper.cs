@@ -72,67 +72,71 @@ public class ArmHelper
 
     public static readonly ImmutableArray<string> AllowedReadVerbs = [
         "get",
-            "list",
-            "show",
-        ];
+        "list",
+        "show",
+    ];
+
+    public static readonly ImmutableArray<string> BlockedSubCommands = [
+        "keyvault"
+    ];
 
     public static readonly string AllowedReadVerbString = string.Join(", ", AllowedReadVerbs);
 
     public static readonly ImmutableArray<string> AllowedWriteVerbs = [
         "add",
-            "create",
-            "register", // for RPs and Features
-            "unregister",
-            "scale",
-            "set",
-            "stop",
-            "update",
-            "upgrade",
-            "deploy",        // `az deployment group create` etc.
-            "redeploy",      // VM redeployment
-            "attach",        // attach/detach disks, policies, etc.
-            "detach",
-            "enable",        // enable/disable features, add-ons
-            "disable",
-            "import",        // storage, key-vault, etc.
-            "export",
-            "backup",        // key-vault, AKS cluster snapshots, …
-            "restore",
-            "move",          // resource moves across RGs/subs
-            "rename",        // supported on a few resources
-            "install",       // extension install/upgrade flows
-            "uninstall",
-            "purge",         // key-vault, app-config, log-analytics
-            "invoke",        // run-command, function invoke
-            "commit",        // ACR tasks, app-service slots
-            "reimage",
-            "failover-group",
-            // Configuration / updates
-            "update", "set", "patch", "apply-patches", "assess-patches",
-            "upgrade", "deploy", "redeploy", "reapply", "commit",
-            // Scale & size
-            "scale", "resize",
+        "create",
+        "register", // for RPs and Features
+        "unregister",
+        "scale",
+        "set",
+        "stop",
+        "update",
+        "upgrade",
+        "deploy",        // `az deployment group create` etc.
+        "redeploy",      // VM redeployment
+        "attach",        // attach/detach disks, policies, etc.
+        "detach",
+        "enable",        // enable/disable features, add-ons
+        "disable",
+        "import",        // storage, key-vault, etc.
+        "export",
+        "backup",        // key-vault, AKS cluster snapshots, …
+        "restore",
+        "move",          // resource moves across RGs/subs
+        "rename",        // supported on a few resources
+        "install",       // extension install/upgrade flows
+        "uninstall",
+        "purge",         // key-vault, app-config, log-analytics
+        "invoke",        // run-command, function invoke
+        "commit",        // ACR tasks, app-service slots
+        "reimage",
+        "failover-group",
+        // Configuration / updates
+        "update", "set", "patch", "apply-patches", "assess-patches",
+        "upgrade", "deploy", "redeploy", "reapply", "commit",
+        // Scale & size
+        "scale", "resize",
 
-            // Start/stop style actions
-            "start", "stop", "restart", "deallocate",
-            // Access & identity
-            "assign", "grant", "revoke",
-            // Networking & recovery
-            "failover", "reset", "repair", "flush",
-            // Promotion / traffic-shift
-            "swap", "promote",
-            // Misc utility
-            "sync",
-            "query",  // some RPs treat query as a POST that writes logs
-            "restart", // left here for clarity even though in “start/stop” bucket
-        ];
+        // Start/stop style actions
+        "start", "stop", "restart", "deallocate",
+        // Access & identity
+        "assign", "grant", "revoke",
+        // Networking & recovery
+        "failover", "reset", "repair", "flush",
+        // Promotion / traffic-shift
+        "swap", "promote",
+        // Misc utility
+        "sync",
+        "query",  // some RPs treat query as a POST that writes logs
+        "restart", // left here for clarity even though in “start/stop” bucket
+    ];
 
     public static readonly string AllowedWriteVerbString = string.Join(", ", AllowedWriteVerbs);
 
     public static readonly ImmutableArray<string> BlockedDeleteVerbs = [
         "delete",
-            "remove",
-        ];
+        "remove",
+    ];
 
     public static readonly ImmutableArray<string> WriteVerbs = [.. AllowedWriteVerbs, .. BlockedDeleteVerbs];
 
@@ -3104,6 +3108,14 @@ public class ArmHelper
 
         // Check if command contains delete verbs as primary action
         return BlockedDeleteVerbs.Any(verb => commandLower.Contains($" {verb} ") || commandLower.Contains($" {verb}"));
+    }
+
+    public static bool IsBlockedSubCommand(string command)
+    {
+        var commandLower = command.ToLower().Trim();
+
+        // Check if command contains blocked subcommands
+        return BlockedSubCommands.Any(subCommand => commandLower.Contains($" {subCommand} ") || commandLower.Contains($" {subCommand}"));
     }
 
     public static bool IsAksCommandInvokeCommand(string command)
