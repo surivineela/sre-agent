@@ -224,7 +224,7 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
         {
             cappNode.HostNames.Add(capp.Configuration.Ingress.Fqdn);
         }
-        if (capp.Configuration?.Ingress.CustomDomains?.Count > 0)
+        if (capp.Configuration?.Ingress?.CustomDomains?.Count > 0)
         {
             foreach (var customDomain in capp.Configuration.Ingress.CustomDomains)
             {
