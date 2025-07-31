@@ -253,6 +253,7 @@ export const processChatMessageContents = (
     };
 
     const executionId = chatMessageContent.azCliExecution?.id || chatMessageContent.kubectlExecution?.id;
+    const approvalId = chatMessageContent.approval?.id;
 
     if (executionId) {
         const existingContentIndexThatHasSameExecutionId = currentContents.findIndex(content => {
@@ -262,6 +263,11 @@ export const processChatMessageContents = (
 
         if (existingContentIndexThatHasSameExecutionId !== -1) {
             currentContents.splice(existingContentIndexThatHasSameExecutionId, 1);
+        }
+    } else if (approvalId) {
+        const existingContentIndexThatHasSameApprovalId = currentContents.findIndex(content => content.approval?.id === approvalId);
+        if (existingContentIndexThatHasSameApprovalId !== -1) {
+            currentContents.splice(existingContentIndexThatHasSameApprovalId, 1);
         }
     }
 
