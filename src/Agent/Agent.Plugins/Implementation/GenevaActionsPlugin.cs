@@ -1,5 +1,5 @@
-using System.Text.Json.Serialization;
 using System.Runtime.Caching;
+using System.Text.Json.Serialization;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
@@ -11,6 +11,7 @@ using Agent.Plugins.Kusto;
 using Agent.Plugins.KustoPlugin;
 using Agent.Plugins.Models;
 using Microsoft.Azure.Cosmos;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Author = Agent.Core.Models.Api.v1.Author;
@@ -35,6 +36,7 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
     private OneBranchApprovalService _oneBranchApprovalService;
     private IKeyVaultService _keyVaultService;
     private IThreadRepository _threadRepository;
+    private IAgentOutboundCommunicationService _agentOutboundCommunicationService;
 
     // Static MemoryCache for approval requests shared across all instances
     private static readonly MemoryCache _approvalRequestsCache = MemoryCache.Default;
@@ -52,7 +54,8 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
         OneBranchApprovalService oneBranchApprovalService,
         IICMAPIClient iCMAPIClient,
         IKeyVaultService keyVaultService,
-        IThreadRepository threadRepository)
+        IThreadRepository threadRepository,
+        IAgentOutboundCommunicationService agentOutboundCommunicationService)
     {
         _logger = logger;
         _icmWorkflowClient = icmWorkflowClient;
@@ -66,6 +69,7 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
         _icmAPIClient = iCMAPIClient;
         _keyVaultService = keyVaultService;
         _threadRepository = threadRepository;
+        _agentOutboundCommunicationService = agentOutboundCommunicationService;
 
     }
 
@@ -198,7 +202,10 @@ No approval request found for document ID: {documentId}. Please ensure the docum
                 }
 
                 delayAmountInSeconds *= 2; // Exponential backoff
-                await _threadRepository.AddMessageAsync(ThreadId!.Value, new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"), $"Still waiting for approval, please approve the action. Will check again in {delayAmountInSeconds} seconds."));
+                await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                    ThreadId!.Value,
+                    string.Empty,
+                    new ChatMessage(ChatRole.Assistant, $"Still waiting for approval, please approve the action. Will check again in {delayAmountInSeconds} seconds."));
             }
             string? status = approvalStatus?.Data?.ApprovalDocumentCompleteDetails?.Action;
             if (status != "Approve")
@@ -233,7 +240,10 @@ No approval request found for document ID: {documentId}. Please ensure the docum
             UpdateApprovalRequestStatus(ThreadId!.Value, approvedRequestDetails.ActionName, approvedRequestDetails.InputParameters, documentId, approvedRequestDetails, _genevaActionsSettings);
         }
 
-        await _threadRepository.AddMessageAsync(ThreadId!.Value, new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"), message!));
+        await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+            ThreadId!.Value,
+            string.Empty,
+            new ChatMessage(ChatRole.Assistant, message!));
         return message;
     }
 
@@ -268,15 +278,11 @@ No approval request found for document ID: {documentId}. Please ensure the docum
 
         var logMessage = $"[execute_geneva_action] Invoked with actionName {actionName} and parameters: {JsonConvert.SerializeObject(inputParameters)}";
         _logger.LogInternalInformation(logMessage);
-        await _threadRepository.AddMessageAsync(
+        await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
             ThreadId!.Value,
-            new Message(
-            Guid.NewGuid(),
-            DateTime.UtcNow,
-            new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-            $@"Invoking geneva action **{actionName}** with parameters:
-    {string.Join(Environment.NewLine, inputParameters.Select(kvp => $"    {kvp.Key}: {kvp.Value}"))}"
-            )
+            string.Empty,
+            new ChatMessage(ChatRole.Assistant, $@"Invoking geneva action **{actionName}** with parameters:
+    {string.Join(Environment.NewLine, inputParameters.Select(kvp => $"    {kvp.Key}: {kvp.Value}"))}")
         );
 
         var genevaAction = (await GetGenevaActions()).Where(x => x.ActionName.ToLower() == actionName.ToLower()).FirstOrDefault();
@@ -304,7 +310,10 @@ No approval request found for document ID: {documentId}. Please ensure the docum
         if (_oneBranchApprovalService.IsEnabled && genevaAction.IsApprovalNeeded)
         {
             logMessage = $"[execute_geneva_action][{DateTime.UtcNow}] Geneva action requires approval. Check for existing approval.";
-            await _threadRepository.AddMessageAsync(ThreadId!.Value, new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"), "This geneva action requires approval"));
+            await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                ThreadId!.Value,
+                string.Empty,
+                new ChatMessage(ChatRole.Assistant, "This geneva action requires approval"));
             _logger.LogInternalInformation(logMessage);
             var approvalRequestDetails = GetApprovalRequestDetails(ThreadId!.Value, actionName, inputParameters);
 
@@ -325,7 +334,10 @@ No approval request found for document ID: {documentId}. Please ensure the docum
                         ReleaseApproversAllowed = new List<string> { "AME\\AZURE-ALL-PSV" } // FTE AME account, see https://dev.azure.com/mseng/AzureDevOps/_wiki/wikis/AzureDevOps.wiki/1113/TSG-Azure-Network-Troubleshooting?anchor=security-groups-that-you-need-to-join
                     };
 
-                    await _threadRepository.AddMessageAsync(ThreadId!.Value, new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"), $"Sending request to Approval Service API to create approval document."));
+                    await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                        ThreadId!.Value,
+                        string.Empty,
+                        new ChatMessage(ChatRole.Assistant, "Sending request to Approval Service API to create approval document."));
                     // Create the approval document
                     var approvalResponse = await _oneBranchApprovalService.CreateApprovalDocumentAsync(approvalRequest, actionName, inputParameters);
 
@@ -341,7 +353,10 @@ No approval request found for document ID: {documentId}. Please ensure the docum
 
                     logMessage = $"[execute_geneva_action][{DateTime.UtcNow}] Approval document created, please approve {approvalResponse.ApprovalDocumentUri} to continue.";
                     _logger.LogInternalInformation(logMessage);
-                    await _threadRepository.AddMessageAsync(ThreadId!.Value, new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"), $@"Approval document created, please approve. (**Requires SAW**)
+                    await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                        ThreadId!.Value,
+                        string.Empty,
+                        new ChatMessage(ChatRole.Assistant, $@"Approval document created, please approve. (**Requires SAW**)
                     Approval Request URI: {approvalResponse.ApprovalDocumentUri}"));
 
                     await _icmAPIClient.PostDiscussionEntryAsync(incidentId, @$"
@@ -369,7 +384,10 @@ In order to potentially resolve the incident, the following Geneva Action '{acti
             {
                 logMessage = $"[execute_geneva_action][{DateTime.UtcNow}] Approval already exists for actionName: {actionName}. Proceeding with execution.";
                 _logger.LogInternalInformation(logMessage);
-                await _threadRepository.AddMessageAsync(ThreadId!.Value, new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"), $"Approval already exists for actionName: {actionName}. Proceeding with execution."));
+                await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                    ThreadId!.Value,
+                    string.Empty,
+                    new ChatMessage(ChatRole.Assistant, $"Approval already exists for actionName: {actionName}. Proceeding with execution."));
             }
             else
             {
@@ -394,7 +412,10 @@ In order to potentially resolve the incident, the following Geneva Action '{acti
         _logger.LogInternalInformation("[GenevaActionsPlugin] Proceeding with executing Geneva Action");
         var response = await ExecuteGenevaActionWorkflow(genevaAction, inputParameters);
         await _icmAPIClient.PostDiscussionEntryAsync(incidentId, response);
-        await _threadRepository.AddMessageAsync(ThreadId!.Value, new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"), $"Geneva Actions response: {response}"));
+        await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+            ThreadId!.Value,
+            string.Empty,
+            new ChatMessage(ChatRole.Assistant, $"Geneva Actions response: {response}"));
         return response;
     }
 

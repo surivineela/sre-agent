@@ -243,19 +243,25 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
 
             //await response.UpdateAgentChatHistoryAsync(agentChatHistory, _threadRepository, agentContext.Id);
 
-            
+            var responseMessageId = Guid.Empty;
+
+
             if (response != null)
             {
                 var orchestrationInstanceId = agentContext != null ? await _threadService.GetOrchestrationInstanceId(agentContext.ThreadId) : string.Empty;
 
                 foreach (var message in response.Messages)
                 {
+                    responseMessageId = Guid.NewGuid();
                     await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
-                   threadGuid,
-                   orchestrationInstanceId,
-                   message);
+                       threadGuid,
+                       orchestrationInstanceId,
+                       message,
+                       responseMessageId);
                 }
             }
+
+            await _agentOutboundCommunicationService.SignalProcessingComplete(threadGuid, responseMessageId);
 
             _logger.LogInternalInformation(
                 "[IncidentHandlerAgent] ProcessIncidentAsync: Successfully processed incident for AgentContextId: {AgentContextId}, ThreadId: {ThreadId}",
