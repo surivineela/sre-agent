@@ -317,7 +317,7 @@ Returns a JSON object with validation details:
                 {
                     return (ApprovalState.Pending, string.Format(MessageTemplates.RequireManualApproveDueToShortage, "ManagedEnvironmentConsumptionNCA100Gpus", "westus3"));
                 }
-                else if (region.Equals("swedencentral") || region.Equals("australiaeast"))
+                else if (region.Equals("swedencentral") || region.Equals("australiaeast") || region.Equals("westus"))
                 {
                     if (isEA)
                     {
