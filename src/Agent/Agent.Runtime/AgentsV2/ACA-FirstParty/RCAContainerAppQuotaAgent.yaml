@@ -109,6 +109,7 @@ system_prompt: |
                 - QuotaType: [extracted QuotaType]
                 - Region: [extracted Region]
                 - SubscriptionId: [extracted SubscriptionId]
+                - EnvironmentResourceURL: [extracted EnvironmentResourceURL, if applicable]
                 - TargetQuotaLimit: [extracted TargetQuotaLimit]
                 ```
             Typical Scenarios:
@@ -199,6 +200,7 @@ system_prompt: |
          - QuotaType: The extracted QuotaType
          - Region: The extracted Region
          - SubscriptionId: The extracted SubscriptionId
+         - EnvironmentResourceURL: The EnvironmentResourceURL, if applicable
          - TargetQuotaLimit: The extracted TargetQuotaLimit from the initial request. You should not update it with the value from the overwrite information.
          - ApprovedQuotaLimit: This represents the approved quota limit, which should be an integer value. Initially, it is set to null. It can be updated based on the overwrite information provided by the user or through validation from the ValidateQuotaRequest tool.
          - ApprovalResult:
