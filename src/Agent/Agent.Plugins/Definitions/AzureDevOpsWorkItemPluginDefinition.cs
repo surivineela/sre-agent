@@ -17,10 +17,11 @@ public class AzureDevOpsWorkItemPluginDefinition
     [Description("Create a work item in Azure DevOps (AzDo/TFS). Creates any work item type: tasks, user stories, bugs, features, epics, test cases, issues, tickets, cards. Works with linked repositories. Use for any request to add, create, make, generate, file, track, or manage work items regardless of phrasing ('add task', 'create bug', 'make story', 'file ticket', 'track work', 'add to backlog', 'create issue', 'new item', etc.). Handles all work tracking scenarios in Azure DevOps.")]
     public async Task<string> CreateAzureDevOpsWorkItem([Description("The resource ID of the Azure Resource for example: /subscriptions/be8d491e-109c-4ee1-aaee-dc7615af0a42/resourceGroups/mrsharm-operations-agent-3p-rg/providers/Microsoft.App/containerApps/memory-leak-app/containerapp")] string resourceId,
                                                         [Description("Title of the WorkItem")] string title,
+                                                        [Description("Type of Work Item: Task, Bugs, Epic, Feature - default to Task if an invalid type is given.")] string workItemType,
                                                         [Description("Description to be filled in the body of the work item as well formatted markdown.")] string description,
                                                         [Description("An array of tags to be used in the work item based on the description.")] string[] tags)
     {
-        return await _azureDevOpsWorkItemPlugin.CreateWorkItem(resourceId, title, description, tags: tags);
+        return await _azureDevOpsWorkItemPlugin.CreateWorkItem(resourceId, title, description, tags: tags, workItemType: workItemType);
     }
 
     [Description("Finds the connected or linked Azure DevOps (AzDo/TFS) repository for a given Azure Resource ID. Locates associated repos, git repositories, source code repositories, or code bases linked to Azure resources. Works with any Azure resource type (App Service, Function App, Container Instance, AKS, etc.). Use for requests to find, locate, discover, identify, or get the repository, repo, source code, git repo, or code base connected to Azure resources. Handles variations like 'what repo is linked to this resource', 'find the source code', 'get the repository', 'where is the code', etc.")]
