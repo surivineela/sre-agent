@@ -7,6 +7,7 @@ import {
     getFilteredThreads,
     getUpdatedUnreadThreadIds,
     isFinalStreamingMessage,
+    parseThreadFromStreamingText,
     processThreads,
     removeThreadIdsFromUnreadThreads,
 } from '../Activities/Utility';
@@ -15,7 +16,7 @@ import { StreamingContext } from '../Contracts/Context';
 import { useThreadList } from './useThreadList';
 
 export const useThreadsMenu = (ref: Ref<ThreadMenuHandle>) => {
-    const { subscribeThreadMenuEventStreaming } = useContext(StreamingContext);
+    const { subscribeThreadUpdateEvent, subscribeMessageUpdateEvent } = useContext(StreamingContext);
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
 
     const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
@@ -132,27 +133,7 @@ export const useThreadsMenu = (ref: Ref<ThreadMenuHandle>) => {
     }));
 
     useEffect(() => {
-        const threadCreateHandler = async (message: StreamingMessage) => {
-            const threadId = message.additionalProperties?.threadId;
-            const text = message.contents?.[0]?.text || '';
-            if (threadId) {
-                try {
-                    const thread = JSON.parse(text) as Thread;
-                    if (thread && thread.id && thread.startMessage && thread.title && thread.lastMessage && thread.modifiedTimestamp) {
-                        updateThreadInfo(thread);
-                    } else {
-                        throw new Error('Invalid thread data received from streaming message');
-                    }
-                } catch {
-                    const updatedThread = await getThread(threadId);
-                    if (updatedThread) {
-                        updateThreadInfo(updatedThread);
-                    }
-                }
-            }
-        };
-
-        const threadUpdateHandler = async (message: StreamingMessage) => {
+        const messageUpdateHandler = async (message: StreamingMessage) => {
             const threadId = message.additionalProperties?.threadId;
             if (threadId && isFinalStreamingMessage(message)) {
                 const updatedThread = await getThread(threadId);
@@ -162,12 +143,33 @@ export const useThreadsMenu = (ref: Ref<ThreadMenuHandle>) => {
             }
         };
 
-        const unsubscribe = subscribeThreadMenuEventStreaming(threadCreateHandler, threadUpdateHandler);
+        const threadCreateHandler = async (message: StreamingMessage) => {
+            const threadId = message.additionalProperties?.threadId;
+            const text = message.contents?.[0]?.text || '';
+            if (threadId) {
+                try {
+                    const thread = parseThreadFromStreamingText(text);
+                    updateThreadInfo(thread);
+                } catch {
+                    const updatedThread = await getThread(threadId);
+                    if (updatedThread) {
+                        updateThreadInfo(updatedThread);
+                    }
+                }
+            }
+        };
+
+        const unsubscribeMessageUpdateEvent = subscribeMessageUpdateEvent({
+            handler: messageUpdateHandler,
+        });
+
+        const unsubscribeThreadUpdateEvent = subscribeThreadUpdateEvent(threadCreateHandler);
 
         return () => {
-            unsubscribe();
+            unsubscribeMessageUpdateEvent();
+            unsubscribeThreadUpdateEvent();
         };
-    }, [subscribeThreadMenuEventStreaming]);
+    }, [subscribeThreadUpdateEvent, subscribeMessageUpdateEvent]);
 
     useEffect(() => {
         if (!isLoadingInitialChatMessages && threadUpdateQueue.current.length > 0) {

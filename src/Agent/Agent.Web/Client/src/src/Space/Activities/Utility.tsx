@@ -543,3 +543,12 @@ export const convertMessageToChatMessage = (message: Message): ChatMessage => {
         ],
     };
 };
+
+export const parseThreadFromStreamingText = (text: string) => {
+    const thread = JSON.parse(text) as Thread;
+    if (thread && thread.id && thread.startMessage && thread.title && thread.lastMessage && thread.modifiedTimestamp) {
+        return thread;
+    } else {
+        throw new Error('Invalid thread data received from streaming message');
+    }
+};

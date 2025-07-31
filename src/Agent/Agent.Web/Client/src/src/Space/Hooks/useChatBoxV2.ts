@@ -36,7 +36,7 @@ export const useChatBoxV2 = (
     const intl = useIntl();
 
     const proxy = useContext(AzPortalContext);
-    const { startMessageStreamingOnNewThread, startMessageStreamingOnExistingThread, cancelMessageStreaming, subscribeChatStreaming } =
+    const { startMessageStreamingOnNewThread, startMessageStreamingOnExistingThread, cancelMessageStreaming, subscribeMessageUpdateEvent } =
         useContext(StreamingContext);
 
     const {
@@ -332,6 +332,8 @@ export const useChatBoxV2 = (
     useEffect(() => {
         let isSubscribed = true;
 
+        const id = currentThreadIdRef.current || userDefinedThreadIdRef.current;
+
         const latestStreamingMessageHandler = (messageChunk?: StreamingMessage | null) => {
             if (messageChunk && !isFinalStreamingMessage(messageChunk)) {
                 setStreamingMessage(prev => {
@@ -344,24 +346,29 @@ export const useChatBoxV2 = (
         };
 
         const messageUpdateHandler = (messageChunk?: StreamingMessage) => {
-            if (messageChunk && isSubscribed) {
+            if (
+                messageChunk &&
+                isSubscribed &&
+                messageChunk.additionalProperties?.threadId &&
+                messageChunk.additionalProperties.threadId === id
+            ) {
                 messageChunkQueue.current.push(messageChunk);
                 attemptToProcessMessageChunk();
             }
         };
 
-        const unsubscribeChatStreaming = subscribeChatStreaming(
-            currentThreadIdRef.current || userDefinedThreadIdRef.current,
+        const unsubscribeChatStreaming = subscribeMessageUpdateEvent({
+            handler: messageUpdateHandler,
+            threadId: id,
             latestStreamingMessageHandler,
-            messageUpdateHandler
-        );
+        });
 
         return () => {
             isSubscribed = false;
             unsubscribeChatStreaming();
         };
         // Ask owner to review if you need to add any dependencies here as the retriggering will cause potential message duplications
-    }, [subscribeChatStreaming]);
+    }, [subscribeMessageUpdateEvent]);
 
     useEffect(() => {
         if (newestMessageTimestampInOldMessages !== null) {

@@ -30,16 +30,12 @@ type StreamingContextProps = {
     startMessageStreamingOnNewThread: (newThreadId: string, threadCreateRequest: any) => void;
     startMessageStreamingOnExistingThread: (threadId: string, messageCreateRequest: any) => void;
     cancelMessageStreaming: (threadId: string) => void;
-    subscribeChatStreaming: (
-        threadId: string,
-        latestStreamingMessageHandler: (latestStreamingMessage: StreamingMessage | null | undefined) => void,
-        messageUpdateHandler: (...args: any[]) => void
-    ) => () => void;
-    subscribeThreadMenuEventStreaming: (
-        threadCreateHandler: (message: StreamingMessage) => void,
-        threadUpdateHandler: (message: StreamingMessage) => void
-    ) => () => void;
-    subscribeResourceInfoThreadCreateEventStreaming: (threadCreateHandler: (message: StreamingMessage) => void) => () => void;
+    subscribeMessageUpdateEvent: (input: {
+        handler: (message: StreamingMessage) => void;
+        threadId?: string;
+        latestStreamingMessageHandler?: (latestStreamingMessage: StreamingMessage | null | undefined) => void;
+    }) => () => void;
+    subscribeThreadUpdateEvent: (handler: (message: StreamingMessage) => void) => () => void;
     isConnecting: boolean;
     isConnected: boolean;
     isReconnecting: boolean;
@@ -91,16 +87,14 @@ export const StreamingContext = createContext<StreamingContextProps>({
     startMessageStreamingOnNewThread: (_newThreadId: string, _threadCreateRequest: any) => {},
     startMessageStreamingOnExistingThread: (_threadId: string, _messageCreateRequest: any) => {},
     cancelMessageStreaming: (_threadId: string) => {},
-    subscribeChatStreaming:
-        (
-            _threadId: string,
-            _latestStreamingMessageHandler: (latestStreamingMessage: StreamingMessage | null | undefined) => void,
-            _messageUpdateHandler: (...args: any[]) => void
-        ) =>
+    subscribeMessageUpdateEvent:
+        (_: {
+            handler: (message: StreamingMessage) => void;
+            threadId?: string;
+            latestStreamingMessageHandler?: (latestStreamingMessage: StreamingMessage | null | undefined) => void;
+        }) =>
         () => {},
-    subscribeThreadMenuEventStreaming:
-        (_threadCreateHandler: (message: StreamingMessage) => void, _threadUpdateHandler: (message: StreamingMessage) => void) => () => {},
-    subscribeResourceInfoThreadCreateEventStreaming: (_threadCreateHandler: (message: StreamingMessage) => void) => () => {},
+    subscribeThreadUpdateEvent: (_handler: (message: StreamingMessage) => void) => () => {},
     isConnecting: true,
     isConnected: false,
     isReconnecting: false,

@@ -446,7 +446,7 @@ const AppHealthInfo = memo(({ resource }: { resource?: ResourceExtended }) => {
     const location = useLocation();
     const navigate = useNavigate();
     const intl = useIntl();
-    const { subscribeResourceInfoThreadCreateEventStreaming, startMessageStreamingOnNewThread } = useContext(StreamingContext);
+    const { subscribeThreadUpdateEvent, startMessageStreamingOnNewThread } = useContext(StreamingContext);
     const {
         userIdAndDisplayName: { userId, displayName },
     } = useAuthenticatedUserInfo();
@@ -457,7 +457,7 @@ const AppHealthInfo = memo(({ resource }: { resource?: ResourceExtended }) => {
     const appHealthInfo = getAppHealthInfo(resource);
 
     useEffect(() => {
-        const unsubscribe = subscribeResourceInfoThreadCreateEventStreaming((message: StreamingMessage) => {
+        const unsubscribe = subscribeThreadUpdateEvent((message: StreamingMessage) => {
             const threadId = message?.additionalProperties?.threadId;
             if (threadId && newThreadId.current && threadId === newThreadId.current) {
                 const currentThreadId = newThreadId.current;
@@ -473,7 +473,7 @@ const AppHealthInfo = memo(({ resource }: { resource?: ResourceExtended }) => {
         return () => {
             unsubscribe();
         };
-    }, [subscribeResourceInfoThreadCreateEventStreaming, navigate, location]);
+    }, [subscribeThreadUpdateEvent, navigate, location]);
 
     return (
         appHealthInfo && (

@@ -1,16 +1,15 @@
 import { Button } from '@fluentui/react-components';
 import { PanelRightExpandRegular } from '@fluentui/react-icons';
-import { Text } from '@fluentui/react/lib/Text';
-import { memo, useCallback, useContext } from 'react';
+import { memo, useContext } from 'react';
 import { useIntl } from 'react-intl';
 import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
-import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { ActivitiesResources } from '../../Strings/SREAgentResources';
 import { IThreadContentProps } from '../Contracts/Activities';
 import { AgentContext } from '../Contracts/Context';
 import { getExpandCollapseButtonStyles, ThreadContentStyles } from '../Styles/Activities.styles';
 import ChatBox from './ChatBox';
 import ChatBoxV2 from './ChatBoxV2';
-import ThreadActionsMenu from './ThreadActionsMenu';
+import ThreadContentTitle from './ThreadContentTitle';
 
 const expandCollapseButtonStyles = getExpandCollapseButtonStyles('right');
 
@@ -21,19 +20,10 @@ export const ThreadContent = memo(
 
         const chatBoxV2 = useConfigSetting(SettingNames.Streaming);
 
-        const handleThreadDelete = useCallback(() => {
-            if (thread) {
-                deleteThread(thread);
-            }
-        }, [thread, deleteThread]);
-
         return (
             <div className={ThreadContentStyles.root} key={threadContentAndActionKey}>
                 <div className={ThreadContentStyles.titleContainer}>
-                    <Text as="h2" nowrap block className={ThreadContentStyles.title}>
-                        {thread?.title ?? intl.formatMessage(SreAgentResources.newThread)}
-                    </Text>
-                    {thread && <ThreadActionsMenu thread={thread} handleThreadDelete={handleThreadDelete} />}
+                    <ThreadContentTitle thread={thread} deleteThread={deleteThread} />
                     {actionsCollapsed && (
                         <div style={expandCollapseButtonStyles.container}>
                             <Button
