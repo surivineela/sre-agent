@@ -12,15 +12,14 @@ export enum SettingNames {
 const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
     default: {
         [SettingNames.Streaming]: true,
+        [SettingNames.ConsolidatedCreate]: true,
     },
     'portal.azure.com': {},
     'ms.portal.azure.com': {
-        [SettingNames.ConsolidatedCreate]: true,
         [SettingNames.DataConnections]: true,
     },
     localhost: {
         [SettingNames.ShowAgentModeForThread]: true,
-        [SettingNames.ConsolidatedCreate]: true,
         [SettingNames.DataConnections]: true,
     },
 };

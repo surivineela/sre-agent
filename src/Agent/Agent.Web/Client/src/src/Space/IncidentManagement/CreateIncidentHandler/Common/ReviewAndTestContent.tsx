@@ -6,7 +6,6 @@ import { FC, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { ToolInfo } from '../../../../Common/Contracts/Azure/IncidentHandler';
 import { ThreadSource } from '../../../../Common/Contracts/Azure/SreAgent';
-import Url from '../../../../Common/Helpers/Url';
 import { IncidentHandlerCreateResources } from '../../../../Strings/SREAgentResources';
 import ChatBoxV2 from '../../../Activities/ChatBoxV2';
 import { MultipleSelectionShimmerDetailsList } from '../../../Components/MultipleSelectionShimmerDetailsList';
@@ -42,8 +41,6 @@ export const ReviewAndTestContent: FC = () => {
 
     const [activeToolNames, setActiveToolNames] = useState<string[]>([]);
     const [toolsPickerVisible, setToolsPickerVisible] = useState<boolean>(false);
-
-    const showHandlerTestUi = useMemo(() => Url.getFeatureValue('showHandlerTestUi') === 'true', []);
 
     const toolsTableColumns: IColumn[] = useMemo(() => {
         return [
@@ -85,7 +82,7 @@ export const ReviewAndTestContent: FC = () => {
             )}
             <div
                 style={{
-                    width: showHandlerTestUi ? '50%' : '100%',
+                    width: '50%',
                     display: 'flex',
                     flexDirection: 'column',
                     gap: 16,
@@ -138,98 +135,91 @@ export const ReviewAndTestContent: FC = () => {
                     getKey={(item: ToolInfo) => item.name}
                 />
             </div>
-            {showHandlerTestUi && (
-                <div
-                    style={{
-                        width: '50%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 16,
-                    }}
-                >
-                    <Text size={400} weight="semibold" style={{ marginLeft: 20 }}>
-                        {intl.formatMessage(IncidentHandlerCreateResources.testHandlerTitle)}
-                    </Text>
-                    <div style={{ display: 'flex', flexDirection: 'row', gap: 8, alignItems: 'end', marginLeft: 20 }}>
-                        <Field id="testIncidentField" label={intl.formatMessage(IncidentHandlerCreateResources.incidentLabel)} required>
-                            <Dropdown
-                                id="testIncidentDropdown"
-                                root={{ style: { maxWidth: '300px' } }}
-                                button={
-                                    <span style={{ overflowX: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                        {testIncident ? `${testIncident.id} - ${testIncident.title}` : undefined}
-                                    </span>
-                                }
-                                value={testIncident?.id}
-                                placeholder={intl.formatMessage(IncidentHandlerCreateResources.incidentPlaceholder)}
-                                onOptionSelect={(_event, data) => {
-                                    const selectedOption = incidents?.find(incident => incident.id === data.optionValue);
-                                    setTestIncident(selectedOption);
-                                }}
-                                disabled={loadingIncidents || creatingTestThread}
-                            >
-                                {incidents?.map(incident => (
-                                    <Option
-                                        key={incident.id}
-                                        value={incident.id}
-                                        text={`${incident.id} - ${incident.title}`}
-                                        checkIcon={null}
-                                    >
-                                        <span
-                                            style={{ overflow: 'hidden', overflowWrap: 'break-word' }}
-                                        >{`${incident.id} - ${incident.title}`}</span>
-                                    </Option>
-                                ))}
-                            </Dropdown>
-                        </Field>
-                        <Button
-                            icon={<Beaker20Regular />}
-                            appearance="secondary"
-                            onClick={createTestThread}
-                            disabled={loadingIncidents || !testIncident || creatingTestThread}
-                        >
-                            {intl.formatMessage(IncidentHandlerCreateResources.testHandlerRunButton)}
-                        </Button>
-                    </div>
-                    {creatingTestThread ? (
-                        <Spinner size="huge" style={{ height: '100%' }} />
-                    ) : createTestThreadFailure ? (
-                        <MessageBar intent="error" style={{ marginLeft: 20 }}>
-                            {intl.formatMessage(IncidentHandlerCreateResources.testHandlerRunFailure, {
-                                errorMessage: createTestThreadFailure,
-                            })}
-                        </MessageBar>
-                    ) : testIncidentThreadId ? (
-                        <ChatBoxV2
-                            threadId={testIncidentThreadId}
-                            addThread={() => {}}
-                            updateThreadLastReadTime={() => {}}
-                            threadSource={ThreadSource.incident}
-                            stylesProps={{
-                                chatBox: {
-                                    boxShadow: 'unset',
-                                    borderRadius: 'unset',
-                                    height: 'calc(100vh - 225px)',
-                                    marginBottom: '0px',
-                                },
-                                chatBoxInner: {
-                                    boxShadow: 'unset',
-                                    borderRadius: 'unset',
-                                },
+            <div
+                style={{
+                    width: '50%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 16,
+                }}
+            >
+                <Text size={400} weight="semibold" style={{ marginLeft: 20 }}>
+                    {intl.formatMessage(IncidentHandlerCreateResources.testHandlerTitle)}
+                </Text>
+                <div style={{ display: 'flex', flexDirection: 'row', gap: 8, alignItems: 'end', marginLeft: 20 }}>
+                    <Field id="testIncidentField" label={intl.formatMessage(IncidentHandlerCreateResources.incidentLabel)} required>
+                        <Dropdown
+                            id="testIncidentDropdown"
+                            root={{ style: { maxWidth: '300px' } }}
+                            button={
+                                <span style={{ overflowX: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    {testIncident ? `${testIncident.id} - ${testIncident.title}` : undefined}
+                                </span>
+                            }
+                            value={testIncident?.id}
+                            placeholder={intl.formatMessage(IncidentHandlerCreateResources.incidentPlaceholder)}
+                            onOptionSelect={(_event, data) => {
+                                const selectedOption = incidents?.find(incident => incident.id === data.optionValue);
+                                setTestIncident(selectedOption);
                             }}
-                        />
-                    ) : (
-                        <div className={styles.emptyState}>
-                            <div>
-                                <Beaker20Regular style={{ height: '100px', width: '100px' }} />
-                            </div>
-                            <div className={styles.emptyStateTitle}>
-                                {intl.formatMessage(IncidentHandlerCreateResources.testHandlerEmptyMessage)}
-                            </div>
-                        </div>
-                    )}
+                            disabled={loadingIncidents || creatingTestThread}
+                        >
+                            {incidents?.map(incident => (
+                                <Option key={incident.id} value={incident.id} text={`${incident.id} - ${incident.title}`} checkIcon={null}>
+                                    <span
+                                        style={{ overflow: 'hidden', overflowWrap: 'break-word' }}
+                                    >{`${incident.id} - ${incident.title}`}</span>
+                                </Option>
+                            ))}
+                        </Dropdown>
+                    </Field>
+                    <Button
+                        icon={<Beaker20Regular />}
+                        appearance="secondary"
+                        onClick={createTestThread}
+                        disabled={loadingIncidents || !testIncident || creatingTestThread}
+                    >
+                        {intl.formatMessage(IncidentHandlerCreateResources.testHandlerRunButton)}
+                    </Button>
                 </div>
-            )}
+                {creatingTestThread ? (
+                    <Spinner size="huge" style={{ height: '100%' }} />
+                ) : createTestThreadFailure ? (
+                    <MessageBar intent="error" style={{ marginLeft: 20 }}>
+                        {intl.formatMessage(IncidentHandlerCreateResources.testHandlerRunFailure, {
+                            errorMessage: createTestThreadFailure,
+                        })}
+                    </MessageBar>
+                ) : testIncidentThreadId ? (
+                    <ChatBoxV2
+                        threadId={testIncidentThreadId}
+                        addThread={() => {}}
+                        updateThreadLastReadTime={() => {}}
+                        threadSource={ThreadSource.incident}
+                        stylesProps={{
+                            chatBox: {
+                                boxShadow: 'unset',
+                                borderRadius: 'unset',
+                                height: 'calc(100vh - 225px)',
+                                marginBottom: '0px',
+                            },
+                            chatBoxInner: {
+                                boxShadow: 'unset',
+                                borderRadius: 'unset',
+                            },
+                        }}
+                    />
+                ) : (
+                    <div className={styles.emptyState}>
+                        <div>
+                            <Beaker20Regular style={{ height: '100px', width: '100px' }} />
+                        </div>
+                        <div className={styles.emptyStateTitle}>
+                            {intl.formatMessage(IncidentHandlerCreateResources.testHandlerEmptyMessage)}
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
