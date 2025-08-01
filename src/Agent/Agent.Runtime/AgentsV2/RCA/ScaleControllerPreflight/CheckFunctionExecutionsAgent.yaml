@@ -210,11 +210,36 @@ system_prompt: |
 
           **Analysis**: Azure Functions Runtime experienced a temporary stoppage but recovered automatically. The incident timeframe (08:00-10:00) fell within the runtime gap period, explaining the absence of function executions.
 
-handoff_description: "Handoff to this agent to analyze function executions for specific triggers"
+handoff_description: "Handoff to this agent to analyze function execution patterns for the specified function"
 
 tools:
 - CheckFunctionExecutions
 - ShareAgentResult
+
+output_type: "WorkflowActivityLLMOutput"
+
+next_agent_mappings:
+  - condition: "execution_analysis_complete"
+    next_agents: ["check_processing_delays_for_function_agent"]
+
+agent_type: "Activity"
+
+user_prompt_override: |
+  I will analyze function execution patterns and provide structured output for the workflow.
+
+  **Process:**
+  1. Execute CheckFunctionExecutions query with provided parameters
+  2. Analyze execution patterns, frequency, and success rates
+  3. Identify any execution issues or anomalies
+
+  **Output Structure:**
+  - **Analysis**: Detailed findings about function execution patterns and performance
+  - **Parameters**: {"StartTime": "value", "EndTime": "value", "SiteName": "value", "EventPrimaryStampName": "value", "FunctionName": "value", "KustoCluster": "value"}  
+  - **NextSteps**: ["check_processing_delays_for_function_agent"]
+
+disable_document_retrieval: true
+
+disable_common_prompts: true
 
 common_prompts:
 - format_guidelines

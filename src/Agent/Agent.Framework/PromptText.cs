@@ -27,6 +27,15 @@ public class PromptText
         _value = value ?? throw new ArgumentNullException(nameof(value));
     }
 
+    /// <summary>
+    /// Gets the original instructions text without any DI-injected prompts.
+    /// </summary>
+    /// <returns>The original instructions as specified in the YAML or agent definition.</returns>
+    public string GetOriginalText()
+    {
+        return _value;
+    }
+
     public override string ToString()
     {
         if (_text is null)

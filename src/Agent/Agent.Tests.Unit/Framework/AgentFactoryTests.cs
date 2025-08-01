@@ -236,6 +236,12 @@ public class TestAgent1Descriptor : IAgentDescriptor
     public string? UserPromptOverride { get; set; } = null;
     public bool DisableDocumentRetrieval { get; set; } = false;
     public bool EnableHandoffPromptOverride { get; set; } = false;
+    public bool DisableCommonPrompts { get; set; } = false;
+    public AgentType AgentType { get; set; } = AgentType.Autonomous;
+    public string? ParameterExtractionAgent { get; set; } = string.Empty;
+    public List<string> OrchestrationStartAgents { get; set; } = [];
+    public string? ResultSummarizationPrompt { get; set; } = string.Empty;
+    public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
 }
 
 public class TestAgent2Descriptor : IAgentDescriptor
@@ -259,9 +265,15 @@ public class TestAgent2Descriptor : IAgentDescriptor
     public string? UserPromptOverride { get; set; } = null;
     public bool DisableDocumentRetrieval { get; set; } = false;
     public bool EnableHandoffPromptOverride { get; set; } = false;
+    public bool DisableCommonPrompts { get; set; } = false;
+    public AgentType AgentType { get; set; } = AgentType.Autonomous;
+    public string? ParameterExtractionAgent { get; set; } = string.Empty;
+    public List<string> OrchestrationStartAgents { get; set; } = [];
+    public string? ResultSummarizationPrompt { get; set; } = string.Empty;
+    public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
 }
 
-public class TestCommonPrompt : IPromptDescriptor
+    public class TestCommonPrompt : IPromptDescriptor
 {
     public const string PromptText = "test prompt text";
 

@@ -8,6 +8,28 @@ using Microsoft.Extensions.Logging;
 
 namespace Agent.Framework;
 
+/// <summary>
+/// Result from running an agent with handoff detection
+/// </summary>
+/// <typeparam name="TContext">The context type</typeparam>
+public class RunResultWithHandoff<TContext> where TContext : class
+{
+    /// <summary>
+    /// The standard run result
+    /// </summary>
+    public RunResult<TContext> RunResult { get; set; } = null!;
+
+    /// <summary>
+    /// True if a handoff was detected during execution
+    /// </summary>
+    public bool HandoffDetected { get; set; }
+
+    /// <summary>
+    /// The name of the target agent for the handoff (if detected)
+    /// </summary>
+    public string? HandoffTargetAgent { get; set; }
+}
+
 public static class Runner
 {
     private const int DefaultMaxTurns = 50;
@@ -109,6 +131,70 @@ public static class Runner
             cancellationToken: cancellationToken,
             _shouldRunAgentStartHooks: true // always run agent start hooks on initial run
         );
+    }
+
+    /// <summary>
+    /// Runs an agent with handoff detection capability for workflow orchestration
+    /// </summary>
+    public static async Task<RunResultWithHandoff<TContext>> RunWithHandoffDetectionAsync<TContext>(
+        Agent<TContext> startingAgent,
+        List<ChatMessage> input,
+        RunConfig config,
+        IAgentRuntimeModifier<TContext>? runtimeModifier = null,
+        TContext? context = null,
+        int maxTurns = DefaultMaxTurns,
+        RunHooks<TContext>? hooks = null,
+        Func<string, Task>? displayModelOutput = null,
+        CancellationToken cancellationToken = default
+    ) where TContext : class
+    {
+        var handoffDetected = false;
+        string? handoffTargetAgent = null;
+
+        // Create custom hooks that detect handoff
+        var handoffDetectionHooks = hooks ?? new RunHooks<TContext>();
+        var originalOnHandoff = handoffDetectionHooks.OnHandoff;
+        
+        handoffDetectionHooks.OnHandoff = async (context, fromAgent, toAgent) =>
+        {
+            handoffDetected = true;
+            handoffTargetAgent = toAgent.Name;
+            
+            // Call original hook if it exists
+            if (originalOnHandoff != null)
+            {
+                await originalOnHandoff(context, fromAgent, toAgent);
+            }
+        };
+
+        try
+        {
+            var runResult = await RunInternalAsync(
+                startingAgent: startingAgent,
+                input: input,
+                config: config,
+                runtimeModifier: runtimeModifier,
+                context: context,
+                maxTurns: maxTurns,
+                hooks: handoffDetectionHooks,
+                displayModelOutput: displayModelOutput,
+                cancellationToken: cancellationToken,
+                _shouldRunAgentStartHooks: true
+            );
+
+            return new RunResultWithHandoff<TContext>
+            {
+                RunResult = runResult,
+                HandoffDetected = handoffDetected,
+                HandoffTargetAgent = handoffTargetAgent
+            };
+        }
+        catch (Exception)
+        {
+            // Even if an exception occurs, we want to return handoff information
+            // But we need to re-throw since this is an unexpected error
+            throw;
+        }
     }
 
     private static async Task<RunResult<TContext>> RunInternalAsync<TContext>(
@@ -467,7 +553,10 @@ public static class Runner
             await hooks.OnAgentStart(contextWrapper, agent);
         }
 
-        var systemPrompt = agent.Instructions;
+        // Use original instructions without DI additions if DisableCommonPrompts is true
+        var systemPrompt = agent.DisableCommonPrompts 
+            ? agent.Instructions.GetOriginalText() 
+            : agent.Instructions.ToString();
 
         List<AIFunction> tools = [];
         tools.AddRange(agent.Tools);
@@ -767,6 +856,7 @@ public static class Runner
                         }
                         catch (Exception e)
                         {
+                            // TODO Need logging.
                             toolResult = GetToolErrorMessage(functionCall, e);
                         }
 
@@ -1015,21 +1105,31 @@ public static class Runner
         for (int i = 0; i < modelInput.Count; i++)
         {
             var message = modelInput[i];
-            if (message.Role == ChatRole.User &&
-                message.Text != null &&
-                message.Text.Contains(OverrideHeader, StringComparison.OrdinalIgnoreCase))
+
+            if (message.Role == ChatRole.User && 
+                message.Text != null)
             {
-                // Extract the original user query from the message
-                var originalUserQuery = ExtractUserQueryFromOverrideMessage(message.Text, OverrideHeader);
+                if (message.Text.Contains(OverrideHeader, StringComparison.OrdinalIgnoreCase))
+                {
+                    // Extract the original user query from the message
+                    var originalUserQuery = ExtractUserQueryFromOverrideMessage(message.Text, OverrideHeader);
 
-                // Replace the message content with agent's UserPromptOverride
-                var newContent = $"{agent.UserPromptOverride}\n\nUser question goes below:\n{originalUserQuery}";
+                    // Replace the message content with agent's UserPromptOverride
+                    var newContent = $"{agent.UserPromptOverride}\n\nUser question goes below:\n{originalUserQuery}";
 
-                modelInput[i] = new ChatMessage(ChatRole.User, newContent);
+                    modelInput[i] = new ChatMessage(ChatRole.User, newContent);
 
-                // Log the override action (using simple console for now to avoid logger factory issues)
-                Console.WriteLine($"[Runner] Applied handoff prompt override for agent {agent.Name}");
-                break;
+                    // Log the override action (using simple console for now to avoid logger factory issues)
+                    Console.WriteLine($"[Runner] Applied handoff prompt override for agent {agent.Name}");
+                    break;
+                }
+                else
+                {
+                    var originalUserQuery = message.Text;
+                    var newContent = $"{agent.UserPromptOverride}\n\nUser question goes below:\n{originalUserQuery}";
+                    modelInput[i] = new ChatMessage(ChatRole.User, newContent);
+                    break;
+                }
             }
         }
 

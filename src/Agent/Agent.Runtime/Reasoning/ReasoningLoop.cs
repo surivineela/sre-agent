@@ -153,7 +153,7 @@ public class ReasoningLoop : IDisposable
         _logger.LogInternalInformation("Experimental Flag: AgentMemoryEnabled: {agentMemoryEnabled}", _agentMemoryEnabled);
         _logger.LogInternalInformation("Experimental Flag: AutoHandOffEnabled: {autoHandOffEnabled}", _autoHandOffEnabled);
     }
-    public void CancelCurrentOperation()
+    public virtual void CancelCurrentOperation()
     {
         if (_disposed)
         {
@@ -175,7 +175,7 @@ public class ReasoningLoop : IDisposable
         }
     }
 
-    public async Task AppendNewUserMessageAsync(ChatMessage msg, CancellationToken cancellationToken = default)
+    public virtual async Task AppendNewUserMessageAsync(ChatMessage msg, CancellationToken cancellationToken = default)
     {
         if (await _msgCh.Writer.WaitToWriteAsync(cancellationToken))
         {
@@ -190,7 +190,7 @@ public class ReasoningLoop : IDisposable
         }
     }
 
-    public async Task AppendFunctionCallMessagesAsync(List<ChatMessage> msgs, CancellationToken cancellationToken = default)
+    public virtual async Task AppendFunctionCallMessagesAsync(List<ChatMessage> msgs, CancellationToken cancellationToken = default)
     {
         if (await _msgCh.Writer.WaitToWriteAsync(cancellationToken))
         {
@@ -205,7 +205,7 @@ public class ReasoningLoop : IDisposable
         }
     }
 
-    public async Task AppendNewApprovalMessageAsync(Approval approval, CancellationToken cancellationToken = default)
+    public virtual async Task AppendNewApprovalMessageAsync(Approval approval, CancellationToken cancellationToken = default)
     {
         if (await _msgCh.Writer.WaitToWriteAsync(cancellationToken))
         {
@@ -220,7 +220,7 @@ public class ReasoningLoop : IDisposable
         }
     }
 
-    public async Task LoadChatHistoryAsync()
+    public virtual async Task LoadChatHistoryAsync()
     {
         if (_chatHistory != null)
         {
@@ -240,7 +240,7 @@ public class ReasoningLoop : IDisposable
         _chatHistory = reasoningMessages.GetChatMessages();
     }
 
-    public Task<IEnumerable<ChatMessage>> ExportChatHistoryAsync(CancellationToken cancellationToken)
+    public virtual Task<IEnumerable<ChatMessage>> ExportChatHistoryAsync(CancellationToken cancellationToken)
     {
         //TODO - synchronization with writers. Currently only used during development so not a blocker.
         IEnumerable<ChatMessage> history = _chatHistory?.ToArray() ?? [];

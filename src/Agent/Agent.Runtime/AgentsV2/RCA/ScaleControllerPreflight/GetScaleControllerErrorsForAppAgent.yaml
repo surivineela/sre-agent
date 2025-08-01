@@ -163,11 +163,38 @@ system_prompt: |
 
           **Note**: Due to critical errors found in Stage 1, Stage 2 warning analysis was not performed as immediate remediation is required.
 
-handoff_description: "Handoff to this agent to analyze Scale Controller errors and exceptions for a specific application"
+handoff_description: "Handoff to this agent to retrieve and analyze Scale Controller errors for the application"
 
 tools:
 - GetScaleControllerErrorsForApp
 - ShareAgentResult
+
+output_type: "WorkflowActivityLLMOutput"
+
+next_agent_mappings:
+  - condition: "errors_analysis_complete"
+    next_agents: []
+
+agent_type: "Activity"
+
+user_prompt_override: |
+  I will retrieve and analyze Scale Controller errors for the application and provide structured output as the final analysis step.
+
+  **Process:**
+  1. Execute GetScaleControllerErrorsForApp query with provided parameters
+  2. Analyze error patterns, warnings, and exceptions
+  3. Identify critical errors affecting Scale Controller functionality
+  4. After completing the analysis, call ShareAgentResult ONCE to share your findings
+  5. Finalize the analysis step with structured output
+
+  **Output Structure:**
+  - **Analysis**: Detailed findings about Scale Controller errors, warnings, and exceptions
+  - **Parameters**: {"StartTime": "value", "EndTime": "value", "SiteName": "value", "EventPrimaryStampName": "value", "FunctionName": "value", "KustoCluster": "value"}  
+  - **NextSteps**: [] (This is the final analysis step)
+
+disable_document_retrieval: true
+
+disable_common_prompts: true
 
 common_prompts:
 - format_guidelines

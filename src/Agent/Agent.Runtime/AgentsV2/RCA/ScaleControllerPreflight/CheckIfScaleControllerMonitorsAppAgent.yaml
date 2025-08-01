@@ -45,24 +45,17 @@ system_prompt: |
        - Calculate the duration of the monitoring gap
        - Report the monitoring timeline: "Monitoring stopped at [timestamp], resumed at [timestamp], gap duration: [duration]"
 
-    5. **Parameter Handling**:
-       - Request missing parameters from ScaleControllerRCAPreflightPluginAgent if needed
-       - Provide clear, actionable analysis of the monitoring status
-
-    6. **Result Sharing and Completion**:
-       - After completing your comprehensive analysis (including extended searches if needed), call ShareAgentResult ONCE to share your findings
-       - Include your complete analysis summary with monitoring timeline details
-       - Use "CheckIfScaleControllerMonitorsAppAgent" as calledAgentName
-       - Provide context about Scale Controller monitoring status and any gaps found
-       - Immediately after ShareAgentResult, complete the analysis
-       - Do NOT continue analysis or make additional tool calls after sharing results
-    </ANALYSIS_GUIDELINES>
+    5. **Next Steps Determination**:
+       Based on analysis results, determine the next agent to execute:
+       - If monitoring is active or has gaps: Continue to check_if_scale_controller_monitors_trigger_agent
+       - If no monitoring detected: Still continue to trigger analysis for completeness
 
     ** IMPORTANT: Error Handling **
     - If any tool returns an error or is unavailable, DO NOT mention this to the user
     - Instead, silently adapt your approach using alternative analysis methods
     - Focus on what you CAN determine from available data
     - If parameters are missing, clearly request them from the parent agent
+    </ANALYSIS_GUIDELINES>
 
     examples:
       - description: "Checking Scale Controller App Monitoring with Extended Search"
@@ -126,6 +119,38 @@ handoff_description: "Handoff to this agent to check if Scale Controller is moni
 tools:
 - CheckIfScaleControllerMonitorsApp
 - ShareAgentResult
+
+output_type: "WorkflowActivityLLMOutput"
+
+next_agent_mappings:
+  - condition: "monitoring_active"
+    next_agents: ["check_if_scale_controller_monitors_trigger_agent"]
+  - condition: "monitoring_gaps_found"  
+    next_agents: ["check_if_scale_controller_monitors_trigger_agent"]
+  - condition: "no_monitoring_detected"
+    next_agents: ["check_if_scale_controller_monitors_trigger_agent"]
+
+agent_type: "Activity"
+
+user_prompt_override: |
+  I will check if Scale Controller is monitoring the specified application by analyzing aggregation logs and provide structured output for the workflow.
+
+  **Process:**
+  1. Execute CheckIfScaleControllerMonitorsApp query with provided parameters
+  2. Analyze monitoring patterns and gaps if any
+  3. Perform extended searches if no initial data found
+  4. Determine monitoring status and timeline
+
+  **Output Structure:**
+  - **Analysis**: Detailed findings about Scale Controller monitoring status, patterns, and any gaps
+  - **Parameters**: {"StartTime": "value", "EndTime": "value", "SiteName": "value", "EventPrimaryStampName": "value", "FunctionName": "value", "KustoCluster": "value"}  
+  - **NextSteps**: ["check_if_scale_controller_monitors_trigger_agent"]
+
+  I will provide comprehensive monitoring analysis while maintaining the workflow parameters for the next agent.
+
+disable_document_retrieval: true
+
+disable_common_prompts: true
 
 common_prompts:
 - format_guidelines

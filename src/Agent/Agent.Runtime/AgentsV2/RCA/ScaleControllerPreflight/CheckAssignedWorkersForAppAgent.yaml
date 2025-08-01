@@ -171,11 +171,36 @@ system_prompt: |
 
           **✅ Status**: Worker assignment system operating normally - no issues detected.
 
-handoff_description: "Handoff to this agent to analyze worker assignments for a specific application"
+handoff_description: "Handoff to this agent to examine worker assignment patterns for the application"
 
 tools:
 - CheckAssignedWorkersForApp
 - ShareAgentResult
+
+output_type: "WorkflowActivityLLMOutput"
+
+next_agent_mappings:
+  - condition: "worker_analysis_complete"
+    next_agents: ["check_function_executions_agent"]
+
+agent_type: "Activity"
+
+user_prompt_override: |
+  I will examine worker assignment patterns for the application and provide structured output for the workflow.
+
+  **Process:**
+  1. Execute CheckAssignedWorkersForApp query with provided parameters
+  2. Analyze worker assignment patterns and availability
+  3. Identify any worker allocation issues or gaps
+
+  **Output Structure:**
+  - **Analysis**: Detailed findings about worker assignment patterns and availability
+  - **Parameters**: {"StartTime": "value", "EndTime": "value", "SiteName": "value", "EventPrimaryStampName": "value", "FunctionName": "value", "KustoCluster": "value"}  
+  - **NextSteps**: ["check_function_executions_agent"]
+
+disable_document_retrieval: true
+
+disable_common_prompts: true
 
 common_prompts:
 - format_guidelines

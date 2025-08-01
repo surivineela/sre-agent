@@ -57,9 +57,45 @@ public class Agent<TContext>(string name) where TContext : class
 
     public bool EnableHandoffPromptOverride { get; set; } = false;
 
+    /// <summary>
+    /// When true, disables DI-injected common prompts and uses only the original instructions.
+    /// </summary>
+    public bool DisableCommonPrompts { get; set; } = false;
+
     public virtual ChatToolMode ChatToolMode { get; set; } = ChatToolMode.Auto;
 
     public virtual float Temperature { get; set; } = 0.3f;
+
+    // === Workflow Agent Properties ===
+    
+    /// <summary>
+    /// Specifies the execution type of this agent.
+    /// </summary>
+    public Models.AgentType AgentType { get; set; } = Models.AgentType.Autonomous;
+
+    /// <summary>
+    /// Name of the agent responsible for extracting parameters from conversation history,
+    /// incident data, and function metadata for RCA execution.
+    /// </summary>
+    public string? ParameterExtractionAgent { get; set; }
+
+    /// <summary>
+    /// List of agent names to start orchestration with using extracted parameters.
+    /// These agents execute without conversation history.
+    /// </summary>
+    public List<string> OrchestrationStartAgents { get; set; } = [];
+
+    /// <summary>
+    /// Prompt template used for summarizing results from orchestrated agents.
+    /// The results are stored in-memory and summarized using LLM with this prompt.
+    /// </summary>
+    public string? ResultSummarizationPrompt { get; set; }
+
+    /// <summary>
+    /// Mappings that define which agents to execute next based on execution results.
+    /// Used by Activity agents to dynamically select subsequent agents in the workflow.
+    /// </summary>
+    public List<Models.NextAgentMapping> NextAgentMappings { get; set; } = [];
 
     public virtual IChatClient GetChatClient(RunConfig config)
     {

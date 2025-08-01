@@ -135,7 +135,15 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             OutputType = GetOutputType(agentDescriptor),
             UserPromptOverride = agentDescriptor.UserPromptOverride,
             DisableDocumentRetrieval = agentDescriptor.DisableDocumentRetrieval,
-            EnableHandoffPromptOverride = agentDescriptor.EnableHandoffPromptOverride
+            EnableHandoffPromptOverride = agentDescriptor.EnableHandoffPromptOverride,
+            DisableCommonPrompts = agentDescriptor.DisableCommonPrompts,
+            
+            // === Workflow Agent Properties ===
+            AgentType = agentDescriptor.AgentType,
+            ParameterExtractionAgent = agentDescriptor.ParameterExtractionAgent,
+            OrchestrationStartAgents = agentDescriptor.OrchestrationStartAgents?.ToList() ?? [],
+            ResultSummarizationPrompt = agentDescriptor.ResultSummarizationPrompt,
+            NextAgentMappings = agentDescriptor.NextAgentMappings?.ToList() ?? []
         };
 
         if (!string.IsNullOrEmpty(agentDescriptor.CriticPromptPath))

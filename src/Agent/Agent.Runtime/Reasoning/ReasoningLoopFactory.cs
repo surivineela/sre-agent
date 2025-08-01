@@ -9,6 +9,8 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.AgentMemory;
 using Agent.Framework;
+using Agent.Logging;
+using Agent.Runtime.Workflow;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -24,6 +26,7 @@ public interface IReasoningLoopFactory
 public class ReasoningLoopFactory : IReasoningLoopFactory
 {
     private readonly ILoggerFactory _loggerFactory;
+    private readonly ILogger<ReasoningLoopFactory> _logger;
     private readonly IChatClient _chatClient;
     private readonly IEmbeddingGenerator<string, Embedding<float>> _embeddingGenerator;
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
@@ -67,6 +70,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         IMeterFactory meterFactory)
     {
         _loggerFactory = loggerFactory;
+        _logger = _loggerFactory.CreateLogger<ReasoningLoopFactory>();
         _chatClient = chatClient;
         _embeddingGenerator = embeddingGenerator;
         _outboundCommunicationService = outboundCommunicationService;
@@ -136,6 +140,58 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
 
         // update thread doc with enabled features on reasoning loop creation
         await UpdateThreadFeatureConfig(context.ThreadId);
+
+        // Special handling for RCARouterAgent workflow orchestration
+        // Check if we're dealing with a dispatched agent that's an Orchestrator type
+        if (agentType == "RCARouterAgent" && !string.IsNullOrEmpty(currentStartingAgentName))
+        {
+            try 
+            {
+                var dispatchedAgent = _agentFactory.GetAgent(currentStartingAgentName);
+                _logger.LogInternalInformation($"Creating WorkflowOrchestrator for dispatched RCA agent: {currentStartingAgentName}");
+                    
+                // Create WorkflowOrchestrator for the dispatched orchestrator agent
+                var workflowOrchestrator = new WorkflowOrchestrator(
+                    loggerFactory: _loggerFactory,
+                    chatClient: _chatClient,
+                    outboundCommunicationService: _outboundCommunicationService,
+                    threadRepository: _threadRepository,
+                    context: context,
+                    agentFactory: _agentFactory,
+                    toolFactory: _toolFactory,
+                    tracer: _tracer);
+
+                await workflowOrchestrator.LoadChatHistoryAsync();
+                    
+                // Create a WorkflowReasoningLoop that delegates to the WorkflowOrchestrator
+                return new WorkflowReasoningLoop(
+                    workflowOrchestrator: workflowOrchestrator,
+                    loggerFactory: _loggerFactory,
+                    chatClient: _chatClient,
+                    embeddingGenerator: _embeddingGenerator,
+                    outboundCommunicationService: _outboundCommunicationService,
+                    defaultStartingAgent: dispatchedAgent,
+                    startingAgent: dispatchedAgent,
+                    threadRepository: _threadRepository,
+                    context: context,
+                    toolFactory: _toolFactory,
+                    actionSettings: _actionSettings,
+                    tracer: _tracer,
+                    agentFactory: _agentFactory,
+                    enableReasoningDebugOutput: _enableReasoningDebugOutput,
+                    searchEndpointService: _searchEndpointService,
+                    searchHelper: _searchHelper,
+                    agentMemoryClient: _agentMemoryClient,
+                    searchIndexService: _searchIndexService,
+                    featureConfig: _featureConfig,
+                    agentRuntimeModifier: _agentRuntimeModifier);
+                
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalWarning(ex, $"Failed to create WorkflowOrchestrator for dispatched agent {currentStartingAgentName}, falling back to standard ReasoningLoop");
+            }
+        }
 
         // Create and return a new instance of ReasoningLoop
         var loop = new ReasoningLoop(

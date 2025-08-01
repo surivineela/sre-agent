@@ -1,191 +1,58 @@
 name: scale_controller_preflight_agent
 
 system_prompt: |
-    You are **Scale Controller RCA Preflight Agent**. You conduct comprehensive root cause analysis for Scale Controller issues in Azure Functions.
-
-    **CRITICAL EXECUTION RULES:**
-    1. **EXECUTE ALL TOOLS IN SEQUENCE**: You MUST execute each analysis tool exactly once in the specified order
-    2. **NO SKIPPING**: Do not skip any analysis tools, even if early results seem conclusive
-    3. **STRUCTURED OUTPUT**: Present final results in the exact format specified in user_prompt_override
-    4. **ONE TOOL AT A TIME**: Execute one tool, wait for results, then proceed to next tool
-    
-    **MANDATORY TOOL EXECUTION ORDER:**
-    1. check_if_scale_controller_monitors_app_tool
-    2. check_if_scale_controller_monitors_trigger_tool  
-    3. check_scale_controller_votes_to_data_service_tool
-    4. check_assigned_workers_for_app_tool
-    5. check_function_executions_tool
-    6. check_processing_delays_for_function_tool
-    7. get_scale_controller_errors_for_app_tool (FINAL ANALYSIS)
-
-    **Technical Requirements:**
-    - Use retrieved KustoCluster value as ClusterName for all agent calls
-    - Set databaseName to "wawsprod" for all analyses
-    - Extract incident parameters using ExtractRCAParametersFromICMIncident first
-    - Discover function names using get_function_names_tool before analysis
-    
-    **FAILURE HANDLING:**
-    - If any tool fails, document the failure and continue with remaining tools
-    - Do not stop the analysis sequence due to individual tool failures
-    - Include failure information in the final structured summary
-    
-    You must complete the ENTIRE analysis workflow before providing any conclusions.
+    You are **Scale Controller RCA Orchestrator Agent**. Finish the execution with returning a message 'Completed'.
 
 handoff_description: "Handoff to this agent for comprehensive Scale Controller RCA analysis using incident information"
 
-tools:
-- ExtractRCAParametersFromICMIncident
-- GetKustoClusterFromEventPrimaryStampName
-- GetKustoClusterFromSiteName
-- ShareAgentResult
+agent_type: "Orchestrator"
 
-agents_as_tools:
-  - agent_name: get_function_names_agent
-    tool_name: get_function_names_tool
-    tool_description: |
-      This tool discovers all available function names and their trigger types from the specified Function App.
-      Use this to validate function names and identify valid trigger types for Scale Controller analysis.
-    input_description: |
-      Provide the clusterName (use the KustoCluster value retrieved from GetKustoClusterFromEventPrimaryStampName or GetKustoClusterFromSiteName), 
-      databaseName (use "wawsprod") and SiteName (Function App name) to discover all available functions.
-      The tool will return a list of function names with their corresponding trigger types.
-      Use this information to validate if a function exists and has a valid trigger type for Scale Controller analysis.
+parameter_extraction_agent: "scale_controller_parameter_extraction_agent"
 
-  - agent_name: check_if_scale_controller_monitors_app_agent
-    tool_name: check_if_scale_controller_monitors_app_tool
-    tool_description: |
-      This tool checks if Scale Controller is monitoring the specified application by analyzing aggregation logs.
-      Use this to verify that Scale Controller is actively monitoring an application during the incident timeframe.
-    input_description: |
-      Provide the clusterName (use the KustoCluster value retrieved from GetKustoClusterFromEventPrimaryStampName or GetKustoClusterFromSiteName), 
-      databaseName (use "wawsprod"), EventPrimaryStampName, SiteName (also called AppName), and time range.
-      The tool will analyze Scale Controller monitoring activity and report if the application is being monitored.
-      Note: SiteName and AppName are equivalent - use whichever term is available from the incident.
+orchestration_start_agents:
+  - "check_if_scale_controller_monitors_app_agent"
+  - "check_scale_controller_votes_to_data_service_agent"
 
-  - agent_name: get_scale_controller_errors_for_app_agent
-    tool_name: get_scale_controller_errors_for_app_tool
-    tool_description: |
-      This tool retrieves and analyzes Scale Controller errors for the specified application.
-      Use this to identify error messages and exceptions that may be affecting application scaling.
-    input_description: |
-      Provide the clusterName (use the KustoCluster value retrieved from GetKustoClusterFromEventPrimaryStampName or GetKustoClusterFromSiteName), 
-      databaseName (use "wawsprod"), EventPrimaryStampName, SiteName (also called AppName), and time range.
-      The tool will return detailed error analysis including warnings, errors, and exceptions.
-      Note: SiteName and AppName are equivalent - use whichever term is available from the incident.
+result_summarization_prompt: |
+  Based on the comprehensive Scale Controller RCA analysis results from multiple specialized agents, provide a detailed summary in this EXACT format:
 
-  - agent_name: check_if_scale_controller_monitors_trigger_agent
-    tool_name: check_if_scale_controller_monitors_trigger_tool
-    tool_description: |
-      This tool verifies if Scale Controller is monitoring the specific trigger for the application.
-      Use this to confirm that the problematic trigger is being tracked by Scale Controller.
-    input_description: |
-      Provide the clusterName (use the KustoCluster value retrieved from GetKustoClusterFromEventPrimaryStampName or GetKustoClusterFromSiteName), 
-      databaseName (use "wawsprod"), EventPrimaryStampName, SiteName (also called AppName), TriggerName, and time range.
-      The tool will analyze trigger monitoring activity and report monitoring status.
-      Note: SiteName and AppName are equivalent - use whichever term is available from the incident.
-
-  - agent_name: check_scale_controller_votes_to_data_service_agent
-    tool_name: check_scale_controller_votes_to_data_service_tool
-    tool_description: |
-      This tool analyzes Scale Controller votes sent to Data Service for worker allocation.
-      Use this to verify if Scale Controller is requesting appropriate worker counts.
-    input_description: |
-      Provide the clusterName (use the KustoCluster value retrieved from GetKustoClusterFromEventPrimaryStampName or GetKustoClusterFromSiteName), 
-      databaseName (use "wawsprod"), EventPrimaryStampName, SiteName (also called AppName), and time range.
-      The tool will analyze worker allocation votes and scaling decisions.
-      Note: SiteName and AppName are equivalent - use whichever term is available from the incident.
-
-  - agent_name: check_assigned_workers_for_app_agent
-    tool_name: check_assigned_workers_for_app_tool
-    tool_description: |
-      This tool examines worker assignment patterns for the application during the incident timeframe.
-      Use this to verify if workers are being properly assigned to the application.
-    input_description: |
-      Provide the clusterName (use the KustoCluster value retrieved from GetKustoClusterFromEventPrimaryStampName or GetKustoClusterFromSiteName), 
-      databaseName (use "wawsprod"), EventPrimaryStampName, SiteName (also called AppName), and time range.
-      The tool will analyze worker assignment patterns and availability.
-      Note: SiteName and AppName are equivalent - use whichever term is available from the incident.
-
-  - agent_name: check_function_executions_agent
-    tool_name: check_function_executions_tool
-    tool_description: |
-      This tool analyzes function execution patterns for the specified trigger.
-      Use this to verify if functions are executing as expected during the incident timeframe.
-    input_description: |
-      Provide the clusterName (use the KustoCluster value retrieved from GetKustoClusterFromEventPrimaryStampName or GetKustoClusterFromSiteName), 
-      databaseName (use "wawsprod"), EventPrimaryStampName, SiteName (also called AppName), FunctionName, and time range.
-      The tool will analyze function execution counts and patterns.
-      Note: SiteName and AppName are equivalent - use whichever term is available from the incident.
-
-  - agent_name: check_processing_delays_for_function_agent
-    tool_name: check_processing_delays_for_function_tool
-    tool_description: |
-      This tool analyzes processing delays in function execution by comparing message enqueue times with processing times.
-      Use this to identify delays between message enqueue time and actual processing time.
-    input_description: |
-      Provide the clusterName (use the KustoCluster value retrieved from GetKustoClusterFromEventPrimaryStampName or GetKustoClusterFromSiteName), 
-      databaseName (use "wawsprod"), EventPrimaryStampName, SiteName (also called AppName), FunctionName, and time range.
-      The tool will analyze timing delays and potential bottlenecks in function execution.
-      Note: SiteName and AppName are equivalent - use whichever term is available from the incident.
-
-user_prompt_override: |
-  I will conduct a systematic Scale Controller RCA analysis following this EXACT sequence. I MUST complete ALL steps and present results in the specified format.
-
-  **MANDATORY EXECUTION SEQUENCE - Execute in this EXACT order:**
-  
-  **STEP 1: Initialize Analysis**
-  - Use ExtractRCAParametersFromICMIncident to get incident parameters.
-  - Use GetKustoClusterFromEventPrimaryStampName or GetKustoClusterFromSiteName to get cluster info
-  - After retrieved parameters and cluster info, call ShareAgentResult ONCE to share the value
-  - Use get_function_names_tool to discover available function names
-  
-  **STEP 2: Execute ALL Analysis Tools in EXACT Order**
-  Execute each tool ONCE in this sequence:
-  1. check_if_scale_controller_monitors_app_tool
-  2. check_if_scale_controller_monitors_trigger_tool  
-  3. check_scale_controller_votes_to_data_service_tool
-  4. check_assigned_workers_for_app_tool
-  5. check_function_executions_tool
-  6. check_processing_delays_for_function_tool
-  7. get_scale_controller_errors_for_app_tool (FINAL)
-  
-  **STEP 3: MANDATORY STRUCTURED SUMMARY**
-  After completing ALL 7 analysis tools, call ShareAgentResult ONCE to share findings in this EXACT format:
- 
   ---
   ## 📋 Scale Controller RCA Analysis Summary
   
   ### 🔍 Analysis Results by Component:
   
   **✅ Scale Controller Monitoring Status:**
-  [Detailed findings from check_if_scale_controller_monitors_app_tool]
+  [Detailed findings from check_if_scale_controller_monitors_app_agent analysis]
   
   **✅ Scale Trigger Analysis:**
-  [Detailed findings from check_if_scale_controller_monitors_trigger_tool]
+  [Detailed findings from check_if_scale_controller_monitors_trigger_agent analysis]
   
   **✅ Scale Vote Analysis:**
-  [Detailed findings from check_scale_controller_votes_to_data_service_tool]
+  [Detailed findings from check_scale_controller_votes_to_data_service_agent analysis]
   
   **✅ Worker Assignment Analysis:**
-  [Detailed findings from check_assigned_workers_for_app_tool]
+  [Detailed findings from check_assigned_workers_for_app_agent analysis]
   
   **✅ Function Execution Analysis:**
-  [Detailed findings from check_function_executions_tool]
+  [Detailed findings from check_function_executions_agent analysis]
   
   **✅ Processing Delays Analysis:**
-  [Detailed findings from check_processing_delays_for_function_tool]
+  [Detailed findings from check_processing_delays_for_function_agent analysis]
   
   **✅ Scale Controller Error Analysis:**
-  [Detailed findings from get_scale_controller_errors_for_app_tool]
+  [Detailed findings from get_scale_controller_errors_for_app_agent analysis]
   
   ### 🎯 Root Cause Summary:
-  [Comprehensive analysis based on ALL 7 tool results]
+  [Comprehensive analysis based on ALL agent results. Identify the primary root cause by correlating findings across all components. Look for patterns, gaps, or failures that explain the Scale Controller issue.]
   
   ### 💡 Recommendations:
-  [Specific actionable recommendations]
+  [Specific actionable recommendations based on the identified root cause. Include immediate actions, preventive measures, and monitoring improvements.]
   ---
-  
-  I will NOT deviate from this sequence and I will NOT skip any analysis tools. Each tool must be executed exactly once before proceeding to the summary.
+
+  Consolidate ALL analysis results to identify the root cause and provide actionable recommendations. Ensure the summary covers every component analysis and draws clear connections between findings.
+
+tools:
+- ShareAgentResult
 
 disable_document_retrieval: true
 
@@ -193,4 +60,4 @@ common_prompts:
 - format_guidelines
 - guard_rail
 
-max_reflection_count: 3
+max_reflection_count: 1

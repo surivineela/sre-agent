@@ -3,3 +3,4 @@ GetRegions
 | parse _eventPrimaryStampName with "waws-prod-" abbreviation "-" *
 | where AntaresAbbreviation == abbreviation 
 | project KustoCluster
+| take 1

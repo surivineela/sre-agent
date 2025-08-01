@@ -4,6 +4,7 @@
 
 using System.ComponentModel;
 using Agent.Core.Models;
+using Agent.Core.Models.ICM;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Framework;
 using Agent.Plugins.Helpers;
@@ -37,17 +38,23 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         [AgentTool(ToolMode.Auto)]
         public Task<string> CheckIfScaleControllerMonitorsApp(
             [Description("Kusto cluster name.")] string clusterName,
-            [Description("Kusto database name.")] string databaseName,
-            [Description("Start time of the query.")] DateTime fromDate,
-            [Description("End time of the query.")] DateTime toDate,
+            [Description("Kusto database name. wawsprod or legion")] string databaseName,
+            [Description("Start time of the query in yyyy-MM-ddTHH:mm:ss.fff format.")] string fromDate,
+            [Description("End time of the query in yyyy-MM-ddTHH:mm:ss.fff format.")] string toDate,
             [Description("EventPrimaryStampName (e.g., waws-prod-sy3-099).")] string eventPrimaryStampName,
             [Description("SiteName/application to monitor.")] string siteName)
         {
+            var message = FunctionsHelper.ProcessEventPrimaryStampName(eventPrimaryStampName, out bool isValid);
+            if (!isValid)
+            {
+                return Task.FromResult(message);
+            }
+
             return _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("RCA.ScaleControllerPreflight.CheckIfScaleControllerMonitorsApp", clusterName, databaseName,
                 new Dictionary<string, string>
                 {
-                    { "startTime", fromDate.ToString() },
-                    { "endTime", toDate.ToString() },
+                    { "startTime", fromDate },
+                    { "endTime", toDate },
                     { "eventPrimaryStampName", eventPrimaryStampName },
                     { "siteName", siteName }
                 });
@@ -68,18 +75,23 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         [AgentTool(ToolMode.Auto)]
         public Task<string> GetScaleControllerErrorsForApp(
             [Description("Kusto cluster name.")] string clusterName,
-            [Description("Kusto database name.")] string databaseName,
-            [Description("Start time of the query.")] DateTime fromDate,
-            [Description("End time of the query.")] DateTime toDate,
+            [Description("Kusto database name. wawsprod or legion")] string databaseName,
+            [Description("Start time of the query in yyyy-MM-ddTHH:mm:ss.fff format.")] string fromDate,
+            [Description("End time of the query in yyyy-MM-ddTHH:mm:ss.fff format.")] string toDate,
             [Description("EventPrimaryStampName (e.g., waws-prod-sy3-099).")] string eventPrimaryStampName,
             [Description("SiteName/application to check for errors.")] string siteName,
             [Description("Level (e.g. 4: warning, 3: error.")] int level)
         {
+            var message = FunctionsHelper.ProcessEventPrimaryStampName(eventPrimaryStampName, out bool isValid);
+            if (!isValid)
+            {
+                return Task.FromResult(message);
+            }
             return _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("RCA.ScaleControllerPreflight.GetScaleControllerErrorsForApp", clusterName, databaseName,
                 new Dictionary<string, string>
                 {
-                    { "startTime", fromDate.ToString() },
-                    { "endTime", toDate.ToString() },
+                    { "startTime", fromDate },
+                    { "endTime", toDate },
                     { "eventPrimaryStampName", eventPrimaryStampName },
                     { "siteName", siteName },
                     { "level", (level == 0 || level > 4) ? "4" : level.ToString() }
@@ -97,14 +109,19 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         [AgentTool(ToolMode.Auto)]
         public async Task<string> CheckIfScaleControllerMonitorsTrigger(
             [Description("Kusto cluster name.")] string clusterName,
-            [Description("Kusto database name.")] string databaseName,
-            [Description("Start time of the query.")] DateTime fromDate,
-            [Description("End time of the query.")] DateTime toDate,
+            [Description("Kusto database name. wawsprod or legion")] string databaseName,
+            [Description("Start time of the query in yyyy-MM-ddTHH:mm:ss.fff format.")] string fromDate,
+            [Description("End time of the query in yyyy-MM-ddTHH:mm:ss.fff format.")] string toDate,
             [Description("EventPrimaryStampName (e.g., waws-prod-sy3-099).")] string eventPrimaryStampName,
             [Description("SiteName/application.")] string siteName,
             [Description("FunctionName to monitor.")] string functionName)
         {
-            var message = FunctionsHelper.ProcessFunctionName(functionName, out bool isValid);
+            var message = FunctionsHelper.ProcessEventPrimaryStampName(eventPrimaryStampName, out bool isValid);
+            if (!isValid)
+            {
+                return message;
+            }
+            message = FunctionsHelper.ProcessFunctionName(functionName, out isValid);
             if (!isValid)
             {
                 return message;
@@ -112,8 +129,8 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
             return await _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("RCA.ScaleControllerPreflight.CheckIfScaleControllerMonitorsTrigger", clusterName, databaseName,
                 new Dictionary<string, string>
                 {
-                    { "startTime", fromDate.ToString() },
-                    { "endTime", toDate.ToString() },
+                    { "startTime", fromDate },
+                    { "endTime", toDate },
                     { "eventPrimaryStampName", eventPrimaryStampName },
                     { "siteName", siteName },
                     { "functionName", functionName }
@@ -132,18 +149,23 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         [AgentTool(ToolMode.Auto)]
         public Task<string> CheckScaleControllerVotesToDataService(
             [Description("Kusto cluster name.")] string clusterName,
-            [Description("Kusto database name.")] string databaseName,
-            [Description("Start time of the query.")] DateTime fromDate,
-            [Description("End time of the query.")] DateTime toDate,
+            [Description("Kusto database name. wawsprod or legion")] string databaseName,
+            [Description("Start time of the query in yyyy-MM-ddTHH:mm:ss.fff format.")] string fromDate,
+            [Description("End time of the query in yyyy-MM-ddTHH:mm:ss.fff format.")] string toDate,
             [Description("EventPrimaryStampName (e.g., waws-prod-sy3-099).")] string eventPrimaryStampName,
             [Description("SiteName/application.")] string siteName,
             [Description("TimeBucket for summarization (default: 1m). Examples: 1m, 5m, 1h.")] string summarizationTimeBucket = "1m")
         {
+            var message = FunctionsHelper.ProcessEventPrimaryStampName(eventPrimaryStampName, out bool isValid);
+            if (!isValid)
+            {
+                return Task.FromResult(message);
+            }
             return _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("RCA.ScaleControllerPreflight.CheckScaleControllerVotesToDataService", clusterName, databaseName,
                 new Dictionary<string, string>
                 {
-                    { "startTime", fromDate.ToString() },
-                    { "endTime", toDate.ToString() },
+                    { "startTime", fromDate },
+                    { "endTime", toDate },
                     { "eventPrimaryStampName", eventPrimaryStampName },
                     { "siteName", siteName },
                     { "summarizationTimeBucket", summarizationTimeBucket }
@@ -161,18 +183,25 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         [AgentTool(ToolMode.Auto)]
         public Task<string> CheckAssignedWorkersForApp(
             [Description("Kusto cluster name.")] string clusterName,
-            [Description("Kusto database name.")] string databaseName,
-            [Description("Start time of the query.")] DateTime fromDate,
-            [Description("End time of the query.")] DateTime toDate,
+            [Description("Kusto database name. wawsprod or legion")] string databaseName,
+            [Description("Start time of the query in yyyy-MM-ddTHH:mm:ss.fff format.")] string fromDate,
+            [Description("End time of the query in yyyy-MM-ddTHH:mm:ss.fff format.")] string toDate,
             [Description("EventPrimaryStampName (e.g., waws-prod-sy3-099).")] string eventPrimaryStampName,
             [Description("SiteName/application.")] string siteName,
             [Description("TimeBucket for summarization (default: 5m). Examples: 1m, 5m, 1h.")] string summarizationTimeBucket = "5m")
         {
+
+            // For each occurrence of the error, wrap the string in Task.FromResult to convert it to a Task<string>
+            var message = FunctionsHelper.ProcessEventPrimaryStampName(eventPrimaryStampName, out bool isValid);
+            if (!isValid)
+            {
+                return Task.FromResult(message);
+            }
             return _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("RCA.ScaleControllerPreflight.CheckAssignedWorkersForApp", clusterName, databaseName,
                 new Dictionary<string, string>
                 {
-                    { "startTime", fromDate.ToString() },
-                    { "endTime", toDate.ToString() },
+                    { "startTime", fromDate },
+                    { "endTime", toDate },
                     { "eventPrimaryStampName", eventPrimaryStampName },
                     { "siteName", siteName },
                     { "summarizationTimeBucket", summarizationTimeBucket }
@@ -190,9 +219,9 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         [AgentTool(ToolMode.Auto)]
         public async Task<string> CheckFunctionExecutions(
             [Description("Kusto cluster name.")] string clusterName,
-            [Description("Kusto database name.")] string databaseName,
-            [Description("Start time of the query.")] DateTime fromDate,
-            [Description("End time of the query.")] DateTime toDate,
+            [Description("Kusto database name. wawsprod or legion")] string databaseName,
+            [Description("Start time of the query in yyyy-MM-ddTHH:mm:ss.fff format.")] string fromDate,
+            [Description("End time of the query in yyyy-MM-ddTHH:mm:ss.fff format.")] string toDate,
             [Description("EventPrimaryStampName (e.g., waws-prod-sy3-099).")] string eventPrimaryStampName,
             [Description("SiteName/application.")] string siteName,
             [Description("FunctionName to monitor.")] string functionName,
@@ -203,11 +232,16 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
             {
                 return message;
             }
+            message = FunctionsHelper.ProcessEventPrimaryStampName(eventPrimaryStampName, out isValid);
+            if (!isValid)
+            {
+                return message;
+            }
             return await _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("RCA.ScaleControllerPreflight.CheckFunctionExecutions", clusterName, databaseName,
                 new Dictionary<string, string>
                 {
-                    { "startTime", fromDate.ToString() },
-                    { "endTime", toDate.ToString() },
+                    { "startTime", fromDate },
+                    { "endTime", toDate },
                     { "eventPrimaryStampName", eventPrimaryStampName },
                     { "siteName", siteName },
                     { "functionName", functionName },
@@ -226,9 +260,9 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         [AgentTool(ToolMode.Auto)]
         public async Task<string> CheckProcessingDelaysForFunction(
             [Description("Kusto cluster name.")] string clusterName,
-            [Description("Kusto database name.")] string databaseName,
-            [Description("Start time of the query.")] DateTime fromDate,
-            [Description("End time of the query.")] DateTime toDate,
+            [Description("Kusto database name. wawsprod or legion")] string databaseName,
+            [Description("Start time of the query in yyyy-MM-ddTHH:mm:ss.fff format.")] string fromDate,
+            [Description("End time of the query in yyyy-MM-ddTHH:mm:ss.fff format.")] string toDate,
             [Description("EventPrimaryStampName (e.g., waws-prod-sy3-099).")] string eventPrimaryStampName,
             [Description("SiteName/application.")] string siteName,
             [Description("FunctionName to analyze for delays.")] string functionName)
@@ -238,12 +272,17 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
             {
                 return message;
             }
+            message = FunctionsHelper.ProcessEventPrimaryStampName(eventPrimaryStampName, out isValid);
+            if (!isValid)
+            {
+                return message;
+            }
 
             return await _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("RCA.ScaleControllerPreflight.CheckProcessingDelaysForFunction", clusterName, databaseName,
                 new Dictionary<string, string>
                 {
-                    { "startTime", fromDate.ToString() },
-                    { "endTime", toDate.ToString() },
+                    { "startTime", fromDate },
+                    { "endTime", toDate },
                     { "stampName", eventPrimaryStampName },
                     { "siteName", siteName },
                     { "functionName", functionName }
@@ -263,7 +302,7 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
         [AgentTool(ToolMode.Auto)]
         public Task<string> GetSyncTriggersPayload(
     [Description("Kusto cluster name.")] string clusterName,
-    [Description("Kusto database name.")] string databaseName,
+    [Description("Kusto database name. wawsprod or legion")] string databaseName,
     [Description("Days ago for fetching the payload (default: 1d). Examples: 1d, 3d, 10d.")] string daysAgo,
     [Description("SiteName/application to check for errors.")] string siteName)
         {
@@ -282,6 +321,7 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
 - KustoCluster: Name of the Kusto cluster associated with the event primary stamp name.
 """
 )]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetKustoClusterFromEventPrimaryStampName(
             [Description("EventPrimaryStampName (e.g., waws-prod-sy3-099).")] string eventPrimaryStampName)
         {
@@ -291,11 +331,12 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
                 return message;
             }
 
-            return await _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("GetKustoClusterFromEventPrimaryStampName", DefaultClusterName, DefaultDatabaseName,
+            var a = await _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("GetKustoClusterFromEventPrimaryStampName", DefaultClusterName, DefaultDatabaseName,
                 new Dictionary<string, string>
                 {
                     { "eventPrimaryStampName", eventPrimaryStampName }
                 });
+            return a;
         }
 
         [Description(@"""
@@ -306,14 +347,16 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
 - KustoCluster: Name of the Kusto cluster associated with the site name.
 """
 )]
+        [AgentTool(ToolMode.Auto)]
         public Task<string> GetKustoClusterFromSiteName(
             [Description("SiteName/application to look up.")] string siteName)
         {
-            return _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("GetKustoClusterFromSiteName", DefaultClusterName, DefaultDatabaseName,
+            var a = _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("GetKustoClusterFromSiteName", DefaultClusterName, DefaultDatabaseName,
                 new Dictionary<string, string>
                 {
                     { "siteName", siteName }
                 });
+            return a;
         }
 
         [Description(@"""
@@ -328,7 +371,17 @@ Output: Returns JSON containing extracted parameters such as incidentId, title, 
             [Description("ICM Incident ID to extract parameters from.")] string incidentId,
             [Description("Specific instruction for parameter extraction. Example: 'Extract startTime, endTime, siteName, eventPrimaryStampName, and functionName.'")] string instruction)
         {
-            return _icmPlugin.GetParametersFromIncident(incidentId, instruction);
+            var a =  _icmPlugin.GetParametersFromIncident(incidentId, instruction);
+            return a;
+        }
+
+        [Description("Get ICM incident details")]
+        [AgentTool(ToolMode.Auto)]
+        public async Task<Incident> GetIncidentInfoForFunctions(
+            [Description("Incident ID")] string incidentId)
+        {
+            var a = await _icmPlugin.GetIncidentInfo(incidentId);
+            return a;
         }
     }
 }

@@ -72,6 +72,49 @@ public class YamlAgentDescriptor : IAgentDescriptor
     [YamlMember(Alias = "temperature")]
     public float? Temperature { get; set; } = null;
 
+    [YamlMember(Alias = "disable_common_prompts")]
+    public bool DisableCommonPrompts { get; set; } = false;
+
+    // === Workflow Agent Support ===
+    
+    /// <summary>
+    /// Specifies the execution type of this agent.
+    /// </summary>
+    [YamlMember(Alias = "agent_type")]
+    public AgentType AgentType { get; set; } = AgentType.Autonomous;
+
+    // === Orchestrator Agent Properties ===
+    
+    /// <summary>
+    /// Name of the agent responsible for extracting parameters from conversation history,
+    /// incident data, and function metadata for RCA execution.
+    /// </summary>
+    [YamlMember(Alias = "parameter_extraction_agent")]
+    public string? ParameterExtractionAgent { get; set; }
+
+    /// <summary>
+    /// List of agent names to start orchestration with using extracted parameters.
+    /// These agents execute without conversation history.
+    /// </summary>
+    [YamlMember(Alias = "orchestration_start_agents")]
+    public List<string> OrchestrationStartAgents { get; set; } = [];
+
+    /// <summary>
+    /// Prompt template used for summarizing results from orchestrated agents.
+    /// The results are stored in-memory and summarized using LLM with this prompt.
+    /// </summary>
+    [YamlMember(Alias = "result_summarization_prompt")]
+    public string? ResultSummarizationPrompt { get; set; }
+
+    // === Activity Agent Properties ===
+    
+    /// <summary>
+    /// Mappings that define which agents to execute next based on execution results.
+    /// Used by Activity agents to dynamically select subsequent agents in the workflow.
+    /// </summary>
+    [YamlMember(Alias = "next_agent_mappings")]
+    public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
+
     [YamlMember(Alias = "output_type")]
     public string? OutputType { get; set; } = null;
     [YamlMember(Alias = "meta_data")]
@@ -92,6 +135,4 @@ public class YamlAgentDescriptor : IAgentDescriptor
             throw new InvalidOperationException($"Failed to deserialize YAML: {ex.Message}", ex);
         }
     }
-
-   
 }

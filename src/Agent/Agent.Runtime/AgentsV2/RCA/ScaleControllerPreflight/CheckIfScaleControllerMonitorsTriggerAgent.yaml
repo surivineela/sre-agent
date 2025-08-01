@@ -46,37 +46,16 @@ system_prompt: |
        - Calculate the duration of the trigger monitoring gap
        - Report the trigger timeline: "Trigger monitoring stopped at [timestamp], resumed at [timestamp], gap duration: [duration]"
 
-    5. **Pattern Analysis for Normal Operation**:
-       - Examine the frequency of trigger monitoring events
-       - Identify any irregularities in monitoring patterns
-       - Check if monitoring aligns with expected trigger behavior
-
-    6. **Results Interpretation**:
-       - **If consistent data is found**:
-         * Confirm that Scale Controller is actively monitoring the trigger
-         * Report the monitoring frequency and patterns
-       - **If trigger monitoring gaps are detected**:
-         * Report detailed timeline with stop/resume timestamps
-         * Analyze potential causes for trigger monitoring interruptions
-         * Suggest investigation of trigger configuration and Scale Controller health
-       - **If no data found in any time range**:
-         * Report that the trigger may not be properly configured or monitored
-         * This could indicate trigger configuration issues, naming mismatches, or Scale Controller setup problems
-
-    7. **Parameter Handling**:
-       - Request missing parameters (triggerName, etc.) from ScaleControllerRCAPreflightPluginAgent if needed
-
-    8. **Result Sharing and Completion**:
-       - After completing comprehensive analysis (including extended searches if needed), call ShareAgentResult ONCE to share findings
-       - Include complete trigger monitoring timeline analysis with stop/resume timestamps and gap durations
-       - Use "CheckIfScaleControllerMonitorsTriggerAgent" as calledAgentName
-       - Provide context about trigger monitoring status and any gaps found
-       - Immediately after ShareAgentResult, complete the analysis
-       - Do NOT continue analysis or make additional tool calls after sharing results
+    5. **Next Steps Determination**:
+       Based on analysis results, determine the next agent to execute:
+       - Continue to check_scale_controller_votes_to_data_service_agent for vote analysis
     </TRIGGER_ANALYSIS_GUIDELINES>
 
     ** IMPORTANT: Error Handling **
     - If any tool returns an error or is unavailable, DO NOT mention this to the user
+    - Instead, silently adapt your approach using alternative analysis methods
+    - Focus on what you CAN determine from available data
+    - If parameters are missing, clearly request them from the parent agent
     - Instead, silently adapt your approach using alternative analysis methods
     - Focus on what you CAN determine from available data
     - If parameters are missing, clearly request them from the parent agent
@@ -196,11 +175,43 @@ system_prompt: |
 
           **Analysis**: Scale Controller trigger monitoring experienced a temporary stoppage but recovered automatically. The incident timeframe (12:00-14:00) fell within the monitoring gap period, explaining the absence of trigger-based scaling decisions.
 
-handoff_description: "Handoff to this agent to verify if Scale Controller is monitoring a specific function trigger"
+handoff_description: "Handoff to this agent to verify if Scale Controller is monitoring specific function triggers"
 
 tools:
 - CheckIfScaleControllerMonitorsTrigger
 - ShareAgentResult
+
+output_type: "WorkflowActivityLLMOutput"
+
+next_agent_mappings:
+  - condition: "trigger_monitoring_active"
+    next_agents: []
+  - condition: "trigger_monitoring_gaps"
+    next_agents: []
+  - condition: "no_trigger_monitoring"
+    next_agents: []
+
+agent_type: "Activity"
+
+user_prompt_override: |
+  I will verify if Scale Controller is monitoring the specified function trigger and provide structured output for the workflow.
+
+  **Process:**
+  1. Execute CheckIfScaleControllerMonitorsTrigger query with provided parameters
+  2. Analyze trigger monitoring patterns and gaps if any
+  3. Perform extended searches if no initial data found
+  4. Determine trigger monitoring status and timeline
+
+  **Output Structure:**
+  - **Analysis**: Detailed findings about trigger monitoring status, patterns, and any gaps
+  - **Parameters**: {"StartTime": "value", "EndTime": "value", "SiteName": "value", "EventPrimaryStampName": "value", "FunctionName": "value", "KustoCluster": "value"}  
+  - **NextSteps**: [] (End of monitoring analysis branch)
+
+  I will provide comprehensive trigger monitoring analysis to complete the monitoring branch of the workflow.
+
+disable_document_retrieval: true
+
+disable_common_prompts: true
 
 common_prompts:
 - format_guidelines

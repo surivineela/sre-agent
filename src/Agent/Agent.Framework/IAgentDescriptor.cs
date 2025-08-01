@@ -26,4 +26,12 @@ public interface IAgentDescriptor
     public string? UserPromptOverride { get; set; }
     public bool DisableDocumentRetrieval { get; set; }
     public bool EnableHandoffPromptOverride { get; set; }
+    public bool DisableCommonPrompts { get; set; }
+    
+    // === Workflow Agent Support ===
+    public AgentType AgentType { get; set; }
+    public string? ParameterExtractionAgent { get; set; }
+    public List<string> OrchestrationStartAgents { get; set; }
+    public string? ResultSummarizationPrompt { get; set; }
+    public List<NextAgentMapping> NextAgentMappings { get; set; }
 }
