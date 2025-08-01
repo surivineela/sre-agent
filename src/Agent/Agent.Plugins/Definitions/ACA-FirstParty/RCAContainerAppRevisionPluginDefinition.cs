@@ -371,7 +371,7 @@ Retrieves active revisions for the given container app.
 Scenario:
 Use this tool to get all active revisions for a container app within a specified time range.
 
-Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+Output: Returns tab-separated table data in CSV format. Column headers:
 - StartTime: start timestamp 
 - EndTime: end timestamp.
 - RevisionName: The active revision name.
@@ -405,7 +405,7 @@ Scenario:
 Use this tool to check whether HPA triggers the scale-up or scale-down when analyzing scaling issue.
 
 Output:
-Returns tab-separated table data in CSV format. The first line contains these column headers:
+Returns tab-separated table data in CSV format. Column headers:
 - MetricName: Name of the metric.
 - MaxValue: Maximum value the metric without considering tolerance.
 - MinValue: Minimum value the metric without considering tolerance.
@@ -443,7 +443,7 @@ Returns tab-separated table data in CSV format. The first line contains these co
         Scenario:
         Use this tool to get changes in the revision specification over time.
 
-        Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+        Output: Returns tab-separated table data in CSV format. Column headers:
         - TIMESTAMP: Time of the spec change.
         - PreviousSpec: Previous revision spec.
         - spec: Current revision spec.
@@ -477,7 +477,7 @@ Returns tab-separated table data in CSV format. The first line contains these co
         Use this tool to get ARM operation events and their health status for a container app.
 
         Output:
-        Returns tab-separated table data in CSV format. The first line contains these column headers:
+        Returns tab-separated table data in CSV format. Column headers:
         - StartTime: Timestamp of the operation.
         - Content: Operation method and status code.
         - GroupBy: Managed cluster name.
@@ -518,7 +518,7 @@ Returns tab-separated table data in CSV format. The first line contains these co
         - Pod lifecycle events such as container creation, restarts, exits, and node activity.
 
         Output:
-        Returns tab-separated table data in CSV format. The first line contains these column headers:
+        Returns tab-separated table data in CSV format. Column headers:
         - StartTime: Timestamp of the first time the event occurred.
         - EndTime: Timestamp of the last time the event occurred.
         - RevisionName: Name of the revision.
@@ -557,7 +557,7 @@ Returns tab-separated table data in CSV format. The first line contains these co
         Use this tool to check the pod status for a revision.
 
         Output:
-        Returns tab-separated table data in CSV format. The first line contains these column headers:
+        Returns tab-separated table data in CSV format. Column headers:
         - PodName: Name of the pod.
         - ManagedClusterName: Name of the cluster.
         - Status: Current pod status or 'Shut Down'.
@@ -593,7 +593,7 @@ Returns tab-separated table data in CSV format. The first line contains these co
         Use this tool to check Legion error events for a revision.
 
         Output:
-        Returns tab-separated table data in CSV format. The first line contains these column headers:
+        Returns tab-separated table data in CSV format. Column headers:
         - TIMESTAMP: Timestamp of the error event.
         - PodName: Name of the pod.
         - severityText: Severity of the error.
@@ -628,56 +628,85 @@ Returns tab-separated table data in CSV format. The first line contains these co
         Use this tool when investigating issues for container apps running on Legion. You can also use it to retrieve Legion Virtual Kubelet (VK) events, which can be correlated with revision failures such as provisioning errors, crashes, scheduling problems, and connectivity disruptions.
 
         Output:
-        Returns tab-separated table data in CSV format. Column headers include:
+        Returns tab-separated table data in CSV format. Column headers:
         - TIMESTAMP: The time when the event occurred
+        - PodName: The name of the pod associated with the event
         - Message: The message associated with the event, which may include details about the event
         - Error: The error message if the event is an error
         - Method: The name of the method that generated the event (e.g., "legion.DeletePod", "UpdateNodeStatus")
         - Reason: The reason for the event (e.g., "Evicted By Legion", "NC Polling Pending on legion", "Pending pod creation on legion")
         """)]
-        public async Task<string> GetLegionVKEventsForContainerAppPod(
+        public async Task<string> GetLegionVKEventsForContainerAppRevision(
             [Description("The start date for the query")] string fromDate,
             [Description("The end date for the query")] string toDate,
             [Description("The region of the managed cluster")] string region,
             [Description("The name of the managed cluster")] string managedClusterName,
-            [Description("Pod name within the revision.")] string podName)
+            [Description("Revision name.")] string revisionName)
          {
-            return await _kustoPlugin.ExecuteLocalFunctionAsync("GetLegionVKEventsForContainerAppPod", region,
+            return await _kustoPlugin.ExecuteLocalFunctionAsync("GetLegionVKEventsForContainerAppRevision", region,
                 new Dictionary<string, string> {
                 { "fromDate", fromDate.ToString() },
                 { "toDate", toDate.ToString() },
-                { "podName", podName },
+                { "revisionName", revisionName },
                 { "managedClusterName", managedClusterName }
              });
         }
 
         [Description("""
         Purpose:
-        Get the times for Legion Host Shutdowns related to a specific container app pod.
+        Retrieve pod evictions due to Legion Host shutdowns for a specific pod within a revision.
 
         Scenario:
-        Use this tool when you observe issues in Legion VK (virtual kubelet) events. This helps determine whether the events reported in Legion VK or container app pod deletions/crashes were caused by Legion Host shutdowns.     
+        Use this tool when the container app is running on Legion and experiencing availability issues. This helps determine if pod deletions or crashes were caused by Legion Host shutdowns.
 
         Output:
-        Returns tab-separated table data in CSV format. Column headers include:
+        Returns tab-separated table data in CSV format. Column headers:
         - PreciseTimeStamp: The time when Legion Host is shutdown
         - PodName: The name of the pod that was shutdown
         - OperationName: The name of the operation that was performed. for example, "MarkPodEvicted"
         - Message: The message associated with the shutdown operation, which may include details about the shutdown operation.
         """)]
-        public async Task<string> GetLegionHostShutdownTimes(
+        public async Task<string> GetPodEvictionsDueToLegionHostShutdown(
             [Description("The start date for the query")] string fromDate,
             [Description("The end date for the query")] string toDate,
             [Description("The region of the managed cluster")] string region,
             [Description("The name of the managed cluster")] string managedClusterName,
-            [Description("Pod name within the revision.")] string podName)
+            [Description("Revision name.")] string revisionName)
         {
-            return await _kustoPlugin.ExecuteLocalFunctionAsync("GetLegionHostShutdownTimes", region, new Dictionary<string, string> {
+            return await _kustoPlugin.ExecuteLocalFunctionAsync("GetPodEvictionsDueToLegionHostShutdown", region, new Dictionary<string, string> {
                 { "fromDate", fromDate.ToString() },
                 { "toDate", toDate.ToString() },
-                { "region", region },
-                { "podName", podName },
+                { "revisionName", revisionName },
                 { "managedClusterName", managedClusterName },
+             }, groupName: "Legion");
+        }
+
+        [Description("""
+        Purpose:
+        Retrieves the status of Legion hosts for a specific pod within a revision, indicating whether the host is enabled, disabled, or deleted.
+
+        Scenario:
+        Use this tool when a container app is running on Legion and experiencing availability issues. It helps determine if the Legion host has been deleted or recycled.
+
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - StartTime: Start time of the time window
+        - EndTime: End time of the time window
+        - CenturionRoleId: Centurion role ID of the Legion host
+        - LegionHostStatus: Legion host status during the time window (e.g., Enabled, Disabled, Deleted)
+        """)]
+        public async Task<string> GetLegionHostStatus(
+            [Description("The start date for the query")] string fromDate,
+            [Description("The end date for the query")] string toDate,
+            [Description("The region of the managed cluster")] string region,
+            [Description("Revision name.")] string revisionName,
+            [Description("The name of the managed cluster")] string managedClusterName)
+        {
+            return await _kustoPlugin.ExecuteLocalFunctionAsync("GetLegionHostStatus", region, new Dictionary<string, string> {
+                { "fromDate", fromDate.ToString() },
+                { "toDate", toDate.ToString() },
+                { "revisionName", revisionName },
+                { "managedClusterName", managedClusterName }
              }, groupName: "Legion");
         }
 
@@ -691,7 +720,7 @@ Returns tab-separated table data in CSV format. The first line contains these co
         Use this tool to analyze traffic patterns and HTTP response status codes for a revision.
 
         Output:
-        Returns tab-separated table data in CSV format. The first line contains these column headers:
+        Returns tab-separated table data in CSV format. Column headers:
         - Timestamp: Timestamp of start of 30min timeslot.
         - Status: HTTP response status (e.g., 2xx, 5xx).
         - Requests: Number of HTTP requests for that status.
@@ -726,7 +755,7 @@ Returns tab-separated table data in CSV format. The first line contains these co
             Use this tool to check whether the revision has unexpected probe failures.
 
             Output:
-            Returns tab-separated table data in CSV format. The first line contains these column headers:
+            Returns tab-separated table data in CSV format. Column headers:
             - TimeSlot: 30-minute slots of time.
             - msg: Log message of the probe failure.
             - FailureCount: Number of times the probe failure happened with the same message within the timeslot.
@@ -757,7 +786,7 @@ Returns tab-separated table data in CSV format. The first line contains these co
         Use this tool to get the health probe configuration for a container app.
 
         Output:
-        Returns tab-separated table data in CSV format. The first line contains these column headers:
+        Returns tab-separated table data in CSV format. Column headers:
         - containers: List of containers in the container app with each probe setting if set by the customer.
         """
         )]
@@ -786,7 +815,7 @@ Returns tab-separated table data in CSV format. The first line contains these co
         Scenario:
         Use this tool to check node availability for a revision.
 
-        Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+        Output: Returns tab-separated table data in CSV format. Column headers:
         - PreciseTimeStamp: Timestamp of the event.
         - ReplicaName: Name of the replica where the failure occurred.
         - msg: Log message of the node unavailability.
@@ -815,7 +844,7 @@ Returns tab-separated table data in CSV format. The first line contains these co
         Scenario:
         Use this tool to directly confirm if and when the container app scaled out or in, especially during suspected autoscaling issues. The output will display different time periods with corresponding replica counts.
 
-        Output: Returns tab-separated table data in CSV format. The first line contains these column headers:
+        Output: Returns tab-separated table data in CSV format. Column headers:
         - StartTime: Start time of the period.
         - EndTime: End time of the period.
         - ReplicaCount: Number of replicas during the period.

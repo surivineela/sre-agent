@@ -1,0 +1,24 @@
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let clusterName = "##managedClusterName##";
+let revisionName = "##revisionName##";
+let legion_pod_role_instances = SystemLogs
+| where PreciseTimeStamp between(queryFrom-2h..queryTo+2h)
+| where ResourceNamespace == clusterName
+| where PodName != ""
+| where eventId in (301, 304) 
+| where PodName startswith revisionName
+| distinct CenturionRoleId
+| where CenturionRoleId != "";
+SystemLogs
+| where TIMESTAMP between (queryFrom .. queryTo)
+| where eventId == 405
+| where isempty(CenturionRoleId) == false
+| where CenturionRoleId in (legion_pod_role_instances)
+| project TIMESTAMP, Value, CenturionRoleId
+| sort by CenturionRoleId asc, TIMESTAMP asc
+| serialize
+| extend PrevValue = prev(Value), ValueChanged = iif(prev(Value) != Value, 1, 0)
+| extend ChangeGroup = row_cumsum(ValueChanged)
+| summarize StartTime = min(TIMESTAMP), EndTime = max(TIMESTAMP) by ChangeGroup, Value, CenturionRoleId
+| project StartTime, EndTime, CenturionRoleId, LegionHostStatus = Value

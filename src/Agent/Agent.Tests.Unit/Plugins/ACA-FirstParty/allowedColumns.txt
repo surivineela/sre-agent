@@ -136,6 +136,8 @@ InactiveCount
 LegionEnvironmentName
 LegionComponent
 LegionRCPEndpoint
+CenturionRoleId
+LegionHostStatus
 
 
 # Kubernetes

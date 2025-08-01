@@ -146,7 +146,7 @@ namespace Agent.Plugins.Kusto
 
                 stopwatch.Stop();
                 var ret = new KustoQueryResult(reader, query);
-                ret.Message = CreateChatMessage(query, normalizedRegion, ret.RowCount, (int)stopwatch.ElapsedMilliseconds, groupName ?? string.Empty);
+                ret.Message = CreateChatMessage(query, normalizedRegion, ret.RowCount, (int)stopwatch.ElapsedMilliseconds, groupName: groupName ?? string.Empty);
 
                 return ret;
             }
@@ -284,7 +284,7 @@ namespace Agent.Plugins.Kusto
                 KustoCluster? cluster = null;
                 try
                 {
-                    cluster = GetCluster(region, string.Empty);
+                    cluster = GetCluster(region, groupName ?? string.Empty);
                 }
                 catch (Exception ex)
                 {
