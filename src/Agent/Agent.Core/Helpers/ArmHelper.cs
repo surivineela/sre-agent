@@ -74,6 +74,7 @@ public class ArmHelper
         "get",
         "list",
         "show",
+        "query",
     ];
 
     public static readonly ImmutableArray<string> BlockedSubCommands = [
@@ -81,6 +82,21 @@ public class ArmHelper
     ];
 
     public static readonly string AllowedReadVerbString = string.Join(", ", AllowedReadVerbs);
+
+    /// <summary>
+    /// Special command patterns that should be treated as read-only regardless of verbs
+    /// These patterns are checked before the general verb-based logic
+    /// </summary>
+    public static readonly ImmutableArray<string> ReadOnlyCommandPatterns = [
+        "az monitor log-analytics query",
+    ];
+
+    /// <summary>
+    /// Special command patterns that should be treated as write commands regardless of verbs
+    /// These patterns are checked before the general verb-based logic
+    /// </summary>
+    public static readonly ImmutableArray<string> WriteCommandPatterns = [
+    ];
 
     public static readonly ImmutableArray<string> AllowedWriteVerbs = [
         "add",
@@ -3052,6 +3068,12 @@ public class ArmHelper
             verb = cmd;
         }
 
+        // Define flags that are allowed to contain dangerous characters in their quoted values
+        var whitelistedFlags = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "--analytics-query"
+        };
+
         // Check for dangerous characters that could indicate command injection
         var dangerousPatterns = new string[]
         {
@@ -3072,11 +3094,93 @@ public class ArmHelper
         {
             if (command.Contains(pattern))
             {
+                // Check if the dangerous pattern is within a whitelisted flag's quoted value
+                if (IsDangerousPatternInWhitelistedFlag(command, pattern, whitelistedFlags))
+                {
+                    continue; // Allow this pattern as it's in a whitelisted flag's quoted value
+                }
+
                 return $"[Validation Failed]: Command contains potentially dangerous character(s): {pattern}";
             }
         }
 
         return null; // No validation errors
+    }
+
+    private bool IsDangerousPatternInWhitelistedFlag(string command, string pattern, HashSet<string> whitelistedFlags)
+    {
+        // Find all occurrences of the dangerous pattern
+        int patternIndex = 0;
+        while ((patternIndex = command.IndexOf(pattern, patternIndex, StringComparison.Ordinal)) != -1)
+        {
+            // Check if this pattern occurrence is within a whitelisted flag's quoted value
+            if (!IsPatternInWhitelistedFlagValue(command, patternIndex, whitelistedFlags))
+            {
+                return false; // Found a pattern that's not in a whitelisted flag's value
+            }
+            patternIndex += pattern.Length;
+        }
+        return true; // All pattern occurrences are in whitelisted flag values
+    }
+
+    private bool IsPatternInWhitelistedFlagValue(string command, int patternIndex, HashSet<string> whitelistedFlags)
+    {
+        // Look backwards from the pattern to find the nearest flag
+        var beforePattern = command.Substring(0, patternIndex);
+
+        // Find the last occurrence of each whitelisted flag before the pattern
+        string? matchedFlag = null;
+        int flagIndex = -1;
+
+        foreach (var flag in whitelistedFlags)
+        {
+            int lastFlagIndex = beforePattern.LastIndexOf(flag, StringComparison.OrdinalIgnoreCase);
+            if (lastFlagIndex > flagIndex)
+            {
+                flagIndex = lastFlagIndex;
+                matchedFlag = flag;
+            }
+        }
+
+        if (matchedFlag == null || flagIndex == -1)
+        {
+            return false; // No whitelisted flag found before the pattern
+        }
+
+        // Check if there's a quoted value after the flag that contains the pattern
+        var afterFlag = command.Substring(flagIndex + matchedFlag.Length);
+
+        // Skip whitespace after flag
+        int valueStart = 0;
+        while (valueStart < afterFlag.Length && char.IsWhiteSpace(afterFlag[valueStart]))
+        {
+            valueStart++;
+        }
+
+        if (valueStart >= afterFlag.Length)
+        {
+            return false; // No value after flag
+        }
+
+        // Check if the value starts with a quote
+        char quoteChar = afterFlag[valueStart];
+        if (quoteChar != '"' && quoteChar != '\'')
+        {
+            return false; // Value is not quoted
+        }
+
+        // Find the closing quote
+        int closingQuoteIndex = afterFlag.IndexOf(quoteChar, valueStart + 1);
+        if (closingQuoteIndex == -1)
+        {
+            return false; // No closing quote found
+        }
+
+        // Check if the pattern is within the quoted value
+        int quotedValueStart = flagIndex + matchedFlag.Length + valueStart + 1; // +1 to skip opening quote
+        int quotedValueEnd = flagIndex + matchedFlag.Length + closingQuoteIndex;
+
+        return patternIndex >= quotedValueStart && patternIndex < quotedValueEnd;
     }
 
     private bool CheckForUnauthorizedAccess(HttpResponseMessage response)
@@ -3087,17 +3191,53 @@ public class ArmHelper
 
     public static bool IsReadOnlyCommand(string command)
     {
-        var commandLower = command.ToLower();
+        var commandLower = command.ToLower().Trim();
 
-        // Check if command contains read-only verbs
+        // First, check special read-only command patterns (whitelist)
+        foreach (var pattern in ReadOnlyCommandPatterns)
+        {
+            if (commandLower.StartsWith(pattern.ToLower(), StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        // Then, check special write command patterns (to exclude them from read-only)
+        foreach (var pattern in WriteCommandPatterns)
+        {
+            if (commandLower.StartsWith(pattern.ToLower(), StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+        }
+
+        // Finally, fall back to the general verb-based logic
         return AllowedReadVerbs.Any(verb => commandLower.Contains($" {verb} ") || commandLower.Contains($" {verb}"));
     }
 
     public static bool IsWriteCommand(string command)
     {
-        var commandLower = command.ToLower();
+        var commandLower = command.ToLower().Trim();
 
-        // Check if command contains write verbs
+        // First, check special write command patterns (whitelist)
+        foreach (var pattern in WriteCommandPatterns)
+        {
+            if (commandLower.StartsWith(pattern.ToLower(), StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        // Then, check special read-only command patterns (to exclude them from write)
+        foreach (var pattern in ReadOnlyCommandPatterns)
+        {
+            if (commandLower.StartsWith(pattern.ToLower(), StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+        }
+
+        // Finally, fall back to the general verb-based logic
         return WriteVerbs.Any(verb => commandLower.Contains($" {verb} ") || commandLower.Contains($" {verb}"));
     }
 
