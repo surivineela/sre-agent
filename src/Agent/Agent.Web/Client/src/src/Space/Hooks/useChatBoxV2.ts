@@ -367,8 +367,9 @@ export const useChatBoxV2 = (
 
             handleCompletedMessageChunk(currentMessageChunk);
         } else {
-            setToolCallText(isCancellingStreamingRef.current ? null : currentToolCallText);
+            setIsAgentTyping(true);
             setIsWaitingForStreamingMessages(false);
+            setToolCallText(isCancellingStreamingRef.current ? null : currentToolCallText);
 
             if (currentMessageText && !isCancellingStreamingRef.current) {
                 if (isDefaultStreamingMessageType(currentMessageChunk)) {
