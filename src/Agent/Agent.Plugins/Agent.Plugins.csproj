@@ -28,7 +28,6 @@
 	  <PackageReference Include="Microsoft.Azure.Management.Monitor.Fluent" />
 	  <PackageReference Include="Microsoft.Diagnostics.Runtime" />
 	  <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" />
-	  <PackageReference Include="Microsoft.DurableTask.Generators" />
 	  <PackageReference Include="Microsoft.Graph" />
 	  <PackageReference Include="Microsoft.TeamFoundationServer.Client" />
     <PackageReference Include="ScottPlot" />
@@ -37,7 +36,7 @@
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" />
     <PackageReference Include="Octokit" />
     <PackageReference Include="KubernetesClient" />
-    <PackageReference Include="ReverseMarkdown"/>
+    <PackageReference Include="ReverseMarkdown" />
   </ItemGroup>
 
   <ItemGroup>

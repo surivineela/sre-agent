@@ -95,13 +95,13 @@ public class DataConnectorConfigurationTest
                 "Core":
                 {
                     "DataConnectorSettings": {
-                        "SearchSettings": {
+                        "Search": {
                             "IndexName": "dataconnector-index",
                             "SkillsetName": "dataconnector-skillsets",
                             "IndexerName": "dataconnector-indexer",
                             "DataSourceName": "dataconnector-datasource"
                         },
-                        "StorageSettings": {
+                        "Storage": {
                             "BlobStorageContainerName": "dataconnectors"
                         }
                     }
@@ -118,13 +118,13 @@ public class DataConnectorConfigurationTest
                 "Core":
                 {
                     "DataConnectorSettings": {
-                        "SearchSettings": {
+                        "Search": {
                             "IndexName": "dataconnector-index",
                             "SkillsetName": "dataconnector-skillsets",
                             "IndexerName": "dataconnector-indexer",
                             "DataSourceName": "dataconnector-datasource"
                         },
-                        "StorageSettings": {
+                        "Storage": {
                             "BlobStorageContainerName": "dataconnectors"
                         }
                      },
@@ -148,13 +148,13 @@ public class DataConnectorConfigurationTest
                 "Core":
                 {
                     "DataConnectorSettings": {
-                        "SearchSettings": {
+                        "Search": {
                             "IndexName": "dataconnector-index",
                             "SkillsetName": "dataconnector-skillsets",
                             "IndexerName": "dataconnector-indexer",
                             "DataSourceName": "dataconnector-datasource"
                         },
-                        "StorageSettings": {
+                        "Storage": {
                             "BlobStorageContainerName": "dataconnectors"
                         }
                     },
@@ -184,13 +184,13 @@ public class DataConnectorConfigurationTest
                 "Core":
                 {
                     "DataConnectorSettings":  {
-                        "SearchSettings": {
+                        "Search": {
                             "IndexName": "dataconnector-index",
                             "SkillsetName": "dataconnector-skillsets",
                             "IndexerName": "dataconnector-indexer",
                             "DataSourceName": "dataconnector-datasource"
                         },
-                        "StorageSettings": {
+                        "Storage": {
                             "BlobStorageContainerName": "dataconnectors"
                         }
                     },

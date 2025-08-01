@@ -11,7 +11,6 @@ using Agent.Framework.Reasoning.Models;
 using Azure.Identity;
 using Kusto.Data.Common;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph.Models;
 using KustoData = Kusto.Data;
 
 namespace Agent.Plugins.Kusto;
@@ -51,14 +50,14 @@ public class KustoClient
 
             return await queryProvider.ExecuteQueryAsync(database, query, properties, cancellationToken);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex.IsNotTokenCancellation(cancellationToken))
         {
             _logger.LogInternalError($"An error occurred while executing PerformQueryAsync: {ex.Message}");
             throw;
         }
     }
 
-    public async Task<IDataReader> PerformQueryWithParametersAsync(string clusterUri, string database, string query, Dictionary<string, object> parameters)
+    public async Task<IDataReader> PerformQueryWithParametersAsync(string clusterUri, string database, string query, Dictionary<string, object> parameters, CancellationToken cancellationToken = default)
     {
         ICslQueryProvider queryProvider = GetQueryProvider(clusterUri);
 
@@ -71,7 +70,7 @@ public class KustoClient
 
         _logger.LogExternalInformation($"Executing query: {query}, request Id: {properties.ClientRequestId} with parameters");
 
-        return await queryProvider.ExecuteQueryAsync(database, query, properties);
+        return await queryProvider.ExecuteQueryAsync(database, query, properties, cancellationToken);
     }
 
     private ICslQueryProvider GetQueryProvider(string clusterUri)
@@ -128,11 +127,12 @@ public class KustoClient
     public async Task<KustoQueryResult> ExecuteClusterKustoQuery(
            string cluster,
            string database,
-           string fullQuery)
+           string fullQuery,
+           CancellationToken cancellationToken = default)
     {
         cluster = cluster.Replace(".kusto.windows.net", "");
         cluster = cluster.Replace("https://", "");
-        var reader = await PerformQueryAsync($"https://{cluster}.kusto.windows.net", database, fullQuery);
+        var reader = await PerformQueryAsync($"https://{cluster}.kusto.windows.net", database, fullQuery, cancellationToken);
         return new KustoQueryResult(reader, fullQuery);
     }
     private static void ApplyParameters(ClientRequestProperties properties, Dictionary<string, object> parameters)

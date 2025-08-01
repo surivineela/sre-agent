@@ -89,5 +89,9 @@ namespace Agent.Tests.Common.Mocks
             return _containers.GetOrAdd(containerName, (key) => { return new ConcurrentDictionary<string, byte[]>(); });
         }
 
+        public Task<BlobProperties> GetBlobPropertiesAsync(string containerName, string blobName, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(new BlobProperties());
+        }
     }
 }

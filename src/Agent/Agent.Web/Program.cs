@@ -827,7 +827,6 @@ public class Program
             b.AddTasks(r =>
             {
                 DurableHelper.AddAllGeneratedTasks(r);
-                PluginsDurableTaskExtensions.AddAllGeneratedTasks(r);  // Registers all plugin tasks (Kusto, TSG, etc.) in Agent.Plugins assembly
             });
 
             string durableConnectionString = builder.ResolveDtsConnectionString();

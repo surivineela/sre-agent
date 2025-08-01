@@ -47,7 +47,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
             };
         }
 
-        public async Task<IDataReader> PerformQueryAsync(string database, string query)
+        public async Task<IDataReader> PerformQueryAsync(string database, string query, CancellationToken cancellationToken)
         {
             const int MaxAttempts = 3;
             KustoClientException? lastException = null;
@@ -56,11 +56,11 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
             {
                 try
                 {
-                    return await _kustoClient.PerformQueryAsync(_clusterUri.ToString(), database, query);
+                    return await _kustoClient.PerformQueryAsync(_clusterUri.ToString(), database, query, cancellationToken);
                 }
                 catch (KustoClientException ex)
                 {
-                    _logger.LogInternalWarning($"An error occurred while executing PerformQueryAsync: {ex.Message}");
+                    _logger.LogInternalWarning(ex, $"An error occurred while executing PerformQueryAsync: {ex.Message}");
 
                     lastException = ex;
                 }
@@ -74,14 +74,14 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
             throw new InvalidOperationException("Failed to execute query after multiple attempts.");
         }
 
-        public async Task<string> GetLogMessageSamplesAsync(string databaseName, string tableName, string logMessageColumnName, string timestampColumnName)
+        public async Task<string> GetLogMessageSamplesAsync(string databaseName, string tableName, string logMessageColumnName, string timestampColumnName, CancellationToken cancellationToken)
         {
             const string columnSummaryPrompt =
                 $$"""
                 # Instructions
-                Using the log table data below, return a new-line separated list of semantically unique rows with no duplicates and nothing else in your response.
+                Using the log table rows below, return a new-line separated list of semantically unique rows with no duplicates and nothing else in your response.
 
-                # Examples
+                ## Examples
                 Duplicate rows can by identified by having a similar pattern with differing values filled in for things like names, IDs, dates, etc. For example, the following would be considered duplicates:
 
                 Example 1:
@@ -99,7 +99,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
                 Notice how in each of these examples, the rows looks like they're saying the same thing but with different values such as IDs, names, dates, or other values.
                 The duplicates should be removed, and only unique rows should be returned.
 
-                # Log table data
+                # Log table rows
 
                 """;
 
@@ -121,24 +121,27 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
                     using IDataReader dataReader = await PerformQueryAsync(
                         databaseName,
                         $$"""
-                {{tableName}}
-                    | where {{timestampColumnName}} > ago (7d)
-                    | where isnotempty({{logMessageColumnName}})
-                    | project {{logMessageColumnName}}
-                    | extend sub1 = substring({{logMessageColumnName}}, 0, {{subStringLength}})
-                    | summarize take_any({{logMessageColumnName}}) by sub1
-                    | project {{logMessageColumnName}}, sub2 = substring({{logMessageColumnName}}, strlen({{logMessageColumnName}})-{{subStringLength}})
-                    | summarize take_any({{logMessageColumnName}}) by sub2
-                    | project {{logMessageColumnName}}
-                    | sample 1000
-                    | sort by {{logMessageColumnName}} asc
-                """);
+                        {{tableName}}
+                            | where {{timestampColumnName}} > ago (7d)
+                            | where isnotempty({{logMessageColumnName}})
+                            | project {{logMessageColumnName}}
+                            | extend sub1 = substring({{logMessageColumnName}}, 0, {{subStringLength}})
+                            | summarize take_any({{logMessageColumnName}}) by sub1
+                            | project {{logMessageColumnName}}, sub2 = substring({{logMessageColumnName}}, strlen({{logMessageColumnName}})-{{subStringLength}})
+                            | summarize take_any({{logMessageColumnName}}) by sub2
+                            | project {{logMessageColumnName}}
+                            | sample 1000
+                            | sort by {{logMessageColumnName}} asc
+                        """,
+                        cancellationToken);
 
                     StringBuilder sb = new StringBuilder();
                     List<string> batchResults = new List<string>();
 
                     while (dataReader.Read())
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
+
                         string? line = dataReader[0].ToString();
                         if (!string.IsNullOrEmpty(line))
                         {
@@ -157,7 +160,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
                             {
                                 // Send current batch
                                 string batchPrompt = columnSummaryPrompt + Environment.NewLine + sb.ToString();
-                                string batchResult = await SendToModel(batchPrompt);
+                                string batchResult = await SendToModel(batchPrompt, cancellationToken);
                                 batchResults.Add(batchResult);
 
                                 // Clear the buffer for next batch
@@ -170,7 +173,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
                     if (sb.Length > 0)
                     {
                         string finalPrompt = columnSummaryPrompt + Environment.NewLine + sb.ToString();
-                        string finalResult = await SendToModel(finalPrompt);
+                        string finalResult = await SendToModel(finalPrompt, cancellationToken);
                         batchResults.Add(finalResult);
                     }
 
@@ -189,11 +192,11 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
             return string.Empty;
         }
 
-        public async Task<string> SummarizeTableAsync(string tableName, List<KustoLogMessageSamples> logMessageSamples, IEnumerable<KustoColumnMetadata> columnMetadata)
+        public async Task<string> SummarizeTableAsync(string tableName, IEnumerable<KustoLogMessageSamples> logMessageSamples, IEnumerable<KustoColumnMetadata> columnMetadata, CancellationToken cancellationToken)
         {
             StringBuilder logData = new StringBuilder();
 
-            if (logMessageSamples.Count > 0)
+            if (logMessageSamples.Any())
             {
                 foreach (KustoLogMessageSamples sample in logMessageSamples)
                 {
@@ -252,10 +255,10 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
                 finalPrompt.AppendLine(CultureInfo.InvariantCulture, $"Column: {column.Name}, Type: {column.Type}, Description: {column.Description}");
             }
 
-            return await SendToModel(finalPrompt.ToString());
+            return await SendToModel(finalPrompt.ToString(), cancellationToken);
         }
 
-        public async Task<string> GenerateQueryDescriptionAsync(string tableDescription, string queryText)
+        public async Task<string> GenerateQueryDescriptionAsync(string tableDescription, string queryText, CancellationToken cancellationToken)
         {
             // in this prompt , we can also add column metadata, a refinement would be to parse the query for the columns it projects and then use only that speicifc metadata
             string prompt = $@"
@@ -269,13 +272,13 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
 
                         Description:";
 
-            return await SendToModel(prompt);
+            return await SendToModel(prompt, cancellationToken);
         }
 
-        public async Task<IEnumerable<KustoColumnMetadata>> GetTableSchemaAsync(string databaseName, string tableName)
+        public async Task<IReadOnlyList<KeyValuePair<string, string>>> GetTableSchemaAsync(string databaseName, string tableName, CancellationToken cancellation)
         {
             string query = $".show table {tableName} schema as json ";
-            using IDataReader result = await PerformQueryAsync(databaseName, query);
+            using IDataReader result = await PerformQueryAsync(databaseName, query, cancellation);
 
             if (result.Read())
             {
@@ -285,19 +288,14 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
 
                 if (json.TryGetProperty("OrderedColumns", out JsonElement columnsElement) && columnsElement.ValueKind == JsonValueKind.Array)
                 {
-                    List<KustoColumnMetadata> columns = new List<KustoColumnMetadata>(columnsElement.GetArrayLength());
+                    List<KeyValuePair<string, string>> columns = new List<KeyValuePair<string, string>>(columnsElement.GetArrayLength());
 
                     foreach (JsonElement column in columnsElement.EnumerateArray())
                     {
                         string name = column.GetProperty("Name").GetString() ?? string.Empty;
                         string type = column.GetProperty("CslType").GetString() ?? string.Empty;
 
-                        columns.Add(new KustoColumnMetadata()
-                        {
-                            Name = name,
-                            Type = type,
-                            Description = string.Empty
-                        });
+                        columns.Add(new KeyValuePair<string, string>(name, type));
                     }
 
                     return columns;
@@ -312,7 +310,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
             return $"['{columnName}']";
         }
 
-        public async Task<string> CreateColumnDescriptionAsync(string databaseName, string tableName, string columnName, IEnumerable<string> contextColumns, string timestampColumnName)
+        public async Task<string> CreateColumnDescriptionAsync(string databaseName, string tableName, string columnName, string timestampColumnName, IEnumerable<string> contextColumns, CancellationToken cancellationToken)
         {
             IEnumerable<string> contextColumnsWrapped = contextColumns
                     .Where(x => !string.Equals(x, columnName))
@@ -325,7 +323,8 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
 
             using IDataReader dataReader = await PerformQueryAsync(
                 databaseName,
-                $"{tableName} | where isnotempty({WrapColumnName(columnName)}) and {timestampColumnName} > ago(14d) | project {selectColumns} | sample 1000 | distinct {selectColumns} | take 100");
+                $"{tableName} | where isnotempty({WrapColumnName(columnName)}) and {timestampColumnName} > ago(14d) | project {selectColumns} | sample 1000 | distinct {selectColumns} | take 100",
+                cancellationToken);
 
             KustoQueryResult result = new KustoQueryResult(dataReader, string.Empty);
 
@@ -346,10 +345,10 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
             query.AppendLine(result.Result);
 
             // TODO: log data can be too verbose causing LLM token error. Need way to fetch most relevant data (maybe can refer back to column metadata in search?)
-            return await SendToModel(query.ToString());
+            return await SendToModel(query.ToString(), cancellationToken);
         }
 
-        public async Task<string> DiscoverTimeStampColumnsAsync(string databaseName, string tableName, IEnumerable<KustoColumnMetadata> columnMetadata, CancellationToken cancellationToken = default)
+        public async Task<string> DiscoverTimeStampColumnsAsync(string databaseName, string tableName, IReadOnlyList<KeyValuePair<string, string>> columnSchema, CancellationToken cancellationToken)
         {
             _logger.LogInternalInformation("Getting timestamp columns for table: {TableName}", tableName);
 
@@ -380,9 +379,9 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
                 sb.AppendLine("# Column schema");
                 sb.AppendLine();
 
-                foreach (KustoColumnMetadata column in columnMetadata)
+                foreach (KeyValuePair<string, string> column in columnSchema)
                 {
-                    sb.AppendLine(CultureInfo.InvariantCulture, $"Column: {column.Name}, Type: {column.Type}");
+                    sb.AppendLine(CultureInfo.InvariantCulture, $"Column: {column.Key}, Type: {column.Value}");
                 }
 
                 using (IDataReader dataReader = await _kustoClient.PerformQueryAsync(
@@ -399,7 +398,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
                     sb.AppendLine(kustoSampleData.Result);
                 }
 
-                string timeStampColumn = await SendToModel(sb.ToString());
+                string timeStampColumn = await SendToModel(sb.ToString(), cancellationToken);
 
                 _logger.LogInternalInformation("Iteration {Iteration}: Got timestamp column: {Column}. Trying it out..", i, timeStampColumn);
 
@@ -429,17 +428,13 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
 
                     badColumns.Add(timeStampColumn);
                 }
-                catch (OperationCanceledException ex) when (ex.CancellationToken == cancellationToken)
-                {
-                    throw;
-                }
                 catch (KustoRequestException ex)
                 {
                     _logger.LogInternalInformation("Iteration {Iteration}: Query with timestamp column: {Column} was invalid. Reason: {Message}", i, timeStampColumn, ex.Message);
 
                     badColumns.Add(timeStampColumn);
                 }
-                catch (Exception ex)
+                catch (Exception ex) when (ex.IsNotTokenCancellation(cancellationToken))
                 {
                     // some other error, try again
                     _logger.LogInternalWarning(ex, "Iteration {Iteration}: Failed to run query with timestamp column: {Column}. Reason: {Message}", i, timeStampColumn, ex.Message);
@@ -449,14 +444,15 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
             return string.Empty;
         }
 
-        public async Task<IEnumerable<string>> DiscoverLogMessageColumnsAsync(string databaseName, string tableName, IEnumerable<string> columnNames, string timeStampColumnName)
+        public async Task<IEnumerable<string>> DiscoverLogMessageColumnsAsync(string databaseName, string tableName, IEnumerable<string> columnNames, string timeStampColumnName, CancellationToken cancellationToken)
         {
             _logger.LogInternalInformation("Getting message columns for table: {TableName}", tableName);
 
             using IDataReader dataReader = await _kustoClient.PerformQueryAsync(
                 _clusterUri.ToString(),
                 databaseName,
-                $" {tableName} | where {timeStampColumnName} > ago(7d) | sample 100");
+                $" {tableName} | where {timeStampColumnName} > ago(7d) | sample 100",
+                cancellationToken);
 
             KustoQueryResult kustoSampleData = new KustoQueryResult(dataReader, string.Empty);
 
@@ -479,7 +475,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
                 query.AppendLine();
                 query.AppendLine(kustoSampleData.Result);
 
-                string result = await SendToModel(query.ToString());
+                string result = await SendToModel(query.ToString(), cancellationToken);
 
                 _logger.LogInternalDebug($"Table '{tableName}' column results: {result}");
 
@@ -505,7 +501,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
 
         }
 
-        private async Task<string> SendToModel(string prompt)
+        private async Task<string> SendToModel(string prompt, CancellationToken cancellationToken)
         {
             int maxRetryAttempts = 5;
             int throttleDelaySeconds = 5;
@@ -521,7 +517,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
                         userMessage
                     };
 
-                    ChatResponse response = await _chatClient.GetResponseAsync(messages, _chatOptions);
+                    ChatResponse response = await _chatClient.GetResponseAsync(messages, _chatOptions, cancellationToken);
 
                     return response.Messages.Last().Text;
                 }
@@ -536,7 +532,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
                     if (ex.Status == 429)
                     {
                         // getting throttled by Open AI
-                        await Task.Delay(TimeSpan.FromSeconds(throttleDelaySeconds * i));
+                        await Task.Delay(TimeSpan.FromSeconds(throttleDelaySeconds * i), cancellationToken);
                     }
                     else
                     {

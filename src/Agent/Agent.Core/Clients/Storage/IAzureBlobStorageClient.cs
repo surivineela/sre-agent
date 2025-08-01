@@ -15,5 +15,6 @@ namespace Agent.Core.Clients.Storage
         Task<Stream> DownloadBlobContentsAsStreamAsync(Uri blobUrl);
         Task CopyBlobContentsAsync(Uri sourceBlobUri, string containerName, string blobName);
         Task<bool> CheckBlobExistsAsync(string containerName, string blobName);
+        Task<BlobProperties> GetBlobPropertiesAsync(string containerName, string blobName, CancellationToken cancellationToken);
     }
 }

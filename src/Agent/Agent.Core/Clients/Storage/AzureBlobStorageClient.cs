@@ -123,7 +123,17 @@ namespace Agent.Core.Clients.Storage
         {
             var blobContainerClient = await GetBlobContainerClient(containerName);
             var blobClient = blobContainerClient.GetBlobClient(blobName);
+            
             return await blobClient.ExistsAsync();
+        }
+
+        public async Task<BlobProperties> GetBlobPropertiesAsync(string containerName, string blobName, CancellationToken cancellationToken)
+        {
+            var blobContainerClient = await GetBlobContainerClient(containerName);
+            var blobClient = blobContainerClient.GetBlobClient(blobName);
+            var response = await blobClient.GetPropertiesAsync(cancellationToken: cancellationToken);
+            
+            return response.Value;
         }
 
         private async Task<BlobContainerClient> GetBlobContainerClient(string containerName)

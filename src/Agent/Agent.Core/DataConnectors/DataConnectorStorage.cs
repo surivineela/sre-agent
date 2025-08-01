@@ -5,6 +5,7 @@
 using System.Reflection;
 using Agent.Core.Clients.Storage;
 using Agent.Core.Configuration;
+using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -64,6 +65,13 @@ public class DataConnectorStorage<TDataConnector> where TDataConnector : IDataCo
         _logger.LogInternalInformation("Downloading blob contents for data connector {DataConnector} at URI {Uri}", _dataConnectorName, blobUrl);
 
         return _storageClient.DownloadBlobContentsAsStreamAsync(blobUrl);
+    }
+
+    public Task<BlobProperties> GetBlobPropertiesAsync(string blobName, CancellationToken cancellationToken)
+    {
+        string fullPath = GetFullBlobPath(blobName);
+
+        return _storageClient.GetBlobPropertiesAsync(_containerName, fullPath, cancellationToken);
     }
 
     private string GetFullBlobPath(string blobName)
