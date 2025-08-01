@@ -59,7 +59,7 @@ public class KubernetesResourceNode : GraphNode
     {
         SubscriptionId = subscriptionId?.ToLowerInvariant() ?? string.Empty;
         ResourceGroupName = resourceGroupName?.ToLowerInvariant() ?? string.Empty;
-        Location = location?.NormalizeLocation() ?? string.Empty;
+        Location = !string.IsNullOrEmpty(location) ? location.NormalizeLocation() : string.Empty;
         UpdateTs = DateTime.UtcNow.Ticks;
         ResourceObject = k8sObject;
         ClusterResourceId = clusterResourceId.ToLowerInvariant();
@@ -111,6 +111,12 @@ public class KubernetesResourceNode : GraphNode
     public override IDictionary<string, object> GetNodeProperties()
     {
         var props = base.GetNodeProperties();
+
+        // Remove location property if it's empty to avoid overwriting existing location in database
+        if (string.IsNullOrEmpty(Location))
+        {
+            props.Remove("location");
+        }
 
         //TODO: can property value be a dictionary?
         if (Annotations != null)
