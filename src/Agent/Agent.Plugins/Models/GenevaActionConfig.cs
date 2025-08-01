@@ -1,6 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace Agent.Plugins.Models;
 
@@ -21,6 +23,9 @@ public class GenevaActionConfig : GenevaActionConfigBase
     public bool IsAllowedOnExternalSubs { get; set; }
     public bool IsApprovalNeeded { get; set; }
     public Guid? ServiceTreeId { get; set; }
+
+    [Newtonsoft.Json.JsonConverter(typeof(StringEnumConverter))]
+    public LogLevel? IcmLogLevel { get; set; } = LogLevel.None;
 }
 
 public class GenevaActionConfigBase

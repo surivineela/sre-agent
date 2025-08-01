@@ -1,5 +1,6 @@
 using System.Runtime.Caching;
 using System.Text.Json.Serialization;
+using System.Net;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
@@ -18,6 +19,13 @@ using Author = Agent.Core.Models.Api.v1.Author;
 using Message = Agent.Core.Models.Api.v1.Message;
 
 namespace Agent.Plugins;
+
+public class GenevaActionWorkflowResponse
+{
+    public HttpStatusCode StatusCode { get; set; }
+    public string Content { get; set; } = string.Empty;
+    public bool IsSuccessStatusCode => (int)StatusCode >= 200 && (int)StatusCode <= 299;
+}
 
 public class GenevaActionsPlugin : IGenevaActionsPlugin
 {
@@ -117,7 +125,7 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
         return await _lazyGenevaActions.Value;
     }
 
-    private async Task<string> ExecuteGenevaActionWorkflow(GenevaActionConfig genevaActionConfig, Dictionary<string, string> inputParameters)
+    private async Task<GenevaActionWorkflowResponse> ExecuteGenevaActionWorkflow(GenevaActionConfig genevaActionConfig, Dictionary<string, string> inputParameters)
     {
         try
         {
@@ -125,16 +133,13 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
             var response = await _icmWorkflowClient.SendICMWorkflowRequest(genevaActionConfig.WorkflowName, payload, genevaActionConfig.TenantId);
             _logger.LogInternalInformation($"[GenevaActionsPlugin] [execute_geneva_action_workflow] - workflowName: {genevaActionConfig.WorkflowName}, statusCode: {response.StatusCode}");
 
-            if (response.IsSuccessStatusCode)
+            var content = await response.Content.ReadAsStringAsync();
+            
+            return new GenevaActionWorkflowResponse
             {
-                var content = await response.Content.ReadAsStringAsync();
-                return content;
-            }
-            else
-            {
-                string errorMessage = await response.Content.ReadAsStringAsync();
-                return errorMessage;
-            }
+                StatusCode = response.StatusCode,
+                Content = content
+            };
         }
         catch (Exception ex)
         {
@@ -359,14 +364,18 @@ No approval request found for document ID: {documentId}. Please ensure the docum
                         new ChatMessage(ChatRole.Assistant, $@"Approval document created, please approve. (**Requires SAW**)
                     Approval Request URI: {approvalResponse.ApprovalDocumentUri}"));
 
-                    await _icmAPIClient.PostDiscussionEntryAsync(incidentId, @$"
+                    // Log approval request to ICM if allowed by IcmLogLevel
+                    await LogToICMIfAllowed(genevaAction, incidentId, @$"
 In order to potentially resolve the incident, the following Geneva Action '{actionName}' requires approval. Please review and approve the action:<br><br>
     <b>Approval Document ID:</b> {approvalResponse.ApprovalDocumentId}<br>
     <b>Approval Request Link (Requires SAW):</b> <a href=""{approvalResponse.ApprovalDocumentUri}"" target=""_blank"">Click here to approve</a><br>
     <b>Approval Request Description:</b> {approvalRequest.RequestDescription}<br>
 ");
+
                     var approvalStatusWaitingMessage = await GetApprovalStatus(approvalResponse.ApprovalDocumentId);
-                    await _icmAPIClient.PostDiscussionEntryAsync(incidentId, approvalStatusWaitingMessage);
+
+                    // Log approval status to ICM if allowed by IcmLogLevel
+                    await LogToICMIfAllowed(genevaAction, incidentId, approvalStatusWaitingMessage);
 
                     if (!approvalStatusWaitingMessage.Contains("approved by"))
                     {
@@ -411,12 +420,22 @@ In order to potentially resolve the incident, the following Geneva Action '{acti
 
         _logger.LogInternalInformation("[GenevaActionsPlugin] Proceeding with executing Geneva Action");
         var response = await ExecuteGenevaActionWorkflow(genevaAction, inputParameters);
-        await _icmAPIClient.PostDiscussionEntryAsync(incidentId, response);
-        await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
-            ThreadId!.Value,
-            string.Empty,
-            new ChatMessage(ChatRole.Assistant, $"Geneva Actions response: {response}"));
-        return response;
+
+        // Log Geneva Action execution result to ICM if allowed by IcmLogLevel
+        await LogToICMIfAllowed(genevaAction, incidentId, $"Geneva Action '{actionName}' executed with status code: {response.StatusCode}, response: {response.Content}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                ThreadId!.Value,
+                string.Empty,
+                new ChatMessage(ChatRole.Assistant, $"Geneva Actions response: {response}"));
+            return $"Geneva Action '{actionName}' executed successfully. Response: {response.Content}.";
+        }
+        else
+        {
+            return $"Geneva Action '{actionName}' execution failed with status code: {response.StatusCode}, response: {response.Content}";
+        }
     }
 
     // Approval requests management methods
@@ -515,6 +534,26 @@ In order to potentially resolve the incident, the following Geneva Action '{acti
         [Newtonsoft.Json.JsonIgnore]
         [System.Text.Json.Serialization.JsonIgnore]
         public DateTimeOffset Datetime => DateTimeOffset.FromUnixTimeSeconds(Timestamp);
+    }
+
+    private bool ShouldLogToICM(GenevaActionConfig genevaAction, LogLevel messageLogLevel)
+    {
+        // If IcmLogLevel is null or None, don't log to ICM
+        if (genevaAction.IcmLogLevel == null || genevaAction.IcmLogLevel == LogLevel.None)
+        {
+            return false;
+        }
+
+        // Log if the message log level is greater than or equal to the configured ICM log level
+        return messageLogLevel >= genevaAction.IcmLogLevel;
+    }
+
+    private async Task LogToICMIfAllowed(GenevaActionConfig genevaAction, string incidentId, string message, bool overrideLogLevel = false)
+    {
+        if (ShouldLogToICM(genevaAction, LogLevel.Information) || overrideLogLevel)
+        {
+            await _icmAPIClient.PostDiscussionEntryAsync(incidentId, message);
+        }
     }
 
 }
