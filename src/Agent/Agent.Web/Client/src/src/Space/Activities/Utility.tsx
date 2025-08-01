@@ -1,7 +1,4 @@
 import {
-    Approval,
-    ApprovalDecision,
-    AzCliExecution,
     IncidentStatus,
     Message,
     MessageAuthor,
@@ -207,71 +204,6 @@ export const getMessageMetaDataFromChatMessage = (
         timeStamp: createdAt || '',
         author,
     };
-};
-
-/**
- * Update the current contents of the streaming message. If the new streaming message chunk is azure cli or kubectl execution, it will replace the existing azure cli or kubectl execution content with the same execution id in the current contents if it exists.
- * @param currentContents existing chat message contents
- * @param streamingMessage new streaming message chunk to be added to the current contents
- * @returns
- */
-export const processChatMessageContents = (
-    currentContents: ChatMessageContent[],
-    streamingMessage: StreamingMessage
-): ChatMessageContent[] => {
-    const messageContent = streamingMessage.contents?.[0];
-
-    let approval = getSpecialMessageContentFromStreamingMessage<Approval>(streamingMessage, 'approval');
-    const azCliExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'azcli');
-    const kubectlExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'kubectl');
-    const text = messageContent?.text && !approval && !azCliExecution && !kubectlExecution ? messageContent.text : '';
-    const isImage = isImageStreamingMessageType(streamingMessage);
-
-    if (approval && approval.status !== null && approval.status !== undefined && typeof approval.status === 'number') {
-        approval = {
-            ...approval,
-            status:
-                approval.status === 0
-                    ? ApprovalDecision.Pending
-                    : approval.status === 1
-                      ? ApprovalDecision.Approved
-                      : approval.status === 2
-                        ? ApprovalDecision.Cancelled
-                        : approval.status === 3
-                          ? ApprovalDecision.PendingAuthorization
-                          : ApprovalDecision.Authorized,
-        };
-    }
-
-    const chatMessageContent: ChatMessageContent = {
-        text,
-        isImage,
-        approval,
-        azCliExecution,
-        kubectlExecution,
-        isDailyReport: false,
-    };
-
-    const executionId = chatMessageContent.azCliExecution?.id || chatMessageContent.kubectlExecution?.id;
-    const approvalId = chatMessageContent.approval?.id;
-
-    if (executionId) {
-        const existingContentIndexThatHasSameExecutionId = currentContents.findIndex(content => {
-            const id = content.azCliExecution?.id || content.kubectlExecution?.id;
-            return id && id === executionId;
-        });
-
-        if (existingContentIndexThatHasSameExecutionId !== -1) {
-            currentContents.splice(existingContentIndexThatHasSameExecutionId, 1);
-        }
-    } else if (approvalId) {
-        const existingContentIndexThatHasSameApprovalId = currentContents.findIndex(content => content.approval?.id === approvalId);
-        if (existingContentIndexThatHasSameApprovalId !== -1) {
-            currentContents.splice(existingContentIndexThatHasSameApprovalId, 1);
-        }
-    }
-
-    return [...currentContents, chatMessageContent];
 };
 
 export const getSpecialMessageContentFromStreamingMessage = <T,>(

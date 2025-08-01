@@ -1,6 +1,6 @@
 import { InfoLabel } from '@fluentui/react-infolabel';
 import axios from 'axios';
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { Approval, ApprovalDecision } from '../../Common/Contracts/Azure/SreAgent';
@@ -8,22 +8,27 @@ import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
 
-const ApprovalMessage = ({ approval, messageId, threadId }: { approval?: Approval; messageId: string; threadId: string }) => {
-    const [approvalStatus, setApprovalStatus] = useState<ApprovalDecision | null>(approval ? approval.status : null);
+const ApprovalMessage = ({
+    approval: approvalInput,
+    messageId,
+    threadId,
+}: {
+    approval?: Approval;
+    messageId: string;
+    threadId: string;
+}) => {
+    const [approval, setApproval] = useState<Approval | undefined>(approvalInput);
     const [isApprovalLoading, setIsApprovalLoading] = useState(false);
     const [loadingButton, setLoadingButton] = useState<'approve' | 'deny' | null>(null);
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const { userIdAndDisplayName } = useAuthenticatedUserInfo();
 
+    useEffect(() => {
+        setApproval(approvalInput);
+    }, [approvalInput]);
+
     if (!approval) return null;
-
-    // Use the local state for status to ensure UI updates immediately after user action
-    const status = approvalStatus || approval.status;
-    const { title, description, oboTokenScope } = approval;
-
-    // Log approval information to help with debugging
-    console.log('Rendering approval with status:', status, 'and title:', title);
 
     const sendApprovalDecision = async (threadId: string, approvalId: string, decision: ApprovalDecision, scope?: string) => {
         const url = `${sreAgentEndpoint}/api/v1/approvals/${threadId}/${approvalId}/decision`;
@@ -69,8 +74,7 @@ const ApprovalMessage = ({ approval, messageId, threadId }: { approval?: Approva
 
                 console.log(`Approval decision sent for message ID: ${messageId}, approved: ${approved}`);
 
-                setApprovalStatus(approvalData.status as ApprovalDecision);
-                approval = {
+                setApproval({
                     ...approval,
                     status: approvalData.status as ApprovalDecision,
                     decisionUser: {
@@ -79,7 +83,7 @@ const ApprovalMessage = ({ approval, messageId, threadId }: { approval?: Approva
                         role: 'User',
                     },
                     decisionTimestamp: approvalData.decisionTimestamp,
-                };
+                });
             }
         } catch (error: any) {
             console.error(`Failed to send approval decision for message ID: ${messageId}`, error);
@@ -90,7 +94,7 @@ const ApprovalMessage = ({ approval, messageId, threadId }: { approval?: Approva
                 const errorData = error.response?.data;
 
                 if (approval && errorData) {
-                    approval = {
+                    setApproval({
                         ...approval,
                         status: errorData.status as ApprovalDecision,
                         decisionUser: {
@@ -99,9 +103,7 @@ const ApprovalMessage = ({ approval, messageId, threadId }: { approval?: Approva
                             role: 'User',
                         },
                         decisionTimestamp: errorData.decisionTimestamp,
-                    };
-
-                    setApprovalStatus(errorData.status as ApprovalDecision);
+                    });
                 }
 
                 const formattedDate = errorData.decisionTimestamp ? new Date(errorData.decisionTimestamp).toLocaleString() : 'unknown date';
@@ -117,9 +119,9 @@ const ApprovalMessage = ({ approval, messageId, threadId }: { approval?: Approva
         }
     };
 
-    if (status === ApprovalDecision.Pending || status === ApprovalDecision.PendingAuthorization) {
+    if (approval.status === ApprovalDecision.Pending || approval.status === ApprovalDecision.PendingAuthorization) {
         // Get button text based on status
-        const primaryButtonText = status === ApprovalDecision.Pending ? SreAgentResources.continue : SreAgentResources.authorize;
+        const primaryButtonText = approval.status === ApprovalDecision.Pending ? SreAgentResources.continue : SreAgentResources.authorize;
 
         return (
             <div
@@ -135,11 +137,11 @@ const ApprovalMessage = ({ approval, messageId, threadId }: { approval?: Approva
                     <InfoLabel
                         info={
                             <>
-                                An on-behalf-of token will be used with the following scope: <b>{oboTokenScope}</b>
+                                An on-behalf-of token will be used with the following scope: <b>{approval.oboTokenScope}</b>
                             </>
                         }
                     >
-                        {description}
+                        {approval?.description}
                     </InfoLabel>
                 </h4>
                 <div style={{ display: 'flex', gap: '8px' }}>
@@ -214,7 +216,7 @@ const ApprovalMessage = ({ approval, messageId, threadId }: { approval?: Approva
                             }
                         `}
                 </style>
-                {status === ApprovalDecision.PendingAuthorization && (
+                {approval.status === ApprovalDecision.PendingAuthorization && (
                     <p
                         style={{
                             fontSize: '11px',
@@ -226,7 +228,7 @@ const ApprovalMessage = ({ approval, messageId, threadId }: { approval?: Approva
                         <FormattedMessage {...SreAgentResources.authorizeUsingCreds} />
                     </p>
                 )}
-                {status === ApprovalDecision.Pending && (
+                {approval.status === ApprovalDecision.Pending && (
                     <p
                         style={{
                             fontSize: '11px',
@@ -280,7 +282,7 @@ const ApprovalMessage = ({ approval, messageId, threadId }: { approval?: Approva
             }
         };
 
-        const statusColor = getStatusColor(status);
+        const statusColor = getStatusColor(approval.status);
 
         return (
             <div
@@ -297,11 +299,11 @@ const ApprovalMessage = ({ approval, messageId, threadId }: { approval?: Approva
                         <InfoLabel
                             info={
                                 <>
-                                    An on-behalf-of token will be used with the following scope: <b>{oboTokenScope}</b>
+                                    An on-behalf-of token will be used with the following scope: <b>{approval.oboTokenScope}</b>
                                 </>
                             }
                         >
-                            {description}
+                            {approval.description}
                         </InfoLabel>
                     </h4>
                     <span
@@ -314,7 +316,7 @@ const ApprovalMessage = ({ approval, messageId, threadId }: { approval?: Approva
                             display: 'inline-block',
                         }}
                     >
-                        <FormattedMessage {...getStatusText(status)} />
+                        <FormattedMessage {...getStatusText(approval.status)} />
                     </span>
                 </div>
                 <p style={{ margin: '0 0 16px 0' }}>
@@ -328,7 +330,7 @@ const ApprovalMessage = ({ approval, messageId, threadId }: { approval?: Approva
                     <div style={{ fontSize: '14px', color: '#666' }}>
                         <p style={{ margin: '4px 0' }}>
                             <strong>
-                                <FormattedMessage {...getDecisionByText(status)} />:
+                                <FormattedMessage {...getDecisionByText(approval.status)} />:
                             </strong>{' '}
                             {approval.decisionUser.displayName}
                         </p>
@@ -343,7 +345,7 @@ const ApprovalMessage = ({ approval, messageId, threadId }: { approval?: Approva
                     </div>
                 )}
 
-                {(status === ApprovalDecision.Approved || status === ApprovalDecision.Authorized) && (
+                {(approval.status === ApprovalDecision.Approved || approval.status === ApprovalDecision.Authorized) && (
                     <p
                         style={{
                             fontSize: '11px',

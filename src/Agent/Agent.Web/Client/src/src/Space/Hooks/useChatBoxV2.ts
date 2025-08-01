@@ -3,26 +3,29 @@ import debounce from 'lodash/debounce';
 import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import { Approval, ApprovalDecision, AzCliExecution } from '../../Common/Contracts/Azure/SreAgent';
 import { StreamingMessage } from '../../Common/Contracts/Azure/Streaming';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
+import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
 import { MessageCreateRequest } from '../../Common/Providers/StreamingProvider';
 import { PromptResources } from '../../Strings/SREAgentResources';
 import {
     composeDefaultAgentMessage,
     composeUserMessage,
     constructUserMessageFromStreamingMessage,
+    getSpecialMessageContentFromStreamingMessage,
     getStreamingMessageText,
     getToolCallText,
     isChatMessageContentNonImageText,
     isChatMessageEmpty,
     isDefaultStreamingMessageType,
     isFinalStreamingMessage,
+    isImageStreamingMessageType,
     isUserStreamingMessage,
-    processChatMessageContents,
     shouldGroupWithPreviousMessageV2,
 } from '../Activities/Utility';
-import { ChatMessage, MessageTypingCharactersPer10Ms, MessageTypingSpeedInMilliseconds } from '../Contracts/Activities';
+import { ChatMessage, ChatMessageContent, MessageTypingCharactersPer10Ms, MessageTypingSpeedInMilliseconds } from '../Contracts/Activities';
 import { StreamingContext } from '../Contracts/Context';
 import { useAuthenticatedUserInfo } from './useAuthenticatedUserInfo';
 import { useChatHistory } from './useChatHistory';
@@ -211,6 +214,111 @@ export const useChatBoxV2 = (
         streamingMessageRef.current = streamingMessage;
     }, [streamingMessage]);
 
+    const processChatMessageContents = (streamingMessage: StreamingMessage) => {
+        const messageContent = streamingMessage.contents?.[0];
+
+        let approval = getSpecialMessageContentFromStreamingMessage<Approval>(streamingMessage, 'approval');
+        const azCliExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'azcli');
+        const kubectlExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'kubectl');
+        const text = messageContent?.text && !approval && !azCliExecution && !kubectlExecution ? messageContent.text : '';
+        const isImage = isImageStreamingMessageType(streamingMessage);
+
+        if (approval && approval.status !== null && approval.status !== undefined && typeof approval.status === 'number') {
+            approval = {
+                ...approval,
+                status:
+                    approval.status === 0
+                        ? ApprovalDecision.Pending
+                        : approval.status === 1
+                          ? ApprovalDecision.Approved
+                          : approval.status === 2
+                            ? ApprovalDecision.Cancelled
+                            : approval.status === 3
+                              ? ApprovalDecision.PendingAuthorization
+                              : ApprovalDecision.Authorized,
+            };
+        }
+
+        const chatMessageContent: ChatMessageContent = {
+            text,
+            isImage,
+            approval,
+            azCliExecution,
+            kubectlExecution,
+            isDailyReport: false,
+        };
+
+        const specialMessage = chatMessageContent.approval || chatMessageContent.azCliExecution || chatMessageContent.kubectlExecution;
+        const specialMessageId = specialMessage?.id;
+        const isSpecialMessageInInitialState =
+            specialMessage?.status &&
+            (equals(specialMessage.status, 'Pending', AntUxStringComparison.IgnoreCase) ||
+                equals(specialMessage.status, 'PendingAuthorization', AntUxStringComparison.IgnoreCase));
+
+        if (!specialMessage || isSpecialMessageInInitialState) {
+            setStreamingMessage(prev => {
+                const newStreamingMessage = prev ? { ...prev } : composeDefaultAgentMessage();
+                return {
+                    ...newStreamingMessage,
+                    contents: [...newStreamingMessage.contents, chatMessageContent],
+                };
+            });
+            return;
+        }
+
+        const getMessageIndexInStreamingMessage = (streamingMessage: ChatMessage | undefined | null) => {
+            const result = streamingMessage?.contents.findIndex(content => {
+                return (
+                    specialMessageId &&
+                    (content.approval?.id === specialMessageId ||
+                        content.azCliExecution?.id === specialMessageId ||
+                        content.kubectlExecution?.id === specialMessageId)
+                );
+            });
+            return result === -1 ? undefined : result;
+        };
+
+        const getMessageIndexInNewMessages = (newMessages: ChatMessage[]) => {
+            for (let i = newMessages.length - 1; i >= 0; i--) {
+                for (let j = newMessages[i].contents.length - 1; j >= 0; j--) {
+                    const content = newMessages[i].contents[j];
+                    if (
+                        specialMessageId &&
+                        (content.approval?.id === specialMessageId ||
+                            content.azCliExecution?.id === specialMessageId ||
+                            content.kubectlExecution?.id === specialMessageId)
+                    ) {
+                        return [i, j];
+                    }
+                }
+            }
+            return undefined;
+        };
+
+        setStreamingMessage(prev => {
+            const newStreamingMessage = prev ? { ...prev } : composeDefaultAgentMessage();
+            const index = getMessageIndexInStreamingMessage(newStreamingMessage);
+            if (index !== undefined) {
+                newStreamingMessage.contents[index] = chatMessageContent;
+                return cloneDeep(newStreamingMessage);
+            } else {
+                return prev;
+            }
+        });
+
+        setNewMessages(prev => {
+            const newMessages = [...prev];
+            const index = getMessageIndexInNewMessages(newMessages);
+            if (index !== undefined) {
+                const [messageIndex, contentIndex] = index;
+                newMessages[messageIndex].contents[contentIndex] = chatMessageContent;
+                return cloneDeep(newMessages);
+            } else {
+                return prev;
+            }
+        });
+    };
+
     const handleMessageTyping = () => {
         if (messageChunkQueue.current.length === 0) {
             isTypingChars.current = false;
@@ -307,13 +415,7 @@ export const useChatBoxV2 = (
                     };
                     typeChar();
                 } else {
-                    setStreamingMessage(prev => {
-                        const newStreamingMessage = prev ? { ...prev } : composeDefaultAgentMessage();
-                        return {
-                            ...newStreamingMessage,
-                            contents: processChatMessageContents(newStreamingMessage.contents, currentMessageChunk),
-                        };
-                    });
+                    processChatMessageContents(currentMessageChunk);
                     handleCompletedMessageChunk(currentMessageChunk);
                 }
             } else {
