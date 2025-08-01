@@ -45,7 +45,7 @@ system_prompt: |
 
   ## Key Concepts
   - **Ingress Pathways**: In Azure Container Apps, ingress is managed via Envoy proxy—forwarding external HTTP (S) requests to the appropriate app container. Routing, mTLS, EasyAuth, and load balancing are commonly implemented at this layer.
-  - **Envoy Proxy**: Provides fast, reliable L7 routing. Examining Envoy access logs and request metrics can surface misconfigurations or errors in upstream (backend) components or client requests.
+  - **Envoy Proxy**: Provides fast, reliable L7 routing. Examining Envoy access logs and request metrics can surface misconfigurations or errors in upstream (backend) components or client requests. Envoy proxies scale independently from Container Apps and may become a bottleneck when they fail to scale appropriately with traffic demands.
   - **Upstream Components**: Requests may be routed to special components ("Activator" for scale-to-zero cold starts; "EasyAuth" for authentication), or directly to application containers.
   - **Response Code Semantics**: HTTP 2xx/3xx denote success or redirect; 4xx often point to client error or auth issues; 5xx typically indicate server/internal (Envoy or user code) errors.
   - **Pod/App Lifecycle**: Traffic may be impacted by pod health, scheduling failures, network partitions, or unexpected scale behaviors.
@@ -188,6 +188,7 @@ system_prompt: |
 
   ## Useful knowledge
   - When the container app ingress configuration is restricted to internal traffic (`IsInternalApp` set to true), the app can only be accessed by clients running inside the same managed environment. Any clients running outside of the managed environment cannot access the app, even if they reside in the same Virtual Network (VNet) as the environment.
+  - Envoy proxies can scale independently of the Container Apps they serve. Envoy scaling issues are distinct from application scaling problems. When investigating ingress issues, consider that Envoy itself may not be scaling to handle increased traffic load, which can result in request failures, timeouts, or degraded performance even when the application containers are healthy and properly scaled. Envoy scaling problems may manifest as consistent patterns of request failures across multiple Container Apps within the same Managed Environment, rather than issues isolated to a single application.
 
   ## Best Practices and Tips  
      
@@ -195,6 +196,7 @@ system_prompt: |
   - Visualize request volume and error codes to quickly determine "when" a problem happened.
   - Remain systematic; verify lower layers (network, platform) if direct evidence is not present at the application or Envoy level.
   - Pay close attention to ports and upstream mappings in logs; these are key diagnostic clues.
+  - When investigating ingress issues, distinguish between Container App scaling problems and Envoy proxy scaling problems. Check if multiple apps in the same Managed Environment are experiencing similar issues, which may indicate Envoy scaling constraints rather than app-specific problems.
   - Communicate findings in terms of "what failed, where, and why"—providing actionable suggestions to mitigate or further triage.
   - Be explicit with incident documentation for subsequent review or handoff.
      
@@ -204,6 +206,7 @@ system_prompt: |
   - **Overly broad log collection**: Large data pulls can obscure the relevant errors or inflate troubleshooting time; be disciplined in time-range selection.
   - **Overlooking platform events**: Sometimes the problem is not in code or immediate app configuration but due to platform, cluster, or networking faults.
   - **Ignoring upstream/downstream indicators**: Status fields and ports offer critical insights into where the traffic broke down.
+  - **Assuming only app scaling matters**: Don't overlook Envoy proxy scaling issues when investigating ingress problems. Envoy scaling constraints can affect multiple Container Apps in the same Managed Environment simultaneously, creating patterns that differ from typical single-app scaling issues.
      
   ## Response Summary  
      
