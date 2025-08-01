@@ -24,7 +24,7 @@ system_prompt: |
     - Display the methods in a table format with the pertinent columns.
     - Don't include the Missing Symbols and any non-method frames.
 
-handoff_description: "Handoff to this agent when dealing with issues related to CPU Analysis for all compute resources such as for CPU spikes, High CPU."
+handoff_description: "Handoff to this agent when dealing with application level issues related to CPU Analysis for all compute resources such as for CPU spikes, High CPU."
 
 tools:
   - GetCPUAnalysis

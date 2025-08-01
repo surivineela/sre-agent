@@ -1,0 +1,125 @@
+{
+  "agentName": "aks_remediation_agent",
+  "modelInput": [
+    {
+      "role": "user",
+      "contents": [
+        {
+          "type": "TextContent",
+          "value": {
+            "$type": "text",
+            "text": "Try your best to answer the user's questions. Keep in mind:\n - If you find a suitable agent to handoff to, call transfer_to_{agentName} tool directly\n - If there's no suitable agent to handoff to, call HandoffBack directly\n - Use transfer_to_{agentName} or HandoffBack if you are done solving an issue\nUser question goes below:\nCan you mitigate the issue that product-catalog service is broken in my AKS cluster?\n"
+          }
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "type": "TextContent",
+          "value": {
+            "$type": "text",
+            "text": "{\"reasoningScratchPad\":\"User wants mitigation for the broken product-catalog service in their AKS cluster. From previous investigation, I know the AKS cluster is 'aks-automatic' in resource group 'aks-automatic'. I should:\\n1. Identify the status of the product-catalog pod(s) in the default namespace.\\n2. If pods are unhealthy, check the deployment status and recent events/logs for root cause.\\n3. Once the root cause is identified, proceed with remediation (rollback, restart, or other fix).\\n\\nStep 1: Get the status of product-catalog pods in the default namespace.\",\"notifyUserMessage\":\"▶️ Starting analysis of the **product-catalog** service in your AKS cluster. I'll check the health of its pods and begin mitigation steps right away.\",\"state\":\"Processing\",\"stateExplanation\":\"Beginning diagnosis of the product-catalog service by checking pod status.\"}"
+          }
+        },
+        {
+          "type": "FunctionCallContent",
+          "value": {
+            "$type": "functionCall",
+            "callId": "call_MFTYRqZp2nWf5kjTRMQx16iE",
+            "name": "RunKubectlReadCommand",
+            "arguments": {
+              "AKSClusterResourceId": "/subscriptions/16bd0efe-1213-46a2-a558-75ad7783f89e/resourceGroups/aks-automatic/providers/Microsoft.ContainerService/managedClusters/aks-automatic",
+              "command": "kubectl get pods -n default -l app.kubernetes.io/name=product-catalog -o wide"
+            },
+            "additionalProperties": {
+              "userDescription": "Reading Kubernetes resource information..."
+            }
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "contents": [
+        {
+          "type": "FunctionResultContent",
+          "value": {
+            "$type": "functionResult",
+            "callId": "call_MFTYRqZp2nWf5kjTRMQx16iE",
+            "result": "Kubectl read command completed successfully. Output:\nNAME                               READY   STATUS    RESTARTS   AGE   IP             NODE                NOMINATED NODE   READINESS GATES\nproduct-catalog-6bfbc54847-v26dp   0/1     Pending   0          72s   <none>         <none>              <none>           <none>\nproduct-catalog-cf6bf4468-94wqn    1/1     Running   0          66m   10.244.3.204   aks-default-htqgf   <none>           <none>\n"
+          }
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "type": "FunctionCallContent",
+          "value": {
+            "$type": "functionCall",
+            "callId": "call_3kj2ySiLvgwnXGFz3fR5AWXV",
+            "name": "RunKubectlReadCommand",
+            "arguments": {
+              "AKSClusterResourceId": "/subscriptions/16bd0efe-1213-46a2-a558-75ad7783f89e/resourceGroups/aks-automatic/providers/Microsoft.ContainerService/managedClusters/aks-automatic",
+              "command": "kubectl describe pod product-catalog-6bfbc54847-v26dp -n default"
+            },
+            "additionalProperties": {
+              "userDescription": "Reading Kubernetes resource information..."
+            }
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "contents": [
+        {
+          "type": "FunctionResultContent",
+          "value": {
+            "$type": "functionResult",
+            "callId": "call_3kj2ySiLvgwnXGFz3fR5AWXV",
+            "result": "Kubectl read command failed. Output:\nName:             product-catalog-6bfbc54847-v26dp\nNamespace:        default\nPriority:         0\nService Account:  opentelemetry-demo\nNode:             <none>\nLabels:           app.kubernetes.io/component=product-catalog\n                  app.kubernetes.io/instance=opentelemetry-demo\n                  app.kubernetes.io/name=product-catalog\n                  opentelemetry.io/name=product-catalog\n                  pod-template-hash=6bfbc54847\nAnnotations:      <none>\nStatus:           Pending\nIP:               \nIPs:              <none>\nControlled By:    ReplicaSet/product-catalog-6bfbc54847\nContainers:\n  product-catalog:\n    Image:      fatsheep9146/otel-demo:latest-product-catalog-18\n    Port:       8080/TCP\n    Host Port:  0/TCP\n    Limits:\n      cpu:     500m\n      memory:  200Mi\n    Requests:\n      cpu:     500m\n      memory:  200Mi\n    Environment:\n      OTEL_SERVICE_NAME:                                   (v1:metadata.labels['app.kubernetes.io/component'])\n      OTEL_COLLECTOR_NAME:                                otel-collector\n      OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE:  cumulative\n      REDIS_ADDRESS:                                      redis:6379\n      REDIS_PASSWORD:                                     redispassword\n      PRODUCT_CATALOG_PORT:                               8080\n      REDIS_LIST_RANGE_LIMIT:                             1000\n      PRODUCT_CATALOG_RELOAD_INTERVAL:                    10\n      FLAGD_HOST:                                         flagd\n      FLAGD_PORT:                                         8013\n      OTEL_EXPORTER_OTLP_ENDPOINT:                        http://$(OTEL_COLLECTOR_NAME):4317\n      OTEL_RESOURCE_ATTRIBUTES:                           service.name=$(OTEL_SERVICE_NAME),service.namespace=opentelemetry-demo,service.version=2.0.0\n    Mounts:\n      /usr/src/app/products from product-catalog-products (rw)\n      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-qh7nv (ro)\nConditions:\n  Type           Status\n  PodScheduled   False \nVolumes:\n  product-catalog-products:\n    Type:      ConfigMap (a volume populated by a ConfigMap)\n    Name:      product-catalog-products\n    Optional:  false\n  kube-api-access-qh7nv:\n    Type:                    Projected (a volume that contains injected data from multiple sources)\n    TokenExpirationSeconds:  3607\n    ConfigMapName:           kube-root-ca.crt\n    Optional:                false\n    DownwardAPI:             true\nQoS Class:                   Guaranteed\nNode-Selectors:              <none>\nTolerations:                 node.kubernetes.io/memory-pressure:NoSchedule op=Exists\n                             node.kubernetes.io/not-ready:NoExecute op=Exists for 300s\n                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s\nEvents:\n  Type     Reason            Age   From               Message\n  ----     ------            ----  ----               -------\n  Warning  FailedScheduling  74s   default-scheduler  0/4 nodes are available: 1 Insufficient cpu, 3 node(s) had untolerated taint {CriticalAddonsOnly: true}. preemption: 0/4 nodes are available: 1 No preemption victims found for incoming pod, 3 Preemption is not helpful for scheduling.\n  Warning  FailedScheduling  5s    default-scheduler  0/5 nodes are available: 1 Insufficient cpu, 1 node(s) had untolerated taint {node.cilium.io/agent-not-ready: true}, 3 node(s) had untolerated taint {CriticalAddonsOnly: true}. preemption: 0/5 nodes are available: 1 No preemption victims found for incoming pod, 4 Preemption is not helpful for scheduling.\n  Warning  FailedScheduling  2s    default-scheduler  0/5 nodes are available: 1 Insufficient cpu, 1 node(s) had untolerated taint {node.cilium.io/agent-not-ready: true}, 3 node(s) had untolerated taint {CriticalAddonsOnly: true}. preemption: 0/5 nodes are available: 1 No preemption victims found for incoming pod, 4 Preemption is not helpful for scheduling.\n  Normal   Nominated         73s   karpenter          Pod should schedule on: nodeclaim/default-jhc7v\n"
+          }
+        }
+      ]
+    },
+    {
+      "role": "system",
+      "contents": [
+        {
+          "type": "TextContent",
+          "value": {
+            "$type": "text",
+            "text": "The current date is 2025-07-31 20:04:47 +00:00"
+          }
+        }
+      ]
+    }
+  ],
+  "modelOutput": [
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "type": "TextContent",
+          "value": {
+            "$type": "text",
+            "text": "{\"reasoningScratchPad\":\"Diagnosis reveals that the **product-catalog** pod (product-catalog-6bfbc54847-v26dp) is  stuck in Pending due to insufficient CPU resources in the cluster. The event log shows repeated 'FailedScheduling' with 'Insufficient cpu' and untolerated taints on nodes. This is a cluster-level resource constraint, not a workload misconfiguration or crash.\n\nRemediation requires scaling the AKS node pool or freeig up CPU resources, which is outside my direct scope (requires ARM operations). I will hand off to the orchestrator for appropriate escalation or node pool scaling.\",\"notifyUserMessage\":\"⚠️ The **product-catalog** service is broken because one of its pods cannot start due to insufficient CPU resources in your AKS cluster. This means the cluster doesn't have enough available CPU to schedule the new pod. Remediation will require scaling your AKS node pool or freeing up resources. Escalating for further action.\",\"state\":\"HandOff_OutOfScope\",\"stateExplanation\":\"Remediation requires Azure-level node pool scaling, which is outside my Kubernetes-only scope. Escalating for ARM-level intervention.\"}"
+          }
+        },
+        {
+          "type": "FunctionCallContent",
+          "value": {
+            "$type": "functionCall",
+            "callId": "call_XbZWikFMQEc55st7sc5vk2r7",
+            "name": "HandoffBack",
+            "arguments": {}
+          }
+        }
+      ]
+    }
+  ]
+}
