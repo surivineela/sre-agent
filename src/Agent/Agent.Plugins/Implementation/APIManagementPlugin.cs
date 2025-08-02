@@ -366,8 +366,43 @@ namespace Agent.Plugins.Implementation
 
             try
             {
-                var res = await _armHelper.GetResourceByURL(requestUrl);
-                return JsonSerializer.Deserialize<APIManagementApiDescriptor>(res);
+                // Get the ARM properties
+                var armApiResult = await _armHelper.GetResourceByURL(requestUrl);
+                var armResultJson = JsonSerializer.Deserialize<APIManagementApiDescriptor>(armApiResult);
+
+                if (armResultJson == null)
+                {
+                    _logger.LogInternalError($"Failed to deserialize ARM response for API: {apiName}");
+                    return null;
+                }
+
+                string query = $@"
+                    g.V()
+                    .has('id', '{apiManagementResourceId.ToLower().Replace("/", "_")}')
+                    .has('isDeleted', false)
+                    .valueMap()";
+
+                var result = await _databaseClient.Query<Dictionary<string, object>>(query);
+
+                if (result != null && result.Any())
+                {
+                    var apimNode = new APIManagementNode(result.First());
+
+                    // Check if ApiInfoMap exists and contains the requested API
+                    if (apimNode.ApiInfoMap != null && apimNode.ApiInfoMap.TryGetValue(apiName, out var apiInfo))
+                    {
+                        var armResultWithApiInfo = JsonSerializer.Deserialize<Dictionary<string, object>>(armApiResult);
+                        if (armResultWithApiInfo != null)
+                        {
+                            armResultWithApiInfo["apiInfo"] = apiInfo;
+
+                            var combinedJson = JsonSerializer.Serialize(armResultWithApiInfo);
+                            return JsonSerializer.Deserialize<APIManagementApiDescriptor>(combinedJson);
+                        }
+                    }
+                }
+
+                return armResultJson;
             }
             catch (Exception ex)
             {

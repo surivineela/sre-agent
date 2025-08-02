@@ -68,7 +68,6 @@ namespace Agent.Graph.Crawler.ARM
                 yield return backendNode;
             }
         }
-
         private async IAsyncEnumerable<GraphNode> ExtractNetworkConnections(APIManagementNode apiManagementNode)
         {
             if (!string.IsNullOrWhiteSpace(apiManagementNode.SubnetResourceId))

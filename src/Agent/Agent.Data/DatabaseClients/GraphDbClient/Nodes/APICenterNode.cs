@@ -1,14 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Agent.Core.Helpers;
 using Agent.Data.DatabaseClients.Attributes;
-using System.Runtime.Serialization;
-using Newtonsoft.Json;
 using Agent.Framework;
 using Azure.Core;
 using Azure.ResourceManager;
+using Azure.ResourceManager.Compute.Models;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using static Agent.Data.DatabaseClients.GraphDbClient.APICenterNode;
 
 namespace Agent.Data.DatabaseClients.GraphDbClient
@@ -16,6 +18,9 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
     public class APICenterNode : ArmResourceNode
     {
         [GraphJsonProperty("resourceLinks")] public List<ApicLinkEntity>? ResourceLinks { get; set; }
+
+        // The key string is an ApicResource identifier
+        [GraphJsonProperty("apiConnectionInfo")]  public Dictionary<string, ApiConnectionEntity>? ApiConnectionInfo { get; set; }
 
         public class ApicLinkEntity
         {
@@ -32,6 +37,15 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         {
             public string? Identifier { get; set; }
             public ApicResourceType? Type { get; set; }
+        }
+
+        public class ApiConnectionEntity
+        {
+            public string? Name { get; set; }
+            public string? Title { get; set; }
+            public string? ApiSourceId { get; set; }
+            public string? ApimSourceId { get; set; }
+            public string? Workspace { get; set; } 
         }
 
         [DataContract]
@@ -57,6 +71,9 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         {
             try
             {
+                // Initialize ApiConnectionInfo if it doesn't exist
+                ApiConnectionInfo ??= new Dictionary<string, ApiConnectionEntity>();
+
                 using var jsonDocument = JsonDocument.Parse(resourceLinksJson);
                 var root = jsonDocument.RootElement;
 
@@ -83,6 +100,24 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
                             if (properties.TryGetProperty("source", out var source))
                             {
                                 linkEntity.Source = ParseApicResource(source);
+
+                                // Add source identifier to ApiConnectionInfo as we process each link
+                                if (linkEntity.Source?.Identifier != null && !string.IsNullOrEmpty(linkEntity.Source.Identifier))
+                                {
+                                    if (!ApiConnectionInfo.ContainsKey(linkEntity.Source.Identifier))
+                                    {
+                                        // Identifier format: /workspaces/{workspace}/apis/{api}
+                                        var match = Regex.Match(linkEntity.Source.Identifier, @"^/workspaces/([^/]+)/apis/([^/]+)$");
+                                        if (match.Success)
+                                        {
+                                            ApiConnectionInfo[linkEntity.Source.Identifier] = new ApiConnectionEntity
+                                            {
+                                                Workspace = match.Groups[1].Value,
+                                                Name = match.Groups[2].Value
+                                            };
+                                        }
+                                    }
+                                }
                             }
 
                             if (properties.TryGetProperty("target", out var target))
@@ -109,7 +144,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
                         }
                     }
                 }
-            }
+            } // Check the APIConnection Info dictionary to ensure it has the expected structure
             catch (Exception)
             {
                 Console.WriteLine($"Failed to parse API Center resource links JSON: {resourceLinksJson}");
@@ -138,6 +173,67 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             }
 
             return resource;
+        }
+    }
+
+    public class ApiCenterEdgeDependencyInfo
+    {
+        public string? SourceApiId { get; set; }
+        public string? SourceApiTitle { get; set; }
+        public APICenterNode.ApicResource? TargetResource { get; set; }
+    }
+
+}
+
+namespace Agent.Data.DatabaseClients.GraphDbClient.Nodes
+{
+    public class ApicDependencyNode : GraphNode
+    {
+        [GraphProperty("apiIdentifier")] public string? ApiIdentifier { get; set; } = string.Empty;
+        [GraphProperty("resourceId")]  public string? ResourceId { get; set; }
+        [GraphProperty("sourceApiTitle")]  public string? SourceApiTitle { get; set; }
+        [GraphProperty("targetResourceIdentifier")] public string? TargetResourceIdentifier { get; set; }
+        [GraphProperty("targetResourceType")] public string? TargetResourceType { get; set; }
+
+
+        public override string GetNodeId()
+        {
+            return ApiIdentifier ?? string.Empty;
+        }
+
+        public string GetSanitizedNodeId()
+        {
+            return ApiIdentifier?.ToLowerInvariant().Replace("/", "_").Replace(":", "_").Replace(" ", "_") ?? string.Empty;
+        }
+
+        public override string GetNodeLabel()
+        {
+            return "ApicDependencyNode";
+        }
+
+        public override string GetResourceType()
+        {
+            return "ApicDependency";
+        }
+
+        public override string GetResourceKind()
+        {
+            return "Dependency";
+        }
+
+        public override void SetResourceKind(string NewResourceKind)
+        {
+            // No specific op for this node type
+        }
+
+        public override string GetSubscriptionId()
+        {
+            return string.Empty; // Not applicable for this node type
+        }
+
+        public override string GetHashString()
+        {
+            return $"{ApiIdentifier}-{SourceApiTitle}";
         }
     }
 }

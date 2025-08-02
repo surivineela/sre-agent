@@ -39,7 +39,8 @@ const ICON_LOOKUP: Record<string, string> = {
     networksecuritygroup: 'NSG.svg',
 
     // API Management
-    service: 'ApiManagement.svg',
+    apimanagement: 'ApiManagement.svg',
+    apicenter: 'ApiCenter.svg',
 };
 
 // Friendly names for resource types
@@ -82,8 +83,9 @@ const FRIENDLY_NAMES: Record<string, string> = {
     networksecuritygroup: 'Network Security Group',
 
     // API Management
-    service: 'API Management',
-    backends: 'API Management Backend',
+    apimanagement: 'API Management',
+    'microsoft.apimanagement/service/backends': 'API Management Backend',
+    apicenter: 'API Center',
 };
 
 const DEFAULT_ICON = 'azureResource.svg';

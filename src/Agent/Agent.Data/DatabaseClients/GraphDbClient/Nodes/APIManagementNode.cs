@@ -1,8 +1,10 @@
+using System.Reflection.Metadata;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Agent.Data.DatabaseClients.Attributes;
 using Azure;
 using Azure.ResourceManager.ApiManagement;
+using static Agent.Data.DatabaseClients.GraphDbClient.APICenterNode;
 
 namespace Agent.Data.DatabaseClients.GraphDbClient
 {
@@ -58,6 +60,13 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             public string? Description { get; set; }
             public string? Path { get; set; }
             public List<ApiOperation> Operations { get; set; } = new List<ApiOperation>();
+            public List<ApiDependency>? ApiDependencies { get; set; }
+        }
+
+        public class ApiDependency
+        {
+            public string? BackendResourceIdentifier { get; set; }
+            public string? BackendResourceType { get; set; }
         }
 
         public class ApiOperation
@@ -87,32 +96,140 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             public List<BackendConnection> Connections { get; set; } = new List<BackendConnection>();
         }
 
+        [GraphJsonProperty("backendResourceMap")]
         public Dictionary<string, BackendResourceInfo>? BackendResourceMap { get; set; }
+
+        
 
         public APIManagementNode(IDictionary<string, object> properties)
             : base(properties)
         {
-            if (properties.TryGetValue("appHealthInfo", out var appHealthInfoObj) && appHealthInfoObj is string appHealthInfoJson)
+            if (properties.TryGetValue("resourceType", out var resourceTypeObj) && resourceTypeObj != null)
             {
                 try
                 {
-                    AppHealthInfo = JsonSerializer.Deserialize<AppHealthInfo>(appHealthInfoJson);
+                    if (resourceTypeObj is IEnumerable<object> resourceTypeList)
+                    {
+                        var resourceTypeString = resourceTypeList.OfType<string>().FirstOrDefault();
+                        if (!string.IsNullOrEmpty(resourceTypeString))
+                        {
+                            ResourceType = resourceTypeString;
+                        }
+                    }
+                    else if (resourceTypeObj is string resourceTypeStr)
+                    {
+                        ResourceType = resourceTypeStr;
+                    }
                 }
-                catch (JsonException)
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Failed to deserialize resourceType: {ex.Message}");
+                }
+            }
+
+            if (properties.TryGetValue("resourceKind", out var resourceKindObj) && resourceKindObj != null)
+            {
+                try
+                {
+                    if (resourceKindObj is IEnumerable<object> resourceKindList)
+                    {
+                        var resourceKindString = resourceKindList.OfType<string>().FirstOrDefault();
+                        if (!string.IsNullOrEmpty(resourceKindString))
+                        {
+                            ResourceKind = resourceKindString;
+                        }
+                    }
+                    else if (resourceKindObj is string resourceKindStr)
+                    {
+                        ResourceKind = resourceKindStr;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Failed to deserialize resourceKind: {ex.Message}");
+                }
+            }
+
+            if (properties.TryGetValue("appHealthInfo", out var appHealthInfoObj) && appHealthInfoObj != null)
+            {
+                try
+                {
+                    var jsonStringList = ((IEnumerable<object>)appHealthInfoObj)
+                        .OfType<string>()
+                        .ToList();
+
+                    if (jsonStringList.Count > 0 && jsonStringList[0] != null)
+                    {
+                        AppHealthInfo = JsonSerializer.Deserialize<AppHealthInfo>(jsonStringList[0]);
+                    }
+                }
+                catch
                 {
                     AppHealthInfo = null;
                 }
             }
 
-            if (properties.TryGetValue("apiInfo", out var apiInfoObj) && apiInfoObj is string apiInfoJson)
+            if (properties.TryGetValue("apiInfo", out var apiInfoObj) && apiInfoObj != null)
             {
                 try
                 {
-                    ApiInfoMap = JsonSerializer.Deserialize<Dictionary<string, ApiInfo>>(apiInfoJson);
+                    var jsonStringList = ((IEnumerable<object>)apiInfoObj)
+                        .OfType<string>()
+                        .ToList();
+
+                    if (jsonStringList.Count > 0 && jsonStringList[0] != null)
+                    {
+                        
+                        ApiInfoMap = JsonSerializer.Deserialize<Dictionary<string, ApiInfo>>(jsonStringList[0]);
+                    }
                 }
-                catch (JsonException)
+                catch (Exception ex)
                 {
+                    Console.WriteLine($"{ex.ToString()}");
                     ApiInfoMap = null;
+                }
+            }
+
+            if (properties.TryGetValue("backendResourceMap", out var backendResourceMapObj) && backendResourceMapObj != null)
+            {
+                try
+                {
+                    var jsonStringList = ((IEnumerable<object>)backendResourceMapObj)
+                        .OfType<string>()
+                        .ToList();
+
+                    if (jsonStringList.Count > 0 && jsonStringList[0] != null)
+                    {
+                        BackendResourceMap = JsonSerializer.Deserialize<Dictionary<string, BackendResourceInfo>>(jsonStringList[0]);
+                    }
+                }
+                catch
+                {
+                    BackendResourceMap = null;
+                }
+            }
+
+            // Handle vnetId deserialization
+            if (properties.TryGetValue("vnetId", out var vnetIdObj) && vnetIdObj != null)
+            {
+                try
+                {
+                    if (vnetIdObj is IEnumerable<object> vnetIdList)
+                    {
+                        var vnetIdString = vnetIdList.OfType<string>().FirstOrDefault();
+                        if (!string.IsNullOrEmpty(vnetIdString) && Guid.TryParse(vnetIdString, out var vnetGuid))
+                        {
+                            VnetId = vnetGuid;
+                        }
+                    }
+                    else if (vnetIdObj is string vnetIdStr && Guid.TryParse(vnetIdStr, out var vnetGuid))
+                    {
+                        VnetId = vnetGuid;
+                    }
+                }
+                catch
+                {
+                    VnetId = null;
                 }
             }
         }
@@ -214,6 +331,45 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             var connectionMap = BuildBackendUsageMapFromPolicies(apimResource);
             BackendResourceMap = BuildBackendResourceMap(apimResource, connectionMap);
             ApiInfoMap = BuildApiInfoMap(apimResource);
+            AddBackendDependenciesToApis();
+        }
+
+        private void AddBackendDependenciesToApis()
+        {
+            if (BackendResourceMap == null || ApiInfoMap == null)
+                return;
+
+            foreach (var backend in BackendResourceMap)
+            {
+                var backendInfo = backend.Value;
+                if (backendInfo.Connections == null)
+                    continue;
+
+                foreach (var connection in backendInfo.Connections)
+                {
+                    // Extract API name from connection name (format: "apiName" or "apiName:operationName")
+                    var apiName = connection.Name.Contains(':')
+                        ? connection.Name.Substring(0, connection.Name.IndexOf(':'))
+                        : connection.Name;
+
+                    if (ApiInfoMap.TryGetValue(apiName, out var apiInfo))
+                    {
+                        if (apiInfo.ApiDependencies == null)
+                            apiInfo.ApiDependencies = new List<ApiDependency>();
+
+                        if (!apiInfo.ApiDependencies.Any(d =>
+                            d.BackendResourceIdentifier == backendInfo.BackendResourceId &&
+                            d.BackendResourceType == "ApiManagementBackend"))
+                        {
+                            apiInfo.ApiDependencies.Add(new ApiDependency
+                            {
+                                BackendResourceIdentifier = backendInfo.BackendResourceId,
+                                BackendResourceType = "ApiManagementBackend"
+                            });
+                        }
+                    }
+                }
+            }
         }
 
         private Dictionary<string, ApiInfo> BuildApiInfoMap(ApiManagementServiceResource apimResource)
@@ -227,9 +383,9 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
                     string apiName = api.Data.Name;
                     var apiInfo = new ApiInfo
                     {
-                        DisplayName = api.Data.DisplayName,
-                        Description = api.Data.Description,
-                        Path = api.Data.Path,
+                        DisplayName = api.Data.DisplayName is null ? null : JsonEncodedText.Encode(api.Data.DisplayName).ToString(),
+                        Description = api.Data.Description is null ? null : JsonEncodedText.Encode(api.Data.Description).ToString(),
+                        Path = api.Data.Path is null ? null : JsonEncodedText.Encode(api.Data.Path).ToString(),
                     };
 
                     // Collect operations for this API
@@ -237,9 +393,9 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
                     {
                         apiInfo.Operations.Add(new ApiOperation
                         {
-                            DisplayName = op.Data.DisplayName,
-                            Method = op.Data.Method,
-                            Description = op.Data.Description
+                            DisplayName = op.Data.DisplayName is null ? null : JsonEncodedText.Encode(op.Data.DisplayName).ToString(),
+                            Method = op.Data.Method is null ? null : JsonEncodedText.Encode(op.Data.Method).ToString(),
+                            Description = op.Data.Description is null ? null : JsonEncodedText.Encode(op.Data.Description).ToString()
                         });
                     }
 

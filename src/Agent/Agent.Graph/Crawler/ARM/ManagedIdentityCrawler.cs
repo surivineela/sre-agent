@@ -100,6 +100,8 @@ public class ManagedIdentityCrawler : IResourceCrawler
                 yield break;
             }
 
+            if (identityNode.ResourceType == Constants.ApiCenterType.ToLowerInvariant()) { yield break; }
+
             await _graphDbClient.AddOrUpdateNodeAsync(targetResourceNode);
 
             var edge = new ArmResourceEdge(identityNode.GetNodeId(), targetResourceNode.GetNodeId(), Constants.Relationships.HasRole);
