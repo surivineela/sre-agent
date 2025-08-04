@@ -417,7 +417,7 @@ public class ReasoningLoop : IDisposable
                                     _context.ThreadId, _currentAgent.Name);
                             }
 
-                            sb.AppendLine("User question goes below:");
+                            sb.AppendLine(Agent.Framework.Markers.UserQuestionMarker);
                             sb.AppendLine(chatMessage.Message.Text);
                             var msg = new ChatMessage(chatMessage.Message.Role, sb.ToString());
 

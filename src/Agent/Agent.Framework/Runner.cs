@@ -154,12 +154,12 @@ public static class Runner
         // Create custom hooks that detect handoff
         var handoffDetectionHooks = hooks ?? new RunHooks<TContext>();
         var originalOnHandoff = handoffDetectionHooks.OnHandoff;
-        
+
         handoffDetectionHooks.OnHandoff = async (context, fromAgent, toAgent) =>
         {
             handoffDetected = true;
             handoffTargetAgent = toAgent.Name;
-            
+
             // Call original hook if it exists
             if (originalOnHandoff != null)
             {
@@ -554,8 +554,8 @@ public static class Runner
         }
 
         // Use original instructions without DI additions if DisableCommonPrompts is true
-        var systemPrompt = agent.DisableCommonPrompts 
-            ? agent.Instructions.GetOriginalText() 
+        var systemPrompt = agent.DisableCommonPrompts
+            ? agent.Instructions.GetOriginalText()
             : agent.Instructions.ToString();
 
         List<AIFunction> tools = [];
@@ -1106,7 +1106,7 @@ public static class Runner
         {
             var message = modelInput[i];
 
-            if (message.Role == ChatRole.User && 
+            if (message.Role == ChatRole.User &&
                 message.Text != null)
             {
                 if (message.Text.Contains(OverrideHeader, StringComparison.OrdinalIgnoreCase))
@@ -1115,7 +1115,7 @@ public static class Runner
                     var originalUserQuery = ExtractUserQueryFromOverrideMessage(message.Text, OverrideHeader);
 
                     // Replace the message content with agent's UserPromptOverride
-                    var newContent = $"{agent.UserPromptOverride}\n\nUser question goes below:\n{originalUserQuery}";
+                    var newContent = $"{agent.UserPromptOverride}\n\n{Markers.UserQuestionMarker}\n{originalUserQuery}";
 
                     modelInput[i] = new ChatMessage(ChatRole.User, newContent);
 
@@ -1126,7 +1126,7 @@ public static class Runner
                 else
                 {
                     var originalUserQuery = message.Text;
-                    var newContent = $"{agent.UserPromptOverride}\n\nUser question goes below:\n{originalUserQuery}";
+                    var newContent = $"{agent.UserPromptOverride}\n\n{Markers.UserQuestionMarker}\n{originalUserQuery}";
                     modelInput[i] = new ChatMessage(ChatRole.User, newContent);
                     break;
                 }
@@ -1151,7 +1151,7 @@ public static class Runner
             }
 
             // Look for "User question goes below:" section
-            if (line.Contains("User question goes below:", StringComparison.OrdinalIgnoreCase))
+            if (line.Contains(Markers.UserQuestionMarker, StringComparison.OrdinalIgnoreCase))
             {
                 foundUserSection = true;
                 continue;

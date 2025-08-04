@@ -78,12 +78,10 @@ public static class Summarizer
         return response.Text;
     }
 
-    private const string Marker = "User question goes below:";
-
     public static string ExtractUserQuestion(string text)
     {
-        return text.IndexOf(Marker, StringComparison.OrdinalIgnoreCase) is var i && i >= 0
-            ? text[(i + Marker.Length)..].Trim()
+        return text.IndexOf(Markers.UserQuestionMarker, StringComparison.OrdinalIgnoreCase) is var i && i >= 0
+            ? text[(i + Markers.UserQuestionMarker.Length)..].Trim()
             : text;
     }
 

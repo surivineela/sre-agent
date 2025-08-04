@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using Agent.Evals.Models;
+using Agent.Framework;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.CommandLineUtils;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,7 +22,6 @@ namespace Agent.Cmd
     public class GenerateEvalCommand
     {
         private const string JsonFilePattern = "*.json";
-        private const string UserQuestionMarker = "User question goes below:";
         private const string TemplateFileName = "ContainerAppsCpuMemory.yaml";
         private const string AgentDirectoryName = "Agent";
         private const string ToolReplayLogsPath = "Agent.Evals/ToolReplayLogs";
@@ -257,10 +257,10 @@ namespace Agent.Cmd
 
         private string ExtractUserQuestionFromText(string fullText)
         {
-            var userQuestionStart = fullText.IndexOf(UserQuestionMarker);
+            var userQuestionStart = fullText.IndexOf(Agent.Framework.Markers.UserQuestionMarker);
             if (userQuestionStart >= 0)
             {
-                var userQuestion = fullText.Substring(userQuestionStart + UserQuestionMarker.Length).Trim();
+                var userQuestion = fullText.Substring(userQuestionStart + Agent.Framework.Markers.UserQuestionMarker.Length).Trim();
                 if (!string.IsNullOrEmpty(userQuestion) && userQuestion.Length > MinimumUserQuestionLength)
                 {
                     return userQuestion;
@@ -499,9 +499,9 @@ namespace Agent.Cmd
                         if (span.TryGetProperty("operationName", out var operationName))
                         {
                             var operation = operationName.GetString();
-                            
+
                             // Extract user messages from user.message spans
-                            if (operation == "user.message" && 
+                            if (operation == "user.message" &&
                                 span.TryGetProperty("attributes", out var attributes) &&
                                 attributes.TryGetProperty("message.content", out var messageContent))
                             {
