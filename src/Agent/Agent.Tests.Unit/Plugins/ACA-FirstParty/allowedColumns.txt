@@ -103,6 +103,9 @@ HasDynamicJsonColumns
 InfraLayer
 IsInternalEnvironment
 IsMultiTenantCluster
+PowerStateMismatch
+ChartVersionMismatch
+KubernetesVersionMismatch
 
 # Container App
 ContainerAppResourceGroupName

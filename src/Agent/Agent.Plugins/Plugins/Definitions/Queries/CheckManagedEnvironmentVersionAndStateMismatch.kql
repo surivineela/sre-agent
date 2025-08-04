@@ -1,0 +1,21 @@
+let fromTime = datetime("##fromDate##");
+let toTime = datetime("##toDate##");
+let customerEnvironmentName = "##managedEnvironmentName##";
+let customerManagedClusterName = "##managedClusterName##";
+let customerResourceGroupName = "##resourceGroupName##";
+let customerSubscriptionId = "##subscriptionId##";
+ManagedEnvironmentDBState
+| where PreciseTimeStamp between (fromTime .. toTime)
+| where isempty(customerSubscriptionId) or subscription =~ customerSubscriptionId
+| where isempty(customerResourceGroupName) or resourceGroup =~ customerResourceGroupName
+| where isempty(customerEnvironmentName) or environmentName =~  customerEnvironmentName
+| where isempty(customerManagedClusterName) or managedClusterName =~  customerManagedClusterName
+| project TIMESTAMP,
+          powerState, targetPowerState, 
+          chartVersion,targetChartVersion, 
+          kubernetesVersion, targetKubernetesVersion
+| extend PowerStateMismatch = iff(powerState != targetPowerState, true, false)
+| extend ChartVersionMismatch = iff(chartVersion != targetChartVersion, true, false)
+| extend KubernetesVersionMismatch = iff(kubernetesVersion != targetKubernetesVersion, true, false)
+| summarize StartTime=min(TIMESTAMP),EndTime=max(TIMESTAMP) by PowerStateMismatch,ChartVersionMismatch,KubernetesVersionMismatch
+| project StartTime,EndTime,PowerStateMismatch,ChartVersionMismatch,KubernetesVersionMismatch

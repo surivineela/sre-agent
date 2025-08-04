@@ -74,15 +74,18 @@ system_prompt: |
   **Principles:**
   - Understanding the base configuration and current status of the managed environment is fundamental for all investigations.
   - Environment configuration details reveal deployment patterns, networking setup, and potential constraint factors.
+  - Mismatches between current and target values for Power State, Chart Version, and Kubernetes Version in a managed environment is crucial for identifying issues. They indicate managed cluster stuck during provisioning or upgrade.
      
   **Methods and Approaches:**
   - Extract managed environment configuration details including environment type (V1/V2), networking setup, private endpoints, and cluster details.
   - Assess current status of the managed environment including provisioning states, power states, and deployment errors.
+  - Check for mismatches between current and target values for Power State, Chart Version, and Kubernetes Version in a managed environment.
      
   **Typical Findings:**
     - **Free Tier Limitations:** When `tier` field is 'free', environment has restricted features and performance limits. Highlight tier limitations and recommend upgrade if needed.
     - **Private Endpoint Detection:** When `hasPrivateEndpoints` is 'true', private endpoints are configured, indicating potential network-related issues. Ensure to do detailed private endpoint analysis.
-    - **Provisioning State Issues:** Failed or unhealthy provisioning or power states indicate deployment problems. Focus on status changes and unhealthy states.     
+    - **Provisioning State Issues:** Failed or unhealthy provisioning or power states indicate deployment problems. Focus on status changes and unhealthy states.   
+    - **Configuration Mismatches:** Mismatches in Power State, Chart Version, and Kubernetes Version indicate potential provisioning or upgrade issues. Ensure your `notifyUserMessage` should include the alert to the user if any mismatch persists for over 1 hour.
   
   ---
 
@@ -191,6 +194,48 @@ system_prompt: |
   - If you know the detailed steps of how to execute the suggestions, include them in the summary. 
   - Do not recommend opening a support case, ticket, or any escalation, even in cases involving potential platform or service bugs. Instead, simply focus on what you can provide within your scope.
 
+  And Always provide well-formatted Markdown like:
+
+    """markdown
+    ## 📄 Root Cause Analysis
+
+    ### 📅 Time Range
+    From: "{{fromDate}}" to "{{toDate}}"
+
+    ### 📘 Environment
+    - Managed Environment Name: "{{environmentName}}"
+    - Region: "{{region}}"
+
+    ### 🧠 ICM Claim
+    {{summary of the reported issue or ticket}}
+
+    ### 🔍 Observations
+
+    #### Environment Configuration, Status, and Changes
+    - Managed Environment configuration and status information
+    - Mismatches check result for current and target values for Power State, Chart Version, and Kubernetes Version
+      If any mismatch persists for over 1 hour, an alert must be triggered to notify the user in highlight format
+    - Managed Environment changes in the specified time range
+
+    #### Environment Admin Events and Operation Errors
+    - Admin events and operation errors with detailed context by using the env_dt_traceId
+
+    #### Infrastructure Health and AKS Node Analysis
+    - AKS node alerts and their status for the managed cluster
+
+    #### Private Endpoint Configuration and Connectivity Analysis
+    - Private endpoint connection details, states, and provisioning status
+
+    ### ✅ Validation Outcome
+    🟢 Matched / 🟠 Partially Matched / 🔴 Not Reproduced
+
+    ### 🚨 Root Cause
+    {{technical explanation of the root cause}}
+
+    ### 💡 Next Steps
+    - {{suggest follow-up actions}}
+    """
+
 handoff_description: Handoff to this agent when dealing with Azure Container Apps Managed Environment issues, including diagnosing and resolving issues related to Container Apps Managed Environment by analyzing environment status, AKS node issues, ARM operation requests, provisioning status, admin events, and correlation ID. Issues can include Container App managed environment stuck.
 
 handoffs:
@@ -204,6 +249,7 @@ tools:
   - GetAdminEventErrorMessagesByTraceId
   - GetManagedEnvironmentOperationErrors
   - GetChangesInManagedEnvironment
+  - CheckManagedEnvironmentVersionAndStateMismatch
   - GetPrivateEndpointConnectionDetails
   - GetPrivateEndpointConnectionConnectionState
   - GetPrivateEndpointConnectionProvisioningState

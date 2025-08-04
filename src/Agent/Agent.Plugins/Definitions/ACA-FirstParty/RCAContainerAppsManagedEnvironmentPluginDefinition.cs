@@ -121,6 +121,45 @@ namespace Agent.Plugins.Definitions
 
         [Description("""
         Purpose:
+        Detect mismatches between current and target values for Power State, Chart Version, and Kubernetes Version in a managed environment.
+
+        Scenario:
+        Use this tool to check whether the current power state, chart version, and Kubernetes version of a managed environment match the desired target state.
+        If any mismatch persists for over 1 hour, an alert must be triggered to notify the user.
+
+        Output:
+        Returns table data in CSV format with TAB separators. Column headers:
+        - StartTime: Start time of the version and state mismatch check
+        - EndTime: End time of the version and state mismatch check
+        - PowerStateMismatch: True if current and target power states differ, otherwise false
+        - ChartVersionMismatch: True if current and target chart versions differ, otherwise false
+        - KubernetesVersionMismatch: True if current and target Kubernetes versions differ, otherwise false
+        """
+        )]
+        public async Task<string> CheckManagedEnvironmentVersionAndStateMismatch(
+            [Description("Azure region of the managed environment.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the resource group.")] string resourceGroupName,
+            [Description("Azure subscription ID.")] string subscriptionId,
+            [Description("Name of the managed environment. Provide either this or the managed cluster name.")] string managedEnvironmentName,
+            [Description("Name of the managed cluster. Provide either this or the managed environment name.")] string managedClusterName)
+        {
+            return await _kustoPlugin.ExecuteLocalFunctionAsync("CheckManagedEnvironmentVersionAndStateMismatch", region,
+                new Dictionary<string, string>
+                {
+                    { "fromDate", fromDate.ToString() },
+                    { "toDate", toDate.ToString() },
+                    { "managedEnvironmentName", managedEnvironmentName },
+                    { "managedClusterName", managedClusterName },
+                    { "resourceGroupName", resourceGroupName },
+                    { "subscriptionId", subscriptionId }
+                });
+        }
+
+
+        [Description("""
+        Purpose:
         Retrieve configuration changes for a specific managed environment within a given time range.
         
         Scenario:
