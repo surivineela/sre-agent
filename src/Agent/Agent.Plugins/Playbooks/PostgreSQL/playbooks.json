@@ -1,0 +1,30 @@
+[
+  {
+    "Name": "PostgreSQL_Performance_Investigation",
+    "Description": "Comprehensive PostgreSQL performance diagnostic workflow",
+    "Category": "Performance",
+    "Tags": ["performance", "cpu", "memory", "queries"],
+    "FileName": "PostgreSQL_Performance_Investigation.md"
+  },
+  {
+    "Name": "Missing_Index_Analysis",
+    "Description": "Identify and resolve missing database indexes",
+    "Category": "Performance",
+    "Tags": ["indexes", "slow-queries", "performance"],
+    "FileName": "Missing_Index_Analysis.md"
+  },
+  {
+    "Name": "Connection_Pool_Optimization",
+    "Description": "Optimize PostgreSQL connection pool settings",
+    "Category": "Connectivity",
+    "Tags": ["connections", "pool", "optimization"],
+    "FileName": "Connection_Pool_Optimization.md"
+  },
+  {
+    "Name": "Diagnostic_Setup_Guide",
+    "Description": "Set up comprehensive PostgreSQL diagnostics",
+    "Category": "Configuration",
+    "Tags": ["setup", "monitoring", "diagnostics"],
+    "FileName": "Diagnostic_Setup_Guide.md"
+  }
+]

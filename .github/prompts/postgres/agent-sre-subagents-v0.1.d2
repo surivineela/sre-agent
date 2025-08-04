@@ -1,0 +1,138 @@
+# Agent SRE Subagents - v0.1 Architecture
+# PostgreSQL Intelligence Subagent System for Agent SRE Framework
+
+# Agent SRE Meta Agent
+agent_sre_meta: "Agent SRE Meta Agent" {
+  shape: rectangle
+  style.fill: "#e1f5fe"
+  style.stroke: "#01579b"
+  style.stroke-width: 2
+}
+
+# Postgres Subagent (Single Component)
+postgres_subagent: "Postgres Subagent" {
+  shape: rectangle
+  style.fill: "#f3e5f5"
+  style.stroke: "#4a148c"
+  style.stroke-width: 3
+}
+
+# PostgreSQL Tools
+postgresql_tools: PostgreSQL Tools {
+  shape: rectangle
+  style.fill: "#fff3e0"
+  style.stroke: "#ff6f00"
+  style.stroke-width: 2
+  
+  query_tools: "Query Tools" {
+    shape: rectangle
+    style.fill: "#ffcc02"
+  }
+  
+  azure_monitor_tools: "Azure Monitor Tools" {
+    shape: rectangle
+    style.fill: "#ffcc02"
+  }
+  
+  playbooks: "Playbooks" {
+    shape: rectangle
+    style.fill: "#ffcc02"
+  }
+}
+
+# PostgreSQL Target System
+postgres_target: PostgreSQL Target {
+  shape: rectangle
+  style.fill: "#e3f2fd"
+  style.stroke: "#0277bd"
+  style.stroke-width: 2
+  
+  flex_server: "Azure PostgreSQL\nFlex Server Instance" {
+    shape: cylinder
+    style.fill: "#bbdefb"
+  }
+}
+
+# Azure Monitor
+azure_monitor: "Azure Monitor" {
+  shape: cylinder
+  style.fill: "#dcedc8"
+  style.stroke: "#33691e"
+  style.stroke-width: 2
+  icon: https://azure.microsoft.com/svghandler/monitor/?width=600&height=315
+}
+
+# Agent SRE Knowledge Graph
+agent_sre_kg: "Agent SRE\nKnowledge Graph" {
+  shape: cylinder
+  style.fill: "#e0e0e0"
+  style.stroke: "#666666"
+  style.stroke-width: 2
+  style.stroke-dash: 5
+}
+
+# Primary Workflow Connections
+# Meta agent initiates investigation
+agent_sre_meta -> postgres_subagent: "Investigation Request" {
+  style.stroke: "#01579b"
+  style.stroke-width: 3
+}
+
+# Subagent returns results
+postgres_subagent -> agent_sre_meta: "Investigation Results" {
+  style.stroke: "#01579b"
+  style.stroke-width: 3
+}
+
+# Tool execution connections
+postgres_subagent -> postgresql_tools: "Tool Calls" {
+  style.stroke: "#ff6f00"
+  style.stroke-width: 2
+}
+
+# Data source access
+postgresql_tools -> postgres_target.flex_server: "Direct SQL Connections" {
+  style.stroke: "#0277bd"
+  style.stroke-width: 2
+}
+postgresql_tools -> azure_monitor: "Azure Monitor REST API" {
+  style.stroke: "#33691e"
+  style.stroke-width: 2
+}
+
+# Knowledge graph access
+agent_sre_meta -> agent_sre_kg: "Knowledge Queries" {
+  style.stroke: "#666666"
+  style.stroke-dash: 10
+}
+postgres_subagent -> agent_sre_kg: "Knowledge Queries" {
+  style.stroke: "#666666"
+  style.stroke-dash: 10
+}
+
+# Basic telemetry flow
+postgres_target.flex_server -> azure_monitor: "Telemetry" {
+  style.stroke: "#33691e"
+  style.stroke-width: 1
+  style.stroke-dash: 5
+}
+
+# Agent SRE Subagent Architecture Notes - v0.1
+# Focus: Simplified PostgreSQL Intelligence Subagent for Agent SRE Framework Integration
+# 
+# Core Components:
+# - Agent SRE Meta Agent: Primary framework entry point
+# - Postgres Subagent: Single component handling all PostgreSQL intelligence
+# - PostgreSQL Tools: Query tools, Azure Monitor tools, and Playbooks
+# - Agent SRE Knowledge Graph: External knowledge system
+# 
+# Key Workflows:
+# 1. Meta Agent → Postgres Subagent (investigation initiation)
+# 2. Postgres Subagent → Tools (diagnostic execution)
+# 3. Postgres Subagent → Meta Agent (investigation results)
+# 
+# Design Principles:
+# - Simplified single subagent approach
+# - Tool abstraction for consistent execution
+# - Knowledge graph integration for enhanced reasoning
+# - Direct result flow without validation step

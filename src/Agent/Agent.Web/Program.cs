@@ -387,6 +387,10 @@ public class Program
             .AddSingleton<FunctionAppDeploymentChecksAgentFactory>()
             .AddTransient<IFunctionAppDeploymentChecksPlugin, FunctionAppDeploymentChecksPlugin>()
             .AddTransient<IMetaAgentFunctionAppDeploymentChecksAgentPlugin, FunctionAppDeploymentChecksAgentPlugin>()
+            
+            .AddTransient<IPostgreSQLPlugin, PostgreSQLPlugin>()
+            .AddTransient<PostgreSQLPluginDefinition>()
+            .AddSingleton<IPlaybookService, PlaybookService>()
 
             .AddTransient<MetricsPluginDefinition>()
             .AddTransient<AzureMonitorMetricsPluginDefinition>()
