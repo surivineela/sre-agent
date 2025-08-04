@@ -20,6 +20,8 @@ ResourceType
 TraceID
 SpanID
 CorrelationID
+ActivityId
+env_dt_traceId
 OperationName
 SubOperationName
 OperationStatus

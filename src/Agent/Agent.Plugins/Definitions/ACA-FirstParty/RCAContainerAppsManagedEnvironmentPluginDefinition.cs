@@ -17,7 +17,7 @@ namespace Agent.Plugins.Definitions
             _agentOutboundCommunicationService = agentOutboundCommunicationService;
         }
 
-     [Description("""
+        [Description("""
      Purpose:
      Retrieve the base configuration info for an Azure Container Apps managed environment.
      
@@ -49,15 +49,15 @@ namespace Agent.Plugins.Definitions
      - targetKubernetesVersion
      - loadBalancerResourceUrl
      """
-     )]
+        )]
         public async Task<string> GetManagedEnvironmentConfigureInfo(
-    [Description("Azure region of the managed environment.")] string region,
-    [Description("Start time of the query.")] DateTime fromDate,
-    [Description("End time of the query.")] DateTime toDate,
-    [Description("Name of the managed environment.")] string environmentName,
-    [Description("Name of the resource group.")] string resourceGroupName,
-    [Description("Azure subscription ID.")] string subscriptionId,
-    [Description("Name of the managed cluster")] string managedCluster)
+       [Description("Azure region of the managed environment.")] string region,
+       [Description("Start time of the query.")] DateTime fromDate,
+       [Description("End time of the query.")] DateTime toDate,
+       [Description("Name of the managed environment.")] string environmentName,
+       [Description("Name of the resource group.")] string resourceGroupName,
+       [Description("Azure subscription ID.")] string subscriptionId,
+       [Description("Name of the managed cluster")] string managedCluster)
         {
             // We use All("ManagedEnvironmentDBState") in the query, so if the region is not specified, we can default to an arbitrary region.
             string kustoClientRegion = string.IsNullOrEmpty(region)
@@ -72,7 +72,7 @@ namespace Agent.Plugins.Definitions
                     { "environmentName", environmentName },
                     { "resourceGroupName", resourceGroupName },
                     { "subscriptionId", subscriptionId },
-                    { "managedClusterName", managedCluster } 
+                    { "managedClusterName", managedCluster }
                  }
              );
             return environments;
@@ -579,6 +579,41 @@ namespace Agent.Plugins.Definitions
                     { "fromDate", fromDate.ToString() },
                     { "toDate", toDate.ToString() },
                     { "correlationId", correlationId }
+                });
+        }
+
+        [Description("""
+        Purpose:
+        Retrieve manually executed Geneva Actions for a specific managed cluster in the given time range.
+
+        Scenario:
+        Use this tool when you need to analyze the administrative actions performed by backend team engineers on a managed environment via Geneva Actions.
+         These operations—such as configuration updates, resource deletions, or other administrative tasks—can affect the environment's configuration, availability, or performance.
+
+        Output:
+        Returns table data in CSV format with TAB separators. Column headers:
+        - PreciseTimeStamp: The exact time the operation was logged
+        - requestMethod: The HTTP method of the operation
+        - statusCode: The HTTP response code
+        - requestPath: The path of the operation request
+        - env_dt_traceId: The trace ID associated with the event
+        - ActivityId: The unique identifier for the activity
+        """
+        )]
+        public async Task<string> GetManagedEnvironmentGenevaActionOperations(
+            [Description("Azure region of the managed environment.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
+        {
+            return await _kustoPlugin.ExecuteLocalFunctionAsync("GetGenevaActionOperations", region,
+                new Dictionary<string, string>
+                {
+                    { "fromDate", fromDate.ToString() },
+                    { "toDate", toDate.ToString() },
+                    { "requestPathFilter", "/admin/managedclusters/" },
+                    { "requestBodyFilter", "" },
+                    { "queryResourceName", managedClusterName }
                 });
         }
     }

@@ -1,0 +1,15 @@
+let fromDate = datetime("##fromDate##");
+let toDate = datetime("##toDate##");
+let requestPathFilter = "##requestPathFilter##";
+let requestBodyFilter = "##requestBodyFilter##";
+let queryResourceFilter = "##queryResourceName##";
+ContainerAppsAdminEvents
+| where TIMESTAMP between (fromDate .. toDate)
+| where Role == "capps-azapi-mgmt-asp"
+| where requestMethod != "GET"
+| where isempty(requestPathFilter) or requestPath contains requestPathFilter
+| where isempty(requestBodyFilter) or requestPath contains requestBodyFilter
+| where isempty(queryResourceFilter) or requestPath contains strcat("/",queryResourceFilter,"/")
+| where statusCode !in ("-1","302")
+| limit 100
+| project PreciseTimeStamp,requestMethod,statusCode,requestPath,env_dt_traceId,ActivityId
