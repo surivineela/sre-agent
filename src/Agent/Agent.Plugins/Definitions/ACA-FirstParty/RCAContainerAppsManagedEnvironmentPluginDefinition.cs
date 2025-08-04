@@ -121,19 +121,35 @@ namespace Agent.Plugins.Definitions
 
         [Description("""
         Purpose:
-        Retrieve configuration state changes for a specific Azure Container Apps managed environment within a given time range.
+        Retrieve configuration changes for a specific managed environment within a given time range.
         
         Scenario:
-        - Use this tool when you need to track changes in the managed environment's configuration, such as chart versions, Kubernetes versions, and workload profiles.
-        - Correlate the changes occurrence with issues reported by users or other system events.
+        Use this tool when you need to track changes in the managed environment's configuration components: 
+        - ACA Control plane Build Version
+        - AKS Version
+        - VK Chart Version
+        - Target ACAM Chart Version
+        - Is Legion Enabled
+        - Has Workload Profiles
+        - Has Customer VNet For Env
+        - Has Customer VNet For Cluster
+        - Has Private Endpoints
+        - Managed Cluster Name
+        - Custom Helm Values
+        - Public Network Access
+        - Has Maintenance Configuration
+        - Quota Limit
+        - Ingress IP
+        - Load Balancer ID
+        - AKS Pricing Tier
 
         Output:
         Returns table data in CSV format with TAB separators. Column headers:
-        - StartTime: Timestamp when the change was detected
-        - EndTime: Timestamp when the change was completed
-        - ComponentType: Type of the component that was changed (e.g., Chart Version, Kubernetes Version, Has Workload Profiles)
+        - StartTime: when the change was detected
+        - EndTime: when the change was completed
+        - ComponentType: Type of the component that was changed
         - Value: The value of the component after the change
-        - ChangeStatus: Status of the change (e.g., No change, Change)
+        - ChangeStatus: Status of the change (No change or Change)
         - PreviousValue: The value of the component before the change
         """
         )]
@@ -142,7 +158,8 @@ namespace Agent.Plugins.Definitions
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Customer subscription ID of the managed environment.")] Guid customerSubscriptionId,
-            [Description("Name of the customer managed environment.")] string managedEnvironmentName)
+            [Description("Name of the managed environment. Provide either this or the managed cluster name.")] string managedEnvironmentName,
+            [Description("Name of the managed cluster. Provide either this or the managed environment name.")] string managedClusterName)
         {
             return await _kustoPlugin.ExecuteLocalFunctionAsync(
                 "GetChangesinManagedEnvironment",
@@ -152,7 +169,8 @@ namespace Agent.Plugins.Definitions
                     { "fromDate", fromDate.ToString() },
                     { "toDate", toDate.ToString() },
                     { "customerSubscriptionId", customerSubscriptionId.ToString() },
-                    { "managedEnvironmentName", managedEnvironmentName }
+                    { "managedEnvironmentName", managedEnvironmentName },
+                    { "managedClusterName", managedClusterName }
                 });
         }
 

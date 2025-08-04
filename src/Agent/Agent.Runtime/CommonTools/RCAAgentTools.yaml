@@ -8,3 +8,4 @@ tools:
   - GetASIPageForRevision
   - PlotTimeSeriesData
   - HandoffBack
+  - GetChangesInManagedEnvironment

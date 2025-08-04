@@ -2,12 +2,14 @@ let queryFrom = datetime("##fromDate##");
 let queryTo = datetime("##toDate##");
 let customerSubscriptionId = "##customerSubscriptionId##";
 let customerEnvironmentName = "##managedEnvironmentName##";
+let customerManagedClusterName = "##managedClusterName##";
 
 // Base filtered table
 let BaseData = ManagedEnvironmentDBState
 | where TIMESTAMP between (queryFrom .. queryTo)
 | where isempty(customerSubscriptionId) or subscription =~ customerSubscriptionId
 | where isempty(customerEnvironmentName) or environmentName =~  customerEnvironmentName
+| where isempty(customerManagedClusterName) or managedClusterName =~  customerManagedClusterName
 ;
 
 // Wrapper function for reuse
