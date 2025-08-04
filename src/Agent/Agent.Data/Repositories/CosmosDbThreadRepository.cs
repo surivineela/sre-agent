@@ -853,6 +853,172 @@ public class CosmosDbThreadRepository : IThreadRepository
         return messages;
     }
 
+    public async Task<IEnumerable<Message>> GetMessagesWithApprovalAsync(Guid threadId)
+    {
+        var messages = new List<Message>();
+        string threadIdStr = threadId.ToString();
+
+        var query = _client.GetContainer<MessageDocument>(_databaseName).GetItemLinqQueryable<MessageDocument>()
+            .Where(m => m.DocumentType == "Message" && m.ThreadId == threadIdStr && m.Approval != null)
+            .OrderBy(m => m.TimeStamp);
+
+        using var iterator = query.ToFeedIterator();
+
+        while (iterator.HasMoreResults)
+        {
+            foreach (var messageDoc in await iterator.ReadNextAsync())
+            {
+                var messageDocWithApproval = messageDoc;
+                // Replace the approval with the Approval doc in Cosmos
+                if (messageDoc.Approval != null)
+                {
+                    //var approvalDoc = _client.GetContainer<ApprovalDocument>(_databaseName).GetItemLinqQueryable<ApprovalDocument>()
+                    //    .Where(a => a.Id == messageDoc.Approval.Id.ToString()).FirstOrDefault();
+                    var approvalQuery = _client.GetContainer<ApprovalDocument>(_databaseName)
+                            .GetItemLinqQueryable<ApprovalDocument>()
+                             .Where(a => a.Id == messageDoc.Approval.Id.ToString());
+
+                    using var approvalIterator = approvalQuery.ToFeedIterator();
+                    ApprovalDocument? approvalDoc = null;
+                    if (approvalIterator.HasMoreResults)
+                    {
+                        var approvalResults = await approvalIterator.ReadNextAsync();
+                        approvalDoc = approvalResults.FirstOrDefault();
+                    }
+
+                    messageDocWithApproval = new MessageDocument(messageDoc.Id,
+                        messageDoc.ThreadId,
+                        messageDoc.TimeStamp,
+                        messageDoc.Author,
+                        messageDoc.Text,
+                        messageDoc.IsImageContent,
+                        messageDoc.Posted,
+                        approvalDoc?.ToDomainModel(),
+                        messageDoc.AzCliExecution,
+                        messageDoc.KubectlExecution,
+                        messageDoc.IncidentDiscussionId,
+                        messageDoc.IsDailyReport);
+                }
+                messages.Add(messageDocWithApproval.ToDomainModel(isDailyReport: messageDoc.IsDailyReport));
+            }
+        }
+
+        return messages;
+    }
+
+    public async Task<IEnumerable<Message>> GetMessagesWithAzCliExecutionAsync(Guid threadId)
+    {
+        var messages = new List<Message>();
+        string threadIdStr = threadId.ToString();
+
+        var query = _client.GetContainer<MessageDocument>(_databaseName).GetItemLinqQueryable<MessageDocument>()
+            .Where(m => m.DocumentType == "Message" && m.ThreadId == threadIdStr && m.AzCliExecution != null)
+            .OrderBy(m => m.TimeStamp);
+
+        using var iterator = query.ToFeedIterator();
+
+        while (iterator.HasMoreResults)
+        {
+            foreach (var messageDoc in await iterator.ReadNextAsync())
+            {
+                var messageDocWithApproval = messageDoc;
+
+                if (messageDoc.AzCliExecution != null)
+                {
+                    var executionQuery = _client.GetContainer<CliExecutionDocument>(_databaseName)
+                        .GetItemLinqQueryable<CliExecutionDocument>()
+                        .Where(e => e.Id == messageDoc.AzCliExecution.Id.ToString());
+
+                    using var executionIterator = executionQuery.ToFeedIterator();
+                    CliExecutionDocument? executionDoc = null;
+                    if (executionIterator.HasMoreResults)
+                    {
+                        var executionResults = await executionIterator.ReadNextAsync();
+                        executionDoc = executionResults.FirstOrDefault();
+                    }
+
+                    if (executionDoc != null)
+                    {
+                        messageDocWithApproval = new MessageDocument(
+                            messageDoc.Id,
+                            messageDoc.ThreadId,
+                            messageDoc.TimeStamp,
+                            messageDoc.Author,
+                            messageDoc.Text,
+                            messageDoc.IsImageContent,
+                            messageDoc.Posted,
+                            messageDoc.Approval,
+                            executionDoc.ToDomainModel(), // Use the updated execution
+                            null,
+                            messageDoc.IncidentDiscussionId,
+                            messageDoc.IsDailyReport
+                        );
+                    }
+                }
+
+                messages.Add(messageDocWithApproval.ToDomainModel(isDailyReport: messageDoc.IsDailyReport));
+            }
+        }
+
+        return messages;
+    }
+
+    public async Task<IEnumerable<Message>> GetMessagesWithKubectlAsync(Guid threadId)
+    {
+        var messages = new List<Message>();
+        string threadIdStr = threadId.ToString();
+
+        var query = _client.GetContainer<MessageDocument>(_databaseName).GetItemLinqQueryable<MessageDocument>()
+            .Where(m => m.DocumentType == "Message" && m.ThreadId == threadIdStr && m.KubectlExecution != null)
+            .OrderBy(m => m.TimeStamp);
+
+        using var iterator = query.ToFeedIterator();
+
+        while (iterator.HasMoreResults)
+        {
+            foreach (var messageDoc in await iterator.ReadNextAsync())
+            {
+                var messageDocWithApproval = messageDoc;
+
+                if (messageDoc.KubectlExecution != null)
+                {
+                    var executionQuery = _client.GetContainer<KubectlExecutionDocument>(_databaseName)
+                        .GetItemLinqQueryable<KubectlExecutionDocument>()
+                        .Where(e => e.Id == messageDoc.KubectlExecution.Id.ToString());
+
+                    using var executionIterator = executionQuery.ToFeedIterator();
+                    KubectlExecutionDocument? executionDoc = null;
+                    if (executionIterator.HasMoreResults)
+                    {
+                        var executionResults = await executionIterator.ReadNextAsync();
+                        executionDoc = executionResults.FirstOrDefault();
+                    }
+
+                    if (executionDoc != null)
+                    {
+                        messageDocWithApproval = new MessageDocument(
+                            messageDoc.Id,
+                            messageDoc.ThreadId,
+                            messageDoc.TimeStamp,
+                            messageDoc.Author,
+                            messageDoc.Text,
+                            messageDoc.IsImageContent,
+                            messageDoc.Posted,
+                            messageDoc.Approval,
+                            null, // Use the updated execution
+                            executionDoc.ToDomainModel(),
+                            messageDoc.IncidentDiscussionId,
+                            messageDoc.IsDailyReport
+                        );
+                    }
+                }
+                messages.Add(messageDocWithApproval.ToDomainModel(isDailyReport: messageDoc.IsDailyReport));
+            }
+        }
+
+        return messages;
+    }
+
     public async Task<Message> AddMessageAsync(Guid threadId, Message message)
     {
         // Ensure ID is set

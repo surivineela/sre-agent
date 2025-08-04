@@ -449,6 +449,39 @@ namespace Agent.Data.Repositories
             return Task.FromResult((messages ?? Enumerable.Empty<Message>()).AsEnumerable());
         }
 
+        public Task<IEnumerable<Message>> GetMessagesWithApprovalAsync(Guid threadId)
+        {
+            var messages = _messages
+                .Where(kvp => kvp.Key.ThreadId == threadId && kvp.Value.Approval != null)
+                .Select(kvp => kvp.Value)
+                .OrderBy(m => m.TimeStamp)
+                .AsQueryable();
+
+            return Task.FromResult((messages ?? Enumerable.Empty<Message>()).AsEnumerable());
+        }
+
+        public Task<IEnumerable<Message>> GetMessagesWithAzCliExecutionAsync(Guid threadId)
+        {
+            var messages = _messages
+                .Where(kvp => kvp.Key.ThreadId == threadId && kvp.Value.AzCliExecution != null)
+                .Select(kvp => kvp.Value)
+                .OrderBy(m => m.TimeStamp)
+                .AsQueryable();
+
+            return Task.FromResult((messages ?? Enumerable.Empty<Message>()).AsEnumerable());
+        }
+
+        public Task<IEnumerable<Message>> GetMessagesWithKubectlAsync(Guid threadId)
+        {
+            var messages = _messages
+                .Where(kvp => kvp.Key.ThreadId == threadId && kvp.Value.KubectlExecution != null)
+                .Select(kvp => kvp.Value)
+                .OrderBy(m => m.TimeStamp)
+                .AsQueryable();
+
+            return Task.FromResult((messages ?? Enumerable.Empty<Message>()).AsEnumerable());
+        }
+
         public Task<Message> AddMessageAsync(Guid threadId, Message message)
         {
             // Ensure ID is set

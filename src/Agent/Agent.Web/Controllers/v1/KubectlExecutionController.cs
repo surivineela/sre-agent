@@ -23,6 +23,7 @@ namespace Agent.Web.Controllers.v1
         private readonly IReasoningLoopManager _reasoningLoopManager;
         private readonly CoreSettings _coreSettings;
         private readonly IWebHostEnvironment _hostEnvironment;
+        private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
 
         public KubectlExecutionController(
             IThreadRepository threadRepository,
@@ -30,7 +31,8 @@ namespace Agent.Web.Controllers.v1
             IReasoningLoopManager reasoningLoopManager,
             CoreSettings coreSettings,
             ILogger<KubectlExecutionController> logger,
-            IWebHostEnvironment hostEnvironment)
+            IWebHostEnvironment hostEnvironment,
+            IAgentOutboundCommunicationService agentOutboundCommunicationService)
         {
             _reasoningLoopManager = reasoningLoopManager;
             _threadRepository = threadRepository;
@@ -38,6 +40,7 @@ namespace Agent.Web.Controllers.v1
             _logger = logger;
             _coreSettings = coreSettings;
             _hostEnvironment = hostEnvironment;
+            _agentOutboundCommunicationService = agentOutboundCommunicationService;
         }
 
         /// <summary>
@@ -116,6 +119,9 @@ namespace Agent.Web.Controllers.v1
                     _logger.LogInternalError(ex, "Failed to decode JWT token");
                 }
             }
+            // Get messageId for streaming purposes for given execution
+            var kubectlExecutions = await _threadRepository.GetMessagesWithKubectlAsync(threadGuid);
+            Guid messageId = kubectlExecutions.FirstOrDefault(m => m.KubectlExecution?.Id == executionGuid)?.Id ?? default;
 
             switch (request.Action.ToLower())
             {
@@ -151,6 +157,7 @@ namespace Agent.Web.Controllers.v1
                                     )
                                 };
                                 await _threadRepository.UpdateKubectlExecutionAsync(threadGuid, execution);
+                                await _agentOutboundCommunicationService.NotifyKubectlUpdate(threadGuid, execution, messageId);
 
                                 _logger.LogInternalInformation($"[{threadGuid}]Executing {executionGuid} with agent identity");
                                 result = await _kubePlugin.ExecuteKubectlCommandSafely(resourceId, execution.Command, execution.Stdin);
@@ -168,6 +175,7 @@ namespace Agent.Web.Controllers.v1
                                         CompletedTimestamp = null,
                                     };
                                     await _threadRepository.UpdateKubectlExecutionAsync(threadGuid, execution);
+                                    await _agentOutboundCommunicationService.NotifyKubectlUpdate(threadGuid, execution, messageId);
                                     return;
                                 }
                             }
@@ -184,6 +192,7 @@ namespace Agent.Web.Controllers.v1
                                     )
                                 };
                                 await _threadRepository.UpdateKubectlExecutionAsync(threadGuid, execution);
+                                await _agentOutboundCommunicationService.NotifyKubectlUpdate(threadGuid, execution, messageId);
 
                                 FunctionCallContent? functionCall = null;
                                 if (!string.IsNullOrEmpty(execution.OriginalFunctionCall))
@@ -231,6 +240,7 @@ namespace Agent.Web.Controllers.v1
                             };
 
                             await _threadRepository.UpdateKubectlExecutionAsync(threadGuid, execution);
+                            await _agentOutboundCommunicationService.NotifyKubectlUpdate(threadGuid, execution, messageId);
                             if (_coreSettings.UseAgentFramework && agentContext != null)
                             {
                                 var functionCall = !string.IsNullOrEmpty(execution.OriginalFunctionCall) ? JsonSerializer.Deserialize<FunctionCallContent>(execution.OriginalFunctionCall) : null;
@@ -280,6 +290,7 @@ namespace Agent.Web.Controllers.v1
                             }
 
                             await _threadRepository.UpdateKubectlExecutionAsync(threadGuid, execution);
+                            await _agentOutboundCommunicationService.NotifyKubectlUpdate(threadGuid, execution, messageId);
                         }
                     });
 
@@ -304,6 +315,7 @@ namespace Agent.Web.Controllers.v1
                         )
                     };
                     await _threadRepository.UpdateKubectlExecutionAsync(threadGuid, execution);
+                    await _agentOutboundCommunicationService.NotifyKubectlUpdate(threadGuid, execution, messageId);
 
                     return Ok(new
                     {

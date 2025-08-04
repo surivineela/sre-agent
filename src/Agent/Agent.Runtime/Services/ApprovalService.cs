@@ -118,11 +118,19 @@ namespace Agent.Runtime.Services
             }
 
             await _threadRepository.UpdateApprovalAsync(newApproval);
+            var messagesWithApproval = await _threadRepository.GetMessagesWithApprovalAsync(threadId);
+            // Find message from messagesWithApproval that matches the approval
+            Message? approvalMessage = messagesWithApproval.FirstOrDefault(m => m.Approval?.Id == approval.Id) ?? null;
+            if (approvalMessage != null)
+            {
+                // assuming matching approval message, send update to outbound service
+                await _agentOutboundCommunicationService.NotifyApprovalUpdate(threadId, newApproval, approvalMessage.Id);
+            }
 
             if (_coreSettings.UseAgentFramework && agentContext != null)
-            {
-                await _reasoningLoopManager.NotifyApprovalDecisionAsync(agentContext, newApproval, CancellationToken.None);
-            }
+                {
+                    await _reasoningLoopManager.NotifyApprovalDecisionAsync(agentContext, newApproval, CancellationToken.None);
+                }
         }
     }
 }

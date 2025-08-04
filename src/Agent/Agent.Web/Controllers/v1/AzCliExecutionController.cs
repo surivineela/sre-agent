@@ -27,6 +27,7 @@ namespace Agent.Web.Controllers.v1
         private readonly IReasoningLoopManager _reasoningLoopManager;
         private readonly CoreSettings _coreSettings;
         private readonly IHostEnvironment _hostEnvironment;
+        private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
 
         public AzCliExecutionController(
             IThreadRepository threadRepository,
@@ -34,7 +35,9 @@ namespace Agent.Web.Controllers.v1
             IReasoningLoopManager reasoningLoopManager,
             CoreSettings coreSettings,
             ILogger<AzCliExecutionController> logger,
-            IHostEnvironment hostEnvironment)
+            IHostEnvironment hostEnvironment,
+            IAgentOutboundCommunicationService agentOutboundCommunicationService
+        )
         {
             _reasoningLoopManager = reasoningLoopManager;
             _threadRepository = threadRepository;
@@ -42,6 +45,7 @@ namespace Agent.Web.Controllers.v1
             _logger = logger;
             _coreSettings = coreSettings;
             _hostEnvironment = hostEnvironment;
+            _agentOutboundCommunicationService = agentOutboundCommunicationService;
         }
 
         /// <summary>
@@ -120,6 +124,9 @@ namespace Agent.Web.Controllers.v1
                     _logger.LogInternalError(ex, "Failed to decode JWT token");
                 }
             }
+            // Get messageId for streaming purposes for given execution
+            var dbExecutions = await _threadRepository.GetMessagesWithAzCliExecutionAsync(threadGuid);
+            Guid messageId = dbExecutions.FirstOrDefault(m => m.AzCliExecution?.Id == executionGuid)?.Id ?? default;
 
             switch (request.Action.ToLower())
             {
@@ -168,6 +175,7 @@ namespace Agent.Web.Controllers.v1
                                         CompletedTimestamp = null,
                                     };
                                     await _threadRepository.UpdateAzCliExecutionAsync(threadGuid, updatedExecution);
+                                    await _agentOutboundCommunicationService.NotifyAzCliUpdate(threadGuid, updatedExecution, messageId);
                                     return;
                                 }
                             }
@@ -185,6 +193,7 @@ namespace Agent.Web.Controllers.v1
         )
                                 };
                                 await _threadRepository.UpdateAzCliExecutionAsync(threadGuid, execution);
+                                await _agentOutboundCommunicationService.NotifyAzCliUpdate(threadGuid, execution, messageId);
 
                                 FunctionCallContent? functionCall = null;
                                 if (!string.IsNullOrEmpty(execution.OriginalFunctionCall))
@@ -231,6 +240,8 @@ namespace Agent.Web.Controllers.v1
                             };
 
                             await _threadRepository.UpdateAzCliExecutionAsync(threadGuid, execution);
+                            await _agentOutboundCommunicationService.NotifyAzCliUpdate(threadGuid, execution, messageId);
+
                             if (_coreSettings.UseAgentFramework && agentContext != null)
                             {
                                 var functionCall = !string.IsNullOrEmpty(execution.OriginalFunctionCall) ? JsonSerializer.Deserialize<FunctionCallContent>(execution.OriginalFunctionCall) : null;
@@ -278,8 +289,8 @@ namespace Agent.Web.Controllers.v1
                                     });
                                 }
                             }
-
                             await _threadRepository.UpdateAzCliExecutionAsync(threadGuid, execution);
+                            await _agentOutboundCommunicationService.NotifyAzCliUpdate(threadGuid, execution, messageId);
                         }
                     });
 
@@ -304,6 +315,7 @@ namespace Agent.Web.Controllers.v1
                         )
                     };
                     await _threadRepository.UpdateAzCliExecutionAsync(threadGuid, execution);
+                    await _agentOutboundCommunicationService.NotifyAzCliUpdate(threadGuid, execution, messageId);
 
                     return Ok(new
                     {

@@ -73,6 +73,27 @@ namespace Agent.Tests.Common.Mocks
             return Task.CompletedTask;
         }
 
+        public Task NotifyAzCliUpdate(Guid threadId, AzCliExecution execution, Guid messageId = default)
+        {
+            _logger?.LogInternalInformation($"ThreadId: {threadId}, Command: {execution.Command}, Status: {execution.Status}");
+            Messages.Add(execution.Command);
+            return Task.CompletedTask;
+        }
+
+        public Task NotifyKubectlUpdate(Guid threadId, KubectlExecution execution, Guid messageId = default)
+        {
+            _logger?.LogInternalInformation($"ThreadId: {threadId}, Command: {execution.Command}, Status: {execution.Status}");
+            Messages.Add(execution.Command);
+            return Task.CompletedTask;
+        }
+
+        public Task NotifyApprovalUpdate(Guid threadId, Approval approval, Guid messageId = default)
+        {
+            _logger?.LogInternalInformation($"ThreadId: {threadId}, ApprovalId: {approval.Id}, Status: {approval.Status}");
+            Messages.Add(approval.Description);
+            return Task.CompletedTask;
+        }
+
         public Task NotifyCompletionAsync(string threadId, string instanceId, string status, string? summary = null)
         {
             _logger?.LogInternalInformation($"ThreadId: {threadId}, InstanceId: {instanceId}, Status: {status}");

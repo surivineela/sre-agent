@@ -49,6 +49,21 @@ public interface IAgentOutboundCommunicationService
     /// </summary>
     Task NotifyThreadEvent(Guid threadId, Core.Models.Api.v1.Thread thread);
 
+    /// <summary>
+    /// Notifies about an update to an AzCli execution
+    /// </summary>
+    Task NotifyAzCliUpdate(Guid threadId, AzCliExecution execution, Guid messageId = default);
+
+    /// <summary>
+    /// Notifies about an update to an approval
+    /// </summary>
+    Task NotifyApprovalUpdate(Guid threadId, Approval approval, Guid messageId = default);
+
+    /// <summary>
+    /// Notifies about an update to a Kubectl execution
+    /// </summary>
+    Task NotifyKubectlUpdate(Guid threadId, KubectlExecution execution, Guid messageId = default);
+
     Task PostActivity(string threadId, Microsoft.Bot.Schema.Activity activity, string messageId = "");
 
     Task<Guid> AppendAgentImageMessage(Guid threadId, string message, Guid messageId = default);

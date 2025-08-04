@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Agent.Core;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
@@ -31,6 +32,14 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         WriteIndented = true,
     };
 
+    // TODO: make this default for all serializer options
+    private readonly JsonSerializerOptions _azCliKubectlSerializerOptions = new JsonSerializerOptions
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DictionaryKeyPolicy = new LowerCaseNamingPolicy(),
+        WriteIndented = true,
+    };
+
     public OutboundCommunicationService(
         IThreadOrchestrationManager mappingManager,
         ILogger<OutboundCommunicationService> logger,
@@ -43,6 +52,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         _postToTeamsService = postToTeamsService;
         _sinkService = sinkService;
         _streamingService = streamingService;
+        _azCliKubectlSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     }
 
     public async Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message, Guid? messageId = null)
@@ -124,13 +134,89 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             if (type != null)
             {
                 string jsonString = JsonSerializer.Serialize(message, _serializerOptions);
-                await AppendAgentStreamMessage(threadId, jsonString, type);
+                await AppendAgentStreamMessage(threadId, jsonString, type, messageId: message.Id);
             }
             await AppendAgentStreamMessage(threadId, message.Text ?? string.Empty, null, messageId: message.Id);
         }
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Failed to stream message directly for thread {ThreadId}", threadId);
+        }
+    }
+
+    public async Task NotifyAzCliUpdate(Guid threadId, AzCliExecution execution, Guid messageId = default)
+    {
+        if (threadId == Guid.Empty)
+        {
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
+        }
+
+        try
+        {
+            string jsonString = JsonSerializer.Serialize(execution, _azCliKubectlSerializerOptions);
+            if (messageId != default)
+            {
+                await AppendAgentStreamMessage(threadId, jsonString, StreamMessageType.AzCli, messageId);
+            }
+            else
+            {
+                await AppendAgentStreamMessage(threadId, jsonString, StreamMessageType.AzCli);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to stream AzCli update for thread {ThreadId}", threadId);
+        }
+    }
+
+    public async Task NotifyKubectlUpdate(Guid threadId, KubectlExecution execution, Guid messageId = default)
+    {
+        if (threadId == Guid.Empty)
+        {
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
+        }
+
+        try
+        {
+            string jsonString = JsonSerializer.Serialize(execution, _azCliKubectlSerializerOptions);
+            if (messageId != default)
+            {
+                await AppendAgentStreamMessage(threadId, jsonString, StreamMessageType.Kubectl, messageId);
+            }
+            else
+            {
+                await AppendAgentStreamMessage(threadId, jsonString, StreamMessageType.Kubectl);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to stream Kubectl update for thread {ThreadId}", threadId);
+        }
+    }
+
+    public async Task NotifyApprovalUpdate(Guid threadId, Approval approval, Guid messageId = default)
+    {
+        if (threadId == Guid.Empty)
+        {
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
+        }
+
+        try
+        {
+            Approval modifiedApproval = approval with { OboTokenScope = string.IsNullOrEmpty(approval.OboTokenScope) ? Constants.DefaultOboTokenScope : approval.OboTokenScope };
+            string jsonString = JsonSerializer.Serialize(modifiedApproval, _serializerOptions);
+            if (messageId != default)
+            {
+                await AppendAgentStreamMessage(threadId, jsonString, StreamMessageType.Approval, messageId);
+            }
+            else
+            {
+                await AppendAgentStreamMessage(threadId, jsonString, StreamMessageType.Approval);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to stream Approval update for thread {ThreadId}", threadId);
         }
     }
 
