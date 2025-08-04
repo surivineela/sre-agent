@@ -29,8 +29,6 @@ export interface IThreadsMenuProps {
 
 export interface IThreadContentProps {
     thread?: Thread | null;
-    actionsCollapsed: boolean;
-    expandActions: () => void;
     addThread: (threadId: string, newThreadToSelect?: Thread) => void;
     deleteThread: (thread: Thread) => void;
     updateThreadLastReadTime: (threadId: string) => void;

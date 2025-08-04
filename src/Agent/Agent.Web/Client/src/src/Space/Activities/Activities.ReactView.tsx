@@ -51,8 +51,6 @@ const Activities: FC = () => {
                     addThread={addThread}
                     deleteThread={deleteThread}
                     updateThreadLastReadTime={updateThreadLastReadTime}
-                    actionsCollapsed={actionsCollapsed}
-                    expandActions={() => setActionsCollapsed(false)}
                 />
                 <Resizable
                     position="right"

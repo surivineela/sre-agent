@@ -1,5 +1,11 @@
 import { Button, Card, CardFooter, CardHeader, InputOnChangeData, SearchBox, SearchBoxChangeEvent, Text } from '@fluentui/react-components';
-import { ArrowSync16Filled, CheckmarkCircle16Filled, Dismiss16Filled, PanelRightContractRegular } from '@fluentui/react-icons';
+import {
+    ArrowSync16Filled,
+    CheckmarkCircle16Filled,
+    Dismiss16Filled,
+    PanelRightContractRegular,
+    PanelRightExpandRegular,
+} from '@fluentui/react-icons';
 import { Shimmer } from '@fluentui/react/lib/Shimmer';
 import debounce from 'lodash/debounce';
 import { FC, memo, useContext, useMemo, useState } from 'react';
@@ -7,6 +13,7 @@ import { useIntl } from 'react-intl';
 import { Action, ActionStatus } from '../../Common/Contracts/Azure/SreAgent';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { ActionsResources, ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import Fade from '../Components/Fade';
 import { IThreadActivitiesProps } from '../Contracts/Activities';
 import { AgentContext } from '../Contracts/Context';
 import { useActions } from '../Hooks/useActions';
@@ -43,28 +50,34 @@ const ThreadActionsContent: FC<IThreadActivitiesProps> = (props: IThreadActiviti
         }
     }, [searchString, actions]);
 
-    return collapsed ? null : (
+    return (
         <div className={actionsStyles.content}>
             <div style={expandCollapseButtonStyles.container}>
                 <Button
                     style={expandCollapseButtonStyles.button}
-                    icon={<PanelRightContractRegular />}
-                    onClick={() => setCollapsed(true)}
+                    icon={collapsed ? <PanelRightExpandRegular /> : <PanelRightContractRegular />}
+                    onClick={() => setCollapsed(!collapsed)}
                     aria-label={intl.formatMessage(ActivitiesResources.hideThreadActionsButtonText)}
                     appearance="transparent"
                 />
             </div>
-            <Text as="h3" className={actionsStyles.title}>
-                {intl.formatMessage(ActionsResources.actions)}
-            </Text>
-            <SearchBox
-                style={actionSearchBoxStyle}
-                placeholder={intl.formatMessage(SreAgentResources.search)}
-                onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchString(data.value ?? ''))}
-            />
-            <Shimmer isDataLoaded={!isLoading} style={shimmerStyle}>
-                <ActionCardList actions={filteredActions} />
-            </Shimmer>
+            <Fade visible={!collapsed} unmountOnExit>
+                <Text as="h3" className={actionsStyles.title}>
+                    {intl.formatMessage(ActionsResources.actions)}
+                </Text>
+            </Fade>
+            <Fade visible={!collapsed} unmountOnExit>
+                <SearchBox
+                    style={actionSearchBoxStyle}
+                    placeholder={intl.formatMessage(SreAgentResources.search)}
+                    onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchString(data.value ?? ''))}
+                />
+            </Fade>
+            <Fade visible={!collapsed} unmountOnExit>
+                <Shimmer isDataLoaded={!isLoading} style={shimmerStyle}>
+                    <ActionCardList actions={filteredActions} />
+                </Shimmer>
+            </Fade>
         </div>
     );
 };

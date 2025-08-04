@@ -190,6 +190,7 @@ export const Resizable = ({
                 minWidth: minWidthPercent ? `${minWidthPercent}%` : undefined,
                 position: 'relative',
                 height: '100%',
+                transition: 'flex-basis 0.3s ease',
                 ...style,
             }}
         >

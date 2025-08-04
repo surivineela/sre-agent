@@ -2,12 +2,14 @@ import { Button } from '@fluentui/react-button';
 import { mergeClasses, Skeleton, SkeletonItem } from '@fluentui/react-components';
 import { Dialog, DialogTrigger } from '@fluentui/react-dialog';
 import { AddRegular, PanelLeftContractRegular, PanelLeftExpandRegular, SearchRegular } from '@fluentui/react-icons';
+import { Text } from '@fluentui/react-text';
 import { tokens } from '@fluentui/react-theme';
 import { ForwardedRef, forwardRef, useContext } from 'react';
 import { useIntl } from 'react-intl';
 import { KnowledgeGraphBuildStatusContext } from '../../Common/Providers/KnowledgeGraphBuildStatusProvider';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
 import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import Fade from '../Components/Fade';
 import ThreadFiltersAndIncidentStatus from '../Components/ThreadFiltersAndIncidentStatus';
 import ThreadItem from '../Components/ThreadItem';
 import ThreadSearchDialog from '../Components/ThreadSearchDialog';
@@ -68,7 +70,6 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
                 <div className={threadMenuStyles.newItemButtonAndSearchBox}>
                     <Button
                         style={{
-                            height: 'auto',
                             borderRadius: tokens.borderRadiusLarge,
                             borderColor: tokens.colorNeutralBackground3Selected,
                             maxWidth: 'fit-content',
@@ -79,57 +80,71 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
                         aria-label={intl.formatMessage(ActivitiesResources.createThreadButtonText)}
                         disabled={!hasChatPermissions}
                     >
-                        {collapsed ? null : intl.formatMessage(ActivitiesResources.createThreadButtonText)}
+                        {!collapsed && (
+                            <Fade visible={true} appear={true} unmountOnExit>
+                                <Text wrap={false}>{intl.formatMessage(ActivitiesResources.createThreadButtonText)}</Text>
+                            </Fade>
+                        )}
                     </Button>
-                    {!collapsed && hasChatPermissions && (
-                        <Dialog>
-                            <DialogTrigger>
-                                <Button
-                                    aria-label={intl.formatMessage(SreAgentResources.search)}
-                                    icon={<SearchRegular />}
-                                    style={{
-                                        borderRadius: tokens.borderRadiusLarge,
-                                        borderColor: tokens.colorNeutralBackground3Selected,
-                                    }}
-                                />
-                            </DialogTrigger>
-                            <ThreadSearchDialog threads={threads} selectThread={selectThread} activeThreadId={activeThreadId} />
-                        </Dialog>
+                    {hasChatPermissions && (
+                        <Fade visible={!collapsed} unmountOnExit>
+                            <div>
+                                <Dialog>
+                                    <DialogTrigger>
+                                        <Button
+                                            aria-label={intl.formatMessage(SreAgentResources.search)}
+                                            icon={<SearchRegular />}
+                                            style={{
+                                                borderRadius: tokens.borderRadiusLarge,
+                                                borderColor: tokens.colorNeutralBackground3Selected,
+                                            }}
+                                        />
+                                    </DialogTrigger>
+                                    <ThreadSearchDialog threads={threads} selectThread={selectThread} activeThreadId={activeThreadId} />
+                                </Dialog>
+                            </div>
+                        </Fade>
                     )}
                 </div>
-                {!collapsed && hasChatPermissions && (
-                    <ThreadFiltersAndIncidentStatus
-                        threadFilters={threadFilters}
-                        updateThreadFilters={updateThreadFilters}
-                        incidentMetrics={incidentMetrics}
-                    />
+                {hasChatPermissions && (
+                    <Fade visible={!collapsed} unmountOnExit>
+                        <div>
+                            <ThreadFiltersAndIncidentStatus
+                                threadFilters={threadFilters}
+                                updateThreadFilters={updateThreadFilters}
+                                incidentMetrics={incidentMetrics}
+                            />
+                        </div>
+                    </Fade>
                 )}
-                {!collapsed && hasChatPermissions && (
-                    <div
-                        className={mergeClasses(scrollable, threadMenuStyles.threadListContainer)}
-                        role="tree"
-                        ref={threadListDivRef}
-                        onScroll={onScroll}
-                    >
-                        {threads.map(thread => {
-                            return (
-                                <ThreadItem
-                                    key={thread.id}
-                                    thread={thread}
-                                    selectThread={selectThread}
-                                    deleteThread={deleteThread}
-                                    isActive={activeThreadId === thread.id}
-                                    isThreadUnread={unreadThreadIds.has(thread.id)}
-                                    ref={(el: HTMLDivElement) => threadItemDivsRef.current.set(thread.id, el)}
-                                />
-                            );
-                        })}
-                        {moreThreadsToLoad && (
-                            <Skeleton style={skeletonStyle} ref={intersectionObserverRef}>
-                                <SkeletonItem />
-                            </Skeleton>
-                        )}
-                    </div>
+                {hasChatPermissions && (
+                    <Fade visible={!collapsed}>
+                        <div
+                            className={mergeClasses(scrollable, threadMenuStyles.threadListContainer)}
+                            role="tree"
+                            ref={threadListDivRef}
+                            onScroll={onScroll}
+                        >
+                            {threads.map(thread => {
+                                return (
+                                    <ThreadItem
+                                        key={thread.id}
+                                        thread={thread}
+                                        selectThread={selectThread}
+                                        deleteThread={deleteThread}
+                                        isActive={activeThreadId === thread.id}
+                                        isThreadUnread={unreadThreadIds.has(thread.id)}
+                                        ref={(el: HTMLDivElement) => threadItemDivsRef.current.set(thread.id, el)}
+                                    />
+                                );
+                            })}
+                            {moreThreadsToLoad && (
+                                <Skeleton style={skeletonStyle} ref={intersectionObserverRef}>
+                                    <SkeletonItem />
+                                </Skeleton>
+                            )}
+                        </div>
+                    </Fade>
                 )}
             </div>
         );
