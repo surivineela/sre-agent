@@ -23,7 +23,7 @@ namespace Agent.Plugins.Definitions
      
      Scenario:
      Use this tool when you need to gather detailed configuration information for a managed environment.
-     
+
      Output:
      Returns table data in CSV format with TAB separators. Column headers:
      - Region
@@ -80,21 +80,23 @@ namespace Agent.Plugins.Definitions
 
         [Description("""
         Purpose:
-        Retrieve the status of an Azure Container Apps managed environment.
-        
+        Retrieve the status history of a specific Azure Container Apps managed environment.
+
         Scenario:
-        Use this tool when you need to check the current status of a managed environment, including its provisioning state, power state, etc.
-        
+        Use this tool when you need to track the state changes of a managed environment over time or investigate environment deployment/upgrade issues.
+
         Output:
         Returns table data in CSV format with TAB separators. Column headers:
-        - environmentProvisioningState: Current provisioning state of the managed environment
-        - environmentDeploymentErrors: Error details if environment deployment failed
-        - managedClusterProvisioningState: Current provisioning state of the managed cluster
-        - managedClusterProvisioningError: Error details if managed cluster provisioning failed
-        - powerState: Current power state of the managed environment (e.g., Running, Suspended)
+        - StartTime: start time of the state
+        - managedClusterName
+        - environmentProvisioningState: provisioning state of the managed environment
+        - managedClusterProvisioningState: provisioning state of the managed cluster
+        - powerState: power state of the managed environment
         - targetPowerState: Target power state of the managed environment
-        - chartVersionUpgradeErrors: Errors related to chart version upgrades
-        - kubernetesVersionUpgradeErrors: Errors related to Kubernetes version upgrades
+        - chartVersionUpgradeErrors: Errors of chart version upgrades
+        - environmentDeploymentErrors: Errors of environment deployment
+        - managedClusterProvisioningError: Error of managed cluster provisioning
+        - kubernetesVersionUpgradeErrors: Errors of Kubernetes version upgrades
         """
         )]
         public async Task<string> GetManagedEnvironmentStateInfo(
@@ -103,14 +105,13 @@ namespace Agent.Plugins.Definitions
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed environment.")] string environmentName,
             [Description("Name of the resource group.")] string resourceGroupName,
-            [Description("Azure subscription ID.")] string subscriptionId,
-            [Description("provide sampling inputs")] SamplingOptions sampling)
+            [Description("Azure subscription ID.")] string subscriptionId
+            )
         {
-            return await _kustoPlugin.ExecuteLocalFunctionAsync("GetManagedEnvironmentStatus", region,
+            return await _kustoPlugin.ExecuteLocalFunctionAsync("GetManagedEnvironmentProvisioningStatus", region,
                  new Dictionary<string, string> {
                     { "fromDate", fromDate.ToString() },
                     { "toDate", toDate.ToString() },
-                    { "region", region },
                     { "environmentName", environmentName },
                     { "resourceGroupName", resourceGroupName },
                     { "subscriptionId", subscriptionId }
@@ -223,43 +224,6 @@ namespace Agent.Plugins.Definitions
                     { "fromDate", fromDate.ToString() },
                     { "toDate", toDate.ToString() },
                     { "managedClusterName", managedClusterName }
-                });
-        }
-
-        [Description("""
-        Purpose:
-        Retrieve the provisioning status history of a specific Azure Container Apps managed environment.
-        
-        Scenario:
-        Use this tool when you need to track the provisioning state changes of a managed environment over time or investigate issues related to environment deployment or provisioning.
-        
-        Output:
-        Returns table data in CSV format with TAB separators. Column headers:
-        - StartTime: Timestamp when this provisioning state began
-        - EndTime: Timestamp when this provisioning state ended
-        - environmentProvisioningState: Current state of the environment (e.g., Succeeded, Failed, ScheduledForDelete)
-        - powerState: Current power state of the environment (e.g., Running, Suspended, UpdateRequested)
-        - managedClusterName: Name of the underlying managed cluster
-        - environmentDeploymentErrors: Error details if environment deployment failed
-        - managedClusterProvisioningError: Error details if managed cluster provisioning failed
-        """
-        )]
-        public async Task<string> GetManagedEnvironmentProvisioningStatus(
-            [Description("Azure region of the managed environment.")] string region,
-            [Description("Start time of the query.")] DateTime fromDate,
-            [Description("End time of the query.")] DateTime toDate,
-            [Description("Name of the managed environment.")] string environmentName,
-            [Description("Name of the resource group.")] string resourceGroupName,
-            [Description("Azure subscription ID.")] string subscriptionId)
-        {
-            return await _kustoPlugin.ExecuteLocalFunctionAsync("GetManagedEnvironmentProvisioningStatus", region,
-                new Dictionary<string, string>
-                {
-                    { "fromDate", fromDate.ToString() },
-                    { "toDate", toDate.ToString() },
-                    { "environmentName", environmentName },
-                    { "resourceGroupName", resourceGroupName },
-                    { "subscriptionId", subscriptionId }
                 });
         }
 

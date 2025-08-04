@@ -282,7 +282,7 @@ tools:
   - GetSystemComponentErrorEvents
   - GetSystemComponentCpuUsage
   - GetManagedEnvironmentConfigureInfo
-  - GetManagedEnvironmentProvisioningStatus
+  - GetManagedEnvironmentStateInfo
   - GetEnvironmentQuota
   - GetHealthProbeFailures
   - GetHealthProbeSettings

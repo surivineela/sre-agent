@@ -89,9 +89,13 @@ HasCustomerVNet
 WorkloadProfileType
 IsRunOnLegion
 EnvironmentProvisioningState
+ManagedClusterProvisioningState
 PowerState
+TargetPowerState
 EnvironmentDeploymentErrors
 ManagedClusterProvisioningError
+ChartVersionUpgradeErrors
+KubernetesVersionUpgradeErrors
 ManagedClusterName
 ManagedClusterCreationTime
 KedaVersion

@@ -48,7 +48,6 @@ namespace Agent.Tests.Unit.Plugins
                     "GetManagedClusterLevelEnvoyAccessRequestCount.kql",
                     "GetManagedEnvironment.kql",
                     "GetManagedEnvironmentOperationErrors.kql",
-                    "GetManagedEnvironmentStatus.kql",
                     "GetMdmPodHeartbeatMissedTimes.kql",
                     "GetMetricsMdmCount.kql",
                     "GetMissedMdmMetricTimes.kql",

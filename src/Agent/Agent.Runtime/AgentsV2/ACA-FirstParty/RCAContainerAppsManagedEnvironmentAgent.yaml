@@ -199,7 +199,6 @@ tools:
   - GetManagedClusterEnvironmentResourceId
   - GetManagedEnvironmentConfigureInfo
   - GetManagedEnvironmentStateInfo
-  - GetManagedEnvironmentProvisioningStatus
   - GetManagedEnvironmentAdminEvents
   - GetAdminEventErrorMessagesByTraceId
   - GetManagedEnvironmentOperationErrors

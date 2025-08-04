@@ -8,11 +8,37 @@ ManagedEnvironmentDBState
 | where subscription =~ customerSubscriptionId and
         resourceGroup =~ customerResourceGroupName and
         environmentName =~ customerEnvironmentName 
-| project PreciseTimeStamp, environmentProvisioningState, powerState,environmentDeploymentErrors, managedClusterProvisioningError,managedClusterName
+| project
+    PreciseTimeStamp,
+    managedClusterName,
+    environmentSubscription = subscription,
+    environmentResourceGroup = resourceGroup,
+    environmentName,
+    environmentProvisioningState,
+    managedClusterProvisioningState,
+    powerState,
+    targetPowerState,
+    chartVersionUpgradeErrors,
+    managedClusterProvisioningError,
+    environmentDeploymentErrors,
+    kubernetesVersionUpgradeErrors
 | order by PreciseTimeStamp asc
 | serialize rn = row_number()
-| extend isProvisioningStateChange = iff(prev(environmentProvisioningState, 1) == environmentProvisioningState, 0, 1)
-| extend isPowerStateChange = iff(next(powerState, 1) == powerState, 0, 1)
-| where isProvisioningStateChange==1 or isPowerStateChange==1 or rn == 1
-| extend StartTime = iff(managedClusterName == prev(managedClusterName, 1), max_of(prev(PreciseTimeStamp, 1), datetime(1970-01-01T00:00:00Z)), PreciseTimeStamp)
-| project StartTime, EndTime=PreciseTimeStamp, EnvironmentProvisioningState=environmentProvisioningState, PowerState=powerState, ManagedClusterName=managedClusterName, EnvironmentDeploymentErrors=environmentDeploymentErrors, ManagedClusterProvisioningError=managedClusterProvisioningError
+| extend isEnvironmentProvisioningStateChanged = iff(prev(environmentProvisioningState) == environmentProvisioningState, 0, 1)
+| extend isManagedClusterProvisioningStateChanged = iff(prev(managedClusterProvisioningState) == managedClusterProvisioningState, 0, 1)
+| extend isPowerStateChanged = iff(prev(powerState) == powerState, 0, 1)
+| extend isTargetPowerStateChanged = iff(prev(targetPowerState) == targetPowerState, 0, 1)
+| extend isChartVersionUpgradeErrorsChanged = iff(prev(chartVersionUpgradeErrors) == chartVersionUpgradeErrors, 0, 1)
+| extend isManagedClusterProvisioningErrorChanged = iff(prev(managedClusterProvisioningError) == managedClusterProvisioningError, 0, 1)
+| extend isEnvironmentDeploymentErrorsChanged = iff(prev(environmentDeploymentErrors) == environmentDeploymentErrors, 0, 1)
+| extend isKubernetesVersionUpgradeErrorsChanged = iff(prev(kubernetesVersionUpgradeErrors) == kubernetesVersionUpgradeErrors, 0, 1)
+| where rn == 1
+  or isEnvironmentProvisioningStateChanged==1 
+  or isManagedClusterProvisioningStateChanged==1 
+  or isPowerStateChanged==1
+  or isTargetPowerStateChanged==1
+  or isChartVersionUpgradeErrorsChanged==1
+  or isManagedClusterProvisioningErrorChanged==1
+  or isEnvironmentDeploymentErrorsChanged==1
+  or isKubernetesVersionUpgradeErrorsChanged==1
+| project StartTime=PreciseTimeStamp,managedClusterName,environmentProvisioningState,managedClusterProvisioningState,powerState,targetPowerState,chartVersionUpgradeErrors,managedClusterProvisioningError,environmentDeploymentErrors,kubernetesVersionUpgradeErrors
