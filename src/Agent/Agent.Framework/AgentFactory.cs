@@ -25,6 +25,9 @@ public interface IAgentFactory<TContext>
 
     public Agent<TContext> LoadAgentFromDescriptor(YamlAgentDescriptor yamlContent, bool isCustomAgent);
 
+    // Overwrite existing agent agents, useful for loading agents with different prompts when some feature flags are enabled, e.g agent memory RAG
+    public void LoadYamlAgentsFromFolder(string folderPath, bool overwriteExistingAgents);
+
     public void LoadExtendedAgentsFromFolder(string folderPath, bool isCustomAgent);
 
     void UpdateHandoffs();
@@ -80,7 +83,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         InitializeAgents();
     }
 
-    public void ValidateAgentDescriptor(IAgentDescriptor? agentDescriptor, bool isCustomAgent)
+    public void ValidateAgentDescriptor(IAgentDescriptor? agentDescriptor, bool isCustomAgent, bool overwrite = false)
     {
         if (agentDescriptor is null)
         {
@@ -97,7 +100,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             throw new Exception($"Agent descriptor {agentDescriptor.Name} does not have instructions.");
         }
 
-        if (_agents.ContainsKey(agentDescriptor.Name) && !isCustomAgent)
+        if (_agents.ContainsKey(agentDescriptor.Name) && !isCustomAgent && !overwrite)
         {
             throw new Exception($"Agent descriptor {agentDescriptor.Name} already exists.");
         }
@@ -109,11 +112,11 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         }
     }
 
-    private Agent<TContext> AddAgentDescriptor(IAgentDescriptor agentDescriptor, bool isCustomAgent)
+    private Agent<TContext> AddAgentDescriptor(IAgentDescriptor agentDescriptor, bool isCustomAgent, bool overwrite = false)
     {
         try
         {
-            ValidateAgentDescriptor(agentDescriptor, isCustomAgent);
+            ValidateAgentDescriptor(agentDescriptor, isCustomAgent, overwrite);
         }
         catch (Exception ex)
         {
@@ -209,7 +212,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             }
         }
 
-        if (_agents.ContainsKey(agentDescriptor.Name) && !isCustomAgent)
+        if (_agents.ContainsKey(agentDescriptor.Name) && !isCustomAgent && !overwrite)
         {
             _logger.LogError("Agent with name {agentName} already exists and overwrite is not allowed.", agentDescriptor.Name);
             throw new Exception($"Agent with name {agentDescriptor.Name} already exists and overwrite is not allowed.");
@@ -412,6 +415,34 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             throw new InvalidOperationException("Failed to parse YAML into AgentDescriptor", ex);
         }
     }
+
+    public void LoadYamlAgentsFromFolder(string folderPath, bool overwriteExistingAgents)
+    {
+        if (string.IsNullOrEmpty(folderPath) || !Directory.Exists(folderPath))
+        {
+            _logger.LogError("Folder path {folderPath} is invalid or does not exist.", folderPath);
+            throw new DirectoryNotFoundException($"Folder path {folderPath} does not exist.");
+        }
+
+        var yamlFiles = Directory.GetFiles(folderPath, "*.yaml", SearchOption.AllDirectories)
+            .Concat(Directory.GetFiles(folderPath, "*.yml", SearchOption.AllDirectories));
+
+        foreach (var yamlFile in yamlFiles)
+        {
+            var agentDescriptor = LoadAgentFromYaml(File.ReadAllText(yamlFile));
+            if (agentDescriptor != null)
+            {
+                AddAgentDescriptor(agentDescriptor, isCustomAgent: false, overwrite: overwriteExistingAgents);
+                _logger.LogInformation(
+                    "Successfully loaded agent descriptor '{agentName}' from YAML file '{yamlFile}'.",
+                    agentDescriptor.Name,
+                    yamlFile);
+            }
+        }
+        _logger.LogInformation("Loaded {count} agents from folder {folderPath}.", _agents.Count, folderPath);
+        UpdateHandoffs();
+    }
+
 
     // TODO: Replace to load extended agents from cosmos DB directly
     public void LoadExtendedAgentsFromFolder(string folderPath, bool isCustomAgent)

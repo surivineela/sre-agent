@@ -23,4 +23,21 @@ public static class Constants
         }
     );
 
+    public enum AgentMemoryType
+    {
+        Trajectory,
+        UserMemory,
+        Document
+    }
+
+    public static string ToLowerString(this AgentMemoryType memoryType)
+    {
+        return memoryType switch
+        {
+            AgentMemoryType.Trajectory => "trajectory",
+            AgentMemoryType.UserMemory => "usermemory",
+            AgentMemoryType.Document => "document",
+            _ => throw new ArgumentOutOfRangeException(nameof(memoryType))
+        };
+    }
 }

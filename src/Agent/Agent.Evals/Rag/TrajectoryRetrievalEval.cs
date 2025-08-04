@@ -96,7 +96,10 @@ public partial class TrajectoryEval
 
         foreach (var query in basicQueries)
         {
-            var result = await agentMemoryClient.SearchTrajectoriesAsync(query, enableHybridSearch: true);
+            var result = await agentMemoryClient.SearchTrajectoriesAsync(new SearchParams(
+                Query: query,
+                EnableHybridSearch: true
+            ));
 
             // Assert that we get at least some results
             Assert.IsTrue(result.Count > 0, $"Basic query '{query}' should return results");
@@ -123,7 +126,10 @@ public partial class TrajectoryEval
 
         foreach (var query in evaluationQueries)
         {
-            var result = await agentMemoryClient.SearchTrajectoriesAsync(query, enableHybridSearch: true);
+            var result = await agentMemoryClient.SearchTrajectoriesAsync(new SearchParams(
+                Query: query,
+                EnableHybridSearch: true
+            ));
 
             var evaluationResult = await trajectoryEvaluator.EvaluateTrajectorySearchAsync(
                 query,
@@ -158,7 +164,10 @@ public partial class TrajectoryEval
         // Test empty results scenario
         Console.WriteLine("=== Testing Empty Results ===");
         var emptyQuery = "this query should return no results at all";
-        var emptyResults = await agentMemoryClient.SearchTrajectoriesAsync(emptyQuery, enableHybridSearch: true);
+        var emptyResults = await agentMemoryClient.SearchTrajectoriesAsync(new SearchParams(
+            Query: emptyQuery,
+            EnableHybridSearch: true
+        ));
         var emptyEvaluationResult = await trajectoryEvaluator.EvaluateTrajectorySearchAsync(
             emptyQuery,
             emptyResults,
@@ -195,7 +204,11 @@ public partial class TrajectoryEval
         foreach (var (query, expectedGroundTruthIds) in groundTruthMappings)
         {
             // Always want it to return 1 result. Can tweak this in the future if needed
-            var searchResults = await agentMemoryClient.SearchTrajectoriesAsync(query, 1, enableHybridSearch: true);
+            var searchResults = await agentMemoryClient.SearchTrajectoriesAsync(new SearchParams(
+                Query: query,
+                K: 1, // Limit to 1 result for evaluation
+                EnableHybridSearch: true
+            ));
 
             var evaluation = trajectoryEvaluator.EvaluateTrajectorySearchWithGroundTruthAsync(
                 query,

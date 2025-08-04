@@ -5,6 +5,8 @@ public class AgentMemorySettings
     public bool Enabled { get; set; } = false;
     public bool StorageAccountEnabled { get; set; } = false;
     public bool TrajectoryRetrievalEnabled { get; set; } = false;
+    public bool DocumentRetrievalEnabled { get; set; } = false;
+    public bool UserMemoryRetrievalEnabled { get; set; } = false;
     public string StorageAccountName { get; set; } = string.Empty;
     public string BlobStorageContainerName { get; set; } = string.Empty;
     public string BlobStorageDomainSuffix { get; set; } = "blob.core.windows.net";

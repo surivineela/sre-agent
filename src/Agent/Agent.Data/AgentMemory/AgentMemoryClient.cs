@@ -13,6 +13,7 @@ using Azure.Storage.Blobs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using static Agent.Data.AgentMemory.Constants;
 
 namespace Agent.Data.AgentMemory;
 
@@ -281,154 +282,79 @@ public class AgentMemoryClient : IAgentMemoryClient
         }
     }
 
+    private async Task<IList<SearchDocumentResult>> SearchAsync(SearchParams searchParams, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var searchOptions = new SearchOptions
+            {
+                Filter = searchParams.Filter ?? "",
+                Size = (int)Math.Min(searchParams.K, maxK),
+                Select = { "title", "chunk_id", "chunk", "parent_id" },
+                IncludeTotalCount = true,
+                VectorSearch = new VectorSearchOptions(),
+            };
+
+            searchOptions.VectorSearch.Queries.Add(new VectorizableTextQuery(searchParams.Query)
+            {
+                KNearestNeighborsCount = (int)Math.Min(searchParams.K, maxK),
+                Exhaustive = searchParams.ExhaustiveKnn,
+                Fields = { "vector" },
+                Threshold = searchParams.VectorSimilarityThreshold.HasValue && searchParams.VectorSimilarityThreshold.Value >= -1 && searchParams.VectorSimilarityThreshold.Value <= 1
+                    ? new VectorSimilarityThreshold(searchParams.VectorSimilarityThreshold.Value)
+                    : null,
+            });
+
+            searchOptions.QueryType = searchParams.EnableSemanticSearch ? SearchQueryType.Semantic : SearchQueryType.Simple;
+            searchOptions.SemanticSearch = new SemanticSearchOptions
+            {
+                SemanticConfigurationName = Constants.SemanticSearchConfig,
+                // QueryCaption = new QueryCaption(QueryCaptionType.Extractive),
+                // QueryAnswer = new QueryAnswer(QueryAnswerType.Extractive)
+            };
+
+            var response = await _searchClient.SearchAsync<SearchDocumentResult>(
+                searchText: searchParams.EnableHybridSearch ? searchParams.Query : "*",
+                options: searchOptions,
+                cancellationToken: cancellationToken);
+            var results = new List<SearchDocumentResult>();
+            await foreach (var result in response.Value.GetResultsAsync())
+            {
+                _logger.LogInternalInformation($"Found document: {result.Document.Title} with chunk_id: {result.Document.ChunkId}, parent_id: {result.Document.ParentId}, score: {result.Document.SearchScore}, reranker score: {result.Document.RerankerScore}");
+                results.Add(result.Document);
+            }
+
+            return results;
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Search failed: {ex.Message}");
+            return [];
+        }
+    }
+
     public async Task<IList<SearchDocumentResult>> SearchCustomerDocumentsAsync(
-        string query,
-        uint k = 5,
-        float? vectorSimilarityThreshold = null,
-        bool exhaustiveKnn = false,
-        string? filter = null,
-        bool enableHybridSearch = false,
-        bool enableSemanticSearch = false,
+        SearchParams searchParams,
         CancellationToken cancellationToken = default)
     {
-        var searchOptions = new SearchOptions
-        {
-            Filter = "type eq 'document' " + (string.IsNullOrEmpty(filter) ? "" : $"and ({filter})"),
-            Size = (int)Math.Min(k, maxK),
-            Select = { "title", "chunk_id", "chunk", "parent_id" },
-            IncludeTotalCount = true,
-            VectorSearch = new VectorSearchOptions(),
-        };
-
-        searchOptions.VectorSearch.Queries.Add(new VectorizableTextQuery(query)
-        {
-            KNearestNeighborsCount = (int)Math.Min(k, maxK),
-            Exhaustive = exhaustiveKnn,
-            Fields = { "vector" },
-            Threshold = vectorSimilarityThreshold.HasValue && vectorSimilarityThreshold.Value >= -1 && vectorSimilarityThreshold.Value <= 1
-                ? new VectorSimilarityThreshold(vectorSimilarityThreshold.Value)
-                : null,
-        });
-
-        searchOptions.QueryType = enableSemanticSearch ? SearchQueryType.Semantic : SearchQueryType.Simple;
-        searchOptions.SemanticSearch = new SemanticSearchOptions
-        {
-            SemanticConfigurationName = Constants.SemanticSearchConfig,
-            // QueryCaption = new QueryCaption(QueryCaptionType.Extractive),
-            // QueryAnswer = new QueryAnswer(QueryAnswerType.Extractive)
-        };
-
-        var response = await _searchClient.SearchAsync<SearchDocumentResult>(
-            searchText: enableHybridSearch ? query : "*",
-            options: searchOptions,
-            cancellationToken: cancellationToken);
-        var results = new List<SearchDocumentResult>();
-        await foreach (var result in response.Value.GetResultsAsync())
-        {
-            _logger.LogInternalInformation($"Found document: {result.Document.Title} with chunk_id: {result.Document.ChunkId}, parent_id: {result.Document.ParentId}, score: {result.Document.SearchScore}, reranker score: {result.Document.RerankerScore}");
-            results.Add(result.Document);
-        }
-
-        return results;
+        var additionalFilter = string.IsNullOrEmpty(searchParams.Filter) ? "" : $"and ({searchParams.Filter})";
+        return await SearchAsync(searchParams with { Filter = $"type eq '{AgentMemoryType.Document.ToLowerString()}' {additionalFilter}"  }, cancellationToken);
     }
 
     public async Task<IList<SearchDocumentResult>> SearchTrajectoriesAsync(
-        string query,
-        uint k = 5,
-        float? vectorSimilarityThreshold = null,
-        bool exhaustiveKnn = false,
-        string? filter = null,
-        bool enableHybridSearch = false,
+        SearchParams searchParams,
         CancellationToken cancellationToken = default)
     {
-        var searchOptions = new SearchOptions
-        {
-            Filter = "type eq 'trajectory' " + (string.IsNullOrEmpty(filter) ? "" : $"and ({filter})"),
-            Size = (int)Math.Min(k, maxK),
-            Select = { "id", "title", "chunk", "initial_symptoms", "symptoms_observed", "root_cause", "indexed_at", "steps_followed", "pitfalls" },
-            IncludeTotalCount = true,
-            SearchFields = { "symptoms_observed", "root_cause", "initial_symptoms" },
-            VectorSearch = new VectorSearchOptions(),
-        };
-
-        searchOptions.VectorSearch.Queries.Add(new VectorizableTextQuery(query)
-        {
-            KNearestNeighborsCount = (int)Math.Min(k, maxK),
-            Exhaustive = exhaustiveKnn,
-            Fields = { "vector" },
-            Threshold = vectorSimilarityThreshold.HasValue && vectorSimilarityThreshold.Value >= -1 && vectorSimilarityThreshold.Value <= 1
-                ? new VectorSimilarityThreshold(vectorSimilarityThreshold.Value)
-                : null,
-        });
-
-        searchOptions.QueryType = SearchQueryType.Semantic;
-        searchOptions.SemanticSearch = new SemanticSearchOptions
-        {
-            SemanticConfigurationName = Constants.SemanticSearchConfig,
-            // QueryCaption = new QueryCaption(QueryCaptionType.Extractive),
-            // QueryAnswer = new QueryAnswer(QueryAnswerType.Extractive)
-        };
-
-        var response = await _searchClient.SearchAsync<SearchDocumentResult>(
-                searchText: enableHybridSearch ? query : "*",
-                options: searchOptions,
-                cancellationToken: cancellationToken);
-        var results = new List<SearchDocumentResult>();
-        await foreach (var result in response.Value.GetResultsAsync())
-        {
-            _logger.LogInternalInformation($"Found document: {result.Document.Title} with chunk_id: {result.Document.ChunkId}, parent_id: {result.Document.ParentId}, score: {result.Document.SearchScore}, reranker score: {result.Document.RerankerScore}");
-            results.Add(result.Document);
-        }
-
-        return results;
+        var additionalFilter = string.IsNullOrEmpty(searchParams.Filter) ? "" : $"and ({searchParams.Filter})";
+        return await SearchAsync(searchParams with { Filter = $"type eq '{AgentMemoryType.Trajectory.ToLowerString()}' {additionalFilter}" }, cancellationToken);
     }
 
     public async Task<IList<SearchDocumentResult>> SearchUserMemoriesAsync(
-        string query,
-        uint k = 5,
-        float? vectorSimilarityThreshold = null,
-        bool exhaustiveKnn = false,
-        string? filter = null,
-        bool enableHybridSearch = false,
+        SearchParams searchParams,
         CancellationToken cancellationToken = default)
     {
-        var searchOptions = new SearchOptions
-        {
-            Filter = "type eq 'usermemory' " + (string.IsNullOrEmpty(filter) ? "" : $"and ({filter})"),
-            Size = (int)Math.Min(k, maxK),
-            Select = { "id", "title", "chunk", "indexed_at" },
-            IncludeTotalCount = true,
-            SearchFields = { "chunk", "title" },
-            VectorSearch = new VectorSearchOptions(),
-        };
-
-        searchOptions.VectorSearch.Queries.Add(new VectorizableTextQuery(query)
-        {
-            KNearestNeighborsCount = (int)Math.Min(k, maxK),
-            Exhaustive = exhaustiveKnn,
-            Fields = { "vector" },
-            Threshold = vectorSimilarityThreshold.HasValue && vectorSimilarityThreshold.Value >= -1 && vectorSimilarityThreshold.Value <= 1
-                ? new VectorSimilarityThreshold(vectorSimilarityThreshold.Value)
-                : null,
-        });
-
-        searchOptions.QueryType = SearchQueryType.Semantic;
-        searchOptions.SemanticSearch = new SemanticSearchOptions
-        {
-            SemanticConfigurationName = Constants.SemanticSearchConfig,
-        };
-
-        var response = await _searchClient.SearchAsync<SearchDocumentResult>(
-                searchText: enableHybridSearch ? query : "*",
-                options: searchOptions,
-                cancellationToken: cancellationToken);
-        var results = new List<SearchDocumentResult>();
-        await foreach (var result in response.Value.GetResultsAsync())
-        {
-            _logger.LogInternalInformation($"Found user memory: {result.Document.Title} with chunk: {result.Document.Chunk}, score: {result.Document.SearchScore}, reranker score: {result.Document.RerankerScore}");
-            results.Add(result.Document);
-        }
-
-        return results;
+        var additionalFilter = string.IsNullOrEmpty(searchParams.Filter) ? "" : $"and ({searchParams.Filter})";
+        return await SearchAsync(searchParams with { Filter = $"type eq '{AgentMemoryType.UserMemory.ToLowerString()}' {additionalFilter}" }, cancellationToken);
     }
 }

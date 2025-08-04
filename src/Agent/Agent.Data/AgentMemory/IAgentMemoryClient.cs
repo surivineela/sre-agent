@@ -24,6 +24,16 @@ public record SearchDocumentResult(
     [property: JsonPropertyName("@search.rerankerScore")] float RerankerScore
 );
 
+public record SearchParams(
+    string Query, // query to search for
+    uint K = 5, // how many documents to return at most
+    float? VectorSimilarityThreshold = null, // minimum vectorSimilarity theshold, valid value range [-1, 1]. Ignored if invalid value is given. Note: it is not @search.score
+    bool ExhaustiveKnn = false, // whether to use exhaustive knn search(slow linear search for better recall rate) or not
+    string? Filter = null, // extra odata filter for document filtering
+    bool EnableHybridSearch = false, // whether to enable hybrid search or not. If true, the query will be split into text and vector queries, and the results will be merged.
+    bool EnableSemanticSearch = false // whether to enable semantic search or not. If true, the query will be processed using semantic search capabilities.
+);
+
 public interface IAgentMemoryClient
 {
     /// <summary>
@@ -42,51 +52,31 @@ public interface IAgentMemoryClient
     /// <summary>
     /// Searches for customer documents in the agent's memory storage.
     /// </summary>
-    /// <param name="query">User query</param>
-    /// <param name="k">how many documents to return at most</param>
-    /// <param name="vectorSimilarityThreshold">minimum vectorSimilarity theshold, valid value range [-1, 1]. Ignored if invalid value is given. Note: it is not @search.score</param>
-    /// <param name="exhaustiveKnn">whether to use exhaustive knn search(slow linear search for better recall rate) or not</param>
-    /// <param name="filter">odata filter for document filtering</param>
-    /// <param name="enableHybridSearch">whether to enable hybrid search or not. If true, the query will be split into text and vector queries, and the results will be merged.</param>
+    /// <param name="searchParams">Search parameters</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task<IList<SearchDocumentResult>> SearchCustomerDocumentsAsync(
-        string query,
-        uint k = 5,
-        float? vectorSimilarityThreshold = null,
-        bool exhaustiveKnn = false,
-        string? filter = null,
-        bool enableHybridSearch = false,
-        bool enableSemanticSearch = false,
+        SearchParams searchParams,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Searches for customer documents in the agent's memory storage.
+    /// Searches for past incident trajectories in the agent's memory storage.
     /// </summary>
-    /// <param name="query">User query</param>
-    /// <param name="k">how many documents to return at most</param>
-    /// <param name="vectorSimilarityThreshold">minimum vectorSimilarity theshold, valid value range [-1, 1]. Ignored if invalid value is given. Note: it is not @search.score</param>
-    /// <param name="exhaustiveKnn">whether to use exhaustive knn search(slow linear search for better recall rate) or not</param>
-    /// <param name="filter">odata filter for document filtering</param>
-    /// <param name="enableHybridSearch">whether to enable hybrid search or not. If true, the query will be split into text and vector queries, and the results will be merged.</param>
+    /// <param name="searchOptions">Search options</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task<IList<SearchDocumentResult>> SearchTrajectoriesAsync(
-        string query,
-        uint k = 5,
-        float? vectorSimilarityThreshold = null,
-        bool exhaustiveKnn = false,
-        string? filter = null,
-        bool enableHybridSearch = false,
+        SearchParams searchOptions,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Searches for user memories uploaded using `#remember` in the agent's memory storage.
+    /// </summary>
+    /// <param name="searchOptions">Search options</param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     Task<IList<SearchDocumentResult>> SearchUserMemoriesAsync(
-        string query,
-        uint k = 5,
-        float? vectorSimilarityThreshold = null,
-        bool exhaustiveKnn = false,
-        string? filter = null,
-        bool enableHybridSearch = false,
+        SearchParams searchOptions,
         CancellationToken cancellationToken = default);
 
 }

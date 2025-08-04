@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Reflection.Metadata;
 using System.Text.Json;
 using Agent.Core.Models;
 using Azure.Search.Documents.Indexes;
@@ -77,7 +78,7 @@ public class AgentMemory
         return new AgentMemory
         {
             Id = id,
-            Type = "trajectory",
+            Type = Constants.AgentMemoryType.Trajectory.ToLowerString(),
             Title = trajectoryData.Title,
             ChunkId = string.Empty,
             ParentId = id,
@@ -102,7 +103,7 @@ public class AgentMemory
         return new AgentMemory
         {
             Id = id,
-            Type = "trajectory",
+            Type = Constants.AgentMemoryType.Trajectory.ToLowerString(),
             Title = trajectoryData.Title,
             ChunkId = string.Empty,
             ParentId = id,
@@ -136,7 +137,7 @@ public class AgentMemory
         return new AgentMemory
         {
             Id = id,
-            Type = "usermemory",
+            Type = Constants.AgentMemoryType.UserMemory.ToLowerString(),
             Title = title,
             ChunkId = string.Empty,
             ParentId = id,

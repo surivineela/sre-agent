@@ -65,10 +65,10 @@
     <None Update="AgentsV2\DiagnosticsAgents\*.yml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="AgentsRAG\*.yaml">
+    <None Update="AgentsRAG\**\*.yaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="AgentsRAG\*.yml">
+    <None Update="AgentsRAG\**\*.yml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="AgentsV2\AzureDevOpsWorkItemAgent.yaml">

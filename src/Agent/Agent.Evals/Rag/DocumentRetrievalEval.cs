@@ -134,9 +134,11 @@ public partial class DocumentRetrievalEval
             {
                 // Search for documents using the incident description
                 var searchResults = await agentMemoryClient.SearchCustomerDocumentsAsync(
-                    query: incident,
-                    k: 5,
-                    enableHybridSearch: true
+                    new SearchParams(
+                        Query: incident,
+                        K: 5,
+                        EnableHybridSearch: true
+                    )
                 );
 
                 bool foundCorrectDocument = false;

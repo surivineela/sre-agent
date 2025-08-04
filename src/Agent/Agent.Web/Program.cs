@@ -580,9 +580,16 @@ public class Program
                     enableHandoffReasoning: experimentalSettings?.EnableHandoffReasoning ?? false
                 );
 
-                if (TrajectoryRetrievalEnabled(builder))
+                if (AgentMemoryRetrievalEnabled(builder))
                 {
-                    factory.LoadExtendedAgentsFromFolder(Path.Combine(AppContext.BaseDirectory, "AgentsRAG"), isCustomAgent: false);
+                    if (!isFirstPartyAgent)
+                    {
+                        factory.LoadYamlAgentsFromFolder(Path.Combine(AppContext.BaseDirectory, "AgentsRAG", "ThirdParty"), overwriteExistingAgents: true);
+                    }
+                    else
+                    {
+                        factory.LoadYamlAgentsFromFolder(Path.Combine(AppContext.BaseDirectory, "AgentsRag", "FirstParty"), overwriteExistingAgents: true);
+                    }
                 }
 
                 return factory;
@@ -1108,10 +1115,14 @@ public class Program
         return agentMemorySettings?.Enabled ?? false;
     }
 
-    private static bool TrajectoryRetrievalEnabled(WebApplicationBuilder builder)
+    private static bool AgentMemoryRetrievalEnabled(WebApplicationBuilder builder)
     {
-        var agentMemorySettings = builder.Configuration.GetSection("AppSettings:Core:AgentMemory").Get<AgentMemorySettings>();
-        return agentMemorySettings?.TrajectoryRetrievalEnabled ?? false;
+        var s = builder.Configuration.GetSection("AppSettings:Core:AgentMemory").Get<AgentMemorySettings>();
+        if (s is null)
+        {
+            return false;
+        }
+        return s.Enabled && (s.TrajectoryRetrievalEnabled || s.DocumentRetrievalEnabled || s.UserMemoryRetrievalEnabled);
     }
 
     private static void ConfigureAgentMemory(WebApplicationBuilder builder)

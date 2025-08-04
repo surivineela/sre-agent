@@ -290,7 +290,7 @@ public class ReasoningLoop : IDisposable
 
     private async Task RetrieveAndAugmentUserMessage(string userQuery, StringBuilder sb)
     {
-        var result = await _agentMemoryClient.SearchCustomerDocumentsAsync(query: userQuery, enableHybridSearch: true);
+        var result = await _agentMemoryClient.SearchCustomerDocumentsAsync(new SearchParams(Query: userQuery, EnableHybridSearch: true));
         if (result.Count > 0)
         {
             sb.AppendLine("Use the following context to answer the user's question. If the context is not helpful, you can ignore it.");
@@ -1636,9 +1636,7 @@ public class ReasoningLoop : IDisposable
             }
 
             var memories = await _agentMemoryClient.SearchUserMemoriesAsync(
-                query: query,
-                k: 1,
-                enableHybridSearch: true,
+                new SearchParams(Query: query, K: 1, EnableHybridSearch: true),
                 cancellationToken: cancellationToken);
 
             if (memories.Count == 0)
@@ -1711,9 +1709,7 @@ public class ReasoningLoop : IDisposable
             }
 
             var memories = await _agentMemoryClient.SearchUserMemoriesAsync(
-                query: query,
-                k: 5,
-                enableHybridSearch: true,
+                new SearchParams(Query: query, K: 5, EnableHybridSearch: true),
                 cancellationToken: cancellationToken);
 
             if (memories.Count == 0)

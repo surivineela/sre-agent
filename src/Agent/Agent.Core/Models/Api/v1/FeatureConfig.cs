@@ -11,6 +11,8 @@ public sealed record FeatureConfig(
     bool? RegionalSearchEnabled,
     bool? AgentMemoryEnabled,
     bool? TrajectoryRetrievalEnabled,
+    bool? DocumentRetrievalEnabled,
+    bool? UserMemoryRetrievalEnabled,
     bool? HandoffReasoningEnabled)
 {
     public FeatureConfigModel ToModel()
@@ -20,7 +22,9 @@ public sealed record FeatureConfig(
             RegionalSearchEnabled: RegionalSearchEnabled ?? FeatureConfigModel.Default.RegionalSearchEnabled,
             AgentMemoryEnabled: AgentMemoryEnabled ?? FeatureConfigModel.Default.AgentMemoryEnabled,
             TrajectoryRetrievalEnabled: TrajectoryRetrievalEnabled ?? FeatureConfigModel.Default.TrajectoryRetrievalEnabled,
-            HandoffReasoningEnabled: HandoffReasoningEnabled ?? FeatureConfigModel.Default.HandoffReasoningEnabled);
+            HandoffReasoningEnabled: HandoffReasoningEnabled ?? FeatureConfigModel.Default.HandoffReasoningEnabled,
+            DocumentRetrievalEnabled: DocumentRetrievalEnabled ?? FeatureConfigModel.Default.DocumentRetrievalEnabled,
+            UserMemoryRetrievalEnabled: UserMemoryRetrievalEnabled ?? FeatureConfigModel.Default.UserMemoryRetrievalEnabled);
     }
 }
 
@@ -31,6 +35,8 @@ public sealed record FeatureConfigModel(
     bool RegionalSearchEnabled,
     bool AgentMemoryEnabled,
     bool TrajectoryRetrievalEnabled,
+    bool DocumentRetrievalEnabled,
+    bool UserMemoryRetrievalEnabled,
     bool HandoffReasoningEnabled)
 {
     public static FeatureConfigModel Default { get; } = new(
@@ -38,7 +44,9 @@ public sealed record FeatureConfigModel(
         RegionalSearchEnabled: false,
         AgentMemoryEnabled: false,
         TrajectoryRetrievalEnabled: false,
-        HandoffReasoningEnabled: false);
+        HandoffReasoningEnabled: false,
+        DocumentRetrievalEnabled: false,
+        UserMemoryRetrievalEnabled: false);
 
     public FeatureConfig ToDocument()
     {
@@ -47,6 +55,8 @@ public sealed record FeatureConfigModel(
             RegionalSearchEnabled: RegionalSearchEnabled,
             AgentMemoryEnabled: AgentMemoryEnabled,
             TrajectoryRetrievalEnabled: TrajectoryRetrievalEnabled,
-            HandoffReasoningEnabled: HandoffReasoningEnabled);
+            HandoffReasoningEnabled: HandoffReasoningEnabled,
+            DocumentRetrievalEnabled: DocumentRetrievalEnabled,
+            UserMemoryRetrievalEnabled: UserMemoryRetrievalEnabled);
     }
 }

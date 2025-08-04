@@ -169,7 +169,13 @@ namespace Agent.Web.Controllers.v1
 
             try
             {
-                var results = await agentMemoryClient.SearchCustomerDocumentsAsync(query: query, k: k, filter: filter, vectorSimilarityThreshold: vectorSimilarityThreshold, enableHybridSearch: enableHybridSearch);
+                var results = await agentMemoryClient.SearchCustomerDocumentsAsync(new SearchParams(
+                    Query: query,
+                    K: k,
+                    VectorSimilarityThreshold: vectorSimilarityThreshold,
+                    Filter: filter,
+                    EnableHybridSearch: enableHybridSearch
+                ));
                 return Ok(new { results });
             }
             catch (Exception ex)
@@ -192,7 +198,13 @@ namespace Agent.Web.Controllers.v1
 
             try
             {
-                var results = await agentMemoryClient.SearchTrajectoriesAsync(query: query, k: k, filter: filter, vectorSimilarityThreshold: vectorSimilarityThreshold, enableHybridSearch: enableHybridSearch);
+                var results = await agentMemoryClient.SearchTrajectoriesAsync(new SearchParams(
+                    Query: query,
+                    K: k,
+                    VectorSimilarityThreshold: vectorSimilarityThreshold,
+                    Filter: filter,
+                    EnableHybridSearch: enableHybridSearch
+                ));
                 return Ok(new { results });
             }
             catch (Exception ex)

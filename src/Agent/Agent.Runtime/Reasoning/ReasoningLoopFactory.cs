@@ -92,7 +92,9 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             RegionalSearchEnabled: azureSettings.SearchEndpoint.EnableDocumentRetrieval,
             AgentMemoryEnabled: coreSettings.AgentMemory.Enabled,
             TrajectoryRetrievalEnabled: coreSettings.AgentMemory.TrajectoryRetrievalEnabled,
-            HandoffReasoningEnabled: coreSettings.Experimental?.EnableHandoffReasoning ?? false);
+            HandoffReasoningEnabled: coreSettings.Experimental?.EnableHandoffReasoning ?? false,
+            DocumentRetrievalEnabled: coreSettings.AgentMemory.DocumentRetrievalEnabled,
+            UserMemoryRetrievalEnabled: coreSettings.AgentMemory.UserMemoryRetrievalEnabled);
     }
 
     public async Task<ReasoningLoop> Create(AgentContext context)
@@ -145,11 +147,11 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         // Check if we're dealing with a dispatched agent that's an Orchestrator type
         if (agentType == "RCARouterAgent" && !string.IsNullOrEmpty(currentStartingAgentName))
         {
-            try 
+            try
             {
                 var dispatchedAgent = _agentFactory.GetAgent(currentStartingAgentName);
                 _logger.LogInternalInformation($"Creating WorkflowOrchestrator for dispatched RCA agent: {currentStartingAgentName}");
-                    
+
                 // Create WorkflowOrchestrator for the dispatched orchestrator agent
                 var workflowOrchestrator = new WorkflowOrchestrator(
                     loggerFactory: _loggerFactory,
@@ -162,7 +164,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
                     tracer: _tracer);
 
                 await workflowOrchestrator.LoadChatHistoryAsync();
-                    
+
                 // Create a WorkflowReasoningLoop that delegates to the WorkflowOrchestrator
                 return new WorkflowReasoningLoop(
                     workflowOrchestrator: workflowOrchestrator,
@@ -185,7 +187,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
                     searchIndexService: _searchIndexService,
                     featureConfig: _featureConfig,
                     agentRuntimeModifier: _agentRuntimeModifier);
-                
+
             }
             catch (Exception ex)
             {
