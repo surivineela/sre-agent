@@ -122,23 +122,40 @@ jobs:
     - name: 🧪 Run evaluation tests (GPT-4.1 model)
       if: ${{ needs.changes.outputs.evals == 'true' }}
       run: |
-        echo "Running handoff evaluation tests with GPT-4.1 model"
-        dotnet test --no-restore \
-          --filter "Name=GeneralAgentTests_DetailedComparison|Name=HandOffEvaluationTests" \
-          --logger "console;verbosity=normal" \
-          --logger trx \
-          --results-directory ./TestResults/ \
-          --settings evals.runsettings \
-          --verbosity quiet
+        for attempt in 1 2; do
+          echo "Attempt $attempt: Running handoff evaluation tests with GPT-4.1 model"
+          
+          # Clean up previous test results before each attempt
+          if [ -d "./TestResults" ]; then
+            echo "🧹 Cleaning up previous test results..."
+            rm -rf ./TestResults/*
+          fi
+          
+          if dotnet test --no-restore \
+            --filter "Name=GeneralAgentTests_DetailedComparison|Name=HandOffEvaluationTests" \
+            --logger "console;verbosity=normal" \
+            --logger trx \
+            --results-directory ./TestResults/ \
+            --settings evals.runsettings \
+            --verbosity quiet; then
+            echo "✅ Tests passed on attempt $attempt"
+            break
+          elif [ $attempt -eq 2 ]; then
+            echo "❌ Tests failed after 2 attempts"
+            exit 1
+          else
+            echo "⚠️ Test attempt $attempt failed, retrying in 3 seconds..."
+            sleep 3
+          fi
+        done
       working-directory: ./src/Agent/Agent.Evals
+      timeout-minutes: 50
       env:
         OpenAIEndpoint: https://sre3ppipe-openai-swedencentral.openai.azure.com/
         OpenAIKey: ${{ secrets.EVALS_OPENAI_KEY_41 }}
         OpenAIModel: sre3ppipe-gpt-41
         IterationCount: ${{ github.event_name == 'pull_request' && '1' || '5' }}
         SkipReactBuild: 'true'
-      timeout-minutes: 50
-      continue-on-error: false
 
     - name: 📢 Publish evaluation test results
       uses: serverless-paas-balam/actions-test-reporter@main

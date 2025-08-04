@@ -16,7 +16,7 @@ public class GeneralAgentEvals
 
     private static GeneralTestCase[] LoadTestCasesFromFiles()
     {
-        // Check for environment variables to filter tests
+        // Check for environment variables to filter tests, mainly used for local test with fast testing for specific case
         var targetFolder = Environment.GetEnvironmentVariable("TEST_FOLDER");
         var targetFile = Environment.GetEnvironmentVariable("TEST_FILE");
 
