@@ -15,7 +15,7 @@ public static class ExampleFileManager
         try
         {
             // Get the directory where the CLI is running from
-            var executableDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "";
+            var executableDir = AppContext.BaseDirectory;
             var templatesDir = Path.Combine(executableDir, "templates");
 
             // If templates directory doesn't exist, create the examples inline

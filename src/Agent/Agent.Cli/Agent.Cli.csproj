@@ -11,9 +11,18 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>srectl</ToolCommandName>
     <PackageId>SREAgent.CLI</PackageId>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <Authors>SRE Agent Team</Authors>
     <Description>SRE Agent CLI Tool for creating and managing agents</Description>
+    <AssemblyTitle>srectl</AssemblyTitle>
+    <AssemblyName>srectl</AssemblyName>
+
+    <!-- Self-contained publishing configuration -->
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <PublishTrimmed>false</PublishTrimmed>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <PublishReadyToRun>false</PublishReadyToRun>
   </PropertyGroup>
 
   <ItemGroup>
