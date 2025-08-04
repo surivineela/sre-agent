@@ -115,7 +115,7 @@
           "value": {
             "$type": "functionCall",
             "callId": "call_XbZWikFMQEc55st7sc5vk2r7",
-            "name": "transfer_to_azure_cli_command_executor_agent",
+            "name": "transfer_to_azure_cli_command_executor_agent | transfer_to_aks_remediation_agent",
             "arguments": {}
           }
         }

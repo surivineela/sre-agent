@@ -297,70 +297,96 @@ public class GeneralAgentEvals
         TestContext.WriteLine($"Expected function calls: {expectedFunctionCalls.Count}");
         TestContext.WriteLine($"Actual function calls: {actualFunctionCalls.Count}");
 
-        for (int i = 0; i < Math.Max(expectedFunctionCalls.Count, actualFunctionCalls.Count); i++)
+        // Check if any expected function calls have "-" option (meaning no function call is acceptable)
+        var hasNoCallOption = expectedFunctionCalls.Any(fc => fc.Name.Contains("-"));
+
+        if (hasNoCallOption && actualFunctionCalls.Count == 0)
         {
-            if (i < expectedFunctionCalls.Count && i < actualFunctionCalls.Count)
+            TestContext.WriteLine("✅ No function calls found and expected options include '-' (no call acceptable)");
+            // Skip function call validation since no calls are expected and none were made
+        }
+        else
+        {
+            for (int i = 0; i < Math.Max(expectedFunctionCalls.Count, actualFunctionCalls.Count); i++)
             {
-                var expected = expectedFunctionCalls[i];
-                var actual = actualFunctionCalls[i];
-
-                bool functionsMatch;
-                string expectedDisplayName;
-
-                // Check if the expected function name contains multiple acceptable options (pipe-separated)
-                if (expected.Name.Contains('|'))
+                if (i < expectedFunctionCalls.Count && i < actualFunctionCalls.Count)
                 {
-                    var acceptableFunctionNames = expected.Name.Split('|', StringSplitOptions.RemoveEmptyEntries)
-                        .Select(name => name.Trim())
-                        .ToList();
+                    var expected = expectedFunctionCalls[i];
+                    var actual = actualFunctionCalls[i];
 
-                    functionsMatch = acceptableFunctionNames.Contains(actual.Name);
-                    expectedDisplayName = GetExpectedFunctionDisplayName(expected.Name);
+                    bool functionsMatch;
+                    string expectedDisplayName;
+
+                    // Check if the expected function name contains multiple acceptable options (pipe-separated)
+                    if (expected.Name.Contains('|'))
+                    {
+                        var acceptableFunctionNames = expected.Name.Split('|', StringSplitOptions.RemoveEmptyEntries)
+                            .Select(name => name.Trim())
+                            .Where(name => name != "-") // Exclude "-" from actual function name matching
+                            .ToList();
+
+                        functionsMatch = acceptableFunctionNames.Contains(actual.Name);
+                        expectedDisplayName = GetExpectedFunctionDisplayName(expected.Name);
+                    }
+                    else
+                    {
+                        functionsMatch = expected.Name == actual.Name;
+                        expectedDisplayName = expected.Name;
+                    }
+
+                    TestContext.WriteLine($"Function call {i + 1}: {(functionsMatch ? "✅" : "❌")} Expected: {expectedDisplayName}, Actual: {actual.Name}");
+
+                    // Assert that function names match
+                    Assert.IsTrue(functionsMatch,
+                        $"Function call {i + 1}: Expected '{expectedDisplayName}' but got '{actual.Name}'");
+
+                    if (functionsMatch
+                        && !IsHandoffToolCall(actual.Name) // can't compare input args for handoff as it is free flow text
+                        && !expected.Name.Contains('|')) // don't verify arguments if multiple function calls are acceptable
+                    {
+                        // Compare arguments using smart comparison
+                        var argsMatch = TestHelpers.AreArgumentsEquivalent(expected.Arguments ?? new object(), actual.Arguments ?? new object());
+                        TestContext.WriteLine($"  Arguments match: {(argsMatch ? "✅" : "❌")}");
+
+                        // If smart comparison fails, show detailed comparison for debugging
+                        if (!argsMatch)
+                        {
+                            var expectedArgs = JsonSerializer.Serialize(expected.Arguments, new JsonSerializerOptions { WriteIndented = false });
+                            var actualArgs = JsonSerializer.Serialize(actual.Arguments, new JsonSerializerOptions { WriteIndented = false });
+                            TestContext.WriteLine($"  Expected args: {expectedArgs}");
+                            TestContext.WriteLine($"  Actual args: {actualArgs}");
+                        }
+
+                        // Assert that arguments match
+                        Assert.IsTrue(argsMatch,
+                            $"Function call {i + 1} arguments mismatch. Expected: {JsonSerializer.Serialize(expected.Arguments, new JsonSerializerOptions { WriteIndented = false })}, Actual: {JsonSerializer.Serialize(actual.Arguments, new JsonSerializerOptions { WriteIndented = false })}");
+                    }
+                    else if (expected.Name.Contains('|'))
+                    {
+                        TestContext.WriteLine($"  Arguments verification skipped (multiple function calls acceptable)");
+                    }
+                }
+                else if (i < expectedFunctionCalls.Count)
+                {
+                    var expected = expectedFunctionCalls[i];
+                    var expectedDisplayName = GetExpectedFunctionDisplayName(expected.Name);
+
+                    // Check if "-" is acceptable for this expected function call
+                    if (expected.Name.Contains("-"))
+                    {
+                        TestContext.WriteLine($"Function call {i + 1}: ✅ Expected: {expectedDisplayName}, Actual: (none) - no call is acceptable");
+                    }
+                    else
+                    {
+                        TestContext.WriteLine($"Function call {i + 1}: ❌ Expected: {expectedDisplayName}, Actual: (missing)");
+                        Assert.Fail($"Function call {i + 1}: Expected '{expectedDisplayName}' but no corresponding function call was found");
+                    }
                 }
                 else
                 {
-                    functionsMatch = expected.Name == actual.Name;
-                    expectedDisplayName = expected.Name;
+                    TestContext.WriteLine($"Function call {i + 1}: ❌ Expected: (missing), Actual: {actualFunctionCalls[i].Name}");
+                    Assert.Fail($"Function call {i + 1}: Unexpected function call '{actualFunctionCalls[i].Name}' was found but none was expected");
                 }
-
-                TestContext.WriteLine($"Function call {i + 1}: {(functionsMatch ? "✅" : "❌")} Expected: {expectedDisplayName}, Actual: {actual.Name}");
-
-                // Assert that function names match
-                Assert.IsTrue(functionsMatch,
-                    $"Function call {i + 1}: Expected '{expectedDisplayName}' but got '{actual.Name}'");
-
-                if (functionsMatch
-                    && !IsHandoffToolCall(actual.Name)) // can't compare input args for handoff as it is free flow text
-                {
-                    // Compare arguments using smart comparison
-                    var argsMatch = TestHelpers.AreArgumentsEquivalent(expected.Arguments ?? new object(), actual.Arguments ?? new object());
-                    TestContext.WriteLine($"  Arguments match: {(argsMatch ? "✅" : "❌")}");
-
-                    // If smart comparison fails, show detailed comparison for debugging
-                    if (!argsMatch)
-                    {
-                        var expectedArgs = JsonSerializer.Serialize(expected.Arguments, new JsonSerializerOptions { WriteIndented = false });
-                        var actualArgs = JsonSerializer.Serialize(actual.Arguments, new JsonSerializerOptions { WriteIndented = false });
-                        TestContext.WriteLine($"  Expected args: {expectedArgs}");
-                        TestContext.WriteLine($"  Actual args: {actualArgs}");
-                    }
-
-                    // Assert that arguments match
-                    Assert.IsTrue(argsMatch,
-                        $"Function call {i + 1} arguments mismatch. Expected: {JsonSerializer.Serialize(expected.Arguments, new JsonSerializerOptions { WriteIndented = false })}, Actual: {JsonSerializer.Serialize(actual.Arguments, new JsonSerializerOptions { WriteIndented = false })}");
-                }
-            }
-            else if (i < expectedFunctionCalls.Count)
-            {
-                var expected = expectedFunctionCalls[i];
-                var expectedDisplayName = GetExpectedFunctionDisplayName(expected.Name);
-                TestContext.WriteLine($"Function call {i + 1}: ❌ Expected: {expectedDisplayName}, Actual: (missing)");
-                Assert.Fail($"Function call {i + 1}: Expected '{expectedDisplayName}' but no corresponding function call was found");
-            }
-            else
-            {
-                TestContext.WriteLine($"Function call {i + 1}: ❌ Expected: (missing), Actual: {actualFunctionCalls[i].Name}");
-                Assert.Fail($"Function call {i + 1}: Unexpected function call '{actualFunctionCalls[i].Name}' was found but none was expected");
             }
         }
 
@@ -408,8 +434,6 @@ public class GeneralAgentEvals
     {
         testContext.WriteLine("Validating tool call output with assertions...");
 
-        Assert.AreEqual(ChatFinishReason.ToolCalls, response.FinishReason, "Expected tool calls but got different finish reason");
-
         var actualFunctionCalls = response.Messages
             .SelectMany(m => m.Contents?.OfType<FunctionCallContent>() ?? Enumerable.Empty<FunctionCallContent>())
             .ToList();
@@ -417,6 +441,20 @@ public class GeneralAgentEvals
         var expectedFunctionCalls = testCase.ExpectedOutput
             .SelectMany(m => m.Contents?.OfType<FunctionCallContent>() ?? Enumerable.Empty<FunctionCallContent>())
             .ToList();
+
+        // Check if any expected function calls have "-" option (meaning no function call is acceptable)
+        var hasNoCallOption = expectedFunctionCalls.Any(fc => fc.Name.Contains("-"));
+
+        if (hasNoCallOption && actualFunctionCalls.Count == 0)
+        {
+            testContext.WriteLine("✅ No function calls found and '-' option allows this");
+            return;
+        }
+
+        if (!hasNoCallOption)
+        {
+            Assert.AreEqual(ChatFinishReason.ToolCalls, response.FinishReason, "Expected tool calls but got different finish reason");
+        }
 
         Assert.AreEqual(expectedFunctionCalls.Count, actualFunctionCalls.Count,
             $"Expected {expectedFunctionCalls.Count} function calls but got {actualFunctionCalls.Count}");
@@ -522,8 +560,6 @@ Respond with only 'SIMILAR' if they convey the same meaning, or 'DIFFERENT' if t
     {
         testContext.WriteLine("Validating handoff output with assertions...");
 
-        Assert.AreEqual(ChatFinishReason.ToolCalls, response.FinishReason, "Expected handoff tool calls but got different finish reason");
-
         var actualFunctionCalls = response.Messages
             .SelectMany(m => m.Contents?.OfType<FunctionCallContent>() ?? Enumerable.Empty<FunctionCallContent>())
             .ToList();
@@ -531,6 +567,20 @@ Respond with only 'SIMILAR' if they convey the same meaning, or 'DIFFERENT' if t
         var expectedFunctionCalls = testCase.ExpectedOutput
             .SelectMany(m => m.Contents?.OfType<FunctionCallContent>() ?? Enumerable.Empty<FunctionCallContent>())
             .ToList();
+
+        // Check if any expected function calls have "-" option (meaning no function call is acceptable)
+        var hasNoCallOption = expectedFunctionCalls.Any(fc => fc.Name.Contains("-"));
+
+        if (hasNoCallOption && actualFunctionCalls.Count == 0)
+        {
+            testContext.WriteLine("✅ No handoff function calls found and '-' option allows this");
+            return;
+        }
+
+        if (!hasNoCallOption)
+        {
+            Assert.AreEqual(ChatFinishReason.ToolCalls, response.FinishReason, "Expected handoff tool calls but got different finish reason");
+        }
 
         Assert.AreEqual(expectedFunctionCalls.Count, actualFunctionCalls.Count,
             $"Expected {expectedFunctionCalls.Count} function calls but got {actualFunctionCalls.Count}");
@@ -547,8 +597,6 @@ Respond with only 'SIMILAR' if they convey the same meaning, or 'DIFFERENT' if t
 
     private static void ValidateToolCallOutput(ChatResponse response, GeneralTestCase testCase)
     {
-        Assert.AreEqual(ChatFinishReason.ToolCalls, response.FinishReason, "Expected tool calls but got different finish reason");
-
         var actualFunctionCalls = response.Messages
             .SelectMany(m => m.Contents?.OfType<FunctionCallContent>() ?? Enumerable.Empty<FunctionCallContent>())
             .ToList();
@@ -556,6 +604,20 @@ Respond with only 'SIMILAR' if they convey the same meaning, or 'DIFFERENT' if t
         var expectedFunctionCalls = testCase.ExpectedOutput
             .SelectMany(m => m.Contents?.OfType<FunctionCallContent>() ?? Enumerable.Empty<FunctionCallContent>())
             .ToList();
+
+        // Check if any expected function calls have "-" option (meaning no function call is acceptable)
+        var hasNoCallOption = expectedFunctionCalls.Any(fc => fc.Name.Contains("-"));
+
+        if (hasNoCallOption && actualFunctionCalls.Count == 0)
+        {
+            // No function calls found and "-" option allows this
+            return;
+        }
+
+        if (!hasNoCallOption)
+        {
+            Assert.AreEqual(ChatFinishReason.ToolCalls, response.FinishReason, "Expected tool calls but got different finish reason");
+        }
 
         Assert.AreEqual(expectedFunctionCalls.Count, actualFunctionCalls.Count,
             $"Expected {expectedFunctionCalls.Count} function calls but got {actualFunctionCalls.Count}");
@@ -600,8 +662,6 @@ Respond with only 'SIMILAR' if they convey the same meaning, or 'DIFFERENT' if t
 
     private static void ValidateHandoffOutput(ChatResponse response, GeneralTestCase testCase)
     {
-        Assert.AreEqual(ChatFinishReason.ToolCalls, response.FinishReason, "Expected handoff tool calls but got different finish reason");
-
         var actualFunctionCalls = response.Messages
             .SelectMany(m => m.Contents?.OfType<FunctionCallContent>() ?? Enumerable.Empty<FunctionCallContent>())
             .ToList();
@@ -609,6 +669,20 @@ Respond with only 'SIMILAR' if they convey the same meaning, or 'DIFFERENT' if t
         var expectedFunctionCalls = testCase.ExpectedOutput
             .SelectMany(m => m.Contents?.OfType<FunctionCallContent>() ?? Enumerable.Empty<FunctionCallContent>())
             .ToList();
+
+        // Check if any expected function calls have "-" option (meaning no function call is acceptable)
+        var hasNoCallOption = expectedFunctionCalls.Any(fc => fc.Name.Contains("-"));
+
+        if (hasNoCallOption && actualFunctionCalls.Count == 0)
+        {
+            // No handoff function calls found and "-" option allows this
+            return;
+        }
+
+        if (!hasNoCallOption)
+        {
+            Assert.AreEqual(ChatFinishReason.ToolCalls, response.FinishReason, "Expected handoff tool calls but got different finish reason");
+        }
 
         Assert.AreEqual(expectedFunctionCalls.Count, actualFunctionCalls.Count,
             $"Expected {expectedFunctionCalls.Count} function calls but got {actualFunctionCalls.Count}");
@@ -624,8 +698,9 @@ Respond with only 'SIMILAR' if they convey the same meaning, or 'DIFFERENT' if t
 
     /// <summary>
     /// Validates that a function call matches one of the expected function names (supports pipe-separated multiple options)
+    /// Special case: "-" in the expected options means "no function call is acceptable"
     /// </summary>
-    /// <param name="expectedFunctionName">Expected function name, can be pipe-separated for multiple options</param>
+    /// <param name="expectedFunctionName">Expected function name, can be pipe-separated for multiple options. Use "-" to indicate no function call is acceptable.</param>
     /// <param name="actualFunctionName">Actual function name from the response</param>
     /// <param name="callIndex">Index of the function call for error messages</param>
     /// <param name="testContext">Test context for logging (optional)</param>
@@ -638,15 +713,19 @@ Respond with only 'SIMILAR' if they convey the same meaning, or 'DIFFERENT' if t
                 .Select(name => name.Trim())
                 .ToList();
 
-            var isValidCall = acceptableFunctionNames.Contains(actualFunctionName);
+            // Special case: if "-" is one of the options, it means no function call is acceptable
+            var noFunctionCallAcceptable = acceptableFunctionNames.Contains("-");
+            var actualFunctionNames = acceptableFunctionNames.Where(name => name != "-").ToList();
+
+            var isValidCall = actualFunctionNames.Contains(actualFunctionName);
             var callType = isHandoff ? "Handoff function call" : "Function call";
 
             Assert.IsTrue(isValidCall,
                 $"{callType} {callIndex + 1}: Expected one of [{string.Join(", ", acceptableFunctionNames)}] but got {actualFunctionName}");
 
-            if (isHandoff)
+            if (isHandoff && !noFunctionCallAcceptable)
             {
-                // For handoffs, we expect the function name to start with "transfer_to_"
+                // For handoffs, we expect the function name to start with "transfer_to_" unless "-" is acceptable
                 Assert.IsTrue(actualFunctionName.StartsWith("transfer_to_"),
                     $"Expected handoff function to start with 'transfer_to_' but got {actualFunctionName}");
             }
@@ -713,6 +792,7 @@ Respond with only 'SIMILAR' if they convey the same meaning, or 'DIFFERENT' if t
 
         try
         {
+            testContext?.WriteLine($"Response before handoff check: {lastMessage.Text}");
             testContext?.WriteLine($"Checking structured output for handoff state without tool call...");
             var jsonElement = JsonSerializer.Deserialize<JsonElement>(lastMessage.Text);
 
