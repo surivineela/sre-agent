@@ -716,7 +716,7 @@ public class ThreadEvaluator
                 _logger.LogAgentAction(
                     action: "evaluate.handoffs",
                     parameter: JsonSerializer.Serialize(evaluation),
-                    status: "success",
+                    status: "Success",
                     duration: 0,
                     threadId: thread.Id.ToString(),
                     threadSource: thread.Source.ToString(),
@@ -745,7 +745,7 @@ public class ThreadEvaluator
                 _logger.LogAgentAction(
                     action: "evaluate.handoffs",
                     parameter: JsonSerializer.Serialize(evaluation),
-                    status: "success",
+                    status: "Success",
                     duration: 0,
                     threadId: thread.Id.ToString(),
                     threadSource: thread.Source.ToString(),
