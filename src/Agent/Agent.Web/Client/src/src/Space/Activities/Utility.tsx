@@ -1,4 +1,7 @@
 import {
+    Approval,
+    ApprovalDecision,
+    AzCliExecution,
     IncidentStatus,
     Message,
     MessageAuthor,
@@ -266,6 +269,39 @@ export const isFinalStreamingMessage = (streamingMessage: StreamingMessage): boo
 
 export const isUserStreamingMessage = (streamingMessage: StreamingMessage): boolean => {
     return equals(streamingMessage.role || '', 'user', AntUxStringComparison.IgnoreCase);
+};
+
+export const isPendingState = (status: string | null | undefined): boolean => {
+    return (
+        !!status &&
+        (equals(status, 'Pending', AntUxStringComparison.IgnoreCase) ||
+            equals(status, 'PendingAuthorization', AntUxStringComparison.IgnoreCase))
+    );
+};
+
+export const isUpdatedSpecialStreamingMessage = (streamingMessage: StreamingMessage): boolean => {
+    const approval = getSpecialMessageContentFromStreamingMessage<Approval>(streamingMessage, 'approval');
+    const azCliExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'azcli');
+    const kubectlExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'kubectl');
+    const status = approval?.status || azCliExecution?.status || kubectlExecution?.status;
+
+    return (!!approval || !!azCliExecution || !!kubectlExecution) && !isPendingState(status);
+};
+
+export const processApprovalStreamingMessageStatus = (status: ApprovalDecision | number): ApprovalDecision => {
+    if (status !== null && status !== undefined && typeof status === 'number') {
+        return status === 0
+            ? ApprovalDecision.Pending
+            : status === 1
+              ? ApprovalDecision.Approved
+              : status === 2
+                ? ApprovalDecision.Cancelled
+                : status === 3
+                  ? ApprovalDecision.PendingAuthorization
+                  : ApprovalDecision.Authorized;
+    }
+
+    return status;
 };
 
 export const constructUserMessageFromStreamingMessage = (streamingMessage: StreamingMessage): ChatMessage => {

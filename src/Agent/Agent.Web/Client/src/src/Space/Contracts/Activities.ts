@@ -72,6 +72,11 @@ export interface IChatMessageV2Props {
     isStreamingMessage?: boolean;
     toolCallText?: string | null;
     isWaitingForStreamingMessages?: boolean;
+    updateSpecialMessageInStreamingMessage?: (specialMessageProperties: {
+        approval?: Approval;
+        azCliExecution?: AzCliExecution;
+        kubectlExecution?: KubectlExecution;
+    }) => void;
 }
 
 export interface ChatMessageContent extends MessageContent {
@@ -99,6 +104,11 @@ export interface IAgentMessageProps {
     timeStamp: string;
     isTyping?: boolean;
     threadId: string;
+    updateSpecialMessageInStreamingMessage?: (specialMessageProperties: {
+        approval?: Approval;
+        azCliExecution?: AzCliExecution;
+        kubectlExecution?: KubectlExecution;
+    }) => void;
 }
 
 export interface IChatProps {

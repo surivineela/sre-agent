@@ -7,18 +7,38 @@ import ErrorChatMessage from './ErrorMessage';
 import KubectlExecutionMessage from './KubectlExecutionMessage';
 import TextOrImageMessage from './TextOrImageMessage';
 
-const AgentMessage = ({ messageContent, messageId, timeStamp, isTyping, threadId }: IAgentMessageProps) => {
+const AgentMessage = ({
+    messageContent,
+    messageId,
+    timeStamp,
+    isTyping,
+    threadId,
+    updateSpecialMessageInStreamingMessage,
+}: IAgentMessageProps) => {
     return (
         <>
             {/* For messages with approval - text content may be empty, so we may only need to render approval UI */}
             {messageContent.approval ? (
-                <ApprovalMessage approval={messageContent.approval} messageId={messageId} threadId={threadId} />
+                <ApprovalMessage
+                    approval={messageContent.approval}
+                    messageId={messageId}
+                    threadId={threadId}
+                    updateSpecialMessageInStreamingMessage={updateSpecialMessageInStreamingMessage}
+                />
             ) : messageContent.isDailyReport ? (
                 <DailyReportMessage text={messageContent.text} timeStamp={timeStamp} />
             ) : messageContent.azCliExecution ? (
-                <AzCliExecutionMessage execution={messageContent.azCliExecution} threadId={threadId} />
+                <AzCliExecutionMessage
+                    execution={messageContent.azCliExecution}
+                    threadId={threadId}
+                    updateSpecialMessageInStreamingMessage={updateSpecialMessageInStreamingMessage}
+                />
             ) : messageContent.kubectlExecution ? (
-                <KubectlExecutionMessage execution={messageContent.kubectlExecution} threadId={threadId} />
+                <KubectlExecutionMessage
+                    execution={messageContent.kubectlExecution}
+                    threadId={threadId}
+                    updateSpecialMessageInStreamingMessage={updateSpecialMessageInStreamingMessage}
+                />
             ) : messageContent.error ? (
                 <ErrorChatMessage error={messageContent.error} />
             ) : messageContent.text || isTyping ? (

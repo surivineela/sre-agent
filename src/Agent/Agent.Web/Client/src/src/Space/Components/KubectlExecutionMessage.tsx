@@ -8,7 +8,7 @@ import {
     AiOutlineCopy,
     AiOutlinePlayCircle,
 } from 'react-icons/ai';
-import { KubectlExecution } from '../../Common/Contracts/Azure/SreAgent';
+import { Approval, AzCliExecution, KubectlExecution } from '../../Common/Contracts/Azure/SreAgent';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
 import { getRiskColor, getRiskLevel } from './Utility';
@@ -16,7 +16,12 @@ import { getRiskColor, getRiskLevel } from './Utility';
 const KubectlExecutionMessage: FC<{
     execution: KubectlExecution;
     threadId: string;
-}> = ({ execution, threadId }) => {
+    updateSpecialMessageInStreamingMessage?: (specialMessageProperties: {
+        approval?: Approval;
+        azCliExecution?: AzCliExecution;
+        kubectlExecution?: KubectlExecution;
+    }) => void;
+}> = ({ execution, threadId, updateSpecialMessageInStreamingMessage }) => {
     const [currentExecution, setCurrentExecution] = useState<KubectlExecution>(execution);
     const [isActionLoading, setIsActionLoading] = useState(false);
     const [loadingAction, setLoadingAction] = useState<'run' | 'cancel' | null>(null);
@@ -119,13 +124,21 @@ const KubectlExecutionMessage: FC<{
                 const data = await response.json();
 
                 if (isPolling) {
-                    setCurrentExecution(prev => ({
-                        ...prev,
-                        output: data.output || prev.output,
-                        status: data.status || prev.status,
-                        error: data.error || prev.error,
-                        completedTimestamp: data.completedTimestamp || prev.completedTimestamp,
-                    }));
+                    const updatedExecution = {
+                        ...currentExecution,
+                        output: data.output || currentExecution.output,
+                        status: data.status || currentExecution.status,
+                        error: data.error || currentExecution.error,
+                        completedTimestamp: data.completedTimestamp || currentExecution.completedTimestamp,
+                    };
+
+                    if (updateSpecialMessageInStreamingMessage) {
+                        updateSpecialMessageInStreamingMessage?.({
+                            kubectlExecution: updatedExecution,
+                        });
+                    } else {
+                        setCurrentExecution(updatedExecution);
+                    }
 
                     // Stop polling if execution is complete
                     if (data.completed) {
@@ -142,7 +155,7 @@ const KubectlExecutionMessage: FC<{
             isPolling = false;
             clearInterval(pollInterval);
         };
-    }, [currentExecution.status, execution.id, threadId]);
+    }, [currentExecution, execution.id, threadId, updateSpecialMessageInStreamingMessage]);
 
     // Auto-collapse output when execution completes
     useEffect(() => {
@@ -170,18 +183,26 @@ const KubectlExecutionMessage: FC<{
                 );
 
                 if (response.data) {
-                    setCurrentExecution(prev => ({
-                        ...prev,
+                    const updatedExecution = {
+                        ...currentExecution,
                         status: response.data.status,
-                        startedTimestamp: response.data.startedTimestamp || prev.startedTimestamp,
+                        startedTimestamp: response.data.startedTimestamp || currentExecution.startedTimestamp,
                         executedBy: response.data.executedBy
                             ? {
                                   displayName: response.data.executedBy,
                                   userId: response.data.executedById,
                                   role: 'User',
                               }
-                            : prev.executedBy,
-                    }));
+                            : currentExecution.executedBy,
+                    };
+
+                    if (updateSpecialMessageInStreamingMessage) {
+                        updateSpecialMessageInStreamingMessage({
+                            kubectlExecution: updatedExecution,
+                        });
+                    } else {
+                        setCurrentExecution(updatedExecution);
+                    }
                 }
 
                 // Success - break out of retry loop

@@ -39,6 +39,7 @@ export const ChatBoxV2 = ({ addThread, updateThreadLastReadTime, threadId, threa
         downButtonState,
         onClickDownButton,
         getGroupedChatMessages,
+        updateSpecialMessageInStreamingMessage,
     } = useChatBoxV2(addThread, updateThreadLastReadTime, threadId, threadSource);
 
     const threadAgentModeData = useThreadAgentMode(threadId, threadSource);
@@ -123,6 +124,7 @@ export const ChatBoxV2 = ({ addThread, updateThreadLastReadTime, threadId, threa
                                         threadId={currentThreadId || ''}
                                         toolCallText={toolCallText}
                                         isWaitingForStreamingMessages={isWaitingForStreamingMessages}
+                                        updateSpecialMessageInStreamingMessage={updateSpecialMessageInStreamingMessage}
                                         previousMessage={
                                             temporaryUserMessage ||
                                             newMessages[newMessages.length - 1] ||

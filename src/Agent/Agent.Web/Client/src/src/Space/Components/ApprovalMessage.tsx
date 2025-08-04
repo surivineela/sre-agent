@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useContext, useEffect, useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { Approval, ApprovalDecision } from '../../Common/Contracts/Azure/SreAgent';
+import { Approval, ApprovalDecision, AzCliExecution, KubectlExecution } from '../../Common/Contracts/Azure/SreAgent';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
@@ -12,10 +12,16 @@ const ApprovalMessage = ({
     approval: approvalInput,
     messageId,
     threadId,
+    updateSpecialMessageInStreamingMessage,
 }: {
     approval?: Approval;
     messageId: string;
     threadId: string;
+    updateSpecialMessageInStreamingMessage?: (specialMessageProperties: {
+        approval?: Approval;
+        azCliExecution?: AzCliExecution;
+        kubectlExecution?: KubectlExecution;
+    }) => void;
 }) => {
     const [approval, setApproval] = useState<Approval | undefined>(approvalInput);
     const [isApprovalLoading, setIsApprovalLoading] = useState(false);
@@ -74,7 +80,7 @@ const ApprovalMessage = ({
 
                 console.log(`Approval decision sent for message ID: ${messageId}, approved: ${approved}`);
 
-                setApproval({
+                const updatedApproval: Approval = {
                     ...approval,
                     status: approvalData.status as ApprovalDecision,
                     decisionUser: {
@@ -83,6 +89,11 @@ const ApprovalMessage = ({
                         role: 'User',
                     },
                     decisionTimestamp: approvalData.decisionTimestamp,
+                };
+
+                setApproval(updatedApproval);
+                updateSpecialMessageInStreamingMessage?.({
+                    approval: updatedApproval,
                 });
             }
         } catch (error: any) {
@@ -94,7 +105,7 @@ const ApprovalMessage = ({
                 const errorData = error.response?.data;
 
                 if (approval && errorData) {
-                    setApproval({
+                    const updatedApproval: Approval = {
                         ...approval,
                         status: errorData.status as ApprovalDecision,
                         decisionUser: {
@@ -103,6 +114,11 @@ const ApprovalMessage = ({
                             role: 'User',
                         },
                         decisionTimestamp: errorData.decisionTimestamp,
+                    };
+
+                    setApproval(updatedApproval);
+                    updateSpecialMessageInStreamingMessage?.({
+                        approval: updatedApproval,
                     });
                 }
 
