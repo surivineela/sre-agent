@@ -48,7 +48,8 @@ namespace Agent.Core.Models.Api.v1
         string? WaitReason = null,
         DateTime? WaitUntil = null,
         IncidentSource? IncidentSource = null,
-        ThreadType? Type = ThreadType.Prod
+        ThreadType? Type = ThreadType.Prod,
+        IEnumerable<AgentTaskShort>? AgentTasks = null
     )
     {
         public Status? Status { get; set; } = null;

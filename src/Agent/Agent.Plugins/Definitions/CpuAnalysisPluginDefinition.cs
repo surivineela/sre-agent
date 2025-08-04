@@ -82,6 +82,7 @@ namespace Agent.Plugins
         }
 
         [Description("Check if the high memory scenario should be triggered based on a spike of the memory.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<bool> ShouldTriggerHighMemoryScenario(
             [Description("The full Azure resource ID of the resource to diagnose (format: /subscriptions/{subId}/resourceGroups/{rgName}/providers/{resourceProvider}/{resourcetype}/{resourceName}).")] string resourceId)
         {
@@ -89,6 +90,7 @@ namespace Agent.Plugins
         }
 
         [Description("Check if the high cpu scenario should be triggered based on a spike of the cpu.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<bool> ShouldTriggerHighCPUScenario(
             [Description("The full Azure resource ID of the resource to diagnose (format: /subscriptions/{subId}/resourceGroups/{rgName}/providers/{resourceProvider}/{resourcetype}/{resourceName}).")] string resourceId)
         {

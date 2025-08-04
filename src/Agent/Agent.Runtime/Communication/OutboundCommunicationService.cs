@@ -477,20 +477,20 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
 
             // Use the streaming service abstraction to send the ChatUpdateResponse
             var message = new ChatResponseUpdate
-                {
-                    AuthorName = "Azure SRE Agent",
-                    Role = ChatRole.Assistant,
-                    CreatedAt = DateTime.UtcNow,
-                    Contents = safeFunctionResults,
-                    AdditionalProperties = new AdditionalPropertiesDictionary
+            {
+                AuthorName = "Azure SRE Agent",
+                Role = ChatRole.Assistant,
+                CreatedAt = DateTime.UtcNow,
+                Contents = safeFunctionResults,
+                AdditionalProperties = new AdditionalPropertiesDictionary
                     {
                         { "threadId", threadId.ToString() },
                         { "messageId", agentMessageId.ToString() },
                         { "actionName", nameof(AppendAgentManualToolCallResult) },
                     }
-                };
+            };
 
-                await _streamingService.StreamChatResponseUpdateAsync(threadId, message, cancellationToken);
+            await _streamingService.StreamChatResponseUpdateAsync(threadId, message, cancellationToken);
 
             _logger.LogExternalInformation("Successfully sent tool call message for thread {ThreadId} with type",
                 threadId);

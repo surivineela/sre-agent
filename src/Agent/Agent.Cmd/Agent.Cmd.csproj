@@ -27,5 +27,6 @@
 	  <ProjectReference Include="..\Agent.Evals\Agent.Evals.csproj" />
 	  <ProjectReference Include="..\Agent.Graph\Agent.Graph.csproj" />
 	  <ProjectReference Include="..\Agent.Runtime\Agent.Runtime.csproj" />
+    <ProjectReference Include="..\Agent.Web\Agent.Web.csproj" />
   </ItemGroup>
 </Project>

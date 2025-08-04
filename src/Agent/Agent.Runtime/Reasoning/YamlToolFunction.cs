@@ -20,6 +20,8 @@ public class YamlToolFunction<TContext> : IDeferredToolFunction where TContext :
         _toolDef = toolDef;
     }
 
+    public MethodInfo? MethodInfo => null;
+
     public AIFunction GetToolFunction(Guid? threadId = null)
     {
         return GetToolFunction(threadId, null);

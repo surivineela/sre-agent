@@ -4,6 +4,7 @@
 
 using System.ComponentModel;
 using Agent.Core.Models;
+using Agent.Framework;
 using Agent.Plugins.Interface;
 using Azure.Monitor.Query.Models;
 using Microsoft.OperationalAgent.Core.Extensions;
@@ -20,6 +21,7 @@ namespace Agent.Plugins
             _plugin = azureMonitorMetricsPlugin;
         }
 
+        [AgentTool(ToolMode.Auto)]
         [Description("Lists all available metric definitions for a given Azure resource. Returns MetricDefinition object which contains properties like Name, Unit, DisplayDescription, Dimensions.")]
         public async Task<List<MetricDefinition>> ListAvailableMetrics(
             [Description("Azure Resource Id of the resource, e.g., /subscriptions/xxx/resourceGroups/yyy/providers/Microsoft.Web/sites/myapp")] string resourceId)
@@ -28,6 +30,7 @@ namespace Agent.Plugins
         }
 
         [Description("Get time-series metric values for a specific metric name of a azure resource id. Returns metric records for the start time and end time provided using 'Average' aggregation with the interval value inputed. Use chart plugin to render visual where possible")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<IReadOnlyList<MetricTimeSeriesElement>> GetMetricTimeSeriesElementsForAzureResource(
             [Description("Azure Resource Id of the resource, e.g., /subscriptions/xxx/resourceGroups/yyy/providers/Microsoft.Web/sites/myapp")] string resourceId,
             [Description("Fully qualified metric namespace from MetricDefinition.FullyQualifiedName property. Generally it is Azure Resource Type for which metric is being fetched (e.g., Microsoft.Web/sites)")] string metricNamespace,

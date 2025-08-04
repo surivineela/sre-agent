@@ -32,7 +32,7 @@ public class AppCodeAnalysisPlugin : IAppCodeAnalysisPlugin
     {
         DateTime startTime = DateTime.UtcNow.AddDays(-1);
         DateTime endTime = DateTime.UtcNow;
-        
+
         string resourceName = resourceId;
         if (resourceId.Contains('/'))
         {
@@ -55,20 +55,20 @@ public class AppCodeAnalysisPlugin : IAppCodeAnalysisPlugin
     public async Task<bool> WaitInMilliSeconds(
         [Description("time to wait in milliseconds")] int numMilliSeconds)
     {
-         await Task.Delay(numMilliSeconds);
-        return true; 
+        await Task.Delay(numMilliSeconds);
+        return true;
     }
 
     [Description("This function retrieves the link to the Applens web app down analysis")]
     public string GetWebAppDownAnalysisLink(
         [Description("The resourceId of the app")] string resourceId)
-    { 
+    {
         var endTime = DateTime.UtcNow;
         var startTime = endTime.AddDays(-1);
 
         string endString = endTime.ToString("yyyy-MM-dd HH:mm");
         string startString = endTime.ToString("yyyy-MM-dd HH:mm");
-        
+
         string applensLink = $"https://applens.trafficmanager.net{resourceId}/analysis/appDownAnalysis?startTime={startString}&endTime={endString}";
         return applensLink;
     }
@@ -85,7 +85,7 @@ public class AppCodeAnalysisPlugin : IAppCodeAnalysisPlugin
             var splitResourceParts = resourceId.Split('/');
             resourceName = splitResourceParts[splitResourceParts.Length - 1];
         }
-    
+
         string query = $@"exceptions
         | where timestamp >= ago(1d)
         | where cloud_RoleName =~ ""{resourceName}"" or cloud_RoleName startswith ""{resourceName}-""
@@ -122,8 +122,8 @@ public class AppCodeAnalysisPlugin : IAppCodeAnalysisPlugin
         | project ExceptionMessage, ExceptionType, FullStackTraceString";
 
 
-        var results = await _appInsightsPlugin.ExecuteAppInsightsQuery(resourceId, query); 
-        
+        var results = await _appInsightsPlugin.ExecuteAppInsightsQuery(resourceId, query);
+
         return results;
     }
 
@@ -256,7 +256,7 @@ public class AppCodeAnalysisPlugin : IAppCodeAnalysisPlugin
         bool preserveVNet = true;
 
         var success = await _armHelper.SwapAppServiceSlotsAsync(resourceId, preserveVNet, sourceSlot, targetSlot);
-        
+
         if (success)
         {
             return $"The deployment swap operation has successfully completed. Swap operations were performed from {sourceSlot} to {targetSlot}";

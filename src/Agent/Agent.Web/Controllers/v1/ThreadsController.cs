@@ -10,6 +10,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Core.Configuration;
 using Agent.Data.DataModels;
 using Agent.Framework;
+using Agent.Data.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Action = Agent.Core.Models.Api.v1.Action;
@@ -36,6 +37,7 @@ namespace Agent.Web.Controllers.v1
     public class ThreadsController(
         IAgentInboundCommunicationService agentInboundCommunicationService,
         IThreadRepository repository,
+        IAgentTasksRepository agentTasksRepository,
         ILogger<ThreadsController> logger,
         IGraphService graphService,
         IConnectedIntegrationsPlugin connectedIntegrationsPlugin,
@@ -567,6 +569,50 @@ namespace Agent.Web.Controllers.v1
             {
                 return StatusCode(500, $"Error retrieving available agent modes: {ex.Message}");
             }
+        }
+
+        [HttpGet("{threadId}/agentTasks/{agentTaskId}")]
+        public async Task<ActionResult<AgentTask>> GetAgentTask(Guid threadId, Guid agentTaskId)
+        {
+            logger.LogInternalInformation("Trying to get agent task: {AgentTaskId} for thread: {ThreadId}", agentTaskId, threadId);
+
+            var agentTask = await agentTasksRepository.GetAgentTaskAsync(threadId, agentTaskId);
+
+            if (agentTask == null)
+            {
+                logger.LogInternalInformation("Agent task not found: {AgentTaskId} for thread: {ThreadId}", agentTaskId, threadId);
+                return NotFound();
+            }
+
+            logger.LogInternalInformation("Successfully retrieved agent task: {AgentTaskId} for thread: {ThreadId}", agentTaskId, threadId);
+            return Ok(agentTask);
+        }
+
+        [HttpGet("{threadId}/incidentInvestigationTasks/{agentTaskId}/hypotheses/{hypothesisId}")]
+        public async Task<ActionResult<HypothesisDetails>> GetHypothesisDetails(Guid threadId, Guid agentTaskId, Guid hypothesisId)
+        {
+            logger.LogInternalInformation("Trying to get hypothesis details: {HypothesisId} for agent task: {AgentTaskId} in thread: {ThreadId}", hypothesisId, agentTaskId, threadId);
+
+            // Check if agent task exists
+            var agentTask = await agentTasksRepository.GetAgentTaskAsync(threadId, agentTaskId);
+
+            if (agentTask == null)
+            {
+                logger.LogInternalInformation("Agent task not found: {AgentTaskId} for thread: {ThreadId}", agentTaskId, threadId);
+                return NotFound();
+            }
+
+            // Get hypothesis details
+            var hypothesisDetails = await agentTasksRepository.GetHypothesisDetailsAsync(agentTaskId, hypothesisId);
+
+            if (hypothesisDetails == null)
+            {
+                logger.LogInternalInformation("Hypothesis details not found: {HypothesisId} for agent task: {AgentTaskId} in thread: {ThreadId}", hypothesisId, agentTaskId, threadId);
+                return NotFound();
+            }
+
+            logger.LogInternalInformation("Successfully retrieved hypothesis details: {HypothesisId} for agent task: {AgentTaskId} in thread: {ThreadId}", hypothesisId, agentTaskId, threadId);
+            return Ok(hypothesisDetails);
         }
 
         #region ThreadEvaluateResult API Endpoints

@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using Agent.Core.Attributes;
 using Agent.Core.Models;
+using Agent.Framework;
 using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Definitions
@@ -29,6 +30,7 @@ namespace Agent.Plugins.Definitions
         [Description("Gets Function App deployment information to identify potential deployment issues. " +
                     "Analyzes deployment history, source control information, deployment methods, and other deployment-related metrics. " +
                     "Returns detailed analysis with potential deployment issues and recommendations.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetFunctionAppDeploymentChecks(
             [Description("The full Azure resource ID of the Function App to check deployments for.")] string resourceId,
             [Description("Optional start time for the query (defaults to 1 hour ago)")] DateTime? startTime = null,
@@ -43,6 +45,7 @@ namespace Agent.Plugins.Definitions
         [Description("Gets detailed Function App deployment history to track all deployment activities. " +
                     "Retrieves chronological deployment records, including deployment source, trigger, status, and timestamps. " +
                     "Returns comprehensive deployment timeline with success/failure information.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetFunctionAppDeploymentHistory(
             [Description("The full Azure resource ID of the Function App to retrieve deployment history for.")] string resourceId,
             [Description("Optional start time for the query (defaults to 1 hour ago)")] DateTime? startTime = null,
@@ -57,6 +60,7 @@ namespace Agent.Plugins.Definitions
         [Description("Gets detailed Function App slot swap information to analyze swap operations. " +
                     "Retrieves history of slot swaps including timestamp, source and target slots, and status. " +
                     "Returns comprehensive history of swap operations to troubleshoot deployment and availability issues.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetFunctionAppSlotSwapHistory(
             [Description("The full Azure resource ID of the Function App to retrieve slot swap history for.")] string resourceId,
             [Description("Optional start time for the query (defaults to 1 hour ago)")] DateTime? startTime = null,
@@ -72,6 +76,7 @@ namespace Agent.Plugins.Definitions
                     "Analyzes deployment logs, identifies common failure patterns, and provides detailed diagnostics. " +
                     "Returns comprehensive deployment failure analysis with root cause identification and suggested remediation steps. " +
                     "Note: This tool only works for Windows Function Apps.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetFunctionAppDeploymentFailureAnalysis(
             [Description("The full Azure resource ID of the Windows Function App to analyze deployment failures for.")] string resourceId,
             [Description("Optional start time for the query (defaults to 1 hour ago)")] DateTime? startTime = null,
@@ -89,6 +94,7 @@ namespace Agent.Plugins.Definitions
                     "and creates a new WEBSITE_RUN_FROM_PACKAGE with the provided value. " +
                     "Returns details about the update operation including success status and error information if applicable.")]
         [RequiresApproval]
+        [WriteAction]
         public async Task<Models.WebsiteRunFromPackageUpdateResult> UpdateWebsiteRunFromPackageAsync(
             [Description("The full Azure resource ID of the Function App or Web App to update.")] string resourceId,
             [Description("The path to the zip file in Azure Storage. Must be a valid URL to a zip file in an Azure Storage Blob container.")] string zipFilePath)

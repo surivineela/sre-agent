@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using Agent.Framework;
@@ -106,8 +107,8 @@ public class ReplayToolFactory<TContext> : IToolFactory<TContext> where TContext
         return false;
     }    /// <summary>
 
-         /// Checks if a tool with the given name exists, either in replay data or in the inner factory.
-         /// </summary>
+    /// Checks if a tool with the given name exists, either in replay data or in the inner factory.
+    /// </summary>
     public bool HasTool(string name)
     {
         if (string.IsNullOrEmpty(name))
@@ -150,9 +151,9 @@ public class ReplayToolFactory<TContext> : IToolFactory<TContext> where TContext
         return "No tool calls with replay failure found.";
     }
 
-    public List<ToolInfo> FetchAvailableToolInfo()
+    public List<ToolInfo> FetchAvailableToolInfo(Func<MethodInfo, bool>? filter = null)
     {
-        return _innerFactory.FetchAvailableToolInfo();
+        return _innerFactory.FetchAvailableToolInfo(filter);
     }
 
     public void FindAndRegisterAllTools(BehaviorOnNameConflict onNameConflict)

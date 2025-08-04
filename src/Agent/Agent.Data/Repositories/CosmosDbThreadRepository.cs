@@ -2436,4 +2436,60 @@ public class CosmosDbThreadRepository : IThreadRepository
     }
 
     #endregion
+
+    #region Agent Task Operations
+    public async Task<bool> UpdateTaskOnThreadAsync(Guid threadId, AgentTaskShort task)
+    {
+        string threadIdStr = threadId.ToString();
+        const int retryLimit = 3;
+        for (int i = 0; i < retryLimit; i++)
+        {
+            var (threadDoc, etag) = await GetDocumentWithEtagAsync<ThreadDocument>(threadIdStr, threadIdStr);
+            if (threadDoc == null)
+            {
+                _logger.LogInternalWarning("Cannot update tasks: Thread {ThreadId} not found", threadId);
+                return false;
+            }
+
+            var agentTasks = (threadDoc.AgentTasks ?? []).ToList();
+            var existingIndex = agentTasks.FindIndex(t => t.Id == task.Id);
+            if (existingIndex >= 0)
+            {
+                agentTasks[existingIndex] = task;
+            }
+            else
+            {
+                agentTasks.Add(task);
+            }
+
+            var updatedThreadDoc = threadDoc with
+            {
+                AgentTasks = agentTasks,
+                ModifiedTimestamp = DateTime.UtcNow
+            };
+
+            try
+            {
+                await _client.GetContainer<ThreadDocument>(_databaseName).ReplaceItemAsync(
+                    updatedThreadDoc,
+                    updatedThreadDoc.Id,
+                    new PartitionKey(updatedThreadDoc.PartitionKey),
+                    new ItemRequestOptions { IfMatchEtag = etag }
+                );
+                return true;
+            }
+            catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.PreconditionFailed)
+            {
+                if (i == retryLimit - 1)
+                {
+                    _logger.LogInternalError(ex, "Failed to update tasks for thread {ThreadId} after {RetryCount} attempts", threadId, retryLimit);
+                    return false;
+                }
+                continue;
+            }
+        }
+        return false;
+    }
+
+    #endregion
 }

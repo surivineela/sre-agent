@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using Agent.Core.Attributes;
 using Agent.Core.Models;
+using Agent.Framework;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
 using Azure.ResourceManager.ApiManagement;
@@ -28,6 +29,7 @@ namespace Agent.Plugins.Definitions
             "ProvisioningState, PlatformVersion, DeveloperPortalUri, DeveloperPortalStatus, PortalUri, ScmUri, ManagementApiUri, AppHealthInformation and CreatedAtUtc. " +
             "Always use this specialized method for API Management instances instead of generic resource search functions for more complete and accurate information. " +
             "For metrics and usage information (such as requests, throughput, errors, cost, etc.), format the output in markdown tabular format.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<APIManagementDescriptor?> GetAPIManagementInfoAsync(
             [Description("The full Azure resource ID of the API Management instance (format: /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.ApiManagement/service/{serviceName}).")] string resourceId)
         {
@@ -40,6 +42,7 @@ namespace Agent.Plugins.Definitions
             "ResourceId, Name, Type, Location, ResourceGroup, and PublisherEmail. " +
             "These exact properties are returned to the customer for each API Management resource. " +
             "This is the most direct and efficient way to get API Management resource information - use this instead of generic resource search methods. Returns an empty list if no API Management resources are found.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<List<APIManagementDescriptor>> ListAPIManagementAsync(
             [Description("The subscription ID (GUID) to scan for API Management resources.")] Guid subscriptionId)
         {
@@ -50,7 +53,7 @@ namespace Agent.Plugins.Definitions
 
         #region API Error Logs and Activity - Diagnostics
 
-        // NOTE: The reason these functions take relative time parameters (e.g., startDaysAgo, endDaysAgo, lookbackHours) is because the agent does not have a consistent definition of "current time" and often defaults to UTC DateTime values based on its training data. 
+        // NOTE: The reason these functions take relative time parameters (e.g., startDaysAgo, endDaysAgo, lookbackHours) is because the agent does not have a consistent definition of "current time" and often defaults to UTC DateTime values based on its training data.
         // Using relative time ensures more predictable and accurate results regardless of the agent's runtime environment or time zone.
 
         [Description(
@@ -261,7 +264,7 @@ namespace Agent.Plugins.Definitions
 
         #endregion
 
-        #region Virtual Network - Remediation 
+        #region Virtual Network - Remediation
 
         [RequiresApproval("Your approval is required before I remove a Network Security Group (NSG) rule. Please confirm to proceed.")]
         [Description(

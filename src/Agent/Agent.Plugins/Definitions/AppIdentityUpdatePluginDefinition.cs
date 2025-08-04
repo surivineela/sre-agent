@@ -4,6 +4,7 @@
 
 using System.ComponentModel;
 using Agent.Core.Attributes;
+using Agent.Framework;
 using Agent.Plugins.Interface;
 
 namespace Agent.Plugins
@@ -17,8 +18,12 @@ namespace Agent.Plugins
             _appIdentityUpdatePlugin = appIdentityUpdatePlugin;
         }
 
+        // TODO: this needs to be separated into two tools, one for getting the managed identity and one for enabling it
         [Description(@"<category>Applicable if helping MI Migration or Identity SFI 1.6.2 or best practices</category>"
             + "Get's WebApp's Managed Identity if already enabled, otherwise enables managed identity and returns the same")]
+        [WriteAction]
+        [RequiresApproval]
+        [AgentTool(ToolMode.Manual)]
         public async Task<string> GetAppManagedIdentityAsync(
             [Description("The resource ID of the App Service")]
             string resourceId)

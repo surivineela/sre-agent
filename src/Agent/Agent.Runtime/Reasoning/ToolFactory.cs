@@ -74,6 +74,8 @@ public sealed class DeferredToolFunction<TContext> : IDeferredToolFunction where
         return _pluginType.Name;
     }
 
+    public MethodInfo? MethodInfo => _methodInfo;
+
     /// <summary>
     /// Creates the AIFunction based on the source information (Reflection or YAML).
     /// </summary>
@@ -282,13 +284,18 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
         }
     }
 
-    public List<ToolInfo> FetchAvailableToolInfo()
+    public List<ToolInfo> FetchAvailableToolInfo(Func<MethodInfo, bool>? filter = null)
     {
         var result = new List<ToolInfo>();
         foreach (var tool in _tools)
         {
             try
             {
+                if (filter is not null && tool.Value.MethodInfo is not null && !filter(tool.Value.MethodInfo))
+                {
+                    continue;
+                }
+
                 result.Add(new ToolInfo
                 {
                     Name = tool.Key,
@@ -296,7 +303,7 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
                     ResourceType = tool.Value.GetToolFunction()?.GetToolResourceType(tool.Value.GetPluginResourceType()) ?? string.Empty,
                     Description = tool.Value.GetToolFunction()?.Description,
                     PluginName = tool.Value.GetPluginName(),
-                    Parameters = tool.Value.GetToolFunction()?.UnderlyingMethod?.GetParameters()?.Select(x => x.Name ?? string.Empty)?.Where(s => !string.IsNullOrEmpty(s)).ToArray()
+                    Parameters = tool.Value.GetToolFunction()?.UnderlyingMethod?.GetParameters()?.Select(x => x.Name ?? string.Empty)?.Where(s => !string.IsNullOrEmpty(s)).ToArray() ?? []
                 });
             }
             catch (Exception ex)
@@ -305,6 +312,22 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
             }
         }
         return result;
+    }
+
+    public List<ToolInfo> FetchToolInfoForToolNames(List<string> toolNames)
+    {
+        return [.. _tools.Where(kv => toolNames.Contains(kv.Key)).Select(tool =>
+        {
+            return new ToolInfo
+            {
+                Name = tool.Key,
+                Category = tool.Value.GetToolFunction()?.GetToolCategory(tool.Value.GetPluginCategory()) ?? string.Empty,
+                ResourceType = tool.Value.GetToolFunction()?.GetToolResourceType(tool.Value.GetPluginResourceType()) ?? string.Empty,
+                Description = tool.Value.GetToolFunction()?.Description,
+                PluginName = tool.Value.GetPluginName(),
+                Parameters = tool.Value.GetToolFunction()?.UnderlyingMethod?.GetParameters()?.Select(x => x.Name)?.ToList() ?? []
+            };
+        })];
     }
 
     public void FindAndRegisterAllTools(BehaviorOnNameConflict onNameConflict)

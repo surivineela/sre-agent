@@ -1013,6 +1013,13 @@ namespace Agent.Data.Repositories
             return Task.FromResult(true);
         }
         #endregion
+
+        #region Agent Task Operations
+        public Task<bool> UpdateTaskOnThreadAsync(Guid threadId, AgentTaskShort task)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
     }
 }
 

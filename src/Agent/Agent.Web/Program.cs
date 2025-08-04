@@ -40,6 +40,7 @@ using Agent.Plugins.Services.Interfaces;
 using Agent.Plugins.Tools;
 using Agent.Prometheus.Services;
 using Agent.Runtime;
+using Agent.Runtime.AgentTasks;
 using Agent.Runtime.Communication;
 using Agent.Runtime.HelperAgents;
 using Agent.Runtime.IncidentHandlerAgent;
@@ -1086,6 +1087,8 @@ public class Program
         });
 
         builder.RegisterDataConnectors();
+
+        builder.AddAgentTaskService();
 
         return builder;
     }

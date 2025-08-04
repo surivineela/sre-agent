@@ -106,4 +106,7 @@ public interface IThreadRepository
     Task<ThreadEvaluateResult?> CreateThreadEvaluateResultAsync(ThreadEvaluateResult evaluateResult);
     Task<ThreadEvaluateResult?> UpdateThreadEvaluateResultAsync(ThreadEvaluateResult evaluateResult);
     Task<bool> DeleteThreadEvaluateResultAsync(Guid evaluationId);
+
+    // agent tasks
+    Task<bool> UpdateTaskOnThreadAsync(Guid threadId, AgentTaskShort task);
 }

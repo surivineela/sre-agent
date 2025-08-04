@@ -34,6 +34,7 @@ namespace Agent.Plugins.Definitions
         [Description("Gets Function App configuration checks to identify potential issues in the Function App configuration. " +
                     "Analyzes settings like runtime version, extension version, platform, and other configuration values. " +
                     "Returns detailed analysis with potential issues and recommendations for optimization.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetFunctionAppConfigurationChecks(
             [Description("The full Azure resource ID of the Function App to check configuration for.")] string resourceId,
             [Description("Optional start time for the query (defaults to 1 hour ago)")] DateTime? startTime = null,
@@ -47,6 +48,7 @@ namespace Agent.Plugins.Definitions
         /// </summary>
         [Description("Gets Event Grid subscriptions associated with a storage account used by a Function App. " +
                     "Returns detailed information about each subscription including endpoint, filter criteria, and retry policy.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<IReadOnlyList<EventGridSubscriptionInfo>> GetEventGridSubscriptionsAsync(
             [Description("The resource ID of the storage account to check for Event Grid subscriptions.")] string storageAccountResourceId)
         {

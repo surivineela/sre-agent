@@ -4,6 +4,7 @@
 
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
+using Agent.Data.JsonConverters;
 using Agent.Data.Repositories;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
@@ -134,6 +135,17 @@ public static class AgentDataConfiguration
             var cosmosClient = serviceProvider.GetRequiredService<CosmosClient>();
             var logger = serviceProvider.GetRequiredService<ILogger<CosmosDbExtendedAgentRepository>>();
             return new CosmosDbExtendedAgentRepository(cosmosClient, cosmosDatabaseName, logger);
+        });
+
+        // Register the AgentTasks repository
+        serviceCollection.AddSingleton<IAgentTasksRepository>(serviceProvider =>
+        {
+            var cosmosDbSettings = serviceProvider.GetRequiredService<CosmosDBSettings>();
+            var cosmosDatabaseName = cosmosDbSettings.Docs.Database;
+
+            var cosmosClient = serviceProvider.GetRequiredService<CosmosClient>();
+            var logger = serviceProvider.GetRequiredService<ILogger<CosmosDbAgentTasksRepository>>();
+            return new CosmosDbAgentTasksRepository(cosmosClient, cosmosDatabaseName, logger);
         });
 
         return serviceCollection;

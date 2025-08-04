@@ -11,7 +11,12 @@ public static class AIFunctionExtensions
 {
     public static ToolMode GetToolMode(this AIFunction function, ToolMode defaultMode = ToolMode.Manual)
     {
-        return function.UnderlyingMethod?.GetCustomAttribute<AgentToolAttribute>()?.Mode ?? defaultMode;
+        return function.UnderlyingMethod?.GetToolMode(defaultMode) ?? defaultMode;
+    }
+
+    public static ToolMode GetToolMode(this MethodInfo methodInfo, ToolMode defaultMode = ToolMode.Manual)
+    {
+        return methodInfo.GetCustomAttribute<AgentToolAttribute>()?.Mode ?? defaultMode;
     }
 
     public static string GetToolCategory(this AIFunction function, string defaultCategory = "")

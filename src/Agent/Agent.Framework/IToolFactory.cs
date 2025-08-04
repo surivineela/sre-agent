@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Reflection;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Framework;
@@ -50,8 +51,7 @@ public interface IToolFactory<TContext> where TContext : class
     public bool HasTool(string name);
 
     void FindAndRegisterAllTools(BehaviorOnNameConflict onNameConflict);
-
-    public List<ToolInfo> FetchAvailableToolInfo();
+    public List<ToolInfo> FetchAvailableToolInfo(Func<MethodInfo, bool>? filter = null);
 
     public Task LoadExtendedToolsFromCosmosOnDemandAsync();
 
@@ -66,6 +66,6 @@ public class ToolInfo
     public string ResourceType { get; set; } = string.Empty;
     public string PluginName { get; set; } = string.Empty;
     public string? Description { get; set; }
-    public string[]? Parameters { get; set; } = [];
+    public IList<string?> Parameters { get; set; } = [];
 }
 

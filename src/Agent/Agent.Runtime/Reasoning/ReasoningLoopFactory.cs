@@ -35,6 +35,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     private readonly IToolFactory<AgentContext> _toolFactory;
     private readonly IThreadRepository _threadRepository;
     private readonly ActionSettings _actionSettings;
+    private readonly CoreSettings _coreSettings;
+
     private readonly Tracer _tracer;
 
     // regional search
@@ -79,6 +81,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         _threadRepository = threadRepository;
         _toolFactory = toolFactory;
         _actionSettings = actionSettings;
+        _coreSettings = coreSettings;
         _tracer = tracer;
         _enableReasoningDebugOutput = coreSettings.EnableReasoningOutput
             && hostEnvironment.IsDevelopment(); // only enable debug output in dev environment
@@ -100,23 +103,33 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     public async Task<ReasoningLoop> Create(AgentContext context)
     {
         // get the default start agent based on settings
+        // Use test_meta_agent when agent tasks are enabled, otherwise use agent type specific agents
         var defaultStartingAgentName = "meta_agent";
         var agentType = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") ?? string.Empty;
-        if (agentType == "ACAAgent")
+
+        if (_coreSettings.AgentTasksEnabled)
         {
-            defaultStartingAgentName = "rca_meta_agent";
+            // When AgentTasksEnabled, always use test_meta_agent regardless of agent type
+            defaultStartingAgentName = "test_meta_agent";
         }
-        else if (agentType == "RCARouterAgent")
+        else
         {
-            defaultStartingAgentName = "rca_router_meta_agent";
-        }
-        else if (agentType == "FunctionsFlexConsumptionCRIAgent")
-        {
-            defaultStartingAgentName = "flex_consumption_cri_agent";
-        }
-        else if (agentType == "ColdStartAgent")
-        {
-            defaultStartingAgentName = "cold_start_agent";
+            if (agentType == "ACAAgent")
+            {
+                defaultStartingAgentName = "rca_meta_agent";
+            }
+            else if (agentType == "RCARouterAgent")
+            {
+                defaultStartingAgentName = "rca_router_meta_agent";
+            }
+            else if (agentType == "FunctionsFlexConsumptionCRIAgent")
+            {
+                defaultStartingAgentName = "flex_consumption_cri_agent";
+            }
+            else if (agentType == "ColdStartAgent")
+            {
+                defaultStartingAgentName = "cold_start_agent";
+            }
         }
 
         // retrieve the current starting agent if present in context

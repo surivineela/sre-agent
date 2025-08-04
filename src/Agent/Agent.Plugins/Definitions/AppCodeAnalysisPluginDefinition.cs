@@ -27,6 +27,7 @@ namespace Agent.Plugins.Definitions
 
         [KernelFunction("get_app_stack_trace")]
         [Description("This function attempts to retrieve the stack traces for a user's particular app")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetCallStackForApp(
         [Description("resourceId of the app")] string resourceId)
         {
@@ -41,12 +42,13 @@ namespace Agent.Plugins.Definitions
         [Description("time to wait in milliseconds")] int numMilliSeconds)
         {
 
-            return await _appCodeAnalysisPlugin.WaitInMilliSeconds(numMilliSeconds); 
+            return await _appCodeAnalysisPlugin.WaitInMilliSeconds(numMilliSeconds);
         }
 
 
         [KernelFunction("get_summary_of_app_exceptions")]
         [Description("This function retrieves the summary of the exceptions on the app")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetSummaryOfExceptions(
             [Description("resourceId of the app")] string resourceId)
         {
@@ -55,15 +57,17 @@ namespace Agent.Plugins.Definitions
 
         [KernelFunction("get_stack_trace_of_recent_exception")]
         [Description("This function retrieves the stack trace of the most recent exception")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetStackTraceOfLastException(
             [Description("resourceId of the app")] string resourceId)
         {
             return await _appCodeAnalysisPlugin.GetStackTraceOfLastException(resourceId);
         }
 
-        
+
         [KernelFunction("get_stack_trace_of_most_common_exception")]
         [Description("This function retrieves the stack trace of the most recent exception")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetStackTraceOfMostCommonException(
             [Description("resourceId of the app")] string resourceId)
         {
@@ -71,6 +75,7 @@ namespace Agent.Plugins.Definitions
         }
 
         [Description("This function retrieves the stack traces of the n most common app exceptions")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetStackTracesOfNMostCommonExceptions(
             [Description("resourceId of the app")] string resourceId,
             [Description("number of distinct most common exceptions")] int num)
@@ -85,19 +90,21 @@ namespace Agent.Plugins.Definitions
         public async Task<string> PerformDeploymentSwapForApp(
            [Description("resourceId for app")] string resourceId)
         {
-          return await _appCodeAnalysisPlugin.PerformDeploymentSwapForApp(resourceId);
+            return await _appCodeAnalysisPlugin.PerformDeploymentSwapForApp(resourceId);
         }
 
         [KernelFunction("get_deployment_activity_for_app")]
         [Description("Gets Deployment Activities on the specified app")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetDeploymentActivity(
         [Description("resourceId for app")] string resourceId)
         {
-           return await _appCodeAnalysisPlugin.GetDeploymentActivity(resourceId);   
+            return await _appCodeAnalysisPlugin.GetDeploymentActivity(resourceId);
         }
 
         [KernelFunction("get_app_console_logs")]
         [Description("This function attempts to retrieve error messages in the console logs and platform logs from a user's particular app")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetAppConsoleLogs(
         [Description("resourceId of the app")] string resourceId)
         {
@@ -105,6 +112,7 @@ namespace Agent.Plugins.Definitions
         }
 
         [Description("This function retrieves the link to the Applens web app down analysis")]
+        [AgentTool(ToolMode.Auto)]
         public string GetWebAppDownAnalysisLink(
             [Description("resourceId of the app")] string resourceId)
         {

@@ -49,4 +49,14 @@ public enum StreamMessageType
     /// Action update message type.
     /// </summary>
     Action,
+
+    /// <summary>
+    /// Agent task progress updates
+    /// </summary>
+    TaskProgress,
+
+    /// <summary>
+    /// Agent task updates (full task object)
+    /// </summary>
+    TaskUpdate,
 }

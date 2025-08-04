@@ -4,6 +4,7 @@
 
 
 using Microsoft.Extensions.AI;
+using System.Reflection;
 
 /// <summary>
 /// Defines the contract for a deferred tool function.
@@ -28,4 +29,6 @@ public interface IDeferredToolFunction
     string GetPluginCategory();
     string GetPluginResourceType();
     string GetPluginName();
+
+    MethodInfo? MethodInfo { get; }
 }

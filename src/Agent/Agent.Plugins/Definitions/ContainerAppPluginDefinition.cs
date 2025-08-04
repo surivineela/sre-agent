@@ -34,6 +34,7 @@ namespace Agent.Plugins.Definitions
             return await _containerAppPlugin.GetAppGroupResourcesAsync(resourceId.ToLower().Replace("/", "_"));
         }
 
+        [AgentTool(ToolMode.Auto)]
         [Description(
             "PREFERRED METHOD FOR CONTAINER APP DETAILS: Gets detailed information about a specific Azure Container App by its resource ID. " +
             "Returns a ContainerAppDescriptor with resource ID, name, location, state, workload profile, FQDN, AppHealthInfo, and environment details. " +
@@ -48,6 +49,7 @@ namespace Agent.Plugins.Definitions
         }
 
         [Description("List all revisions for a container app by its resource ID.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<IReadOnlyList<RevisionInfo>> ListRevisionsAsync(
             [Description(
                 "The full Azure resource ID of the Container App (format: /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.App/containerApps/{appName}).")]
@@ -58,12 +60,14 @@ namespace Agent.Plugins.Definitions
 
         [KernelFunction("get_latest_containerapp_revision")]
         [Description("Get the latest active revision for a Container App instance")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<RevisionInfo?> GetLatestRevisionAsync(string resourceId)
         {
             return await _containerAppPlugin.GetLatestRevisionAsync(resourceId);
         }
 
         [KernelFunction("list_container_apps")]
+        [AgentTool(ToolMode.Auto)]
         [Description(
             "PREFERRED METHOD FOR CONTAINER APPS: Lists all Azure Container Apps in the specified subscription. " +
             "Returns detailed ContainerAppDescriptor objects with resource ID, name, location, state, workload profile, FQDN, and environment details. " +
@@ -91,6 +95,7 @@ namespace Agent.Plugins.Definitions
         #region Metrics
 
         [KernelFunction("get_containerapp_request_count_metrics")]
+        [AgentTool(ToolMode.Auto)]
         [Description(
             "Start a background operation to get the total request count metrics of a specific Container App instance at per minute granularity" +
             " for the past 30 minutes, Container App is healthy if all data points are at least 99.9 availability.")]
@@ -102,6 +107,7 @@ namespace Agent.Plugins.Definitions
         }
 
         [KernelFunction("get_containerapp_memory_metrics")]
+        [AgentTool(ToolMode.Auto)]
         [Description(
             "Start a background operation to get the average memory usage of a specific Container App instance at per minute granularity for the past 30 minutes," +
             " Container App is healthy if over half of the data points is less than 20% memory utilization.")]
@@ -113,6 +119,7 @@ namespace Agent.Plugins.Definitions
         }
 
         [KernelFunction("check_if_containerapp_is_dotnet")]
+        [AgentTool(ToolMode.Auto)]
         [Description(
             "Start a background operation to check if the container app is dotnet based.")]
         public async Task<bool> IsContainerAppDotnet(
@@ -123,6 +130,7 @@ namespace Agent.Plugins.Definitions
         }
 
         [KernelFunction("get_containerapp_memory_analysis_dotnet")]
+        [AgentTool(ToolMode.Auto)]
         [Description(
             "Start a background operation to get an in-depth memory analysis for .NET Apps of the App instance." +
             " This remediation measure is in the case of high memory load or if the user requests it. This should be executed if there are memory related issues without asking the user.")]
@@ -134,6 +142,7 @@ namespace Agent.Plugins.Definitions
         }
 
         [KernelFunction("get_containerapp_cpu_metrics")]
+        [AgentTool(ToolMode.Auto)]
         [Description(
             "Get the average CPU utilization metrics of a specific Container App instance at per minute granularity" +
             " for the past 30 minutes, Container App is healthy if over half of the data points is less than 80% CPU utilization, zero metric value doesn't indicate the app is unhealthy")]
@@ -235,6 +244,7 @@ namespace Agent.Plugins.Definitions
 
         [Description("Get the logs the latest revision of a Container App instance, highlighting configuration, errors, and diagnostic issues." +
         "This method also surfaces port forwarding errors and other connectivity problems in the log output, making it easier to troubleshoot deployment and runtime issues.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetContainerAppLogsAsync(
             [Description("The resource ID of the Container App instance.")]
             string resourceId)
@@ -256,12 +266,14 @@ namespace Agent.Plugins.Definitions
 
 
         [Description("List available scaler names")]
+        [AgentTool(ToolMode.Auto)]
         public Task<IReadOnlyList<string>> ListAvailableScalers()
         {
             return Task.FromResult(_containerAppPlugin.ListAvailableScalers());
         }
 
         [Description("Get the details of a specific scaler for a Container App instance.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetScalerDetails(
             [Description("The scaler name to get details for.")]
             string scalerName)
@@ -271,6 +283,7 @@ namespace Agent.Plugins.Definitions
 
         [KernelFunction("get_image_reference")]
         [Description("Gets the container image reference from a resource ID")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetImageReferenceFromResourceId(
             [Description("The resource ID of a Container App or Linux Web App")]
             string resourceId)
@@ -294,6 +307,7 @@ namespace Agent.Plugins.Definitions
         [RequiresApproval]
         [KernelFunction("rollback_to_last_working_image")]
         [Description("Rolls back a Container App to the last known working revision. This is useful when a new image deployment causes image pull failures. Returns detailed information about the rollback operation including success status, target revision, and reasons for failure if applicable. Note that this tool requires explicit user's approval before it can be used.")]
+        [WriteAction]
         public async Task<RollbackResult> RollbackToLastKnownWorkingRevision(
                     [Description("Resource ID of the Container App whose revision needs to be rolled back")]
             string resourceId)

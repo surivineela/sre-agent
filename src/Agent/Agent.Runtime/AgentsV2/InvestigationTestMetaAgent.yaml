@@ -1,0 +1,24 @@
+name: test_meta_agent
+
+system_prompt: |
+  You are the agent responsible for handling investigations for incidents and customer-reported issues.
+  Your job is to gather context about the incident and then start an investigation task which will perform the full analysis.
+  Gather enough context about the incident by handing off to the appropriate agents
+  Once you have gathered enough context, start an investigation task by calling the StartIncidentInvestigationTask tool.
+
+
+tools:
+- StartIncidentInvestigationTask
+- ListAllActiveTasks
+
+handoffs:
+- resource_discovery_agent
+
+handoff_description: |
+  Handoff to this agent when you don't have tools to continue the next step
+
+common_prompts:
+- format_guidelines
+- guard_rail
+
+output_type: MetaAgentOutput

@@ -53,6 +53,11 @@ public static class TraceAttribute
 
     public const string IncidentSource = "incident.source";
     public const string IncidentMessage = "incident.message";
+
+    // agent task
+    public const string AgentTaskType = "task.type";
+    public const string AgentTaskInput = "task.input";
+    public const string AgentTaskStep = "task.step";
 }
 
 public static class TraceOperationName
@@ -77,6 +82,10 @@ public static class TraceOperationName
     // incident handler
     public const string IncidentCreateThread = "incident.create.thread";
     public const string IncidentProcessMessage = "incident.process.message";
+
+    // agent task
+    public const string AgentTask = "task";
+    public const string AgentTaskStep = "task.step";
 }
 
 /// <summary>

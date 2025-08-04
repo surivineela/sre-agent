@@ -12,11 +12,14 @@ using Agent.Graph.Interfaces;
 using Agent.Graph.Services;
 using Agent.Runtime;
 using Azure.AI.OpenAI;
+using Agent.Core.Models.Api.v1;
+using Agent.Data.Repositories;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.CommandLineUtils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace Agent.Cmd
 {
@@ -101,6 +104,70 @@ namespace Agent.Cmd
                 {
                     var cmd = host.Services.GetRequiredService<ScenarioCommand>();
                     cmd.RunScenario(command);
+                });
+
+            commandLineApplication.Command("RunTask",
+                (command) =>
+                {
+                    try
+                    {
+                        var agentTasksRepository = host.Services.GetRequiredService<IAgentTasksRepository>();
+                        var properties = new IncidentInvestigationTaskProperties
+                        {
+                            InitialInvestigation = new InitialInvestigationProperties()
+                            {
+                                Status = InitialInvestigationStatus.InProgress,
+                                Summary = string.Empty,
+                                GatheringContext = new GatheringContextProperties()
+                                {
+                                    Status = InitialInvestigationStatus.NotStarted,
+                                }
+                            },
+                            FormingHypothesis = new FormingHypothesisProperties()
+                            {
+                                Status = FormingHypothesisStatus.NotStarted
+                            },
+                            Conclusion = new ConclusionProperties()
+                            {
+                                Summary = string.Empty,
+                                Title = string.Empty,
+                            }
+                        };
+
+                        var task = new AgentTask
+                        {
+                            Id = Guid.NewGuid(),
+                            Title = "test task title",
+                            Type = AgentTaskType.IncidentInvestigation,
+                            Status = AgentTaskStatus.InProgress,
+                            ThreadId = Guid.NewGuid(),
+                            Properties = properties,
+                            InputData = new IncidentInvestigationTaskInputData
+                            {
+                                IncidentDescription = "test incident description"
+                            }
+                        };
+
+                        try
+                        {
+                            task = agentTasksRepository.CreateAgentTaskAsync(task).Result;
+
+                            var newTasks = agentTasksRepository.GetAgentTasksAsync(task.ThreadId).Result;
+
+                            foreach (var t in newTasks)
+                            {
+                                Console.WriteLine(JsonConvert.SerializeObject(t));
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error running task: {ex}");
+                    }
                 });
 
             commandLineApplication.Command("GenerateEval",

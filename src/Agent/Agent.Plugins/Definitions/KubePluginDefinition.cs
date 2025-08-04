@@ -27,6 +27,7 @@ namespace Agent.Plugins
         @"Get AKS cluster resource ID from subscription, resource group name and AKS cluster name.
         Used whenever user want to access AKS cluster but didn't specify the resource ID.
         ")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetAKSClusterResourceIdAsync(
             [Description("The subscription ID of Azure Kubernetes Service")] string Subscription,
             [Description("The name of resource group.")] string ResourceGroupName,
@@ -40,6 +41,7 @@ namespace Agent.Plugins
         [Description(
 @"Get all namespaces in the Kubernetes cluster.
 Used whenever user want to list namespaces or not specified namespace when asking for resources. eg: list all namespaces in my kubernetes cluster")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetKubeNamespacesAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId)
         {
@@ -51,6 +53,7 @@ Used whenever user want to list namespaces or not specified namespace when askin
 @"Get all pods belong to the specific resource and namespace.
 Used whenever user wants to list pods in a specific deployment or statefulset. eg: list all pods in the 'nginx-deployment' in the 'default' namespace.
 If user didn't specify namespace in the context, try to use 'default' namespace")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetKubePodsAsync(
              [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId,
              [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
@@ -83,6 +86,7 @@ If user didn't specify namespace in the context, try to use 'default' namespace"
 Used whenever user wants to check the logs of a specific pod.
 eg: show me the last 100 lines of logs from pod 'nginx-pod-xyz' in the 'default' namespace.
 If user didn't specify namespace in the context, try to use 'default' namespace")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetKubePodLogsAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId,
             [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
@@ -98,6 +102,7 @@ If user didn't specify namespace in the context, try to use 'default' namespace"
 @"List all Custom Resource Definitions (CRDs) in the cluster.
 Used whenever user wants to check what custom resources are available in the cluster.
 eg: show me all CRDs in the cluster")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> ListCRDsAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId
         )
@@ -110,6 +115,7 @@ eg: show me all CRDs in the cluster")]
 @"List custom resource objects in a namespace with specific API group and kind.
 Used whenever user wants to list custom resource objects like Istio VirtualServices, ArgoCD Applications, etc.
 eg: list all VirtualServices in the 'istio-system' namespace.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> ListCustomResourcesAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId,
     [Description($"Kubernetes namespace, e.g. 'default', 'istio-system'")] string _namespace,
@@ -124,6 +130,7 @@ eg: list all VirtualServices in the 'istio-system' namespace.")]
 @"Get the events of a Kubernetes resource (Deployment, StatefulSet, DaemonSet, Pod, Service, Node, PV, or Custom Resource Object) by name.
 Used whenever user wants to check the events or history of a specific resource object.
 eg: show me the events of the pod 'nginx-pod-xyz' in the 'default' namespace.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetKubeResourceEventsAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId,
             [Description($"API Group of the Kubernetes resource, e.g. 'apps/v1'")] string apiGroup,
@@ -139,6 +146,7 @@ eg: show me the events of the pod 'nginx-pod-xyz' in the 'default' namespace.")]
 @"Get the YAML spec and status of a Kubernetes resource (Deployment, StatefulSet, DaemonSet, Pod, Service, Node, PV, PVC, or Custom Resource Object) by name.
 e.g. show me the YAML spec and status of 'my-service' deployment in the 'default' namespace.
 e.g. get spec for node aks-nodepool1-12345678-vmss000000.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetKubeResourceSpecStatusAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId,
             [Description($"API Group of the Kubernetes resource, e.g. 'apps/v1'")] string apiGroup,
@@ -154,10 +162,11 @@ e.g. get spec for node aks-nodepool1-12345678-vmss000000.")]
 @"Get a list of Kubernetes workloads (Deployments, StatefulSets) that were updated within a specified time frame.
 Used to monitor recent changes or identify workloads that might be related to recent issues.
 eg: show me all workloads updated in the last 15 minutes.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetRecentlyUpdatedWorkloadsAsync(
-    [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId,
-    [Description("Kubernetes namespace where the deployment or statefulset is located")] string _namespace,
-    [Description("Number of minutes to look back for updates")] int minutesAgo)
+            [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId,
+            [Description("Kubernetes namespace where the deployment or statefulset is located")] string _namespace,
+            [Description("Number of minutes to look back for updates")] int minutesAgo)
         {
             return await _kubePlugin.GetRecentlyUpdatedWorkloadsAsync(AKSClusterResourceId, _namespace, minutesAgo);
         }
@@ -169,6 +178,7 @@ Supported kinds include Deployment, Service, Statefulset, Pod, Job, Configmap, S
 e.g., 'list all deployments in the default namespace', 'list all nodes'.
 It can also be invoked multiple times to list deployments in different namespaces. eg: list all deployments in the 'default' and 'kube-system' namespaces.
 If user didn't specify namespace in the context, try to use 'default' namespace")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> ListKubeResourcesAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId,
             [Description($"Kubernetes resource kind, e.g. 'deployment', 'statefulset', 'service'")] string kind,
@@ -199,6 +209,7 @@ If user didn't specify namespace in the context, try to use 'default' namespace"
 @"Get the status of the apiserver for the AKS cluster.
 Used whenever user wants to check the apiserver status of the AKS cluster. Apiserver is the main component of Kubernetes control plane.
 eg: show me the status of apiserver")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetAPIServerStatusAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId,
             [Description("Time range for checking status, e.g. '5m', '1h', '2d'")] string timeRange = "5m")
@@ -211,6 +222,7 @@ eg: show me the status of apiserver")]
 @"Get the status of the etcd for the AKS cluster.
 Used whenever user wants to check the etcd status of the AKS cluster. Etcd is the key-value store used by Kubernetes to store all cluster data which is the main component of Kubernetes control plane.
 eg: show me the status of etcd")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetEtcdStatusAsync(
     [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId,
     [Description("Time range for checking status, e.g. '5m', '1h', '2d'")] string timeRange = "5m")
@@ -226,6 +238,7 @@ For each pod, it will pod spec, status, events, logs, CPU/Memory metrics to this
 e.g.: diagnose the 'nginx' deployment in the 'default' namespace.
 e.g.: check what's wrong with my 'redis' statefulset in the 'databse-system' namespace.
 ")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> DiagnoseAKSAppAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId,
             [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
@@ -260,6 +273,7 @@ The supported workload include deployment, statefulset, pod, and node.
 eg: please give me the cpu usage rate for deployment flask from 2023-03-01T20:10:30.781Z to 2023-03-20T20:10:30.781Z.
 eg: please give me the memory usage rate for deployment checkout for last 1 hour.
 eg: please give me the availability rate for statefulset for last 2 hour.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetKubeResourceMetricsRangeAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId,
             [Description($"Kubernetes resource kind, e.g. 'deployment', 'statefulset'")] string kind,
@@ -279,6 +293,7 @@ For deployments, it fetches ReplicaSets owned by the deployment.
 For StatefulSets, it fetches ControllerRevision objects.
 Used whenever user wants to check the revision history of a workload.
 eg: show me all revisions of the 'nginx' deployment in the 'default' namespace.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> ListWorkloadRevisionsAsync(
             [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId,
             [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
@@ -324,6 +339,7 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         Note: For restarting deployments, use RolloutRestartDeploymentAsync tool instead of 'kubectl rollout restart' to avoid creating new revisions.
         """)]
         [WriteAction]
+        [AgentTool(ToolMode.Manual)]
         public async Task<string> RunKubectlWriteCommandAsync(
              [Description("The resource ID of the Azure Kubernetes Service. e.g. '/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ContainerService/managedClusters/{cluster-name}'")] string AKSClusterResourceId,
              [Description($"Complete kubectl get command string, e.g.: 'kubectl get deployments -n production -o wide'")] string command,

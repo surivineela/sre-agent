@@ -4,6 +4,7 @@
 using Agent.Plugins.Interface;
 using Microsoft.SemanticKernel;
 using System.ComponentModel;
+using Agent.Framework;
 
 namespace Agent.Plugins.Definitions;
 
@@ -19,8 +20,9 @@ public class AppInsightsPluginDefinition
 
     [KernelFunction("make_app_insight_api_call")]
     [Description("Makes an api call to application insights")]
+    [AgentTool(ToolMode.Auto)]
     public async Task<string> ExecuteAppInsightsQuery(
-        string resourceId, 
+        string resourceId,
        [Description("query for api call to application insights")] string queryString)
     {
         return await _appInsightsPlugin.ExecuteAppInsightsQuery(resourceId, queryString);
@@ -28,6 +30,7 @@ public class AppInsightsPluginDefinition
 
     [KernelFunction("query_log_analytics_workspace")]
     [Description("Queries Log Analytics Workspace")]
+    [AgentTool(ToolMode.Auto)]
     public async Task<string> ExecuteLogAnalyticsQuery(
         string resourceId,
        [Description("query for Log Analytics Workspace API call")] string queryString,

@@ -24,7 +24,7 @@ public class AzureSearchPluginDefinition
         _azureSearchPlugin = plugin ?? throw new ArgumentNullException(nameof(plugin));
     }
 
-    
+    [AgentTool(ToolMode.Auto)]
     [Description("Retrieve troubleshooting guide (TSG) content based on search text.")]
     public async Task<IReadOnlyList<TsgDocumentMetadata>> GetTsgContent(
         [Description("Text to search for in the TSG content")] string searchText,

@@ -5,6 +5,7 @@
 using System.ComponentModel;
 using Agent.Core.Attributes;
 using Agent.Core.Models;
+using Agent.Framework;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
 
@@ -21,6 +22,7 @@ namespace Agent.Plugins
         }
 
         [Description("Gets the TLS settings for a list of resources.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<List<TlsStatus>> GetTlsSettings(
             [Description("List of resource IDs to check the TLS minimum version for")]
             List<string> resourceIds)
@@ -29,6 +31,7 @@ namespace Agent.Plugins
         }
 
         [Description("Checks if a resource exists in Azure.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<bool> CheckIfResourceExists(
             [Description("The resource ID of the app.")]
             string appResourceId)
@@ -61,6 +64,7 @@ namespace Agent.Plugins
         }
 
         [Description("Get ARM properties of a resource as JSON")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetArmResourceAsJson(
             [Description("Full resource id of an Azure resource")] string resourceId)
         {
@@ -77,6 +81,7 @@ namespace Agent.Plugins
         }
 
         [Description("Get boot diagnostic logs and console screenshot for an Azure virtual machine")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<IReadOnlyDictionary<string, string>> GetVirtualMachineBootDiagnostics(
             [Description("Full resource id of an Azure virtual machine resource")] string resourceId)
         {
@@ -84,6 +89,7 @@ namespace Agent.Plugins
         }
 
         [Description("Tests connectivity from function app to AzureWebJobsStorage. Only use this for connection string based authentication scenarios.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> CheckConnectivityToAzureWebJobsStorage(
             [Description("Full resource id of an Azure Function App")] string resourceId,
             [Description("The type of storage to connect to. Valid values: BlobStorage, QueueStorage, TableStorage")]
@@ -93,6 +99,7 @@ namespace Agent.Plugins
         }
 
         [Description("Check if a connection from the given resource to the target host can be established.")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> CheckTcpConnectivity(
             [Description("Full resource id of an Azure resource")] string resourceId,
             [Description("Host to test connectivity to")] string host,
@@ -102,6 +109,7 @@ namespace Agent.Plugins
         }
 
         [Description("Check if DNS resolution from the function app to the storage account's endpoint")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> CheckDnsResolution(
             [Description("Full resource id of an Azure resource")] string resourceId,
             [Description("The url of the target storage account's endpoint")] string destinationUrl)
@@ -110,6 +118,7 @@ namespace Agent.Plugins
         }
 
         [Description("Retrieves the key value pair for given App Setting key")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<IDictionary<string, string>> GetAppSetting(
             [Description("Full resource id of an Azure resource")] string resourceId,
             [Description("The App Setting key to look up")] string appSettingKey)
@@ -118,6 +127,7 @@ namespace Agent.Plugins
         }
 
         [RequiresApproval]
+        [WriteAction]
         [Description("For connection string based authentication only: Lists the keys for a given Azure Storage account and updates the specified App Setting in an App Service with the connection string. Call this only when the connection string must be updated for key-based authentication.")]
         public async Task<bool> ListKeysAndUpdateAppSettingsAsync(
             [Description("Full resource id of an Azure Storage account")] string storageResourceId,
@@ -137,6 +147,7 @@ namespace Agent.Plugins
         }
 
         [Description("Retrieves the Azure resource ID for a storage account from its storage service URI")]
+        [AgentTool(ToolMode.Auto)]
         public async Task<string> GetResourceIdFromStorageServiceUri(
             [Description("The storage service URI (e.g., https://accountname.blob.core.windows.net)")] string storageServiceUri,
             [Description("The subscription ID where the storage account is located")] string subscriptionId)
@@ -168,6 +179,7 @@ BEST PRACTICES:
 - Executes immediately - no approval needed
 - Use to understand current state before changes
 """)]
+        [AgentTool(ToolMode.Manual)]
         public async Task<string> RunAzCliReadCommandsAsync(
     [Description("Complete az command string for read operations (list, show, get)")] string command)
         {
@@ -190,6 +202,7 @@ BEST PRACTICES:
 - Include rollback commands when possible
 - Requires USER APPROVAL before execution
 """)]
+        [AgentTool(ToolMode.Manual)]
         public async Task<string> RunAzCliWriteCommandsAsync(
             [Description("Complete az command string for write operations (create, update, set, scale, start, stop, restart)")] string command)
         {
@@ -208,6 +221,7 @@ EXAMPLES:
 - Filter for parameter info: 'containerapp' with pattern '--cpu' (returns only lines about CPU parameters)
 NOTE: This is an internal tool for command validation, not for generating user documentation.
 """)]
+        [AgentTool(ToolMode.Manual)]
         public async Task<string> GetAzCliHelpAsync(
             [Description("The Azure CLI command/topic to get help for (e.g., 'webapp', 'containerapp create')")] string helpTopic,
             [Description("Optional search pattern to filter help output - returns only lines containing this text")] string grepPattern = "")

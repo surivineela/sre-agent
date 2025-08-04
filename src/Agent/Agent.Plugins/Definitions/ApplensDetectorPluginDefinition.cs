@@ -4,6 +4,7 @@
 
 using System.ComponentModel;
 using Agent.Core.Models;
+using Agent.Framework;
 using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Definitions
@@ -38,6 +39,7 @@ namespace Agent.Plugins.Definitions
         /// <param name="endTime">Optional end time for the analysis in ISO 8601 format</param>
         /// <returns>JSON string containing detector results</returns>
         [Description("Invokes an Applens detector for a specific Azure resource")]
+        [AgentTool(ToolMode.Auto)]
         public Task<string> InvokeDetector(
             [Description("Subscription ID")] string subscriptionId,
             [Description("Resource Group name")] string resourceGroup,
@@ -69,6 +71,7 @@ namespace Agent.Plugins.Definitions
         /// <param name="endTime">Optional end time for the analysis in ISO 8601 format</param>
         /// <returns>JSON string containing analysis results</returns>
         [Description("Invokes an Applens analysis for a specific Azure resource")]
+        [AgentTool(ToolMode.Auto)]
         public Task<string> InvokeAnalysis(
             [Description("Subscription ID")] string subscriptionId,
             [Description("Resource Group name")] string resourceGroup,
