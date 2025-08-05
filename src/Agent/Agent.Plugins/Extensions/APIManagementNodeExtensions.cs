@@ -32,6 +32,32 @@ namespace Agent.Plugins.Extensions
                 ).ToList();
             }
 
+            // Build API info if present
+            List<APIManagementApiInfoDescriptor>? apiInfoDescriptors = null;
+            if (apiManagementNode.ApiInfoMap != null && apiManagementNode.ApiInfoMap.Any())
+            {
+                apiInfoDescriptors = apiManagementNode.ApiInfoMap.Select(kvp =>
+                    new APIManagementApiInfoDescriptor(
+                        ApiName: kvp.Key,
+                        DisplayName: kvp.Value.DisplayName,
+                        Description: kvp.Value.Description,
+                        Path: kvp.Value.Path,
+                        Operations: kvp.Value.Operations?.Select(op =>
+                            new APIManagementApiOperationInfo(
+                                DisplayName: op.DisplayName,
+                                Method: op.Method,
+                                Description: op.Description
+                            )).ToList() ?? new List<APIManagementApiOperationInfo>(),
+                        Dependencies: kvp.Value.ApiDependencies?.Select(dep =>
+                            new APIManagementApiDependencyInfo(
+                                BackendResourceIdentifier: dep.BackendResourceIdentifier,
+                                BackendResourceType: dep.BackendResourceType
+                            )).ToList() ?? new List<APIManagementApiDependencyInfo>()
+                    )
+                ).ToList();
+            }
+
+
             return new APIManagementDescriptor(
                 ResourceId: apiManagementNode.ResourceId ?? string.Empty,
                 Name: apiManagementNode.ResourceName ?? string.Empty,
@@ -94,7 +120,8 @@ namespace Agent.Plugins.Extensions
                     : null,
 
                 AppHealthInfo: apiManagementNode.AppHealthInfo,
-                Backends: backendDescriptors
+                Backends: backendDescriptors,
+                ApiInfo: apiInfoDescriptors
             );
         }
     }

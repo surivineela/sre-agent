@@ -35,7 +35,28 @@ namespace Agent.Plugins.Models
         VNetConfigDescriptor? VNetConfig = null,
         SystemDataDescriptor? SystemData = null,
         AppHealthInfo? AppHealthInfo = null,
-        List<APIManagementBackendDescriptor>? Backends = null
+        List<APIManagementBackendDescriptor>? Backends = null,
+        List<APIManagementApiInfoDescriptor>? ApiInfo = null
+    );
+
+    public record APIManagementApiInfoDescriptor(
+        [property: JsonPropertyName("apiName")] string ApiName,
+        [property: JsonPropertyName("displayName")] string? DisplayName,
+        [property: JsonPropertyName("description")] string? Description,
+        [property: JsonPropertyName("path")] string? Path,
+        [property: JsonPropertyName("operations")] List<APIManagementApiOperationInfo>? Operations,
+        [property: JsonPropertyName("dependencies")] List<APIManagementApiDependencyInfo>? Dependencies
+    );
+
+    public record APIManagementApiOperationInfo(
+        [property: JsonPropertyName("displayName")] string? DisplayName,
+        [property: JsonPropertyName("method")] string? Method,
+        [property: JsonPropertyName("description")] string? Description
+    );
+
+    public record APIManagementApiDependencyInfo(
+        [property: JsonPropertyName("backendResourceIdentifier")] string? BackendResourceIdentifier,
+        [property: JsonPropertyName("backendResourceType")] string? BackendResourceType
     );
 
     public sealed record SystemDataDescriptor(

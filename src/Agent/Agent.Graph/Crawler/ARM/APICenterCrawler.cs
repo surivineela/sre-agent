@@ -70,8 +70,9 @@ namespace Agent.Graph.Crawler.ARM
                     string query = $@"
                         g.V()
                         .has('id', '{apimNodeIdQuery}')
-                        .has('isDeleted', false)
-                        .valueMap()";
+                        .project('properties')
+                        .by(properties().group().by(key()).by(value()))
+                        .select('properties')";
 
                     var result = await _graphDbClient.Query<Dictionary<string, object>>(query);
 
@@ -81,8 +82,6 @@ namespace Agent.Graph.Crawler.ARM
 
                         // Initialize ApiInfoMap if it doesn't exist
                         apimNode.ApiInfoMap ??= new Dictionary<string, APIManagementNode.ApiInfo>();
-
-                        apimNode = new APIManagementNode(result.First());
 
                         // Process each connection in the group
                         foreach (var connection in group)

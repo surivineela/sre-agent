@@ -154,17 +154,22 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             {
                 try
                 {
-                    var jsonStringList = ((IEnumerable<object>)appHealthInfoObj)
-                        .OfType<string>()
-                        .ToList();
-
-                    if (jsonStringList.Count > 0 && jsonStringList[0] != null)
+                    if (appHealthInfoObj is string jsonString)
                     {
-                        AppHealthInfo = JsonSerializer.Deserialize<AppHealthInfo>(jsonStringList[0]);
+                        AppHealthInfo = JsonSerializer.Deserialize<AppHealthInfo>(jsonString);
+                    }
+                    else if (appHealthInfoObj is IEnumerable<object> jsonList)
+                    {
+                        var jsonStringList = jsonList.OfType<string>().ToList();
+                        if (jsonStringList.Count > 0)
+                        {
+                            AppHealthInfo = JsonSerializer.Deserialize<AppHealthInfo>(jsonStringList[0]);
+                        }
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Console.WriteLine($"An exception occurred while deserializing the API Management Node's App Health: {ex}");
                     AppHealthInfo = null;
                 }
             }
@@ -173,19 +178,22 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             {
                 try
                 {
-                    var jsonStringList = ((IEnumerable<object>)apiInfoObj)
-                        .OfType<string>()
-                        .ToList();
-
-                    if (jsonStringList.Count > 0 && jsonStringList[0] != null)
+                    if (apiInfoObj is string jsonString)
                     {
-                        
-                        ApiInfoMap = JsonSerializer.Deserialize<Dictionary<string, ApiInfo>>(jsonStringList[0]);
+                        ApiInfoMap = JsonSerializer.Deserialize<Dictionary<string, ApiInfo>>(jsonString);
+                    }
+                    else if (apiInfoObj is IEnumerable<object> jsonList)
+                    {
+                        var jsonStringList = jsonList.OfType<string>().ToList();
+                        if (jsonStringList.Count > 0 && jsonStringList[0] != null)
+                        {
+                            ApiInfoMap = JsonSerializer.Deserialize<Dictionary<string, ApiInfo>>(jsonStringList[0]);
+                        }
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"{ex.ToString()}");
+                    Console.WriteLine($"An exception occurred while deserializing the API Management Node's API information: {ex}");
                     ApiInfoMap = null;
                 }
             }
@@ -194,17 +202,22 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             {
                 try
                 {
-                    var jsonStringList = ((IEnumerable<object>)backendResourceMapObj)
-                        .OfType<string>()
-                        .ToList();
-
-                    if (jsonStringList.Count > 0 && jsonStringList[0] != null)
+                    if (backendResourceMapObj is string jsonString)
                     {
-                        BackendResourceMap = JsonSerializer.Deserialize<Dictionary<string, BackendResourceInfo>>(jsonStringList[0]);
+                        BackendResourceMap = JsonSerializer.Deserialize<Dictionary<string, BackendResourceInfo>>(jsonString);
+                    }
+                    else if (backendResourceMapObj is IEnumerable<object> jsonList)
+                    {
+                        var jsonStringList = jsonList.OfType<string>().ToList();
+                        if (jsonStringList.Count > 0 && jsonStringList[0] != null)
+                        {
+                            BackendResourceMap = JsonSerializer.Deserialize<Dictionary<string, BackendResourceInfo>>(jsonStringList[0]);
+                        }
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Console.WriteLine($"An exception occurred while deserializing the API Management Node's Backend Resource Map: {ex}");
                     BackendResourceMap = null;
                 }
             }
