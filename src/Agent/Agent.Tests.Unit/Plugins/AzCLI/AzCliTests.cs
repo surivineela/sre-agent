@@ -72,7 +72,8 @@ namespace Agent.Tests.Unit.Plugins.AzCLI
         [InlineData("az monitor log-analytics query --analytics-query Heartbeat | take 10", false)] // Unquoted value with pipe
         [InlineData("az monitor log-analytics query --analytics-query \"Heartbeat | take 10", false)] // Unclosed quote
         [InlineData("az monitor log-analytics query --analytics-query 'Heartbeat | take 10\"", false)] // Mismatched quotes
-        [InlineData("az storage list --query \"[?name=='test'] | [0]\"", false)] // Pipe in non-whitelisted flag
+        [InlineData("az storage list --query \"[?name=='test'] | [0]\"", true)]
+        [InlineData("az vm list-skus --location eastus --query \"[?name=='Standard_Ds_v6'].{Name:name,Capacity:capabilities[?name=='MaxResourceVolumeMB']|[0].value,Restrictions:restrictions}\" --subscription 31ce06e2-bf5d-4bdf-9649-243ec548316f", true)]
         [InlineData("az monitor log-analytics query --analytics-query \"Heartbeat | take 10\" && echo 'test'", false)] // Dangerous character outside whitelisted flag
         public void ValidateCommand_ShouldReturnExpectedResult(string command, bool shouldBeValid)
         {

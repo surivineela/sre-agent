@@ -3071,7 +3071,8 @@ public class ArmHelper
         // Define flags that are allowed to contain dangerous characters in their quoted values
         var whitelistedFlags = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            "--analytics-query"
+            "--analytics-query",
+            "--query"
         };
 
         // Check for dangerous characters that could indicate command injection
