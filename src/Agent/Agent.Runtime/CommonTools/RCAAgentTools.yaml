@@ -2,10 +2,16 @@ name: rca_agent_tools
 
 tools:
   - OneLinerToRCA
+
   - GetASIPageForManagedCluster
   - GetASIPageForContainerAppJob
   - GetASIPageForManagedEnvironment
   - GetASIPageForRevision
+
   - PlotTimeSeriesData
+  - PlotPieChart
+  - PlotBarChart
+  - PlotScatter
+  - PlotHeatmap
+
   - HandoffBack
-  - GetChangesInManagedEnvironment

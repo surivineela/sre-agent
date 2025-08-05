@@ -248,7 +248,7 @@ Returns tab-separated table data in CSV format. Column headers:
             [Description("End time.")] DateTime toDate,
             [Description("Revision name.")] string revisionName,
             [Description("App name.")] string containerAppName,
-            [Description("Resource group.")] string resourceGroupName,
+            [Description("Resource group name.")] string resourceGroupName,
             [Description("Subscription ID.")] string subscriptionId)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetRevisionReplicaAndTraffic", region,
@@ -279,7 +279,7 @@ Returns tab-separated table data in CSV format with status and state columns as 
             [Description("End time.")] DateTime toDate,
             [Description("Revision name.")] string revisionName,
             [Description("App name.")] string containerAppName,
-            [Description("Resource group.")] string resourceGroupName,
+            [Description("Resource group name.")] string resourceGroupName,
             [Description("Subscription ID.")] string subscriptionId)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetRevisionStatus", region,
@@ -314,7 +314,7 @@ Returns tab-separated table data in CSV format. Column headers:
             [Description("End time.")] DateTime toDate,
             [Description("Revision name.")] string revisionName,
             [Description("App name.")] string containerAppName,
-            [Description("Resource group.")] string resourceGroupName,
+            [Description("Resource group name.")] string resourceGroupName,
             [Description("Subscription ID.")] string subscriptionId)
         {
             string query = $@"
@@ -420,7 +420,7 @@ Returns tab-separated table data in CSV format. Column headers:
             [Description("End time for metrics.")] DateTime toDate,
             [Description("Name of the revision.")] string revisionName,
             [Description("Container app name.")] string containerAppName,
-            [Description("Resource group name.")] string resourceGroupName,
+            [Description("Resource group name.name.")] string resourceGroupName,
             [Description("Subscription ID.")] string subscriptionId,
             [Description("Managed cluster name.")] string managedClusterName)
         {
@@ -455,7 +455,7 @@ Returns tab-separated table data in CSV format. Column headers:
             [Description("End time.")] DateTime toDate,
             [Description("Revision name.")] string revisionName,
             [Description("App name.")] string containerAppName,
-            [Description("Resource group.")] string resourceGroupName,
+            [Description("Resource group name.")] string resourceGroupName,
             [Description("Subscription ID.")] string subscriptionId)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetRevisionSpecChanges", region,
@@ -494,7 +494,7 @@ Returns tab-separated table data in CSV format. Column headers:
             [Description("Start time.")] DateTime fromDate,
             [Description("End time.")] DateTime toDate,
             [Description("App name.")] string containerAppName,
-            [Description("Resource group.")] string resourceGroupName,
+            [Description("Resource group name.")] string resourceGroupName,
             [Description("Subscription ID.")] string subscriptionId)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetArmCalls", region,
@@ -521,7 +521,6 @@ Returns tab-separated table data in CSV format. Column headers:
         Returns tab-separated table data in CSV format. Column headers:
         - StartTime: Timestamp of the first time the event occurred.
         - EndTime: Timestamp of the last time the event occurred.
-        - RevisionName: Name of the revision.
         - ReplicaName: Name of the replica.
         - Reason: Reason for the event.
         - Message: Additional event message details.
@@ -534,7 +533,7 @@ Returns tab-separated table data in CSV format. Column headers:
             [Description("Revision name.")] string revisionName,
             [Description("Pod name within the revision.")] string podName,
             [Description("App name.")] string containerAppName,
-            [Description("Resource group.")] string resourceGroupName,
+            [Description("Resource group name.name.")] string resourceGroupName,
             [Description("Subscription ID.")] string subscriptionId)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetEventProcessorEventsForRevision", region,
@@ -571,7 +570,7 @@ Returns tab-separated table data in CSV format. Column headers:
             [Description("End of the time range.")] DateTime toDate,
             [Description("Revision name.")] string revisionName,
             [Description("App name.")] string containerAppName,
-            [Description("Resource group name.")] string resourceGroupName,
+            [Description("Resource group name.name.")] string resourceGroupName,
             [Description("Azure subscription ID.")] string subscriptionId)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetPodHeartbeatStatus", region,
@@ -732,7 +731,7 @@ Returns tab-separated table data in CSV format. Column headers:
             [Description("End time.")] DateTime toDate,
             [Description("Revision name.")] string revisionName,
             [Description("App name.")] string containerAppName,
-            [Description("Resource group.")] string resourceGroupName,
+            [Description("Resource group name.")] string resourceGroupName,
             [Description("Subscription ID.")] string subscriptionId)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetRevisionTrafficStatus", region,
@@ -795,7 +794,7 @@ Returns tab-separated table data in CSV format. Column headers:
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Subscription ID.")] string subscriptionId,
-            [Description("Resource group name.")] string resourceGroupName,
+            [Description("Resource group name.name.")] string resourceGroupName,
             [Description("Name of the container app.")] string containerAppName)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetHealthProbeSettings", region,
@@ -883,7 +882,7 @@ Returns tab-separated table data in CSV format. Column headers:
             [Description("End time for the dashboard.")] string endTime,
             [Description("Azure region.")] string region,
             [Description("Azure subscription ID.")] string subscriptionId,
-            [Description("Resource group name.")] string resourceGroupName,
+            [Description("Resource group name.name.")] string resourceGroupName,
             [Description("Managed cluster name.")] string managedClusterName,
             [Description("Container app name.")] string containerAppName,
             [Description("Revision name.")] string revisionName)

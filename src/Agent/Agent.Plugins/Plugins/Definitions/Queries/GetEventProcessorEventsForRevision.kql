@@ -13,4 +13,4 @@ EventProcessorEvents
 | where isempty(pod_name) or * contains pod_name
 | summarize StartTime= min(PreciseTimeStamp), EndTime = max(PreciseTimeStamp) by RevisionName,ReplicaName,Reason,Message=msg
 | order by StartTime asc
-| project StartTime,EndTime,RevisionName,ReplicaName,Reason,Message
+| project StartTime,EndTime,ReplicaName,Reason,Message
