@@ -115,7 +115,8 @@ namespace Agent.Tests.Unit.Plugins
                     "RunColdStartRegressionAnalysisPerRegion.kql",
                     "GetSyncTriggersFromSiteName.kql",
                     "CheckIfScaleControllerMonitorsTrigger.kql",
-                    "CheckFunctionExecutions.kql"
+                    "CheckFunctionExecutions.kql",
+                    "GetManagedEnvironmentVnetStatus.kql"
                 };
 
             var invalidColumnsSummary = new StringBuilder();

@@ -222,6 +222,7 @@ tools:
 - DnsServerManagerOperation
 - GetASIPageForLegionPod
 - GetPodGuidFromName
+- GetManagedEnvironmentVnetStatus
 
 common_tools:
   - rca_agent_tools

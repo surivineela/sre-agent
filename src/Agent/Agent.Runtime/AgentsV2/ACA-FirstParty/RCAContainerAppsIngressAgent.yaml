@@ -243,6 +243,7 @@ handoffs:
 tools:
   - GetContainerAppManagedCluster
   - GetContainerAppIngressConfig
+  - GetManagedEnvironmentVnetStatus
   - GetEnvoyPodLogs
   - GetEnvoyControllerLogs
   - GetEnvoyAccessRequestCountTimeSeries

@@ -86,6 +86,7 @@ namespace Agent.Plugins.Definitions
         [Description(@"""
         Purpose:
         Retrieves the ccpNamespace of an ACA's managed cluster, required for other AKS queries.
+        Note the subscription must be managed subscription ID not the customer's subscription ID.
 
         Scenario:
         Use this method when you need to obtain the CCP namespace for an AKS cluster before performing other AKS cluster-specific queries that require this namespace identifier.
@@ -106,17 +107,18 @@ namespace Agent.Plugins.Definitions
         [Description("Start time of the query.")] DateTime fromDate,
         [Description("End time of the query.")] DateTime toDate,
         [Description("Name of the resource group hosting the ACA environment.")] string resourceGroupName,
-        [Description("Azure subscription ID.")] string subscriptionId,
+        [Description("Managed subscription ID.")] string subscriptionId,
         [Description("Name of the managed cluster.")] string managedClusterName)
         {
-            return _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("GetAksClusterCcpNamespace", "akshuba.centralus", "AKSprod",
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetAksClusterCcpNamespace", "centralus",
                 new Dictionary<string, string> {
-            { "fromDate", fromDate.ToString() },
-            { "toDate", toDate.ToString() },
-            { "resourceGroupName", resourceGroupName },
-            { "subscriptionId", subscriptionId },
-            { "managedClusterName", managedClusterName },
-                });
+                    { "fromDate", fromDate.ToString() },
+                    { "toDate", toDate.ToString() },
+                    { "resourceGroupName", resourceGroupName },
+                    { "subscriptionId", subscriptionId },
+                    { "managedClusterName", managedClusterName }
+                },
+                groupName: "AKS");
         }
 
         [Description(@"""

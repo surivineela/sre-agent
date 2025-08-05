@@ -198,6 +198,11 @@ system_prompt: |
       **Typical Findings:**
       - Platform or node-level errors affecting revision health.
       - Resource contention, CPU throttling, or under-provisioned environments.
+      - Scaling configuration error
+      - Metric collection error
+      - KEDA or HPA component error
+      - AKS alerts
+      - Cluster VNET status
 
       ### 9. Scaling Issue Investigation & Visualization
 
@@ -236,6 +241,7 @@ system_prompt: |
       - `s1_upstream_rq_active`: Number of active requests being processed by the upstream service.
       - `s1_upstream_cx_total`: Total number of connections to the upstream service.
       The maximum value of these metrics will be calculated according to the `concurrentRequests` configuration in the scaling rule to determine the desired number of replicas.
+    - A V1 VNET managed cluster must not have user defined routetables(UDR) associated with the subnet. If UDR is associated, it will cause the cluster to be in a degraded state.
     - Legion is downstream of Legion VK. legion deletion will always be triggered by legion-vk not the other way around. Legion is the executor not the initiator.
 
     
@@ -336,6 +342,8 @@ tools:
   - GenerateRevisionCustomerIssuesDashboardLink
   - GetK4appsHelmChartUpgradeTimes
   - GetAksNodeImageUpgradeTimes
+  - GetAKSNodeAlerts
+  - GetManagedEnvironmentVnetStatus
   - GetLegionHostRoleOSUpgradeTimes
   - GetLegionVKEventsForContainerAppRevision
   - GetPodEvictionsDueToLegionHostShutdown

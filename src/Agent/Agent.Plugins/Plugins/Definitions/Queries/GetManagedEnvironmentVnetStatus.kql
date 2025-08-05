@@ -1,0 +1,48 @@
+let globalFrom = datetime("##fromDate##");
+let globalTo = datetime("##toDate##");
+let local_managedClusterName = "##managedClusterName##";
+//
+// First query: Get VNET configuration
+let vnetInfo = ManagedEnvironmentDBState
+| where TIMESTAMP between (globalFrom .. globalTo)
+| where managedClusterName == local_managedClusterName
+| extend envType = case(hasWorkloadProfiles == true or isLegionEnabled == true, "V2", "V1")
+| extend customVnet = case(hasCustomerVnetForEnv == true and envType == "v1", true, 
+                           subnetResourceId != "", true, 
+                           false)
+| summarize envType = max(envType), customVnet = max(customVnet), subnetResourceId = max(subnetResourceId)
+| extend vnetResourceUri=split(subnetResourceId,"/subnets/")[0]
+| extend subnetName=split(subnetResourceId,"/subnets/")[1]
+| extend vnetSubscriptionId=split(subnetResourceId,"/")[2]
+| extend vnetResourcegroup=split(subnetResourceId,"/")[4]
+| extend vnetName=split(subnetResourceId,"/")[8];
+// Get the subnet resource ID to use for the second query
+let subnetResourceIdToQuery = toscalar(vnetInfo | project subnetResourceId);
+let querySubscriptionId = toscalar(vnetInfo | project vnetSubscriptionId);
+let querySubnetName = toscalar(vnetInfo | project subnetName);
+let vnetResourceId = toscalar(vnetInfo | project vnetResourceUri);
+// Second query: Get detailed subnet information from Azure Resource Graph
+let subnetDetails = 
+    cluster("argwus2nrpone.westus2.kusto.windows.net").database("AzureResourceGraph").Resources
+    | where timestamp > ago(3d)
+    | where type =~ "microsoft.network/virtualnetworks" and source =~ 'fullsync'
+    | where subscriptionId == querySubscriptionId
+    | where id =~ vnetResourceId
+    | project id, timestamp, properties, subscriptionId
+    | top 1 by timestamp desc
+    | mv-expand Subnet = properties.subnets
+    | project Subnet, subnetName = tostring(Subnet.name), id, timestamp, subscriptionId
+    | where subnetName == querySubnetName
+    | extend networkSecurityGroupId = tostring(Subnet.properties.networkSecurityGroup.id)
+    | extend subnetRouteTableId = tostring(Subnet.properties.routeTable.id)  
+    | extend subnetNatGatewayId = tostring(Subnet.properties.natGateway.id)
+    | extend vnetSubId = subscriptionId
+    | project networkSecurityGroupId, subnetRouteTableId, subnetNatGatewayId, 
+              vnetSubId;
+// subnetDetails
+// Combine results
+vnetInfo  
+| extend dummy = 1
+| join kind=fullouter (subnetDetails | extend dummy = 1) on dummy
+| project-away dummy, dummy1
+| project envType, customVnet, subnetResourceId, vnetResourceUri, subnetName, vnetSubscriptionId, vnetResourcegroup, vnetName, networkSecurityGroupId, subnetRouteTableId, subnetNatGatewayId, vnetSubId

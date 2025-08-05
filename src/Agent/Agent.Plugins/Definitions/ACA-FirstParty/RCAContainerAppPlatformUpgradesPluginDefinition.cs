@@ -65,13 +65,14 @@ namespace Agent.Plugins.Definitions
             [Description("The region of the managed cluster")] string region,
             [Description("The name of the managed cluster")] string managedClusterName)
         {
-            return _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("GetAksNodeImageUpgradeTimes", "akshuba.centralus", "AKSprod",
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetAksNodeImageUpgradeTimes", "centralus",
                 new Dictionary<string, string> {
                     { "fromDate", fromDate.ToString() },
                     { "toDate", toDate.ToString() },
                     { "managedClusterName", managedClusterName },
                     { "region", region }
-                });
+                },
+                groupName: "AKS");
         }
 
         [Description("""

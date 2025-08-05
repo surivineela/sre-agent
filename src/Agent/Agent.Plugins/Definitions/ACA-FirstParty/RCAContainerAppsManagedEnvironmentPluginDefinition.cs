@@ -64,7 +64,7 @@ namespace Agent.Plugins.Definitions
                 ? "centralus"
                 : region;
 
-            string environments =  await _kustoPlugin.ExecuteLocalFunctionAsync("GetManagedEnvironment", kustoClientRegion,
+            string environments = await _kustoPlugin.ExecuteLocalFunctionAsync("GetManagedEnvironment", kustoClientRegion,
                  new Dictionary<string, string> {
                     { "fromDate", fromDate.ToString() },
                     { "toDate", toDate.ToString() },
@@ -563,10 +563,10 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public async Task<string> GetLogsByCorrelationId(
-    [Description("Azure region of the managed environment.")] string region,
-    [Description("Start time of the query.")] DateTime fromDate,
-    [Description("End time of the query.")] DateTime toDate,
-    [Description("Correlation ID to filter the operation logs. This parameter cannot be empty")] string correlationId)
+            [Description("Azure region of the managed environment.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Correlation ID to filter the operation logs. This parameter cannot be empty")] string correlationId)
         {
             if (string.IsNullOrEmpty(correlationId))
             {
@@ -614,6 +614,48 @@ namespace Agent.Plugins.Definitions
                     { "requestPathFilter", "/admin/managedclusters/" },
                     { "requestBodyFilter", "" },
                     { "queryResourceName", managedClusterName }
+                });
+        }
+
+        [Description("""
+        Purpose:
+        Retrieve VNET configuration and status information for an Azure Container Apps managed environment.
+
+        Scenario:
+        Use this tool when you need to investigate networking configuration and VNET-related issues for a managed environment. This tool combines environment VNET configuration with detailed subnet information including NSG and route table details.
+
+        Output:
+            envType: Environment version (V1/V2)
+            customVnet: Indicates if a custom VNET is used
+            subnetResourceId: Resource ID of the subnet
+            vnetResourceUri: Resource URI of the VNET
+            subnetName: Name of the subnet
+            vnetSubscriptionId: Subscription ID of the VNET
+            vnetResourcegroup: Resource group of the VNET
+            vnetName: Name of the VNET
+            networkSecurityGroupId: Resource ID of the network security group
+            subnetRouteTableId: resource ID of the subnet route table
+            subnetNatGatewayId: resource ID of the subnet NAT gateway
+            vnetSubId: Subscription ID of the VNET
+        """
+        )]
+        public async Task<string> GetManagedEnvironmentVnetStatus(
+            [Description("Azure region of the managed environment.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
+        {
+            if (string.IsNullOrEmpty(managedClusterName))
+            {
+                throw new ArgumentException("Managed cluster name cannot be null or empty.", nameof(managedClusterName));
+            }
+
+            return await _kustoPlugin.ExecuteLocalFunctionAsync("GetManagedEnvironmentVnetStatus", region,
+                new Dictionary<string, string>
+                {
+                    { "fromDate", fromDate.ToString() },
+                    { "toDate", toDate.ToString() },
+                    { "managedClusterName", managedClusterName }
                 });
         }
     }
