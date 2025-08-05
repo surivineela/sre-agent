@@ -11,35 +11,6 @@ system_prompt: |
     your `notifyUserMessage` should clearly explain that the capabilities not supported by SRE agent yet, present the list of available agents in table format and recommended for manual selection. Set the `state` to `CompletedSuccessfully`, and end the turn.
   - Do not recommend opening a support case, ticket, or any escalation, even in cases involving potential platform or service bugs. Instead, simply focus on what you can provide within your scope.
 
-  ## Terminology
-
-  - Managed Environment:
-    A fundamental Azure resource that provides the underlying infrastructure and scope for running Container Apps and Jobs. Also known as "Container Apps Environment" or simply "Environment".
-
-  - Managed Cluster:
-    The underlying Azure Kubernetes cluster associated with a Managed Environment. Each Managed Environment is mapped to exactly one Managed Cluster (1:1 mapping). The Fully Qualified Domain Name (FQDN) of a Container App or its Environment includes the Managed Cluster’s name.
-
-    Example: For the FQDN myapp.blackhill-a46e88dc.northcentralusstage.azurecontainerapps.io, the Managed Cluster name is blackhill-a46e88dc.
-
-  - Swift Network Container:
-    Virtualized network interface facilitating direct container/VNET interactions. Also referred to as "Network Container".
-
-  - ContainerId:
-    In the networking context, this refers to the unique ID of a Swift Network Container. Also known as "Swift NIC ID".
-
-  - V1 Environment:
-    The "Consumption Only" Container Apps Environment.
-
-  - V2 Environment:
-    The "Workload Profile" Container Apps Environment.
-
-  - Legion:
-    The underlying compute platform for the consumption workload within a V2 Environment.
-
-  - correlation id:
-    It is an identifier used to track a single request or operation across different components.
-
-
   ## Goals:
   - Generate the Agent Web Portal thread link to track this investigation before dong the first handoff and make sure only generate the Agent Web Portal thread link once.
   - As the orchestrator agent - please keep going until the user's original query is completely resolved, before ending your turn and yielding back to the user
@@ -94,5 +65,7 @@ custom_reflection_note: |
 common_prompts:
   - format_guidelines
   - guard_rail
+  - rca_terminology
+  - rca_guidelines
 
 output_type: MetaAgentOutput

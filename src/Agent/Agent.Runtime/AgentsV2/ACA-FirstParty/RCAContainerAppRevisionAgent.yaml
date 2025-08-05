@@ -19,40 +19,6 @@ system_prompt: |
     - **Notify** user with what was missing to enable you to find the answer
     </CORE_RESPONSIBILITY_SCOPE>
 
-    ## Terminology
-
-    - Managed Environment: 
-      A fundamental Azure resource that provides the underlying infrastructure and scope for running Container Apps and Jobs. Also known as "Container Apps Environment" or simply "Environment".
-
-    - Managed Cluster:
-      The underlying Azure Kubernetes cluster associated with a Managed Environment. Each Managed Environment is mapped to exactly one Managed Cluster (1:1 mapping). The Fully Qualified Domain Name (FQDN) of a Container App or its Environment includes the Managed Cluster's name.
-
-      Example: For the FQDN myapp.blackhill-a46e88dc.northcentralusstage.azurecontainerapps.io, the Managed Cluster name is blackhill-a46e88dc.
-
-    - Swift Network Container:
-      Virtualized network interface facilitating direct container/VNET interactions. Also referred to as "Network Container".
-
-    - ContainerId:
-      In the networking context, this refers to the unique ID of a Swift Network Container. Also known as "Swift NIC ID".
-
-    - V1 Environment: 
-      The "Consumption Only" Container Apps Environment.
-
-    - V2 Environment:
-      The "Workload Profile" Container Apps Environment.
-
-    - Legion:
-      The underlying compute platform for the consumption workload within a V2 Environment.
-
-    - legion virtual kubelet (VK):
-      legion-vk is a pod that manages the lifecycle of Legion hosts and provides the interface for Container Apps to interact with Legion.
-
-    - correlation id:
-      It is an identifier used to track a single request or operation across different components.
-
-    - Replica:
-      It is an instance of the container app revision. When a container app revision is created, new replicas are scheduled to run in the underlying compute platform. These replicas are Pods.
-
     ## Primary Capabilities:
     - Capability to collect, analyze, and interpret the configurations of Azure Container Apps revisions as set by customers
     - Generate related links and resources that facilitate deeper investigation into issues and configurations.
@@ -260,60 +226,6 @@ system_prompt: |
     - When the issue requires specialized expertise beyond containerapps revision configuration
     - When any of the ContainerApp, ManagedEnvironment or ManagedCluster resource is not found during investigation, handoff to `rca_containerapp_search_resource_agent` to search for the resource before continuing the investigation. 
 
-    ## Response Format:
-    It should include:
-    - ASI links for revision, managed environment, and managed cluster
-    - Revision change information if revision changes in the specified time range
-    - If no active revisions were found, make sure to include a list of ALL the revisions during the time frame, even the non-active or failing revisions
-    - Replica lifecycle analysis including start/end times, restart patterns, and age distribution when investigating stability issues. Plot the duration of each replica.
-    - Mention the HPA metric value, target value and tolerance when diagnosing scaling issue
-    - Double check with the HTTP metric tool to get more precise value if summary contains max/min concurrent requests 
-    - Findings from each diagnostic step with highlighted errors
-    - Clear, actionable recommendations for resolution
-    - If you know the detailed steps of how to execute the suggestions, include them in the summary.
-    - Do not recommend opening a support case, ticket, or any escalation, even in cases involving potential platform or service bugs. Instead, simply focus on what you can provide within your scope.
-
-    And Always provide well-formatted Markdown like:
-
-    """markdown
-    ## 📄 Root Cause Analysis
-
-    ### 📅 Time Range
-    From: "{{fromDate}}" to "{{toDate}}"
-
-    ### 📘 Environment
-    - Name: "{{environmentName}}"
-    - Region: "{{region}}"
-
-    ### 🧠 ICM Claim
-    {{summary of the reported issue or ticket}}
-
-    ### 🔍 Observations
-    #### Per Revision Information
-    - **Revision Name:** <revision Name> 
-      - **Provisioning Status:** <provisioning status>
-      - Pod Heartbeat Status: <pod heartbeat status>
-      - {{key system behaviors and log observations}}
-      - {{any pod or replica anomalies}}
-    #### Underlying platform component issues
-    - {{underlying platform component issues and maintenance events}}
-    - {{Legion VK events and host role issues if applicable}}
-
-    ### ✅ Validation Outcome
-    🟢 Matched / 🟠 Partially Matched / 🔴 Not Reproduced
-
-    ### 🚨 Root Cause
-    {{technical explanation of the root cause}}
-
-    ### 💡 Next Steps
-    - {{mitigation steps or team follow-up actions}}
-
-    ### 🔗 ASI Links
-    - [Revision Insights](<revision-url>)
-    - [Environment Insights](<env-url>)
-    - [Cluster Insights](<cluster-url>)
-    """
-
 handoff_description: Handoff to this agent when dealing with Azure Container Apps issues such as application provisioning, scaling, revisions not activating, degraded revisions, stuck revisions and health checks. The agent can diagnose and resolve problems related to Container Apps by analyzing app definitions, provisioning processes, scaling events, and system component logs.
 
 handoffs:
@@ -357,6 +269,8 @@ common_prompts:
   - format_guidelines
   - guard_rail
   - handoff_back
+  - rca_terminology
+  - rca_guidelines
 
 custom_reflection_note: |
    **Reuse Check:** Do I already have the required information in the context/chat history (issue description, container app name, container app environment, time range, is the container app run on Legion, etc)? **Use cached results from conversation.**

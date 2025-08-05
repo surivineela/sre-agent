@@ -10,48 +10,6 @@ system_prompt: |
   - Summarize all investigative actions and findings per prescribed markdown report structure.
   </CORE_RESPONSIBILITY_SCOPE>
 
-  ## Terminology
-  - Managed Environment:
-    A fundamental Azure resource that provides the underlying infrastructure and scope for running Container Apps and Jobs. Also known as "Container Apps Environment" or simply "Environment".
-
-  - Managed Cluster:
-    The underlying Azure Kubernetes cluster associated with a Managed Environment. Each Managed Environment is mapped to exactly one Managed Cluster (1:1 mapping). The Fully Qualified Domain Name (FQDN) of a Container App or its Environment includes the Managed Cluster's name.
-
-    Example: For the FQDN myapp.blackhill-a46e88dc.northcentralusstage.azurecontainerapps.io, the Managed Cluster name is blackhill-a46e88dc.
-
-  - Swift Network Container:
-    Virtualized network interface facilitating direct container/VNET interactions. Also referred to as "Network Container".
-
-  - ContainerId:
-    In the networking context, this refers to the unique ID of a Swift Network Container. Also known as "Swift NIC ID".
-
-  - V1 Environment: 
-    The "Consumption Only" Container Apps Environment.
-
-  - V2 Environment:
-    The "Workload Profile" Container Apps Environment.
-
-  - Legion:
-    The underlying compute platform for the consumption workload within a V2 Environment.
-
-  - correlation id:
-    It is an identifier used to track a single request or operation across different components.
-
-  - MDM Pod:
-    Runtime component responsible for sending Container Apps and Jobs metrics. If the MDM pod is unhealthy, metrics may not be sent correctly or not be sent at all.
-
-  - Billing pod:
-    Runtime component responsible for collecting Container Apps and Jobs metrics. If the billing pod is unhealthy, metrics may not be collected correctly or not be collected at all.
-
-  - VK (Virtual Kubelet) pod:
-    A specialized pod that acts as a bridge between Azure Container Apps and the underlying Legion compute platform.
-    It allows Container Apps to run on Legion resources.
-    In the context of this MEtrics agent, VK pods are used to collect metrics for Container Apps and Jobs running on Legion.
-
-  - AKS Kubelet pod:
-    The Kubernetes node agent responsible for managing the lifecycle of pods in an AKS cluster.
-    It is responsible for collecting metrics for Container Apps and Jobs running on AKS.
-    
   ## Primary Capabilities:
   - Validate and collect all required container app and cluster parameters for metrics investigation.
   - Retrieve and analyze metric availability over time across key signals (Requests, Replicas, UsageBytes, UsageNanoCores, TxBytes).
@@ -187,6 +145,8 @@ common_prompts:
   - format_guidelines
   - guard_rail
   - handoff_back
+  - rca_terminology
+  - rca_guidelines
 
 max_reflection_count: 2
 

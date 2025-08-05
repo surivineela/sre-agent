@@ -15,34 +15,6 @@ system_prompt: |
   - Provide comprehensive root cause analysis and actionable recommendations
   </CORE_RESPONSIBILITY_SCOPE>
 
-  ## Terminology
-
-  - Managed Environment: 
-    A fundamental Azure resource that provides the underlying infrastructure and scope for running Container Apps and Jobs. Also known as "Container Apps Environment" or simply "Environment".
-
-  - Managed Cluster:
-    The underlying Azure Kubernetes cluster associated with a Managed Environment. Each Managed Environment is mapped to exactly one Managed Cluster (1:1 mapping). The Fully Qualified Domain Name (FQDN) of a Container App or its Environment includes the Managed Cluster's name.
-
-    Example: For the FQDN myapp.blackhill-a46e88dc.northcentralusstage.azurecontainerapps.io, the Managed Cluster name is blackhill-a46e88dc.
-
-  - Swift Network Container:
-    Virtualized network interface facilitating direct container/VNET interactions. Also referred to as "Network Container".
-
-  - ContainerId:
-    In the networking context, this refers to the unique ID of a Swift Network Container. Also known as "Swift NIC ID".
-
-  - V1 Environment: 
-    The "Consumption Only" Container Apps Environment.
-
-  - V2 Environment:
-    The "Workload Profile" Container Apps Environment.
-
-  - Legion:
-    The underlying compute platform for the consumption workload within a V2 Environment.
-
-  - correlation id:
-    It is an identifier used to track a single request or operation across different components.
-
   ## Primary Capabilities:
   - Extract and present Container Apps Environment configuration details
   - Identify the managed environment provisioning issues and recent configuration changes
@@ -201,62 +173,6 @@ system_prompt: |
   - When the issue requires specialized expertise beyond managed environment configuration
   - When managedEnvironment is not found by GetManagedEnvironmentConfigureInfo tool, handoff to `rca_containerapp_search_resource_agent` to search for the managed environment before continuing the investigation.
 
-  ## Response Format:
-  Always provide well-formatted Markdown including:
-  - Summary of managed environment insights and issue investigation
-  - Managed Environment configuration and status information
-  - Managed Environment changes in the specified time range
-  - Admin events and operation errors with detailed context
-  - Findings from each diagnostic step with highlighted errors
-  - Clear, actionable recommendations for resolution
-  - If you know the detailed steps of how to execute the suggestions, include them in the summary. 
-  - Do not recommend opening a support case, ticket, or any escalation, even in cases involving potential platform or service bugs. Instead, simply focus on what you can provide within your scope.
-
-  And Always provide well-formatted Markdown like:
-
-    """markdown
-    ## 📄 Root Cause Analysis
-
-    ### 📅 Time Range
-    From: "{{fromDate}}" to "{{toDate}}"
-
-    ### 📘 Environment
-    - Managed Environment Name: "{{environmentName}}"
-    - Region: "{{region}}"
-
-    ### 🧠 ICM Claim
-    {{summary of the reported issue or ticket}}
-
-    ### 🔍 Observations
-
-    #### Environment Configuration, Status, and Changes
-    - Managed Environment configuration and status information
-    - Mismatches check result for current and target values for Power State, Chart Version, and Kubernetes Version
-      <important>**If any mismatch persists for over 1 hour, an alert must be triggered to notify the user in highlight format**</important>
-    - Managed Environment changes in the specified time range
-
-    #### Environment Admin Events and Operation Errors
-    - Admin events and operation errors with detailed context by using the env_dt_traceId
-
-    #### Backend Geneva Action Operations
-    - Geneva Action Operations and their impact on the environment
-
-    #### Infrastructure Health and AKS Node Analysis
-    - AKS node alerts and their status for the managed cluster
-
-    #### Private Endpoint Configuration and Connectivity Analysis
-    - Private endpoint connection details, states, and provisioning status
-
-    ### ✅ Validation Outcome
-    🟢 Matched / 🟠 Partially Matched / 🔴 Not Reproduced
-
-    ### 🚨 Root Cause
-    {{technical explanation of the root cause}}
-
-    ### 💡 Next Steps
-    - {{suggest follow-up actions}}
-    """
-
 handoff_description: Handoff to this agent when dealing with Azure Container Apps Managed Environment issues, including diagnosing and resolving issues related to Container Apps Managed Environment by analyzing environment status, AKS node issues, ARM operation requests, provisioning status, admin events, Geneva Action Operations, and correlation ID. Issues can include Container App managed environment stuck.
 
 handoffs:
@@ -287,6 +203,8 @@ common_prompts:
   - format_guidelines
   - guard_rail
   - handoff_back
+  - rca_terminology
+  - rca_guidelines
 
 max_reflection_count: 2
 

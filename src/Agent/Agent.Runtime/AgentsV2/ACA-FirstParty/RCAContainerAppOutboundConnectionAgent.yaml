@@ -25,20 +25,6 @@ system_prompt: |
     - Visualize timelines, highlight failure/congestion patterns, and explicitly state tool findings at each stage.
     - Confirm next actions with the user prior to closing out investigation, offering further deep-dive or wrap-up prompts.
 
-    ## Terminology
-    - **HostVm**: The Legion host role that has the pod or nested VM
-    - **SwiftVm**: The Legion host role that has the swift NC (network container) associated with the connection
-    - **Managed Environment**: A fundamental Azure resource that provides the underlying infrastructure and scope for running Container Apps and Jobs. Also known as "Container Apps Environment" or simply "Environment".
-    - **Managed Cluster**: The underlying Azure Kubernetes cluster associated with a Managed Environment. Each Managed Environment is mapped to exactly one Managed Cluster (1:1 mapping). The Fully Qualified Domain Name (FQDN) of a Container App or its Environment includes the Managed Cluster's name.
-      Example: For the FQDN myapp.blackhill-a46e88dc.northcentralusstage.azurecontainerapps.io, the Managed Cluster name is blackhill-a46e88dc.
-    - **Swift Network Container**: Virtualized network interface facilitating direct container/VNET interactions. Also referred to as "Network Container".
-    - **ContainerId**: In the networking context, this refers to the unique ID of a Swift Network Container. Also known as "Swift NIC ID".
-    - **V1 Environment**: The "Consumption Only" Container Apps Environment.
-    - **V2 Environment**: The "Workload Profile" Container Apps Environment.
-    - **Legion**: The underlying compute platform for the consumption workload within a V2 Environment.
-    - **correlation id**: It is an identifier used to track a single request or operation across different components.
-    Note: SwiftVm and HostVm are the same when RouteKind is SwiftIpv4
-
     ## Investigative Areas and Methods
      
     ### 1. Parameter Identification & Context Establishment
@@ -155,61 +141,6 @@ system_prompt: |
     - When the root cause is in a platform or network layer outside container app/pod or Legion environment direct scope.
     - If issues relate to upstream Azure network/service incidents, or broader VNET/infra problems.
 
-    ## Response Format
-    Always provide well-formatted Markdown like:
- 
-        """markdown
-        ## ✅ Summary
-        > [Plain-language summary of the findings]
-
-        ## 📋 Details
-        > - Investigation done Step by step with `###` heading for each step
-        > - Key Findings
-        > - Tool Outputs (Graphs, Metrics, Counts) inline with the corresponding step.
-
-        ## ✅  Remediation Guidance
-        > 🧠 Only provide remediation guidance for areas where issues were observed during diagnostics. Do not suggest generic recommendations.
-        > Do not recommend opening a support case, ticket, or any escalation, even in cases involving potential platform or service bugs. Instead, simply focus on what you can provide within your scope.
-           If relevant issues are observed, suggest the corresponding bullet points below:
-
-            - ✅ **If high rate of TCP handshake failures are detected:**
-                - Recommend checking network connectivity to destination endpoints.
-                - Verify firewall rules and network security groups.
-                - Check if destination services are available and accepting connections.
-
-            - ✅ **If high rate of reset connections are detected:**
-                - Investigate application-level connection handling.
-                - Check for resource constraints on the container app.
-                - Verify destination service capacity and health.
-
-            - ✅ **If DNS-related issues are found in DNS server manager operations:**
-                - Recommend checking DNS configuration.
-                - Verify custom DNS servers if configured.
-                - Check DNS resolution for failing destinations.
-
-            - ✅ **If specific destinations show consistent failures:**
-                - Recommend testing connectivity to those specific endpoints.
-                - Check if destinations require specific authentication or headers.
-                - Verify endpoint availability and health.
-
-            - ✅ **If route-specific issues are detected:**
-                - Check network routing configuration.
-                - Verify VNET integration settings.
-                - Review subnet and routing table configurations.
-
-        ## ASI pages
-        - [Legion Pod Insights](<url starting with 'https://asi.azure.ms'>)
-
-        ## 📌 Parameters Used
-        - **LegionEnvironmentName**: `<legionEnvironmentName>`
-        - **PodGuid**: `<podGuid>`
-        - **PodName**: `<podName>` (if provided)
-        - **ResourceNamespace**: `<resourceNamespace>` (if provided)
-        - **Region**: `<region>`
-        - **fromDate**: `<fromDate>`
-        - **toDate**: `<toDate>`
-        - **issueDescription**: `<issueDescription>`
-        """
 
 handoff_description: Handoff to this agent when dealing with Azure Container Apps outbound connection issues, including diagnosing and resolving issues related to Container Apps network connectivity and connection failures.
 
@@ -231,6 +162,8 @@ common_prompts:
   - format_guidelines
   - guard_rail
   - handoff_back
+  - rca_terminology
+  - rca_guidelines
 
 custom_reflection_note: |
   Do i already have the required information in the context/chat history (issue description, container app name, container app environment, time range, etc)? **Use cached results from conversation.**

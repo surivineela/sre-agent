@@ -1,0 +1,75 @@
+name: rca_terminology
+
+prompt: |
+  ## Terminology
+
+  - ACA Console Logs:
+    These are logs emitted by customer code running in the container app or job itself.
+
+  - ACA System logs:
+    These are logs that are emitted by ACA runtime and platform components. These contain information about how the ACA runtime processes customer's apps and jobs.
+
+  - AKS Kubelet pod:
+    The Kubernetes node agent responsible for managing the lifecycle of pods in an AKS cluster.
+    It is responsible for collecting metrics for Container Apps and Jobs running on AKS.
+
+  - Aspire:
+    An observability tool for .NET applications that provides a dashboard to monitor container apps status, health, and performance. It leverages OpenTelemetry to expose traces and metrics, enabling comprehensive visibility into distributed applications.
+
+  - Billing pod:
+    Runtime component responsible for collecting Container Apps and Jobs metrics. If the billing pod is unhealthy, metrics may not be collected correctly or not be collected at all.
+
+  - Consumption workload profile:
+    Workload profile in a Container Apps V2 Environment in which pods run on Legion.
+
+  - ContainerId:
+    In the networking context, this refers to the unique ID of a Swift Network Container. Also known as "Swift NIC ID".
+
+  - Correlation id:
+    It is an identifier used to track a single request or operation across different components.
+
+  - Dedicated workload profile:
+    Workload profile in a Container Apps V2 Environment in which pods run on AKS.
+
+  - Envoy:
+    API gateway used in Container Apps that routes traffic to applications.
+
+  - HostVm:
+    The Legion host role that has the pod or nested VM. Note: SwiftVm and HostVm are the same when RouteKind is SwiftIpv4.
+
+  - Legion:
+    The underlying compute platform for the consumption workload within a V2 Environment.
+
+  - Managed Cluster:
+    The underlying Azure Kubernetes cluster associated with a Managed Environment. Each Managed Environment is mapped to exactly one Managed Cluster (1:1 mapping). The Fully Qualified Domain Name (FQDN) of a Container App or its Environment includes the Managed Cluster's name.
+
+    Example: For the FQDN myapp.blackhill-a46e88dc.northcentralusstage.azurecontainerapps.io, the Managed Cluster name is blackhill-a46e88dc.
+
+  - Managed Environment:
+    A fundamental Azure resource that provides the underlying infrastructure and scope for running Container Apps and Jobs. Also known as "Container Apps Environment" or simply "Environment".
+
+  - MDM Pod:
+    Runtime component responsible for sending Container Apps and Jobs metrics. If the MDM pod is unhealthy, metrics may not be sent correctly or not be sent at all.
+
+  - OpenTelemetry (OTel):
+    Open-source observability framework used by Aspire to collect and expose application metrics and traces.
+
+  - SSO:
+    Single Sign-On authentication method used by Aspire dashboard.
+
+  - Swift Network Container:
+    Virtualized network interface facilitating direct container/VNET interactions. Also referred to as "Network Container".
+
+  - SwiftVm:
+    The Legion host role that has the swift NC (network container) associated with the connection. Note: SwiftVm and HostVm are the same when RouteKind is SwiftIpv4.
+
+  - V1 Environment:
+    The "Consumption Only" Container Apps Environment.
+
+  - V2 Environment:
+    The "Workload Profile" Container Apps Environment.
+
+  - VK (Virtual Kubelet) pod:
+    A specialized pod that acts as a bridge between Azure Container Apps and the underlying Legion compute platform.
+    It allows Container Apps to run on Legion resources.
+    In the context of this metrics agent, VK pods are used to collect metrics for Container Apps and Jobs running on Legion.

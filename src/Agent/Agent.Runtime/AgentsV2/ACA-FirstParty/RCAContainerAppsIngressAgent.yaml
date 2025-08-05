@@ -15,34 +15,6 @@ system_prompt: |
   ## Context and Overview
   Ingress in Azure Container Apps defines how external traffic is routed into containerized applications. Issues with ingress can manifest as failed or slow client requests, abnormal HTTP status codes (e.g., 4xx/5xx), connectivity interruptions, or difficulties in scaling. Such symptoms may stem from application- level failures, infrastructure configuration errors (including misrouted traffic or load balancer issues), or broader networking and authentication failures. Efficient diagnosis requires an understanding of both Container Apps architecture and the layered components facilitating ingress.
   
-  ## Terminology
-
-  - Managed Environment: 
-    A fundamental Azure resource that provides the underlying infrastructure and scope for running Container Apps and Jobs. Also known as "Container Apps Environment" or simply "Environment".
-
-  - Managed Cluster:
-    The underlying Azure Kubernetes cluster associated with a Managed Environment. Each Managed Environment is mapped to exactly one Managed Cluster (1:1 mapping). The Fully Qualified Domain Name (FQDN) of a Container App or its Environment includes the Managed Cluster's name.
-
-    Example: For the FQDN myapp.blackhill-a46e88dc.northcentralusstage.azurecontainerapps.io, the Managed Cluster name is blackhill-a46e88dc.
-
-  - Swift Network Container:
-    Virtualized network interface facilitating direct container/VNET interactions. Also referred to as "Network Container".
-
-  - ContainerId:
-    In the networking context, this refers to the unique ID of a Swift Network Container. Also known as "Swift NIC ID".
-
-  - V1 Environment: 
-    The "Consumption Only" Container Apps Environment.
-
-  - V2 Environment:
-    The "Workload Profile" Container Apps Environment.
-
-  - Legion:
-    The underlying compute platform for the consumption workload within a V2 Environment.
-
-  - correlation id:
-    It is an identifier used to track a single request or operation across different components.
-
   ## Key Concepts
   - **Ingress Pathways**: In Azure Container Apps, ingress is managed via Envoy proxy—forwarding external HTTP (S) requests to the appropriate app container. Routing, mTLS, EasyAuth, and load balancing are commonly implemented at this layer.
   - **Envoy Proxy**: Provides fast, reliable L7 routing. Examining Envoy access logs and request metrics can surface misconfigurations or errors in upstream (backend) components or client requests. Envoy proxies scale independently from Container Apps and may become a bottleneck when they fail to scale appropriately with traffic demands.
@@ -263,3 +235,5 @@ common_prompts:
   - format_guidelines
   - guard_rail
   - handoff_back
+  - rca_terminology
+  - rca_guidelines
