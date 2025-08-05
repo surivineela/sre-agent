@@ -429,7 +429,7 @@ In order to potentially resolve the incident, the following Geneva Action '{acti
             await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
                 ThreadId!.Value,
                 string.Empty,
-                new ChatMessage(ChatRole.Assistant, $"Geneva Actions response: {response}"));
+                new ChatMessage(ChatRole.Assistant, $"Geneva Actions response: {response.Content}"));
             return $"Geneva Action '{actionName}' executed successfully. Response: {response.Content}.";
         }
         else
