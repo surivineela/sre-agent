@@ -962,13 +962,18 @@ public class ReasoningLoop : IDisposable
         {
             var parentSpan = _currentAgentSpan ?? _rootSpan;
             var errorSpan = _tracer.StartActiveSpan("error", SpanKind.Internal, parentSpan);
-            errorSpan.SetAttribute(TraceAttribute.ThreadId, _context?.ThreadId.ToString());
+            errorSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
             errorSpan.SetAttribute(TraceAttribute.OperationName, "error");
             errorSpan.SetAttribute("error.message", $"{ex.GetType()}: {ex.Message}");
             errorSpan.SetAttribute("error.stacktrace", ex.StackTrace);
             errorSpan.End();
 
-            _logger.LogInternalError(ex, "[{threadId}]An error occurred during reasoning loop.", _context?.ThreadId);
+            _logger.LogInternalError(ex, "[{threadId}]An error occurred during reasoning loop.", _context.ThreadId);
+            var message = new ChatMessage(ChatRole.Assistant, "I am unable to fully address your request due to an internal error. Please retry to continue the conversation!");
+            await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                _context,
+                message
+            );
         }
         finally
         {
