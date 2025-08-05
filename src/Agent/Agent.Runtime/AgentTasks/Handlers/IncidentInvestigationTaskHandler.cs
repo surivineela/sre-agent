@@ -16,6 +16,7 @@ using Agent.Framework;
 using Agent.Runtime.AgentTasks.Agents;
 using Agent.Runtime.Reasoning;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
 
@@ -31,23 +32,40 @@ public sealed class IncidentInvestigationTaskHandler(
     IAgentOutboundCommunicationService outboundCommunicationService,
     IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator,
     SearchHelper searchHelper,
-    Tracer tracer
+    Tracer tracer,
+    IConfiguration configuration
 ) : IAgentTaskHandler
 {
     private readonly SemaphoreSlim _stateLock = new(1, 1);
     private AgentTask? _currentAgentTask;
     private readonly ConcurrentDictionary<string, object?> _toolCache = new();
-    private readonly AgentTaskLocalStore _rcaAgentsStore = new(["AgentsV2\\ACA-FirstParty\\"], embeddingGenerator);
+    private readonly Lazy<AgentTaskLocalStore?> _rcaAgentsStore = new(() =>
+    {
+        var agentTasksEnabled = configuration.GetValue<bool>("AppSettings:Core:AgentTasksEnabled", false);
+        if (!agentTasksEnabled)
+        {
+            logger.LogInternalInformation("Agent tasks are disabled, skipping RCA agents store initialization");
+            return null;
+        }
+
+        logger.LogInternalInformation("Initializing RCA agents store");
+        return new AgentTaskLocalStore(["AgentsV2\\ACA-FirstParty\\"], embeddingGenerator);
+    });
     private readonly List<ChatMessage> _aggregatedToolHistory = new();
     private List<string>? toolSubset = null;
     private bool isACAAgent = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") == "ACAAgent";
+
+    /// <summary>
+    /// Gets the RCA agents store if agent tasks are enabled, otherwise returns null.
+    /// </summary>
+    private AgentTaskLocalStore? RcaAgentsStore => _rcaAgentsStore.Value;
 
     public async Task ExecuteAsync(AgentTask agentTask, CancellationToken cancellationToken)
     {
         try
         {
             _currentAgentTask = agentTask;
-            
+
             _toolCache.Clear();
             _aggregatedToolHistory.Clear();
 
@@ -480,7 +498,7 @@ public sealed class IncidentInvestigationTaskHandler(
 
     /// <summary>
     /// Aggregates tool calls and results from agent responses to build a history of tool usage.
-    /// Extracts FunctionCallContent and corresponding FunctionResultContent (matched by CallId) 
+    /// Extracts FunctionCallContent and corresponding FunctionResultContent (matched by CallId)
     /// from agent conversation history to prevent redundant tool calls in subsequent agents.
     /// </summary>
     /// <param name="runResult">The result from the agent execution containing conversation history</param>
@@ -512,19 +530,19 @@ public sealed class IncidentInvestigationTaskHandler(
                 var functionResults = message.Contents.OfType<FunctionResultContent>().ToList();
                 foreach (var functionResult in functionResults)
                 {
-                    if (!string.IsNullOrEmpty(functionResult.CallId) && 
+                    if (!string.IsNullOrEmpty(functionResult.CallId) &&
                         pendingFunctionCalls.TryGetValue(functionResult.CallId, out var callInfo))
                     {
                         // Found matching call and result - add both to aggregated history
                         newToolMessages.Add(callInfo.message);
                         newToolMessages.Add(message);
-                        
+
                         // Remove from pending since we've processed it
                         pendingFunctionCalls.Remove(functionResult.CallId);
-                        
+
                         logger.LogInternalInformation(
-                            "Aggregated tool call: {ToolName} with CallId: {CallId}", 
-                            callInfo.functionCall.Name, 
+                            "Aggregated tool call: {ToolName} with CallId: {CallId}",
+                            callInfo.functionCall.Name,
                             functionResult.CallId);
                     }
                 }
@@ -536,9 +554,9 @@ public sealed class IncidentInvestigationTaskHandler(
         {
             // Simple deduplication based on message content
             var messageJson = JsonSerializer.Serialize(toolMessage, JsonSerializerOptions.Web);
-            var isDuplicate = _aggregatedToolHistory.Any(existing => 
+            var isDuplicate = _aggregatedToolHistory.Any(existing =>
                 JsonSerializer.Serialize(existing, JsonSerializerOptions.Web) == messageJson);
-            
+
             if (!isDuplicate)
             {
                 _aggregatedToolHistory.Add(toolMessage);
@@ -565,15 +583,15 @@ public sealed class IncidentInvestigationTaskHandler(
         if (_aggregatedToolHistory.Count > 0)
         {
             // Add a context message explaining the tool history
-            var contextMessage = new ChatMessage(ChatRole.System, 
+            var contextMessage = new ChatMessage(ChatRole.System,
                 $"The following {_aggregatedToolHistory.Count / 2} tool interactions have been performed previously in this investigation. " +
                 "Use this information and avoid redundant tool calls and build upon previous results. IMPORTANT: Do not repeat tool calls with same parameters");
 
             chatHistory.Insert(0, contextMessage);
-            
+
             // Insert the aggregated tool history after the context message
             chatHistory.InsertRange(1, _aggregatedToolHistory);
-            
+
             logger.LogInternalInformation(
                 "Injected {Count} tool history messages into agent input",
                 _aggregatedToolHistory.Count);
@@ -630,7 +648,7 @@ public sealed class IncidentInvestigationTaskHandler(
 
                 // Inject tool call history into the chat input
                 var chatHistory = InjectToolCallHistory(inputMessage);
-                
+
                 var runResult = await Runner.RunAsync(
                     startingAgent: agent,
                     input: chatHistory,
@@ -706,7 +724,13 @@ public sealed class IncidentInvestigationTaskHandler(
 
     private async Task<IEnumerable<SearchDocument>> RetrieveDocumentsFromLocalStore(string query)
     {
-        return await _rcaAgentsStore.SearchAsync(query, 3).ToListAsync();
+        if (RcaAgentsStore == null)
+        {
+            logger.LogInternalInformation("RCA agents store is not initialized, returning empty results");
+            return Enumerable.Empty<SearchDocument>();
+        }
+
+        return await RcaAgentsStore.SearchAsync(query, 3).ToListAsync();
     }
 
     private async Task<IEnumerable<SearchDocument>> RetrieveDocumentsFromRegionalStore(string query, string threadId)
@@ -753,10 +777,10 @@ public sealed class IncidentInvestigationTaskHandler(
             Core.ToolStatic.AsyncLocalThreadId.Value = context.ThreadId;
             Core.ToolStatic.AsyncLocalCancellationToken.Value = cancellationToken;
             var result = await toolCall.Tool.InvokeAsync(new AIFunctionArguments(toolCall.FunctionCall.Arguments), cancellationToken);
-            
+
             CacheToolResult(toolCall.Tool.Name, toolCall.FunctionCall.Arguments, result);
             logger.LogInternalInformation("Cached result for tool: {ToolName}", toolCall.Tool.Name);
-            
+
             return result;
         }
         catch (Exception ex)
