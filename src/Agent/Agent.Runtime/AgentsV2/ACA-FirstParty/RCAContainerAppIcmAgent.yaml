@@ -156,7 +156,6 @@ tools:
   - GetIncidentInfoRCAContainerApp
   - AddDiscussionEntryRCAContainerApp
   - AddWebPortalLinkToIncidentRCAContainerApp
-  - ResolveIncidentRCAContainerApp
   - SearchContainerAppsResourcesByName
 
 common_tools:

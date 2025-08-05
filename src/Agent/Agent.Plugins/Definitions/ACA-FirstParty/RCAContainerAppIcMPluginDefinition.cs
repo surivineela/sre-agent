@@ -189,7 +189,7 @@ namespace Agent.Plugins.Definitions
         Resolves an ICM incident and sets its status to resolved with a provided reason.
 
         Scenario:
-        Use this tool to mark an incident as resolved after confirmation.
+        Use this tool to mark an incident that is related to quota as resolved after confirmation.
 
         Output:
         Returns a boolean value indicating if the operation was successful:
