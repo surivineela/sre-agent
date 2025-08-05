@@ -85,6 +85,12 @@ tools:
   - SearchDesignDocs
   - GetAgentWebPortalThreadLink
 
+max_reflection_count: 2
+
+custom_reflection_note: |
+  1. Have I identified RCA for the user's original query?
+  2. Have I provided the user with a markdown summary?
+
 common_prompts:
   - format_guidelines
   - guard_rail
