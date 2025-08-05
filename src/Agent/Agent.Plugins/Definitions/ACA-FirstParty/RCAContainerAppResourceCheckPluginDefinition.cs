@@ -29,7 +29,8 @@ namespace Agent.Plugins.Definitions
 
         Output:
         Returns tab-separated table data in CSV format. Column headers:
-        - hasRows: true if CPU usage exceeded the threshold, false otherwise
+        - HasMdmData: true if metric data was found, false otherwise
+        - ExceededThreshold: true if the metric exceeded the threshold, false otherwise
         """
         )]
         public Task<string> GetContainerAppCpuExceedsThreshold(
@@ -40,7 +41,7 @@ namespace Agent.Plugins.Definitions
             [Description("Metric sampling type. Example: 'Max', 'Average', 'Min'.")] string samplingType,
             [Description("Threshold as a percentage to check if metric equals or exceeds. Example: '80'.")] string Threshold)
         {
-            return _kustoPlugin.ExecuteLocalFunctionAsync("GetSparseMdm", region,
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetMdmResult", region,
                 new Dictionary<string, string>
                 {
                     { "fromDate", fromDate.ToString() },
@@ -62,7 +63,8 @@ namespace Agent.Plugins.Definitions
 
         Output:
         Returns tab-separated table data in CSV format. Column headers:
-        - hasRows: true if memory usage exceeded the threshold, false otherwise
+        - HasMdmData: true if metric data was found, false otherwise
+        - ExceededThreshold: true if the metric exceeded the threshold, false otherwise
         """
         )]
         public Task<string> GetContainerAppMemoryExceedsThreshold(
@@ -73,7 +75,7 @@ namespace Agent.Plugins.Definitions
             [Description("Metric sampling type. Example: 'Max', 'Average', 'Min'.")] string samplingType,
             [Description("Threshold as a percentage to check if metric equals or exceeds. Example: '90'.")] string Threshold)
         {
-            return _kustoPlugin.ExecuteLocalFunctionAsync("GetSparseMdm", region,
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetMdmResult", region,
                 new Dictionary<string, string>
                 {
                     { "fromDate", fromDate.ToString() },

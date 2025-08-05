@@ -8,7 +8,7 @@ let Threshold = "##threshold##";
 let whereClause = strcat("| where containerAppArmId == '", containerAppArmId, "'");
 GetSparseMdm(queryFrom, queryTo, regionalMdmAccount, "k4apps-metrics", metricName, "'containerAppArmId'", samplingType, whereClause)
 | extend value = column_ifexists("Max",-1)
-| summarize maxMemoryPercentage = max(value)
-| extend HasMdmData = iif(maxMemoryPercentage>=0,true,false)
-| extend ExceededThreshold = iif(maxMemoryPercentage >= toint(Threshold), true,false)
+| summarize maxMetricValue = max(value)
+| extend HasMdmData = iif(maxMetricValue>=0,true,false)
+| extend ExceededThreshold = iif(maxMetricValue >= toint(Threshold), true,false)
 | project HasMdmData,ExceededThreshold
