@@ -1,5 +1,5 @@
 import { tokens } from '@fluentui/react-components';
-import { FC, useState } from 'react';
+import { FC, useCallback, useState } from 'react';
 import { AgentContext } from '../Contracts/Context';
 import { useActivities } from '../Hooks/useActivities';
 import { activitiesStylesRoot } from '../Styles/Activities.styles';
@@ -22,6 +22,11 @@ const Activities: FC = () => {
 
     const [menuCollapsed, setMenuCollapsed] = useState<boolean>(false);
     const [actionsCollapsed, setActionsCollapsed] = useState<boolean>(true);
+
+    const collapseResizables = useCallback(() => {
+        setMenuCollapsed(true);
+        setActionsCollapsed(true);
+    }, []);
 
     return (
         <AgentContext.Provider value={{ threadContentAndActionKey, activeThreadId }}>
@@ -51,6 +56,7 @@ const Activities: FC = () => {
                     addThread={addThread}
                     deleteThread={deleteThread}
                     updateThreadLastReadTime={updateThreadLastReadTime}
+                    collapseResizables={collapseResizables}
                 />
                 <Resizable
                     position="right"

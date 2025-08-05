@@ -60,6 +60,11 @@ export const ThreadContentStyles = mergeStyleSets({
         paddingBottom: '-10px',
         marginBlock: '0px 0px',
     },
+    chatAndAgentTask: {
+        display: 'flex',
+        width: '100%',
+        gap: tokens.spacingHorizontalXS,
+    },
 });
 
 export const useChatBoxStyles = makeStyles({
@@ -176,6 +181,7 @@ export const getChatBoxV2Styles = (styleProps?: ChatBoxV2StyleProps) =>
             marginRight: '4px',
             boxShadow: tokens.shadow4,
             marginBottom: '5px',
+            width: '100%',
             ...styleProps?.chatBox,
         },
         chatBoxInner: {
