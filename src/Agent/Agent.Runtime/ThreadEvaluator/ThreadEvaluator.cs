@@ -118,6 +118,7 @@ public class ThreadEvaluator
             // Filter threads that were modified in the specified time window and need evaluation
             var threads = new List<ThreadModel>();
             var dailyReportThreadsFiltered = 0;
+            var localAuthScannerThreadsFiltered = 0;
 
             foreach (var thread in allThreads)
             {
@@ -145,6 +146,27 @@ public class ThreadEvaluator
                         continue;
                     }
 
+                    // Skip LocalAuthScanner threads with minimal reasoning content
+                    if (thread.Title.StartsWith("LocalAuthScanner", StringComparison.OrdinalIgnoreCase))
+                    {
+                        try
+                        {
+                            var shouldSkip = await ShouldSkipLocalAuthScannerThread(thread);
+                            if (shouldSkip)
+                            {
+                                localAuthScannerThreadsFiltered++;
+                                _logger.LogInternalInformation($"Skipping LocalAuthScanner thread {thread.Id} - contains only minimal reasoning content about unsafe key-based resources");
+                                continue;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogInternalWarning(ex, $"Error checking LocalAuthScanner thread {thread.Id} for filtering criteria");
+                        }
+                    }
+
+
+
                     threads.Add(thread);
                 }
                 catch (Exception ex)
@@ -153,7 +175,7 @@ public class ThreadEvaluator
                 }
             }
 
-            _logger.LogInternalInformation($"Found {threads.Count()} threads needing evaluation out of {allThreads.Count()} total threads (time window: {earliestTime:yyyy-MM-dd HH:mm:ss} to {latestTime:yyyy-MM-dd HH:mm:ss} UTC). Filtered out {dailyReportThreadsFiltered} daily report threads.");
+            _logger.LogInternalInformation($"Found {threads.Count()} threads needing evaluation out of {allThreads.Count()} total threads (time window: {earliestTime:yyyy-MM-dd HH:mm:ss} to {latestTime:yyyy-MM-dd HH:mm:ss} UTC). Filtered out {dailyReportThreadsFiltered} daily report threads and {localAuthScannerThreadsFiltered} LocalAuthScanner threads.");
             return threads;
         }
         catch (Exception ex)
@@ -417,6 +439,45 @@ public class ThreadEvaluator
         }
 
         return (chatHistoryBuilder.ToString(), reasoningHistoryBuilder.ToString());
+    }
+
+    /// <summary>
+    /// Check if a LocalAuthScanner thread should be skipped from evaluation
+    /// </summary>
+    private async Task<bool> ShouldSkipLocalAuthScannerThread(ThreadModel thread)
+    {
+        try
+        {
+            // Get agent contexts for this thread
+            var agentContexts = await _threadRepository.GetAgentContextsForThreadAsync(thread.Id);
+
+            // Get all reasoning messages for all contexts
+            var allReasoningMessages = new List<ReasoningMessage>();
+            foreach (var context in agentContexts)
+            {
+                var reasoningMessages = await GetReasoningMessagesForContext(context.Id);
+                allReasoningMessages.AddRange(reasoningMessages);
+            }
+
+            // Check if there's only one user message that starts with the specific text
+            var userMessages = allReasoningMessages.Where(m => m.Role == ReasoningMessageRoleEnum.User).ToList();
+
+            if (userMessages.Count == 1)
+            {
+                var messageContent = GetContentFromReasoningMessage(userMessages[0]);
+                if (messageContent.Contains("Detected resources that have unsafe key-based access enabled", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, $"Error checking LocalAuthScanner thread {thread.Id} for skip criteria");
+            return false; // Don't skip if we can't determine
+        }
     }
 
     /// <summary>
