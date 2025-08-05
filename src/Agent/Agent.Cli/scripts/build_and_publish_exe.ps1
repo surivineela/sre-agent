@@ -137,6 +137,7 @@ foreach ($plat in $platforms) {
         "--self-contained", "true"
         "--output", $runtimeOutput
         "--verbosity", "minimal"
+        "-p:PackAsTool=false"  # Disable PackAsTool for self-contained builds
     )
     
     Write-Host "Running: dotnet $($buildArgs -join ' ')" -ForegroundColor Gray

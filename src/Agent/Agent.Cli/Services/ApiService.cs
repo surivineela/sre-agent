@@ -1,5 +1,6 @@
 using Azure.Core;
 using Azure.Identity;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -62,37 +63,151 @@ public class ApiService : IDisposable
 
             if (response.IsSuccessStatusCode)
             {
-                // Parse the response to get agent names
-                var jsonDoc = JsonDocument.Parse(content);
-                var agents = jsonDoc.RootElement.GetProperty("data");
-                var agentNames = new List<string>();
-                
-                foreach (var agent in agents.EnumerateArray())
+                try
                 {
-                    if (agent.TryGetProperty("name", out var nameElement))
+                    // Parse the response to get agent names
+                    var jsonDoc = JsonDocument.Parse(content);
+                    var agents = jsonDoc.RootElement.GetProperty("data");
+                    var agentNames = new List<string>();
+                    
+                    foreach (var agent in agents.EnumerateArray())
                     {
-                        agentNames.Add(nameElement.GetString() ?? "");
+                        if (agent.TryGetProperty("name", out var nameElement))
+                        {
+                            agentNames.Add(nameElement.GetString() ?? "");
+                        }
+                    }
+
+                    if (agentNames.Count == 0)
+                    {
+                        return (true, "✅ Connection successful! No agents found.");
+                    }
+                    else
+                    {
+                        return (true, $"✅ Connection successful! Found {agentNames.Count} agents: {string.Join(", ", agentNames)}");
                     }
                 }
-
-                if (agentNames.Count == 0)
+                catch (JsonException)
                 {
-                    return (true, "✅ Connection successful! No agents found.");
-                }
-                else
-                {
-                    return (true, $"✅ Connection successful! Found {agentNames.Count} agents: {string.Join(", ", agentNames)}");
+                    return (true, "✅ Connection successful! (Server returned non-JSON response)");
                 }
             }
             else
             {
-                return (false, $"❌ Connection failed: {response.StatusCode} - {content}");
+                return (false, FormatConnectionError(response, content, resourceUrl));
             }
+        }
+        catch (HttpRequestException ex)
+        {
+            return (false, $"❌ Network connection failed: {ex.Message}\n   Check if the URL is correct and accessible: {resourceUrl}");
+        }
+        catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
+        {
+            return (false, $"❌ Connection timed out: {resourceUrl}\n   The server may be unreachable or overloaded.");
+        }
+        catch (JsonException ex)
+        {
+            return (false, $"❌ Invalid JSON response from server: {ex.Message}\n   The server may have returned an error page instead of expected data.\n   This often indicates authentication or permission issues.");
         }
         catch (Exception ex)
         {
             return (false, $"❌ Connection failed: {ex.Message}");
         }
+    }
+
+    private string FormatConnectionError(HttpResponseMessage response, string content, string resourceUrl)
+    {
+        var statusCode = (int)response.StatusCode;
+        var statusName = response.StatusCode.ToString();
+        
+        // Check if response is HTML (common for error pages)
+        var isHtmlResponse = content.TrimStart().StartsWith("<", StringComparison.OrdinalIgnoreCase);
+        
+        var errorMessage = $"❌ Connection failed: HTTP {statusCode} ({statusName})";
+        
+        // Provide specific guidance based on status code
+        switch (response.StatusCode)
+        {
+            case HttpStatusCode.Unauthorized: // 401
+                errorMessage += "\n   Authentication failed. This usually means:";
+                errorMessage += "\n   • You need to run 'az login' first";
+                errorMessage += "\n   • Your Azure CLI session has expired";
+                errorMessage += "\n   • The token audience/scope is incorrect";
+                break;
+                
+            case HttpStatusCode.Forbidden: // 403
+                errorMessage += "\n   Access denied. This usually means:";
+                errorMessage += "\n   • You don't have permission to access this SRE Agent resource";
+                errorMessage += "\n   • Cross-tenant access needs to be configured";
+                errorMessage += "\n   • Your user account needs to be added as an admin to the resource";
+                errorMessage += "\n   \n   To fix cross-tenant access:";
+                errorMessage += "\n   1. Get your Object ID from: https://ms.portal.azure.com/#view/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/~/Overview";
+                errorMessage += "\n   2. Find the ARM resource ID for this SRE Agent";
+                errorMessage += "\n   3. Run: az resource patch --ids <ARM_RESOURCE_ID> -p '{\"adminUsers\":[{\"objectId\":\"<YOUR_OBJECT_ID>\",\"tenantId\":\"72f988bf-86f1-41af-91ab-2d7cd011db47\"}]}'";
+                break;
+                
+            case HttpStatusCode.NotFound: // 404
+                errorMessage += $"\n   The endpoint was not found. Check if the URL is correct: {resourceUrl}";
+                break;
+                
+            case HttpStatusCode.InternalServerError: // 500
+                errorMessage += "\n   Server error. The SRE Agent service may be experiencing issues.";
+                break;
+                
+            case HttpStatusCode.BadGateway: // 502
+            case HttpStatusCode.ServiceUnavailable: // 503
+            case HttpStatusCode.GatewayTimeout: // 504
+                errorMessage += "\n   The service is temporarily unavailable. Please try again later.";
+                break;
+        }
+        
+        // If we got an HTML response, it's likely an error page
+        if (isHtmlResponse)
+        {
+            errorMessage += "\n   \n   ⚠️  Server returned an HTML error page instead of expected JSON data.";
+            errorMessage += "\n   This typically indicates authentication or authorization issues.";
+            
+            // Try to extract title from HTML for more context
+            var titleMatch = System.Text.RegularExpressions.Regex.Match(content, @"<title[^>]*>([^<]+)</title>", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            if (titleMatch.Success && !string.IsNullOrWhiteSpace(titleMatch.Groups[1].Value))
+            {
+                errorMessage += $"\n   Error page title: {titleMatch.Groups[1].Value.Trim()}";
+            }
+        }
+        else
+        {
+            // Try to parse JSON error response
+            try
+            {
+                var jsonDoc = JsonDocument.Parse(content);
+                if (jsonDoc.RootElement.TryGetProperty("error", out var errorElement))
+                {
+                    var error = errorElement.GetString();
+                    errorMessage += $"\n   Server error: {error}";
+                    
+                    if (jsonDoc.RootElement.TryGetProperty("error_description", out var descElement))
+                    {
+                        var description = descElement.GetString();
+                        errorMessage += $"\n   Details: {description}";
+                        
+                        // Specific handling for audience validation errors
+                        if (description?.Contains("Audience validation failed") == true)
+                        {
+                            errorMessage += "\n   \n   This is a token audience validation error.";
+                            errorMessage += "\n   The server expects a different token audience than what was provided.";
+                        }
+                    }
+                }
+            }
+            catch (JsonException)
+            {
+                // If it's not JSON and not HTML, show a truncated version of the response
+                var truncatedContent = content.Length > 200 ? content.Substring(0, 200) + "..." : content;
+                errorMessage += $"\n   Server response: {truncatedContent}";
+            }
+        }
+        
+        return errorMessage;
     }
 
     public async Task<(bool Success, string Response)> ApplyAgentAsync(string agentName)
@@ -149,7 +264,8 @@ public class ApiService : IDisposable
             var wrappedYamlContent = serializer.Serialize(agentWrapper);
 
             // Create the request
-            var request = new HttpRequestMessage(HttpMethod.Put, $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/apply");
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/apply";
+            var request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
             request.Content = new StringContent(wrappedYamlContent, Encoding.UTF8, "application/yaml");
 
             // Add auth header if not localhost
@@ -172,7 +288,7 @@ public class ApiService : IDisposable
             }
             else
             {
-                return (false, $"❌ Failed to apply agent: {response.StatusCode} - {content}");
+                return (false, $"❌ Failed to apply agent: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
             }
         }
         catch (Exception ex)
@@ -191,7 +307,8 @@ public class ApiService : IDisposable
                 return (false, "Configuration not found. Please run 'srectl init' first.");
             }
 
-            var request = new HttpRequestMessage(HttpMethod.Get, $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/agents");
+            var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/agents";
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
 
             // Add auth header if not localhost
             if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
@@ -270,7 +387,7 @@ public class ApiService : IDisposable
             }
             else
             {
-                return (false, $"❌ Failed to list agents: {response.StatusCode} - {content}");
+                return (false, $"❌ Failed to list agents: {response.StatusCode} - {content}\n   Request URL: {url}");
             }
         }
         catch (Exception ex)
@@ -289,7 +406,8 @@ public class ApiService : IDisposable
                 return (false, "Configuration not found. Please run 'srectl init' first.");
             }
 
-            var request = new HttpRequestMessage(HttpMethod.Get, $"{config.ResourceUrl.TrimEnd('/')}/api/v1/incidentplayground/listTools");
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/incidentplayground/listTools";
+            var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
 
             // Add auth header if not localhost
             if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
@@ -363,7 +481,7 @@ public class ApiService : IDisposable
             }
             else
             {
-                return (false, $"❌ Failed to list tools: {response.StatusCode} - {content}");
+                return (false, $"❌ Failed to list tools: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
             }
         }
         catch (Exception ex)
@@ -426,7 +544,8 @@ public class ApiService : IDisposable
             var wrappedYamlContent = serializer.Serialize(toolWrapper);
 
             // Create the request
-            var request = new HttpRequestMessage(HttpMethod.Put, $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/apply");
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/apply";
+            var request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
             request.Content = new StringContent(wrappedYamlContent, Encoding.UTF8, "application/yaml");
 
             // Add auth header if not localhost
@@ -449,7 +568,7 @@ public class ApiService : IDisposable
             }
             else
             {
-                return (false, $"❌ Failed to apply tool: {response.StatusCode} - {content}");
+                return (false, $"❌ Failed to apply tool: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
             }
         }
         catch (Exception ex)
@@ -485,7 +604,8 @@ public class ApiService : IDisposable
             };
 
             var jsonContent = JsonSerializer.Serialize(requestPayload);
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{config.ResourceUrl.TrimEnd('/')}/api/v1/incidentplayground/generateInstructions");
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/incidentplayground/generateInstructions";
+            var request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
             request.Content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
             // Add auth header if not localhost
@@ -528,7 +648,7 @@ public class ApiService : IDisposable
             }
             else
             {
-                return (false, "", new List<string>(), $"Failed to generate smart agent: {response.StatusCode} - {content}");
+                return (false, "", new List<string>(), $"Failed to generate smart agent: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
             }
         }
         catch (Exception ex)
@@ -562,7 +682,8 @@ public class ApiService : IDisposable
             }
 
             // Create the request
-            var request = new HttpRequestMessage(HttpMethod.Put, $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/apply");
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/apply";
+            var request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
             request.Content = new StringContent(yamlContent, Encoding.UTF8, "application/yaml");
 
             // Add auth header if not localhost
@@ -585,7 +706,7 @@ public class ApiService : IDisposable
             }
             else
             {
-                return (false, $"❌ Failed to apply YAML file: {response.StatusCode} - {content}");
+                return (false, $"❌ Failed to apply YAML file: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
             }
         }
         catch (Exception ex)
@@ -617,7 +738,8 @@ public class ApiService : IDisposable
             };
 
             var jsonContent = JsonSerializer.Serialize(requestPayload);
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{config.ResourceUrl.TrimEnd('/')}/api/v1/threads");
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/threads";
+            var request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
             request.Content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
             // Add auth header if not localhost
@@ -645,7 +767,7 @@ public class ApiService : IDisposable
             }
             else
             {
-                return (false, "", $"❌ Failed to create thread: {response.StatusCode} - {content}");
+                return (false, "", $"❌ Failed to create thread: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
             }
         }
         catch (Exception ex)
@@ -673,7 +795,8 @@ public class ApiService : IDisposable
             };
 
             var jsonContent = JsonSerializer.Serialize(requestPayload);
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{config.ResourceUrl.TrimEnd('/')}/api/v1/threads/{threadId}/messages");
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/threads/{threadId}/messages";
+            var request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
             request.Content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
             // Add auth header if not localhost
@@ -701,7 +824,7 @@ public class ApiService : IDisposable
             }
             else
             {
-                return (false, "", $"❌ Failed to send message: {response.StatusCode} - {content}");
+                return (false, "", $"❌ Failed to send message: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
             }
         }
         catch (Exception ex)
@@ -730,7 +853,8 @@ public class ApiService : IDisposable
 
             while (retryCount < maxRetries)
             {
-                var request = new HttpRequestMessage(HttpMethod.Get, $"{config.ResourceUrl.TrimEnd('/')}/api/v1/threads/{threadId}/messages");
+                var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/threads/{threadId}/messages";
+                var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
 
                 // Add auth header if not localhost
                 if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
@@ -801,7 +925,7 @@ public class ApiService : IDisposable
                     {
                         Console.Write("\r" + new string(' ', 30) + "\r");
                     }
-                    return (false, new List<ThreadMessage>(), $"Failed to get messages: {response.StatusCode} - {content}");
+                    return (false, new List<ThreadMessage>(), $"Failed to get messages: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
                 }
             }
 
@@ -827,7 +951,8 @@ public class ApiService : IDisposable
                 return (false, new List<ThreadInfo>(), "Configuration not found. Please run 'srectl init' first.");
             }
 
-            var request = new HttpRequestMessage(HttpMethod.Get, $"{config.ResourceUrl.TrimEnd('/')}/api/v1/threads");
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/threads";
+            var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
 
             // Add auth header if not localhost
             if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
@@ -863,7 +988,7 @@ public class ApiService : IDisposable
             }
             else
             {
-                return (false, new List<ThreadInfo>(), $"Failed to list threads: {response.StatusCode} - {content}");
+                return (false, new List<ThreadInfo>(), $"Failed to list threads: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
             }
         }
         catch (Exception ex)
@@ -882,7 +1007,8 @@ public class ApiService : IDisposable
                 return (false, "Configuration not found. Please run 'srectl init' first.");
             }
 
-            var request = new HttpRequestMessage(HttpMethod.Delete, $"{config.ResourceUrl.TrimEnd('/')}/api/v1/threads/{threadId}");
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/threads/{threadId}";
+            var request = new HttpRequestMessage(HttpMethod.Delete, requestUrl);
 
             // Add auth header if not localhost
             if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
@@ -904,7 +1030,7 @@ public class ApiService : IDisposable
             }
             else
             {
-                return (false, $"Failed to delete thread: {response.StatusCode} - {content}");
+                return (false, $"Failed to delete thread: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
             }
         }
         catch (Exception ex)

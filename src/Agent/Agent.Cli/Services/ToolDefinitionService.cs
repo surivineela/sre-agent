@@ -7,6 +7,7 @@ using System.Text;
 using Agent.Data.Tools;
 using Agent.Framework;
 using Agent.Framework.Reasoning.Models;
+using Agent.Plugins.Kusto.Tools;
 using YamlDotNet.Serialization;
 
 namespace Agent.Cli.Services;
@@ -79,7 +80,7 @@ public static class ToolDefinitionService
             // Fallback to known assemblies if dynamic discovery fails
             return new List<Assembly>
             {
-                typeof(KustoToolDefinition).Assembly, // Agent.Plugins
+                typeof(KustoToolType).Assembly, // Agent.Plugins
                 typeof(YamlToolDefinitionBase).Assembly,  // Agent.Framework
             };
         }

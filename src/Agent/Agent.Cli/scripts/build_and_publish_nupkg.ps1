@@ -48,7 +48,13 @@ if (-not $fullPackageDir) {
 
 Write-Host "Building and packing the tool..."
 
+# Pack as .NET global tool (PackAsTool=true by default)
 dotnet pack $projectFile --configuration Release --output $fullPackageDir
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Failed to pack the tool. Exit code: $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
 
 # Find the .nupkg file
 $packagePath = Get-ChildItem -Path $fullPackageDir -Filter *.nupkg | Sort-Object LastWriteTime -Descending | Select-Object -First 1

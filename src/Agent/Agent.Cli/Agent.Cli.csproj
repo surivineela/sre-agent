@@ -11,13 +11,15 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>srectl</ToolCommandName>
     <PackageId>SREAgent.CLI</PackageId>
-    <Version>1.0.2</Version>
+    <Version>1.0.3</Version>
     <Authors>SRE Agent Team</Authors>
     <Description>SRE Agent CLI Tool for creating and managing agents</Description>
     <AssemblyTitle>srectl</AssemblyTitle>
     <AssemblyName>srectl</AssemblyName>
+  </PropertyGroup>
 
-    <!-- Self-contained publishing configuration -->
+  <!-- Self-contained publishing configuration (only when not packing as tool) -->
+  <PropertyGroup Condition="'$(PackAsTool)' != 'true'">
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
     <PublishTrimmed>false</PublishTrimmed>
@@ -35,6 +37,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Agent.Framework\Agent.Framework.csproj" />
     <ProjectReference Include="..\Agent.Data\Agent.Data.csproj" />
+    <ProjectReference Include="..\Agent.Plugins\Agent.Plugins.csproj" />
   </ItemGroup>
 
 </Project>

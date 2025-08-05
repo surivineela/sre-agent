@@ -11,7 +11,7 @@ This script:
 - Provides uninstall capability
 
 .PARAMETER PackageVersion
-The version of the Universal Package to download. Use 'latest' for the most recent version.
+The version of the Universal Package to download. Use 'latest' to use the most recent known stable version, or specify an exact version like '1.0.3'. Note: Azure Artifacts Universal Packages don't support automatic latest version resolution.
 
 .PARAMETER FeedUrl
 The base Azure DevOps organization URL. Default targets the SREAgentCli feed.
@@ -46,21 +46,32 @@ Create a desktop shortcut (Windows only).
 .PARAMETER Silent
 Run installation silently without user prompts.
 
+.PARAMETER Upgrade
+Upgrade existing installation to the latest version or specified version.
+
 .EXAMPLE
 .\install_exe.ps1
+Downloads and installs the latest known stable version of SRECTL.
+
+.EXAMPLE
+.\install_exe.ps1 -Upgrade
+Upgrades existing installation to the latest known stable version.
 
 .EXAMPLE
 .\install_exe.ps1 -PackageVersion "1.0.3" -UserInstall
+Installs a specific version for the current user only.
 
 .EXAMPLE
 .\install_exe.ps1 -SystemInstall -AddDesktopShortcut
+Installs the latest known stable version system-wide with a desktop shortcut.
 
 .EXAMPLE
 .\install_exe.ps1 -Organization "myorg" -Project "myproject" -FeedName "myfeed"
+Installs from a custom Azure DevOps feed.
 #>
 
 param (
-    [string]$PackageVersion = "1.0.0",
+    [string]$PackageVersion = "latest",
     [string]$FeedUrl = "https://dev.azure.com/msazure",
     [string]$FeedName = "SREAgentCli",
     [string]$PackageName = "srectl-executables", 
@@ -72,7 +83,8 @@ param (
     [ValidateSet("Auto", "Windows", "Linux", "macOS-Intel", "macOS-AppleSilicon")]
     [string]$Platform = "Auto",
     [switch]$AddDesktopShortcut,
-    [switch]$Silent
+    [switch]$Silent,
+    [switch]$Upgrade
 )
 
 $ErrorActionPreference = "Stop"
@@ -82,8 +94,22 @@ if ($SystemInstall) {
     $UserInstall = $false
 }
 
-Write-Host "SRECTL Universal Package Installer" -ForegroundColor Green
-Write-Host "==================================" -ForegroundColor Green
+# Handle upgrade option
+if ($Upgrade) {
+    Write-Host "SRECTL Upgrade Mode" -ForegroundColor Green
+    Write-Host "==================" -ForegroundColor Green
+    
+    # If PackageVersion is not explicitly set, use "latest" for upgrades
+    if ($PackageVersion -eq "latest" -or $PackageVersion -eq "1.0.0") {
+        $PackageVersion = "latest"
+        Write-Host "Upgrading to latest version..." -ForegroundColor Cyan
+    } else {
+        Write-Host "Upgrading to version: $PackageVersion" -ForegroundColor Cyan
+    }
+} else {
+    Write-Host "SRECTL Universal Package Installer" -ForegroundColor Green
+    Write-Host "==================================" -ForegroundColor Green
+}
 
 if (-not $Silent) {
     Write-Host "Organization: $Organization" -ForegroundColor Gray
@@ -221,39 +247,26 @@ New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
 try {
     # Handle 'latest' version
     if ($PackageVersion -eq "latest") {
-        Write-Host "Resolving latest package version..." -ForegroundColor Cyan
+        Write-Host "Attempting to resolve latest package version..." -ForegroundColor Cyan
         
-        # Try to get latest version from feed
-        $latestVersion = $null
+        # Azure Artifacts Universal Packages don't have a direct way to query for latest version
+        # We'll try a few common approaches and fall back to a known version
+        $fallbackVersion = "1.0.3"
         
-        # Method 1: Try az artifacts universal package versions list
-        try {
-            $versionsOutput = az artifacts universal package versions list `
-                --organization $FeedUrl `
-                --project $Project `
-                --scope project `
-                --feed $FeedName `
-                --name $PackageName `
-                --output json 2>$null
-                
-            if ($versionsOutput -and $versionsOutput -ne "null" -and $LASTEXITCODE -eq 0) {
-                $versions = $versionsOutput | ConvertFrom-Json
-                if ($versions -and $versions.Count -gt 0) {
-                    # Sort by version and get the latest
-                    $latestVersion = ($versions | Sort-Object { [Version]$_.version } | Select-Object -Last 1).version
-                }
+        Write-Host "Note: Azure Artifacts Universal Packages don't support automatic latest version resolution." -ForegroundColor Yellow
+        Write-Host "Using known stable version: $fallbackVersion" -ForegroundColor Cyan
+        Write-Host "To use a specific version, run: .\install_exe.ps1 -PackageVersion 'x.y.z'" -ForegroundColor Gray
+        Write-Host "To see available versions, visit: https://dev.azure.com/msazure/One/_artifacts/feed/SREAgentCli/UPack/srectl-executables/overview" -ForegroundColor Gray
+        
+        if (-not $Silent) {
+            $confirmation = Read-Host "Continue with version $fallbackVersion? (Y/n)"
+            if ($confirmation -and $confirmation.ToLower() -ne 'y' -and $confirmation.ToLower() -ne 'yes') {
+                Write-Host "Installation cancelled." -ForegroundColor Yellow
+                exit 0
             }
-        } catch {
-            Write-Warning "Could not determine latest version. Please specify a version explicitly with -PackageVersion parameter."
-            Write-Host "Example: .\install_exe.ps1 -PackageVersion '25.8.01.1521'" -ForegroundColor Gray
-            Write-Host "Or try: .\install_exe.ps1 -PackageVersion '1.0.0'" -ForegroundColor Gray
-            exit 1
         }
         
-        if ($latestVersion) {
-            $PackageVersion = $latestVersion
-            Write-Host "[OK] Using version: $PackageVersion" -ForegroundColor Green
-        }
+        $PackageVersion = $fallbackVersion
     }
 
     # Download Universal Package
@@ -478,6 +491,7 @@ echo "SRECTL has been uninstalled."
     Write-Host "`nNext Steps:" -ForegroundColor Yellow
     Write-Host "  - Run: srectl --help" -ForegroundColor White
     Write-Host "  - Run: srectl init --resource-url <your-server-url>" -ForegroundColor White
+    Write-Host "  - To upgrade: .\install_exe.ps1 -Upgrade" -ForegroundColor White
     Write-Host "  - To uninstall: $(Split-Path $uninstallScript -Leaf)" -ForegroundColor White
 
 } finally {
