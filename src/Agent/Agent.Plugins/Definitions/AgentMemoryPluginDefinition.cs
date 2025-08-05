@@ -6,11 +6,12 @@ using System.ComponentModel;
 using System.Text;
 using Agent.Data.AgentMemory;
 using Agent.Core.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Plugins.Definitions;
 
 [AgentToolPlugin]
-public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, AgentMemorySettings agentMemorySettings)
+public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, AgentMemorySettings agentMemorySettings, ILogger<AgentMemoryPluginDefinition> logger)
 {
     [Description(@"Retrieves knowledge from past memories to assist with current incident resolution")]
     public async Task<string> SearchMemoryAsync(
@@ -38,7 +39,7 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
         );
     }
 
-    private static string BuildMemoryResponse(
+    private string BuildMemoryResponse(
         List<string> documents,
         List<string> userMemories,
         TrajectorySearchResult trajectories)
@@ -47,6 +48,7 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
 
         if (trajectories.SameResourceTrajectories.Count > 0)
         {
+            logger.LogInternalInformation("Found {Count} past incidents on the same resource", trajectories.SameResourceTrajectories.Count);
             sb.AppendLine("## Similar Past Incidents on the exact Same Resource, which has a high likelihood of helping with the current incident resolution.");
             sb.AppendLine();
             foreach (var trajectory in trajectories.SameResourceTrajectories)
@@ -59,9 +61,14 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
                 sb.AppendLine();
             }
         }
+        else
+        {
+            logger.LogInternalInformation("No past incidents found on the same resource");
+        }
 
         if (trajectories.SimilarSymptomsTrajectories.Count > 0)
         {
+            logger.LogInternalInformation("Found {Count} past incidents with similar symptoms", trajectories.SimilarSymptomsTrajectories.Count);
             sb.AppendLine("## Past Incidents with Similar Symptoms, which may provide insights into the current incident resolution.");
             sb.AppendLine();
             foreach (var trajectory in trajectories.SimilarSymptomsTrajectories)
@@ -75,9 +82,14 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
             }
             sb.AppendLine();
         }
+        else
+        {
+            logger.LogInternalInformation("No past incidents found with similar symptoms");
+        }
 
         if (userMemories.Count > 0)
         {
+            logger.LogInternalInformation("Found {Count} relevant user memories", userMemories.Count);
             sb.AppendLine("## Related User Memories");
             sb.AppendLine();
             foreach (var memory in userMemories)
@@ -86,15 +98,24 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
             }
             sb.AppendLine();
         }
+        else
+        {
+            logger.LogInternalInformation("No relevant user memories found");
+        }
 
         if (documents.Count > 0)
         {
+            logger.LogInternalInformation("Found {Count} relevant documents", documents.Count);
             sb.AppendLine("## Relevant Documents");
             sb.AppendLine();
             foreach (var doc in documents)
             {
                 sb.AppendLine($"- {doc}");
             }
+        }
+        else
+        {
+            logger.LogInternalInformation("No relevant documents found");
         }
 
         if (sb.Length == 0)
@@ -109,12 +130,15 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
     {
         if (!agentMemorySettings.DocumentRetrievalEnabled)
         {
+            logger.LogInternalInformation("Document retrieval is disabled, skipping search.");
             return [];
         }
 
         var documents = await agentMemoryClient.SearchCustomerDocumentsAsync(new SearchParams(
             Query: symptoms,
-            EnableHybridSearch: true
+            K: 5,
+            EnableHybridSearch: true,
+            ExhaustiveKnn: true
         ));
 
         if (documents.Count == 0)
@@ -129,11 +153,12 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
     {
         if (!agentMemorySettings.UserMemoryRetrievalEnabled)
         {
+            logger.LogInternalInformation("User memory retrieval is disabled, skipping search.");
             return [];
         }
 
         var memories = await agentMemoryClient.SearchUserMemoriesAsync(new SearchParams(
-            Query: symptoms, K: 5, EnableHybridSearch: true, VectorSimilarityThreshold: 0.1f));
+            Query: symptoms, K: 5, EnableHybridSearch: true, ExhaustiveKnn: true , VectorSimilarityThreshold: 0.1f));
         if (memories.Count == 0)
         {
             return [];
@@ -163,6 +188,7 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
     {
         if (!agentMemorySettings.TrajectoryRetrievalEnabled)
         {
+            logger.LogInternalInformation("Trajectory retrieval is disabled, skipping search.");
             return new TrajectorySearchResult([], []);
         }
 

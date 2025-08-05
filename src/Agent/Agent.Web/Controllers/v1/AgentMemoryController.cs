@@ -2,7 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Text.Json;
 using Agent.Core.Models;
 using Agent.Data.AgentMemory;
 using Microsoft.AspNetCore.Mvc;
@@ -13,7 +12,7 @@ namespace Agent.Web.Controllers.v1
     internal record FailedUpload(string FileName, string ErrorMessage);
     [ApiController]
     [Route("api/v1/[controller]")]
-    public class DocumentController(ILogger<DocumentController> logger,
+    public class AgentMemoryController(ILogger<AgentMemoryController> logger,
                                     IAgentMemoryClient agentMemoryClient,
                                     IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator,
                                     ISearchIndexService searchIndexService) : ControllerBase
@@ -138,7 +137,7 @@ namespace Agent.Web.Controllers.v1
                 var memory = AgentMemory.FromTrajectory(
                     id: Guid.NewGuid().ToString(),
                     trajectoryData: trajectoryOutput,
-                    embedding: [..embedding.Span]);
+                    embedding: [.. embedding.Span]);
 
                 var result = await searchIndexService.IndexContentAsync(memory);
 
@@ -156,7 +155,7 @@ namespace Agent.Web.Controllers.v1
             }
         }
 
-        [HttpGet()]
+        [HttpGet("documents")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -214,5 +213,33 @@ namespace Agent.Web.Controllers.v1
             }
         }
 
+        [HttpGet("userMemories")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> SearchUserMemory([FromQuery] string query, [FromQuery] string? filter = null, [FromQuery] uint k = 5, [FromQuery] float? vectorSimilarityThreshold = null, [FromQuery] bool enableHybridSearch = false)
+        {
+            if (string.IsNullOrWhiteSpace(query) || k <= 0)
+            {
+                return BadRequest(new { error = "Query must be provided and k must be greater than 0." });
+            }
+
+            try
+            {
+                var results = await agentMemoryClient.SearchUserMemoriesAsync(new SearchParams(
+                    Query: query,
+                    K: k,
+                    VectorSimilarityThreshold: vectorSimilarityThreshold,
+                    Filter: filter,
+                    EnableHybridSearch: enableHybridSearch
+                ));
+                return Ok(new { results });
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalError(ex, "Failed to search user memory.");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Failed to search user memory." });
+            }
+        }
     }
 }

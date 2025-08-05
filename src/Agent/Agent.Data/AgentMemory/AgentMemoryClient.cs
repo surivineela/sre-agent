@@ -290,7 +290,7 @@ public class AgentMemoryClient : IAgentMemoryClient
             {
                 Filter = searchParams.Filter ?? "",
                 Size = (int)Math.Min(searchParams.K, maxK),
-                Select = { "title", "chunk_id", "chunk", "parent_id" },
+                Select = { "id", "title", "chunk", "root_cause", "symptoms_observed", "initial_symptoms", "steps_followed", "resource_types", "resource_ids", "pitfalls", "indexed_at", },
                 IncludeTotalCount = true,
                 VectorSearch = new VectorSearchOptions(),
             };
