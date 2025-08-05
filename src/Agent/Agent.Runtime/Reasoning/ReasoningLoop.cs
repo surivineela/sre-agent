@@ -842,10 +842,22 @@ public class ReasoningLoop : IDisposable
                         {
                             _logger.LogInternalInformation("Agent set handoff state without handoff tool call. AgentHandoffChain has more agents, asking agent to do the right handoff.");
 
-                            var userPromptMessage = new ChatMessage(ChatRole.User,
-                                $"You mentioned the request is in state {endingState}, but did not actually perform any handoffs (transfer_to_* or HandOffBack). " +
-                                $"Reflect if any more processing work is required. If yes, set the state to {AgentProcessingState.Processing} and continue taking actions in your scope. " +
-                                $"Otherwise if you are actually done, then call the right handoff tool.");
+                            ChatMessage userPromptMessage;
+                            if (endingState == AgentProcessingState.HandOff_Continue)
+                            {
+                                userPromptMessage = new ChatMessage(ChatRole.User,
+                                    "You mentioned the request is in state HandOff_Continue, but did not actually perform any handoffs (transfer_to_*). " +
+                                    "Reflect if any more processing work is required *based on your responsibility*. If yes, set the state to Processing and continue taking actions in your scope. " +
+                                    "Otherwise if you are actually done, then call the right handoff tool.");
+                            }
+                            else
+                            {
+                                userPromptMessage = new ChatMessage(ChatRole.User,
+                                    $"You mentioned the request is in state HandOff_OutOfScope, but did not actually perform any handoffs (transfer_to_* or HandOffBack). " +
+                                    $"Reflect if any more processing work is required. If yes, set the state to {AgentProcessingState.Processing} and continue taking actions in your scope. " +
+                                    $"Otherwise if you are actually done, then call the right handoff tool.");
+                            }
+
                             await PersistReasoningMessageAsync(agentChatHistory, userPromptMessage);
 
                             return new ReasoningLoopIterationResult

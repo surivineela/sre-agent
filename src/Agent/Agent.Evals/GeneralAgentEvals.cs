@@ -815,6 +815,21 @@ Respond with only 'SIMILAR' if they convey the same meaning, or 'DIFFERENT' if t
                         "Reflect if any more processing work is required. If yes, set the state to Processing and continue taking actions in your scope. " +
                         "Otherwise if you are actually done, then call the right handoff tool.");
 
+                    if (state == "HandOff_Continue")
+                    {
+                        promptMessage = new ChatMessage(ChatRole.User,
+                        "You mentioned the request is in state HandOff_Continue, but did not actually perform any handoffs (transfer_to_*). " +
+                        "Reflect if any more processing work is required *based on your responsibility*. If yes, set the state to Processing and continue taking actions in your scope. " +
+                        "Otherwise if you are actually done, then call the right handoff tool.");
+                    }
+                    else
+                    {
+                        promptMessage = new ChatMessage(ChatRole.User,
+                        "You mentioned the request is in state HandOff_OutOfScope, but did not actually perform any handoffs (transfer_to_* or HandOffBack). " +
+                        "Reflect if any more processing work is required *based on your responsibility*. If yes, set the state to Processing and continue taking actions in your scope. " +
+                        "Otherwise if you are actually done, then call the right handoff tool.");
+                    }
+
                     modelInput.Add(promptMessage);
 
                     testContext?.WriteLine($"\n=== CALLING LLM AGAIN (Handoff Correction) ===");
