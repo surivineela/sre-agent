@@ -215,7 +215,12 @@ jobs:
       working-directory: ./src/Agent/Agent.Web/Client
       run: npm install
 
-    - name: 🏗️ Build Agent.Web
+    - name: Lint Agent.Web UX
+      if: ${{ needs.changes.outputs.frontend == 'true' }}
+      working-directory: ./src/Agent/Agent.Web/Client
+      run: npm run lint
+
+    - name: 🏗️ Build Agent.Web UX
       if: ${{ needs.changes.outputs.frontend == 'true' }}
       working-directory: ./src/Agent/Agent.Web/Client
       run: npm run build

@@ -13,7 +13,7 @@ export interface GrafanaTemplateResourceOptions {
     namePrefix: string;
 }
 
-export class GrafanaTemplateResource extends ArmTemplateResource<{}> {
+export class GrafanaTemplateResource extends ArmTemplateResource<object> {
     get type(): string {
         return ArmServiceType.DashboardGrafana;
     }
@@ -33,7 +33,7 @@ export class GrafanaTemplateResource extends ArmTemplateResource<{}> {
         this._builder.resources.push(this);
     }
 
-    _getTemplateFragmentHelper(): ArmTemplateResourceFragment<{}> {
+    _getTemplateFragmentHelper(): ArmTemplateResourceFragment<object> {
         return {
             apiVersion: ApiVersions.grafana20241001,
             name: `[parameters('${ParamName.GrafanaName}')]`,

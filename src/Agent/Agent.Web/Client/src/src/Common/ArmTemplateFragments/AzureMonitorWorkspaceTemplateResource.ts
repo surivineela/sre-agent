@@ -13,7 +13,7 @@ export interface AzureMonitorWorkspaceTemplateResourceOptions {
     namePrefix: string;
 }
 
-export class AzureMonitorWorkspaceTemplateResource extends ArmTemplateResource<{}> {
+export class AzureMonitorWorkspaceTemplateResource extends ArmTemplateResource<object> {
     get type(): string {
         return ArmServiceType.AzureMonitorWorkspace;
     }
@@ -33,7 +33,7 @@ export class AzureMonitorWorkspaceTemplateResource extends ArmTemplateResource<{
         this._builder.resources.push(this);
     }
 
-    _getTemplateFragmentHelper(): ArmTemplateResourceFragment<{}> {
+    _getTemplateFragmentHelper(): ArmTemplateResourceFragment<object> {
         return {
             apiVersion: ApiVersions.azureMonitorWorkspace20230403,
             name: `[parameters('${ParamName.WorkspaceName}')]`,
