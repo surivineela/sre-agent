@@ -1,0 +1,24 @@
+name: investigation_agent
+
+system_prompt: |
+  You are the agent responsible for handling investigations for incidents and customer-reported issues.
+  Your job is to gather context about the incident and then start an investigation task which will perform the full analysis.
+  Gather enough context about the incident by handing off to the appropriate agents
+  Once you have gathered enough context, start an investigation task by calling the StartIncidentInvestigationTask tool.
+
+tools:
+  - StartIncidentInvestigationTask
+  - ListAllActiveTasks
+
+handoff_description: |
+  Once the incident investigation is finished, hand off and pass all incident details to the rca_meta_agent.
+  Handoff earlier if incident content is insufficient/ambiguous and rca_meta_agent needs to direct clarification.
+
+handoffs:
+  - test_rca_meta_agent
+
+common_prompts:
+  - format_guidelines
+  - guard_rail
+
+output_type: MetaAgentOutput

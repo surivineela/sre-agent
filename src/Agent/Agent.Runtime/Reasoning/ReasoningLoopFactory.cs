@@ -105,31 +105,31 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         // get the default start agent based on settings
         // Use test_meta_agent when agent tasks are enabled, otherwise use agent type specific agents
         var defaultStartingAgentName = "meta_agent";
-        var agentType = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") ?? string.Empty;
 
-        if (_coreSettings.AgentTasksEnabled)
+        var agentType = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") ?? string.Empty;
+        if (agentType == "ACAAgent")
         {
-            // When AgentTasksEnabled, always use test_meta_agent regardless of agent type
-            defaultStartingAgentName = "test_meta_agent";
-        }
-        else
-        {
-            if (agentType == "ACAAgent")
+            if (_coreSettings.AgentTasksEnabled)
+            {
+                defaultStartingAgentName = "test_rca_meta_agent";
+            }
+            else
             {
                 defaultStartingAgentName = "rca_meta_agent";
             }
-            else if (agentType == "RCARouterAgent")
-            {
-                defaultStartingAgentName = "rca_router_meta_agent";
-            }
-            else if (agentType == "FunctionsFlexConsumptionCRIAgent")
-            {
-                defaultStartingAgentName = "flex_consumption_cri_agent";
-            }
-            else if (agentType == "ColdStartAgent")
-            {
-                defaultStartingAgentName = "cold_start_agent";
-            }
+
+        }
+        else if (agentType == "RCARouterAgent")
+        {
+            defaultStartingAgentName = "rca_router_meta_agent";
+        }
+        else if (agentType == "FunctionsFlexConsumptionCRIAgent")
+        {
+            defaultStartingAgentName = "flex_consumption_cri_agent";
+        }
+        else if (agentType == "ColdStartAgent")
+        {
+            defaultStartingAgentName = "cold_start_agent";
         }
 
         // retrieve the current starting agent if present in context

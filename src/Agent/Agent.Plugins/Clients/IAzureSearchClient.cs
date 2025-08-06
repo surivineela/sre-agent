@@ -68,10 +68,10 @@ namespace Agent.Plugins.Clients
         }
 
         public async Task<SearchResults<T>> SearchAsync<T>(
-    string searchIndex,
-    string searchText,
-    Action<SearchOptions>? configureOptions = null,
-    CancellationToken cancellationToken = default)
+            string searchIndex,
+            string searchText,
+            Action<SearchOptions>? configureOptions = null,
+            CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(searchText))
             {
@@ -151,18 +151,18 @@ namespace Agent.Plugins.Clients
 
             // 🔧 Allow caller to override anything
             configureOptions?.Invoke(searchOptions);
-           
-                // 📤 Execute query
-                if (searchOptions.VectorSearch?.Queries?.Any() == true)
-                {
-                    return (await searchClient.SearchAsync<T>(searchOptions, cancellationToken)).Value;
-                }
-                else
-                {
-                    searchOptions.Size = searchOptions.Size ?? MAX_RESULTS_TO_FETCH;
-                    return (await searchClient.SearchAsync<T>(searchText, searchOptions, cancellationToken)).Value;
-                }
-           
+
+            // 📤 Execute query
+            if (searchOptions.VectorSearch?.Queries?.Any() == true)
+            {
+                return (await searchClient.SearchAsync<T>(searchOptions, cancellationToken)).Value;
+            }
+            else
+            {
+                searchOptions.Size = searchOptions.Size ?? MAX_RESULTS_TO_FETCH;
+                return (await searchClient.SearchAsync<T>(searchText, searchOptions, cancellationToken)).Value;
+            }
+
         }
 
         // Example method to get the top document from search results
@@ -174,7 +174,8 @@ namespace Agent.Plugins.Clients
             var searchResults = await SearchAsync<T>(
                 searchIndex,
                 searchText,
-                options => {
+                options =>
+                {
                     options.Size = 1; // Only retrieve the top result
                 },
                 cancellationToken);
