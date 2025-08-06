@@ -256,6 +256,41 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         }
     }
 
+    public async Task AppendAgentTaskUpdate(Guid threadId, string taskData, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
+    {
+        if (threadId == Guid.Empty)
+        {
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
+        }
+
+        try
+        {
+            // If no cancellation token provided, try to get it from AsyncLocal (set during tool execution)
+            if (cancellationToken == default && ToolStatic.AsyncLocalCancellationToken.Value != default)
+            {
+                cancellationToken = ToolStatic.AsyncLocalCancellationToken.Value;
+                _logger.LogInternalInformation("Using AsyncLocal cancellation token for streaming task update to thread {ThreadId}", threadId);
+            }
+
+            // Check for cancellation before streaming
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Use the streaming service abstraction to send the task update
+            await _streamingService.StreamTaskUpdateAsync(threadId, taskData, messageId, recordedDateTime: recordedDateTime, cancellationToken: cancellationToken);
+
+            _logger.LogExternalInformation("Successfully sent task update for thread {ThreadId}", threadId);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInternalInformation("Task update streaming cancelled for thread {ThreadId}", threadId);
+            // Don't rethrow - cancellation is expected
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to stream task update for thread {ThreadId}", threadId);
+        }
+    }
+
     public async Task NotifyCompletionAsync(string threadId, string orchestrationInstanceId, string status, string? summary = null)
     {
         _logger.LogInternalInformation("orchestrationInstanceId {orchestrationInstanceId} completed with status: {Status}", orchestrationInstanceId, status);

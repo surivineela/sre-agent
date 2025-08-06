@@ -565,4 +565,10 @@ class MockStreamingService : IStreamingService
             threadId, type, message);
         return Task.CompletedTask;
     }
+
+    public Task StreamTaskUpdateAsync(Guid threadId, string taskData, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInternalInformation("Mock: Task update for thread {ThreadId}: {TaskData}", threadId, taskData);
+        return Task.CompletedTask;
+    }
 }

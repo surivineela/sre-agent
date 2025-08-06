@@ -153,6 +153,46 @@ namespace Agent.Web.Services
             }
         }
 
+        public async Task StreamTaskUpdateAsync(Guid threadId, string taskData, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                // Check for cancellation before processing
+                cancellationToken.ThrowIfCancellationRequested();
+
+                _logger.LogInternalInformation("Streaming task update for thread {ThreadId}", threadId);
+
+                // Create a ChatResponseUpdate with the task data and TaskUpdate type
+                var streamMessage = new ChatResponseUpdate
+                {
+                    AuthorName = "Azure SRE Agent",
+                    Role = ChatRole.Assistant,
+                    CreatedAt = recordedDateTime ?? DateTime.UtcNow,
+                    Contents = [new TextContent(taskData)],
+                    AdditionalProperties = new AdditionalPropertiesDictionary
+                    {
+                        { "streamMessageType", StreamMessageType.TaskUpdate.ToString() },
+                        { "threadId", threadId.ToString() },
+                        { "messageId", messageId?.ToString() ?? Guid.NewGuid().ToString() },
+                    }
+                };
+
+                await _hubContext.Clients.All.TaskUpdate(streamMessage);
+
+                _logger.LogInternalInformation("Successfully streamed task update for thread {ThreadId}", threadId);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInternalInformation("Task update streaming cancelled for thread {ThreadId}", threadId);
+                // Don't rethrow cancellation - it's expected
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Failed to stream task update for thread {ThreadId}", threadId);
+                // Don't rethrow - streaming failures should not break the tool call
+            }
+        }
+
         public async Task StreamChatResponseUpdateAsync(Guid threadId, ChatResponseUpdate update, CancellationToken cancellationToken = default)
         {
             try

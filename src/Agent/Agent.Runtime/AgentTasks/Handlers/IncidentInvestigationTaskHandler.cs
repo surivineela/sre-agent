@@ -479,9 +479,10 @@ public sealed class IncidentInvestigationTaskHandler(
                 _currentAgentTask.Properties = replacementState;
             }
 
-            await StreamTaskUpdateAsync(_currentAgentTask.ThreadId, _currentAgentTask, cancellationToken);
-
+            // save the state before streaming to prevent sync issues on frontend
             _currentAgentTask = await agentTaskRepository.UpdateAgentTaskAsync(_currentAgentTask);
+
+            await StreamTaskUpdateAsync(_currentAgentTask.ThreadId, _currentAgentTask, cancellationToken);
 
             if (newStatus != null)
             {
@@ -1168,10 +1169,9 @@ public sealed class IncidentInvestigationTaskHandler(
         try
         {
             var jsonUpdate = JsonSerializer.Serialize(task, JsonSerializerOptions.Web);
-            await outboundCommunicationService.AppendAgentStreamMessage(
+            await outboundCommunicationService.AppendAgentTaskUpdate(
                 threadId,
                 jsonUpdate,
-                StreamMessageType.TaskUpdate,
                 cancellationToken: cancellationToken);
         }
         catch (Exception ex)

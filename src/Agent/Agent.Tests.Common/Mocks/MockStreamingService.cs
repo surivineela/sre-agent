@@ -43,6 +43,25 @@ namespace Agent.Tests.Common.Mocks
             return Task.CompletedTask;
         }
 
+        public Task StreamTaskUpdateAsync(Guid threadId, string taskData, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
+        {
+            var streamedMessage = new StreamedMessage
+            {
+                ThreadId = threadId,
+                Message = taskData,
+                Type = StreamMessageType.TaskUpdate,
+                Timestamp = DateTime.UtcNow,
+                MessageId = messageId ?? Guid.NewGuid()
+            };
+
+            StreamedMessages.Add(streamedMessage);
+
+            _logger.LogInternalInformation("Mock: Streamed task update for thread {ThreadId}: {TaskData}",
+                threadId, taskData);
+
+            return Task.CompletedTask;
+        }
+
         public Task StreamChatResponseUpdateAsync(Guid threadId, ChatResponseUpdate update, CancellationToken cancellationToken = default)
         {
             var streamedMessage = new StreamedMessage

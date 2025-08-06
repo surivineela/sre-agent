@@ -28,6 +28,11 @@ namespace Agent.Web.SignalR
         Task MessageUpdate(ChatResponseUpdate update);
 
         /// <summary>
+        /// Sends a task update to the client
+        /// </summary>
+        Task TaskUpdate(ChatResponseUpdate update);
+
+        /// <summary>
         /// Sends a text-only update to the client
         /// </summary>
         Task TextUpdate(string text);

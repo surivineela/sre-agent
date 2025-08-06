@@ -55,6 +55,14 @@ namespace Agent.Tests.Common.Mocks
             return Task.CompletedTask;
         }
 
+        public Task AppendAgentTaskUpdate(Guid threadId, string taskData, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            _logger?.LogInternalInformation($"Mock: Task update for thread {threadId}: {taskData}");
+            Messages.Add(taskData);
+            return Task.CompletedTask;
+        }
+
         public Task AppendAgentToolCallMessage(Guid threadId, AIFunction aiTool, Guid? messageId = null, string? callId = null, CancellationToken cancellationToken = default)
         {
             Messages.Add(aiTool.Name);
