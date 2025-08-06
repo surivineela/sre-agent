@@ -65,9 +65,45 @@ public class ApiService : IDisposable
             {
                 try
                 {
-                    // Parse the response to get agent names
+                    // Parse the response to get agent names using robust parsing
                     var jsonDoc = JsonDocument.Parse(content);
-                    var agents = jsonDoc.RootElement.GetProperty("data");
+                    
+                    JsonElement agents = default;
+                    bool foundAgents = false;
+                    
+                    // Try different response structure patterns
+                    if (jsonDoc.RootElement.TryGetProperty("data", out var dataElement))
+                    {
+                        // Pattern 1: { "data": { "agents": [...] } } - ExtendedAgentsListResponse style
+                        if (dataElement.ValueKind == JsonValueKind.Object && 
+                            dataElement.TryGetProperty("agents", out agents) && agents.ValueKind == JsonValueKind.Array)
+                        {
+                            foundAgents = true;
+                        }
+                        // Pattern 2: { "data": [...] } - PaginatedResponse style (actual current API)
+                        else if (dataElement.ValueKind == JsonValueKind.Array)
+                        {
+                            agents = dataElement;
+                            foundAgents = true;
+                        }
+                    }
+                    // Pattern 3: { "agents": [...] } - Direct agents property
+                    else if (jsonDoc.RootElement.TryGetProperty("agents", out agents) && agents.ValueKind == JsonValueKind.Array)
+                    {
+                        foundAgents = true;
+                    }
+                    // Pattern 4: [...] - Direct array (legacy)
+                    else if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
+                    {
+                        agents = jsonDoc.RootElement;
+                        foundAgents = true;
+                    }
+                    
+                    if (!foundAgents)
+                    {
+                        return (true, "✅ Connection successful! (Unexpected response format)");
+                    }
+                    
                     var agentNames = new List<string>();
                     
                     foreach (var agent in agents.EnumerateArray())
@@ -326,9 +362,44 @@ public class ApiService : IDisposable
 
             if (response.IsSuccessStatusCode)
             {
-                // Parse the response to get agent information
+                // Parse the response to get agent information from different possible structures
                 var jsonDoc = JsonDocument.Parse(content);
-                var agents = jsonDoc.RootElement.GetProperty("data");
+                
+                JsonElement agents = default;
+                bool foundAgents = false;
+                
+                // Try different response structure patterns
+                if (jsonDoc.RootElement.TryGetProperty("data", out var dataElement))
+                {
+                    // Pattern 1: { "data": { "agents": [...] } } - ExtendedAgentsListResponse style
+                    if (dataElement.ValueKind == JsonValueKind.Object && 
+                        dataElement.TryGetProperty("agents", out agents) && agents.ValueKind == JsonValueKind.Array)
+                    {
+                        foundAgents = true;
+                    }
+                    // Pattern 2: { "data": [...] } - PaginatedResponse style (actual current API)
+                    else if (dataElement.ValueKind == JsonValueKind.Array)
+                    {
+                        agents = dataElement;
+                        foundAgents = true;
+                    }
+                }
+                // Pattern 3: { "agents": [...] } - Direct agents property
+                else if (jsonDoc.RootElement.TryGetProperty("agents", out agents) && agents.ValueKind == JsonValueKind.Array)
+                {
+                    foundAgents = true;
+                }
+                // Pattern 4: [...] - Direct array (legacy)
+                else if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
+                {
+                    agents = jsonDoc.RootElement;
+                    foundAgents = true;
+                }
+                
+                if (!foundAgents)
+                {
+                    return (false, $"❌ Unexpected response format - no agents array found: {content}");
+                }
                 
                 var agentList = new List<string>();
                 agentList.Add("📋 Available Agents:");
@@ -378,9 +449,62 @@ public class ApiService : IDisposable
                 }
                 else
                 {
-                   
-                    var totalCount = jsonDoc.RootElement.TryGetProperty("totalcount", out var totalElement) ? totalElement.GetInt32() : agents.GetArrayLength();
+                    // Get pagination info from different response structures
+                    int totalCount = agents.GetArrayLength(); // Default fallback
+                    bool hasMore = false;
+                    int pageSize = 50;
+                    int pageIndex = 0;
+                    
+                    // Try to get pagination info from PaginatedResponse structure
+                    if (jsonDoc.RootElement.TryGetProperty("total_count", out var totalCountElement))
+                    {
+                        totalCount = totalCountElement.GetInt32();
+                    }
+                    if (jsonDoc.RootElement.TryGetProperty("has_next_page", out var hasMoreElement))
+                    {
+                        hasMore = hasMoreElement.GetBoolean();
+                    }
+                    if (jsonDoc.RootElement.TryGetProperty("page_size", out var pageSizeElement))
+                    {
+                        pageSize = pageSizeElement.GetInt32();
+                    }
+                    if (jsonDoc.RootElement.TryGetProperty("page_index", out var pageIndexElement))
+                    {
+                        pageIndex = pageIndexElement.GetInt32();
+                    }
+                    // Legacy pagination format (only if data is an object, not an array)
+                    else if (jsonDoc.RootElement.TryGetProperty("data", out var legacyDataElement) &&
+                             legacyDataElement.ValueKind == JsonValueKind.Object &&
+                             legacyDataElement.TryGetProperty("pagination", out var legacyPaginationElement))
+                    {
+                        if (legacyPaginationElement.TryGetProperty("total_count", out var legacyTotalElement))
+                        {
+                            totalCount = legacyTotalElement.GetInt32();
+                        }
+                        if (legacyPaginationElement.TryGetProperty("has_more", out var legacyHasMoreElement))
+                        {
+                            hasMore = legacyHasMoreElement.GetBoolean();
+                        }
+                        if (legacyPaginationElement.TryGetProperty("limit", out var legacyLimitElement))
+                        {
+                            pageSize = legacyLimitElement.GetInt32();
+                        }
+                        if (legacyPaginationElement.TryGetProperty("offset", out var legacyOffsetElement))
+                        {
+                            pageIndex = legacyOffsetElement.GetInt32() / pageSize; // Convert offset to page index
+                        }
+                    }
+                    
                     agentList.Add($"\nTotal: {totalCount} agent(s)");
+                    
+                    // Add pagination info if available
+                    if (hasMore || pageIndex > 0)
+                    {
+                        var currentPageAgents = agents.GetArrayLength();
+                        var startIndex = pageIndex * pageSize + 1;
+                        var endIndex = startIndex + currentPageAgents - 1;
+                        agentList.Add($"Showing agents {startIndex}-{endIndex} of {totalCount} (page {pageIndex + 1})");
+                    }
                 }
 
                 return (true, string.Join("\n", agentList));
@@ -425,8 +549,37 @@ public class ApiService : IDisposable
 
             if (response.IsSuccessStatusCode)
             {
-                // Parse the tools array response
-                var tools = JsonSerializer.Deserialize<JsonElement[]>(content) ?? [];
+                // Parse the response to handle both new nested structure and legacy array
+                JsonElement[] tools;
+                
+                try
+                {
+                    var jsonDoc = JsonDocument.Parse(content);
+                    
+                    // Check if response has the new nested structure
+                    if (jsonDoc.RootElement.TryGetProperty("data", out var dataElement) && 
+                        dataElement.ValueKind == JsonValueKind.Object &&
+                        dataElement.TryGetProperty("tools", out var toolsElement) &&
+                        toolsElement.ValueKind == JsonValueKind.Array)
+                    {
+                        // New nested structure: { "data": { "tools": [...], "pagination": {...} } }
+                        tools = toolsElement.EnumerateArray().ToArray();
+                    }
+                    else if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
+                    {
+                        // Legacy structure: direct array
+                        tools = JsonSerializer.Deserialize<JsonElement[]>(content) ?? [];
+                    }
+                    else
+                    {
+                        return (false, $"❌ Unexpected response format: {content}");
+                    }
+                }
+                catch
+                {
+                    // Fallback to legacy parsing
+                    tools = JsonSerializer.Deserialize<JsonElement[]>(content) ?? [];
+                }
                 
                 var toolList = new List<string>();
                 toolList.Add("🔧 Available Tools:");
@@ -487,6 +640,251 @@ public class ApiService : IDisposable
         catch (Exception ex)
         {
             return (false, $"❌ Failed to list tools: {ex.Message}");
+        }
+    }
+
+    public async Task<(bool Success, string Response)> ListExtendedToolsAsync()
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return (false, "Configuration not found. Please run 'srectl init' first.");
+            }
+
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/tools";
+            var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+
+            // Add auth header if not localhost
+            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
+            {
+                var token = await GetAccessTokenAsync();
+                if (string.IsNullOrEmpty(token))
+                {
+                    return (false, "Failed to get access token. Please run 'az login' first.");
+                }
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var response = await _httpClient.SendAsync(request);
+            var content = await response.Content.ReadAsStringAsync();
+
+            if (response.IsSuccessStatusCode)
+            {
+                // Parse the response to get tool information from different possible structures
+                var jsonDoc = JsonDocument.Parse(content);
+                
+                JsonElement tools = default;
+                bool foundTools = false;
+                
+                // Try different response structure patterns
+                if (jsonDoc.RootElement.TryGetProperty("data", out var dataElement))
+                {
+                    // Pattern 1: { "data": { "tools": [...] } } - ExtendedToolsListResponse style
+                    if (dataElement.ValueKind == JsonValueKind.Object && 
+                        dataElement.TryGetProperty("tools", out tools) && tools.ValueKind == JsonValueKind.Array)
+                    {
+                        foundTools = true;
+                    }
+                    // Pattern 2: { "data": [...] } - PaginatedResponse style (actual current API)
+                    else if (dataElement.ValueKind == JsonValueKind.Array)
+                    {
+                        tools = dataElement;
+                        foundTools = true;
+                    }
+                }
+                // Pattern 3: { "tools": [...] } - Direct tools property
+                else if (jsonDoc.RootElement.TryGetProperty("tools", out tools) && tools.ValueKind == JsonValueKind.Array)
+                {
+                    foundTools = true;
+                }
+                // Pattern 4: [...] - Direct array (legacy)
+                else if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
+                {
+                    tools = jsonDoc.RootElement;
+                    foundTools = true;
+                }
+                
+                if (!foundTools)
+                {
+                    return (false, $"❌ Unexpected response format - no tools array found: {content}");
+                }
+                
+                var toolList = new List<string>();
+                toolList.Add("🔧 Extended Tools:");
+                toolList.Add("==================");
+                
+                foreach (var tool in tools.EnumerateArray())
+                {
+                    var name = tool.TryGetProperty("name", out var nameElement) ? nameElement.GetString() ?? "Unknown" : "Unknown";
+                    var description = tool.TryGetProperty("description", out var descElement) ? descElement.GetString() ?? "" : "";
+                    var type = tool.TryGetProperty("type", out var typeElement) ? typeElement.GetString() ?? "" : "";
+                    var createdAt = tool.TryGetProperty("created_at", out var createdElement) ? createdElement.GetString() ?? "" : "";
+                    var updatedAt = tool.TryGetProperty("updated_at", out var updatedElement) ? updatedElement.GetString() ?? "" : "";
+                    
+                    toolList.Add($"\n🛠️  {name}");
+                    if (!string.IsNullOrEmpty(description))
+                    {
+                        toolList.Add($"   Description: {description}");
+                    }
+                    if (!string.IsNullOrEmpty(type))
+                    {
+                        toolList.Add($"   Type: {type}");
+                    }
+                    if (!string.IsNullOrEmpty(createdAt))
+                    {
+                        toolList.Add($"   Created: {createdAt}");
+                    }
+                    if (!string.IsNullOrEmpty(updatedAt))
+                    {
+                        toolList.Add($"   Updated: {updatedAt}");
+                    }
+                    
+                    // Get parameters if available
+                    if (tool.TryGetProperty("parameters", out var paramsElement))
+                    {
+                        if (paramsElement.ValueKind == JsonValueKind.Array)
+                        {
+                            var parameters = new List<string>();
+                            foreach (var param in paramsElement.EnumerateArray())
+                            {
+                                if (param.ValueKind == JsonValueKind.String)
+                                {
+                                    var paramStr = param.GetString();
+                                    if (!string.IsNullOrEmpty(paramStr))
+                                    {
+                                        parameters.Add(paramStr);
+                                    }
+                                }
+                                else if (param.ValueKind == JsonValueKind.Object)
+                                {
+                                    // Handle parameter object structure - extract the name
+                                    var paramName = param.TryGetProperty("name", out var paramNameElement) ? paramNameElement.GetString() ?? "" : "";
+                                    if (!string.IsNullOrEmpty(paramName))
+                                    {
+                                        parameters.Add(paramName);
+                                    }
+                                }
+                            }
+                            if (parameters.Any())
+                            {
+                                toolList.Add($"   Parameters: {string.Join(", ", parameters)}");
+                            }
+                        }
+                        else if (paramsElement.ValueKind == JsonValueKind.Object)
+                        {
+                            // Handle parameter object structure
+                            var paramNames = new List<string>();
+                            foreach (var param in paramsElement.EnumerateObject())
+                            {
+                                paramNames.Add(param.Name);
+                            }
+                            if (paramNames.Any())
+                            {
+                                toolList.Add($"   Parameters: {string.Join(", ", paramNames)}");
+                            }
+                        }
+                    }
+                    
+                    // Get connector info if available
+                    if (tool.TryGetProperty("connector", out var connectorElement))
+                    {
+                        if (connectorElement.ValueKind == JsonValueKind.String)
+                        {
+                            var connectorType = connectorElement.GetString() ?? "";
+                            if (!string.IsNullOrEmpty(connectorType))
+                            {
+                                toolList.Add($"   Connector: {connectorType}");
+                            }
+                        }
+                        else if (connectorElement.ValueKind == JsonValueKind.Object)
+                        {
+                            // Handle connector object structure
+                            var connectorType = connectorElement.TryGetProperty("type", out var connectorTypeElement) ? connectorTypeElement.GetString() ?? "" : "";
+                            if (!string.IsNullOrEmpty(connectorType))
+                            {
+                                toolList.Add($"   Connector: {connectorType}");
+                            }
+                        }
+                    }
+                }
+
+                if (tools.GetArrayLength() == 0)
+                {
+                    toolList.Add("\nNo extended tools found on the server.");
+                    toolList.Add("Use 'srectl tool apply <tool-name>' to add tools to the server.");
+                }
+                else
+                {
+                    // Get pagination info from different response structures
+                    int totalCount = tools.GetArrayLength(); // Default fallback
+                    bool hasMore = false;
+                    int pageSize = 50;
+                    int pageIndex = 0;
+                    
+                    // Try to get pagination info from PaginatedResponse structure
+                    if (jsonDoc.RootElement.TryGetProperty("total_count", out var totalCountElement))
+                    {
+                        totalCount = totalCountElement.GetInt32();
+                    }
+                    if (jsonDoc.RootElement.TryGetProperty("has_next_page", out var hasMoreElement))
+                    {
+                        hasMore = hasMoreElement.GetBoolean();
+                    }
+                    if (jsonDoc.RootElement.TryGetProperty("page_size", out var pageSizeElement))
+                    {
+                        pageSize = pageSizeElement.GetInt32();
+                    }
+                    if (jsonDoc.RootElement.TryGetProperty("page_index", out var pageIndexElement))
+                    {
+                        pageIndex = pageIndexElement.GetInt32();
+                    }
+                    // Legacy pagination format (only if data is an object, not an array)
+                    else if (jsonDoc.RootElement.TryGetProperty("data", out var legacyDataElement) &&
+                             legacyDataElement.ValueKind == JsonValueKind.Object &&
+                             legacyDataElement.TryGetProperty("pagination", out var legacyPaginationElement))
+                    {
+                        if (legacyPaginationElement.TryGetProperty("total_count", out var legacyTotalElement))
+                        {
+                            totalCount = legacyTotalElement.GetInt32();
+                        }
+                        if (legacyPaginationElement.TryGetProperty("has_more", out var legacyHasMoreElement))
+                        {
+                            hasMore = legacyHasMoreElement.GetBoolean();
+                        }
+                        if (legacyPaginationElement.TryGetProperty("limit", out var legacyLimitElement))
+                        {
+                            pageSize = legacyLimitElement.GetInt32();
+                        }
+                        if (legacyPaginationElement.TryGetProperty("offset", out var legacyOffsetElement))
+                        {
+                            pageIndex = legacyOffsetElement.GetInt32() / pageSize; // Convert offset to page index
+                        }
+                    }
+                    
+                    toolList.Add($"\nTotal: {totalCount} extended tool(s)");
+                    
+                    // Add pagination info if available
+                    if (hasMore || pageIndex > 0)
+                    {
+                        var currentPageTools = tools.GetArrayLength();
+                        var startIndex = pageIndex * pageSize + 1;
+                        var endIndex = startIndex + currentPageTools - 1;
+                        toolList.Add($"Showing tools {startIndex}-{endIndex} of {totalCount} (page {pageIndex + 1})");
+                    }
+                }
+
+                return (true, string.Join("\n", toolList));
+            }
+            else
+            {
+                return (false, $"❌ Failed to list extended tools: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
+            }
+        }
+        catch (Exception ex)
+        {
+            return (false, $"❌ Failed to list extended tools: {ex.Message}");
         }
     }
 

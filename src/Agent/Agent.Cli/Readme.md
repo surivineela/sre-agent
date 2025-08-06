@@ -768,10 +768,53 @@ srectl list tools
 Total: 3 tool(s)
 ```
 
+#### List Extended Tools
+Retrieve and display all extended tools that have been applied to the remote server through the `apply` command:
+
+```bash
+srectl list extended-tools
+```
+
+**What it does:**
+- Connects to the configured remote server
+- Fetches all extended tools from the `/api/v1/extendedAgent/tools` endpoint
+- Displays formatted tool information for tools that were added through the CLI or API
+- Shows the same detailed information as `list tools` but specifically for extended/custom tools
+
+**Use Case:**
+This command is useful to see which custom tools have been successfully applied to the server, as opposed to the built-in tools available through the standard `/listTools` endpoint.
+
+**Sample Output:**
+```
+🔧 Available Extended Tools:
+============================
+
+🛠️  MyCustomKustoQuery
+   Category: Kusto
+   Description: Custom Kusto query for service health monitoring
+   Plugin: KustoPlugin
+   Parameters: timeRange, serviceName
+
+🛠️  CustomPagerDutyResolver
+   Category: PagerDuty
+   Description: Custom PagerDuty resolution tool with additional validation
+   Plugin: PagerDutyPlugin
+   Parameters: incident_id, resolution_note, validation_check
+
+Total: 2 tool(s)
+```
+
 **Authentication:**
 - For localhost servers: No authentication required
 - For remote servers: Requires Azure CLI authentication (`az login`)
 - Uses the same configuration as the `apply` command
+
+**Available List Commands:**
+```bash
+srectl list agents           # List all agents on the server
+srectl list tools            # List all built-in tools on the server  
+srectl list extended-tools   # List all custom/extended tools applied to the server
+```
 
 ---
 
@@ -1024,6 +1067,17 @@ srectl list tools
 - Displays formatted list of tools with names, categories, and descriptions
 - Shows tool parameters and plugin information
 - Displays total count
+- Requires valid CLI configuration
+
+#### 9.1. List Extended Tools
+**Test:** List all extended tools from the remote server
+```bash
+srectl list extended-tools
+```
+**Expected:** 
+- Displays formatted list of extended/custom tools applied through the CLI
+- Shows same information format as regular tools
+- Displays tools that were added via `srectl tool apply` command
 - Requires valid CLI configuration
 
 ### Thread Management Test Cases

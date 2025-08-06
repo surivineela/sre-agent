@@ -395,6 +395,27 @@ srectl list tools
 srectl list tools
 ```
 
+### `srectl list extended-tools`
+
+Retrieve and display all extended tools that have been added to the server through the apply command. These are custom tools configured via YAML files.
+
+**Syntax:**
+```bash
+srectl list extended-tools
+```
+
+**What it displays:**
+- Extended tool names, types, and descriptions  
+- Creation and update timestamps
+- Parameters and configuration
+- Connector information
+- Total extended tool count with pagination
+
+**Example:**
+```bash
+srectl list extended-tools
+```
+
 ---
 
 ## Utility Commands

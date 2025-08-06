@@ -198,9 +198,17 @@ public static class CommandBuilder
             await GeneralCommandHandlers.HandleListToolsCommand(parseResult);
         });
 
-        var listCommand = new Command("list", "List agents or tools from the remote server");
+        // List extended-tools subcommand
+        var listExtendedToolsCommand = new Command("extended-tools", "List all extended tools added to the server through apply command");
+        listExtendedToolsCommand.SetAction(async parseResult => 
+        {
+            await GeneralCommandHandlers.HandleListExtendedToolsCommand(parseResult);
+        });
+
+        var listCommand = new Command("list", "List agents, tools, or extended tools from the remote server");
         listCommand.Subcommands.Add(listAgentsCommand);
         listCommand.Subcommands.Add(listToolsCommand);
+        listCommand.Subcommands.Add(listExtendedToolsCommand);
 
         return listCommand;
     }
