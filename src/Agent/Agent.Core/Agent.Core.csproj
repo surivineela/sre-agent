@@ -41,6 +41,9 @@
     <PackageReference Include="Microsoft.SemanticKernel.Abstractions" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.InMemory" />
+    <PackageReference Include="Microsoft.TeamFoundationServer.Client" />
+    <PackageReference Include="Microsoft.VisualStudio.Services.Client" />
+    <PackageReference Include="Microsoft.VisualStudio.Services.Search.Client" />
     <PackageReference Include="NCrontab" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="Octokit" />

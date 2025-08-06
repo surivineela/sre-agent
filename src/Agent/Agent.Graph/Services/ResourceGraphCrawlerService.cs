@@ -9,6 +9,7 @@ using System.Threading.RateLimiting;
 using Agent.Core.Configuration;
 using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Interfaces;
@@ -117,6 +118,26 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
             }
         }
         await Crawl(roots, scopeFiltersSet, typeFiltersSet, cascade, cancellationToken);
+    }
+
+    public async Task CrawlSourceCodeRepoAsync(SourceCodeRepoNode node)
+    {
+        _logger.LogInternalInformation($"Crawling source code repository: {node.GetNodeId()}");
+
+        HashSet<string> scopeFiltersSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var sorted = _crawlerSettings.CrawlRoots.Split(",", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .OrderBy(id => id, StringComparer.OrdinalIgnoreCase);
+        var last = string.Empty;
+        foreach (var id in sorted)
+        {
+            if (!string.IsNullOrEmpty(last) && id.StartsWith(last, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+            scopeFiltersSet.Add(id);
+            last = id;
+        }
+        await Crawl([node], scopeFiltersSet, new HashSet<string>(), cascade: true, cancellationToken: null);
     }
 
     public Task<CrawlerResult> GetCrawlerResult()

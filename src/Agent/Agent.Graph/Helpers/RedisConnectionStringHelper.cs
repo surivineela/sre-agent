@@ -3,12 +3,13 @@
 // ------------------------------------------------------------
 
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Graph.Crawler.ARM;
 using Azure.Core;
 using Azure.ResourceManager;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 
-namespace Agent.Graph.Crawler.ARM;
+namespace Agent.Graph.Helpers;
 
 public class RedisConnectionStringHelper
 {
@@ -92,5 +93,15 @@ public class RedisConnectionStringHelper
             }
         }
         return string.Empty;
+    }
+
+    public static bool IsRedisConnectionString(string value)
+    {
+        if (string.IsNullOrEmpty(value)) return false;
+
+        return value.Contains(".redis.cache.windows.net", StringComparison.OrdinalIgnoreCase) ||
+               value.Contains("ssl=true", StringComparison.OrdinalIgnoreCase) &&
+               (value.Contains(",abortConnect=false", StringComparison.OrdinalIgnoreCase) ||
+                value.Contains("password=", StringComparison.OrdinalIgnoreCase));
     }
 }

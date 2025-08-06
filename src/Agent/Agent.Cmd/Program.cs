@@ -51,7 +51,8 @@ namespace Agent.Cmd
             builder.Services.AddSingleton<GraphCommand>();
             builder.Services.AddSingleton<ScenarioCommand>();
             builder.Services.AddSingleton<GenerateEvalCommand>();
-
+            builder.Services.AddSingleton<IAzureDevOpsService, AzureDevOpsService>();
+            builder.Services.AddSingleton<IGitHubService, GitHubService>();
 
 
             builder.Services.AddCrawlerHttpClient();
@@ -76,6 +77,13 @@ namespace Agent.Cmd
                 {
                     var cmd = host.Services.GetRequiredService<CrawlerCommand>();
                     cmd.CrawlResourceId(command);
+                });
+
+            commandLineApplication.Command("CrawlRepo",
+                (command) =>
+                {
+                    var cmd = host.Services.GetRequiredService<CrawlerCommand>();
+                    cmd.CrawlSourceCodeRepo(command);
                 });
 
             commandLineApplication.Command("CrawlActivityLog",

@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
+using Agent.Graph.Helpers;
 using k8s.Models;
 using Microsoft.Extensions.Logging;
 

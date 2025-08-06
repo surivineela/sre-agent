@@ -1,4 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Threading.Tasks;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Azure.Core;
@@ -17,6 +18,7 @@ public class AuthenticationService : IAuthenticationService
     private readonly FederationSettings _federationSettings;
     private readonly IHostEnvironment _hostEnvironment;
     private readonly DashboardSettings _dashboardSettings;
+    private readonly GitHubSettings _gitHubSettings;
     private readonly Lazy<IThreadRepository> _threadRepository;
 
     public AuthenticationService(
@@ -25,6 +27,7 @@ public class AuthenticationService : IAuthenticationService
         ActionSettings actionSettings,
         FederationSettings federationSettings,
         DashboardSettings dashboardSettings,
+        GitHubSettings gitHubSettings,
         IHostEnvironment hostEnvironment,
         IServiceProvider serviceProvider)
     {
@@ -34,6 +37,7 @@ public class AuthenticationService : IAuthenticationService
         _federationSettings = federationSettings;
         _hostEnvironment = hostEnvironment;
         _dashboardSettings = dashboardSettings;
+        _gitHubSettings = gitHubSettings;
 
         // To avoid cyclic dependency between cosmos client
         _threadRepository = new Lazy<IThreadRepository>(() => serviceProvider.GetRequiredService<IThreadRepository>());
@@ -220,6 +224,32 @@ public class AuthenticationService : IAuthenticationService
         }
 
         return GetManagedIdentityCredential(_dashboardSettings.Identity);
+    }
+
+    public TokenCredential GetAzureDevOpsCredential()
+    {
+        if (_hostEnvironment.IsDevelopment())
+        {
+            return GetDefaultAzureCredential();
+        }
+
+        return GetManagedIdentityCredential(_crawlerSettings.Identity);
+    }
+
+    public async Task<string> GetGitHubAccessToken()
+    {
+        if (_hostEnvironment.IsDevelopment())
+        {
+            return _gitHubSettings.PatTokenOverride;
+        }
+
+        var token = await _threadRepository.Value.GetGitHubAccessTokenAsync();
+        if (token == null || string.IsNullOrEmpty(token.AccessToken))
+        {
+            throw new InvalidOperationException("GitHub access token is not available. Please authenticate first.");
+        }
+
+        return token.AccessToken;
     }
 
     #endregion

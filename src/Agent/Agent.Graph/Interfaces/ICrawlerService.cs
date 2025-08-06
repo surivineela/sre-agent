@@ -1,3 +1,4 @@
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Graph.Schema;
 
 namespace Agent.Graph.Interfaces;
@@ -13,6 +14,8 @@ public interface ICrawlerService
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     public Task CrawlAsync(IEnumerable<string> rootIds, IEnumerable<string>? filters = null, bool cascade = true, CancellationToken? cancellationToken = null);
+
+    public Task CrawlSourceCodeRepoAsync(SourceCodeRepoNode node);
 
     /// <summary>
     /// Starts the crawler that would crawl resource on updates. This implicitly does non-cascade crawl.

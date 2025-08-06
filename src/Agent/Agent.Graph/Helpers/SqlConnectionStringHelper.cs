@@ -3,12 +3,13 @@
 // ------------------------------------------------------------
 
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Graph.Crawler.ARM;
 using Azure.Core;
 using Azure.ResourceManager;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 
-namespace Agent.Graph.Crawler.ARM;
+namespace Agent.Graph.Helpers;
 
 public class SqlConnectionStringHelper
 {

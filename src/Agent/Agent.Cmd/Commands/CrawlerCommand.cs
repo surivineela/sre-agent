@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Graph.Interfaces;
 using Agent.Graph.Services;
 using Microsoft.Extensions.CommandLineUtils;
@@ -31,6 +32,20 @@ namespace Agent.Cmd
             command.OnExecute(async () =>
             {
                 await _crawler.CrawlAsync([resourceId.Value], filters?.Values.Count == 0 ? null : filters?.Values, cascade.HasValue());
+                return 0;
+            });
+        }
+
+        public void CrawlSourceCodeRepo(CommandLineApplication command)
+        {
+            command.Description = "Crawl a source code repository";
+            command.HelpOption("-?|-h|--help");
+            var repoUrl = command.Argument("repoUrl", "Repository URL");
+
+            command.OnExecute(async () =>
+            {
+                var node = new SourceCodeRepoNode(repoUrl.Value);
+                await _crawler.CrawlSourceCodeRepoAsync(node);
                 return 0;
             });
         }

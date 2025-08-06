@@ -537,6 +537,9 @@ public class Program
             .AddSingleton<IKeyVaultService, KeyVaultService>()
             .AddSingleton<ObserverClientService>()
             .AddSingleton<IAzureBlobStorageClient, AzureBlobStorageClient>()
+            .AddSingleton<IAzureDevOpsService, AzureDevOpsService>()
+            .AddSingleton<IGitHubService, GitHubService>()
+
 
             .AddSingleton(sp =>
             {

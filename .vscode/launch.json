@@ -1,32 +1,32 @@
 {
-  // Use IntelliSense to learn about possible attributes.
-  // Hover to view descriptions of existing attributes.
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-  "version": "0.2.0",
-  "configurations": [
-    {
-        "name": "Launch Agent.Web (HTTPS)",
-        "type": "coreclr",
-        "request": "launch",
-        "preLaunchTask": "build Agent.Web",
-        "program": "${workspaceFolder}/src/Agent/Agent.Web/bin/Debug/net9.0/Agent.Web.dll",
-        "args": [],
-        "cwd": "${workspaceFolder}/src/Agent/Agent.Web",
-        "stopAtEntry": false,
-        "env": {
-            "ASPNETCORE_ENVIRONMENT": "Development",
-            "ASPNETCORE_URLS": "https://localhost:7023"
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Agent.Web (HTTPS)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build Agent.Web",
+            "program": "${workspaceFolder}/src/Agent/Agent.Web/bin/Debug/net9.0/Agent.Web.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/src/Agent/Agent.Web",
+            "stopAtEntry": false,
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_URLS": "https://localhost:7023"
+            },
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
+                "uriFormat": "%s/static"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Views"
+            },
+            "requireExactSource": true
         },
-        "serverReadyAction": {
-            "action": "openExternally",
-            "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
-            "uriFormat": "%s/static"
-        },
-        "sourceFileMap": {
-            "/Views": "${workspaceFolder}/Views"
-        },
-        "requireExactSource": true
-    },
         {
             "name": "Debug Crawler",
             "type": "coreclr",
@@ -34,9 +34,11 @@
             "preLaunchTask": "build Agent.Cmd",
             "program": "${workspaceFolder}/src/Agent/Agent.Cmd/bin/Debug/net9.0/Agent.Cmd.dll",
             "args": [
-                "Crawl",
-                "/subscriptions/ea2aa16c-c257-4359-aaea-ff2b0f3b3d10/resourceGroups/capps-zhenqxu-eu2-private-rp-rg",
-                "-c"
+                // "Crawl",
+                // "/subscriptions/ea2aa16c-c257-4359-aaea-ff2b0f3b3d10/resourceGroups/capps-zhenqxu-eu2-private-rp-rg",
+                // "-c"
+                "CrawlRepo",
+                "https://github.com/serverless-paas-balam/sreagent-runtime",
             ],
             "cwd": "${workspaceFolder}/src/Agent/Agent.Cmd",
             "env": {
@@ -45,5 +47,5 @@
             "console": "internalConsole",
             "stopAtEntry": false
         },
-  ]
+    ]
 }

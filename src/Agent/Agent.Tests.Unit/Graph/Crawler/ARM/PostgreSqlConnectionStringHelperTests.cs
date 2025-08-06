@@ -2,9 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Graph.Crawler.ARM;
+using Agent.Graph.Helpers;
 using Shouldly;
-using Xunit;
 
 namespace Agent.Tests.Unit.Graph.Crawler.ARM;
 

@@ -6,11 +6,13 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Web;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Graph.Crawler;
+using Agent.Graph.Crawler.ARM;
 using Azure.Core;
 using Azure.ResourceManager;
 using Microsoft.Extensions.Logging;
 
-namespace Agent.Graph.Crawler.ARM;
+namespace Agent.Graph.Helpers;
 
 public enum PostgreSqlConnectionFormat
 {

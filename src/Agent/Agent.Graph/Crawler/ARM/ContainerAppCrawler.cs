@@ -403,7 +403,7 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
             }
         }
         // Look for Redis connection strings
-        else if (IsRedisConnectionString(value))
+        else if (RedisConnectionStringHelper.IsRedisConnectionString(value))
         {
             var redisHelper = new RedisConnectionStringHelper(_logger, _armClient);
             var redisNode = await redisHelper.GetRedisResourceFromConnectionStringAsync(_graphDbClient, node, value);
@@ -433,15 +433,6 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
             }
         }
         return string.Empty;
-    }
-    private bool IsRedisConnectionString(string value)
-    {
-        if (string.IsNullOrEmpty(value)) return false;
-
-        return value.Contains(".redis.cache.windows.net", StringComparison.OrdinalIgnoreCase) ||
-               value.Contains("ssl=true", StringComparison.OrdinalIgnoreCase) &&
-               (value.Contains(",abortConnect=false", StringComparison.OrdinalIgnoreCase) ||
-                value.Contains("password=", StringComparison.OrdinalIgnoreCase));
     }
 }
 

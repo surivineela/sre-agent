@@ -15,12 +15,14 @@ namespace Agent.Core
         public const string DefaultOboTokenScope = "https://management.core.windows.net/.default";
 
         public const string AksOboTokenScope = "6dae42f8-4368-4678-94ff-3960e28e3630/.default";
+        public const string AzureDevOpsScope = "499b84ac-1321-427f-aa17-267ca6975798/.default";
 
         public const string HttpClientForRazor = "Razor";
 
         public const string HttpClientForCrawler = "Crawler";
 
         public const string HttpClientForSearchEndpoint = "SearchEndpoint";
+        public const string HttpClientForAzureDevOps = "AzureDevOps";
 
         public const string SREAgentPromptStarter =
             $"""

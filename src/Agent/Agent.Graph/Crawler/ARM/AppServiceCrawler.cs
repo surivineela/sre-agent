@@ -5,6 +5,7 @@
 using System.Text.Json;
 using Agent.Core.Helpers;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Graph.Helpers;
 using Azure;
 using Azure.Core;
 using Azure.ResourceManager;
@@ -429,7 +430,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
                     postgreSqlNode = await _postgreSqlHelper.GetPostgreSqlResourceFromConnectionStringAsync(appServiceNode, value, "appService:appSetting", name);
                 }
                 // Look for Redis connection strings in app settings
-                else if (IsRedisConnectionString(value))
+                else if (RedisConnectionStringHelper.IsRedisConnectionString(value))
                 {
                     var redisHelper = new RedisConnectionStringHelper(_logger, _armClient);
                     redisNode = await redisHelper.GetRedisResourceFromConnectionStringAsync(_graphDbClient, appServiceNode, value);
@@ -567,17 +568,6 @@ public class AppServiceCrawler : GenericArmResourceCrawler
         }
 
         return null;
-    }
-
-    private bool IsRedisConnectionString(string value)
-    {
-        if (string.IsNullOrEmpty(value)) return false;
-
-        // Common Redis connection string indicators
-        return value.Contains(".redis.cache.windows.net", StringComparison.OrdinalIgnoreCase) ||
-               value.Contains("ssl=true", StringComparison.OrdinalIgnoreCase) &&
-               (value.Contains(",abortConnect=false", StringComparison.OrdinalIgnoreCase) ||
-                value.Contains("password=", StringComparison.OrdinalIgnoreCase));
     }
 
     private FunctionNode.Function? ParseFunctionConfig(FunctionEnvelopeData data)

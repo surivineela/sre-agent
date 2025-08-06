@@ -4,7 +4,10 @@
 
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
+using Agent.Graph.Crawler.External;
 using Agent.Graph.Crawler.Kubernetes;
+using Agent.Graph.Helpers;
 using Agent.Graph.Interfaces;
 using Azure.Core;
 using k8s;
@@ -21,16 +24,22 @@ public class ArmResourceCrawlerFactory
     private readonly IGraphDatabaseClient _graphDbClient;
     private readonly IKubernetesService _k8sService;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IAuthenticationService _authenticationService;
+    private readonly IAzureDevOpsService _azureDevOpsService;
+    private readonly IGitHubService _gitHubService;
 
     public ArmResourceCrawlerFactory(ILoggerFactory loggerFactory, AzureResourceGraphClient graphClient, IArmClientFactory armClientFactory, IGraphDatabaseClient graphDbClient,
-        [FromKeyedServices("Crawler")] IKubernetesService k8sService, IHttpClientFactory httpClientFactory)
+        [FromKeyedServices("Crawler")] IKubernetesService k8sService, IHttpClientFactory httpClientFactory, IAuthenticationService authenticationService, IAzureDevOpsService azureDevOpsService, IGitHubService gitHubService)
     {
         _loggerFactory = loggerFactory;
         _graphClient = graphClient;
         _armClientFactory = armClientFactory;
         _graphDbClient = graphDbClient;
+        _authenticationService = authenticationService;
         _k8sService = k8sService;
         _httpClientFactory = httpClientFactory;
+        _azureDevOpsService = azureDevOpsService;
+        _gitHubService = gitHubService;
     }
 
     public IResourceCrawler CreateFromNode(GraphNode node)
@@ -159,6 +168,12 @@ public class ArmResourceCrawlerFactory
             }
 
             return new KubernetesDummyCrawler();
+        }
+        else if (node is SourceCodeRepoNode)
+        {
+            var logger = _loggerFactory.CreateLogger<SourceCodeRepoCrawler>();
+            var appConfigHelper = new AppConfigurationHelper(logger, _graphDbClient, _authenticationService, armClient);
+            return new SourceCodeRepoCrawler(logger, _graphDbClient, appConfigHelper, _httpClientFactory, _azureDevOpsService, _gitHubService);
         }
 
         throw new NotImplementedException();
