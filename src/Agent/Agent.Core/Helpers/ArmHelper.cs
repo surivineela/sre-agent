@@ -1779,6 +1779,57 @@ public class ArmHelper
         }
     }
 
+    public async Task<GenericArmResourceModel?> GetAppInsightsResourceByInstrumentationKeyAsync(string subscriptionId, string instrumentationKey)
+    {
+        var requestUrl = $"https://management.azure.com/subscriptions/{subscriptionId}/providers/microsoft.insights/components?api-version=2018-05-01-preview";
+        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+        var response = await httpClient.SendAsync(request);
+
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        var content = await response.Content.ReadAsStringAsync();
+        var jsonDoc = JsonDocument.Parse(content);
+
+        foreach (var component in jsonDoc.RootElement.GetProperty("value").EnumerateArray())
+        {
+            if (component.TryGetProperty("properties", out var properties) &&
+                properties.TryGetProperty("InstrumentationKey", out var key) &&
+                key.GetString() == instrumentationKey)
+            {
+                var resourceId = component.GetProperty("id").GetString();
+                var resourceName = component.GetProperty("name").GetString();
+                var location = component.GetProperty("location").GetString();
+                var kind = component.GetProperty("kind").GetString();
+
+                if (string.IsNullOrEmpty(resourceId) || string.IsNullOrEmpty(resourceName) || string.IsNullOrEmpty(location) || string.IsNullOrEmpty(kind))
+                {
+                    _logger.LogInternalError("App Insights resource lookup failed: one or more required fields (id, name, location, or kind) are missing or empty.");
+                    return null;
+                }
+                
+                var type = component.TryGetProperty("type", out var typ) ? typ.GetString() : null;
+                var tags = component.TryGetProperty("tags", out var tagElement) && tagElement.ValueKind == JsonValueKind.Object
+                    ? tagElement.EnumerateObject().ToDictionary(p => p.Name, p => p.Value.ToString())
+                    : new Dictionary<string, string>();
+
+                return new GenericArmResourceModel(
+                    id: resourceId,
+                    name: resourceName,
+                    type: type ?? "microsoft.insights/components",
+                    kind: kind ?? string.Empty,
+                    location: location,
+                    properties: properties,
+                    tags: tags,
+                    IdentityModels: new List<GenericArmResourceIdentityModel>()
+                );
+            }
+        }
+        return null;
+    }
+
     public async Task<string> ExecuteLogAnalyticsQuery(string resourceId, string queryString, string timeSpan)
     {
         try
@@ -3293,6 +3344,12 @@ public class ArmHelper
         }
 
         return "Executing Azure CLI write command";
+    }
+
+    public static string? ExtractResourceGroupNameFromId(string resourceId)
+    {
+        var resourceIdentifier = new ResourceIdentifier(resourceId);
+        return resourceIdentifier.ResourceGroupName;
     }
 
     #endregion

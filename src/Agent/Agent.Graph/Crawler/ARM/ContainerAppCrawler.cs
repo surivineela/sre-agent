@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Text.Json;
+using Agent.Core.Helpers;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Helpers;
 using Azure.Core;
@@ -349,7 +350,7 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
                     resourceType: "Microsoft.Cache/redis",
                     resourceId: redisResourceId,
                     subscriptionId: node.SubscriptionId,
-                    resourceGroupName: ExtractResourceGroupName(cache.Data.Id),
+                    resourceGroupName: ArmHelper.ExtractResourceGroupNameFromId(cache.Data.Id!)!,
                     resourceName: cache.Data.Name);
 
                 var properties = redisNode.GetNodeProperties();
@@ -420,19 +421,6 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
                 yield return redisNode;
             }
         }
-    }
-
-    private string ExtractResourceGroupName(ResourceIdentifier resourceId)
-    {
-        var segments = resourceId.ToString().Split('/', StringSplitOptions.RemoveEmptyEntries);
-        for (int i = 0; i < segments.Length - 1; i++)
-        {
-            if (segments[i].Equals("resourceGroups", StringComparison.OrdinalIgnoreCase))
-            {
-                return segments[i + 1];
-            }
-        }
-        return string.Empty;
     }
 }
 

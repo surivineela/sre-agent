@@ -30,6 +30,7 @@ const ICON_LOOKUP: Record<string, string> = {
     sqlserver: 'SQLServer.svg',
     redis: 'AzureRedisCache.svg',
     cache: 'AzureRedisCache.svg',
+    storageaccounts: 'Storage.svg',
 
     // Networking
     vnet: 'Vnet.svg',
@@ -41,6 +42,9 @@ const ICON_LOOKUP: Record<string, string> = {
     // API Management
     apimanagement: 'ApiManagement.svg',
     apicenter: 'ApiCenter.svg',
+
+    // Monitoring
+    components: 'ApplicationInsights.svg',
 };
 
 // Friendly names for resource types
@@ -74,6 +78,7 @@ const FRIENDLY_NAMES: Record<string, string> = {
     sqlserver: 'SQL Server',
     redis: 'Redis Cache',
     cache: 'Redis Cache',
+    storageaccounts: 'Storage Account',
 
     // Networking
     vnet: 'Virtual Network',
@@ -81,6 +86,9 @@ const FRIENDLY_NAMES: Record<string, string> = {
     subnet: 'Subnet',
     nsg: 'Network Security Group',
     networksecuritygroup: 'Network Security Group',
+
+    //Mointoring
+    components: 'Application Insights',
 
     // API Management
     apimanagement: 'API Management',

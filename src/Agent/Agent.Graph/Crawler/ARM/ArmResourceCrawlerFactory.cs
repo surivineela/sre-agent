@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
@@ -27,9 +28,11 @@ public class ArmResourceCrawlerFactory
     private readonly IAuthenticationService _authenticationService;
     private readonly IAzureDevOpsService _azureDevOpsService;
     private readonly IGitHubService _gitHubService;
+    private readonly ArmHelper _armHelper;
 
     public ArmResourceCrawlerFactory(ILoggerFactory loggerFactory, AzureResourceGraphClient graphClient, IArmClientFactory armClientFactory, IGraphDatabaseClient graphDbClient,
-        [FromKeyedServices("Crawler")] IKubernetesService k8sService, IHttpClientFactory httpClientFactory, IAuthenticationService authenticationService, IAzureDevOpsService azureDevOpsService, IGitHubService gitHubService)
+        [FromKeyedServices("Crawler")] IKubernetesService k8sService, IHttpClientFactory httpClientFactory, IAuthenticationService authenticationService, IAzureDevOpsService azureDevOpsService,
+        IGitHubService gitHubService, ArmHelper armHelper)
     {
         _loggerFactory = loggerFactory;
         _graphClient = graphClient;
@@ -37,6 +40,8 @@ public class ArmResourceCrawlerFactory
         _graphDbClient = graphDbClient;
         _authenticationService = authenticationService;
         _k8sService = k8sService;
+        _armHelper = armHelper;
+
         _httpClientFactory = httpClientFactory;
         _azureDevOpsService = azureDevOpsService;
         _gitHubService = gitHubService;
@@ -92,6 +97,10 @@ public class ArmResourceCrawlerFactory
 
             if (Constants.AppServiceType.Equals(armNode.ResourceType, StringComparison.OrdinalIgnoreCase))
             {
+                if(armNode.ResourceKind  == ResourceKindHelper.LogicAppResourceKind)
+                {
+                    return new LogicAppCrawler(_loggerFactory.CreateLogger<LogicAppCrawler>(), _graphDbClient, _armHelper, armClient);
+                }
                 return new AppServiceCrawler(_loggerFactory.CreateLogger<AppServiceCrawler>(), _graphDbClient, armClient);
             }
 

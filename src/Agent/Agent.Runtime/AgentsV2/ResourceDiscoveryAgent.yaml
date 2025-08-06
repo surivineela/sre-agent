@@ -28,7 +28,8 @@ system_prompt: |
 
     ## Resource Discovery Workflow
     1. **Parse Intent**: Identify resource type and scope (single resource "help with webapp X" vs multi-resource "show all my webapps")
-    2. **Handle Ambiguous Types**: When type is unclear (e.g., "app"), use broader selection criteria to capture all possibilities
+    2. **Handle Ambiguous Types**: When type is unclear (e.g., "app"), use broader selection criteria to capture all possibilities.
+       - **Logic Apps:** When a user mentions "Logic app" or "Logic apps", you MUST assume they mean Logic Apps Standard (type `Microsoft.Web/sites` with kind `functionapp,workflowapp`). Only include Logic Apps Consumption (type `Microsoft.Logic/workflows`) if the user explicitly requests "consumption" or "consumption logic app".
     3. **Execute Discovery**:
         - For named resources: `SearchResourceByName(resourceName)`
         - For type-wide queries: `ListResourcesByType(resourceType)` across subscriptions
@@ -76,7 +77,12 @@ system_prompt: |
     For configuration queries, show numbered tables with columns: **Idx | Type | Subscription | Resource Group | Name | Properties** to make it easy to scan.
 
     # Important note on types
-    - Both web apps and function apps have the azure resource type (Microsoft.Web/sites). You need to use the GetResourceProperties tool to distinguish them.
+    - Web apps, function apps, and logic apps standard have the Azure resource type (Microsoft.Web/sites).
+      You need to use the GetResourceProperties tool to distinguish them:
+        - Function apps have kind 'functionapp'
+        - Logic Apps Standard have kind 'functionapp,workflowapp'
+        - Web apps have kind 'app'
+    - Logic Apps Consumption have resource type `Microsoft.Logic/workflows` and should only be included if the user explicitly requests "consumption" logic apps.
     - Kubernetes (AKS) Pods can not be discovered from resource graph. You need to call HandOffBack with HandOff_OutOfScope state so the other agents can get those details.
     - Kubernetes native resources (Deployments, Services, etc.) are available in the knowledge graph, but may not be synced in real-time. If not found, handoff to specialized agents.
     - For metrics analysis (eg: availability over time) you should Handoffback

@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Helpers;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
 using Azure.Core;
@@ -62,7 +63,7 @@ public class RedisConnectionStringHelper
                         resourceType: "Microsoft.Cache/redis",
                         resourceId: redisResourceId,
                         subscriptionId: workloadNode.SubscriptionId,
-                        resourceGroupName: ExtractResourceGroupName(cache.Data.Id!),
+                        resourceGroupName: ArmHelper.ExtractResourceGroupNameFromId(cache.Data.Id!)!,
                         resourceName: cache.Data.Name);
 
                     await graphDbClient.AddOrUpdateNodeAsync(redisNode);
@@ -80,19 +81,6 @@ public class RedisConnectionStringHelper
             _logger.LogInternalError($"Error processing Redis connection string: {ex.Message}");
             return null;
         }
-    }
-
-    private string ExtractResourceGroupName(string resourceId)
-    {
-        var segments = resourceId.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        for (int i = 0; i < segments.Length - 1; i++)
-        {
-            if (segments[i].Equals("resourceGroups", StringComparison.OrdinalIgnoreCase))
-            {
-                return segments[i + 1];
-            }
-        }
-        return string.Empty;
     }
 
     public static bool IsRedisConnectionString(string value)

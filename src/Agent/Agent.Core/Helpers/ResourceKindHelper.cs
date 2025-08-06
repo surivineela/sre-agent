@@ -34,6 +34,7 @@ public static class ResourceKindHelper
     public const string ApiManagementType = "Microsoft.ApiManagement/service";
     public const string ApiManagementBackendType = "Microsoft.ApiManagement/service/backends";
     public const string ApiCenterType = "Microsoft.ApiCenter/services";
+    public const string LogicAppResourceKind = "logicApp";
 
     // New constants for App Service Web/Function Apps and App Service Plans.
     public const string AppServiceType = "Microsoft.Web/sites";
@@ -77,7 +78,7 @@ public static class ResourceKindHelper
                 if (kindLower.Contains("functionapp") && !kindLower.Contains("workflowapp")) {
                     return "functionapp";
                 } else if (kindLower.Contains("workflowapp")) {
-                    return "logicApp";
+                    return LogicAppResourceKind;
                 } else {
                     return "webApp";
                 }

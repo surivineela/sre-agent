@@ -25,6 +25,9 @@ public class AppServiceNode : ArmResourceNode
     [GraphProperty("healthCheckEnabled")]
     public bool? HealthCheckEnabled { get; set; }
 
+    [GraphProperty("kind")]
+    public string? Kind { get; set; }
+
     [GraphProperty("healthCheckPath")]
     public string? HealthCheckPath { get; set; }
 

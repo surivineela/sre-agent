@@ -21,14 +21,19 @@ public class AppServiceCrawler : GenericArmResourceCrawler
     private readonly IGraphDatabaseClient _graphDbClient;
     private readonly SqlConnectionStringHelper _sqlHelper;
     private readonly PostgreSqlConnectionStringHelper _postgreSqlHelper;
+    private readonly StorageAccountConnectionStringHelper _storageHelper;
 
-    public AppServiceCrawler(ILogger<AppServiceCrawler> logger, IGraphDatabaseClient dbManager, ArmClient armClient)
+    public AppServiceCrawler(
+        ILogger<AppServiceCrawler> logger,
+        IGraphDatabaseClient dbManager,
+        ArmClient armClient)
         : base(logger, dbManager, armClient, false)
     {
         _logger = logger;
         _graphDbClient = dbManager;
         _sqlHelper = new SqlConnectionStringHelper(logger, armClient, dbManager);
         _postgreSqlHelper = new PostgreSqlConnectionStringHelper(logger, armClient, dbManager);
+        _storageHelper = new StorageAccountConnectionStringHelper(logger, armClient);
     }
 
     public override async IAsyncEnumerable<GraphNode> Crawl(GraphNode node)
@@ -54,6 +59,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
         }
 
         // Store the kind property
+        appServiceNode.Kind = webApp.Data.Kind;
         appServiceNode.ResourceKind = ResourceKindHelper.getResourceKind(node.GetResourceType(), webApp.Data.Kind);
 
         // Get website configuration
@@ -196,6 +202,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
 
                 try
                 {
+                    // Get all functions in the app service, skipping for logic apps
                     if (webApp.Data.Kind?.Contains("workflowapp", StringComparison.OrdinalIgnoreCase) == false)
                     {
                         await foreach (var func in webApp.GetSiteFunctions().GetAllAsync())
@@ -209,24 +216,6 @@ public class AppServiceCrawler : GenericArmResourceCrawler
                                     await _graphDbClient.AddOrUpdateNodeAsync(functionNode);
 
                                     var edge = new ArmResourceEdge(appServiceNode.GetNodeId(), functionNode.GetNodeId(), Constants.Relationships.Contains);
-                                    await _graphDbClient.AddOrUpdateEdgeAsync(edge);
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        await foreach (var workflow in webApp.GetSiteWorkflows().GetAllAsync())
-                        {
-                            if (workflow.HasData)
-                            {
-                                var wnWorkflow = ParseWorkflowConfig(workflow.Data);
-                                if (wnWorkflow != null)
-                                {
-                                    var workflowNode = new WorkflowNode(wnWorkflow);
-                                    await _graphDbClient.AddOrUpdateNodeAsync(workflowNode);
-
-                                    var edge = new ArmResourceEdge(appServiceNode.GetNodeId(), workflowNode.GetNodeId(), Constants.Relationships.Contains);
                                     await _graphDbClient.AddOrUpdateEdgeAsync(edge);
                                 }
                             }
@@ -620,40 +609,6 @@ public class AppServiceCrawler : GenericArmResourceCrawler
         {
             _logger.LogInternalWarning($"Failed to parse function config for {data.Name}: {ex.Message}");
             // A node must have non-empty Id (used as vertex id in graph db) otherwise it will be failed to be added to the graph
-            return null;
-        }
-    }
-
-    private WorkflowNode.Workflow? ParseWorkflowConfig(WorkflowEnvelopeData data)
-    {
-        if (data == null)
-        {
-            return null;
-        }
-
-        try
-        {
-            var resourceIdentifier = new ResourceIdentifier(data.Id!);
-            var nameSplit = data.Name.Split('/');
-            var workflowName = data.Name;
-            if (nameSplit.Length > 1)
-            {
-                workflowName = nameSplit.Last();
-            }
-            var workflow = new WorkflowNode.Workflow
-            {
-                Id = data.Id!,
-                SubscriptionId = resourceIdentifier.SubscriptionId ?? "unknown",
-                ResourceGroupName = resourceIdentifier.ResourceGroupName ?? "unknown",
-                Location = resourceIdentifier.Location ?? "unknown",
-                Name = workflowName,
-            };
-
-            return workflow;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalWarning($"Failed to parse function config for {data.Name}: {ex.Message}");
             return null;
         }
     }
