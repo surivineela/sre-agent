@@ -1,24 +1,50 @@
-import { Button, Popover, PopoverSurface, PopoverTrigger, Text, tokens } from '@fluentui/react-components';
-import { Lightbulb16Regular, SendFilled } from '@fluentui/react-icons';
+import { ScrollDownButton } from '@fluentui-copilot/react-copilot-chat';
+import { Button, makeStyles, mergeClasses, Popover, PopoverSurface, PopoverTrigger, Text, tokens } from '@fluentui/react-components';
+import { Lightbulb16Regular, RecordStopFilled, SendFilled } from '@fluentui/react-icons';
 import { IStyle, mergeStyles } from '@fluentui/react/lib/Styling';
 import { TextField } from '@fluentui/react/lib/TextField';
-import { memo, useCallback, useState } from 'react';
+import { memo, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
 import { ActivitiesResources, PromptResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { IChatBoxFooterProps } from '../Contracts/Activities';
+import { StreamingContext } from '../Contracts/Context';
 import { chatInputTextStyles, sendButtonStyles, useChatInputStyles } from '../Styles/Activities.styles';
 import AgentModeSelector from './AgentModeSelector';
 import KnowledgeGraphBuildStatus from './KnowledgeGraphBuildStatus';
-import NewMessageButton from './NewMessageButton';
+
+const useDownButtonStyles = makeStyles({
+    root: {
+        opacity: '1',
+        transition: 'opacity 0.3s ease',
+        pointerEvents: 'auto',
+        position: 'absolute',
+        right: '50%',
+        bottom: '110%',
+    },
+    hidden: {
+        opacity: '0',
+        pointerEvents: 'none',
+    },
+});
+
+const DownButton = ({ downButtonState, onClick }: { downButtonState: { visible: boolean; flash: boolean }; onClick: () => void }) => {
+    const { root, hidden } = useDownButtonStyles();
+    const buttonStyles = mergeClasses(root, downButtonState.visible ? undefined : hidden);
+
+    return <ScrollDownButton onClick={onClick} className={buttonStyles} isGenerating={downButtonState.flash} />;
+};
 
 const ChatBoxFooter = ({
     sendMessage,
-    disableInput,
-    isNewMessageButtonVisible,
-    onClickNewMessageButton,
+    isLoading,
+    onClickDownButton,
+    downButtonState,
     prompts,
     messagePromptsUsed,
+    cancelStreaming,
+    isTyping,
+    isCancellingStreaming,
     threadId,
 }: IChatBoxFooterProps) => {
     const intl = useIntl();
@@ -33,23 +59,36 @@ const ChatBoxFooter = ({
         useChatInputStyles();
     const [open, setOpen] = useState(false);
 
+    const { isConnected } = useContext(StreamingContext);
+
+    const disableInputInteraction = useMemo(() => {
+        return isLoading || !isConnected || isCancellingStreaming;
+    }, [isLoading, isConnected, isCancellingStreaming]);
+
+    const SendOrCancelButtonIcon = () => {
+        const color = disableInputInteraction ? 'undefined' : tokens.colorBrandForeground1;
+        return isTyping ? <RecordStopFilled style={{ color }} /> : <SendFilled style={{ color }} />;
+    };
+
     const chatInputHandleSendClick = useCallback(() => {
         const messageToSend = input?.trim() ?? '';
 
-        if (messageToSend) {
+        if (messageToSend && !disableInputInteraction && !isTyping) {
             setInput('');
             setHistoryIndex(-1);
             setOriginalInput('');
             sendMessage(messageToSend);
         }
-    }, [input, sendMessage]);
+    }, [input, sendMessage, disableInputInteraction, isTyping]);
 
     const handlePromptClick = useCallback(
         (prompt: string) => {
-            sendMessage(prompt);
-            setOpen(false);
+            if (!disableInputInteraction && !isTyping) {
+                sendMessage(prompt);
+                setOpen(false);
+            }
         },
-        [sendMessage]
+        [sendMessage, disableInputInteraction, isTyping]
     );
 
     const PromptSection = useCallback(
@@ -71,7 +110,7 @@ const ChatBoxFooter = ({
         <div className={root}>
             <KnowledgeGraphBuildStatus />
             <div className={mergeStyles(chatInputTextStyles.textFieldContainer as IStyle)}>
-                <NewMessageButton isVisible={isNewMessageButtonVisible} onClick={onClickNewMessageButton} />
+                <DownButton downButtonState={downButtonState} onClick={onClickDownButton} />
                 <TextField
                     placeholder={intl.formatMessage(ActivitiesResources.chatInputPlaceholder)}
                     multiline={true}
@@ -95,7 +134,7 @@ const ChatBoxFooter = ({
                         if (event.key.toLowerCase() === 'g') {
                             // Stop the event from propagating to the global shortcuts
                             event.stopPropagation();
-                        } else if (event.key.toLowerCase() === 'enter' && !event.shiftKey && !disableInput) {
+                        } else if (event.key.toLowerCase() === 'enter' && !event.shiftKey) {
                             chatInputHandleSendClick();
                             event.preventDefault();
                             event.stopPropagation();
@@ -127,11 +166,10 @@ const ChatBoxFooter = ({
                             }
                         }
                     }}
-                    disabled={disableInput}
                 />
                 <div className={footer}>
                     <div className={subFooter}>
-                        {showAgentModeSelector && threadId && <AgentModeSelector threadId={threadId} />}
+                        {showAgentModeSelector && threadId && <AgentModeSelector threadId={threadId} disabled={isTyping} />}
                         <Popover positioning={'after-top'} open={open} onOpenChange={(_e, data) => setOpen(data.open)}>
                             <PopoverTrigger>
                                 <Button
@@ -139,7 +177,7 @@ const ChatBoxFooter = ({
                                     appearance="outline"
                                     icon={<Lightbulb16Regular />}
                                     onClick={() => setOpen(!open)}
-                                    disabled={disableInput}
+                                    disabled={disableInputInteraction || isTyping}
                                 >
                                     {intl.formatMessage(PromptResources.promptLibrary)}
                                 </Button>
@@ -159,9 +197,15 @@ const ChatBoxFooter = ({
                         </Popover>
                     </div>
                     <Button
-                        icon={<SendFilled style={{ color: disableInput ? undefined : tokens.colorBrandForeground1 }} />}
-                        disabled={disableInput}
-                        onClick={chatInputHandleSendClick}
+                        icon={<SendOrCancelButtonIcon />}
+                        disabled={disableInputInteraction}
+                        onClick={() => {
+                            if (isTyping) {
+                                cancelStreaming();
+                            } else {
+                                chatInputHandleSendClick();
+                            }
+                        }}
                         shape="square"
                         appearance="subtle"
                         style={sendButtonStyles}

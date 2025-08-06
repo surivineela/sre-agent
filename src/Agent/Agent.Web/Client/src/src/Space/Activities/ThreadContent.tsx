@@ -5,14 +5,12 @@ import { AgentContext } from '../Contracts/Context';
 import { ThreadContentStyles } from '../Styles/Activities.styles';
 import AgentTask from './AgentTask';
 import ChatBox from './ChatBox';
-import ChatBoxV2 from './ChatBoxV2';
 import ThreadContentTitle from './ThreadContentTitle';
 
 export const ThreadContent = memo(
     ({ thread, addThread, deleteThread, updateThreadLastReadTime, collapseResizables }: IThreadContentProps) => {
         const { threadContentAndActionKey } = useContext(AgentContext);
 
-        const chatBoxV2 = useConfigSetting(SettingNames.Streaming);
         const showAgentTask = useConfigSetting(SettingNames.ShowAgentTask);
 
         const agentTaskHandleRef = useRef<AgentTaskHandle>(null);
@@ -25,22 +23,13 @@ export const ThreadContent = memo(
             <div className={ThreadContentStyles.root} key={threadContentAndActionKey}>
                 <ThreadContentTitle thread={thread} deleteThread={deleteThread} />
                 <div className={ThreadContentStyles.chatAndAgentTask}>
-                    {chatBoxV2 ? (
-                        <ChatBoxV2
-                            threadId={thread?.id}
-                            addThread={addThread}
-                            updateThreadLastReadTime={updateThreadLastReadTime}
-                            threadSource={thread?.source}
-                            openAgentTask={openAgentTask}
-                        />
-                    ) : (
-                        <ChatBox
-                            threadId={thread?.id}
-                            addThread={addThread}
-                            updateThreadLastReadTime={updateThreadLastReadTime}
-                            threadSource={thread?.source}
-                        />
-                    )}
+                    <ChatBox
+                        threadId={thread?.id}
+                        addThread={addThread}
+                        updateThreadLastReadTime={updateThreadLastReadTime}
+                        threadSource={thread?.source}
+                        openAgentTask={openAgentTask}
+                    />
                     {showAgentTask && <AgentTask collapseResizables={collapseResizables} ref={agentTaskHandleRef} />}
                 </div>
             </div>

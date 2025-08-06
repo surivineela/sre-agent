@@ -160,14 +160,8 @@ export interface MessageContent {
     isDailyReport?: boolean;
 }
 
-// ToDo: Replace this with interface Message extends MessageMetaData, MessageContent{} after shipping
-// streaming message experience out. Right now let's keep the definition separate to avoid breaking changes.
-export interface Message {
-    id: string;
-    timeStamp: string;
-    author: MessageAuthor;
+export interface Message extends MessageMetaData {
     text: string;
-    title?: string;
     approval?: Approval;
     azCliExecution?: AzCliExecution;
     kubectlExecution?: KubectlExecution;

@@ -74,77 +74,6 @@ export const processThreads = (prevThreads: Thread[], threads: Thread[], areThre
 };
 
 /**
- * @param prevMessages existing messages sorted in ascending order by timestamp
- * @param newMessages new messages sorted in descending order by timestamp
- * @returns messages combined in ascending order by timestamp
- */
-export const processNewMessages = (prevMessages: Message[], newMessages: Message[]) => {
-    if (newMessages.length === 0) return prevMessages;
-
-    const updatedPrevMessages = [...prevMessages];
-    let isPrevMessagesUpdated = false;
-
-    const newMessagesMap: Map<string, Message> = new Map<string, Message>();
-    newMessages.forEach((msg: Message) => newMessagesMap.set(msg.id, msg));
-
-    for (let i = 0; i < updatedPrevMessages.length; i++) {
-        const message = newMessagesMap.get(updatedPrevMessages[i].id);
-        if (message) {
-            if (message.text !== updatedPrevMessages[i].text) {
-                // Update existing message
-                updatedPrevMessages[i] = message;
-                isPrevMessagesUpdated = true;
-            }
-            newMessagesMap.delete(updatedPrevMessages[i].id);
-        }
-    }
-
-    const messagesToAdd: Message[] = Array.from(newMessagesMap.values());
-    messagesToAdd.sort((a, b) => getSafeDateTime(a.timeStamp).getTime() - getSafeDateTime(b.timeStamp).getTime());
-
-    const existingMessages = isPrevMessagesUpdated ? updatedPrevMessages : prevMessages;
-
-    if (messagesToAdd.length === 0) {
-        // Do not return copied old messages as it will introduce unnecessary re-renders
-        return existingMessages;
-    }
-
-    return [...existingMessages, ...messagesToAdd];
-};
-
-/**
- * @param prevMessages existing messages sorted in ascending order by timestamp
- * @param oldMessages older messages sorted in descending order by timestamp
- * @returns messages sorted in ascending order by timestamp
- */
-export const processOldMessages = (prevMessages: Message[], oldMessages: Message[]) => {
-    if (oldMessages.length === 0) {
-        return prevMessages;
-    }
-
-    // Copy oldMessages as reverse() will mutate the original array and return the same reference
-    const oldMessagesInAscendingOrder = [...oldMessages].reverse();
-
-    return [...oldMessagesInAscendingOrder, ...prevMessages];
-};
-
-/**
- * @param prevMessages existing messages sorted in ascending order by timestamp
- * @param oldMessages older messages sorted in descending order by timestamp
- * @returns messages sorted in ascending order by timestamp
- */
-export const processOldMessagesV2 = (prevMessages: ChatMessage[], oldMessages: ChatMessage[]) => {
-    if (oldMessages.length === 0) {
-        return prevMessages;
-    }
-
-    // Copy oldMessages as reverse() will mutate the original array and return the same reference
-    const oldMessagesInAscendingOrder = [...oldMessages].reverse();
-
-    return [...oldMessagesInAscendingOrder, ...prevMessages];
-};
-
-/**
  * Update the text of the existing messages if they have been updated.
  * @param prevMessages
  * @param updatedMessages
@@ -351,59 +280,13 @@ export const isChatMessageContentNonImageText = (chatMessageContent: ChatMessage
     );
 };
 
-export const noGapBetweenNewMessagesAndExistingMessages = (messages: Message[], currentLatestMessage?: Message) => {
-    if (messages.length === 0 || !currentLatestMessage) {
-        return true;
-    }
-    return (
-        getSafeDateTime(messages[0].timeStamp).getTime() < getSafeDateTime(currentLatestMessage.timeStamp).getTime() ||
-        messages.some((message: Message) => message.id === currentLatestMessage.id)
-    );
-};
-
-/**
- * Group messages if current message and the previous messages are from the same author and within 5 minutes of each other
- * @param currentMessage
- * @param previousMessage
- * @returns
- */
-export const shouldGroupWithPreviousMessage = (currentMessage?: Message, previousMessage?: Message) => {
-    return (
-        !!previousMessage &&
-        !!currentMessage &&
-        currentMessage.author.userId === previousMessage.author.userId &&
-        getSafeDateTime(currentMessage.timeStamp).getTime() - getSafeDateTime(previousMessage.timeStamp).getTime() <= 5 * 60 * 1000
-    );
-};
-
-export const shouldGroupWithPreviousMessageV2 = (currentChatMessage?: ChatMessage, previousMessage?: ChatMessage) => {
+export const shouldGroupWithPreviousMessage = (currentChatMessage?: ChatMessage, previousMessage?: ChatMessage) => {
     return (
         !!previousMessage &&
         !!currentChatMessage &&
         currentChatMessage.author.userId === previousMessage.author.userId &&
         getSafeDateTime(currentChatMessage.timeStamp).getTime() - getSafeDateTime(previousMessage.timeStamp).getTime() <= 5 * 60 * 1000
     );
-};
-
-/** Returns the messages to be considered grouped (starting from the current and only checking prior) */
-export const getGroupedMessages = (messages: Message[], currentMessageIndex: number): Message[] => {
-    if (currentMessageIndex < 0 || currentMessageIndex >= messages.length) {
-        return [];
-    }
-
-    const currentMessage = messages[currentMessageIndex];
-    const groupedMessages: Message[] = [currentMessage];
-
-    for (let i = currentMessageIndex - 1; i >= 0; i--) {
-        const previousMessage = messages[i];
-        if (shouldGroupWithPreviousMessage(currentMessage, previousMessage)) {
-            groupedMessages.unshift(previousMessage);
-        } else {
-            break;
-        }
-    }
-
-    return groupedMessages;
 };
 
 export const getFilteredThreads = (threads: Thread[], threadFilters?: Set<ThreadFilter>, searchText?: string): Thread[] => {

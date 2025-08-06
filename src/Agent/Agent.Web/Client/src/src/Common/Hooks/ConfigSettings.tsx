@@ -4,7 +4,6 @@ import Url from '../Helpers/Url';
 
 export enum SettingNames {
     ShowAgentModeForThread = 'showAgentModeForThread',
-    Streaming = 'streaming',
     ConsolidatedCreate = 'consolidatedCreate',
     DataConnections = 'dataConnections',
     ShowAgentTask = 'showAgentTask',
@@ -12,7 +11,6 @@ export enum SettingNames {
 
 const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
     default: {
-        [SettingNames.Streaming]: true,
         [SettingNames.ConsolidatedCreate]: true,
     },
     'portal.azure.com': {},

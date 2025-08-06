@@ -60,16 +60,6 @@ export interface IChatBoxProps {
 }
 
 export interface IChatMessageProps {
-    message: Message;
-    previousMessage?: Message;
-    nextMessage?: Message;
-    getGroupedMessages?: () => Message[];
-    isTyping?: boolean;
-    cancelResponse?: () => void;
-    threadId: string;
-}
-
-export interface IChatMessageV2Props {
     message: ChatMessage;
     previousMessage?: ChatMessage;
     nextMessage?: ChatMessage;
@@ -127,16 +117,6 @@ export interface IActionsProps {
 
 export interface IChatBoxFooterProps {
     sendMessage: (message: string) => Promise<void>;
-    disableInput: boolean;
-    isNewMessageButtonVisible: boolean;
-    onClickNewMessageButton: () => void;
-    prompts: string[];
-    messagePromptsUsed: string[];
-    threadId?: string | null;
-}
-
-export interface IChatBoxFooterV2Props {
-    sendMessage: (message: string) => Promise<void>;
     isLoading: boolean;
     downButtonState: { visible: boolean; flash: boolean };
     onClickDownButton: () => void;
@@ -154,16 +134,6 @@ export class ThreadLoadingCounts {
 
 export class ThreadPollingCounts {
     public static readonly default = 5;
-}
-
-export class MessagePollingInterval {
-    public static readonly default = 5000;
-    public static readonly active = 2000;
-}
-
-export class MessagePollingCounts {
-    public static readonly default = 20;
-    public static readonly active = 5;
 }
 
 export class MessageLoadingCounts {

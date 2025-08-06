@@ -1,45 +1,46 @@
 import { CopilotChat, CopilotProvider } from '@fluentui-copilot/react-copilot';
 import { mergeClasses } from '@fluentui/react-components';
-import { memo, useContext, useMemo } from 'react';
-import { useIntl } from 'react-intl';
+import { memo, useMemo } from 'react';
 import { ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
-import { KnowledgeGraphBuildStatusContext } from '../../Common/Providers/KnowledgeGraphBuildStatusProvider';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
-import { ActivitiesResources } from '../../Strings/SREAgentResources';
 import ChatBoxFooter from '../Components/ChatBoxFooter';
 import ChatLoading from '../Components/ChatLoading';
 import ChatMessage from '../Components/ChatMessage';
+import ChatMessages from '../Components/ChatMessages';
+import PermissionErrorChatMessage from '../Components/PermissionErrorChatMessage';
 import { IChatBoxProps } from '../Contracts/Activities';
-import { ThreadAgentModeContext } from '../Contracts/Context';
+import { ChatBoxContext, ThreadAgentModeContext } from '../Contracts/Context';
 import { useChatBox } from '../Hooks/useChatBox';
 import { useThreadAgentMode } from '../Hooks/useThreadAgentMode';
-import { ChatBoxStyles } from '../Styles/Activities.styles';
+import { getChatBoxV2Styles } from '../Styles/Activities.styles';
 import AzureSREWelcome from './AzureSREWelcome';
 import { ChatSuggestions } from './ChatSuggestions';
-import { getGroupedMessages } from './Utility';
 
-export const ChatBox = ({ addThread, updateThreadLastReadTime, threadId, threadSource }: IChatBoxProps) => {
-    const { hasChatPermissions } = useContext(KnowledgeGraphBuildStatusContext);
-    const intl = useIntl();
-
+export const ChatBox = ({ addThread, updateThreadLastReadTime, threadId, threadSource, stylesProps }: IChatBoxProps) => {
     const {
-        messages,
+        chatHistory,
+        newMessages,
+        isAgentTyping,
         temporaryUserMessage,
-        agentTypingMessage,
-        isLoadingInitialChatHistory,
+        streamingMessage,
+        toolCallText,
+        isCancellingStreaming,
+        isWaitingForStreamingMessages,
+        isLoading,
         sendMessage,
-        disableInput,
         isNewAndCleanThread,
         messagesDivRef,
         intersectionObserverRef,
         currentThreadId,
-        cancelResponse,
+        cancelStreaming,
         prompts,
         messagePromptsUsed,
         onScroll,
-        showNewMessageButton,
-        onClickNewMessageButton,
-    } = useChatBox(addThread, updateThreadLastReadTime, threadId);
+        downButtonState,
+        onClickDownButton,
+        getGroupedChatMessages,
+        updateSpecialMessageInStreamingMessage,
+    } = useChatBox(addThread, updateThreadLastReadTime, threadId, threadSource);
 
     const threadAgentModeData = useThreadAgentMode(threadId, threadSource);
 
@@ -47,88 +48,109 @@ export const ChatBox = ({ addThread, updateThreadLastReadTime, threadId, threadS
 
     const { scrollable } = useScrollableComponentStyles();
 
-    const insufficientPermissionsMessage = useMemo(() => {
-        if (hasChatPermissions) {
-            return null;
-        }
-
-        return {
-            id: 'insufficient-permissions',
-            text: intl.formatMessage(ActivitiesResources.insufficientChatPermissions),
-            author: {
-                role: 'SREAgent' as const,
-                displayName: 'Azure SRE Agent',
-                userId: 'system',
-            },
-            timeStamp: new Date().toISOString(),
-        };
-    }, [hasChatPermissions, intl]);
-
-    const displayMessages = useMemo(() => {
-        if (insufficientPermissionsMessage) {
-            return [...messages, insufficientPermissionsMessage];
-        }
-        return messages;
-    }, [messages, insufficientPermissionsMessage]);
+    const chatBoxStyles = useMemo(() => getChatBoxV2Styles(stylesProps), [stylesProps]);
 
     return (
-        <ThreadAgentModeContext.Provider value={{ ...threadAgentModeData }}>
-            <div className={ChatBoxStyles.chatBox}>
-                <CopilotProvider mode="canvas" className={ChatBoxStyles.chatBoxInner}>
-                    <div className={mergeClasses(scrollable, ChatBoxStyles.chatContainer)} ref={messagesDivRef} onScroll={onScroll}>
-                        <CopilotChat className={ChatBoxStyles.chat}>
-                            <div ref={intersectionObserverRef} />
+        <ChatBoxContext.Provider value={{ getGroupedChatMessages }}>
+            <ThreadAgentModeContext.Provider value={{ ...threadAgentModeData }}>
+                <div className={chatBoxStyles.chatBox}>
+                    <CopilotProvider mode="canvas" className={chatBoxStyles.chatBoxInner}>
+                        <div className={mergeClasses(scrollable, chatBoxStyles.chatContainer)} ref={messagesDivRef} onScroll={onScroll}>
+                            <CopilotChat className={chatBoxStyles.chat}>
+                                <div ref={intersectionObserverRef} />
 
-                            {isLoadingInitialChatHistory && !isWelcomeThread && <ChatLoading />}
+                                {isLoading && !isWelcomeThread && <ChatLoading />}
 
-                            {isNewAndCleanThread && !isWelcomeThread && <ChatSuggestions sendMessage={sendMessage} />}
+                                {isNewAndCleanThread && !isWelcomeThread && <ChatSuggestions sendMessage={sendMessage} />}
 
-                            {/* Insert the richer welcome experience once at the top for welcome threads */}
-                            {isWelcomeThread && <AzureSREWelcome threadId={currentThreadId} addThread={addThread} />}
+                                {/* Insert the richer welcome experience once at the top for welcome threads */}
+                                {isWelcomeThread && <AzureSREWelcome threadId={currentThreadId} addThread={addThread} />}
 
-                            {/* Render the remaining chat history */}
-                            {displayMessages.map((message, index) => (
-                                <ChatMessage
-                                    key={index}
-                                    message={message}
-                                    previousMessage={displayMessages[index - 1]}
-                                    nextMessage={displayMessages[index + 1]}
-                                    getGroupedMessages={() => getGroupedMessages(displayMessages, index)}
-                                    threadId={currentThreadId || ''}
-                                />
-                            ))}
+                                {/* Display permission error message if any*/}
+                                <PermissionErrorChatMessage key={'permission-error-chat-message'} isLoading={isLoading} />
 
-                            {hasChatPermissions && temporaryUserMessage && (
-                                <ChatMessage
-                                    message={temporaryUserMessage}
-                                    previousMessage={displayMessages[displayMessages.length - 1]}
-                                    threadId={currentThreadId || ''}
-                                />
-                            )}
+                                {/* Chat history */}
+                                {!isLoading &&
+                                    chatHistory?.map((messages, index) => {
+                                        return (
+                                            <ChatMessages
+                                                // set key to chathistory.length - index to ensure the existing page always has the same key to prevent re-rendering
+                                                key={chatHistory.length - index}
+                                                messages={messages}
+                                                threadId={currentThreadId || ''}
+                                                prevMessageBeforeTheFirstMessage={
+                                                    chatHistory?.[index - 1]?.[chatHistory?.[index - 1]?.length - 1]
+                                                }
+                                                nextMessageAfterTheLastMessage={
+                                                    chatHistory?.[index + 1]?.[0] ||
+                                                    newMessages[0] ||
+                                                    temporaryUserMessage ||
+                                                    streamingMessage
+                                                }
+                                            />
+                                        );
+                                    })}
 
-                            {hasChatPermissions && agentTypingMessage && (
-                                <ChatMessage
-                                    message={agentTypingMessage}
-                                    isTyping
-                                    threadId={currentThreadId || ''}
-                                    cancelResponse={cancelResponse}
-                                />
-                            )}
-                        </CopilotChat>
-                    </div>
+                                {/* New messages */}
+                                {!isLoading && (
+                                    <ChatMessages
+                                        messages={newMessages}
+                                        threadId={currentThreadId || ''}
+                                        prevMessageBeforeTheFirstMessage={
+                                            chatHistory?.[chatHistory.length - 1]?.[chatHistory?.[chatHistory.length - 1]?.length - 1]
+                                        }
+                                        nextMessageAfterTheLastMessage={temporaryUserMessage || streamingMessage || undefined}
+                                    />
+                                )}
 
-                    <ChatBoxFooter
-                        sendMessage={sendMessage}
-                        disableInput={disableInput || !hasChatPermissions}
-                        isNewMessageButtonVisible={showNewMessageButton && hasChatPermissions}
-                        onClickNewMessageButton={onClickNewMessageButton}
-                        prompts={prompts}
-                        messagePromptsUsed={messagePromptsUsed}
-                        threadId={currentThreadId}
-                    />
-                </CopilotProvider>
-            </div>
-        </ThreadAgentModeContext.Provider>
+                                {temporaryUserMessage && (
+                                    <ChatMessage
+                                        key={temporaryUserMessage.id}
+                                        message={temporaryUserMessage}
+                                        threadId={currentThreadId || ''}
+                                        previousMessage={
+                                            newMessages[newMessages.length - 1] ||
+                                            chatHistory?.[chatHistory.length - 1]?.[chatHistory?.[chatHistory.length - 1]?.length - 1]
+                                        }
+                                    />
+                                )}
+
+                                {!isLoading && streamingMessage && (
+                                    <ChatMessage
+                                        key={streamingMessage.id}
+                                        message={streamingMessage}
+                                        isStreamingMessage={true}
+                                        isTyping={isAgentTyping}
+                                        threadId={currentThreadId || ''}
+                                        toolCallText={toolCallText}
+                                        isWaitingForStreamingMessages={isWaitingForStreamingMessages}
+                                        updateSpecialMessageInStreamingMessage={updateSpecialMessageInStreamingMessage}
+                                        previousMessage={
+                                            temporaryUserMessage ||
+                                            newMessages[newMessages.length - 1] ||
+                                            chatHistory?.[chatHistory.length - 1]?.[chatHistory?.[chatHistory.length - 1]?.length - 1]
+                                        }
+                                    />
+                                )}
+                            </CopilotChat>
+                        </div>
+
+                        <ChatBoxFooter
+                            sendMessage={sendMessage}
+                            isLoading={isLoading}
+                            downButtonState={downButtonState}
+                            onClickDownButton={onClickDownButton}
+                            prompts={prompts}
+                            messagePromptsUsed={messagePromptsUsed}
+                            cancelStreaming={cancelStreaming}
+                            isTyping={!!isAgentTyping}
+                            isCancellingStreaming={isCancellingStreaming}
+                            threadId={currentThreadId}
+                        />
+                    </CopilotProvider>
+                </div>
+            </ThreadAgentModeContext.Provider>
+        </ChatBoxContext.Provider>
     );
 };
 

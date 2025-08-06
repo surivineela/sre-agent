@@ -4,7 +4,7 @@ import { memo, useContext, useMemo, useState } from 'react';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import CopyButton from '../../Common/Components/CopyButton';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
-import { isAgentMessage, isChatMessageEmpty, shouldGroupWithPreviousMessageV2 } from '../Activities/Utility';
+import { isAgentMessage, isChatMessageEmpty, shouldGroupWithPreviousMessage } from '../Activities/Utility';
 import { AgentMessageRegex, ChatMessage } from '../Contracts/Activities';
 import { ChatBoxContext } from '../Contracts/Context';
 import { FeedbackDialog } from './FeedbackDialog';
@@ -38,7 +38,7 @@ const MessageFooter = ({
     );
 
     const canShowFooter = useMemo(
-        () => isAgentMessage(message) && !isTyping && !shouldGroupWithPreviousMessageV2(nextMessage, message),
+        () => isAgentMessage(message) && !isTyping && !shouldGroupWithPreviousMessage(nextMessage, message),
         [message, nextMessage, isTyping]
     );
 

@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { ChatMessage } from '../Contracts/Activities';
-import ChatMessageV2 from './ChatMessageV2';
+import ChatMessageComponent from './ChatMessage';
 
 interface IChatMessagesProps {
     messages?: ChatMessage[];
@@ -13,7 +13,7 @@ const ChatMessages = ({ messages, threadId, prevMessageBeforeTheFirstMessage, ne
     return messages ? (
         <>
             {messages.map((message, index) => (
-                <ChatMessageV2
+                <ChatMessageComponent
                     key={message.id}
                     message={message}
                     threadId={threadId}

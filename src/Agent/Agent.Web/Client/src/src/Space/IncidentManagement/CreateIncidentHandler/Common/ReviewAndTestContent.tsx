@@ -7,7 +7,7 @@ import { useIntl } from 'react-intl';
 import { ToolInfo } from '../../../../Common/Contracts/Azure/IncidentHandler';
 import { ThreadSource } from '../../../../Common/Contracts/Azure/SreAgent';
 import { IncidentHandlerCreateResources } from '../../../../Strings/SREAgentResources';
-import ChatBoxV2 from '../../../Activities/ChatBoxV2';
+import ChatBox from '../../../Activities/ChatBox';
 import { MultipleSelectionShimmerDetailsList } from '../../../Components/MultipleSelectionShimmerDetailsList';
 import { useIncidentManagementStyles } from '../../../Styles/IncidentManagement.styles';
 import { ToolTableFieldNames } from '../Contracts';
@@ -191,7 +191,7 @@ export const ReviewAndTestContent: FC = () => {
                         })}
                     </MessageBar>
                 ) : testIncidentThreadId ? (
-                    <ChatBoxV2
+                    <ChatBox
                         threadId={testIncidentThreadId}
                         addThread={() => {}}
                         updateThreadLastReadTime={() => {}}
