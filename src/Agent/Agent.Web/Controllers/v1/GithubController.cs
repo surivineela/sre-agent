@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Graph.Crawler.ARM;
@@ -15,7 +16,8 @@ namespace Agent.Web.Controllers.v1;
 public class GithubController(
     ILogger<GithubController> _logger,
     IThreadRepository _threadRepository,
-    IGraphDatabaseClient _graphDbClient) : ControllerBase
+    IGraphDatabaseClient _graphDbClient,
+    ICrawlerTriggerService _crawlerTriggerService) : ControllerBase
 {
     [HttpPost("auth/complete")]
     public async Task<IActionResult> CompleteGitHubAuth([FromForm] string accessToken)
@@ -96,6 +98,8 @@ public class GithubController(
 
             var edge = new NonCrawledEdge(appNodeId, sourceCodeNode.GetNodeId(), Constants.Relationships.ServesCode);
             await _graphDbClient.AddOrUpdateEdgeAsync(edge);
+
+            _crawlerTriggerService.TriggerSourceCodeRepoCrawl(request.RepoUrl);
             return Ok("Source code linked successfully.");
         }
         catch (Exception ex)

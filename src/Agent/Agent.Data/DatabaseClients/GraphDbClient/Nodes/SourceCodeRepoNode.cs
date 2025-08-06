@@ -11,6 +11,7 @@ public class SourceCodeRepoNode(string repoUrl) : GraphNode(new Dictionary<strin
             { "nonCrawled", true }
         })
 {
+    public const string Type = "microsoft.source/repository";
     [GraphProperty("repoUrl")]
     public string RepoUrl { get; set; } = repoUrl;
 
@@ -32,7 +33,7 @@ public class SourceCodeRepoNode(string repoUrl) : GraphNode(new Dictionary<strin
 
     public override string GetNodeLabel()
     {
-        return "microsoft.source/repository";
+        return Type;
     }
 
     public override string GetResourceType()

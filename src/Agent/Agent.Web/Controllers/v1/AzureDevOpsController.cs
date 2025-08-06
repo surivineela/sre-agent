@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Graph.Crawler.ARM;
@@ -16,10 +17,11 @@ public class AzureDevOpsController(
     ILogger<AzureDevOpsController> _logger,
     IThreadRepository _threadRepository,
     IAzureDevOpsWorkItemPlugin _azureDevOpsWorkItemPlugin,
-    IGraphDatabaseClient _graphDbClient) : ControllerBase
+    IGraphDatabaseClient _graphDbClient,
+    ICrawlerTriggerService _crawlerTriggerService) : ControllerBase
 {
     [HttpGet("auth/start")]
-    public async Task<IActionResult> StartAzureDevOpsAuth([FromQuery]string resourceId)
+    public async Task<IActionResult> StartAzureDevOpsAuth([FromQuery] string resourceId)
     {
         try
         {
@@ -105,6 +107,9 @@ public class AzureDevOpsController(
 
             var edge = new NonCrawledEdge(appNodeId, sourceCodeNode.GetNodeId(), Constants.Relationships.ServesCode);
             await _graphDbClient.AddOrUpdateEdgeAsync(edge);
+
+            _crawlerTriggerService.TriggerSourceCodeRepoCrawl(request.RepoUrl);
+
             return Ok("Source code linked successfully.");
         }
 

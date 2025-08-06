@@ -72,6 +72,26 @@ namespace Agent.Core.Services
         }
     }
 
+    public class SourceCodeRepoTriggerItem : TriggerItem
+    {
+        public string RepositoryUrl { get; }
+
+        public SourceCodeRepoTriggerItem(string repositoryUrl)
+        {
+            RepositoryUrl = repositoryUrl ?? throw new ArgumentNullException(nameof(repositoryUrl));
+        }
+
+        public override string GetResourceId()
+        {
+            return RepositoryUrl;
+        }
+
+        public override int GetHashCode()
+        {
+            return GetResourceId().GetHashCode(StringComparison.InvariantCultureIgnoreCase);
+        }
+    }
+
 
     public class CrawlerTriggerService : ICrawlerTriggerService
     {
@@ -287,6 +307,43 @@ namespace Agent.Core.Services
 
             _resourceIdQueue.Enqueue(item);
             _logger.LogInternalInformation("Queued kubernetes resource for crawling: {ResourceId}", item.GetResourceId());
+        }
+
+        public void TriggerSourceCodeRepoCrawl(string repoUrl)
+        {
+            if (string.IsNullOrWhiteSpace(repoUrl))
+                return;
+
+            var item = new SourceCodeRepoTriggerItem(repoUrl);
+
+            // Check if this resource was recently marked as deleted
+            if (IsRecentlyDeleted(item))
+            {
+                _logger.LogDebug("Skipping recently deleted repository: {ResourceId}", item.GetResourceId());
+                return;
+            }
+
+            // Check if this resource was recently crawled
+            if (IsRecentlyCrawled(item))
+            {
+                _logger.LogDebug("Skipping recently crawled repository: {ResourceId}", item.GetResourceId());
+                return;
+            }
+
+            // Check if this resource is already pending
+            lock (_pendingLock)
+            {
+                if (_pendingResourceIds.Contains(item))
+                {
+                    _logger.LogDebug("Repository already pending for crawl: {ResourceId}", item.GetResourceId());
+                    return;
+                }
+
+                _pendingResourceIds.Add(item);
+            }
+
+            _resourceIdQueue.Enqueue(item);
+            _logger.LogInternalInformation("Queued source code repository for crawling: {ResourceId}", item.GetResourceId());
         }
     }
 }

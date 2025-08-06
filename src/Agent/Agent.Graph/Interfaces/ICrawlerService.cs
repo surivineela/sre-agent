@@ -15,8 +15,6 @@ public interface ICrawlerService
     /// <returns></returns>
     public Task CrawlAsync(IEnumerable<string> rootIds, IEnumerable<string>? filters = null, bool cascade = true, CancellationToken? cancellationToken = null);
 
-    public Task CrawlSourceCodeRepoAsync(SourceCodeRepoNode node);
-
     /// <summary>
     /// Starts the crawler that would crawl resource on updates. This implicitly does non-cascade crawl.
     /// </summary>

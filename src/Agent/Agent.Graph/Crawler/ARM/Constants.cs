@@ -144,7 +144,7 @@ public class Constants
     public const string GatewayMemoryPercent = "MemoryPercent_Gateway";
     public const string GatewayRequestsDuration = "Duration";
     public const string BackendRequestsDuration = "BackendDuration";
-    
+
     // General Azure Monitor Constants
     public const string Requests = "Requests";
     public const string Capacity = "Capacity";

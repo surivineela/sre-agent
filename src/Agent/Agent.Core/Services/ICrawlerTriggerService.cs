@@ -10,6 +10,7 @@ namespace Agent.Core.Services
         void TriggerArmCrawl(string resourceId, bool force = false);
         void TriggerArmCrawl(IEnumerable<string> resourceIds);
         void TriggerKubernetesCrawl(string clusterResourceId, string? namespaceName, string resourceName, string group, string apiVersion, string kind, bool isDelete = false);
+        void TriggerSourceCodeRepoCrawl(string repoUrl);
         void MarkResourceAsDeleted(TriggerItem item);
         IAsyncEnumerable<TriggerItem> GetResourceIdsToProcess(CancellationToken cancellationToken = default);
     }

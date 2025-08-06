@@ -5,6 +5,9 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Linq;
+using System.Reflection.Metadata;
+using System.Text.RegularExpressions;
 using System.Threading.RateLimiting;
 using Agent.Core.Configuration;
 using Agent.Core.Services;
@@ -12,6 +15,7 @@ using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
+using Agent.Graph.Crawler.External;
 using Agent.Graph.Interfaces;
 using Agent.Graph.Schema;
 using Azure.Core;
@@ -89,10 +93,17 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
         List<GraphNode> roots = new List<GraphNode>();
         foreach (var rootId in rootIds)
         {
-            GraphNode? rootNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(rootId);
-            if (rootNode != null)
+            if (IsSourceCodeRepoUrl(rootId))
             {
-                roots.Add(rootNode);
+                roots.Add(new SourceCodeRepoNode(rootId));
+            }
+            else
+            {
+                GraphNode? rootNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(rootId);
+                if (rootNode != null)
+                {
+                    roots.Add(rootNode);
+                }
             }
         }
 
@@ -118,26 +129,6 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
             }
         }
         await Crawl(roots, scopeFiltersSet, typeFiltersSet, cascade, cancellationToken);
-    }
-
-    public async Task CrawlSourceCodeRepoAsync(SourceCodeRepoNode node)
-    {
-        _logger.LogInternalInformation($"Crawling source code repository: {node.GetNodeId()}");
-
-        HashSet<string> scopeFiltersSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var sorted = _crawlerSettings.CrawlRoots.Split(",", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-            .OrderBy(id => id, StringComparer.OrdinalIgnoreCase);
-        var last = string.Empty;
-        foreach (var id in sorted)
-        {
-            if (!string.IsNullOrEmpty(last) && id.StartsWith(last, StringComparison.OrdinalIgnoreCase))
-            {
-                continue;
-            }
-            scopeFiltersSet.Add(id);
-            last = id;
-        }
-        await Crawl([node], scopeFiltersSet, new HashSet<string>(), cascade: true, cancellationToken: null);
     }
 
     public Task<CrawlerResult> GetCrawlerResult()
@@ -316,7 +307,7 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
             var sw = new Stopwatch();
             sw.Start();
 
-            foreach (var node in nodes)
+            foreach (var node in (IEnumerable<GraphNode>)[.. nodes, .. await GetAllSourceCodeNodes()])
             {
                 if (FilterResourceType(typeFilters, node))
                 {
@@ -365,7 +356,6 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
                         Interlocked.Increment(ref progressByResourceType.CrawledCount);
                         continue;
                     }
-
 
                     if (crawled.Contains(node.GetHashString()))
                     {
@@ -887,6 +877,15 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
                                 await OnDemandCrawl(node);
                                 break;
                             }
+                        case SourceCodeRepoTriggerItem sourceCodeItem:
+                            {
+                                var resourceId = sourceCodeItem.GetResourceId();
+                                _logger.LogInternalInformation($"Processing triggered crawl for source code repository: {resourceId}");
+
+                                var sourceCodeNode = new SourceCodeRepoNode(sourceCodeItem.RepositoryUrl);
+                                await OnDemandCrawl(sourceCodeNode);
+                                break;
+                            }
                         default:
                             throw new NotSupportedException($"Unsupported trigger item type: {item.GetType().Name}");
                     }
@@ -1119,6 +1118,36 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
                 _logger.LogInternalError(ex, "Error during queue processing");
             }
         });
+    }
+
+    private bool IsSourceCodeRepoUrl(string id)
+    {
+        if (Regex.IsMatch(id, SourceCodeRepoCrawler.AzDoRepoRegexPattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)
+            || Regex.IsMatch(id, SourceCodeRepoCrawler.GithubRepoRegexPattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private async Task<IList<SourceCodeRepoNode>> GetAllSourceCodeNodes()
+    {
+        var sourceCodeNodes = new List<SourceCodeRepoNode>();
+
+        var query = @$"g.V().has('resourceType', '{SourceCodeRepoNode.Type}').has('isDeleted', false).values('repoUrl')";
+        var result = await _graphDbClient.Query(query);
+
+        if (result != null)
+        {
+            foreach (var item in result)
+            {
+                sourceCodeNodes.Add(new SourceCodeRepoNode(item));
+            }
+        }
+
+        _logger.LogInternalInformation($"Found {result?.Count() ?? 0} source code repositories");
+        return sourceCodeNodes;
     }
 
     public void Dispose()

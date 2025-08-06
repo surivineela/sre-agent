@@ -44,8 +44,7 @@ namespace Agent.Cmd
 
             command.OnExecute(async () =>
             {
-                var node = new SourceCodeRepoNode(repoUrl.Value);
-                await _crawler.CrawlSourceCodeRepoAsync(node);
+                await _crawler.CrawlAsync([repoUrl.Value]);
                 return 0;
             });
         }
