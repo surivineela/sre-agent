@@ -203,4 +203,38 @@ public class SourceCodeAnalysisPlugin : ISourceCodeAnalysisPlugin
             throw;
         }
     }
+
+    public async Task<string> QueryRepository(string resourceId, string query)
+    {
+        // Precondition checks
+        if (string.IsNullOrEmpty(resourceId))
+        {
+            throw new ArgumentException("Resource ID cannot be null or empty.", nameof(resourceId));
+        }
+
+        if (string.IsNullOrEmpty(query))
+        {
+            throw new ArgumentException("Query cannot be null or empty.", nameof(query));
+        }
+
+        var searchResults = await GetSemanticSearchResult(resourceId, query);
+
+        if (searchResults is null || !searchResults.Any())
+        {
+            return "No search results found.";
+        }
+
+        var resultStrings = searchResults.Select(result =>
+        {
+            var filePath = result?.Location?.Path ?? "Unknown";
+            var score = result?.Distance ?? 0.0;
+            var content = result?.Chunk?.Text ?? "No content";
+            var start = result?.Chunk?.Range?.Start.ToString() ?? "N/A";
+            var end = result?.Chunk?.Range?.End.ToString() ?? "N/A";
+
+            return $"File: {filePath}\nScore: {score:F2}\nContent: {content} at {start} to {end}\n";
+        });
+
+        return string.Join("\n---\n", resultStrings);
+    }
 }

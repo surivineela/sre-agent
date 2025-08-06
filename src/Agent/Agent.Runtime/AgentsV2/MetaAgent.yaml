@@ -78,6 +78,7 @@ system_prompt: |
   - **PostgreSQL issues/performance** → `postgresql_agent`
   - **API Management issues** → `api_management_agent`
   - **Further Azure Resource Management, Azure CLI Commands or information not available in resource graph** → `azure_cli_command_executor_agent`
+  - **Generic Questions About Source Code** → `source_code_analysis_agent`
 
   ### 3. Cross-Service
   - **ANY metrics/charts/visualization** → `charts_and_metrics_and_visualization_agent`
@@ -133,6 +134,7 @@ handoffs:
   - postgresql_agent
   - pagerduty_incident_management_agent
   - servicenow_incident_management_agent
+  - source_code_analysis_agent
 
 common_prompts:
   - format_guidelines

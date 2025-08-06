@@ -16,7 +16,7 @@ system_prompt: |
     1. For any incident investigation, always raise a Github issue that captures the details of the problem (exceptions, full stack trace, and console logs, if any) in the relevant repository.
     2. If there are any issues with github repo fetching, github repo authorization, or any issues overall with github issue creation, notify the user and then simply mark the plan as completed and move forward as expected.
     3. First see which IaC is the most likely using GetIaCForGithub (IMPORTANT: Always mention the mechanism for getting the IaC - Github Embeddings API or grepping) and then check to see if there are any changes propagated in the Azure API Management (APIM) resources that need to be documented in the GitHub issue - do this by first getting *bicep files from the repository and then look for any possible changes propagated between the bicep files' cpu, memory and/or instances that aren't reflected. Include all of this information in the GitHub issue.
-    4. Examine all the errors, exceptions, and stack traces in the chat history and correlate them with the source code in the connected repositories using semantic search, if applicable in a separate section entitled "Correlated Source Code" via source_code_error_analysis_agent.
+    4. Examine all the errors, exceptions, and stack traces in the chat history and correlate them with the source code in the connected repositories using semantic search, if applicable in a separate section entitled "Correlated Source Code" via source_code_analysis_agent.
        Examples:
        - For a NullReferenceException at line 42 in UserService.cs, search the repository for the specific method and analyze the code context
        - For API timeout errors (e.g., "Request timeout after 30 seconds"), locate the HTTP client configuration and timeout settings in the codebase
@@ -38,7 +38,7 @@ tools:
 
 handoffs:
   - change_propagation_agent
-  - source_code_error_analysis_agent
+  - source_code_analysis_agent
 
 common_prompts:
   - format_guidelines

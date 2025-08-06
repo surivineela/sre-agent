@@ -417,7 +417,7 @@ public class Program
             .AddTransient<DiagnosticsPluginDefinition>()
             .AddTransient<RepositoryPluginDefintion>()
             .AddTransient<AzureDevOpsWorkItemPluginDefinition>()
-            .AddTransient<SourceCodeErrorAnalysisAgentPluginDefinition>()
+            .AddTransient<SourceCodeAnalysisAgentPluginDefinition>()
             .AddTransient<RoleAssignmentPluginDefinition>()
             .AddTransient<PagerDutyIncidentPluginDefinition>()
             .AddTransient<FunctionAppExecutionFailuresPluginDefinition>()
