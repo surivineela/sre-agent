@@ -346,7 +346,7 @@ export const useThreadMenuStyle = () => {
     const root: IStyle = {
         display: 'flex',
         flexDirection: 'column',
-        height: '100%',
+        height: 'calc(100vh - 50px)',
         maxWidth: '100%',
         position: 'absolute',
         left: '0',
@@ -359,12 +359,11 @@ export const useThreadMenuStyle = () => {
     };
 
     const threadItem: IStyle = {
-        padding: `${ThreadItemPaddingTopBottomInPx}px 0px`,
-        paddingLeft: '10px',
+        padding: `${ThreadItemPaddingTopBottomInPx}px`,
         cursor: 'pointer',
         height: `${ThreadItemHeightInPx}px`,
-        width: '100%',
         willChange: 'transform',
+        marginTop: '5px',
     };
 
     const activeThreadItem: IStyle = {
@@ -373,7 +372,7 @@ export const useThreadMenuStyle = () => {
         flexDirection: 'row',
         alignItems: 'center',
         gap: '6px',
-        borderRadius: '3px',
+        borderRadius: tokens.borderRadiusXLarge,
     };
 
     const newItemButtonAndSearchBox: IStyle = {
@@ -389,7 +388,7 @@ export const useThreadMenuStyle = () => {
         flexDirection: 'row',
         alignItems: 'center',
         gap: '6px',
-        borderRadius: '3px',
+        borderRadius: tokens.borderRadiusXLarge,
     };
 
     const borderIndicator = {
