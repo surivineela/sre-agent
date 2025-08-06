@@ -1,8 +1,10 @@
 import { Button, DrawerHeader, DrawerHeaderTitle, makeStyles, tokens } from '@fluentui/react-components';
 import { Dismiss24Regular } from '@fluentui/react-icons';
-import { ForwardedRef, forwardRef, memo, useImperativeHandle, useState } from 'react';
+import { ForwardedRef, forwardRef, memo, useContext, useEffect, useImperativeHandle, useState } from 'react';
+import { StreamingMessage } from '../../Common/Contracts/Azure/Streaming';
 import Fade from '../Components/Fade';
 import { AgentTaskHandle } from '../Contracts/Activities';
+import { StreamingContext } from '../Contracts/Context';
 import { Resizable } from './Resizable';
 
 interface IAgentTaskProps {
@@ -20,6 +22,7 @@ const useAgentTaskStyles = makeStyles({
 const AgentTask = forwardRef((props: IAgentTaskProps, ref: ForwardedRef<AgentTaskHandle>) => {
     const { collapseResizables } = props;
     const [collapsed, setCollapsed] = useState(true);
+    const { subscribeTaskUpdateEvent } = useContext(StreamingContext);
 
     const { root } = useAgentTaskStyles();
 
@@ -31,6 +34,17 @@ const AgentTask = forwardRef((props: IAgentTaskProps, ref: ForwardedRef<AgentTas
             }
         },
     }));
+
+    useEffect(() => {
+        const unsubscribe = subscribeTaskUpdateEvent((message: StreamingMessage) => {
+            // ToDo: Handle task update message
+            console.log(message);
+        });
+
+        return () => {
+            unsubscribe();
+        };
+    }, [subscribeTaskUpdateEvent]);
 
     return (
         <Resizable

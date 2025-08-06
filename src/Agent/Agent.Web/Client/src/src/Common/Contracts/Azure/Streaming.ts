@@ -9,6 +9,7 @@ export enum MessageRequestType {
 export enum MessageResponseType {
     MessageUpdate = 'MessageUpdate',
     ThreadUpdate = 'ThreadUpdate',
+    TaskUpdate = 'TaskUpdate',
 }
 
 export interface StreamingMessage {
