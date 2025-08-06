@@ -1,6 +1,6 @@
 import { memo, useMemo } from 'react';
 import { MessageDescriptor } from 'react-intl';
-import { ChatMessageError } from '../../Common/Contracts/Azure/SreAgent';
+import { ChatMessageError } from '../../Common/Contracts/DataPlane/Message';
 import { ActivitiesResources } from '../../Strings/SREAgentResources';
 import ErrorMessageBar from './ErrorMessageBar';
 

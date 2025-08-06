@@ -1,5 +1,5 @@
 import { memo, useMemo } from 'react';
-import { ChatMessageError } from '../../Common/Contracts/Azure/SreAgent';
+import { ChatMessageError } from '../../Common/Contracts/DataPlane/Message';
 import { composeDefaultAgentMessage } from '../Activities/Utility';
 import { ChatMessage } from '../Contracts/Activities';
 import ChatMessageComponent from './ChatMessage';

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Thread, ThreadSource } from '../Contracts/Azure/SreAgent';
+import { Thread, ThreadSource } from '../Contracts/DataPlane/Thread';
 import { getAgentHeaders } from '../Helpers/headers';
 import { DataPlaneClient, Response } from './DataPlaneClient.ts';
 import { MessagePostOptions } from './MessageClient.ts';

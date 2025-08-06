@@ -1,7 +1,7 @@
 import { CopilotChat, CopilotProvider } from '@fluentui-copilot/react-copilot';
 import { mergeClasses } from '@fluentui/react-components';
 import { memo, useMemo } from 'react';
-import { ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
+import { ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
 import ChatBoxFooter from '../Components/ChatBoxFooter';
 import ChatLoading from '../Components/ChatLoading';

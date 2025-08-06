@@ -1,7 +1,7 @@
 import { Button, DrawerHeader, DrawerHeaderTitle, makeStyles, tokens } from '@fluentui/react-components';
 import { Dismiss24Regular } from '@fluentui/react-icons';
 import { ForwardedRef, forwardRef, memo, useContext, useEffect, useImperativeHandle, useState } from 'react';
-import { StreamingMessage } from '../../Common/Contracts/Azure/Streaming';
+import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
 import Fade from '../Components/Fade';
 import { AgentTaskHandle } from '../Contracts/Activities';
 import { StreamingContext } from '../Contracts/Context';

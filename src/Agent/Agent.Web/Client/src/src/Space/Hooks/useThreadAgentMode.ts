@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { AgentMode, ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
+import { AgentMode } from '../../Common/Contracts/Azure/SreAgent';
+import { ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { useThreadDataCache } from './useThreadDataCache';
 
 export const useThreadAgentMode = (threadId: string | null | undefined, threadSource: string | null | undefined) => {

@@ -14,7 +14,7 @@ import { useContext } from 'react';
 import { useIntl } from 'react-intl';
 import { ActivitiesThreadHeaderResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { AzPortalContext } from '../AzPortalProxy/Providers/AzPortalProxyContext';
-import { Thread } from '../Contracts/Azure/SreAgent';
+import { Thread } from '../Contracts/DataPlane/Thread';
 
 const useStyles = makeStyles({
     dangerButton: {

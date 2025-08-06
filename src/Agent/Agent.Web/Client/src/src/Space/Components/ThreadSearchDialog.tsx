@@ -9,7 +9,7 @@ import { tokens } from '@fluentui/react-theme';
 import debounce from 'lodash/debounce';
 import { memo, useCallback, useState } from 'react';
 import { FormattedMessage } from 'react-intl';
-import { Thread } from '../../Common/Contracts/Azure/SreAgent';
+import { Thread } from '../../Common/Contracts/DataPlane/Thread';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
 import { useThreadList } from '../Hooks/useThreadList';

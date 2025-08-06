@@ -1,7 +1,7 @@
 import { useContext, useMemo } from 'react';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { MessageAuthor } from '../../Common/Contracts/Azure/SreAgent';
+import { MessageAuthor } from '../../Common/Contracts/DataPlane/Message';
 
 export const DefaultUserIdAndDisplayName: Omit<MessageAuthor, 'role'> = {
     displayName: 'Web Client User',

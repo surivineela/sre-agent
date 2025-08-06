@@ -5,7 +5,7 @@ import { useFormikContext } from 'formik';
 import { FC, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { ToolInfo } from '../../../../Common/Contracts/Azure/IncidentHandler';
-import { ThreadSource } from '../../../../Common/Contracts/Azure/SreAgent';
+import { ThreadSource } from '../../../../Common/Contracts/DataPlane/Thread';
 import { IncidentHandlerCreateResources } from '../../../../Strings/SREAgentResources';
 import ChatBox from '../../../Activities/ChatBox';
 import { MultipleSelectionShimmerDetailsList } from '../../../Components/MultipleSelectionShimmerDetailsList';

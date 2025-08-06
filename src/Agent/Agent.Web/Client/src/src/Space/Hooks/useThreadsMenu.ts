@@ -1,8 +1,8 @@
 import { Ref, useCallback, useContext, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ThreadClient } from '../../Common/Clients/ThreadClient';
-import { Thread } from '../../Common/Contracts/Azure/SreAgent';
-import { StreamingMessage } from '../../Common/Contracts/Azure/Streaming';
+import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
+import { Thread } from '../../Common/Contracts/DataPlane/Thread';
 import {
     getFilteredThreads,
     getUpdatedUnreadThreadIds,

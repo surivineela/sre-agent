@@ -1,16 +1,14 @@
+import { IncidentStatus, SREAgentUserId } from '../../Common/Contracts/Azure/SreAgent';
 import {
     Approval,
     ApprovalDecision,
     AzCliExecution,
-    IncidentStatus,
     Message,
     MessageAuthor,
     MessageMetaData,
-    SREAgentUserId,
-    Thread,
-    ThreadSource,
-} from '../../Common/Contracts/Azure/SreAgent';
-import { StreamingMessage, StreamingMessageType } from '../../Common/Contracts/Azure/Streaming';
+} from '../../Common/Contracts/DataPlane/Message';
+import { StreamingMessage, StreamingMessageType } from '../../Common/Contracts/DataPlane/Streaming';
+import { Thread, ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
 import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';

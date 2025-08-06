@@ -5,7 +5,7 @@ import AzPortalProxy, { defaultSreAgentEndpoint } from '../AzPortalProxy/AzPorta
 import { AzPortalContext } from '../AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../AzPortalProxy/Providers/StartupInfoContext';
 import { standaloneAgentEndpoint, standaloneReactPort } from '../Constants/Uri';
-import { MessageRequestType, MessageResponseType, StreamingMessage } from '../Contracts/Azure/Streaming';
+import { MessageRequestType, MessageResponseType, StreamingMessage } from '../Contracts/DataPlane/Streaming';
 
 export interface MessageCreateRequest {
     text: string;

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { Action } from '../../Common/Contracts/Azure/SreAgent';
+import { Action } from '../../Common/Contracts/DataPlane/Action';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { AgentContext } from '../Contracts/Context';
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ThreadSeverity } from '../../../Common/Clients/ThreadClient';
-import { Thread, ThreadSource } from '../../../Common/Contracts/Azure/SreAgent';
+import { Thread, ThreadSource } from '../../../Common/Contracts/DataPlane/Thread';
 import { getSafeDateTime } from '../../../Common/Helpers/Date';
 import { Guid } from '../../../Common/Helpers/Guid';
 import { ThreadFilter } from '../../Contracts/Activities';

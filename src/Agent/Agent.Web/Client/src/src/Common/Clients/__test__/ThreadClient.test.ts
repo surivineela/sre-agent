@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ThreadSource } from '../../Contracts/Azure/SreAgent';
+import { ThreadSource } from '../../Contracts/DataPlane/Thread';
 import { getThreadsGetUrlPath, ThreadSeverity, ThreadsGetOptions } from '../ThreadClient';
 
 describe('getThreadsGetUrlPath', () => {

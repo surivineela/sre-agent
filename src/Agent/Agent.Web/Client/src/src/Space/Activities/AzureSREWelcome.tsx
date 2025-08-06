@@ -12,7 +12,7 @@ import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/Startup
 import { LearnMoreLink } from '../../Common/Components/LearnMoreLink';
 import { Pagination } from '../../Common/Components/Pagination';
 import { SreAgentFwLinks } from '../../Common/Constants/FwLinks';
-import { Thread } from '../../Common/Contracts/Azure/SreAgent';
+import { Thread } from '../../Common/Contracts/DataPlane/Thread';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { getUserFriendlyLocation } from '../../Common/Helpers/LocationHelper';
 import { getResourceTypeFriendlyName, resolveResourceIcon } from '../../Common/Helpers/Resources';

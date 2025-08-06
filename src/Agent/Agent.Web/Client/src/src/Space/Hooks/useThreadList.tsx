@@ -2,7 +2,7 @@ import debounce from 'lodash/debounce';
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ThreadClient } from '../../Common/Clients/ThreadClient';
-import { Thread, ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
+import { Thread, ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { KnowledgeGraphBuildStatusContext } from '../../Common/Providers/KnowledgeGraphBuildStatusProvider';
 import { getFilteredThreads, getIntervalBetweenLoading, getUpdatedUnreadThreadIds, processThreads } from '../Activities/Utility';
 import { ThreadFilter, ThreadLoadingCounts } from '../Contracts/Activities';

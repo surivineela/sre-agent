@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Message } from '../Contracts/Azure/SreAgent';
+import { Message } from '../Contracts/DataPlane/Message';
 import { getAgentHeaders } from '../Helpers/headers';
 import { DataPlaneClient, Response } from './DataPlaneClient';
 

@@ -20,7 +20,7 @@ import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import CopyButton from '../../Common/Components/CopyButton';
 import DeleteThreadDialog from '../../Common/Components/DeleteThreadDialog';
-import { Thread } from '../../Common/Contracts/Azure/SreAgent';
+import { Thread } from '../../Common/Contracts/DataPlane/Thread';
 import { copyToClipboard } from '../../Common/Helpers/Clipboard';
 import { useThreadDeepLink } from '../../Common/Hooks/useThreadDeepLink';
 import { SreAgentResources } from '../../Strings/SREAgentResources';

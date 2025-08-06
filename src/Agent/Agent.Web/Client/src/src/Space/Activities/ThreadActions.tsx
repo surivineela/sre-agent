@@ -10,7 +10,7 @@ import { Shimmer } from '@fluentui/react/lib/Shimmer';
 import debounce from 'lodash/debounce';
 import { FC, memo, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { Action, ActionStatus } from '../../Common/Contracts/Azure/SreAgent';
+import { Action, ActionStatus } from '../../Common/Contracts/DataPlane/Action';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { ActionsResources, ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import Fade from '../Components/Fade';

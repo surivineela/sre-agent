@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useContext, useEffect, useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { Approval, ApprovalDecision, AzCliExecution, KubectlExecution } from '../../Common/Contracts/Azure/SreAgent';
+import { Approval, ApprovalDecision, AzCliExecution, KubectlExecution } from '../../Common/Contracts/DataPlane/Message';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';

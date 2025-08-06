@@ -2,7 +2,7 @@ import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'r
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { MessageClient } from '../../Common/Clients/MessageClient';
 import { ThreadClient } from '../../Common/Clients/ThreadClient';
-import { ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
+import { ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import {
     convertMessageToChatMessage,
     getIntervalBetweenLoading,

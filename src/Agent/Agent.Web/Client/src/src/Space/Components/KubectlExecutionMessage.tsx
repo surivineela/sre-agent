@@ -8,7 +8,7 @@ import {
     AiOutlineCopy,
     AiOutlinePlayCircle,
 } from 'react-icons/ai';
-import { Approval, AzCliExecution, KubectlExecution } from '../../Common/Contracts/Azure/SreAgent';
+import { Approval, AzCliExecution, KubectlExecution } from '../../Common/Contracts/DataPlane/Message';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
 import { getRiskColor, getRiskLevel } from './Utility';

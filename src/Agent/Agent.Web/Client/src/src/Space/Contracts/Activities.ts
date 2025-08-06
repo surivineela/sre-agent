@@ -1,5 +1,5 @@
+import { AgentMode } from '../../Common/Contracts/Azure/SreAgent';
 import {
-    AgentMode,
     Approval,
     AzCliExecution,
     ChatMessageError,
@@ -7,8 +7,8 @@ import {
     Message,
     MessageContent,
     MessageMetaData,
-    Thread,
-} from '../../Common/Contracts/Azure/SreAgent';
+} from '../../Common/Contracts/DataPlane/Message';
+import { Thread } from '../../Common/Contracts/DataPlane/Thread';
 import { ChatBoxV2StyleProps } from '../Styles/Activities.styles';
 
 export interface IActivitiesProps {
