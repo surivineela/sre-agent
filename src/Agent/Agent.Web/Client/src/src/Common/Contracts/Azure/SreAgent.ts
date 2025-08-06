@@ -73,18 +73,12 @@ export interface OutboundConnectionConfiguration {
     };
 }
 
-export interface LogAnalyticsConfiguration {
-    workspaceId: string;
-    sharedKey: string;
-}
-
 export interface ApplicationInsightsConfiguration {
     appId: string;
     connectionString: string;
 }
 
 export interface LogConfiguration {
-    logAnalyticsConfiguration: LogAnalyticsConfiguration;
     applicationInsightsConfiguration: ApplicationInsightsConfiguration;
 }
 
