@@ -248,6 +248,16 @@ const SREAgentSpace: FC = () => {
         const logSiteVersion = () => {
             const version = import.meta.env.SRE_UX_VERSION;
             if (!inStandaloneMode && version) {
+                console.log(
+                    `%c
+                    ╔═══════════════════════════════════════╗
+                       📎 SRE Agent UX Version: %c${version}%c
+                    ╚═══════════════════════════════════════╝
+                    `,
+                    'color: #0078d4; font-weight: bold;',
+                    `color: white; font-weight: bold; font-size: 1.1em;`,
+                    'color: #0078d4; font-weight: bold;'
+                );
                 azPortalProxy.log({
                     action: 'AgentSiteVersion',
                     actionModifier: 'info',

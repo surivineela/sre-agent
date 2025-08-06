@@ -2937,12 +2937,6 @@
       "value": "Continue"
     }
   ],
-  "ad7rw/": [
-    {
-      "type": 0,
-      "value": "Repository URL must be like the following for GitHub: https://github.com/owner/repo-name or for Azure DevOps: https://dev.azure.com/organization/project/_git/repository-name or https://organization.visualstudio.com/project/_git/repository-name"
-    }
-  ],
   "aj2txf": [
     {
       "type": 0,
@@ -3117,6 +3111,12 @@
     {
       "type": 0,
       "value": "Memory"
+    }
+  ],
+  "dYwe9B": [
+    {
+      "type": 0,
+      "value": "Repository URL must be like the following for GitHub: https://github.com/owner/repo-name or for Azure DevOps: https://dev.azure.com/organization/project/_git/repository-name or https://organization.visualstudio.com/project/_git/repository-name"
     }
   ],
   "dhqlRa": [
