@@ -1341,12 +1341,6 @@
       "value": "Incident platform"
     }
   ],
-  "Eafn/i": [
-    {
-      "type": 0,
-      "value": "Repository URL must be like: https://github.com/owner/repo-name.git or Repository URL must be like: https://github.com/owner/repo-name.git or https://dev.azure.com/organization/project/_git/repository-name or https://organization.visualstudio.com/project/_git/repository-name"
-    }
-  ],
   "EdEthU": [
     {
       "type": 0,
@@ -2941,6 +2935,12 @@
     {
       "type": 0,
       "value": "Continue"
+    }
+  ],
+  "ad7rw/": [
+    {
+      "type": 0,
+      "value": "Repository URL must be like the following for GitHub: https://github.com/owner/repo-name or for Azure DevOps: https://dev.azure.com/organization/project/_git/repository-name or https://organization.visualstudio.com/project/_git/repository-name"
     }
   ],
   "aj2txf": [

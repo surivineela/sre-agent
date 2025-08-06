@@ -40,7 +40,7 @@ import { getPropertyValue, useResourceInfo } from '../Hooks/useResourceInfo';
 import HealthStatus from './HealthStatus';
 import { getAppHealthInfo } from './Utility';
 
-const githubRepoRegex = /^https:\/\/github\.com\/[\w-]+\/[\w.-]+\.git$/;
+const githubRepoRegex = /^https:\/\/github\.com\/[\w-]+\/[\w.-]+(?:\.git)?$/;
 const azdoRepoRegex = /^https:\/\/(?:dev\.azure\.com\/[\w-]+\/[\w-]+\/_git\/[\w.-]+|[\w-]+\.visualstudio\.com\/[\w-]+\/_git\/[\w.-]+)$/;
 
 const isNullOrUndefined = (input?: unknown): boolean => {
@@ -102,13 +102,15 @@ const useStyles = makeStyles({
         alignItems: 'center',
         gap: '5px',
     },
-    githubButton: {
+    repoButton: {
         display: 'flex',
         alignItems: 'center',
         gap: tokens.spacingHorizontalS,
     },
-    githubIcon: {
+    repoIcon: {
         marginRight: '4px',
+        width: '50px',
+        height: '50px',
     },
 });
 
@@ -152,7 +154,7 @@ const ResourceInfo = () => {
 const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode; onGitHubLogin: () => void }) => {
     const { isLoading, isUpdating, initialRemarks, resource, onSubmit, toasterId } = useResourceInfo(selectedNode);
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
-    const { infoContent, title, spinner, content, dashboard, githubButton, githubIcon } = useStyles();
+    const { infoContent, title, spinner, content, dashboard, repoButton, repoIcon } = useStyles();
     const intl = useIntl();
 
     const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
@@ -232,10 +234,9 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode; onGit
 
     const getRepoIcon = (url: string) => {
         if (githubRepoRegex.test(url)) {
-            return <FaGithub className={githubIcon} />;
-        }
-        if (azdoRepoRegex.test(url)) {
-            return <VscAzureDevops className={githubIcon} />;
+            return <FaGithub className={repoIcon} />;
+        } else if (azdoRepoRegex.test(url)) {
+            return <VscAzureDevops className={repoIcon} />;
         }
         return null;
     };
@@ -303,7 +304,7 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode; onGit
                             <SummaryField label={intl.formatMessage(ResourceInfoResources.repositoryConnection)}>
                                 {resource?.sourceCodeLinkageStatus ? (
                                     resource.sourceCodeLinkageStatus.status === 'Linked' ? (
-                                        <div className={githubButton}>
+                                        <div className={repoButton}>
                                             {getRepoIcon(resource.sourceCodeLinkageStatus.repositoryUrl)}
                                             <Link href={resource.sourceCodeLinkageStatus.repositoryUrl} target="_blank">
                                                 {resource.sourceCodeLinkageStatus.repositoryUrl}
@@ -312,7 +313,7 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode; onGit
                                     ) : (
                                         <div>
                                             {resource.sourceCodeLinkageStatus.repositoryUrl && (
-                                                <div className={githubButton} style={{ marginBottom: '8px' }}>
+                                                <div className={repoButton} style={{ marginBottom: '8px' }}>
                                                     {getRepoIcon(resource.sourceCodeLinkageStatus.repositoryUrl)}
                                                     <Link href={resource.sourceCodeLinkageStatus.repositoryUrl} target="_blank">
                                                         {resource.sourceCodeLinkageStatus.repositoryUrl}
@@ -368,7 +369,7 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode; onGit
                                                             validationMessage={repoUrlError}
                                                         >
                                                             <Textarea
-                                                                placeholder="https://github.com/owner/repo-name.git or https://dev.azure.com/organization/project/_git/repo or https://organization.visualstudio.com/project/_git/repository-name"
+                                                                placeholder="https://github.com/owner/repo-name or https://dev.azure.com/organization/project/_git/repo or https://organization.visualstudio.com/project/_git/repository-name"
                                                                 value={repoUrl}
                                                                 onChange={(_, data) => {
                                                                     setRepoUrl(data.value);
