@@ -4,6 +4,7 @@
 
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Framework;
@@ -115,16 +116,45 @@ public static class Summarizer
     public static string ExtractNotifyUserMessage(string contentText)
     {
         var extractedText = contentText;
+
         try
         {
             var op = JsonSerializer.Deserialize<Dictionary<string, string>>(contentText);
             if (op is not null
                 && op.TryGetValue("notifyUserMessage", out var notifyText))
             {
-                extractedText = notifyText;
+                return notifyText;
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            try
+            {
+                if (ex is JsonException && ex.Message.Contains("Expected end of data"))
+                {
+                    //Detected multiple JSON objects. Attempting to parse individually
+
+                    // Split using regex to find boundaries between JSON objects
+                    var segments = Regex.Split(contentText, @"(?<=})\s*(?={)")
+                                        .Where(s => !string.IsNullOrWhiteSpace(s))
+                                        .ToList();
+
+                    foreach (var json in segments)
+                    {
+                        try
+                        {
+                            var op = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
+                            if (op != null && op.TryGetValue("notifyUserMessage", out var notifyText))
+                            {
+                                // take the first one
+                                return notifyText;
+                            }
+                        }
+                        catch { }
+                    }
+                }
+            } catch { }
+        }
 
         return extractedText;
     }
