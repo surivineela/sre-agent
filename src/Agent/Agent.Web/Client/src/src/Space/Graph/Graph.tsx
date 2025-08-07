@@ -2,6 +2,9 @@ import { useTheme } from '@fluentui/react';
 import { MessageBar, MessageBarBody, Spinner } from '@fluentui/react-components';
 import { Controls, MiniMap, ReactFlow, ReactFlowProvider } from '@xyflow/react';
 import { memo, useContext } from 'react';
+import { useIntl } from 'react-intl';
+import { KnowledgeGraphBuildStatusContext } from '../../Common/Providers/KnowledgeGraphBuildStatusProvider';
+import { ActivitiesResources } from '../../Strings/SREAgentResources';
 import { CUSTOM_EDGE_TYPE, GRAPH_CARD_TYPE, GraphContext } from '../Contracts/Graph';
 import { useGraph } from '../Hooks/useGraph';
 import { useGraphStyles } from '../Styles/Graph.styles';
@@ -11,9 +14,6 @@ import ResourceInfo from './ResourceInfo';
 import ResourceSelector from './ResourceSelector';
 
 import '@xyflow/react/dist/style.css';
-import { useIntl } from 'react-intl';
-import { KnowledgeGraphBuildStatusContext } from '../../Common/Providers/KnowledgeGraphBuildStatusProvider';
-import { ActivitiesResources } from '../../Strings/SREAgentResources';
 
 const Graph = () => {
     return (
@@ -32,19 +32,29 @@ const GraphContent = () => {
         onEdgesChange,
         selectedNode,
         hoveredNodeId,
-        onAppGroupUpdate,
         hoverNode,
         unHoverNode,
         nodesToHighlight,
         edgesToHighlight,
         setSelectedNode,
         selectedAppGroupId,
+        subscriptions,
+        filteredAppGroups,
+        selectedSubscription,
+        selectedRscType,
+        selectedAppGroup,
+        isSubscriptionLoading,
+        isAppGroupLoading,
+        resourceTypeFilterOptions,
+        onSelectSubscription,
+        onSelectRscType,
+        onSelectAppGroupDropdown,
+        allKey,
     } = useGraph();
 
     const { hasChatPermissions } = useContext(KnowledgeGraphBuildStatusContext);
 
     const { root, reactFlow, spinner, messageBar } = useGraphStyles();
-
     const intl = useIntl();
 
     const theme = useTheme();
@@ -63,7 +73,6 @@ const GraphContent = () => {
             }}
         >
             <div className={root}>
-                <ResourceSelector onAppGroupUpdate={onAppGroupUpdate} />
                 <div className={reactFlow}>
                     {hasChatPermissions ? (
                         <>
@@ -83,6 +92,20 @@ const GraphContent = () => {
                                 >
                                     <Controls />
                                     <MiniMap />
+                                    <ResourceSelector
+                                        subscriptions={subscriptions}
+                                        filteredAppGroups={filteredAppGroups}
+                                        selectedSubscription={selectedSubscription}
+                                        selectedRscType={selectedRscType}
+                                        selectedAppGroup={selectedAppGroup}
+                                        isSubscriptionLoading={isSubscriptionLoading}
+                                        isAppGroupLoading={isAppGroupLoading}
+                                        resourceTypeFilterOptions={resourceTypeFilterOptions}
+                                        onSelectSubscription={onSelectSubscription}
+                                        onSelectRscType={onSelectRscType}
+                                        onSelectAppGroupDropdown={onSelectAppGroupDropdown}
+                                        allKey={allKey}
+                                    />
                                 </ReactFlow>
                             )}
                         </>

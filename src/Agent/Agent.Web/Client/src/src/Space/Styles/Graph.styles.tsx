@@ -12,10 +12,9 @@ export const useGraphStyles = makeStyles({
         borderTop: '1px solid rgba(204,204,204,.8)',
     },
     reactFlow: {
-        maxWidth: 'calc(100% - 280px)',
-        minWidth: '400px',
+        width: '100%',
         height: '100%',
-        flex: '1 1 auto',
+        position: 'relative',
     },
     spinner: {
         position: 'fixed',
@@ -26,6 +25,41 @@ export const useGraphStyles = makeStyles({
         marginTop: '10px',
         marginLeft: '10px',
         marginRight: '10px',
+    },
+});
+
+export const useIntegratedSelectorStyles = makeStyles({
+    selectorPanel: {
+        position: 'absolute',
+        top: '0',
+        left: '0',
+        right: '0',
+        zIndex: 1000,
+        display: 'flex',
+        flexDirection: 'row',
+        gap: '16px',
+        backgroundColor: tokens.colorNeutralBackground1,
+        padding: '16px',
+        width: '100%',
+        boxSizing: 'border-box',
+    },
+    field: {
+        width: '100%',
+    },
+    option: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '2px',
+    },
+    optionText: {
+        wordBreak: 'break-word',
+    },
+    optionSubtext: {
+        color: tokens.colorNeutralForeground3,
+        wordBreak: 'break-word',
+    },
+    description: {
+        marginBottom: '8px',
     },
 });
 
