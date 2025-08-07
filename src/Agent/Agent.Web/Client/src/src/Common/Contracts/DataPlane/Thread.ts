@@ -1,4 +1,4 @@
-import { AgentTask } from './AgentTask';
+import { AgentTaskMetaData } from './AgentTask';
 import { Message } from './Message';
 
 export interface Thread {
@@ -13,7 +13,7 @@ export interface Thread {
     source?: ThreadSource;
     lastReadTime?: string;
     agentMode?: string;
-    agentTasks?: AgentTask[];
+    agentTasks?: AgentTaskMetaData[];
 }
 
 export interface AgentStatus {

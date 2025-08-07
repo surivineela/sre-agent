@@ -1,6 +1,6 @@
 import { ScrollDownButton } from '@fluentui-copilot/react-copilot-chat';
 import { Button, makeStyles, mergeClasses, Popover, PopoverSurface, PopoverTrigger, Text, tokens } from '@fluentui/react-components';
-import { Lightbulb16Regular, RecordStopFilled, SendFilled } from '@fluentui/react-icons';
+import { Lightbulb16Regular, RecordStopFilled, SendFilled, TaskListSquareLtrRegular } from '@fluentui/react-icons';
 import { IStyle, mergeStyles } from '@fluentui/react/lib/Styling';
 import { TextField } from '@fluentui/react/lib/TextField';
 import { memo, useCallback, useContext, useMemo, useState } from 'react';
@@ -46,6 +46,7 @@ const ChatBoxFooter = ({
     isTyping,
     isCancellingStreaming,
     threadId,
+    openAgentTask,
 }: IChatBoxFooterProps) => {
     const intl = useIntl();
 
@@ -54,6 +55,7 @@ const ChatBoxFooter = ({
     const [originalInput, setOriginalInput] = useState<string>('');
 
     const showAgentModeSelector = useConfigSetting(SettingNames.ShowAgentModeForThread);
+    const showAgentTask = useConfigSetting(SettingNames.ShowAgentTask);
 
     const { root, footer, subFooter, chatStatement, sectionHeader, promptItem, lightbulbIcon, sectionDivider, popoverSurface } =
         useChatInputStyles();
@@ -169,6 +171,10 @@ const ChatBoxFooter = ({
                 />
                 <div className={footer}>
                     <div className={subFooter}>
+                        {/** Opening Agent task for testing purpose. Once we have chat message with task id, opening agent task will be moved there */}
+                        {showAgentTask && (
+                            <Button icon={<TaskListSquareLtrRegular />} appearance="transparent" onClick={() => openAgentTask()} />
+                        )}
                         {showAgentModeSelector && threadId && <AgentModeSelector threadId={threadId} disabled={isTyping} />}
                         <Popover positioning={'after-top'} open={open} onOpenChange={(_e, data) => setOpen(data.open)}>
                             <PopoverTrigger>

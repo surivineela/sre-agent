@@ -60,11 +60,6 @@ export const ThreadContentStyles = mergeStyleSets({
         paddingBottom: '-10px',
         marginBlock: '0px 0px',
     },
-    chatAndAgentTask: {
-        display: 'flex',
-        width: '100%',
-        gap: tokens.spacingHorizontalXS,
-    },
 });
 
 export const useChatBoxStyles = makeStyles({
@@ -174,12 +169,18 @@ export interface ChatBoxV2StyleProps {
 
 export const getChatBoxV2Styles = (styleProps?: ChatBoxV2StyleProps) =>
     mergeStyleSets({
+        chatBoxAndAgentTask: {
+            display: 'flex',
+            width: '100%',
+            boxShadow: tokens.shadow4,
+            borderRadius: tokens.borderRadiusXLarge,
+        },
         chatBox: {
             height: 'calc(100vh - 100px)',
-            borderRadius: tokens.borderRadiusXLarge,
+
             minWidth: '300px',
             marginRight: '4px',
-            boxShadow: tokens.shadow4,
+
             marginBottom: '5px',
             width: '100%',
             ...styleProps?.chatBox,
@@ -192,8 +193,6 @@ export const getChatBoxV2Styles = (styleProps?: ChatBoxV2StyleProps) =>
             height: '100%',
             fontSize: '16px',
             backgroundColor: tokens.colorNeutralForegroundInverted,
-            borderRadius: tokens.borderRadiusXLarge,
-            boxShadow: tokens.shadow4,
             selectors: {
                 // Allegedly styles on the below get copied to anything that portals within it (Dialogs, etc)
                 '&[data-portal-node="true"]': {

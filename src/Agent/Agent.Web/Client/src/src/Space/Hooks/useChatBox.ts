@@ -630,5 +630,6 @@ export const useChatBox = (
         onClickDownButton,
         getGroupedChatMessages,
         updateSpecialMessageInStreamingMessage,
+        userDefinedThreadIdRef,
     };
 };

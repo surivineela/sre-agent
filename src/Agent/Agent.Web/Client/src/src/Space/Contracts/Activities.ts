@@ -46,17 +46,13 @@ export type ThreadMenuHandle = {
     updateThreadLastReadTime: (threadId: string) => void;
 };
 
-export type AgentTaskHandle = {
-    openAgentTask: (taskId: string) => void;
-};
-
 export interface IChatBoxProps {
     addThread: (threadId: string, newThreadToSelect?: Thread) => void;
     updateThreadLastReadTime: (threadId: string) => void;
     threadId?: string;
     threadSource?: string;
     stylesProps?: ChatBoxV2StyleProps;
-    openAgentTask?: (taskId: string) => void;
+    collapseResizables?: () => void;
 }
 
 export interface IChatMessageProps {
@@ -126,6 +122,7 @@ export interface IChatBoxFooterProps {
     isTyping: boolean;
     isCancellingStreaming: boolean;
     threadId?: string | null;
+    openAgentTask: (taskId?: string) => void;
 }
 
 export class ThreadLoadingCounts {
