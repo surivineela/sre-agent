@@ -46,6 +46,7 @@ export type IncidentsFiltersGridProps = {
     openHandlerCreate: (handlerCreateOrEditInfo: HandlerCreateOrEditInfo) => void;
     handlerOperationStatus: OperationStatus | undefined;
     useConsolidatedCreate: boolean;
+    disabled: boolean;
 };
 
 const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFiltersGridProps) => {
@@ -60,6 +61,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
         setSelectedFilter,
         setIsEditFilterMode,
         setInitialValues,
+        disabled,
     } = props;
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
@@ -115,6 +117,10 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
         },
         [sortColumnKey, isSortedDescending]
     );
+
+    const disableAllControls = useMemo(() => {
+        return handlerOperationStatus === 'inprogress' || disabled || incidentFiltersLoading;
+    }, [handlerOperationStatus, disabled, incidentFiltersLoading]);
 
     useEffect(() => {
         if (!isIncidentFilterEmpty) return;
@@ -234,12 +240,12 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
     const onRenderId = useCallback(
         (item: IncidentFilter) => {
             return (
-                <Link style={{ userSelect: 'text', fontSize: '13px' }} onClick={() => onIdClick(item)}>
+                <Link style={{ userSelect: 'text', fontSize: '13px' }} onClick={() => onIdClick(item)} disabled={disableAllControls}>
                     {item.id ?? ''}
                 </Link>
             );
         },
-        [onIdClick]
+        [onIdClick, disabled, handlerOperationStatus, incidentFiltersLoading]
     );
 
     const onRenderStatus = useCallback(
@@ -300,7 +306,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                                 onClick={() => {
                                     openHandlerCreate({ filter: item, handlerId: handler.id, quickEdit: true });
                                 }}
-                                disabled={handlerOperationStatus === 'inprogress'}
+                                disabled={disableAllControls}
                             >{`(${intl.formatMessage(IncidentManagementResources.goToHandler)})`}</Link>
                         )}
                     </div>
@@ -312,13 +318,23 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                     onClick={() => {
                         openHandlerCreate({ filter: item });
                     }}
-                    disabled={handlerOperationStatus === 'inprogress'}
+                    disabled={disableAllControls}
                 >
                     {intl.formatMessage(IncidentManagementResources.setUp)}
                 </Link>
             );
         },
-        [handlerOperationStatus, filterIdToHandlerMap, intl, openHandlerCreate, styles.greenCheckIcon, styles.setUp, useConsolidatedCreate]
+        [
+            handlerOperationStatus,
+            filterIdToHandlerMap,
+            intl,
+            openHandlerCreate,
+            styles.greenCheckIcon,
+            styles.setUp,
+            useConsolidatedCreate,
+            disabled,
+            incidentFiltersLoading,
+        ]
     );
 
     const onIncidentTypeChange = useCallback(
@@ -481,6 +497,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                         placeholder={intl.formatMessage(SreAgentResources.search)}
                         value={searchText}
                         onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchText(data.value ?? ''))}
+                        disabled={disableAllControls}
                     />
                     <Dropdown
                         onOptionSelect={(_e, data) => onIncidentTypeChange(data.optionValue ?? all)}
@@ -488,6 +505,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                         selectedOptions={[incidentType]}
                         button={<span>{getIncidentTypeLabel(incidentType)}</span>}
                         className={styles.searchBox}
+                        disabled={disableAllControls}
                     >
                         {incidentTypeOptions.map(option => (
                             <Option value={option.value} text={option.label}>
@@ -501,6 +519,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                         selectedOptions={[impactedService]}
                         button={<span>{getImpactedServicesLabel(impactedService)}</span>}
                         className={styles.searchBox}
+                        disabled={disableAllControls}
                     >
                         {impactedServiceOptions.map(option => (
                             <Option value={option.value} text={option.label}>
@@ -514,6 +533,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                         selectedOptions={[priority]}
                         button={<span>{getPriorityOptionLabel(priority)}</span>}
                         className={styles.searchBox}
+                        disabled={disableAllControls}
                     >
                         {priorityOptions.map(option => (
                             <Option value={option.value} text={option.label}>
@@ -530,7 +550,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                     items={sortedItems ?? []}
                     layoutMode={DetailsListLayoutMode.justified}
                     compact={true}
-                    enableShimmer={incidentFiltersLoading && sortedItems.length === 0}
+                    enableShimmer={incidentFiltersLoading}
                     checkboxVisibility={CheckboxVisibility.always}
                     useReducedRowRenderer={true}
                     styles={{
@@ -559,6 +579,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                                 setIsCreateIncidentFilterDialogOpen(true);
                             }}
                             className={styles.newIncidentFilterButton}
+                            disabled={disableAllControls}
                         >
                             {intl.formatMessage(IncidentManagementResources.newIncidentHandler)}
                         </Button>

@@ -61,19 +61,20 @@ const accessControlSettingsButton: CSSProperties = { width: 'fit-content' };
 
 const navContainerStyles: CSSProperties = {
     display: 'flex',
-    height: '100vh',
-    paddingTop: '0.5rem',
+    height: 'calc(100vh - 52px)',
+    paddingTop: '8px',
     borderTop: '1px solid rgba(204, 204, 204, 0.8)',
     backgroundColor: tokens.colorNeutralBackground3,
 };
 
 const navPivotContainer: CSSProperties = {
     flex: 'none',
-    padding: '2rem',
+    padding: '32px',
     backgroundColor: tokens.colorNeutralBackground1,
     borderTopLeftRadius: tokens.borderRadiusXLarge,
     boxShadow: tokens.shadow4,
     width: 'calc(-405px + 100vw)',
+    overflowY: 'auto',
 };
 
 const incidentManagementDescriptionStyle: CSSProperties = { marginTop: 20, marginBottom: 20 };

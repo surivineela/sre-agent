@@ -6,7 +6,6 @@ import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPorta
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getErrorMessage } from '../../../Common/Clients/ArmClient';
 import { IncidentHandlerClient } from '../../../Common/Clients/IncidentHandlerClient';
-import SreAgentClient from '../../../Common/Clients/SreAgentClient';
 import { ArmObj } from '../../../Common/Contracts/Azure/ArmObj';
 import { IncidentFilterPayload } from '../../../Common/Contracts/Azure/IncidentHandler';
 import { Agent, IncidentManagementConfiguration, IncidentManagementType } from '../../../Common/Contracts/Azure/SreAgent';
@@ -24,9 +23,8 @@ import {
     validatePagerDutyApiKey,
     validateServiceNowSettings,
 } from '../ValidationHelper';
-import { useSreAgent } from './useSreAgent';
 
-const getIncidentManagementPlatform = (agent?: ArmObj<Agent>): IncidentManagementPlatform => {
+export const getIncidentManagementPlatform = (agent?: ArmObj<Agent>): IncidentManagementPlatform => {
     switch (agent?.properties?.incidentManagementConfiguration?.type) {
         case IncidentManagementType.PagerDuty:
             return IncidentManagementPlatform.PagerDuty;
@@ -107,23 +105,29 @@ const pollForConnectivity = async (sreAgentEndpoint: string, log: (info: ITeleme
     return isConnected;
 };
 
-export function useIncidentManagement(resourceId: string) {
+export function useIncidentManagement(close: (() => void) | undefined) {
     const azPortalContext = useContext(AzPortalContext);
     const environmentContext = useContext(EnvironmentContext);
+    const { resourceId, sreAgentEndpoint } = environmentContext;
+
     const intl = useIntl();
 
-    const { agent, agentLoading, agentLoaded, agentLoadFailure } = useSreAgent(resourceId);
     const [saving, setSaving] = useState(false);
     const [saveFailure, setSaveFailure] = useState<string>();
 
     const sreAgentContext = useContext(SreAgentContext);
     const {
+        agentObj: agent,
+        agentLoading,
+        agentLoaded,
+        agentLoadFailure,
+        patchAgent,
         incidentManagement: { setIsIncidentManagementConnected, setHasFilters },
     } = sreAgentContext;
 
     const incidentHandlerClient = useMemo(
-        () => IncidentHandlerClient.getInstance(environmentContext.sreAgentEndpoint, azPortalContext.log.bind(azPortalContext)),
-        [environmentContext.sreAgentEndpoint, azPortalContext]
+        () => IncidentHandlerClient.getInstance(sreAgentEndpoint, azPortalContext.log.bind(azPortalContext)),
+        [sreAgentEndpoint, azPortalContext]
     );
 
     const platform: IncidentManagementPlatform = useMemo(() => getIncidentManagementPlatform(agent), [agent]);
@@ -233,12 +237,7 @@ export function useIncidentManagement(resourceId: string) {
                 if (formValues.endpoint && formValues.username && formValues.password) {
                     const guid = Guid.newGuid();
                     validationGuid.current = guid;
-                    return validateServiceNowSettings(
-                        formValues.endpoint,
-                        formValues.username,
-                        formValues.password,
-                        environmentContext.sreAgentEndpoint
-                    )
+                    return validateServiceNowSettings(formValues.endpoint, formValues.username, formValues.password, sreAgentEndpoint)
                         .then(validationResult => {
                             if (validationGuid.current !== guid) {
                                 return latestValidationResult.current;
@@ -286,7 +285,7 @@ export function useIncidentManagement(resourceId: string) {
 
             return Promise.resolve({});
         },
-        [intl, getValidationErrorMessage, getServiceNowValidationErrorMessage, environmentContext.sreAgentEndpoint]
+        [intl, getValidationErrorMessage, getServiceNowValidationErrorMessage, sreAgentEndpoint]
     );
 
     const save = useCallback(
@@ -316,18 +315,19 @@ export function useIncidentManagement(resourceId: string) {
                 data: additionalInfo,
             });
 
-            SreAgentClient.patchAgent(resourceId, {
+            patchAgent({
                 properties: {
                     incidentManagementConfiguration: generateIncidentManagementConfiguration(formValues),
                 },
             }).then(patchResult => {
                 if (!patchResult.metadata.success) {
+                    const error = getErrorMessage(patchResult.metadata.error);
                     azPortalContext.log({
                         action: 'save-incidentManagement',
                         actionModifier: 'failed',
                         logLevel: 'error',
                         resourceId,
-                        data: { ...additionalInfo, error: patchResult.metadata.error },
+                        data: { ...additionalInfo, error },
                     });
                     setSaving(false);
                     setSaveFailure(intl.formatMessage(IncidentManagementSaveErrorResources.configFailure));
@@ -335,7 +335,7 @@ export function useIncidentManagement(resourceId: string) {
                         notificationId,
                         false,
                         intl.formatMessage(IncidentManagementNotificationResources.saveFailed, {
-                            errorMessage: getErrorMessage(patchResult.metadata.error),
+                            errorMessage: error,
                         })
                     );
                 } else {
@@ -357,104 +357,102 @@ export function useIncidentManagement(resourceId: string) {
                             intl.formatMessage(IncidentManagementNotificationResources.saveSucceeded)
                         );
                     } else {
-                        if (
-                            (formValues.platform === IncidentManagementPlatform.PagerDuty ||
-                                formValues.platform === IncidentManagementPlatform.Icm ||
-                                formValues.platform === IncidentManagementPlatform.ServiceNow) &&
-                            formValues.createDefaultHandler
-                        ) {
-                            pollForConnectivity(environmentContext.sreAgentEndpoint, azPortalContext.log.bind(azPortalContext)).then(
-                                isConnected => {
-                                    if (!isConnected) {
-                                        setIsIncidentManagementConnected(false);
+                        pollForConnectivity(sreAgentEndpoint, azPortalContext.log.bind(azPortalContext)).then(isConnected => {
+                            if (!isConnected) {
+                                setIsIncidentManagementConnected(false);
+                                setHasFilters(false);
+                                setSaving(false);
+                                setSaveFailure(intl.formatMessage(IncidentManagementNotificationResources.connectionToPlatformFailed));
+                                setInitialValues({ platform: formValues.platform, createDefaultHandler: false });
+                                azPortalContext.stopNotification(
+                                    notificationId,
+                                    false,
+                                    intl.formatMessage(IncidentManagementNotificationResources.connectionToPlatformFailed)
+                                );
+                            } else if (
+                                (formValues.platform === IncidentManagementPlatform.PagerDuty ||
+                                    formValues.platform === IncidentManagementPlatform.Icm ||
+                                    formValues.platform === IncidentManagementPlatform.ServiceNow) &&
+                                formValues.createDefaultHandler
+                            ) {
+                                azPortalContext.log({
+                                    action: 'create-defaultHandler',
+                                    actionModifier: 'start',
+                                    logLevel: 'info',
+                                    resourceId,
+                                });
+
+                                const defaultIncidentFilter: IncidentFilterPayload = {
+                                    Id: 'quickstart_handler',
+                                };
+
+                                if (formValues.platform === IncidentManagementPlatform.PagerDuty) {
+                                    defaultIncidentFilter.IncidentType = 'incident_default';
+                                    defaultIncidentFilter.Priority = 'P1';
+                                }
+
+                                if (formValues.platform === IncidentManagementPlatform.Icm) {
+                                    defaultIncidentFilter.IncidentType = 'LiveSite';
+                                    defaultIncidentFilter.Priority = '3';
+                                }
+
+                                if (formValues.platform === IncidentManagementPlatform.ServiceNow) {
+                                    defaultIncidentFilter.IncidentType = 'incident';
+                                    defaultIncidentFilter.Priority = '1';
+                                }
+                                incidentHandlerClient.createIncidentFilter(defaultIncidentFilter).then(filterResult => {
+                                    setIsIncidentManagementConnected(true);
+                                    setSaving(false);
+                                    setInitialValues({ platform: formValues.platform, createDefaultHandler: false });
+                                    if (filterResult.isSuccessful) {
+                                        azPortalContext.log({
+                                            action: 'create-defaultHandler',
+                                            actionModifier: 'success',
+                                            logLevel: 'info',
+                                            resourceId,
+                                        });
+                                        setHasFilters(true);
+                                        setSaveFailure(undefined);
+                                        close?.();
+                                        azPortalContext.stopNotification(
+                                            notificationId,
+                                            true,
+                                            intl.formatMessage(IncidentManagementNotificationResources.saveSucceeded)
+                                        );
+                                    } else {
+                                        azPortalContext.log({
+                                            action: 'create-defaultHandler',
+                                            actionModifier: 'failed',
+                                            logLevel: 'error',
+                                            resourceId,
+                                        });
                                         setHasFilters(false);
-                                        setSaving(false);
                                         setSaveFailure(
                                             intl.formatMessage(IncidentManagementNotificationResources.createDefaultHandlerFailed)
                                         );
-                                        setInitialValues({ platform: formValues.platform, createDefaultHandler: false });
                                         azPortalContext.stopNotification(
                                             notificationId,
                                             false,
                                             intl.formatMessage(IncidentManagementNotificationResources.createDefaultHandlerFailed)
                                         );
-                                    } else {
-                                        azPortalContext.log({
-                                            action: 'create-defaultHandler',
-                                            actionModifier: 'start',
-                                            logLevel: 'info',
-                                            resourceId,
-                                        });
-
-                                        const defaultIncidentFilter: IncidentFilterPayload = {
-                                            Id: 'quickstart_handler',
-                                        };
-
-                                        if (formValues.platform === IncidentManagementPlatform.PagerDuty) {
-                                            defaultIncidentFilter.IncidentType = 'incident_default';
-                                            defaultIncidentFilter.Priority = 'P1';
-                                        }
-
-                                        if (formValues.platform === IncidentManagementPlatform.Icm) {
-                                            defaultIncidentFilter.IncidentType = 'LiveSite';
-                                            defaultIncidentFilter.Priority = '3';
-                                        }
-
-                                        if (formValues.platform === IncidentManagementPlatform.ServiceNow) {
-                                            defaultIncidentFilter.IncidentType = 'incident';
-                                            defaultIncidentFilter.Priority = '1';
-                                        }
-                                        incidentHandlerClient.createIncidentFilter(defaultIncidentFilter).then(filterResult => {
-                                            setIsIncidentManagementConnected(true);
-                                            setSaving(false);
-                                            setInitialValues({ platform: formValues.platform, createDefaultHandler: false });
-                                            if (filterResult.isSuccessful) {
-                                                azPortalContext.log({
-                                                    action: 'create-defaultHandler',
-                                                    actionModifier: 'success',
-                                                    logLevel: 'info',
-                                                    resourceId,
-                                                });
-                                                setHasFilters(true);
-                                                setSaveFailure(undefined);
-                                                azPortalContext.stopNotification(
-                                                    notificationId,
-                                                    true,
-                                                    intl.formatMessage(IncidentManagementNotificationResources.saveSucceeded)
-                                                );
-                                            } else {
-                                                azPortalContext.log({
-                                                    action: 'create-defaultHandler',
-                                                    actionModifier: 'failed',
-                                                    logLevel: 'error',
-                                                    resourceId,
-                                                });
-                                                setHasFilters(false);
-                                                setSaveFailure(
-                                                    intl.formatMessage(IncidentManagementNotificationResources.createDefaultHandlerFailed)
-                                                );
-                                                azPortalContext.stopNotification(
-                                                    notificationId,
-                                                    false,
-                                                    intl.formatMessage(IncidentManagementNotificationResources.createDefaultHandlerFailed)
-                                                );
-                                            }
-                                        });
                                     }
+                                });
+                            } else {
+                                setIsIncidentManagementConnected(true);
+                                setHasFilters(false);
+                                setSaving(false);
+                                setSaveFailure(undefined);
+                                setInitialValues({ platform: formValues.platform, createDefaultHandler: false });
+                                azPortalContext.stopNotification(
+                                    notificationId,
+                                    true,
+                                    intl.formatMessage(IncidentManagementNotificationResources.saveSucceeded)
+                                );
+                                if (formValues.platform !== IncidentManagementPlatform.AzMonitor) {
+                                    close?.();
                                 }
-                            );
-                        } else {
-                            setIsIncidentManagementConnected(true);
-                            setHasFilters(false);
-                            setSaving(false);
-                            setSaveFailure(undefined);
-                            setInitialValues({ platform: formValues.platform, createDefaultHandler: false });
-                            azPortalContext.stopNotification(
-                                notificationId,
-                                true,
-                                intl.formatMessage(IncidentManagementNotificationResources.saveSucceeded)
-                            );
-                        }
+                            }
+                        });
                     }
                 }
             });
@@ -466,9 +464,10 @@ export function useIncidentManagement(resourceId: string) {
             initialValues.platform,
             resourceId,
             setIsIncidentManagementConnected,
-            environmentContext.sreAgentEndpoint,
+            sreAgentEndpoint,
             incidentHandlerClient,
             setHasFilters,
+            patchAgent,
         ]
     );
     const disconnect = useCallback(() => {

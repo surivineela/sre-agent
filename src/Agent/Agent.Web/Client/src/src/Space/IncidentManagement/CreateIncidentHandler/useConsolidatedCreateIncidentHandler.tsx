@@ -4,7 +4,7 @@ import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'r
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { getErrorMessage } from '../../../Common/Clients/ArmClient';
+import { getDataPlaneErrorMessage } from '../../../Common/Clients/DataPlaneClient';
 import { IncidentHandlerClient } from '../../../Common/Clients/IncidentHandlerClient';
 import {
     IncidentDocument,
@@ -196,7 +196,9 @@ export const useConsolidatedCreateIncidentHandler = (
                 setGeneratingUpdatedTools(false);
                 if (!toolsUpdateResult.isSuccessful || !toolsUpdateResult.content) {
                     // TODO (andimarc): Surface errors to the user.
-                    const error = !toolsUpdateResult.isSuccessful ? getErrorMessage(toolsUpdateResult.error) : 'No content returned';
+                    const error = !toolsUpdateResult.isSuccessful
+                        ? getDataPlaneErrorMessage(toolsUpdateResult.error)
+                        : 'No content returned';
                     azPortalContext.log({
                         action: 'generate-updated-tools',
                         actionModifier: 'failed',
@@ -255,7 +257,9 @@ export const useConsolidatedCreateIncidentHandler = (
                 setGeneratingInstructions(false);
                 if (!instructionsResult.isSuccessful || !instructionsResult.content) {
                     // TODO (andimarc): Surface errors to the user.
-                    const error = !instructionsResult.isSuccessful ? getErrorMessage(instructionsResult.error) : 'No content returned';
+                    const error = !instructionsResult.isSuccessful
+                        ? getDataPlaneErrorMessage(instructionsResult.error)
+                        : 'No content returned';
                     azPortalContext.log({
                         action: 'generate-instructions',
                         actionModifier: 'failed',
@@ -317,19 +321,20 @@ export const useConsolidatedCreateIncidentHandler = (
 
             incidentHandlerClient.deleteHandler(handlerCreateOrEditInfo?.handlerId).then(deleteResult => {
                 if (!deleteResult.isSuccessful) {
+                    const error = getDataPlaneErrorMessage(deleteResult.error);
                     azPortalContext.log({
                         action: 'delete-incidentHandler',
                         actionModifier: 'failed',
                         logLevel: 'error',
                         resourceId: resourceId,
-                        data: { ...additionalInfo, error: deleteResult.error },
+                        data: { ...additionalInfo, error },
                     });
                     setHandlerOperationStatus('failed');
                     azPortalContext.stopNotification(
                         notificationId,
                         false,
                         intl.formatMessage(customHandlerDeleteNotificationError, {
-                            errorMessage: getErrorMessage(deleteResult.error),
+                            errorMessage: getDataPlaneErrorMessage(error),
                         })
                     );
                 } else {
@@ -415,19 +420,20 @@ export const useConsolidatedCreateIncidentHandler = (
 
             const saveOrUpdateFilterResult = await saveOrUpdateFilterFunction(filterPayload);
             if (!saveOrUpdateFilterResult.isSuccessful) {
+                const error = getDataPlaneErrorMessage(saveOrUpdateFilterResult.error);
                 azPortalContext.log({
                     action: saveOrUpdateFilterAction,
                     actionModifier: 'failed',
                     logLevel: 'error',
                     resourceId: resourceId,
-                    data: { ...additionalInfo, error: saveOrUpdateFilterResult.error },
+                    data: { ...additionalInfo, error },
                 });
                 setHandlerOperationStatus('failed');
                 azPortalContext.stopNotification(
                     notificationId,
                     false,
                     intl.formatMessage(notificationErrorMessage, {
-                        errorMessage: getErrorMessage(saveOrUpdateFilterResult.error),
+                        errorMessage: error,
                     })
                 );
                 return;
@@ -483,19 +489,20 @@ export const useConsolidatedCreateIncidentHandler = (
 
         const saveUpdateOrDeleteHandlerResult = await saveUpdateOrDeleteHandlerFunction();
         if (!saveUpdateOrDeleteHandlerResult.isSuccessful) {
+            const error = getDataPlaneErrorMessage(saveUpdateOrDeleteHandlerResult.error);
             azPortalContext.log({
                 action: saveUpdateOrDeleteHandlerAction,
                 actionModifier: 'failed',
                 logLevel: 'error',
                 resourceId: resourceId,
-                data: { ...additionalInfo, error: saveUpdateOrDeleteHandlerResult.error },
+                data: { ...additionalInfo, error },
             });
             setHandlerOperationStatus('failed');
             azPortalContext.stopNotification(
                 notificationId,
                 false,
                 intl.formatMessage(notificationErrorMessage, {
-                    errorMessage: getErrorMessage(saveUpdateOrDeleteHandlerResult.error),
+                    errorMessage: error,
                 })
             );
             // TODO (andimarc): Revert/delete the filter if it was created/updated.
@@ -674,7 +681,9 @@ export const useConsolidatedCreateIncidentHandler = (
             .then(testHandlerResult => {
                 if (!testHandlerResult.isSuccessful || !testHandlerResult.content) {
                     // TODO (andimarc): Surface errors to the user.
-                    const error = !testHandlerResult.isSuccessful ? getErrorMessage(testHandlerResult.error) : 'No content returned';
+                    const error = !testHandlerResult.isSuccessful
+                        ? getDataPlaneErrorMessage(testHandlerResult.error)
+                        : 'No content returned';
                     azPortalContext.log({
                         action: 'create-test-thread',
                         actionModifier: 'failed',
@@ -869,7 +878,7 @@ export const useConsolidatedCreateIncidentHandler = (
             incidentHandlerClient.getHandler(handlerCreateOrEditInfo.handlerId).then(getResult => {
                 if (subscribed) {
                     if (!getResult.isSuccessful || !getResult.content) {
-                        const error = !getResult.isSuccessful ? getErrorMessage(getResult.error) : 'No content returned';
+                        const error = !getResult.isSuccessful ? getDataPlaneErrorMessage(getResult.error) : 'No content returned';
                         azPortalContext.log({
                             action: 'get-incidentHandler',
                             actionModifier: 'failed',

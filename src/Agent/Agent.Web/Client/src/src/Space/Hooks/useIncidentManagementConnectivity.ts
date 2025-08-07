@@ -2,16 +2,14 @@ import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'r
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { IncidentHandlerClient } from '../../Common/Clients/IncidentHandlerClient';
-import { SreAgentContext } from '../Contracts/Context';
 
 export const useIncidentManagementConnectivity = (shouldPoll: boolean) => {
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const azPortalContext = useContext(AzPortalContext);
-    const {
-        incidentManagement: { isIncidentManagementConnected, setIsIncidentManagementConnected, hasFilters, setHasFilters },
-    } = useContext(SreAgentContext);
 
     const [isLoading, setIsLoading] = useState(true);
+    const [isIncidentManagementConnected, setIsIncidentManagementConnected] = useState(false);
+    const [hasFilters, setHasFilters] = useState(false);
     const pollingTimerRef = useRef<NodeJS.Timeout | null>(null);
 
     const incidentHandlerClient = useMemo(
@@ -84,7 +82,9 @@ export const useIncidentManagementConnectivity = (shouldPoll: boolean) => {
     return {
         refresh,
         isIncidentManagementConnected,
+        setIsIncidentManagementConnected,
         hasFilters,
+        setHasFilters,
         isLoading,
     };
 };

@@ -19,6 +19,11 @@ export interface IncidentManagementFormValues {
     instanceName?: string;
 }
 
+export interface IncidentManagementSettingsProps {
+    integrated?: boolean;
+    close?: () => void;
+    keepOpen?: boolean;
+}
 export interface IncidentManagementFormProps {
     formikProps: FormikProps<IncidentManagementFormValues>;
     disconnect: () => void;
@@ -29,6 +34,9 @@ export interface IncidentManagementFormProps {
     saveFailure?: string;
     managedIdentityId?: string;
     tenantId?: string;
+    integrated?: boolean;
+    close?: () => void;
+    keepOpen?: boolean;
 }
 
 export interface IncidentHandler {

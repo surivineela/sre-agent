@@ -685,6 +685,8 @@ export const IncidentManagementResources = defineMessages({
     chooseImpactedService: { defaultMessage: 'Choose impacted service', id: 'DmtYK4' },
     choosePriority: { defaultMessage: 'Choose priority', id: 'jA2jt7' },
     setUpComplete: { defaultMessage: 'Setup complete', id: 'jOkfJV' },
+    connected: { defaultMessage: 'Connected', id: 'IvjoDS' },
+    notConnected: { defaultMessage: 'Not connected', id: 'PuU15u' },
     goToHandler: { defaultMessage: 'Go to handler', id: 'GuBSUa' },
     created: { defaultMessage: 'Created', id: 'ORGv1Q' },
     incidentHandlerName: { defaultMessage: 'Incident handler name', id: '5q8lCX' },
@@ -727,6 +729,10 @@ export const IncidentManagementResources = defineMessages({
             'The fully autonomous mode. With the required permissions, the agent analyzes incidents and independently performs mitigation or resource modifications.',
         id: 'XKhlZF',
     },
+    incidentManagementLoadFailure: {
+        defaultMessage: 'Failed to load incident management configuration. Error: {errorMessage}',
+        id: '0TkVxX',
+    },
 });
 
 export const IncidentManagementPlatformResources = defineMessages({
@@ -742,6 +748,10 @@ export const IncidentManagementNotificationResources = defineMessages({
     saveStarted: { defaultMessage: 'Saving incident management configuration', id: 'TyvDrC' },
     saveSucceeded: { defaultMessage: 'Successfully saved incident management configuration', id: 'NrGEOo' },
     saveFailed: { defaultMessage: 'Failed to save incident management configuration. Error: {errorMessage}', id: 'slxYbm' },
+    connectionToPlatformFailed: { defaultMessage: 'Failed to connect to the incident management platform', id: 'w9b/qS' },
+    createDefaultHandlerTitle: { defaultMessage: 'Creating default incident handler', id: 'J//t5k' },
+    createDefaultHandlerInProgress: { defaultMessage: 'Creating default incident handler', id: 'J//t5k' },
+    createDefaultHandlerSuccess: { defaultMessage: 'Successfully created default incident handler', id: '8hR178' },
     createDefaultHandlerFailed: { defaultMessage: 'Failed to create default incident handler', id: 'TgpM0x' },
     deleteFilterTitle: { defaultMessage: 'Deleting incident handler', id: 'MCSjdU' },
     deleteFilterInProgress: { defaultMessage: 'Deleting incident handler', id: 'MCSjdU' },
@@ -882,6 +892,7 @@ export const PagerDutyResources = defineMessages({
             'To change the incident platform, you need to disconnect from PagerDuty. The agent will no longer manage tickets. Are you sure you want to disconnect?',
         id: 'CnouOe',
     },
+    notConnectedMessage: { defaultMessage: 'PagerDuty is not connected.', id: 'hHz/bk' },
     connectedMessage: { defaultMessage: 'PagerDuty is connected.', id: '23nct0' },
     connectedMessageWithoutHandlers: {
         defaultMessage: 'PagerDuty connected. Your next step is to set up incident handlers.',
@@ -891,6 +902,10 @@ export const PagerDutyResources = defineMessages({
     quickstartHandlerDescription: {
         defaultMessage: 'Add a default incident handler for the agent to use for P1 base incidents.',
         id: 'r6+QFy',
+    },
+    connectionFailureMessage: {
+        defaultMessage: 'Connection to PagerDuty failed. Please check your access key and try again.',
+        id: '0R+Pet',
     },
 });
 
@@ -912,6 +927,7 @@ export const AzMonitorResources = defineMessages({
             'To change the incident platform, you need to disconnect from Azure Monitor. The agent will no longer receive Azure Monitor notifications. Are you sure you want to disconnect?',
         id: 'obRqDQ',
     },
+    notConnectedMessage: { defaultMessage: 'Azure Monitor is not connected.', id: '52hqVX' },
     connectedMessage: { defaultMessage: 'Azure Monitor added', id: '14xQ4i' },
 });
 
@@ -928,6 +944,7 @@ export const IcMResources = defineMessages({
             'To change the incident platform, you need to disconnect from IcM. The agent will no longer manage incidents. Are you sure you want to disconnect?',
         id: 'X8SzJ6',
     },
+    notConnectedMessage: { defaultMessage: 'IcM is not connected.', id: '+7dYeU' },
     connectedMessage: { defaultMessage: 'IcM is connected.', id: 'tyJNW5' },
     connectedMessageWithoutHandlers: {
         defaultMessage: 'IcM connected. Your next step is to set up incident handlers.',
@@ -953,6 +970,10 @@ export const IcMResources = defineMessages({
     quickstartHandlerDescription: {
         defaultMessage: 'Add a default incident handler for the agent to use for Sev3 LiveSite incidents.',
         id: '8oXUdb',
+    },
+    connectionFailureMessage: {
+        defaultMessage: 'Connection to IcM failed. Please check your configuration and try again.',
+        id: 'JIBt4U',
     },
 });
 
@@ -1391,6 +1412,7 @@ export const ServiceNowResources = defineMessages({
             'To change the incident platform, you need to disconnect from ServiceNow. The agent will no longer manage tickets. Are you sure you want to disconnect?',
         id: 'h+YOYh',
     },
+    notConnectedMessage: { defaultMessage: 'ServiceNow is not connected.', id: 'f0Luxo' },
     connectedMessage: { defaultMessage: 'ServiceNow is connected.', id: 'Ep74wA' },
     connectedMessageWithoutHandlers: {
         defaultMessage: 'ServiceNow connected. Your next step is to set up incident handlers.',
@@ -1400,6 +1422,10 @@ export const ServiceNowResources = defineMessages({
     quickstartHandlerDescription: {
         defaultMessage: 'Add a default incident handler for the agent to use for High priority incidents.',
         id: 'x65I0c',
+    },
+    connectionFailureMessage: {
+        defaultMessage: 'Connection to ServiceNow failed. Please check your configuration and try again.',
+        id: 'Cwgo05',
     },
 });
 

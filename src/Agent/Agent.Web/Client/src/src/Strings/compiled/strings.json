@@ -11,6 +11,12 @@
       "value": "Delete thread?"
     }
   ],
+  "+7dYeU": [
+    {
+      "type": 0,
+      "value": "IcM is not connected."
+    }
+  ],
   "+9hKHE": [
     {
       "type": 0,
@@ -161,6 +167,22 @@
     {
       "type": 0,
       "value": "Failed to add the custom incident handler. Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
+  "0R+Pet": [
+    {
+      "type": 0,
+      "value": "Connection to PagerDuty failed. Please check your access key and try again."
+    }
+  ],
+  "0TkVxX": [
+    {
+      "type": 0,
+      "value": "Failed to load incident management configuration. Error: "
     },
     {
       "type": 1,
@@ -501,6 +523,12 @@
     {
       "type": 0,
       "value": "Incident handlers"
+    }
+  ],
+  "52hqVX": [
+    {
+      "type": 0,
+      "value": "Azure Monitor is not connected."
     }
   ],
   "5GUtRJ": [
@@ -1151,6 +1179,12 @@
       "value": "actions"
     }
   ],
+  "Cwgo05": [
+    {
+      "type": 0,
+      "value": "Connection to ServiceNow failed. Please check your configuration and try again."
+    }
+  ],
   "D/TfIH": [
     {
       "type": 0,
@@ -1557,6 +1591,12 @@
       "value": "Duration"
     }
   ],
+  "IvjoDS": [
+    {
+      "type": 0,
+      "value": "Connected"
+    }
+  ],
   "IzCVhG": [
     {
       "type": 0,
@@ -1599,6 +1639,12 @@
     {
       "type": 1,
       "value": "name"
+    }
+  ],
+  "JIBt4U": [
+    {
+      "type": 0,
+      "value": "Connection to IcM failed. Please check your configuration and try again."
     }
   ],
   "JJNc3c": [
@@ -2063,6 +2109,12 @@
     {
       "type": 0,
       "value": "Can read all monitoring data and update monitoring settings."
+    }
+  ],
+  "PuU15u": [
+    {
+      "type": 0,
+      "value": "Not connected"
     }
   ],
   "Pwen/L": [
@@ -3189,6 +3241,12 @@
       "value": "With incident handlers, the agent chooses the tools it needs to manage common types of incidents. Custom handlers replace this capability by giving the agent specific instructions that you provide."
     }
   ],
+  "f0Luxo": [
+    {
+      "type": 0,
+      "value": "ServiceNow is not connected."
+    }
+  ],
   "f0Y4Zr": [
     {
       "type": 0,
@@ -3353,6 +3411,12 @@
     {
       "type": 0,
       "value": "Administer Device Update accounts."
+    }
+  ],
+  "hHz/bk": [
+    {
+      "type": 0,
+      "value": "PagerDuty is not connected."
     }
   ],
   "hK4HcH": [
@@ -4377,6 +4441,12 @@
     {
       "type": 0,
       "value": "This will permanently delete the connection to Azure Monitor. The agent will no longer be integrated with Azure Monitor notifications. Are you sure you want to delete this connection?"
+    }
+  ],
+  "w9b/qS": [
+    {
+      "type": 0,
+      "value": "Failed to connect to the incident management platform"
     }
   ],
   "w9tk1A": [

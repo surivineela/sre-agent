@@ -1,4 +1,8 @@
 import {
+    Breadcrumb,
+    BreadcrumbButton,
+    BreadcrumbDivider,
+    BreadcrumbItem,
     Button,
     Checkbox,
     Dialog,
@@ -16,6 +20,7 @@ import {
     Option,
     Spinner,
     Text,
+    tokens,
 } from '@fluentui/react-components';
 import { CheckmarkCircle16Filled } from '@fluentui/react-icons';
 import { FC, useCallback, useContext, useMemo, useState } from 'react';
@@ -27,18 +32,21 @@ import { ArmResourceDescriptor } from '../../Common/Helpers/ResourceDescriptors'
 import {
     AzMonitorResources,
     IcMResources,
+    IncidentHandlerCreateResources,
     IncidentManagementPlatformResources,
     IncidentManagementResources,
     PagerDutyResources,
     ServiceNowResources,
     SettingsTabResources,
     SreAgentResources,
+    SreAgentTabResources,
 } from '../../Strings/SREAgentResources';
+import { SreAgentContext } from '../Contracts/Context';
 import { IncidentManagementFormProps, IncidentManagementPlatform } from '../Contracts/IncidentManagement';
-import { useIncidentManagementConnectivity } from '../Hooks/useIncidentManagementConnectivity';
+import { DirtyStateConfirmationWrapper } from '../IncidentManagement/CreateIncidentHandler/DirtyStateConfirmationDialog';
 import { useDialogStyles, usePagerDutyStyles, useSettingsStyles } from './Styles/Settings.styles';
 
-const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
+const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
     formikProps,
     loading,
     loadFailure,
@@ -46,6 +54,9 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
     disconnect,
     managedIdentityId,
     tenantId,
+    integrated,
+    close,
+    keepOpen,
 }: IncidentManagementFormProps) => {
     const intl = useIntl();
     const styles = useSettingsStyles();
@@ -56,19 +67,13 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
     const [editingApiKey, setEditingApiKey] = useState(false);
     const isSetupScenario = useMemo(() => initialValues.platform === IncidentManagementPlatform.Disconnected, [initialValues.platform]);
     const isApiKeyEditable = useMemo(() => isSetupScenario || editingApiKey, [isSetupScenario, editingApiKey]);
-    const shouldPoll = useMemo(
-        () =>
-            initialValues.platform === IncidentManagementPlatform.PagerDuty ||
-            initialValues.platform === IncidentManagementPlatform.Icm ||
-            initialValues.platform === IncidentManagementPlatform.ServiceNow,
-        [initialValues.platform]
-    );
 
     const location = useLocation();
     const navigate = useNavigate();
     const azPortalContext = useContext(AzPortalContext);
-
-    const { isIncidentManagementConnected, hasFilters } = useIncidentManagementConnectivity(shouldPoll);
+    const {
+        incidentManagement: { isIncidentManagementConnected, hasFilters },
+    } = useContext(SreAgentContext);
 
     const incidentPlatformDropdownOptions = useMemo(() => {
         const options = [
@@ -181,6 +186,7 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                     values.platform === IncidentManagementPlatform.Icm ||
                     values.platform === IncidentManagementPlatform.ServiceNow) &&
                 !isSetupScenario &&
+                !integrated &&
                 isIncidentManagementConnected && (
                     <MessageBar style={{ maxWidth: '80%', marginBottom: 16 }}>
                         {intl.formatMessage(
@@ -512,6 +518,7 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                                         onClick={() => {
                                             setEditingApiKey(true);
                                         }}
+                                        disabled={saving}
                                     >
                                         {initialValues.platform === IncidentManagementPlatform.PagerDuty
                                             ? intl.formatMessage(PagerDutyResources.changeKey)
@@ -580,6 +587,20 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                                     </DialogSurface>
                                 </Dialog>
                             )}
+                            {integrated && !keepOpen && close && (
+                                <Button
+                                    appearance="secondary"
+                                    style={{ borderRadius: 5, marginLeft: 10 }}
+                                    onClick={() => {
+                                        setEditingApiKey(false);
+                                        resetForm();
+                                        close();
+                                    }}
+                                    disabled={saving}
+                                >
+                                    {intl.formatMessage(SreAgentResources.close)}
+                                </Button>
+                            )}
                             <Dialog modalType="alert" open={showSwitchPlatformDisconnectDialog}>
                                 <DialogSurface>
                                     <DialogBody>
@@ -616,6 +637,56 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                 )}
             </div>
         </>
+    );
+};
+
+const IncidentManagementForm: FC<IncidentManagementFormProps> = props => {
+    const intl = useIntl();
+    const { formikProps, integrated, close, keepOpen } = props;
+    const { values, initialValues, dirty } = formikProps;
+    const isDirty = useMemo(() => {
+        if (
+            values.platform !== IncidentManagementPlatform.PagerDuty &&
+            values.platform !== IncidentManagementPlatform.ServiceNow &&
+            initialValues.platform === values.platform
+        ) {
+            return false;
+        }
+        return dirty;
+    }, [dirty, values.platform, initialValues.platform]);
+
+    return integrated ? (
+        <div style={{ background: tokens.colorNeutralBackground3 }}>
+            <Breadcrumb style={{ display: 'flex', height: 50, marginLeft: 16 }}>
+                <BreadcrumbItem>
+                    {!keepOpen && close ? (
+                        <DirtyStateConfirmationWrapper isDirty={isDirty} onConfirm={close}>
+                            <BreadcrumbButton>{intl.formatMessage(IncidentHandlerCreateResources.incidentManagement)}</BreadcrumbButton>
+                        </DirtyStateConfirmationWrapper>
+                    ) : (
+                        intl.formatMessage(IncidentHandlerCreateResources.incidentManagement)
+                    )}
+                </BreadcrumbItem>
+                <BreadcrumbDivider />
+                <BreadcrumbItem style={{ marginLeft: 6 }}>{intl.formatMessage(SreAgentTabResources.settings)}</BreadcrumbItem>
+            </Breadcrumb>
+            <div
+                style={{
+                    borderRadius: tokens.borderRadiusXLarge,
+                    boxShadow: tokens.shadow4,
+                    marginLeft: 20,
+                    height: 'calc(100vh - 95px)',
+                    background: tokens.colorNeutralBackground1,
+                    overflowY: 'auto',
+                }}
+            >
+                <div style={{ padding: '2rem' }}>
+                    <IncidentManagementFormInner {...props} />
+                </div>
+            </div>
+        </div>
+    ) : (
+        <IncidentManagementFormInner {...props} />
     );
 };
 

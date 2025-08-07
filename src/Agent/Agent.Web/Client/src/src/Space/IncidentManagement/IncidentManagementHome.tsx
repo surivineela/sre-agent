@@ -1,8 +1,13 @@
-import { FC, useCallback, useEffect, useState } from 'react';
-
+import { Shimmer } from '@fluentui/react';
+import { MessageBar, MessageBarBody, MessageBarGroup } from '@fluentui/react-components';
+import { CheckmarkCircle16Filled, Warning16Filled } from '@fluentui/react-icons';
+import { tokens } from '@fluentui/react-theme';
+import { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { IncidentFilter } from '../../Common/Contracts/Azure/IncidentHandler';
-import { IncidentManagementResources } from '../../Strings/SREAgentResources';
+import { IncidentManagementType } from '../../Common/Contracts/Azure/SreAgent';
+import { IcMResources, IncidentManagementResources, PagerDutyResources, ServiceNowResources } from '../../Strings/SREAgentResources';
+import { SreAgentContext } from '../Contracts/Context';
 import { useIncidentFilterFields } from '../Hooks/useIncidentFilterFields';
 import { useIncidentFilters } from '../Hooks/useIncidentFilters';
 import { useIncidentHandlers } from '../Hooks/useIncidentHandlers';
@@ -12,13 +17,146 @@ import { HandlerCreateOrEditInfo, OperationStatus } from './CreateIncidentHandle
 import IncidentFiltersToolbar from './IncidentFiltersToolbar';
 import IncidentsFiltersGrid from './IncidentsFiltersGrid';
 
+interface ConnectionIndicatorProps {
+    connected: boolean;
+    platform?: IncidentManagementType;
+    style?: React.CSSProperties | undefined;
+    loading?: boolean;
+}
+
+const ConnectionIndicator: FC<ConnectionIndicatorProps> = ({ platform, connected, style, loading }) => {
+    const intl = useIntl();
+    const { notConnectedMessage, connectedMessage } = useMemo(() => {
+        switch (platform) {
+            case IncidentManagementType.PagerDuty:
+                return {
+                    notConnectedMessage: PagerDutyResources.notConnectedMessage,
+                    connectedMessage: PagerDutyResources.connectedMessage,
+                };
+            case IncidentManagementType.Icm:
+                return {
+                    notConnectedMessage: IcMResources.notConnectedMessage,
+                    connectedMessage: IcMResources.connectedMessage,
+                };
+            case IncidentManagementType.ServiceNow:
+                return {
+                    notConnectedMessage: ServiceNowResources.notConnectedMessage,
+                    connectedMessage: ServiceNowResources.connectedMessage,
+                };
+            default:
+                return {};
+        }
+    }, [platform]);
+
+    if (!platform || !notConnectedMessage || !connectedMessage) {
+        return null;
+    }
+
+    return (
+        <div
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                ...style,
+            }}
+        >
+            {loading ? (
+                <Shimmer width={160} />
+            ) : connected ? (
+                <>
+                    <CheckmarkCircle16Filled
+                        style={{ height: '16px', width: '16px', color: tokens.colorPaletteGreenForeground1 }}
+                        aria-label={intl.formatMessage(IncidentManagementResources.connected)}
+                    />
+                    <div>{intl.formatMessage(connectedMessage)}</div>
+                </>
+            ) : (
+                <>
+                    <Warning16Filled
+                        style={{ height: '16px', width: '16px', color: tokens.colorPaletteYellowForeground1 }}
+                        aria-label={intl.formatMessage(IncidentManagementResources.notConnected)}
+                    />
+                    <div>{intl.formatMessage(notConnectedMessage)}</div>
+                </>
+            )}
+        </div>
+    );
+};
+
+interface ConnectionMessageBarProps {
+    platform?: IncidentManagementType;
+}
+
+const ConnectionFailureMessageBar: FC<ConnectionMessageBarProps> = ({ platform }) => {
+    const intl = useIntl();
+    const connectionFailureMessage = useMemo(() => {
+        switch (platform) {
+            case IncidentManagementType.PagerDuty:
+                return PagerDutyResources.connectionFailureMessage;
+            case IncidentManagementType.Icm:
+                return IcMResources.connectionFailureMessage;
+            case IncidentManagementType.ServiceNow:
+                return ServiceNowResources.connectionFailureMessage;
+            default:
+                return {};
+        }
+    }, [platform]);
+
+    return (
+        <MessageBarGroup
+            animate={'exit-only'}
+            style={{
+                width: '100%',
+                maxWidth: '100%',
+            }}
+        >
+            <MessageBar
+                style={{
+                    padding: '10px',
+                    whiteSpace: 'normal',
+                    wordBreak: 'break-word',
+                    overflow: 'hidden',
+                    overflowWrap: 'break-word',
+                }}
+                intent={'error'}
+            >
+                <MessageBarBody
+                    style={{
+                        wordBreak: 'break-word',
+                        overflowWrap: 'break-word',
+                    }}
+                >
+                    {intl.formatMessage(connectionFailureMessage)}
+                </MessageBarBody>
+            </MessageBar>
+        </MessageBarGroup>
+    );
+};
+
 interface IncidentManagementHomeProps {
     openHandlerCreate: (handlerCreateOrEditInfo: HandlerCreateOrEditInfo) => void;
+    openSettings: () => void;
     handlerOperationStatus: OperationStatus | undefined;
     useConsolidatedCreate: boolean;
 }
 
-const IncidentManagementHome: FC<IncidentManagementHomeProps> = ({ openHandlerCreate, handlerOperationStatus, useConsolidatedCreate }) => {
+const IncidentManagementHome: FC<IncidentManagementHomeProps> = ({
+    openHandlerCreate,
+    openSettings,
+    handlerOperationStatus,
+    useConsolidatedCreate,
+}) => {
+    const {
+        incidentManagement: { isIncidentManagementConnected, checkingConnectivity, refreshConnectivity },
+        agentObj,
+    } = useContext(SreAgentContext);
+
+    const incidentManagementType = useMemo(
+        () => agentObj?.properties.incidentManagementConfiguration?.type,
+        [agentObj?.properties.incidentManagementConfiguration?.type]
+    );
+
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
 
@@ -45,7 +183,8 @@ const IncidentManagementHome: FC<IncidentManagementHomeProps> = ({ openHandlerCr
     const refresh = useCallback(() => {
         refreshIncidentFilters();
         refreshIncidentHandlers();
-    }, [refreshIncidentFilters, refreshIncidentHandlers]);
+        refreshConnectivity();
+    }, [refreshIncidentFilters, refreshIncidentHandlers, refreshConnectivity]);
 
     useEffect(() => {
         if (handlerOperationStatus === 'succeeded') {
@@ -63,44 +202,58 @@ const IncidentManagementHome: FC<IncidentManagementHomeProps> = ({ openHandlerCr
     return (
         <div className={styles.root}>
             <div className={styles.container}>
+                {!checkingConnectivity && !isIncidentManagementConnected && (
+                    <ConnectionFailureMessageBar platform={incidentManagementType} />
+                )}
                 <div className={styles.description}>{intl.formatMessage(IncidentManagementResources.incidentManagementTabDescription)}</div>
-                <IncidentFiltersToolbar
-                    onRefreshClick={() => {
-                        refresh();
-                    }}
-                    onDeleteIncidentFilterClick={() => {
-                        deleteIncidentFilter(selectedIncidentFilter?.id ?? '');
-                    }}
-                    onNewIncidentFilterClick={() => {
-                        setIsEditFilterMode(false);
-                        setInitialValues(undefined);
-                        if (useConsolidatedCreate) {
-                            openHandlerCreate({});
-                        } else {
-                            setIsCreateIncidentFilterDialogOpen(true);
-                        }
-                    }}
-                    onTurnOffIncidentFilterClick={() => {
-                        if (selectedIncidentFilter?.isEnabled) {
-                            disableIncidentFilter(selectedIncidentFilter?.id ?? '').then(() => setSelectedIncidentFilter(undefined));
-                        } else {
-                            enableIncidentFilter(selectedIncidentFilter?.id ?? '').then(() => setSelectedIncidentFilter(undefined));
-                        }
-                    }}
-                    isFilterSelected={!!selectedIncidentFilter}
-                    isFilterEnabled={!selectedIncidentFilter || selectedIncidentFilter?.isEnabled}
-                />
+                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                    <IncidentFiltersToolbar
+                        onRefreshClick={() => {
+                            refresh();
+                        }}
+                        onDeleteIncidentFilterClick={() => {
+                            deleteIncidentFilter(selectedIncidentFilter?.id ?? '');
+                        }}
+                        onNewIncidentFilterClick={() => {
+                            setIsEditFilterMode(false);
+                            setInitialValues(undefined);
+                            if (useConsolidatedCreate) {
+                                openHandlerCreate({});
+                            } else {
+                                setIsCreateIncidentFilterDialogOpen(true);
+                            }
+                        }}
+                        onTurnOffIncidentFilterClick={() => {
+                            if (selectedIncidentFilter?.isEnabled) {
+                                disableIncidentFilter(selectedIncidentFilter?.id ?? '').then(() => setSelectedIncidentFilter(undefined));
+                            } else {
+                                enableIncidentFilter(selectedIncidentFilter?.id ?? '').then(() => setSelectedIncidentFilter(undefined));
+                            }
+                        }}
+                        onSettingsClick={openSettings}
+                        isFilterSelected={!!selectedIncidentFilter}
+                        isFilterEnabled={!selectedIncidentFilter || selectedIncidentFilter?.isEnabled}
+                        connected={!checkingConnectivity && isIncidentManagementConnected}
+                    />
+                    <ConnectionIndicator
+                        platform={incidentManagementType}
+                        connected={isIncidentManagementConnected}
+                        style={{ marginLeft: 'auto', marginRight: '16px' }}
+                        loading={checkingConnectivity}
+                    />
+                </div>
                 <IncidentsFiltersGrid
                     handlerOperationStatus={handlerOperationStatus}
                     openHandlerCreate={openHandlerCreate}
                     incidentFilters={incidentFilters ?? []}
-                    incidentFiltersLoading={incidentFiltersLoading}
+                    incidentFiltersLoading={incidentFiltersLoading || checkingConnectivity}
                     setSelectedFilter={setSelectedIncidentFilter}
                     setIsCreateIncidentFilterDialogOpen={setIsCreateIncidentFilterDialogOpen}
                     filterIdToHandlerMap={filterIdToHandlerMap}
                     setIsEditFilterMode={setIsEditFilterMode}
                     setInitialValues={setInitialValues}
                     useConsolidatedCreate={useConsolidatedCreate}
+                    disabled={!checkingConnectivity && !isIncidentManagementConnected}
                 />
                 <CreateOrUpdateIncidentFilterDialog
                     isDialogOpen={isCreateIncidentFilterDialogOpen}

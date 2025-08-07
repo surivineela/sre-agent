@@ -1,16 +1,12 @@
 import { Formik } from 'formik';
-import { FC, useContext } from 'react';
-import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { IncidentManagementFormValues } from '../Contracts/IncidentManagement';
-import { useIncidentManagement } from './Hooks/useIncidentManagement';
+import { FC } from 'react';
+import { IncidentManagementFormValues, IncidentManagementSettingsProps } from '../Contracts/IncidentManagement';
+import { useIncidentManagement } from './Hooks/useIncidentManagementSettings';
 import IncidentManagementForm from './IncidentManagementForm';
 
-const IncidentManagement: FC = () => {
-    const environmentContext = useContext(EnvironmentContext);
-
-    const { loading, loaded, loadFailure, saving, saveFailure, initialValues, save, disconnect, validate, agent } = useIncidentManagement(
-        environmentContext.resourceId
-    );
+const IncidentManagementSettings: FC<IncidentManagementSettingsProps> = ({ integrated, close, keepOpen }) => {
+    const { loading, loaded, loadFailure, saving, saveFailure, initialValues, save, disconnect, validate, agent } =
+        useIncidentManagement(close);
 
     return (
         <Formik<IncidentManagementFormValues> initialValues={initialValues} enableReinitialize={true} onSubmit={save} validate={validate}>
@@ -26,6 +22,9 @@ const IncidentManagement: FC = () => {
                         disconnect={disconnect}
                         managedIdentityId={agent?.properties?.actionConfiguration?.identity || ''}
                         tenantId={agent?.identity?.tenantId || ''}
+                        integrated={integrated}
+                        close={close}
+                        keepOpen={keepOpen}
                     />
                 );
             }}
@@ -33,4 +32,4 @@ const IncidentManagement: FC = () => {
     );
 };
 
-export default IncidentManagement;
+export default IncidentManagementSettings;

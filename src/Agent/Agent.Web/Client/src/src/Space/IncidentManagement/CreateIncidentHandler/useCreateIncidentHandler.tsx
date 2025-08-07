@@ -2,7 +2,7 @@ import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'r
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { getErrorMessage } from '../../../Common/Clients/ArmClient';
+import { getDataPlaneErrorMessage } from '../../../Common/Clients/DataPlaneClient';
 import { IncidentHandlerClient } from '../../../Common/Clients/IncidentHandlerClient';
 import { IncidentDocument, IncidentHandler, IncidentQueryRequest, ToolInfo } from '../../../Common/Contracts/Azure/IncidentHandler';
 import { IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
@@ -167,7 +167,9 @@ export const useCreateIncidentHandler = (
                 setGeneratingInstructions(false);
                 if (!instructionsResult.isSuccessful || !instructionsResult.content) {
                     // TODO (andimarc): Surface errors to the user.
-                    const error = !instructionsResult.isSuccessful ? getErrorMessage(instructionsResult.error) : 'No content returned';
+                    const error = !instructionsResult.isSuccessful
+                        ? getDataPlaneErrorMessage(instructionsResult.error)
+                        : 'No content returned';
                     azPortalContext.log({
                         action: 'generate-instructions',
                         actionModifier: 'failed',
@@ -250,7 +252,7 @@ export const useCreateIncidentHandler = (
                         notificationId,
                         false,
                         intl.formatMessage(customHandlerDeleteNotificationError, {
-                            errorMessage: getErrorMessage(deleteResult.error),
+                            errorMessage: getDataPlaneErrorMessage(deleteResult.error),
                         })
                     );
                 } else {
@@ -341,7 +343,7 @@ export const useCreateIncidentHandler = (
                         notificationId,
                         false,
                         intl.formatMessage(notificationErrorMessage, {
-                            errorMessage: getErrorMessage(saveResult.error),
+                            errorMessage: getDataPlaneErrorMessage(saveResult.error),
                         })
                     );
                 } else {
@@ -604,7 +606,7 @@ export const useCreateIncidentHandler = (
             incidentHandlerClient.getHandler(handlerCreateOrEditInfo.handlerId).then(getResult => {
                 if (subscribed) {
                     if (!getResult.isSuccessful || !getResult.content) {
-                        const error = !getResult.isSuccessful ? getErrorMessage(getResult.error) : 'No content returned';
+                        const error = !getResult.isSuccessful ? getDataPlaneErrorMessage(getResult.error) : 'No content returned';
                         azPortalContext.log({
                             action: 'get-incidentHandler',
                             actionModifier: 'failed',

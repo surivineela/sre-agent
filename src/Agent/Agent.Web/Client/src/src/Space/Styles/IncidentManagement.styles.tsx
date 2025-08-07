@@ -24,7 +24,7 @@ export const useIncidentManagementStyles = makeStyles({
         borderRadius: tokens.borderRadiusLarge,
         boxShadow: tokens.shadow4,
         backgroundColor: tokens.colorNeutralBackground1,
-        width: 'calc(100vw - 32px)',
+        width: 'calc(100vw - 56px)',
         flex: 1,
     },
     tabRoot: {

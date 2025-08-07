@@ -8,7 +8,7 @@ import { SettingsTabResources } from '../../Strings/SREAgentResources';
 import AccessControl from './AccessControl.ReactView';
 import Basics from './Basics.ReactView';
 import DataConnections from './DataConnections.ReactView';
-import IncidentManagement from './IncidentManagement.ReactView';
+import IncidentManagementSettings from './IncidentManagementSettings';
 import ManagedResources from './ManagedResources.ReactView';
 import { navStyles, useSettingsStyles } from './Styles/Settings.styles';
 
@@ -102,7 +102,7 @@ const Settings: FC = () => {
                 <div style={styles.navPivotContainer}>
                     {selectedKey === SettingsKeys.Basics && <Basics />}
                     {selectedKey === SettingsKeys.managedResources && <ManagedResources />}
-                    {selectedKey === SettingsKeys.IncidentManagement && <IncidentManagement />}
+                    {selectedKey === SettingsKeys.IncidentManagement && <IncidentManagementSettings />}
                     {selectedKey === SettingsKeys.GrafanaDashboard && <GrafanaDashboard />}
                     {selectedKey === SettingsKeys.DataConnections && showDataConnections && <DataConnections />}
                     {selectedKey === SettingsKeys.AccessControl && <AccessControl />}

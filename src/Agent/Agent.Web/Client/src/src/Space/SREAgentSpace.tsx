@@ -16,6 +16,7 @@ import Activities from './Activities/Activities.ReactView';
 import { FeedbackDialog } from './Components/FeedbackDialog';
 import { SreAgentContext } from './Contracts/Context';
 import Graph from './Graph/Graph';
+import { useIncidentManagementConnectivity } from './Hooks/useIncidentManagementConnectivity';
 import IncidentManagement from './IncidentManagement/IncidentManagement';
 import { useSreAgent } from './Settings/Hooks/useSreAgent';
 import Settings from './Settings/Settings.ReactView';
@@ -49,7 +50,6 @@ const ControlPlaneDependentTabs = ({ appInsightsResourceId, setAppInsightsResour
     const environmentContext = useContext(EnvironmentContext);
     const sreAgentContext = useContext(SreAgentContext);
     const {
-        incidentManagement: { isIncidentManagementConnected },
         agent: { setMode, setAccessLevel },
     } = sreAgentContext;
 
@@ -57,14 +57,6 @@ const ControlPlaneDependentTabs = ({ appInsightsResourceId, setAppInsightsResour
     const styles = useSreAgentSpaceStyles();
 
     const { agent, agentLoaded } = useSreAgent(environmentContext.resourceId);
-
-    const isIncidentManagementEnabled = useMemo(() => {
-        return (
-            agent?.properties?.incidentManagementConfiguration?.type === IncidentManagementType.PagerDuty ||
-            agent?.properties?.incidentManagementConfiguration?.type === IncidentManagementType.Icm ||
-            isIncidentManagementConnected
-        );
-    }, [agent?.properties?.incidentManagementConfiguration?.type, isIncidentManagementConnected]);
 
     const fetchAppInsightsId = useCallback(async () => {
         const { subscription, resourceGroup } = new ArmResourceDescriptor(environmentContext.resourceId);
@@ -92,11 +84,9 @@ const ControlPlaneDependentTabs = ({ appInsightsResourceId, setAppInsightsResour
 
     return (
         <>
-            {isIncidentManagementEnabled && (
-                <Tab id="IncidentManagement" value={TabValues.IncidentManagement} disabled={!agentLoaded}>
-                    {intl.formatMessage(SreAgentTabResources.incidentManagement)}
-                </Tab>
-            )}
+            <Tab id="IncidentManagement" value={TabValues.IncidentManagement} disabled={!agentLoaded}>
+                {intl.formatMessage(SreAgentTabResources.incidentManagement)}
+            </Tab>
             <Tab id="Settings" value={TabValues.Settings}>
                 {intl.formatMessage(SreAgentTabResources.settings)}
             </Tab>{' '}
@@ -235,14 +225,33 @@ const router = createHashRouter([
 
 const SREAgentSpace: FC = () => {
     const azPortalProxy = useContext(AzPortalContext);
+    const environmentContext = useContext(EnvironmentContext);
+
+    const { agent, agentLoading, agentLoaded, agentLoadFailure, agentPatching, agentPatched, agentPatchFailure, patchAgent, refresh } =
+        useSreAgent(environmentContext.resourceId);
 
     const [isGrafanaUpdating, setIsGrafanaUpdating] = useState(false);
     const [deploymentId, setDeploymentId] = useState<string>('');
     const [notificationId, setNotificationId] = useState<string>('');
-    const [isIncidentManagementConnected, setIsIncidentManagementConnected] = useState(false);
-    const [hasFilters, setHasFilters] = useState(false);
     const [agentMode, setAgentMode] = useState<string>('');
     const [agentAccessLevel, setAgentAccessLevel] = useState<AgentAccessLevel>(AgentAccessLevel.low);
+
+    const shouldPoll = useMemo(
+        () =>
+            agent?.properties?.incidentManagementConfiguration?.type === IncidentManagementType.PagerDuty ||
+            agent?.properties?.incidentManagementConfiguration?.type === IncidentManagementType.Icm ||
+            agent?.properties?.incidentManagementConfiguration?.type === IncidentManagementType.ServiceNow,
+        [agent?.properties?.incidentManagementConfiguration?.type]
+    );
+
+    const {
+        refresh: refreshConnectivity,
+        isIncidentManagementConnected,
+        setIsIncidentManagementConnected,
+        hasFilters,
+        setHasFilters,
+        isLoading: checkingConnectivity,
+    } = useIncidentManagementConnectivity(shouldPoll);
 
     useEffect(() => {
         const logSiteVersion = () => {
@@ -289,6 +298,8 @@ const SREAgentSpace: FC = () => {
                     setIsIncidentManagementConnected,
                     hasFilters,
                     setHasFilters,
+                    checkingConnectivity,
+                    refreshConnectivity,
                 },
                 agent: {
                     mode: agentMode,
@@ -296,6 +307,15 @@ const SREAgentSpace: FC = () => {
                     accessLevel: agentAccessLevel,
                     setAccessLevel: setAgentAccessLevel,
                 },
+                agentObj: agent,
+                agentLoading,
+                agentLoaded,
+                agentLoadFailure,
+                agentPatching,
+                agentPatched,
+                agentPatchFailure,
+                patchAgent,
+                refresh,
             }}
         >
             <RouterProvider router={router} />

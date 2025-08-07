@@ -7,7 +7,6 @@ const container: CSSProperties = {
     gap: '15px',
     width: '100%',
     overflowY: 'auto',
-    height: '90%',
 };
 
 const titleText: CSSProperties = {
