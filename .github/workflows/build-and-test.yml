@@ -218,7 +218,7 @@ jobs:
     - name: Lint Agent.Web UX
       if: ${{ needs.changes.outputs.frontend == 'true' }}
       working-directory: ./src/Agent/Agent.Web/Client
-      run: npm run lint
+      run: npm run lint -- --quiet
 
     - name: 🏗️ Build Agent.Web UX
       if: ${{ needs.changes.outputs.frontend == 'true' }}
