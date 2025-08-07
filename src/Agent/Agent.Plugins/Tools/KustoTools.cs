@@ -3,10 +3,10 @@
 // ------------------------------------------------------------
 
 using Agent.Data.DataModels;
+using Agent.Data.Tools;
 using Agent.Framework;
 using Agent.Plugins.Interface;
 using Agent.Plugins.KustoPlugin;
-using Agent.Data.Tools;
 using Agent.Plugins.Tools;
 
 namespace Agent.Plugins.Kusto.Tools
@@ -16,14 +16,15 @@ namespace Agent.Plugins.Kusto.Tools
     {
         private readonly KustoPluginFactory _kustoFactory;
         private KustoToolDefinition? _definition;
-
+        private readonly IConnectorResolver _connectorResolver;
 
         public KustoToolType(
-            KustoPluginFactory kustoFactory
+            KustoPluginFactory kustoFactory,
+            IConnectorResolver connectorResolver
             )
         {
             _kustoFactory = kustoFactory;
-
+            _connectorResolver = connectorResolver;
         }
 
         public void SetToolDefinition(YamlToolDefinitionBase definition)
@@ -44,8 +45,8 @@ namespace Agent.Plugins.Kusto.Tools
             {
                 throw new InvalidOperationException("Connector data is not set in the tool definition.");
             }
-            var connector = (KustoConnector)_definition.ConnectorData;
 
+            var connector = _connectorResolver.GetConnectorFromSettings<KustoConnector>(_definition.Connector);
             var kustoChat = _kustoFactory.Create(connector);
 
             switch (_definition.Mode)
@@ -54,8 +55,16 @@ namespace Agent.Plugins.Kusto.Tools
                     return await kustoChat.ExecuteLocalFunctionAsync(_definition.Function!, region, args, groupName, samplingOptions);
 
                 case KustoExecutionMode.Query:
-                    var formmatedQuery = KustoPlugin.FormatQuery(_definition.Query!, args);
-                    var result = await kustoChat.ExecuteKustoQueryInternal(region, formmatedQuery, groupName);
+                    var formatedQuery = KustoPlugin.FormatQuery(_definition.Query!, args);
+
+                    if (string.IsNullOrEmpty(region))
+                    {
+                        // TODO: Cleaner reference needed
+                        // Region parameter will be not be configured with KustoConnector
+                        return await kustoChat.ExecuteClusterKustoQuery(connector.ClusterUrl, connector.Database, formatedQuery);
+                    }
+
+                    var result = await kustoChat.ExecuteKustoQueryInternal(region, formatedQuery, groupName);
                     return result.Result;
 
                 case KustoExecutionMode.Script:
@@ -69,22 +78,22 @@ namespace Agent.Plugins.Kusto.Tools
 
                 default:
                     return string.Empty; // Return empty string for unsupported modes or unhandled cases
-                  
+
                     //}
-                   ///  return string.Empty; // Return empty string for unsupported modes or unhandled cases
+                    ///  return string.Empty; // Return empty string for unsupported modes or unhandled cases
             }         //TODO unify kustosettings and kusto connector
-            }
         }
+    }
 
-        [ToolTypeAttribute("KustoQuery")]
-        public class KustoQuery
+    [ToolTypeAttribute("KustoQuery")]
+    public class KustoQuery
+    {
+        private readonly IKustoPlugin _kustoChat;
+
+        public KustoQuery(IKustoPlugin kustoChat)
         {
-            private readonly IKustoPlugin _kustoChat;
-
-            public KustoQuery(IKustoPlugin kustoChat)
-            {
-                _kustoChat = kustoChat;
-            }
+            _kustoChat = kustoChat;
+        }
 
         public async Task<KustoQueryResult> Run(string query, string region, Dictionary<string, string> args, string groupName = "ContainerApps")
         {

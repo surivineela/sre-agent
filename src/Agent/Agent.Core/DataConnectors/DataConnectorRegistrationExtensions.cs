@@ -3,7 +3,6 @@
 // -----------------------------------------------------------
 
 using System.Reflection;
-using Agent.Core.Clients.Storage;
 using Agent.Core.Configuration;
 using Agent.Core.DataConnectors;
 using Microsoft.Extensions.DependencyInjection;
@@ -56,6 +55,7 @@ public static class DataConnectorRegistrationExtensions
 
         hostBuilder.Services.AddHostedService(sp =>
         {
+            var logger = sp.GetRequiredService<ILogger<DataConnectorService>>();
             IOptions<DataConnectorSettings> dataConnectorSettings = sp.GetRequiredService<IOptions<DataConnectorSettings>>();
             IOptions<List<DataConnectorInstanceSettings>> dataConnectorInstanceSettings = sp.GetRequiredService<IOptions<List<DataConnectorInstanceSettings>>>();
 
@@ -67,22 +67,26 @@ public static class DataConnectorRegistrationExtensions
 
                 if (connectorType == null)
                 {
-                    throw new InvalidOperationException(
-                        $"No data connector type found for '{dataConnectorInstanceSetting.DataConnectorType}'. Available data connector types are: {string.Join(", ", dataConnectorTypes.Select(type => $"{type.GetCustomAttribute<DataConnectorAttribute>()?.Type} ({type.Name})"))}.");
+                    logger.LogInternalWarning(
+                        "No data connector service implementation found for '{DataConnectorType}'. Available data connector types are: {AvailableDataConnectors}.",
+                        dataConnectorInstanceSetting.DataConnectorType,
+                        string.Join(", ", dataConnectorTypes.Select(type => $"{type.GetCustomAttribute<DataConnectorAttribute>()?.Type} ({type.Name})")));
+
+                    continue;
                 }
 
-                IDataConnector dataConnecterInstance = sp.GetRequiredKeyedService<IDataConnector>(connectorType);
+                IDataConnector dataConnectorInstance = sp.GetRequiredKeyedService<IDataConnector>(connectorType);
 
                 dataConnectorInstances.Add(new DataConnectorInstance(
-                    DataConnector: dataConnecterInstance,
+                    DataConnector: dataConnectorInstance,
                     InstanceSettings: dataConnectorInstanceSetting));
             }
 
             return new DataConnectorService(
                 dataConnectorInstances,
                 sp.GetRequiredService<DataConnectorIndex>(),
-                sp.GetRequiredService<ILogger<DataConnectorService>>());
-            });
+                logger);
+        });
 
         return hostBuilder;
     }

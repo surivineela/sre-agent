@@ -18,6 +18,7 @@ using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DataModels;
 using Agent.Framework;
+using Agent.Framework.Reasoning.Models;
 using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Crawler.Metrics;
@@ -26,7 +27,6 @@ using Agent.Graph.Services;
 using Agent.Logging;
 using Agent.Plugins;
 using Agent.Plugins.Clients;
-using Agent.Plugins.DataConnectors;
 using Agent.Plugins.DataConnectors.Documentation;
 using Agent.Plugins.DataConnectors.KustoMetadata;
 using Agent.Plugins.Definitions;
@@ -49,14 +49,12 @@ using Agent.Runtime.MetaAgent;
 using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.MetaAgent.SubAgentPlugins;
 using Agent.Runtime.Reasoning;
-using Agent.Framework.Reasoning.Models;
 using Agent.Runtime.Services;
 using Agent.Runtime.Services.AzMonitorAlertInvestigation;
 using Agent.Runtime.Services.AzMonitorAlertInvestigationService;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.AppCodeAnalysisAgent;
 using Agent.Runtime.SubAgents.AppReliabilityAgent;
-
 //using Agent.Runtime.SubAgents.AppServiceRemediation;
 using Agent.Runtime.SubAgents.AzMonitorAlertAgent;
 using Agent.Runtime.SubAgents.ContainerAppsRemediation;
@@ -388,7 +386,7 @@ public class Program
             .AddSingleton<FunctionAppDeploymentChecksAgentFactory>()
             .AddTransient<IFunctionAppDeploymentChecksPlugin, FunctionAppDeploymentChecksPlugin>()
             .AddTransient<IMetaAgentFunctionAppDeploymentChecksAgentPlugin, FunctionAppDeploymentChecksAgentPlugin>()
-            
+
             .AddTransient<IPostgreSQLPlugin, PostgreSQLPlugin>()
             .AddTransient<PostgreSQLPluginDefinition>()
             .AddSingleton<IPlaybookService, PlaybookService>()
@@ -676,6 +674,7 @@ public class Program
         builder.RegisterFunctionsFirstPartyTypes();
         builder.Services.AddScoped<IExtendedAgentService, ExtendedAgentService>();
         //builder.Services.AddScoped<IExtendedAgentService, ExtendedAgentService>();
+        builder.Services.AddSingleton<IConnectorResolver, DataConnectorResolverService>();
 
         builder.Services.AddScoped<IResourceDeploymentService, ResourceDeploymentService>();
         builder.Services.AddSingleton<IAgentYamlTranslatorFactory, AgentYamlTranslatorFactory>();

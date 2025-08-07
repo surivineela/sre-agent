@@ -107,9 +107,6 @@
     <None Update="AgentsV2\DiagnosticsAgents\DiagnosticBinariesAndScripts\DotnetAnalyzer_win64.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Connectors\lgn-kusto-connector.yaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
 
 
     <None Update="AgentsV2\RepositoryAgents\AzureDevOpsWorkItemAgent.yaml">
@@ -119,9 +116,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="AgentsV2\RepositoryAgents\RepositoryAgent.yaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Connectors\capps-kusto-connector.yaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="SubAgents\AppCodeAnalysisAgent\AppCodeAnalysisPlan.txt">
