@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.IO.Compression;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
@@ -2753,6 +2754,92 @@ public class ArmHelper
                 string errorMessage = $"Error checking session status for ResourceId: {appServiceResource} and sessionId: {sessionId} - {ex.Message}";
                 _logger.LogInternalError(errorMessage);
                 throw;
+            }
+        }
+    }
+
+    public async Task<bool> UploadFileToKudu(string hostName, string filePath, string workingDirectory)
+    {
+        string? zipOutputPath = null;
+        
+        try
+        {
+            // Precondition Checks.
+            if (string.IsNullOrWhiteSpace(hostName))
+                throw new ArgumentException("Host name cannot be null or empty.", nameof(hostName));
+            if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+                throw new ArgumentException("File path cannot be null or does not exist.", nameof(filePath));
+            if (string.IsNullOrWhiteSpace(workingDirectory))
+                throw new ArgumentException("Working directory cannot be null or empty.", nameof(workingDirectory));
+
+            // Create temporary zip file path
+            var fileName = Path.GetFileNameWithoutExtension(filePath);
+            zipOutputPath = Path.Combine(Path.GetTempPath(), $"{fileName}_{Guid.NewGuid():N}.zip");
+
+            // Get authentication token
+            var cred = await _authService.GetArmOperationCredential();
+            var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), default);
+
+            using HttpClient httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+            httpClient.Timeout = TimeSpan.FromMinutes(5);
+
+            // Create the zip file containing the specified file
+            using (var zipStream = new FileStream(zipOutputPath, FileMode.Create))
+            using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create))
+            {
+                archive.CreateEntryFromFile(filePath, Path.GetFileName(filePath));
+            }
+
+            // Read the zip file bytes
+            var zipBytes = await File.ReadAllBytesAsync(zipOutputPath);
+
+            // Normalize working directory path for Kudu
+            var normalizedWorkingDirectory = workingDirectory.Replace('\\', '/').TrimStart('/');
+            var kuduZipUrl = $"https://{hostName}/api/zip/{normalizedWorkingDirectory}/";
+
+            // Upload the zip file to Kudu
+            using (var zipContent = new ByteArrayContent(zipBytes))
+            using (var request = new HttpRequestMessage(HttpMethod.Put, kuduZipUrl))
+            {
+                zipContent.Headers.ContentType = new MediaTypeHeaderValue("application/zip");
+                request.Content = zipContent;
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+
+                var uploadResponse = await httpClient.SendAsync(request);
+                if (!uploadResponse.IsSuccessStatusCode)
+                {
+                    var errorContent = await uploadResponse.Content.ReadAsStringAsync();
+                    throw new HttpRequestException($"Failed to upload zip file. Status: {uploadResponse.StatusCode}, Response: {errorContent}");
+                }
+            }
+
+            _logger.LogInternalInformation($"[UploadFileToKudu] File uploaded successfully to {normalizedWorkingDirectory}");
+            return true; 
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogInternalError($"[UploadFileToKudu] HTTP request failed during file upload: {ex.Message}");
+            throw new InvalidOperationException("Failed to upload file to Kudu.", ex);
+        }
+
+        catch (Exception ex)
+        {
+            _logger.LogInternalError($"[UploadFileToKudu] Unexpected error during file upload: {ex.Message}");
+            throw;
+        }
+        finally
+        {
+            // Clean up: Delete the temporary zip file
+            if (!string.IsNullOrEmpty(zipOutputPath) && File.Exists(zipOutputPath))
+            {
+                try
+                {
+                    File.Delete(zipOutputPath);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalWarning($"[UploadFileToKudu] Failed to delete temporary zip file {zipOutputPath}: {ex.Message}");
+                }
             }
         }
     }

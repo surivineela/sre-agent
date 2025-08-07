@@ -50,19 +50,21 @@ internal class AppServiceDiagnosticStrategy : ComputeResourceDiagnosticStrategyB
         if (kuduManager.OS == "Linux")
         {
             // Step 1. Command to collect the dump on Linux.
-            string path = "/tmp/" + memoryDumpFile;
+            string baseDir = "~";
+            string path = memoryDumpFile;
             string command = $"curl http://0.0.0.0:8181/api/processes/{pid}/dump?type=full -o {path}";
-            string commandResult = await _armHelper.ExecuteKuduCommandAsync(kuduManager.KuduHostName, command, "/tmp/");
+            string commandResult = await _armHelper.ExecuteKuduCommandAsync(kuduManager.KuduHostName, command, baseDir);
 
             // Step 2: Analyze the dump.
-            await kuduManager.ExecuteCommandAsync("curl -X GET https://dotnetanalysis.blob.core.windows.net/lin64/DotnetAnalyzer -o dotnetanalyzer", "/tmp/");
-            await kuduManager.ExecuteCommandAsync($"chmod +x ./dotnetanalyzer", "/tmp/");
-            string result = await kuduManager.ExecuteCommandAsync($"./dotnetanalyzer analyze-memory {path}", "/tmp/");
+            var scriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AgentsV2", "DiagnosticsAgents", "DiagnosticBinariesAndScripts", "DotnetAnalyzer_lin64");
+            await _armHelper.UploadFileToKudu(kuduManager.KuduHostName, scriptPath, baseDir);
+            await kuduManager.ExecuteCommandAsync($"chmod +x ./DotnetAnalyzer_lin64", baseDir);
+            string result = await kuduManager.ExecuteCommandAsync($"./DotnetAnalyzer_lin64 analyze-memory {path}", baseDir);
 
             // Step 3: Delete the dump file after analysis to save space.
             try
             {
-                string _ = await kuduManager.ExecuteCommandAsync($"rm {path}", "/tmp/");
+                string _ = await kuduManager.ExecuteCommandAsync($"rm {path}", baseDir);
             }
 
             catch (Exception)
@@ -81,20 +83,26 @@ internal class AppServiceDiagnosticStrategy : ComputeResourceDiagnosticStrategyB
             // Step 1: Take a full memory dump.
             string command = $"C://devtools//sysinternals//procdump.exe -ma {pid} -accepteula C://local//{memoryDumpFile}";
             string commandResult = await _armHelper.ExecuteKuduCommandAsync(kuduManager.KuduHostName, command, "C://local//");
+            string diagnosticFilePostFix;
+            var scriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AgentsV2", "DiagnosticsAgents", "DiagnosticBinariesAndScripts");
 
             // Step 2: Analyze the dump.
             if (kuduManager.Is32Bit)
             {
-                await kuduManager.ExecuteCommandAsync("curl -X GET https://dotnetanalysis.blob.core.windows.net/win32/DotnetAnalyzer.exe -o DotnetAnalyzer.exe", "C://local//");
+                diagnosticFilePostFix = "_win32";
+                scriptPath = Path.Combine(scriptPath, $"DotnetAnalyzer{diagnosticFilePostFix}.exe");
+                await _armHelper.UploadFileToKudu(kuduManager.KuduHostName, scriptPath, @"C:/local/");
             }
 
             else
             {
-                await kuduManager.ExecuteCommandAsync("curl -X GET https://dotnetanalysis.blob.core.windows.net/win64/DotnetAnalyzer.exe -o DotnetAnalyzer.exe", "C://local//");
+                diagnosticFilePostFix = "_win64";
+                scriptPath = Path.Combine(scriptPath, $"DotnetAnalyzer{diagnosticFilePostFix}.exe");
+                await _armHelper.UploadFileToKudu(kuduManager.KuduHostName, scriptPath, @"C:/local/");
             }
 
             // Run the dotnet analyzer on the dump file with the appropriate commands. 
-            string result = await kuduManager.ExecuteCommandAsync($"DotnetAnalyzer.exe analyze-memory C://local//{memoryDumpFile}", "C://local//");
+            string result = await kuduManager.ExecuteCommandAsync($"DotnetAnalyzer{diagnosticFilePostFix}.exe analyze-memory C://local//{memoryDumpFile}", "C://local//");
 
             // Delete dump after analysis to save space.
             try
@@ -124,7 +132,7 @@ internal class AppServiceDiagnosticStrategy : ComputeResourceDiagnosticStrategyB
         int pid = await _armHelper.GetDefaultProcessIdForWebAppAsync(resourceId, kuduManager.OS, kuduManager.KuduHostName);
 
         // Local helper to simplify ExecuteKuduCommandAsync calls
-        async Task<string> ExecKudu(string command, string workingDir = "/tmp/")
+        async Task<string> ExecKudu(string command, string workingDir = "/home/")
             => await _armHelper.ExecuteKuduCommandAsync(kuduManager.KuduHostName, command, workingDir);
 
         if (kuduManager.OS == "Linux")
@@ -136,8 +144,9 @@ internal class AppServiceDiagnosticStrategy : ComputeResourceDiagnosticStrategyB
             string traceCommandResult = await ExecKudu(traceCommand);
 
             // Step 2: Download Dotnet and analyze the trace.
-            string runAnalysisCommand = await ExecKudu("curl -X GET https://dotnetanalysis.blob.core.windows.net/webappscripts/dotnet-cpu.sh -o dotnet-cpu.sh");
-            runAnalysisCommand = await ExecKudu("chmod u+x dotnet-cpu.sh");
+            string scriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AgentsV2", "DiagnosticsAgents", "DiagnosticBinariesAndScripts", "dotnet-cpu.sh");
+            bool isScriptUploaded = await _armHelper.UploadFileToKudu(kuduManager.KuduHostName, scriptPath, "/home/");
+            string runAnalysisCommand = await ExecKudu("chmod u+x ./dotnet-cpu.sh");
             runAnalysisCommand = await ExecKudu($"./dotnet-cpu.sh {traceFile}");
             var result = System.Text.Json.JsonSerializer.Deserialize<KuduCommandResult>(runAnalysisCommand);
             string pattern = @">>STARTING ANALYSIS<<([\s\S]*?)>>COMPLETED ANALYSIS<<";

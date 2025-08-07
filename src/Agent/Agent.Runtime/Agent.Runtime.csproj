@@ -95,6 +95,18 @@
     <None Update="AgentsV2\RCA\ScaleControllerPreflight\*.yaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="AgentsV2\DiagnosticsAgents\DiagnosticBinariesAndScripts\dotnet-cpu.sh">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AgentsV2\DiagnosticsAgents\DiagnosticBinariesAndScripts\DotnetAnalyzer_lin64">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AgentsV2\DiagnosticsAgents\DiagnosticBinariesAndScripts\DotnetAnalyzer_win32.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AgentsV2\DiagnosticsAgents\DiagnosticBinariesAndScripts\DotnetAnalyzer_win64.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Connectors\lgn-kusto-connector.yaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
