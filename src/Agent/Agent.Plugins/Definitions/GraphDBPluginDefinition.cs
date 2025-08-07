@@ -70,10 +70,9 @@ namespace Agent.Plugins
         [AgentTool(ToolMode.Auto)]
         public async Task<string> VisualizeApplicationComponents(
             [Description("Azure Resource Id of the application resource to visualize. Should begin with /subscriptions/... Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp")] string resourceId,
-            [Description("Maximum number of relationship hops to include in the visualization. Higher values (1-5) show more distant connections but may make the diagram more complex. Default is 3.")] int hops = 3,
-            Guid? threadId = null)
+            [Description("Maximum number of relationship hops to include in the visualization. Higher values (1-5) show more distant connections but may make the diagram more complex. Default is 3.")] int hops = 3)
         {
-            return await _plugin.VisualizeApplicationComponents(resourceId, hops, threadId);
+            return await _plugin.VisualizeApplicationComponents(resourceId, hops);
         }
 
         // TODO(jianbo): this not working for AKS, need to fix.
@@ -244,10 +243,9 @@ namespace Agent.Plugins
         [AgentTool(ToolMode.Auto)]
         public async Task<string> GetActivityLogsSummary(
             [Description("Azure Resource Id of the resource to analyze. Should begin with /subscriptions/... Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp")] string resourceId,
-            [Description("Number of hours of activity logs to retrieve and analyze. Default is 24 hours.")] int hoursBack = 24,
-            Guid? threadId = null)
+            [Description("Number of hours of activity logs to retrieve and analyze. Default is 24 hours.")] int hoursBack = 24)
         {
-            return await _plugin.FetchAndSummarizeActivityLogs(resourceId, hoursBack, threadId);
+            return await _plugin.FetchAndSummarizeActivityLogs(resourceId, hoursBack);
         }
 
         [KernelFunction("ListResourcesByType")]
@@ -303,10 +301,9 @@ namespace Agent.Plugins
         public async Task<string> VisualizeAKSMicroserviceTopology(
             [Description("Azure Resource Id of the AKS cluster, should begin with /subscriptions/..., Example: /subscriptions/a058f7c6-592d-4490-887a-803e748787c0/resourcegroups/aca-sre-agent-demo/providers/microsoft.containerservice/managedclusters/iot-dashboard")] string AKSClusterResourceId,
             [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
-            [Description($"Name of the Kubernetes deployment, e.g. 'nginx', 'backend'")] string deploymentName,
-            Guid? threadId = null)
+            [Description($"Name of the Kubernetes deployment, e.g. 'nginx', 'backend'")] string deploymentName)
         {
-            return await _plugin.VisualizeAKSMicroserviceTopology(AKSClusterResourceId, _namespace, deploymentName, threadId);
+            return await _plugin.VisualizeAKSMicroserviceTopology(AKSClusterResourceId, _namespace, deploymentName);
         }
 
         [Description("Returns basic metadata of an Azure resource. The input should be in Azure ResourceId format. Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp" +

@@ -360,7 +360,7 @@ For reference, here is the raw Mermaid specification used to create the diagram:
             }
 
             // Ensure threadId is not null
-            if (threadId == null)
+            if (threadId == null || threadId.Equals(Guid.Empty))
             {
                 if (ThreadId != null)
                 {
