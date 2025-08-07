@@ -360,9 +360,14 @@ public class CosmosDbAgentTasksRepository(
         logger.LogInternalInformation("Listing all agent tasks for thread: {ThreadId}", threadId);
         try
         {
+            // filter out context thread because these threads are not task threads and id is not guid
             string threadIdStr = threadId.ToString();
-            var query = new QueryDefinition("SELECT * FROM c WHERE c.threadId = @threadId")
+            var query = new QueryDefinition(@"
+                SELECT * FROM c 
+                WHERE c.threadId = @threadId 
+                AND NOT STARTSWITH(c.id, 'context-')")
                 .WithParameter("@threadId", threadIdStr);
+
             var iterator = cosmosClient.GetContainer<AgentTaskDocument>(databaseName).GetItemQueryIterator<AgentTaskDocument>(query);
             List<AgentTask> agentTasks = new List<AgentTask>();
             while (iterator.HasMoreResults)
