@@ -41,9 +41,10 @@ namespace Agent.Plugins.Kusto.Tools
             {
                 throw new InvalidOperationException("Tool definition was not set.");
             }
-            if (_definition.ConnectorData == null)
+            
+            if (string.IsNullOrEmpty(_definition.Connector))
             {
-                throw new InvalidOperationException("Connector data is not set in the tool definition.");
+                throw new InvalidOperationException("Connector is not set in the tool definition.");
             }
 
             var connector = _connectorResolver.GetConnectorFromSettings<KustoConnector>(_definition.Connector);
