@@ -7,6 +7,7 @@ export enum SettingNames {
     ConsolidatedCreate = 'consolidatedCreate',
     DataConnections = 'dataConnections',
     ShowAgentTask = 'showAgentTask',
+    ShowAgentTaskDev = 'showAgentTaskDev',
 }
 
 const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {

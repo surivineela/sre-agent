@@ -4,6 +4,7 @@ import { AgentTaskHandle, IThreadContentProps } from '../Contracts/Activities';
 import { AgentContext } from '../Contracts/Context';
 import { ThreadContentStyles } from '../Styles/Activities.styles';
 import AgentTask from './AgentTask';
+import AgentTaskDev from './AgentTaskDev';
 import ChatBox from './ChatBox';
 import ThreadContentTitle from './ThreadContentTitle';
 
@@ -12,6 +13,7 @@ export const ThreadContent = memo(
         const { threadContentAndActionKey } = useContext(AgentContext);
 
         const showAgentTask = useConfigSetting(SettingNames.ShowAgentTask);
+        const showAgentTaskDev = useConfigSetting(SettingNames.ShowAgentTaskDev);
 
         const agentTaskHandleRef = useRef<AgentTaskHandle>(null);
 
@@ -31,6 +33,7 @@ export const ThreadContent = memo(
                         openAgentTask={openAgentTask}
                     />
                     {showAgentTask && <AgentTask collapseResizables={collapseResizables} ref={agentTaskHandleRef} />}
+                    {showAgentTaskDev && <AgentTaskDev collapseResizables={collapseResizables} ref={agentTaskHandleRef} />}
                 </div>
             </div>
         );

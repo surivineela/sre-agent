@@ -1,26 +1,48 @@
 import { tokens } from '@fluentui/react-components';
 import { FC, useCallback, useState } from 'react';
-import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
+import { useParams } from 'react-router-dom';
+import { InvestigationTreeProvider } from '../Contexts/InvestigationTreeProvider';
 import { AgentContext } from '../Contracts/Context';
 import { useActivities } from '../Hooks/useActivities';
+import { useAgentTaskDevActivities } from '../Hooks/useAgentTaskDevActivities';
+import { useInvestigationIntegration } from '../Hooks/useInvestigationIntegration';
 import { activitiesStylesRoot } from '../Styles/Activities.styles';
-import { ActivitiesAgentTask as ActivitiesAgentTaskDev } from './ActivitiesAgentTaskDev.ReactView';
 import { Resizable, ResizableChildProps } from './Resizable';
 import { ThreadActions } from './ThreadActions';
 import { ThreadContent } from './ThreadContent';
 import { ThreadsMenu } from './ThreadsMenu';
 
-const ActivitiesContent: FC = () => {
+// Enhanced Activities component with all agent task logic isolated here
+const EnhancedActivitiesContent: FC = () => {
     const {
         selectedThread,
-        addThread,
+        addThread: originalAddThread,
         deleteThread,
-        selectThread,
+        selectThread: originalSelectThread,
         updateThreadLastReadTime,
         threadContentAndActionKey,
         activeThreadId,
         threadMenuHandleRef,
     } = useActivities();
+
+    const { createEnhancedAddThread } = useAgentTaskDevActivities();
+
+    const { handleThreadInvestigationUpdate } = useInvestigationIntegration();
+
+    // Create an enhanced addThread that includes polling functionality
+    const addThread = createEnhancedAddThread(originalAddThread);
+
+    // Create an enhanced selectThread that includes investigation updates
+    const selectThread = useCallback(
+        async (thread: any) => {
+            // First handle the basic thread selection
+            await originalSelectThread(thread);
+
+            // Then handle investigation updates
+            await handleThreadInvestigationUpdate(thread);
+        },
+        [originalSelectThread, handleThreadInvestigationUpdate]
+    );
 
     const [menuCollapsed, setMenuCollapsed] = useState<boolean>(false);
     const [actionsCollapsed, setActionsCollapsed] = useState<boolean>(true);
@@ -30,6 +52,7 @@ const ActivitiesContent: FC = () => {
         setActionsCollapsed(true);
     }, []);
 
+    // Exact same JSX as original Activities but with enhanced selectThread
     return (
         <AgentContext.Provider value={{ threadContentAndActionKey, activeThreadId }}>
             <div style={activitiesStylesRoot}>
@@ -46,7 +69,7 @@ const ActivitiesContent: FC = () => {
                 >
                     {(resizableChildProps: ResizableChildProps) => (
                         <ThreadsMenu
-                            selectThread={selectThread}
+                            selectThread={selectThread} // Enhanced version
                             deleteThread={deleteThread}
                             ref={threadMenuHandleRef}
                             {...resizableChildProps}
@@ -80,16 +103,16 @@ const ActivitiesContent: FC = () => {
     );
 };
 
-// Main Activities component - conditionally wraps with AgentTaskDev features
-const Activities: FC = () => {
-    const showAgentTaskDev = useConfigSetting(SettingNames.ShowAgentTaskDev);
+export const ActivitiesAgentTask: FC = () => {
+    const { threadId: urlThreadId } = useParams();
+    const { selectedThread } = useActivities();
 
-    if (showAgentTaskDev) {
-        return <ActivitiesAgentTaskDev />;
-    }
+    // Use URL thread ID as the primary source of truth, fallback to selectedThread ID
+    const currentThreadId = urlThreadId || selectedThread?.id;
 
-    // Return basic activities without AgentTaskDev features
-    return <ActivitiesContent />;
+    return (
+        <InvestigationTreeProvider threadId={currentThreadId}>
+            <EnhancedActivitiesContent />
+        </InvestigationTreeProvider>
+    );
 };
-
-export default Activities;

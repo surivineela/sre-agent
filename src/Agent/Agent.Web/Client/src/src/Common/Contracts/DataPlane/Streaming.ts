@@ -1,4 +1,4 @@
-export type StreamingMessageType = 'chart' | 'image' | 'mermaid' | 'azcli' | 'kubectl' | 'approval' | null;
+export type StreamingMessageType = 'chart' | 'image' | 'mermaid' | 'azcli' | 'kubectl' | 'approval' | 'taskProgress' | 'taskUpdate' | null;
 
 export enum MessageRequestType {
     CreateMessage = 'CreateMessage',
