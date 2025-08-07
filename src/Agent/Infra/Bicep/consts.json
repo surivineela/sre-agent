@@ -14,9 +14,9 @@
 
     // OpenAI
     "openAIAccountNameSuffix": "-openai",
-    "openAILLMModel": "gpt-4o",
-    "openAILLMModelVersion": "2024-11-20",
-    "openAIEmbeddingGeneratorModel": "text-embedding-3-small",
+    "openAILLMModel": "gpt-4.1",
+    "openAILLMModelVersion": "2025-04-14",
+    "openAIEmbeddingGeneratorModel": "text-embedding-3-large",
     "openAIEmbeddingGeneratorModelVersion": "1",
 
     // App Config

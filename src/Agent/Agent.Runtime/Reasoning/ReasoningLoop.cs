@@ -807,24 +807,8 @@ public class ReasoningLoop : IDisposable
             var endingState = AgentProcessingState.Unknown;
             if (runResult.Output != null)
             {
-                if (runResult.Output is string outputString)
+                if (runResult.Output is IAgentOutput agentOutput)
                 {
-                    // already printed in runner
-                    //await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
-                    //    _context,
-                    //    new ChatMessage(ChatRole.Assistant, runResult.Output?.ToString()));
-                }
-                else if (runResult.Output is IAgentOutput agentOutput)
-                {
-                    // TODO: can we log all this info?
-                    _logger.LogInternalInformation("Agent output: {AgentnotifyUserMessage}, {State}, {StateExplanation}, {Reasoning}",
-                        agentOutput.NotifyUserMessage, agentOutput.State, agentOutput.StateExplanation, agentOutput.ReasoningScratchPad);
-
-                    // already printed in runner
-                    //await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
-                    //    _context,
-                    //    new ChatMessage(ChatRole.Assistant, agentOutput.notifyUserMessage));
-
                     endingState = Enum.TryParse<AgentProcessingState>(agentOutput.State, out var parsed)
                         ? parsed
                         : AgentProcessingState.Unknown;
