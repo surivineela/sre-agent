@@ -269,19 +269,65 @@ public class ApiService : IDisposable
                 agentFilePath = agentFilePathSubdir;
             }
 
-            // Read the YAML file
-            var yamlContent = await File.ReadAllTextAsync(agentFilePath);
+            // Read the agent YAML file
+            var agentYamlContent = await File.ReadAllTextAsync(agentFilePath);
 
-            // Parse the agent YAML content to an object
+            // Parse the agent YAML to extract the tools list
             var deserializer = new DeserializerBuilder()
                 .WithNamingConvention(UnderscoredNamingConvention.Instance)
                 .Build();
-            var agentData = deserializer.Deserialize<object>(yamlContent);
+            
+            // Parse agent as dynamic object to extract tools list
+            var agentDynamic = deserializer.Deserialize<Dictionary<string, object>>(agentYamlContent);
+            var agentData = deserializer.Deserialize<object>(agentYamlContent);
 
-            // Create the wrapper with proper structure
-            var agentWrapper = new AgentConfigurationWrapper
+            // Extract tools list from agent
+            var toolNames = new List<string>();
+            if (agentDynamic.TryGetValue("tools", out var toolsObj) && toolsObj is List<object> toolsList)
+            {
+                toolNames = toolsList.Cast<string>().ToList();
+            }
+
+            // Load referenced tool YAML files
+            var toolsData = new List<object>();
+            var missingTools = new List<string>();
+            foreach (var toolName in toolNames)
+            {
+                var toolFilePath = Path.Combine("tools", $"{toolName}.yaml");
+                if (!File.Exists(toolFilePath))
+                {
+                    // Try the subdirectory structure
+                    var toolFilePathSubdir = Path.Combine("tools", toolName, $"{toolName}.yaml");
+                    if (File.Exists(toolFilePathSubdir))
+                    {
+                        toolFilePath = toolFilePathSubdir;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"⚠️  Tool file not found: {toolFilePath} or {toolFilePathSubdir}");
+                        missingTools.Add(toolName);
+                        continue;
+                    }
+                }
+
+                var toolYamlContent = await File.ReadAllTextAsync(toolFilePath);
+                var toolData = deserializer.Deserialize<object>(toolYamlContent);
+                toolsData.Add(toolData);
+                Console.WriteLine($"📦 Loaded tool: {toolName}");
+            }
+
+            // If there are missing tools, fail the apply operation
+            if (missingTools.Count > 0)
+            {
+                var missingToolsList = string.Join(", ", missingTools);
+                return (false, $"❌ Cannot apply agent '{agentName}': Referenced tools not found: {missingToolsList}. Please create the missing tools first.");
+            }
+
+            // Create the combined wrapper with agent and tools
+            var combinedWrapper = new CombinedAgentWrapper
             {
                 ApiVersion = config.ApiVersion ?? "agent.platform.ai/v1",
+                Kind = "AgentConfiguration",
                 Metadata = new YamlMetadata
                 {
                     Owner = config.Owner ?? "your-team@example.com",
@@ -290,14 +336,18 @@ public class ApiService : IDisposable
                     CreatedAt = config.CreatedAt != default(DateTime) ? config.CreatedAt.ToString("yyyy-MM-dd") : DateTime.UtcNow.ToString("yyyy-MM-dd"),
                     UpdatedAt = DateTime.UtcNow.ToString("yyyy-MM-dd")
                 },
-                Spec = new AgentSpec { Agent = agentData }
+                Spec = new CombinedAgentSpec 
+                { 
+                    Agent = agentData,
+                    Tools = toolsData
+                }
             };
 
             // Serialize to YAML
             var serializer = new SerializerBuilder()
                 .WithNamingConvention(UnderscoredNamingConvention.Instance)
                 .Build();
-            var wrappedYamlContent = serializer.Serialize(agentWrapper);
+            var wrappedYamlContent = serializer.Serialize(combinedWrapper);
 
             // Create the request
             var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/apply";
@@ -320,7 +370,9 @@ public class ApiService : IDisposable
 
             if (response.IsSuccessStatusCode)
             {
-                return (true, $"✅ Agent '{agentName}' applied successfully!");
+                var toolCount = toolsData.Count;
+                var toolsMessage = toolCount > 0 ? $" and {toolCount} referenced tool(s)" : "";
+                return (true, $"✅ Agent '{agentName}'{toolsMessage} applied successfully!");
             }
             else
             {
@@ -1476,6 +1528,21 @@ public class AgentSpec
 
 public class ToolSpec
 {
+    public List<object> Tools { get; set; } = new List<object>();
+}
+
+// New wrapper for combined agent and tools
+public class CombinedAgentWrapper
+{
+    public string ApiVersion { get; set; } = "agent.platform.ai/v1";
+    public string Kind { get; set; } = "AgentConfiguration";
+    public YamlMetadata Metadata { get; set; } = new YamlMetadata();
+    public CombinedAgentSpec Spec { get; set; } = new CombinedAgentSpec();
+}
+
+public class CombinedAgentSpec
+{
+    public object Agent { get; set; } = new object();
     public List<object> Tools { get; set; } = new List<object>();
 }
 

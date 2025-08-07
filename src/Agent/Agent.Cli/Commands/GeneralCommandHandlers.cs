@@ -43,7 +43,6 @@ public static class GeneralCommandHandlers
             // Create directory structure
             Directory.CreateDirectory("agents");
             Directory.CreateDirectory("tools");
-            Directory.CreateDirectory("connectors");
 
             // Copy example files
             await ExampleFileManager.CopyExampleFilesAsync();
@@ -54,8 +53,8 @@ public static class GeneralCommandHandlers
             Console.WriteLine($"✅ SREAgent CLI initialized successfully!");
             Console.WriteLine($"   Resource URL: {resourceUrl}");
             Console.WriteLine($"   Auth Required: {config.AuthRequired}");
-            Console.WriteLine($"   Created directories: agents/, tools/, connectors/, .github/");
-            Console.WriteLine($"   Added example files in each directory");
+            Console.WriteLine($"   Created directories: agents/, tools/, .github/");
+            Console.WriteLine($"   Added example files: example_agent.yaml, example_tool.yaml");
             Console.WriteLine($"   Created comprehensive instructions file: .github/instructions.md");
 
             // Test connection

@@ -43,6 +43,10 @@ public static class AgentCommandOptions
     // Agent options for validate (not required)
     public static readonly Option<string> FileOptionValidate = new("--file");
     public static readonly Option<bool> AllOption = new("--all");
+    public static readonly Option<bool> CheckToolsOption = new("--check-tools")
+    {
+        Description = "Validate that all referenced tools exist locally or on the remote server"
+    };
 
     // Agent options for apply
     public static readonly Option<string> ApplyNameOption = new("--name") { Required = true };

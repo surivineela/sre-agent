@@ -1,13 +1,42 @@
 using Agent.Framework;
+using Agent.Cli.Services;
 
 namespace Agent.Cli.Validations;
 
 public static class AgentDescriptorValidation
 {
+    /// <summary>
+    /// Validates an agent descriptor without checking tool existence.
+    /// This is the basic validation for YAML structure and basic constraints.
+    /// </summary>
     public static void ValidateAgentDescriptor(IAgentDescriptor? agentDescriptor, out List<string> errors)
     {
         errors = new List<string>();
-        
+        ValidateBasicConstraints(agentDescriptor, errors);
+    }
+
+    /// <summary>
+    /// Validates an agent descriptor with optional tool existence checking.
+    /// </summary>
+    /// <param name="agentDescriptor">The agent descriptor to validate</param>
+    /// <param name="toolAvailabilityService">Service for checking tool existence (null to skip tool existence validation)</param>
+    /// <param name="errors">List of validation errors</param>
+    public static async Task ValidateAgentDescriptorAsync(IAgentDescriptor? agentDescriptor, ToolAvailabilityService? toolAvailabilityService, List<string> errors)
+    {
+        ValidateBasicConstraints(agentDescriptor, errors);
+
+        // Check tool existence if service is provided and there are tools to check
+        if (toolAvailabilityService != null && agentDescriptor?.Tools != null && agentDescriptor.Tools.Count > 0)
+        {
+            await ValidateToolExistenceAsync(agentDescriptor.Tools, toolAvailabilityService, errors);
+        }
+    }
+
+    /// <summary>
+    /// Validates basic constraints without tool existence checking.
+    /// </summary>
+    private static void ValidateBasicConstraints(IAgentDescriptor? agentDescriptor, List<string> errors)
+    {
         if (agentDescriptor is null)
         {
             errors.Add("Agent descriptor is null.");
@@ -125,6 +154,72 @@ public static class AgentDescriptorValidation
                 {
                     errors.Add("Tool description in agents_as_tools cannot be empty.");
                 }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Validates that all tools referenced by the agent exist either locally or on the remote server.
+    /// </summary>
+    private static async Task ValidateToolExistenceAsync(List<string> toolNames, ToolAvailabilityService toolAvailabilityService, List<string> errors)
+    {
+        try
+        {
+            var (localTools, remoteTools, remoteErrors) = await toolAvailabilityService.GetAvailableToolsAsync();
+            var allAvailableTools = new HashSet<string>(localTools);
+            foreach (var tool in remoteTools)
+            {
+                allAvailableTools.Add(tool);
+            }
+
+            var missingTools = new List<string>();
+
+            foreach (var toolName in toolNames)
+            {
+                if (!allAvailableTools.Contains(toolName))
+                {
+                    missingTools.Add(toolName);
+                }
+            }
+
+            if (missingTools.Count > 0)
+            {
+                errors.Add($"The following tools are not available locally or remotely: {string.Join(", ", missingTools)}");
+            }
+
+            // If there were remote errors but we couldn't get all tools, add a warning
+            if (remoteErrors.Count > 0)
+            {
+                foreach (var error in remoteErrors)
+                {
+                    errors.Add($"Warning: {error}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            // If we can't check remote tools (e.g., server not reachable), still validate local tools
+            try
+            {
+                var localTools = toolAvailabilityService.GetLocalTools();
+                var missingLocalTools = new List<string>();
+
+                foreach (var toolName in toolNames)
+                {
+                    if (!localTools.Contains(toolName))
+                    {
+                        missingLocalTools.Add(toolName);
+                    }
+                }
+
+                if (missingLocalTools.Count > 0)
+                {
+                    errors.Add($"Unable to verify remote tools (server may be unreachable: {ex.Message}). The following tools are missing locally: {string.Join(", ", missingLocalTools)}. Ensure these tools exist locally or verify server connectivity.");
+                }
+            }
+            catch (Exception localEx)
+            {
+                errors.Add($"Unable to validate tool existence: {localEx.Message}");
             }
         }
     }

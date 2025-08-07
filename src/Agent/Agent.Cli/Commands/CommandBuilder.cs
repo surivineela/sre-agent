@@ -103,11 +103,12 @@ public static class CommandBuilder
         var agentValidate = new Command("validate", "Validate an agent")
         {
             AgentCommandOptions.FileOptionValidate,
-            AgentCommandOptions.AllOption
+            AgentCommandOptions.AllOption,
+            AgentCommandOptions.CheckToolsOption
         };
-        agentValidate.SetAction(parseResult => 
+        agentValidate.SetAction(async parseResult => 
         {
-            AgentCommandHandlers.HandleValidateCommand(parseResult);
+            await AgentCommandHandlers.HandleValidateCommand(parseResult);
         });
         return agentValidate;
     }

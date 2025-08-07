@@ -110,18 +110,19 @@ public static class AgentCommandHandlers
     /// <summary>
     /// Handles the agent validate command.
     /// </summary>
-    public static void HandleValidateCommand(ParseResult parseResult)
+    public static async Task HandleValidateCommand(ParseResult parseResult)
     {
         var validateAll = parseResult.GetValue(AgentCommandOptions.AllOption);
         var filePath = parseResult.GetValue(AgentCommandOptions.FileOptionValidate);
+        var checkTools = parseResult.GetValue(AgentCommandOptions.CheckToolsOption);
 
         if (validateAll)
         {
-            ValidateAllAgents();
+            await ValidateAllAgentsAsync(checkTools);
         }
         else if (!string.IsNullOrWhiteSpace(filePath))
         {
-            ValidateSingleAgent(filePath);
+            await ValidateSingleAgentAsync(filePath, checkTools);
         }
         else
         {
@@ -147,7 +148,7 @@ public static class AgentCommandHandlers
     /// <summary>
     /// Validates all agent YAML files in the agents directory.
     /// </summary>
-    private static void ValidateAllAgents()
+    private static async Task ValidateAllAgentsAsync(bool checkTools = false)
     {
         var agentsDir = "agents";
         if (!Directory.Exists(agentsDir))
@@ -163,6 +164,14 @@ public static class AgentCommandHandlers
             Environment.Exit(1);
         }
 
+        ToolAvailabilityService? toolService = null;
+        ApiService? apiService = null;
+        if (checkTools)
+        {
+            apiService = new ApiService();
+            toolService = new ToolAvailabilityService(apiService);
+        }
+
         bool allValid = true;
         foreach (var file in files)
         {
@@ -170,8 +179,17 @@ public static class AgentCommandHandlers
             {
                 var yaml = File.ReadAllText(file, Encoding.UTF8);
                 var agent = AgentFactory<object>.LoadAgentFromYaml(yaml);
+                var errors = new List<string>();
 
-                AgentDescriptorValidation.ValidateAgentDescriptor(agent, out var errors);
+                if (checkTools)
+                {
+                    await AgentDescriptorValidation.ValidateAgentDescriptorAsync(agent, toolService, errors);
+                }
+                else
+                {
+                    AgentDescriptorValidation.ValidateAgentDescriptor(agent, out errors);
+                }
+
                 if (errors.Count == 0)
                 {
                     Console.WriteLine($"✅ {file}: Validation succeeded.");
@@ -191,6 +209,9 @@ public static class AgentCommandHandlers
             }
         }
 
+        // Dispose the API service if we created one
+        apiService?.Dispose();
+
         if (allValid)
             Console.WriteLine("All agent YAML files are valid.");
         else
@@ -200,7 +221,7 @@ public static class AgentCommandHandlers
         }
     }
 
-    private static void ValidateSingleAgent(string filePath)
+    private static async Task ValidateSingleAgentAsync(string filePath, bool checkTools = false)
     {
         if (!File.Exists(filePath))
         {
@@ -208,12 +229,29 @@ public static class AgentCommandHandlers
             Environment.Exit(1);
         }
 
+        ToolAvailabilityService? toolService = null;
+        ApiService? apiService = null;
+        if (checkTools)
+        {
+            apiService = new ApiService();
+            toolService = new ToolAvailabilityService(apiService);
+        }
+
         try
         {
             var yaml = File.ReadAllText(filePath, Encoding.UTF8);
             var agent = AgentFactory<object>.LoadAgentFromYaml(yaml);
+            var errors = new List<string>();
 
-            AgentDescriptorValidation.ValidateAgentDescriptor(agent, out var errors);
+            if (checkTools)
+            {
+                await AgentDescriptorValidation.ValidateAgentDescriptorAsync(agent, toolService, errors);
+            }
+            else
+            {
+                AgentDescriptorValidation.ValidateAgentDescriptor(agent, out errors);
+            }
+
             if (errors.Count == 0)
             {
                 Console.WriteLine("✅ Agent validation succeeded.");
@@ -230,6 +268,11 @@ public static class AgentCommandHandlers
         {
             Console.WriteLine($"❌ Exception during validation: {ex.Message}");
             Environment.Exit(1);
+        }
+        finally
+        {
+            // Dispose the API service if we created one
+            apiService?.Dispose();
         }
     }
 }
