@@ -1,4 +1,3 @@
-using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -15,17 +14,20 @@ public class SourceCodeAnalysisPlugin : ISourceCodeAnalysisPlugin
     private readonly IGithubIssuePlugin _githubIssuePlugin;
     private readonly ILogger<SourceCodeAnalysisPlugin> _logger;
     private static readonly HttpClient _httpClient = new();
+    
+    private static readonly HashSet<string> SensitiveHeaders = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Authorization",
+        "X-GitHub-Token",
+        "Cookie",
+        "Set-Cookie"
+    };
 
     public SourceCodeAnalysisPlugin(Models.GitHubClient gitHubClient, ILogger<SourceCodeAnalysisPlugin> logger, IGithubIssuePlugin githubIssuePlugin)
     {
         _gitHubClient = gitHubClient.Client;
         _githubIssuePlugin = githubIssuePlugin;
         _logger = logger;
-
-        if (_gitHubClient.Credentials != null && !string.IsNullOrEmpty(_gitHubClient.Credentials.Password))
-        {
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _gitHubClient.Credentials.Password);
-        }
     }
 
     public async Task<string> QueryRepositoryBasedOnError(string resourceId, string errorDescription)
@@ -50,6 +52,38 @@ public class SourceCodeAnalysisPlugin : ISourceCodeAnalysisPlugin
         });
 
         return string.Join("\n---\n", resultStrings);
+    }
+    
+    private void LogHttpResponse(HttpResponseMessage response, string apiName, string responseContent = "")
+    {
+        // Log response status
+        _logger.LogInternalInformation("{ApiName} Response - Status Code: {StatusCode}", apiName, response.StatusCode);
+        _logger.LogInternalInformation("{ApiName} Response - Reason Phrase: {ReasonPhrase}", apiName, response.ReasonPhrase);
+        
+        // Log response headers (excluding sensitive ones)
+        _logger.LogInternalInformation("{ApiName} Response Headers:", apiName);
+        foreach (var header in response.Headers)
+        {
+            var headerValue = SensitiveHeaders.Contains(header.Key) ? "[REDACTED]" : string.Join(", ", header.Value);
+            _logger.LogInternalInformation("  {HeaderName}: {HeaderValue}", header.Key, headerValue);
+        }
+        
+        // Log content headers if they exist (excluding sensitive ones)
+        if (response.Content?.Headers != null)
+        {
+            _logger.LogInternalInformation("{ApiName} Content Headers:", apiName);
+            foreach (var header in response.Content.Headers)
+            {
+                var headerValue = SensitiveHeaders.Contains(header.Key) ? "[REDACTED]" : string.Join(", ", header.Value);
+                _logger.LogInternalInformation("  {HeaderName}: {HeaderValue}", header.Key, headerValue);
+            }
+        }
+        
+        // Log response content if provided
+        if (!string.IsNullOrEmpty(responseContent))
+        {
+            _logger.LogInternalInformation("{ApiName} Response Content: {ResponseContent}", apiName, responseContent);
+        }
     }
 
     public async Task<IReadOnlyList<SemanticSearchResult>> GetSemanticSearchResult(string resourceId, string query)
@@ -101,6 +135,9 @@ public class SourceCodeAnalysisPlugin : ISourceCodeAnalysisPlugin
         request.Headers.UserAgent.Add(new ProductInfoHeaderValue("GitHubEmbeddingSearchClient", "1.0"));
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         request.Headers.Add("X-GitHub-Api-Version", "2024-05-14");
+        string password = _gitHubClient.Credentials?.Password ?? throw new InvalidOperationException($"GitHub credentials are not set - please ensure the GitHub repository {repoUrl} is connected.");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", password); 
+
         request.Content = new StringContent(JsonSerializer.Serialize(new SemanticSearchRequest
         {
             Prompt = query,
@@ -111,11 +148,16 @@ public class SourceCodeAnalysisPlugin : ISourceCodeAnalysisPlugin
         try
         {
             var response = await _httpClient.SendAsync(request);
-            response.EnsureSuccessStatusCode();
             var responseString = await response.Content.ReadAsStringAsync();
+            
+            // Log all response details using helper method
+            LogHttpResponse(response, "GitHub Embeddings API", responseString);
+            
+            response.EnsureSuccessStatusCode();
+            
             var res = JsonSerializer.Deserialize<SemanticSearchResponse>(responseString, new JsonSerializerOptions
             {
-            PropertyNameCaseInsensitive = true
+                PropertyNameCaseInsensitive = true
             });
 
             return res?.Results ?? new List<SemanticSearchResult>();
@@ -137,9 +179,13 @@ public class SourceCodeAnalysisPlugin : ISourceCodeAnalysisPlugin
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
             request.Headers.UserAgent.ParseAdd("IndexingStatusClient/1.0");
-
+            string password = _gitHubClient.Credentials?.Password ?? throw new InvalidOperationException($"GitHub credentials are not set - please ensure the GitHub repository {repoUrl} is connected.");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", password); 
             var response = await _httpClient.SendAsync(request);
             var responseContent = await response.Content.ReadAsStringAsync();
+            
+            // Log all response details using helper method
+            LogHttpResponse(response, "Repository Index Status API", responseContent);
 
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
@@ -161,7 +207,7 @@ public class SourceCodeAnalysisPlugin : ISourceCodeAnalysisPlugin
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Error checking repository index status", repoUrl);
-            throw;
+            return false;
         }
     }
 
@@ -175,8 +221,15 @@ public class SourceCodeAnalysisPlugin : ISourceCodeAnalysisPlugin
             // GitHub API requires User-Agent and Authorization headers
             using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
             request.Headers.UserAgent.ParseAdd("RepositoryIndexer/1.0");
+            string password = _gitHubClient.Credentials?.Password ?? throw new InvalidOperationException($"GitHub credentials are not set - please ensure the GitHub repository {repoUrl} is connected.");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", password);
 
             var response = await _httpClient.SendAsync(request);
+            var responseContent = await response.Content.ReadAsStringAsync();
+            
+            // Log all response details using helper method
+            LogHttpResponse(response, "Force Repository Indexing API", responseContent);
+            
             var responseStatus = response.StatusCode switch
             {
                 System.Net.HttpStatusCode.Created => "Indexing task queued successfully (201 Created).",
@@ -200,7 +253,7 @@ public class SourceCodeAnalysisPlugin : ISourceCodeAnalysisPlugin
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Error forcing repository indexing", repoUrl);
-            throw;
+            return $"Error occurred while forcing repository indexing: {ex.Message}";
         }
     }
 
