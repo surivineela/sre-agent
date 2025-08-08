@@ -6,7 +6,6 @@ using System.Collections.Concurrent;
 using System.Reflection;
 using System.Text.Json;
 using Agent.Core.Attributes;
-using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
@@ -89,12 +88,19 @@ public sealed class IncidentInvestigationTaskHandler(
 
             if (isACAAgent)
             {
-                var allAgents = YamlHelper.LoadAgentsFromYamlDirectories(["AgentsV2\\ACA-FirstParty\\"], "RCA");
+                var allAgents = YamlHelper.LoadAgentsFromYamlDirectories(
+                    new List<string> { Path.Combine("AgentsV2", "ACA-FirstParty") },
+                    "RCA"
+                );
                 toolSubset = allAgents.SelectMany(agent => agent.Tools)
                     .Distinct()
                     .ToList();
+
+                logger.LogInternalInformation($"Successfully loaded {allAgents.Count} agents");
+
                 // Common tools
                 toolSubset.AddRange(["OneLinerToRCA", "GetASIPageForManagedCluster", "GetASIPageForContainerAppJob", "GetASIPageForManagedEnvironment", "GetASIPageForRevision", "PlotTimeSeriesData", "HandoffBack"]);
+                logger.LogInternalInformation($"Complete tool subset: [{string.Join(", ", toolSubset.Distinct())}]");
             }
 
             using var tracingHelper = new TracingHelper(tracer, context.ThreadId.ToString(), nameof(AgentTaskType.IncidentInvestigation));
@@ -151,7 +157,11 @@ public sealed class IncidentInvestigationTaskHandler(
 
                     ValidateAndAddRequiredTools(toolNames);
 
-                    logger.LogInternalInformation("Tool selection agent selected tools number: {ToolCount}", toolNames.Count);
+                    logger.LogInternalInformation(
+                        "Tool selection agent selected {ToolCount} tools: [{Tools}]",
+                        toolNames.Count,
+                        string.Join(", ", toolNames)
+                    );
 
                     state.InitialInvestigation.StatusMessage = $"Selected {toolNames.Count} investigation tools, beginning analysis...";
                     state = await SaveStateAndStreamUpdateAsync(cancellationToken: cancellationToken);
