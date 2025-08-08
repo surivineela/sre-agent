@@ -288,39 +288,62 @@ public class ApiService : IDisposable
                 toolNames = toolsList.Cast<string>().ToList();
             }
 
-            // Load referenced tool YAML files
-            var toolsData = new List<object>();
-            var missingTools = new List<string>();
-            foreach (var toolName in toolNames)
-            {
-                var toolFilePath = Path.Combine("tools", $"{toolName}.yaml");
-                if (!File.Exists(toolFilePath))
-                {
-                    // Try the subdirectory structure
-                    var toolFilePathSubdir = Path.Combine("tools", toolName, $"{toolName}.yaml");
-                    if (File.Exists(toolFilePathSubdir))
-                    {
-                        toolFilePath = toolFilePathSubdir;
-                    }
-                    else
-                    {
-                        Console.WriteLine($"⚠️  Tool file not found: {toolFilePath} or {toolFilePathSubdir}");
-                        missingTools.Add(toolName);
-                        continue;
-                    }
-                }
+            // Get available tools from local and remote sources
+            var toolAvailabilityService = new ToolAvailabilityService(this);
+            var (localTools, remoteTools, errors) = await toolAvailabilityService.GetAvailableToolsAsync();
 
-                var toolYamlContent = await File.ReadAllTextAsync(toolFilePath);
-                var toolData = deserializer.Deserialize<object>(toolYamlContent);
-                toolsData.Add(toolData);
-                Console.WriteLine($"📦 Loaded tool: {toolName}");
+            // DEBUG: Log the results
+            Console.WriteLine($"🔍 DEBUG: Found {localTools.Count} local tools: {string.Join(", ", localTools.Take(5))}...");
+            Console.WriteLine($"🔍 DEBUG: Found {remoteTools.Count} remote tools: {string.Join(", ", remoteTools.Take(5))}...");
+            if (errors.Any())
+            {
+                Console.WriteLine($"🔍 DEBUG: Errors: {string.Join("; ", errors)}");
             }
 
-            // If there are missing tools, fail the apply operation
-            if (missingTools.Count > 0)
+            // Load available tool YAML files locally and track missing tools
+            var toolsData = new List<object>();
+            var missingLocallyButRemote = new List<string>();
+            var completelyMissingTools = new List<string>();
+
+            foreach (var toolName in toolNames)
             {
-                var missingToolsList = string.Join(", ", missingTools);
-                return (false, $"❌ Cannot apply agent '{agentName}': Referenced tools not found: {missingToolsList}. Please create the missing tools first.");
+                // Check if tool exists locally first
+                if (localTools.Contains(toolName))
+                {
+                    var toolFilePath = Path.Combine("tools", $"{toolName}.yaml");
+                    if (!File.Exists(toolFilePath))
+                    {
+                        // Try the subdirectory structure
+                        toolFilePath = Path.Combine("tools", toolName, $"{toolName}.yaml");
+                    }
+
+                    if (File.Exists(toolFilePath))
+                    {
+                        var toolYamlContent = await File.ReadAllTextAsync(toolFilePath);
+                        var toolData = deserializer.Deserialize<object>(toolYamlContent);
+                        toolsData.Add(toolData);
+                        Console.WriteLine($"📦 Loaded tool: {toolName}");
+                    }
+                }
+                else if (remoteTools.Contains(toolName))
+                {
+                    // Tool exists on server but not locally - this is okay
+                    missingLocallyButRemote.Add(toolName);
+                    Console.WriteLine($"🌐 Tool '{toolName}' exists on server (not loading locally)");
+                }
+                else
+                {
+                    // Tool doesn't exist locally or remotely
+                    completelyMissingTools.Add(toolName);
+                    Console.WriteLine($"⚠️  Tool '{toolName}' not found locally or on server");
+                }
+            }
+
+            // Only fail if tools are completely missing (not available locally or remotely)
+            if (completelyMissingTools.Count > 0)
+            {
+                var missingToolsList = string.Join(", ", completelyMissingTools);
+                return (false, $"❌ Cannot apply agent '{agentName}': Referenced tools not found: {missingToolsList}. Please create the missing tools first or ensure they exist on the server.");
             }
 
             // Create the combined wrapper with agent and tools
@@ -370,8 +393,27 @@ public class ApiService : IDisposable
 
             if (response.IsSuccessStatusCode)
             {
-                var toolCount = toolsData.Count;
-                var toolsMessage = toolCount > 0 ? $" and {toolCount} referenced tool(s)" : "";
+                var localToolCount = toolsData.Count;
+                var remoteToolCount = missingLocallyButRemote.Count;
+                var totalToolCount = localToolCount + remoteToolCount;
+                
+                var toolsMessage = "";
+                if (totalToolCount > 0)
+                {
+                    if (localToolCount > 0 && remoteToolCount > 0)
+                    {
+                        toolsMessage = $" with {localToolCount} local tool(s) and {remoteToolCount} server tool(s)";
+                    }
+                    else if (localToolCount > 0)
+                    {
+                        toolsMessage = $" and {localToolCount} referenced tool(s)";
+                    }
+                    else if (remoteToolCount > 0)
+                    {
+                        toolsMessage = $" with {remoteToolCount} server tool(s)";
+                    }
+                }
+                
                 return (true, $"✅ Agent '{agentName}'{toolsMessage} applied successfully!");
             }
             else
@@ -601,85 +643,22 @@ public class ApiService : IDisposable
 
             if (response.IsSuccessStatusCode)
             {
-                // Parse the response to handle both new nested structure and legacy array
-                JsonElement[] tools;
-                
-                try
-                {
-                    var jsonDoc = JsonDocument.Parse(content);
-                    
-                    // Check if response has the new nested structure
-                    if (jsonDoc.RootElement.TryGetProperty("data", out var dataElement) && 
-                        dataElement.ValueKind == JsonValueKind.Object &&
-                        dataElement.TryGetProperty("tools", out var toolsElement) &&
-                        toolsElement.ValueKind == JsonValueKind.Array)
-                    {
-                        // New nested structure: { "data": { "tools": [...], "pagination": {...} } }
-                        tools = toolsElement.EnumerateArray().ToArray();
-                    }
-                    else if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
-                    {
-                        // Legacy structure: direct array
-                        tools = JsonSerializer.Deserialize<JsonElement[]>(content) ?? [];
-                    }
-                    else
-                    {
-                        return (false, $"❌ Unexpected response format: {content}");
-                    }
-                }
-                catch
-                {
-                    // Fallback to legacy parsing
-                    tools = JsonSerializer.Deserialize<JsonElement[]>(content) ?? [];
-                }
+                // Parse the response using the shared tool response parser
+                var toolElements = ToolResponseParser.ParseToolElements(content);
                 
                 var toolList = new List<string>();
                 toolList.Add("🔧 Available Tools:");
                 toolList.Add("==================");
                 
-                foreach (var tool in tools)
-                {
-                    var name = tool.TryGetProperty("name", out var nameElement) ? nameElement.GetString() ?? "Unknown" : "Unknown";
-                    var category = tool.TryGetProperty("category", out var categoryElement) ? categoryElement.GetString() ?? "" : "";
-                    var description = tool.TryGetProperty("description", out var descElement) ? descElement.GetString() ?? "" : "";
-                    var pluginName = tool.TryGetProperty("pluginName", out var pluginElement) ? pluginElement.GetString() ?? "" : "";
-                    
-                    toolList.Add($"\n🛠️  {name}");
-                    if (!string.IsNullOrEmpty(category))
-                    {
-                        toolList.Add($"   Category: {category}");
-                    }
-                    if (!string.IsNullOrEmpty(description))
-                    {
-                        toolList.Add($"   Description: {description}");
-                    }
-                    if (!string.IsNullOrEmpty(pluginName))
-                    {
-                        toolList.Add($"   Plugin: {pluginName}");
-                    }
-                    
-                    // Get parameters
-                    if (tool.TryGetProperty("parameters", out var paramsElement) && paramsElement.ValueKind == JsonValueKind.Array)
-                    {
-                        var parameters = paramsElement.EnumerateArray().Select(p => p.GetString()).Where(p => !string.IsNullOrEmpty(p)).ToList();
-                        if (parameters.Any())
-                        {
-                            toolList.Add($"   Parameters: {string.Join(", ", parameters)}");
-                        }
-                        else
-                        {
-                            toolList.Add("   Parameters: None");
-                        }
-                    }
-                }
-
-                if (tools.Length == 0)
+                if (toolElements.Length == 0)
                 {
                     toolList.Add("\nNo tools found on the server.");
                 }
                 else
                 {
-                    toolList.Add($"\nTotal: {tools.Length} tool(s)");
+                    var toolDisplayInfo = ToolResponseParser.ExtractToolDisplayInfo(toolElements);
+                    toolList.AddRange(toolDisplayInfo);
+                    toolList.Add($"\nTotal: {toolElements.Length} tool(s)");
                 }
 
                 return (true, string.Join("\n", toolList));
@@ -724,153 +703,26 @@ public class ApiService : IDisposable
 
             if (response.IsSuccessStatusCode)
             {
-                // Parse the response to get tool information from different possible structures
-                var jsonDoc = JsonDocument.Parse(content);
-                
-                JsonElement tools = default;
-                bool foundTools = false;
-                
-                // Try different response structure patterns
-                if (jsonDoc.RootElement.TryGetProperty("data", out var dataElement))
-                {
-                    // Pattern 1: { "data": { "tools": [...] } } - ExtendedToolsListResponse style
-                    if (dataElement.ValueKind == JsonValueKind.Object && 
-                        dataElement.TryGetProperty("tools", out tools) && tools.ValueKind == JsonValueKind.Array)
-                    {
-                        foundTools = true;
-                    }
-                    // Pattern 2: { "data": [...] } - PaginatedResponse style (actual current API)
-                    else if (dataElement.ValueKind == JsonValueKind.Array)
-                    {
-                        tools = dataElement;
-                        foundTools = true;
-                    }
-                }
-                // Pattern 3: { "tools": [...] } - Direct tools property
-                else if (jsonDoc.RootElement.TryGetProperty("tools", out tools) && tools.ValueKind == JsonValueKind.Array)
-                {
-                    foundTools = true;
-                }
-                // Pattern 4: [...] - Direct array (legacy)
-                else if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
-                {
-                    tools = jsonDoc.RootElement;
-                    foundTools = true;
-                }
-                
-                if (!foundTools)
-                {
-                    return (false, $"❌ Unexpected response format - no tools array found: {content}");
-                }
+                // Parse the response using the shared tool response parser
+                var toolElements = ToolResponseParser.ParseToolElements(content);
                 
                 var toolList = new List<string>();
                 toolList.Add("🔧 Extended Tools:");
                 toolList.Add("==================");
                 
-                foreach (var tool in tools.EnumerateArray())
-                {
-                    var name = tool.TryGetProperty("name", out var nameElement) ? nameElement.GetString() ?? "Unknown" : "Unknown";
-                    var description = tool.TryGetProperty("description", out var descElement) ? descElement.GetString() ?? "" : "";
-                    var type = tool.TryGetProperty("type", out var typeElement) ? typeElement.GetString() ?? "" : "";
-                    var createdAt = tool.TryGetProperty("created_at", out var createdElement) ? createdElement.GetString() ?? "" : "";
-                    var updatedAt = tool.TryGetProperty("updated_at", out var updatedElement) ? updatedElement.GetString() ?? "" : "";
-                    
-                    toolList.Add($"\n🛠️  {name}");
-                    if (!string.IsNullOrEmpty(description))
-                    {
-                        toolList.Add($"   Description: {description}");
-                    }
-                    if (!string.IsNullOrEmpty(type))
-                    {
-                        toolList.Add($"   Type: {type}");
-                    }
-                    if (!string.IsNullOrEmpty(createdAt))
-                    {
-                        toolList.Add($"   Created: {createdAt}");
-                    }
-                    if (!string.IsNullOrEmpty(updatedAt))
-                    {
-                        toolList.Add($"   Updated: {updatedAt}");
-                    }
-                    
-                    // Get parameters if available
-                    if (tool.TryGetProperty("parameters", out var paramsElement))
-                    {
-                        if (paramsElement.ValueKind == JsonValueKind.Array)
-                        {
-                            var parameters = new List<string>();
-                            foreach (var param in paramsElement.EnumerateArray())
-                            {
-                                if (param.ValueKind == JsonValueKind.String)
-                                {
-                                    var paramStr = param.GetString();
-                                    if (!string.IsNullOrEmpty(paramStr))
-                                    {
-                                        parameters.Add(paramStr);
-                                    }
-                                }
-                                else if (param.ValueKind == JsonValueKind.Object)
-                                {
-                                    // Handle parameter object structure - extract the name
-                                    var paramName = param.TryGetProperty("name", out var paramNameElement) ? paramNameElement.GetString() ?? "" : "";
-                                    if (!string.IsNullOrEmpty(paramName))
-                                    {
-                                        parameters.Add(paramName);
-                                    }
-                                }
-                            }
-                            if (parameters.Any())
-                            {
-                                toolList.Add($"   Parameters: {string.Join(", ", parameters)}");
-                            }
-                        }
-                        else if (paramsElement.ValueKind == JsonValueKind.Object)
-                        {
-                            // Handle parameter object structure
-                            var paramNames = new List<string>();
-                            foreach (var param in paramsElement.EnumerateObject())
-                            {
-                                paramNames.Add(param.Name);
-                            }
-                            if (paramNames.Any())
-                            {
-                                toolList.Add($"   Parameters: {string.Join(", ", paramNames)}");
-                            }
-                        }
-                    }
-                    
-                    // Get connector info if available
-                    if (tool.TryGetProperty("connector", out var connectorElement))
-                    {
-                        if (connectorElement.ValueKind == JsonValueKind.String)
-                        {
-                            var connectorType = connectorElement.GetString() ?? "";
-                            if (!string.IsNullOrEmpty(connectorType))
-                            {
-                                toolList.Add($"   Connector: {connectorType}");
-                            }
-                        }
-                        else if (connectorElement.ValueKind == JsonValueKind.Object)
-                        {
-                            // Handle connector object structure
-                            var connectorType = connectorElement.TryGetProperty("type", out var connectorTypeElement) ? connectorTypeElement.GetString() ?? "" : "";
-                            if (!string.IsNullOrEmpty(connectorType))
-                            {
-                                toolList.Add($"   Connector: {connectorType}");
-                            }
-                        }
-                    }
-                }
-
-                if (tools.GetArrayLength() == 0)
+                if (toolElements.Length == 0)
                 {
                     toolList.Add("\nNo extended tools found on the server.");
                     toolList.Add("Use 'srectl tool apply <tool-name>' to add tools to the server.");
                 }
                 else
                 {
-                    // Get pagination info from different response structures
-                    int totalCount = tools.GetArrayLength(); // Default fallback
+                    var extendedToolDisplayInfo = ToolResponseParser.ExtractExtendedToolDisplayInfo(toolElements);
+                    toolList.AddRange(extendedToolDisplayInfo);
+                    
+                    // Get pagination info from the original response structure
+                    var jsonDoc = JsonDocument.Parse(content);
+                    int totalCount = toolElements.Length; // Default fallback
                     bool hasMore = false;
                     int pageSize = 50;
                     int pageIndex = 0;
@@ -920,7 +772,7 @@ public class ApiService : IDisposable
                     // Add pagination info if available
                     if (hasMore || pageIndex > 0)
                     {
-                        var currentPageTools = tools.GetArrayLength();
+                        var currentPageTools = toolElements.Length;
                         var startIndex = pageIndex * pageSize + 1;
                         var endIndex = startIndex + currentPageTools - 1;
                         toolList.Add($"Showing tools {startIndex}-{endIndex} of {totalCount} (page {pageIndex + 1})");
@@ -1492,6 +1344,30 @@ public class ApiService : IDisposable
     public void Dispose()
     {
         _httpClient?.Dispose();
+    }
+
+    /// <summary>
+    /// Gets the configuration for internal service use.
+    /// </summary>
+    public async Task<Agent.Cli.Models.CliConfiguration?> GetConfigurationAsync()
+    {
+        return await _configService.LoadConfigurationAsync();
+    }
+
+    /// <summary>
+    /// Gets the HTTP client for internal service use.
+    /// </summary>
+    public HttpClient GetHttpClient()
+    {
+        return _httpClient;
+    }
+
+    /// <summary>
+    /// Gets an access token for internal service use.
+    /// </summary>
+    public async Task<string?> GetAccessTokenForInternalUseAsync()
+    {
+        return await GetAccessTokenAsync();
     }
 }
 

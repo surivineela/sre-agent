@@ -1,5 +1,7 @@
 using System.Text.Json;
+using System.Net.Http.Headers;
 using Agent.Cli.Services;
+using Agent.Cli.Models;
 
 namespace Agent.Cli.Services;
 
@@ -70,169 +72,134 @@ public class ToolAvailabilityService
         var remoteTools = new HashSet<string>();
         var errors = new List<string>();
 
-        try
+        // Get tools from regular tools API (get raw JSON, not formatted output)
+        var (toolsSuccess, toolsResponse) = await GetRawToolsJsonAsync();
+        Console.WriteLine($"🔍 DEBUG ToolAvailabilityService: Regular tools API - Success: {toolsSuccess}, Response length: {toolsResponse?.Length ?? 0}");
+        if (toolsSuccess && !string.IsNullOrEmpty(toolsResponse))
         {
-            // Get tools from regular tools API
-            var (toolsSuccess, toolsResponse) = await _apiService.ListToolsAsync();
-            if (toolsSuccess)
+            var toolNames = ToolResponseParser.ParseToolNames(toolsResponse);
+            Console.WriteLine($"🔍 DEBUG ToolAvailabilityService: Parsed {toolNames.Count} regular tools");
+            foreach (var toolName in toolNames)
             {
-                var toolNames = ParseToolNamesFromResponse(toolsResponse);
-                foreach (var toolName in toolNames)
-                {
-                    remoteTools.Add(toolName);
-                }
-            }
-            else if (!toolsResponse.Contains("Configuration not found"))
-            {
-                // Only add as error if it's not a configuration issue (server might be unavailable)
-                errors.Add($"Failed to retrieve regular tools: {toolsResponse}");
+                remoteTools.Add(toolName);
             }
         }
-        catch (Exception ex)
+        else if (!string.IsNullOrEmpty(toolsResponse) && !toolsResponse.Contains("Configuration not found"))
         {
-            errors.Add($"Error retrieving regular tools: {ex.Message}");
+            // Only add as error if it's not a configuration issue (server might be unavailable)
+            errors.Add($"Failed to retrieve regular tools: {toolsResponse ?? "null response"}");
         }
 
-        try
+        // Get tools from extended tools API (get raw JSON for parsing)
+        var (extendedSuccess, extendedResponse) = await GetRawExtendedToolsJsonAsync();
+        Console.WriteLine($"🔍 DEBUG ToolAvailabilityService: Extended tools API - Success: {extendedSuccess}, Response length: {extendedResponse?.Length ?? 0}");
+        if (extendedSuccess && !string.IsNullOrEmpty(extendedResponse))
         {
-            // Get tools from extended tools API
-            var (extendedSuccess, extendedResponse) = await _apiService.ListExtendedToolsAsync();
-            if (extendedSuccess)
+            var extendedToolNames = ToolResponseParser.ParseToolNames(extendedResponse);
+            Console.WriteLine($"🔍 DEBUG ToolAvailabilityService: Parsed {extendedToolNames.Count} extended tools");
+            foreach (var toolName in extendedToolNames)
             {
-                var extendedToolNames = ParseExtendedToolNamesFromResponse(extendedResponse);
-                foreach (var toolName in extendedToolNames)
-                {
-                    remoteTools.Add(toolName);
-                }
-            }
-            else if (!extendedResponse.Contains("Configuration not found"))
-            {
-                // Only add as error if it's not a configuration issue
-                errors.Add($"Failed to retrieve extended tools: {extendedResponse}");
+                remoteTools.Add(toolName);
             }
         }
-        catch (Exception ex)
+        else if (!string.IsNullOrEmpty(extendedResponse) && !extendedResponse.Contains("Configuration not found"))
         {
-            errors.Add($"Error retrieving extended tools: {ex.Message}");
+            // Only add as error if it's not a configuration issue
+            errors.Add($"Failed to retrieve extended tools: {extendedResponse ?? "null response"}");
         }
 
         return (remoteTools, errors);
     }
 
     /// <summary>
-    /// Parses tool names from the regular tools API response.
+    /// Gets raw JSON response from the regular tools API.
     /// </summary>
-    private HashSet<string> ParseToolNamesFromResponse(string response)
+    private async Task<(bool Success, string Response)> GetRawToolsJsonAsync()
     {
-        var toolNames = new HashSet<string>();
-        
         try
         {
-            var jsonDoc = JsonDocument.Parse(response);
-            
-            JsonElement[] tools;
-            
-            // Check if response has the new nested structure
-            if (jsonDoc.RootElement.TryGetProperty("data", out var dataElement) && 
-                dataElement.ValueKind == JsonValueKind.Object &&
-                dataElement.TryGetProperty("tools", out var toolsElement) &&
-                toolsElement.ValueKind == JsonValueKind.Array)
+            var config = await _apiService.GetConfigurationAsync();
+            if (config == null)
             {
-                // New nested structure: { "data": { "tools": [...], "pagination": {...} } }
-                tools = toolsElement.EnumerateArray().ToArray();
+                return (false, "Configuration not found. Please run 'srectl init' first.");
             }
-            else if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
+
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/incidentplayground/listTools";
+            var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+
+            // Add auth header if not localhost
+            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
             {
-                // Legacy array structure: [...]
-                tools = jsonDoc.RootElement.EnumerateArray().ToArray();
+                var token = await _apiService.GetAccessTokenForInternalUseAsync();
+                if (string.IsNullOrEmpty(token))
+                {
+                    return (false, "Failed to get access token. Please run 'az login' first.");
+                }
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var httpClient = _apiService.GetHttpClient();
+            var response = await httpClient.SendAsync(request);
+            var content = await response.Content.ReadAsStringAsync();
+
+            if (response.IsSuccessStatusCode)
+            {
+                return (true, content);
             }
             else
             {
-                return toolNames;
-            }
-
-            foreach (var tool in tools)
-            {
-                if (tool.TryGetProperty("name", out var nameElement))
-                {
-                    var name = nameElement.GetString();
-                    if (!string.IsNullOrEmpty(name))
-                    {
-                        toolNames.Add(name);
-                    }
-                }
+                return (false, $"❌ Failed to retrieve tools. Status: {response.StatusCode}, Content: {content}");
             }
         }
-        catch (JsonException)
+        catch (Exception ex)
         {
-            // Failed to parse as JSON, might be plain text response
+            return (false, $"❌ Failed to get raw tools: {ex.Message}");
         }
-
-        return toolNames;
     }
 
     /// <summary>
-    /// Parses tool names from the extended tools API response.
+    /// Gets raw JSON response from the extended tools API.
     /// </summary>
-    private HashSet<string> ParseExtendedToolNamesFromResponse(string response)
+    private async Task<(bool Success, string Response)> GetRawExtendedToolsJsonAsync()
     {
-        var toolNames = new HashSet<string>();
-        
         try
         {
-            var jsonDoc = JsonDocument.Parse(response);
-            
-            JsonElement tools = default;
-            bool foundTools = false;
-            
-            // Try different response structure patterns
-            if (jsonDoc.RootElement.TryGetProperty("data", out var dataElement))
+            var config = await _apiService.GetConfigurationAsync();
+            if (config == null)
             {
-                // Pattern 1: { "data": { "tools": [...] } }
-                if (dataElement.ValueKind == JsonValueKind.Object && 
-                    dataElement.TryGetProperty("tools", out tools) && tools.ValueKind == JsonValueKind.Array)
-                {
-                    foundTools = true;
-                }
-                // Pattern 2: { "data": [...] }
-                else if (dataElement.ValueKind == JsonValueKind.Array)
-                {
-                    tools = dataElement;
-                    foundTools = true;
-                }
-            }
-            // Pattern 3: { "tools": [...] }
-            else if (jsonDoc.RootElement.TryGetProperty("tools", out tools) && tools.ValueKind == JsonValueKind.Array)
-            {
-                foundTools = true;
-            }
-            // Pattern 4: Direct array
-            else if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
-            {
-                tools = jsonDoc.RootElement;
-                foundTools = true;
+                return (false, "Configuration not found. Please run 'srectl init' first.");
             }
 
-            if (foundTools)
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/tools";
+            var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+
+            // Add auth header if not localhost
+            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
             {
-                foreach (var tool in tools.EnumerateArray())
+                var token = await _apiService.GetAccessTokenForInternalUseAsync();
+                if (string.IsNullOrEmpty(token))
                 {
-                    if (tool.TryGetProperty("name", out var nameElement))
-                    {
-                        var name = nameElement.GetString();
-                        if (!string.IsNullOrEmpty(name))
-                        {
-                            toolNames.Add(name);
-                        }
-                    }
+                    return (false, "Failed to get access token. Please run 'az login' first.");
                 }
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var httpClient = _apiService.GetHttpClient();
+            var response = await httpClient.SendAsync(request);
+            var content = await response.Content.ReadAsStringAsync();
+
+            if (response.IsSuccessStatusCode)
+            {
+                return (true, content);
+            }
+            else
+            {
+                return (false, $"❌ Failed to retrieve extended tools. Status: {response.StatusCode}, Content: {content}");
             }
         }
-        catch (JsonException)
+        catch (Exception ex)
         {
-            // Failed to parse as JSON, might be plain text response
+            return (false, $"❌ Failed to get raw extended tools: {ex.Message}");
         }
-
-        return toolNames;
     }
 }
