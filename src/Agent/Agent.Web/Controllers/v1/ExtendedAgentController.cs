@@ -7,6 +7,7 @@ using System.Text.Json;
 using Agent.Framework;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models.ExtendedAgents;
+using Agent.Runtime.Services;
 using Agent.Web.Models.ExtendedAgents;
 using Agent.Web.Models.ExtendedAgents.Response;
 using Agent.Web.Services;
@@ -23,19 +24,19 @@ public class ExtendedAgentController : ControllerBase
     private readonly IResourceDeploymentService _resourceDeploymentService;
     private readonly IExtendedAgentService _extendedAgentService;
     private readonly ILogger<ExtendedAgentController> _logger;
+    private readonly IConnectorResolver _connectorResolver;
 
     public ExtendedAgentController(
          IExtendedAgentService extendedAgentService,
         ILogger<ExtendedAgentController> logger,
-
-        IResourceDeploymentService agentService
+        IResourceDeploymentService agentService,
+        IConnectorResolver connectorResolver
        )
     {
         _resourceDeploymentService = agentService;
-
         _logger = logger;
-
         _extendedAgentService = extendedAgentService;
+        _connectorResolver = connectorResolver;
     }
 
     /// <summary>
@@ -197,4 +198,29 @@ public class ExtendedAgentController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// List all data connectors
+    /// </summary>
+    /// <returns>List of data connectors</returns>
+    [HttpGet("dataconnectors")]
+    [ProducesResponseType(typeof(List<DataConnectorBasicInfo>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status500InternalServerError)]
+    public ActionResult<List<DataConnectorBasicInfo>> ListDataConnectors()
+    {
+        try
+        {
+            var dataConnectors = _connectorResolver.GetAllDataConnectors();
+            return Ok(dataConnectors);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error in ListDataConnectors");
+            return StatusCode(500, new ExtendedAgentErrorResponse
+            {
+                ErrorCode = "INTERNAL_ERROR",
+                Message = "An internal error occurred while retrieving data connectors"
+            });
+        }
+    }
 }

@@ -1243,6 +1243,381 @@ public class ApiService : IDisposable
         }
     }
 
+    public async Task<(bool Success, List<ThreadMessage> Messages, string Response)> GetThreadMessagesStreamingAsync(string threadId, int maxRetries = 60, int delaySeconds = 2, int noNewMessageRetries = 3)
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return (false, new List<ThreadMessage>(), "Configuration not found. Please run 'srectl init' first.");
+            }
+
+            var allMessages = new List<ThreadMessage>();
+            var lastDisplayedMessageCount = 0;
+            var retryCount = 0;
+            var noNewMessageCount = 0;
+            var hasSeenAgentResponse = false;
+
+            // For blipping dots animation
+            string[] dots = new[] {".", "..", "..."};
+            int dotIndex = 0;
+            bool waitingPrinted = false;
+
+            Console.WriteLine("Conversation:");
+            Console.WriteLine("═══════════════");
+            Console.WriteLine();
+
+            while (retryCount < maxRetries)
+            {
+                var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/threads/{threadId}/messages";
+                var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+
+                // Add auth header if not localhost
+                if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
+                {
+                    var token = await GetAccessTokenAsync();
+                    if (string.IsNullOrEmpty(token))
+                    {
+                        return (false, new List<ThreadMessage>(), "Failed to get access token. Please run 'az login' first.");
+                    }
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                }
+
+                var response = await _httpClient.SendAsync(request);
+                var content = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonDoc = JsonDocument.Parse(content);
+                    var value = jsonDoc.RootElement.GetProperty("value");
+
+                    var currentMessages = new List<ThreadMessage>();
+                    foreach (var messageElement in value.EnumerateArray())
+                    {
+                        var id = messageElement.TryGetProperty("id", out var idElement) ? idElement.GetString() ?? "" : "";
+                        var text = messageElement.TryGetProperty("text", out var textElement) ? textElement.GetString() ?? "" : "";
+                        var timestamp = messageElement.TryGetProperty("timeStamp", out var timestampElement) ? timestampElement.GetDateTime() : DateTime.MinValue;
+
+                        var authorRole = "User";
+                        var authorUserId = "";
+                        var authorDisplayName = "";
+
+                        if (messageElement.TryGetProperty("author", out var authorElement))
+                        {
+                            authorRole = authorElement.TryGetProperty("role", out var roleElement) ? roleElement.GetString() ?? "User" : "User";
+                            authorUserId = authorElement.TryGetProperty("userId", out var userIdElement) ? userIdElement.GetString() ?? "" : "";
+                            authorDisplayName = authorElement.TryGetProperty("displayName", out var displayNameElement) ? displayNameElement.GetString() ?? "" : "";
+                        }
+
+                        currentMessages.Add(new ThreadMessage(id, text, timestamp, authorRole, authorUserId, authorDisplayName));
+                    }
+
+                    // Sort messages by timestamp
+                    currentMessages = currentMessages.OrderBy(m => m.Timestamp).ToList();
+
+                    // Display new messages
+                    if (currentMessages.Count > lastDisplayedMessageCount)
+                    {
+                        if (waitingPrinted)
+                        {
+                            // Clear the waiting line
+                            Console.Write("\r" + new string(' ', 30) + "\r");
+                            waitingPrinted = false;
+                        }
+
+                        // Display only the new messages
+                        for (int i = lastDisplayedMessageCount; i < currentMessages.Count; i++)
+                        {
+                            var msg = currentMessages[i];
+                            var roleLabel = msg.AuthorRole.Equals("SREAgent", StringComparison.OrdinalIgnoreCase) ? "SRE Agent" : "You";
+                            var timestamp = msg.Timestamp.ToString("HH:mm:ss");
+                            Console.WriteLine($"{roleLabel} ({timestamp}):");
+                            Console.WriteLine($"   {msg.Text}");
+                            Console.WriteLine();
+                        }
+
+                        lastDisplayedMessageCount = currentMessages.Count;
+                        allMessages = currentMessages;
+                        noNewMessageCount = 0; // Reset no new message counter
+                    }
+                    else
+                    {
+                        // No new messages received
+                        noNewMessageCount++;
+                    }
+
+                    // Check if we have agent responses
+                    var agentMessages = currentMessages.Where(m => m.AuthorRole.Equals("SREAgent", StringComparison.OrdinalIgnoreCase)).ToList();
+                    if (agentMessages.Any())
+                    {
+                        hasSeenAgentResponse = true;
+                        
+                        // If we've seen agent responses and haven't received new messages for a while, assume we're done
+                        if (noNewMessageCount >= noNewMessageRetries)
+                        {
+                            if (waitingPrinted)
+                            {
+                                Console.Write("\r" + new string(' ', 30) + "\r");
+                            }
+                            return (true, allMessages, "Conversation complete");
+                        }
+                    }
+
+                    retryCount++;
+                    if (retryCount < maxRetries)
+                    {
+                        // Show waiting indicator only if we haven't seen agent response yet or are still getting messages
+                        if (!hasSeenAgentResponse || noNewMessageCount < noNewMessageRetries)
+                        {
+                            string waitMsg = !hasSeenAgentResponse ? 
+                                $"Waiting for SRE Agent response{dots[dotIndex]}" : 
+                                $"Waiting for more messages{dots[dotIndex]}";
+                            Console.Write($"\r{waitMsg}   ");
+                            dotIndex = (dotIndex + 1) % dots.Length;
+                            waitingPrinted = true;
+                        }
+                        await Task.Delay(delaySeconds * 1000);
+                    }
+                }
+                else
+                {
+                    if (waitingPrinted)
+                    {
+                        Console.Write("\r" + new string(' ', 30) + "\r");
+                    }
+                    return (false, new List<ThreadMessage>(), $"Failed to get messages: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
+                }
+            }
+
+            if (waitingPrinted)
+            {
+                Console.Write("\r" + new string(' ', 30) + "\r");
+            }
+
+            if (hasSeenAgentResponse)
+            {
+                return (true, allMessages, "Conversation complete (timeout reached but messages were received)");
+            }
+            else
+            {
+                return (false, allMessages, "Timeout: Agent did not respond within the expected time.");
+            }
+        }
+        catch (Exception ex)
+        {
+            return (false, new List<ThreadMessage>(), $"Failed to get messages: {ex.Message}");
+        }
+    }
+
+    public async Task<(bool Success, List<ThreadMessage> Messages, string Response)> TrackThreadAsync(string threadId, int maxRetries = 60, int delaySeconds = 2, int noNewMessageRetries = 3)
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return (false, new List<ThreadMessage>(), "Configuration not found. Please run 'srectl init' first.");
+            }
+
+            var allMessages = new List<ThreadMessage>();
+            var lastDisplayedMessageCount = 0;
+            var retryCount = 0;
+            var noNewMessageCount = 0;
+            var hasSeenAgentResponse = false;
+            var hasDisplayedInitialMessages = false;
+
+            // For blipping dots animation
+            string[] dots = new[] {".", "..", "..."};
+            int dotIndex = 0;
+            bool waitingPrinted = false;
+
+            Console.WriteLine("Conversation:");
+            Console.WriteLine("═══════════════");
+            Console.WriteLine();
+
+            while (retryCount < maxRetries)
+            {
+                var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/threads/{threadId}/messages";
+                var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+
+                // Add auth header if not localhost
+                if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
+                {
+                    var token = await GetAccessTokenAsync();
+                    if (string.IsNullOrEmpty(token))
+                    {
+                        return (false, new List<ThreadMessage>(), "Failed to get access token. Please run 'az login' first.");
+                    }
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                }
+
+                var response = await _httpClient.SendAsync(request);
+                var content = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonDoc = JsonDocument.Parse(content);
+                    var value = jsonDoc.RootElement.GetProperty("value");
+
+                    var currentMessages = new List<ThreadMessage>();
+                    foreach (var messageElement in value.EnumerateArray())
+                    {
+                        var id = messageElement.TryGetProperty("id", out var idElement) ? idElement.GetString() ?? "" : "";
+                        var text = messageElement.TryGetProperty("text", out var textElement) ? textElement.GetString() ?? "" : "";
+                        var timestamp = messageElement.TryGetProperty("timeStamp", out var timestampElement) ? timestampElement.GetDateTime() : DateTime.MinValue;
+
+                        var authorRole = "User";
+                        var authorUserId = "";
+                        var authorDisplayName = "";
+
+                        if (messageElement.TryGetProperty("author", out var authorElement))
+                        {
+                            authorRole = authorElement.TryGetProperty("role", out var roleElement) ? roleElement.GetString() ?? "User" : "User";
+                            authorUserId = authorElement.TryGetProperty("userId", out var userIdElement) ? userIdElement.GetString() ?? "" : "";
+                            authorDisplayName = authorElement.TryGetProperty("displayName", out var displayNameElement) ? displayNameElement.GetString() ?? "" : "";
+                        }
+
+                        currentMessages.Add(new ThreadMessage(id, text, timestamp, authorRole, authorUserId, authorDisplayName));
+                    }
+
+                    // Sort messages by timestamp
+                    currentMessages = currentMessages.OrderBy(m => m.Timestamp).ToList();
+
+                    // On first run, display all existing messages
+                    if (!hasDisplayedInitialMessages)
+                    {
+                        if (waitingPrinted)
+                        {
+                            Console.Write("\r" + new string(' ', 50) + "\r");
+                            waitingPrinted = false;
+                        }
+
+                        if (currentMessages.Count == 0)
+                        {
+                            Console.WriteLine("No messages found in this thread.");
+                            Console.WriteLine();
+                        }
+                        else
+                        {
+                            // Display all existing messages
+                            foreach (var msg in currentMessages)
+                            {
+                                var roleLabel = msg.AuthorRole.Equals("SREAgent", StringComparison.OrdinalIgnoreCase) ? "SRE Agent" : "You";
+                                var timestamp = msg.Timestamp.ToString("HH:mm:ss");
+                                Console.WriteLine($"{roleLabel} ({timestamp}):");
+                                Console.WriteLine($"   {msg.Text}");
+                                Console.WriteLine();
+                            }
+                        }
+
+                        lastDisplayedMessageCount = currentMessages.Count;
+                        allMessages = currentMessages;
+                        hasDisplayedInitialMessages = true;
+
+                        // Check if we already have agent responses
+                        var agentMessages = currentMessages.Where(m => m.AuthorRole.Equals("SREAgent", StringComparison.OrdinalIgnoreCase)).ToList();
+                        if (agentMessages.Any())
+                        {
+                            hasSeenAgentResponse = true;
+                        }
+
+                        Console.WriteLine("📡 Now tracking for new messages...");
+                        Console.WriteLine();
+                    }
+                    // Display only new messages after initial display
+                    else if (currentMessages.Count > lastDisplayedMessageCount)
+                    {
+                        if (waitingPrinted)
+                        {
+                            Console.Write("\r" + new string(' ', 50) + "\r");
+                            waitingPrinted = false;
+                        }
+
+                        // Display only the new messages
+                        for (int i = lastDisplayedMessageCount; i < currentMessages.Count; i++)
+                        {
+                            var msg = currentMessages[i];
+                            var roleLabel = msg.AuthorRole.Equals("SREAgent", StringComparison.OrdinalIgnoreCase) ? "SRE Agent" : "You";
+                            var timestamp = msg.Timestamp.ToString("HH:mm:ss");
+                            Console.WriteLine($"{roleLabel} ({timestamp}):");
+                            Console.WriteLine($"   {msg.Text}");
+                            Console.WriteLine();
+                        }
+
+                        lastDisplayedMessageCount = currentMessages.Count;
+                        allMessages = currentMessages;
+                        noNewMessageCount = 0; // Reset no new message counter
+                    }
+                    else
+                    {
+                        // No new messages received
+                        noNewMessageCount++;
+                    }
+
+                    // Check if we have agent responses and determine completion
+                    var currentAgentMessages = currentMessages.Where(m => m.AuthorRole.Equals("SREAgent", StringComparison.OrdinalIgnoreCase)).ToList();
+                    if (currentAgentMessages.Any())
+                    {
+                        hasSeenAgentResponse = true;
+                        
+                        // If we've seen agent responses and haven't received new messages for a while, assume we're done
+                        if (noNewMessageCount >= noNewMessageRetries)
+                        {
+                            if (waitingPrinted)
+                            {
+                                Console.Write("\r" + new string(' ', 50) + "\r");
+                            }
+                            return (true, allMessages, "Thread tracking complete");
+                        }
+                    }
+
+                    retryCount++;
+                    if (retryCount < maxRetries)
+                    {
+                        // Show waiting indicator only if we haven't seen agent response yet or are still getting messages
+                        if (!hasSeenAgentResponse || noNewMessageCount < noNewMessageRetries)
+                        {
+                            string waitMsg = !hasSeenAgentResponse ? 
+                                $"Waiting for new messages{dots[dotIndex]}" : 
+                                $"Monitoring for additional messages{dots[dotIndex]}";
+                            Console.Write($"\r{waitMsg}   ");
+                            dotIndex = (dotIndex + 1) % dots.Length;
+                            waitingPrinted = true;
+                        }
+                        await Task.Delay(delaySeconds * 1000);
+                    }
+                }
+                else
+                {
+                    if (waitingPrinted)
+                    {
+                        Console.Write("\r" + new string(' ', 50) + "\r");
+                    }
+                    return (false, new List<ThreadMessage>(), $"Failed to get messages: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
+                }
+            }
+
+            if (waitingPrinted)
+            {
+                Console.Write("\r" + new string(' ', 50) + "\r");
+            }
+
+            if (hasDisplayedInitialMessages)
+            {
+                return (true, allMessages, "Thread tracking complete (timeout reached)");
+            }
+            else
+            {
+                return (false, allMessages, "Timeout: Failed to retrieve thread messages.");
+            }
+        }
+        catch (Exception ex)
+        {
+            return (false, new List<ThreadMessage>(), $"Failed to track thread: {ex.Message}");
+        }
+    }
+
     public async Task<(bool Success, List<ThreadInfo> Threads, string Response)> ListThreadsAsync()
     {
         try
@@ -1368,6 +1743,89 @@ public class ApiService : IDisposable
     public async Task<string?> GetAccessTokenForInternalUseAsync()
     {
         return await GetAccessTokenAsync();
+    }
+
+    public async Task<(bool Success, string Response)> ListDataConnectorsAsync()
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return (false, "Configuration not found. Please run 'srectl init' first.");
+            }
+
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/dataconnectors";
+            var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+
+            // Add auth header if not localhost
+            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
+            {
+                var token = await GetAccessTokenAsync();
+                if (string.IsNullOrEmpty(token))
+                {
+                    return (false, "Failed to get access token. Please run 'az login' first.");
+                }
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var response = await _httpClient.SendAsync(request);
+            var content = await response.Content.ReadAsStringAsync();
+
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonDoc = JsonDocument.Parse(content);
+                
+                var connectorList = new List<string>();
+                connectorList.Add("🔌 Available Data Connectors:");
+                connectorList.Add("=============================");
+                
+                if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
+                {
+                    var connectors = jsonDoc.RootElement.EnumerateArray().ToArray();
+                    
+                    if (connectors.Length == 0)
+                    {
+                        connectorList.Add("\nNo data connectors found on the server.");
+                        connectorList.Add("Data connectors are configured through server settings.");
+                    }
+                    else
+                    {
+                        foreach (var connector in connectors)
+                        {
+                            var name = connector.TryGetProperty("name", out var nameElement) ? nameElement.GetString() ?? "Unknown" : "Unknown";
+                            var connectorType = connector.TryGetProperty("connectorType", out var typeElement) ? typeElement.GetString() ?? "Unknown" : "Unknown";
+                            var dataSource = connector.TryGetProperty("dataSource", out var dataSourceElement) ? dataSourceElement.GetString() ?? "Not specified" : "Not specified";
+                            var identity = connector.TryGetProperty("identity", out var identityElement) ? identityElement.GetString() ?? "Not specified" : "Not specified";
+                            
+                            connectorList.Add($"\n🔌 {name}");
+                            connectorList.Add($"   Type: {connectorType}");
+                            connectorList.Add($"   Data Source: {dataSource}");
+                            if (!string.IsNullOrEmpty(identity) && identity != "Not specified")
+                            {
+                                connectorList.Add($"   Identity: {identity}");
+                            }
+                        }
+                        
+                        connectorList.Add($"\nTotal: {connectors.Length} data connector(s)");
+                    }
+                }
+                else
+                {
+                    connectorList.Add("\nUnexpected response format from server.");
+                }
+
+                return (true, string.Join("\n", connectorList));
+            }
+            else
+            {
+                return (false, $"❌ Failed to list data connectors: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
+            }
+        }
+        catch (Exception ex)
+        {
+            return (false, $"❌ Failed to list data connectors: {ex.Message}");
+        }
     }
 }
 

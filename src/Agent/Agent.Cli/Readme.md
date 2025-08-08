@@ -537,12 +537,14 @@ srectl thread new --message "<your-question>"
 
 **Parameters:**
 - **--message**: The initial message to send to the agent (required)
+- **--no-wait**: Send the message and exit without waiting for response (optional)
 
 **What it does:**
 - Creates a new conversation thread on the remote server
 - Sends your initial message to the agent
-- Displays the agent's response in real-time
+- By default, waits for and displays the agent's response in real-time with smart completion detection
 - Stores the thread ID for future reference
+- Use `--no-wait` to send message and exit immediately without waiting for response
 
 **Example:**
 
@@ -572,11 +574,13 @@ srectl thread continue --message "<follow-up-message>"
 **Parameters:**
 - **--message**: The follow-up message to send (required)
 - **--thread-id**: Specific thread ID to continue (optional, defaults to most recent)
+- **--no-wait**: Send the message and exit without waiting for response (optional)
 
 **What it does:**
 - Uses the most recent thread or specified thread ID
 - Sends your follow-up message to the existing conversation
-- Displays the agent's response while maintaining conversation context
+- By default, waits for and displays the agent's response while maintaining conversation context
+- Use `--no-wait` to send message and exit immediately without waiting for response
 
 **Examples:**
 
@@ -652,12 +656,53 @@ srectl thread delete --thread-id thread_abc123
 ✅ Thread thread_abc123 deleted successfully
 ```
 
+#### Track a Conversation Thread in Real-Time
+
+Monitor a conversation thread for new messages in real-time:
+
+```bash
+srectl thread track --thread-id <thread-id>
+```
+
+**Parameters:**
+- **--thread-id**: The ID of the thread to track (required)
+
+**What it does:**
+- Continuously monitors the specified thread for new messages
+- Displays new messages from agents and users as they arrive
+- Provides real-time updates with timestamps
+- Can be stopped with Ctrl+C
+- Useful for monitoring ongoing conversations or waiting for agent responses
+
+**Example:**
+
+```bash
+srectl thread track --thread-id thread_abc123
+```
+
+**Sample Output:**
+```
+🔍 Tracking thread thread_abc123...
+📡 Monitoring for new messages (Press Ctrl+C to stop)
+
+[2024-01-15T15:30:00Z] 🤖 SRE Agent: Let me check the Redis container logs...
+[2024-01-15T15:30:15Z] 🤖 SRE Agent: Found the issue! The container is failing due to insufficient memory allocation.
+[2024-01-15T15:30:30Z] 🤖 SRE Agent: Here's how to fix it:
+1. Update the memory limits in your deployment YAML
+2. Restart the container
+3. Monitor the memory usage
+
+🔄 Waiting for new messages...
+```
+
 **Thread Management Features:**
 - **Persistent Conversations**: Threads maintain context across multiple interactions
 - **Real-time Responses**: Live display of agent responses with status indicators
 - **Automatic Thread Tracking**: The CLI automatically tracks your most recent thread
 - **Cross-session Continuity**: Threads persist between CLI sessions
 - **Conversation History**: Full message history preserved for each thread
+- **Real-time Monitoring**: Track ongoing conversations for new messages as they arrive
+- **Smart Completion Detection**: Automatically detects when agent responses are complete
 
 ---
 
@@ -803,6 +848,42 @@ This command is useful to see which custom tools have been successfully applied 
 
 Total: 2 tool(s)
 ```
+
+#### List Data Connectors
+Retrieve and display all data connectors configured on the remote server:
+
+```bash
+srectl list data-connectors
+```
+
+**What it does:**
+- Connects to the configured remote server
+- Fetches all data connectors from the `/api/v1/extendedAgent/dataconnectors` endpoint
+- Displays formatted data connector information including name, type, and identity
+- Shows connectors that are available for use by agents and tools
+
+**Sample Output:**
+```
+🔌 Available Data Connectors:
+=============================
+
+📊 kusto-cluster-prod
+   Type: Kusto
+   Identity: /subscriptions/.../userAssignedIdentities/kusto-reader
+
+📊 sql-analytics-db
+   Type: SqlDatabase
+   Identity: /subscriptions/.../userAssignedIdentities/sql-reader
+
+📊 cosmos-logs-container
+   Type: CosmosDb
+   Identity: /subscriptions/.../userAssignedIdentities/cosmos-reader
+
+Total: 3 data connector(s)
+```
+
+**Use Case:**
+This command helps you verify which data connectors are available for your agents and tools to connect to data sources like databases, analytics platforms, and monitoring systems.
 
 **Authentication:**
 - For localhost servers: No authentication required
@@ -1113,7 +1194,18 @@ srectl thread list
 - Displays creation date and last activity
 - Shows total thread count
 
-#### 13. Delete Thread
+#### 13. Track Thread in Real-Time
+**Test:** Monitor a thread for new messages in real-time
+```bash
+srectl thread track --thread-id thread_abc123
+```
+**Expected:** 
+- Continuously monitors thread for new messages
+- Displays new messages as they arrive with timestamps
+- Shows status indicators and real-time updates
+- Can be stopped with Ctrl+C
+
+#### 14. Delete Thread
 **Test:** Delete a specific conversation thread
 ```bash
 srectl thread delete --thread-id thread_abc123
@@ -1125,28 +1217,28 @@ srectl thread delete --thread-id thread_abc123
 
 ### Error Handling Test Cases
 
-#### 14. Agent Creation - Missing Required Parameters
+#### 15. Agent Creation - Missing Required Parameters
 **Test:** Try to create agent without required parameters
 ```bash
 srectl agent create --name test_agent
 ```
 **Expected:** Shows error about missing required parameters
 
-#### 15. Agent Creation - Invalid Name
+#### 16. Agent Creation - Invalid Name
 **Test:** Try to create agent with invalid name (contains spaces)
 ```bash
 srectl agent create --name "invalid name" --instructions "Test" --tools Tool1
 ```
 **Expected:** Shows validation error about invalid name
 
-#### 16. Agent Creation - Invalid Instructions Length
+#### 17. Agent Creation - Invalid Instructions Length
 **Test:** Try to create agent with too short instructions
 ```bash
 srectl agent create --name test_agent --instructions "short" --tools Tool1
 ```
 **Expected:** Shows validation error about instructions length
 
-#### 17. Agent Creation - Invalid Temperature
+#### 18. Agent Creation - Invalid Temperature
 **Test:** Try to create agent with invalid temperature
 ```bash
 srectl agent create --name test_agent --instructions "Valid instructions for testing" --tools Tool1 --temperature 5.0

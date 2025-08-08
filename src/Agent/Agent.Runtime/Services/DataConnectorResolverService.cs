@@ -73,4 +73,32 @@ public class DataConnectorResolverService : IConnectorResolver
             throw new InvalidOperationException($"Failed to load connector '{connectorName}' from settings.", ex);
         }
     }
+    
+    /// <summary>
+    /// Gets a list of all configured data connectors with basic information
+    /// </summary>
+    /// <returns>List of data connector basic information</returns>
+    public List<DataConnectorBasicInfo> GetAllDataConnectors()
+    {
+        try
+        {
+            var connectorSettings = _connectorSettings.CurrentValue;
+            if (connectorSettings == null || !connectorSettings.Any())
+            {
+                return new List<DataConnectorBasicInfo>();
+            }
+
+            return connectorSettings.Select(settings => new DataConnectorBasicInfo
+            {
+                Name = settings.Name,
+                ConnectorType = settings.DataConnectorType,
+                Identity = settings.Identity
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, "Failed to get list of data connectors");
+            return new List<DataConnectorBasicInfo>();
+        }
+    }
 }

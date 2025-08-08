@@ -286,3 +286,91 @@ srectl apply-yaml --file <path-to-yaml-file>
 ### Implementation Notes
 - See `GeneralCommandHandlers.HandleApplyYamlCommand` and `ApiService.ApplyYamlFileAsync` for details.
 - Option defined in `AgentCommandOptions.ApplyYamlFileOption`.
+
+## Thread Management Commands
+
+### Enhanced Streaming Experience
+
+The thread commands now provide a real-time streaming experience:
+
+- **Default Wait Behavior**: Commands wait for agent responses by default
+- **Streaming Messages**: Messages appear as soon as they arrive from the server
+- **Smart Completion Detection**: Automatically detects when the agent stops responding
+- **Override Options**: Use `--no-wait` to disable waiting behavior
+
+### Thread Command Options
+
+- `--wait`: Wait for agent response (default: true)
+- `--no-wait`: Don't wait for agent response (overrides default)
+- `--message`: Message to send
+- `--user-id`: User ID (defaults to current user)
+- `--display-name`: Display name (defaults to current user)
+- `--thread-id`: Specific thread ID to use
+
+### Implementation Details
+
+The streaming implementation (`GetThreadMessagesStreamingAsync`) uses the following approach:
+
+1. **Real-time Display**: Shows messages immediately as they arrive
+2. **Smart Polling**: Continues polling until agent stops responding
+3. **Completion Detection**: Monitors for periods of inactivity after agent response
+4. **User Feedback**: Provides clear waiting indicators and completion messages
+
+### Completion Logic
+
+The system determines when an agent has finished responding by:
+- Waiting for initial agent response
+- Monitoring for new messages after agent starts responding
+- Stopping when no new messages arrive for 3 consecutive polling attempts (6 seconds by default)
+- Providing timeout protection with maximum retry limits
+
+## Thread Track Command
+
+The `track` command allows you to monitor an existing thread for new messages in real-time:
+
+```bash
+srectl thread track --thread-id <thread-id>
+```
+
+**Parameters:**
+- `--thread-id`: The ID of the thread to track (required)
+
+**What it does:**
+- Displays all existing messages in the thread
+- Continuously monitors for new messages
+- Shows incoming messages as they arrive
+- Automatically stops when the conversation becomes idle
+- Updates thread last-used timestamp
+
+**Usage Examples:**
+
+```bash
+# Track a specific thread
+srectl thread track --thread-id abc123-def456-ghi789
+
+# Track using thread ID from previous commands
+srectl thread track --thread-id $(srectl thread list | grep "→" | awk '{print $2}')
+```
+
+**Features:**
+- **Real-time Monitoring**: Shows new messages as they arrive
+- **Historical Context**: Displays all existing messages first
+- **Smart Completion**: Automatically detects when the conversation ends
+- **Interrupt Support**: Use Ctrl+C to stop tracking at any time
+- **Thread Management**: Updates thread last-used for easy continuation
+
+## Apply YAML Command
+
+### Usage
+
+```
+srectl apply-yaml --file <path-to-yaml-file>
+```
+
+- Directly applies the specified YAML file to the remote API endpoint without parsing or validation.
+- The file is sent as-is with content type `application/yaml`.
+- Useful for advanced users who want to push raw YAML definitions.
+
+### Implementation Notes
+- See `GeneralCommandHandlers.HandleApplyYamlCommand` and `ApiService.ApplyYamlFileAsync` for details.
+- Option defined in `AgentCommandOptions.ApplyYamlFileOption`.

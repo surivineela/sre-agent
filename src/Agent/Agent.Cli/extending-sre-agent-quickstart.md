@@ -296,6 +296,9 @@ srectl thread new --message "Hello! Can you show me the current system health st
 # Continue the conversation
 srectl thread continue --message "What types of events are you seeing in the logs?"
 
+# Monitor a thread for real-time updates
+srectl thread track --thread-id <thread-id>
+
 # List all your conversation threads
 srectl thread list
 ```

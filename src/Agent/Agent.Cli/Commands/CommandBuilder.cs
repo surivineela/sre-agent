@@ -206,10 +206,18 @@ public static class CommandBuilder
             await GeneralCommandHandlers.HandleListExtendedToolsCommand(parseResult);
         });
 
-        var listCommand = new Command("list", "List agents, tools, or extended tools from the remote server");
+        // List data-connectors subcommand
+        var listDataConnectorsCommand = new Command("data-connectors", "List all data connectors configured on the server");
+        listDataConnectorsCommand.SetAction(async parseResult => 
+        {
+            await GeneralCommandHandlers.HandleListDataConnectorsCommand(parseResult);
+        });
+
+        var listCommand = new Command("list", "List agents, tools, extended tools, or data connectors from the remote server");
         listCommand.Subcommands.Add(listAgentsCommand);
         listCommand.Subcommands.Add(listToolsCommand);
         listCommand.Subcommands.Add(listExtendedToolsCommand);
+        listCommand.Subcommands.Add(listDataConnectorsCommand);
 
         return listCommand;
     }
@@ -261,7 +269,8 @@ public static class CommandBuilder
             AgentCommandOptions.ThreadMessageOption,
             AgentCommandOptions.ThreadUserIdOption,
             AgentCommandOptions.ThreadDisplayNameOption,
-            AgentCommandOptions.ThreadWaitOption
+            AgentCommandOptions.ThreadWaitOption,
+            AgentCommandOptions.ThreadNoWaitOption
         };
         threadNew.SetAction(async parseResult =>
         {
@@ -274,7 +283,8 @@ public static class CommandBuilder
             AgentCommandOptions.ThreadMessageOptionalOption,
             AgentCommandOptions.ThreadUserIdOption,
             AgentCommandOptions.ThreadDisplayNameOption,
-            AgentCommandOptions.ThreadWaitOption
+            AgentCommandOptions.ThreadWaitOption,
+            AgentCommandOptions.ThreadNoWaitOption
         };
         threadContinue.SetAction(async parseResult =>
         {
@@ -296,11 +306,21 @@ public static class CommandBuilder
             await ThreadCommandHandlers.HandleThreadDeleteCommand(parseResult);
         });
 
+        var threadTrack = new Command("track", "Track an existing thread for new messages")
+        {
+            AgentCommandOptions.ThreadIdRequiredOption
+        };
+        threadTrack.SetAction(async parseResult =>
+        {
+            await ThreadCommandHandlers.HandleThreadTrackCommand(parseResult);
+        });
+
         var thread = new Command("thread", "Thread management commands");
         thread.Subcommands.Add(threadNew);
         thread.Subcommands.Add(threadContinue);
         thread.Subcommands.Add(threadList);
         thread.Subcommands.Add(threadDelete);
+        thread.Subcommands.Add(threadTrack);
 
         return thread;
     }

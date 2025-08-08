@@ -116,6 +116,18 @@ public static class GeneralCommandHandlers
     }
 
     /// <summary>
+    /// Handles the list data-connectors command.
+    /// </summary>
+    public static async Task HandleListDataConnectorsCommand(ParseResult parseResult)
+    {
+        using var apiService = new ApiService();
+        var (success, response) = await apiService.ListDataConnectorsAsync();
+        
+        Console.WriteLine(response);
+        Environment.Exit(success ? 0 : 1);
+    }
+
+    /// <summary>
     /// Handles the apply-yaml command.
     /// </summary>
     public static async Task HandleApplyYamlCommand(ParseResult parseResult)

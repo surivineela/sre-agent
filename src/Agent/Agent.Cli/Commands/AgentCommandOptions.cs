@@ -81,6 +81,10 @@ public static class AgentCommandOptions
         Description = "Wait for the agent's response (default: true)",
         Arity = ArgumentArity.ZeroOrOne
     };
+    public static readonly Option<bool> ThreadNoWaitOption = new("--no-wait") 
+    { 
+        Description = "Don't wait for the agent's response (overrides default wait behavior)"
+    };
     public static readonly Option<string> ThreadIdOption = new("--thread-id") 
     { 
         Description = "Thread ID to continue (if not provided, uses the last used thread)"
