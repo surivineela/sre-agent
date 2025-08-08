@@ -408,6 +408,7 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
                     _logger.LogInternalInformation("Generated Mermaid specification successfully");
 
                     string mermaidMessage = $"```mermaid\n{mermaidSpec}\n```";
+                    
 
                     Guid messageId = Guid.NewGuid();
 

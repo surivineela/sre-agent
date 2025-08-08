@@ -5,6 +5,7 @@
 using System.ComponentModel;
 using System.Text.Json;
 using Agent.Core.Models;
+using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Framework;
 using Agent.Graph.Schema;
@@ -15,7 +16,7 @@ using Microsoft.SemanticKernel;
 namespace Agent.Plugins
 {
     [AgentToolPlugin(Category = ToolCategories.KnowledgeBase)]
-    public class GraphDBPluginDefinition
+    public class GraphDBPluginDefinition : ContextToolTarget<AgentContext>
     {
         public IGraphDBPlugin _plugin { get; }
         public GraphDBPluginDefinition(IGraphDBPlugin graphDBPlugin)
@@ -72,7 +73,7 @@ namespace Agent.Plugins
             [Description("Azure Resource Id of the application resource to visualize. Should begin with /subscriptions/... Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp")] string resourceId,
             [Description("Maximum number of relationship hops to include in the visualization. Higher values (1-5) show more distant connections but may make the diagram more complex. Default is 3.")] int hops = 3)
         {
-            return await _plugin.VisualizeApplicationComponents(resourceId, hops);
+            return await _plugin.VisualizeApplicationComponents(resourceId, hops, Context?.ThreadId);
         }
 
         // TODO(jianbo): this not working for AKS, need to fix.
@@ -245,7 +246,7 @@ namespace Agent.Plugins
             [Description("Azure Resource Id of the resource to analyze. Should begin with /subscriptions/... Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp")] string resourceId,
             [Description("Number of hours of activity logs to retrieve and analyze. Default is 24 hours.")] int hoursBack = 24)
         {
-            return await _plugin.FetchAndSummarizeActivityLogs(resourceId, hoursBack);
+            return await _plugin.FetchAndSummarizeActivityLogs(resourceId, hoursBack, Context?.ThreadId);
         }
 
         [KernelFunction("ListResourcesByType")]
@@ -303,7 +304,7 @@ namespace Agent.Plugins
             [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
             [Description($"Name of the Kubernetes deployment, e.g. 'nginx', 'backend'")] string deploymentName)
         {
-            return await _plugin.VisualizeAKSMicroserviceTopology(AKSClusterResourceId, _namespace, deploymentName);
+            return await _plugin.VisualizeAKSMicroserviceTopology(AKSClusterResourceId, _namespace, deploymentName, Context?.ThreadId);
         }
 
         [Description("Returns basic metadata of an Azure resource. The input should be in Azure ResourceId format. Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp" +

@@ -126,6 +126,7 @@ tools:
     - PlotPieChart
     - PlotBarChart
     - PlotScatter
+    - VisualizeAKSMicroserviceTopology
     - SearchRunbooks
     - HandoffBack
 
