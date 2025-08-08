@@ -245,7 +245,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                 </Link>
             );
         },
-        [onIdClick, disabled, handlerOperationStatus, incidentFiltersLoading]
+        [onIdClick, disabled, disableAllControls, handlerOperationStatus, incidentFiltersLoading]
     );
 
     const onRenderStatus = useCallback(
@@ -333,6 +333,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
             styles.setUp,
             useConsolidatedCreate,
             disabled,
+            disableAllControls,
             incidentFiltersLoading,
         ]
     );

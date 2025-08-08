@@ -103,6 +103,10 @@ const ConnectionFailureMessageBar: FC<ConnectionMessageBarProps> = ({ platform }
         }
     }, [platform]);
 
+    if (!platform || !connectionFailureMessage) {
+        return null;
+    }
+
     return (
         <MessageBarGroup
             animate={'exit-only'}

@@ -40,6 +40,12 @@ const IncidentManagement: FC = () => {
     }, [incidentManagementPlatform]);
 
     useEffect(() => {
+        if (keepSettingsOpen) {
+            setShowSettings(true);
+        }
+    }, [keepSettingsOpen]);
+
+    useEffect(() => {
         initializeIcons();
         setIconsInitialized(true);
     }, []);

@@ -468,6 +468,7 @@ export function useIncidentManagement(close: (() => void) | undefined) {
             incidentHandlerClient,
             setHasFilters,
             patchAgent,
+            close,
         ]
     );
     const disconnect = useCallback(() => {
