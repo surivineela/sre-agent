@@ -135,4 +135,31 @@ public class GitHubService : IGitHubService
             return string.Empty;
         }
     }
+
+    /// <summary>
+    /// Checks whether the authenticated client has access to the specified repository.
+    /// </summary>
+    public async Task<bool> HasRepositoryAccessAsync(string owner, string repository, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var client = await CreateClient();
+            var repo = await client.Repository.Get(owner, repository);
+            return repo != null;
+        }
+        catch (NotFoundException)
+        {
+            // Returned when repo doesn't exist or is private without access
+            return false;
+        }
+        catch (AuthorizationException)
+        {
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, $"Error checking access to {owner}/{repository}");
+            return false;
+        }
+    }
 }

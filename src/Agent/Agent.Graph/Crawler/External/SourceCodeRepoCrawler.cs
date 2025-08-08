@@ -77,6 +77,12 @@ public class SourceCodeRepoCrawler : IResourceCrawler
         var repoType = DetectRepositoryType(sourceCodeNode.RepoUrl);
         _logger.LogInternalInformation($"Detected repository type: {repoType} for {sourceCodeNode.RepoUrl}");
 
+        bool hasAccess = await VerifyRepositoryAccess(sourceCodeNode.RepoUrl, repoType);
+        if (!hasAccess)
+        {
+            yield break;
+        }
+
         List<string> appConfigUrls;
         try
         {
@@ -312,11 +318,12 @@ public class SourceCodeRepoCrawler : IResourceCrawler
             throw new ArgumentException("Repository URL cannot be empty.");
         }
 
-        string regexPattern = @"github\.com[/:](?<owner>[\w.-]+)/(?<repo>[\w.-]+)(?:\.git)?";
+        string regexPattern = @"github\.com[/:](?<owner>[\w.-]+)/(?<repo>[\w.-]+?)(?=\.git(?:[/?#]|$)|[/?#]|$)";
         string errorMessage = $"Repository URL must be of the form https://github.com/owner/repo-name.git whereas the supplied repoUrl is {repoUrl}";
         if (repoUrl.Contains("/repos/", StringComparison.OrdinalIgnoreCase))
         {
-            regexPattern = @"github\.com/repos[/:](?<owner>[\w.-]+)/(?<repo>[\w.-]+)";
+            // Ensure repo capture stops before next segment/query/fragment
+            regexPattern = @"github\.com/repos[/:](?<owner>[\w.-]+)/(?<repo>[\w.-]+?)(?=[/?#]|$)";
             errorMessage = $"Repository URL must be of the form https://github.com/repos/owner/repo-name whereas the supplied repoUrl is {repoUrl}";
         }
 
@@ -552,6 +559,44 @@ public class SourceCodeRepoCrawler : IResourceCrawler
         _logger.LogInternalInformation($"Found {nodes.Count} nodes served by repository {sourceCodeNode.GetNodeId()}");
 
         return nodes;
+    }
+
+    private async Task<bool> VerifyRepositoryAccess(string repoUrl, RepositoryType repoType)
+    {
+        try
+        {
+            switch (repoType)
+            {
+                case RepositoryType.GitHub:
+                    var (owner, ghRepo) = ParseGitHubUrl(repoUrl);
+                    _logger.LogInternalInformation($"Verifying access to GitHub repository {owner}/{ghRepo}");
+                    var ghAccess = await _gitHubService.HasRepositoryAccessAsync(owner, ghRepo);
+                    if (!ghAccess)
+                    {
+                        _logger.LogInternalWarning($"No access to GitHub repository {owner}/{ghRepo}. Ensure the configured GitHub token has read access to this repo.");
+                    }
+                    return ghAccess;
+
+                case RepositoryType.AzureDevOps:
+                    var (org, project, adoRepo) = ParseAzureDevOpsUrl(repoUrl);
+                    _logger.LogInternalInformation($"Verifying access to Azure DevOps repository {org}/{project}/{adoRepo}");
+                    var adoAccess = await _azureDevOpsService.HasRepositoryAccessAsync(org, project, adoRepo);
+                    if (!adoAccess)
+                    {
+                        _logger.LogInternalWarning($"No access to Azure DevOps repository {org}/{project}/{adoRepo}. Ensure the configured credentials grant read access to this repository.");
+                    }
+                    return adoAccess;
+
+                default:
+                    _logger.LogInternalWarning($"Unknown or unsupported repository type for URL: {repoUrl}");
+                    return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, $"Failed to verify repository access for {repoUrl}");
+            return false;
+        }
     }
 }
 

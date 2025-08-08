@@ -33,4 +33,9 @@ public interface IAzureDevOpsService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>File content as string</returns>
     Task<string> GetFileContentAsync(string organization, string project, string repository, string filePath, string commit, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Checks whether the authenticated client has access to the specified ADO repository.
+    /// </summary>
+    Task<bool> HasRepositoryAccessAsync(string organization, string project, string repository, CancellationToken cancellationToken = default);
 }

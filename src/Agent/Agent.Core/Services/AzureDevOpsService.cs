@@ -176,4 +176,33 @@ public class AzureDevOpsService : IAzureDevOpsService
             return string.Empty;
         }
     }
+
+    /// <summary>
+    /// Checks whether the authenticated client has access to the specified ADO repository.
+    /// </summary>
+    public async Task<bool> HasRepositoryAccessAsync(string organization, string project, string repository, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var connection = await CreateConnection(organization);
+            var gitClient = connection.GetClient<GitHttpClient>();
+
+            var repo = await gitClient.GetRepositoryAsync(project: project, repositoryId: repository, cancellationToken: cancellationToken);
+            return repo != null;
+        }
+        catch (VssUnauthorizedException)
+        {
+            return false;
+        }
+        catch (VssServiceException ex) when (ex.Message.Contains("TF400813"))
+        {
+            // Repository may not exist or is inaccessible
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, $"Error checking access to ADO repo {organization}/{project}/{repository}");
+            return false;
+        }
+    }
 }

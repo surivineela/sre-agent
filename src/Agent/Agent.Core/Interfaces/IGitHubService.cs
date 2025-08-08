@@ -32,4 +32,10 @@ public interface IGitHubService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>File content as string</returns>
     Task<string> GetFileContentAsync(string owner, string repository, string path, string reference, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Checks whether the authenticated client has access to the specified repository.
+    /// Note: GitHub returns 404 for both non-existent and inaccessible private repos; callers should log a friendly message.
+    /// </summary>
+    Task<bool> HasRepositoryAccessAsync(string owner, string repository, CancellationToken cancellationToken = default);
 }
