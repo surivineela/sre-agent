@@ -22,15 +22,11 @@ import {
     tokens,
 } from '@fluentui/react-components';
 import { memo, ReactNode, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { FaGithub } from 'react-icons/fa';
-import { VscAzureDevops } from 'react-icons/vsc'; // Azure DevOps icon
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
-import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { isPaasResourceType } from '../../Common/Helpers/Resources';
 import { ResourceInfoResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { StreamingContext } from '../Contracts/Context';
@@ -38,10 +34,8 @@ import { GraphContext, GraphNode, ResourceExtended } from '../Contracts/Graph';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
 import { getPropertyValue, useResourceInfo } from '../Hooks/useResourceInfo';
 import HealthStatus from './HealthStatus';
+import { ConnectRepositoryLink, getRepoIcon } from './RepositoryConnectionDialog';
 import { getAppHealthInfo } from './Utility';
-
-const githubRepoRegex = /^https:\/\/github\.com\/[\w-]+\/[\w.-]+(?:\.git)?$/;
-const azdoRepoRegex = /^https:\/\/(?:dev\.azure\.com\/[\w-]+\/[\w-]+\/_git\/[\w.-]+|[\w-]+\.visualstudio\.com\/[\w-]+\/_git\/[\w.-]+)$/;
 
 const isNullOrUndefined = (input?: unknown): boolean => {
     return input === undefined || input === null;
@@ -116,130 +110,24 @@ const useStyles = makeStyles({
 
 const ResourceInfo = () => {
     const { selectedNode } = useContext(GraphContext);
-    const { sreAgentEndpoint } = useContext(EnvironmentContext);
 
     const { root } = useStyles();
-    const handleRepositoryLogin = async () => {
-        if (!selectedNode?.id) return;
-
-        try {
-            const response = await fetch(`${sreAgentEndpoint}/api/v1/github/auth?resourceId=${selectedNode.id}`, {
-                headers: getAgentHeaders(),
-            });
-            if (!response.ok) throw new Error('Failed to get GitHub auth URL');
-
-            const data = await response.json();
-            if (data.loginCallbackUrl) {
-                const w = window.open(data.loginCallbackUrl, 'githubAuth', 'width=600,height=700');
-                if (w) {
-                    const onLoad = () => {
-                        w.removeEventListener('load', onLoad);
-                        window.location.reload(); // Reload the page to reflect the login
-                    };
-                    w.addEventListener('load', onLoad);
-                }
-            }
-        } catch (err) {
-            console.error('Failed to initiate GitHub login:', err);
-        }
-    };
 
     return (
         <div className={root}>
-            <ResourceInfoContent selectedNode={selectedNode} onGitHubLogin={handleRepositoryLogin} />
+            <ResourceInfoContent selectedNode={selectedNode} />
         </div>
     );
 };
 
-const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode; onGitHubLogin: () => void }) => {
+const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode }) => {
     const { isLoading, isUpdating, initialRemarks, resource, onSubmit, toasterId } = useResourceInfo(selectedNode);
-    const { sreAgentEndpoint } = useContext(EnvironmentContext);
-    const { infoContent, title, spinner, content, dashboard, repoButton, repoIcon } = useStyles();
+    const { infoContent, title, spinner, content, dashboard, repoButton } = useStyles();
     const intl = useIntl();
-
-    const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
-    const [repoUrl, setRepoUrl] = useState('');
-    const [isLinking, setIsLinking] = useState(false);
-    const [repoUrlError, setRepoUrlError] = useState('');
 
     const properties = resource?.properties;
 
     const isPaasResource = useMemo<boolean>(() => isPaasResourceType(resource?.type), [resource]);
-
-    const handleLinkRepository = async () => {
-        if (!selectedNode?.id || !repoUrl) return;
-
-        setIsLinking(true);
-
-        // If the url matches github fetch here.
-        if (githubRepoRegex.test(repoUrl)) {
-            try {
-                const response = await fetch(`${sreAgentEndpoint}/api/v1/github/link`, {
-                    method: 'POST',
-                    headers: {
-                        ...getAgentHeaders(),
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        resourceId: selectedNode.id,
-                        repoUrl: repoUrl,
-                        SubType: '',
-                        Namespace: '',
-                        ResourceName: '',
-                    }),
-                });
-
-                if (!response.ok) throw new Error('Failed to link repository');
-
-                // Refresh the resource info
-                window.location.reload();
-            } catch (err) {
-                console.error('Failed to link repository:', err);
-            } finally {
-                setIsLinking(false);
-                setIsLinkDialogOpen(false);
-            }
-        } else if (azdoRepoRegex.test(repoUrl)) {
-            try {
-                const response = await fetch(`${sreAgentEndpoint}/api/v1/azuredevops/link`, {
-                    method: 'POST',
-                    headers: {
-                        ...getAgentHeaders(),
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        resourceId: selectedNode.id,
-                        repoUrl: repoUrl,
-                        SubType: '',
-                        Namespace: '',
-                        ResourceName: '',
-                    }),
-                });
-
-                if (!response.ok) throw new Error('Failed to link repository');
-
-                // Refresh the resource info
-                window.location.reload();
-            } catch (err) {
-                console.error('Failed to link repository:', err);
-            } finally {
-                setIsLinking(false);
-                setIsLinkDialogOpen(false);
-            }
-        } else {
-            setRepoUrlError(intl.formatMessage(ResourceInfoResources.repositoryUrlErrorMessage));
-            setIsLinking(false);
-        }
-    };
-
-    const getRepoIcon = (url: string) => {
-        if (githubRepoRegex.test(url)) {
-            return <FaGithub className={repoIcon} />;
-        } else if (azdoRepoRegex.test(url)) {
-            return <VscAzureDevops className={repoIcon} />;
-        }
-        return null;
-    };
 
     return selectedNode ? (
         <div className={infoContent}>
@@ -347,70 +235,7 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode; onGit
                                         </div>
                                     )
                                 ) : (
-                                    <>
-                                        <Button
-                                            appearance="primary"
-                                            size="small"
-                                            icon={getRepoIcon(repoUrl)}
-                                            onClick={() => setIsLinkDialogOpen(true)}
-                                        >
-                                            <FormattedMessage {...ResourceInfoResources.connectRepository} />
-                                        </Button>
-                                        <Dialog open={isLinkDialogOpen} onOpenChange={(_, data) => setIsLinkDialogOpen(data.open)}>
-                                            <DialogSurface>
-                                                <DialogBody>
-                                                    <DialogTitle>
-                                                        <FormattedMessage {...ResourceInfoResources.linkRepositoryToResource} />
-                                                    </DialogTitle>
-                                                    <DialogContent>
-                                                        <Field
-                                                            label={intl.formatMessage(ResourceInfoResources.repositoryUrl)}
-                                                            validationState={repoUrlError ? 'error' : undefined}
-                                                            validationMessage={repoUrlError}
-                                                        >
-                                                            <Textarea
-                                                                placeholder="https://github.com/owner/repo-name or https://dev.azure.com/organization/project/_git/repo or https://organization.visualstudio.com/project/_git/repository-name"
-                                                                value={repoUrl}
-                                                                onChange={(_, data) => {
-                                                                    setRepoUrl(data.value);
-
-                                                                    if (
-                                                                        !azdoRepoRegex.test(data.value) &&
-                                                                        !githubRepoRegex.test(data.value)
-                                                                    ) {
-                                                                        setRepoUrlError(
-                                                                            intl.formatMessage(
-                                                                                ResourceInfoResources.repositoryUrlErrorMessage
-                                                                            )
-                                                                        );
-                                                                    } else {
-                                                                        setRepoUrlError('');
-                                                                    }
-                                                                }}
-                                                                style={{ direction: 'ltr' }}
-                                                            />
-                                                        </Field>
-                                                    </DialogContent>
-                                                    <DialogActions>
-                                                        <Button
-                                                            appearance="primary"
-                                                            disabled={!repoUrl || !!repoUrlError || isLinking}
-                                                            onClick={handleLinkRepository}
-                                                        >
-                                                            {isLinking ? (
-                                                                <FormattedMessage {...ResourceInfoResources.connecting} />
-                                                            ) : (
-                                                                <FormattedMessage {...ResourceInfoResources.connectRepository} />
-                                                            )}
-                                                        </Button>
-                                                        <Button appearance="secondary" onClick={() => setIsLinkDialogOpen(false)}>
-                                                            <FormattedMessage {...SreAgentResources.cancel} />
-                                                        </Button>
-                                                    </DialogActions>
-                                                </DialogBody>
-                                            </DialogSurface>
-                                        </Dialog>
-                                    </>
+                                    <ConnectRepositoryLink resourceId={selectedNode?.id} />
                                 )}
                             </SummaryField>
                         )}

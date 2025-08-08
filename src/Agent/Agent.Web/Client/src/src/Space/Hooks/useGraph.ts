@@ -29,20 +29,35 @@ export const useGraph = () => {
     const [isSubscriptionLoading, setIsSubscriptionLoading] = useState<boolean>(false);
     const [isAppGroupLoading, setIsAppGroupLoading] = useState<boolean>(false);
 
-    const [graph, setGraph] = useState<Map<string, { appGroupNode?: Node<GraphNode>; nodes: Node<GraphNode>[]; edges: Edge<GraphEdge>[] }>>(
-        new Map<string, { nodes: Node<GraphNode>[]; edges: Edge<GraphEdge>[] }>()
-    );
+    const [graph, setGraph] = useState<
+        Map<string, { appGroupNode?: Node<GraphNode>; nodes: Node<GraphNode>[]; edges: Edge<GraphEdge>[]; resources: Resource[] }>
+    >(new Map<string, { nodes: Node<GraphNode>[]; edges: Edge<GraphEdge>[]; resources: Resource[] }>());
     const [isLoading, setIsLoading] = useState(false);
     const [selectedNode, setSelectedNode] = useState<GraphNode>();
     const [hoveredNodeId, setHoveredNodeId] = useState<string>();
     const [nodes, setNodes, onNodesChange] = useNodesState<Node<GraphNode>>([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge<GraphEdge>>([]);
+    const [resources, setResources] = useState<Resource[]>([]);
     const [nodesToHighlight, setNodesToHighlight] = useState<string[]>([]);
     const [edgesToHighlight, setEdgesToHighlight] = useState<string[]>([]);
     const [selectedAppGroupId, setSelectedAppGroupId] = useState<string | undefined>(undefined);
 
     const layoutGraph = useGraphLayout();
     const { fitView } = useReactFlow();
+
+    const getUniqueResourceGroups = useCallback((appGroup?: ResourceExtended): string[] => {
+        const resourceGroupsSet = new Set<string>();
+
+        if (appGroup?.properties?.resourceGroupName) {
+            appGroup.properties.resourceGroupName.forEach(rg => resourceGroupsSet.add(rg));
+        }
+
+        return Array.from(resourceGroupsSet);
+    }, []);
+
+    const resourceGroups = useMemo(() => {
+        return getUniqueResourceGroups(selectedAppGroup);
+    }, [selectedAppGroup, getUniqueResourceGroups]);
 
     const resourceTypeFilterOptions = useMemo(() => {
         const options = [{ key: allKey, text: intl.formatMessage(SreAgentResources.all) }];
@@ -88,12 +103,80 @@ export const useGraph = () => {
                 const { data } = await axios.get(`${sreAgentEndpoint}/api/v1/graph/${subscriptionId}/appGroups/${resourceId}`, {
                     headers: getAgentHeaders(),
                 });
-                return data ?? [];
+                let resources = data ?? [];
+
+                const appGroup = appGroups.find(ag => ag.id === resourceId);
+
+                resources = resources.map((resource: any) => ({
+                    ...resource,
+                    sourceCodeLinkageStatus: resource.sourceCodeLinkageStatus || appGroup?.sourceCodeLinkageStatus,
+                }));
+
+                return resources;
             } catch {
                 return [];
             }
         },
+        [sreAgentEndpoint, appGroups]
+    );
+
+    const getResource = useCallback(
+        async (resourceId: string): Promise<ResourceExtended | undefined> => {
+            try {
+                const { data } = await axios.get(`${sreAgentEndpoint}/api/v1/graph/resource/${resourceId}`, {
+                    headers: getAgentHeaders(),
+                });
+                return (data ?? [])?.[0];
+            } catch {
+                return undefined;
+            }
+        },
         [sreAgentEndpoint]
+    );
+
+    const onLoadAppGroupResources = useCallback(
+        async (appGroupId: string): Promise<{ resources: Resource[] }> => {
+            try {
+                const subscriptionId = getSubscriptionIdFromNodeId(appGroupId);
+                const { data } = await axios.get(`${sreAgentEndpoint}/api/v1/graph/${subscriptionId}/appGroups/${appGroupId}`, {
+                    headers: getAgentHeaders(),
+                });
+
+                let resources = data ?? [];
+
+                const appGroupResource = await getResource(appGroupId);
+
+                if (appGroupResource) {
+                    const appGroupAsResource = {
+                        name: appGroupResource.name,
+                        type: appGroupResource.type,
+                        resourceId: appGroupResource.id,
+                        kind: appGroupResource.type,
+                        dashboardUrl: appGroupResource.dashboardUrl || '',
+                        subItems: [],
+                        sourceCodeLinkageStatus: appGroupResource.sourceCodeLinkageStatus,
+                    } as Resource & { sourceCodeLinkageStatus?: any };
+
+                    resources = [appGroupAsResource, ...resources];
+                }
+
+                const appGroup = appGroups.find(ag => ag.id === appGroupId);
+
+                resources = resources.map((resource: any) => ({
+                    ...resource,
+                    sourceCodeLinkageStatus: resource.sourceCodeLinkageStatus || appGroup?.sourceCodeLinkageStatus,
+                }));
+
+                return {
+                    resources,
+                };
+            } catch (error) {
+                return {
+                    resources: [],
+                };
+            }
+        },
+        [sreAgentEndpoint, appGroups, getResource]
     );
 
     const onSelectSubscription = async (_: SelectionEvents, data: OptionOnSelectData) => {
@@ -242,11 +325,12 @@ export const useGraph = () => {
                     layoutGraph(nodes, edges).then(result => {
                         setGraph(prev => {
                             const newGraph = new Map(prev);
-                            newGraph.set(appGroup.id, { appGroupNode, ...result });
+                            newGraph.set(appGroup.id, { appGroupNode, resources, ...result });
                             return newGraph;
                         });
                         setNodes(result.nodes);
                         setEdges(result.edges);
+                        setResources(resources);
                         setIsLoading(prev => {
                             if (prev) {
                                 return false;
@@ -256,15 +340,17 @@ export const useGraph = () => {
                     });
                     setSelectedNode(appGroupNode.data);
                 } else {
-                    const { appGroupNode, nodes, edges } = graph.get(appGroup.id) ?? { nodes: [], edges: [] };
+                    const { appGroupNode, nodes, edges, resources } = graph.get(appGroup.id) ?? { nodes: [], edges: [], resources: [] };
                     setNodes(nodes);
                     setEdges(edges);
+                    setResources(resources);
                     setIsLoading(false);
                     setSelectedNode(appGroupNode?.data);
                 }
             } else {
                 setNodes([]);
                 setEdges([]);
+                setResources([]);
                 setIsLoading(false);
                 setSelectedNode(undefined);
             }
@@ -315,5 +401,8 @@ export const useGraph = () => {
         onSelectRscType,
         onSelectAppGroupDropdown,
         allKey,
+        resources,
+        resourceGroups,
+        onLoadAppGroupResources,
     };
 };

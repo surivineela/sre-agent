@@ -16,6 +16,8 @@ export const SreAgentResources = defineMessages({
     sreAgent: { defaultMessage: 'Azure SRE Agent', id: 'Erci0g' },
     add: { defaultMessage: 'Add', id: '2/2yg+' },
     new: { defaultMessage: 'New', id: 'bW7B87' },
+    resources: { defaultMessage: 'Resources', id: 'c/KktL' },
+    NA: { defaultMessage: 'N/A', id: 'PW+sL4' },
     feedbackDialogTitle: {
         id: 'Nrc9ba',
         defaultMessage: 'Thank you for your feedback!',
@@ -180,6 +182,7 @@ export const SreAgentResources = defineMessages({
     stop: { defaultMessage: 'Stop', id: 'q/uwLT' },
     sreAgentSpace: { defaultMessage: 'SRE Agent Space', id: 'iv1ryQ' },
     subscription: { defaultMessage: 'Subscription', id: 'R/6nsx' },
+    coreApplicationGroups: { defaultMessage: 'Core application groups', id: 'I8iKnF' },
     coreApplicationGroup: { defaultMessage: 'Core application group', id: 'pf5nil' },
     subscriptionId: { defaultMessage: 'Subscription ID', id: 'FUQvS0' },
     totalThreads: { defaultMessage: 'Total threads', id: 'zN87hN' },
@@ -1090,6 +1093,11 @@ export const GraphResources = defineMessages({
             "This map shows how your application's resources are connected across multiple resource groups, regions, and subscriptions. The agent analyzes these resources and organizes them into a core application group based on the primary resource.",
         id: '0G14fL',
     },
+    visualView: { defaultMessage: 'Visual view', id: 'Ua0Vpv' },
+    gridView: { defaultMessage: 'Grid view', id: 'N+sJfO' },
+    tableHeaderName: { defaultMessage: 'Name', id: 'HAlOn1' },
+    tableHeaderResourceType: { defaultMessage: 'Resource type', id: 'WHleoJ' },
+    tableHeaderRepositoryConnection: { defaultMessage: 'Repository connection', id: 'FLm/x4' },
 });
 
 export const GraphEdgeLabel = defineMessages({

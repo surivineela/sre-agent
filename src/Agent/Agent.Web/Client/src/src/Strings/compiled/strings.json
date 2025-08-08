@@ -1561,6 +1561,12 @@
       "value": "- completed"
     }
   ],
+  "I8iKnF": [
+    {
+      "type": 0,
+      "value": "Core application groups"
+    }
+  ],
   "IAwPyV": [
     {
       "type": 0,
@@ -1837,6 +1843,12 @@
     {
       "type": 0,
       "value": "No historical data available"
+    }
+  ],
+  "N+sJfO": [
+    {
+      "type": 0,
+      "value": "Grid view"
     }
   ],
   "NAAdaF": [
@@ -2541,6 +2553,12 @@
       "value": "Has read-only access to entities in the workspace. This role should be assigned on the workspace scope."
     }
   ],
+  "Ua0Vpv": [
+    {
+      "type": 0,
+      "value": "Visual view"
+    }
+  ],
   "Udeffr": [
     {
       "type": 0,
@@ -3085,6 +3103,12 @@
     {
       "type": 0,
       "value": "result"
+    }
+  ],
+  "c/KktL": [
+    {
+      "type": 0,
+      "value": "Resources"
     }
   ],
   "c1EiBR": [

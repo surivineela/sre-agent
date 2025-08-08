@@ -2,14 +2,14 @@ import { makeStyles, tokens } from '@fluentui/react-components';
 import { NodeSize } from '../Contracts/Graph';
 
 export const useGraphStyles = makeStyles({
-    root: {
+    visualRoot: {
         display: 'flex',
         flexDirection: 'row',
         justifyContent: 'flex-start',
         alignItems: 'flex-start',
-        width: '100vw',
-        height: 'calc(100vh - 45px)',
-        borderTop: '1px solid rgba(204,204,204,.8)',
+        width: '100%',
+        height: 'calc(100% - 2rem)',
+        overflow: 'hidden',
     },
     reactFlow: {
         width: '100%',
@@ -25,6 +25,34 @@ export const useGraphStyles = makeStyles({
         marginTop: '10px',
         marginLeft: '10px',
         marginRight: '10px',
+    },
+    container: {
+        flex: '1 1 auto',
+        padding: '1rem',
+        paddingRight: 0,
+        paddingTop: 0,
+        backgroundColor: tokens.colorNeutralBackground1,
+        borderTopLeftRadius: tokens.borderRadiusXLarge,
+        boxShadow: tokens.shadow4,
+        height: 'calc(100vh - 0.5rem - 1px - 50px)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+    },
+    rootContainer: {
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100vh',
+        paddingTop: '0.5rem',
+        borderTop: '1px solid rgba(204, 204, 204, 0.8)',
+        backgroundColor: tokens.colorNeutralBackground3,
+        paddingLeft: '15px',
+        gap: '0.25rem',
+    },
+    radioGroupContainer: {
+        paddingRight: '1rem',
+        paddingBottom: '0.25rem',
+        flex: 'none',
     },
 });
 
@@ -125,11 +153,11 @@ export const useResourceSelectorStyles = makeStyles({
         alignItems: 'flex-start',
         maxWidth: '300px',
         minWidth: '100px',
-        height: 'calc(100% - 40px)',
+        height: '100%',
         overflowY: 'auto',
-        flex: '1 1 auto',
+        flex: '0 0 auto',
         backgroundColor: tokens.colorNeutralBackground3,
-        padding: '20px',
+        padding: '16px',
     },
     field: {
         width: '100%',
