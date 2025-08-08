@@ -211,6 +211,7 @@ export const getFriendlyEdgeLabel = (nodeRelations: string) => {
         case NodeRelations.RedisConnected.toLowerCase():
         case NodeRelations.Connected.toLowerCase():
         case NodeRelations.UsesRedis.toLowerCase():
+        case NodeRelations.Uses.toLowerCase():
         case NodeRelations.References.toLowerCase():
             return GraphEdgeLabel.connectsTo;
         case NodeRelations.HasRole.toLowerCase():

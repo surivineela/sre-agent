@@ -325,7 +325,7 @@ public class GraphService : IGraphService
 
     public async Task<ResultSet<AppGroupItem>> GetAppGroupResourcesAsync(string resourceId)
     {
-        int hops = 2;
+        int hops = 3;
 
         // HashSet to track visited nodes to avoid cycles
         var processedNodes = new HashSet<string>();

@@ -31,6 +31,7 @@ const ICON_LOOKUP: Record<string, string> = {
     redis: 'AzureRedisCache.svg',
     cache: 'AzureRedisCache.svg',
     storageaccounts: 'Storage.svg',
+    'documentdb/databaseaccounts': 'CosmosDB.svg',
 
     // Networking
     vnet: 'Vnet.svg',
@@ -45,6 +46,15 @@ const ICON_LOOKUP: Record<string, string> = {
 
     // Monitoring
     components: 'ApplicationInsights.svg',
+
+    // Logic Apps
+    'web/connections': 'Connection.svg',
+
+    // Service Bus
+    'servicebus/namespaces': 'ServiceBusNamespace.svg',
+
+    // Event Hub
+    'eventhub/namespaces': 'EventHubNamespace.svg',
 };
 
 // Friendly names for resource types
@@ -79,6 +89,7 @@ const FRIENDLY_NAMES: Record<string, string> = {
     redis: 'Redis Cache',
     cache: 'Redis Cache',
     storageaccounts: 'Storage Account',
+    'documentdb/databaseaccounts': 'Document DB',
 
     // Networking
     vnet: 'Virtual Network',
@@ -94,6 +105,18 @@ const FRIENDLY_NAMES: Record<string, string> = {
     apimanagement: 'API Management',
     'microsoft.apimanagement/service/backends': 'API Management Backend',
     apicenter: 'API Center',
+
+    // Logic Apps
+    'web/connections': 'API Connection',
+
+    // Service Bus
+    'servicebus/namespaces': 'Service Bus Namespace',
+
+    // Event Hub
+    'eventhub/namespaces': 'Event Hub Namespace',
+
+    // Storage
+    'storage/storageaccounts': 'Storage Account',
 };
 
 const DEFAULT_ICON = 'azureResource.svg';

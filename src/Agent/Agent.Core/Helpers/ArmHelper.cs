@@ -3003,6 +3003,51 @@ public class ArmHelper
         }
     }
 
+    #region Parsing Methods
+
+    public static string? TryParseServiceBusFromEndpoint(string value)
+    {
+        // value is endpoint format like https://<servicebus>.servicebus.windows.net/
+        if (value.StartsWith("https://"))
+        {
+            return value.Substring("https://".Length).Split('.').FirstOrDefault();
+        }
+
+        return null;
+    }
+
+    public static string? TryParseEventHubFromEndpoint(string subscriptionId, string value)
+    {
+        if (value.StartsWith("https://"))
+        {
+            return value.Substring("https://".Length).Split('.').FirstOrDefault();
+        }
+
+        return null;
+    }
+
+
+    public static string? TryParseStorageAccountFromNameOrEndpoint(string? value)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+
+        // value is an endpoint. It could be either https://<name>.<type>.core.windows.net/ or https://<name>-secondary.<type>.core.windows.net/
+        if (value.StartsWith("https://"))
+        {
+            return value!.Substring("https://".Length).Split('.').FirstOrDefault()?.Split('-').FirstOrDefault();
+        }
+        else
+        {
+            // value is the storage account name
+            return value;
+        }
+    }
+
+    #endregion
+
     #region Private Methods
 
     private static string CreateTimeoutErrorMessage(string timeoutType, string appServiceResource, string exceptionMessage)

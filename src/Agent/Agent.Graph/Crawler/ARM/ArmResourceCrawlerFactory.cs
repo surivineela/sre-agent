@@ -97,10 +97,11 @@ public class ArmResourceCrawlerFactory
 
             if (Constants.AppServiceType.Equals(armNode.ResourceType, StringComparison.OrdinalIgnoreCase))
             {
-                if(armNode.ResourceKind  == ResourceKindHelper.LogicAppResourceKind)
+                if (Constants.LogicAppKind.Equals(armNode.ResourceKind, StringComparison.OrdinalIgnoreCase))
                 {
                     return new LogicAppCrawler(_loggerFactory.CreateLogger<LogicAppCrawler>(), _graphDbClient, _armHelper, armClient);
                 }
+
                 return new AppServiceCrawler(_loggerFactory.CreateLogger<AppServiceCrawler>(), _graphDbClient, armClient);
             }
 
@@ -130,6 +131,11 @@ public class ArmResourceCrawlerFactory
             if (Constants.ApiCenterType.Equals(armNode.ResourceType, StringComparison.OrdinalIgnoreCase))
             {
                 return new APICenterCrawler(_loggerFactory.CreateLogger<APICenterCrawler>(), _graphDbClient, _graphClient, armClient, _httpClientFactory);
+            }
+
+            if (Constants.ApiConnectionType.Equals(armNode.ResourceType, StringComparison.OrdinalIgnoreCase))
+            {
+                return new ConnectionCrawler(_loggerFactory.CreateLogger<ConnectionCrawler>(), _graphDbClient, armClient);
             }
 
             return new GenericArmResourceCrawler(_loggerFactory.CreateLogger<GenericArmResourceCrawler>(), _graphDbClient, armClient);

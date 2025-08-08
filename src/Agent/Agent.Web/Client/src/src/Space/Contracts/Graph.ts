@@ -114,6 +114,7 @@ export enum NodeRelations {
     RelatedToIncident = 'RELATED_TO_INCIDENT',
     MonitoredBy = 'MONITORED_BY',
     IsPartOF = 'IS_PART_OF',
+    Uses = 'USES',
 }
 
 export type HandlePosition = 'T' | 'B' | 'L' | 'R';
