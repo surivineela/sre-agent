@@ -2,7 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using Agent.Core.Extensions;
@@ -13,7 +12,6 @@ using Agent.Logging;
 using Agent.Runtime.Workflow;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Agent.Core;
 using OpenTelemetry.Trace;
 
 namespace Agent.Runtime.Reasoning;
@@ -34,14 +32,15 @@ public class WorkflowOrchestrator : IDisposable
     private readonly AgentContext _context;
     private readonly IToolFactory<AgentContext> _toolFactory;
     private readonly Tracer _tracer;
-    
+
     // Telemetry spans for workflow tracing
     private TelemetrySpan? _rootSpan;
     private TelemetrySpan? _currentAgentSpan;
     private TelemetrySpan? _currentToolSpan;
     private TelemetrySpan? _currentGenerationSpan;
+    private TelemetrySpan? _currentSummarizerSpan;
     private TelemetrySpan? _currentCriticSpan;
-    
+
     // In-memory storage for agent execution results
     private readonly Dictionary<string, WorkflowActivityAgentOutput> _executionResults = new();
     private readonly List<ChatMessage> _chatHistory = new();
@@ -66,7 +65,7 @@ public class WorkflowOrchestrator : IDisposable
         _agentFactory = agentFactory;
         _toolFactory = toolFactory;
         _tracer = tracer;
-        
+
         // Initialize root span for workflow execution
         _rootSpan = _tracer.StartSpan($"workflow.orchestrator.{_context.ThreadId}");
         _rootSpan.SetAttribute("workflow.thread_id", _context.ThreadId.ToString());
@@ -79,19 +78,19 @@ public class WorkflowOrchestrator : IDisposable
     public async Task LoadChatHistoryAsync()
     {
         _logger.LogInternalInformation("Loading chat history for workflow orchestrator");
-        
+
         var agentChatHistory = await _threadRepository.GetAgentChatHistoryAsync(_context.Id);
         if (agentChatHistory != null)
         {
             var reasoningMessages = await agentChatHistory.GetReasoningMessagesAsync(_threadRepository);
             var chatMessages = reasoningMessages.GetChatMessages();
-            
+
             foreach (var chatMessage in chatMessages)
             {
                 _chatHistory.Add(chatMessage);
             }
         }
-        
+
         _logger.LogInternalInformation($"Loaded {_chatHistory.Count} messages from chat history");
     }
 
@@ -101,7 +100,7 @@ public class WorkflowOrchestrator : IDisposable
     public async Task AppendNewUserMessageAsync(ChatMessage msg, CancellationToken cancellationToken = default)
     {
         _logger.LogInternalInformation("New user message received, starting workflow execution");
-        
+
         // Add message to chat history
         _chatHistory.Add(msg);
 
@@ -113,15 +112,15 @@ public class WorkflowOrchestrator : IDisposable
             AgentContextId: _context.Id,
             Role: ReasoningMessageRoleEnum.User,
             SerializedChatMessage: JsonSerializer.Serialize(msg) + $"Debug Id: {_context.Id} MessageId: {messageId} ThreadId: {_context.ThreadId} ");
-        
+
         await _threadRepository.CreateReasoningMessageAsync(reasoningMessage);
-        
+
         var agentChatHistory = await _threadRepository.GetAgentChatHistoryAsync(_context.Id);
         if (agentChatHistory != null)
         {
             await _threadRepository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, reasoningMessage);
         }
-        
+
         // Start workflow execution
         await ExecuteWorkflowAsync(cancellationToken);
     }
@@ -164,31 +163,31 @@ public class WorkflowOrchestrator : IDisposable
         try
         {
             _logger.LogInternalInformation($"Executing router agent: {routerAgent.Name}");
-            
+
             // Create RunHooks for tool resolution
             var runHooks = CreateRunHooks();
-            
+
             // Set AsyncLocal for tool factory access
             Agent.Core.ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
-            
+
             var result = await Framework.Runner.RunWithHandoffDetectionAsync(
                 routerAgent,
                 _chatHistory,
-                new RunConfig 
-                { 
-                    ChatClient = _chatClient, 
-                    LoggerFactory = _loggerFactory 
+                new RunConfig
+                {
+                    ChatClient = _chatClient,
+                    LoggerFactory = _loggerFactory
                 },
                 context: _context,
                 hooks: runHooks,
                 cancellationToken: cancellationToken);
-            
+
             if (result.HandoffDetected && !string.IsNullOrEmpty(result.HandoffTargetAgent))
             {
                 _logger.LogInternalInformation($"Router agent handoff detected: {routerAgent.Name} -> {result.HandoffTargetAgent}");
                 return result.HandoffTargetAgent;
             }
-            
+
             _logger.LogInternalWarning($"Router agent {routerAgent.Name} completed without handoff");
             return null;
         }
@@ -204,11 +203,11 @@ public class WorkflowOrchestrator : IDisposable
     /// </summary>
     private async Task ExecuteWorkflowAsync(CancellationToken cancellationToken)
     {
-        
+
         try
         {
             _logger.LogInternalInformation("Starting workflow execution");
-            
+
             // Get the current agent
             var currentAgentName = _context.AgentHandoffChain.LastOrDefault() ?? _context.CurrentAgent;
             if (string.IsNullOrEmpty(currentAgentName))
@@ -216,27 +215,27 @@ public class WorkflowOrchestrator : IDisposable
                 _logger.LogInternalError("No current agent found for workflow orchestration");
                 return;
             }
-            
+
             var currentAgent = _agentFactory.GetAgent(currentAgentName);
             if (currentAgent == null)
             {
                 _logger.LogInternalError($"Agent {currentAgentName} not found");
                 return;
             }
-            
+
             // Check if this is a router agent (like rca_router_meta_agent)
             if (currentAgentName == "rca_router_meta_agent" || currentAgent.AgentType == Framework.Models.AgentType.Autonomous)
             {
                 _logger.LogInternalInformation($"Detected router agent: {currentAgentName}");
                 var handoffTarget = await ExecuteRouterAgentAsync(currentAgent, cancellationToken);
-                
+
                 if (!string.IsNullOrEmpty(handoffTarget))
                 {
                     // Update the agent handoff chain
                     _context.AgentHandoffChain.Add(handoffTarget);
-                    
+
                     _logger.LogInternalInformation($"Router handoff completed: {currentAgentName} -> {handoffTarget}");
-                    
+
                     // Continue with the workflow using the target agent
                     await ExecuteWorkflowAsync(cancellationToken);
                     return;
@@ -247,7 +246,7 @@ public class WorkflowOrchestrator : IDisposable
                     return;
                 }
             }
-            
+
             // Handle orchestrator agents (existing logic)
             var orchestratorAgent = currentAgent;
             if (orchestratorAgent.AgentType != Framework.Models.AgentType.Orchestrator)
@@ -255,25 +254,25 @@ public class WorkflowOrchestrator : IDisposable
                 _logger.LogInternalError($"Agent {currentAgentName} is not an Orchestrator type agent");
                 return;
             }
-            
+
             _logger.LogInternalInformation($"Using orchestrator agent: {currentAgentName}");
-            
+
             // Step 1: Execute parameter extraction agent if defined
             var parameterExtractionAgentName = orchestratorAgent.ParameterExtractionAgent;
-            
+
             WorkflowExecutionContext baseExecutionContext = new()
             {
                 WorkflowId = Guid.NewGuid().ToString(),
                 OrchestratorAgent = currentAgentName, // Use the dispatched agent name
                 StartedAt = DateTime.UtcNow
             };
-            
+
             if (!string.IsNullOrEmpty(parameterExtractionAgentName))
             {
                 _logger.LogInternalInformation($"Executing parameter extraction agent: {parameterExtractionAgentName}");
                 var parameterAgent = _agentFactory.GetAgent(parameterExtractionAgentName);
                 var parameterResult = await ExecuteAgentWithHistory(parameterAgent, cancellationToken);
-                
+
                 if (parameterResult != null)
                 {
                     // Merge extracted parameters into base execution context
@@ -289,36 +288,36 @@ public class WorkflowOrchestrator : IDisposable
                     }
                 }
             }
-            
+
             // Step 2: Execute orchestration start agents recursively (each with its own context)
             var startAgents = orchestratorAgent.OrchestrationStartAgents;
             if (startAgents?.Count > 0)
             {
                 _logger.LogInternalInformation($"Starting {startAgents.Count} independent orchestration branches from {currentAgentName}");
-                
+
                 // Execute each start agent as an independent branch with its own context
                 var branchTasks = new List<Task>();
-                
+
                 for (int i = 0; i < startAgents.Count; i++)
                 {
                     var startAgent = startAgents[i];
                     var branchContext = baseExecutionContext.Clone(); // Each branch gets its own context
                     branchContext.StepNumber = i + 1; // Unique step number for each branch
-                    
+
                     _logger.LogInternalInformation($"Starting branch {i + 1}: {startAgent}");
-                    
+
                     // Execute each branch independently
                     var branchTask = ExecuteAgentBranchAsync(startAgent, branchContext, new HashSet<string>(), cancellationToken);
                     branchTasks.Add(branchTask);
                 }
-                
+
                 // Wait for all branches to complete
                 await Task.WhenAll(branchTasks);
             }
-            
+
             // Step 3: Summarize results and post to thread
             await SummarizeAndPostResults(orchestratorAgent, cancellationToken);
-            
+
             _logger.LogInternalInformation("Workflow execution completed successfully");
         }
         catch (Exception ex)
@@ -332,36 +331,36 @@ public class WorkflowOrchestrator : IDisposable
     /// Execute an agent with conversation history (for parameter extraction)
     /// </summary>
     private async Task<WorkflowActivityAgentOutput?> ExecuteAgentWithHistory(
-        Agent<AgentContext> agent, 
+        Agent<AgentContext> agent,
         CancellationToken cancellationToken)
     {
-        
+
         try
         {
             // Create RunHooks for tool resolution
             var runHooks = CreateRunHooks();
-            
+
             // Set AsyncLocal for tool factory access
             Agent.Core.ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
-            
+
             // Use the existing chat history for parameter extraction
             var result = await Framework.Runner.RunAsync(
                 agent,
                 _chatHistory,
-                new RunConfig 
-                { 
-                    ChatClient = _chatClient, 
-                    LoggerFactory = _loggerFactory 
+                new RunConfig
+                {
+                    ChatClient = _chatClient,
+                    LoggerFactory = _loggerFactory
                 },
                 context: _context,
                 hooks: runHooks,
                 cancellationToken: cancellationToken);
-            
+
             if (result.Output is WorkflowActivityLLMOutput workflowOutput)
             {
                 return WorkflowActivityAgentOutput.FromLLMOutput(workflowOutput, reasoningScratchPad: "", notifyUserMessage: "", state: "", stateExplanation: "");
             }
-            
+
             _logger.LogInternalWarning($"Agent {agent.Name} did not return WorkflowActivityAgentOutput");
             return null;
         }
@@ -380,39 +379,39 @@ public class WorkflowOrchestrator : IDisposable
         WorkflowExecutionContext executionContext,
         CancellationToken cancellationToken)
     {
-        
+
         try
         {
             // Create RunHooks for tool resolution
             var runHooks = CreateRunHooks();
-            
+
             // Set AsyncLocal for tool factory access
             Agent.Core.ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
-            
+
             // Create a minimal message with workflow parameters
             var parametersJson = JsonSerializer.Serialize(executionContext.AccumulatedParameters.Values);
-            var parameterMessage = new ChatMessage(ChatRole.User, 
+            var parameterMessage = new ChatMessage(ChatRole.User,
                 $"Execute your analysis with the following parameters: {parametersJson}");
-            
+
             var messages = new List<ChatMessage> { parameterMessage };
-            
+
             var result = await Framework.Runner.RunAsync(
                 agent,
                 messages,
-                new RunConfig 
-                { 
-                    ChatClient = _chatClient, 
-                    LoggerFactory = _loggerFactory 
+                new RunConfig
+                {
+                    ChatClient = _chatClient,
+                    LoggerFactory = _loggerFactory
                 },
                 context: _context,
                 hooks: runHooks,
                 cancellationToken: cancellationToken);
-            
+
             if (result.Output is WorkflowActivityLLMOutput workflowOutput)
             {
                 return WorkflowActivityAgentOutput.FromLLMOutput(workflowOutput, reasoningScratchPad: "", notifyUserMessage: "", state: "", stateExplanation: "");
             }
-            
+
             _logger.LogInternalWarning($"Agent {agent.Name} did not return WorkflowActivityAgentOutput");
             return null;
         }
@@ -427,12 +426,12 @@ public class WorkflowOrchestrator : IDisposable
     /// Recursively execute a branch of agents, each maintaining its own parameter context
     /// </summary>
     private async Task ExecuteAgentBranchAsync(
-        string agentName, 
-        WorkflowExecutionContext branchContext, 
+        string agentName,
+        WorkflowExecutionContext branchContext,
         HashSet<string> executedAgents,
         CancellationToken cancellationToken)
     {
-        
+
         try
         {
             // Check if this agent was already executed in this branch
@@ -441,37 +440,37 @@ public class WorkflowOrchestrator : IDisposable
                 _logger.LogInternalWarning($"Agent {agentName} already executed in this branch, skipping");
                 return;
             }
-            
+
             // Check execution limits
             if (branchContext.ExecutedAgentCount >= branchContext.MaxAgentCount)
             {
                 _logger.LogInternalWarning($"Maximum agent count reached in branch, stopping execution at {agentName}");
                 return;
             }
-            
+
             _logger.LogInternalInformation($"Executing agent: {agentName} in branch context {branchContext.WorkflowId}");
-            
+
             // Mark as executed and update counters
             executedAgents.Add(agentName);
             branchContext.ExecutedAgentCount++;
             branchContext.StepNumber++;
-            
+
             var agent = _agentFactory.GetAgent(agentName);
             var result = await ExecuteAgentWithParameters(agent, branchContext, cancellationToken);
-            
+
             if (result != null)
             {
                 // Store result with agent name and branch context
                 result.AgentName = agentName;
                 result.ExecutionContext = branchContext;
                 _executionResults[agentName] = result;
-                
+
                 // Parse the result parameters
                 result.ParseParameters();
-                
+
                 // Determine next steps using result.NextSteps or agent's NextAgentMappings
                 var nextSteps = result.NextSteps ?? new List<string>();
-                
+
                 // If agent has NextAgentMappings defined in YAML, use them to determine next steps
                 if (agent.NextAgentMappings?.Count > 0)
                 {
@@ -484,25 +483,25 @@ public class WorkflowOrchestrator : IDisposable
                         }
                     }
                 }
-                
+
                 // Recursively execute next steps with updated branch contexts
                 if (nextSteps?.Count > 0)
                 {
                     _logger.LogInternalInformation($"Agent {agentName} specified {nextSteps.Count} next steps");
-                    
+
                     foreach (var nextStep in nextSteps)
                     {
                         if (!string.IsNullOrEmpty(nextStep) && !executedAgents.Contains(nextStep))
                         {
                             // Create a new context for the next step (inherits current branch parameters)
                             var nextStepContext = branchContext.Clone();
-                            
+
                             // NOW merge parameters into the CLONED context
                             foreach (var param in result.ParsedParameters)
                             {
                                 nextStepContext.AccumulatedParameters.SetString(param.Key, param.Value);
                             }
-                            
+
                             // Recursively execute the next step with the updated cloned context
                             await ExecuteAgentBranchAsync(nextStep, nextStepContext, new HashSet<string>(executedAgents), cancellationToken);
                         }
@@ -530,7 +529,7 @@ public class WorkflowOrchestrator : IDisposable
     /// </summary>
     private async Task SummarizeAndPostResults(Agent<AgentContext> orchestratorAgent, CancellationToken cancellationToken)
     {
-        
+
         try
         {
             var summaryPrompt = orchestratorAgent.ResultSummarizationPrompt;
@@ -545,7 +544,7 @@ Based on the following analysis results from multiple specialized agents, provid
 Please consolidate the findings, identify key insights, and provide actionable recommendations.
 ";
             }
-            
+
             // Build results summary
             var resultsBuilder = new StringBuilder();
             foreach (var kvp in _executionResults)
@@ -557,22 +556,22 @@ Please consolidate the findings, identify key insights, and provide actionable r
                 resultsBuilder.AppendLine($"**Generated At:** {kvp.Value.GeneratedAt}");
                 resultsBuilder.AppendLine();
             }
-            
+
             var finalPrompt = summaryPrompt.Replace("{results}", resultsBuilder.ToString());
-            
+
             // Generate summary using LLM
             var summaryMessages = new List<ChatMessage>
             {
                 new ChatMessage(ChatRole.System, finalPrompt)
             };
-            
+
             var response = await _chatClient.GetResponseAsync(summaryMessages, cancellationToken: cancellationToken);
             var summaryText = response.GetMessage().Text ?? "Unable to generate summary";
-            
+
             // Add thread link for detailed view
             var threadLink = $"/static/#/views/activities/threads/{_context.ThreadId}";
             var finalMessage = $"{summaryText}\n\n**Thread Details:** [View detailed conversation]({threadLink})";
-            
+
             // Post summary to thread
             var summaryMessage = new ChatMessage(ChatRole.Assistant, finalMessage + $"Id: {_context.Id} ThreadId: {_context.ThreadId}");
             _chatHistory.Add(summaryMessage);
@@ -587,7 +586,7 @@ Please consolidate the findings, identify key insights, and provide actionable r
 
 
             await _threadRepository.CreateReasoningMessageAsync(reasoningMessage);
-            
+
             var agentChatHistory = await _threadRepository.GetAgentChatHistoryAsync(_context.Id);
             if (agentChatHistory != null)
             {
@@ -595,9 +594,9 @@ Please consolidate the findings, identify key insights, and provide actionable r
             }
 
             await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
-                _context.ThreadId, 
-                string.Empty, 
-                summaryMessage, 
+                _context.ThreadId,
+                string.Empty,
+                summaryMessage,
                 messageId);
 
             _logger.LogInternalInformation("Workflow summary posted to thread successfully");
@@ -654,7 +653,7 @@ Please consolidate the findings, identify key insights, and provide actionable r
                 return Task.CompletedTask;
             },
 
-            OnHandoff = async (context, agent, handoffAgent) =>
+            OnHandoff = async (context, agent, handoffAgent, handoffReasoning) =>
             {
                 _logger.LogInternalInformation("Workflow trace handoff from agent: {AgentName} to agent: {HandoffAgentName}", agent.Name, handoffAgent.Name);
                 _currentToolSpan = _tracer.StartSpan($"workflow.handoff", SpanKind.Internal, _currentAgentSpan);
@@ -662,10 +661,11 @@ Please consolidate the findings, identify key insights, and provide actionable r
                 _currentToolSpan.SetAttribute("workflow.operation", "Handoff");
                 _currentToolSpan.SetAttribute("workflow.source_agent", agent.Name);
                 _currentToolSpan.SetAttribute("workflow.target_agent", handoffAgent.Name);
+                _currentToolSpan.SetAttribute("workflow.handoff_reasoning", handoffReasoning);
                 _currentToolSpan.End();
                 _currentToolSpan = null;
                 _currentAgentSpan?.End();
-                
+
                 // Update handoff chain (workflow orchestrator handles this differently)
                 _context.AgentHandoffChain.Add(handoffAgent.Name);
                 await _threadRepository.UpdateAgentContextAsync(_context);
@@ -752,17 +752,49 @@ Please consolidate the findings, identify key insights, and provide actionable r
                 return Task.CompletedTask;
             },
 
-            OnCriticEnd = (context, agent, userQuery, criticResult, wasApproved) =>
+            OnSummarizerStart = (context, agent) =>
             {
-                _logger.LogInternalInformation("Workflow trace ending critic for agent: {AgentName}, Approved: {WasApproved}", agent.Name, wasApproved);
+                _logger.LogInternalInformation("Workflow trace starting Summarizer for agent: {AgentName}.", agent.Name);
+                _currentSummarizerSpan = _tracer.StartSpan($"summarizer", SpanKind.Internal, _currentAgentSpan);
+                _currentSummarizerSpan.SetAttribute("workflow.thread_id", _context.ThreadId.ToString());
+                _currentSummarizerSpan.SetAttribute("workflow.agent_name", agent.Name);
+                _currentSummarizerSpan.SetAttribute("workflow.operation", TraceOperationName.Summarizer);
+
+                return Task.CompletedTask;
+            },
+
+            OnSummarizerEnd = (context, agent, extractedUserIntent) =>
+            {
+                _logger.LogInternalInformation("Workflow trace ending Summarizer for agent: {AgentName}.", agent.Name);
+                _currentSummarizerSpan?.SetAttribute("workflow.summarizer.extracted_user_query", extractedUserIntent);
+                _currentSummarizerSpan?.End();
+                _currentSummarizerSpan = null;
+
+                return Task.CompletedTask;
+            },
+
+            OnCriticStart = (context, agent, currentTurn) =>
+            {
+                var maxTurns = agent.MaxReflectionCount;
+                _logger.LogInternalInformation("Workflow trace starting Critic for agent: {AgentName}. Turn# {CurrentTurn}/{MaxTurns}", agent.Name, currentTurn, maxTurns);
                 _currentCriticSpan = _tracer.StartSpan($"workflow.critic", SpanKind.Internal, _currentAgentSpan);
                 _currentCriticSpan.SetAttribute("workflow.thread_id", _context.ThreadId.ToString());
                 _currentCriticSpan.SetAttribute("workflow.agent_name", agent.Name);
-                _currentCriticSpan.SetAttribute("workflow.operation", "Critic");
-                _currentCriticSpan.SetAttribute("workflow.critic.user_query", userQuery);
-                _currentCriticSpan.SetAttribute("workflow.critic.result", criticResult);
-                _currentCriticSpan.SetAttribute("workflow.critic.was_approved", wasApproved.ToString());
-                _currentCriticSpan.End();
+                _currentCriticSpan.SetAttribute("workflow.operation", TraceOperationName.Critic);
+                _currentCriticSpan.SetAttribute("workflow.critic.turn_index", currentTurn.ToString());
+                _currentCriticSpan.SetAttribute("workflow.critic.max_turns", maxTurns.ToString());
+                _currentCriticSpan.SetAttribute("workflow.critic.reflection_note", agent.CustomReflectionNote);
+
+                return Task.CompletedTask;
+            },
+
+            OnCriticEnd = (context, agent, userQuery, criticResult, wasApproved) =>
+            {
+                _logger.LogInternalInformation("Workflow trace ending Critic for agent: {AgentName}, Approved: {WasApproved}", agent.Name, wasApproved);
+                _currentCriticSpan?.SetAttribute("workflow.critic.user_query", userQuery);
+                _currentCriticSpan?.SetAttribute("workflow.critic.result", criticResult);
+                _currentCriticSpan?.SetAttribute("workflow.critic.was_approved", wasApproved.ToString());
+                _currentCriticSpan?.End();
                 _currentCriticSpan = null;
 
                 return Task.CompletedTask;
@@ -783,8 +815,8 @@ Please consolidate the findings, identify key insights, and provide actionable r
         try
         {
             var argsDict = input.ToDictionary(kv => kv.Key, kv => kv.Value);
-            return JsonSerializer.Serialize(argsDict, new JsonSerializerOptions 
-            { 
+            return JsonSerializer.Serialize(argsDict, new JsonSerializerOptions
+            {
                 WriteIndented = false,
                 MaxDepth = 3 // Prevent deep object serialization
             });
@@ -802,9 +834,9 @@ Please consolidate the findings, identify key insights, and provide actionable r
     {
         try
         {
-            var messageList = messages.Take(5).Select(m => new 
-            { 
-                Role = m.Role.ToString(), 
+            var messageList = messages.Take(5).Select(m => new
+            {
+                Role = m.Role.ToString(),
                 Content = m.Text?.Length > 200 ? m.Text[..200] + "..." : m.Text ?? ""
             });
             return JsonSerializer.Serialize(messageList, new JsonSerializerOptions { WriteIndented = false });
@@ -825,7 +857,7 @@ Please consolidate the findings, identify key insights, and provide actionable r
             _currentToolSpan?.End();
             _currentAgentSpan?.End();
             _rootSpan?.End();
-            
+
             _disposed = true;
         }
     }

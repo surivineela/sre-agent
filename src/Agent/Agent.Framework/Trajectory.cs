@@ -154,9 +154,11 @@ public sealed class Trajectory
     /// <summary>
     /// Increments the critic count for a specific agent when the critic actually runs
     /// </summary>
-    public void IncrementCriticCount(string agentName)
+    public int IncrementCriticCount(string agentName)
     {
-        _agentCriticCounts[agentName] = _agentCriticCounts.GetValueOrDefault(agentName, 0) + 1;
+        var updatedCount = _agentCriticCounts.GetValueOrDefault(agentName, 0) + 1;
+        _agentCriticCounts[agentName] = updatedCount;
+        return updatedCount;
     }
 
     /// <summary>

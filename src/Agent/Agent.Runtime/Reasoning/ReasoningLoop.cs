@@ -15,6 +15,7 @@ using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
+using Agent.Core.Services;
 using Agent.Data.AgentMemory;
 using Agent.Framework;
 using Agent.Logging;
@@ -24,7 +25,6 @@ using Agent.Runtime.SubAgents.Core;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
-using Agent.Core.Services;
 
 namespace Agent.Runtime.Reasoning;
 
@@ -60,6 +60,7 @@ public class ReasoningLoop : IDisposable
     private TelemetrySpan? _currentAgentSpan;
     private TelemetrySpan? _currentToolSpan;
     private TelemetrySpan? _currentGenerationSpan;
+    private TelemetrySpan? _currentSummarizerSpan;
     private TelemetrySpan? _currentCriticSpan;
     private readonly IAgentRuntimeModifier<AgentContext> _agentRuntimeModifier;
     private readonly object _userCancellationTokenSourceLock = new();
@@ -323,9 +324,8 @@ public class ReasoningLoop : IDisposable
                 _rootSpan = _tracer.StartRootSpan(TraceOperationName.ReasoningLoop);
                 _rootSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
                 _rootSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.ReasoningLoop);
+                _rootSpan.SetAttribute(TraceAttribute.FeatureConfig, WebJsonSerializer.Serialize(_featureConfig));
             }
-
-
 
             try
             {
@@ -353,7 +353,6 @@ public class ReasoningLoop : IDisposable
                             {
                                 return;
                             }
-
 
                             // process #remember command
                             if (chatMessage.Message.Text.Contains(RememberMarker, StringComparison.OrdinalIgnoreCase) && _agentMemoryEnabled)
@@ -1031,6 +1030,7 @@ public class ReasoningLoop : IDisposable
                     featureConfig: WebJsonSerializer.Serialize(_featureConfig));
                 return Task.CompletedTask;
             },
+
             OnAgentEnd = (context, agent, output) =>
             {
                 _logger.LogInternalInformation("Trace Ending agent: {AgentName}", agent.Name);
@@ -1038,20 +1038,23 @@ public class ReasoningLoop : IDisposable
                 _currentAgentSpan = null;
                 return Task.CompletedTask;
             },
-            OnHandoff = async (context, agent, handoffAgent) =>
+
+            OnHandoff = async (context, agent, handoffAgent, handoffReasoning) =>
             {
                 _logger.LogInternalInformation("Trace Handoff from agent: {AgentName} to agent: {HandoffAgentName}", agent.Name, handoffAgent.Name);
                 _currentToolSpan = _tracer.StartSpan($"handoff", SpanKind.Internal, _currentAgentSpan);
                 _currentToolSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
                 _currentToolSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Handoff);
                 _currentToolSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
-                _currentToolSpan.SetAttribute(TraceAttribute.HandeOffAgentName, handoffAgent.Name);
+                _currentToolSpan.SetAttribute(TraceAttribute.HandoffAgentName, handoffAgent.Name);
+                _currentToolSpan.SetAttribute(TraceAttribute.HandoffReasoning, handoffReasoning);
                 _currentToolSpan.End();
                 _currentToolSpan = null;
                 _currentAgentSpan?.End();
                 _context.AgentHandoffChain.Add(handoffAgent.Name);
                 _context = await _threadRepository.UpdateAgentContextAsync(_context);
             },
+
             OnToolStart = async (context, agent, tool, input) =>
             {
                 _logger.LogInternalInformation("Trace Starting tool: {ToolName} for agent: {AgentName}", tool.Name, agent.Name);
@@ -1076,7 +1079,7 @@ public class ReasoningLoop : IDisposable
                 // Stream auto tools to avoid missing them (manual tools are handled separately)
                 if (((AIFunction)tool).GetToolMode() == ToolMode.Auto)
                 {
-                    var callId = Agent.Framework.ToolStatic.AsyncLocalFunctionCallId.Value;
+                    var callId = ToolStatic.AsyncLocalFunctionCallId.Value;
                     if (!string.IsNullOrEmpty(callId))
                     {
                         _logger.LogInternalInformation("Streaming auto tool call: {ToolName} with CallId: {CallId}", tool.Name, callId);
@@ -1084,10 +1087,11 @@ public class ReasoningLoop : IDisposable
                         await _outboundCommunicationService.AppendAgentToolCallMessage(_context.ThreadId, (AIFunction)tool, toolCallMessageId, callId);
 
                         // Store the message ID for OnToolEnd to use
-                        Agent.Framework.ToolStatic.AsyncLocalToolCallMessageId.Value = toolCallMessageId;
+                        ToolStatic.AsyncLocalToolCallMessageId.Value = toolCallMessageId;
                     }
                 }
             },
+
             OnToolEnd = async (context, agent, tool, output) =>
             {
                 _logger.LogInternalInformation("Trace Ending tool: {ToolName} for agent: {AgentName}", tool.Name, agent.Name);
@@ -1098,8 +1102,8 @@ public class ReasoningLoop : IDisposable
                 // Stream auto tool results to complete the streaming flow
                 if (((AIFunction)tool).GetToolMode() == ToolMode.Auto)
                 {
-                    var callId = Agent.Framework.ToolStatic.AsyncLocalFunctionCallId.Value;
-                    var toolCallMessageId = Agent.Framework.ToolStatic.AsyncLocalToolCallMessageId.Value;
+                    var callId = ToolStatic.AsyncLocalFunctionCallId.Value;
+                    var toolCallMessageId = ToolStatic.AsyncLocalToolCallMessageId.Value;
 
                     if (!string.IsNullOrEmpty(callId) && toolCallMessageId.HasValue)
                     {
@@ -1108,11 +1112,12 @@ public class ReasoningLoop : IDisposable
                         await _outboundCommunicationService.AppendAgentToolCallResult(_context.ThreadId, result, toolCallMessageId.Value);
 
                         // Clear the stored IDs for next tool
-                        Agent.Framework.ToolStatic.AsyncLocalFunctionCallId.Value = null;
-                        Agent.Framework.ToolStatic.AsyncLocalToolCallMessageId.Value = null;
+                        ToolStatic.AsyncLocalFunctionCallId.Value = null;
+                        ToolStatic.AsyncLocalToolCallMessageId.Value = null;
                     }
                 }
             },
+
             OnModelGenerationStart = (context, agent, messages, chatOptions) =>
             {
                 _logger.LogInternalInformation("Trace Starting model generation for agent: {AgentName}", agent.Name);
@@ -1124,6 +1129,7 @@ public class ReasoningLoop : IDisposable
 
                 return Task.CompletedTask;
             },
+
             OnModelGenerationEnd = (context, agent, response) =>
             {
                 _logger.LogInternalInformation("Trace Ending model generation for agent: {AgentName}", agent?.Name ?? "Unknown");
@@ -1147,17 +1153,47 @@ public class ReasoningLoop : IDisposable
                     featureConfig: WebJsonSerializer.Serialize(_featureConfig));
                 return Task.CompletedTask;
             },
-            OnCriticEnd = (context, agent, userQuery, criticResult, wasApproved) =>
+
+            OnSummarizerStart = (context, agent) =>
             {
-                _logger.LogInternalInformation("Trace Ending critic for agent: {AgentName}, Approved: {WasApproved}", agent.Name, wasApproved);
+                _logger.LogInternalInformation("Trace starting Summarizer for agent: {AgentName}.", agent.Name);
+                _currentSummarizerSpan = _tracer.StartSpan($"summarizer", SpanKind.Internal, _currentAgentSpan);
+                _currentSummarizerSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+                _currentSummarizerSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
+                _currentSummarizerSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Summarizer);
+                return Task.CompletedTask;
+            },
+
+            OnSummarizerEnd = (context, agent, extractedUserIntent) =>
+            {
+                _logger.LogInternalInformation("Trace ending Summarizer for agent: {AgentName}.", agent.Name);
+                _currentSummarizerSpan?.SetAttribute("summarizer.extracted_user_query", extractedUserIntent);
+                _currentSummarizerSpan?.End();
+                _currentSummarizerSpan = null;
+                return Task.CompletedTask;
+            },
+
+            OnCriticStart = (context, agent, currentTurn) =>
+            {
+                var maxTurns = agent.MaxReflectionCount;
+                _logger.LogInternalInformation("Trace starting Critic for agent: {AgentName}. Turn# {CurrentTurn}/{MaxTurns}", agent.Name, currentTurn, maxTurns);
                 _currentCriticSpan = _tracer.StartSpan($"critic", SpanKind.Internal, _currentAgentSpan);
                 _currentCriticSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
                 _currentCriticSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
                 _currentCriticSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Critic);
-                _currentCriticSpan.SetAttribute("critic.user_query", userQuery);
-                _currentCriticSpan.SetAttribute("critic.result", criticResult);
-                _currentCriticSpan.SetAttribute("critic.was_approved", wasApproved.ToString());
-                _currentCriticSpan.End();
+                _currentCriticSpan.SetAttribute("critic.turn_index", currentTurn.ToString());
+                _currentCriticSpan.SetAttribute("critic.max_turns", maxTurns.ToString());
+                _currentCriticSpan.SetAttribute("critic.reflection_note", agent.CustomReflectionNote);
+                return Task.CompletedTask;
+            },
+
+            OnCriticEnd = (context, agent, userQuery, criticResult, wasApproved) =>
+            {
+                _logger.LogInternalInformation("Trace Ending critic for agent: {AgentName}, Approved: {WasApproved}", agent.Name, wasApproved);
+                _currentCriticSpan?.SetAttribute("critic.user_query", userQuery);
+                _currentCriticSpan?.SetAttribute("critic.result", criticResult);
+                _currentCriticSpan?.SetAttribute("critic.was_approved", wasApproved.ToString());
+                _currentCriticSpan?.End();
                 _currentCriticSpan = null;
 
                 _logger.LogAgentAction(

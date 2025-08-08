@@ -155,7 +155,7 @@ public static class Runner
         var handoffDetectionHooks = hooks ?? new RunHooks<TContext>();
         var originalOnHandoff = handoffDetectionHooks.OnHandoff;
 
-        handoffDetectionHooks.OnHandoff = async (context, fromAgent, toAgent) =>
+        handoffDetectionHooks.OnHandoff = async (context, fromAgent, toAgent, handoffReasoning) =>
         {
             handoffDetected = true;
             handoffTargetAgent = toAgent.Name;
@@ -163,7 +163,7 @@ public static class Runner
             // Call original hook if it exists
             if (originalOnHandoff != null)
             {
-                await originalOnHandoff(context, fromAgent, toAgent);
+                await originalOnHandoff(context, fromAgent, toAgent, handoffReasoning);
             }
         };
 
@@ -422,19 +422,23 @@ public static class Runner
         if (currentAgent.MaxReflectionCount > 0 && trajectory.GetCriticCount(currentAgent.Name) < currentAgent.MaxReflectionCount)
         {
             // Increment CriticCount at the start of actually running the critic
-            trajectory.IncrementCriticCount(currentAgent.Name);
+            var criticCount = trajectory.IncrementCriticCount(currentAgent.Name);
 
             if (config.EnableDebugOutput)
             {
                 if (displayModelOutput is not null)
                 {
-                    await displayModelOutput($"[DEBUG]\n\nGathering critique: Agent: {currentAgent.Name}. Turn #{trajectory.GetCriticCount(currentAgent.Name)}/{currentAgent.MaxReflectionCount}");
+                    await displayModelOutput($"[DEBUG]\n\nGathering critique: Agent: {currentAgent.Name}. Turn #{criticCount}/{currentAgent.MaxReflectionCount}");
                 }
             }
+
+            await hooks.OnSummarizerStart(contextWrapper, currentAgent);
 
             var userQuery = await Summarizer.SummarizeUserTrajectoryAsync(
                 config.ChatClient,
                 originalInput);
+
+            await hooks.OnSummarizerEnd(contextWrapper, currentAgent, userQuery);
 
             if (config.EnableDebugOutput)
             {
@@ -443,6 +447,8 @@ public static class Runner
                     await displayModelOutput($"[DEBUG]\n\nSummarized User Query: {userQuery}");
                 }
             }
+
+            await hooks.OnCriticStart(contextWrapper, currentAgent, criticCount);
 
             var trajectoryString = trajectory.GetFilteredTrajectory();
 
@@ -512,10 +518,13 @@ public static class Runner
                 currentAgent.MaxReflectionCount,
                 trajectory.GetCriticCount(currentAgent.Name));
 
+            await hooks.OnCriticStart(contextWrapper, currentAgent, currentAgent.MaxReflectionCount);
+
             // Invoke the critic end hook for tracing when critic is skipped
             var skipReason = currentAgent.MaxReflectionCount == 0
                 ? "MaxReflectionCount is 0"
                 : "CriticCount exceeds MaxReflectionCount";
+
             await hooks.OnCriticEnd(contextWrapper, currentAgent, "", $"Critic skipped: {skipReason}", true);
         }
 
@@ -759,9 +768,9 @@ public static class Runner
                     var handoff = agent.Handoffs.First(h => h.Name == functionCall.Name);
                     var newAgent = await handoff.OnInvokeHandoff(contextWrapper);
 
-                    await hooks.OnHandoff(contextWrapper, agent, newAgent);
+                    var (handoffReasoning, handoffResponse) = GetHandoffTransferMessage<TContext>(functionCall);
 
-                    var handoffResponse = GetHandoffTransferMessage<TContext>(functionCall);
+                    await hooks.OnHandoff(contextWrapper, agent, newAgent, handoffReasoning);
 
                     var handoffResult = new FunctionResultContent(functionCall.CallId, handoffResponse);
                     newStepItems.Add(modelResponseMessage);
@@ -988,7 +997,7 @@ public static class Runner
         }
     }
 
-    private static string GetHandoffTransferMessage<TContext>(
+    private static (string HandoffReasoning, string HandoffResponse) GetHandoffTransferMessage<TContext>(
         FunctionCallContent functionCall)
         where TContext : class
     {
@@ -1001,7 +1010,7 @@ public static class Runner
             handoffReasoning = reasoningElement.GetString()!;
         }
 
-        return Handoff<TContext>.GetTransferMessage(handoffReasoning);
+        return (handoffReasoning, Handoff<TContext>.GetTransferMessage(handoffReasoning));
     }
 
     private static string GetToolErrorMessage(FunctionCallContent functionCall, Exception ex)

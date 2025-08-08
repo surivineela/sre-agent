@@ -2,9 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.AI;
@@ -15,24 +12,25 @@ public static class TraceAttribute
 {
     // common
     public const string ThreadId = "thread.id";
-
-    public const string MessageContent = "message.content";
-
     public const string AgentName = "agent.name";
-
     public const string OperationName = "operation.name";
+    public const string FeatureConfig = "config.features";
     public const string SpanPurpose = "span.purpose";
 
-    public const string HandeOffAgentName = "handoff.agent.name";
+    // user message
+    public const string MessageContent = "message.content";
 
+    // handoff
+    public const string HandoffAgentName = "handoff.agent.name";
+    public const string HandoffReasoning = "handoff.reasoning";
+
+    // tool
     public const string ToolName = "tool.name";
-
     public const string ToolInput = "tool.input";
-
     public const string ToolOutput = "tool.output";
-
     public const string ToolDescription = "tool.description";
 
+    // model.generation
     public const string ModelInput = "model.input";
     public const string ModelOutput = "model.output";
     public const string ModelInputTokensCount = "model.input.tokens.count";
@@ -78,6 +76,8 @@ public static class TraceOperationName
     public const string ModelGeneration = "model.generation";
 
     public const string Critic = "critic";
+
+    public const string Summarizer = "summarizer";
 
     // incident handler
     public const string IncidentCreateThread = "incident.create.thread";

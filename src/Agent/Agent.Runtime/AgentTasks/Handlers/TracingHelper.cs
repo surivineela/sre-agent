@@ -76,14 +76,15 @@ public sealed class TracingHelper : IDisposable
                 _currentAgentSpan = null;
                 return Task.CompletedTask;
             },
-            OnHandoff = (context, agent, handoffAgent) =>
+            OnHandoff = (context, agent, handoffAgent, handoffReasoning) =>
             {
                 var agentContext = context.Context ?? throw new InvalidOperationException("Invalid agent context");
                 _currentToolSpan = _tracer.StartSpan($"handoff", SpanKind.Internal, _currentAgentSpan);
                 _currentToolSpan.SetAttribute(TraceAttribute.ThreadId, agentContext.ThreadId.ToString());
                 _currentToolSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Handoff);
                 _currentToolSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
-                _currentToolSpan.SetAttribute(TraceAttribute.HandeOffAgentName, handoffAgent.Name);
+                _currentToolSpan.SetAttribute(TraceAttribute.HandoffAgentName, handoffAgent.Name);
+                _currentToolSpan.SetAttribute(TraceAttribute.HandoffReasoning, handoffReasoning);
                 _currentToolSpan.End();
                 _currentToolSpan = null;
                 _currentAgentSpan?.End();

@@ -165,8 +165,6 @@ public class ThreadEvaluator
                         }
                     }
 
-
-
                     threads.Add(thread);
                 }
                 catch (Exception ex)

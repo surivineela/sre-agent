@@ -9,51 +9,51 @@ namespace Agent.Framework;
 
 public static class Critic
 {
-  private static readonly ConcurrentDictionary<string, string> _agentPromptTemplates = new();
+    private static readonly ConcurrentDictionary<string, string> _agentPromptTemplates = new();
 
-  public static async Task<string> CriticAsync<TContext>(
-      Agent<TContext> agent,
-      string userQuery,
-      string trajectory,
-      IReadOnlyList<AIFunction> agentTools,
-      IChatClient chatClient)
-      where TContext : class
-  {
-    var criticPromptTemplate = CriticPrompt;
-    if (!string.IsNullOrEmpty(agent.CriticPromptPath))
+    public static async Task<string> CriticAsync<TContext>(
+        Agent<TContext> agent,
+        string userQuery,
+        string trajectory,
+        IReadOnlyList<AIFunction> agentTools,
+        IChatClient chatClient)
+        where TContext : class
     {
-      if (!_agentPromptTemplates.TryGetValue(agent.Name, out criticPromptTemplate))
-      {
-        criticPromptTemplate = await File.ReadAllTextAsync(agent.CriticPromptPath);
-        _agentPromptTemplates.TryAdd(agent.Name, criticPromptTemplate);
-      }
-    }
+        var criticPromptTemplate = CriticPrompt;
+        if (!string.IsNullOrEmpty(agent.CriticPromptPath))
+        {
+            if (!_agentPromptTemplates.TryGetValue(agent.Name, out criticPromptTemplate))
+            {
+                criticPromptTemplate = await File.ReadAllTextAsync(agent.CriticPromptPath);
+                _agentPromptTemplates.TryAdd(agent.Name, criticPromptTemplate);
+            }
+        }
 
-    var allToolDescriptions = string.Join('\n', agentTools.Select(t => $"{t.Name}: {t.Description}"));
+        var allToolDescriptions = string.Join('\n', agentTools.Select(t => $"{t.Name}: {t.Description}"));
 
-    var criticPrompt = criticPromptTemplate
-        .Replace("{{customNote}}", agent.CustomReflectionNote)
-        .Replace("{{userQuery}}", userQuery)
-        .Replace("{{availableTools}}", allToolDescriptions);
+        var criticPrompt = criticPromptTemplate
+            .Replace("{{customNote}}", agent.CustomReflectionNote)
+            .Replace("{{userQuery}}", userQuery)
+            .Replace("{{availableTools}}", allToolDescriptions);
 
-    var criticChat = new List<ChatMessage>
+        var criticChat = new List<ChatMessage>
         {
             new(ChatRole.System, criticPrompt),
             new(ChatRole.User, trajectory),
         };
 
-    var criticChatOptions = new ChatOptions
-    {
-      ToolMode = ChatToolMode.None,
-      Temperature = 0.2f,
-      ResponseFormat = ChatResponseFormat.Text,
-    };
+        var criticChatOptions = new ChatOptions
+        {
+            ToolMode = ChatToolMode.None,
+            Temperature = 0.2f,
+            ResponseFormat = ChatResponseFormat.Text,
+        };
 
-    var criticReply = await chatClient.GetResponseAsync(criticChat, criticChatOptions);
-    return criticReply.Text;
-  }
+        var criticReply = await chatClient.GetResponseAsync(criticChat, criticChatOptions);
+        return criticReply.Text;
+    }
 
-  private const string CriticPrompt = """
+    private const string CriticPrompt = """
     You are a meticulous reviewer. Your task is to evaluate the actor's entire preceding turn, including its articulated reasoning and the resulting tool calls. Your evaluation must be in JSON format.
     Actor, Agent and Assistant are used interchangeably in the following instructions. They refer to the same entity trying to solve a user requirement.
 
