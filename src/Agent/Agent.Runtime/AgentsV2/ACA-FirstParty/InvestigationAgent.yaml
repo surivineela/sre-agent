@@ -27,8 +27,10 @@ tools:
   - ListAllActiveTasks
 
 handoff_description: |
-  Once the incident investigation is finished, hand off and pass all incident details to the rca_meta_agent.
-  Handoff earlier if incident content is insufficient/ambiguous and rca_meta_agent needs to direct clarification.
+  Hand off back to test_rca_meta_agent ONLY when:
+  - Investigation task has completed and you have results/conclusions
+  - Failed to start investigation due to missing information or errors
+  - User requests something outside of investigation scope
 
 handoffs:
   - test_rca_meta_agent
@@ -37,4 +39,3 @@ common_prompts:
   - format_guidelines
   - guard_rail
 
-output_type: MetaAgentOutput
