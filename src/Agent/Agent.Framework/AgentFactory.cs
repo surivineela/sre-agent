@@ -140,7 +140,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             DisableDocumentRetrieval = agentDescriptor.DisableDocumentRetrieval,
             EnableHandoffPromptOverride = agentDescriptor.EnableHandoffPromptOverride,
             DisableCommonPrompts = agentDescriptor.DisableCommonPrompts,
-            
+
             // === Workflow Agent Properties ===
             AgentType = agentDescriptor.AgentType,
             ParameterExtractionAgent = agentDescriptor.ParameterExtractionAgent,

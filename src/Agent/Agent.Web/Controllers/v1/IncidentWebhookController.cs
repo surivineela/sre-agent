@@ -3,21 +3,11 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel.DataAnnotations;
-using System.Text;
-using Agent.Core.Interfaces;
-using Agent.Core.Models.Api.v1;
-using Agent.Data.DataModels;
-using Agent.Data.Repositories;
-using Agent.Graph.Interfaces;
 using Agent.Core.Services;
-using Agent.Logging;
 using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents.AzMonitorAlertAgent;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.AI;
 using Newtonsoft.Json;
-using Author = Agent.Core.Models.Api.v1.Author;
-using Thread = Agent.Core.Models.Api.v1.Thread;
 
 namespace Agent.Web.Controllers.v1;
 
@@ -234,7 +224,7 @@ public class IncidentWebhookController : ControllerBase
             "ServiceNowWebhook: Invoked with IncidentId: {IncidentId}, Title: {Title}, Source: {Source}, IsTest: {IsTest}",
             request?.IncidentId, request?.Title, request?.Source ?? "ServiceNow", request?.IsTest);
 
-        if(request == null)
+        if (request == null)
         {
             _logger.LogInternalError("ServiceNowWebhook: ServiceNowRequest is null");
             throw new ArgumentNullException(nameof(request), "ServiceNowRequest cannot be null");
@@ -304,7 +294,7 @@ public class IncidentWebhookController : ControllerBase
 
 
 
-public class IcMRequest: IncidentRequest
+public class IcMRequest : IncidentRequest
 {
     public string? Title { get; set; } = string.Empty;
 

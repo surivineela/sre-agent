@@ -3,7 +3,6 @@ using Agent.Plugins.IcmPlugin;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Kusto;
 using Agent.Plugins.TeamsPlugin;
-using Agent.Plugins.Tools;
 using FirstPartyAgent.Common.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -21,11 +20,11 @@ public static class CappsFirstPartyRegistrationExtensions
         var secretResolvedEnvConfig = new { };
         builder.Configuration.AddJsonStream(new MemoryStream(JsonSerializer.SerializeToUtf8Bytes(secretResolvedEnvConfig)));
 
-        
+
         builder.Services.AddSingleton<IKustoPlugin, KustoPlugin>();
         builder.Services.AddSingleton<ITeamsClient, TeamsClient>();
         builder.Services.AddSingleton<KustoClient>();
-        
+
         builder.Services.AddSingleton<TeamsClientSettings>();
         builder.Services.AddSingleton<IContainerAppIcMPlugin, ContainerAppIcMPlugin>();
         builder.Services.AddSingleton<ICMWorkflowClient>();
@@ -35,7 +34,7 @@ public static class CappsFirstPartyRegistrationExtensions
             .BindConfiguration("AppSettings:Core:External:ICMWorkflows")
             .ValidateDataAnnotations();
 
-        
+
 
         builder.Services.AddOptionsWithValidateOnStart<FirstPartyAgent.Common.Configuration.GeneralSettings>()
         .BindConfiguration("AppSettings:Core:External:GeneralSettings")

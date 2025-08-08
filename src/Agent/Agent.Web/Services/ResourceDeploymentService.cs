@@ -4,11 +4,9 @@
 
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
-using Agent.Data.DataModels;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models.ExtendedAgents;
 using Agent.Web.Models.ExtendedAgents;
-using Kusto.Cloud.Platform.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
@@ -66,9 +64,6 @@ public class ResourceDeploymentService : IResourceDeploymentService
 
     }
 
-    
-    
-
     public async Task<IActionResult> ApplyAsync(AgentDeploymentModel spec)
     {
         var operationId = Guid.NewGuid().ToString();
@@ -117,7 +112,7 @@ public class ResourceDeploymentService : IResourceDeploymentService
         foreach (var connector in connectorDocs)
             await _repository.UpdateConnectorAsync(connector, operationId);
         await _extendedAgentService.RefreshAgentAndToolsRegisterationsAsync();
-       var result = new ExtendedAgentApply
+        var result = new ExtendedAgentApply
         {
             Status = ExtendedAgentApplyStatus.Accepted,
             Message = "Agent and tools deployment initiated",
@@ -131,20 +126,20 @@ public class ResourceDeploymentService : IResourceDeploymentService
             }
         };
 
-        return new OkObjectResult(result);  
+        return new OkObjectResult(result);
     }
 
     public async Task<IActionResult> ApplyAsync(ConnectorsDeploymentModel spec)
     {
         var operationId = Guid.NewGuid().ToString();
-        
+
         var connectorDocs = spec.Spec.Connectors.Select(c =>
                 ApiToRuntimeMapper.ToDocumentConnector(c, operationId));
-        
 
-            foreach (var connector in connectorDocs)
-                await _repository.UpdateConnectorAsync(connector, operationId);
-        
+
+        foreach (var connector in connectorDocs)
+            await _repository.UpdateConnectorAsync(connector, operationId);
+
         await _extendedAgentService.RefreshAgentAndToolsRegisterationsAsync();
         var result = new ExtendedAgentApply
         {
@@ -163,12 +158,11 @@ public class ResourceDeploymentService : IResourceDeploymentService
     public async Task<IActionResult> ApplyAsync(ToolsDeploymentModel spec)
     {
         var operationId = Guid.NewGuid().ToString();
-        
-  
-            // Map tools
-          var   toolDocs = spec.Spec.Tools.Select(t =>
-               ApiToRuntimeMapper.ToDocumentTool(t, operationId));
-        
+
+        // Map tools
+        var toolDocs = spec.Spec.Tools.Select(t =>
+             ApiToRuntimeMapper.ToDocumentTool(t, operationId));
+
         if (toolDocs == null || !toolDocs.Any())
         {
             return new BadRequestObjectResult("No tools provided in the deployment model.");
@@ -190,7 +184,6 @@ public class ResourceDeploymentService : IResourceDeploymentService
         };
         return new OkObjectResult(result);
     }
-
 
     public async Task<IActionResult> ApplyAsync(PluginConfigDeploymentModel pluginConfig)
     {
@@ -217,12 +210,12 @@ public class ResourceDeploymentService : IResourceDeploymentService
             var document = ApiToRuntimeMapper.ToDocumentConfig(pluginConfig, operationId);
             await _repository.UpdatePluginConfigAsync(document);
 
-            
+
             return new OkObjectResult(new { message = $"Plugin configuration applied for '{pluginName}'." });
         }
         catch (Exception ex)
         {
-            
+
             return new ObjectResult($"Failed to apply configuration: {ex.Message}") { StatusCode = 500 };
         }
     }

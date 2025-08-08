@@ -1,5 +1,4 @@
 using Agent.Framework;
-using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.Services;
 

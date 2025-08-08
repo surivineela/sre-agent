@@ -4,7 +4,6 @@
 
 using Agent.Core.Interfaces;
 using Agent.Plugins.Interface;
-using Agent.Plugins.TeamsPlugin;
 using Agent.Plugins.Tools;
 using Microsoft.Extensions.Logging;
 
@@ -25,8 +24,7 @@ namespace Agent.Plugins.Kusto
         }
 
         public KustoPlugin Create(
-            KustoConnector kustoSettings
-            )
+            KustoConnector kustoSettings)
         {
             var kustoPlugin = new KustoPlugin(_loggerFactory.CreateLogger<KustoPlugin>(),
                 new KustoClient(

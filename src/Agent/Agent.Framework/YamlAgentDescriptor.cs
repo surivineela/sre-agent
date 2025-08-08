@@ -63,7 +63,7 @@ public class YamlAgentDescriptor : IAgentDescriptor
     [YamlMember(Alias = "enable_handoff_prompt_override")]
     public bool EnableHandoffPromptOverride { get; set; } = false;
 
-        [YamlMember(Alias = "handoff_prompt_override")]
+    [YamlMember(Alias = "handoff_prompt_override")]
     public string? HandoffPromptOverride { get; set; } = null;
 
     [YamlMember(Alias = "user_prompt_override")]
@@ -76,7 +76,7 @@ public class YamlAgentDescriptor : IAgentDescriptor
     public bool DisableCommonPrompts { get; set; } = false;
 
     // === Workflow Agent Support ===
-    
+
     /// <summary>
     /// Specifies the execution type of this agent.
     /// </summary>
@@ -84,7 +84,7 @@ public class YamlAgentDescriptor : IAgentDescriptor
     public AgentType AgentType { get; set; } = AgentType.Autonomous;
 
     // === Orchestrator Agent Properties ===
-    
+
     /// <summary>
     /// Name of the agent responsible for extracting parameters from conversation history,
     /// incident data, and function metadata for RCA execution.
@@ -107,7 +107,7 @@ public class YamlAgentDescriptor : IAgentDescriptor
     public string? ResultSummarizationPrompt { get; set; }
 
     // === Activity Agent Properties ===
-    
+
     /// <summary>
     /// Mappings that define which agents to execute next based on execution results.
     /// Used by Activity agents to dynamically select subsequent agents in the workflow.

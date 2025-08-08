@@ -37,7 +37,7 @@ public class DataConnectorService : BackgroundService
         _logger.LogInternalInformation($"Creating index for data connectors.");
 
         await _dataConnectorIndex.CreateOrUpdateIndex();
-        
+
         _logger.LogInternalInformation($"Starting {_dataConnectors.Count} data connectors.");
 
         List<Task> tasks = new List<Task>(_dataConnectors.Count);

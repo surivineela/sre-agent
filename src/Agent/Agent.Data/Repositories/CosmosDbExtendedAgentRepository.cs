@@ -63,7 +63,7 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
     public static Dictionary<string, Type> GetConnectorDocumentTypeMappings() => new Dictionary<string, Type>
     {
         ["Kusto"] = typeof(KustoConnectorDocumentModel),
-        
+
 
     };
 
@@ -78,7 +78,7 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
         var result = jObject.ToObject(targetType, s_serializer);
         return result as ConnectorDocumentModel;
     }
-    private static ToolDocumentModel ConvertToolToModel(Dictionary<string, object> document,string toolType) 
+    private static ToolDocumentModel ConvertToolToModel(Dictionary<string, object> document, string toolType)
     {
         var targetType = GetToolDocumentTypeMappings()[toolType];
         if (document == null)
@@ -93,7 +93,7 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
             return null;
         }
 
-        return (ToolDocumentModel?) jObject.ToObject(targetType, s_serializer);
+        return (ToolDocumentModel?)jObject.ToObject(targetType, s_serializer);
 #pragma warning restore CS8603 // Possible null reference return.
     }
 
@@ -105,7 +105,7 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
     {
         try
         {
-          
+
             var container = _cosmosClient.GetContainer(_databaseName, ExtendedAgentDocument.ContainerName);
 
             var response = await container.CreateItemAsync(document, new PartitionKey(document.Name));
@@ -146,12 +146,12 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
-            
+
             return null;
         }
     }
 
-    
+
 
     #endregion
 
@@ -162,7 +162,7 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
         try
         {
             // Use the factory to create a flattened dictionary
-            
+
             var container = _cosmosClient.GetContainer(_databaseName, ExtendedAgentToolDocument.ContainerName);
 
             var response = await container.CreateItemAsync(tool, new PartitionKey(tool.Name));
@@ -182,7 +182,7 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
 
     public async Task<ToolDocumentModel> UpdateToolAsync(ToolDocumentModel tool, string operationId)
     {
-        
+
         var container = _cosmosClient.GetContainer(_databaseName, ExtendedAgentToolDocument.ContainerName);
         var response = await container.UpsertItemAsync(tool, new PartitionKey(tool.Name));
         _logger.LogInternalInformation("Successfully updated tool document {ToolName}", tool.Name);
@@ -238,11 +238,11 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
         {
             var response = await iterator.ReadNextAsync();
             // Convert each dictionary in the response to the domain model
-            results.AddRange(response.Select(doc => ConvertToolToModel(doc, (string) doc["type"])));
+            results.AddRange(response.Select(doc => ConvertToolToModel(doc, (string)doc["type"])));
         }
-        
 
-        return new PaginatedList<ToolDocumentModel>( results,limit,0,50);
+
+        return new PaginatedList<ToolDocumentModel>(results, limit, 0, 50);
     }
 
     public async Task<bool> DeleteToolAsync(string name)
@@ -335,7 +335,7 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
     {
         try
         {
-            
+
             var container = _cosmosClient.GetContainer(_databaseName, ExtendedAgentConnectorDocument.ContainerName);
             var response = await container.CreateItemAsync(connector, new PartitionKey(connector.PartitionKey));
             _logger.LogInternalInformation("Successfully created extended agent connector document {ConnectorName} for operation {OperationId}",
@@ -359,7 +359,7 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
     {
         try
         {
-            
+
             var container = _cosmosClient.GetContainer(_databaseName, ExtendedAgentConnectorDocument.ContainerName);
             var response = await container.UpsertItemAsync(connector, new PartitionKey(connector.PartitionKey));
             _logger.LogInternalInformation("Successfully updated extended agent connector document {ConnectorName} for operation {OperationId}",
@@ -379,7 +379,7 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
         try
         {
             var container = _cosmosClient.GetContainer(_databaseName, ExtendedAgentConnectorDocument.ContainerName);
-            var response = await container.ReadItemAsync<Dictionary<string,object>>(
+            var response = await container.ReadItemAsync<Dictionary<string, object>>(
                 $"connector_{name}",
                 new PartitionKey(name));
             return ConvertConnectorToModel(response.Resource, (string)response.Resource["type"]);
@@ -420,7 +420,7 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
                 results.AddRange(response.Select(doc => ConvertToModel<ConnectorDocumentModel>(doc)));
             }
             _logger.LogInternalInformation("Retrieved {Count} extended agent connectors with search '{Search}'", results.Count, search ?? "none");
-            return new PaginatedList<ConnectorDocumentModel>( results,50,0,50);
+            return new PaginatedList<ConnectorDocumentModel>(results, 50, 0, 50);
         }
         catch (CosmosException ex)
         {

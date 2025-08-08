@@ -3,8 +3,6 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel.DataAnnotations;
-using System.Xml.Linq;
-using Agent.Framework.Reasoning.Models;
 using YamlDotNet.Serialization;
 
 namespace Agent.Framework.Reasoning.Models

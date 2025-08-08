@@ -6,10 +6,6 @@ using YamlDotNet.Serialization;
 
 namespace Agent.Framework.Reasoning.Models;
 
-// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-// ------------------------------------------------------------
-
 /// <summary>
 /// Base class for all YAML-defined data connectors (Kusto, SQL, API, etc.)
 /// </summary>

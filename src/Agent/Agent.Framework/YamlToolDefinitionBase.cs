@@ -4,7 +4,6 @@
 
 using Agent.Framework.Reasoning.Models;
 using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
 
 namespace Agent.Framework;
 
@@ -35,8 +34,6 @@ public abstract class YamlToolDefinitionBase
 
     [YamlMember(Alias = "metadata")]
     public YamlMetadata Metadata { get; set; } = new();
-    
+
     public abstract void Validate();
-
-
 }

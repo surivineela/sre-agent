@@ -12,7 +12,6 @@ public class ExtendedAgentBackgroundService : BackgroundService
     private readonly IServiceProvider _serviceProvider;
     private readonly IToolFactory<AgentContext> _toolFactory;
     private readonly ILogger<ExtendedAgentBackgroundService> _logger;
-    
 
     public ExtendedAgentBackgroundService(
         IServiceProvider serviceProvider,
@@ -23,7 +22,7 @@ public class ExtendedAgentBackgroundService : BackgroundService
         _serviceProvider = serviceProvider;
         _toolFactory = toolFactory;
         _logger = logger;
-        
+
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)

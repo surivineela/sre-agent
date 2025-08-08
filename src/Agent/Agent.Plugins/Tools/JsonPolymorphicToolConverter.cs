@@ -1,9 +1,8 @@
 // ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
-using Agent.Data.Tools;
-
 using System.Diagnostics.CodeAnalysis;
+using Agent.Data.Tools;
 
 namespace Agent.Plugins.Tools
 {

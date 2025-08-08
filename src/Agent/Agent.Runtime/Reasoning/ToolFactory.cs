@@ -3,9 +3,9 @@
 // ------------------------------------------------------------
 
 using System.Reflection;
-using Agent.Core.Interfaces;
 using Agent.Core.Attributes;
 using Agent.Core.Configuration;
+using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Agent.Plugins;
@@ -419,7 +419,7 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
 
     public bool RegisterTool(YamlToolDefinitionBase tool, BehaviorOnNameConflict onNameConflict)
     {
-     
+
         if (string.IsNullOrWhiteSpace(tool.Name))
         {
             _logger.LogInternalError("Function name cannot be null or whitespace.");

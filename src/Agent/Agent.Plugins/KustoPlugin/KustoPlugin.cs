@@ -94,7 +94,7 @@ namespace Agent.Plugins.Kusto
             _agentOutboundCommunicationService = agentOutboundCommunicationService;
         }
 
-     
+
         [KernelFunction("execute_kusto_query_on_cluster")]
         [Description("Executes a fully qualified Kusto query on a specific cluster and database, returning the result in JSON format.")]
         public async Task<string> ExecuteClusterKustoQuery(
@@ -104,7 +104,7 @@ namespace Agent.Plugins.Kusto
             )
         {
             return (await ExecuteClusterKustoQueryInternal(cluster, database, fullQuery)).Result;
-            
+
         }
 
         [KernelFunction("execute_kusto_query")]
@@ -115,15 +115,15 @@ namespace Agent.Plugins.Kusto
             [Description("Optional group name for the Kusto cluster.")] string? groupName
             )
         {
-           return (await ExecuteKustoQueryInternal(region, query, groupName)).Result;
+            return (await ExecuteKustoQueryInternal(region, query, groupName)).Result;
         }
 
 
-       public async Task<KustoQueryResult> ExecuteKustoQueryInternal(
-           string region,
-          string query,
-           string? groupName
-           )
+        public async Task<KustoQueryResult> ExecuteKustoQueryInternal(
+            string region,
+           string query,
+            string? groupName
+            )
         {
             try
             {
@@ -224,15 +224,15 @@ namespace Agent.Plugins.Kusto
             Dictionary<string, string>? args = null,
             [Description("Optional group name for the Kusto cluster.")] string? groupName = null)
         {
-           return (await ExecuteFunctionInternalAsync(functionName, region, args, groupName)).Result;
+            return (await ExecuteFunctionInternalAsync(functionName, region, args, groupName)).Result;
         }
 
 
-            public async Task<KustoQueryResult> ExecuteFunctionInternalAsync(
-             string functionName,
-          string region,
-            Dictionary<string, string>? args = null,
-            string? groupName = null)
+        public async Task<KustoQueryResult> ExecuteFunctionInternalAsync(
+         string functionName,
+      string region,
+        Dictionary<string, string>? args = null,
+        string? groupName = null)
         {
             string argList = args != null && args.Count > 0
                 ? string.Join(", ", args.Select(kvp => $"{kvp.Key}={QuoteIfNeeded(kvp.Value)}"))
@@ -416,11 +416,10 @@ namespace Agent.Plugins.Kusto
             return query;
         }
 
-             public async Task<KustoQueryResult> ExecuteClusterKustoQueryInternal(
+        public async Task<KustoQueryResult> ExecuteClusterKustoQueryInternal(
             string cluster,
-           string database,
-            string fullQuery
-            )
+            string database,
+            string fullQuery)
         {
             cluster = cluster.Replace(".kusto.windows.net", "");
             cluster = cluster.Replace("https://", "");

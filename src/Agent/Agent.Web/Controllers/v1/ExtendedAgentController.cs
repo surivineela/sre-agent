@@ -164,7 +164,6 @@ public class ExtendedAgentController : ControllerBase
         }
     }
 
-
     /// <summary>
     /// List all tools
     /// </summary>
