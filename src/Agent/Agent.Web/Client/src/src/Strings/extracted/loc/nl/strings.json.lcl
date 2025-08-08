@@ -2542,7 +2542,7 @@
         <Str Cat="Text">
           <Val><![CDATA[No results found for {searchString}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Geen resultaten gevonden voor {searchTerm}]]></Val>
+            <Val><![CDATA[Geen resultaten gevonden voor {searchString}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

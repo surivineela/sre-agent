@@ -2542,7 +2542,7 @@
         <Str Cat="Text">
           <Val><![CDATA[No results found for {searchString}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[找不到 {searchTerm} 的結果]]></Val>
+            <Val><![CDATA[找不到 {searchString} 的結果]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
