@@ -477,6 +477,7 @@ public class IncidentPlaygroundController : ControllerBase
         try
         {
             await _container.UpsertItemAsync(doc);
+            _logger.LogInternalInformation($"[IncidentPlaygroundController] Last scan time reset to: {doc.LastScanTime}");
             return Ok("Reset to last 30 days");
         }
         catch (Exception)

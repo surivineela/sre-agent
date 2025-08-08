@@ -311,6 +311,13 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             return incidentDocument;
 
         }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.RequestEntityTooLarge)
+        {
+            logger.LogInternalWarning("[IcmScanner] Original IcM is too large, truncate incident details");
+            incidentDocument = IcmIncidentDocument.TruncateIcmIncidentDocument(incident);
+            incidentDocument = await container.UpsertItemAsync(incidentDocument, new PartitionKey(incidentDocument.PartitionKey), cancellationToken: cancellationToken);
+            return incidentDocument;
+        }
         catch (Exception ex)
         {
             logger.LogInternalError(ex, "[IcmScanner] Error upserting incident document for IcM incident {incidentId}", incident.IncidentId);

@@ -80,4 +80,19 @@ public class IcmIncidentDocument : Incident, IIncidentDocument
     public List<DiscussionEntry> DiscussionEntries { get; set; } = new List<DiscussionEntry>();
 
     public string ExtractedKnowledge { get; set; } = string.Empty;
+
+    public static IcmIncidentDocument TruncateIcmIncidentDocument(Incident incident)
+    {
+        int maxSummaryLength = 32 * 1024; // Define a maximum length for the summary
+        string summary = incident.Summary ?? string.Empty;
+        if (summary.Length > maxSummaryLength)
+        {
+            summary = summary.Substring(0, maxSummaryLength) + "... [TRUNCATED]";
+        }
+
+        return new IcmIncidentDocument(incident)
+        {
+            Summary = summary
+        };
+    }
 }
