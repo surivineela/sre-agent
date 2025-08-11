@@ -86,6 +86,10 @@ public sealed class IncidentInvestigationTaskHandler(
                 "Executing incident investigation task {TaskId} for thread {ThreadId}",
                 agentTask.Id, context.ThreadId);
 
+             // Save the agent task to the thread document immediately when investigation starts
+            await threadRepository.UpdateTaskOnThreadAsync(agentTask.ThreadId, agentTask.ToShortForm());
+            logger.LogInternalInformation("Agent task {TaskId} saved to thread {ThreadId}", agentTask.Id, agentTask.ThreadId);
+
             if (isACAAgent)
             {
                 var allAgents = YamlHelper.LoadAgentsFromYamlDirectories(
