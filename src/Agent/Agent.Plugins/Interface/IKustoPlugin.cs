@@ -14,7 +14,7 @@ namespace Agent.Plugins.Interface
     public interface IKustoPlugin
     {
         public Task<string> ExecuteLocalFunctionAsync(string functionName, string region, Dictionary<string, string> args, string? groupName = null, SamplingOptions? samplingOptions = null);
-        public Task<string> ExecuteLocalFunctionOnClusterAsync(string functionName, string clusterName, string databaseName, Dictionary<string, string> args);
+    public Task<string> ExecuteLocalFunctionOnClusterAsync(string functionName, string clusterName, string databaseName, Dictionary<string, string> args, KustoDisplayOptions? displayOptions = null);
         public Task<string> ExecuteKustoQuery(string region, string query, string? groupName = null);
         Task<KustoQueryResult> ExecuteClusterKustoQueryInternal(
        string cluster,

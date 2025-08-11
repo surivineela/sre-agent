@@ -438,7 +438,6 @@ namespace Agent.Plugins.Kusto
                         result.Result = "ZERO_ROWS_RETURNED";
 
                     }
-                    return result;
                 }
                 else
                 {
@@ -455,7 +454,8 @@ namespace Agent.Plugins.Kusto
             }
         }
 
-        public async Task<string> ExecuteLocalFunctionOnClusterAsync(string functionName, string clusterName, string databaseName, Dictionary<string, string> args)
+    // Single method: optional displayOptions keeps existing behavior when null
+    public async Task<string> ExecuteLocalFunctionOnClusterAsync(string functionName, string clusterName, string databaseName, Dictionary<string, string> args, KustoDisplayOptions? displayOptions = null)
         {
             var fileName = GetKqlFilePath(functionName);
             KustoQueryResult queryResult;
@@ -473,7 +473,19 @@ namespace Agent.Plugins.Kusto
             {
                 return "Query result row count is over thersholds a user should use sampling";
             }
-            var msg = new ChatMessage(ChatRole.Tool, $"`{functionName}`{Environment.NewLine + Environment.NewLine}{queryResult.Message?.Text}");
+
+            ChatMessage msg;
+            if (displayOptions is { } opts && queryResult.Message != null)
+            {
+                // Build enhanced display without breaking existing tool output
+                var enhanced = KustoDisplayFormatter.BuildDisplayMessage(queryResult.Message, queryResult.Result, opts);
+                msg = new ChatMessage(ChatRole.Tool, $"`{functionName}`{Environment.NewLine + Environment.NewLine}{enhanced.Text}");
+            }
+            else
+            {
+                msg = new ChatMessage(ChatRole.Tool, $"`{functionName}`{Environment.NewLine + Environment.NewLine}{queryResult.Message?.Text}");
+            }
+
             await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(ToolStatic.AsyncLocalThreadId.Value, string.Empty, msg);
 
             return queryResult.Result;

@@ -9,6 +9,7 @@ using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Framework;
 using Agent.Plugins.Helpers;
 using Agent.Plugins.Interface;
+using Agent.Plugins.Kusto;
 
 namespace Agent.Plugins.Definitions
 {
@@ -20,6 +21,7 @@ namespace Agent.Plugins.Definitions
         private readonly IICMPlugin _icmPlugin;
         private const string DefaultClusterName = "wawscus";
         private const string DefaultDatabaseName = "wawsprod";
+    private static readonly KustoDisplayOptions TableOnly = new() { ShowTable = true };
 
         public ScaleControllerRCAPreflightPluginDefinition(IKustoPlugin kustoPlugin, IICMPlugin icmPlugin)
         {
@@ -57,7 +59,8 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
                     { "endTime", toDate },
                     { "eventPrimaryStampName", eventPrimaryStampName },
                     { "siteName", siteName }
-                });
+                },
+                TableOnly);
         }
 
         [Description(@"""
@@ -95,7 +98,8 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
                     { "eventPrimaryStampName", eventPrimaryStampName },
                     { "siteName", siteName },
                     { "level", (level == 0 || level > 4) ? "4" : level.ToString() }
-                });
+                },
+                TableOnly);
         }
 
         [Description(@"""
@@ -134,7 +138,8 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
                     { "eventPrimaryStampName", eventPrimaryStampName },
                     { "siteName", siteName },
                     { "functionName", functionName }
-                });
+                },
+                TableOnly);
         }
 
         [Description(@"""
@@ -169,7 +174,8 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
                     { "eventPrimaryStampName", eventPrimaryStampName },
                     { "siteName", siteName },
                     { "summarizationTimeBucket", summarizationTimeBucket }
-                });
+                },
+                TableOnly);
         }
 
         [Description(@"""
@@ -205,7 +211,8 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
                     { "eventPrimaryStampName", eventPrimaryStampName },
                     { "siteName", siteName },
                     { "summarizationTimeBucket", summarizationTimeBucket }
-                });
+                },
+                TableOnly);
         }
 
         [Description(@"""
@@ -246,7 +253,8 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
                     { "siteName", siteName },
                     { "functionName", functionName },
                     { "summarizationTimeBucket", summarizationTimeBucket }
-                });
+                },
+                TableOnly);
         }
 
         [Description(@"""
@@ -286,7 +294,8 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
                     { "stampName", eventPrimaryStampName },
                     { "siteName", siteName },
                     { "functionName", functionName }
-                });
+                },
+                TableOnly);
         }
 
 
@@ -311,7 +320,8 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
                 {
                     { "daysAgo", daysAgo },
                     { "siteName", siteName }
-                });
+                },
+                TableOnly);
         }
 
         [Description(@"""
@@ -335,7 +345,8 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
                 new Dictionary<string, string>
                 {
                     { "eventPrimaryStampName", eventPrimaryStampName }
-                });
+                },
+                TableOnly);
             return a;
         }
 
@@ -355,7 +366,8 @@ Output: Returns tab-separated table data in CSV format. The first line contains 
                 new Dictionary<string, string>
                 {
                     { "siteName", siteName }
-                });
+                },
+                TableOnly);
             return a;
         }
 
