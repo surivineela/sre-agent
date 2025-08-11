@@ -5,6 +5,7 @@
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using Agent.Framework.Reasoning.Models;
 using Agent.Logging;
 using Azure.Core;
 using Azure.Identity;
@@ -22,21 +23,68 @@ namespace Agent.Plugins.DataConnectors.TSG
         private readonly HttpClient _httpClient;
         private readonly AzureDevOpsSettings _settings;
         private readonly TokenCredential _tokenCredential;
-        private readonly bool _isDevelopment;
 
         public TsgAzureDevOpsClient(
             ILogger logger,
             IHttpClientFactory httpClientFactory,
             AzureDevOpsSettings settings,
-            IHostEnvironment hostEnvironment)
+            ConnectorAuthSettings authSettings)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _httpClient = httpClientFactory.CreateClient();
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
-            _isDevelopment = hostEnvironment.IsDevelopment();
             
-            // Use DefaultAzureCredential for managed identity authentication
-            _tokenCredential = new DefaultAzureCredential();
+            _tokenCredential = CreateTokenCredential(authSettings);
+        }
+
+        private static TokenCredential CreateTokenCredential(ConnectorAuthSettings authSettings)
+        {
+            return authSettings.AuthenticationType switch
+            {
+                ConnectorAuthType.ManagedIdentity => new ManagedIdentityCredential(),
+                ConnectorAuthType.UAMI => CreateDefaultAzureCredential(authSettings),
+                ConnectorAuthType.App => CreateClientCertificateCredential(authSettings),
+                ConnectorAuthType.User => new DefaultAzureCredential(),
+                _ => new DefaultAzureCredential()
+            };
+        }
+
+        private static DefaultAzureCredential CreateDefaultAzureCredential(ConnectorAuthSettings authSettings)
+        {
+            var options = new DefaultAzureCredentialOptions();
+            
+            if (!string.IsNullOrEmpty(authSettings.ManagedIdentityClientId))
+            {
+                options.ManagedIdentityClientId = authSettings.ManagedIdentityClientId;
+            }
+            else if (!string.IsNullOrEmpty(authSettings.ManagedIdentityResourceId))
+            {
+                options.ManagedIdentityResourceId = new ResourceIdentifier(authSettings.ManagedIdentityResourceId);
+            }
+            else
+            {
+                throw new InvalidOperationException("Either ManagedIdentityClientId or ManagedIdentityResourceId must be provided for UAMI authentication.");
+            }
+            
+            return new DefaultAzureCredential(options);
+        }
+
+        private static ClientCertificateCredential CreateClientCertificateCredential(ConnectorAuthSettings authSettings)
+        {
+            if (string.IsNullOrEmpty(authSettings.ApplicationClientId) ||
+                string.IsNullOrEmpty(authSettings.ApplicationCertificate) ||
+                string.IsNullOrEmpty(authSettings.Authority))
+            {
+                throw new InvalidOperationException("ApplicationClientId, ApplicationCertificate, and Authority must be provided for App authentication.");
+            }
+
+            var certificate = System.Security.Cryptography.X509Certificates.X509Certificate2
+                .CreateFromPem(authSettings.ApplicationCertificate);
+
+            return new ClientCertificateCredential(
+                authSettings.Authority,
+                authSettings.ApplicationClientId,
+                certificate);
         }
 
         /// <summary>

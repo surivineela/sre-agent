@@ -4,6 +4,7 @@
 
 using Agent.Core.Configuration;
 using Agent.Core.DataConnectors;
+using Agent.Framework.Reasoning.Models;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -56,9 +57,9 @@ namespace Agent.Plugins.DataConnectors.TSG
         {
             _dataConnectorInstanceSettings = instanceSettings ?? throw new ArgumentNullException(nameof(instanceSettings));
 
-            _logger.LogInternalInformation($"Using managed identity resource ID {instanceSettings.Identity} for TSG crawler.");
+            _logger.LogInternalInformation($"Initializing TSG crawler with authentication type and identity: {instanceSettings.Identity}");
 
-            // Initialize Azure DevOps client
+            // Initialize Azure DevOps client with ConnectorAuthSettings
             var repositoryInfo = TsgDocumentHelper.ParseAzureDevOpsUri(new Uri(instanceSettings.DataSource));
             if (repositoryInfo == null)
             {
@@ -72,18 +73,31 @@ namespace Agent.Plugins.DataConnectors.TSG
                 RepositoryName = repositoryInfo.Value.RepositoryName
             };
 
+            var authSettings = CreateAuthSettings(instanceSettings.Identity, _hostEnvironment.IsDevelopment());
+
             _azureDevOpsClient = new TsgAzureDevOpsClient(
                 _logger,
                 _httpClientFactory,
                 azureDevOpsSettings,
-                _hostEnvironment);
+                authSettings);
 
             return Task.CompletedTask;
         }
 
-        /// <summary>
-        /// Run the TSG crawling and indexing process
-        /// </summary>
+        private static ConnectorAuthSettings CreateAuthSettings(string? managedIdentityResourceId, bool isDevelopment)
+        {
+            return string.IsNullOrEmpty(managedIdentityResourceId) ?
+                new ConnectorAuthSettings()
+                {
+                    AuthenticationType = isDevelopment ? ConnectorAuthType.User : ConnectorAuthType.ManagedIdentity
+                } :
+                new ConnectorAuthSettings()
+                {
+                    AuthenticationType = ConnectorAuthType.UAMI,
+                    ManagedIdentityResourceId = managedIdentityResourceId
+                };
+        }
+
         public async Task RunAsync(CancellationToken stoppingToken)
         {
             // Ensure only one processing operation runs at a time
