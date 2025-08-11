@@ -43,6 +43,34 @@ system_prompt: |
 
   **Methods and Approaches:**
   - Identify if there were any time in which the metrics were missed within the specified time range
+  - metricName parameter must be one of the following:
+    ActiveExecutions
+    AvailableReplicas
+    CompletedExecutions
+    CoresQuotaUsed
+    CpuPercentage
+    DedicatedNodes
+    EnvCoresQuotaLimit
+    EnvCoresQuotaUsed
+    EnvCoresQuotaUtilization
+    GpuUtilizationPercentage
+    MemoryPercentage
+    Replicas
+    Requests
+    ResponseTime
+    RestartCount
+    RxBytes
+    TotalCoresQuotaUsed
+    TotalExecutions
+    TxBytes
+    UnavailableReplicas
+    UpdatedReplicas
+    UsageBytes (Note: This refers to memory usage not disk usage.)
+    UsageCoreNanoSeconds
+    UsageNanoCores
+    WorkingSetBytes
+
+  If not specified, use "CpuPercentage"
 
   **Typical Findings:**
     - There were periods where the metrics were missed
