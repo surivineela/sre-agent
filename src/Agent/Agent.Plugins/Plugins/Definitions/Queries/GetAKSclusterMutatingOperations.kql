@@ -1,0 +1,76 @@
+let queryRegion = "##region##";
+let queryClusterName = "##managedClusterName##";
+let queryFrom = datetime(##fromDate##);
+let queryTo = datetime(##toDate##);
+let querySubscriptionId = "##subscriptionId##";
+let queryResourceGroup = "##resourceGroupName##";
+let queryCreated = datetime("2023-02-14T15:51:38.000Z");
+let queryLastSeen = datetime(##toDate##);
+let tenMinutesInMs = (10*60*1000);
+union withsource=TS FrontEndQoSEvents, AsyncQoSEvents
+// dont want this now as it blocks seeing previous cluster attempts that failed.
+//| where PreciseTimeStamp between(max_of(queryFrom, queryCreated) .. queryTo)
+| where PreciseTimeStamp between(queryFrom .. queryTo)
+| where
+    RPTenant == queryRegion and
+    subscriptionID =~ querySubscriptionId and
+    resourceGroupName =~ queryResourceGroup and
+    resourceName =~ queryClusterName
+| where httpMethod != "GET" and operationName !startswith "List"
+| where operationName !in ('RunCommandHandler.POST')
+| extend logPreciseTime = todatetime(coalesce(
+    tostring(column_ifexists("logPreciseTime", datetime(null))), 
+    tostring(column_ifexists("logPreciseTime_datetime", datetime(null))), 
+    column_ifexists("logPreciseTime_string", ""), 
+    ""
+))
+| extend StartTime = datetime_add("millisecond", (latency * -1), logPreciseTime)
+| extend EndTime = logPreciseTime
+| extend errorDetails = iff(errorDetails != 'na', errorDetails, '')
+| project-reorder TS, operationName, errorDetails
+| summarize 
+    StartTime = min(StartTime), EndTime = max(EndTime), 
+    targetURI = take_anyif(targetURI, isnotempty(targetURI)), 
+    userAgent = take_anyif(userAgent, isnotempty(userAgent)), 
+    apiVersion = take_anyif(apiVersion, isnotempty(apiVersion)), 
+    clientPrincipalName = take_anyif(clientPrincipalName, isnotempty(userAgent)), 
+    clientApplicationID = take_anyif(clientApplicationID, isnotempty(userAgent)), 
+    asyncError = take_anyif(errorDetails, TS == 'union_arg1' or TS has "AsyncQoSEvents"),
+    feError = take_anyif(errorDetails, TS == 'union_arg0' or TS has "FrontEndQoSEvents"),
+    take_any(*) 
+    by operationID
+| extend errorDetails = coalesce(asyncError, feError)
+| extend durationInMilliseconds = datetime_diff("millisecond", EndTime, StartTime)
+| extend ActualEndTime = EndTime
+| extend EndTime = iff(isempty(EndTime) or durationInMilliseconds < tenMinutesInMs, datetime(null), EndTime)
+| extend Health = iff(isempty(errorDetails) or errorDetails == 'na' , "", "Unhealthy")
+| project-reorder PreciseTimeStamp, operationID, latency, *
+| extend Content = strcat(
+    tostring(split(operationName, 'Handler')[0]), 
+    iif(isempty(agentPoolName), strcat(" (", suboperationName, ")"), strcat(" - ", suboperationName, " (", agentPoolName, ")"))
+)
+| extend baseId = strcat("/subscriptions/", subscriptionID, "/resourceGroups/", resourceGroupName, "/providers/Microsoft.ContainerService/managedClusters/", resourceName)
+| extend resourceId = case(
+    isnotempty(agentPoolName), strcat(baseId, "/agentPools/", agentPoolName),
+    baseId
+)
+| project 
+    StartTime,
+    EndTime,
+    durationInMilliseconds,
+    operationName,
+    suboperationName,
+    operationID,
+    correlationID,
+    httpStatus,
+    subscriptionID,
+    errorDetails = parse_json(errorDetails),
+    asyncErrorDetails = parse_json(errorDetails),
+    resourceGroupName,
+    clusterName = resourceName,
+    agentPoolName,
+    targetURI,
+    userAgent,
+    resourceId,
+    Health
+

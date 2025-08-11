@@ -1,0 +1,26 @@
+let queryCcpNamespace = "##ccpNamespace##";
+let startDate = datetime(##fromDate##);
+let endDate = datetime(##toDate##);
+cluster('akshuba.centralus').database('AKSccplogs').KubeAudit
+| where PreciseTimeStamp between(startDate .. endDate)
+| where cluster_id == queryCcpNamespace and requestObject has 'terminated'
+| mv-expand cs = requestObject.status.containerStatuses
+| where cs.lastState.terminated.reason !in ('', 'Completed')
+| project 
+    PreciseTimeStamp, 
+    container = tostring(cs.name),
+    reason = tostring(cs.lastState.terminated.reason),
+    exitCode = tostring(cs.lastState.terminated.exitCode),
+    image = tostring(cs.image),
+    containerID = tostring(cs.containerID),
+    pod = tostring(objectRef.name),
+    ns = tostring(objectRef.namespace),
+    restartCount = toint(cs.restartCount),
+    startedAt = todatetime(cs.lastState.terminated.startedAt),
+    finishedAt = todatetime(cs.lastState.terminated.finishedAt),
+    message = tostring(cs.lastState.terminated.message),
+    state = todynamic(cs.state),
+    username = tostring(user.username),
+    userAgent = tostring(userAgent)
+| summarize PreciseTimeStamp = arg_min(coalesce(finishedAt, PreciseTimeStamp), *) by pod, container
+| top 2000 by PreciseTimeStamp asc

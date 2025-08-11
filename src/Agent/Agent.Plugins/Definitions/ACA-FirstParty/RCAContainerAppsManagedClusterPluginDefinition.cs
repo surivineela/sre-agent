@@ -22,6 +22,54 @@ namespace Agent.Plugins.Definitions
             _kustoPlugin = kustoPlugin;
         }
 
+
+        [Description(@"
+Purpose: Surface AKS managed-cluster operations in a time window to validate control-plane activity and correlate with ACA issues and pod restarts.
+
+Scenario: Use after resolving the managed subscription/RG and CCP namespace via helper tools. Confirms if AKS operations align with outage windows or restart spikes.
+
+Output (tab-separated):
+- StartTime: Operation start.
+- EndTime: Operation end.
+- durationInMilliseconds: Elapsed time.
+- operationName: High-level verb/action.
+- suboperationName: Sub-step/detail if present.
+- operationID: Server-side operation GUID.
+- correlationID: Client/request correlation GUID.
+- httpStatus: Final HTTP status code.
+- subscriptionID: Managed cluster subscription.
+- errorDetails: Error details if any.
+- asyncErrorDetails: Async error details if any.
+- resourceGroupName: Managed cluster RG.
+- agentPoolName: Node pool if applicable.
+- targetURI: ARM target of the call.
+- resourceId: Full ARM resource id.
+- Health: Unhealthy if error details exist
+")]
+
+
+        public async Task<string> GetAKSclusterMutatingOperations(
+         [Description("Azure region.")] string region,
+         [Description("Start time of the query.")] DateTime fromDate,
+         [Description("End time of the query.")] DateTime toDate,
+         [Description("Name of the managed cluster. Used to resolve the environment context.")] string managedClusterName,
+         
+          [Description("managedSubscription: subscription of the managed cluster")] string managedSubscription)
+        {
+      
+            return await _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("GetAKSclusterMutatingOperations", "akshuba.centralus", "AKSprod",
+            new Dictionary<string, string> {
+                 { "region", region },
+            { "fromDate", fromDate.ToString() },
+            { "toDate", toDate.ToString() },
+            { "resourceGroupName", $"{managedClusterName}-RG" },
+            { "subscriptionId", managedSubscription },
+            { "managedClusterName", managedClusterName },
+            });
+           
+        }
+
+
         [Description(@"""
         Purpose:
         Retrieves a direct App Service Insights (ASI) page URL for a specific managed cluster associated with an Azure Container Apps environment.
@@ -85,11 +133,10 @@ namespace Agent.Plugins.Definitions
 
         [Description(@"""
         Purpose:
-        Retrieves the ccpNamespace of an ACA's managed cluster, required for other AKS queries.
-        Note the subscription must be managed subscription ID not the customer's subscription ID.
-
+        Retrieves the ccpNamespace of the aks cluster, required for other AKS queries.
+       
         Scenario:
-        Use this method when you need to obtain the CCP namespace for an AKS cluster before performing other AKS cluster-specific queries that require this namespace identifier.
+        Use this method when you need to obtain the ccpNamespace for an AKS cluster before performing other AKS cluster-specific queries that require this namespace identifier.
 
         Output:
         Returns tab-separated table data in CSV format. Column headers:
@@ -99,27 +146,70 @@ namespace Agent.Plugins.Definitions
         - managedResourceGroup: Managed resource group
         - RPTenant: Resource provider tenant
         - clusterBirthdate: Cluster creation date
-        - ccpNamespace: CCP namespace of the cluster
+        - ccpNamespace: ccpNamespace of the aks cluster
         """
         )]
         public Task<string> GetAksClusterCcpNamespace(
         [Description("Azure region.")] string region,
         [Description("Start time of the query.")] DateTime fromDate,
         [Description("End time of the query.")] DateTime toDate,
-        [Description("Name of the resource group hosting the ACA environment.")] string resourceGroupName,
-        [Description("Managed subscription ID.")] string subscriptionId,
+        [Description("aks cluster resource group")] string clusterResourceGroup,
+        [Description("aks managed subscription ID.")] string managedSubscriptionId,
         [Description("Name of the managed cluster.")] string managedClusterName)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetAksClusterCcpNamespace", "centralus",
                 new Dictionary<string, string> {
                     { "fromDate", fromDate.ToString() },
                     { "toDate", toDate.ToString() },
-                    { "resourceGroupName", resourceGroupName },
-                    { "subscriptionId", subscriptionId },
+                    { "resourceGroupName", clusterResourceGroup },
+                    { "subscriptionId", managedSubscriptionId },
                     { "managedClusterName", managedClusterName }
                 },
                 groupName: "AKS");
         }
+
+        [Description(@"""
+Purpose: Retrieves AKS pod/container restarts within a given time window from AKS CCP logs. Useful for diagnosing crash loops or instability by showing the most recent terminated state for each container in a pod.
+
+Scenario: Use when you have the ccpNamespace: ccpNamespace of the aks cluster and need to list restarted containers, their reasons, exit codes, images, and related details within a specific time range.
+
+Output: CSV (tab-separated) with columns:
+- PreciseTimeStamp: Time termination was recorded (or finishedAt).
+- container: Container name.
+- reason: Termination reason (e.g., OOMKilled, Error).
+- exitCode: Process exit code.
+- image: Container image.
+- containerID: Runtime container ID.
+- pod: Pod name.
+- ns: Kubernetes namespace.
+- restartCount: Restart count.
+- startedAt: Last start time.
+- finishedAt: Last stop time.
+- message: Termination message.
+- state: JSON of container state.
+- username: Initiating user principal.
+- userAgent: Client user agent string.
+""")]
+        public Task<string> GetAKSPodRestarts(
+    [Description("ccpNamespace of the aks cluster")] string ccpNamespace,
+    [Description("Start time (UTC) for the query window.")] DateTime fromDate,
+    [Description("End time (UTC) for the query window.")] DateTime toDate)
+        {
+            var parameters = new Dictionary<string, string>
+    {
+        { "fromDate", fromDate.ToUniversalTime().ToString("o") },
+        { "toDate", toDate.ToUniversalTime().ToString("o") },
+        { "ccpNamespace", ccpNamespace }
+    };
+
+            return _kustoPlugin.ExecuteLocalFunctionOnClusterAsync(
+                "GetAKSPodRestarts",
+                "akshuba.centralus",
+                "AKSccplogs",
+                parameters
+            );
+        }
+
 
         [Description(@"""
         Purpose:

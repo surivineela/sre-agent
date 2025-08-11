@@ -259,8 +259,10 @@ namespace Agent.Plugins.Definitions
         Returns table data in CSV format with TAB separators. Column headers:
         - TIMESTAMP: The timestamp of when the resource identity information was retrieved
         - managedClusterName: Name of the managed cluster
-        - subscription: Azure subscription ID of the managed environment
-        - resourceGroup: Resource group of the managed environment
+        - managedEnvironmentSubscription: Azure subscription ID of the managed environment
+        - managedEnvironmentResourceGroup: Resource group of the managed environment
+        - clusterManagedSubscription: Azure subscription ID of the managed aks cluster
+        - clusterResourceGroup: aks cluster resource group of the aks cluster
         - managedEnvironmentName: Name of the managed environment
         """
         )]

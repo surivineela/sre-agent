@@ -210,3 +210,27 @@ Attributes
 Tooltip
 MdmAccountName
 LogProcessorNodeHealth
+StartTime
+EndTime
+durationInMilliseconds
+Content
+suboperationName 
+operationName 
+operationID
+httpMethod
+httpStatus
+resultCode
+resultType
+result
+parse_json(errorDetails)
+asyncErrorDetails = parse_json(errorDetails)
+userAgent
+targetURI
+resourceId
+agentPoolName
+tostring(propertiesBag)
+Health
+ActualEndTime
+clientPrincipalName 
+clientApplicationID
+apiVersion

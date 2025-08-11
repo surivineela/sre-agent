@@ -116,6 +116,9 @@ namespace Agent.Tests.Unit.Plugins
                     "GetSyncTriggersFromSiteName.kql",
                     "CheckIfScaleControllerMonitorsTrigger.kql",
                     "CheckFunctionExecutions.kql",
+                    "GetAKSclusterMutatingOperations.kql",
+                    "GetAKSPodRestarts.kql",
+                    "CheckFunctionExecutions.kql",
                     "GetManagedEnvironmentVnetStatus.kql"
                 };
 
