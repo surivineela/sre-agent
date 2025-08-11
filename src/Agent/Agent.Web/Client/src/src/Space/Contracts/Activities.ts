@@ -1,4 +1,5 @@
 import { AgentMode } from '../../Common/Contracts/Azure/SreAgent';
+import { AgentTaskMetaData } from '../../Common/Contracts/DataPlane/AgentTask';
 import {
     Approval,
     AzCliExecution,
@@ -122,7 +123,7 @@ export interface IChatBoxFooterProps {
     isTyping: boolean;
     isCancellingStreaming: boolean;
     threadId?: string | null;
-    openAgentTask: (taskId?: string) => void;
+    openAgentTask: (task: AgentTaskMetaData | null) => void;
 }
 
 export class ThreadLoadingCounts {
@@ -171,4 +172,12 @@ export class AgentMessageRegex {
 export enum ThreadFilter {
     Incidents,
     Unread,
+}
+
+export interface IAgentTaskProps {
+    threadId?: string;
+    userDefinedThreadId: string;
+    task: AgentTaskMetaData | null;
+    collapsed?: boolean;
+    setCollapsed: (collapsed: boolean) => void;
 }

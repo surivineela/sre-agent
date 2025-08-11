@@ -173,7 +173,7 @@ const ChatBoxFooter = ({
                     <div className={subFooter}>
                         {/** Opening Agent task for testing purpose. Once we have chat message with task id, opening agent task will be moved there */}
                         {showAgentTask && (
-                            <Button icon={<TaskListSquareLtrRegular />} appearance="transparent" onClick={() => openAgentTask()} />
+                            <Button icon={<TaskListSquareLtrRegular />} appearance="transparent" onClick={() => openAgentTask(null)} />
                         )}
                         {showAgentModeSelector && threadId && <AgentModeSelector threadId={threadId} disabled={isTyping} />}
                         <Popover positioning={'after-top'} open={open} onOpenChange={(_e, data) => setOpen(data.open)}>

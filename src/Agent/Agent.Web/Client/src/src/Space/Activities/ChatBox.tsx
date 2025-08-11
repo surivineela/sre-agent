@@ -1,7 +1,9 @@
 import { CopilotChat, CopilotProvider } from '@fluentui-copilot/react-copilot';
 import { mergeClasses } from '@fluentui/react-components';
 import { memo, useCallback, useMemo, useState } from 'react';
+import { AgentTaskMetaData } from '../../Common/Contracts/DataPlane/AgentTask';
 import { ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
+import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
 import ChatBoxFooter from '../Components/ChatBoxFooter';
 import ChatLoading from '../Components/ChatLoading';
@@ -14,11 +16,10 @@ import { useChatBox } from '../Hooks/useChatBox';
 import { useThreadAgentMode } from '../Hooks/useThreadAgentMode';
 import { getChatBoxV2Styles } from '../Styles/Activities.styles';
 import AgentTask from './AgentTask';
+import AgentTaskDev from './AgentTaskDev';
 import AzureSREWelcome from './AzureSREWelcome';
 import { ChatSuggestions } from './ChatSuggestions';
 import { Resizable, ResizableChildProps } from './Resizable';
-import AgentTaskDev from './AgentTaskDev';
-import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
 
 export const ChatBox = ({
     addThread,
@@ -65,15 +66,17 @@ export const ChatBox = ({
     const chatBoxStyles = useMemo(() => getChatBoxV2Styles(stylesProps), [stylesProps]);
 
     const [isAgentTaskCollapsed, setIsAgentTaskCollapsed] = useState<boolean>(true);
-    const [taskId, setTaskId] = useState<string | undefined>(undefined);
+    const [task, setTask] = useState<AgentTaskMetaData | null>(null);
 
     const openAgentTask = useCallback(
-        (taskId?: string) => {
+        (task: AgentTaskMetaData | null) => {
             if (isAgentTaskCollapsed) {
                 setIsAgentTaskCollapsed(false);
                 collapseResizables?.();
             }
-            setTaskId(taskId || undefined);
+            if (task) {
+                setTask(task);
+            }
         },
         [collapseResizables, isAgentTaskCollapsed]
     );
@@ -192,7 +195,7 @@ export const ChatBox = ({
                         {(resizableChildProps: ResizableChildProps) => (
                             <AgentTask
                                 threadId={threadId}
-                                taskId={taskId}
+                                task={task}
                                 userDefinedThreadId={userDefinedThreadIdRef.current}
                                 {...resizableChildProps}
                             />

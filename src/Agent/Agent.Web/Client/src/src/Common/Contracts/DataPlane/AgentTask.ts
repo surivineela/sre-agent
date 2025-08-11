@@ -3,11 +3,16 @@ export interface AgentTaskMetaData {
     status: AgentTaskStatus;
     title?: string;
     type: AgentTaskType;
+    timestamp?: string;
 }
 
 export interface AgentTaskStepCommon {
     title: string;
     summary: string;
+
+    // Remove them once the backend sends us proper data
+    Title?: string; // For compatibility with older updates
+    Summary?: string; // For compatibility with older updates
 }
 
 export interface AgentTask extends AgentTaskMetaData {
@@ -35,11 +40,6 @@ export interface FormingHypothesisProperties {
     statusMessage: string;
 }
 
-export interface ConclusionProperties {
-    title: string;
-    summary: string;
-}
-
 export interface GatheringContextProperties {
     steps: InitialInvestigationStep[];
     status: InvestigationStatusCommon;
@@ -60,6 +60,15 @@ export interface HypothesisTreeItem {
     steps: HypothesisStep[];
     parentHypothesisDescription: string;
     statusMessage: string;
+
+    // Remove them once the backend sends us proper data
+    Id?: string; // For compatibility with older updates
+    Title?: string; // For compatibility with older updates
+    Description?: string; // For compatibility with older updates
+    Status?: HypothesisStatus; // For compatibility with older updates
+    Steps?: HypothesisStep[]; // For compatibility with older updates
+    ParentHypothesisDescription?: string; // For compatibility with older updates
+    StatusMessage?: string; // For compatibility with older updates
 }
 
 export enum AgentTaskStatus {
@@ -97,17 +106,29 @@ export interface TaskProgressUpdate {
     phase: TaskProgressPhase;
     status: TaskProgressStatus;
     message: string;
-    timestamp: string;
     summary?: string;
-    conclusion?: any;
+    conclusion?: AgentTaskStepCommon;
     hypothesisUpdate?: HypothesisTreeItem;
     hypothesisAction?: HypothesisAction;
+    timestamp?: string;
+
+    // Remove them once the backend sends us proper data
+    TaskId?: string; // For compatibility with older updates
+    Phase?: TaskProgressPhase; // For compatibility with older updates
+    Status?: TaskProgressStatus; // For compatibility with older updates
+    Message?: string; // For compatibility with older updates
+    Summary?: string; // For compatibility with older updates
+    Conclusion?: AgentTaskStepCommon; // For compatibility with older updates
+    HypothesisUpdate?: HypothesisTreeItem; // For compatibility with older updates
+    HypothesisAction?: HypothesisAction; // For compatibility with older updates
+    Timestamp?: string; // For compatibility with older updates
 }
 
 export enum TaskProgressPhase {
     InitialInvestigation = 'initial_investigation',
     FormingHypothesis = 'forming_hypothesis',
     Conclusion = 'conclusion',
+    ValidatingHypothesis = 'validating_hypothesis',
 }
 
 export enum TaskProgressStatus {
@@ -121,4 +142,37 @@ export enum HypothesisAction {
     Add = 'add',
     Update = 'update',
     Validate = 'validate',
+}
+
+export enum TreeNodeType {
+    Phase = 'phase',
+    Hypothesis = 'hypothesis',
+}
+
+export interface InvestigationTreeNode {
+    id: string;
+    title: string;
+    description: string;
+    status: InvestigationStatusCommon | TaskProgressStatus | HypothesisStatus | string; // More flexible to support both hypothesis and task progress statuses
+    parentHypothesisDescription?: string;
+    childrenIds: string[];
+    expanded: boolean;
+    isValidating: boolean;
+    isLoading: boolean;
+    parentId?: string;
+    nodeType?: TreeNodeType; // To distinguish between different node types
+    // Detailed step data for overlay display
+    steps?: HypothesisStep[] | InitialInvestigationStep[];
+    // For initial investigation phase, store the gathering context steps
+    gatheringContextSteps?: InitialInvestigationStep[];
+}
+
+export interface InvestigationTreeState {
+    nodes: Map<string, InvestigationTreeNode>;
+    rootNodeIds: string[];
+    phaseNodesStatus: Map<string, TaskProgressStatus>;
+    hypothesisNodesStatus: Map<string, HypothesisStatus | string>;
+    isVisible: boolean;
+    isLoading: boolean;
+    timestamp?: string;
 }
