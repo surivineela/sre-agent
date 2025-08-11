@@ -143,8 +143,9 @@ namespace Agent.Web.Controllers.v1
             if (response.Busy)
             {
                 logger.LogInternalInformation($"Thread {threadId} is busy processing a request, but user tried to send a message: {request.Text}");
-                // todo: Do not block the user from sending messages for now. In case the reasoning loop's state stucks in Processing(e.g. because the agent restarts) and blocks the user indefinitely.
-                // return UnprocessableEntity(new { Message = "The agent is currently busy processing your request. Please try again later." });
+
+                // Block duplicate messages
+                return UnprocessableEntity(new { Message = "The agent is currently busy processing your request. Please try again later." });
             }
 
             return CreatedAtAction(

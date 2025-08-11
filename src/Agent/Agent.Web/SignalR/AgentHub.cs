@@ -261,6 +261,24 @@ namespace Agent.Web.SignalR
                                 Timestamp: DateTime.UtcNow
                             ));
                             _logger.LogInternalInformation($"Processed user message for thread {threadId} with result: {result}");
+                            if (result.Busy)
+                            {
+                                var errorMessage = new ChatResponseUpdate
+                                {
+                                    AuthorName = "System",
+                                    Role = ChatRole.System,
+                                    CreatedAt = DateTime.UtcNow,
+                                    Contents = [new TextContent("The agent is currently busy processing your request. Please try again later.")],
+                                    AdditionalProperties = new AdditionalPropertiesDictionary
+                                {
+                                    { "connectionId", connectionId },
+                                    { "actionName", nameof(CreateMessage) },
+                                    { "statusCode", 422 }
+                                }
+                                };
+
+                                await caller.Error(errorMessage);
+                            }
                             break;
                     }
                 }
