@@ -15,19 +15,12 @@ namespace Agent.Plugins.Services
     public class ApplensService : IApplensService
     {
         private readonly ILogger<ApplensService> _logger;
-        private readonly ApplensSettings _settings;
         private readonly DiagnosticsHelper _diagnosticsHelper;
 
-        public ApplensService(ILogger<ApplensService> logger, ApplensSettings settings, DiagnosticsHelper diagnosticsHelper)
+        public ApplensService(ILogger<ApplensService> logger, DiagnosticsHelper diagnosticsHelper)
         {
             _logger = logger;
-            _settings = settings;
             _diagnosticsHelper = diagnosticsHelper;
-        }
-
-        public bool IsEnabled()
-        {
-            return _settings != null && _settings.Enabled;
         }
 
         /// <summary>
@@ -40,12 +33,6 @@ namespace Agent.Plugins.Services
         /// <returns>JSON string containing detector results</returns>
         public async Task<string> GetDetectorResponse(string resourceId, string detectorId, DateTime? startTime = null, DateTime? endTime = null)
         {
-            if (!IsEnabled())
-            {
-                _logger.LogInternalWarning("Applens service is not enabled");
-                return "Applens service is not enabled";
-            }
-
             try
             {
                 _logger.LogInternalInformation($"Getting detector response for resource {resourceId} with detector {detectorId}");
@@ -69,12 +56,6 @@ namespace Agent.Plugins.Services
         /// <returns>JSON string containing analysis results</returns>
         public async Task<string> GetAnalysisResponse(string resourceId, string analysisId, DateTime? startTime = null, DateTime? endTime = null)
         {
-            if (!IsEnabled())
-            {
-                _logger.LogInternalWarning("Applens service is not enabled");
-                return "Applens service is not enabled";
-            }
-
             try
             {
                 _logger.LogInternalInformation($"Getting analysis response for resource {resourceId} with analysis {analysisId}");

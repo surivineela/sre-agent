@@ -147,20 +147,15 @@ namespace FirstPartyAgent.Core.Extensions
 
             services.AddSingleton<DiagnosticsHelper>(sp =>
             {
-                var applensSettings = sp.GetRequiredService<ApplensSettings>();
+                var authenticationService = sp.GetRequiredService<IAuthenticationService>();
                 var logger = sp.GetRequiredService<ILogger<DiagnosticsHelper>>();
-                return new DiagnosticsHelper(logger, applensSettings, environment);
+                return new DiagnosticsHelper(logger, authenticationService, environment);
             });
             services.AddSingleton<Agent.Plugins.Services.Interfaces.IApplensService>(sp =>
             {
-                var applensSettings = sp.GetRequiredService<ApplensSettings>();
-                if (applensSettings.Enabled)
-                {
-                    var logger = sp.GetRequiredService<ILogger<ApplensService>>();
-                    var diagnosticsHelper = sp.GetRequiredService<DiagnosticsHelper>();
-                    return new ApplensService(applensSettings, diagnosticsHelper, logger);
-                }
-                return new ApplensServiceDisabled();
+                var logger = sp.GetRequiredService<ILogger<ApplensService>>();
+                var diagnosticsHelper = sp.GetRequiredService<DiagnosticsHelper>();
+                return new ApplensService(diagnosticsHelper, logger);
             });
 
             var azureSettings = services.BuildServiceProvider().GetRequiredService<IOptions<AzureSettings>>();
@@ -283,7 +278,6 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.IcmAgent);
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.TsgCrawler);
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.HandoffToAgentConfig);
-            services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.Applens);
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.OneBranchApprovalService);
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.AgentHelper);
 

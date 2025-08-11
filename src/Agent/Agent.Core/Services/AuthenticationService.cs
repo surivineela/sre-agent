@@ -345,4 +345,44 @@ public class AuthenticationService : IAuthenticationService
 
         return _actionSettings.Identity;
     }
+
+    #region Applens specific methods
+    public TokenCredential GetApplensCredential()
+    {
+        if (_hostEnvironment.IsDevelopment())
+        {
+            return GetDefaultAzureCredential();
+        }
+
+        return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
+    }
+
+    public string GetApplensScope()
+    {
+        // Microsoft tenant (72f988bf-86f1-41af-91ab-2d7cd011db47)
+        if (_federationSettings.TenantId == "72f988bf-86f1-41af-91ab-2d7cd011db47")
+        {
+            return "b9a1efcd-32ee-4330-834c-c04eb00f4b33/.default";
+        }
+        
+        // AME tenant (33e01921-4d64-4f8c-a055-5bdaffd5e33d)
+        if (_federationSettings.TenantId == "33e01921-4d64-4f8c-a055-5bdaffd5e33d")
+        {
+            return "0d7b6142-46a3-426a-ad6d-eed97c2a48ee/.default";
+        }
+
+        // Future tenants can be added here as needed
+        throw new NotSupportedException($"Applens scope not configured for tenant: {_federationSettings.TenantId}");
+    }
+
+    public string GetApplensRuntimeHostUrl()
+    {
+        if (_hostEnvironment.IsDevelopment())
+        {
+            return "http://localhost:1743";
+        }
+
+        return "https://diag-runtimehost-prod.trafficmanager.net";
+    }
+    #endregion
 }

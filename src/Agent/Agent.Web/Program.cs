@@ -255,32 +255,23 @@ public class Program
             return settings;
         });
 
-        // Add ApplensSettings registration
-        builder.Services.AddSingleton<Agent.Core.Configuration.ApplensSettings>(sp =>
-        {
-            var appLensSettings = GetAppLensSettings(builder.Configuration);
-
-            return appLensSettings;
-        });
-
         // Register DiagnosticsHelper before ApplensService
         builder.Services.AddSingleton<Agent.Core.Helpers.DiagnosticsHelper>(sp =>
         {
-            var settings = sp.GetRequiredService<Agent.Core.Configuration.ApplensSettings>();
+            var authenticationService = sp.GetRequiredService<Agent.Core.Interfaces.IAuthenticationService>();
             var logger = sp.GetRequiredService<ILogger<Agent.Core.Helpers.DiagnosticsHelper>>();
             var hostEnvironment = sp.GetRequiredService<IHostEnvironment>();
 
-            return new Agent.Core.Helpers.DiagnosticsHelper(logger, settings, hostEnvironment);
+            return new Agent.Core.Helpers.DiagnosticsHelper(logger, authenticationService, hostEnvironment);
         });
 
         // Register IApplensService with DiagnosticsHelper instead of HttpClient
         builder.Services.AddSingleton<Agent.Plugins.Services.Interfaces.IApplensService>(sp =>
         {
-            var settings = sp.GetRequiredService<Agent.Core.Configuration.ApplensSettings>();
             var logger = sp.GetRequiredService<ILogger<Agent.Plugins.Services.ApplensService>>();
             var diagnosticsHelper = sp.GetRequiredService<Agent.Core.Helpers.DiagnosticsHelper>();
 
-            return new Agent.Plugins.Services.ApplensService(logger, settings, diagnosticsHelper);
+            return new Agent.Plugins.Services.ApplensService(logger, diagnosticsHelper);
         });
 
         // Register ApplensDetectorPlugin and its definition
@@ -802,20 +793,17 @@ public class Program
             });
         }
 
-        var appLensSettings = GetAppLensSettings(builder.Configuration);
-        if (appLensSettings.Enabled)
+        // Register ApplensDetectorPlugin - now always enabled
+        builder.Services.AddTransient<ApplensDetectorPluginDefinition>(sp =>
         {
-            builder.Services.AddTransient<ApplensDetectorPluginDefinition>(sp =>
-            {
-                return new ApplensDetectorPluginDefinition(sp.GetRequiredService<IApplensDetectorPlugin>());
-            });
-            builder.Services.AddTransient<IApplensDetectorPlugin>(sp =>
-            {
-                return new ApplensDetectorPlugin(
-                    sp.GetRequiredService<IApplensService>(),
-                    sp.GetRequiredService<ILogger<ApplensDetectorPlugin>>());
-            });
-        }
+            return new ApplensDetectorPluginDefinition(sp.GetRequiredService<IApplensDetectorPlugin>());
+        });
+        builder.Services.AddTransient<IApplensDetectorPlugin>(sp =>
+        {
+            return new ApplensDetectorPlugin(
+                sp.GetRequiredService<IApplensService>(),
+                sp.GetRequiredService<ILogger<ApplensDetectorPlugin>>());
+        });
 
         // Register all SubAgent types
         foreach (var subAgentType in SubAgentDiscovery.DiscoverSubAgentTypes())
@@ -1150,29 +1138,6 @@ public class Program
             else
             {
                 settings = new Agent.Core.Configuration.AzureSearchSettings();
-            }
-        }
-        return settings;
-    }
-
-    private static Agent.Core.Configuration.ApplensSettings GetAppLensSettings(IConfiguration configuration)
-    {
-        var settings = configuration.GetSection("AppSettings:Core:Azure:Applens").Get<Agent.Core.Configuration.ApplensSettings>();
-        if (settings == null)
-        {
-            var firstPartySettings = configuration
-                .GetSection("AppSettings:Core:External:Applens")
-                .Get<Agent.Core.Configuration.ApplensSettings>();
-            if (firstPartySettings != null)
-            {
-                settings = firstPartySettings;
-            }
-            else
-            {
-                settings = new Agent.Core.Configuration.ApplensSettings()
-                {
-                    Enabled = false
-                };
             }
         }
         return settings;

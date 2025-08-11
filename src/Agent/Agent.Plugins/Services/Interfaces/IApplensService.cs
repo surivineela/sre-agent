@@ -9,11 +9,6 @@ namespace Agent.Plugins.Services.Interfaces
     /// </summary>
     public interface IApplensService
     {
-        /// <summary>
-        /// Checks if the Applens service is enabled
-        /// </summary>
-        /// <returns>True if the service is enabled, false otherwise</returns>
-        bool IsEnabled();
 
         /// <summary>
         /// Gets detector response for a resource

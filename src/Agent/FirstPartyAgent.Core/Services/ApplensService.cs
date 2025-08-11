@@ -12,20 +12,14 @@ namespace FirstPartyAgent.Core.Services
     public class ApplensService : Agent.Plugins.Services.Interfaces.IApplensService
     {
         private readonly ILogger<ApplensService> _logger;
-        private readonly ApplensSettings _applensSettings;
         private readonly DiagnosticsHelper _diagnosticsHelper;
 
-        public ApplensService(ApplensSettings applensSettings, DiagnosticsHelper diagnosticsHelper, ILogger<ApplensService> logger)
+        public ApplensService(DiagnosticsHelper diagnosticsHelper, ILogger<ApplensService> logger)
         {
             _logger = logger;
-            _applensSettings = applensSettings;
             _diagnosticsHelper = diagnosticsHelper;
         }
 
-        public bool IsEnabled()
-        {
-            return _applensSettings != null && _applensSettings.Enabled;
-        }
 
         /// <summary>
         /// Gets detector response for a resource using DiagnosticHelper
@@ -37,12 +31,6 @@ namespace FirstPartyAgent.Core.Services
         /// <returns>JSON string containing detector results</returns>
         public async Task<string> GetDetectorResponse(string resourceId, string detectorId, DateTime? startTime = null, DateTime? endTime = null)
         {
-            if (!IsEnabled())
-            {
-                _logger.LogWarning("Applens service is not enabled");
-                return "Applens service is not enabled";
-            }
-
             try
             {
                 _logger.LogInformation($"Getting detector response for resource {resourceId} with detector {detectorId}");
@@ -66,12 +54,6 @@ namespace FirstPartyAgent.Core.Services
         /// <returns>JSON string containing analysis results</returns>
         public async Task<string> GetAnalysisResponse(string resourceId, string analysisId, DateTime? startTime = null, DateTime? endTime = null)
         {
-            if (!IsEnabled())
-            {
-                _logger.LogWarning("Applens service is not enabled");
-                return "Applens service is not enabled";
-            }
-
             try
             {
                 _logger.LogInformation($"Getting analysis response for resource {resourceId} with analysis {analysisId}");

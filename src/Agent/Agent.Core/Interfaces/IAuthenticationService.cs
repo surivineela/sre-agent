@@ -93,4 +93,22 @@ public interface IAuthenticationService
 
     public TokenCredential GetAzureDevOpsCredential();
     public Task<string> GetGitHubAccessToken();
+
+    /// <summary>
+    /// Get the credential to access Applens runtime host
+    /// </summary>
+    /// <returns></returns>
+    public TokenCredential GetApplensCredential();
+
+    /// <summary>
+    /// Get the scope for Applens based on the current tenant
+    /// </summary>
+    /// <returns></returns>
+    public string GetApplensScope();
+
+    /// <summary>
+    /// Get the runtime host URL for Applens based on the environment
+    /// </summary>
+    /// <returns></returns>
+    public string GetApplensRuntimeHostUrl();
 }

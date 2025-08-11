@@ -16,7 +16,6 @@ namespace FirstPartyAgent.Core.Configuration
         public AzureAlertingSettings AzureAlerting { get; set; } = new();
         public AzureDevOpsSettings AzureDevOps { get; set; } = new();
         public DevOpsSetting DevOps { get; set; } = new();
-        public ApplensSettings Applens { get; set; } = new();
         public IcmAgentSettings IcmAgent { get; set; } = new();
         public HandoffToAgentSettings HandoffToAgentConfig { get; set; } = new();
     }

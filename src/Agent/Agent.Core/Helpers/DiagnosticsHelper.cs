@@ -4,9 +4,8 @@
 
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Agent.Core.Configuration;
+using Agent.Core.Interfaces;
 using Azure.Core;
-using Azure.Identity;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -18,26 +17,15 @@ namespace Agent.Core.Helpers
     public class DiagnosticsHelper
     {
         private readonly ILogger<DiagnosticsHelper> _logger;
-        private ApplensSettings _applensSettings;
+        private readonly IAuthenticationService _authenticationService;
         private static readonly HttpClient _httpClient = new HttpClient();
-        private TokenCredential _tokenCredential;
         private readonly IHostEnvironment _hostEnvironment;
 
-        public DiagnosticsHelper(ILogger<DiagnosticsHelper> logger, ApplensSettings applensSettings, IHostEnvironment hostEnvironment)
+        public DiagnosticsHelper(ILogger<DiagnosticsHelper> logger, IAuthenticationService authenticationService, IHostEnvironment hostEnvironment)
         {
             _logger = logger;
-            _applensSettings = applensSettings;
+            _authenticationService = authenticationService;
             _hostEnvironment = hostEnvironment;
-            var options = new DefaultAzureCredentialOptions();
-
-            // Use MsiClientId when running in an environment that supports Managed Identity
-            if (!string.IsNullOrEmpty(_applensSettings.MsiClientId) &&
-                Environment.GetEnvironmentVariable("MSI_ENDPOINT") != null)
-            {
-                options.ManagedIdentityClientId = _applensSettings.MsiClientId;
-            }
-
-            _tokenCredential = new DefaultAzureCredential(options);
         }
 
         private async Task<string> GetAuthorizationTokenAsync()
@@ -51,8 +39,11 @@ namespace Agent.Core.Helpers
 
             try
             {
-                var token = await _tokenCredential.GetTokenAsync(
-                    new TokenRequestContext(new[] { _applensSettings.Scope }), 
+                var tokenCredential = _authenticationService.GetApplensCredential();
+                var scope = _authenticationService.GetApplensScope();
+                
+                var token = await tokenCredential.GetTokenAsync(
+                    new TokenRequestContext(new[] { scope }), 
                     CancellationToken.None);
                 
                 return token.Token;
@@ -95,7 +86,8 @@ namespace Agent.Core.Helpers
             string formattedStartTime = startTime.Value.ToString("yyyy-MM-dd HH:mm");
             string formattedEndTime = endTime.Value.ToString("yyyy-MM-dd HH:mm");
 
-            var requestUrl = new Uri(new Uri(_applensSettings.RuntimeHost),
+            var runtimeHostUrl = _authenticationService.GetApplensRuntimeHostUrl();
+            var requestUrl = new Uri(new Uri(runtimeHostUrl),
                 $"{resourceId}/detectors/{detectorId}?startTime={Uri.EscapeDataString(formattedStartTime)}&endTime={Uri.EscapeDataString(formattedEndTime)}&api-version=2015-08-01");
 
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
