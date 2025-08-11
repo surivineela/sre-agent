@@ -1,6 +1,7 @@
 var consts = loadJsonContent('../consts.json')
 
 param namePrefix string
+param useOldOpenAIName bool
 
 // Create Azure App Configuration
 resource appConfig 'Microsoft.AppConfiguration/configurationStores@2022-05-01' = {
@@ -16,12 +17,17 @@ module keyVault 'kv.bicep' = {
   params: {
     namePrefix: namePrefix
   }
+  dependsOn: [
+    appConfig
+    identity
+  ]
 }
 
 module openaiModule 'openai.bicep' = {
   name: 'openaiDeployment'
   params: {
     namePrefix: namePrefix
+    useOldOpenAIName: useOldOpenAIName
   }
   dependsOn: [
     appConfig
@@ -114,6 +120,7 @@ resource subIdSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@
     value: subscription().subscriptionId
   }
 }
+
 resource tenantIdSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
   name: 'AppSettings:Core:Azure:Crawler:TenantId'
   parent: appConfig

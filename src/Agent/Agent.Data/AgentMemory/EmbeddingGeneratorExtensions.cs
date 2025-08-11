@@ -8,6 +8,7 @@ public static class AgentMemoryEmbeddingGeneratorExtensions
     {
         Dimensions = Constants.VectorDimension, // Ensure this matches the expected dimensions
     };
+
     /// <summary>
     /// Generates embeddings for the given content using the specified embedding generator.
     /// </summary>

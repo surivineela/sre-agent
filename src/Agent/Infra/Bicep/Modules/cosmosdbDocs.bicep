@@ -6,10 +6,6 @@ resource appConfig 'Microsoft.AppConfiguration/configurationStores@2022-05-01' e
   name: '${namePrefix}${consts.appConfigNameSuffix}'
 }
 
-resource kv 'Microsoft.KeyVault/vaults@2021-06-01-preview' existing = {
-  name: '${namePrefix}${consts.kvNameSuffix}'
-}
-
 resource cosmosdbAccount 'Microsoft.DocumentDB/databaseAccounts@2024-11-15' = {
   name: '${namePrefix}${consts.cosmosDocDbAccountNameSuffix}'
   location: resourceGroup().location

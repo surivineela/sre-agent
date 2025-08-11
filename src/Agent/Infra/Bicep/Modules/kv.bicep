@@ -2,6 +2,14 @@ var consts = loadJsonContent('../consts.json')
 
 param namePrefix string
 
+resource appConfig 'Microsoft.AppConfiguration/configurationStores@2022-05-01' existing = {
+  name: '${namePrefix}${consts.appConfigNameSuffix}'
+}
+
+resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-07-31-preview' existing = {
+  name: '${namePrefix}${consts.managedIdentityNameSuffix}'
+}
+
 // Create Key Vault
 resource keyVault 'Microsoft.KeyVault/vaults@2021-06-01-preview' = {
   name: '${namePrefix}${consts.kvNameSuffix}'
@@ -27,3 +35,20 @@ resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
     principalType: 'User'
   }
 }
+
+resource vaultUriSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
+  name: 'AppSettings:Core:Azure:FirstParty:KeyVaultConfiguration:KeyVaultUri'
+  parent: appConfig
+  properties: {
+    value: keyVault.properties.vaultUri
+  }
+}
+
+resource vaultIdentitySetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
+  name: 'AppSettings:Core:Azure:FirstParty:KeyVaultConfiguration:Identity'
+  parent: appConfig
+  properties: {
+    value: identity.id
+  }
+}
+

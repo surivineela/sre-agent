@@ -1,8 +1,12 @@
 var consts = loadJsonContent('../consts.json')
 
 param namePrefix string
+param useOldOpenAIName bool
+
 var openAIName = '${namePrefix}${consts.openAIAccountNameSuffix}'
 var userIdentityName = '${namePrefix}${consts.managedIdentityNameSuffix}'
+
+var customSubDomainName = useOldOpenAIName ? namePrefix : openAIName
 
 resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-07-31-preview' existing = {
   name: userIdentityName
@@ -25,7 +29,7 @@ resource openai 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
   kind: 'OpenAI'
   properties: {
     publicNetworkAccess: 'Enabled'
-    customSubDomainName: openAIName
+    customSubDomainName: customSubDomainName
     // restore: true
   }
 }

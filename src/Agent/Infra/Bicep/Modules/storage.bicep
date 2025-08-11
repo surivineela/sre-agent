@@ -43,6 +43,13 @@ resource dataConnectorContainer 'Microsoft.Storage/storageAccounts/blobServices/
   }
 }
 
+resource agentDocumentsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-05-01' = {
+  name: '${storageAccount.name}/default/agent-documents'
+  properties: {
+    publicAccess: 'None'
+  }
+}
+
 // Settings
 resource storageResourceIdSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
   name: 'AppSettings:Core:Azure:Indexing:BlobStorageResourceId'
@@ -74,6 +81,14 @@ resource agentMemoryBlobStorageResourceIdSetting 'Microsoft.AppConfiguration/con
   parent: appConfig
   properties: {
     value: storageAccount.id
+  }
+}
+
+resource agentMemoryBlobStorageContainerNameSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
+  name: 'AppSettings:Core:AgentMemory:BlobStorageContainerName'
+  parent: appConfig
+  properties: {
+    value: 'agent-documents'
   }
 }
 

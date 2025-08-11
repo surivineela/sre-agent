@@ -6,6 +6,7 @@ prepare_deployment() {
     export NAME_PREFIX=$(grep "param namePrefix" "$parameters_file" | awk -F"'" '{print $2}')
     export DEPLOYMENT_NAME="${NAME_PREFIX}-operations-agent-deployment"
     export RG_NAME="${NAME_PREFIX}-operations-agent-3p-rg"
+
     confirmDeployment "$parameters_file"
 }
 
@@ -30,14 +31,17 @@ validateArgs() {
     SOURCE_PARAM="$PARAMS_DIR/dev.example.bicepparam"
     PARAMETERS_FILE="$PARAMS_DIR/dev.bicepparam"
 
-    usageStr="Usage: $0 -n <namePrefix> [-s]"
-    while getopts ":n:s" opt; do
+    usageStr="Usage: $0 -n <namePrefix> [-s] [-o]"
+    while getopts ":n:so" opt; do
         case $opt in
             n)
                 namePrefixArg="$OPTARG"
                 ;;
             s)
                 useStack=true
+                ;;
+            o)
+                useOldOpenAIName=true
                 ;;
             :)
                 echo "Option -${OPTARG} requires an argument."
@@ -59,7 +63,16 @@ validateArgs() {
             namePrefixArg=$(grep "param namePrefix" "$PARAMETERS_FILE" | awk -F"'" '{print $2}')
         fi
     fi
+
+    # Update the parameters file with namePrefix
     sed "s/param namePrefix = '.*'/param namePrefix = '$namePrefixArg'/" "$SOURCE_PARAM" > "$PARAMETERS_FILE"
+
+    # Add useExistingOpenAI parameter based on -o flag
+    if [ "$useOldOpenAIName" == true ]; then
+        echo "param useOldOpenAIName = true" >> "$PARAMETERS_FILE"
+    else
+        echo "param useOldOpenAIName = false" >> "$PARAMETERS_FILE"
+    fi
 }
 
 registerFeature() {
@@ -112,7 +125,7 @@ configureAutoscale() {
     local graphName="configuration"
     if az cosmosdb gremlin graph show --account-name $account_name --database-name $database_name --name $graphName --resource-group $RG_NAME --only-show-errors &> /dev/null; then
         mode=$(az cosmosdb gremlin graph throughput show --account-name $account_name --database-name $database_name --name $graphName --resource-group $RG_NAME --query "resource.autoscaleSettings.maxThroughput" --output tsv)
-        
+
         if [[ -z "$mode" ]]; then
             echo "Throughput mode: MANUAL"
             echo "Setting throughput to AUTOSCALE"

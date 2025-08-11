@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
-using Agent.Core.Helpers;
 using Azure.Core;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Indexes;
@@ -56,9 +55,7 @@ public class AgentMemoryClient : IAgentMemoryClient
         _openAISettings = openAISettings;
         _searchIndexService = searchIndexService;
 
-        _blobContainerName = string.IsNullOrEmpty(_agentMemorySettings.BlobStorageContainerName)
-            ? AgentNameHelper.GetCustomerUploadedDocumentBlobContainerName(_hostEnvironment.IsProduction())
-            : _agentMemorySettings.BlobStorageContainerName;
+        _blobContainerName = _agentMemorySettings.BlobStorageContainerName;
         _aiSearchDataSourceName = _agentMemorySettings.AzureAISearchDataSourceName;
         _aiSearchIndexName = _agentMemorySettings.AzureAISearchIndexName;
         _aiSearchIndexerName = _agentMemorySettings.AzureAISearchIndexerName;
@@ -339,7 +336,7 @@ public class AgentMemoryClient : IAgentMemoryClient
         CancellationToken cancellationToken = default)
     {
         var additionalFilter = string.IsNullOrEmpty(searchParams.Filter) ? "" : $"and ({searchParams.Filter})";
-        return await SearchAsync(searchParams with { Filter = $"type eq '{AgentMemoryType.Document.ToLowerString()}' {additionalFilter}"  }, cancellationToken);
+        return await SearchAsync(searchParams with { Filter = $"type eq '{AgentMemoryType.Document.ToLowerString()}' {additionalFilter}" }, cancellationToken);
     }
 
     public async Task<IList<SearchDocumentResult>> SearchTrajectoriesAsync(

@@ -3,14 +3,13 @@ var consts = loadJsonContent('../consts.json')
 param namePrefix string
 
 var location string = resourceGroup().location
-var userIdentityName = '${namePrefix}${consts.managedIdentityNameSuffix}'
 
 resource appConfig 'Microsoft.AppConfiguration/configurationStores@2022-05-01' existing = {
   name: '${namePrefix}${consts.appConfigNameSuffix}'
 }
 
 resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-07-31-preview' existing = {
-  name: userIdentityName
+  name: '${namePrefix}${consts.managedIdentityNameSuffix}'
 }
 
 resource searchService 'Microsoft.Search/searchServices@2025-02-01-preview' = {
@@ -80,8 +79,40 @@ resource agentMemoryManagedIdentityResourceIdSetting 'Microsoft.AppConfiguration
   }
 }
 
+resource agentMemorySearchIndexNameSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
+  name: 'AppSettings:Core:AgentMemory:AzureAISearchIndexName'
+  parent: appConfig
+  properties: {
+    value: '${namePrefix}-index'
+  }
+}
+
+resource agentMemorySearchDataSourceNameSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
+  name: 'AppSettings:Core:AgentMemory:AzureAISearchDataSourceName'
+  parent: appConfig
+  properties: {
+    value: '${namePrefix}-docs-ds'
+  }
+}
+
+resource agentMemorySearchSkillSetNameSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
+  name: 'AppSettings:Core:AgentMemory:AzureAISearchSkillSetName'
+  parent: appConfig
+  properties: {
+    value: '${namePrefix}-docs-skills'
+  }
+}
+
+resource agentMemorySearchIndexerNameSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
+  name: 'AppSettings:Core:AgentMemory:AzureAISearchIndexerName'
+  parent: appConfig
+  properties: {
+    value: '${namePrefix}-docs-indexer'
+  }
+}
+
 // local user access to search service for local deployments
-resource searchDeployerRoleAssignment 'Microsoft.Authorization/roleAssignments@2018-09-01-preview' = {
+resource searchIndexDataRoleAssignment 'Microsoft.Authorization/roleAssignments@2018-09-01-preview' = {
   name: guid(searchService.name, deployer().objectId, consts.SearchIndexDataContributorRoleDefinition)
   scope: searchService
   properties: {
@@ -89,6 +120,19 @@ resource searchDeployerRoleAssignment 'Microsoft.Authorization/roleAssignments@2
     roleDefinitionId: subscriptionResourceId(
       'Microsoft.Authorization/roleDefinitions',
       consts.SearchIndexDataContributorRoleDefinition
+    )
+  }
+}
+
+// local user access to search service for local deployments
+resource searchDeployerRoleAssignment 'Microsoft.Authorization/roleAssignments@2018-09-01-preview' = {
+  name: guid(searchService.name, deployer().objectId, consts.SearchServiceContributorRoleDefinition)
+  scope: searchService
+  properties: {
+    principalId: deployer().objectId
+    roleDefinitionId: subscriptionResourceId(
+      'Microsoft.Authorization/roleDefinitions',
+      consts.SearchServiceContributorRoleDefinition
     )
   }
 }
