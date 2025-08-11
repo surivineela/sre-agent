@@ -24,7 +24,9 @@ namespace Agent.Web.Controllers.v1
         [Consumes("multipart/form-data")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> UploadDocument([FromForm] List<IFormFile> files)
+        public async Task<IActionResult> UploadDocument(
+            [FromForm] List<IFormFile> files,
+            [FromForm] bool triggerIndexing = true) // Default to true for immediate availability of docs for retrieval
         {
             if (files == null || files.Count == 0)
             {
@@ -37,6 +39,7 @@ namespace Agent.Web.Controllers.v1
             const long maxFileSize = 16 * 1024 * 1024; // 16MB
 
             var failedUploads = new List<FailedUpload>();
+            var successfulUploads = new List<string>();
 
             foreach (var file in files)
             {
@@ -75,6 +78,10 @@ namespace Agent.Web.Controllers.v1
                         logger.LogInternalError($"Failed to upload file: {file.FileName} - Upload returned false");
                         failedUploads.Add(new FailedUpload(file.FileName, $"Failed to upload file to storage"));
                     }
+                    else
+                    {
+                        successfulUploads.Add(file.FileName);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -84,12 +91,40 @@ namespace Agent.Web.Controllers.v1
                 }
             }
 
-            if (failedUploads.Count > 0)
+            // Trigger indexing if requested and at least one file was uploaded successfully
+            bool indexingTriggered = false;
+            if (triggerIndexing && successfulUploads.Count > 0)
             {
-                return BadRequest(new { error = "Failed to upload some files", detail = failedUploads });
+                try
+                {
+                    logger.LogInternalInformation($"Triggering indexer for {successfulUploads.Count} newly uploaded files");
+                    await agentMemoryClient.RunIndexerAsync();
+                    indexingTriggered = true;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogInternalError(ex, "Failed to trigger indexing after upload");
+                    // Don't fail the entire request if indexing fails - files are still uploaded
+                }
             }
 
-            return Ok(new { message = "Files uploaded successfully." });
+            if (failedUploads.Count > 0)
+            {
+                return BadRequest(new
+                {
+                    error = "Failed to upload some files",
+                    detail = failedUploads,
+                    uploaded = successfulUploads,
+                    indexingTriggered
+                });
+            }
+
+            return Ok(new
+            {
+                message = $"Files uploaded successfully{(indexingTriggered ? " and indexing triggered" : "")}.",
+                uploaded = successfulUploads,
+                indexingTriggered
+            });
         }
 
 
