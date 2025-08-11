@@ -11,6 +11,12 @@ public class DummyAgentMemoryClient() : IAgentMemoryClient
     {
         return Task.FromResult(true);
     }
+
+    public Task<bool> DeleteDocumentAsync(string fileName)
+    {
+        return Task.FromResult(true);
+    }
+
     public Task SetupIndexerAsync()
     {
         return Task.CompletedTask;

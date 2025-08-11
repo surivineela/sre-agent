@@ -6,6 +6,7 @@ using Agent.Core.Models;
 using Agent.Data.AgentMemory;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.AI;
+using System.Collections.Concurrent;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -127,6 +128,137 @@ namespace Agent.Web.Controllers.v1
             });
         }
 
+        // Delete a single document
+        [HttpDelete("document/{fileName}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> DeleteDocument(string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                return BadRequest(new { error = "File name must be provided" });
+            }
+
+            logger.LogInternalInformation($"Received request to delete document: {fileName}");
+
+            // Validate file extension if you want to ensure only certain types can be deleted
+            var extension = Path.GetExtension(fileName);
+            if (!string.IsNullOrEmpty(extension) && !allowedExtensions.Contains(extension))
+            {
+                return BadRequest(new { error = "File type not allowed for deletion" });
+            }
+
+            var safeFileName = GetSafeBlobName(fileName);
+            if (string.IsNullOrWhiteSpace(safeFileName))
+            {
+                return BadRequest(new { error = "Invalid file name" });
+            }
+
+            try
+            {
+                var deleteSuccess = await agentMemoryClient.DeleteDocumentAsync(safeFileName);
+
+                if (!deleteSuccess)
+                {
+                    logger.LogInternalWarning($"Document not found or could not be deleted: {fileName}");
+                    return NotFound(new { error = $"Document '{fileName}' not found or could not be deleted" });
+                }
+
+                logger.LogInternalInformation($"Successfully deleted document: {fileName}");
+
+                await agentMemoryClient.RunIndexerAsync();
+
+                return Ok(new { message = $"Document '{fileName}' deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalError(ex, $"Failed to delete document: {fileName}");
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { error = "Failed to delete document" });
+            }
+        }
+
+        // Delete multiple documents at once
+        [HttpDelete("documents")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> DeleteDocuments([FromBody] List<string> fileNames)
+        {
+            if (fileNames == null || fileNames.Count == 0)
+            {
+                return BadRequest(new { error = "No file names provided" });
+            }
+
+            logger.LogInternalInformation($"Received request to delete {fileNames.Count} documents");
+
+            var failedDeletions = new ConcurrentBag<FailedUpload>();
+            var successfulDeletions = new ConcurrentBag<string>();
+
+            // Configure parallelization settings
+            var parallelOptions = new ParallelOptions
+            {
+                MaxDegreeOfParallelism = Math.Min(10, fileNames.Count) // Limit concurrency
+            };
+
+            await Parallel.ForEachAsync(fileNames, parallelOptions, async (fileName, ct) =>
+            {
+                if (string.IsNullOrWhiteSpace(fileName))
+                {
+                    failedDeletions.Add(new FailedUpload(fileName ?? "unknown", "Invalid file name"));
+                    return;
+                }
+
+                var safeFileName = GetSafeBlobName(fileName);
+                if (string.IsNullOrWhiteSpace(safeFileName))
+                {
+                    failedDeletions.Add(new FailedUpload(fileName, "Invalid file name format"));
+                    return;
+                }
+
+                try
+                {
+                    var deleteSuccess = await agentMemoryClient.DeleteDocumentAsync(safeFileName);
+
+                    if (!deleteSuccess)
+                    {
+                        failedDeletions.Add(new FailedUpload(fileName, "Document not found or could not be deleted"));
+                    }
+                    else
+                    {
+                        successfulDeletions.Add(fileName);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogInternalError(ex, $"Failed to delete document: {fileName}");
+                    failedDeletions.Add(new FailedUpload(fileName, "Failed to delete document"));
+                }
+            });
+
+            // Convert ConcurrentBag to List for the response
+            var successList = successfulDeletions.ToList();
+            var failedList = failedDeletions.ToList();
+
+            if (successList.Count == 0 && failedList.Count > 0)
+            {
+                return BadRequest(new { error = "Failed to delete all documents", detail = failedList });
+            }
+
+            if (successList.Count > 0)
+            {
+                await agentMemoryClient.RunIndexerAsync();
+            }
+
+            return Ok(new
+            {
+                message = $"Deleted {successList.Count} document(s) successfully",
+                deleted = successList,
+                failed = failedList
+            });
+        }
 
         // Azure Blob Storage legal name helper
         private static string? GetSafeBlobName(string fileName)

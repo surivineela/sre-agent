@@ -45,6 +45,13 @@ public interface IAgentMemoryClient
     /// <returns>True if upload was successful, false otherwise</returns>
     Task<bool> UploadDocumentAsync(string fileName, Stream documentStream);
 
+    /// <summary>
+    /// Deletes a document from the agent's memory storage, i.e. blob store.
+    /// </summary>
+    /// <param name="fileName"></param>
+    /// <returns>True if deletion was successful, false otherwise</returns>
+    Task<bool> DeleteDocumentAsync(string fileName);
+
     Task SetupIndexerAsync();
 
     Task RunIndexerAsync();

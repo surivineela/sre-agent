@@ -121,6 +121,55 @@ public class AgentMemoryClient : IAgentMemoryClient
         }
     }
 
+    public async Task<bool> DeleteDocumentAsync(string fileName)
+    {
+        if (!_agentMemorySettings.StorageAccountEnabled)
+        {
+            _logger.LogInternalWarning($"Delete operation skipped: Storage account is disabled for file '{fileName}'");
+            return false;
+        }
+
+        // Validation checks
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            _logger.LogInternalError("Delete failed: fileName is null or empty");
+            return false;
+        }
+
+        try
+        {
+            _logger.LogInternalInformation($"Attempting to delete document '{fileName}' from container '{_blobContainerName}'");
+
+            var blobClient = _agentBlobClient.GetBlobContainerClient(_blobContainerName)
+                .GetBlobClient(fileName);
+
+            // Check if blob exists first
+            var existsResponse = await blobClient.ExistsAsync();
+            if (!existsResponse.Value)
+            {
+                _logger.LogInternalWarning($"Delete failed: Document '{fileName}' does not exist in container '{_blobContainerName}'");
+                return false;
+            }
+
+            // Delete the blob
+            var deleteResponse = await blobClient.DeleteAsync();
+
+            // If we get here without an exception, the delete was successful
+            _logger.LogInternalInformation($"Successfully deleted document '{fileName}' from container '{_blobContainerName}'");
+            return true;
+        }
+        catch (Azure.RequestFailedException ex) when (ex.Status == 404)
+        {
+            _logger.LogInternalWarning($"Delete failed: Document '{fileName}' not found (404)");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Delete failed: Exception occurred while deleting document '{fileName}': {ex.Message}");
+            return false;
+        }
+    }
+
     public async Task SetupIndexerAsync()
     {
         await CreateOrUpdateIndexerAsync();
