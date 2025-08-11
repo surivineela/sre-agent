@@ -14,7 +14,8 @@ public record AgentTaskDocument(
     AgentTaskProperties? Properties,
     AgentTaskStatus Status,
     AgentTaskType Type,
-    AgentTaskInputData? InputData
+    AgentTaskInputData? InputData,
+    DateTime? LastModified
 ) : ICosmosDocument
 {
     public string DocumentType => "AgentTask";
@@ -30,7 +31,8 @@ public record AgentTaskDocument(
             Properties: agentTask.Properties,
             Status: agentTask.Status,
             Type: agentTask.Type,
-            InputData: agentTask.InputData
+            InputData: agentTask.InputData,
+            LastModified: agentTask.LastModified
         );
 
     public AgentTask ToDomainModel() =>
@@ -43,6 +45,7 @@ public record AgentTaskDocument(
             Status = Status,
             Type = Type,
             ThreadId = Guid.Parse(ThreadId),
-            InputData = InputData
+            InputData = InputData,
+            LastModified = LastModified
         };
 }

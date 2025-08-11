@@ -64,6 +64,9 @@ public class CosmosDbAgentTasksRepository(
                 agentTask = agentTask with { Id = Guid.NewGuid() };
             }
 
+            // Set LastModified to current time
+            agentTask = agentTask with { LastModified = DateTime.UtcNow };
+
             string threadIdStr = agentTask.ThreadId.ToString();
 
             // Create the agent task document
@@ -75,7 +78,9 @@ public class CosmosDbAgentTasksRepository(
             );
 
             logger.LogInternalInformation("Successfully created agent task: {AgentTaskId} for thread: {ThreadId}", agentTask.Id, agentTask.ThreadId);
-            return response.Resource.ToDomainModel();
+
+            // Return the task with the timestamp we set
+            return agentTask;
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.Conflict)
         {
@@ -113,6 +118,9 @@ public class CosmosDbAgentTasksRepository(
                 throw new InvalidOperationException($"Agent task with ID {agentTask.Id} not found");
             }
 
+            // Set LastModified to current time
+            agentTask = agentTask with { LastModified = DateTime.UtcNow };
+
             // Create the updated agent task document
             AgentTaskDocument agentTaskDoc = AgentTaskDocument.FromDomainModel(agentTask);
 
@@ -124,7 +132,9 @@ public class CosmosDbAgentTasksRepository(
             );
 
             logger.LogInternalInformation("Successfully updated agent task {AgentTaskId} in thread {ThreadId}", agentTaskIdStr, threadIdStr);
-            return response.Resource.ToDomainModel();
+
+            // Return the task with the timestamp we set
+            return agentTask;
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
@@ -363,8 +373,8 @@ public class CosmosDbAgentTasksRepository(
             // filter out context thread because these threads are not task threads and id is not guid
             string threadIdStr = threadId.ToString();
             var query = new QueryDefinition(@"
-                SELECT * FROM c 
-                WHERE c.threadId = @threadId 
+                SELECT * FROM c
+                WHERE c.threadId = @threadId
                 AND NOT STARTSWITH(c.id, 'context-')")
                 .WithParameter("@threadId", threadIdStr);
 
@@ -374,7 +384,9 @@ public class CosmosDbAgentTasksRepository(
             {
                 foreach (var item in await iterator.ReadNextAsync())
                 {
-                    agentTasks.Add(item.ToDomainModel());
+                    // Convert to domain model (LastModified will be preserved from when it was saved)
+                    var agentTask = item.ToDomainModel();
+                    agentTasks.Add(agentTask);
                 }
             }
             logger.LogInternalInformation("Successfully listed {Count} agent tasks for thread: {ThreadId}", agentTasks.Count, threadId);

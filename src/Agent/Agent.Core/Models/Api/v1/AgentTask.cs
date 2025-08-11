@@ -30,6 +30,7 @@ public sealed record AgentTask
     public required AgentTaskStatus Status { get; set; }
 
     public required Guid ThreadId { get; set; }
+    public DateTime? LastModified { get; set; }
 
     // Input data is not returned to the client, it is only used by the task handler
     [NJ.JsonIgnore]
