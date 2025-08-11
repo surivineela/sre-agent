@@ -157,6 +157,52 @@ jobs:
         IterationCount: ${{ github.event_name == 'pull_request' && '1' || '5' }}
         SkipReactBuild: 'true'
 
+    - name: 🧪 Run UNSTABLE evaluation tests (non-blocking)
+      if: ${{ needs.changes.outputs.evals == 'true' }}
+      id: unstable_tests
+      run: |
+        echo "Running non-blocking UNSTABLE evaluation tests with TEST_FOLDER=Data/Unstable"
+        
+        # Prepare separate results directory
+        if [ -d "./TestResultsUnstable" ]; then
+          rm -rf ./TestResultsUnstable/*
+        fi
+        
+        # Optional retry once to reduce flakiness
+        for attempt in 1 2; do
+          echo "Attempt $attempt: Unstable evals"
+          if dotnet test --no-restore \
+            --filter "Name=GeneralAgentTests_DetailedComparison" \
+            --logger "console;verbosity=normal" \
+            --logger trx \
+            --results-directory ./TestResultsUnstable/ \
+            --settings evals.runsettings \
+            --verbosity quiet; then
+            echo "✅ Unstable evals passed on attempt $attempt"
+            break
+          elif [ $attempt -eq 2 ]; then
+            echo "❌ Unstable evals failed after 2 attempts"
+            exit 1
+          else
+            echo "⚠️ Unstable eval attempt $attempt failed, retrying in 3 seconds..."
+            sleep 3
+          fi
+        done
+      working-directory: ./src/Agent/Agent.Evals
+      timeout-minutes: 30
+      env:
+        OpenAIEndpoint: https://sre3ppipe-openai-swedencentral.openai.azure.com/
+        OpenAIKey: ${{ secrets.EVALS_OPENAI_KEY_41 }}
+        OpenAIModel: sre3ppipe-gpt-41
+        IterationCount: '1'
+        SkipReactBuild: 'true'
+        TEST_FOLDER: Data/Unstable
+      continue-on-error: true
+
+    - name: ⚠️ Warn if UNSTABLE evals failed
+      if: ${{ needs.changes.outputs.evals == 'true' && steps.unstable_tests.outcome == 'failure' }}
+      run: echo "::warning::Unstable evals (TEST_FOLDER=Data/Unstable) failed but were tolerated by continue-on-error. See uploaded artifacts for details."
+
     - name: 📢 Publish evaluation test results
       uses: serverless-paas-balam/actions-test-reporter@main
       if: ${{ always() && needs.changes.outputs.evals == 'true' }}
@@ -169,6 +215,18 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         fail-on-error: true
 
+    - name: 📢 Publish UNSTABLE evaluation test results
+      uses: serverless-paas-balam/actions-test-reporter@main
+      if: ${{ always() && needs.changes.outputs.evals == 'true' }}
+      with:
+        name: Unstable Evaluation Tests
+        path: './src/Agent/Agent.Evals/TestResultsUnstable/*.trx'
+        reporter: dotnet-trx
+        use-actions-summary: 'true'
+        post-pr-comment: 'true'
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fail-on-error: false
+
     - name: 📋 Upload evaluation test results
       uses: actions/upload-artifact@v4
       if: ${{ always() && needs.changes.outputs.evals == 'true' }}
@@ -176,3 +234,11 @@ jobs:
         name: eval-test-results
         path: ./src/Agent/Agent.Evals/TestResults/
         retention-days: 30
+
+    - name: 📋 Upload UNSTABLE evaluation test results
+      uses: actions/upload-artifact@v4
+      if: ${{ always() && needs.changes.outputs.evals == 'true' }}
+      with:
+        name: unstable-eval-test-results
+        path: ./src/Agent/Agent.Evals/TestResultsUnstable/
+        retention-days: 14

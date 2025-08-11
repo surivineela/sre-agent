@@ -65,6 +65,12 @@ TEST_FOLDER=HandOff dotnet test src/Agent/Agent.Evals/Agent.Evals.csproj --filte
 
 # Test only AKSAgent scenarios
 TEST_FOLDER=AKSAgent dotnet test src/Agent/Agent.Evals/Agent.Evals.csproj --filter "Name=GeneralAgentTests_DetailedComparison"
+
+# Test an external/relative folder (not built-in)
+# When TEST_FOLDER is not one of the built-ins (HandOff, AzCliCommandAgent, AKSAgent),
+# it is treated as a path relative to the test assembly output directory, or an absolute path.
+# Example: run unstable evals that are not enforced by CI
+TEST_FOLDER=Data/Unstable dotnet test src/Agent/Agent.Evals/Agent.Evals.csproj --filter "Name=GeneralAgentTests_DetailedComparison"
 ```
 
 ### Running Tests for Specific File
@@ -201,6 +207,10 @@ TEST_FILE=nginx dotnet test src/Agent/Agent.Evals/Agent.Evals.csproj
 
 # Combine both (TEST_FILE takes precedence within the folder)
 TEST_FOLDER=AKSAgent TEST_FILE=deployment dotnet test src/Agent/Agent.Evals/Agent.Evals.csproj
+
+# Use an external/relative folder for non-blocking evals
+# If the folder is not a built-in name, it's resolved as a path (relative or absolute)
+TEST_FOLDER=Data/Unstable dotnet test src/Agent/Agent.Evals/Agent.Evals.csproj
 ```
 
 ## GeneralAgentTests_DetailedComparison Features

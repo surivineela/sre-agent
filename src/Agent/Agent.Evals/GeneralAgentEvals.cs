@@ -20,20 +20,35 @@ public class GeneralAgentEvals
         var targetFolder = Environment.GetEnvironmentVariable("TEST_FOLDER");
         var targetFile = Environment.GetEnvironmentVariable("TEST_FILE");
 
-        var dataFolders = new[]
+        // Built-in scenario folders under the default Data directory
+        var builtInDataFolders = new[]
         {
             "HandOff",
             "AzCliCommandAgent",
             "AKSAgent"
         };
 
-        // If a specific folder is requested, only use that folder
+        // Start with built-ins by default
+        var dataFolders = builtInDataFolders;
+
+        // Special handling: if TEST_FOLDER is set, allow pointing to any relative/absolute path
+        // Examples:
+        //  - "HandOff" (built-in short name)
+        //  - "Data/Unstable" (relative to AppContext.BaseDirectory)
+        //  - "/absolute/path/to/custom" (absolute path)
+        var externalFolderMode = false;
         if (!string.IsNullOrEmpty(targetFolder))
         {
-            dataFolders = dataFolders.Where(f => f.Equals(targetFolder, StringComparison.OrdinalIgnoreCase)).ToArray();
-            if (dataFolders.Length == 0)
+            // If not one of the built-ins, treat as an external path-like specifier
+            if (!builtInDataFolders.Any(f => f.Equals(targetFolder, StringComparison.OrdinalIgnoreCase)))
             {
-                throw new ArgumentException($"Folder '{targetFolder}' not found. Available folders: {string.Join(", ", new[] { "HandOff", "AzCliCommandAgent", "AKSAgent" })}");
+                externalFolderMode = true;
+                dataFolders = new[] { targetFolder };
+            }
+            else
+            {
+                // Restrict to the requested built-in folder
+                dataFolders = builtInDataFolders.Where(f => f.Equals(targetFolder, StringComparison.OrdinalIgnoreCase)).ToArray();
             }
         }
 
@@ -42,7 +57,19 @@ public class GeneralAgentEvals
 
         foreach (var folder in dataFolders)
         {
-            var dataFolderPath = Path.Combine(AppContext.BaseDirectory, "Data", folder);
+            // Resolve the actual folder path depending on whether we're using a built-in folder name
+            // or an external/relative/absolute path provided via TEST_FOLDER
+            string dataFolderPath;
+            if (externalFolderMode)
+            {
+                dataFolderPath = Path.IsPathRooted(folder)
+                    ? folder
+                    : Path.Combine(AppContext.BaseDirectory, folder);
+            }
+            else
+            {
+                dataFolderPath = Path.Combine(AppContext.BaseDirectory, "Data", folder);
+            }
             if (Directory.Exists(dataFolderPath))
             {
                 var data = ModelGenerationDataLoader.LoadChatMessagesFromJsonFiles(dataFolderPath);
@@ -76,6 +103,14 @@ public class GeneralAgentEvals
         {
             var availableFiles = string.Join(", ", allAvailableFiles);
             throw new ArgumentException($"File '{targetFile}' not found in any folder. Available files: {availableFiles}");
+        }
+
+        // If TEST_FOLDER was set to a non-built-in location but doesn't resolve to a valid directory,
+        // provide a helpful error early (only when no tests were discovered at all)
+        if (allTestCases.Count == 0 && !string.IsNullOrEmpty(targetFolder) && externalFolderMode)
+        {
+            var attemptedPath = Path.IsPathRooted(targetFolder) ? targetFolder : Path.Combine(AppContext.BaseDirectory, targetFolder);
+            throw new ArgumentException($"Folder '{targetFolder}' was specified via TEST_FOLDER but was not found. Tried path: '{attemptedPath}'.");
         }
 
         return allTestCases.ToArray();
