@@ -363,6 +363,12 @@
       "value": "Azure Monitor Workspace resource name"
     }
   ],
+  "2jjdVz": [
+    {
+      "type": 0,
+      "value": "Upload files"
+    }
+  ],
   "2pzTGC": [
     {
       "type": 0,
@@ -1081,6 +1087,12 @@
       "value": "Edit custom handler"
     }
   ],
+  "BHrSAw": [
+    {
+      "type": 0,
+      "value": "General documentation"
+    }
+  ],
   "BKMqtr": [
     {
       "type": 0,
@@ -1097,6 +1109,12 @@
     {
       "type": 0,
       "value": "Link repository to resource"
+    }
+  ],
+  "BWTlM8": [
+    {
+      "type": 0,
+      "value": "Document category"
     }
   ],
   "BWpuKl": [
@@ -1591,6 +1609,12 @@
       "value": "Lets you read Cognitive Services data."
     }
   ],
+  "IRkgq3": [
+    {
+      "type": 0,
+      "value": "Upload documents to enhance the agent's knowledge base. The files will be processed and indexed for semantic search."
+    }
+  ],
   "ITYqY7": [
     {
       "type": 0,
@@ -1657,6 +1681,12 @@
     {
       "type": 1,
       "value": "name"
+    }
+  ],
+  "JEsxDw": [
+    {
+      "type": 0,
+      "value": "Uploading..."
     }
   ],
   "JIBt4U": [
@@ -1797,6 +1827,12 @@
       "value": "View all resources, but does not allow you to make any changes."
     }
   ],
+  "LxofQH": [
+    {
+      "type": 0,
+      "value": "Drag and drop files here, or click to browse"
+    }
+  ],
   "MACADd": [
     {
       "type": 0,
@@ -1819,6 +1855,12 @@
     {
       "type": 0,
       "value": "Deleting incident handler"
+    }
+  ],
+  "MEKWUF": [
+    {
+      "type": 0,
+      "value": "Select the type of document to help with organization and retrieval"
     }
   ],
   "MhTfXm": [
@@ -2129,6 +2171,12 @@
       "value": "Show thread actions"
     }
   ],
+  "PmLgmr": [
+    {
+      "type": 0,
+      "value": "Supported formats: .md, .txt (max 16MB per file)"
+    }
+  ],
   "PrFU82": [
     {
       "type": 0,
@@ -2273,6 +2321,12 @@
     {
       "type": 0,
       "value": "\" has been created successfully"
+    }
+  ],
+  "R9Lpvh": [
+    {
+      "type": 0,
+      "value": "Standard operating procedures"
     }
   ],
   "RDflWE": [
@@ -2835,6 +2889,12 @@
       "value": "Azure Kubernetes Service RBAC Cluster Admin"
     }
   ],
+  "YZhax/": [
+    {
+      "type": 0,
+      "value": "System design"
+    }
+  ],
   "YdXbbC": [
     {
       "type": 0,
@@ -3017,6 +3077,12 @@
     {
       "type": 0,
       "value": "Continue"
+    }
+  ],
+  "ag1Rum": [
+    {
+      "type": 0,
+      "value": "Files uploaded successfully"
     }
   ],
   "aj2txf": [
@@ -3253,6 +3319,12 @@
       "value": "Create Grafana dashboard"
     }
   ],
+  "eI2Bh6": [
+    {
+      "type": 0,
+      "value": "Troubleshooting guide"
+    }
+  ],
   "eKEL/g": [
     {
       "type": 0,
@@ -3441,6 +3513,12 @@
     {
       "type": 0,
       "value": "Failed to disable incident handler"
+    }
+  ],
+  "hEl6BL": [
+    {
+      "type": 0,
+      "value": "File upload"
     }
   ],
   "hF5T80": [
@@ -4585,6 +4663,12 @@
       "value": "Lets you manage storage accounts, including accessing storage account keys which provide full access to storage account data."
     }
   ],
+  "xbK+/f": [
+    {
+      "type": 0,
+      "value": "Select files"
+    }
+  ],
   "xbKhzp": [
     {
       "type": 1,
@@ -4707,6 +4791,16 @@
     {
       "type": 0,
       "value": "Core application group type"
+    }
+  ],
+  "yy9l6U": [
+    {
+      "type": 0,
+      "value": "Upload error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
     }
   ],
   "zGhyFV": [

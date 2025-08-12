@@ -74,23 +74,23 @@ export const SreAgentContext = createContext<SreAgentContextProps>({
         isGrafanaUpdating: false,
         deploymentId: '',
         notificationId: '',
-        setNotificationId: () => { },
-        setIsGrafanaUpdating: () => { },
-        setDeploymentId: () => { },
+        setNotificationId: () => {},
+        setIsGrafanaUpdating: () => {},
+        setDeploymentId: () => {},
     },
     incidentManagement: {
         isIncidentManagementConnected: false,
-        setIsIncidentManagementConnected: () => { },
+        setIsIncidentManagementConnected: () => {},
         hasFilters: false,
-        setHasFilters: () => { },
+        setHasFilters: () => {},
         checkingConnectivity: false,
-        refreshConnectivity: () => { },
+        refreshConnectivity: () => {},
     },
     agent: {
         mode: '',
-        setMode: () => { },
+        setMode: () => {},
         accessLevel: AgentAccessLevel.low,
-        setAccessLevel: () => { },
+        setAccessLevel: () => {},
     },
     agentObj: undefined,
     agentLoading: false,
@@ -100,7 +100,7 @@ export const SreAgentContext = createContext<SreAgentContextProps>({
     agentPatched: false,
     agentPatchFailure: '',
     patchAgent: () => Promise.resolve({} as HttpResponseObject<ArmObj<Agent>>),
-    refresh: () => { },
+    refresh: () => {},
 });
 
 export const AgentContext = createContext<AgentContextProps>({
@@ -109,18 +109,18 @@ export const AgentContext = createContext<AgentContextProps>({
 });
 
 export const StreamingContext = createContext<StreamingContextProps>({
-    startMessageStreamingOnNewThread: (_newThreadId: string, _threadCreateRequest: any) => { },
-    startMessageStreamingOnExistingThread: (_threadId: string, _messageCreateRequest: any) => { },
-    cancelMessageStreaming: (_threadId: string) => { },
+    startMessageStreamingOnNewThread: (_newThreadId: string, _threadCreateRequest: any) => {},
+    startMessageStreamingOnExistingThread: (_threadId: string, _messageCreateRequest: any) => {},
+    cancelMessageStreaming: (_threadId: string) => {},
     subscribeMessageUpdateEvent:
         (_: {
             handler: (message: StreamingMessage) => void;
             threadId?: string;
             latestStreamingMessageHandler?: (latestStreamingMessage: StreamingMessage | null | undefined) => void;
         }) =>
-            () => { },
-    subscribeThreadUpdateEvent: (_handler: (message: StreamingMessage) => void) => () => { },
-    subscribeTaskUpdateEvent: (_handler: (message: StreamingMessage) => void) => () => { },
+        () => {},
+    subscribeThreadUpdateEvent: (_handler: (message: StreamingMessage) => void) => () => {},
+    subscribeTaskUpdateEvent: (_handler: (message: StreamingMessage) => void) => () => {},
     isConnecting: true,
     isConnected: false,
     isReconnecting: false,
@@ -137,5 +137,5 @@ export const ThreadAgentModeContext = createContext<ThreadAgentModeContextProps>
     isLoadingThreadAgentMode: false,
     isFetchingThreadAgentMode: false,
     fetchThreadAgentModeError: null,
-    invalidateThreadAgentModeDataCache: () => { },
+    invalidateThreadAgentModeDataCache: () => {},
 });

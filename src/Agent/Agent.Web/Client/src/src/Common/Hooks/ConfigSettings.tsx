@@ -6,6 +6,7 @@ export enum SettingNames {
     ShowAgentModeForThread = 'showAgentModeForThread',
     ConsolidatedCreate = 'consolidatedCreate',
     DataConnections = 'dataConnections',
+    FileUpload = 'fileUpload',
     ShowAgentTask = 'showAgentTask',
     ShowAgentTaskDev = 'showAgentTaskDev',
 }
@@ -21,6 +22,7 @@ const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
     localhost: {
         [SettingNames.ShowAgentModeForThread]: true,
         [SettingNames.DataConnections]: true,
+        [SettingNames.FileUpload]: true,
     },
 };
 

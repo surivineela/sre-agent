@@ -987,6 +987,7 @@ export const SettingsTabResources = defineMessages({
     grafanaDashboard: { defaultMessage: 'Grafana dashboard', id: '2zi2Yj' },
     managedResources: { defaultMessage: 'Managed resource groups', id: 'yilQrD' },
     dataConnections: { defaultMessage: 'Data connections', id: 'yImvmS' },
+    fileUpload: { defaultMessage: 'File upload', id: 'hEl6BL' },
 });
 
 export const GrafanaDashboardResources = defineMessages({
@@ -1468,4 +1469,25 @@ export const DataConnectionsResources = defineMessages({
     dataConnectionUpdated: { defaultMessage: 'Data connection "{name}" has been updated successfully', id: 'zx5LNX' },
     updateDataConnectionFailed: { defaultMessage: 'Failed to update data connection', id: 'SRIFSx' },
     updateDataConnectionWithMessageFailed: { defaultMessage: 'Failed to update data connection with error: {error}', id: 'sHlOQh' },
+});
+
+export const FileUploadResources = defineMessages({
+    uploadFiles: { defaultMessage: 'Upload files', id: '2jjdVz' },
+    selectFiles: { defaultMessage: 'Select files', id: 'xbK+/f' },
+    dragAndDrop: { defaultMessage: 'Drag and drop files here, or click to browse', id: 'LxofQH' },
+    supportedFormats: { defaultMessage: 'Supported formats: .md, .txt (max 16MB per file)', id: 'PmLgmr' },
+    uploading: { defaultMessage: 'Uploading...', id: 'JEsxDw' },
+    uploadSuccess: { defaultMessage: 'Files uploaded successfully', id: 'ag1Rum' },
+    uploadError: { defaultMessage: 'Upload error: {error}', id: 'yy9l6U' },
+    uploadDescription: {
+        defaultMessage:
+            "Upload documents to enhance the agent's knowledge base. The files will be processed and indexed for semantic search.",
+        id: 'IRkgq3',
+    },
+    categoryLabel: { defaultMessage: 'Document category', id: 'BWTlM8' },
+    categoryDescription: { defaultMessage: 'Select the type of document to help with organization and retrieval', id: 'MEKWUF' },
+    categoryTroubleshootingGuide: { defaultMessage: 'Troubleshooting guide', id: 'eI2Bh6' },
+    categoryStandardOperatingProcedures: { defaultMessage: 'Standard operating procedures', id: 'R9Lpvh' },
+    categorySystemDesign: { defaultMessage: 'System design', id: 'YZhax/' },
+    categoryGeneral: { defaultMessage: 'General documentation', id: 'BHrSAw' },
 });

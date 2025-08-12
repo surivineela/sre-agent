@@ -29,14 +29,15 @@ namespace Agent.Web.Controllers.v1
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UploadDocument(
             [FromForm] List<IFormFile> files,
-            [FromForm] bool triggerIndexing = true) // Default to true for immediate availability of docs for retrieval
+            [FromForm] bool triggerIndexing = true, // Default to true for immediate availability of docs for retrieval
+            [FromForm] string? category = null) 
         {
             if (files == null || files.Count == 0)
             {
                 return BadRequest(new { error = "No files provided" });
             }
 
-            logger.LogInternalInformation($"Received {files.Count} files for upload");
+            logger.LogInternalInformation($"Received {files.Count} files for upload with category: {category ?? "none"}");
 
             // Azure AI Search has a maximum file size limit of 16MB
             const long maxFileSize = 16 * 1024 * 1024; // 16MB
