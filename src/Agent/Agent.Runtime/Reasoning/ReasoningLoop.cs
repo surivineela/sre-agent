@@ -529,9 +529,9 @@ public class ReasoningLoop : IDisposable
             }
             finally
             {
-                await _outboundCommunicationService.SignalProcessingComplete(_context.ThreadId, cancellationToken: _userCancellationTokenSource.Token);
                 if (iterationResult?.IsContinuation == false)
                 {
+                    await _outboundCommunicationService.SignalProcessingComplete(_context.ThreadId, cancellationToken: _userCancellationTokenSource.Token);
                     // only end the root span if we didn't continue the loop
                     _rootSpan?.End();
                     _rootSpan = null;
