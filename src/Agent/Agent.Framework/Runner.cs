@@ -419,6 +419,13 @@ public static class Runner
         Action? failureHook = null)
         where TContext : class
     {
+        var chatClientMetaData = config.ChatClient.GetRequiredService<ChatClientMetadata>();
+        // skip critic for reasoning model for now as it degrades the performance a lot.
+        if (chatClientMetaData?.DefaultModelId?.StartsWith("gpt-5") == true)
+        {
+            return true;
+        }
+
         if (currentAgent.MaxReflectionCount > 0 && trajectory.GetCriticCount(currentAgent.Name) < currentAgent.MaxReflectionCount)
         {
             // Increment CriticCount at the start of actually running the critic
