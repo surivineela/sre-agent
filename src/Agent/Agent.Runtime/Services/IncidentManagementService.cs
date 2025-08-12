@@ -441,8 +441,8 @@ namespace Agent.Runtime.Services
                         .Where(c => c.DocumentType == DocumentType && c.CreatedAt >= since);
 
                     if (request.Statuses != null && request.Statuses.Count() > 0) {
-                        request.Statuses = request.Statuses.Select(s => s.ToLower()).ToArray();
-                        queryable = queryable.Where(c => request.Statuses.Contains(c.Status.ToLower()));
+                        var normalizedStatuses = NormalizeStatusesForFiltering(request.Statuses.ToArray());
+                        queryable = queryable.Where(c => normalizedStatuses.Contains(c.Status.ToLower()));
                     }
 
                     IncidentFilterDocumentPayload? filter = null;
@@ -492,7 +492,8 @@ namespace Agent.Runtime.Services
                     }
                     if (!string.IsNullOrEmpty(filter.Priority))
                     {
-                        queryable = queryable.Where(c => c.Priority.Equals(filter.Priority, StringComparison.OrdinalIgnoreCase));
+                        var normalizedPriorities = NormalizePriorityForFiltering(filter.Priority);
+                        queryable = queryable.Where(c => normalizedPriorities.Contains(c.Priority.ToLower()));
                     }
                     if (!string.IsNullOrEmpty(filter.IncidentType))
                     {
@@ -600,6 +601,153 @@ namespace Agent.Runtime.Services
                 );
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Normalizes status values for filtering, handling ServiceNow numeric states
+        /// and converting human-readable status names to their corresponding values.
+        /// </summary>
+        /// <param name="statuses">Array of status values to normalize</param>
+        /// <returns>Array of normalized status values for filtering</returns>
+        private string[] NormalizeStatusesForFiltering(string[] statuses)
+        {
+            var normalizedStatuses = new List<string>();
+
+            foreach (var status in statuses)
+            {
+                var lowerStatus = status.ToLower();
+                normalizedStatuses.Add(lowerStatus);
+
+                // For ServiceNow, also add numeric equivalents of common status names
+                if (_incidentManagementSettings.Type == IncidentManagementType.ServiceNow)
+                {
+                    switch (lowerStatus)
+                    {
+                        case "new":
+                            normalizedStatuses.Add("1");
+                            break;
+                        case "active":
+                        case "in progress":
+                        case "work in progress":
+                            normalizedStatuses.Add("2");
+                            break;
+                        case "awaiting problem":
+                            normalizedStatuses.Add("3");
+                            break;
+                        case "awaiting user info":
+                            normalizedStatuses.Add("4");
+                            break;
+                        case "awaiting evidence":
+                            normalizedStatuses.Add("5");
+                            break;
+                        case "resolved":
+                            normalizedStatuses.Add("6");
+                            break;
+                        case "closed":
+                            normalizedStatuses.Add("7");
+                            break;
+                        case "cancelled":
+                        case "canceled":
+                            normalizedStatuses.Add("8");
+                            break;
+                        default:
+                            // If it's already a numeric value, also add common names
+                            switch (lowerStatus)
+                            {
+                                case "1":
+                                    normalizedStatuses.Add("new");
+                                    break;
+                                case "2":
+                                    normalizedStatuses.Add("active");
+                                    normalizedStatuses.Add("in progress");
+                                    normalizedStatuses.Add("work in progress");
+                                    break;
+                                case "3":
+                                    normalizedStatuses.Add("awaiting problem");
+                                    break;
+                                case "4":
+                                    normalizedStatuses.Add("awaiting user info");
+                                    break;
+                                case "5":
+                                    normalizedStatuses.Add("awaiting evidence");
+                                    break;
+                                case "6":
+                                    normalizedStatuses.Add("resolved");
+                                    break;
+                                case "7":
+                                    normalizedStatuses.Add("closed");
+                                    break;
+                                case "8":
+                                    normalizedStatuses.Add("cancelled");
+                                    normalizedStatuses.Add("canceled");
+                                    break;
+                            }
+                            break;
+                    }
+                }
+            }
+
+            return normalizedStatuses.Distinct().ToArray();
+        }
+
+        private string[] NormalizePriorityForFiltering(string priority)
+        {
+            var normalizedPriorities = new List<string>();
+            var lowerPriority = priority.ToLower();
+            normalizedPriorities.Add(lowerPriority);
+
+            // For ServiceNow, also add numeric equivalents of common priority names
+            if (_incidentManagementSettings.Type == IncidentManagementType.ServiceNow)
+            {
+                switch (lowerPriority)
+                {
+                    case "critical":
+                    case "1 - critical":
+                        normalizedPriorities.Add("1");
+                        break;
+                    case "high":
+                    case "2 - high":
+                        normalizedPriorities.Add("2");
+                        break;
+                    case "moderate":
+                    case "medium":
+                    case "3 - moderate":
+                        normalizedPriorities.Add("3");
+                        break;
+                    case "low":
+                    case "4 - low":
+                        normalizedPriorities.Add("4");
+                        break;
+                    case "planning":
+                    case "5 - planning":
+                        normalizedPriorities.Add("5");
+                        break;
+                    default:
+                        // If it's already a numeric value, also add common names
+                        switch (lowerPriority)
+                        {
+                            case "1":
+                                normalizedPriorities.Add("critical");
+                                break;
+                            case "2":
+                                normalizedPriorities.Add("high");
+                                break;
+                            case "3":
+                                normalizedPriorities.Add("moderate");
+                                normalizedPriorities.Add("medium");
+                                break;
+                            case "4":
+                                normalizedPriorities.Add("low");
+                                break;
+                            case "5":
+                                normalizedPriorities.Add("planning");
+                                break;
+                        }
+                        break;
+                }
+            }
+
+            return normalizedPriorities.Distinct().ToArray();
         }
     }
 }

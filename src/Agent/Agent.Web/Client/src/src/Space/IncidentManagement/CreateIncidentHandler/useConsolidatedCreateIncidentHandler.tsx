@@ -580,7 +580,7 @@ export const useConsolidatedCreateIncidentHandler = (
                     durationInDays: selectedTimespan,
                     pageSize: pageSize,
                     pageNumber: ++incidentsPageNumber.current,
-                    statuses: [IncidentStatus.resolved, IncidentStatus.mitigated],
+                    statuses: [IncidentStatus.resolved, IncidentStatus.mitigated, IncidentStatus.closed],
                 });
 
                 if (callId === loadOldIncidentCallId.current) {
@@ -771,7 +771,7 @@ export const useConsolidatedCreateIncidentHandler = (
                 durationInDays: selectedTimespan,
                 pageSize: pageSize,
                 pageNumber: ++incidentsPageNumber.current,
-                statuses: [IncidentStatus.resolved, IncidentStatus.mitigated],
+                statuses: [IncidentStatus.resolved, IncidentStatus.mitigated, IncidentStatus.closed],
             };
 
             const filteredIncidentsPromise = incidentHandlerClient.queryIncidents(queryPayload);
