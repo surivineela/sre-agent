@@ -86,7 +86,7 @@ public sealed class IncidentInvestigationTaskHandler(
                 "Executing incident investigation task {TaskId} for thread {ThreadId}",
                 agentTask.Id, context.ThreadId);
 
-             // Save the agent task to the thread document immediately when investigation starts
+            // Save the agent task to the thread document immediately when investigation starts
             await threadRepository.UpdateTaskOnThreadAsync(agentTask.ThreadId, agentTask.ToShortForm());
             logger.LogInternalInformation("Agent task {TaskId} saved to thread {ThreadId}", agentTask.Id, agentTask.ThreadId);
 
@@ -449,6 +449,14 @@ public sealed class IncidentInvestigationTaskHandler(
         if (!toolNames.Contains("ListResourcesByType"))
         {
             toolNames.Add("ListResourcesByType");
+        }
+
+        if (isACAAgent)
+        {
+            if (!toolNames.Contains("GetIncidentInfoRCAContainerApp"))
+            {
+                toolNames.Add("ListResourcesByType");
+            }
         }
 
         toolNames.RemoveAll(name => !toolFactory.HasTool(name));
