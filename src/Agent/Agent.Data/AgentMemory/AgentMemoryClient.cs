@@ -211,6 +211,9 @@ public class AgentMemoryClient : IAgentMemoryClient
                 connectionString: $"ResourceId={_agentMemorySettings.BlobStorageResourceId}",
                 container: new SearchIndexerDataContainer(_blobContainerName));
 
+            // Enable native blob soft delete detection
+            dataSource.DataDeletionDetectionPolicy = new NativeBlobSoftDeleteDeletionDetectionPolicy();
+
             dataSource.IndexerPermissionOptions ??= new List<IndexerPermissionOption>();
             dataSource.Identity = new SearchIndexerDataUserAssignedIdentity(new ResourceIdentifier(_agentMemorySettings.ManagedIdentityResourceId));
             await _indexerClient.CreateOrUpdateDataSourceConnectionAsync(dataSource);

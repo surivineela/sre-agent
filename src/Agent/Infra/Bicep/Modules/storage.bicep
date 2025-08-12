@@ -36,15 +36,30 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' = {
     }
   }
 }
+
+// Blob services with soft delete configuration
+resource blobServices 'Microsoft.Storage/storageAccounts/blobServices@2023-05-01' = {
+  name: 'default'
+  parent: storageAccount
+  properties: {
+    deleteRetentionPolicy: {
+      enabled: true
+      days: 3
+    }
+  }
+}
+
 resource dataConnectorContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-05-01' = {
-  name: '${storageAccount.name}/default/dataconnectors'
+  name: 'dataconnectors'
+  parent: blobServices
   properties: {
     publicAccess: 'None'
   }
 }
 
 resource agentDocumentsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-05-01' = {
-  name: '${storageAccount.name}/default/agent-documents'
+  name: 'agent-documents'
+  parent: blobServices
   properties: {
     publicAccess: 'None'
   }
