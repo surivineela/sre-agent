@@ -1,5 +1,12 @@
+import { Edge, Node } from '@xyflow/react';
 import { AgentMode } from '../../Common/Contracts/Azure/SreAgent';
-import { AgentTaskMetaData } from '../../Common/Contracts/DataPlane/AgentTask';
+import {
+    AgentTask,
+    AgentTaskMetaData,
+    InvestigationTreeNode,
+    InvestigationTreeState,
+    TaskProgressUpdate,
+} from '../../Common/Contracts/DataPlane/AgentTask';
 import {
     Approval,
     AzCliExecution,
@@ -180,4 +187,64 @@ export interface IAgentTaskProps {
     task: AgentTaskMetaData | null;
     collapsed?: boolean;
     setCollapsed: (collapsed: boolean) => void;
+}
+
+export type InvestigationGraphFlowNode = InvestigationTreeNode & {
+    index?: number;
+    isChild?: boolean;
+    hasChildren?: boolean;
+};
+
+export enum InvestigationGraphFlowEdgeType {
+    PhaseToHypothesis = 'phase-to-hypothesis',
+    HypothesisToHypothesis = 'hypothesis-to-hypothesis',
+    HypothesisToConclusion = 'hypothesis-to-conclusion',
+}
+
+export type InvestigationGraphFlowEdge = {
+    edgeType: InvestigationGraphFlowEdgeType;
+    sourceId: string;
+    targetId: string;
+};
+
+export type GraphFlowNode = Node<InvestigationGraphFlowNode>;
+export type GraphFlowEdge = Edge<InvestigationGraphFlowEdge>;
+
+export interface IAgentTaskGraphProps {
+    isLoading: boolean;
+    treeStateValue: TreeStateValue;
+}
+
+export interface TreeStatePendingTask {
+    agentTask: AgentTask | null;
+    taskProgressUpdate: TaskProgressUpdate | null;
+}
+
+export interface TreeStateValue {
+    taskId: string;
+    treeState: InvestigationTreeState | null;
+    changeIdentifier: string;
+}
+
+export interface TreeStatesMapValue extends TreeStateValue {
+    pendingUpdate: TreeStatePendingTask[] | null;
+    isTreeStateInitialized: boolean;
+}
+
+export enum AgentTaskPhaseNodeIdSuffix {
+    InitialInvestigation = 'initial-investigation',
+    FormingHypothesis = 'forming-hypothesis',
+    Conclusion = 'conclusion',
+}
+
+export class AgentTaskNodeSize {
+    public static readonly PhaseNode = {
+        width: 400,
+        height: 180,
+    };
+
+    public static readonly HypothesisNode = {
+        width: 300,
+        height: 180,
+    };
 }

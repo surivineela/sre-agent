@@ -3,7 +3,7 @@ export interface AgentTaskMetaData {
     status: AgentTaskStatus;
     title?: string;
     type: AgentTaskType;
-    timestamp?: string;
+    lastModified?: string;
 }
 
 export interface AgentTaskStepCommon {
@@ -110,7 +110,7 @@ export interface TaskProgressUpdate {
     conclusion?: AgentTaskStepCommon;
     hypothesisUpdate?: HypothesisTreeItem;
     hypothesisAction?: HypothesisAction;
-    timestamp?: string;
+    lastModified?: string;
 
     // Remove them once the backend sends us proper data
     TaskId?: string; // For compatibility with older updates
@@ -121,7 +121,7 @@ export interface TaskProgressUpdate {
     Conclusion?: AgentTaskStepCommon; // For compatibility with older updates
     HypothesisUpdate?: HypothesisTreeItem; // For compatibility with older updates
     HypothesisAction?: HypothesisAction; // For compatibility with older updates
-    Timestamp?: string; // For compatibility with older updates
+    LastModified?: string; // For compatibility with older updates
 }
 
 export enum TaskProgressPhase {
@@ -149,11 +149,13 @@ export enum TreeNodeType {
     Hypothesis = 'hypothesis',
 }
 
-export interface InvestigationTreeNode {
+export type InvestigationTreeNodeStatus = InvestigationStatusCommon | TaskProgressStatus | HypothesisStatus | string;
+
+export type InvestigationTreeNode = {
     id: string;
     title: string;
     description: string;
-    status: InvestigationStatusCommon | TaskProgressStatus | HypothesisStatus | string; // More flexible to support both hypothesis and task progress statuses
+    status: InvestigationTreeNodeStatus; // More flexible to support both hypothesis and task progress statuses
     parentHypothesisDescription?: string;
     childrenIds: string[];
     expanded: boolean;
@@ -165,7 +167,7 @@ export interface InvestigationTreeNode {
     steps?: HypothesisStep[] | InitialInvestigationStep[];
     // For initial investigation phase, store the gathering context steps
     gatheringContextSteps?: InitialInvestigationStep[];
-}
+};
 
 export interface InvestigationTreeState {
     nodes: Map<string, InvestigationTreeNode>;
@@ -174,5 +176,5 @@ export interface InvestigationTreeState {
     hypothesisNodesStatus: Map<string, HypothesisStatus | string>;
     isVisible: boolean;
     isLoading: boolean;
-    timestamp?: string;
+    lastModified?: string;
 }

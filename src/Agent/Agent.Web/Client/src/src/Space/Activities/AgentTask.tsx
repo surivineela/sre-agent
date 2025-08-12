@@ -13,10 +13,13 @@ import {
     ToolbarGroup,
 } from '@fluentui/react-components';
 import { CheckmarkCircleColor, Dismiss24Regular, DismissCircleFilled, ErrorCircleColor } from '@fluentui/react-icons';
+import { ReactFlowProvider } from '@xyflow/react';
 import { memo } from 'react';
 import { AgentTaskMetaData, AgentTaskStatus } from '../../Common/Contracts/DataPlane/AgentTask';
 import Fade from '../Components/Fade';
+import { AgentTaskContext } from '../Contracts/Context';
 import { useAgentTask } from '../Hooks/useAgentTask';
+import AgentTaskGraph from './AgentTaskGraph';
 
 interface IAgentTaskProps {
     threadId?: string;
@@ -30,6 +33,7 @@ const useAgentTaskStyles = makeStyles({
     root: {
         backgroundColor: tokens.colorNeutralBackground1,
         height: '100%',
+        width: '100%',
     },
     header: {
         width: '100%',
@@ -63,7 +67,17 @@ const AgentTask = (props: IAgentTaskProps) => {
     const { collapsed, setCollapsed } = props;
     const { root, header, dropdownItem, dropdownItemText, loader, loaderItem } = useAgentTaskStyles();
 
-    const { taskDropdownOptions, isLoadingTaskDropdown, selectedTaskId, setSelectedTaskId, taskDropdownValue } = useAgentTask(props);
+    const {
+        taskDropdownOptions,
+        isLoadingTaskDropdown,
+        selectedTaskId,
+        setSelectedTaskId,
+        taskDropdownValue,
+        currentTreeStateValue,
+        isLoadingTreeState,
+        toggleNode,
+        getNodeStatus,
+    } = useAgentTask(props);
 
     const TaskDropdownItem = ({ taskId, taskDropdownOptions }: { taskId: string | null; taskDropdownOptions: AgentTaskMetaData[] }) => {
         const task = taskDropdownOptions.find(option => option.id === taskId) || null;
@@ -97,46 +111,56 @@ const AgentTask = (props: IAgentTaskProps) => {
     };
 
     return (
-        <Fade visible={!collapsed} appear={true} unmountOnExit={true}>
-            <div className={root}>
-                <DrawerHeader>
-                    <DrawerHeaderNavigation>
-                        <Toolbar>
-                            <ToolbarGroup className={header}>
-                                {isLoadingTaskDropdown ? (
-                                    <Skeleton className={loader}>
-                                        <SkeletonItem size={20} className={loaderItem} />
-                                    </Skeleton>
-                                ) : (
-                                    <Dropdown
-                                        selectedOptions={selectedTaskId ? [selectedTaskId] : []}
-                                        value={taskDropdownValue}
-                                        onOptionSelect={(_, data) => {
-                                            if (data.selectedOptions.length > 0) {
-                                                const option = data.selectedOptions[0];
-                                                setSelectedTaskId(option);
-                                            }
-                                        }}
-                                    >
-                                        {taskDropdownOptions.map(task => (
-                                            <Option className={dropdownItem} key={task.id} text={task.title || task.id} value={task.id}>
-                                                <TaskDropdownItem taskId={task.id} taskDropdownOptions={taskDropdownOptions} />
-                                            </Option>
-                                        ))}
-                                    </Dropdown>
-                                )}
-                                <ToolbarButton
-                                    aria-label="Close panel"
-                                    appearance="subtle"
-                                    icon={<Dismiss24Regular />}
-                                    onClick={() => setCollapsed(true)}
-                                />
-                            </ToolbarGroup>
-                        </Toolbar>
-                    </DrawerHeaderNavigation>
-                </DrawerHeader>
-            </div>
-        </Fade>
+        <AgentTaskContext.Provider value={{ toggleNode, getNodeStatus }}>
+            <ReactFlowProvider>
+                <Fade visible={!collapsed} appear={true} unmountOnExit={true}>
+                    <div className={root}>
+                        <DrawerHeader>
+                            <DrawerHeaderNavigation>
+                                <Toolbar>
+                                    <ToolbarGroup className={header}>
+                                        {isLoadingTaskDropdown ? (
+                                            <Skeleton className={loader}>
+                                                <SkeletonItem size={20} className={loaderItem} />
+                                            </Skeleton>
+                                        ) : (
+                                            <Dropdown
+                                                selectedOptions={selectedTaskId ? [selectedTaskId] : []}
+                                                value={taskDropdownValue}
+                                                onOptionSelect={(_, data) => {
+                                                    if (data.selectedOptions.length > 0) {
+                                                        const option = data.selectedOptions[0];
+                                                        setSelectedTaskId(option);
+                                                    }
+                                                }}
+                                            >
+                                                {taskDropdownOptions.map(task => (
+                                                    <Option
+                                                        className={dropdownItem}
+                                                        key={task.id}
+                                                        text={task.title || task.id}
+                                                        value={task.id}
+                                                    >
+                                                        <TaskDropdownItem taskId={task.id} taskDropdownOptions={taskDropdownOptions} />
+                                                    </Option>
+                                                ))}
+                                            </Dropdown>
+                                        )}
+                                        <ToolbarButton
+                                            aria-label="Close panel"
+                                            appearance="subtle"
+                                            icon={<Dismiss24Regular />}
+                                            onClick={() => setCollapsed(true)}
+                                        />
+                                    </ToolbarGroup>
+                                </Toolbar>
+                            </DrawerHeaderNavigation>
+                        </DrawerHeader>
+                        <AgentTaskGraph treeStateValue={currentTreeStateValue} isLoading={isLoadingTreeState} />
+                    </div>
+                </Fade>
+            </ReactFlowProvider>
+        </AgentTaskContext.Provider>
     );
 };
 

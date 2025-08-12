@@ -1,31 +1,15 @@
 import cloneDeep from 'lodash/cloneDeep';
-import { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { AgentTaskClient } from '../../Common/Clients/AgentTaskClient';
 import { ThreadClient } from '../../Common/Clients/ThreadClient';
-import { AgentTask, AgentTaskMetaData, InvestigationTreeState, TaskProgressUpdate } from '../../Common/Contracts/DataPlane/AgentTask';
+import { AgentTask, AgentTaskMetaData, TaskProgressUpdate } from '../../Common/Contracts/DataPlane/AgentTask';
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
 import { Guid } from '../../Common/Helpers/Guid';
 import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
-import { IAgentTaskProps } from '../Contracts/Activities';
+import { IAgentTaskProps, TreeStatePendingTask, TreeStatesMapValue, TreeStateValue } from '../Contracts/Activities';
 import { StreamingContext } from '../Contracts/Context';
 import { useAgentTaskStreamHandler } from './useAgentTaskStreamHandler';
-
-interface PendingTask {
-    agentTask: AgentTask | null;
-    taskProgressUpdate: TaskProgressUpdate | null;
-}
-
-interface TreeStateValue {
-    taskId: string;
-    treeState: InvestigationTreeState | null;
-    changeIdentifier: string;
-}
-
-interface TreeStatesMapValue extends TreeStateValue {
-    pendingUpdate: PendingTask[] | null;
-    isTreeStateInitialized: boolean;
-}
 
 const getDefaultTreeStateValue = (): TreeStateValue => ({
     taskId: '',
@@ -50,6 +34,7 @@ export const useAgentTask = (props: IAgentTaskProps) => {
 
     const { subscribeTaskUpdateEvent } = useContext(StreamingContext);
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
+
     const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
     const agentTaskClient = AgentTaskClient.getInstance(sreAgentEndpoint);
 
@@ -89,7 +74,53 @@ export const useAgentTask = (props: IAgentTaskProps) => {
         });
     };
 
-    const processTask = (pendingTask: PendingTask) => {
+    const toggleNode = useCallback(
+        (nodeId: string) => {
+            setTreeStates(prev => {
+                const treeStateValue = selectedTaskId ? prev.get(selectedTaskId) : null;
+
+                if (!treeStateValue) {
+                    // Node not found for toggle
+                    return prev;
+                }
+
+                const { treeState, ...rest } = treeStateValue;
+
+                if (treeState) {
+                    const node = treeState.nodes.get(nodeId);
+
+                    if (node) {
+                        const updatedNode = {
+                            ...node,
+                            expanded: !node.expanded,
+                        };
+
+                        treeState.nodes.set(nodeId, updatedNode);
+
+                        prev.set(selectedTaskId, {
+                            ...rest,
+                            treeState,
+                            changeIdentifier: Guid.newGuid(),
+                        });
+
+                        return cloneDeep(new Map(prev));
+                    }
+                }
+
+                return prev;
+            });
+        },
+        [selectedTaskId]
+    );
+
+    const getNodeStatus = useCallback(
+        (nodeId: string) => {
+            return currentTreeStateValue.treeState?.nodes.get(nodeId)?.status || null;
+        },
+        [currentTreeStateValue]
+    );
+
+    const processTask = (pendingTask: TreeStatePendingTask) => {
         setTreeStates(prev => {
             const { agentTask, taskProgressUpdate } = pendingTask;
             const id = agentTask?.id || taskProgressUpdate?.taskId || '';
@@ -141,7 +172,7 @@ export const useAgentTask = (props: IAgentTaskProps) => {
             const currentTreeState = prev.get(taskId) || {
                 ...getDefaultTreeStateValue(),
                 taskId,
-                isTreeStateInitialized: true,
+                isTreeStateInitialized: false,
                 pendingUpdate: null,
             };
 
@@ -306,6 +337,10 @@ export const useAgentTask = (props: IAgentTaskProps) => {
                     try {
                         const task = JSON.parse(content) as AgentTask;
                         updateTaskDropdownOption(task);
+                        setSelectedTaskId(prev => {
+                            if (prev) return prev;
+                            return task.id;
+                        });
                         processTask({ agentTask: task, taskProgressUpdate: null });
                     } catch {
                         // ToDo: log error
@@ -336,5 +371,7 @@ export const useAgentTask = (props: IAgentTaskProps) => {
 
         currentTreeStateValue,
         isLoadingTreeState,
+        toggleNode,
+        getNodeStatus,
     };
 };

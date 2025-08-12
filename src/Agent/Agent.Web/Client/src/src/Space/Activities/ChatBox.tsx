@@ -185,7 +185,7 @@ export const ChatBox = ({
 
                     <Resizable
                         position="right"
-                        initialWidth="50%"
+                        initialWidth="75%"
                         minWidthPixels={500}
                         collapsedWidthPixels={isAgentTaskCollapsed ? 0 : 500}
                         collapsed={isAgentTaskCollapsed}

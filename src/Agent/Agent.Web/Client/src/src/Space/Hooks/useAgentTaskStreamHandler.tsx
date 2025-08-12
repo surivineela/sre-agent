@@ -17,6 +17,7 @@ import {
 } from '../../Common/Contracts/DataPlane/AgentTask';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
+import { AgentTaskPhaseNodeIdSuffix } from '../Contracts/Activities';
 
 export const useAgentTaskStreamHandler = () => {
     const getTaskIdFromTaskProgressUpdate = (update: TaskProgressUpdate): string => {
@@ -124,9 +125,9 @@ export const useAgentTaskStreamHandler = () => {
 
         const currentLevel = getTaskProgressStatusLevel(currentStatus);
         const updateLevel = getTaskProgressStatusLevel(getStatusFromTaskProgressUpdate(update));
-        const timestamp = update.timestamp || update.Timestamp;
+        const timestamp = update.lastModified || update.LastModified;
 
-        return currentLevel <= updateLevel && !isStreamOutdated(currentTreeState?.timestamp, timestamp);
+        return currentLevel <= updateLevel && !isStreamOutdated(currentTreeState?.lastModified, timestamp);
     };
 
     const isHypothesisStatusProgressionAllowed = (
@@ -574,7 +575,7 @@ export const useAgentTaskStreamHandler = () => {
         const newHypothesisNodesStatus = new Map(updatedTreeState.hypothesisNodesStatus || []);
 
         const taskId = getTaskIdFromTaskProgressUpdate(update);
-        const timestamp = update.timestamp || update.Timestamp;
+        const lastModified = update.lastModified || update.LastModified;
 
         // Check if this status progression is allowed (prevent backwards progression), or if this is a test task
         if (!isPhaseStatusProgressionAllowed(currentTreeState, update) || taskId.startsWith('debug-')) {
@@ -589,8 +590,8 @@ export const useAgentTaskStreamHandler = () => {
         updatedTreeState.phaseNodesStatus = newPhaseNodesStatus;
         updatedTreeState.hypothesisNodesStatus = newHypothesisNodesStatus;
 
-        if (timestamp) {
-            updatedTreeState.timestamp = timestamp;
+        if (lastModified) {
+            updatedTreeState.lastModified = lastModified;
         }
 
         // ToDo: Update this once the agent task opening trigger design is finalized
@@ -611,14 +612,14 @@ export const useAgentTaskStreamHandler = () => {
         const newNodes = new Map(updatedTreeState.nodes || new Map());
         const newRootNodeIds = [...(updatedTreeState.rootNodeIds || [])];
 
-        const { timestamp, type, properties } = task;
+        const { lastModified, type, properties } = task;
 
-        if (isStreamOutdated(currentTreeState?.timestamp, timestamp)) {
+        if (isStreamOutdated(currentTreeState?.lastModified, lastModified)) {
             return currentTreeState;
         }
 
-        if (timestamp) {
-            updatedTreeState.timestamp = timestamp;
+        if (lastModified) {
+            updatedTreeState.lastModified = lastModified;
         }
 
         // ToDo: Update this once the agent task opening trigger design is finalized
@@ -632,8 +633,9 @@ export const useAgentTaskStreamHandler = () => {
 
                 // Handle Initial Investigation
                 if (initialInvestigation) {
+                    const id = `${task.id}-${AgentTaskPhaseNodeIdSuffix.InitialInvestigation}`;
                     const initialInvestigationNode: InvestigationTreeNode = {
-                        id: `${task.id}-initial-investigation`,
+                        id: id,
                         title: 'Initial Investigation',
                         description:
                             initialInvestigation.summary || initialInvestigation.statusMessage || 'Initial investigation in progress...',
@@ -641,7 +643,7 @@ export const useAgentTaskStreamHandler = () => {
                             ? TaskProgressStatus.Completed
                             : TaskProgressStatus.InProgress,
                         childrenIds: [],
-                        expanded: getExistingExpandedState(`${task.id}-initial-investigation`, currentTreeState),
+                        expanded: getExistingExpandedState(id, currentTreeState),
                         isValidating: false,
                         isLoading: equals(
                             initialInvestigation.status,
@@ -664,15 +666,16 @@ export const useAgentTaskStreamHandler = () => {
                     initialInvestigationStatus &&
                     equals(initialInvestigationStatus, InvestigationStatusCommon.Complete, AntUxStringComparison.IgnoreCase)
                 ) {
+                    const id = `${task.id}-${AgentTaskPhaseNodeIdSuffix.FormingHypothesis}`;
                     const formingHypothesisNode: InvestigationTreeNode = {
-                        id: `${task.id}-forming-hypothesis`,
+                        id: id,
                         title: 'Forming Hypothesis',
                         description: `Generated ${formingHypothesis.hypotheses?.length || 0} hypotheses`,
                         status: equals(formingHypothesis.status, InvestigationStatusCommon.Complete, AntUxStringComparison.IgnoreCase)
                             ? TaskProgressStatus.Completed
                             : TaskProgressStatus.InProgress,
                         childrenIds: [],
-                        expanded: getExistingExpandedState(`${task.id}-forming-hypothesis`, currentTreeState),
+                        expanded: getExistingExpandedState(id, currentTreeState),
                         isValidating: false,
                         isLoading: equals(formingHypothesis.status, InvestigationStatusCommon.InProgress, AntUxStringComparison.IgnoreCase),
                         parentId: undefined,
@@ -750,15 +753,16 @@ export const useAgentTaskStreamHandler = () => {
                     equals(formingHypothesisStatus, InvestigationStatusCommon.Complete, AntUxStringComparison.IgnoreCase)
                 ) {
                     const conclusion = properties.conclusion;
+                    const id = `${task.id}-${AgentTaskPhaseNodeIdSuffix.Conclusion}`;
                     const conclusionNode: InvestigationTreeNode = {
-                        id: `${task.id}-conclusion`,
+                        id: id,
                         title: conclusion.title || 'Conclusion',
                         description: conclusion.summary || 'Conclusion in progress...',
                         status: equals(task.status, AgentTaskStatus.Complete, AntUxStringComparison.IgnoreCase)
                             ? TaskProgressStatus.Completed
                             : TaskProgressStatus.InProgress,
                         childrenIds: [],
-                        expanded: getExistingExpandedState(`${task.id}-conclusion`, currentTreeState),
+                        expanded: getExistingExpandedState(id, currentTreeState),
                         isValidating: false,
                         isLoading: equals(task.status, AgentTaskStatus.InProgress, AntUxStringComparison.IgnoreCase),
                         parentId: undefined,
