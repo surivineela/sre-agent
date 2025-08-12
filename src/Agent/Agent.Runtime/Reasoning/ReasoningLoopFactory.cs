@@ -9,8 +9,6 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.AgentMemory;
 using Agent.Framework;
-using Agent.Logging;
-using Agent.Runtime.Workflow;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -90,12 +88,16 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         _agentMemoryClient = agentMemoryClient;
         _searchIndexService = searchIndexService;
 
+        // enable handoff reasoning for developer envs
+        var enableHandoffReasoning = coreSettings.Experimental?.EnableHandoffReasoning
+            ?? hostEnvironment.IsDevelopment();
+
         _featureConfig = new FeatureConfigModel(
             AutoHandoffEnabled: coreSettings.Experimental?.AutoHandoffToMeta ?? false,
             RegionalSearchEnabled: azureSettings.SearchEndpoint.EnableDocumentRetrieval,
             AgentMemoryEnabled: coreSettings.AgentMemory.Enabled,
             TrajectoryRetrievalEnabled: coreSettings.AgentMemory.TrajectoryRetrievalEnabled,
-            HandoffReasoningEnabled: coreSettings.Experimental?.EnableHandoffReasoning ?? false,
+            HandoffReasoningEnabled: enableHandoffReasoning,
             DocumentRetrievalEnabled: coreSettings.AgentMemory.DocumentRetrievalEnabled,
             UserMemoryRetrievalEnabled: coreSettings.AgentMemory.UserMemoryRetrievalEnabled);
     }

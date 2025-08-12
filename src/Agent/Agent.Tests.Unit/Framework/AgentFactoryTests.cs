@@ -4,6 +4,7 @@
 
 using System.ComponentModel;
 using System.Reflection;
+using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
@@ -62,6 +63,12 @@ public class AgentFactoryTests
         // Register the mocks to the existing ServiceCollection
         _services.AddSingleton(mockHostEnvironment.Object);
         _services.AddSingleton(configuration);
+
+        _services.AddSingleton(new ExperimentalSettings
+        {
+            AutoHandoffToMeta = true,
+            EnableHandoffReasoning = true,
+        });
     }
 
     [Fact]
@@ -273,7 +280,7 @@ public class TestAgent2Descriptor : IAgentDescriptor
     public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
 }
 
-    public class TestCommonPrompt : IPromptDescriptor
+public class TestCommonPrompt : IPromptDescriptor
 {
     public const string PromptText = "test prompt text";
 

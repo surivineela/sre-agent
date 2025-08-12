@@ -4,6 +4,7 @@
 
 using System.ComponentModel;
 using System.Reflection;
+using Agent.Core.Configuration;
 using Agent.Framework;
 using Agent.Plugins;
 using Agent.Runtime.Reasoning;
@@ -126,6 +127,11 @@ namespace Agent.Tests.Unit
             _mockLogger = new Mock<ILogger<ToolFactory<object>>>();
             _services = new ServiceCollection();
             _services.AddSingleton(_mockLogger.Object);
+            _services.AddSingleton(new ExperimentalSettings
+            {
+                AutoHandoffToMeta = true,
+                EnableHandoffReasoning = true,
+            });
             _services.AddTransient<TestPlugin>();
             _services.AddTransient<AnotherTestPlugin>();
             _services.AddTransient<PluginWithImplementationField>();

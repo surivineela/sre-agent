@@ -142,6 +142,8 @@ Otherwise, there may be required settings which are not auto-populated by the pr
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Azure.Kusto);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Azure.Indexing);
 
+            sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Experimental);
+
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.GitHub);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.MCP);

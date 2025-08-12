@@ -13,7 +13,6 @@ using Agent.Plugins.Definitions;
 using Agent.Plugins.Tools;
 using Agent.Web.Services;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -175,7 +174,6 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
     private readonly ILogger<ToolFactory<TContext>> _logger;
     private readonly IServiceProvider _serviceProvider;
     private readonly IHostEnvironment _hostEnvironment;
-    private readonly IConfiguration _configuration;
     private readonly IEnumerable<Assembly> _assemblies;
     private readonly Dictionary<string, IDeferredToolFunction> _tools = new();
     private readonly IExtendedAgentRepository? _extendedAgentRepository;
@@ -192,10 +190,10 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
         _serviceProvider = serviceProvider;
         _assemblies = assembliesToScan;
         _hostEnvironment = _serviceProvider.GetRequiredService<IHostEnvironment>();
-        _configuration = _serviceProvider.GetRequiredService<IConfiguration>();
 
-        var experimentalSettings = _configuration.GetSection("AppSettings:Core:Experimental").Get<ExperimentalSettings>();
-        _handoffReasoningEnabled = experimentalSettings?.EnableHandoffReasoning ?? false;
+        // enable handoff reasoning for dev envs
+        var experimentalSettings = _serviceProvider.GetRequiredService<ExperimentalSettings>();
+        _handoffReasoningEnabled = experimentalSettings?.EnableHandoffReasoning ?? _hostEnvironment.IsDevelopment();
 
         _extendedAgentRepository = extendedAgentRepository;
         FindAndRegisterAllTools(BehaviorOnNameConflict.ThrowException);

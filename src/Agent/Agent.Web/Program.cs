@@ -548,14 +548,18 @@ public class Program
 
             .AddSingleton<IAgentFactory<AgentContext>, AgentFactory<AgentContext>>(sp =>
             {
-                var configuration = sp.GetRequiredService<IConfiguration>();
-                var experimentalSettings = configuration.GetSection("AppSettings:Core:Experimental").Get<ExperimentalSettings>();
+                var hostEnvironment = sp.GetRequiredService<IHostEnvironment>();
+                var experimentalSettings = sp.GetRequiredService<ExperimentalSettings>();
                 var modeConfigurator = sp.GetRequiredService<IAgentModeConfigurator<AgentContext>>();
 
                 // Use ACA-FirstParty subfolder for first party agents, otherwise use full AgentsV2 directory
                 var agentsDirectory = isFirstPartyAgent
                     ? Path.Combine(AppContext.BaseDirectory, "AgentsV2", "ACA-FirstParty")
                     : Path.Combine(AppContext.BaseDirectory, "AgentsV2");
+
+                // enable handoff reasoning for developer envs
+                var enableHandoffReasoning = experimentalSettings?.EnableHandoffReasoning
+                    ?? hostEnvironment.IsDevelopment();
 
                 var factory = new AgentFactory<AgentContext>(
                     logger: sp.GetRequiredService<ILogger<AgentFactory<AgentContext>>>(),
@@ -570,7 +574,7 @@ public class Program
                     promptStarters: [Core.Constants.SREAgentPromptStarter],
                     promptEnders: [Core.Constants.SREAgentFinalInstructions],
                     defaultOutputType: typeof(DefaultAgentOutput),
-                    enableHandoffReasoning: experimentalSettings?.EnableHandoffReasoning ?? false
+                    enableHandoffReasoning: enableHandoffReasoning
                 );
 
                 if (AgentMemoryRetrievalEnabled(builder))
