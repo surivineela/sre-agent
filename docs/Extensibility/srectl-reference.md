@@ -6,9 +6,10 @@ A comprehensive reference guide for all SRECTL commands, parameters, and usage p
 1. [Configuration Commands](#configuration-commands)
 2. [Agent Commands](#agent-commands)
 3. [Tool Commands](#tool-commands)
-4. [Thread Management Commands](#thread-management-commands)
-5. [List Commands](#list-commands)
-6. [Utility Commands](#utility-commands)
+4. [Document Management Commands](#document-management-commands)
+5. [Thread Management Commands](#thread-management-commands)
+6. [List Commands](#list-commands)
+7. [Utility Commands](#utility-commands)
 
 ---
 
@@ -262,6 +263,133 @@ srectl tool show-connectors [--verbose]
 srectl tool show-connectors
 srectl tool show-connectors --verbose
 ```
+
+---
+
+## Document Management Commands
+
+### `srectl doc upload`
+
+Upload documents or folders to the SRE Agent's knowledge base for indexing and search.
+
+**Syntax:**
+```bash
+srectl doc upload --file <path> | --folder <path> [--recursive] [--no-index]
+```
+
+**Parameters:**
+- `--file`: Path to a specific file to upload
+- `--folder`: Path to a folder containing documents to upload
+- `--recursive`: Include files from subdirectories (only with `--folder`)
+- `--no-index`: Upload without immediate indexing (deferred indexing)
+
+**Supported File Types:**
+- Text files (.txt, .md, .yaml, .yml, .json, .xml)
+- Microsoft Office documents (.docx, .xlsx, .pptx)
+- PDF documents (.pdf)
+- Source code files (.cs, .js, .ts, .py, .java, .cpp, etc.)
+
+**What it does:**
+- Validates file/folder existence and accessibility
+- Discovers files recursively when using `--folder --recursive`
+- Filters supported file types automatically
+- Uploads files using multipart form data
+- Triggers indexing for immediate searchability (unless `--no-index`)
+- Provides progress feedback during upload
+
+**Examples:**
+```bash
+# Upload a single document
+srectl doc upload --file troubleshooting-guide.md
+
+# Upload all files in a folder
+srectl doc upload --folder ./documentation
+
+# Upload folder recursively with all subdirectories
+srectl doc upload --folder ./knowledge-base --recursive
+
+# Upload without immediate indexing
+srectl doc upload --folder ./docs --no-index
+```
+
+**Prerequisites:**
+- SRECTL must be initialized (`srectl init`)
+- Authentication required for remote servers (`az login`)
+- Sufficient permissions to access the specified files/folders
+
+### `srectl doc search`
+
+Search the indexed document knowledge base for relevant information.
+
+**Syntax:**
+```bash
+srectl doc search --query "<search-terms>" [--limit <number>]
+```
+
+**Parameters:**
+- `--query` (required): Search terms or question to find relevant documents
+- `--limit`: Maximum number of results to return (default: 10, max: 50)
+
+**Search Features:**
+- Semantic search using natural language queries
+- Relevance-based result ranking
+- Content snippet extraction
+- Document metadata display
+
+**What it displays:**
+- Document titles and file paths
+- Relevance scores
+- Content snippets matching the query
+- Total number of results found
+
+**Examples:**
+```bash
+# Basic search
+srectl doc search --query "troubleshooting Redis performance"
+
+# Search with custom result limit
+srectl doc search --query "Azure monitoring best practices" --limit 5
+
+# Search for specific procedures
+srectl doc search --query "how to restart web services"
+```
+
+**Use Cases:**
+- Finding relevant troubleshooting guides
+- Locating specific procedures or runbooks
+- Discovering related documentation
+- Research for incident response
+
+### `srectl doc reindex`
+
+Rebuild the document search index to improve search performance and incorporate newly uploaded documents.
+
+**Syntax:**
+```bash
+srectl doc reindex
+```
+
+**What it does:**
+- Triggers a complete rebuild of the document search index
+- Processes all uploaded documents for improved searchability
+- Updates search relevance algorithms
+- Incorporates any documents uploaded with `--no-index`
+- Provides progress feedback during the reindexing process
+
+**When to use:**
+- After uploading large batches of documents
+- When search results seem outdated or incomplete
+- After uploading documents with `--no-index` option
+- To improve search performance and relevance
+- As part of regular maintenance procedures
+
+**Examples:**
+```bash
+# Rebuild the entire document index
+srectl doc reindex
+```
+
+**Note:** Reindexing may take several minutes depending on the number and size of documents in the knowledge base.
 
 ---
 

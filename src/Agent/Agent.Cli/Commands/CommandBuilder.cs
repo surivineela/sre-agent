@@ -41,6 +41,16 @@ public static class CommandBuilder
         tool.Subcommands.Add(toolShowTypes);
         tool.Subcommands.Add(toolShowConnectors);
 
+        // Build document commands
+        var docUpload = CreateDocumentUploadCommand();
+        var docSearch = CreateDocumentSearchCommand();
+        var docReindex = CreateDocumentReindexCommand();
+
+        var doc = new Command("doc", "Document management commands");
+        doc.Subcommands.Add(docUpload);
+        doc.Subcommands.Add(docSearch);
+        doc.Subcommands.Add(docReindex);
+
         // Build general commands
         var initCommand = CreateInitCommand();
         var listCommand = CreateListCommand();
@@ -55,6 +65,7 @@ public static class CommandBuilder
         root.Subcommands.Add(threadCommand);
         root.Subcommands.Add(agent);
         root.Subcommands.Add(tool);
+        root.Subcommands.Add(doc);
 
         return root;
     }
@@ -323,5 +334,45 @@ public static class CommandBuilder
         thread.Subcommands.Add(threadTrack);
 
         return thread;
+    }
+
+    private static Command CreateDocumentUploadCommand()
+    {
+        var docUpload = new Command("upload", "Upload documents to the SRE Agent memory storage")
+        {
+            DocumentCommandOptions.FileOption,
+            DocumentCommandOptions.FolderOption,
+            DocumentCommandOptions.TriggerIndexingOption,
+            DocumentCommandOptions.NoIndexingOption,
+            DocumentCommandOptions.RecursiveOption
+        };
+        docUpload.SetAction(async parseResult =>
+        {
+            await DocumentCommandHandlers.HandleUploadCommand(parseResult);
+        });
+        return docUpload;
+    }
+
+    private static Command CreateDocumentSearchCommand()
+    {
+        var docSearch = new Command("search", "Search documents in the SRE Agent knowledge base")
+        {
+            DocumentCommandOptions.QueryOption
+        };
+        docSearch.SetAction(async parseResult =>
+        {
+            await DocumentCommandHandlers.HandleSearchCommand(parseResult);
+        });
+        return docSearch;
+    }
+
+    private static Command CreateDocumentReindexCommand()
+    {
+        var docReindex = new Command("reindex", "Trigger reindexing of all documents in the SRE Agent knowledge base");
+        docReindex.SetAction(async parseResult =>
+        {
+            await DocumentCommandHandlers.HandleReindexCommand(parseResult);
+        });
+        return docReindex;
     }
 }

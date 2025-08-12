@@ -287,90 +287,136 @@ srectl apply-yaml --file <path-to-yaml-file>
 - See `GeneralCommandHandlers.HandleApplyYamlCommand` and `ApiService.ApplyYamlFileAsync` for details.
 - Option defined in `AgentCommandOptions.ApplyYamlFileOption`.
 
-## Thread Management Commands
+## Document Management Commands
 
-### Enhanced Streaming Experience
+### Overview
+The document management commands provide comprehensive document handling capabilities for the SRE Agent's knowledge base. These commands integrate with the AgentMemory API to enable document upload, search, and indexing operations.
 
-The thread commands now provide a real-time streaming experience:
+### Command Categories
+- **Upload**: Add documents and folders to the agent's knowledge base
+- **Search**: Query indexed documents for relevant information  
+- **Reindex**: Rebuild the document index for improved search performance
 
-- **Default Wait Behavior**: Commands wait for agent responses by default
-- **Streaming Messages**: Messages appear as soon as they arrive from the server
-- **Smart Completion Detection**: Automatically detects when the agent stops responding
-- **Override Options**: Use `--no-wait` to disable waiting behavior
+### Implementation Architecture
 
-### Thread Command Options
-
-- `--wait`: Wait for agent response (default: true)
-- `--no-wait`: Don't wait for agent response (overrides default)
-- `--message`: Message to send
-- `--user-id`: User ID (defaults to current user)
-- `--display-name`: Display name (defaults to current user)
-- `--thread-id`: Specific thread ID to use
-
-### Implementation Details
-
-The streaming implementation (`GetThreadMessagesStreamingAsync`) uses the following approach:
-
-1. **Real-time Display**: Shows messages immediately as they arrive
-2. **Smart Polling**: Continues polling until agent stops responding
-3. **Completion Detection**: Monitors for periods of inactivity after agent response
-4. **User Feedback**: Provides clear waiting indicators and completion messages
-
-### Completion Logic
-
-The system determines when an agent has finished responding by:
-- Waiting for initial agent response
-- Monitoring for new messages after agent starts responding
-- Stopping when no new messages arrive for 3 consecutive polling attempts (6 seconds by default)
-- Providing timeout protection with maximum retry limits
-
-## Thread Track Command
-
-The `track` command allows you to monitor an existing thread for new messages in real-time:
-
-```bash
-srectl thread track --thread-id <thread-id>
+#### File Structure
+```
+Commands/
+├── DocumentCommandOptions.cs    # Document command option definitions
+├── DocumentCommandHandlers.cs   # Document command implementations
+└── CommandBuilder.cs           # Registration of document commands
+Services/
+└── ApiService.cs               # API integration for document operations
 ```
 
-**Parameters:**
-- `--thread-id`: The ID of the thread to track (required)
+#### Design Patterns
+- **Validation First**: All inputs are validated before API calls
+- **Recursive Operations**: Support for folder-based operations with recursive discovery
+- **Error Handling**: Comprehensive error handling with user-friendly messages
+- **Progress Feedback**: Real-time feedback for long-running operations
 
-**What it does:**
-- Displays all existing messages in the thread
-- Continuously monitors for new messages
-- Shows incoming messages as they arrive
-- Automatically stops when the conversation becomes idle
-- Updates thread last-used timestamp
+### Upload Command
 
-**Usage Examples:**
+**Purpose**: Upload individual files or entire folders to the agent's knowledge base
 
-```bash
-# Track a specific thread
-srectl thread track --thread-id abc123-def456-ghi789
+**API Integration**: POST `/api/v1/AgentMemory/upload` with multipart form data
 
-# Track using thread ID from previous commands
-srectl thread track --thread-id $(srectl thread list | grep "→" | awk '{print $2}')
+**Features**:
+- Single file upload with path validation
+- Folder upload with recursive file discovery
+- File filtering based on extensions and content
+- Indexing control (immediate or deferred)
+- Progress tracking and user feedback
+
+**Implementation Details**:
+```csharp
+public static async Task HandleDocumentUpload(ParseResult parseResult)
+{
+    // 1. Extract and validate options
+    // 2. Determine upload type (file vs folder)
+    // 3. Collect files for upload
+    // 4. Execute multipart upload via API
+    // 5. Provide completion feedback
+}
 ```
 
-**Features:**
-- **Real-time Monitoring**: Shows new messages as they arrive
-- **Historical Context**: Displays all existing messages first
-- **Smart Completion**: Automatically detects when the conversation ends
-- **Interrupt Support**: Use Ctrl+C to stop tracking at any time
-- **Thread Management**: Updates thread last-used for easy continuation
+### Search Command
 
-## Apply YAML Command
+**Purpose**: Query the document knowledge base for relevant information
 
-### Usage
+**API Integration**: GET `/api/v1/AgentMemory/documents` with query parameters
 
+**Features**:
+- Text-based semantic search
+- Configurable result limits
+- Structured result display
+- No results handling
+
+**Implementation Details**:
+```csharp
+public static async Task HandleDocumentSearch(ParseResult parseResult)
+{
+    // 1. Extract search query and options
+    // 2. Execute search API call
+    // 3. Format and display results
+    // 4. Handle empty result sets
+}
 ```
-srectl apply-yaml --file <path-to-yaml-file>
+
+### Reindex Command
+
+**Purpose**: Rebuild the document index for improved search performance
+
+**API Integration**: POST `/api/v1/AgentMemory/rebuildIndex`
+
+**Features**:
+- Full index rebuild
+- Progress indication
+- Completion confirmation
+- Error handling for reindex failures
+
+**Implementation Details**:
+```csharp
+public static async Task HandleDocumentReindex(ParseResult parseResult)
+{
+    // 1. Initiate reindex operation
+    // 2. Provide user feedback
+    // 3. Confirm completion
+    // 4. Handle any errors
+}
 ```
 
-- Directly applies the specified YAML file to the remote API endpoint without parsing or validation.
-- The file is sent as-is with content type `application/yaml`.
-- Useful for advanced users who want to push raw YAML definitions.
+### API Service Integration
 
-### Implementation Notes
-- See `GeneralCommandHandlers.HandleApplyYamlCommand` and `ApiService.ApplyYamlFileAsync` for details.
-- Option defined in `AgentCommandOptions.ApplyYamlFileOption`.
+The `ApiService.cs` class provides the following document-related methods:
+
+```csharp
+// Upload documents with multipart form data
+public static async Task UploadDocumentsAsync(List<string> filePaths, bool index = true)
+
+// Search documents with query and result limit
+public static async Task<List<DocumentSearchResult>> SearchDocumentsAsync(string query, int k = 10)
+
+// Trigger full document index rebuild
+public static async Task ReindexDocumentsAsync()
+```
+
+### Quality Assurance
+
+#### Testing Coverage
+- Input validation testing (files, folders, parameters)
+- API integration testing with mock and real endpoints
+- Error scenario testing (missing files, network issues)
+- Bulk operation testing (large folders, many files)
+
+#### Error Handling Standards
+- File system validation before API calls
+- HTTP error code handling with user-friendly messages
+- Graceful degradation for partial failures
+- Clear success/failure feedback
+
+#### Performance Considerations
+- Efficient file discovery with LINQ
+- Streaming file uploads for large documents
+- Minimal memory footprint during operations
+- Progress indicators for long-running tasks

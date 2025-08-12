@@ -16,6 +16,16 @@ Azure SRE Agent is a unified agentic platform for monitoring and troubleshooting
 
 4. Authoring your first agent? [Read the Agent Handbook.](https://github.com/serverless-paas-balam/sreagent-runtime/wiki/Agents-Handbook).
 
+## Document Management
+
+The SRE Agent includes document management capabilities through the `srectl` CLI tool:
+
+- **Upload Documents**: Add documents and folders to the agent's knowledge base
+- **Search Documents**: Query indexed documents for relevant information
+- **Reindex**: Rebuild the document index for improved search performance
+
+See the [SRECTL Reference](docs/Extensibility/srectl-reference.md) for detailed command usage.
+
 ## Project Resources
 
 - [Github Tracking Board](https://github.com/orgs/serverless-paas-balam/projects/196/views/2)
