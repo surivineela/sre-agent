@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Clients.Chat;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Azure.AI.OpenAI;
@@ -81,6 +82,7 @@ namespace Agent.Runtime
                     var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
 
                     return new ChatClientBuilder(client.GetChatClient(openAISettings.LLMDeploymentName).AsIChatClient())
+                        .Use(next => new ReasoningChatClient(next))
                         .UseLogging(loggerFactory)
                         .Build();
                 })
@@ -91,6 +93,7 @@ namespace Agent.Runtime
                     var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
 
                     return new ChatClientBuilder(client.GetChatClient(openAISettings.LLMDeploymentName).AsIChatClient())
+                        .Use(next => new ReasoningChatClient(next))
                         .UseLogging(loggerFactory)
                         .UseFunctionInvocation(loggerFactory, x =>
                         {
@@ -105,6 +108,7 @@ namespace Agent.Runtime
                     var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
 
                     return new ChatClientBuilder(client.GetChatClient(openAISettings.LLMDeploymentName).AsIChatClient())
+                        .Use(next => new ReasoningChatClient(next))
                         .UseLogging(loggerFactory)
                         .UseFunctionInvocation(loggerFactory, x =>
                         {
@@ -121,6 +125,7 @@ namespace Agent.Runtime
                     var settings = sp.GetRequiredService<InstanceManagementSettings>();
 
                     return new ChatClientBuilder(client.GetChatClient(openAISettings.LLMDeploymentName).AsIChatClient())
+                        .Use(next => new ReasoningChatClient(next))
                         .UseLogging(loggerFactory)
                         .UseFunctionInvocation(loggerFactory, x =>
                         {
