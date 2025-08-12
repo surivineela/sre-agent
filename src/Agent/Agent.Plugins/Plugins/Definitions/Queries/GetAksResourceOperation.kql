@@ -1,0 +1,18 @@
+let startDate = datetime(##fromDate##);
+let endDate = datetime(##toDate##);
+let queryClusterNamespace = "##ccpNamespace##";
+let resource =  "##resourceName##";
+KubeAudit
+| where PreciseTimeStamp between (startDate ..endDate)
+| where cluster_id == queryClusterNamespace
+| where requestURI contains resource
+| extend username = tostring(user.username)
+| extend usernameParts = split(username, "@")
+| extend username = iff(array_length(usernameParts) > 1, strcat("REDACTED@", tostring(usernameParts[1])), username)
+| where username != "aksProblemDetector"
+| extend agent_short = tostring(split(userAgent, " ", 0)[0])
+| extend resource = tostring(objectRef.resource)
+| extend namespace = tostring(objectRef.namespace)
+| extend statuscode = toint(parse_json(responseStatus)["code"])
+| limit 100
+| project auditID, requestReceivedTimestamp, requestURI, verb, responseStatus, stage, user, objectRef

@@ -178,6 +178,14 @@ ccpNamespace
 AKSClusterVersion
 AKSClusterID
 AKSScrapeJob
+auditID
+requestReceivedTimestamp
+requestURI
+verb
+responseStatus
+stage
+user
+objectRef
 
 # Networking related
 NetworkContainerID

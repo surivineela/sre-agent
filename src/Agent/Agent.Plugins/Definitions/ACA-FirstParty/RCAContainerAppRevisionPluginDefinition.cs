@@ -935,5 +935,41 @@ Returns tab-separated table data in CSV format. Column headers:
             });
             return containerApps;
         }
+
+
+        [Description("""
+        Purpose:
+        Retrieve operations or activities of Aks resources over time in the AKS cluster underlying the managed cluster. You will need to obtain the ccpNamespace input parameter from other tools first.
+        
+        Scenario:
+        Use this tool to track operations or activities of Aks resources that may affect ACA behavior, like secrets deletion or other modifications.
+        
+        Output:
+        Returns table data in CSV format with TAB separators. Column headers:
+        - auditID : Unique identifier for the audit event
+        - requestReceivedTimestamp : Timestamp when the request was received
+        - requestURI :  URI of the request  
+        - verb : HTTP verb of the request (e.g., GET, POST) 
+        - responseStatus : Status of the response (e.g., 200, 404)
+        - stage : Stage of the request (e.g., ResponseComplete)
+        - user : User who made the request
+        - objectRef : The aim object/resource of the request
+        """
+        )]
+        public async Task<string> GetAksResourceOperation(
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Ccp Namespace of the managed cluster.")] string ccpNamespace,
+            [Description("Name of the resource.")] string resourceName)
+        {
+            return await _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("GetAksResourceOperation", "akshuba.centralus", "AKSccplogs",
+                new Dictionary<string, string> {
+                    { "fromDate", fromDate.ToString() },
+                    { "toDate", toDate.ToString() },
+                    { "ccpNamespace", ccpNamespace },
+                    { "resourceName", resourceName }
+                });
+        }
+
     }
 }

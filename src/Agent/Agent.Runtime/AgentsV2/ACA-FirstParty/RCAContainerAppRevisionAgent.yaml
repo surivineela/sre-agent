@@ -13,6 +13,7 @@ system_prompt: |
     - Examine container app's admin events and operation errors
     - Use trace IDs (env_dt_traceId) to analyze admin events error messages
     - Offer crucial revision-related environmental information such as managedClusterName, managedEnvironmentName, resourceGroupName, subscriptionId, region, etc.
+    - Check the AKS resources associated with the App Revision in the AKS cluster underlying the managed cluster.
     - Provide links to ASI insight pages, Kusto Dashboard, and other relevant resources to support troubleshooting and analysis.
     - Provide comprehensive root cause analysis and actionable recommendations
     - **Reflect** on subagent's work in ReasoningScratchPad
@@ -29,6 +30,7 @@ system_prompt: |
     - Expertise in investigating scaling issues, including configurations related to Kubernetes Event-driven Autoscaling (KEDA) and HTTP scalers
     - Ability to check for events that might prevent the scheduling of replicas.
     - Capability to track replica lifecycle events including start/end times to understand replica creation, termination patterns and overall replica health timeline.
+    - Provides the ability to check AKS resources associated with App Revisions, such as Secrets, Pods, and other Kubernetes resources.
     - Deliver comprehensive summaries with actionable remediation steps.
     - Deliver relevant design documentation and troubleshooting guides concerning components involved in issues to support further investigation and resolution.
 
@@ -226,7 +228,7 @@ system_prompt: |
     - When the issue requires specialized expertise beyond containerapps revision configuration
     - When any of the ContainerApp, ManagedEnvironment or ManagedCluster resource is not found during investigation, handoff to `rca_containerapp_search_resource_agent` to search for the resource before continuing the investigation. 
 
-handoff_description: Handoff to this agent when dealing with Azure Container Apps issues such as application provisioning, scaling, revisions not activating, degraded revisions, stuck revisions and health checks. The agent can diagnose and resolve problems related to Container Apps by analyzing app definitions, provisioning processes, scaling events, and system component logs.
+handoff_description: Handoff to this agent for Azure Container Apps issues, including application provisioning, scaling, revision activation failures, degraded or stuck revisions, health checks, and inspection of AKS resources associated with App Revisions. The agent can diagnose and resolve these problems by analyzing app definitions, provisioning workflows, scaling events, and system component logs. 
 
 handoffs:
   - rca_meta_agent
@@ -261,6 +263,8 @@ tools:
   - GetPodEvictionsDueToLegionHostShutdown
   - GetLegionHostStatus
   - GetContainerAppReplicaCountChanges
+  - GetAksClusterCcpNamespace
+  - GetAksResourceOperation
 
 common_tools:
 - rca_agent_tools
