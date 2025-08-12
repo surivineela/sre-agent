@@ -2,6 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text;
+using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Services;
@@ -19,6 +21,7 @@ public class SearchHelper
     private readonly ISearchEndpointService _searchEndpointService;
     private readonly SearchEndpointSettings _searchEndpointSettings;
     private readonly IEmbeddingGenerator<string, Embedding<float>> _embeddingGenerator;
+    private readonly IChatClient _chatClient;
     private readonly Tracer _tracer;
 
     private const int MaxContentLengthForLLM = 2000;
@@ -28,12 +31,14 @@ public class SearchHelper
             ISearchEndpointService searchEndpointService,
             AzureSettings azureSettings,
             IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator,
+            IChatClient chatClient,
             Tracer tracer)
     {
         _logger = logger;
         _searchEndpointService = searchEndpointService;
         _searchEndpointSettings = azureSettings.SearchEndpoint;
         _embeddingGenerator = embeddingGenerator;
+        _chatClient = chatClient;
         _tracer = tracer;
     }
 
@@ -49,16 +54,25 @@ public class SearchHelper
             return new List<SearchDocument>();
         }
 
+        TelemetrySpan? searchSpan = null;
+        TelemetrySpan? span = null;
+        if (parentSpan != null)
+        {
+            searchSpan = _tracer.StartActiveSpan("retrieval_search_documents", SpanKind.Internal, parentSpan);
+            searchSpan.SetAttribute(TraceAttribute.ThreadId, threadId);
+            searchSpan.SetAttribute(TraceAttribute.OperationName, "retrieval.search.documents");
+        }
+
         try
         {
             float[]? vector = null;
             var searchType = SearchType.FullText;
-            TelemetrySpan? span = null;
+
             if (_searchEndpointSettings.EnableVectorSearch)
             {
-                if (parentSpan != null)
+                if (searchSpan != null)
                 {
-                    span = _tracer.StartActiveSpan("generate_search_vector", SpanKind.Client, parentSpan);
+                    span = _tracer.StartActiveSpan("generate_search_vector", SpanKind.Client, searchSpan);
                     span.SetAttribute(TraceAttribute.ThreadId, threadId);
                     span.SetAttribute(TraceAttribute.OperationName, "generate.search.vector");
                 }
@@ -66,13 +80,14 @@ public class SearchHelper
                 _logger.LogInternalInformation($"Generating embedding for '{searchText}'");
                 vector = await DocumentRetrieval.GenerateSearchVector(_embeddingGenerator, searchText, _searchEndpointSettings.VectorDimensions, _logger);
                 span?.End();
+                span = null;
             }
 
             _logger.LogInternalInformation($"Querying search endpoint service with query: '{searchText}'");
 
-            if (parentSpan != null)
+            if (searchSpan != null)
             {
-                span = _tracer.StartActiveSpan("query_search_endpoint", SpanKind.Client, parentSpan);
+                span = _tracer.StartActiveSpan("query_search_endpoint", SpanKind.Client, searchSpan);
                 span.SetAttribute(TraceAttribute.ThreadId, threadId);
                 span.SetAttribute(TraceAttribute.OperationName, "query.search.endpoint");
             }
@@ -82,6 +97,7 @@ public class SearchHelper
                                                                             searchType,
                                                                             retrieveFullDocument: retrieveFullDocument);
             span?.End();
+            span = null;
 
             _logger.LogInternalInformation($"Search returned {results.Count} results from search endpoint.");
 
@@ -101,18 +117,66 @@ public class SearchHelper
                     Content = summarizedContent,
                 });
             }
-            return optimizedResults;
+
+            searchSpan?.SetAttribute("search.results.count", optimizedResults.Count.ToString());
+            searchSpan?.SetAttribute("search.results", JsonSerializer.Serialize(optimizedResults));
+
+            if (searchSpan != null)
+            {
+                span = _tracer.StartSpan("llm_rerank", SpanKind.Internal, span);
+                span.SetAttribute(TraceAttribute.ThreadId, threadId);
+                span.SetAttribute(TraceAttribute.OperationName, "retrieval.llm.rerank");
+            }
+            var reranked = await DocumentRetrieval.RerankWithLLM(_chatClient, searchText, optimizedResults, _logger);
+            span?.End();
+            span = null;
+
+            var rerankedDocuments = reranked.Select(id => optimizedResults.FirstOrDefault(doc => doc.Id == id)).Where(doc => doc != null).Take(3).Cast<SearchDocument>().ToList();
+            searchSpan?.SetAttribute("search.reranked", JsonSerializer.Serialize(rerankedDocuments));
+
+            return rerankedDocuments;
         }
         catch (HttpRequestException ex)
         {
             _logger.LogInternalError(ex, $"Request to search endpoint failed.");
+            searchSpan?.SetAttribute("search.error", ex.Message);
             // Return empty list on network error
             return new List<SearchDocument>();
         }
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, $"An unexpected error occurred during search with query '{searchText}'");
+            searchSpan?.SetAttribute("search.error", ex.Message);
             throw;
         }
+        finally
+        {
+            span?.End();
+            searchSpan?.End();
+        }
+    }
+
+    public string FormatSearchResult(IList<SearchDocument> searchResults)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine($"Here are some relevant documents that can be referenced for user's query. Identify user's intent and reflect on these documents. If the documents are not helpful, you can ignore them:");
+        sb.AppendLine("<Documents>");
+        foreach (var doc in searchResults)
+        {
+            if (doc == null)
+            {
+                continue;
+            }
+            sb.AppendLine($"Title: {doc.Title}");
+            sb.AppendLine($"Content: {doc.Content}");
+            if (!string.IsNullOrEmpty(doc.Url))
+            {
+                sb.AppendLine($"Reference url: {doc.Url}");
+            }
+            sb.AppendLine();
+            sb.AppendLine();
+        }
+        sb.AppendLine("</Documents>");
+        return sb.ToString();
     }
 }

@@ -16,7 +16,7 @@ namespace Agent.Plugins.Interface
         /// </summary>
         /// <param name="searchText">The search query text</param>
         /// <returns>A collection of search results</returns>
-        Task<List<SearchDocument>> SearchDocumentsAsync(
+        Task<string> SearchDocumentsAsync(
             string searchText);
 
         /// <summary>
@@ -24,7 +24,7 @@ namespace Agent.Plugins.Interface
         /// </summary>
         /// <param name="searchText">The search query text</param>
         /// <returns>A collection of search results</returns>
-        Task<List<SearchDocument>> SearchRunbooksAsync(
+        Task<string> SearchRunbooksAsync(
             string searchText);
     }
 }

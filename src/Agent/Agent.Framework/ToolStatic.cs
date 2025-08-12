@@ -21,4 +21,4 @@ public static class ToolStatic
     /// AsyncLocal because we want to keep the message ID for streaming in the current async context.
     /// </summary>
     public static readonly AsyncLocal<Guid?> AsyncLocalToolCallMessageId = new();
-} 
+}

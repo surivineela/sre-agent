@@ -378,25 +378,6 @@ public class ReasoningLoop : IDisposable
                                 sb.AppendLine(" - Use transfer_to_{agentName} or HandoffBack if you are done solving an issue");
                             }
 
-                            // Only perform document retrieval if not disabled
-                            // When UserPromptOverride is used, document retrieval can be optionally disabled
-                            bool shouldRetrieveDocuments = !_currentAgent.DisableDocumentRetrieval ||
-                                                         string.IsNullOrEmpty(_currentAgent.UserPromptOverride);
-
-                            if (shouldRetrieveDocuments)
-                            {
-                                var docMsg = await RetrieveDocumentsFromSearch(_chatHistory!, chatMessage.Message.Text);
-                                if (!string.IsNullOrEmpty(docMsg))
-                                {
-                                    sb.AppendLine(docMsg);
-                                }
-                            }
-                            else
-                            {
-                                _logger.LogInternalInformation("[{threadId}]Document retrieval disabled for agent {agentName}",
-                                    _context.ThreadId, _currentAgent.Name);
-                            }
-
                             sb.AppendLine(Agent.Framework.Markers.UserQuestionMarker);
                             sb.AppendLine(chatMessage.Message.Text);
                             var msg = new ChatMessage(chatMessage.Message.Role, sb.ToString());
@@ -1798,8 +1779,10 @@ public class ReasoningLoop : IDisposable
     {
         try
         {
-            Agent.Core.ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
-            Agent.Core.ToolStatic.AsyncLocalCancellationToken.Value = cancellationToken;
+            Core.ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
+            Core.ToolStatic.AsyncLocalCancellationToken.Value = cancellationToken;
+            Core.ToolStatic.AsyncLocalToolTraceSpan.Value = _currentToolSpan;
+
             return await toolCall.Tool.InvokeAsync(new AIFunctionArguments(toolCall.FunctionCall.Arguments), cancellationToken);
         }
         catch (ToolExecutionUnauthorizedException)
@@ -2001,83 +1984,6 @@ public class ReasoningLoop : IDisposable
 
             _disposed = true;
         }
-    }
-
-    private async Task<string> RetrieveDocumentsFromSearch(List<ChatMessage> chatHistory, string userMessage)
-    {
-        if (!_enableDocumentRetrieval)
-        {
-            return string.Empty;
-        }
-
-        TelemetrySpan span = _tracer.StartActiveSpan("retrieval_search_documents", SpanKind.Internal, _rootSpan);
-        span.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
-        span.SetAttribute(TraceAttribute.OperationName, "retrieval.search.documents");
-
-        var subSpan = _tracer.StartSpan("generate_search_query", SpanKind.Internal, span);
-        subSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
-        subSpan.SetAttribute(TraceAttribute.OperationName, "retrieval.generate.query");
-        var query = await DocumentRetrieval.GenerateSearchQuery(_chatClient, chatHistory, userMessage, _logger);
-        subSpan.End();
-
-        if (string.IsNullOrWhiteSpace(query))
-        {
-            span.End();
-            _logger.LogInternalWarning("Generated search query is empty, skipping document retrieval.");
-            return string.Empty;
-        }
-        span.SetAttribute("search.query", query);
-
-        IReadOnlyList<SearchDocument> results = [];
-        try
-        {
-            results = await _searchHelper.SearchAsync(query, SearchRequest.TypeDocument, false, span, _context.ThreadId.ToString());
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError(ex, "Error while searching documents in search endpoint");
-            span.SetAttribute("search.error", ex.Message);
-        }
-
-        span.SetAttribute("search.results.count", results.Count.ToString());
-        if (results.Count == 0)
-        {
-            span.End();
-            return string.Empty;
-        }
-        span.SetAttribute("search.results", JsonSerializer.Serialize(results));
-
-        subSpan = _tracer.StartSpan("llm_rerank", SpanKind.Internal, span);
-        subSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
-        subSpan.SetAttribute(TraceAttribute.OperationName, "retrieval.llm.rerank");
-        var reranked = await DocumentRetrieval.RerankWithLLM(_chatClient, query, results, _logger);
-        subSpan.End();
-
-        var rerankedDocuments = reranked.Select(id => results.FirstOrDefault(doc => doc.Id == id)).Where(doc => doc != null).Take(3).ToList();
-        span.SetAttribute("search.reranked", JsonSerializer.Serialize(rerankedDocuments));
-
-        var sb = new StringBuilder();
-        sb.AppendLine($"Here are some relevant documents that can be referenced for user's query. Identify user's intent and reflect on these documents. If the documents are not helpful, you can ignore them:");
-        sb.AppendLine("<Documents>");
-        foreach (var doc in rerankedDocuments)
-        {
-            if (doc == null)
-            {
-                continue;
-            }
-            sb.AppendLine($"Title: {doc.Title}");
-            sb.AppendLine($"Content: {doc.Content}");
-            if (!string.IsNullOrEmpty(doc.Url))
-            {
-                sb.AppendLine($"Reference url: {doc.Url}");
-            }
-            sb.AppendLine();
-            sb.AppendLine();
-        }
-        sb.AppendLine("</Documents>");
-
-        span.End();
-        return sb.ToString();
     }
 }
 

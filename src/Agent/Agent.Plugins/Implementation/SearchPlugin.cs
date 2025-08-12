@@ -4,10 +4,8 @@
 
 using Agent.Core.Helpers;
 using Agent.Core.Services;
-using Agent.Logging;
 using Agent.Plugins.Interface;
 using Microsoft.Extensions.Logging;
-using SearchDocument = Agent.Core.Models.Api.v1.SearchDocument;
 
 namespace Agent.Plugins.Implementation
 {
@@ -24,16 +22,22 @@ namespace Agent.Plugins.Implementation
             _searchHelper = searchHelper ?? throw new ArgumentNullException(nameof(searchHelper));
         }
 
-        public async Task<List<SearchDocument>> SearchDocumentsAsync(string searchText)
+        public async Task<string> SearchDocumentsAsync(string searchText)
         {
             _logger.LogInternalInformation($"SearchPlugin received search request for: '{searchText}'");
-            return await _searchHelper.SearchAsync(searchText, SearchRequest.TypeDocument, false);
+            var result = await _searchHelper.SearchAsync(searchText, SearchRequest.TypeDocument, false,
+                parentSpan: Core.ToolStatic.AsyncLocalToolTraceSpan.Value,
+                threadId: Core.ToolStatic.AsyncLocalThreadId.Value.ToString());
+            return _searchHelper.FormatSearchResult(result);
         }
 
-        public Task<List<SearchDocument>> SearchRunbooksAsync(string searchText)
+        public async Task<string> SearchRunbooksAsync(string searchText)
         {
             _logger.LogInternalInformation($"SearchPlugin received runbook search request for: '{searchText}'");
-            return _searchHelper.SearchAsync(searchText, SearchRequest.TypeRunbook, true);
+            var result = await _searchHelper.SearchAsync(searchText, SearchRequest.TypeRunbook, true,
+                parentSpan: Core.ToolStatic.AsyncLocalToolTraceSpan.Value,
+                threadId: Core.ToolStatic.AsyncLocalThreadId.Value.ToString());
+            return _searchHelper.FormatSearchResult(result);
         }
     }
 }

@@ -12,6 +12,15 @@ namespace Agent.Plugins.Definitions
     [AgentToolPlugin(Category = ToolCategories.KnowledgeBase)]
     public class SearchPluginDefinition
     {
+        private const string SearchTextDescription = """
+            The plain text question/query to be searched in the knowledge base. , ensuring it:
+            - Concisely captures the user's intent or problem.
+            - Avoids including entity names, IDs, source filenames, or document names.
+            - If the query pertains to yourself, reframe the question explicitly for Azure SRE Agent.
+            - Excludes any text inside brackets ([]) or special characters.
+            - Translates non-English questions into English before framing the search query.
+            """;
+
         private readonly ISearchPlugin _plugin;
 
         public SearchPluginDefinition(ISearchPlugin plugin)
@@ -26,8 +35,8 @@ namespace Agent.Plugins.Definitions
             - Kubectl documentation
             - Documentation and user manual of yourself, Azure SRE Agent.
             """)]
-        public async Task<List<SearchDocument>> SearchDocumentsAsync(
-            [Description("The plain text question/query to be searched in the knowledge base")] string searchText)
+        public async Task<string> SearchDocumentsAsync(
+            [Description(SearchTextDescription)] string searchText)
         {
             return await _plugin.SearchDocumentsAsync(searchText);
         }
@@ -37,8 +46,8 @@ namespace Agent.Plugins.Definitions
             The knowledge base contains runbooks for following topics:
             - Kubernetes.
             """)]
-        public async Task<List<SearchDocument>> SearchRunbooksAsync(
-            [Description("The plain text question/query to be searched in the knowledge base")] string searchText)
+        public async Task<string> SearchRunbooksAsync(
+            [Description(SearchTextDescription)] string searchText)
         {
             return await _plugin.SearchRunbooksAsync(searchText);
         }
