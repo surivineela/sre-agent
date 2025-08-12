@@ -289,25 +289,6 @@ public class ReasoningLoop : IDisposable
         }
     }
 
-    private async Task RetrieveAndAugmentUserMessage(string userQuery, StringBuilder sb)
-    {
-        var result = await _agentMemoryClient.SearchCustomerDocumentsAsync(new SearchParams(Query: userQuery, EnableHybridSearch: true));
-        if (result.Count > 0)
-        {
-            sb.AppendLine("Use the following context to answer the user's question. If the context is not helpful, you can ignore it.");
-            sb.AppendLine("<Context>");
-            foreach (var doc in result)
-            {
-                sb.AppendLine($"- Document: {doc.Title}\nContent: {doc.Chunk}");
-            }
-            sb.AppendLine("</Context>");
-        }
-        else
-        {
-            _logger.LogInternalInformation("[{threadId}]No relevant documents found in agent memory for user query: {UserQuery}", _context.ThreadId, userQuery);
-        }
-    }
-
     private async Task RunAsync(CancellationToken cancellationToken)
     {
         while (_msgCh.Reader.TryRead(out var reasoningLoopMessage))

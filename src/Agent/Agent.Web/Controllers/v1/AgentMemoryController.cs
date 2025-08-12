@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Configuration;
 using Agent.Core.Models;
 using Agent.Data.AgentMemory;
 using Microsoft.AspNetCore.Mvc;
@@ -16,7 +17,8 @@ namespace Agent.Web.Controllers.v1
     public class AgentMemoryController(ILogger<AgentMemoryController> logger,
                                     IAgentMemoryClient agentMemoryClient,
                                     IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator,
-                                    ISearchIndexService searchIndexService) : ControllerBase
+                                    ISearchIndexService searchIndexService,
+                                    AgentMemorySettings agentMemorySettings) : ControllerBase
     {
         private HashSet<string> allowedExtensions = [".md", ".txt"];
 
@@ -258,6 +260,42 @@ namespace Agent.Web.Controllers.v1
                 deleted = successList,
                 failed = failedList
             });
+        }
+
+        // Get the status of the AgentMemory feature
+        [HttpGet("status")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult GetAgentMemoryStatus()
+        {
+            try
+            {
+                if (agentMemorySettings == null)
+                {
+                    return Ok(new
+                    {
+                        enabled = false,
+                        documentRetrievalEnabled = false,
+                        trajectoryRetrievalEnabled = false,
+                        userMemoryRetrievalEnabled = false,
+                        message = "AgentMemory configuration not found"
+                    });
+                }
+
+                return Ok(new
+                {
+                    enabled = agentMemorySettings.Enabled,
+                    documentRetrievalEnabled = agentMemorySettings.DocumentRetrievalEnabled,
+                    trajectoryRetrievalEnabled = agentMemorySettings.TrajectoryRetrievalEnabled,
+                    userMemoryRetrievalEnabled = agentMemorySettings.UserMemoryRetrievalEnabled,
+                    message = agentMemorySettings.Enabled ? "AgentMemory is enabled" : "AgentMemory is disabled"
+                });
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalError(ex, "Failed to retrieve AgentMemory status");
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { error = "Failed to retrieve AgentMemory status" });
+            }
         }
 
         // Azure Blob Storage legal name helper
