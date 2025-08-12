@@ -8,16 +8,17 @@ import {
     SelectionMode,
 } from '@fluentui/react/lib/DetailsList';
 import { ShimmeredDetailsList } from '@fluentui/react/lib/ShimmeredDetailsList';
-import { FC, useCallback, useContext, useMemo, useState } from 'react';
+import { FC, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import SreAgentClient from '../../Common/Clients/SreAgentClient';
+import { SecretValue } from '../../Common/Components/SecretValue';
 import { DataConnector } from '../../Common/Contracts/Azure/SreAgent';
 import { ArmResourceDescriptor } from '../../Common/Helpers/ResourceDescriptors';
 import { DataConnectionsResources, SettingsTabResources } from '../../Strings/SREAgentResources';
-import { CreateOrUpdateDataConnectorDialog } from './AddEditDataConnections';
+import { CreateOrUpdateDataConnectorDialog, DataConnectorFormProps } from './AddEditDataConnections';
 import DataConnectionsToolbar from './DataConnectionsToolbar';
+import { useAgentDataConnectors } from './Hooks/useAgentDataConnectors';
 import { useSreAgent } from './Hooks/useSreAgent';
 import { useSettingsStyles } from './Styles/Settings.styles';
 
@@ -34,7 +35,9 @@ const DataConnections: FC = () => {
     const styles = useSettingsStyles();
     const { resourceId } = useContext(EnvironmentContext);
     const portalContext = useContext(AzPortalContext);
-    const { agent, agentLoading, refresh } = useSreAgent(resourceId);
+    const { agent, refresh: refreshAgent } = useSreAgent(resourceId);
+    const { dataConnectors, isDataConnectorsLoading, putDataConnector, deleteDataConnector, refreshDataConnectors } =
+        useAgentDataConnectors(resourceId);
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedDataConnection, setSelectedDataConnection] = useState<DataConnector | undefined>();
@@ -42,24 +45,20 @@ const DataConnections: FC = () => {
     const [isOperationInProgress, setIsOperationInProgress] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
 
-    const dataConnectors = useMemo(() => {
-        return agent?.properties?.dataConnectors || [];
-    }, [agent?.properties?.dataConnectors]);
-
-    const selection = useMemo(() => {
-        return new Selection({
+    const selection = useRef(
+        new Selection({
             onSelectionChanged: () => {
-                const selectedItems = selection.getSelection() as DataConnector[];
-                setSelectedDataConnection(selectedItems.length > 0 ? selectedItems[0] : undefined);
+                const items = (selection.current.getSelection() as DataConnector[]) ?? [];
+                setSelectedDataConnection(items.length > 0 ? items[0] : undefined);
             },
-        });
-    }, []);
+        })
+    );
 
     const handleRefresh = useCallback(async () => {
         setIsRefreshing(true);
-        await refresh();
+        await Promise.all([refreshAgent(), refreshDataConnectors()]);
         setIsRefreshing(false);
-    }, [refresh]);
+    }, [refreshAgent, refreshDataConnectors]);
 
     const handleEditDataConnection = useCallback((dataConnector: DataConnector) => {
         setSelectedDataConnection(dataConnector);
@@ -71,7 +70,7 @@ const DataConnections: FC = () => {
         setSelectedDataConnection(undefined);
         setIsEditMode(false);
         setIsDialogOpen(true);
-        selection.setAllSelected(false);
+        selection.current.setAllSelected(false);
     }, [selection]);
 
     const openManagedIdentity = useCallback(
@@ -86,7 +85,7 @@ const DataConnections: FC = () => {
     );
 
     const deleteDataConnection = useCallback(async () => {
-        if (!selectedDataConnection || !agent) {
+        if (!selectedDataConnection) {
             return;
         }
 
@@ -96,20 +95,11 @@ const DataConnections: FC = () => {
             intl.formatMessage(DataConnectionsResources.deletingDataConnectionDescription, { name: selectedDataConnection.name })
         );
 
-        const currentDataConnectors = agent.properties.dataConnectors || [];
-        const updatedDataConnectors = currentDataConnectors.filter(dc => dc.name !== selectedDataConnection.name);
-
-        const newAgentInfo = {
-            properties: {
-                dataConnectors: updatedDataConnectors,
-            },
-        };
-
-        const response = await SreAgentClient.patchAgent(resourceId, newAgentInfo);
+        const response = await deleteDataConnector(selectedDataConnection.name);
         if (response.metadata.success) {
             setSelectedDataConnection(undefined);
-            selection.setAllSelected(false);
-            refresh();
+            selection.current.setAllSelected(false);
+            handleRefresh();
 
             portalContext.stopNotification(
                 notificationId,
@@ -137,13 +127,13 @@ const DataConnections: FC = () => {
             );
         }
         setIsOperationInProgress(false);
-    }, [selectedDataConnection, agent, resourceId, selection, refresh, portalContext, intl]);
+    }, [selectedDataConnection, deleteDataConnector, resourceId, selection, handleRefresh, portalContext, intl]);
 
-    const getFormValuesFromDataConnector = useCallback((dataConnector: DataConnector) => {
+    const getFormValuesFromDataConnector = useCallback((dataConnector: DataConnector): DataConnectorFormProps => {
         return {
             name: dataConnector.name,
             dataConnectorType: dataConnector.dataConnectorType,
-            dataSource: dataConnector.dataSource,
+            dataSource: dataConnector.dataSource ?? '-',
             identity: dataConnector.identity,
         };
     }, []);
@@ -154,27 +144,15 @@ const DataConnections: FC = () => {
 
     const createDataConnection = useCallback(
         async (dataConnector: DataConnector) => {
-            if (!agent) {
-                return;
-            }
-
             setIsOperationInProgress(true);
             const notificationId = portalContext.startNotification(
                 intl.formatMessage(DataConnectionsResources.creatingDataConnection),
                 intl.formatMessage(DataConnectionsResources.creatingDataConnectionDescription, { name: dataConnector.name })
             );
 
-            const currentDataConnectors = agent.properties.dataConnectors || [];
-            const updatedDataConnectors = [...currentDataConnectors, dataConnector];
-            const newAgentInfo = {
-                properties: {
-                    dataConnectors: updatedDataConnectors,
-                },
-            };
-
-            const response = await SreAgentClient.patchAgent(resourceId, newAgentInfo);
+            const response = await putDataConnector(dataConnector);
             if (response.metadata.success) {
-                refresh();
+                handleRefresh();
                 portalContext.stopNotification(
                     notificationId,
                     true,
@@ -202,32 +180,20 @@ const DataConnections: FC = () => {
             }
             setIsOperationInProgress(false);
         },
-        [agent, resourceId, refresh, portalContext, intl]
+        [resourceId, handleRefresh, portalContext, intl, putDataConnector]
     );
 
     const updateDataConnection = useCallback(
         async (dataConnector: DataConnector) => {
-            if (!agent) {
-                return;
-            }
-
             setIsOperationInProgress(true);
             const notificationId = portalContext.startNotification(
                 intl.formatMessage(DataConnectionsResources.updatingDataConnection),
                 intl.formatMessage(DataConnectionsResources.updatingDataConnectionDescription, { name: dataConnector.name })
             );
 
-            const currentDataConnectors = agent.properties.dataConnectors || [];
-            const updatedDataConnectors = currentDataConnectors.map(dc => (dc.name === dataConnector.name ? dataConnector : dc));
-            const newAgentInfo = {
-                properties: {
-                    dataConnectors: updatedDataConnectors,
-                },
-            };
-
-            const response = await SreAgentClient.patchAgent(resourceId, newAgentInfo);
+            const response = await putDataConnector(dataConnector);
             if (response.metadata.success) {
-                refresh();
+                handleRefresh();
                 portalContext.stopNotification(
                     notificationId,
                     true,
@@ -255,7 +221,7 @@ const DataConnections: FC = () => {
             }
             setIsOperationInProgress(false);
         },
-        [agent, resourceId, refresh, portalContext, intl]
+        [resourceId, handleRefresh, portalContext, intl, putDataConnector]
     );
 
     const columns = useMemo<IColumn[]>(() => {
@@ -285,12 +251,14 @@ const DataConnections: FC = () => {
                 minWidth: 200,
                 maxWidth: 300,
                 isResizable: true,
-                onRender: (item: DataConnector) => {
-                    if (typeof item.dataSource === 'string') {
-                        return item.dataSource;
-                    }
-                    return JSON.stringify(item.dataSource);
-                },
+                onRender: (item: DataConnector) =>
+                    item.dataSource ? (
+                        <span data-selection-disabled={true} data-is-focusable={true}>
+                            <SecretValue value={item.dataSource} />
+                        </span>
+                    ) : (
+                        '-'
+                    ),
             },
             {
                 key: DataConnectionColumnKey.identity,
@@ -329,17 +297,18 @@ const DataConnections: FC = () => {
                 <div data-is-scrollable="true">
                     <ShimmeredDetailsList
                         compact={true}
-                        selection={selection}
+                        selection={selection.current}
                         selectionMode={SelectionMode.single}
                         columns={columns}
                         constrainMode={ConstrainMode.horizontalConstrained}
                         items={dataConnectors}
                         layoutMode={DetailsListLayoutMode.justified}
-                        enableShimmer={agentLoading || isRefreshing}
-                        checkboxVisibility={CheckboxVisibility.hidden}
+                        enableShimmer={isDataConnectorsLoading || isRefreshing}
+                        checkboxVisibility={CheckboxVisibility.always}
                         onItemInvoked={isOperationInProgress ? undefined : handleEditDataConnection}
+                        selectionPreservedOnEmptyClick={true}
                     />
-                    {!agentLoading && dataConnectors.length === 0 && (
+                    {!isDataConnectorsLoading && dataConnectors.length === 0 && (
                         <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
                             {intl.formatMessage(DataConnectionsResources.noDataConnections)}
                         </div>

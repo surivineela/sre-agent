@@ -1,7 +1,7 @@
 import { ApiVersions } from '../ApiVersions';
 import { HttpResponseObject } from '../ArmHelper.types';
-import { ArmObj } from '../Contracts/Azure/ArmObj';
-import { Agent, ProvisioningState } from '../Contracts/Azure/SreAgent';
+import { ArmArray, ArmObj } from '../Contracts/Azure/ArmObj';
+import { Agent, DataConnector, ProvisioningState } from '../Contracts/Azure/SreAgent';
 import MakeArmCall from './ArmClient';
 
 export default class SreAgentClient {
@@ -51,6 +51,55 @@ export default class SreAgentClient {
             method: 'DELETE',
         });
     };
+
+    /** subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/Microsoft.App/agents/{agentName}/DataConnectors */
+    public static listDataConnectors = (agentResourceId: string, apiVersion = ApiVersions.microsoftAppApiVersion20250501Preview) => {
+        return MakeArmCall<ArmArray<DataConnector>>({
+            resourceId: `${agentResourceId}/DataConnectors`,
+            commandName: 'listDataConnectors',
+            apiVersion,
+        });
+    };
+
+    /** subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/Microsoft.App/agents/{agentName}/DataConnectors/{dataConnectorName} */
+    public static putDataConnector = async (
+        resourceId: string,
+        dataConnector: DataConnector,
+        apiVersion = ApiVersions.microsoftAppApiVersion20250501Preview
+    ) => {
+        return MakeArmCall<ArmObj<DataConnector>>({
+            resourceId,
+            commandName: 'putDataConnector',
+            method: 'PUT',
+            body: { properties: dataConnector } as ArmObj<DataConnector>,
+            apiVersion,
+        });
+    };
+
+    public static deleteDataConnector = (resourceId: string, apiVersion = ApiVersions.microsoftAppApiVersion20250501Preview) => {
+        return MakeArmCall<ArmObj<DataConnector>>({
+            resourceId,
+            commandName: 'deleteDataConnector',
+            method: 'DELETE',
+            apiVersion,
+        });
+    };
+
+    /**
+     * subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/Microsoft.App/agents/{agentName}/DataConnectors/ListSecrets
+     *
+     * Currently just returns the entire data connector object but with the dataSource present/defined
+     */
+    public static listDataConnectorsSecrets = (agentResourceId: string, apiVersion = ApiVersions.microsoftAppApiVersion20250501Preview) => {
+        return MakeArmCall<ArmArray<DataConnector>>({
+            method: 'POST',
+            resourceId: `${agentResourceId}/DataConnectors/ListSecrets`,
+            commandName: 'listDataConnectorsSecrets',
+            apiVersion,
+        });
+    };
+
+    // Specific data connector listSecrets: // subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/Microsoft.App/agents/{agentName}/DataConnectors/{dataConnectorName}/ListSecrets
 
     private static delay = (time: number) => {
         return new Promise(resolve => setTimeout(resolve, time));

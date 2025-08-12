@@ -1,7 +1,9 @@
 export interface DataConnector {
     name: string;
     dataConnectorType: string;
-    dataSource: string;
+    /** Secret value - must be fetched through ListSecrets endpoints */
+    dataSource?: string;
+    keyVaultUri?: string;
     identity: string;
 }
 

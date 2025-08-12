@@ -807,6 +807,12 @@
       "value": "Custom handler"
     }
   ],
+  "7C0xai": [
+    {
+      "type": 0,
+      "value": "Data source"
+    }
+  ],
   "7Cy5xk": [
     {
       "type": 0,
@@ -901,6 +907,12 @@
     {
       "type": 0,
       "value": "I'm currently gathering information about your app and analyzing your resources, which might take a few minutes."
+    }
+  ],
+  "8WhIoh": [
+    {
+      "type": 0,
+      "value": "Creating data connection"
     }
   ],
   "8Wiwkg": [
@@ -1067,6 +1079,12 @@
     {
       "type": 0,
       "value": "Turn off incident handler"
+    }
+  ],
+  "Aspdkq": [
+    {
+      "type": 0,
+      "value": "Deleting data connection"
     }
   ],
   "AuFOi8": [
@@ -1321,12 +1339,6 @@
       "value": "Failed to delete logic app"
     }
   ],
-  "Drs4w4": [
-    {
-      "type": 0,
-      "value": "Enter data source"
-    }
-  ],
   "Dx3Xj3": [
     {
       "type": 0,
@@ -1567,6 +1579,12 @@
       "value": "Pending approvals"
     }
   ],
+  "Hdb3ai": [
+    {
+      "type": 0,
+      "value": "Select connection type"
+    }
+  ],
   "HjTHxo": [
     {
       "type": 0,
@@ -1643,6 +1661,12 @@
     {
       "type": 0,
       "value": "Creating default incident handler"
+    }
+  ],
+  "J/uqp9": [
+    {
+      "type": 0,
+      "value": "Click to show value"
     }
   ],
   "J3Y8Sm": [
@@ -1843,12 +1867,6 @@
     {
       "type": 0,
       "value": "Incident ID"
-    }
-  ],
-  "MBLfuL": [
-    {
-      "type": 0,
-      "value": "Updating Data Connection"
     }
   ],
   "MCSjdU": [
@@ -2243,12 +2261,6 @@
       "value": "Agent"
     }
   ],
-  "QHt/Jd": [
-    {
-      "type": 0,
-      "value": "Deleting Data Connection"
-    }
-  ],
   "QIY3dQ": [
     {
       "type": 0,
@@ -2375,6 +2387,12 @@
     {
       "type": 0,
       "value": "Azure Kubernetes Service RBAC Reader"
+    }
+  ],
+  "Rs21a/": [
+    {
+      "type": 0,
+      "value": "Create data connection"
     }
   ],
   "S1VBUm": [
@@ -2709,12 +2727,6 @@
       "value": "Approve"
     }
   ],
-  "WD0bzy": [
-    {
-      "type": 0,
-      "value": "Edit Data Connection"
-    }
-  ],
   "WHleoJ": [
     {
       "type": 0,
@@ -2983,6 +2995,12 @@
     {
       "type": 0,
       "value": "Manage Azure OpenAI resources."
+    }
+  ],
+  "ZuNJYO": [
+    {
+      "type": 0,
+      "value": "Updating data connection"
     }
   ],
   "ZukeYV": [
@@ -3347,6 +3365,12 @@
     {
       "type": 0,
       "value": "With incident handlers, the agent chooses the tools it needs to manage common types of incidents. Custom handlers replace this capability by giving the agent specific instructions that you provide."
+    }
+  ],
+  "f+cHle": [
+    {
+      "type": 0,
+      "value": "Enter connection string or endpoint"
     }
   ],
   "f0Luxo": [
@@ -3885,12 +3909,6 @@
       "value": "Edit QnA Maker knowledge bases."
     }
   ],
-  "mYEHjx": [
-    {
-      "type": 0,
-      "value": "Create Data Connection"
-    }
-  ],
   "mZ0R9v": [
     {
       "type": 0,
@@ -4025,12 +4043,6 @@
     {
       "type": 0,
       "value": "Cost Management Contributor"
-    }
-  ],
-  "oQJOpc": [
-    {
-      "type": 0,
-      "value": "Creating Data Connection"
     }
   ],
   "oTNrPz": [
@@ -4175,6 +4187,12 @@
       "value": "Stop"
     }
   ],
+  "q0L4ui": [
+    {
+      "type": 0,
+      "value": "Edit data connection"
+    }
+  ],
   "q1WWIr": [
     {
       "type": 0,
@@ -4217,12 +4235,6 @@
     {
       "type": 0,
       "value": "\" has been deleted successfully"
-    }
-  ],
-  "qzXheo": [
-    {
-      "type": 0,
-      "value": "Enter connection type"
     }
   ],
   "r2x5ZI": [
@@ -4489,12 +4501,6 @@
     {
       "type": 0,
       "value": "Time"
-    }
-  ],
-  "uudb6D": [
-    {
-      "type": 0,
-      "value": "Data Source"
     }
   ],
   "v8lolG": [

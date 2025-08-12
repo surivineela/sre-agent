@@ -18,6 +18,8 @@ import { useIntl } from 'react-intl';
 import { DataConnector } from '../../Common/Contracts/Azure/SreAgent';
 import { DataConnectionsResources, SreAgentResources } from '../../Strings/SREAgentResources';
 
+const connectorTypeOptions = [{ id: 'Kusto' }, { id: 'TsgCrawler' }, { id: 'KustoDataIndexer' }];
+
 interface CreateDataConnectorProps {
     isDialogOpen: boolean;
     setIsDialogOpen: Dispatch<React.SetStateAction<boolean>>;
@@ -186,13 +188,24 @@ const CreateOrUpdateDataConnectorForm = ({
                             </Field>
 
                             <Field label={intl.formatMessage(DataConnectionsResources.dataConnectionType)} required>
-                                <Input
+                                <Dropdown
                                     name="dataConnectorType"
-                                    value={values.dataConnectorType}
-                                    onChange={(_, data) => setFieldValue('dataConnectorType', data.value)}
+                                    value={connectorTypeOptions.find(option => option.id === values.dataConnectorType)?.id || ''}
+                                    onOptionSelect={(_, data) => {
+                                        const selectedOption = connectorTypeOptions.find(option => option.id === data.optionValue);
+                                        if (selectedOption) {
+                                            setFieldValue('dataConnectorType', selectedOption.id);
+                                        }
+                                    }}
                                     placeholder={intl.formatMessage(DataConnectionsResources.typePlaceholder)}
                                     disabled={isOperationInProgress}
-                                />
+                                >
+                                    {connectorTypeOptions.map(option => (
+                                        <Option key={option.id} value={option.id}>
+                                            {option.id}
+                                        </Option>
+                                    ))}
+                                </Dropdown>
                             </Field>
 
                             <Field label={intl.formatMessage(DataConnectionsResources.dataSource)} required>
