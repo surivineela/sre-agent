@@ -1,4 +1,4 @@
-import { Button } from '@fluentui/react-components';
+import { Button, tokens } from '@fluentui/react-components';
 import { useFormikContext } from 'formik';
 import { FC, useContext } from 'react';
 import { useIntl } from 'react-intl';
@@ -14,22 +14,25 @@ export const ReviewAndTestStep: FC = () => {
     const intl = useIntl();
 
     return (
-        <div
-            style={{
-                display: 'flex',
-                flexDirection: 'column',
-                margin: '20px 20px 0 20px',
-                gap: '20px',
-                height: 'calc(100% - 20px)',
-            }}
-        >
-            <ReviewAndTestContent />
+        <>
+            <div
+                style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    padding: '0px 20px 0px 20px',
+                    gap: '20px',
+                    height: 'calc(100% - 74px)',
+                    overflowY: 'auto',
+                }}
+            >
+                <ReviewAndTestContent />
+            </div>
             <div
                 style={{
                     display: 'flex',
                     gap: 10,
-                    marginTop: 'auto',
-                    paddingBottom: 20,
+                    padding: 20,
+                    borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
                 }}
             >
                 <Button
@@ -47,6 +50,6 @@ export const ReviewAndTestStep: FC = () => {
                     <Button>{intl.formatMessage(IncidentHandlerCreateResources.cancel)}</Button>
                 </DirtyStateConfirmationWrapper>
             </div>
-        </div>
+        </>
     );
 };

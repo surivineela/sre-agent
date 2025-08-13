@@ -71,7 +71,12 @@ const CreateIncidentHandlerConsolidatedInner: FC<CreateIncidentHandlerInnerProps
     const intl = useIntl();
 
     return (
-        <div style={{ background: tokens.colorNeutralBackground3 }}>
+        <div
+            style={{
+                background: tokens.colorNeutralBackground3,
+                height: 'calc(100vh - 45px)',
+            }}
+        >
             <DirtyStateNavigationConfirmDialog isDirty={dirty} />
             <Breadcrumb style={{ display: 'flex', height: 50, marginLeft: 16 }}>
                 <BreadcrumbItem>
@@ -93,7 +98,8 @@ const CreateIncidentHandlerConsolidatedInner: FC<CreateIncidentHandlerInnerProps
                     borderRadius: tokens.borderRadiusXLarge,
                     boxShadow: tokens.shadow4,
                     marginLeft: 20,
-                    height: 'calc(100vh - 95px)',
+                    marginRight: 20,
+                    height: 'calc(100% - 55px)',
                     background: tokens.colorNeutralBackground1,
                 }}
             >

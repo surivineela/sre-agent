@@ -1,5 +1,5 @@
 import { IColumn } from '@fluentui/react';
-import { Button, Dropdown, Option, Text } from '@fluentui/react-components';
+import { Button, Dropdown, Option, Text, tokens } from '@fluentui/react-components';
 import { useFormikContext } from 'formik';
 import { FC, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
@@ -111,55 +111,58 @@ export const PreviewIncidentsStep: FC = () => {
     }, [intl]);
 
     return (
-        <div
-            style={{
-                display: 'flex',
-                flexDirection: 'column',
-                margin: '20px 20px 0 20px',
-                gap: '20px',
-                height: 'calc(100% - 20px)',
-            }}
-        >
-            <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.previewIncidentsDescription)}</Text>
-            <Dropdown
-                id="timespanDropdown"
-                style={{ maxWidth: 300 }}
-                value={selectedTimespanOption?.text}
-                onOptionSelect={(_event, data) => {
-                    const selectedOption = timespanDropdownOptions.find(option => option.key === data.optionValue);
-                    onSelectedTimespanChange(selectedOption?.value || TimeDuration.Last60Days);
+        <>
+            <div
+                style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    padding: '20px 20px',
+                    gap: '20px',
+                    height: 'calc(100% - 114px)',
+                    overflowY: 'auto',
                 }}
-                disabled={loadingIncidents || !handlerLoaded}
             >
-                {timespanDropdownOptions.map(option => (
-                    <Option value={option.key} checkIcon={null}>
-                        {option.text}
-                    </Option>
-                ))}
-            </Dropdown>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <MultipleSelectionShimmerDetailsList
-                    listContainerStyle={{ width: '100%' }}
-                    ref={incidentsListDivRef}
-                    data={incidents}
-                    selectedKeys={[]}
-                    loading={loadingIncidents}
-                    columns={incidentTableColumns}
-                    onChange={() => {}}
-                    getKey={(item: IncidentDocument) => item.id}
-                    selectionLimit={5}
-                    isLoadingInitialItems={isLoadingInitialIncidents}
-                    loadMoreItems={loadMoreOldIncidents}
-                    hasMoreItems={hasMoreOldIncidents}
-                    disallowSelection={true}
-                />
+                <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.previewIncidentsDescription)}</Text>
+                <Dropdown
+                    id="timespanDropdown"
+                    style={{ maxWidth: 300 }}
+                    value={selectedTimespanOption?.text}
+                    onOptionSelect={(_event, data) => {
+                        const selectedOption = timespanDropdownOptions.find(option => option.key === data.optionValue);
+                        onSelectedTimespanChange(selectedOption?.value || TimeDuration.Last60Days);
+                    }}
+                    disabled={loadingIncidents || !handlerLoaded}
+                >
+                    {timespanDropdownOptions.map(option => (
+                        <Option value={option.key} checkIcon={null}>
+                            {option.text}
+                        </Option>
+                    ))}
+                </Dropdown>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16, height: 'calc(100% - 94px)' }}>
+                    <MultipleSelectionShimmerDetailsList
+                        listContainerStyle={{ width: '100%', minHeight: 'unset' }}
+                        ref={incidentsListDivRef}
+                        data={incidents}
+                        selectedKeys={[]}
+                        loading={loadingIncidents}
+                        columns={incidentTableColumns}
+                        onChange={() => {}}
+                        getKey={(item: IncidentDocument) => item.id}
+                        selectionLimit={5}
+                        isLoadingInitialItems={isLoadingInitialIncidents}
+                        loadMoreItems={loadMoreOldIncidents}
+                        hasMoreItems={hasMoreOldIncidents}
+                        disallowSelection={true}
+                    />
+                </div>
             </div>
             <div
                 style={{
                     display: 'flex',
                     gap: 10,
-                    marginTop: 'auto',
-                    paddingBottom: 20,
+                    padding: 20,
+                    borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
                 }}
             >
                 <Button
@@ -176,6 +179,6 @@ export const PreviewIncidentsStep: FC = () => {
                     <Button>{intl.formatMessage(IncidentHandlerCreateResources.cancel)}</Button>
                 </DirtyStateConfirmationWrapper>
             </div>
-        </div>
+        </>
     );
 };

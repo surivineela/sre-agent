@@ -477,7 +477,13 @@ export const useCreateIncidentHandler = (
                 }
             }
         },
-        [isLoadingInitialIncidents, incidentHandlerClient.queryIncidents, selectedTimespan, handlerCreateOrEditInfo?.filter?.id]
+        [
+            isLoadingInitialIncidents,
+            incidentHandlerClient.queryIncidents,
+            selectedTimespan,
+            handlerCreateOrEditInfo?.filter?.id,
+            incidents?.length,
+        ]
     );
 
     useEffect(() => {

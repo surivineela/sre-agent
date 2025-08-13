@@ -1,4 +1,4 @@
-import { Button, Checkbox, Dropdown, Field, Input, MessageBar, Option, Radio, RadioGroup, Text } from '@fluentui/react-components';
+import { Button, Checkbox, Dropdown, Field, Input, MessageBar, Option, Radio, RadioGroup, Text, tokens } from '@fluentui/react-components';
 import { useFormikContext } from 'formik';
 import { FC, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
@@ -54,143 +54,154 @@ export const FilterStep: FC = () => {
 
     const isNextDisabled = useMemo((): boolean => {
         return filterMode === 'create' && (!values.filterName || !values.impactedService || !values.priority || !values.incidentType);
-    }, [filterMode, values.filterName, values.impactedService, values.priority, values.incidentType, values.titleContains]);
+    }, [filterMode, values.filterName, values.impactedService, values.priority, values.incidentType]);
 
     return (
-        <div
-            style={{
-                display: 'flex',
-                flexDirection: 'column',
-                margin: '20px 20px 0 20px',
-                gap: '20px',
-                height: 'calc(100% - 20px)',
-            }}
-        >
-            <div style={{ paddingBottom: '10px' }}>
-                {filterMode === 'edit' ? (
-                    <MessageBar intent="info">{intl.formatMessage(IncidentManagementResources.editIncidentHandlerDescription)}</MessageBar>
-                ) : (
-                    <>{intl.formatMessage(IncidentManagementResources.createIncidentHandlerDescription)}</>
-                )}
+        <>
+            <div
+                style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    padding: '20px 20px',
+                    gap: '20px',
+                    height: 'calc(100% - 114px)',
+                    overflowY: 'auto',
+                }}
+            >
+                <div style={{ paddingBottom: '10px' }}>
+                    {filterMode === 'edit' ? (
+                        <MessageBar intent="info">
+                            {intl.formatMessage(IncidentManagementResources.editIncidentHandlerDescription)}
+                        </MessageBar>
+                    ) : (
+                        <>{intl.formatMessage(IncidentManagementResources.createIncidentHandlerDescription)}</>
+                    )}
+                </div>
+
+                <form style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <Field label={intl.formatMessage(IncidentManagementResources.incidentHandlerName)} required>
+                        <Input
+                            name="filterName"
+                            value={values.filterName}
+                            onChange={(_, data) => setFieldValue('filterName', data.value)}
+                            placeholder={intl.formatMessage(IncidentManagementResources.incidentHandlerNamePlaceholder)}
+                            disabled={filterMode === 'edit'}
+                        />
+                    </Field>
+
+                    <Text size={400} weight="semibold">
+                        {intl.formatMessage(IncidentHandlerCreateResources.filterParametersTitle)}
+                    </Text>
+                    <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.filterParametersDescription)}</Text>
+
+                    <Field label={intl.formatMessage(IncidentManagementResources.incidentType)} required>
+                        <Dropdown
+                            name="incidentType"
+                            selectedOptions={values.incidentType ? [values.incidentType] : []}
+                            value={selectedIncidentTypeDisplay}
+                            onOptionSelect={(_, data) => setFieldValue('incidentType', data.optionValue)}
+                            onBlur={() => setFieldTouched('incidentType', true)}
+                            placeholder={intl.formatMessage(IncidentManagementResources.chooseIncidentType)}
+                        >
+                            {incidentTypeOptionsExtended.map(option => (
+                                <Option value={option.key} key={option.key}>
+                                    {option.display}
+                                </Option>
+                            ))}
+                        </Dropdown>
+                    </Field>
+
+                    <Field label={intl.formatMessage(IncidentManagementResources.impactedService)} required>
+                        <Dropdown
+                            placeholder={intl.formatMessage(IncidentManagementResources.chooseImpactedService)}
+                            name={'impactedService'}
+                            value={selectedImpactedServiceDisplay}
+                            selectedOptions={values.impactedService ? [values.impactedService] : []}
+                            onOptionSelect={(_, data) => setFieldValue('impactedService', data.optionValue)}
+                            onBlur={() => {
+                                setFieldTouched('impactedService', true);
+                            }}
+                        >
+                            {impactedServiceOptionsExtended.map(option => (
+                                <Option value={option.key} key={option.key}>
+                                    {option.display}
+                                </Option>
+                            ))}
+                        </Dropdown>
+                    </Field>
+
+                    <Field label={intl.formatMessage(IncidentManagementResources.priority)} required>
+                        <Dropdown
+                            placeholder={intl.formatMessage(IncidentManagementResources.choosePriority)}
+                            name={'priority'}
+                            value={selectedPriorityDisplay}
+                            onBlur={() => setFieldTouched('priority', true)}
+                            selectedOptions={values.priority ? [values.priority] : []}
+                            onOptionSelect={(_, data) => setFieldValue('priority', data.optionValue)}
+                        >
+                            {priorityOptionsExtended.map(option => (
+                                <Option value={option.key} key={option.key}>
+                                    {option.display}
+                                </Option>
+                            ))}
+                        </Dropdown>
+                    </Field>
+
+                    <Field label={intl.formatMessage(IncidentManagementResources.titleContains)}>
+                        <Input
+                            name={'titleContains'}
+                            value={values.titleContains}
+                            onChange={(_, data) => setFieldValue('titleContains', data.value)}
+                            placeholder={intl.formatMessage(IncidentManagementResources.titlePlaceholder)}
+                        />
+                    </Field>
+                    <Field label={intl.formatMessage(IncidentManagementResources.agentAutonomyLevel)}>
+                        <RadioGroup
+                            name="agentMode"
+                            value={values.agentMode}
+                            onChange={(_, data) => setFieldValue('agentMode', data.value)}
+                        >
+                            <Radio
+                                value={AgentMode.review}
+                                label={
+                                    <>
+                                        {intl.formatMessage(IncidentManagementResources.reviewDefault)}
+                                        <br />
+                                        <Text size={200}>
+                                            {intl.formatMessage(IncidentManagementResources.autonomyLevelReviewDescription)}
+                                        </Text>
+                                    </>
+                                }
+                            />
+                            <Radio
+                                value={AgentMode.autonomous}
+                                label={
+                                    <>
+                                        {intl.formatMessage(IncidentManagementResources.autonomousWord)}
+                                        <br />
+                                        <Text size={200}>
+                                            {intl.formatMessage(IncidentManagementResources.autonomyLevelAutonomousDescription)}
+                                        </Text>
+                                    </>
+                                }
+                            />
+                        </RadioGroup>
+                    </Field>
+                    <Checkbox
+                        name={'useCustomHandler'}
+                        checked={values.useCustomHandler}
+                        onChange={(_, data) => setFieldValue('useCustomHandler', data.checked)}
+                        label={intl.formatMessage(IncidentHandlerCreateResources.addCustomInstructions)}
+                        labelPosition="after"
+                    />
+                </form>
             </div>
-
-            <form style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <Field label={intl.formatMessage(IncidentManagementResources.incidentHandlerName)} required>
-                    <Input
-                        name="filterName"
-                        value={values.filterName}
-                        onChange={(_, data) => setFieldValue('filterName', data.value)}
-                        placeholder={intl.formatMessage(IncidentManagementResources.incidentHandlerNamePlaceholder)}
-                        disabled={filterMode === 'edit'}
-                    />
-                </Field>
-
-                <Text size={400} weight="semibold">
-                    {intl.formatMessage(IncidentHandlerCreateResources.filterParametersTitle)}
-                </Text>
-                <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.filterParametersDescription)}</Text>
-
-                <Field label={intl.formatMessage(IncidentManagementResources.incidentType)} required>
-                    <Dropdown
-                        name="incidentType"
-                        selectedOptions={values.incidentType ? [values.incidentType] : []}
-                        value={selectedIncidentTypeDisplay}
-                        onOptionSelect={(_, data) => setFieldValue('incidentType', data.optionValue)}
-                        onBlur={() => setFieldTouched('incidentType', true)}
-                        placeholder={intl.formatMessage(IncidentManagementResources.chooseIncidentType)}
-                    >
-                        {incidentTypeOptionsExtended.map(option => (
-                            <Option value={option.key} key={option.key}>
-                                {option.display}
-                            </Option>
-                        ))}
-                    </Dropdown>
-                </Field>
-
-                <Field label={intl.formatMessage(IncidentManagementResources.impactedService)} required>
-                    <Dropdown
-                        placeholder={intl.formatMessage(IncidentManagementResources.chooseImpactedService)}
-                        name={'impactedService'}
-                        value={selectedImpactedServiceDisplay}
-                        selectedOptions={values.impactedService ? [values.impactedService] : []}
-                        onOptionSelect={(_, data) => setFieldValue('impactedService', data.optionValue)}
-                        onBlur={() => {
-                            setFieldTouched('impactedService', true);
-                        }}
-                    >
-                        {impactedServiceOptionsExtended.map(option => (
-                            <Option value={option.key} key={option.key}>
-                                {option.display}
-                            </Option>
-                        ))}
-                    </Dropdown>
-                </Field>
-
-                <Field label={intl.formatMessage(IncidentManagementResources.priority)} required>
-                    <Dropdown
-                        placeholder={intl.formatMessage(IncidentManagementResources.choosePriority)}
-                        name={'priority'}
-                        value={selectedPriorityDisplay}
-                        onBlur={() => setFieldTouched('priority', true)}
-                        selectedOptions={values.priority ? [values.priority] : []}
-                        onOptionSelect={(_, data) => setFieldValue('priority', data.optionValue)}
-                    >
-                        {priorityOptionsExtended.map(option => (
-                            <Option value={option.key} key={option.key}>
-                                {option.display}
-                            </Option>
-                        ))}
-                    </Dropdown>
-                </Field>
-
-                <Field label={intl.formatMessage(IncidentManagementResources.titleContains)}>
-                    <Input
-                        name={'titleContains'}
-                        value={values.titleContains}
-                        onChange={(_, data) => setFieldValue('titleContains', data.value)}
-                        placeholder={intl.formatMessage(IncidentManagementResources.titlePlaceholder)}
-                    />
-                </Field>
-                <Field label={intl.formatMessage(IncidentManagementResources.agentAutonomyLevel)}>
-                    <RadioGroup name="agentMode" value={values.agentMode} onChange={(_, data) => setFieldValue('agentMode', data.value)}>
-                        <Radio
-                            value={AgentMode.review}
-                            label={
-                                <>
-                                    {intl.formatMessage(IncidentManagementResources.reviewDefault)}
-                                    <br />
-                                    <Text size={200}>{intl.formatMessage(IncidentManagementResources.autonomyLevelReviewDescription)}</Text>
-                                </>
-                            }
-                        />
-                        <Radio
-                            value={AgentMode.autonomous}
-                            label={
-                                <>
-                                    {intl.formatMessage(IncidentManagementResources.autonomousWord)}
-                                    <br />
-                                    <Text size={200}>
-                                        {intl.formatMessage(IncidentManagementResources.autonomyLevelAutonomousDescription)}
-                                    </Text>
-                                </>
-                            }
-                        />
-                    </RadioGroup>
-                </Field>
-                <Checkbox
-                    name={'useCustomHandler'}
-                    checked={values.useCustomHandler}
-                    onChange={(_, data) => setFieldValue('useCustomHandler', data.checked)}
-                    label={intl.formatMessage(IncidentHandlerCreateResources.addCustomInstructions)}
-                    labelPosition="after"
-                />
-            </form>
             <div
                 style={{
                     display: 'flex',
                     gap: 10,
-                    marginTop: 'auto',
-                    paddingBottom: 20,
+                    padding: 20,
+                    borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
                 }}
             >
                 <Button
@@ -210,6 +221,6 @@ export const FilterStep: FC = () => {
                     <Button>{intl.formatMessage(IncidentHandlerCreateResources.cancel)}</Button>
                 </DirtyStateConfirmationWrapper>
             </div>
-        </div>
+        </>
     );
 };

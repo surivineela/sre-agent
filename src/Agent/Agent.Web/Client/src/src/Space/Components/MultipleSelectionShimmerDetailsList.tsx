@@ -177,12 +177,15 @@ export const MultipleSelectionShimmerDetailsList: MultipleSelectionShimmerDetail
         const styles = useStyles();
 
         const searchBoxClassNameMerged = mergeStyles(styles.searchBox, searchBoxClassName);
-        const listContainerStyleMerged: React.CSSProperties = {
-            overflowY: 'scroll',
-            overflowX: 'auto',
-            maxHeight: '365px',
-            ...listContainerStyle,
-        };
+        const listContainerStyleMerged: React.CSSProperties = useMemo(
+            () => ({
+                overflowY: 'scroll',
+                overflowX: 'auto',
+                maxHeight: '365px',
+                ...listContainerStyle,
+            }),
+            [listContainerStyle]
+        );
 
         const { intersectionObserverRef } = useIntersectionObserver(
             !!isLoadingInitialItems,
@@ -236,7 +239,7 @@ export const MultipleSelectionShimmerDetailsList: MultipleSelectionShimmerDetail
                     }
                 }
             },
-            [selectedKeys, onChange, getKey]
+            [selectedKeys, onChange]
         );
 
         const onRenderCheckbox = useCallback(
@@ -342,7 +345,7 @@ export const MultipleSelectionShimmerDetailsList: MultipleSelectionShimmerDetail
             };
 
             return [checkboxColumn, ...columns];
-        }, [columns, onRenderCheckbox, onRenderCheckboxHeader]);
+        }, [isPicker, columns, onRenderAddButton, onRenderCheckbox, onRenderCheckboxHeader]);
 
         return (
             <>

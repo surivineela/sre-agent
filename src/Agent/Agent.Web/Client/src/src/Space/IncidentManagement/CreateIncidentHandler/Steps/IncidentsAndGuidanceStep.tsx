@@ -1,5 +1,5 @@
 import { IColumn } from '@fluentui/react';
-import { Button, Dropdown, Option, Spinner, Text, Textarea } from '@fluentui/react-components';
+import { Button, Dropdown, Option, Spinner, Text, Textarea, tokens } from '@fluentui/react-components';
 import { useFormikContext } from 'formik';
 import { useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
@@ -139,9 +139,10 @@ export const IncidentsAndGuidanceStep = () => {
                 style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    margin: '20px 20px 0 20px',
+                    padding: '20px 20px',
                     gap: '20px',
-                    height: 'calc(100% - 20px)',
+                    height: 'calc(100% - 114px)',
+                    overflowY: 'auto',
                 }}
             >
                 <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.customHandlerCreateDescription)}</Text>
@@ -165,7 +166,7 @@ export const IncidentsAndGuidanceStep = () => {
                         </Option>
                     ))}
                 </Dropdown>
-                <div style={{ display: 'flex', flexDirection: 'row', gap: 20, marginTop: 10 }}>
+                <div style={{ display: 'flex', flexDirection: 'row', gap: 20, marginTop: 10, width: 'calc(100% - 3px)' }}>
                     <MultipleSelectionShimmerDetailsList
                         listContainerStyle={{ width: '100%' }}
                         ref={incidentsListDivRef}
@@ -206,46 +207,46 @@ export const IncidentsAndGuidanceStep = () => {
                     disabled={!handlerLoaded || generatingInstructions}
                     className={generateHandlerStyles.textField}
                 />
-                <div
-                    style={{
-                        display: 'flex',
-                        gap: 10,
-                        marginTop: 'auto',
-                        paddingBottom: 20,
+            </div>
+            <div
+                style={{
+                    display: 'flex',
+                    gap: 10,
+                    padding: 20,
+                    borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
+                }}
+            >
+                <Button
+                    onClick={() => {
+                        setCurrentStep(IncidentHandlerCreateSteps.FilterStep);
                     }}
+                    disabled={!handlerLoaded || generatingInstructions}
                 >
-                    <Button
-                        onClick={() => {
-                            setCurrentStep(IncidentHandlerCreateSteps.FilterStep);
-                        }}
-                        disabled={!handlerLoaded || generatingInstructions}
-                    >
-                        {intl.formatMessage(IncidentHandlerCreateResources.back)}
+                    {intl.formatMessage(IncidentHandlerCreateResources.back)}
+                </Button>
+                <Button
+                    appearance="primary"
+                    onClick={() => {
+                        generateInstructions();
+                    }}
+                    disabled={!handlerLoaded || generatingInstructions}
+                >
+                    {intl.formatMessage(IncidentHandlerCreateResources.generate)}
+                </Button>
+                <Button
+                    onClick={() => {
+                        setGenerateInstructionsStepSkipped(true);
+                        setCurrentStep(IncidentHandlerCreateSteps.ReviewAndTestStep);
+                    }}
+                    disabled={!handlerLoaded || generatingInstructions}
+                >
+                    {intl.formatMessage(IncidentHandlerCreateResources.skip)}
+                </Button>
+                <DirtyStateConfirmationWrapper isDirty={dirty} onConfirm={exitToHome}>
+                    <Button disabled={!handlerLoaded || generatingInstructions}>
+                        {intl.formatMessage(IncidentHandlerCreateResources.cancel)}
                     </Button>
-                    <Button
-                        appearance="primary"
-                        onClick={() => {
-                            generateInstructions();
-                        }}
-                        disabled={!handlerLoaded || generatingInstructions}
-                    >
-                        {intl.formatMessage(IncidentHandlerCreateResources.generate)}
-                    </Button>
-                    <Button
-                        onClick={() => {
-                            setGenerateInstructionsStepSkipped(true);
-                            setCurrentStep(IncidentHandlerCreateSteps.ReviewAndTestStep);
-                        }}
-                        disabled={!handlerLoaded || generatingInstructions}
-                    >
-                        {intl.formatMessage(IncidentHandlerCreateResources.skip)}
-                    </Button>
-                    <DirtyStateConfirmationWrapper isDirty={dirty} onConfirm={exitToHome}>
-                        <Button disabled={!handlerLoaded || generatingInstructions}>
-                            {intl.formatMessage(IncidentHandlerCreateResources.cancel)}
-                        </Button>
-                    </DirtyStateConfirmationWrapper>
-                </div>
+                </DirtyStateConfirmationWrapper>
             </div>
         </>
     );

@@ -64,7 +64,15 @@ export const ReviewAndTestContent: FC = () => {
     }, [intl]);
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'row', gap: 16 }}>
+        <div
+            style={{
+                display: 'flex',
+                flexDirection: 'row',
+                gap: 16,
+                height: '100%',
+                width: 'calc(100% - 16px)',
+            }}
+        >
             {generatingUpdatedTools && (
                 <div
                     style={{
@@ -85,6 +93,7 @@ export const ReviewAndTestContent: FC = () => {
                     width: '50%',
                     display: 'flex',
                     flexDirection: 'column',
+                    paddingTop: 20,
                     gap: 16,
                 }}
             >
@@ -133,6 +142,10 @@ export const ReviewAndTestContent: FC = () => {
                     disabled={generatingUpdatedTools}
                     onChange={selectedKeys => setActiveToolNames(selectedKeys)}
                     getKey={(item: ToolInfo) => item.name}
+                    listContainerStyle={{
+                        minHeight: '200px',
+                        maxHeight: 'calc(100% - 309px)',
+                    }}
                 />
             </div>
             <div
@@ -141,16 +154,21 @@ export const ReviewAndTestContent: FC = () => {
                     display: 'flex',
                     flexDirection: 'column',
                     gap: 16,
+                    paddingTop: 20,
                 }}
             >
                 <Text size={400} weight="semibold" style={{ marginLeft: 20 }}>
                     {intl.formatMessage(IncidentHandlerCreateResources.testHandlerTitle)}
                 </Text>
-                <div style={{ display: 'flex', flexDirection: 'row', gap: 8, alignItems: 'end', marginLeft: 20 }}>
-                    <Field id="testIncidentField" label={intl.formatMessage(IncidentHandlerCreateResources.incidentLabel)} required>
+                <div style={{ display: 'flex', flexDirection: 'row', gap: 8, alignItems: 'end', marginLeft: 20, position: 'relative' }}>
+                    <Field
+                        id="testIncidentField"
+                        label={intl.formatMessage(IncidentHandlerCreateResources.incidentLabel)}
+                        style={{ flexBasis: '500px' }}
+                        required
+                    >
                         <Dropdown
                             id="testIncidentDropdown"
-                            root={{ style: { maxWidth: '300px' } }}
                             button={
                                 <span style={{ overflowX: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                     {testIncident ? `${testIncident.id} - ${testIncident.title}` : undefined}
@@ -197,14 +215,17 @@ export const ReviewAndTestContent: FC = () => {
                         updateThreadLastReadTime={() => {}}
                         threadSource={ThreadSource.incident}
                         stylesProps={{
-                            chatBox: {
+                            chatBoxAndAgentTask: {
                                 boxShadow: 'unset',
                                 borderRadius: 'unset',
-                                height: 'calc(100vh - 225px)',
+                                width: '100%',
+                                minHeight: '400px',
                                 marginBottom: '0px',
                             },
+                            chatBox: {
+                                height: '100%',
+                            },
                             chatBoxInner: {
-                                boxShadow: 'unset',
                                 borderRadius: 'unset',
                             },
                         }}

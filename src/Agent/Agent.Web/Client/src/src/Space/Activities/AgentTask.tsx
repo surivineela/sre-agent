@@ -34,6 +34,8 @@ const useAgentTaskStyles = makeStyles({
         backgroundColor: tokens.colorNeutralBackground1,
         height: '100%',
         width: '100%',
+        borderTopRightRadius: tokens.borderRadiusXLarge,
+        borderBottomRightRadius: tokens.borderRadiusXLarge,
     },
     header: {
         width: '100%',

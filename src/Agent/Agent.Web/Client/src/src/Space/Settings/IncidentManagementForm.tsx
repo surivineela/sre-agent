@@ -656,7 +656,12 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = props => {
     }, [dirty, values.platform, initialValues.platform]);
 
     return integrated ? (
-        <div style={{ background: tokens.colorNeutralBackground3 }}>
+        <div
+            style={{
+                background: tokens.colorNeutralBackground3,
+                height: 'calc(100vh - 45px)',
+            }}
+        >
             <Breadcrumb style={{ display: 'flex', height: 50, marginLeft: 16 }}>
                 <BreadcrumbItem>
                     {!keepOpen && close ? (
@@ -675,7 +680,8 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = props => {
                     borderRadius: tokens.borderRadiusXLarge,
                     boxShadow: tokens.shadow4,
                     marginLeft: 20,
-                    height: 'calc(100vh - 95px)',
+                    marginRight: 20,
+                    height: 'calc(100% - 55px)',
                     background: tokens.colorNeutralBackground1,
                     overflowY: 'auto',
                 }}

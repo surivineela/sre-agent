@@ -160,7 +160,7 @@ export const useConsolidatedCreateIncidentHandler = (
                 return newSelectedIncidents.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
             });
         },
-        [prefetchedIncidents, incidents]
+        [prefetchedIncidents, incidents, setFieldValue]
     );
 
     // Tools field
@@ -226,6 +226,7 @@ export const useConsolidatedCreateIncidentHandler = (
         tools,
         values.incidentIds,
         values.incidentProcessingGuide,
+        setFieldValue,
     ]);
 
     const [generatingInstructions, setGeneratingInstructions] = useState<boolean>(false);
@@ -290,6 +291,7 @@ export const useConsolidatedCreateIncidentHandler = (
         tools,
         values.incidentIds,
         values.customInstructions,
+        setFieldValue,
     ]);
 
     const deleteHandler = useCallback(() => {
@@ -519,6 +521,13 @@ export const useConsolidatedCreateIncidentHandler = (
             exitToHome();
         }
     }, [
+        azPortalContext,
+        exitToHome,
+        incidentHandlerClient,
+        intl,
+        resourceId,
+        setHandlerOperationStatus,
+
         handlerCreateOrEditInfo,
         handler,
         values.filterName,
@@ -620,6 +629,7 @@ export const useConsolidatedCreateIncidentHandler = (
             values.priority,
             values.incidentType,
             values.titleContains,
+            incidents?.length,
         ]
     );
 
@@ -704,6 +714,7 @@ export const useConsolidatedCreateIncidentHandler = (
                 setCreatingTestThread(false);
             });
     }, [
+        azPortalContext,
         resourceId,
         incidentHandlerClient.testHandler,
         handlerCreateOrEditInfo?.handlerId,
@@ -730,7 +741,7 @@ export const useConsolidatedCreateIncidentHandler = (
                 tools.map(tool => tool.name)
             );
         }
-    }, [tools, values.toolNames, handlerMode]);
+    }, [setFieldValue, tools, values.toolNames, handlerMode]);
 
     useEffect(() => {
         let subscribed = true;
@@ -831,6 +842,7 @@ export const useConsolidatedCreateIncidentHandler = (
             subscribed = false;
         };
     }, [
+        setFieldValue,
         incidentHandlerClient,
         selectedTimespan,
         handlerMode,
@@ -934,6 +946,8 @@ export const useConsolidatedCreateIncidentHandler = (
             subscribed = false;
         };
     }, [
+        setFieldValue,
+        setInitialValues,
         incidentHandlerClient.getHandler,
         handlerCreateOrEditInfo.handlerId,
         handlerCreateOrEditInfo.filter?.id,
@@ -957,6 +971,7 @@ export const useConsolidatedCreateIncidentHandler = (
             };
         });
     }, [
+        setInitialValues,
         handlerCreateOrEditInfo.filter?.id,
         handlerCreateOrEditInfo.filter?.incidentType,
         handlerCreateOrEditInfo.filter?.impactedService,

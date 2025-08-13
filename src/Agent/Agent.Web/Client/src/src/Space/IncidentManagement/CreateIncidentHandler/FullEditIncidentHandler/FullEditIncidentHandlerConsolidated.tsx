@@ -73,8 +73,8 @@ export const FullEditIncidentHandlerConsolidated: FC = () => {
                     height: '100%',
                     width: '100%',
                     overflowY: 'auto',
-                    paddingLeft: '12px',
-                    marginRight: '12px',
+                    position: 'relative',
+                    borderTopRightRadius: tokens.borderRadiusXLarge,
                 }}
             >
                 {currentStep === IncidentHandlerCreateSteps.FilterStep ? (

@@ -63,10 +63,10 @@ export const ChatBox = ({
 
     const { scrollable } = useScrollableComponentStyles();
 
-    const chatBoxStyles = useMemo(() => getChatBoxV2Styles(stylesProps), [stylesProps]);
-
     const [isAgentTaskCollapsed, setIsAgentTaskCollapsed] = useState<boolean>(true);
     const [task, setTask] = useState<AgentTaskMetaData | null>(null);
+
+    const chatBoxStyles = useMemo(() => getChatBoxV2Styles(!isAgentTaskCollapsed, stylesProps), [isAgentTaskCollapsed, stylesProps]);
 
     const openAgentTask = useCallback(
         (task: AgentTaskMetaData | null) => {

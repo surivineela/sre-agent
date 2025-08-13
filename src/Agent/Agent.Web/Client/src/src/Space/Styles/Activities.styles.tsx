@@ -158,6 +158,7 @@ export const ChatBoxStyles = mergeStyleSets({
 });
 
 export interface ChatBoxV2StyleProps {
+    chatBoxAndAgentTask?: GriffelStyle;
     chatBox?: GriffelStyle;
     chatBoxInner?: GriffelStyle;
     chatContainer?: GriffelStyle;
@@ -167,23 +168,21 @@ export interface ChatBoxV2StyleProps {
     hideAgentMessageHeader?: GriffelStyle;
 }
 
-export const getChatBoxV2Styles = (styleProps?: ChatBoxV2StyleProps) =>
+export const getChatBoxV2Styles = (agentTaskVisible?: boolean, overrides?: ChatBoxV2StyleProps) =>
     mergeStyleSets({
         chatBoxAndAgentTask: {
             display: 'flex',
-            width: '100%',
+            width: 'calc(100% - 4px)',
             boxShadow: tokens.shadow4,
             borderRadius: tokens.borderRadiusXLarge,
+            marginBottom: '5px',
+            ...overrides?.chatBoxAndAgentTask,
         },
         chatBox: {
             height: 'calc(100vh - 100px)',
-
             minWidth: '300px',
-            marginRight: '4px',
-
-            marginBottom: '5px',
             width: '100%',
-            ...styleProps?.chatBox,
+            ...overrides?.chatBox,
         },
         chatBoxInner: {
             display: 'flex',
@@ -193,6 +192,10 @@ export const getChatBoxV2Styles = (styleProps?: ChatBoxV2StyleProps) =>
             height: '100%',
             fontSize: '16px',
             backgroundColor: tokens.colorNeutralForegroundInverted,
+            borderTopLeftRadius: tokens.borderRadiusXLarge,
+            borderBottomLeftRadius: tokens.borderRadiusXLarge,
+            borderTopRightRadius: agentTaskVisible ? 0 : tokens.borderRadiusXLarge,
+            borderBottomRightRadius: agentTaskVisible ? 0 : tokens.borderRadiusXLarge,
             selectors: {
                 // Allegedly styles on the below get copied to anything that portals within it (Dialogs, etc)
                 '&[data-portal-node="true"]': {
@@ -201,19 +204,19 @@ export const getChatBoxV2Styles = (styleProps?: ChatBoxV2StyleProps) =>
                     padding: 0,
                 },
             },
-            ...styleProps?.chatBoxInner,
+            ...overrides?.chatBoxInner,
         },
         chatContainer: {
             height: '100%',
             padding: '20px 10px 0px 20px',
             borderRadius: tokens.borderRadiusLarge,
-            ...styleProps?.chatContainer,
+            ...overrides?.chatContainer,
         },
         chat: {
             height: '100%',
             maxWidth: '1000px',
             margin: 'auto',
-            ...styleProps?.chat,
+            ...overrides?.chat,
         },
         userMessage: {
             wordBreak: 'normal',
@@ -224,7 +227,7 @@ export const getChatBoxV2Styles = (styleProps?: ChatBoxV2StyleProps) =>
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'flex-end',
-            ...styleProps?.userMessage,
+            ...overrides?.userMessage,
         },
         agentMessage: {
             fontSize: '14px',
@@ -233,7 +236,7 @@ export const getChatBoxV2Styles = (styleProps?: ChatBoxV2StyleProps) =>
                 width: '90%',
                 gap: `${tokens.spacingVerticalL}`,
             },
-            ...styleProps?.agentMessage,
+            ...overrides?.agentMessage,
         },
         hideAgentMessageHeader: {
             '.fai-CopilotMessage__accessibleHeading': {
@@ -245,7 +248,7 @@ export const getChatBoxV2Styles = (styleProps?: ChatBoxV2StyleProps) =>
             '.fai-CopilotMessage__name': {
                 display: 'none',
             },
-            ...styleProps?.hideAgentMessageHeader,
+            ...overrides?.hideAgentMessageHeader,
         },
     });
 
