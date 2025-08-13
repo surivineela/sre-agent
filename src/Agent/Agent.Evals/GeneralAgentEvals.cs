@@ -25,7 +25,8 @@ public class GeneralAgentEvals
         {
             "HandOff",
             "AzCliCommandAgent",
-            "AKSAgent"
+            "AKSAgent",
+            "RCAAgent"
         };
 
         // Start with built-ins by default

@@ -36,6 +36,11 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
 using OpenTelemetry.Trace;
+using Agent.Core.Plugins.Definitions;
+using Agent.Plugins.Services.Interfaces;
+using Microsoft.AspNetCore.Hosting;
+using Agent.Plugins.IcmPlugin;
+using Agent.Plugins.Clients;
 
 namespace Agent.Evals;
 
@@ -135,6 +140,52 @@ public static class TestHelpers
 
         return builder;
     }
+
+    public static HostApplicationBuilder RegisterFirstPartyServices(this HostApplicationBuilder builder)
+    {
+        // Register ACA First Party tools
+
+        // Add mock IHostEnvironment
+        builder.Services.AddSingleton(Mock.Of<IWebHostEnvironment>());
+        builder.Services.AddSingleton<IKeyVaultService, KeyVaultService>();
+
+        // Add mock implementations for missing dependencies
+        builder.Services.AddSingleton(Mock.Of<IKustoPlugin>());
+        builder.Services.AddSingleton(Mock.Of<ITimePlugin>());
+
+        builder.Services.AddSingleton<IContainerAppIcMPlugin, ContainerAppIcMPlugin>();
+        builder.Services.AddSingleton<ICMWorkflowClient>();
+        builder.Services
+            .AddTransient<RCAContainerAppsMetaAgentPluginDefinition>()
+            .AddTransient<RCAContainerAppsIngressPluginDefinition>()
+            .AddTransient<RCAContainerAppAspirePluginDefinition>()
+            .AddTransient<RCAContainerAppCorednsPluginDefinition>()
+            .AddTransient<RCAContainerAppOutboundConnectionPluginDefinition>()
+            .AddTransient<RCAContainerAppsManagedEnvironmentPluginDefinition>()
+            .AddTransient<RCAContainerAppsManagedClusterPluginDefinition>()
+            .AddTransient<RCAContainerAppsJobsPluginDefinition>()
+            .AddTransient<RCAContainerAppsSessionsPluginDefinition>()
+            .AddTransient<RCAContainerAppCustomerLogsPluginDefinition>()
+            .AddTransient<RCAContainerAppIcMPluginDefinition>()
+            .AddTransient<RCAContainerAppCustomerMetricsPluginDefinition>()
+            .AddTransient<RCAContainerAppQuotaPluginDefinition>()
+            .AddTransient<RCAContainerAppRevisionPluginDefinition>()
+            .AddSingleton(Mock.Of<IKustoDashboardPlugin>())
+            .AddTransient(sp => Mock.Of<IAzureDocSearchPlugin>())
+            .AddTransient(sp => Mock.Of<IAzureSearchClient>())
+            .AddTransient(sp =>
+            {
+                var mock = new Mock<AzureDocSearchPlugin>(Mock.Of<ILogger<AzureDocSearchPlugin>>(), Mock.Of<IAzureSearchClient>());
+                return mock.Object;
+            })
+            .AddTransient<RCAContainerAppResourceCheckPluginDefinition>()
+            .AddTransient<RCAContainerAppResourceSearchPluginDefinition>()
+            .AddTransient<RCAContainerAppsSwiftNetworkContainerPluginDefinition>()
+            .AddTransient<RCAContainerAppPlatformUpgradesPluginDefinition>();
+
+        return builder;
+    }
+
     public static HostApplicationBuilder RegisterServicesForAgentFrameworkEval(this HostApplicationBuilder builder, JsonSerializerOptions? toolReplaySerializerOptions = null)
     {
         // Add HTTP client factory - required by various services
@@ -303,6 +354,9 @@ public static class TestHelpers
         // Agent-memory (disabled ➜ dummy implementation)
         builder.Services.AddSingleton<IAgentMemoryClient, DummyAgentMemoryClient>();
         builder.Services.AddSingleton(Mock.Of<ISearchIndexService>());
+
+        // FirstParty services
+        builder.RegisterFirstPartyServices();
 
         return builder;
     }
