@@ -2,6 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.ClientModel.Primitives;
+using System.Text.Json;
 using Microsoft.Extensions.AI;
 using OpenAI.Chat;
 
@@ -22,6 +24,9 @@ public static class ChatOptionsExtensions
     public const string MediumReasoningEffort = "medium";
     public const string HighReasoningEffort = "high";
 
+    public const string VerbosityKey = "verbosity";
+    public const string DefaultVerbosityLevel = "low";
+
     // Reference: https://github.com/dotnet/extensions/blob/afccabd16e08f388f37f1119a127f166f9b03ad3/src/Libraries/Microsoft.Extensions.AI.OpenAI/OpenAIChatClient.cs#L504C13-L570C1
     public static ChatOptions WithRawRepresentationFactory(
         this ChatOptions options)
@@ -29,6 +34,9 @@ public static class ChatOptionsExtensions
         options.RawRepresentationFactory = (chatClient) =>
         {
             var completionOptions = new ChatCompletionOptions();
+
+            // set default to low
+            var verbosity = DefaultVerbosityLevel;
 
             if (options.AdditionalProperties is { Count: > 0 } additionalProperties)
             {
@@ -73,6 +81,14 @@ public static class ChatOptionsExtensions
                     }
                 }
 
+                // output verbosity: only supported for gpt-5 model series
+                // Reference: https://cookbook.openai.com/examples/gpt-5/gpt-5_new_params_and_tools
+                if (additionalProperties.TryGetValue(VerbosityKey, out string? verbosityString)
+                    && !string.IsNullOrEmpty(verbosityString))
+                {
+                    verbosity = verbosityString;
+                }
+
                 // log probabilities for each output token
                 // useful to get model confidence on the answer
                 // in future we may use it to decide when to run the critic
@@ -110,10 +126,47 @@ public static class ChatOptionsExtensions
 
                 // set default minimal reasoning effort if not specified in existing properties
                 completionOptions.ReasoningEffortLevel ??= new(MinimalReasoningEffort);
+
+                // set verbosity level
+                completionOptions.AugmentVerbosityData(verbosity);
             }
 
             return completionOptions;
         };
+
+        return options;
+    }
+
+    // workaround until SDK adds the verbosity property
+    // reference: https://github.com/openai/openai-dotnet/issues/593#issuecomment-3169547444
+    private static ChatCompletionOptions AugmentVerbosityData(
+        this ChatCompletionOptions options,
+        string verbosity)
+    {
+        // ChatCompletionOptions IJsonModel does not implement create correctly
+        // It creates new object from binaryData input instead of merging with existing
+        // So we need to create full json from existing options and add property on top
+        var baseJson = ModelReaderWriter.Write(options, ModelReaderWriterOptions.Json);
+        using var doc = JsonDocument.Parse(baseJson);
+        using var ms = new MemoryStream();
+        using (var writer = new Utf8JsonWriter(ms))
+        {
+            writer.WriteStartObject();
+
+            // Copy existing fields
+            foreach (var prop in doc.RootElement.EnumerateObject())
+                prop.WriteTo(writer);
+
+            // Add top-level "verbosity"
+            writer.WriteString("verbosity", verbosity);
+
+            writer.WriteEndObject();
+        }
+        var augmentedJson = new BinaryData(ms.ToArray());
+
+        // Recreate with IJsonModel
+        var baseOptions = (IJsonModel<ChatCompletionOptions>)options;
+        options = baseOptions.Create(augmentedJson, ModelReaderWriterOptions.Json);
 
         return options;
     }
