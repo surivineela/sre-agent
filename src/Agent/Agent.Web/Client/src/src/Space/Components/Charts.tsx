@@ -928,7 +928,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                     cursor={{ strokeDasharray: '3 3', stroke: '#9CA3AF', strokeWidth: 1 }}
                                     contentStyle={tooltipStyle}
                                     formatter={(value: any, name: string) => [value, name]}
-                                    labelFormatter={(_: any, payload: any[]) => {
+                                    labelFormatter={(_label, payload) => {
                                         if (payload && payload.length > 0) {
                                             return payload[0].payload.label || '';
                                         }

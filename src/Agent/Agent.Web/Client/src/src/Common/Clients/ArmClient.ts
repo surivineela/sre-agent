@@ -1,6 +1,6 @@
 import axios, { AxiosHeaderValue, AxiosResponse } from 'axios';
 import { Subject, from, of } from 'rxjs';
-import { async } from 'rxjs/internal/scheduler/async';
+import { asyncScheduler } from 'rxjs/internal/scheduler/async';
 import { bufferTime, catchError, concatMap, filter, share, take } from 'rxjs/operators';
 import { ApiVersions } from '../ApiVersions';
 import { ArmRequestObject, AzureAsyncOperationStatus, HttpResponseObject, MethodTypes, ProvisioningState } from '../ArmHelper.types';
@@ -71,7 +71,7 @@ const bufferTimeInterval = 100; // ms
 const maxBufferSize = 20;
 const armSubject$ = new Subject<InternalArmRequest>();
 const armObs$ = armSubject$.pipe(
-    bufferTime(bufferTimeInterval, null, maxBufferSize, async),
+    bufferTime(bufferTimeInterval, null, maxBufferSize, asyncScheduler),
     filter(x => x.length > 0),
     concatMap(x => {
         const batchBody = x.map(arm => {
