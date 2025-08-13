@@ -61,6 +61,12 @@ public static class ApiToRuntimeMapper
         Handoffs = api.Handoffs,
         Tools = api.Tools,
         Connectors = api.Connectors,
+        // Workflow agent properties
+        AgentType = api.AgentType,
+        ParameterExtractionAgent = api.ParameterExtractionAgent,
+        OrchestrationStartAgents = api.OrchestrationStartAgents,
+        ResultSummarizationPrompt = api.ResultSummarizationPrompt,
+        NextAgentMappings = api.NextAgentMappings
     };
 
     public static ExtendedAgentApiModel ToApiAgent(YamlAgentDescriptor runtime) => new ExtendedAgentApiModel
@@ -79,7 +85,13 @@ public static class ApiToRuntimeMapper
         CustomReflectionNote = runtime.CustomReflectionNote,
         CommonPrompts = runtime.CommonPrompts,
         Temperature = runtime.Temperature,
-        OutputType = runtime.OutputType
+        OutputType = runtime.OutputType,
+        // Workflow agent properties
+        AgentType = runtime.AgentType,
+        ParameterExtractionAgent = runtime.ParameterExtractionAgent,
+        OrchestrationStartAgents = runtime.OrchestrationStartAgents,
+        ResultSummarizationPrompt = runtime.ResultSummarizationPrompt,
+        NextAgentMappings = runtime.NextAgentMappings
     };
 
     public static ToolDocumentModel ToDocumentTool(ExtendedAgentToolApiModel tool, string operationId) => tool switch
@@ -151,6 +163,12 @@ public static class ApiToRuntimeMapper
             HandoffPromptOverride: api.HandoffPromptOverride,
             InstructionsOverride: api.InstructionsOverride,
             Temperature: api.Temperature,
+            // Workflow agent properties
+            AgentType: api.AgentType,
+            ParameterExtractionAgent: api.ParameterExtractionAgent,
+            OrchestrationStartAgents: api.OrchestrationStartAgents,
+            ResultSummarizationPrompt: api.ResultSummarizationPrompt,
+            NextAgentMappings: api.NextAgentMappings,
             OutputType: api.OutputType,
             Metadata: api.Metadata,
             OperationId: operationId);
@@ -257,7 +275,13 @@ public static class ApiToRuntimeMapper
         CustomReflectionNote = doc.CustomReflectionNote,
         CommonPrompts = doc.CommonPrompts,
         Temperature = doc.Temperature,
-        OutputType = doc.OutputType
+        OutputType = doc.OutputType,
+        // Workflow agent properties
+        AgentType = doc.AgentType,
+        ParameterExtractionAgent = doc.ParameterExtractionAgent,
+        OrchestrationStartAgents = doc.OrchestrationStartAgents,
+        ResultSummarizationPrompt = doc.ResultSummarizationPrompt,
+        NextAgentMappings = doc.NextAgentMappings
     };
 
     public static ToolDocumentModel ToDocumentTool(YamlToolDefinitionBase runtime, string operationId)

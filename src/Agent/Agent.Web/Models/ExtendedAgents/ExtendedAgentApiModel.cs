@@ -30,6 +30,12 @@ public class ExtendedAgentApiModel : YamlAgentDescriptor
             CommonPrompts = runtimeModel.CommonPrompts,
             Temperature = runtimeModel.Temperature,
             OutputType = runtimeModel.OutputType,
+            // Workflow agent properties
+            AgentType = runtimeModel.AgentType,
+            ParameterExtractionAgent = runtimeModel.ParameterExtractionAgent,
+            OrchestrationStartAgents = runtimeModel.OrchestrationStartAgents,
+            ResultSummarizationPrompt = runtimeModel.ResultSummarizationPrompt,
+            NextAgentMappings = runtimeModel.NextAgentMappings,
             //CreatedAt = runtimeModel.CreatedAt,
             //UpdatedAt = runtimeModel.UpdatedAt
         };
@@ -54,6 +60,12 @@ public class ExtendedAgentApiModel : YamlAgentDescriptor
             CommonPrompts = CommonPrompts,
             Temperature = Temperature,
             OutputType = OutputType,
+            // Workflow agent properties
+            AgentType = AgentType,
+            ParameterExtractionAgent = ParameterExtractionAgent,
+            OrchestrationStartAgents = OrchestrationStartAgents,
+            ResultSummarizationPrompt = ResultSummarizationPrompt,
+            NextAgentMappings = NextAgentMappings,
             //CreatedAt = CreatedAt,
             //UpdatedAt = UpdatedAt
         };

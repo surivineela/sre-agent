@@ -25,8 +25,14 @@ public record AgentDocumentModel(
     string? InstructionsOverride,
     List<string> CommonTools,
     float? Temperature,
+    // Workflow agent properties
+    AgentType AgentType,
+    string? ParameterExtractionAgent,
+    List<string> OrchestrationStartAgents,
+    string? ResultSummarizationPrompt,
+    List<NextAgentMapping> NextAgentMappings,
     string? OutputType,
- YamlMetadata Metadata,
+    YamlMetadata Metadata,
     string OperationId
 ) : ICosmosDocument
 {

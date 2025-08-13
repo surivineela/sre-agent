@@ -38,6 +38,12 @@ public static class DocumentToRuntimeMapper
       UserPromptOverride = api.UserPromptOverride,
       
         Metadata = api.Metadata,
+        // Workflow agent properties
+        AgentType = api.AgentType,
+        ParameterExtractionAgent = api.ParameterExtractionAgent,
+        OrchestrationStartAgents = api.OrchestrationStartAgents,
+        ResultSummarizationPrompt = api.ResultSummarizationPrompt,
+        NextAgentMappings = api.NextAgentMappings
       //  UserPromptOverride = api.UserPromptOverride,
         //Hooks = api.Hooks,
        // FactoryTools = api.FactoryTools

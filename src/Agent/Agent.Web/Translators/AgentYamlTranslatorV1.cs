@@ -40,6 +40,12 @@ public class AgentYamlTranslatorV1 : IAgentYamlTranslator
             model.InstructionsOverride,
             model.CommonTools,
             model.Temperature,
+            // Workflow agent properties
+            model.AgentType,
+            model.ParameterExtractionAgent,
+            model.OrchestrationStartAgents,
+            model.ResultSummarizationPrompt,
+            model.NextAgentMappings,
             model.OutputType,
             model.Metadata,
             operationId
@@ -77,6 +83,12 @@ public class AgentYamlTranslatorV1 : IAgentYamlTranslator
                 model.Spec.Agent.InstructionsOverride,
                   model.Spec.Agent.CommonTools,
                 model.Spec.Agent.Temperature,
+                // Workflow agent properties
+                model.Spec.Agent.AgentType,
+                model.Spec.Agent.ParameterExtractionAgent,
+                model.Spec.Agent.OrchestrationStartAgents,
+                model.Spec.Agent.ResultSummarizationPrompt,
+                model.Spec.Agent.NextAgentMappings,
                 model.Spec.Agent.OutputType,
                 model.Metadata,
                 operationId

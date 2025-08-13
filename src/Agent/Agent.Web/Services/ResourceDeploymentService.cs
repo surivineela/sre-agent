@@ -91,6 +91,12 @@ public class ResourceDeploymentService : IResourceDeploymentService
             UserPromptOverride: spec.Spec.Agent.UserPromptOverride,
             InstructionsOverride: spec.Spec.Agent.InstructionsOverride,
             Temperature: spec.Spec.Agent.Temperature,
+            // Workflow agent properties
+            AgentType: spec.Spec.Agent.AgentType,
+            ParameterExtractionAgent: spec.Spec.Agent.ParameterExtractionAgent,
+            OrchestrationStartAgents: spec.Spec.Agent.OrchestrationStartAgents,
+            ResultSummarizationPrompt: spec.Spec.Agent.ResultSummarizationPrompt,
+            NextAgentMappings: spec.Spec.Agent.NextAgentMappings,
             OutputType: spec.Spec.Agent.OutputType,
             Metadata: spec.Spec.Agent.Metadata,
             OperationId: operationId
