@@ -5,7 +5,7 @@ import Url from '../Helpers/Url';
 export enum SettingNames {
     ShowAgentModeForThread = 'showAgentModeForThread',
     ConsolidatedCreate = 'consolidatedCreate',
-    DataConnections = 'dataConnections',
+    DataConnectors = 'dataConnectors',
     FileUpload = 'fileUpload',
     ShowAgentTask = 'showAgentTask',
     ShowAgentTaskDev = 'showAgentTaskDev',
@@ -17,11 +17,11 @@ const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
     },
     'portal.azure.com': {},
     'ms.portal.azure.com': {
-        [SettingNames.DataConnections]: true,
+        [SettingNames.DataConnectors]: true,
     },
     localhost: {
         [SettingNames.ShowAgentModeForThread]: true,
-        [SettingNames.DataConnections]: true,
+        [SettingNames.DataConnectors]: true,
         [SettingNames.FileUpload]: true,
     },
 };

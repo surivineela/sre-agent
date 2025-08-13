@@ -7,7 +7,7 @@ import GrafanaDashboard from '../../GrafanaDashboard/GrafanaDashboard.ReactView'
 import { SettingsTabResources } from '../../Strings/SREAgentResources';
 import AccessControl from './AccessControl.ReactView';
 import Basics from './Basics.ReactView';
-import DataConnections from './DataConnections.ReactView';
+import DataConnectors from './DataConnectors.ReactView';
 import IncidentManagementSettings from './IncidentManagementSettings';
 import ManagedResources from './ManagedResources.ReactView';
 import { navStyles, useSettingsStyles } from './Styles/Settings.styles';
@@ -18,7 +18,7 @@ export enum SettingsKeys {
     Basics = 'basics',
     GrafanaDashboard = 'grafanaDashboard',
     managedResources = 'managedResourcesGroups',
-    DataConnections = 'dataConnections',
+    DataConnectors = 'dataConnectors',
 }
 
 const Settings: FC = () => {
@@ -27,7 +27,7 @@ const Settings: FC = () => {
     const { menuItem } = useParams();
     const location = useLocation();
     const navigate = useNavigate();
-    const showDataConnections = useConfigSetting(SettingNames.DataConnections);
+    const showDataConnectors = useConfigSetting(SettingNames.DataConnectors);
 
     const [iconsInitialized, setIconsInitialized] = useState(false);
     const selectedKey = useMemo(() => {
@@ -61,12 +61,12 @@ const Settings: FC = () => {
                         url: '',
                         key: SettingsKeys.GrafanaDashboard,
                     },
-                    ...(showDataConnections
+                    ...(showDataConnectors
                         ? [
                               {
-                                  name: intl.formatMessage(SettingsTabResources.dataConnections),
+                                  name: intl.formatMessage(SettingsTabResources.dataConnectors),
                                   url: '',
-                                  key: SettingsKeys.DataConnections,
+                                  key: SettingsKeys.DataConnectors,
                               },
                           ]
                         : []),
@@ -78,7 +78,7 @@ const Settings: FC = () => {
                 ],
             },
         ],
-        [intl, showDataConnections]
+        [intl, showDataConnectors]
     );
 
     useEffect(() => {
@@ -104,7 +104,7 @@ const Settings: FC = () => {
                     {selectedKey === SettingsKeys.managedResources && <ManagedResources />}
                     {selectedKey === SettingsKeys.IncidentManagement && <IncidentManagementSettings />}
                     {selectedKey === SettingsKeys.GrafanaDashboard && <GrafanaDashboard />}
-                    {selectedKey === SettingsKeys.DataConnections && showDataConnections && <DataConnections />}
+                    {selectedKey === SettingsKeys.DataConnectors && showDataConnectors && <DataConnectors />}
                     {selectedKey === SettingsKeys.AccessControl && <AccessControl />}
                 </div>
             </div>

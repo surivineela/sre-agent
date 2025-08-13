@@ -16,7 +16,7 @@ import { Formik, FormikHelpers, useFormikContext } from 'formik';
 import { Dispatch, FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { DataConnector } from '../../Common/Contracts/Azure/SreAgent';
-import { DataConnectionsResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { DataConnectorsResources, SreAgentResources } from '../../Strings/SREAgentResources';
 
 const connectorTypeOptions = [{ id: 'Kusto' }, { id: 'TsgCrawler' }, { id: 'KustoDataIndexer' }];
 
@@ -145,7 +145,7 @@ const CreateOrUpdateDataConnectorForm = ({
         }
 
         const isDuplicate = existingDataConnectors?.some(connector => connector.name.toLowerCase() === values.name.toLowerCase());
-        setNameError(isDuplicate ? intl.formatMessage(DataConnectionsResources.duplicateNameError) : undefined);
+        setNameError(isDuplicate ? intl.formatMessage(DataConnectorsResources.duplicateNameError) : undefined);
     }, [values.name, existingDataConnectors, isEditMode, intl]);
 
     useEffect(() => {
@@ -167,13 +167,13 @@ const CreateOrUpdateDataConnectorForm = ({
                         action={<Button appearance="transparent" icon={<Dismiss24Regular />} onClick={() => setIsDialogOpen(false)} />}
                     >
                         {isEditMode
-                            ? intl.formatMessage(DataConnectionsResources.editDataConnection)
-                            : intl.formatMessage(DataConnectionsResources.createDataConnection)}
+                            ? intl.formatMessage(DataConnectorsResources.editDataConnector)
+                            : intl.formatMessage(DataConnectorsResources.createDataConnector)}
                     </DialogTitle>
                     <DialogContent>
                         <form style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 16 }}>
                             <Field
-                                label={intl.formatMessage(DataConnectionsResources.name)}
+                                label={intl.formatMessage(DataConnectorsResources.name)}
                                 required
                                 validationState={nameError ? 'error' : 'none'}
                                 validationMessage={nameError}
@@ -182,12 +182,12 @@ const CreateOrUpdateDataConnectorForm = ({
                                     name="name"
                                     value={values.name}
                                     onChange={(_, data) => setFieldValue('name', data.value)}
-                                    placeholder={intl.formatMessage(DataConnectionsResources.namePlaceholder)}
+                                    placeholder={intl.formatMessage(DataConnectorsResources.namePlaceholder)}
                                     disabled={isOperationInProgress}
                                 />
                             </Field>
 
-                            <Field label={intl.formatMessage(DataConnectionsResources.dataConnectionType)} required>
+                            <Field label={intl.formatMessage(DataConnectorsResources.dataConnectorType)} required>
                                 <Dropdown
                                     name="dataConnectorType"
                                     value={connectorTypeOptions.find(option => option.id === values.dataConnectorType)?.id || ''}
@@ -197,7 +197,7 @@ const CreateOrUpdateDataConnectorForm = ({
                                             setFieldValue('dataConnectorType', selectedOption.id);
                                         }
                                     }}
-                                    placeholder={intl.formatMessage(DataConnectionsResources.typePlaceholder)}
+                                    placeholder={intl.formatMessage(DataConnectorsResources.typePlaceholder)}
                                     disabled={isOperationInProgress}
                                 >
                                     {connectorTypeOptions.map(option => (
@@ -208,17 +208,17 @@ const CreateOrUpdateDataConnectorForm = ({
                                 </Dropdown>
                             </Field>
 
-                            <Field label={intl.formatMessage(DataConnectionsResources.dataSource)} required>
+                            <Field label={intl.formatMessage(DataConnectorsResources.dataSource)} required>
                                 <Input
                                     name="dataSource"
                                     value={values.dataSource}
                                     onChange={(_, data) => setFieldValue('dataSource', data.value)}
-                                    placeholder={intl.formatMessage(DataConnectionsResources.dataSourcePlaceholder)}
+                                    placeholder={intl.formatMessage(DataConnectorsResources.dataSourcePlaceholder)}
                                     disabled={isOperationInProgress}
                                 />
                             </Field>
 
-                            <Field label={intl.formatMessage(DataConnectionsResources.identity)} required>
+                            <Field label={intl.formatMessage(DataConnectorsResources.identity)} required>
                                 <Dropdown
                                     name="identity"
                                     value={identityOptions.find(option => option.id === values.identity)?.name || ''}
@@ -228,7 +228,7 @@ const CreateOrUpdateDataConnectorForm = ({
                                             setFieldValue('identity', selectedOption.id);
                                         }
                                     }}
-                                    placeholder={intl.formatMessage(DataConnectionsResources.identityPlaceholder)}
+                                    placeholder={intl.formatMessage(DataConnectorsResources.identityPlaceholder)}
                                     disabled={isOperationInProgress}
                                 >
                                     {identityOptions.map(option => (

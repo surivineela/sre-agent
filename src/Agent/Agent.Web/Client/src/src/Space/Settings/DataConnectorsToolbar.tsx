@@ -2,10 +2,10 @@ import { Button } from '@fluentui/react-components';
 import { Add16Regular, ArrowClockwise16Regular, Delete16Regular } from '@fluentui/react-icons';
 import { FC } from 'react';
 import { useIntl } from 'react-intl';
-import { DataConnectionsResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { DataConnectorsResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
 
-export type DataConnectionsToolbarProps = {
+export type DataConnectorsToolbarProps = {
     onRefreshClick: () => void;
     onNewDataConnectorClick: () => void;
     onDeleteDataConnectorClick: () => void;
@@ -13,7 +13,7 @@ export type DataConnectionsToolbarProps = {
     isOperationInProgress?: boolean;
 };
 
-const DataConnectionsToolbar: FC<DataConnectionsToolbarProps> = ({
+const DataConnectorsToolbar: FC<DataConnectorsToolbarProps> = ({
     onRefreshClick,
     onNewDataConnectorClick,
     onDeleteDataConnectorClick,
@@ -34,7 +34,7 @@ const DataConnectionsToolbar: FC<DataConnectionsToolbarProps> = ({
                 }}
                 disabled={isOperationInProgress}
             >
-                {intl.formatMessage(DataConnectionsResources.createDataConnection)}
+                {intl.formatMessage(DataConnectorsResources.createDataConnector)}
             </Button>
             <Button
                 icon={<ArrowClockwise16Regular />}
@@ -63,4 +63,4 @@ const DataConnectionsToolbar: FC<DataConnectionsToolbarProps> = ({
     );
 };
 
-export default DataConnectionsToolbar;
+export default DataConnectorsToolbar;

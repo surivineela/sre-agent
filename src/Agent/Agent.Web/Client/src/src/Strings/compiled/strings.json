@@ -5,6 +5,26 @@
       "value": "Gives you read access to management and content operations, but does not allow making changes."
     }
   ],
+  "+2NFJn": [
+    {
+      "type": 0,
+      "value": "Enter connector name"
+    }
+  ],
+  "+4NN8Z": [
+    {
+      "type": 0,
+      "value": "Updating data connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
   "+5BJJL": [
     {
       "type": 0,
@@ -15,20 +35,6 @@
     {
       "type": 0,
       "value": "IcM is not connected."
-    }
-  ],
-  "+9hKHE": [
-    {
-      "type": 0,
-      "value": "Creating data connection \""
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "\""
     }
   ],
   "+DBMRK": [
@@ -53,6 +59,12 @@
     {
       "type": 0,
       "value": "Agent permissions level"
+    }
+  ],
+  "+hJd45": [
+    {
+      "type": 0,
+      "value": "Edit data connector"
     }
   ],
   "+k5t/y": [
@@ -387,12 +399,6 @@
       "value": "Grafana dashboard"
     }
   ],
-  "30BIRO": [
-    {
-      "type": 0,
-      "value": "A data connection with this name already exists"
-    }
-  ],
   "3BubSI": [
     {
       "type": 0,
@@ -589,6 +595,16 @@
       "value": "errorMessage"
     }
   ],
+  "5dcGlG": [
+    {
+      "type": 0,
+      "value": "Failed to delete data connector with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "5fVEet": [
     {
       "type": 0,
@@ -727,12 +743,6 @@
     {
       "type": 0,
       "value": "User-assigned Managed Identity"
-    }
-  ],
-  "6TAs24": [
-    {
-      "type": 0,
-      "value": "Failed to create data connection"
     }
   ],
   "6UyZlH": [
@@ -891,6 +901,12 @@
       "value": "Full access to Azure Digital Twins data."
     }
   ],
+  "8Hjku9": [
+    {
+      "type": 0,
+      "value": "Creating data connector"
+    }
+  ],
   "8NHZQV": [
     {
       "type": 0,
@@ -907,12 +923,6 @@
     {
       "type": 0,
       "value": "I'm currently gathering information about your app and analyzing your resources, which might take a few minutes."
-    }
-  ],
-  "8WhIoh": [
-    {
-      "type": 0,
-      "value": "Creating data connection"
     }
   ],
   "8Wiwkg": [
@@ -1051,6 +1061,12 @@
       "value": "errorMessage"
     }
   ],
+  "ALkPTF": [
+    {
+      "type": 0,
+      "value": "No data connectors configured"
+    }
+  ],
   "ATYp8z": [
     {
       "type": 0,
@@ -1081,10 +1097,10 @@
       "value": "Turn off incident handler"
     }
   ],
-  "Aspdkq": [
+  "ArsZkp": [
     {
       "type": 0,
-      "value": "Deleting data connection"
+      "value": "Updating data connector"
     }
   ],
   "AuFOi8": [
@@ -1195,6 +1211,20 @@
     {
       "type": 0,
       "value": "Degraded core application groups"
+    }
+  ],
+  "CbKRyU": [
+    {
+      "type": 0,
+      "value": "Data connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been deleted successfully"
     }
   ],
   "CfGC/2": [
@@ -1405,6 +1435,12 @@
       "value": "Apply"
     }
   ],
+  "EYRPA4": [
+    {
+      "type": 0,
+      "value": "Failed to update data connector"
+    }
+  ],
   "EZBG/A": [
     {
       "type": 0,
@@ -1495,6 +1531,20 @@
       "value": "Closed"
     }
   ],
+  "G2GBW0": [
+    {
+      "type": 0,
+      "value": "Creating data connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
   "G6vaGg": [
     {
       "type": 0,
@@ -1577,12 +1627,6 @@
     {
       "type": 0,
       "value": "Pending approvals"
-    }
-  ],
-  "Hdb3ai": [
-    {
-      "type": 0,
-      "value": "Select connection type"
     }
   ],
   "HjTHxo": [
@@ -1839,6 +1883,12 @@
       "value": " in progress"
     }
   ],
+  "L5ZL+u": [
+    {
+      "type": 0,
+      "value": "Data connectors"
+    }
+  ],
   "LPprqA": [
     {
       "type": 0,
@@ -1975,6 +2025,12 @@
     {
       "type": 0,
       "value": "Thank you for your feedback!"
+    }
+  ],
+  "Nup8Xl": [
+    {
+      "type": 0,
+      "value": "Create data connector"
     }
   ],
   "O79Wpv": [
@@ -2321,10 +2377,10 @@
       "value": "Full access to IoT Hub data."
     }
   ],
-  "R1bTYZ": [
+  "R5Y4rC": [
     {
       "type": 0,
-      "value": "Data connection \""
+      "value": "Data connector \""
     },
     {
       "type": 1,
@@ -2332,7 +2388,7 @@
     },
     {
       "type": 0,
-      "value": "\" has been created successfully"
+      "value": "\" has been updated successfully"
     }
   ],
   "R9Lpvh": [
@@ -2389,16 +2445,24 @@
       "value": "Azure Kubernetes Service RBAC Reader"
     }
   ],
-  "Rs21a/": [
-    {
-      "type": 0,
-      "value": "Create data connection"
-    }
-  ],
   "S1VBUm": [
     {
       "type": 0,
       "value": "Failed to link Grafana dashboard"
+    }
+  ],
+  "S6FECK": [
+    {
+      "type": 0,
+      "value": "Deleting data connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
     }
   ],
   "SAINuE": [
@@ -2411,12 +2475,6 @@
     {
       "type": 0,
       "value": "Cognitive Services Data Reader"
-    }
-  ],
-  "SIuIBn": [
-    {
-      "type": 0,
-      "value": "No data connections configured"
     }
   ],
   "SL7+hl": [
@@ -2439,12 +2497,6 @@
     {
       "type": 0,
       "value": "Core application group health + performance"
-    }
-  ],
-  "SRIFSx": [
-    {
-      "type": 0,
-      "value": "Failed to update data connection"
     }
   ],
   "SRf69j": [
@@ -2591,20 +2643,16 @@
       "value": "Autonomous mode"
     }
   ],
+  "UKUKGA": [
+    {
+      "type": 0,
+      "value": "Failed to delete data connector"
+    }
+  ],
   "UPybTw": [
     {
       "type": 0,
       "value": "Go to map"
-    }
-  ],
-  "UUPmeu": [
-    {
-      "type": 0,
-      "value": "Failed to create data connection with error: "
-    },
-    {
-      "type": 1,
-      "value": "error"
     }
   ],
   "UV4Dx5": [
@@ -2997,12 +3045,6 @@
       "value": "Manage Azure OpenAI resources."
     }
   ],
-  "ZuNJYO": [
-    {
-      "type": 0,
-      "value": "Updating data connection"
-    }
-  ],
   "ZukeYV": [
     {
       "type": 0,
@@ -3017,24 +3059,16 @@
       "value": " managed resource groups to your SRE Agent"
     }
   ],
-  "ZxRi/i": [
-    {
-      "type": 0,
-      "value": "Deleting data connection \""
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "\""
-    }
-  ],
   "a5msuh": [
     {
       "type": 0,
       "value": "Yes"
+    }
+  ],
+  "aA1SYF": [
+    {
+      "type": 0,
+      "value": "Deleting data connector"
     }
   ],
   "aAADUG": [
@@ -3121,6 +3155,16 @@
       "value": "Cognitive Services Language Writer"
     }
   ],
+  "aqnJe8": [
+    {
+      "type": 0,
+      "value": "Failed to update data connector with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "auFFJa": [
     {
       "type": 0,
@@ -3143,20 +3187,6 @@
     {
       "type": 0,
       "value": "New"
-    }
-  ],
-  "bYJT9s": [
-    {
-      "type": 0,
-      "value": "Updating data connection \""
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "\""
     }
   ],
   "blSyDZ": [
@@ -3321,16 +3351,6 @@
       "value": "Read-only actions in the project. Readers can't create or update the project."
     }
   ],
-  "eF75q+": [
-    {
-      "type": 0,
-      "value": "Failed to delete data connection with error: "
-    },
-    {
-      "type": 1,
-      "value": "error"
-    }
-  ],
   "eFKqV0": [
     {
       "type": 0,
@@ -3365,12 +3385,6 @@
     {
       "type": 0,
       "value": "With incident handlers, the agent chooses the tools it needs to manage common types of incidents. Custom handlers replace this capability by giving the agent specific instructions that you provide."
-    }
-  ],
-  "f+cHle": [
-    {
-      "type": 0,
-      "value": "Enter connection string or endpoint"
     }
   ],
   "f0Luxo": [
@@ -3427,6 +3441,12 @@
       "value": "Creating incident handler"
     }
   ],
+  "ftDEuE": [
+    {
+      "type": 0,
+      "value": "Select connector type"
+    }
+  ],
   "ftfFhS": [
     {
       "type": 0,
@@ -3471,12 +3491,6 @@
     {
       "type": 0,
       "value": "Connects to"
-    }
-  ],
-  "gUxC3M": [
-    {
-      "type": 0,
-      "value": "Update the data connection configuration."
     }
   ],
   "gZ5fZs": [
@@ -3779,6 +3793,12 @@
       "value": "Lets you manage the web plans for websites, but not access to them."
     }
   ],
+  "jJc7jK": [
+    {
+      "type": 0,
+      "value": "Enter connector string or endpoint"
+    }
+  ],
   "jOkfJV": [
     {
       "type": 0,
@@ -3815,6 +3835,12 @@
       "value": "Provisioning of your Grafana dashboard is in progress."
     }
   ],
+  "ko0rr4": [
+    {
+      "type": 0,
+      "value": "Update the data connector configuration."
+    }
+  ],
   "ku+mDU": [
     {
       "type": 0,
@@ -3847,12 +3873,6 @@
     {
       "type": 0,
       "value": "AzureML Data Scientist"
-    }
-  ],
-  "lSRgS0": [
-    {
-      "type": 0,
-      "value": "Failed to delete data connection"
     }
   ],
   "levHvg": [
@@ -4139,6 +4159,12 @@
       "value": "App Configuration Reader"
     }
   ],
+  "pG9xP9": [
+    {
+      "type": 0,
+      "value": "A data connector with this name already exists"
+    }
+  ],
   "pRvgsc": [
     {
       "type": 0,
@@ -4175,22 +4201,10 @@
       "value": "Manage Application Insights components."
     }
   ],
-  "pxfpJw": [
-    {
-      "type": 0,
-      "value": "Enter connection name"
-    }
-  ],
   "q/uwLT": [
     {
       "type": 0,
       "value": "Stop"
-    }
-  ],
-  "q0L4ui": [
-    {
-      "type": 0,
-      "value": "Edit data connection"
     }
   ],
   "q1WWIr": [
@@ -4221,20 +4235,6 @@
     {
       "type": 0,
       "value": "Backend Endpoint"
-    }
-  ],
-  "qyW7Lq": [
-    {
-      "type": 0,
-      "value": "Data connection \""
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "\" has been deleted successfully"
     }
   ],
   "r2x5ZI": [
@@ -4345,16 +4345,6 @@
       "value": "Enter title keywords"
     }
   ],
-  "sHlOQh": [
-    {
-      "type": 0,
-      "value": "Failed to update data connection with error: "
-    },
-    {
-      "type": 1,
-      "value": "error"
-    }
-  ],
   "sI+CCC": [
     {
       "type": 0,
@@ -4423,6 +4413,20 @@
     {
       "type": 0,
       "value": "Healthcare Agent Editor"
+    }
+  ],
+  "tH6Myj": [
+    {
+      "type": 0,
+      "value": "Data connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been created successfully"
     }
   ],
   "tSKi9q": [
@@ -4709,6 +4713,16 @@
       "value": "Insufficient data points for chart"
     }
   ],
+  "xgNcC+": [
+    {
+      "type": 0,
+      "value": "Failed to create data connector with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "xmcVZ0": [
     {
       "type": 0,
@@ -4745,12 +4759,6 @@
       "value": "These previous incidents match the selected incident type. The agent can learn from a maximum of 5 incidents."
     }
   ],
-  "yImvmS": [
-    {
-      "type": 0,
-      "value": "Data connections"
-    }
-  ],
   "yVc78v": [
     {
       "type": 0,
@@ -4767,6 +4775,12 @@
     {
       "type": 0,
       "value": "Enter a handler name"
+    }
+  ],
+  "yd187T": [
+    {
+      "type": 0,
+      "value": "Failed to create data connector"
     }
   ],
   "yhU1et": [
@@ -4867,20 +4881,6 @@
     {
       "type": 0,
       "value": "Prompt library"
-    }
-  ],
-  "zx5LNX": [
-    {
-      "type": 0,
-      "value": "Data connection \""
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "\" has been updated successfully"
     }
   ]
 }

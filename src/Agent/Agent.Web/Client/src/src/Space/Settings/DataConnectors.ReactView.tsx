@@ -15,22 +15,22 @@ import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/Startup
 import { SecretValue } from '../../Common/Components/SecretValue';
 import { DataConnector } from '../../Common/Contracts/Azure/SreAgent';
 import { ArmResourceDescriptor } from '../../Common/Helpers/ResourceDescriptors';
-import { DataConnectionsResources, SettingsTabResources } from '../../Strings/SREAgentResources';
-import { CreateOrUpdateDataConnectorDialog, DataConnectorFormProps } from './AddEditDataConnections';
-import DataConnectionsToolbar from './DataConnectionsToolbar';
+import { DataConnectorsResources, SettingsTabResources } from '../../Strings/SREAgentResources';
+import { CreateOrUpdateDataConnectorDialog, DataConnectorFormProps } from './AddEditDataConnectors';
+import DataConnectionsToolbar from './DataConnectorsToolbar';
 import { useAgentDataConnectors } from './Hooks/useAgentDataConnectors';
 import { useSreAgent } from './Hooks/useSreAgent';
 import { useSettingsStyles } from './Styles/Settings.styles';
 
-enum DataConnectionColumnKey {
+enum DataConnectorColumnKey {
     name = 'name',
-    dataConnectionType = 'dataConnectorType',
+    dataConnectorType = 'dataConnectorType',
     dataSource = 'dataSource',
     keyVaultUri = 'keyVaultUri',
     identity = 'identity',
 }
 
-const DataConnections: FC = () => {
+const DataConnectors: FC = () => {
     const intl = useIntl();
     const styles = useSettingsStyles();
     const { resourceId } = useContext(EnvironmentContext);
@@ -91,8 +91,8 @@ const DataConnections: FC = () => {
 
         setIsOperationInProgress(true);
         const notificationId = portalContext.startNotification(
-            intl.formatMessage(DataConnectionsResources.deletingDataConnection),
-            intl.formatMessage(DataConnectionsResources.deletingDataConnectionDescription, { name: selectedDataConnection.name })
+            intl.formatMessage(DataConnectorsResources.deletingDataConnector),
+            intl.formatMessage(DataConnectorsResources.deletingDataConnectorDescription, { name: selectedDataConnection.name })
         );
 
         const response = await deleteDataConnector(selectedDataConnection.name);
@@ -104,7 +104,7 @@ const DataConnections: FC = () => {
             portalContext.stopNotification(
                 notificationId,
                 true,
-                intl.formatMessage(DataConnectionsResources.dataConnectionDeleted, { name: selectedDataConnection.name })
+                intl.formatMessage(DataConnectorsResources.dataConnectorDeleted, { name: selectedDataConnection.name })
             );
         } else {
             portalContext.log({
@@ -122,8 +122,8 @@ const DataConnections: FC = () => {
                 notificationId,
                 false,
                 errorMessage
-                    ? intl.formatMessage(DataConnectionsResources.deleteDataConnectionWithMessageFailed, { error: errorMessage })
-                    : intl.formatMessage(DataConnectionsResources.deleteDataConnectionFailed)
+                    ? intl.formatMessage(DataConnectorsResources.deleteDataConnectorWithMessageFailed, { error: errorMessage })
+                    : intl.formatMessage(DataConnectorsResources.deleteDataConnectorFailed)
             );
         }
         setIsOperationInProgress(false);
@@ -146,8 +146,8 @@ const DataConnections: FC = () => {
         async (dataConnector: DataConnector) => {
             setIsOperationInProgress(true);
             const notificationId = portalContext.startNotification(
-                intl.formatMessage(DataConnectionsResources.creatingDataConnection),
-                intl.formatMessage(DataConnectionsResources.creatingDataConnectionDescription, { name: dataConnector.name })
+                intl.formatMessage(DataConnectorsResources.creatingDataConnector),
+                intl.formatMessage(DataConnectorsResources.creatingDataConnectorDescription, { name: dataConnector.name })
             );
 
             const response = await putDataConnector(dataConnector);
@@ -156,7 +156,7 @@ const DataConnections: FC = () => {
                 portalContext.stopNotification(
                     notificationId,
                     true,
-                    intl.formatMessage(DataConnectionsResources.dataConnectionCreated, { name: dataConnector.name })
+                    intl.formatMessage(DataConnectorsResources.dataConnectorCreated, { name: dataConnector.name })
                 );
             } else {
                 portalContext.log({
@@ -174,8 +174,8 @@ const DataConnections: FC = () => {
                     notificationId,
                     false,
                     errorMessage
-                        ? intl.formatMessage(DataConnectionsResources.createDataConnectionWithMessageFailed, { error: errorMessage })
-                        : intl.formatMessage(DataConnectionsResources.createDataConnectionFailed)
+                        ? intl.formatMessage(DataConnectorsResources.createDataConnectorWithMessageFailed, { error: errorMessage })
+                        : intl.formatMessage(DataConnectorsResources.createDataConnectorFailed)
                 );
             }
             setIsOperationInProgress(false);
@@ -187,8 +187,8 @@ const DataConnections: FC = () => {
         async (dataConnector: DataConnector) => {
             setIsOperationInProgress(true);
             const notificationId = portalContext.startNotification(
-                intl.formatMessage(DataConnectionsResources.updatingDataConnection),
-                intl.formatMessage(DataConnectionsResources.updatingDataConnectionDescription, { name: dataConnector.name })
+                intl.formatMessage(DataConnectorsResources.updatingDataConnector),
+                intl.formatMessage(DataConnectorsResources.updatingDataConnectorDescription, { name: dataConnector.name })
             );
 
             const response = await putDataConnector(dataConnector);
@@ -197,7 +197,7 @@ const DataConnections: FC = () => {
                 portalContext.stopNotification(
                     notificationId,
                     true,
-                    intl.formatMessage(DataConnectionsResources.dataConnectionUpdated, { name: dataConnector.name })
+                    intl.formatMessage(DataConnectorsResources.dataConnectorUpdated, { name: dataConnector.name })
                 );
             } else {
                 portalContext.log({
@@ -215,8 +215,8 @@ const DataConnections: FC = () => {
                     notificationId,
                     false,
                     errorMessage
-                        ? intl.formatMessage(DataConnectionsResources.updateDataConnectionWithMessageFailed, { error: errorMessage })
-                        : intl.formatMessage(DataConnectionsResources.updateDataConnectionFailed)
+                        ? intl.formatMessage(DataConnectorsResources.updateDataConnectorWithMessageFailed, { error: errorMessage })
+                        : intl.formatMessage(DataConnectorsResources.updateDataConnectorFailed)
                 );
             }
             setIsOperationInProgress(false);
@@ -227,27 +227,30 @@ const DataConnections: FC = () => {
     const columns = useMemo<IColumn[]>(() => {
         return [
             {
-                key: DataConnectionColumnKey.name,
-                name: intl.formatMessage(DataConnectionsResources.name),
-                fieldName: DataConnectionColumnKey.name,
+                key: DataConnectorColumnKey.name,
+                name: intl.formatMessage(DataConnectorsResources.name),
                 minWidth: 150,
                 maxWidth: 200,
                 isResizable: true,
-                onRender: (item: DataConnector) => item.name,
+                onRender: (item: DataConnector) => (
+                    <span data-selection-disabled={true} data-is-focusable={true}>
+                        <Link disabled={isOperationInProgress} onClick={() => handleEditDataConnection(item)}>
+                            {item.name}
+                        </Link>
+                    </span>
+                ),
             },
             {
-                key: DataConnectionColumnKey.dataConnectionType,
-                name: intl.formatMessage(DataConnectionsResources.dataConnectionType),
-                fieldName: DataConnectionColumnKey.dataConnectionType,
+                key: DataConnectorColumnKey.dataConnectorType,
+                name: intl.formatMessage(DataConnectorsResources.dataConnectorType),
                 minWidth: 120,
                 maxWidth: 150,
                 isResizable: true,
                 onRender: (item: DataConnector) => item.dataConnectorType,
             },
             {
-                key: DataConnectionColumnKey.dataSource,
-                name: intl.formatMessage(DataConnectionsResources.dataSource),
-                fieldName: DataConnectionColumnKey.dataSource,
+                key: DataConnectorColumnKey.dataSource,
+                name: intl.formatMessage(DataConnectorsResources.dataSource),
                 minWidth: 200,
                 maxWidth: 300,
                 isResizable: true,
@@ -261,9 +264,8 @@ const DataConnections: FC = () => {
                     ),
             },
             {
-                key: DataConnectionColumnKey.identity,
-                name: intl.formatMessage(DataConnectionsResources.identity),
-                fieldName: DataConnectionColumnKey.identity,
+                key: DataConnectorColumnKey.identity,
+                name: intl.formatMessage(DataConnectorsResources.identity),
                 minWidth: 150,
                 maxWidth: 250,
                 isResizable: true,
@@ -277,7 +279,7 @@ const DataConnections: FC = () => {
                 },
             },
         ];
-    }, [intl, openManagedIdentity]);
+    }, [intl, openManagedIdentity, handleEditDataConnection, isOperationInProgress]);
 
     const identities = useMemo(() => {
         return agent?.identity?.userAssignedIdentities ? Object.keys(agent.identity.userAssignedIdentities) : [];
@@ -285,7 +287,7 @@ const DataConnections: FC = () => {
 
     return (
         <>
-            <div style={styles.generalSettingsHeader}>{intl.formatMessage(SettingsTabResources.dataConnections)}</div>
+            <div style={styles.generalSettingsHeader}>{intl.formatMessage(SettingsTabResources.dataConnectors)}</div>
             <div style={styles.accessControlSettingsContainer}>
                 <DataConnectionsToolbar
                     onRefreshClick={handleRefresh}
@@ -305,12 +307,11 @@ const DataConnections: FC = () => {
                         layoutMode={DetailsListLayoutMode.justified}
                         enableShimmer={isDataConnectorsLoading || isRefreshing}
                         checkboxVisibility={CheckboxVisibility.always}
-                        onItemInvoked={isOperationInProgress ? undefined : handleEditDataConnection}
                         selectionPreservedOnEmptyClick={true}
                     />
                     {!isDataConnectorsLoading && dataConnectors.length === 0 && (
                         <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
-                            {intl.formatMessage(DataConnectionsResources.noDataConnections)}
+                            {intl.formatMessage(DataConnectorsResources.noDataConnectors)}
                         </div>
                     )}
                 </div>
@@ -331,4 +332,4 @@ const DataConnections: FC = () => {
     );
 };
 
-export default DataConnections;
+export default DataConnectors;
