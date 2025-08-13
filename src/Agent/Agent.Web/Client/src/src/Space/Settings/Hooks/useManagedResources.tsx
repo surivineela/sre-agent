@@ -1,4 +1,4 @@
-import { IColumn, Selection } from '@fluentui/react';
+import { IColumn, Link, Selection } from '@fluentui/react';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { ArmTemplateBuilder } from '../../../Common/ArmTemplateBuilder/ArmTemplateBuilder';
@@ -125,6 +125,21 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
         return agent?.name || '';
     }, [agent]);
 
+    const openResourceOverviewBlade = useCallback(
+        (id: string) => {
+            if (id) {
+                portalContext.openBlade({
+                    extension: 'HubsExtension',
+                    detailBlade: 'ResourceMenuBlade',
+                    detailBladeInputs: {
+                        id,
+                    },
+                });
+            }
+        },
+        [portalContext]
+    );
+
     const columns: IColumn[] = useMemo(
         () => [
             {
@@ -136,7 +151,12 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
                 onRender: (item: ResourceGroup) => (
                     <div className={styles.statusRow}>
                         <img src="./ResourceGroup.svg" alt="ResourceGroup" style={{ height: 16, width: 16 }} />
-                        {item.name}
+                        <Link
+                            style={{ overflow: 'hidden', textOverflow: 'ellipsis', flexShrink: 5 }}
+                            onClick={_e => openResourceOverviewBlade(item.id)}
+                        >
+                            {item.name}
+                        </Link>
                     </div>
                 ),
             },
@@ -149,7 +169,14 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
                 onRender: (item: ResourceGroup) => {
                     const subscriptionId = getSubscriptionId(item.id);
                     const subscription = subscriptionsList?.find(subscription => subscription.subscriptionId === subscriptionId);
-                    return subscription?.displayName ?? '';
+                    return (
+                        <Link
+                            style={{ overflow: 'hidden', textOverflow: 'ellipsis', flexShrink: 5 }}
+                            onClick={_e => openResourceOverviewBlade(item.id.split('/resource')[0])}
+                        >
+                            {subscription?.displayName ?? ''}
+                        </Link>
+                    );
                 },
             },
             {
