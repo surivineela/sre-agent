@@ -147,6 +147,30 @@ Returns a JSON object with operation details:
             return await _icmWorkflowClient.SetEnvironmentQuota(incidentId, environmentResourceURL, region, quotaType, quotaLimit);
         }
 
+        [Description("""
+Purpose:
+Gets the NCA100 and T4 GPU quota and usage percentage for a specific region.
+
+Scenario:
+Use this tool to get the current quota and usage percentage for consumpation NCA100 and T4 GPU in a specific region. It can help the user to decide whether to approve or reject a quota request based on the current usage and quota limits in that region.
+
+Output:
+Returns tab-separated table data in CSV format. Column headers:
+- Region: The Azure region 
+- Regional_ConsumptionNCA100Gpus_Quota: The total available quota for NCA100 GPUs in the region
+- Regional_ConsumptionNCA100Gpus_Used_Percentage: The used percentage of NCA100 GPUs in the region
+- Regional_ConsumptionT4Gpus_Quota: The total available quota for T4 GPUs in the region
+- Regional_ConsumptionT4Gpus_Used_Percentage: The used percentage of T4 GPUs in the region
+"""
+)]
+        public Task<string> GetRegionalConsumptionGpuQuotaAndUsagePercentage()
+        { 
+            return _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("GetRegionalConsumptionGpuQuotaAndUsage",
+                "legioneus.eastus", "legion",
+                new Dictionary<string, string> {
+                });
+        }
+
                 [Description("""
 Purpose:
 Retrieves the result of a set quota operation for a managed environment.

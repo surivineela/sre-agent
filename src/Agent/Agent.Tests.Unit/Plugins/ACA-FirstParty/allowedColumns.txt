@@ -242,3 +242,9 @@ ActualEndTime
 clientPrincipalName 
 clientApplicationID
 apiVersion
+
+# Quota
+Regional_ConsumptionNCA100Gpus_Quota
+Regional_ConsumptionNCA100Gpus_Used_Percentage
+Regional_ConsumptionT4Gpus_Quota
+Regional_ConsumptionT4Gpus_Used_Percentage

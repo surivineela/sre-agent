@@ -1,0 +1,64 @@
+AllRegions('SystemLogs') 
+| where PreciseTimeStamp > ago(3h)
+| where CallerMemberName == "LogGpuRoleStatistics"
+| where Message in ("GPU VM total GPU.", "GPU VM free GPU.", "GPU VM used GPU.")
+| extend Region = case(
+    // New naming scheme
+    Tenant == "Public-lgn-scp-asp-AustraliaEast-005", "australiaeast",
+    Tenant == "Public-lgn-scp-asp-WestUS3-004", "westus3",
+    Tenant == "Public-lgn-scp-asp-SwedenCentral-005", "swedencentral",
+    Tenant == "Public-lgn-scp-asp-WestEurope-004", "westeurope",
+    Tenant == "Public-lgn-scp-asp-WestUS-004", "westus",
+    // previous naming scheme
+    Tenant == "Production-lgn-scp-asp-AustraliaEast-005", "australiaeast",
+    Tenant == "Production-lgn-scp-asp-WestUS3-004", "westus3",
+    Tenant == "Production-lgn-scp-asp-SwedenCentral-005", "swedencentral",
+    Tenant == "Production-lgn-scp-asp-WestEurope-004", "westeurope",
+    Tenant == "Production-lgn-scp-asp-WestUS-004", "westus",
+    "unknown"
+)
+| summarize 
+    A100VMSSPoolCount = iff(isnull(maxif(Count, Message has "GPU VM total GPU." and Value has "Standard_NC24ads_A100_v4")), 0.0, toreal(maxif(Count, Message has "GPU VM total GPU." and Value has "Standard_NC24ads_A100_v4"))),
+    A100FreeCount = iff(isnull(maxif(Count, Message has "GPU VM free GPU." and Value has "Standard_NC24ads_A100_v4")), 0.0, toreal(maxif(Count, Message has "GPU VM free GPU." and Value has "Standard_NC24ads_A100_v4"))),
+    T4VMSSPoolCount = iff(isnull(maxif(Count, Message has "GPU VM total GPU." and Value has "Standard_NC8as_T4_v3")), 0.0, toreal(maxif(Count, Message has "GPU VM total GPU." and Value has "Standard_NC8as_T4_v3"))),
+    T4FreeCount = iff(isnull(maxif(Count, Message has "GPU VM free GPU." and Value has "Standard_NC8as_T4_v3")), 0.0, toreal(maxif(Count, Message has "GPU VM free GPU." and Value has "Standard_NC8as_T4_v3"))),
+    A100VMSSUsed = iff(isnull(maxif(Count, Message has "GPU VM used GPU." and Value has "Standard_NC24ads_A100_v4")), 0.0, toreal(maxif(Count, Message has "GPU VM used GPU." and Value has "Standard_NC24ads_A100_v4"))),
+    T4VMSSUsedCount = iff(isnull(maxif(Count, Message has "GPU VM used GPU." and Value has "Standard_NC8as_T4_v3")), 0.0, toreal(maxif(Count, Message has "GPU VM used GPU." and Value has "Standard_NC8as_T4_v3")))
+    by Region
+| extend 
+    A100VMUsedPercentage = round(iff(A100VMSSPoolCount > 0, (A100VMSSUsed * 100.0) / A100VMSSPoolCount, 0.0),2),
+    T4VMUsedPercentage = round(iff(T4VMSSPoolCount > 0, (T4VMSSUsedCount * 100.0) / T4VMSSPoolCount, 0.0),2)
+| where A100VMSSPoolCount > 0 or T4VMSSPoolCount > 0
+| project Region, A100VMSSUsed, A100VMSSPoolCount, A100VMUsedPercentage, T4VMSSUsedCount, T4VMSSPoolCount, T4VMUsedPercentage
+| join kind=inner ( AllRegions('SystemLogs')
+    | where PreciseTimeStamp > ago(3h)
+    | where LegionComponent == "StampControlPlane"
+    | where name == "Microsoft.Legion.StampControlPlane.ComputeQuotaReportService"
+    | where Message startswith "Quota usage"
+    | parse Message with "Quota usage " quotaFamily " is " currentUsage " out of " quotaLimit
+    | where quotaFamily in ('StandardNCADSA100v4Family','Standard NCASv3_T4 Family')
+    | extend Region = case(
+        LegionStampName == "australiaeast-005", "australiaeast",
+        LegionStampName == "westus3-004", "westus3",
+        LegionStampName == "swedencentral-005", "swedencentral",
+        LegionStampName == "westeurope-004", "westeurope",
+        LegionStampName == "westus-004", "westus",
+        "unknown"
+    )
+    | where Region != "unknown"
+    | summarize arg_max(TIMESTAMP, Value, Message) by Region, quotaFamily
+    | extend value_json = parse_json(Value)
+    | extend quotaFamily = iif(isnotnull(value_json.properties.name.value), tostring(value_json.properties.name.value), "")
+    | extend currentA100Usage = iif(quotaFamily has "StandardNCADSA100v4Family", toint(value_json.properties.currentValue), 0)
+    | extend currentT4Usage = iif(quotaFamily has "Standard NCASv3_T4 Family", toint(value_json.properties.currentValue), 0)
+    | extend A100quotaLimit = iif(quotaFamily has "StandardNCADSA100v4Family", toint(value_json.properties.limit), 0)
+    | extend T4quotaLimit = iif(quotaFamily has "Standard NCASv3_T4 Family", toint(value_json.properties.limit), 0)
+    | extend A100usagePercent = toint(currentA100Usage) * 100 / toint(A100quotaLimit)
+    | extend T4usagePercent =  toint(currentT4Usage) * 100 / toint(T4quotaLimit)
+    | project Region, A100quotaLimit, A100usagePercent, T4quotaLimit, T4usagePercent   
+    | summarize 
+        A100_Quota = max(toint(A100quotaLimit)/24),
+        T4_Quota = max(toint(T4quotaLimit)/8) by Region
+    | project Region, A100_Quota, T4_Quota
+    ) on $left.Region == $right.Region
+| project Region, Regional_ConsumptionNCA100Gpus_Quota=A100_Quota, Regional_ConsumptionNCA100Gpus_Used_Percentage=A100VMUsedPercentage, Regional_ConsumptionT4Gpus_Quota=T4_Quota, Regional_ConsumptionT4Gpus_Used_Percentage=T4VMUsedPercentage
