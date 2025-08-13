@@ -51,6 +51,30 @@ public static class AgentCommandOptions
     // Agent options for apply
     public static readonly Option<string> ApplyNameOption = new("--name") { Required = true };
 
+    // Agent options for test
+    public static readonly Option<string> TestNameOption = new("--name") 
+    { 
+        Required = true,
+        Description = "Name of the agent to test"
+    };
+    public static readonly Option<string> TestMessageOption = new("--message") 
+    { 
+        Required = true,
+        Description = "Test message to send to the agent"
+    };
+    public static readonly Option<string> TestUserIdOption = new("--user-id") 
+    { 
+        Description = "User ID for the test message (defaults to current user)"
+    };
+    public static readonly Option<string> TestDisplayNameOption = new("--display-name") 
+    { 
+        Description = "Display name for the test message (defaults to current user)"
+    };
+    public static readonly Option<bool> TestNoWaitOption = new("--no-wait") 
+    { 
+        Description = "Don't wait for the agent's response, just send the test message"
+    };
+
     // Option for apply-yaml command
     public static readonly Option<string> ApplyYamlFileOption = new("--file")
     {

@@ -222,6 +222,16 @@ The `srectl tool show-types` and `srectl tool show-connectors` commands demonstr
 3. **Command Handlers**: Implemented in `ToolCommandHandlers.cs` with proper error handling
 4. **Integration**: Uses actual framework models for consistency
 
+**Example: Agent Test Command**
+
+The `srectl agent test` command demonstrates integration between agent management and thread functionality:
+
+1. **Command Options**: Defined in `AgentCommandOptions.cs` with agent name, message, and user parameters
+2. **Command Handlers**: Implemented in `AgentCommandHandlers.cs` with thread creation and response handling
+3. **Message Formatting**: Automatically prefixes user message with agent-specific instructions
+4. **Thread Integration**: Creates new conversation threads and optionally starts interactive sessions
+5. **Error Handling**: Comprehensive validation and graceful error reporting
+
 ### Adding New Validators
 1. Create validator class in `Validations/` folder
 2. Implement validation interface
@@ -420,3 +430,64 @@ public static async Task ReindexDocumentsAsync()
 - Streaming file uploads for large documents
 - Minimal memory footprint during operations
 - Progress indicators for long-running tasks
+
+## Interactive Thread Management
+
+### Overview
+The thread management system provides an interactive chat experience that allows users to have seamless conversations with the SRE Agent without needing to exit and restart commands.
+
+### Architecture
+
+#### Interactive Chat Session
+The `StartInteractiveChatSession` method implements a persistent conversation loop that:
+- Handles user input with cancellation token support (Ctrl+C)
+- Provides real-time message sending and response streaming
+- Manages conversation state and thread persistence
+- Offers multiple exit strategies (Ctrl+C, explicit commands)
+
+#### Key Features
+- **Seamless Conversation Flow**: After agent responses, users are immediately prompted for follow-up messages
+- **Graceful Cancellation**: Ctrl+C handling preserves conversation state and provides clean exit
+- **Multiple Exit Options**: Users can exit via Ctrl+C or explicit commands (exit, quit, /exit, /quit)
+- **Real-time Streaming**: Agent responses appear as they're generated
+- **Thread Persistence**: Conversations are saved and can be resumed later
+
+#### Implementation Details
+
+```csharp
+private static async Task StartInteractiveChatSession(
+    ApiService apiService, 
+    ThreadManagerService threadManager, 
+    string threadId, 
+    string userId, 
+    string displayName)
+{
+    // Console cancellation handling
+    var cancellationTokenSource = new CancellationTokenSource();
+    Console.CancelKeyPress += (_, e) => {
+        e.Cancel = true;
+        cancellationTokenSource.Cancel();
+    };
+
+    // Interactive input/response loop
+    while (!cancellationTokenSource.Token.IsCancellationRequested)
+    {
+        // User input with cancellation support
+        // Message sending and response streaming
+        // Error handling and recovery
+    }
+}
+```
+
+#### Integration Points
+- **Thread New Command**: Automatically starts interactive session after initial agent response
+- **Thread Continue Command**: Resumes interactive session for existing conversations
+- **API Service**: Integrates with streaming message retrieval for real-time responses
+- **Thread Manager**: Maintains conversation state and last-used thread tracking
+
+#### User Experience Design
+- **Clear Prompts**: Obvious input prompts with "You: " prefix
+- **Visual Separators**: Conversation sections clearly delineated
+- **Exit Instructions**: Clear guidance on how to exit the session
+- **Error Recovery**: Graceful handling of network issues with continuation options
+- **Progress Feedback**: Real-time status updates during message processing

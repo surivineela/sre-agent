@@ -275,4 +275,97 @@ public static class AgentCommandHandlers
             apiService?.Dispose();
         }
     }
+
+    /// <summary>
+    /// Handles the agent test command to test an agent with a specific message.
+    /// </summary>
+    public static async Task HandleTestCommand(ParseResult parseResult)
+    {
+        try
+        {        
+            var agentName = parseResult.GetValue(AgentCommandOptions.TestNameOption);
+            var message = parseResult.GetValue(AgentCommandOptions.TestMessageOption);
+            var userId = parseResult.GetValue(AgentCommandOptions.TestUserIdOption) ?? Environment.UserName;
+            var displayName = parseResult.GetValue(AgentCommandOptions.TestDisplayNameOption) ?? Environment.UserName;
+            var noWait = parseResult.GetValue(AgentCommandOptions.TestNoWaitOption);
+
+            // Default behavior is to wait unless --no-wait is specified
+            var shouldWait = !noWait;
+
+            if (string.IsNullOrWhiteSpace(agentName))
+            {
+                Console.WriteLine("Agent name is required.");
+                Environment.Exit(1);
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                Console.WriteLine("Test message is required.");
+                Environment.Exit(1);
+                return;
+            }
+
+            // Construct the prefixed message
+            var prefixedMessage = $"Use the {agentName} agent for the below user query\n{message}";
+
+            Console.WriteLine($"Testing agent: {agentName}");
+            Console.WriteLine($"Original message: {message}");
+            Console.WriteLine($"Full message: {prefixedMessage}");
+            Console.WriteLine($"User: {displayName} ({userId})");
+            Console.WriteLine();
+
+            using var apiService = new ApiService();
+            var threadManager = new ThreadManagerService();
+
+            // Step 1: Create a new thread with the prefixed message
+            Console.WriteLine("Creating new test thread...");
+            var (createSuccess, threadId, createResponse) = await apiService.CreateThreadAsync(prefixedMessage, userId, displayName);
+            
+            if (!createSuccess)
+            {
+                Console.WriteLine(createResponse);
+                Environment.Exit(1);
+                return;
+            }
+
+            Console.WriteLine($"Test thread created: {threadId}");
+
+            // Store the thread locally
+            await threadManager.AddThreadAsync(threadId, $"Agent Test: {agentName}");
+
+            // Step 2: Wait for agent response if requested (default is true unless --no-wait)
+            if (shouldWait)
+            {
+                Console.WriteLine($"Waiting for {agentName} agent response...");
+                Console.WriteLine();
+                
+                var (getSuccess, messages, getResponse) = await apiService.GetThreadMessagesStreamingAsync(threadId);
+                
+                if (!getSuccess)
+                {
+                    Console.WriteLine(getResponse);
+                    Environment.Exit(1);
+                    return;
+                }
+
+                Console.WriteLine();
+                Console.WriteLine("🎯 Test completed successfully!");
+                Console.WriteLine($"Thread ID: {threadId}");
+                Console.WriteLine("You can continue this conversation using 'srectl thread continue --thread-id " + threadId + "'");
+            }
+            else
+            {
+                Console.WriteLine($"Test message sent successfully! Thread ID: {threadId}");
+                Console.WriteLine($"Use 'srectl thread continue --thread-id {threadId}' to see the agent's response.");
+            }
+
+            Environment.Exit(0);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to test agent: {ex.Message}");
+            Environment.Exit(1);
+        }
+    }
 }

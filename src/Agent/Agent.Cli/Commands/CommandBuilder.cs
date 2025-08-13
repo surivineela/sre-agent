@@ -17,15 +17,15 @@ public static class CommandBuilder
     {
         // Build agent commands
         var agentCreate = CreateAgentCreateCommand();
-        var agentRun = CreateAgentRunCommand();
         var agentValidate = CreateAgentValidateCommand();
         var agentApply = CreateAgentApplyCommand();
+        var agentTest = CreateAgentTestCommand();
 
         var agent = new Command("agent", "Agent commands");
         agent.Subcommands.Add(agentCreate);
-        agent.Subcommands.Add(agentRun);
         agent.Subcommands.Add(agentValidate);
         agent.Subcommands.Add(agentApply);
+        agent.Subcommands.Add(agentTest);
 
         // Build tool commands
         var toolCreate = CreateToolCreateCommand();
@@ -96,19 +96,6 @@ public static class CommandBuilder
         return agentCreate;
     }
 
-    private static Command CreateAgentRunCommand()
-    {
-        var agentRun = new Command("run", "Run an agent")
-        {
-            AgentCommandOptions.NameOptionCreate
-        };
-        agentRun.SetAction(parseResult => 
-        {
-            AgentCommandHandlers.HandleRunCommand(parseResult);
-        });
-        return agentRun;
-    }
-
     private static Command CreateAgentValidateCommand()
     {
         var agentValidate = new Command("validate", "Validate an agent")
@@ -135,6 +122,23 @@ public static class CommandBuilder
             await AgentCommandHandlers.HandleApplyCommand(parseResult);
         });
         return agentApply;
+    }
+
+    private static Command CreateAgentTestCommand()
+    {
+        var agentTest = new Command("test", "Test an agent with a specific message")
+        {
+            AgentCommandOptions.TestNameOption,
+            AgentCommandOptions.TestMessageOption,
+            AgentCommandOptions.TestUserIdOption,
+            AgentCommandOptions.TestDisplayNameOption,
+            AgentCommandOptions.TestNoWaitOption
+        };
+        agentTest.SetAction(async parseResult => 
+        {
+            await AgentCommandHandlers.HandleTestCommand(parseResult);
+        });
+        return agentTest;
     }
 
     private static Command CreateToolCreateCommand()

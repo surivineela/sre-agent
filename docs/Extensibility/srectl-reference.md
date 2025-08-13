@@ -145,6 +145,57 @@ srectl agent apply --name incident_agent
 srectl agent apply --name example_agent
 ```
 
+### `srectl agent test`
+
+Test an agent with a specific message to verify its functionality and behavior.
+
+**Syntax:**
+```bash
+srectl agent test --name <AgentName> --message "<test-message>" [options]
+```
+
+**Required Parameters:**
+- `--name`: Name of the agent to test
+- `--message`: The test message to send to the agent
+
+**Optional Parameters:**
+- `--user-id`: User ID for the test message (defaults to current user)
+- `--display-name`: Display name for the test message (defaults to current user)
+- `--no-wait`: Don't wait for the agent's response, just send the test message
+
+**What it does:**
+- Creates a new conversation thread
+- Sends a specially formatted message: "Use the {AgentName} agent for the below user query\n{your-message}"
+- Waits for the agent's response (unless `--no-wait` is specified)
+- Provides the thread ID for continued interaction
+
+**Use Cases:**
+- Verify agent configuration and behavior
+- Test agent responses to specific scenarios
+- Debug agent interactions during development
+- Validate agent handoff functionality
+
+**Examples:**
+```bash
+# Basic agent test
+srectl agent test --name DatabaseAgent --message "Help me optimize a slow query"
+
+# Test without waiting for response
+srectl agent test --name SecurityAgent --message "Check for vulnerabilities" --no-wait
+
+# Test with custom user details
+srectl agent test --name MonitoringAgent --message "What's the current system status?" \
+  --user-id "test-user" --display-name "Test Engineer"
+```
+
+**Output:**
+The command will display:
+- Agent name being tested
+- Original and formatted messages
+- Thread creation status
+- Agent response (if waiting)
+- Thread ID for continuation
+
 ---
 
 ## Tool Commands
@@ -397,45 +448,80 @@ srectl doc reindex
 
 ### `srectl thread new`
 
-Create a new conversation thread and send an initial message.
+Create a new conversation thread and start an interactive chat session with the SRE Agent.
 
 **Syntax:**
 ```bash
-srectl thread new --message "<your-question>"
+srectl thread new --message "<your-question>" [--no-wait]
 ```
 
 **Parameters:**
 - `--message` (required): Initial message to send to the agent
+- `--user-id` (optional): User ID for the message (defaults to current user)
+- `--display-name` (optional): Display name for the message (defaults to current user)
+- `--no-wait`: Don't wait for agent response, exit after sending message
+- `--wait`: Wait for agent response and start interactive chat (default behavior)
+
+**Interactive Chat Features:**
+- **Seamless Conversation**: After the agent responds, you'll be prompted to continue the conversation
+- **Real-time Responses**: Agent messages appear immediately as they're received
+- **Easy Exit**: Press Ctrl+C or type 'exit', 'quit', '/exit', or '/quit' to end the chat session
+- **Thread Persistence**: Your conversation is saved and can be resumed later
 
 **What it does:**
 - Creates new conversation thread on remote server
 - Sends initial message to agent
 - Displays agent response in real-time
+- Starts interactive chat session (unless `--no-wait` specified)
 - Stores thread ID for future reference
 
 **Examples:**
 ```bash
+# Start interactive chat session
 srectl thread new --message "Help me troubleshoot a Redis container issue"
-srectl thread new --message "What's the current system health status?"
+
+# Send message without waiting for response
+srectl thread new --message "What's the current system health status?" --no-wait
+
+# Specify custom user details
+srectl thread new --message "Check system status" --user-id "admin" --display-name "System Admin"
 ```
 
 ### `srectl thread continue`
 
-Continue an existing conversation thread with a follow-up message.
+Continue an existing conversation thread with a follow-up message or resume interactive chat.
 
 **Syntax:**
 ```bash
-srectl thread continue --message "<follow-up-message>" [--thread-id <thread-id>]
+srectl thread continue [--message "<follow-up-message>"] [--thread-id <thread-id>] [--no-wait]
 ```
 
 **Parameters:**
-- `--message` (required): Follow-up message to send
+- `--message` (optional): Follow-up message to send
 - `--thread-id` (optional): Specific thread ID to continue (defaults to most recent)
+- `--user-id` (optional): User ID for the message (defaults to current user)
+- `--display-name` (optional): Display name for the message (defaults to current user)
+- `--no-wait`: Don't wait for agent response or start interactive mode
+- `--wait`: Wait for agent response and start interactive chat (default behavior)
+
+**Interactive Mode:**
+- **With Message**: Sends the message, waits for agent response, then starts interactive chat
+- **Without Message**: Shows conversation history and starts interactive chat immediately
+- **Exit Options**: Use Ctrl+C or exit commands to end the session
 
 **Examples:**
 ```bash
+# Continue with a specific message and start interactive mode
 srectl thread continue --message "The issue is still persisting"
+
+# Resume interactive chat without sending a new message
+srectl thread continue
+
+# Continue specific thread
 srectl thread continue --thread-id thread_abc123 --message "Can you check again?"
+
+# Send message without starting interactive mode
+srectl thread continue --message "Status update please" --no-wait
 ```
 
 ### `srectl thread list`

@@ -67,16 +67,15 @@ public static class ThreadCommandHandlers
                     return;
                 }
 
-                Console.WriteLine($"Conversation complete! Thread ID: {threadId}");
-                Console.WriteLine($"You can continue this conversation using 'srectl thread continue'");
+                // Start interactive chat session
+                await StartInteractiveChatSession(apiService, threadManager, threadId, userId, displayName);
             }
             else
             {
                 Console.WriteLine($"Message sent successfully! Thread ID: {threadId}");
                 Console.WriteLine($"Use 'srectl thread continue' to see the agent's response or continue the conversation.");
+                Environment.Exit(0);
             }
-
-            Environment.Exit(0);
         }
         catch (Exception ex)
         {
@@ -145,24 +144,54 @@ public static class ThreadCommandHandlers
                 {
                     Console.WriteLine("Waiting for SRE Agent response...");
                     Console.WriteLine();
-                }
-                
-                var (getSuccess, messages, getResponse) = await apiService.GetThreadMessagesStreamingAsync(threadId);
-                
-                if (!getSuccess)
-                {
-                    Console.WriteLine(getResponse);
-                    Environment.Exit(1);
-                    return;
-                }
+                    
+                    var (getSuccess, messages, getResponse) = await apiService.GetThreadMessagesStreamingAsync(threadId);
+                    
+                    if (!getSuccess)
+                    {
+                        Console.WriteLine(getResponse);
+                        Environment.Exit(1);
+                        return;
+                    }
 
-                Console.WriteLine($"Conversation complete! Thread ID: {threadId}");
-                Console.WriteLine($"You can continue this conversation using 'srectl thread continue'");
+                    // Start interactive chat session after getting response
+                    await StartInteractiveChatSession(apiService, threadManager, threadId, userId, displayName);
+                }
+                else
+                {
+                    // No message provided, show conversation history and start interactive mode
+                    var (getSuccess, messages, getResponse) = await apiService.GetThreadMessagesAsync(threadId, maxRetries: 1);
+                    
+                    if (!getSuccess)
+                    {
+                        Console.WriteLine(getResponse);
+                        Environment.Exit(1);
+                        return;
+                    }
+
+                    // Display the conversation history
+                    Console.WriteLine("Conversation History:");
+                    Console.WriteLine("═══════════════════");
+                    Console.WriteLine();
+
+                    foreach (var msg in messages.OrderBy(m => m.Timestamp))
+                    {
+                        var roleLabel = msg.AuthorRole.Equals("SREAgent", StringComparison.OrdinalIgnoreCase) ? "SRE Agent" : "You";
+                        var timestamp = msg.Timestamp.ToString("HH:mm:ss");
+                        Console.WriteLine($"{roleLabel} ({timestamp}):");
+                        Console.WriteLine($"   {msg.Text}");
+                        Console.WriteLine();
+                    }
+
+                    // Start interactive chat session
+                    await StartInteractiveChatSession(apiService, threadManager, threadId, userId, displayName);
+                }
             }
             else if (!string.IsNullOrWhiteSpace(message))
             {
                 Console.WriteLine($"Message sent successfully! Thread ID: {threadId}");
                 Console.WriteLine($"Use 'srectl thread continue' to see the agent's response.");
+                Environment.Exit(0);
             }
             else
             {
@@ -192,9 +221,8 @@ public static class ThreadCommandHandlers
 
                 Console.WriteLine($"Thread ID: {threadId}");
                 Console.WriteLine($"Use 'srectl thread continue --message \"your message\"' to continue the conversation.");
+                Environment.Exit(0);
             }
-
-            Environment.Exit(0);
         }
         catch (Exception ex)
         {
@@ -344,6 +372,122 @@ public static class ThreadCommandHandlers
         {
             Console.WriteLine($"Failed to track thread: {ex.Message}");
             Environment.Exit(1);
+        }
+    }
+
+    /// <summary>
+    /// Starts an interactive chat session where the user can continuously send messages
+    /// and receive responses from the agent without needing to exit and restart commands.
+    /// </summary>
+    /// <param name="apiService">The API service for communication</param>
+    /// <param name="threadManager">The thread manager service</param>
+    /// <param name="threadId">The current thread ID</param>
+    /// <param name="userId">The user ID</param>
+    /// <param name="displayName">The display name</param>
+    private static async Task StartInteractiveChatSession(ApiService apiService, ThreadManagerService threadManager, string threadId, string userId, string displayName)
+    {
+        Console.WriteLine();
+        Console.WriteLine("🎯 Interactive chat session started!");
+        Console.WriteLine("Type your messages and press Enter to send. Press Ctrl+C to exit.");
+        Console.WriteLine("═══════════════════════════════════════════════════════════════");
+        Console.WriteLine();
+
+        // Set up console cancellation handling
+        var cancellationTokenSource = new CancellationTokenSource();
+        Console.CancelKeyPress += (_, e) =>
+        {
+            e.Cancel = true;
+            cancellationTokenSource.Cancel();
+        };
+
+        try
+        {
+            while (!cancellationTokenSource.Token.IsCancellationRequested)
+            {
+                // Show input prompt
+                Console.Write("You: ");
+                
+                // Read user input with cancellation support
+                string? userMessage = null;
+                var inputTask = Task.Run(() => Console.ReadLine(), cancellationTokenSource.Token);
+                
+                try
+                {
+                    userMessage = await inputTask;
+                }
+                catch (OperationCanceledException)
+                {
+                    // User pressed Ctrl+C
+                    break;
+                }
+
+                // Check if user wants to exit or if input is empty
+                if (string.IsNullOrWhiteSpace(userMessage))
+                {
+                    continue;
+                }
+
+                // Check for explicit exit commands
+                if (userMessage.Trim().Equals("exit", StringComparison.OrdinalIgnoreCase) ||
+                    userMessage.Trim().Equals("quit", StringComparison.OrdinalIgnoreCase) ||
+                    userMessage.Trim().Equals("/exit", StringComparison.OrdinalIgnoreCase) ||
+                    userMessage.Trim().Equals("/quit", StringComparison.OrdinalIgnoreCase))
+                {
+                    break;
+                }
+
+                Console.WriteLine();
+
+                try
+                {
+                    // Send the message
+                    Console.WriteLine("Sending message...");
+                    var (sendSuccess, messageId, sendResponse) = await apiService.SendMessageAsync(threadId, userMessage, userId, displayName);
+                    
+                    if (!sendSuccess)
+                    {
+                        Console.WriteLine($"❌ Failed to send message: {sendResponse}");
+                        Console.WriteLine();
+                        continue;
+                    }
+
+                    // Wait for and display the agent's response
+                    Console.WriteLine("Waiting for SRE Agent response...");
+                    Console.WriteLine();
+
+                    var (getSuccess, messages, getResponse) = await apiService.GetThreadMessagesStreamingAsync(threadId);
+                    
+                    if (!getSuccess)
+                    {
+                        Console.WriteLine($"❌ Failed to get response: {getResponse}");
+                        Console.WriteLine();
+                        continue;
+                    }
+
+                    // Update thread last used
+                    await threadManager.UpdateThreadLastUsedAsync(threadId);
+
+                    Console.WriteLine("─────────────────────────────────────────────────────────");
+                    Console.WriteLine();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"❌ Error during conversation: {ex.Message}");
+                    Console.WriteLine();
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected when user presses Ctrl+C
+        }
+        finally
+        {
+            Console.WriteLine();
+            Console.WriteLine("🏁 Chat session ended.");
+            Console.WriteLine($"Thread ID: {threadId}");
+            Console.WriteLine("You can resume this conversation later using 'srectl thread continue --thread-id " + threadId + "'");
+            Environment.Exit(0);
         }
     }
 }
