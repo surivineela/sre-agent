@@ -8,12 +8,10 @@ import { SettingsTabResources } from '../../Strings/SREAgentResources';
 import AccessControl from './AccessControl.ReactView';
 import Basics from './Basics.ReactView';
 import DataConnectors from './DataConnectors.ReactView';
-import IncidentManagementSettings from './IncidentManagementSettings';
 import ManagedResources from './ManagedResources.ReactView';
 import { navStyles, useSettingsStyles } from './Styles/Settings.styles';
 
 export enum SettingsKeys {
-    IncidentManagement = 'incidentManagement',
     AccessControl = 'accessControl',
     Basics = 'basics',
     GrafanaDashboard = 'grafanaDashboard',
@@ -50,11 +48,6 @@ const Settings: FC = () => {
                         name: intl.formatMessage(SettingsTabResources.managedResources),
                         url: '',
                         key: SettingsKeys.managedResources,
-                    },
-                    {
-                        name: intl.formatMessage(SettingsTabResources.incidentPlatform),
-                        url: '',
-                        key: SettingsKeys.IncidentManagement,
                     },
                     {
                         name: intl.formatMessage(SettingsTabResources.grafanaDashboard),
@@ -102,7 +95,6 @@ const Settings: FC = () => {
                 <div style={styles.navPivotContainer}>
                     {selectedKey === SettingsKeys.Basics && <Basics />}
                     {selectedKey === SettingsKeys.managedResources && <ManagedResources />}
-                    {selectedKey === SettingsKeys.IncidentManagement && <IncidentManagementSettings />}
                     {selectedKey === SettingsKeys.GrafanaDashboard && <GrafanaDashboard />}
                     {selectedKey === SettingsKeys.DataConnectors && showDataConnectors && <DataConnectors />}
                     {selectedKey === SettingsKeys.AccessControl && <AccessControl />}
