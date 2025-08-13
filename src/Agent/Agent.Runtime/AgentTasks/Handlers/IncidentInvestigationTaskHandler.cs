@@ -52,7 +52,7 @@ public sealed class IncidentInvestigationTaskHandler(
     });
     private readonly List<ChatMessage> _aggregatedToolHistory = new();
     private List<string>? toolSubset = null;
-    private bool isACAAgent = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") == "ACAAgent";
+    private readonly bool is1PAgent = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") == "ACAAgent";
 
     /// <summary>
     /// Gets the RCA agents store if agent tasks are enabled, otherwise returns null.
@@ -90,7 +90,7 @@ public sealed class IncidentInvestigationTaskHandler(
             await threadRepository.UpdateTaskOnThreadAsync(agentTask.ThreadId, agentTask.ToShortForm());
             logger.LogInternalInformation("Agent task {TaskId} saved to thread {ThreadId}", agentTask.Id, agentTask.ThreadId);
 
-            if (isACAAgent)
+            if (is1PAgent)
             {
                 var allAgents = YamlHelper.LoadAgentsFromYamlDirectories(
                     new List<string> { Path.Combine("AgentsV2", "ACA-FirstParty") },
@@ -149,7 +149,7 @@ public sealed class IncidentInvestigationTaskHandler(
                         """;
 
                     var toolSelectionAgent = IncidentInvestigationAgents.CreateToolSelectionAgent(
-                        IncidentInvestigationHelper.GatheringContext.GetToolSelectionInstructions(toolFactory, toolSubset));
+                        IncidentInvestigationHelper.GatheringContext.GetToolSelectionInstructions(toolFactory, is1PAgent, toolSubset));
 
                     var toolNames = await CallAgentAsync<List<string>>(
                         toolSelectionAgent,
@@ -421,45 +421,34 @@ public sealed class IncidentInvestigationTaskHandler(
 
     private void ValidateAndAddRequiredTools(List<string> toolNames)
     {
-        if (isACAAgent)
+        if (is1PAgent)
         {
-            return;
+            toolNames.AddRange(
+            [
+                "GetIssueInvestigationTimeRangeRCAContainerApp",
+                "GetIncidentInfoRCAContainerApp",
+                "SearchContainerAppsResourcesByName",
+            ]);
+        }
+        else
+        {
+            toolNames.AddRange(
+            [
+                "RunAzCliReadCommands",
+                "GetResourceDetailedProperties",
+                "SearchResource",
+                "SearchResourceByName",
+                "GetResourceIdForResourceName",
+                "ListResourcesByType",
+            ]);
         }
 
-        if (!toolNames.Contains("RunAzCliReadCommands"))
-        {
-            toolNames.Add("RunAzCliReadCommands");
-        }
-        if (!toolNames.Contains("GetResourceDetailedProperties"))
-        {
-            toolNames.Add("GetResourceDetailedProperties");
-        }
-        if (!toolNames.Contains("SearchResource"))
-        {
-            toolNames.Add("SearchResource");
-        }
-        if (!toolNames.Contains("SearchResourceByName"))
-        {
-            toolNames.Add("SearchResourceByName");
-        }
-        if (!toolNames.Contains("GetResourceIdForResourceName"))
-        {
-            toolNames.Add("GetResourceIdForResourceName");
-        }
-        if (!toolNames.Contains("ListResourcesByType"))
-        {
-            toolNames.Add("ListResourcesByType");
-        }
-
-        if (isACAAgent)
-        {
-            if (!toolNames.Contains("GetIncidentInfoRCAContainerApp"))
-            {
-                toolNames.Add("ListResourcesByType");
-            }
-        }
 
         toolNames.RemoveAll(name => !toolFactory.HasTool(name));
+
+        // Remove duplicates
+        var uniqueElements = new HashSet<string>();
+        toolNames.RemoveAll(item => !uniqueElements.Add(item));
     }
 
     private IncidentInvestigationTaskProperties GetCurrentState()

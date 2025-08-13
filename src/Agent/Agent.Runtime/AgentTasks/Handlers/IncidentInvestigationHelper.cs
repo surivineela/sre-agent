@@ -39,7 +39,7 @@ public static class IncidentInvestigationHelper
 
     public static class GatheringContext
     {
-        private const string ToolSelectionContext = """
+        private const string ToolSelectionContextFor3P = """
         Below is a list of all tools and their descriptions that may be used to investigate an incident.
         You will be provided with a description of the incident that the next agent will be investigating.
         You must select the most relevant tools to use based on the incident description, and return a list of tool names.
@@ -61,7 +61,21 @@ public static class IncidentInvestigationHelper
         Application logs may come from Azure Monitor, Application Insights, or from tools that fetch logs directly from the application.
         """;
 
-        public static string GetToolSelectionInstructions(IToolFactory<AgentContext> toolFactory, List<string>? whitelist = null)
+        private const string ToolSelectionContextFor1P = """
+        Below is a list of all tools and their descriptions that may be used to investigate an incident.
+        You will be provided with a description of the incident that the next agent will be investigating.
+        You must select the most relevant tools to use based on the incident description, and return a list of tool names.
+
+        The tools you select will be used by the next agent to gather general context about the incident. Focus on tools that help with information retrieval.
+        The tools that the next agent will need are tools that will help do the following:
+
+        1. Retrieve incident data.
+        2. Always call the `GetIssueInvestigationTimeRangeRCAContainerApp` tool to accurately determine the investigation time range after extracting the time window of the issue from the incident summary.
+        3. Collect details about affected resources, assembling all relevant context from the incident.
+        4. Search ContainerApp, ContainerAppsJob, SessionPool, Managed Environments resources mentioned in the incident summary, to verify their existence.
+        """;
+
+        public static string GetToolSelectionInstructions(IToolFactory<AgentContext> toolFactory, bool is1PAgent, List<string>? whitelist = null)
         {
             var availableTools = toolFactory.FetchAvailableToolInfo(FilterTools);
             if (whitelist is not null && whitelist.Count > 0)
@@ -71,7 +85,7 @@ public static class IncidentInvestigationHelper
             var text = JsonSerializer.Serialize(availableTools, JsonSerializerOptions);
 
             return ToolSelectionInstructions
-                .Replace(ToolSelectionContextToken, ToolSelectionContext)
+                .Replace(ToolSelectionContextToken, is1PAgent ? ToolSelectionContextFor1P : ToolSelectionContextFor3P)
                 .Replace(AvailableToolsToken, text);
         }
     }
