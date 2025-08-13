@@ -2,12 +2,11 @@ import { Body1, Body2, Card, CardHeader, makeStyles, Text, tokens } from '@fluen
 import { Handle, NodeProps, Position } from '@xyflow/react';
 import { memo } from 'react';
 import { HypothesisStatus } from '../../Common/Contracts/DataPlane/AgentTask';
-import { AgentTaskNodeSize, GraphFlowNode } from '../Contracts/Activities';
+import { GraphFlowNode } from '../Contracts/Activities';
 
 const useStyles = makeStyles({
     nodeContainer: {
         position: 'relative',
-        width: `${AgentTaskNodeSize.HypothesisNode.width}px`,
     },
     statusIndicator: {
         padding: '5px 8px',

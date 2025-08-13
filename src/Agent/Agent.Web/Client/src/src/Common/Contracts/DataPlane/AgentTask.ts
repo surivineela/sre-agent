@@ -147,6 +147,7 @@ export enum HypothesisAction {
 export enum TreeNodeType {
     Phase = 'phase',
     Hypothesis = 'hypothesis',
+    Group = 'hypothesisGroup',
 }
 
 export type InvestigationTreeNodeStatus = InvestigationStatusCommon | TaskProgressStatus | HypothesisStatus | string;

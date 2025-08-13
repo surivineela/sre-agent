@@ -238,6 +238,11 @@ export enum AgentTaskPhaseNodeIdSuffix {
 }
 
 export class AgentTaskNodeSize {
+    public static readonly GroupNode = {
+        width: 600,
+        height: 300,
+    };
+
     public static readonly PhaseNode = {
         width: 400,
         height: 180,

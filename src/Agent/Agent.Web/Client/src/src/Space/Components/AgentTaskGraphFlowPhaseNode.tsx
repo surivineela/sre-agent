@@ -7,9 +7,9 @@ import { AgentTaskNodeSize, AgentTaskPhaseNodeIdSuffix, GraphFlowNode } from '..
 
 const useStyles = makeStyles({
     nodeContainer: {
+        pointer: 'cursor',
         width: `${AgentTaskNodeSize.PhaseNode.width}px`,
         height: `${AgentTaskNodeSize.PhaseNode.height}px`,
-        pointer: 'cursor',
     },
     statusIndicator: {
         fontSize: '30px',

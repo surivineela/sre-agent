@@ -1,7 +1,7 @@
 import { graphlib, layout } from '@dagrejs/dagre';
-import { MarkerType, useEdgesState, useNodesState, useReactFlow } from '@xyflow/react';
+import { MarkerType, useEdgesState, useNodesState, useReactFlow, XYPosition } from '@xyflow/react';
 import { useEffect } from 'react';
-import { InvestigationTreeNode, TreeNodeType } from '../../Common/Contracts/DataPlane/AgentTask';
+import { InvestigationTreeNode, InvestigationTreeState, TreeNodeType } from '../../Common/Contracts/DataPlane/AgentTask';
 import {
     AgentTaskNodeSize,
     AgentTaskPhaseNodeIdSuffix,
@@ -11,6 +11,26 @@ import {
     InvestigationGraphFlowEdgeType,
 } from '../Contracts/Activities';
 
+interface HypothesisGroup {
+    groupNode: GraphFlowNode;
+    nodes: GraphFlowNode[];
+    edges: GraphFlowEdge[];
+}
+
+class DagreSep {
+    public static readonly parentNode = {
+        ranksep: 150,
+        nodesep: 100,
+    };
+
+    public static readonly childNode = {
+        ranksep: 100,
+        nodesep: 50,
+    };
+}
+
+const GroupNodePadding = 50;
+
 export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
     const { treeStateValue } = props;
 
@@ -19,74 +39,59 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
     const [nodes, setNodes, onNodesChange] = useNodesState<GraphFlowNode>([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState<GraphFlowEdge>([]);
 
-    const isConclusionNode = (nodeId: string) => nodeId.toLowerCase().includes(AgentTaskPhaseNodeIdSuffix.Conclusion);
+    const getDagreLayout = (
+        nodes: GraphFlowNode[],
+        edges: GraphFlowEdge[]
+    ): {
+        nodes: GraphFlowNode[];
+        edges: GraphFlowEdge[];
+    } => {
+        const dagreGraph = new graphlib.Graph({}).setDefaultEdgeLabel(() => ({}));
+        // Configure for investigation tree layout - top-to-bottom flow
+        dagreGraph.setGraph({
+            rankdir: 'TB', // Top-to-bottom for investigation flow
+            ranker: 'tight-tree',
+            ...DagreSep.childNode,
+        });
 
-    const getNodeWidth = (node: GraphFlowNode) =>
-        node.type === TreeNodeType.Hypothesis ? AgentTaskNodeSize.HypothesisNode.width : AgentTaskNodeSize.PhaseNode.width;
+        const getNodeWidthAndHeight = (node: GraphFlowNode) => {
+            switch (node.type) {
+                case TreeNodeType.Group:
+                    return AgentTaskNodeSize.GroupNode;
+                case TreeNodeType.Phase:
+                    return AgentTaskNodeSize.PhaseNode;
+                default:
+                    return AgentTaskNodeSize.HypothesisNode;
+            }
+        };
 
-    const getDagreLayout = (nodes: GraphFlowNode[], edges: GraphFlowEdge[]) => {
-        // Add error handling for empty inputs
         if (!nodes || nodes.length === 0) {
             return { nodes: [], edges: [] };
         }
 
-        const dagreGraph = new graphlib.Graph({}).setDefaultEdgeLabel(() => ({}));
-
-        // Configure for investigation tree layout - top-to-bottom flow
-        dagreGraph.setGraph({
-            rankdir: 'TB', // Top-to-bottom for investigation flow
-            ranksep: 200, // Vertical spacing between levels
-            nodesep: 150, // Horizontal spacing between nodes at same level
-            ranker: 'tight-tree',
-        });
-
-        // Add nodes first, then edges (following working pattern)
         nodes.forEach(node => {
-            if (!isConclusionNode(node.id)) {
-                dagreGraph.setNode(node.id, {
-                    ...node, // Spread the node object like in working implementation
-                    width: getNodeWidth(node), // Use the getNodeWidth function
-                    height: 160, // Standard hypothesis node height
-                });
-            }
+            dagreGraph.setNode(node.id, {
+                ...node,
+                ...getNodeWidthAndHeight(node),
+            });
         });
-
         // Add edges after nodes
         edges.forEach(edge => dagreGraph.setEdge(edge.source, edge.target));
 
         // Run dagre layout algorithm
         layout(dagreGraph);
 
-        // Convert dagre positions back to React Flow format
-        const computedNodes: GraphFlowNode[] = [];
-        nodes.forEach(node => {
-            if (!isConclusionNode(node.id)) {
-                const position = dagreGraph.node(node.id);
-                // We are shifting the dagre node position (anchor=center center) to the top left
-                // so it matches the React Flow node anchor point (top left).
-                const x = position.x - getNodeWidth(node) / 2; // Half of node width to center
-                const y = position.y - 80; // Half of node height to center
+        const computedNodes = nodes.map(node => {
+            const position = dagreGraph.node(node.id);
+            const { width, height } = getNodeWidthAndHeight(node);
 
-                computedNodes.push({
-                    ...node,
-                    position: { x, y },
-                });
-            }
+            return {
+                ...node,
+                width,
+                height,
+                position,
+            };
         });
-
-        const conclusionNodeX =
-            computedNodes.find(node => node.id.toLowerCase().includes(AgentTaskPhaseNodeIdSuffix.InitialInvestigation))?.position.x ?? 160;
-        const conclusionNodeY = Math.max(...computedNodes.map(node => node.position.y)) + 1.5 * AgentTaskNodeSize.HypothesisNode.height; // Place conclusion node below all others
-        const conclusionNode = nodes.find(node => node.id.toLowerCase().includes(AgentTaskPhaseNodeIdSuffix.Conclusion));
-
-        if (conclusionNode) {
-            computedNodes.push({
-                ...conclusionNode,
-                width: 320, // Standard conclusion node width
-                height: 160, // Standard conclusion node height
-                position: { x: conclusionNodeX, y: conclusionNodeY },
-            });
-        }
 
         return {
             nodes: computedNodes,
@@ -94,34 +99,27 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
         };
     };
 
-    useEffect(() => {
-        const treeState = treeStateValue.treeState;
+    const getInitialInvestigationNode = (phaseNodes: InvestigationTreeNode[]): GraphFlowNode | null => {
+        const initialInvestigation =
+            phaseNodes.find(node => node.id.toLowerCase().includes(AgentTaskPhaseNodeIdSuffix.InitialInvestigation)) || null;
 
-        if (!treeState || treeState.rootNodeIds.length === 0) {
-            setNodes([]);
-            setEdges([]);
-            return;
-        }
+        return initialInvestigation
+            ? {
+                  id: initialInvestigation.id,
+                  type: TreeNodeType.Phase,
+                  position: { x: 0, y: 0 }, // Temporary position - will be set by dagre
+                  width: AgentTaskNodeSize.PhaseNode.width,
+                  height: AgentTaskNodeSize.PhaseNode.height,
+                  data: { ...initialInvestigation },
+              }
+            : null;
+    };
 
-        const graphFlowNodes: GraphFlowNode[] = [];
-        const graphFlowEdges: GraphFlowEdge[] = [];
+    const getHypothesisGroups = (phaseNodes: InvestigationTreeNode[], nodes: Map<string, InvestigationTreeNode>) => {
+        const result: HypothesisGroup[] = [];
 
-        const { rootNodeIds, nodes } = treeState;
-
-        // Get phase nodes
-        const phaseNodes: InvestigationTreeNode[] = [];
-        rootNodeIds.forEach(id => {
-            const node = nodes.get(id);
-            if (node && node?.nodeType === TreeNodeType.Phase && !node.title.toLowerCase().includes('validating hypothesis')) {
-                phaseNodes.push(node);
-            }
-        });
-
-        const initialInvestigation = phaseNodes.find(node =>
-            node.id.toLowerCase().includes(AgentTaskPhaseNodeIdSuffix.InitialInvestigation)
-        );
         const formingHypothesis = phaseNodes.find(node => node.id.toLowerCase().includes(AgentTaskPhaseNodeIdSuffix.FormingHypothesis));
-        const conclusion = phaseNodes.find(node => node.id.toLowerCase().includes(AgentTaskPhaseNodeIdSuffix.Conclusion));
+        const initialHypotheseIds = formingHypothesis?.childrenIds || [];
 
         const addChildHypotheses = (
             parentHypothesis: InvestigationTreeNode,
@@ -155,11 +153,13 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
                         id: `${parentHypothesis.id}-${child.id}`,
                         source: parentHypothesis.id,
                         target: child.id,
+                        zIndex: 2000,
                         markerEnd: {
                             type: MarkerType.ArrowClosed,
                             width: 20,
                             height: 20,
                         },
+
                         data: {
                             edgeType: InvestigationGraphFlowEdgeType.HypothesisToHypothesis,
                             sourceId: parentHypothesis.id,
@@ -173,22 +173,25 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
             });
         };
 
-        // Add initial investigation node
-        if (initialInvestigation) {
-            graphFlowNodes.push({
-                id: initialInvestigation.id,
-                type: TreeNodeType.Phase,
-                position: { x: 0, y: 0 }, // Temporary position - will be set by dagre
-                data: { ...initialInvestigation },
-            });
-        }
-
         // Add initial hypothesis nodes
-        const initialHypotheseIds = formingHypothesis?.childrenIds || [];
         if (initialHypotheseIds.length > 0) {
             initialHypotheseIds.forEach((hypothesisId, index) => {
                 const hypothesis = nodes.get(hypothesisId);
                 if (hypothesis) {
+                    const groupNodeId = `group-${hypothesis.id}`;
+                    const graphFlowNodes: GraphFlowNode[] = [];
+                    const graphFlowEdges: GraphFlowEdge[] = [];
+
+                    const groupNode = {
+                        id: groupNodeId,
+                        type: TreeNodeType.Group,
+                        position: { x: 0, y: 0 }, // Temporary position - will be set by dagre
+                        data: {
+                            ...hypothesis,
+                            title: `Hypothesis ${index + 1}`,
+                        },
+                    };
+
                     graphFlowNodes.push({
                         id: hypothesis.id,
                         type: TreeNodeType.Hypothesis,
@@ -201,53 +204,284 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
                         },
                     });
 
-                    // Add edge from initial investigation to hypothesis
-                    if (initialInvestigation) {
-                        graphFlowEdges.push({
-                            id: `${initialInvestigation.id}-${hypothesis.id}`,
-                            source: initialInvestigation.id,
-                            target: hypothesis.id,
-                            markerEnd: {
-                                type: MarkerType.ArrowClosed,
-                                width: 20,
-                                height: 20,
-                            },
-                            data: {
-                                edgeType: InvestigationGraphFlowEdgeType.PhaseToHypothesis,
-                                sourceId: initialInvestigation.id,
-                                targetId: hypothesis.id,
-                            },
-                        });
-                    }
-
                     // Add child hypotheses recursively
                     addChildHypotheses(hypothesis, graphFlowNodes, graphFlowEdges, 1);
+                    result.push({ groupNode, nodes: graphFlowNodes, edges: graphFlowEdges });
                 }
             });
         }
 
-        // Add Conclusion
-        if (conclusion) {
-            graphFlowNodes.push({
-                id: conclusion.id,
-                type: TreeNodeType.Phase,
-                position: { x: 0, y: 0 }, // Temporary position - will be set by dagre
-                data: { ...conclusion },
-            });
+        return result;
+    };
+
+    const getGroupNodeDimension = (childNodes: GraphFlowNode[]) => {
+        const minX = Math.min(...childNodes.map(n => n.position.x - (n.width || 0) / 2)) - GroupNodePadding;
+        const minY = Math.min(...childNodes.map(n => n.position.y - (n.height || 0) / 2)) - GroupNodePadding;
+        const maxX = Math.max(...childNodes.map(n => n.position.x + (n.width || 0) / 2)) + GroupNodePadding;
+        const maxY = Math.max(...childNodes.map(n => n.position.y + (n.height || 0) / 2)) + GroupNodePadding;
+
+        return {
+            minX,
+            minY,
+            maxX,
+            maxY,
+        };
+    };
+
+    // Take the center position of the child node and calculate its relative position to the group node.
+    // After that, shift the center position to top left to match React flow position
+    const getChildNodeRelativePositionToGroupNode = (childNode: GraphFlowNode, groupNodePostion: XYPosition) => {
+        const centerPositionOfChildNode = childNode.position;
+        return {
+            x: centerPositionOfChildNode.x - groupNodePostion.x - (childNode.width || 0) / 2,
+            y: centerPositionOfChildNode.y - groupNodePostion.y - (childNode.height || 0) / 2,
+        };
+    };
+
+    // Find the horizontal position of the top left corner of a parent node ( a phase node ) based on the group nodes layout
+    const getNonGroupParentNodePositionX = (groupsNodesCenterX: number) => {
+        return groupsNodesCenterX - AgentTaskNodeSize.PhaseNode.width / 2;
+    };
+
+    const getParentNodePositionY = (previousParentNodePositionY: number, previousParentNodeHeight: number) => {
+        return previousParentNodePositionY + previousParentNodeHeight + DagreSep.parentNode.ranksep;
+    };
+
+    const getInitialInvestigationNodePosition = (groupsNodeCenterX: number, initialInvestigationNode: GraphFlowNode) => {
+        if (groupsNodeCenterX === 0) {
+            const layout = getDagreLayout([initialInvestigationNode], []);
+            return layout.nodes[0].position;
         }
 
-        const { nodes: computedNodes, edges: computedEdges } = getDagreLayout(graphFlowNodes, graphFlowEdges);
+        return {
+            x: getNonGroupParentNodePositionX(groupsNodeCenterX),
+            y: getParentNodePositionY(0, 0), // Initial position Y is 0, height is 0
+        };
+    };
 
-        setNodes(computedNodes);
-        setEdges(computedEdges);
+    const layoutHypothesisGroupAndChildrenNode = (
+        hypothesisGroups: HypothesisGroup[],
+        initialInvestigationNodeId: string,
+        initialInvestigationNodePositionY: number,
+        initialInvestigationNodeHeight: number
+    ) => {
+        const nodes: GraphFlowNode[] = [];
+        const edges: GraphFlowEdge[] = [];
 
-        setTimeout(() => fitView({ minZoom: 0.5, maxZoom: 1.2, padding: 50, duration: 100, interpolate: 'smooth' }), 100);
+        let startX = 10;
+        const initialStartX = 10;
+        const startY = getParentNodePositionY(initialInvestigationNodePositionY, initialInvestigationNodeHeight);
+        let maxHeightOfGroupNodes = 0;
+
+        for (const group of hypothesisGroups) {
+            const groupNode = group.groupNode;
+
+            // Use dagre to get the center positions of each child node of the group
+            const layout = getDagreLayout(group.nodes, group.edges);
+
+            // Get the dimension of the group based on the child nodes' positions
+            // for the purpose of getting the width and the height of the group node
+            const { minX, minY, maxX, maxY } = getGroupNodeDimension(layout.nodes);
+            const width = Math.abs(maxX - minX);
+            const height = Math.abs(maxY - minY);
+
+            // Set each child node's parentId to the group node's id,
+            // and reset their position to make them being placed within the group node but maintain the relative positions among each other
+            const nodesWithNewPosition: GraphFlowNode[] = layout.nodes.map(node => ({
+                ...node,
+                parentId: groupNode.id,
+                extent: 'parent',
+                position: getChildNodeRelativePositionToGroupNode(node, { x: minX, y: minY }),
+            }));
+
+            // Set the width, height and position of the group node
+            const groupNodeWithComputedPositionAndDimension: GraphFlowNode = {
+                ...groupNode,
+                width,
+                height,
+                position: { x: startX, y: startY },
+            };
+
+            // Add edges from the initial investigation node to the group node
+            const edgeFromInitialInvestigationNodeToGroupNode: GraphFlowEdge = {
+                id: `${initialInvestigationNodeId}-${groupNode.id}`,
+                source: initialInvestigationNodeId,
+                target: groupNode.id,
+                zIndex: -99,
+                markerEnd: {
+                    type: MarkerType.ArrowClosed,
+                    width: 20,
+                    height: 20,
+                },
+                data: {
+                    edgeType: InvestigationGraphFlowEdgeType.HypothesisToHypothesis,
+                    sourceId: initialInvestigationNodeId,
+                    targetId: groupNode.id,
+                },
+            };
+
+            nodes.push(...[groupNodeWithComputedPositionAndDimension, ...nodesWithNewPosition]);
+            edges.push(...[edgeFromInitialInvestigationNodeToGroupNode, ...layout.edges]);
+
+            // Repeat the same procedure for next group by moving the start position horizontally to the right
+            startX += width + DagreSep.parentNode.nodesep;
+            maxHeightOfGroupNodes = Math.max(maxHeightOfGroupNodes, height);
+        }
+
+        const groupNodesWidth = startX - DagreSep.parentNode.nodesep - initialStartX;
+        const groupNodesCenterX = initialStartX + groupNodesWidth / 2;
+
+        return {
+            nodes,
+            edges,
+            groupNodesCenterX,
+            maxHeightOfGroupNodes,
+            groupNodesPositionY: startY,
+        };
+    };
+
+    const getConclusionNodesAndEdges = (
+        phaseNodes: InvestigationTreeNode[],
+        position: XYPosition,
+        parentIds: string[]
+    ): {
+        conclusionNode: GraphFlowNode | null;
+        conclusionEdges: GraphFlowEdge[];
+    } => {
+        const conclusion = phaseNodes.find(node => node.id.toLowerCase().includes(AgentTaskPhaseNodeIdSuffix.Conclusion));
+
+        let conclusionNode: GraphFlowNode | null = null;
+        const conclusionEdges: GraphFlowEdge[] = [];
+
+        if (conclusion) {
+            conclusionNode = {
+                id: conclusion.id,
+                type: TreeNodeType.Phase,
+                position,
+                data: { ...conclusion },
+            };
+
+            if (parentIds.length > 0) {
+                parentIds.forEach(parentId => {
+                    conclusionEdges.push({
+                        id: `${parentId}-${conclusion.id}`,
+                        source: parentId,
+                        target: conclusion.id,
+                        markerEnd: {
+                            type: MarkerType.ArrowClosed,
+                            width: 20,
+                            height: 20,
+                        },
+                        zIndex: -99,
+                        data: {
+                            edgeType: InvestigationGraphFlowEdgeType.HypothesisToConclusion,
+                            sourceId: parentId,
+                            targetId: conclusion.id,
+                        },
+                    });
+                });
+            }
+        }
+
+        return {
+            conclusionNode,
+            conclusionEdges,
+        };
+    };
+
+    const constructGraph = (treeState: InvestigationTreeState | null) => {
+        const graphFlowNodes: GraphFlowNode[] = [];
+        const graphFlowEdges: GraphFlowEdge[] = [];
+
+        if (!treeState || treeState.rootNodeIds.length === 0) {
+            return {
+                graphFlowNodes: [],
+                graphFlowEdges: [],
+            };
+        }
+
+        const { rootNodeIds, nodes } = treeState;
+
+        // Get phase nodes
+        const phaseNodes: InvestigationTreeNode[] = [];
+        rootNodeIds.forEach(id => {
+            const node = nodes.get(id);
+            if (node && node?.nodeType === TreeNodeType.Phase && !node.title.toLowerCase().includes('validating hypothesis')) {
+                phaseNodes.push(node);
+            }
+        });
+
+        // Add initial investigation node
+        const initialInvestigationNode = getInitialInvestigationNode(phaseNodes);
+        if (!initialInvestigationNode) {
+            return {
+                graphFlowNodes: [],
+                graphFlowEdges: [],
+            };
+        }
+        const initialInvestigationNodePositionY = getParentNodePositionY(0, 0);
+
+        // Add hypothesis nodes
+        const hypothesisGroups = getHypothesisGroups(phaseNodes, nodes);
+        const {
+            nodes: hypothesisNodes,
+            edges: hypothesisEdges,
+            groupNodesCenterX,
+            maxHeightOfGroupNodes,
+            groupNodesPositionY,
+        } = layoutHypothesisGroupAndChildrenNode(
+            hypothesisGroups,
+            initialInvestigationNode.id,
+            initialInvestigationNodePositionY,
+            initialInvestigationNode.height || 0
+        );
+        graphFlowNodes.push(...hypothesisNodes);
+        graphFlowEdges.push(...hypothesisEdges);
+
+        initialInvestigationNode.position = getInitialInvestigationNodePosition(groupNodesCenterX, initialInvestigationNode);
+        graphFlowNodes.push(initialInvestigationNode);
+
+        const { conclusionNode, conclusionEdges } = getConclusionNodesAndEdges(
+            phaseNodes,
+            { x: getNonGroupParentNodePositionX(groupNodesCenterX), y: getParentNodePositionY(groupNodesPositionY, maxHeightOfGroupNodes) },
+            hypothesisGroups.map(group => group.groupNode.id)
+        );
+
+        if (conclusionNode) {
+            graphFlowNodes.push(conclusionNode);
+            graphFlowEdges.push(...conclusionEdges);
+        }
+        return {
+            graphFlowNodes,
+            graphFlowEdges,
+        };
+    };
+
+    const centerGraph = (onInit: boolean) => {
+        setTimeout(
+            () => {
+                fitView({ minZoom: 0.5, maxZoom: 1.5, padding: 50, duration: 50, interpolate: 'smooth' });
+            },
+            onInit ? 300 : 100
+        );
+    };
+
+    useEffect(() => {
+        const treeState = treeStateValue.treeState;
+        const { graphFlowNodes, graphFlowEdges } = constructGraph(treeState);
+
+        setNodes(graphFlowNodes);
+        setEdges(graphFlowEdges);
+        centerGraph(false);
     }, [treeStateValue]);
+
+    useEffect(() => {});
 
     return {
         nodes,
         edges,
         onNodesChange,
         onEdgesChange,
+        centerGraph,
     };
 };

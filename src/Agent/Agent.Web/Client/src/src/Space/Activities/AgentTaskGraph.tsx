@@ -1,8 +1,9 @@
 import { Spinner } from '@fluentui/react-components';
 import { useTheme } from '@fluentui/react/lib/Theme';
-import { Controls, ReactFlow, useReactFlow } from '@xyflow/react';
+import { Controls, ReactFlow } from '@xyflow/react';
 import { memo } from 'react';
 import { TreeNodeType } from '../../Common/Contracts/DataPlane/AgentTask';
+import AgentTaskGraphFlowGroupNode from '../Components/AgentTaskGraphFlowGroupNode';
 import AgentTaskGraphFlowHypothesisNode from '../Components/AgentTaskGraphFlowHypothesisNode';
 import AgentTaskGraphFlowPhaseNode from '../Components/AgentTaskGraphFlowPhaseNode';
 import { IAgentTaskGraphProps } from '../Contracts/Activities';
@@ -11,14 +12,13 @@ import { useAgentTaskGraphFlow } from '../Hooks/useAgentTaskGraphFlow';
 import '@xyflow/react/dist/style.css';
 
 const AgentTaskGraph = (props: IAgentTaskGraphProps) => {
-    return props.isLoading ? <Spinner size="large" style={{ marginTop: '20%' }} /> : <AgentTaskGraphFlow {...props} />;
+    return props.isLoading ? <Spinner size="large" style={{ marginTop: '30%' }} /> : <AgentTaskGraphFlow {...props} />;
 };
 
 const AgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
-    const { nodes, edges, onNodesChange, onEdgesChange } = useAgentTaskGraphFlow(props);
+    const { nodes, edges, onNodesChange, onEdgesChange, centerGraph } = useAgentTaskGraphFlow(props);
 
     const theme = useTheme();
-    const { fitView } = useReactFlow();
 
     return (
         <ReactFlow
@@ -27,15 +27,20 @@ const AgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
             edges={edges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
-            onInit={() => {
-                setTimeout(() => fitView({ minZoom: 0.5, maxZoom: 1.2, padding: 50, duration: 100, interpolate: 'smooth' }), 200);
-            }}
+            onInit={() => centerGraph(true)}
             attributionPosition="bottom-left"
-            minZoom={0.3}
-            maxZoom={1.5}
             nodeTypes={{
-                [`${TreeNodeType.Phase}`]: AgentTaskGraphFlowPhaseNode,
-                [`${TreeNodeType.Hypothesis}`]: AgentTaskGraphFlowHypothesisNode,
+                [TreeNodeType.Group]: AgentTaskGraphFlowGroupNode,
+                [TreeNodeType.Phase]: AgentTaskGraphFlowPhaseNode,
+                [TreeNodeType.Hypothesis]: AgentTaskGraphFlowHypothesisNode,
+            }}
+            minZoom={0.5}
+            maxZoom={1.5}
+            fitView
+            fitViewOptions={{
+                padding: 50,
+                duration: 50,
+                interpolate: 'smooth',
             }}
             proOptions={{ hideAttribution: true }}
             colorMode={theme.isInverted ? 'dark' : 'light'}

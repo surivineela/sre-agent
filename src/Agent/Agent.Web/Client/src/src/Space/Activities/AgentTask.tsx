@@ -16,7 +16,6 @@ import { CheckmarkCircleColor, Dismiss24Regular, DismissCircleFilled, ErrorCircl
 import { ReactFlowProvider } from '@xyflow/react';
 import { memo } from 'react';
 import { AgentTaskMetaData, AgentTaskStatus } from '../../Common/Contracts/DataPlane/AgentTask';
-import Fade from '../Components/Fade';
 import { AgentTaskContext } from '../Contracts/Context';
 import { useAgentTask } from '../Hooks/useAgentTask';
 import AgentTaskGraph from './AgentTaskGraph';
@@ -115,7 +114,7 @@ const AgentTask = (props: IAgentTaskProps) => {
     return (
         <AgentTaskContext.Provider value={{ toggleNode, getNodeStatus }}>
             <ReactFlowProvider>
-                <Fade visible={!collapsed} appear={true} unmountOnExit={true}>
+                {collapsed ? null : (
                     <div className={root}>
                         <DrawerHeader>
                             <DrawerHeaderNavigation>
@@ -160,7 +159,7 @@ const AgentTask = (props: IAgentTaskProps) => {
                         </DrawerHeader>
                         <AgentTaskGraph treeStateValue={currentTreeStateValue} isLoading={isLoadingTreeState} />
                     </div>
-                </Fade>
+                )}
             </ReactFlowProvider>
         </AgentTaskContext.Provider>
     );
