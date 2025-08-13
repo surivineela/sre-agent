@@ -28,6 +28,8 @@ public class LogicAppCrawler : AppServiceCrawler
 
     public override async IAsyncEnumerable<GraphNode> Crawl(GraphNode node)
     {
+        var start = DateTime.UtcNow.Ticks;
+
         await foreach (var n in base.Crawl(node))
         {
             yield return n;
@@ -72,12 +74,12 @@ public class LogicAppCrawler : AppServiceCrawler
         string? appInsightsKey = null;
         if (appSettings.TryGetValue("APPLICATIONINSIGHTS_CONNECTION_STRING", out var appInsightsConnectionString) || appSettings.TryGetValue("APPINSIGHTS_INSTRUMENTATIONKEY", out appInsightsKey))
         {
-            if(!string.IsNullOrEmpty(appInsightsConnectionString))
+            if (!string.IsNullOrEmpty(appInsightsConnectionString))
             {
                 appInsightsKey = ExtractInstrumentationKeyFromConnectionString(appInsightsConnectionString);
             }
 
-            if(!string.IsNullOrEmpty(appInsightsKey))
+            if (!string.IsNullOrEmpty(appInsightsKey))
             {
                 var appInsightsNode = await TryAddAppInsightsNodeAsync(logicAppNode, appInsightsKey);
                 if (appInsightsNode != null)
@@ -113,25 +115,12 @@ public class LogicAppCrawler : AppServiceCrawler
         }
 
         Dictionary<string, GraphNode> inUseConnectionMapping = new Dictionary<string, GraphNode>();
-        try
+        foreach (var workflowNode in await GetSiteWorkflows(logicAppNode, webApp, connectionMapping, inUseConnectionMapping))
         {
-            await foreach (var workflow in webApp.GetSiteWorkflows().GetAllAsync())
-            {
-                if (workflow.HasData)
-                {
-                    var workflowNode = new WorkflowNode(ParseWorkflowConfig(workflow.Data));
-                    await _graphDbClient.AddOrUpdateNodeAsync(workflowNode);
+            await CrawlSiteWorkflow(webApp, workflowNode, connectionMapping, inUseConnectionMapping);
 
-                    var edge = new ArmResourceEdge(logicAppNode.GetNodeId(), workflowNode.GetNodeId(), Constants.Relationships.Contains);
-                    await _graphDbClient.AddOrUpdateEdgeAsync(edge);
-
-                    await CrawlSiteWorkflow(webApp, workflowNode, connectionMapping, inUseConnectionMapping);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalWarning($"Error processing workflows for logic apps: {logicAppNode.ResourceId}: {ex.Message}");
+            // Since we crawled this node, we need to remove any stale edges that might exist.
+            await CrawlerExtensions.RemoveStaleEdgeForNode(_graphDbClient, workflowNode, start);
         }
 
         foreach (var connection in inUseConnectionMapping.Values)
@@ -140,37 +129,102 @@ public class LogicAppCrawler : AppServiceCrawler
         }
     }
 
+    private async Task<IEnumerable<WorkflowNode>> GetSiteWorkflows(AppServiceNode logicAppNode, WebSiteResource webApp, Dictionary<string, GraphNode> connectionMapping, Dictionary<string, GraphNode> inUseConnectionMapping)
+    {
+        var workflowNodes = new List<WorkflowNode>();
+        try
+        {
+            await foreach (var workflow in webApp.GetSiteWorkflows().GetAllAsync())
+            {
+                if (workflow.HasData)
+                {
+                    var workflowNode = new WorkflowNode(ParseWorkflowConfig(workflow.Data));
+                    workflowNodes.Add(workflowNode);
+
+                    await _graphDbClient.AddOrUpdateNodeAsync(workflowNode);
+
+                    var edge = new ArmResourceEdge(logicAppNode.GetNodeId(), workflowNode.GetNodeId(), Constants.Relationships.Contains);
+                    await _graphDbClient.AddOrUpdateEdgeAsync(edge);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning($"Error processing workflows for logic apps: {logicAppNode.ResourceId}: {ex.Message}");
+        }
+
+        return workflowNodes;
+    }
+
     private IEnumerable<JsonElement> TraverseAllActions(JsonElement actionsElement)
     {
         if (actionsElement.ValueKind != JsonValueKind.Object)
+        {
             yield break;
+        }
 
         foreach (var actionProperty in actionsElement.EnumerateObject())
         {
             var action = actionProperty.Value;
-            yield return action;
 
-            if (action.TryGetProperty("actions", out var nestedActions))
+            if (action.ValueKind != JsonValueKind.Object)
             {
-                foreach (var nestedAction in TraverseAllActions(nestedActions))
-                    yield return nestedAction;
+                continue;
             }
 
-            if (action.TryGetProperty("foreach", out var foreachActions))
+            yield return action;
+
+            if (action.TryGetProperty("actions", out var actions))
             {
-                if (foreachActions.ValueKind == JsonValueKind.Object && foreachActions.TryGetProperty("actions", out var foreachNestedActions))
+                foreach (var nestedAction in TraverseAllActions(actions))
                 {
-                    foreach (var nestedAction in TraverseAllActions(foreachNestedActions))
-                        yield return nestedAction;
+                    yield return nestedAction;
                 }
             }
 
-            if (action.TryGetProperty("do", out var doActions))
+            if (action.TryGetProperty("else", out var elseBranch) && elseBranch.ValueKind == JsonValueKind.Object && elseBranch.TryGetProperty("actions", out var elseActions))
             {
-                if (doActions.ValueKind == JsonValueKind.Object && doActions.TryGetProperty("actions", out var doNestedActions))
+                foreach (var nestedAction in TraverseAllActions(elseActions))
                 {
-                    foreach (var nestedAction in TraverseAllActions(doNestedActions))
-                        yield return nestedAction;
+                    yield return nestedAction;
+                }
+            }
+
+            if (action.TryGetProperty("cases", out var cases) && cases.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var caseProperty in cases.EnumerateObject())
+                {
+                    var caseBranch = caseProperty.Value;
+                    if (caseBranch.ValueKind == JsonValueKind.Object && caseBranch.TryGetProperty("actions", out var caseActions))
+                    {
+                        foreach (var nestedAction in TraverseAllActions(caseActions))
+                        {
+                            yield return nestedAction;
+                        }
+                    }
+                }
+            }
+
+            if (action.TryGetProperty("default", out var defaultBranch) && defaultBranch.ValueKind == JsonValueKind.Object && defaultBranch.TryGetProperty("actions", out var defaultActions))
+            {
+                foreach (var nestedAction in TraverseAllActions(defaultActions))
+                {
+                    yield return nestedAction;
+                }
+            }
+
+            if (action.TryGetProperty("tools", out var tools) && tools.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var toolProperty in tools.EnumerateObject())
+                {
+                    var tool = toolProperty.Value;
+                    if (tool.ValueKind == JsonValueKind.Object && tool.TryGetProperty("actions", out var toolActions))
+                    {
+                        foreach (var nestedAction in TraverseAllActions(toolActions))
+                        {
+                            yield return nestedAction;
+                        }
+                    }
                 }
             }
         }
@@ -235,28 +289,39 @@ public class LogicAppCrawler : AppServiceCrawler
                 return;
 
         using var doc = JsonDocument.Parse(workflowFile);
-        if (doc.RootElement.TryGetProperty("definition", out var definitionElement) && definitionElement.TryGetProperty("actions", out var actionsElement))
+        if (doc.RootElement.TryGetProperty("definition", out var definitionElement))
         {
-            foreach (var action in TraverseAllActions(actionsElement))
+            if (definitionElement.TryGetProperty("actions", out var actions))
             {
-                // Find the connection reference and look it up in connectionMapping
-                var referenceName = GetReferenceName(action);
-                var connectionNode = connectionMapping.FirstOrDefault(kvp => kvp.Key == referenceName).Value;
-                if (connectionNode != null)
+                foreach (var action in TraverseAllActions(actions))
                 {
-                    inUseConnectionMapping[referenceName!] = connectionNode;
+                    // Find the connection reference and look it up in connectionMapping
+                    var referenceName = GetReferenceName(action);
+                    var connectionNode = connectionMapping.FirstOrDefault(kvp => kvp.Key == referenceName).Value;
+                    if (connectionNode != null)
+                    {
+                        if (!inUseConnectionMapping.ContainsKey(referenceName!))
+                        {
+                            await _graphDbClient.AddOrUpdateNodeAsync(connectionNode);
+                            var edge = new ArmResourceEdge(workflowNode.GetNodeId(), connectionNode.GetNodeId(), Constants.Relationships.Connected);
+                            await _graphDbClient.AddOrUpdateEdgeAsync(edge);
 
-                    await _graphDbClient.AddOrUpdateNodeAsync(connectionNode);
-                    var edge = new ArmResourceEdge(workflowNode.GetNodeId(), connectionNode.GetNodeId(), Constants.Relationships.Uses);
-                    await _graphDbClient.AddOrUpdateEdgeAsync(edge);
+                            inUseConnectionMapping[referenceName!] = connectionNode;
+                        }
+                    }
                 }
             }
         }
     }
 
-    private string? GetReferenceName(JsonElement action)
+    private string? GetReferenceName(JsonElement operation)
     {
-        if (action.TryGetProperty("inputs", out var inputs) &&
+        if (!operation.TryGetProperty("type", out var type) || type.ValueKind != JsonValueKind.String || !"ApiConnection".Equals(type.GetString(), StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        if (operation.TryGetProperty("inputs", out var inputs) &&
             inputs.TryGetProperty("host", out var host) &&
             host.TryGetProperty("connection", out var connection) &&
             connection.TryGetProperty("referenceName", out var referenceName) &&
