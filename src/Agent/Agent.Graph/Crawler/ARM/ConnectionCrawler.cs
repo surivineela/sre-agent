@@ -12,6 +12,7 @@ using Azure;
 using Azure.Core;
 using Azure.ResourceManager;
 using Kusto.Cloud.Platform.Utils;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.ARM;
@@ -114,14 +115,14 @@ public class ConnectionCrawler : GenericArmResourceCrawler
             if (id.EndsWith("/managedApis/servicebus", StringComparison.OrdinalIgnoreCase))
             {
                 var value = GetStringValueFromParameterSet(properties, ["managedIdentityAuth", "aadAuth", "CertOauth"], "namespaceEndpoint");
-                var resourceName = ArmHelper.TryParseStorageAccountFromNameOrEndpoint(value);
+                var resourceName = ArmHelper.TryParseFirstSubdomainFromHttpsUrl(value);
                 return await _armClient.FindGenericArmResource(subscriptionId, ResourceKindHelper.ServiceBusType, resourceName);
             }
 
             if (id.EndsWith("/managedApis/eventhubs", StringComparison.OrdinalIgnoreCase))
             {
                 var value = GetStringValueFromParameterSet(properties, ["tokenBasedAuth", "managedIdentityAuth"], "namespaceEndpoint");
-                var resourceName = ArmHelper.TryParseStorageAccountFromNameOrEndpoint(value);
+                var resourceName = ArmHelper.TryParseFirstSubdomainFromHttpsUrl(value);
                 return await _armClient.FindGenericArmResource(subscriptionId, ResourceKindHelper.EventHubType, resourceName);
             }
 
@@ -135,6 +136,20 @@ public class ConnectionCrawler : GenericArmResourceCrawler
             {
                 var value = GetStringValueFromParameterSet(properties, ["CertOauth", "oauthMI", "oauthDefault"], "vaultName");
                 return await _armClient.FindGenericArmResource(subscriptionId, ResourceKindHelper.KeyVaultType, value);
+            }
+
+            if (id.EndsWith("/managedApis/azureeventgridpublish", StringComparison.OrdinalIgnoreCase))
+            {
+                var value = GetStringValueFromParameter(properties, "endpoint");
+                var resourceName = ArmHelper.TryParseFirstSubdomainFromHttpsUrl(value);
+                return await _armClient.FindGenericArmResource(subscriptionId, ResourceKindHelper.EventGridTopicType, resourceName);
+            }
+
+            if (id.EndsWith("/managedApis/sqldw", StringComparison.OrdinalIgnoreCase))
+            {
+                var value = GetStringValueFromParameterSet(properties, ["sqlAuthentication"], "server");
+                var resourceName = ArmHelper.TryParseSynapseWorkspaceFromEndpoint(value);
+                return await _armClient.FindGenericArmResource(subscriptionId, ResourceKindHelper.SynapseWorkspaceType, resourceName);
             }
         }
 

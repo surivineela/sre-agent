@@ -3005,9 +3005,13 @@ public class ArmHelper
 
     #region Parsing Methods
 
-    public static string? TryParseServiceBusFromEndpoint(string value)
+    public static string? TryParseFirstSubdomainFromHttpsUrl(string? value)
     {
-        // value is endpoint format like https://<servicebus>.servicebus.windows.net/
+        if (value == null)
+        {
+            return null;
+        }
+
         if (value.StartsWith("https://"))
         {
             return value.Substring("https://".Length).Split('.').FirstOrDefault();
@@ -3016,16 +3020,16 @@ public class ArmHelper
         return null;
     }
 
-    public static string? TryParseEventHubFromEndpoint(string subscriptionId, string value)
+    public static string? TryParseSynapseWorkspaceFromEndpoint(string? value)
     {
-        if (value.StartsWith("https://"))
+        if (value == null)
         {
-            return value.Substring("https://".Length).Split('.').FirstOrDefault();
+            return null;
         }
 
-        return null;
+        // value is an endpoint. It can be either <workspaceName>-ondemand.sql.azuresynapse.net or  <workspaceName>.sql.azuresynapse.net or any sql endpoint
+        return value.Split('.').FirstOrDefault()?.Split('-').FirstOrDefault();
     }
-
 
     public static string? TryParseStorageAccountFromNameOrEndpoint(string? value)
     {

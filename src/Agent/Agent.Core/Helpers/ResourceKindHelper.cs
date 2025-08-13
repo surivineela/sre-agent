@@ -35,6 +35,8 @@ public static class ResourceKindHelper
     public const string ApiManagementBackendType = "Microsoft.ApiManagement/service/backends";
     public const string ApiCenterType = "Microsoft.ApiCenter/services";
     public const string LogicAppResourceKind = "logicApp";
+    public const string EventGridTopicType = "Microsoft.EventGrid/topics";
+    public const string SynapseWorkspaceType = "Microsoft.Synapse/workspaces";
 
     // New constants for App Service Web/Function Apps and App Service Plans.
     public const string AppServiceType = "Microsoft.Web/sites";

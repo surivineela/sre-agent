@@ -30,8 +30,6 @@ const ICON_LOOKUP: Record<string, string> = {
     sqlserver: 'SQLServer.svg',
     redis: 'AzureRedisCache.svg',
     cache: 'AzureRedisCache.svg',
-    storageaccounts: 'Storage.svg',
-    'documentdb/databaseaccounts': 'CosmosDB.svg',
 
     // Networking
     vnet: 'Vnet.svg',
@@ -47,14 +45,13 @@ const ICON_LOOKUP: Record<string, string> = {
     // Monitoring
     components: 'ApplicationInsights.svg',
 
-    // Logic Apps
-    'web/connections': 'Connection.svg',
-
-    // Service Bus
-    'servicebus/namespaces': 'ServiceBusNamespace.svg',
-
-    // Event Hub
-    'eventhub/namespaces': 'EventHubNamespace.svg',
+    // Others Azure Resource Types
+    'microsoft.documentdb/databaseaccounts': 'CosmosDB.svg',
+    'microsoft.eventgrid/topics': 'EventGridTopic.svg',
+    'microsoft.eventhub/namespaces': 'EventHubNamespace.svg',
+    'microsoft.servicebus/namespaces': 'ServiceBusNamespace.svg',
+    'microsoft.synapse/workspaces': 'SynapseWorkspace.svg',
+    'microsoft.web/connections': 'Connection.svg',
 };
 
 // Friendly names for resource types
@@ -89,7 +86,6 @@ const FRIENDLY_NAMES: Record<string, string> = {
     redis: 'Redis Cache',
     cache: 'Redis Cache',
     storageaccounts: 'Storage Account',
-    'documentdb/databaseaccounts': 'Document DB',
 
     // Networking
     vnet: 'Virtual Network',
@@ -106,17 +102,13 @@ const FRIENDLY_NAMES: Record<string, string> = {
     'microsoft.apimanagement/service/backends': 'API Management Backend',
     apicenter: 'API Center',
 
-    // Logic Apps
-    'web/connections': 'API Connection',
-
-    // Service Bus
-    'servicebus/namespaces': 'Service Bus Namespace',
-
-    // Event Hub
-    'eventhub/namespaces': 'Event Hub Namespace',
-
-    // Storage
-    'storage/storageaccounts': 'Storage Account',
+    // Others Azure Resource Types
+    'microsoft.documentdb/databaseaccounts': 'Document DB',
+    'microsoft.eventgrid/topics': 'Event Grid Topic',
+    'microsoft.eventhub/namespaces': 'Event Hub Namespace',
+    'microsoft.servicebus/namespaces': 'Service Bus Namespace',
+    'microsoft.synapse/workspaces': 'Synapse Workspace',
+    'microsoft.web/connections': 'API Connection',
 };
 
 const DEFAULT_ICON = 'azureResource.svg';
