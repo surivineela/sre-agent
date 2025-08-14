@@ -6,6 +6,7 @@ using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
+using Agent.Core.Clients.Chat;
 using Agent.Data;
 using Agent.Data.AgentMemory;
 using Agent.Data.DatabaseClients.GraphDbClient;
@@ -91,7 +92,7 @@ public static class TestHelpers
             builder.AddConsole();
         });
 
-        builder.Services.AddChatClient(sp => sp.GetRequiredService<AzureOpenAIClient>().GetChatClient(llmDeploymentName).AsIChatClient());
+        builder.Services.AddChatClient(sp => sp.GetRequiredService<AzureOpenAIClient>().GetChatClient(llmDeploymentName).AsIChatClient()).Use(next => new ReasoningChatClient(next));
 
         builder.Services.ConfigureIEmbeddingGenerator();
 

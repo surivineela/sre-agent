@@ -196,12 +196,12 @@ jobs:
         OpenAIModel: sre3ppipe-gpt-41
         IterationCount: '1'
         SkipReactBuild: 'true'
-        TEST_FOLDER: Data/Unstable
+        TEST_FOLDER: Data/Unstable,Data/UnstableRCAAgent
       continue-on-error: true
 
     - name: ⚠️ Warn if UNSTABLE evals failed
       if: ${{ needs.changes.outputs.evals == 'true' && steps.unstable_tests.outcome == 'failure' }}
-      run: echo "::warning::Unstable evals (TEST_FOLDER=Data/Unstable) failed but were tolerated by continue-on-error. See uploaded artifacts for details."
+      run: echo "::warning::Unstable evals (TEST_FOLDER=Data/Unstable,Data/Unstable/UnstableRCAAgent) failed but were tolerated by continue-on-error. See uploaded artifacts for details."
 
     - name: 📢 Publish evaluation test results
       uses: serverless-paas-balam/actions-test-reporter@main

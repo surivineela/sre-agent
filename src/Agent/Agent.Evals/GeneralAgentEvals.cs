@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Agent.Core.Models.Api.v1;
+using Agent.Core.Clients.Chat;
 using Agent.Framework;
 using Microsoft.Extensions.AI;
 
@@ -17,86 +18,100 @@ public class GeneralAgentEvals
     private static GeneralTestCase[] LoadTestCasesFromFiles()
     {
         // Check for environment variables to filter tests, mainly used for local test with fast testing for specific case
-        var targetFolder = Environment.GetEnvironmentVariable("TEST_FOLDER");
+        var targetFolderEnv = Environment.GetEnvironmentVariable("TEST_FOLDER");
         var targetFile = Environment.GetEnvironmentVariable("TEST_FILE");
 
-        // Built-in scenario folders under the default Data directory
-        var builtInDataFolders = new[]
-        {
-            "HandOff",
-            "AzCliCommandAgent",
-            "AKSAgent",
-            "RCAAgent"
-        };
+        // Built-in scenario folders under the default Data directory (used ONLY when TEST_FOLDER not supplied)
+        var builtInDataFolders = new[] { "HandOff", "AzCliCommandAgent", "AKSAgent", "RCAAgent" };
 
-        // Start with built-ins by default
-        var dataFolders = builtInDataFolders;
+        // New semantics (per request):
+        // 1. Allow TEST_FOLDER to specify multiple folders separated by commas.
+        //    e.g. TEST_FOLDER=Data/Stable,Data/Unstable,/abs/path/Custom
+        // 2. If TEST_FOLDER is specified, DO NOT merge or fallback to built-in folders; only use what is specified.
+        // 3. Items in TEST_FOLDER are treated literally as folder specifiers (absolute or relative to AppContext.BaseDirectory).
+        //    We no longer treat plain names specially by auto-matching built-ins. To reference a built-in folder when using
+        //    TEST_FOLDER, provide its relative path (e.g. "Data/HandOff") or absolute path. (Assumption documented.)
 
-        // Special handling: if TEST_FOLDER is set, allow pointing to any relative/absolute path
-        // Examples:
-        //  - "HandOff" (built-in short name)
-        //  - "Data/Unstable" (relative to AppContext.BaseDirectory)
-        //  - "/absolute/path/to/custom" (absolute path)
-        var externalFolderMode = false;
-        if (!string.IsNullOrEmpty(targetFolder))
+        var folderSpecs = new List<(string Spec, string ResolvedPath)>();
+        if (string.IsNullOrWhiteSpace(targetFolderEnv))
         {
-            // If not one of the built-ins, treat as an external path-like specifier
-            if (!builtInDataFolders.Any(f => f.Equals(targetFolder, StringComparison.OrdinalIgnoreCase)))
+            // Use built-ins (legacy default behavior)
+            foreach (var builtIn in builtInDataFolders)
             {
-                externalFolderMode = true;
-                dataFolders = new[] { targetFolder };
+                var path = Path.Combine(AppContext.BaseDirectory, "Data", builtIn);
+                folderSpecs.Add((builtIn, path));
             }
-            else
+        }
+        else
+        {
+            var rawSpecs = targetFolderEnv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            foreach (var spec in rawSpecs)
             {
-                // Restrict to the requested built-in folder
-                dataFolders = builtInDataFolders.Where(f => f.Equals(targetFolder, StringComparison.OrdinalIgnoreCase)).ToArray();
+                string resolvedPath;
+                if (Path.IsPathRooted(spec))
+                {
+                    resolvedPath = spec;
+                }
+                else
+                {
+                    // If spec is a simple folder name (no directory separator), attempt built-in style first for backward compat
+                    if (!spec.Contains(Path.DirectorySeparatorChar) && !spec.Contains('/') && !spec.Contains('\\'))
+                    {
+                        var builtInCandidate = Path.Combine(AppContext.BaseDirectory, "Data", spec);
+                        if (Directory.Exists(builtInCandidate))
+                        {
+                            resolvedPath = builtInCandidate;
+                        }
+                        else
+                        {
+                            // Fall back to treating as relative path to base directory
+                            resolvedPath = Path.Combine(AppContext.BaseDirectory, spec);
+                        }
+                    }
+                    else
+                    {
+                        // Path-like spec (contains separator) => make it relative to base directory
+                        resolvedPath = Path.Combine(AppContext.BaseDirectory, spec);
+                    }
+                }
+                folderSpecs.Add((spec, resolvedPath));
             }
         }
 
         var allTestCases = new List<GeneralTestCase>();
         var allAvailableFiles = new List<string>();
-
-        foreach (var folder in dataFolders)
+        var missingFolders = new List<string>();
+        foreach (var (spec, path) in folderSpecs)
         {
-            // Resolve the actual folder path depending on whether we're using a built-in folder name
-            // or an external/relative/absolute path provided via TEST_FOLDER
-            string dataFolderPath;
-            if (externalFolderMode)
+            if (!Directory.Exists(path))
             {
-                dataFolderPath = Path.IsPathRooted(folder)
-                    ? folder
-                    : Path.Combine(AppContext.BaseDirectory, folder);
+                missingFolders.Add($"{spec} (resolved: {path})");
+                continue;
             }
-            else
-            {
-                dataFolderPath = Path.Combine(AppContext.BaseDirectory, "Data", folder);
-            }
-            if (Directory.Exists(dataFolderPath))
-            {
-                var data = ModelGenerationDataLoader.LoadChatMessagesFromJsonFiles(dataFolderPath);
 
-                // Collect all available files for error reporting
-                allAvailableFiles.AddRange(data.Keys.Select(key => $"{folder}/{key}"));
+            var data = ModelGenerationDataLoader.LoadChatMessagesFromJsonFiles(path);
 
-                // If a specific file is requested, filter the data
-                if (!string.IsNullOrEmpty(targetFile))
+            // Collect all available files for error reporting
+            allAvailableFiles.AddRange(data.Keys.Select(key => $"{spec}/{key}"));
+
+            // If a specific file is requested, filter the data
+            if (!string.IsNullOrEmpty(targetFile))
+            {
+                var filteredData = data.Where(kvp => kvp.Key.Contains(targetFile, StringComparison.OrdinalIgnoreCase)).ToList();
+                if (filteredData.Count > 0)
                 {
-                    var filteredData = data.Where(kvp => kvp.Key.Contains(targetFile, StringComparison.OrdinalIgnoreCase)).ToList();
-                    if (filteredData.Count > 0)
-                    {
-                        data = filteredData.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-                    }
-                    else
-                    {
-                        // Skip this folder if no matching files found, don't throw exception yet
-                        continue;
-                    }
+                    data = filteredData.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
                 }
-
-                var testCases = data.Select(kvp => GeneralTestCase.FromModelGenerationContent(kvp.Value, $"{folder}_{kvp.Key}"))
-                    .ToArray();
-                allTestCases.AddRange(testCases);
+                else
+                {
+                    // Skip this folder if no matching files found, don't throw exception yet
+                    continue;
+                }
             }
+
+            var testCases = data.Select(kvp => GeneralTestCase.FromModelGenerationContent(kvp.Value, $"{spec}_{kvp.Key}"))
+                .ToArray();
+            allTestCases.AddRange(testCases);
         }
 
         // If a specific file was requested but no test cases were found across all folders, throw exception
@@ -106,12 +121,11 @@ public class GeneralAgentEvals
             throw new ArgumentException($"File '{targetFile}' not found in any folder. Available files: {availableFiles}");
         }
 
-        // If TEST_FOLDER was set to a non-built-in location but doesn't resolve to a valid directory,
-        // provide a helpful error early (only when no tests were discovered at all)
-        if (allTestCases.Count == 0 && !string.IsNullOrEmpty(targetFolder) && externalFolderMode)
+        // If TEST_FOLDER was specified and resulted in zero discovered tests, provide an aggregated error
+        if (!string.IsNullOrWhiteSpace(targetFolderEnv) && allTestCases.Count == 0)
         {
-            var attemptedPath = Path.IsPathRooted(targetFolder) ? targetFolder : Path.Combine(AppContext.BaseDirectory, targetFolder);
-            throw new ArgumentException($"Folder '{targetFolder}' was specified via TEST_FOLDER but was not found. Tried path: '{attemptedPath}'.");
+            var missingMsg = missingFolders.Count > 0 ? $" Missing/NotFound: {string.Join(", ", missingFolders)}." : string.Empty;
+            throw new ArgumentException($"No tests discovered from TEST_FOLDER='{targetFolderEnv}'.{missingMsg}");
         }
 
         return allTestCases.ToArray();
@@ -131,6 +145,13 @@ public class GeneralAgentEvals
 
         var chatClient = agent.GetChatClient(TestHost.RunConfig);
         var chatOptions = agent.GetChatOptions(TestHost);
+        // Enforce temperature override for GPT-5 family models
+        var clientMetadata = chatClient.GetService<ChatClientMetadata>();
+        if (clientMetadata?.DefaultModelId?.StartsWith("gpt-5", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            chatOptions.Temperature = 1;
+            TestContext.WriteLine($"Overriding temperature to 1 for model '{clientMetadata.DefaultModelId}' (GPT-5 family)");
+        }
 
         ChatResponse response;
         if (agent.HasStructuredOutput)
@@ -184,11 +205,21 @@ public class GeneralAgentEvals
         // Get chat client and options similar to RunSingleTurnAsync
         var chatClient = agent.GetChatClient(TestHost.RunConfig);
         var chatOptions = agent.GetChatOptions(TestHost);
+        var clientMetadata = chatClient.GetService<ChatClientMetadata>();
+
+        // Enforce temperature override for GPT-5 family models
+        if (clientMetadata?.DefaultModelId?.StartsWith("gpt-5", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            chatOptions.Temperature = 1;
+            TestContext.WriteLine($"Overriding temperature to 1 for model '{clientMetadata.DefaultModelId}' (GPT-5 family)");
+        }
 
         TestContext.WriteLine($"Chat options configured:");
         TestContext.WriteLine($"  - Tools count: {chatOptions.Tools?.Count ?? 0}");
         TestContext.WriteLine($"  - Tool mode: {chatOptions.ToolMode}");
         TestContext.WriteLine($"  - Temperature: {chatOptions.Temperature}");
+        TestContext.WriteLine($"  - DefaultModelId: {clientMetadata?.DefaultModelId}");
+        TestContext.WriteLine($"  - ProviderName: {clientMetadata?.ProviderName}");
         TestContext.WriteLine($"  - Allow multiple tool calls: {chatOptions.AllowMultipleToolCalls}");
 
         // Log available tools
@@ -202,6 +233,7 @@ public class GeneralAgentEvals
                     TestContext.WriteLine($"  - {func.Name}");
                 }
             }
+            TestContext.WriteLine("");
         }
 
         // Fix Bug 1: Override system prompt with agent's actual instructions
@@ -308,6 +340,8 @@ public class GeneralAgentEvals
                 }
             }
         }
+
+        TestContext.WriteLine($"Response modelId: {response.ModelId}");
 
         // Compare with expected output
         TestContext.WriteLine($"\n=== COMPARISON ===");

@@ -57,20 +57,24 @@ dotnet test src/Agent/Agent.Evals/Agent.Evals.csproj
 
 > **Important**: Focus on `GeneralAgentTests_DetailedComparison` as it provides unit-test level evaluation with detailed logging and can handle all evaluation scenarios. Other test methods are legacy and can be ignored.
 
-### Running Tests for Specific Scenario/Folder
+### Running Tests for Specific Scenario/Folder(s)
 
 ```bash
-# Test only HandOff scenarios
+# Test only HandOff scenarios (built-in)
 TEST_FOLDER=HandOff dotnet test src/Agent/Agent.Evals/Agent.Evals.csproj --filter "Name=GeneralAgentTests_DetailedComparison"
 
-# Test only AKSAgent scenarios
+# Test only AKSAgent scenarios (built-in)
 TEST_FOLDER=AKSAgent dotnet test src/Agent/Agent.Evals/Agent.Evals.csproj --filter "Name=GeneralAgentTests_DetailedComparison"
 
-# Test an external/relative folder (not built-in)
-# When TEST_FOLDER is not one of the built-ins (HandOff, AzCliCommandAgent, AKSAgent),
-# it is treated as a path relative to the test assembly output directory, or an absolute path.
+# Use an external/relative folder (not built-in). Always provide the relative path (from build output) or absolute path.
 # Example: run unstable evals that are not enforced by CI
 TEST_FOLDER=Data/Unstable dotnet test src/Agent/Agent.Evals/Agent.Evals.csproj --filter "Name=GeneralAgentTests_DetailedComparison"
+
+# NEW: Run multiple folders (comma-separated). Built-ins can be referenced either by simple name (e.g. HandOff) or by path (Data/HandOff).
+# You can mix relative and absolute paths.
+TEST_FOLDER=Data/HandOff,Data/Unstable,/abs/path/Custom dotnet test src/Agent/Agent.Evals/Agent.Evals.csproj --filter "Name=GeneralAgentTests_DetailedComparison"
+
+> Note: When TEST_FOLDER is specified, ONLY the listed folders are used (no implicit merging with built-ins). When it's absent, all built-in folders are loaded.
 ```
 
 ### Running Tests for Specific File
@@ -191,15 +195,15 @@ dotnet test src/Agent/Agent.Evals/Agent.Evals.csproj --filter "TestClass=General
 
 Use environment variables to filter tests during development:
 
-| Variable      | Description                                      | Example                    |
-|---------------|--------------------------------------------------|----------------------------|
-| `TEST_FOLDER` | Run tests only from specific scenario folder     | `TEST_FOLDER=HandOff`      |
-| `TEST_FILE`   | Run tests only from files containing this string | `TEST_FILE=handoff-sample` |
+| Variable      | Description                                                                                                                 | Example                                  |
+|---------------|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------|
+| `TEST_FOLDER` | Run tests only from specific scenario folder(s). Comma-separated list supported. When set, built-ins are NOT auto-included. | `TEST_FOLDER=Data/HandOff,Data/Unstable` |
+| `TEST_FILE`   | Run tests only from files containing this string                                                                            | `TEST_FILE=handoff-sample`               |
 
 **Examples:**
 
 ```bash
-# Test only HandOff scenarios
+# Test only HandOff scenarios (built-in single folder)
 TEST_FOLDER=HandOff dotnet test src/Agent/Agent.Evals/Agent.Evals.csproj
 
 # Test only files with "nginx" in the name
@@ -208,8 +212,10 @@ TEST_FILE=nginx dotnet test src/Agent/Agent.Evals/Agent.Evals.csproj
 # Combine both (TEST_FILE takes precedence within the folder)
 TEST_FOLDER=AKSAgent TEST_FILE=deployment dotnet test src/Agent/Agent.Evals/Agent.Evals.csproj
 
-# Use an external/relative folder for non-blocking evals
-# If the folder is not a built-in name, it's resolved as a path (relative or absolute)
+# Use multiple folders (mix built-in via path + custom)
+TEST_FOLDER=Data/HandOff,Data/Unstable dotnet test src/Agent/Agent.Evals/Agent.Evals.csproj
+
+# Use an external/relative folder for non-blocking evals (resolved relative or absolute)
 TEST_FOLDER=Data/Unstable dotnet test src/Agent/Agent.Evals/Agent.Evals.csproj
 ```
 
@@ -359,10 +365,10 @@ The framework supports multiple data loading methods:
 
 ## Environment Configuration
 
-| Variable      | Description                               | Usage                 |
-|---------------|-------------------------------------------|-----------------------|
-| `TEST_FOLDER` | Filter tests by scenario folder name      | `TEST_FOLDER=HandOff` |
-| `TEST_FILE`   | Filter tests by file name (partial match) | `TEST_FILE=nginx`     |
+| Variable      | Description                                                                                                   | Usage                                    |
+|---------------|---------------------------------------------------------------------------------------------------------------|------------------------------------------|
+| `TEST_FOLDER` | Filter tests by scenario folder name(s). Comma-separated list. When provided, no fallback to other built-ins. | `TEST_FOLDER=Data/HandOff,Data/Unstable` |
+| `TEST_FILE`   | Filter tests by file name (partial match)                                                                     | `TEST_FILE=nginx`                        |
 
 **Note**: If both variables are set, `TEST_FILE` filters within the specified `TEST_FOLDER`.
 
