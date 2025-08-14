@@ -138,7 +138,7 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
             var container = _cosmosClient.GetContainer(_databaseName, ExtendedAgentDocument.ContainerName);
             // Read as a dictionary
             var response = await container.ReadItemAsync<Dictionary<string, object>>(
-                $"agent_{name}",
+                $"{name}",
                 new PartitionKey(name));
 
             // Convert to the domain model
@@ -308,7 +308,7 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
             var container = _cosmosClient.GetContainer(_databaseName, ExtendedAgentDocument.ContainerName);
 
             // Construct the item ID and partition key
-            var itemId = $"agent_{name}";
+            var itemId = $"{name}";
             var partitionKey = new PartitionKey(name);
 
             // Delete the item

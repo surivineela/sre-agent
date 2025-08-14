@@ -19,18 +19,21 @@ public static class CommandBuilder
         var agentCreate = CreateAgentCreateCommand();
         var agentValidate = CreateAgentValidateCommand();
         var agentApply = CreateAgentApplyCommand();
+        var agentDelete = CreateAgentDeleteCommand();
         var agentTest = CreateAgentTestCommand();
 
         var agent = new Command("agent", "Agent commands");
         agent.Subcommands.Add(agentCreate);
         agent.Subcommands.Add(agentValidate);
         agent.Subcommands.Add(agentApply);
+        agent.Subcommands.Add(agentDelete);
         agent.Subcommands.Add(agentTest);
 
         // Build tool commands
         var toolCreate = CreateToolCreateCommand();
         var toolValidate = CreateToolValidateCommand();
         var toolApply = CreateToolApplyCommand();
+        var toolDelete = CreateToolDeleteCommand();
         var toolShowTypes = CreateToolShowTypesCommand();
         var toolShowConnectors = CreateToolShowConnectorsCommand();
 
@@ -38,6 +41,7 @@ public static class CommandBuilder
         tool.Subcommands.Add(toolCreate);
         tool.Subcommands.Add(toolValidate);
         tool.Subcommands.Add(toolApply);
+        tool.Subcommands.Add(toolDelete);
         tool.Subcommands.Add(toolShowTypes);
         tool.Subcommands.Add(toolShowConnectors);
 
@@ -124,6 +128,19 @@ public static class CommandBuilder
         return agentApply;
     }
 
+    private static Command CreateAgentDeleteCommand()
+    {
+        var agentDelete = new Command("delete", "Delete an agent from the remote server")
+        {
+            AgentCommandOptions.DeleteNameOption
+        };
+        agentDelete.SetAction(async parseResult => 
+        {
+            await AgentCommandHandlers.HandleDeleteCommand(parseResult);
+        });
+        return agentDelete;
+    }
+
     private static Command CreateAgentTestCommand()
     {
         var agentTest = new Command("test", "Test an agent with a specific message")
@@ -181,6 +198,19 @@ public static class CommandBuilder
             await ToolCommandHandlers.HandleApplyCommand(parseResult);
         });
         return toolApply;
+    }
+
+    private static Command CreateToolDeleteCommand()
+    {
+        var toolDelete = new Command("delete", "Delete a tool from the remote server")
+        {
+            ToolCommandOptions.DeleteNameOption
+        };
+        toolDelete.SetAction(async parseResult => 
+        {
+            await ToolCommandHandlers.HandleDeleteCommand(parseResult);
+        });
+        return toolDelete;
     }
 
     private static Command CreateInitCommand()

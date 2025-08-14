@@ -305,6 +305,71 @@ Based on the recent logs, I can see:
 The systems appear to be functioning normally with regular heartbeat signals and standard informational events.
 ```
 
+## Agent and Tool Lifecycle Management
+
+Once you've created and tested your agents and tools, you may need to manage their lifecycle - updating, removing, or cleaning up test resources.
+
+### Listing Your Resources
+
+Check what's currently deployed on your server:
+
+```bash
+# List all agents on the server
+srectl list agents
+
+# List all extended tools (tools you've applied)
+srectl list extended-tools
+
+# List built-in tools available
+srectl list tools
+```
+
+### Updating Agents and Tools
+
+To update an existing agent or tool, simply modify the YAML file and reapply:
+
+```bash
+# Update and reapply an agent
+srectl agent apply --name HelloWorldAgent
+
+# Update and reapply a tool
+srectl tool apply --name GetSystemHealthLogs
+```
+
+### Removing Agents and Tools
+
+When you need to clean up or remove test resources:
+
+```bash
+# Delete an agent from the server
+srectl agent delete --name HelloWorldAgent
+
+# Delete a tool from the server
+srectl tool delete --name GetSystemHealthLogs
+```
+
+**Important Notes:**
+- **Dependency Checking**: The delete commands will check for dependencies before removal
+- **Agent Dependencies**: If other agents reference the agent you're trying to delete in their `handoffs`, the deletion will be blocked
+- **Tool Dependencies**: If any agents use the tool you're trying to delete, the deletion will be blocked with a list of dependent agents
+- **Safe Workflow**: Always remove dependent resources first, working from the top of the dependency chain down
+
+**Example Cleanup Workflow:**
+```bash
+# 1. First check what's deployed
+srectl list agents
+srectl list extended-tools
+
+# 2. Delete agents that depend on others first
+srectl agent delete --name SpecializedAgent
+
+# 3. Then delete the agents they depend on
+srectl agent delete --name HelloWorldAgent
+
+# 4. Finally delete tools (after all agents using them are removed)
+srectl tool delete --name GetSystemHealthLogs
+```
+
 ---
 
 ## Next Steps

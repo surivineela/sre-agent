@@ -1716,6 +1716,156 @@ public class ApiService : IDisposable
         }
     }
 
+    public async Task<(bool Success, string Response)> DeleteAgentAsync(string agentName)
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return (false, "Configuration not found. Please run 'srectl init' first.");
+            }
+
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/agents/{agentName}";
+            var request = new HttpRequestMessage(HttpMethod.Delete, requestUrl);
+
+            // Add auth header if not localhost
+            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
+            {
+                var token = await GetAccessTokenAsync();
+                if (string.IsNullOrEmpty(token))
+                {
+                    return (false, "Failed to get access token. Please run 'az login' first.");
+                }
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var response = await _httpClient.SendAsync(request);
+            var content = await response.Content.ReadAsStringAsync();
+
+            if (response.IsSuccessStatusCode)
+            {
+                return (true, $"Agent '{agentName}' deleted successfully");
+            }
+            else if (response.StatusCode == HttpStatusCode.Conflict)
+            {
+                // Parse conflict response to show dependent agents
+                try
+                {
+                    var conflictData = JsonSerializer.Deserialize<JsonElement>(content);
+                    if (conflictData.TryGetProperty("dependentAgents", out var dependentAgentsElement))
+                    {
+                        var dependentAgents = dependentAgentsElement.EnumerateArray()
+                            .Select(x => x.GetString())
+                            .Where(x => !string.IsNullOrEmpty(x))
+                            .ToList();
+                        
+                        var agentList = dependentAgents.Any() ? string.Join(", ", dependentAgents) : "unknown agents";
+                        return (false, $"Cannot delete agent '{agentName}': it is used by the following agents: {agentList}");
+                    }
+                    
+                    if (conflictData.TryGetProperty("message", out var messageElement))
+                    {
+                        return (false, messageElement.GetString() ?? $"Conflict deleting agent '{agentName}'");
+                    }
+                }
+                catch
+                {
+                    // Fall back to generic conflict message if parsing fails
+                }
+                
+                return (false, $"Cannot delete agent '{agentName}': it is being used by other agents or tools");
+            }
+            else if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return (false, $"Agent '{agentName}' not found");
+            }
+            else
+            {
+                return (false, $"Failed to delete agent: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
+            }
+        }
+        catch (Exception ex)
+        {
+            return (false, $"Failed to delete agent: {ex.Message}");
+        }
+    }
+
+    public async Task<(bool Success, string Response)> DeleteToolAsync(string toolName)
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return (false, "Configuration not found. Please run 'srectl init' first.");
+            }
+
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/tools/{toolName}";
+            var request = new HttpRequestMessage(HttpMethod.Delete, requestUrl);
+
+            // Add auth header if not localhost
+            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
+            {
+                var token = await GetAccessTokenAsync();
+                if (string.IsNullOrEmpty(token))
+                {
+                    return (false, "Failed to get access token. Please run 'az login' first.");
+                }
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var response = await _httpClient.SendAsync(request);
+            var content = await response.Content.ReadAsStringAsync();
+
+            if (response.IsSuccessStatusCode)
+            {
+                return (true, $"Tool '{toolName}' deleted successfully");
+            }
+            else if (response.StatusCode == HttpStatusCode.Conflict)
+            {
+                // Parse conflict response to show dependent agents
+                try
+                {
+                    var conflictData = JsonSerializer.Deserialize<JsonElement>(content);
+                    if (conflictData.TryGetProperty("dependentAgents", out var dependentAgentsElement))
+                    {
+                        var dependentAgents = dependentAgentsElement.EnumerateArray()
+                            .Select(x => x.GetString())
+                            .Where(x => !string.IsNullOrEmpty(x))
+                            .ToList();
+                        
+                        var agentList = dependentAgents.Any() ? string.Join(", ", dependentAgents) : "unknown agents";
+                        return (false, $"Cannot delete tool '{toolName}': it is used by the following agents: {agentList}");
+                    }
+                    
+                    if (conflictData.TryGetProperty("message", out var messageElement))
+                    {
+                        return (false, messageElement.GetString() ?? $"Conflict deleting tool '{toolName}'");
+                    }
+                }
+                catch
+                {
+                    // Fall back to generic conflict message if parsing fails
+                }
+                
+                return (false, $"Cannot delete tool '{toolName}': it is being used by agents");
+            }
+            else if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return (false, $"Tool '{toolName}' not found");
+            }
+            else
+            {
+                return (false, $"Failed to delete tool: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
+            }
+        }
+        catch (Exception ex)
+        {
+            return (false, $"Failed to delete tool: {ex.Message}");
+        }
+    }
+
     public void Dispose()
     {
         _httpClient?.Dispose();

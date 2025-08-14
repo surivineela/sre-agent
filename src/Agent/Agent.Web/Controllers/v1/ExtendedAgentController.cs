@@ -222,4 +222,107 @@ public class ExtendedAgentController : ControllerBase
             });
         }
     }
+
+    /// <summary>
+    /// Delete an agent
+    /// </summary>
+    /// <param name="agentName">The name of the agent to delete</param>
+    /// <returns>Delete operation result</returns>
+    [HttpDelete("agents/{agentName}")]
+    [ProducesResponseType(typeof(ExtendedAgentDeleteResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<ExtendedAgentDeleteResponse>> DeleteAgent([FromRoute] string agentName)
+    {
+        try
+        {
+            var deleted = await _extendedAgentService.DeleteAgentAsync(agentName);
+            
+            if (!deleted)
+            {
+                return NotFound(new ExtendedAgentErrorResponse
+                {
+                    ErrorCode = "AGENT_NOT_FOUND",
+                    Message = $"Agent '{agentName}' not found"
+                });
+            }
+
+            return Ok(new ExtendedAgentDeleteResponse
+            {
+                Status = "success",
+                Message = $"Agent '{agentName}' successfully deleted",
+                ResourceName = agentName,
+                ResourceType = "agent"
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error in DeleteAgent for agent {AgentName}", agentName);
+            return StatusCode(500, new ExtendedAgentErrorResponse
+            {
+                ErrorCode = "INTERNAL_ERROR",
+                Message = "An internal error occurred while deleting the agent"
+            });
+        }
+    }
+
+    /// <summary>
+    /// Delete a tool
+    /// </summary>
+    /// <param name="toolName">The name of the tool to delete</param>
+    /// <returns>Delete operation result</returns>
+    [HttpDelete("tools/{toolName}")]
+    [ProducesResponseType(typeof(ExtendedAgentDeleteResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ExtendedAgentConflictResponse), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult> DeleteTool([FromRoute] string toolName)
+    {
+        try
+        {
+            var (deleted, dependentAgents) = await _extendedAgentService.DeleteToolAsync(toolName);
+            
+            if (dependentAgents.Any())
+            {
+                return Conflict(new ExtendedAgentConflictResponse
+                {
+                    Status = "conflict",
+                    ErrorCode = "TOOL_IN_USE",
+                    Message = $"Tool '{toolName}' cannot be deleted because it is used by {dependentAgents.Count} agent(s)",
+                    ResourceName = toolName,
+                    ResourceType = "tool",
+                    ConflictReason = "Tool is referenced by existing agents",
+                    DependentAgents = dependentAgents
+                });
+            }
+            
+            if (!deleted)
+            {
+                return NotFound(new ExtendedAgentErrorResponse
+                {
+                    ErrorCode = "TOOL_NOT_FOUND",
+                    Message = $"Tool '{toolName}' not found"
+                });
+            }
+
+            return Ok(new ExtendedAgentDeleteResponse
+            {
+                Status = "success",
+                Message = $"Tool '{toolName}' successfully deleted",
+                ResourceName = toolName,
+                ResourceType = "tool"
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error in DeleteTool for tool {ToolName}", toolName);
+            return StatusCode(500, new ExtendedAgentErrorResponse
+            {
+                ErrorCode = "INTERNAL_ERROR",
+                Message = "An internal error occurred while deleting the tool"
+            });
+        }
+    }
 }

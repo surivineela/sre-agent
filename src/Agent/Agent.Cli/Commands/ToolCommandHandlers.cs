@@ -428,4 +428,42 @@ public static class ToolCommandHandlers
 
         Console.WriteLine($"\n[SUCCESS] Tool type details displayed for '{toolTypeName}'");
     }
+
+    /// <summary>
+    /// Handles the tool delete command.
+    /// </summary>
+    public static async Task HandleDeleteCommand(ParseResult parseResult)
+    {
+        var toolName = parseResult.GetValue(ToolCommandOptions.DeleteNameOption);
+        
+        if (string.IsNullOrWhiteSpace(toolName))
+        {
+            Console.WriteLine("❌ Tool name is required.");
+            Environment.Exit(1);
+            return;
+        }
+
+        try
+        {
+            using var apiService = new ApiService();
+            Console.WriteLine($"🗑️  Deleting tool '{toolName}'...");
+            
+            var (success, response) = await apiService.DeleteToolAsync(toolName);
+            
+            if (success)
+            {
+                Console.WriteLine($"✅ {response}");
+            }
+            else
+            {
+                Console.WriteLine($"❌ {response}");
+                Environment.Exit(1);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Failed to delete tool: {ex.Message}");
+            Environment.Exit(1);
+        }
+    }
 }

@@ -285,6 +285,61 @@ srectl agent apply --name example_agent
 ✅ Agent 'pagerduty_incident_agent' applied successfully!
 ```
 
+#### Delete an Agent
+
+Delete an agent configuration from the remote server:
+
+```bash
+srectl agent delete --name <AgentName>
+```
+
+**Parameters:**
+- **--name**: The name of the agent to delete (required)
+
+**Prerequisites:**
+- SRECTL must be initialized with `srectl init` first
+- Agent must exist on the remote server
+- For non-localhost servers, you must be logged in with Azure CLI (`az login`)
+
+**What it does:**
+- Validates that the agent exists on the remote server
+- Checks for any dependent agents that reference this agent in their handoffs
+- Sends a DELETE request to the `/api/v1/extendedAgent/agents/{name}` endpoint
+- Reports success or failure with detailed error messages
+
+**Dependency Checking:**
+The delete operation will fail if other agents depend on this agent:
+- Lists all agents that have this agent in their `handoffs` configuration
+- Provides clear guidance on which agents need to be updated or deleted first
+
+**Examples:**
+
+```bash
+# Delete an agent from the configured server
+srectl agent delete --name pagerduty_incident_agent
+
+# Delete a test agent
+srectl agent delete --name test_agent
+```
+
+**Sample Successful Output:**
+```
+✅ Agent 'pagerduty_incident_agent' deleted successfully.
+```
+
+**Sample Dependency Error Output:**
+```
+❌ Cannot delete agent 'meta_agent': The following agents depend on it:
+- example_agent
+- database_agent
+Please remove these dependencies first or delete the dependent agents.
+```
+
+**Sample Not Found Error Output:**
+```
+❌ Agent 'nonexistent_agent' not found on the server.
+```
+
 ---
 
 ### 3. Tool Management
@@ -387,6 +442,61 @@ srectl tool apply --name GetServiceLogs
 **Sample Output:**
 ```
 ✅ Tool 'GetServiceLogs' applied successfully!
+```
+
+#### Delete a Tool
+
+Delete a tool configuration from the remote server:
+
+```bash
+srectl tool delete --name <ToolName>
+```
+
+**Parameters:**
+- **--name**: The name of the tool to delete (required)
+
+**Prerequisites:**
+- SRECTL must be initialized with `srectl init` first
+- Tool must exist on the remote server
+- For non-localhost servers, you must be logged in with Azure CLI (`az login`)
+
+**What it does:**
+- Validates that the tool exists on the remote server
+- Checks for any dependent agents or tools that reference this tool
+- Sends a DELETE request to the `/api/v1/extendedAgent/tools/{name}` endpoint
+- Reports success or failure with detailed error messages
+
+**Dependency Checking:**
+The delete operation will fail if agents or other tools depend on this tool:
+- Lists all agents that have this tool in their `tools` configuration
+- Provides clear guidance on which agents need to be updated before deletion
+
+**Examples:**
+
+```bash
+# Delete a tool from the configured server
+srectl tool delete --name GetServiceLogs
+
+# Delete a test tool
+srectl tool delete --name TestTool
+```
+
+**Sample Successful Output:**
+```
+✅ Tool 'GetServiceLogs' deleted successfully.
+```
+
+**Sample Dependency Error Output:**
+```
+❌ Cannot delete tool 'example_tool': The following agents depend on it:
+- example_agent (uses: example_tool, other_tool)
+- test_agent (uses: example_tool)
+Please remove this tool from the dependent agents' configurations first.
+```
+
+**Sample Not Found Error Output:**
+```
+❌ Tool 'nonexistent_tool' not found on the server.
 ```
 
 #### Validate a Tool

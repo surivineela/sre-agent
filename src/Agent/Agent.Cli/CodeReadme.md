@@ -411,6 +411,52 @@ public static async Task<List<DocumentSearchResult>> SearchDocumentsAsync(string
 public static async Task ReindexDocumentsAsync()
 ```
 
+### Agent and Tool Management API
+
+The `ApiService.cs` class also provides comprehensive CRUD operations for agents and tools:
+
+```csharp
+// Agent Management
+public static async Task ApplyAgentAsync(string agentName, string yamlContent)
+public static async Task DeleteAgentAsync(string agentName)
+public static async Task<List<AgentInfo>> ListAgentsAsync()
+
+// Tool Management  
+public static async Task ApplyToolAsync(string toolName, string yamlContent)
+public static async Task DeleteToolAsync(string toolName)
+public static async Task<List<ToolInfo>> ListExtendedToolsAsync()
+```
+
+**Delete Operations Features:**
+- **Dependency Checking**: Validates that no other agents/tools depend on the item being deleted
+- **Conflict Detection**: Returns HTTP 409 with detailed dependency information
+- **Error Handling**: Comprehensive error messages for not found (404) and conflict (409) scenarios
+- **Authentication**: Automatic Bearer token integration for remote servers
+- **Validation**: Confirms existence before attempting deletion
+
+**Example Delete Handler Pattern:**
+```csharp
+public static async Task HandleDeleteCommand(ParseResult parseResult)
+{
+    var name = parseResult.GetValue(DeleteNameOption);
+    
+    try 
+    {
+        await ApiService.DeleteAgentAsync(name);
+        AnsiConsole.MarkupLine($"[green]✅ Agent '{name}' deleted successfully.[/]");
+    }
+    catch (HttpRequestException ex) when (ex.Message.Contains("409"))
+    {
+        // Handle dependency conflicts with detailed messaging
+        AnsiConsole.MarkupLine($"[red]❌ Cannot delete agent '{name}': {conflictDetails}[/]");
+    }
+    catch (HttpRequestException ex) when (ex.Message.Contains("404"))
+    {
+        AnsiConsole.MarkupLine($"[red]❌ Agent '{name}' not found on the server.[/]");
+    }
+}
+```
+
 ### Quality Assurance
 
 #### Testing Coverage

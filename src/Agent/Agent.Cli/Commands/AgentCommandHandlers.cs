@@ -277,6 +277,44 @@ public static class AgentCommandHandlers
     }
 
     /// <summary>
+    /// Handles the agent delete command.
+    /// </summary>
+    public static async Task HandleDeleteCommand(ParseResult parseResult)
+    {
+        var agentName = parseResult.GetValue(AgentCommandOptions.DeleteNameOption);
+        
+        if (string.IsNullOrWhiteSpace(agentName))
+        {
+            Console.WriteLine("❌ Agent name is required.");
+            Environment.Exit(1);
+            return;
+        }
+
+        try
+        {
+            using var apiService = new ApiService();
+            Console.WriteLine($"🗑️  Deleting agent '{agentName}'...");
+            
+            var (success, response) = await apiService.DeleteAgentAsync(agentName);
+            
+            if (success)
+            {
+                Console.WriteLine($"✅ {response}");
+            }
+            else
+            {
+                Console.WriteLine($"❌ {response}");
+                Environment.Exit(1);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Failed to delete agent: {ex.Message}");
+            Environment.Exit(1);
+        }
+    }
+
+    /// <summary>
     /// Handles the agent test command to test an agent with a specific message.
     /// </summary>
     public static async Task HandleTestCommand(ParseResult parseResult)

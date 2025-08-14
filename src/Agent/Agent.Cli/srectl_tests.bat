@@ -968,6 +968,416 @@ echo.
 echo.
 
 REM ===========================================
+REM DELETE COMMAND TESTS
+REM ===========================================
+
+echo ===========================================
+echo DELETE COMMAND TESTS
+echo ===========================================
+echo.
+
+REM Test 50: Create test agents and tools for deletion testing
+echo [TEST 50] Setup - Create test agents and tools for deletion testing
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- agent create --name DeleteTestAgent1 --instructions "Test agent for delete command testing - comprehensive instructions for validation" --tools example_tool > test50_output.txt 2>&1
+if !errorlevel! equ 0 (
+    dotnet run --project .. -- agent create --name DeleteTestAgent2 --instructions "Another test agent for delete command testing - comprehensive instructions for validation" --tools example_tool > test50b_output.txt 2>&1
+    if !errorlevel! equ 0 (
+        dotnet run --project .. -- tool create --name DeleteTestTool1 --type KustoTool --extra description "Test tool for delete command testing" > test50c_output.txt 2>&1
+        if !errorlevel! equ 0 (
+            dotnet run --project .. -- tool create --name DeleteTestTool2 --type KustoTool --extra description "Another test tool for delete command testing" > test50d_output.txt 2>&1
+            if !errorlevel! equ 0 (
+                echo [PASS] Setup - Create test agents and tools for deletion testing
+                set /a TESTS_PASSED+=1
+            ) else (
+                echo [FAIL] Setup - Failed to create DeleteTestTool2
+                type test50d_output.txt
+                set /a TESTS_FAILED+=1
+            )
+        ) else (
+            echo [FAIL] Setup - Failed to create DeleteTestTool1
+            type test50c_output.txt
+            set /a TESTS_FAILED+=1
+        )
+    ) else (
+        echo [FAIL] Setup - Failed to create DeleteTestAgent2
+        type test50b_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Setup - Failed to create DeleteTestAgent1
+    type test50_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 51: Apply test agents to server for delete testing
+echo [TEST 51] Apply test agents to server for delete testing
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- agent apply --name DeleteTestAgent1 > test51_output.txt 2>&1
+if !errorlevel! equ 0 (
+    dotnet run --project .. -- agent apply --name DeleteTestAgent2 > test51b_output.txt 2>&1
+    if !errorlevel! equ 0 (
+        echo [PASS] Apply test agents to server for delete testing
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Apply test agents - Failed to apply DeleteTestAgent2
+        type test51b_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Apply test agents - Failed to apply DeleteTestAgent1
+    type test51_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 52: Apply test tools to server for delete testing
+echo [TEST 52] Apply test tools to server for delete testing
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- tool apply --name DeleteTestTool1 > test52_output.txt 2>&1
+if !errorlevel! equ 0 (
+    dotnet run --project .. -- tool apply --name DeleteTestTool2 > test52b_output.txt 2>&1
+    if !errorlevel! equ 0 (
+        echo [PASS] Apply test tools to server for delete testing
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Apply test tools - Failed to apply DeleteTestTool2
+        type test52b_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Apply test tools - Failed to apply DeleteTestTool1
+    type test52_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 53: List agents before deletion
+echo [TEST 53] List agents before deletion
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- list agents > test53_output.txt 2>&1
+if !errorlevel! equ 0 (
+    findstr /i "DeleteTestAgent1" test53_output.txt >nul
+    if !errorlevel! equ 0 (
+        findstr /i "DeleteTestAgent2" test53_output.txt >nul
+        if !errorlevel! equ 0 (
+            echo [PASS] List agents before deletion - Both test agents found
+            set /a TESTS_PASSED+=1
+        ) else (
+            echo [FAIL] List agents before deletion - DeleteTestAgent2 not found
+            type test53_output.txt
+            set /a TESTS_FAILED+=1
+        )
+    ) else (
+        echo [FAIL] List agents before deletion - DeleteTestAgent1 not found
+        type test53_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] List agents before deletion - Command failed
+    type test53_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 54: List tools before deletion
+echo [TEST 54] List extended-tools before deletion
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- list extended-tools > test54_output.txt 2>&1
+if !errorlevel! equ 0 (
+    findstr /i "DeleteTestTool1" test54_output.txt >nul
+    if !errorlevel! equ 0 (
+        findstr /i "DeleteTestTool2" test54_output.txt >nul
+        if !errorlevel! equ 0 (
+            echo [PASS] List extended-tools before deletion - Both test tools found
+            set /a TESTS_PASSED+=1
+        ) else (
+            echo [FAIL] List extended-tools before deletion - DeleteTestTool2 not found
+            type test54_output.txt
+            set /a TESTS_FAILED+=1
+        )
+    ) else (
+        echo [FAIL] List extended-tools before deletion - DeleteTestTool1 not found
+        type test54_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] List extended-tools before deletion - Command failed
+    type test54_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 55: Delete non-existent agent (error handling)
+echo [TEST 55] Delete non-existent agent (error handling)
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- agent delete --name NonExistentAgent > test55_output.txt 2>&1
+if !errorlevel! neq 0 (
+    findstr /i "not found\|does not exist" test55_output.txt >nul
+    if !errorlevel! equ 0 (
+        echo [PASS] Delete non-existent agent - Proper error handling
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Delete non-existent agent - Wrong error message
+        type test55_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Delete non-existent agent - Should have failed but succeeded
+    type test55_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 56: Delete non-existent tool (error handling)
+echo [TEST 56] Delete non-existent tool (error handling)
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- tool delete --name NonExistentTool > test56_output.txt 2>&1
+if !errorlevel! neq 0 (
+    findstr /i "not found\|does not exist" test56_output.txt >nul
+    if !errorlevel! equ 0 (
+        echo [PASS] Delete non-existent tool - Proper error handling
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Delete non-existent tool - Wrong error message
+        type test56_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Delete non-existent tool - Should have failed but succeeded
+    type test56_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 57: Delete agent successfully
+echo [TEST 57] Delete agent successfully
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- agent delete --name DeleteTestAgent1 > test57_output.txt 2>&1
+if !errorlevel! equ 0 (
+    findstr /i "deleted successfully" test57_output.txt >nul
+    if !errorlevel! equ 0 (
+        echo [PASS] Delete agent successfully - Proper success message
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Delete agent successfully - Missing success message
+        type test57_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Delete agent successfully - Command failed
+    type test57_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 58: Delete tool successfully
+echo [TEST 58] Delete tool successfully
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- tool delete --name DeleteTestTool1 > test58_output.txt 2>&1
+if !errorlevel! equ 0 (
+    findstr /i "deleted successfully" test58_output.txt >nul
+    if !errorlevel! equ 0 (
+        echo [PASS] Delete tool successfully - Proper success message
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Delete tool successfully - Missing success message
+        type test58_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Delete tool successfully - Command failed
+    type test58_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 59: Verify agent deletion by listing agents
+echo [TEST 59] Verify agent deletion by listing agents
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- list agents > test59_output.txt 2>&1
+if !errorlevel! equ 0 (
+    findstr /i "DeleteTestAgent1" test59_output.txt >nul
+    if !errorlevel! neq 0 (
+        echo [PASS] Verify agent deletion - DeleteTestAgent1 no longer listed
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Verify agent deletion - DeleteTestAgent1 still appears in list
+        type test59_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Verify agent deletion - List command failed
+    type test59_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 60: Verify tool deletion by listing extended-tools
+echo [TEST 60] Verify tool deletion by listing extended-tools
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- list extended-tools > test60_output.txt 2>&1
+if !errorlevel! equ 0 (
+    findstr /i "DeleteTestTool1" test60_output.txt >nul
+    if !errorlevel! neq 0 (
+        echo [PASS] Verify tool deletion - DeleteTestTool1 no longer listed
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Verify tool deletion - DeleteTestTool1 still appears in list
+        type test60_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Verify tool deletion - List command failed
+    type test60_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 61: Create agent that depends on a tool, then test dependency checking
+echo [TEST 61] Create agent with dependency on DeleteTestTool2
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- agent create --name DependentAgent --instructions "Agent that depends on DeleteTestTool2 for dependency testing" --tools DeleteTestTool2 > test61_output.txt 2>&1
+if !errorlevel! equ 0 (
+    dotnet run --project .. -- agent apply --name DependentAgent > test61b_output.txt 2>&1
+    if !errorlevel! equ 0 (
+        echo [PASS] Create agent with dependency on DeleteTestTool2
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Create agent with dependency - Failed to apply DependentAgent
+        type test61b_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Create agent with dependency - Failed to create DependentAgent
+    type test61_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 62: Try to delete tool with dependencies (should fail)
+echo [TEST 62] Try to delete tool with dependencies (should fail)
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- tool delete --name DeleteTestTool2 > test62_output.txt 2>&1
+if !errorlevel! neq 0 (
+    findstr /i "dependency\|dependent\|used by" test62_output.txt >nul
+    if !errorlevel! equ 0 (
+        echo [PASS] Try to delete tool with dependencies - Proper dependency check
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Try to delete tool with dependencies - Wrong error message
+        type test62_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Try to delete tool with dependencies - Should have failed but succeeded
+    type test62_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 63: Delete dependent agent first, then tool
+echo [TEST 63] Delete dependent agent first
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- agent delete --name DependentAgent > test63_output.txt 2>&1
+if !errorlevel! equ 0 (
+    findstr /i "deleted successfully" test63_output.txt >nul
+    if !errorlevel! equ 0 (
+        echo [PASS] Delete dependent agent first - Success
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Delete dependent agent first - Missing success message
+        type test63_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Delete dependent agent first - Command failed
+    type test63_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 64: Now delete the tool after removing dependencies
+echo [TEST 64] Delete tool after removing dependencies
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- tool delete --name DeleteTestTool2 > test64_output.txt 2>&1
+if !errorlevel! equ 0 (
+    findstr /i "deleted successfully" test64_output.txt >nul
+    if !errorlevel! equ 0 (
+        echo [PASS] Delete tool after removing dependencies - Success
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Delete tool after removing dependencies - Missing success message
+        type test64_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Delete tool after removing dependencies - Command failed
+    type test64_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 65: Delete remaining test agent
+echo [TEST 65] Delete remaining test agent (DeleteTestAgent2)
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- agent delete --name DeleteTestAgent2 > test65_output.txt 2>&1
+if !errorlevel! equ 0 (
+    findstr /i "deleted successfully" test65_output.txt >nul
+    if !errorlevel! equ 0 (
+        echo [PASS] Delete remaining test agent - Success
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Delete remaining test agent - Missing success message
+        type test65_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Delete remaining test agent - Command failed
+    type test65_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 66: Final verification - ensure all test agents and tools are deleted
+echo [TEST 66] Final verification - ensure all test entities are deleted
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- list agents > test66_output.txt 2>&1
+if !errorlevel! equ 0 (
+    findstr /i "DeleteTestAgent" test66_output.txt >nul
+    if !errorlevel! neq 0 (
+        dotnet run --project .. -- list extended-tools > test66b_output.txt 2>&1
+        if !errorlevel! equ 0 (
+            findstr /i "DeleteTestTool" test66b_output.txt >nul
+            if !errorlevel! neq 0 (
+                echo [PASS] Final verification - All test entities successfully deleted
+                set /a TESTS_PASSED+=1
+            ) else (
+                echo [FAIL] Final verification - Some test tools still exist
+                type test66b_output.txt
+                set /a TESTS_FAILED+=1
+            )
+        ) else (
+            echo [FAIL] Final verification - List extended-tools command failed
+            type test66b_output.txt
+            set /a TESTS_FAILED+=1
+        )
+    ) else (
+        echo [FAIL] Final verification - Some test agents still exist
+        type test66_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Final verification - List agents command failed
+    type test66_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+echo.
+
+REM ===========================================
 REM CLEANUP AND SUMMARY
 REM ===========================================
 
@@ -990,6 +1400,9 @@ if exist "agents" (
     if exist "agents\bulk_agent_1" rmdir /s /q "agents\bulk_agent_1"
     if exist "agents\bulk_agent_2" rmdir /s /q "agents\bulk_agent_2"
     if exist "agents\bulk_agent_3" rmdir /s /q "agents\bulk_agent_3"
+    if exist "agents\DeleteTestAgent1" rmdir /s /q "agents\DeleteTestAgent1"
+    if exist "agents\DeleteTestAgent2" rmdir /s /q "agents\DeleteTestAgent2"
+    if exist "agents\DependentAgent" rmdir /s /q "agents\DependentAgent"
     
     REM Keep example_agent.yaml as it was created by init
 )
@@ -1003,6 +1416,8 @@ if exist "tools" (
     if exist "tools\schema_mismatch.yaml" del "tools\schema_mismatch.yaml"
     if exist "tools\valid_type_tool1.yaml" del "tools\valid_type_tool1.yaml"
     if exist "tools\valid_type_tool2.yaml" del "tools\valid_type_tool2.yaml"
+    if exist "tools\DeleteTestTool1.yaml" del "tools\DeleteTestTool1.yaml"
+    if exist "tools\DeleteTestTool2.yaml" del "tools\DeleteTestTool2.yaml"
     
     REM Keep example_tool.yaml as it was created by init
 )
@@ -1049,6 +1464,11 @@ if !TESTS_FAILED! equ 0 (
     echo - Malformed YAML handling
     echo - Configuration file edge cases
     echo - Tool type validation and schema checking
+    echo - Agent delete command functionality
+    echo - Tool delete command functionality
+    echo - Delete command error handling
+    echo - Dependency checking for deletion
+    echo - Server integration for delete operations
     exit /b 0
 ) else (
     echo.

@@ -51,6 +51,9 @@ public static class AgentCommandOptions
     // Agent options for apply
     public static readonly Option<string> ApplyNameOption = new("--name") { Required = true };
 
+    // Agent options for delete
+    public static readonly Option<string> DeleteNameOption = new("--name") { Required = true };
+
     // Agent options for test
     public static readonly Option<string> TestNameOption = new("--name") 
     { 
