@@ -883,6 +883,12 @@
       "value": "Backed by"
     }
   ],
+  "8/TArm": [
+    {
+      "type": 0,
+      "value": "Go to Identity"
+    }
+  ],
   "84MFOR": [
     {
       "type": 0,
@@ -3109,6 +3115,12 @@
     {
       "type": 0,
       "value": "Key Vault URI"
+    }
+  ],
+  "b7D4Lh": [
+    {
+      "type": 0,
+      "value": "Manage the identities associated with your agent which may be used to communicate with other services"
     }
   ],
   "bKgVBL": [

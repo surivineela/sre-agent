@@ -8,6 +8,7 @@ import { SettingsTabResources } from '../../Strings/SREAgentResources';
 import AccessControl from './AccessControl.ReactView';
 import Basics from './Basics.ReactView';
 import DataConnectors from './DataConnectors.ReactView';
+import Identity from './Identity.ReactView';
 import ManagedResources from './ManagedResources.ReactView';
 import { navStyles, useSettingsStyles } from './Styles/Settings.styles';
 
@@ -17,6 +18,7 @@ export enum SettingsKeys {
     GrafanaDashboard = 'grafanaDashboard',
     managedResources = 'managedResourcesGroups',
     DataConnectors = 'dataConnectors',
+    Identity = 'identity',
 }
 
 const Settings: FC = () => {
@@ -68,6 +70,11 @@ const Settings: FC = () => {
                         url: '',
                         key: SettingsKeys.AccessControl,
                     },
+                    {
+                        name: intl.formatMessage(SettingsTabResources.identity),
+                        url: '',
+                        key: SettingsKeys.Identity,
+                    },
                 ],
             },
         ],
@@ -98,6 +105,7 @@ const Settings: FC = () => {
                     {selectedKey === SettingsKeys.GrafanaDashboard && <GrafanaDashboard />}
                     {selectedKey === SettingsKeys.DataConnectors && showDataConnectors && <DataConnectors />}
                     {selectedKey === SettingsKeys.AccessControl && <AccessControl />}
+                    {selectedKey === SettingsKeys.Identity && <Identity />}
                 </div>
             </div>
         )

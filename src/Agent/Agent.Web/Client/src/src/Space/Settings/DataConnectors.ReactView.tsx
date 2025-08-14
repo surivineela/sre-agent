@@ -1,18 +1,11 @@
 import { Link } from '@fluentui/react-components';
-import {
-    CheckboxVisibility,
-    ConstrainMode,
-    DetailsListLayoutMode,
-    IColumn,
-    Selection,
-    SelectionMode,
-} from '@fluentui/react/lib/DetailsList';
-import { ShimmeredDetailsList } from '@fluentui/react/lib/ShimmeredDetailsList';
-import { FC, useCallback, useContext, useMemo, useRef, useState } from 'react';
+import { ConstrainMode, DetailsListLayoutMode, IColumn } from '@fluentui/react/lib/DetailsList';
+import { FC, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { SecretValue } from '../../Common/Components/SecretValue';
+import ShimmeredDetailsListWithSelection, { OnUpdateSelectionArgs } from '../../Common/Components/ShimmeredDetailsListWithSelection';
 import { DataConnector } from '../../Common/Contracts/Azure/SreAgent';
 import { ArmResourceDescriptor } from '../../Common/Helpers/ResourceDescriptors';
 import { DataConnectorsResources, SettingsTabResources } from '../../Strings/SREAgentResources';
@@ -44,15 +37,12 @@ const DataConnectors: FC = () => {
     const [isEditMode, setIsEditMode] = useState(false);
     const [isOperationInProgress, setIsOperationInProgress] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
 
-    const selection = useRef(
-        new Selection({
-            onSelectionChanged: () => {
-                const items = (selection.current.getSelection() as DataConnector[]) ?? [];
-                setSelectedDataConnection(items.length > 0 ? items[0] : undefined);
-            },
-        })
-    );
+    const onUpdateSelection = useCallback(({ selectedItems, selectedKeys }: OnUpdateSelectionArgs<DataConnector>) => {
+        setSelectedDataConnection(selectedItems.length > 0 ? selectedItems[0] : undefined);
+        setSelectedKeys(selectedKeys);
+    }, []);
 
     const handleRefresh = useCallback(async () => {
         setIsRefreshing(true);
@@ -68,10 +58,10 @@ const DataConnectors: FC = () => {
 
     const handleNewDataConnection = useCallback(() => {
         setSelectedDataConnection(undefined);
+        setSelectedKeys([]);
         setIsEditMode(false);
         setIsDialogOpen(true);
-        selection.current.setAllSelected(false);
-    }, [selection]);
+    }, []);
 
     const openManagedIdentity = useCallback(
         (identityId: string) => {
@@ -98,7 +88,7 @@ const DataConnectors: FC = () => {
         const response = await deleteDataConnector(selectedDataConnection.name);
         if (response.metadata.success) {
             setSelectedDataConnection(undefined);
-            selection.current.setAllSelected(false);
+            setSelectedKeys([]);
             handleRefresh();
 
             portalContext.stopNotification(
@@ -127,7 +117,7 @@ const DataConnectors: FC = () => {
             );
         }
         setIsOperationInProgress(false);
-    }, [selectedDataConnection, deleteDataConnector, resourceId, selection, handleRefresh, portalContext, intl]);
+    }, [selectedDataConnection, deleteDataConnector, resourceId, handleRefresh, portalContext, intl]);
 
     const getFormValuesFromDataConnector = useCallback((dataConnector: DataConnector): DataConnectorFormProps => {
         return {
@@ -297,17 +287,17 @@ const DataConnectors: FC = () => {
                     isOperationInProgress={isOperationInProgress || isRefreshing}
                 />
                 <div data-is-scrollable="true">
-                    <ShimmeredDetailsList
-                        compact={true}
-                        selection={selection.current}
-                        selectionMode={SelectionMode.single}
+                    <ShimmeredDetailsListWithSelection<DataConnector>
+                        items={dataConnectors}
+                        getKey={dc => dc.name}
                         columns={columns}
                         constrainMode={ConstrainMode.horizontalConstrained}
-                        items={dataConnectors}
                         layoutMode={DetailsListLayoutMode.justified}
                         enableShimmer={isDataConnectorsLoading || isRefreshing}
-                        checkboxVisibility={CheckboxVisibility.always}
-                        selectionPreservedOnEmptyClick={true}
+                        multiSelect={false}
+                        hideSelectAll
+                        selectedKeys={selectedKeys}
+                        onUpdateSelection={onUpdateSelection}
                     />
                     {!isDataConnectorsLoading && dataConnectors.length === 0 && (
                         <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>

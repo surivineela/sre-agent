@@ -27,6 +27,9 @@ import { useManagedResources } from './Hooks/useManagedResources';
 import ResourceGroupPicker from './ResourceGroupPicker';
 import { useManagedResourcesStyles } from './Styles/ManagedResources.styles';
 
+// TODO: DetailsList selection broken (checkboxes not reflecting selection state)
+// -> update to use ShimmeredDetailsListWithSelection which mimicks what ResourceGroupPicker is doing
+
 const ManagedResources: FC = () => {
     const { resourceId } = useContext(EnvironmentContext);
     const az = useContext(AzPortalContext);

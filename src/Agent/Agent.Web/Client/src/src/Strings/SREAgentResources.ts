@@ -550,6 +550,14 @@ export const AccessControlResources = defineMessages({
     openAccessControl: { defaultMessage: 'Go to Access control', id: 'fUgypu' },
 });
 
+export const IdentityResources = defineMessages({
+    goToIdentity: { defaultMessage: 'Go to Identity', id: '8/TArm' },
+    identityDescription: {
+        defaultMessage: 'Manage the identities associated with your agent which may be used to communicate with other services',
+        id: 'b7D4Lh',
+    },
+});
+
 export const ActivitiesResources = defineMessages({
     insufficientChatPermissions: {
         defaultMessage:
@@ -988,6 +996,7 @@ export const SettingsTabResources = defineMessages({
     grafanaDashboard: { defaultMessage: 'Grafana dashboard', id: '2zi2Yj' },
     managedResources: { defaultMessage: 'Managed resource groups', id: 'yilQrD' },
     dataConnectors: { defaultMessage: 'Data connectors', id: 'L5ZL+u' },
+    identity: { defaultMessage: 'Identity', id: 'tShbyC' },
 });
 
 export const GrafanaDashboardResources = defineMessages({
