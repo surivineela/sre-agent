@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using Agent.Core.Configuration;
+using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
@@ -60,6 +61,7 @@ namespace Agent.Runtime.Services
         private readonly IIncidentManagementService<ServiceNowIncidentDocument> _serviceNowIncidentManagementService;
         private readonly IServiceNowAPIClient _serviceNowAPIClient;
         private readonly IncidentManagementSettings _incidentManagementSettings;
+        private readonly IInstructionGenerationService _instructionGenerationService;
 
         public IncidentHandlingService(
             IPagerDutyService pagerDutyService,
@@ -74,7 +76,8 @@ namespace Agent.Runtime.Services
             IIncidentManagementService<IcmIncidentDocument> icmIncidentManagementService,
             IIncidentManagementService<ServiceNowIncidentDocument> serviceNowIncidentManagementService,
             IServiceNowAPIClient serviceNowAPIClient,
-            IncidentManagementSettings incidentManagementSettings)
+            IncidentManagementSettings incidentManagementSettings,
+            IInstructionGenerationService instructionGenerationService)
         {
             _pagerDutyService = pagerDutyService;
             _icmApiClient = icmApiClient;
@@ -89,6 +92,7 @@ namespace Agent.Runtime.Services
             _serviceNowIncidentManagementService = serviceNowIncidentManagementService;
             _serviceNowAPIClient = serviceNowAPIClient;
             _incidentManagementSettings = incidentManagementSettings;
+            _instructionGenerationService = instructionGenerationService;
         }
 
         // Fix for CS8920: The interface 'IIncidentDocument' cannot be used as type argument.
@@ -313,13 +317,31 @@ namespace Agent.Runtime.Services
                     $"**Custom Instructions for Incident Processing:**\n" +
                     $"{customInstructionsForAlert}\n\n" +
                     $"**Incident Handler:** {incidentHandler.Name}";
+
+                // Get platform-specific incident handler tools
+                var platformName = GetPlatformFromIncidentType(incidentDetails.DocumentType);
+                var incidentHandlerTools = await _instructionGenerationService.GetIncidentHandlerTools(platformName);
+                
+                // Combine with existing tools from incident handler
+                var allTools = new List<string>();
+                if (incidentHandler.Tools != null)
+                {
+                    allTools.AddRange(incidentHandler.Tools);
+                }
+                
+                // Add incident handler tools
+                allTools.AddRange(incidentHandlerTools.Select(t => t.Name));
+                
+                // Remove duplicates
+                allTools = allTools.Distinct().ToList();
+
                 (var thread, var agentContext) = await _inboundCommunicationService.CreateAgentThread(
                     title: $"Incident - {title}",
                     message: alertMessage,
                     agentTypeEnum: AgentTypeEnum.Incident,
                     source: ThreadSource.Incident,
                     incidentId: incidentDetails.Id ?? string.Empty,
-                    AllowedTools: incidentHandler.Tools,
+                    AllowedTools: allTools,
                     threadType: request.IsTest ? ThreadType.Test : ThreadType.Prod,
                     overrideAgentMode: incidentFilterDocument.AgentMode
                 );
@@ -522,6 +544,11 @@ namespace Agent.Runtime.Services
 
                     return (matchingFilter, matchingHandler);
             }
+        }
+
+        private string GetPlatformFromIncidentType(string documentType)
+        {
+            return documentType.ToIncidentDocumentType().ToPlatformName();
         }
     }
 }

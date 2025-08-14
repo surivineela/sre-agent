@@ -128,6 +128,32 @@ namespace Agent.Core
             """;
 
         public const string ExtendedAgentsRepoPath = "customAgents";
+
+        /// <summary>
+        /// Constants for incident management platform names
+        /// </summary>
+        public static class IncidentPlatforms
+        {
+            /// <summary>
+            /// ServiceNow platform name
+            /// </summary>
+            public const string ServiceNow = "ServiceNow";
+            
+            /// <summary>
+            /// PagerDuty platform name
+            /// </summary>
+            public const string PagerDuty = "PagerDuty";
+            
+            /// <summary>
+            /// ICM (Incident and Change Management) platform name
+            /// </summary>
+            public const string ICM = "ICM";
+            
+            /// <summary>
+            /// Azure Monitor platform name
+            /// </summary>
+            public const string AzureMonitor = "AzureMonitor";
+        }
     }
 }
 
