@@ -1,0 +1,21 @@
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let cappName = "##appName##";
+let cappResourceGroup = "##resourceGroup##";
+let cappSubscription = "##subscriptionId##";
+let itemtype = "containerApp";
+let cappClusterName = "##clusterName##";
+ContainerAppControllerEvents
+| where PreciseTimeStamp between (queryFrom .. queryTo)
+| where EnvironmentName == cappClusterName
+| extend json = iff(itemtype == "job", JobJson, AppJson)
+| where isnotempty(json)
+| extend itemName = iff(itemtype == "job", ContainerAppJobName, ContainerAppName)
+| where itemName == cappName
+| where json contains cappSubscription and json contains cappResourceGroup and json contains cappName
+| extend d=parse_json(json)
+| project PreciseTimeStamp,  minReplicaCount = toint(d.spec.template.scale.minReplicas)
+| summarize StartTime = min(PreciseTimeStamp), EndTime = max(PreciseTimeStamp) by minReplicaCount
+| order by StartTime asc
+| project StartTime, EndTime, MinReplicaCount = minReplicaCount
+

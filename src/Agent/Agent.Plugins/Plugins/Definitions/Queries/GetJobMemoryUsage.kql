@@ -1,0 +1,10 @@
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let regionalMdmAccount = strcat("ContainerAppsShoebox", "##region##");
+let metricName = "UsageBytes";
+let resourceId = "##resourceId##";
+let samplingType = 'Max';
+let whereClause = strcat("| where jobArmId == '", resourceId, "'");
+GetSparseMdm(queryFrom, queryTo, regionalMdmAccount, "jobs-metrics", metricName, "'jobArmId'", samplingType, whereClause)
+| extend value = column_ifexists("Max",-1)
+| project Timestamp = TimestampUtc, MemoryUsageInBytes = value

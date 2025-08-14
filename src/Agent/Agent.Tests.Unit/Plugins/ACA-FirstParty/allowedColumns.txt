@@ -127,6 +127,14 @@ JobExecutionName
 JobExecutionStatus
 JobExecutionStatusDetails
 
+# Billing
+BillingMeterLabel
+Usage
+CpuUsageNanoCores
+MemoryUsageInBytes
+ReplicaCount
+MinReplicaCount
+
 # Sessions
 SessionPoolResourceGroupName
 SessionIdentifier

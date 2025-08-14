@@ -41,7 +41,7 @@ namespace Agent.Plugins.Definitions
             [Description("Metric sampling type. Example: 'Max', 'Average', 'Min'.")] string samplingType,
             [Description("Threshold as a percentage to check if metric equals or exceeds. Example: '80'.")] string Threshold)
         {
-            return _kustoPlugin.ExecuteLocalFunctionAsync("GetMdmResult", region,
+            return _kustoPlugin.ExecuteLocalFunctionAsync("CheckMdmMetricExceedsThreshold", region,
                 new Dictionary<string, string>
                 {
                     { "fromDate", fromDate.ToString() },
@@ -75,7 +75,7 @@ namespace Agent.Plugins.Definitions
             [Description("Metric sampling type. Example: 'Max', 'Average', 'Min'.")] string samplingType,
             [Description("Threshold as a percentage to check if metric equals or exceeds. Example: '90'.")] string Threshold)
         {
-            return _kustoPlugin.ExecuteLocalFunctionAsync("GetMdmResult", region,
+            return _kustoPlugin.ExecuteLocalFunctionAsync("CheckMdmMetricExceedsThreshold", region,
                 new Dictionary<string, string>
                 {
                     { "fromDate", fromDate.ToString() },

@@ -663,6 +663,7 @@ public class Program
                 .AddTransient<RCAContainerAppResourceCheckPluginDefinition>()
                 .AddTransient<RCAContainerAppResourceSearchPluginDefinition>()
                 .AddTransient<RCAContainerAppsSwiftNetworkContainerPluginDefinition>()
+                .AddTransient<RCAContainerAppBillingPluginDefinition>()
                 .AddTransient<RCAContainerAppPlatformUpgradesPluginDefinition>();
 
             builder.Services.AddSingleton<IAgentsFactory, FirstPartyAgentsFactory>();

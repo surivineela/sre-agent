@@ -1,0 +1,11 @@
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let regionalMdmAccount = strcat("ContainerAppsShoebox", "##region##");
+let metricName = "Replicas";
+let containerAppArmId = "##resourceId##";
+let samplingType = 'Max';
+let whereClause = strcat("| where containerAppArmId == '", containerAppArmId, "'");
+GetSparseMdm(queryFrom, queryTo, regionalMdmAccount, "k4apps-metrics", metricName, "'containerAppArmId','revisionName'", samplingType, whereClause)
+| extend value = column_ifexists("Max",-1)
+| order by RevisionName asc , Timestamp asc
+| project Timestamp = TimestampUtc, RevisionName = revisionName, ReplicaCount = value

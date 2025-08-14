@@ -1,0 +1,39 @@
+let fromDate = datetime("##fromDate##");
+let toDate = datetime("##toDate##");
+let resource = "##resourceId##";
+let region = "##region##";
+let duration = toDate - fromDate;
+let bins = datatable(span: timespan, bucket: timespan) [
+    1m, 1m,
+    30m, 2m,
+    1h, 5m,
+    3h, 10m,
+    6h, 20m,
+    12h, 30m,
+    1d, 1h,
+    2d, 2h,
+    4d, 4h,
+    8d, 8h,
+    16d, 16h,
+    24d, 1d
+];
+let selectedBucket = toscalar(
+    bins
+    | where duration >= span
+    | top 1 by span desc
+    | project bucket
+);
+let BillingMeters = 
+    union GetContainerAppBillingMeters, GetDedicatedBillingMeters, GetSessionBillingMeters
+    | extend NormalizedRegion = tolower(replace(" ", "", replace("(", "", replace(")", "", MeterRegion))))
+    | where NormalizedRegion == region
+    | project BillingMeterId = MeterID, BillingMeterLabel = MeterLabel;
+ContainerAppBillingEvents
+| where PreciseTimeStamp between (fromDate .. toDate)
+| where EventId == 1012
+| where resourceId contains resource
+| project PreciseTimeStamp, meter, quantity
+| summarize sum(quantity) by meter, bin(PreciseTimeStamp, selectedBucket)
+| join kind = leftouter BillingMeters on $left.meter == $right.BillingMeterId 
+| order by BillingMeterId, PreciseTimeStamp asc  
+| project PreciseTimeStamp, BillingMeterLabel, Usage = sum_quantity
