@@ -1,0 +1,29 @@
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let local_managedClusterName = "##managedClusterName##";
+let binSize = 5m;
+let per_bin =
+    ContainerAppMonitoringEvents
+    | where PreciseTimeStamp between (queryFrom .. queryTo)
+    | where managedClusterName == local_managedClusterName
+    | where EventId in (2011, 2012)
+    | extend ok = iff(EventId == 2012, 0.0, 100.0)
+    | summarize Availability = avg(ok) by Tenant, bin_ts = bin(PreciseTimeStamp, binSize)
+    | extend StatusBin = iif(Availability == 100.0, "100", "<100");
+per_bin
+| order by Tenant asc, bin_ts asc
+| serialize
+| extend prevTenant = prev(Tenant), prev_ts = prev(bin_ts), prevStatus = prev(StatusBin)
+| extend is_new_group = iif(prevTenant != Tenant or bin_ts - prev_ts > binSize or StatusBin != prevStatus, 1, 0)
+| extend grp = row_cumsum(is_new_group)
+| summarize
+    Tenant = any(Tenant),
+    StatusBin = any(StatusBin),
+    RangeStart = min(bin_ts),
+    RangeEnd = max(bin_ts) + binSize,
+    AvgAvailability = iff(any(StatusBin) == "<100", avg(Availability), 100.),
+    Bins = count(),
+    Duration = binSize * count()
+  by grp
+| project-away grp, Tenant, StatusBin
+| order by RangeStart asc

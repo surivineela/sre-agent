@@ -235,6 +235,7 @@ handoffs:
   - rca_containerapp_search_resource_agent
 
 tools:
+  - GetCanaryAvailability
   - GetSystemComponentErrorEvents
   - GetSystemComponentCpuUsage
   - GetManagedEnvironmentConfigureInfo

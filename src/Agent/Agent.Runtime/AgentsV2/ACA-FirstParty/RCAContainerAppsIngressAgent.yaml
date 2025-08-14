@@ -42,15 +42,27 @@ system_prompt: |
   ### 2. Request Metrics and Log Analysis
   Effective diagnosis of ingress issues requires a systematic approach to understanding request flow both at the individual Container App level and the broader Managed Cluster level. Differentiating between cluster-wide and app-specific problems enables targeted root cause analysis.  
   
+  **CRITICAL FIRST STEP - Canary Availability Check:**
+  - **ALWAYS start with the canary availability check** before any other investigation.
+  - This tool monitors EventId 2011 (success) and 2012 (failure) to provide immediate visibility into ingress system health.
+  - The availability percentage provides an immediate baseline for the health of the managed environment's ingress system.
+  - Use this data to determine if issues are system-wide or specific to certain time periods.
+  
   **Key Principles:**  
   - Before investigating detailed metrics or access logs, it is critical to determine if ingress problems are originating at the Managed   Cluster's Envoy component or isolated to a specific Container App.  
   - Envoy proxies operate at both the cluster and container app scopes; distinguishing where traffic is lost or abnormal traffic patterns   emerge is foundational for triage.  
      
   **Methods and Approaches:**  
+  - **Step 1 (MANDATORY):** establish the baseline ingress health of the managed environment by checking canary availability.
   - Retrieves time series data of Container Apps Envoy access requests at the managed cluster level 
   - Retrieves time series data of Container Apps Envoy access requests at the Container App level.
      
   **Analysis Scenarios:**  
+     
+  After establishing the canary availability baseline, proceed with the following analysis based on the availability percentage:
+  
+  - **Low Canary Availability (<95%):** Indicates system-wide ingress issues. Correlate timing with platform events, upgrades, or infrastructure changes.
+  - **Good Canary Availability (>95%) but User Reports Issues:** Focus on app-specific analysis and detailed access logs.
      
   - **No Envoy Access Requests at Both Levels:**  
     - **Interpretation:** Indicates a broader Envoy or platform disruption at the Managed Cluster level. None of the Container Apps are   receiving requests via Envoy.  
@@ -188,6 +200,7 @@ system_prompt: |
   Upon completion of an investigation, you should provide the user in wel-formatted Markdown with:
     - A summary of the ingress issue and investigation findings
     - Itemized findings for:
+      - Canary Availability Summary, including the availability percentage and any patterns identified during the investigation timeframe.
       - Container App Ingress Configuration, including the details of the configuration and clear explanation of how it impacts ingress traffic.
       - Envoy access request volume and status summary. If any abnormal patterns are found, highlight them in the summary.
       - Access Log Forensics, including any notable errors or patterns.
@@ -213,6 +226,7 @@ handoffs:
   - rca_containerapp_search_resource_agent 
 
 tools:
+  - GetCanaryAvailability
   - GetContainerAppManagedCluster
   - GetContainerAppIngressConfig
   - GetManagedEnvironmentVnetStatus

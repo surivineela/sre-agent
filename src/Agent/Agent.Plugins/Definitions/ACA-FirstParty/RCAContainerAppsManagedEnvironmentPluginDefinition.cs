@@ -660,5 +660,38 @@ namespace Agent.Plugins.Definitions
                     { "managedClusterName", managedClusterName }
                 });
         }
+
+        [Description("""
+        Purpose:
+        Check the canary availability for ingress in an Azure Container Apps managed environment as a first line of troubleshooting.
+
+        Scenario:
+        Use this tool as the first step when investigating availability issues or checking the overall health of the managed environment's ingress system.
+
+        Output:
+        Returns table data in CSV format with TAB separators. Column headers:
+        - StartTime: Start time of the 5-minute availability window
+        - Availability: Percentage availability (0-100) for the time window
+        """
+        )]
+        public async Task<string> GetCanaryAvailability(
+            [Description("Azure region of the managed environment.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
+        {
+            if (string.IsNullOrEmpty(managedClusterName))
+            {
+                throw new ArgumentException("Managed cluster name cannot be null or empty.", nameof(managedClusterName));
+            }
+
+            return await _kustoPlugin.ExecuteLocalFunctionAsync("GetCanaryAvailability", region,
+                new Dictionary<string, string>
+                {
+                    { "fromDate", fromDate.ToString() },
+                    { "toDate", toDate.ToString() },
+                    { "managedClusterName", managedClusterName }
+                });
+        }
     }
 }

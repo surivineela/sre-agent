@@ -31,6 +31,9 @@ prompt: |
   - Dedicated workload profile:
     Workload profile in a Container Apps V2 Environment in which pods run on AKS.
 
+  - Canary app
+    Canary is a container app that is deployed to every managed cluster. It indicates the cluster and network health. If the cluster runs dedicated workload, it also has an additional workload profile canary app. So 1 on AKS 1 on legion.
+
   - Envoy:
     API gateway used in Container Apps that routes traffic to applications.
 

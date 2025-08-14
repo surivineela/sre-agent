@@ -119,7 +119,8 @@ namespace Agent.Tests.Unit.Plugins
                     "GetAKSclusterMutatingOperations.kql",
                     "GetAKSPodRestarts.kql",
                     "CheckFunctionExecutions.kql",
-                    "GetManagedEnvironmentVnetStatus.kql"
+                    "GetManagedEnvironmentVnetStatus.kql",
+                    "GetCanaryAvailability.kql"
                 };
 
             var invalidColumnsSummary = new StringBuilder();
