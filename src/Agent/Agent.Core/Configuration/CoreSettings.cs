@@ -44,5 +44,8 @@ namespace Agent.Core.Configuration
 
         [Required]
         public AgentMemorySettings AgentMemory { get; set; } = new();
+
+        [Required]
+        public AgentModelSettings AgentModel { get; set; } = new();
     }
 }

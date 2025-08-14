@@ -13,7 +13,8 @@ public sealed record FeatureConfig(
     bool? TrajectoryRetrievalEnabled,
     bool? DocumentRetrievalEnabled,
     bool? UserMemoryRetrievalEnabled,
-    bool? HandoffReasoningEnabled)
+    bool? HandoffReasoningEnabled,
+    bool? GPT5Enabled)
 {
     public FeatureConfigModel ToModel()
     {
@@ -24,7 +25,8 @@ public sealed record FeatureConfig(
             TrajectoryRetrievalEnabled: TrajectoryRetrievalEnabled ?? FeatureConfigModel.Default.TrajectoryRetrievalEnabled,
             HandoffReasoningEnabled: HandoffReasoningEnabled ?? FeatureConfigModel.Default.HandoffReasoningEnabled,
             DocumentRetrievalEnabled: DocumentRetrievalEnabled ?? FeatureConfigModel.Default.DocumentRetrievalEnabled,
-            UserMemoryRetrievalEnabled: UserMemoryRetrievalEnabled ?? FeatureConfigModel.Default.UserMemoryRetrievalEnabled);
+            UserMemoryRetrievalEnabled: UserMemoryRetrievalEnabled ?? FeatureConfigModel.Default.UserMemoryRetrievalEnabled,
+            GPT5Enabled: GPT5Enabled ?? FeatureConfigModel.Default.GPT5Enabled);
     }
 }
 
@@ -37,7 +39,8 @@ public sealed record FeatureConfigModel(
     bool TrajectoryRetrievalEnabled,
     bool DocumentRetrievalEnabled,
     bool UserMemoryRetrievalEnabled,
-    bool HandoffReasoningEnabled)
+    bool HandoffReasoningEnabled,
+    bool GPT5Enabled)
 {
     public static FeatureConfigModel Default { get; } = new(
         AutoHandoffEnabled: false,
@@ -46,7 +49,8 @@ public sealed record FeatureConfigModel(
         TrajectoryRetrievalEnabled: false,
         HandoffReasoningEnabled: false,
         DocumentRetrievalEnabled: false,
-        UserMemoryRetrievalEnabled: false);
+        UserMemoryRetrievalEnabled: false,
+        GPT5Enabled: false);
 
     public FeatureConfig ToDocument()
     {
@@ -57,6 +61,7 @@ public sealed record FeatureConfigModel(
             TrajectoryRetrievalEnabled: TrajectoryRetrievalEnabled,
             HandoffReasoningEnabled: HandoffReasoningEnabled,
             DocumentRetrievalEnabled: DocumentRetrievalEnabled,
-            UserMemoryRetrievalEnabled: UserMemoryRetrievalEnabled);
+            UserMemoryRetrievalEnabled: UserMemoryRetrievalEnabled,
+            GPT5Enabled: GPT5Enabled);
     }
 }

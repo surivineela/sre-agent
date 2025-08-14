@@ -576,16 +576,28 @@ public class Program
                     defaultOutputType: typeof(DefaultAgentOutput),
                     enableHandoffReasoning: enableHandoffReasoning
                 );
+                bool isGPT5Enabled = GPT5Enabled(builder);
+
+                if (isGPT5Enabled)
+                {
+                    factory.LoadYamlAgentsFromFolder(Path.Combine(AppContext.BaseDirectory, "AgentsGPT5"), overwriteExistingAgents: true);
+                }
 
                 if (AgentMemoryRetrievalEnabled(builder))
                 {
                     if (!isFirstPartyAgent)
                     {
-                        factory.LoadYamlAgentsFromFolder(Path.Combine(AppContext.BaseDirectory, "AgentsRAG", "ThirdParty"), overwriteExistingAgents: true);
+                        var path = isGPT5Enabled
+                            ? Path.Combine(AppContext.BaseDirectory, "AgentsRAG", "ThirdParty", "GPT5")
+                            : Path.Combine(AppContext.BaseDirectory, "AgentsRAG", "ThirdParty");
+                        factory.LoadYamlAgentsFromFolder(path, overwriteExistingAgents: true);
                     }
                     else
                     {
-                        factory.LoadYamlAgentsFromFolder(Path.Combine(AppContext.BaseDirectory, "AgentsRag", "FirstParty"), overwriteExistingAgents: true);
+                        var path = isGPT5Enabled
+                            ? Path.Combine(AppContext.BaseDirectory, "AgentsRAG", "FirstParty", "GPT5")
+                            : Path.Combine(AppContext.BaseDirectory, "AgentsRAG", "FirstParty");
+                        factory.LoadYamlAgentsFromFolder(path, overwriteExistingAgents: true);
                     }
                 }
 
@@ -1120,6 +1132,12 @@ public class Program
             return false;
         }
         return s.Enabled && (s.TrajectoryRetrievalEnabled || s.DocumentRetrievalEnabled || s.UserMemoryRetrievalEnabled);
+    }
+
+    private static bool GPT5Enabled(WebApplicationBuilder builder)
+    {
+        var s = builder.Configuration.GetSection("AppSettings:Core:AgentModel").Get<AgentModelSettings>();
+        return s?.GPT5Enabled ?? false;
     }
 
     private static void ConfigureAgentMemory(WebApplicationBuilder builder)

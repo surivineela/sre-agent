@@ -151,6 +151,7 @@ Otherwise, there may be required settings which are not auto-populated by the pr
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.TeamsBot);
             ConvertSettingsForTeamsBot(sc, configuration);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.Dashboard);
+            sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.AgentModel);
             sc.AddSingleton<IPluginSettingsTypeRegistry>(sp =>
             {
                 var registry = new PluginSettingsTypeRegistry();
