@@ -7,7 +7,7 @@ using System.Text.Json;
 using Microsoft.Extensions.AI;
 using OpenAI.Chat;
 
-namespace Agent.Framework;
+namespace Agent.Core.Extensions;
 
 #pragma warning disable OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 public static class ChatOptionsExtensions
@@ -23,20 +23,38 @@ public static class ChatOptionsExtensions
     public const string LowReasoningEffort = "low";
     public const string MediumReasoningEffort = "medium";
     public const string HighReasoningEffort = "high";
+    public const string DefaultReasoningEffort = MinimalReasoningEffort;
 
     public const string VerbosityKey = "verbosity";
     public const string DefaultVerbosityLevel = "low";
 
     // Reference: https://github.com/dotnet/extensions/blob/afccabd16e08f388f37f1119a127f166f9b03ad3/src/Libraries/Microsoft.Extensions.AI.OpenAI/OpenAIChatClient.cs#L504C13-L570C1
     public static ChatOptions WithRawRepresentationFactory(
-        this ChatOptions options)
+        this ChatOptions options,
+        IChatClient chatClient)
     {
-        options.RawRepresentationFactory = (chatClient) =>
+        // handle properties for reasoning models
+        // update options to reflect in logging
+        var clientMetadata = chatClient.GetService<ChatClientMetadata>();
+        if (clientMetadata?.DefaultModelId is not null
+            && clientMetadata.DefaultModelId.StartsWith("gpt-5", StringComparison.OrdinalIgnoreCase)
+            && !clientMetadata.DefaultModelId.StartsWith("gpt-5-chat", StringComparison.OrdinalIgnoreCase))
+        {
+            options.AdditionalProperties ??= [];
+
+            // temperature not supported in reasoning models
+            options.Temperature = 1;
+
+            // use default reasoning effort if not specified in existing properties
+            options.AdditionalProperties.TryAdd(ReasoningEffortKey, DefaultReasoningEffort);
+
+            // set to default verbosity level
+            options.AdditionalProperties.TryAdd(VerbosityKey, DefaultVerbosityLevel);
+        }
+
+        options.RawRepresentationFactory = (_) =>
         {
             var completionOptions = new ChatCompletionOptions();
-
-            // set default to low
-            var verbosity = DefaultVerbosityLevel;
 
             if (options.AdditionalProperties is { Count: > 0 } additionalProperties)
             {
@@ -74,19 +92,24 @@ public static class ChatOptionsExtensions
                     {
                         completionOptions.ReasoningEffortLevel = ChatReasoningEffortLevel.Medium;
                     }
+                    else if (string.Equals(MinimalReasoningEffort, reasoningEffort, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // minimal reasoning is new, SDK hasn't yet updated to add a default for it
+                        completionOptions.ReasoningEffortLevel = new(MinimalReasoningEffort);
+                    }
                     else
                     {
-                        // default to minimal if not matching anything
-                        completionOptions.ReasoningEffortLevel = new ChatReasoningEffortLevel(MinimalReasoningEffort);
+                        // default reasoning effort if not matching anything
+                        completionOptions.ReasoningEffortLevel = new(DefaultReasoningEffort);
                     }
                 }
 
                 // output verbosity: only supported for gpt-5 model series
                 // Reference: https://cookbook.openai.com/examples/gpt-5/gpt-5_new_params_and_tools
-                if (additionalProperties.TryGetValue(VerbosityKey, out string? verbosityString)
-                    && !string.IsNullOrEmpty(verbosityString))
+                if (additionalProperties.TryGetValue(VerbosityKey, out string? verbosity)
+                    && !string.IsNullOrEmpty(verbosity))
                 {
-                    verbosity = verbosityString;
+                    completionOptions.AugmentVerbosityData(verbosity);
                 }
 
                 // log probabilities for each output token
@@ -113,22 +136,6 @@ public static class ChatOptionsExtensions
                 {
                     completionOptions.TopLogProbabilityCount = topLogProbabilityCountInt;
                 }
-            }
-
-            // handle properties for reasoning models
-            var clientMetadata = chatClient.GetService<ChatClientMetadata>();
-            if (clientMetadata?.DefaultModelId is not null
-                && clientMetadata.DefaultModelId.StartsWith("gpt-5", StringComparison.OrdinalIgnoreCase)
-                && !clientMetadata.DefaultModelId.StartsWith("gpt-5-chat", StringComparison.OrdinalIgnoreCase))
-            {
-                // temperature not supported in reasoning models
-                completionOptions.Temperature = 1;
-
-                // set default minimal reasoning effort if not specified in existing properties
-                completionOptions.ReasoningEffortLevel ??= new(MinimalReasoningEffort);
-
-                // set verbosity level
-                completionOptions.AugmentVerbosityData(verbosity);
             }
 
             return completionOptions;

@@ -3,7 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Runtime.CompilerServices;
-using Agent.Framework;
+using Agent.Core.Extensions;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Core.Clients.Chat;
@@ -31,9 +31,9 @@ public sealed class ReasoningChatClient : DelegatingChatClient
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static ChatOptions Prepare(ChatOptions? options)
+    private ChatOptions Prepare(ChatOptions? options)
     {
         options ??= new ChatOptions();
-        return options.WithRawRepresentationFactory();
+        return options.WithRawRepresentationFactory(chatClient: this);
     }
 }
