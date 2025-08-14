@@ -11,14 +11,13 @@ import { EnvironmentContext } from '../Common/AzPortalProxy/Providers/StartupInf
 import { AppInsightsClient } from '../Common/Clients/AppInsightsClient';
 import { AgentAccessLevel, IncidentManagementType } from '../Common/Contracts/Azure/SreAgent';
 import { ArmResourceDescriptor } from '../Common/Helpers/ResourceDescriptors';
-import { SettingsTabResources, SreAgentTabResources } from '../Strings/SREAgentResources';
+import { SreAgentTabResources } from '../Strings/SREAgentResources';
 import Activities from './Activities/Activities.ReactView';
 import { FeedbackDialog } from './Components/FeedbackDialog';
 import { SreAgentContext } from './Contracts/Context';
 import Graph from './Graph/Graph';
 import { useIncidentManagementConnectivity } from './Hooks/useIncidentManagementConnectivity';
 import IncidentManagement from './IncidentManagement/IncidentManagement';
-import FileUpload from './Settings/FileUpload.ReactView';
 import { useSreAgent } from './Settings/Hooks/useSreAgent';
 import Settings from './Settings/Settings.ReactView';
 import { useSreAgentSpaceStyles } from './Settings/Styles/SreAgentSpaceStyles';
@@ -35,7 +34,6 @@ enum TabValues {
     Graph = 'graph',
     Logs = 'logs',
     IncidentManagement = 'incidentmanagement',
-    DocumentUpload = 'documentupload',
 }
 
 const inStandaloneMode = AzPortalProxy.inStandaloneMode;
@@ -125,9 +123,6 @@ const TabsListWrapper: FC = () => {
         if (location.pathname?.startsWith('/views/resourcegraph')) {
             return TabValues.Graph;
         }
-        if (location.pathname?.startsWith('/views/documentupload')) {
-            return TabValues.DocumentUpload;
-        }
         if (location.pathname?.startsWith('/views/settings')) {
             return TabValues.Settings;
         }
@@ -156,8 +151,6 @@ const TabsListWrapper: FC = () => {
                 }
             } else if (data.value === TabValues.Graph) {
                 navigate({ ...location, pathname: '/views/resourcegraph' });
-            } else if (data.value === TabValues.DocumentUpload) {
-                navigate({ ...location, pathname: '/views/documentupload' });
             } else if (data.value === TabValues.IncidentManagement) {
                 if (!location.pathname?.startsWith('/views/incidentmanagement')) {
                     navigate({ ...location, pathname: '/views/incidentmanagement' });
@@ -188,9 +181,6 @@ const TabsListWrapper: FC = () => {
                     </Tab>
                     <Tab id="Knowledge" value={TabValues.Graph}>
                         {intl.formatMessage(SreAgentTabResources.resourceMapping)}
-                    </Tab>
-                    <Tab id="DocumentUpload" value={TabValues.DocumentUpload}>
-                        {intl.formatMessage(SettingsTabResources.fileUpload)}
                     </Tab>
                     {!inStandaloneMode && !isCrossTenantPortalMode && (
                         <ControlPlaneDependentTabs
@@ -223,7 +213,6 @@ const router = createHashRouter([
             { index: true, element: <Activities /> },
             { path: 'views/settings/:menuItem', element: <Settings /> },
             { path: 'views/settings', element: <Settings /> },
-            { path: 'views/documentupload', element: <FileUpload standalone /> },
             { path: 'views/resourcegraph/groups/:groupId', element: <Graph /> },
             { path: 'views/resourcegraph', element: <Graph /> },
             { path: 'views/incidentmanagement', element: <IncidentManagement /> },
