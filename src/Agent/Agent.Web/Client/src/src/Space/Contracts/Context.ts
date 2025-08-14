@@ -70,9 +70,11 @@ type ThreadAgentModeContextProps = {
     invalidateThreadAgentModeDataCache: () => void;
 };
 
-type AgentTaskContext = {
+type AgentTaskContextProps = {
     toggleNode: (nodeId: string) => void;
     getNodeStatus: (nodeId: string) => InvestigationTreeNodeStatus | null;
+    selectNode: (nodeId: string | null) => void;
+    selectedNode: string | null;
 };
 
 export const SreAgentContext = createContext<SreAgentContextProps>({
@@ -146,7 +148,9 @@ export const ThreadAgentModeContext = createContext<ThreadAgentModeContextProps>
     invalidateThreadAgentModeDataCache: () => {},
 });
 
-export const AgentTaskContext = createContext<AgentTaskContext>({
-    toggleNode: () => {},
-    getNodeStatus: () => null,
+export const AgentTaskContext = createContext<AgentTaskContextProps>({
+    toggleNode: (_: string) => {},
+    getNodeStatus: (_: string) => null,
+    selectNode: (_: string | null) => {},
+    selectedNode: null,
 });

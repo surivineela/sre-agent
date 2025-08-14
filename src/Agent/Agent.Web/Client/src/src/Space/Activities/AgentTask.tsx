@@ -78,6 +78,8 @@ const AgentTask = (props: IAgentTaskProps) => {
         isLoadingTreeState,
         toggleNode,
         getNodeStatus,
+        selectNode,
+        selectedNode,
     } = useAgentTask(props);
 
     const TaskDropdownItem = ({ taskId, taskDropdownOptions }: { taskId: string | null; taskDropdownOptions: AgentTaskMetaData[] }) => {
@@ -112,7 +114,7 @@ const AgentTask = (props: IAgentTaskProps) => {
     };
 
     return (
-        <AgentTaskContext.Provider value={{ toggleNode, getNodeStatus }}>
+        <AgentTaskContext.Provider value={{ toggleNode, getNodeStatus, selectNode, selectedNode }}>
             <ReactFlowProvider>
                 {collapsed ? null : (
                     <div className={root}>

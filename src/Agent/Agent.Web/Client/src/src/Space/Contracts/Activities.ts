@@ -233,7 +233,7 @@ export class AgentTaskNodeSize {
     };
 
     public static readonly HypothesisNode = {
-        width: 300,
+        width: 400,
         height: 180,
     };
 }
