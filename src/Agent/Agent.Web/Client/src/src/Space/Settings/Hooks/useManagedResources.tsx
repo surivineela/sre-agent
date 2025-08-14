@@ -1,5 +1,5 @@
-import { IColumn, Link, Selection } from '@fluentui/react';
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { IColumn, Link } from '@fluentui/react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { ArmTemplateBuilder } from '../../../Common/ArmTemplateBuilder/ArmTemplateBuilder';
 import {
@@ -14,6 +14,7 @@ import { DeploymentClient } from '../../../Common/Clients/DeploymentClient';
 import { IdentityClient } from '../../../Common/Clients/IdentityClient';
 import { ResourceGroupClient } from '../../../Common/Clients/ResourceGroupClient';
 import SreAgentClient from '../../../Common/Clients/SreAgentClient';
+import { OnUpdateSelectionArgs } from '../../../Common/Components/ShimmeredDetailsListWithSelection';
 import { ProvisioningStates } from '../../../Common/Constants/Arm';
 import { ArmObj } from '../../../Common/Contracts/Azure/ArmObj';
 import { CoreRBACRoleIds, getRoleIdsForResourceGroup } from '../../../Common/Contracts/Azure/Permission';
@@ -71,14 +72,12 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
     const [deploymentId, setDeploymentId] = useState<string>('');
     const [notification, setNotification] = useState<string>('');
     const [numberOfRgs, setNumberOfRgs] = useState<number>(0);
+    const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
 
-    const selection = useRef(
-        new Selection({
-            onSelectionChanged: () => {
-                setSelectedResourceGroups(selection.current.getSelection() as ResourceGroup[]);
-            },
-        })
-    );
+    const onUpdateSelection = useCallback(({ selectedItems }: OnUpdateSelectionArgs<ResourceGroup>) => {
+        setSelectedResourceGroups(selectedItems);
+        setSelectedKeys(selectedItems.map(rg => rg.id));
+    }, []);
 
     const isDeleteDisabled = useMemo(() => selectedResourceGroups.length === 0 || isUpdating, [isUpdating, selectedResourceGroups.length]);
 
@@ -191,7 +190,7 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
                 },
             },
         ],
-        [subscriptionsList, styles.statusRow, intl]
+        [subscriptionsList, styles.statusRow, intl, openResourceOverviewBlade]
     );
 
     useEffect(() => {
@@ -489,7 +488,8 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
         selectedLocations,
         searchText,
         isDeleteDisabled,
-        selection,
+        selectedKeys,
+        onUpdateSelection,
         showDeleteConfirmationDialog,
         hideResourceGroupPicker,
         subscriptionId,

@@ -1,4 +1,4 @@
-import { ConstrainMode, DetailsListLayoutMode, ShimmeredDetailsList } from '@fluentui/react';
+import { ConstrainMode, DetailsListLayoutMode } from '@fluentui/react';
 import {
     Button,
     Dialog,
@@ -22,13 +22,12 @@ import { FC, useContext } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
+import ShimmeredDetailsListWithSelection from '../../Common/Components/ShimmeredDetailsListWithSelection';
 import { ManagedResourcesStringResources, SettingsTabResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { useManagedResources } from './Hooks/useManagedResources';
+import { ResourceGroup } from './Hooks/useResourceGroups';
 import ResourceGroupPicker from './ResourceGroupPicker';
 import { useManagedResourcesStyles } from './Styles/ManagedResources.styles';
-
-// TODO: DetailsList selection broken (checkboxes not reflecting selection state)
-// -> update to use ShimmeredDetailsListWithSelection which mimicks what ResourceGroupPicker is doing
 
 const ManagedResources: FC = () => {
     const { resourceId } = useContext(EnvironmentContext);
@@ -43,7 +42,8 @@ const ManagedResources: FC = () => {
         isLoading,
         subscriptionOptions,
         searchText,
-        selection,
+        selectedKeys,
+        onUpdateSelection,
         isDeleteDisabled,
         showDeleteConfirmationDialog,
         hideResourceGroupPicker,
@@ -108,12 +108,13 @@ const ManagedResources: FC = () => {
                 />
             </div>
             <div style={{ width: '99%', maxWidth: '99%' }}>
-                <ShimmeredDetailsList
-                    key={managedResourceGroups?.length}
+                <ShimmeredDetailsListWithSelection<ResourceGroup>
                     enableShimmer={isLoading}
                     items={managedResourceGroups || []}
+                    getKey={rg => rg.id}
                     columns={columns}
-                    selection={selection.current}
+                    selectedKeys={selectedKeys}
+                    onUpdateSelection={onUpdateSelection}
                     className={styles.detailsList}
                     layoutMode={DetailsListLayoutMode.justified}
                     constrainMode={ConstrainMode.horizontalConstrained}

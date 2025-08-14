@@ -1,17 +1,17 @@
-import { Checkbox, IDropdownOption, Pivot, PivotItem, ResponsiveMode, Text, Toggle } from '@fluentui/react';
+import { IDropdownOption, Pivot, PivotItem, ResponsiveMode, Text, Toggle } from '@fluentui/react';
 import { Tooltip } from '@fluentui/react-components';
 import { CheckmarkStarburst16Filled } from '@fluentui/react-icons';
 import { DefaultButton, PrimaryButton } from '@fluentui/react/lib/Button';
-import { CheckboxVisibility, ConstrainMode, DetailsListLayoutMode, IColumn } from '@fluentui/react/lib/DetailsList';
+import { ConstrainMode, DetailsListLayoutMode, IColumn } from '@fluentui/react/lib/DetailsList';
 import { Dialog, DialogFooter, DialogType, IDialogStyles } from '@fluentui/react/lib/Dialog';
 import { Link } from '@fluentui/react/lib/Link';
-import { ShimmeredDetailsList } from '@fluentui/react/lib/ShimmeredDetailsList';
 import isEqual from 'lodash/isEqual';
 import { Dispatch, FC, FormEvent, SetStateAction, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { DropdownWithFilter, IDropdownOptionForFilter } from '../../Common/Components/DropdownWithFilterNoFormik';
 import { SearchFilterWithResultAnnouncement } from '../../Common/Components/SearchFilterWithResultAnnouncement';
+import ShimmeredDetailsListWithSelection, { OnUpdateSelectionArgs } from '../../Common/Components/ShimmeredDetailsListWithSelection';
 import { getUserFriendlyLocation } from '../../Common/Helpers/LocationHelper';
 import { ManagedResourcesStringResources, ResourcePickerTabResources } from '../../Strings/SREAgentResources';
 import { SreAgentContext } from '../Contracts/Context';
@@ -20,7 +20,7 @@ import { getSubscriptionId, ResourceGroup, useResourceGroups } from './Hooks/use
 import { Subscription } from './Hooks/useSubscriptions';
 import PermissionsDetailsList from './PermissionsDetailsList';
 import ReviewTab from './ResourcePickerReviewTab';
-import { detailsListStyles, useManagedResourcesStyles } from './Styles/ManagedResources.styles';
+import { useManagedResourcesStyles } from './Styles/ManagedResources.styles';
 
 export type ISortedDetailsListColumn = IColumn & {
     sort?: (items: any[], isSortedDescending: boolean) => any[];
@@ -70,7 +70,7 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
     const [resourceGroupPermissionsError, setResourceGroupPermissionsError] = useState<boolean>(false);
     const [selectedSubscriptionKeys, setSelectedSubscriptionKeys] = useState<string[]>([]);
     const [selectedLocationKeys, setSelectedLocationKeys] = useState<string[]>([]);
-    const [selectedMap, setSelectedMap] = useState<Map<string, boolean>>(new Map<string, boolean>());
+    const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
     const [tabKey, setTabKey] = useState<string>(TabKeys.select);
     const [showRecommended, setShowRecommended] = useState<boolean>(false);
 
@@ -79,18 +79,16 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
     const { accessLevel } = agent;
     const intl = useIntl();
 
-    useEffect(() => {
-        setSelectedMap(currentSelected => {
-            const newSelected = new Map<string, boolean>();
-            resourceGroupsWithSelection?.forEach(item => {
-                newSelected.set(item.id, item.selected);
-            });
-            if (!isEqual(currentSelected, newSelected)) {
-                return newSelected;
-            }
-            return currentSelected;
+    const onUpdateSelection = useCallback(({ selectedKeys }: OnUpdateSelectionArgs<ResourceGroupWithSelection>) => {
+        setSelectedKeys(selectedKeys);
+        setResourceGroupsWithSelection(currentGroups => {
+            if (!currentGroups) return currentGroups;
+            return currentGroups.map(item => ({
+                ...item,
+                selected: selectedKeys.includes(item.id),
+            }));
         });
-    }, [resourceGroupsWithSelection]);
+    }, []);
 
     const subscriptionIds = useMemo(() => {
         return selectedSubscriptionKeys.filter(k => k !== 'selectAll') ?? [];
@@ -128,7 +126,7 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
                 const newResourceGroupsWithSelection: ResourceGroupWithSelection[] = resourceGroupsList
                     ?.map(item => ({
                         ...item,
-                        selected: selectedMap.get(item.id) === true,
+                        selected: selectedKeys.includes(item.id),
                         recommended: filteredResourceGroupSet?.has(item.name) ?? false,
                     }))
                     .sort((lhs, rhs) => lhs.name?.localeCompare(rhs.name));
@@ -138,7 +136,7 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
                 return currentResourceGroupsWithSelection;
             });
         }
-    }, [filteredResourceGroupSet, resourceGroupsList, selectedMap]);
+    }, [filteredResourceGroupSet, resourceGroupsList, selectedKeys]);
 
     const modelProps = {
         isBlocking: false,
@@ -243,53 +241,12 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
         return groups;
     }, [resourceGroupsWithSelection, existingResourceGroupIds, filter, selectedLocationKeys, showRecommended]);
 
-    const toggleItemSelection = useCallback(
-        (id: string) => {
-            const toggledItems = resourceGroupsWithSelection?.map(item => (item.id === id ? { ...item, selected: !item.selected } : item));
-            setResourceGroupsWithSelection(toggledItems);
-        },
-        [resourceGroupsWithSelection]
-    );
-
-    const onRenderCheckbox = useCallback(
-        (item: ResourceGroupWithSelection) => {
-            return <Checkbox checked={item.selected} onChange={() => toggleItemSelection(item.id)} />;
-        },
-        [toggleItemSelection]
-    );
-
-    const allSelected = useMemo(() => {
-        return (filteredResourceGroups?.length ?? 0) > 0 && filteredResourceGroups?.every(item => item.selected);
-    }, [filteredResourceGroups]);
-
-    const toggleSelectAll = useCallback(
-        (checked: boolean) => {
-            const allSelected = filteredResourceGroups?.map(item => ({ ...item, selected: checked }));
-            setResourceGroupsWithSelection(allSelected);
-        },
-        [filteredResourceGroups]
-    );
-
-    const onRenderCheckboxHeader = useCallback(() => {
-        return (
-            <div style={{ display: 'flex', alignItems: 'center', marginTop: '12px' }}>
-                <Checkbox checked={allSelected} onChange={(_, checked) => toggleSelectAll(!!checked)} />
-            </div>
-        );
-    }, [allSelected, toggleSelectAll]);
+    const selectedResourceGroups = useMemo(() => {
+        return resourceGroupsWithSelection?.filter(item => selectedKeys.includes(item.id)) ?? [];
+    }, [resourceGroupsWithSelection, selectedKeys]);
 
     const columns = useMemo<ISortedDetailsListColumn[]>(() => {
         return [
-            {
-                key: ResourceGroupListColumnKey.selected,
-                name: '',
-                fieldName: ResourceGroupListColumnKey.selected,
-                minWidth: 30,
-                maxWidth: 30,
-                onRender: onRenderCheckbox,
-                onRenderHeader: onRenderCheckboxHeader,
-                isMultiline: false,
-            },
             {
                 key: ResourceGroupListColumnKey.name,
                 name: intl.formatMessage(ManagedResourcesStringResources.resourceGroupName),
@@ -318,11 +275,14 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
                 onRender: onRenderLocation,
             },
         ];
-    }, [onRenderName, onRenderLocation, onRenderCheckbox, onRenderCheckboxHeader, onRenderSubscription, intl]);
+    }, [onRenderName, onRenderLocation, onRenderSubscription, intl]);
 
-    const selectedResourceGroups = useMemo(() => {
-        return resourceGroupsWithSelection?.filter(item => item.selected) ?? [];
-    }, [resourceGroupsWithSelection]);
+    const toggleItemSelection = useCallback((id: string) => {
+        setSelectedKeys(currentKeys => {
+            const isSelected = currentKeys.includes(id);
+            return isSelected ? currentKeys.filter(k => k !== id) : [...currentKeys, id];
+        });
+    }, []);
 
     const onSubscriptionChange = useCallback(
         (_event: FormEvent<HTMLDivElement>, option?: IDropdownOptionForFilter<Subscription>): void => {
@@ -463,15 +423,16 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
                             </div>
                         </div>
                         <div style={{ minHeight: '405px', maxHeight: '405px', overflowY: 'scroll' }} data-is-scrollable="true">
-                            <ShimmeredDetailsList
-                                columns={columns}
-                                constrainMode={ConstrainMode.horizontalConstrained}
+                            <ShimmeredDetailsListWithSelection<ResourceGroupWithSelection>
                                 items={filteredResourceGroups ?? []}
+                                getKey={rg => rg.id}
+                                columns={columns}
+                                selectedKeys={selectedKeys}
+                                onUpdateSelection={onUpdateSelection}
+                                constrainMode={ConstrainMode.horizontalConstrained}
                                 layoutMode={DetailsListLayoutMode.justified}
                                 compact={true}
                                 enableShimmer={resourceGroupsLoading}
-                                checkboxVisibility={CheckboxVisibility.hidden}
-                                styles={detailsListStyles}
                             />
                         </div>
                     </div>
