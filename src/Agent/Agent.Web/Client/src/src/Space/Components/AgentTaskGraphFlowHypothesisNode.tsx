@@ -1,5 +1,5 @@
 import { Body1, Body2, Card, CardFooter, CardHeader, makeStyles, Text, tokens } from '@fluentui/react-components';
-import { ArrowClockwiseRegular, CheckmarkCircleRegular, DismissCircleRegular, QuestionCircleRegular } from '@fluentui/react-icons';
+import { ArrowCounterclockwiseFilled, CheckmarkCircleRegular, DismissCircleRegular, QuestionCircleRegular } from '@fluentui/react-icons';
 import { Handle, NodeProps, Position } from '@xyflow/react';
 import { memo, useContext, useMemo } from 'react';
 import { HypothesisStatus } from '../../Common/Contracts/DataPlane/AgentTask';
@@ -46,7 +46,7 @@ const useStyles = makeStyles({
         justifySelf: 'flex-end',
     },
     statusContainer: {
-        padding: '3px 10px',
+        padding: '5px 10px',
         width: '100%',
         borderRadius: tokens.borderRadiusCircular,
         display: 'flex',
@@ -117,35 +117,42 @@ const StatusIndicator = memo(({ status }: { status: string }) => {
     const { statusContainer, statusTextFont, statusIconFont } = useStyles();
 
     const statusProps = useMemo(() => {
-        const backgroundColor = getCardBorderColor(status);
         switch (status) {
             case HypothesisStatus.Validated:
                 return {
                     text: 'Validated',
-                    fontColor: tokens.colorNeutralForegroundInverted,
+                    iconFontColor: tokens.colorNeutralForegroundInverted,
+                    statusTextFontColor: tokens.colorNeutralForegroundInverted,
                     icon: CheckmarkCircleRegular,
                     backgroundColor: tokens.colorPaletteGreenBackground3,
+                    borderColor: undefined,
                 };
             case HypothesisStatus.Invalidated:
                 return {
                     text: 'Invalidated',
-                    fontColor: undefined,
+                    iconFontColor: undefined,
+                    statusTextFontColor: undefined,
                     icon: DismissCircleRegular,
-                    backgroundColor,
+                    backgroundColor: tokens.colorNeutralBackground3,
+                    borderColor: undefined,
                 };
             case HypothesisStatus.Inconclusive:
                 return {
                     text: 'Inconclusive',
-                    fontColor: tokens.colorStatusWarningForeground3,
+                    iconFontColor: tokens.colorStatusWarningForeground3,
+                    statusTextFontColor: tokens.colorStatusWarningForeground3,
                     icon: QuestionCircleRegular,
-                    borderColor: backgroundColor,
+                    backgroundColor: undefined,
+                    borderColor: tokens.colorStatusWarningBackground2,
                 };
             default:
                 return {
                     text: 'Pending',
-                    fontColor: tokens.colorNeutralForegroundInverted,
-                    icon: ArrowClockwiseRegular,
-                    backgroundColor: tokens.colorPaletteBlueBorderActive,
+                    iconFontColor: tokens.colorBrandForegroundLinkHover,
+                    statusTextFontColor: undefined,
+                    icon: ArrowCounterclockwiseFilled,
+                    backgroundColor: undefined,
+                    borderColor: tokens.colorNeutralBackground6,
                 };
         }
     }, [status]);
@@ -158,8 +165,11 @@ const StatusIndicator = memo(({ status }: { status: string }) => {
                 border: statusProps.borderColor ? `1.5px solid ${statusProps.borderColor}` : 'none',
             }}
         >
-            <statusProps.icon className={statusIconFont} style={statusProps.fontColor ? { color: statusProps.fontColor } : undefined} />
-            <Text className={statusTextFont} weight={'semibold'} style={{ color: statusProps.fontColor }}>
+            <statusProps.icon
+                className={statusIconFont}
+                style={statusProps.iconFontColor ? { color: statusProps.iconFontColor } : undefined}
+            />
+            <Text className={statusTextFont} weight={'semibold'} style={{ color: statusProps.statusTextFontColor }}>
                 {statusProps.text}
             </Text>
         </div>

@@ -91,7 +91,7 @@ export const useAgentTaskStreamHandler = () => {
                             AntUxStringComparison.IgnoreCase
                         ),
                         parentId: undefined,
-                        nodeType: TreeNodeType.Phase,
+                        nodeType: TreeNodeType.InitialInvestigation,
                         // Include detailed gathering context steps
                         gatheringContextSteps: initialInvestigation.gatheringContext?.steps || [],
                     };
@@ -119,7 +119,7 @@ export const useAgentTaskStreamHandler = () => {
                         isValidating: false,
                         isLoading: equals(formingHypothesis.status, InvestigationStatusCommon.InProgress, AntUxStringComparison.IgnoreCase),
                         parentId: undefined,
-                        nodeType: TreeNodeType.Phase,
+                        nodeType: TreeNodeType.InitialInvestigation,
                     };
 
                     // Add hypotheses as children
@@ -206,7 +206,7 @@ export const useAgentTaskStreamHandler = () => {
                         isValidating: false,
                         isLoading: equals(task.status, AgentTaskStatus.InProgress, AntUxStringComparison.IgnoreCase),
                         parentId: undefined,
-                        nodeType: TreeNodeType.Phase,
+                        nodeType: TreeNodeType.Conclusion,
                     };
                     newNodes.set(conclusionNode.id, conclusionNode);
                     newRootNodeIds.push(conclusionNode.id);
@@ -225,7 +225,7 @@ export const useAgentTaskStreamHandler = () => {
                 isValidating: false,
                 isLoading: equals(task.status, AgentTaskStatus.InProgress, AntUxStringComparison.IgnoreCase),
                 parentId: undefined,
-                nodeType: TreeNodeType.Phase,
+                nodeType: TreeNodeType.InitialInvestigation,
             };
             newNodes.set(basicTaskNode.id, basicTaskNode);
             newRootNodeIds.push(basicTaskNode.id);

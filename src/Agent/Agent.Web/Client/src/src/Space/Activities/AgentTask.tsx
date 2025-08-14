@@ -89,7 +89,7 @@ const AgentTask = (props: IAgentTaskProps) => {
             const status = task?.status?.toLowerCase();
             const styleProps = {
                 fontSize: tokens.fontSizeBase600,
-                style: { flex: '0 0  auto' },
+                style: { flex: '0 0 auto' },
             };
             switch (status) {
                 case AgentTaskStatus.InProgress:

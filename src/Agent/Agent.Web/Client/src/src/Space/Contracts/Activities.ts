@@ -227,9 +227,14 @@ export class AgentTaskNodeSize {
         height: 300,
     };
 
-    public static readonly PhaseNode = {
+    public static readonly InitialInvestigationNode = {
         width: 400,
         height: 180,
+    };
+
+    public static readonly ConclusionNode = {
+        width: 500,
+        height: 300,
     };
 
     public static readonly HypothesisNode = {

@@ -76,10 +76,10 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
 
         const getNodeWidthAndHeight = (node: GraphFlowNode) => {
             switch (node.type) {
-                case TreeNodeType.Group:
-                    return AgentTaskNodeSize.GroupNode;
-                case TreeNodeType.Phase:
-                    return AgentTaskNodeSize.PhaseNode;
+                case TreeNodeType.InitialInvestigation:
+                    return AgentTaskNodeSize.InitialInvestigationNode;
+                case TreeNodeType.Conclusion:
+                    return AgentTaskNodeSize.ConclusionNode;
                 default:
                     return AgentTaskNodeSize.HypothesisNode;
             }
@@ -126,10 +126,10 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
         return initialInvestigation
             ? {
                   id: initialInvestigation.id,
-                  type: TreeNodeType.Phase,
+                  type: TreeNodeType.InitialInvestigation,
                   position: { x: 0, y: 0 }, // Temporary position - will be set by dagre
-                  width: AgentTaskNodeSize.PhaseNode.width,
-                  height: AgentTaskNodeSize.PhaseNode.height,
+                  width: AgentTaskNodeSize.InitialInvestigationNode.width,
+                  height: AgentTaskNodeSize.InitialInvestigationNode.height,
                   data: { ...initialInvestigation },
               }
             : null;
@@ -259,8 +259,14 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
     };
 
     // Find the horizontal position of the top left corner of a parent node ( a phase node ) based on the group nodes layout
-    const getNonGroupParentNodePositionX = (groupsNodesCenterX: number) => {
-        return groupsNodesCenterX - AgentTaskNodeSize.PhaseNode.width / 2;
+    const getNonGroupParentNodePositionX = (groupsNodesCenterX: number, nodeType: TreeNodeType) => {
+        return (
+            groupsNodesCenterX -
+            (nodeType === TreeNodeType.InitialInvestigation
+                ? AgentTaskNodeSize.InitialInvestigationNode.width
+                : AgentTaskNodeSize.ConclusionNode.width) /
+                2
+        );
     };
 
     const getParentNodePositionY = (previousParentNodePositionY: number, previousParentNodeHeight: number) => {
@@ -274,7 +280,7 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
         }
 
         return {
-            x: getNonGroupParentNodePositionX(groupsNodeCenterX),
+            x: getNonGroupParentNodePositionX(groupsNodeCenterX, TreeNodeType.InitialInvestigation),
             y: getParentNodePositionY(0, 0), // Initial position Y is 0, height is 0
         };
     };
@@ -376,7 +382,7 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
         if (conclusion) {
             conclusionNode = {
                 id: conclusion.id,
-                type: TreeNodeType.Phase,
+                type: TreeNodeType.Conclusion,
                 position,
                 data: { ...conclusion },
             };
@@ -426,7 +432,11 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
         const phaseNodes: InvestigationTreeNode[] = [];
         rootNodeIds.forEach(id => {
             const node = nodes.get(id);
-            if (node && node?.nodeType === TreeNodeType.Phase && !node.title.toLowerCase().includes('validating hypothesis')) {
+            if (
+                node &&
+                (node?.nodeType === TreeNodeType.InitialInvestigation || node?.nodeType === TreeNodeType.Conclusion) &&
+                !node.title.toLowerCase().includes('validating hypothesis')
+            ) {
                 phaseNodes.push(node);
             }
         });
@@ -463,7 +473,10 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
 
         const { conclusionNode, conclusionEdges } = getConclusionNodesAndEdges(
             phaseNodes,
-            { x: getNonGroupParentNodePositionX(groupNodesCenterX), y: getParentNodePositionY(groupNodesPositionY, maxHeightOfGroupNodes) },
+            {
+                x: getNonGroupParentNodePositionX(groupNodesCenterX, TreeNodeType.Conclusion),
+                y: getParentNodePositionY(groupNodesPositionY, maxHeightOfGroupNodes),
+            },
             hypothesisGroups.map(group => group.groupNode.id)
         );
 

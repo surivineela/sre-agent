@@ -3,9 +3,10 @@ import { useTheme } from '@fluentui/react/lib/Theme';
 import { Controls, OnEdgesChange, OnNodesChange, ReactFlow } from '@xyflow/react';
 import { memo } from 'react';
 import { TreeNodeType } from '../../Common/Contracts/DataPlane/AgentTask';
+import AgentTaskGraphFlowConclusionNode from '../Components/AgentTaskGraphFlowConclusionNode';
 import AgentTaskGraphFlowGroupNode from '../Components/AgentTaskGraphFlowGroupNode';
 import AgentTaskGraphFlowHypothesisNode from '../Components/AgentTaskGraphFlowHypothesisNode';
-import AgentTaskGraphFlowPhaseNode from '../Components/AgentTaskGraphFlowPhaseNode';
+import AgentTaskGraphFlowInitialInvestigationNode from '../Components/AgentTaskGraphFlowInitialInvestigationNode';
 import { GraphFlowEdge, GraphFlowNode, IAgentTaskGraphProps } from '../Contracts/Activities';
 import { useAgentTaskGraphFlow } from '../Hooks/useAgentTaskGraphFlow';
 
@@ -46,7 +47,8 @@ const AgentTaskGraphFlow = ({
             attributionPosition="bottom-left"
             nodeTypes={{
                 [TreeNodeType.Group]: AgentTaskGraphFlowGroupNode,
-                [TreeNodeType.Phase]: AgentTaskGraphFlowPhaseNode,
+                [TreeNodeType.InitialInvestigation]: AgentTaskGraphFlowInitialInvestigationNode,
+                [TreeNodeType.Conclusion]: AgentTaskGraphFlowConclusionNode,
                 [TreeNodeType.Hypothesis]: AgentTaskGraphFlowHypothesisNode,
             }}
             nodesDraggable={false}

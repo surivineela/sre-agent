@@ -8,8 +8,8 @@ import { AgentTaskNodeSize, AgentTaskPhaseNodeIdSuffix, GraphFlowNode } from '..
 const useStyles = makeStyles({
     nodeContainer: {
         pointer: 'cursor',
-        width: `${AgentTaskNodeSize.PhaseNode.width}px`,
-        height: `${AgentTaskNodeSize.PhaseNode.height}px`,
+        width: `${AgentTaskNodeSize.InitialInvestigationNode.width}px`,
+        height: `${AgentTaskNodeSize.InitialInvestigationNode.height}px`,
     },
     statusIndicator: {
         fontSize: '30px',
@@ -49,7 +49,7 @@ const useStyles = makeStyles({
     },
 });
 
-const AgentTaskGraphFlowPhaseNode = (props: NodeProps<GraphFlowNode>) => {
+const AgentTaskGraphFlowInitialInvestigationNode = (props: NodeProps<GraphFlowNode>) => {
     const { data } = props;
 
     const { nodeContainer, statusIndicator, card, header, title, description, handle } = useStyles();
@@ -109,4 +109,4 @@ const AgentTaskGraphFlowPhaseNode = (props: NodeProps<GraphFlowNode>) => {
     );
 };
 
-export default memo(AgentTaskGraphFlowPhaseNode);
+export default memo(AgentTaskGraphFlowInitialInvestigationNode);

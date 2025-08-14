@@ -109,7 +109,8 @@ export enum TaskProgressStatus {
 }
 
 export enum TreeNodeType {
-    Phase = 'phase',
+    InitialInvestigation = 'initialInvestigation',
+    Conclusion = 'conclusion',
     Hypothesis = 'hypothesis',
     Group = 'hypothesisGroup',
 }
