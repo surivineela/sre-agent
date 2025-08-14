@@ -2349,12 +2349,6 @@
       "value": "\" has been updated successfully"
     }
   ],
-  "RDflWE": [
-    {
-      "type": 0,
-      "value": "Select an incident"
-    }
-  ],
   "RH8rNM": [
     {
       "type": 0,
@@ -2839,6 +2833,12 @@
     {
       "type": 0,
       "value": "The fully autonomous mode. With the required permissions, the agent analyzes incidents and independently performs mitigation or resource modifications."
+    }
+  ],
+  "XRdOZL": [
+    {
+      "type": 0,
+      "value": "Select or search for an incident"
     }
   ],
   "XUVR/7": [
@@ -3497,6 +3497,20 @@
     {
       "type": 0,
       "value": "Failed to disable incident handler"
+    }
+  ],
+  "hEXUFk": [
+    {
+      "type": 0,
+      "value": "Incident with ID \""
+    },
+    {
+      "type": 1,
+      "value": "incidentId"
+    },
+    {
+      "type": 0,
+      "value": "\" was not found"
     }
   ],
   "hF5T80": [

@@ -1,5 +1,5 @@
 import { IColumn } from '@fluentui/react';
-import { Button, Dropdown, Field, MessageBar, Option, Spinner, Text, Textarea } from '@fluentui/react-components';
+import { Button, Combobox, Field, MessageBar, Option, Spinner, Text, Textarea } from '@fluentui/react-components';
 import { Beaker20Regular } from '@fluentui/react-icons';
 import { useFormikContext } from 'formik';
 import { FC, useContext, useMemo, useState } from 'react';
@@ -25,20 +25,20 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view }) =>
     const { values, setFieldValue } = useFormikContext<IncidentHandlerCreateFormValues>();
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
+    const { tools, toolsLoading, generatingUpdatedTools, generateUpdatedTools, handlerTestMetadata } = useContext(
+        IncidentHandlerConsolidatedCreateContext
+    );
+
     const {
-        tools,
-        toolsLoading,
-        generatingUpdatedTools,
-        generateUpdatedTools,
+        searchTerm,
+        setSearchTerm,
         incidents,
         loadingIncidents,
         createTestThread,
         createTestThreadFailure,
         creatingTestThread,
-        testIncident,
-        setTestIncident,
         testIncidentThreadId,
-    } = useContext(IncidentHandlerConsolidatedCreateContext);
+    } = handlerTestMetadata || {};
 
     const selectedToolsList = useMemo(() => {
         return tools.filter(tool => values.toolNames?.includes(tool.name));
@@ -179,35 +179,57 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view }) =>
                             style={{ flexBasis: '500px' }}
                             required
                         >
-                            <Dropdown
-                                id="testIncidentDropdown"
-                                button={
-                                    <span style={{ overflowX: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                        {testIncident ? `${testIncident.id} - ${testIncident.title}` : undefined}
-                                    </span>
-                                }
-                                value={testIncident?.id}
+                            <Combobox
+                                id="testIncidentComboBox"
+                                freeform={true}
+                                value={searchTerm || ''}
                                 placeholder={intl.formatMessage(IncidentHandlerCreateResources.incidentPlaceholder)}
                                 onOptionSelect={(_event, data) => {
                                     const selectedOption = incidents?.find(incident => incident.id === data.optionValue);
-                                    setTestIncident(selectedOption);
+                                    setSearchTerm(selectedOption?.id || '');
                                 }}
-                                disabled={loadingIncidents || creatingTestThread}
+                                disabled={creatingTestThread}
+                                onInput={event => {
+                                    const inputValue = (event.target as any).value as string;
+                                    setSearchTerm(inputValue);
+                                }}
+                                positioning={{
+                                    position: 'below',
+                                    align: 'start',
+                                }}
                             >
-                                {incidents?.map(incident => (
-                                    <Option key={incident.id} value={incident.id} text={`${incident.id} - ${incident.title}`} checkIcon={null}>
-                                        <span
-                                            style={{ overflow: 'hidden', overflowWrap: 'break-word' }}
-                                        >{`${incident.id} - ${incident.title}`}</span>
-                                    </Option>
-                                ))}
-                            </Dropdown>
+                                {loadingIncidents ? (
+                                    <Spinner size="small" />
+                                ) : (
+                                    <div
+                                        style={{
+                                            maxHeight: '400px',
+                                            overflowY: 'scroll',
+                                            overflowX: 'auto',
+                                        }}
+                                    >
+                                        {incidents?.map(incident => (
+                                            <Option
+                                                key={incident.id}
+                                                value={incident.id}
+                                                text={`${incident.id} - ${incident.title}`}
+                                                checkIcon={null}
+                                                style={{ margin: 2 }}
+                                            >
+                                                <span
+                                                    style={{ overflow: 'hidden', overflowWrap: 'break-word' }}
+                                                >{`${incident.id} - ${incident.title}`}</span>
+                                            </Option>
+                                        ))}
+                                    </div>
+                                )}
+                            </Combobox>
                         </Field>
                         <Button
                             icon={<Beaker20Regular />}
                             appearance="secondary"
                             onClick={createTestThread}
-                            disabled={loadingIncidents || !testIncident || creatingTestThread}
+                            disabled={!searchTerm || creatingTestThread}
                         >
                             {intl.formatMessage(IncidentHandlerCreateResources.testHandlerRunButton)}
                         </Button>
@@ -223,8 +245,8 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view }) =>
                     ) : testIncidentThreadId ? (
                         <ChatBox
                             threadId={testIncidentThreadId}
-                            addThread={() => { }}
-                            updateThreadLastReadTime={() => { }}
+                            addThread={() => {}}
+                            updateThreadLastReadTime={() => {}}
                             threadSource={ThreadSource.incident}
                             stylesProps={{
                                 chatBoxAndAgentTask: {

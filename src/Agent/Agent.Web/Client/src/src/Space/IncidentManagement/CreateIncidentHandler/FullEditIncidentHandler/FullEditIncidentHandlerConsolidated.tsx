@@ -58,7 +58,7 @@ export const FullEditIncidentHandlerConsolidated: FC = () => {
                 style={{
                     padding: 20,
                     borderRight: `1px solid ${tokens.colorNeutralStroke2}`,
-                    minWidth: 280,
+                    minWidth: 200,
                     overflowY: 'auto',
                 }}
             >

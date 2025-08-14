@@ -22,6 +22,7 @@ export interface IncidentQueryRequest {
     pageSize?: number;
     pageNumber?: number;
     statuses?: IncidentStatus[];
+    searchTerm?: string;
 }
 
 export interface IncidentQueryResponse {

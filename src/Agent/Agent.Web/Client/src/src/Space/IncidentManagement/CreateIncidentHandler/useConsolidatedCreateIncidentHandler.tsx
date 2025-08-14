@@ -21,6 +21,7 @@ import { IncidentHandlerCreateResources, IncidentManagementNotificationResources
 import { FilterMode, HandlerCreateOrEditInfo, HandlerMode, OperationStatus, TimeDuration } from './Contracts';
 import { IncidentHandlerCreateSteps } from './IncidentHandlerConsolidatedCreateContext';
 import { IncidentHandlerCreateFormValues } from './IncidentHandlerCreateFormValues';
+import { useTestHandler } from './useTestHandler';
 
 const pageSize = 10;
 
@@ -633,106 +634,7 @@ export const useConsolidatedCreateIncidentHandler = (
         ]
     );
 
-    const [creatingTestThread, setCreatingTestThread] = useState<boolean>(false);
-    const [createTestThreadFailure, setCreateTestThreadFailure] = useState<string>();
-    const [testIncident, setTestIncident] = useState<IncidentDocument>();
-    const [testIncidentThreadId, setTestIncidentThreadId] = useState<string>();
-
-    const createTestThread = useCallback(() => {
-        azPortalContext.log({
-            action: 'create-test-thread',
-            actionModifier: 'start',
-            logLevel: 'info',
-            resourceId: resourceId,
-        });
-
-        let source: 'pagerDuty' | 'icm' | undefined = undefined;
-
-        switch (testIncident?.documentType) {
-            case 'PagerDutyIncident':
-                source = 'pagerDuty';
-                break;
-            case 'IcmIncident':
-                source = 'icm';
-                break;
-            default:
-                break;
-        }
-
-        setCreateTestThreadFailure(undefined);
-        setCreatingTestThread(true);
-
-        incidentHandlerClient
-            .testHandler({
-                title: testIncident?.title || '',
-                description: testIncident?.description || '',
-                incidentId: testIncident?.id || '',
-                source: source,
-                isTest: true,
-                incidentHandler: {
-                    id: handlerCreateOrEditInfo?.handlerId || `${values.filterName || ''}-custom-handler`,
-                    name: '',
-                    description: '',
-                    incidentFilterId: values.filterName || '',
-                    incidentProcessingGuide: values.incidentProcessingGuide?.replace('\r\n', '\n').replace('\r', '\n').split('\n') || [],
-                    tools: values.toolNames || [],
-                    incidents: values.incidentIds || [],
-                    customInstructions: values.customInstructions || '',
-                },
-                incidentFilter: {
-                    id: values.filterName || '',
-                    incidentType: values.incidentType === 'ALL' ? undefined : values.incidentType,
-                    impactedService: values.impactedService === 'ALL' ? undefined : values.impactedService,
-                    priority: values.priority === 'ALL' ? undefined : values.priority,
-                    titleContains: values.titleContains || '',
-                    agentMode: values.agentMode || AgentMode.review,
-                },
-            })
-            .then(testHandlerResult => {
-                if (!testHandlerResult.isSuccessful || !testHandlerResult.content) {
-                    // TODO (andimarc): Surface errors to the user.
-                    const error = !testHandlerResult.isSuccessful
-                        ? getDataPlaneErrorMessage(testHandlerResult.error)
-                        : 'No content returned';
-                    azPortalContext.log({
-                        action: 'create-test-thread',
-                        actionModifier: 'failed',
-                        logLevel: 'error',
-                        resourceId: resourceId,
-                        data: { error },
-                    });
-                    setCreateTestThreadFailure(error);
-                } else {
-                    setTestIncidentThreadId(testHandlerResult.content.threadId);
-                    azPortalContext.log({
-                        action: 'create-test-thread',
-                        actionModifier: 'success',
-                        logLevel: 'info',
-                        resourceId: resourceId,
-                    });
-                }
-                setCreatingTestThread(false);
-            });
-    }, [
-        azPortalContext,
-        resourceId,
-        incidentHandlerClient.testHandler,
-        handlerCreateOrEditInfo?.handlerId,
-        testIncident?.documentType,
-        testIncident?.title,
-        testIncident?.description,
-        testIncident?.id,
-        values.filterName,
-        values.incidentProcessingGuide,
-        values.toolNames,
-        values.incidentIds,
-        values.customInstructions,
-        values.incidentType,
-        values.impactedService,
-        values.priority,
-        values.titleContains,
-        values.agentMode,
-    ]);
+    const handlerTestMetadata = useTestHandler(resourceId, handlerCreateOrEditInfo, values, incidentHandlerClient);
 
     useEffect(() => {
         if (handlerMode === 'create' && !values.toolNames && tools) {
@@ -1009,18 +911,13 @@ export const useConsolidatedCreateIncidentHandler = (
         hasMoreOldIncidents,
         loadMoreOldIncidents,
 
-        createTestThread,
-        creatingTestThread,
-        createTestThreadFailure,
-        testIncident,
-        setTestIncident,
-        testIncidentThreadId,
-
         selectedTimespan,
         onSelectedTimespanChange,
         incidents,
         selectedIncidents,
         onSelectedIncidentsChange,
         tools: tools || [],
+
+        handlerTestMetadata: handlerTestMetadata,
     };
 };

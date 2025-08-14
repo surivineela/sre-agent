@@ -9,6 +9,18 @@ export enum IncidentHandlerCreateSteps {
     ReviewAndTestStep = 'ReviewAndTestStep',
 }
 
+export interface IncidentHandlerTestMetadata {
+    searchTerm?: string;
+    setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
+    incidents?: IncidentDocument[];
+    loadingIncidents?: boolean;
+
+    createTestThread: () => void;
+    createTestThreadFailure?: string;
+    creatingTestThread?: boolean;
+    testIncidentThreadId?: string;
+}
+
 export interface IncidentHandlerConsolidatedCreateMetadata {
     exitToHome: () => void;
     goToFullEditMode: () => void;
@@ -38,16 +50,12 @@ export interface IncidentHandlerConsolidatedCreateMetadata {
     isLoadingInitialIncidents: boolean;
     hasMoreOldIncidents: boolean;
     loadMoreOldIncidents: (overflowDiv: boolean) => Promise<boolean | undefined>;
-    createTestThread: () => void;
-    createTestThreadFailure?: string;
-    creatingTestThread?: boolean;
-    testIncident?: IncidentDocument;
-    setTestIncident: React.Dispatch<React.SetStateAction<IncidentDocument | undefined>>;
-    testIncidentThreadId?: string;
 
     priorityOptions: string[];
     impactedServiceOptions: string[];
     incidentTypeOptions: string[];
+
+    handlerTestMetadata: IncidentHandlerTestMetadata;
 }
 
 export const IncidentHandlerConsolidatedCreateContext = React.createContext<IncidentHandlerConsolidatedCreateMetadata>({
@@ -79,14 +87,18 @@ export const IncidentHandlerConsolidatedCreateContext = React.createContext<Inci
     isLoadingInitialIncidents: false,
     hasMoreOldIncidents: true,
     loadMoreOldIncidents: () => Promise.resolve(true),
-    createTestThread: () => {},
-    createTestThreadFailure: undefined,
-    creatingTestThread: false,
-    testIncident: undefined,
-    setTestIncident: () => {},
-    testIncidentThreadId: undefined,
 
     priorityOptions: [],
     impactedServiceOptions: [],
     incidentTypeOptions: [],
+    handlerTestMetadata: {
+        searchTerm: '',
+        setSearchTerm: () => {},
+        incidents: [],
+        loadingIncidents: false,
+        createTestThread: () => {},
+        createTestThreadFailure: undefined,
+        creatingTestThread: false,
+        testIncidentThreadId: undefined,
+    },
 });

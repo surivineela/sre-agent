@@ -1221,7 +1221,7 @@ export const IncidentHandlerCreateResources = defineMessages({
     addToolsTitle: { defaultMessage: 'Add tools', id: '5fVEet' },
     testHandlerTitle: { defaultMessage: 'Test handler', id: '5lBLYV' },
     incidentLabel: { defaultMessage: 'Incident', id: 'zaYxwd' },
-    incidentPlaceholder: { defaultMessage: 'Select an incident', id: 'RDflWE' },
+    incidentPlaceholder: { defaultMessage: 'Select or search for an incident', id: 'XRdOZL' },
     testHandlerEmptyMessage: {
         defaultMessage: 'Select an incident and run the test to see the results here.',
         id: 'MhTfXm',
@@ -1230,6 +1230,10 @@ export const IncidentHandlerCreateResources = defineMessages({
     testHandlerRunFailure: {
         defaultMessage: 'Failed to run the test. Error: {errorMessage}',
         id: '5X0whH',
+    },
+    testHandlerRunIncidentNotFound: {
+        defaultMessage: 'Incident with ID "{incidentId}" was not found',
+        id: 'hEXUFk',
     },
     next: { defaultMessage: 'Next', id: '9+Ddtu' },
     skip: { defaultMessage: 'Skip', id: '/4tOwT' },

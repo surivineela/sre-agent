@@ -240,14 +240,14 @@ namespace Agent.Runtime.Services
                 {
                     var response = await iterator.ReadNextAsync();
                     var document = response.FirstOrDefault();
-                    
+
                     if (document != null)
                     {
                         _logger.LogInternalInformation(
                             "GetServiceNowSysId: Found document: Id={Id}, Number={Number}, IncidentSystemId={IncidentSystemId}",
                             document.Id, document.Number, document.IncidentSystemId
                         );
-                        
+
                         if (!string.IsNullOrEmpty(document.IncidentSystemId))
                         {
                             _logger.LogInternalInformation(
@@ -382,10 +382,13 @@ namespace Agent.Runtime.Services
 
                 if (request.Filter == null)
                 {
-                    if (request.Keywords == null || request.Keywords.Length == 0)
+                    if (
+                        (request.Keywords == null || request.Keywords.Length == 0) &&
+                        (request.SearchTerm == null || request.SearchTerm.Length == 0)
+                    )
                     {
                         _logger.LogInternalWarning(
-                            "QueryIncidentsInternal: No filter and no keywords provided"
+                            "QueryIncidentsInternal: No filter, keywords, or search term provided"
                         );
                         pagedResult.Items = new List<T>();
                         pagedResult.TotalCount = 0;
@@ -420,13 +423,38 @@ namespace Agent.Runtime.Services
                         results.Count
                     );
 
-                    // Filter in-memory by keywords (case-insensitive)
-                    var loweredKeywords = request.Keywords.Select(k => k.ToLower()).ToArray();
+                    // Filter in-memory by Keywords and/or SearchTerm (case-insensitive)
                     filteredResults = results
-                        .Where(c => loweredKeywords.Any(kw => c.Title != null && c.Title.ToLower().Contains(kw))).ToList();
+                        .Where(c =>
+                        {
+                            if (request.Keywords != null && request.Keywords.Length > 0)
+                            {
+                                var loweredKeywords = request.Keywords.Select(k => k.ToLower()).ToArray();
+                                var matchesKeywords = loweredKeywords.Any(kw => c.Title != null && c.Title.ToLower().Contains(kw));
+                                if (!matchesKeywords) return false;
+                            }
+
+                            if (request.SearchTerm != null && request.SearchTerm.Length > 0)
+                            {
+                                var loweredSearchTerm = request.SearchTerm.ToLower();
+                                var matchesSearchTerm = (
+                                    (c.Title != null && c.Title.ToLower().Contains(loweredSearchTerm)) ||
+                                    (c.Id != null && c.Id.ToLower().Contains(loweredSearchTerm))
+                                );
+                                if (!matchesSearchTerm) return false;
+                            }
+
+                            return true;
+                        })
+                        .ToList();
+
+                    var hasKeywords = request.Keywords != null && request.Keywords.Length > 0;
+                    var hasSearchTerm = request.SearchTerm != null && request.SearchTerm.Length > 0;
+                    var filteredBy = hasKeywords && hasSearchTerm ? "Keywords and SearchTerm" : hasKeywords ? "Keywords" : "SearchTerm";
 
                     _logger.LogInternalInformation(
-                        "QueryIncidentsInternal: Filtered results by keywords. FilteredCount: {FilteredCount}",
+                        "QueryIncidentsInternal: Filtered results by {FilteredBy}. FilteredCount: {FilteredCount}",
+                        filteredBy,
                         filteredResults.Count
                     );
                 }
@@ -512,15 +540,43 @@ namespace Agent.Runtime.Services
                         results.Count
                     );
 
-                    // Filter by TitleContains if provided
-                    if (filter.TitleContains != null && filter.TitleContains.Length > 0)
+                    // Filter by TitleContains and/or SearchTerm if provided
+                    if (
+                        (filter.TitleContains != null && filter.TitleContains.Length > 0) ||
+                        (request.SearchTerm != null && request.SearchTerm.Length > 0)
+                    )
                     {
-                        var loweredTitleContains = filter.TitleContains.ToLower();
                         filteredResults = results
-                            .Where(c => c.Title != null && c.Title.ToLower().Contains(loweredTitleContains)).ToList();
+                            .Where(c =>
+                            {
+                                if (filter.TitleContains != null && filter.TitleContains.Length > 0)
+                                {
+                                    var loweredTitleContains = filter.TitleContains.ToLower();
+                                    var matchesTitleContains = c.Title != null && c.Title.ToLower().Contains(loweredTitleContains);
+                                    if (!matchesTitleContains) return false;
+                                }
+
+                                if (request.SearchTerm != null && request.SearchTerm.Length > 0)
+                                {
+                                    var loweredSearchTerm = request.SearchTerm.ToLower();
+                                    var matchesSearchTerm = (
+                                        (c.Title != null && c.Title.ToLower().Contains(loweredSearchTerm)) ||
+                                        (c.Id != null && c.Id.ToLower().Contains(loweredSearchTerm))
+                                    );
+                                    if (!matchesSearchTerm) return false;
+                                }
+
+                                return true;
+                            })
+                            .ToList();
+
+                        var hasTitleContains = filter.TitleContains != null && filter.TitleContains.Length > 0;
+                        var hasSearchTerm = request.SearchTerm != null && request.SearchTerm.Length > 0;
+                        var filteredBy = hasTitleContains && hasSearchTerm ? "TitleContains and SearchTerm" : hasTitleContains ? "TitleContains" : "SearchTerm";
 
                         _logger.LogInternalInformation(
-                            "QueryIncidentsInternal: Filtered results by TitleContains. FilteredCount: {FilteredCount}",
+                            "QueryIncidentsInternal: Filtered results by {FilteredBy}. FilteredCount: {FilteredCount}",
+                            filteredBy,
                             filteredResults.Count
                         );
                     }
@@ -765,6 +821,7 @@ public class IncidentQueryRequest
     // Pagination
     public int PageNumber { get; set; } = 1; // 1-based index
     public int PageSize { get; set; } = 20;  // Default page size
+    public string SearchTerm { get; set; } = string.Empty;
 }
 
 public class IncidentQueryResult<T>
