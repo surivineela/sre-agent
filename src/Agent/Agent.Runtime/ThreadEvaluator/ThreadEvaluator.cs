@@ -25,7 +25,7 @@ namespace Agent.Runtime.ThreadEvaluator;
 /// - Evaluation history range: How far back to search for threads (default: 24 hours)
 /// - Cool down period: Minimum time since last modification before evaluation (default: 30 minutes)
 /// </summary>
-public class ThreadEvaluator
+public partial class ThreadEvaluator
 {
     private readonly ILogger<ThreadEvaluator> _logger;
     private readonly IThreadRepository _threadRepository;
@@ -217,6 +217,7 @@ public class ThreadEvaluator
             var satScore = Math.Ceiling((double)(llmEvaluation.Resolved + llmEvaluation.Satisfied + llmEvaluation.Automatic + llmEvaluation.Smooth + llmEvaluation.Concise + llmEvaluation.Adherence) / 6.0);
 
             await EvaluateHandoffsWithLLM(thread, cancellationToken); // Calculate handoff score
+            await EvaluateTasksWithLLM(thread, cancellationToken);
 
             var evaluationResult = new ThreadEvaluateResult(
                 Id: Guid.NewGuid(),
