@@ -12,6 +12,9 @@ const ICON_LOOKUP: Record<string, string> = {
     kubernetes: 'AKS.svg',
     scaleset: 'ScaleSet.svg',
 
+    // Logic Apps
+    'web/sites/connections': 'Connection.svg',
+
     // Web & Functions
     webapp: 'WebApp.svg',
     functionapp: 'FunctionApp.svg',
@@ -66,6 +69,9 @@ const FRIENDLY_NAMES: Record<string, string> = {
     managedcluster: 'Kubernetes Service',
     kubernetes: 'Kubernetes Service',
     scaleset: 'Scale Set',
+
+    // Logic Apps
+    'web/sites/connections': 'Service Provider Connection',
 
     // Web & Functions
     webapp: 'Web App',

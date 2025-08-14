@@ -95,7 +95,7 @@ export const useGraphLayout = () => {
     };
 
     const layoutGraph = async (nodes: Node<GraphNode>[], edges: Edge<GraphEdge>[]) => {
-        if (nodes.length < 30) {
+        if (nodes.length < 50) {
             return Promise.resolve(getDagreLayout(nodes, edges));
         } else {
             return getElkLayout(nodes, edges);

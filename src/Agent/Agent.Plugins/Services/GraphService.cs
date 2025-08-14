@@ -249,7 +249,7 @@ public class GraphService : IGraphService
     {
         string query = $@"g.V().has('id', '{resourceId.ToLower().Replace("/", "_")}').has('isDeleted', false)
                      .union(
-                        outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'POSTGRESQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'SERVES_CODE')
+                        outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'POSTGRESQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'SERVES_CODE', 'USES')
                           .where(inV().not(has('resourceType', within('resourcegroups', 'subscription'))).not(has('isDeleted', true)))
                           .project('edge', 'direction', 'node')
                           .by(label())
@@ -276,7 +276,7 @@ public class GraphService : IGraphService
         if (resourceId.Contains("microsoft.containerservice_managedclusters"))
         {
             query = $@"g.V().has('id', '{resourceId.ToLower().Replace("/", "_")}').has('isDeleted', false)
-                    .outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'POSTGRESQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'SERVES_CODE', 'REFERENCES', 'BACKED_BY')
+                    .outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'POSTGRESQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'SERVES_CODE', 'REFERENCES', 'BACKED_BY', 'USES')
                         .where(inV().not(has('resourceType', within('resourcegroups', 'subscription'))).not(has('isDeleted', true)))
                         .project('edge', 'direction', 'node')
                         .by(label())

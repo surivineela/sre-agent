@@ -211,7 +211,6 @@ export const getFriendlyEdgeLabel = (nodeRelations: string) => {
         case NodeRelations.RedisConnected.toLowerCase():
         case NodeRelations.Connected.toLowerCase():
         case NodeRelations.UsesRedis.toLowerCase():
-        case NodeRelations.Uses.toLowerCase():
         case NodeRelations.References.toLowerCase():
             return GraphEdgeLabel.connectsTo;
         case NodeRelations.HasRole.toLowerCase():
@@ -232,6 +231,8 @@ export const getFriendlyEdgeLabel = (nodeRelations: string) => {
             return GraphEdgeLabel.isPartOf;
         case NodeRelations.BackedBy.toLowerCase():
             return GraphEdgeLabel.backedBy;
+        case NodeRelations.Uses.toLowerCase():
+            return GraphEdgeLabel.uses;
         default:
             return undefined;
     }

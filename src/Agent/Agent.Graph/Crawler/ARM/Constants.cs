@@ -36,6 +36,7 @@ public class Constants
     public const string ApiManagementBackendType = "Microsoft.ApiManagement/service/backends";
     public const string ApiCenterType = "Microsoft.ApiCenter/services";
     public const string ApplicationInsightsType = "Microsoft.Insights/components";
+    public const string ServiceProviderConnectionType = "Microsoft.Web/sites/connections";
     public const string ApiConnectionType = "Microsoft.Web/connections";
 
     // New constants for App Service Web/Function Apps and App Service Plans.

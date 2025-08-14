@@ -22,7 +22,6 @@ using Agent.Core.Services;
 using Agent.Logging;
 using Azure;
 using Azure.Core;
-using Azure.Identity;
 using Azure.ResourceManager.AppService;
 using Azure.ResourceManager.AppService.Models;
 using Azure.ResourceManager.Compute;
@@ -37,7 +36,6 @@ using Azure.ResourceManager.Sql;
 using Azure.ResourceManager.Sql.Models;
 using Azure.ResourceManager.Storage;
 using Azure.ResourceManager.Storage.Models;
-using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -1782,53 +1780,61 @@ public class ArmHelper
 
     public async Task<GenericArmResourceModel?> GetAppInsightsResourceByInstrumentationKeyAsync(string subscriptionId, string instrumentationKey)
     {
-        var requestUrl = $"https://management.azure.com/subscriptions/{subscriptionId}/providers/microsoft.insights/components?api-version=2018-05-01-preview";
-        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
-
-        var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
-        var response = await httpClient.SendAsync(request);
-
-        if (!response.IsSuccessStatusCode)
-            return null;
-
-        var content = await response.Content.ReadAsStringAsync();
-        var jsonDoc = JsonDocument.Parse(content);
-
-        foreach (var component in jsonDoc.RootElement.GetProperty("value").EnumerateArray())
+        try
         {
-            if (component.TryGetProperty("properties", out var properties) &&
-                properties.TryGetProperty("InstrumentationKey", out var key) &&
-                key.GetString() == instrumentationKey)
+            var requestUrl = $"https://management.azure.com/subscriptions/{subscriptionId}/providers/microsoft.insights/components?api-version=2018-05-01-preview";
+            var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+
+            var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+            var response = await httpClient.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+                return null;
+
+            var content = await response.Content.ReadAsStringAsync();
+            var jsonDoc = JsonDocument.Parse(content);
+
+            foreach (var component in jsonDoc.RootElement.GetProperty("value").EnumerateArray())
             {
-                var resourceId = component.GetProperty("id").GetString();
-                var resourceName = component.GetProperty("name").GetString();
-                var location = component.GetProperty("location").GetString();
-                var kind = component.GetProperty("kind").GetString();
-
-                if (string.IsNullOrEmpty(resourceId) || string.IsNullOrEmpty(resourceName) || string.IsNullOrEmpty(location) || string.IsNullOrEmpty(kind))
+                if (component.TryGetProperty("properties", out var properties) &&
+                    properties.TryGetProperty("InstrumentationKey", out var key) &&
+                    key.GetString() == instrumentationKey)
                 {
-                    _logger.LogInternalError("App Insights resource lookup failed: one or more required fields (id, name, location, or kind) are missing or empty.");
-                    return null;
-                }
-                
-                var type = component.TryGetProperty("type", out var typ) ? typ.GetString() : null;
-                var tags = component.TryGetProperty("tags", out var tagElement) && tagElement.ValueKind == JsonValueKind.Object
-                    ? tagElement.EnumerateObject().ToDictionary(p => p.Name, p => p.Value.ToString())
-                    : new Dictionary<string, string>();
+                    var resourceId = component.GetProperty("id").GetString();
+                    var resourceName = component.GetProperty("name").GetString();
+                    var location = component.GetProperty("location").GetString();
+                    var type = component.TryGetProperty("type", out var typ) ? typ.GetString() : null;
 
-                return new GenericArmResourceModel(
-                    id: resourceId,
-                    name: resourceName,
-                    type: type ?? "microsoft.insights/components",
-                    kind: kind ?? string.Empty,
-                    location: location,
-                    properties: properties,
-                    tags: tags,
-                    IdentityModels: new List<GenericArmResourceIdentityModel>()
-                );
+                    if (string.IsNullOrEmpty(resourceId) || string.IsNullOrEmpty(resourceName) || string.IsNullOrEmpty(location) || string.IsNullOrEmpty(type))
+                    {
+                        _logger.LogInternalError("App Insights resource lookup failed: one or more required fields (id, name, location, or type) are missing or empty.");
+                        return null;
+                    }
+
+                    var kind = component.GetProperty("kind").GetString();
+                    var tags = component.TryGetProperty("tags", out var tagElement) && tagElement.ValueKind == JsonValueKind.Object
+                        ? tagElement.EnumerateObject().ToDictionary(p => p.Name, p => p.Value.ToString())
+                        : new Dictionary<string, string>();
+
+                    return new GenericArmResourceModel(
+                        id: resourceId,
+                        name: resourceName,
+                        type: type ?? "microsoft.insights/components",
+                        kind: kind ?? string.Empty,
+                        location: location,
+                        properties: properties,
+                        tags: tags,
+                        IdentityModels: new List<GenericArmResourceIdentityModel>()
+                    );
+                }
             }
+            return null;
         }
-        return null;
+        catch (Exception ex)
+        {
+            _logger.LogInternalError($"Exception in GetAppInsightsResourceByInstrumentationKeyAsync: {ex.Message}");
+            return null;
+        }
     }
 
     public async Task<string> ExecuteLogAnalyticsQuery(string resourceId, string queryString, string timeSpan)
@@ -3048,6 +3054,58 @@ public class ArmHelper
             // value is the storage account name
             return value;
         }
+    }
+
+    public static string? TryParseServiceBusFromConnectionString(string value)
+    {
+        // Look for the Endpoint=sb:// pattern and extract just the namespace
+        if (value.StartsWith("Endpoint=sb://", StringComparison.OrdinalIgnoreCase))
+        {
+            return value.Substring("Endpoint=sb://".Length).Split('.').FirstOrDefault();
+        }
+
+        return null;
+    }
+
+    public static string? TryParseStorageAccountFromConnectionString(string connectionString)
+    {
+        var parts = connectionString.Split(';', StringSplitOptions.RemoveEmptyEntries);
+        foreach (var part in parts)
+        {
+            var kvp = part.Split('=', 2);
+            if (kvp.Length == 2 && kvp[0].Trim().Equals("AccountName", StringComparison.OrdinalIgnoreCase))
+            {
+                return kvp[1].Trim();
+            }
+        }
+        return null;
+    }
+
+    public static string? TryParseSQLServerFromConnectionString(string connectionString)
+    {
+        string? server = null;
+        var parts = connectionString.Split(';', StringSplitOptions.RemoveEmptyEntries);
+        foreach (var part in parts)
+        {
+            var kvp = part.Split('=', 2);
+            if (kvp.Length == 2 && kvp[0].Trim().Equals("Server", StringComparison.OrdinalIgnoreCase))
+            {
+                server = kvp[1].Trim();
+                // Remove "tcp:" prefix if present
+                if (server.StartsWith("tcp:", StringComparison.OrdinalIgnoreCase))
+                    server = server.Substring(4);
+                // Remove port if present
+                var commaIdx = server.IndexOf(',');
+                if (commaIdx > 0)
+                    server = server.Substring(0, commaIdx);
+                // Extract only the server name before the first '.'
+                var dotIdx = server.IndexOf('.');
+                if (dotIdx > 0)
+                    server = server.Substring(0, dotIdx);
+                break;
+            }
+        }
+        return server;
     }
 
     #endregion

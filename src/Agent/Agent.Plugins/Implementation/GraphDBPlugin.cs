@@ -531,8 +531,8 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                         identity(),
                         repeat(
                             union(
-                                outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'POSTGRESQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS').inV().has('isDeleted', false),
-                                inE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'POSTGRESQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS').outV().has('isDeleted', false)
+                                outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'POSTGRESQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'USES').inV().has('isDeleted', false),
+                                inE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'POSTGRESQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'USES').outV().has('isDeleted', false)
                             )
                             .not(has('resourceType', within('resourcegroup', 'subscription')))
                             .simplePath()
