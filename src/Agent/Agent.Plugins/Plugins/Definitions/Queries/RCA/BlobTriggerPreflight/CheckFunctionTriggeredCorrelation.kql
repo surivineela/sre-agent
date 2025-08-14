@@ -1,0 +1,15 @@
+let _startTime = datetime("##startTime##");
+let _endTime = datetime("##endTime##");
+let _siteName = "##siteName##";
+let _eventPrimaryStampName = "##eventPrimaryStampName##";
+let _functionName = "##functionName##";
+let _filteredEvents = dynamic(["BlobMessageEnqueued", "FunctionStarted", "FunctionCompleted"]);
+FunctionsLogs
+| where PreciseTimeStamp between (_startTime .. _endTime)
+| where AppName =~ _siteName
+| where EventStampName == _eventPrimaryStampName
+| where FunctionName == _functionName
+| where EventName in (_filteredEvents)
+| project PreciseTimeStamp, Level, HostVersion, RuntimeSiteName, Pid, EventName, Summary, RoleInstance, ActivityId, ExceptionMessage, InnerExceptionMessage, Details, Source, Message, EventMessage, Tenant, SubscriptionId, EventStampName, InnerExceptionType
+| order by PreciseTimeStamp asc
+| take 15

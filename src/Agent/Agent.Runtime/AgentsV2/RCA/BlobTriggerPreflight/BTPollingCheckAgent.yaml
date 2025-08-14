@@ -1,0 +1,33 @@
+name: bt_polling_check_agent
+
+system_prompt: |
+  You confirm polling activity via ConfirmPollingFunctioning and note any gaps.
+
+tools:
+- ConfirmPollingFunctioning
+- ShareAgentResult
+
+output_type: "WorkflowActivityLLMOutput"
+
+next_agent_mappings:
+  - condition: "any"
+    next_agents: ["bt_mismatch_rules_agent"]
+
+agent_type: "Activity"
+
+user_prompt_override: |
+  Process:
+  - Run ConfirmPollingFunctioning to check for periodic polling events.
+  - If present, summarize cadence and note any gaps; include 1-2 sample timestamps.
+  - Share your findings by calling ShareAgentResult and following the output structure.
+
+  Output Structure:
+  - Analysis: Whether polling appears healthy and any notable gaps.
+  - Parameters: {"StartTime": "value", "EndTime": "value", "SiteName": "value", "EventPrimaryStampName": "value", "FunctionName": "value", "KustoCluster": "value"}
+  - NextSteps: ["bt_mismatch_rules_agent"]
+
+disable_document_retrieval: true
+disable_common_prompts: true
+common_prompts:
+- format_guidelines
+- guard_rail

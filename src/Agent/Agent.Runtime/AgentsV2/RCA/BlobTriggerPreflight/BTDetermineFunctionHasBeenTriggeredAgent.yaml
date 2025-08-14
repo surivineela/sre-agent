@@ -1,0 +1,36 @@
+name: bt_determine_function_has_been_triggered_agent
+
+system_prompt: |
+  You check the execution pipeline correlation via CheckFunctionTriggeredCorrelation:
+  BlobMessageEnqueued -> FunctionStarted -> FunctionCompleted should correlate.
+
+tools:
+- CheckFunctionTriggeredCorrelation
+- ShareAgentResult
+
+output_type: "WorkflowActivityLLMOutput"
+
+next_agent_mappings:
+  - condition: "correlation_confirmed"
+    next_agents: []
+  - condition: "correlation_not_confirmed"
+    next_agents: ["bt_blob_enqueued_agent"]
+
+agent_type: "Activity"
+
+user_prompt_override: |
+  Process:
+  - Run CheckFunctionTriggeredCorrelation to validate: BlobMessageEnqueued -> FunctionStarted -> FunctionCompleted.
+  - Provide brief correlation evidence (e.g., matching InvocationId or close timestamps).
+  - Share your findings by calling ShareAgentResult and following the output structure.
+
+  Output Structure:
+  - Analysis: Whether the end-to-end correlation is observed.
+  - Parameters: {"StartTime": "value", "EndTime": "value", "SiteName": "value", "EventPrimaryStampName": "value", "FunctionName": "value", "KustoCluster": "value"}
+  - NextSteps: [] if correlation is confirmed; otherwise ["bt_blob_enqueued_agent"]
+
+disable_document_retrieval: true
+disable_common_prompts: true
+common_prompts:
+- format_guidelines
+- guard_rail

@@ -547,23 +547,44 @@ Please consolidate the findings, identify key insights, and provide actionable r
 
             // Build results summary
             var resultsBuilder = new StringBuilder();
-            foreach (var kvp in _executionResults)
+            if (_executionResults.Count == 0)
             {
-                resultsBuilder.AppendLine($"## Agent: {kvp.Key}");
-                resultsBuilder.AppendLine($"**Analysis:** {kvp.Value.Analysis}");
-                resultsBuilder.AppendLine($"**State:** {kvp.Value.State}");
-                resultsBuilder.AppendLine($"**Parameters:** {kvp.Value.Parameters}");
-                resultsBuilder.AppendLine($"**Generated At:** {kvp.Value.GeneratedAt}");
-                resultsBuilder.AppendLine();
+                resultsBuilder.AppendLine("No analysis results were produced by any activity agents.");
+            }
+            else
+            {
+                foreach (var kvp in _executionResults)
+                {
+                    resultsBuilder.AppendLine($"## Agent: {kvp.Key}");
+                    resultsBuilder.AppendLine($"Analysis: {kvp.Value.Analysis}");
+                    if (!string.IsNullOrWhiteSpace(kvp.Value.State))
+                    {
+                        resultsBuilder.AppendLine($"State: {kvp.Value.State}");
+                    }
+                    if (!string.IsNullOrWhiteSpace(kvp.Value.Parameters))
+                    {
+                        resultsBuilder.AppendLine($"Parameters: {kvp.Value.Parameters}");
+                    }
+                    if (kvp.Value.GeneratedAt != default)
+                    {
+                        resultsBuilder.AppendLine($"GeneratedAt: {kvp.Value.GeneratedAt:O}");
+                    }
+                    resultsBuilder.AppendLine();
+                }
             }
 
-            var finalPrompt = summaryPrompt.Replace("{results}", resultsBuilder.ToString());
-
-            // Generate summary using LLM
-            var summaryMessages = new List<ChatMessage>
+            // Compose messages: if prompt contains {results}, replace for compatibility; otherwise inject results as separate context
+            var summaryMessages = new List<ChatMessage>();
+            if (summaryPrompt.Contains("{results}", StringComparison.OrdinalIgnoreCase))
             {
-                new ChatMessage(ChatRole.System, finalPrompt)
-            };
+                var finalPrompt = summaryPrompt.Replace("{results}", resultsBuilder.ToString(), StringComparison.OrdinalIgnoreCase);
+                summaryMessages.Add(new ChatMessage(ChatRole.System, finalPrompt));
+            }
+            else
+            {
+                summaryMessages.Add(new ChatMessage(ChatRole.System, summaryPrompt));
+                summaryMessages.Add(new ChatMessage(ChatRole.User, "Here are the agent analysis results to summarize:\n\n" + resultsBuilder.ToString()));
+            }
 
             var response = await _chatClient.GetResponseAsync(summaryMessages, cancellationToken: cancellationToken);
             var summaryText = response.GetMessage().Text ?? "Unable to generate summary";

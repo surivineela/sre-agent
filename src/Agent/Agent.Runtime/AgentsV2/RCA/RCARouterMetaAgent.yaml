@@ -33,6 +33,11 @@ system_prompt: |
     → Handoff to: `scale_controller_preflight_agent`
     → Purpose: Comprehensive Scale Controller RCA analysis for Function App scaling issues
 
+  **Blob Trigger Issues:**
+  - OwningTeamName is APPSERVICEWEBAPPS\AntaresFunctionsEventHub/ServiceBus/StorageLoop and ICM mentioned Blob Trigger issue.
+    → Handoff to: `blob_trigger_preflight_agent`
+    → Purpose: Blob Trigger RCA preflight analysis (polling, listener, enqueues, function correlation)
+
   **Future Routing Rules:**
   - Additional team mappings will be added as new specialized agents become available
   - Each team will have dedicated RCA workflows tailored to their specific technology stack
@@ -77,6 +82,7 @@ handoff_description: "Handoff to this agent to route RCA incidents to appropriat
 
 handoffs:
   - scale_controller_preflight_agent
+  - blob_trigger_preflight_agent
 
 tools:
   - GetIncidentInfoForFunctions

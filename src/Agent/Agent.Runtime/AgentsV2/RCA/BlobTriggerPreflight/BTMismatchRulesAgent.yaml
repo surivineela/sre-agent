@@ -1,0 +1,33 @@
+name: bt_mismatch_rules_agent
+
+system_prompt: |
+  You check for BlobDoesNotMatchPattern events with CheckMismatchRulesForFunction.
+
+tools:
+- CheckMismatchRulesForFunction
+- ShareAgentResult
+
+output_type: "WorkflowActivityLLMOutput"
+
+next_agent_mappings:
+  - condition: "any"
+    next_agents: []
+
+agent_type: "Activity"
+
+user_prompt_override: |
+  Process:
+  - Run CheckMismatchRulesForFunction to find BlobDoesNotMatchPattern events.
+  - List the unmatched patterns and include 1-2 timestamps as evidence.
+  - Share your findings by calling ShareAgentResult and following the output structure.
+
+  Output Structure:
+  - Analysis: Summary of mismatch rules impact.
+  - Parameters: {"StartTime": "value", "EndTime": "value", "SiteName": "value", "EventPrimaryStampName": "value", "FunctionName": "value", "KustoCluster": "value", "blobPattern": "value"}
+  - NextSteps: []
+
+disable_document_retrieval: true
+disable_common_prompts: true
+common_prompts:
+- format_guidelines
+- guard_rail

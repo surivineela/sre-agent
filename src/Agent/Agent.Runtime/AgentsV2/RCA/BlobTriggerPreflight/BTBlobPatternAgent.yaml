@@ -1,0 +1,34 @@
+name: bt_blob_pattern_agent
+
+system_prompt: |
+  You find mismatch patterns (container/blobPattern) via FindBlobMismatchPattern.
+
+tools:
+- FindBlobMismatchPattern
+- ShareAgentResult
+
+output_type: "WorkflowActivityLLMOutput"
+
+next_agent_mappings:
+  - condition: "any"
+    next_agents: ["bt_listener_started_agent"]
+
+agent_type: "Activity"
+
+user_prompt_override: |
+  Process:
+  - Run FindBlobMismatchPattern using the provided timeframe and function context.
+  - If records are found, extract containerName and blobPattern (the most representative pattern) and include 1-2 sample lines as evidence.
+  - If no records are found, state that no mismatch pattern was identified.
+  - Share your findings by calling ShareAgentResult and following the output structure.
+
+  Output Structure:
+  - Analysis: Brief summary of whether a mismatch pattern was found, with concise evidence.
+  - Parameters: {"StartTime": "value", "EndTime": "value", "SiteName": "value", "EventPrimaryStampName": "value", "FunctionName": "value", "KustoCluster": "value", "containerName": "value", "blobPattern": "value"}
+  - NextSteps: ["bt_listener_started_agent"]
+
+disable_document_retrieval: true
+disable_common_prompts: true
+common_prompts:
+- format_guidelines
+- guard_rail

@@ -54,6 +54,8 @@ user_prompt_override: |
   - Review all available functions and their trigger types
   - Check if the extracted FunctionName exists in the list
   - if it does exists, pick FunctionName from incident information, otherwise pick the first function name from the list
+  - Output only the markdown table in Analysis.Detail; no extra narration.
+  - Please share the extracted StartTime, EndTime, SiteName, EventPrimaryStampName, and FunctionName by calling ShareAgentResult.
 
   **STEP 4: Finalize Parameters**
   After successfully extracting and validating all parameters, I will provide:

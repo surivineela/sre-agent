@@ -102,6 +102,9 @@
     <None Update="AgentsV2\RCA\ScaleControllerPreflight\*.yaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="AgentsV2\RCA\BlobTriggerPreflight\*.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="AgentsV2\DiagnosticsAgents\DiagnosticBinariesAndScripts\dotnet-cpu.sh">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

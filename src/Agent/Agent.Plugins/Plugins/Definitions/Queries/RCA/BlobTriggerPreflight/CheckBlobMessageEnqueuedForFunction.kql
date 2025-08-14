@@ -1,0 +1,14 @@
+let _startTime = datetime("##startTime##");
+let _endTime = datetime("##endTime##");
+let _siteName = "##siteName##";
+let _eventPrimaryStampName = "##eventPrimaryStampName##";
+let _functionName = "##functionName##";
+FunctionsLogs
+| where PreciseTimeStamp between (_startTime .. _endTime)
+| where AppName =~ _siteName
+| where EventStampName == _eventPrimaryStampName
+| where FunctionName == _functionName
+| where EventName == "BlobMessageEnqueued"
+| project PreciseTimeStamp, EventName, Summary, Level
+| parse Summary with "Blob '" BlobName "' is ready for processing by function '" * "'. A message with id '" MessageId "' has been added to queue '" QueueName "'. This message will be dequeued and processed by the BlobTrigger. PollId: '" PoolId "'" *
+| take 3

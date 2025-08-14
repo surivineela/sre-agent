@@ -431,6 +431,7 @@ public class Program
             .AddTransient<AzureDocSearchPlugin>()
             .AddTransient<SearchPluginDefinition>()
             .AddTransient<ScaleControllerRCAPreflightPluginDefinition>()
+            .AddTransient<BlobTriggerRCAPreflightPluginDefinition>()
             .AddTransient<ColdStartPluginDefinition>()
             .AddTransient<LogsPluginDefinition>()
             .AddTransient<IMetaAgentContainerAppsRemediationPlugin, ContainerAppsRemediationPlugin>()

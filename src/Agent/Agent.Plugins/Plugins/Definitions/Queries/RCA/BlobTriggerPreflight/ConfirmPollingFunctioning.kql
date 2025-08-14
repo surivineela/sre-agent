@@ -1,0 +1,19 @@
+let _startTime = datetime("##startTime##");
+let _endTime = datetime("##endTime##");
+let _siteName = "##siteName##";
+FunctionsLogs
+| where PreciseTimeStamp between(_startTime .. _endTime)
+| where AppName =~ _siteName
+| where EventName == "PollBlobContainer"
+| where Source != "HttpRequestTraceHandler"
+| where Source != "Microsoft.Azure.WebJobs.Script.WebHost.Middleware.SystemTraceMiddleware"
+| where Summary !startswith "Ping Status"
+| where Source != "Microsoft.Azure.WebJobs.Script.WebHost.Authentication.AuthenticationLevelHandler"
+| where Source != "Microsoft.Azure.WebJobs.Script.WebHost.Middleware.HostAvailabilityCheckMiddleware"
+| where Summary !startswith "[HostMonitor"
+| where Source != "Microsoft.Azure.WebJobs.Script.WebHost.Security.Authentication.ArmAuthenticationHandler"
+| where Source != "Host.Concurrency"
+| where Summary !startswith "[channel]"
+| project PreciseTimeStamp, Level, HostVersion, RuntimeSiteName, Pid, EventIpAddress, EventName, Summary, RoleInstance, AppName, FunctionName, ActivityId, ExceptionMessage, InnerExceptionMessage, Details, FunctionInvocationId, Source, Message, EventMessage, Tenant, SubscriptionId, EventStampName, InnerExceptionType
+| order by PreciseTimeStamp asc
+| summarize Count = count() by bin(PreciseTimeStamp,1h)

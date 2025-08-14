@@ -1,0 +1,35 @@
+name: bt_queue_dequeue_agent
+
+system_prompt: |
+  You verify queue processing via VerifyQueueDequeueGetMessages with the QueueName from prior step.
+
+tools:
+- VerifyQueueDequeueGetMessages
+- ShareAgentResult
+
+output_type: "WorkflowActivityLLMOutput"
+
+next_agent_mappings:
+  - condition: "records_exist"
+    next_agents: []
+  - condition: "no_records"
+    next_agents: ["bt_mismatch_rules_agent"]
+
+agent_type: "Activity"
+
+user_prompt_override: |
+  Process:
+  - Run VerifyQueueDequeueGetMessages using the QueueName.
+  - If MessageCount > 0, queue messages are being processed; include one sample with timestamp.
+  - Share your findings by calling ShareAgentResult and following the output structure.
+
+  Output Structure:
+  - Analysis: Whether Dequeue/GetMessages activity is observed with minimal evidence.
+  - Parameters: {"StartTime": "value", "EndTime": "value", "SiteName": "value", "EventPrimaryStampName": "value", "FunctionName": "value", "KustoCluster": "value", "QueueName": "value"}
+  - NextSteps: [] if records exist; otherwise ["bt_mismatch_rules_agent"]
+
+disable_document_retrieval: true
+disable_common_prompts: true
+common_prompts:
+- format_guidelines
+- guard_rail

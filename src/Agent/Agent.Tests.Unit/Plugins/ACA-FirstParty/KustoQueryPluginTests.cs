@@ -120,6 +120,17 @@ namespace Agent.Tests.Unit.Plugins
                     "GetAKSPodRestarts.kql",
                     "CheckFunctionExecutions.kql",
                     "GetManagedEnvironmentVnetStatus.kql",
+                    "CheckBlobMessageEnqueuedForFunction.kql",
+                    "CheckFunctionRuntimeAndWorkers.kql",
+                    "CheckFunctionTriggeredCorrelation.kql",
+                    "CheckMismatchRulesForFunction.kql",
+                    "ConfirmPollingFunctioning.kql",
+                    "EnsureBlobStorageListenerStarted.kql",
+                    "FetchSiteMetadata.kql",
+                    "FindBlobMismatchPattern.kql",
+                    "GetFunctionCompletedHourlyForIp.kql",
+                    "GetMostFrequentEventIpAddress.kql",
+                    "VerifyQueueDequeueGetMessages.kql",
                     "GetCanaryAvailability.kql"
                 };
 

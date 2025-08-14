@@ -1,0 +1,37 @@
+name: blob_trigger_preflight_agent
+
+system_prompt: |
+  You are the Blob Trigger RCA Orchestrator Agent. Finish the execution with returning a message 'Completed'.
+
+handoff_description: "Handoff to this agent for Blob Trigger RCA preflight analysis"
+
+agent_type: "Orchestrator"
+
+parameter_extraction_agent: "blob_trigger_parameter_extraction_agent"
+
+orchestration_start_agents:
+  - "bt_worker_runtime_check_agent"
+  - "bt_site_metadata_agent" 
+  
+result_summarization_prompt: |
+  Provide a concise Blob Trigger RCA preflight summary:
+  - Worker/runtime status
+  - Most frequent EventIpAddress
+  - Stop/Recovered timestamps (largest gap)
+  - Polling/listener status
+  - Mismatch rules or blob enqueues/dequeues
+  - Function correlation result
+  - Clear next steps or confirmation
+
+
+
+tools:
+- ShareAgentResult
+
+disable_document_retrieval: true
+
+common_prompts:
+- format_guidelines
+- guard_rail
+
+max_reflection_count: 1
