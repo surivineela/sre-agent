@@ -1,7 +1,9 @@
 import { graphlib, layout } from '@dagrejs/dagre';
 import { MarkerType, useEdgesState, useNodesState, useReactFlow, XYPosition } from '@xyflow/react';
-import { useEffect } from 'react';
+import debounce from 'lodash/debounce';
+import { useEffect, useMemo, useRef } from 'react';
 import { InvestigationTreeNode, InvestigationTreeState, TreeNodeType } from '../../Common/Contracts/DataPlane/AgentTask';
+import { Guid } from '../../Common/Helpers/Guid';
 import {
     AgentTaskNodeSize,
     AgentTaskPhaseNodeIdSuffix,
@@ -38,6 +40,24 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
 
     const [nodes, setNodes, onNodesChange] = useNodesState<GraphFlowNode>([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState<GraphFlowEdge>([]);
+
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const element = containerRef.current;
+        if (!element) return;
+
+        const centerGraph = debounce(() => {
+            fitView({ padding: 50, duration: 50 });
+        }, 100);
+
+        const resizeObserver = new ResizeObserver(() => {
+            centerGraph();
+        });
+
+        resizeObserver.observe(element);
+        return () => resizeObserver.disconnect();
+    }, []);
 
     const getDagreLayout = (
         nodes: GraphFlowNode[],
@@ -457,31 +477,22 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
         };
     };
 
-    const centerGraph = (onInit: boolean) => {
-        setTimeout(
-            () => {
-                fitView({ minZoom: 0.5, maxZoom: 1.5, padding: 50, duration: 50, interpolate: 'smooth' });
-            },
-            onInit ? 300 : 100
-        );
-    };
-
     useEffect(() => {
-        const treeState = treeStateValue.treeState;
+        const treeState = treeStateValue?.treeState || null;
         const { graphFlowNodes, graphFlowEdges } = constructGraph(treeState);
 
         setNodes(graphFlowNodes);
         setEdges(graphFlowEdges);
-        centerGraph(false);
     }, [treeStateValue]);
 
-    useEffect(() => {});
+    const renderKey = useMemo(() => Guid.newGuid(), [nodes.length]);
 
     return {
         nodes,
         edges,
         onNodesChange,
         onEdgesChange,
-        centerGraph,
+        renderKey,
+        containerRef,
     };
 };

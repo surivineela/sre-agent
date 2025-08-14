@@ -1,12 +1,6 @@
 import { Edge, Node } from '@xyflow/react';
 import { AgentMode } from '../../Common/Contracts/Azure/SreAgent';
-import {
-    AgentTask,
-    AgentTaskMetaData,
-    InvestigationTreeNode,
-    InvestigationTreeState,
-    TaskProgressUpdate,
-} from '../../Common/Contracts/DataPlane/AgentTask';
+import { AgentTaskMetaData, InvestigationTreeNode, InvestigationTreeState } from '../../Common/Contracts/DataPlane/AgentTask';
 import {
     Approval,
     AzCliExecution,
@@ -212,23 +206,13 @@ export type GraphFlowEdge = Edge<InvestigationGraphFlowEdge>;
 
 export interface IAgentTaskGraphProps {
     isLoading: boolean;
-    treeStateValue: TreeStateValue;
-}
-
-export interface TreeStatePendingTask {
-    agentTask: AgentTask | null;
-    taskProgressUpdate: TaskProgressUpdate | null;
+    treeStateValue: TreeStateValue | null;
 }
 
 export interface TreeStateValue {
     taskId: string;
     treeState: InvestigationTreeState | null;
     changeIdentifier: string;
-}
-
-export interface TreeStatesMapValue extends TreeStateValue {
-    pendingUpdate: TreeStatePendingTask[] | null;
-    isTreeStateInitialized: boolean;
 }
 
 export enum AgentTaskPhaseNodeIdSuffix {

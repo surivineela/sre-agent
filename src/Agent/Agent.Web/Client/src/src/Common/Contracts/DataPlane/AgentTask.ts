@@ -101,47 +101,11 @@ export enum AgentTaskType {
     IncidentInvestigation = 'IncidentInvestigation',
 }
 
-export interface TaskProgressUpdate {
-    taskId: string;
-    phase: TaskProgressPhase;
-    status: TaskProgressStatus;
-    message: string;
-    summary?: string;
-    conclusion?: AgentTaskStepCommon;
-    hypothesisUpdate?: HypothesisTreeItem;
-    hypothesisAction?: HypothesisAction;
-    lastModified?: string;
-
-    // Remove them once the backend sends us proper data
-    TaskId?: string; // For compatibility with older updates
-    Phase?: TaskProgressPhase; // For compatibility with older updates
-    Status?: TaskProgressStatus; // For compatibility with older updates
-    Message?: string; // For compatibility with older updates
-    Summary?: string; // For compatibility with older updates
-    Conclusion?: AgentTaskStepCommon; // For compatibility with older updates
-    HypothesisUpdate?: HypothesisTreeItem; // For compatibility with older updates
-    HypothesisAction?: HypothesisAction; // For compatibility with older updates
-    LastModified?: string; // For compatibility with older updates
-}
-
-export enum TaskProgressPhase {
-    InitialInvestigation = 'initial_investigation',
-    FormingHypothesis = 'forming_hypothesis',
-    Conclusion = 'conclusion',
-    ValidatingHypothesis = 'validating_hypothesis',
-}
-
 export enum TaskProgressStatus {
     Started = 'started',
     InProgress = 'in_progress',
     Completed = 'completed',
     Failed = 'failed',
-}
-
-export enum HypothesisAction {
-    Add = 'add',
-    Update = 'update',
-    Validate = 'validate',
 }
 
 export enum TreeNodeType {
