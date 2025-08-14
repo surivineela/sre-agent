@@ -1,31 +1,64 @@
-import { Button, tokens } from '@fluentui/react-components';
+import { Button, Tab, TabList, tokens } from '@fluentui/react-components';
 import { useFormikContext } from 'formik';
-import { FC, useContext } from 'react';
+import { FC, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { IncidentHandlerCreateResources } from '../../../../Strings/SREAgentResources';
-import { ReviewAndTestContent } from '../Common/ReviewAndTestContent';
+import useWindowSize from '../../../Hooks/useWindowSize';
+import { ReviewAndTestContent, ReviewAndTestView } from '../Common/ReviewAndTestContent';
 import { DirtyStateConfirmationWrapper } from '../DirtyStateConfirmationDialog';
 import { IncidentHandlerConsolidatedCreateContext, IncidentHandlerCreateSteps } from '../IncidentHandlerConsolidatedCreateContext';
 import { IncidentHandlerCreateFormValues } from '../IncidentHandlerCreateFormValues';
 
+const buttonsDivHeight = 74;
+const tabsDivHeight = 49;
+const tabViewThreshold = 1366;
+
 export const ReviewAndTestStep: FC = () => {
     const { dirty } = useFormikContext<IncidentHandlerCreateFormValues>();
     const { generatingUpdatedTools, exitToHome, setCurrentStep, saveHandler } = useContext(IncidentHandlerConsolidatedCreateContext);
+    const [selectedTab, setSelectedTab] = useState<ReviewAndTestView>('review');
     const intl = useIntl();
+    const { width } = useWindowSize();
+
+    const showTabs = useMemo(() => {
+        if (!width) {
+            return false;
+        }
+        return width <= tabViewThreshold;
+    }, [width]);
+
+    const panelHeight = useMemo(() => {
+        const nonPanelHeight = buttonsDivHeight + (showTabs ? tabsDivHeight : 0);
+        return `calc(100% - ${nonPanelHeight}px)`;
+    }, [showTabs]);
 
     return (
         <>
+            {showTabs && (
+                <TabList
+                    selectedValue={selectedTab}
+                    onTabSelect={(_, data) => setSelectedTab(data.value as ReviewAndTestView)}
+                    style={{ padding: '5px 0px 0px 10px' }}
+                >
+                    <Tab id="Review" value={'review'}>
+                        {intl.formatMessage(IncidentHandlerCreateResources.reviewCustomInstructionsTitle)}
+                    </Tab>
+                    <Tab id="Test" value={'test'}>
+                        {intl.formatMessage(IncidentHandlerCreateResources.testHandlerTitle)}
+                    </Tab>
+                </TabList>
+            )}
             <div
                 style={{
                     display: 'flex',
                     flexDirection: 'column',
                     padding: '0px 20px 0px 20px',
                     gap: '20px',
-                    height: 'calc(100% - 74px)',
+                    height: panelHeight,
                     overflowY: 'auto',
                 }}
             >
-                <ReviewAndTestContent />
+                <ReviewAndTestContent view={showTabs ? selectedTab : undefined} />
             </div>
             <div
                 style={{

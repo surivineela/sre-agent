@@ -16,7 +16,12 @@ import { IncidentHandlerCreateFormValues } from '../IncidentHandlerCreateFormVal
 import { ToolsPickerDialog } from '../ToolsPickerDialog';
 import { ToolsToolbar } from '../ToolsToolbar';
 
-export const ReviewAndTestContent: FC = () => {
+export type ReviewAndTestView = 'review' | 'test';
+export interface ReviewAndTestContentProps {
+    view?: ReviewAndTestView;
+}
+
+export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view }) => {
     const { values, setFieldValue } = useFormikContext<IncidentHandlerCreateFormValues>();
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
@@ -88,159 +93,167 @@ export const ReviewAndTestContent: FC = () => {
                     <Spinner size="large" />
                 </div>
             )}
-            <div
-                style={{
-                    width: '50%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    paddingTop: 20,
-                    gap: 16,
-                }}
-            >
-                <Text size={400} weight="semibold">
-                    {intl.formatMessage(IncidentHandlerCreateResources.reviewCustomInstructionsTitle)}
-                </Text>
-                <Textarea
-                    value={values.incidentProcessingGuide}
-                    onChange={(_, data) => setFieldValue('incidentProcessingGuide', data.value)}
-                    rows={8}
-                    disabled={generatingUpdatedTools}
-                />
-                <Text size={400} weight="semibold">
-                    {intl.formatMessage(IncidentHandlerCreateResources.reviewToolsTitle)}
-                </Text>
-                <ToolsToolbar
-                    onUpdateToolsClick={generateUpdatedTools}
-                    onAddClick={() => setToolsPickerVisible(true)}
-                    onDeleteClick={() => {
-                        setFieldValue(
-                            'toolNames',
-                            values.toolNames?.filter(name => !activeToolNames.includes(name))
-                        );
-                        setActiveToolNames([]);
+            {(!view || view === 'review') && (
+                <div
+                    style={{
+                        width: !view ? '50%' : '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        paddingTop: 20,
+                        gap: 16,
                     }}
-                    disabled={generatingUpdatedTools}
-                    addDisabled={!tools.length || tools.length === selectedToolsList.length}
-                    hasToolsSelected={activeToolNames.length > 0}
-                />
-                <ToolsPickerDialog
-                    visible={toolsPickerVisible}
-                    onDismiss={() => setToolsPickerVisible(false)}
-                    onSave={(toolNames: string[]) => {
-                        setFieldValue('toolNames', toolNames);
-                        setToolsPickerVisible(false);
-                    }}
-                    existingToolsSelection={values.toolNames || []}
-                    tools={tools}
-                    loading={toolsLoading}
-                />
-                <MultipleSelectionShimmerDetailsList
-                    data={selectedToolsList}
-                    selectedKeys={activeToolNames}
-                    loading={toolsLoading}
-                    columns={toolsTableColumns}
-                    disabled={generatingUpdatedTools}
-                    onChange={selectedKeys => setActiveToolNames(selectedKeys)}
-                    getKey={(item: ToolInfo) => item.name}
-                    listContainerStyle={{
-                        minHeight: '200px',
-                        maxHeight: 'calc(100% - 309px)',
-                    }}
-                />
-            </div>
-            <div
-                style={{
-                    width: '50%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 16,
-                    paddingTop: 20,
-                }}
-            >
-                <Text size={400} weight="semibold" style={{ marginLeft: 20 }}>
-                    {intl.formatMessage(IncidentHandlerCreateResources.testHandlerTitle)}
-                </Text>
-                <div style={{ display: 'flex', flexDirection: 'row', gap: 8, alignItems: 'end', marginLeft: 20, position: 'relative' }}>
-                    <Field
-                        id="testIncidentField"
-                        label={intl.formatMessage(IncidentHandlerCreateResources.incidentLabel)}
-                        style={{ flexBasis: '500px' }}
-                        required
-                    >
-                        <Dropdown
-                            id="testIncidentDropdown"
-                            button={
-                                <span style={{ overflowX: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                    {testIncident ? `${testIncident.id} - ${testIncident.title}` : undefined}
-                                </span>
-                            }
-                            value={testIncident?.id}
-                            placeholder={intl.formatMessage(IncidentHandlerCreateResources.incidentPlaceholder)}
-                            onOptionSelect={(_event, data) => {
-                                const selectedOption = incidents?.find(incident => incident.id === data.optionValue);
-                                setTestIncident(selectedOption);
-                            }}
-                            disabled={loadingIncidents || creatingTestThread}
-                        >
-                            {incidents?.map(incident => (
-                                <Option key={incident.id} value={incident.id} text={`${incident.id} - ${incident.title}`} checkIcon={null}>
-                                    <span
-                                        style={{ overflow: 'hidden', overflowWrap: 'break-word' }}
-                                    >{`${incident.id} - ${incident.title}`}</span>
-                                </Option>
-                            ))}
-                        </Dropdown>
-                    </Field>
-                    <Button
-                        icon={<Beaker20Regular />}
-                        appearance="secondary"
-                        onClick={createTestThread}
-                        disabled={loadingIncidents || !testIncident || creatingTestThread}
-                    >
-                        {intl.formatMessage(IncidentHandlerCreateResources.testHandlerRunButton)}
-                    </Button>
-                </div>
-                {creatingTestThread ? (
-                    <Spinner size="huge" style={{ height: '100%' }} />
-                ) : createTestThreadFailure ? (
-                    <MessageBar intent="error" style={{ marginLeft: 20 }}>
-                        {intl.formatMessage(IncidentHandlerCreateResources.testHandlerRunFailure, {
-                            errorMessage: createTestThreadFailure,
-                        })}
-                    </MessageBar>
-                ) : testIncidentThreadId ? (
-                    <ChatBox
-                        threadId={testIncidentThreadId}
-                        addThread={() => {}}
-                        updateThreadLastReadTime={() => {}}
-                        threadSource={ThreadSource.incident}
-                        stylesProps={{
-                            chatBoxAndAgentTask: {
-                                boxShadow: 'unset',
-                                borderRadius: 'unset',
-                                width: '100%',
-                                minHeight: '400px',
-                                marginBottom: '0px',
-                            },
-                            chatBox: {
-                                height: '100%',
-                            },
-                            chatBoxInner: {
-                                borderRadius: 'unset',
-                            },
+                >
+                    {!view && (
+                        <Text size={400} weight="semibold">
+                            {intl.formatMessage(IncidentHandlerCreateResources.reviewCustomInstructionsTitle)}
+                        </Text>
+                    )}
+                    <Textarea
+                        value={values.incidentProcessingGuide}
+                        onChange={(_, data) => setFieldValue('incidentProcessingGuide', data.value)}
+                        rows={8}
+                        disabled={generatingUpdatedTools}
+                    />
+                    <Text size={400} weight="semibold">
+                        {intl.formatMessage(IncidentHandlerCreateResources.reviewToolsTitle)}
+                    </Text>
+                    <ToolsToolbar
+                        onUpdateToolsClick={generateUpdatedTools}
+                        onAddClick={() => setToolsPickerVisible(true)}
+                        onDeleteClick={() => {
+                            setFieldValue(
+                                'toolNames',
+                                values.toolNames?.filter(name => !activeToolNames.includes(name))
+                            );
+                            setActiveToolNames([]);
+                        }}
+                        disabled={generatingUpdatedTools}
+                        addDisabled={!tools.length || tools.length === selectedToolsList.length}
+                        hasToolsSelected={activeToolNames.length > 0}
+                    />
+                    <ToolsPickerDialog
+                        visible={toolsPickerVisible}
+                        onDismiss={() => setToolsPickerVisible(false)}
+                        onSave={(toolNames: string[]) => {
+                            setFieldValue('toolNames', toolNames);
+                            setToolsPickerVisible(false);
+                        }}
+                        existingToolsSelection={values.toolNames || []}
+                        tools={tools}
+                        loading={toolsLoading}
+                    />
+                    <MultipleSelectionShimmerDetailsList
+                        data={selectedToolsList}
+                        selectedKeys={activeToolNames}
+                        loading={toolsLoading}
+                        columns={toolsTableColumns}
+                        disabled={generatingUpdatedTools}
+                        onChange={selectedKeys => setActiveToolNames(selectedKeys)}
+                        getKey={(item: ToolInfo) => item.name}
+                        listContainerStyle={{
+                            minHeight: '200px',
+                            maxHeight: !view ? 'calc(100% - 307px)' : 'calc(100% - 269px)',
                         }}
                     />
-                ) : (
-                    <div className={styles.emptyState}>
-                        <div>
-                            <Beaker20Regular style={{ height: '100px', width: '100px' }} />
-                        </div>
-                        <div className={styles.emptyStateTitle}>
-                            {intl.formatMessage(IncidentHandlerCreateResources.testHandlerEmptyMessage)}
-                        </div>
+                </div>
+            )}
+            {(!view || view === 'test') && (
+                <div
+                    style={{
+                        width: !view ? '50%' : '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 16,
+                        paddingTop: 20,
+                    }}
+                >
+                    {!view && (
+                        <Text size={400} weight="semibold">
+                            {intl.formatMessage(IncidentHandlerCreateResources.testHandlerTitle)}
+                        </Text>
+                    )}
+                    <div style={{ display: 'flex', flexDirection: 'row', gap: 8, alignItems: 'end', position: 'relative' }}>
+                        <Field
+                            id="testIncidentField"
+                            label={intl.formatMessage(IncidentHandlerCreateResources.incidentLabel)}
+                            style={{ flexBasis: '500px' }}
+                            required
+                        >
+                            <Dropdown
+                                id="testIncidentDropdown"
+                                button={
+                                    <span style={{ overflowX: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        {testIncident ? `${testIncident.id} - ${testIncident.title}` : undefined}
+                                    </span>
+                                }
+                                value={testIncident?.id}
+                                placeholder={intl.formatMessage(IncidentHandlerCreateResources.incidentPlaceholder)}
+                                onOptionSelect={(_event, data) => {
+                                    const selectedOption = incidents?.find(incident => incident.id === data.optionValue);
+                                    setTestIncident(selectedOption);
+                                }}
+                                disabled={loadingIncidents || creatingTestThread}
+                            >
+                                {incidents?.map(incident => (
+                                    <Option key={incident.id} value={incident.id} text={`${incident.id} - ${incident.title}`} checkIcon={null}>
+                                        <span
+                                            style={{ overflow: 'hidden', overflowWrap: 'break-word' }}
+                                        >{`${incident.id} - ${incident.title}`}</span>
+                                    </Option>
+                                ))}
+                            </Dropdown>
+                        </Field>
+                        <Button
+                            icon={<Beaker20Regular />}
+                            appearance="secondary"
+                            onClick={createTestThread}
+                            disabled={loadingIncidents || !testIncident || creatingTestThread}
+                        >
+                            {intl.formatMessage(IncidentHandlerCreateResources.testHandlerRunButton)}
+                        </Button>
                     </div>
-                )}
-            </div>
+                    {creatingTestThread ? (
+                        <Spinner size="huge" style={{ height: '100%' }} />
+                    ) : createTestThreadFailure ? (
+                        <MessageBar intent="error" style={{ marginLeft: 20 }}>
+                            {intl.formatMessage(IncidentHandlerCreateResources.testHandlerRunFailure, {
+                                errorMessage: createTestThreadFailure,
+                            })}
+                        </MessageBar>
+                    ) : testIncidentThreadId ? (
+                        <ChatBox
+                            threadId={testIncidentThreadId}
+                            addThread={() => { }}
+                            updateThreadLastReadTime={() => { }}
+                            threadSource={ThreadSource.incident}
+                            stylesProps={{
+                                chatBoxAndAgentTask: {
+                                    boxShadow: 'unset',
+                                    borderRadius: 'unset',
+                                    width: '100%',
+                                    minHeight: '400px',
+                                    marginBottom: '0px',
+                                },
+                                chatBox: {
+                                    height: '100%',
+                                },
+                                chatBoxInner: {
+                                    borderRadius: 'unset',
+                                },
+                            }}
+                        />
+                    ) : (
+                        <div className={styles.emptyState}>
+                            <div>
+                                <Beaker20Regular style={{ height: '100px', width: '100px' }} />
+                            </div>
+                            <div className={styles.emptyStateTitle}>
+                                {intl.formatMessage(IncidentHandlerCreateResources.testHandlerEmptyMessage)}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 };
