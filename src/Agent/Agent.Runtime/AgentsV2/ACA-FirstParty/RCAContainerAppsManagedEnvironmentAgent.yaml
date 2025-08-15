@@ -241,6 +241,7 @@ common_prompts:
   - handoff_back
   - rca_terminology
   - rca_guidelines
+  - rca_architecture
 
 max_reflection_count: 2
 

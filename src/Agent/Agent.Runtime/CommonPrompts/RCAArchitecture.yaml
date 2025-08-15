@@ -1,0 +1,147 @@
+name: rca_architecture
+
+prompt: |
+  ## Container Architecture Overview
+
+  ### Container Lifecycle & Execution Order
+
+  #### Init Container Sequence (Sequential Execution)
+  1. metadata-check (AKS only): Security validation container that continuously polls Azure Instance Metadata Service endpoint until network policies block access, ensuring IMDS isolation (2-minute timeout, exits successfully when endpoint becomes unreachable)
+  2. identity-service-0cee4339 (Legion only): MSI token service bootstrap container that initializes Managed Identity infrastructure with certificate-based authentication, establishes connection to Azure Token Service for credential bootstrapping
+  3. user-init-containers (optional): Custom initialization containers that run user-defined setup logic with full access to sidecar services, execute before main containers start
+  4. identity-service-0cee4339-transition (Legion only): MSI lifecycle transition container that updates service configuration from "init" to "main" mode via `/tmp/msi_settings_file`, signals completion to enable main container MSI access
+
+  #### Main Container Types by Workload
+
+  Jobs: Base container set for batch workloads that run to completion
+  - Includes: envoy-sidecar, local-proxy, identity-service (AKS), user-containers
+  - Features: Native sidecars with automatic lifecycle management, graceful shutdown monitoring via `/tmp/main_completed` file for job completion detection, resource cleanup after user containers finish
+  - Use cases: Data processing, batch analytics, scheduled tasks
+
+  Apps: Extended container set for long-running services with enhanced capabilities
+  - Includes: All job containers + daprd, easyauth, jmx-metrics, otel-sidecar
+  - Features: Enhanced networking and observability, OAuth2/OIDC authentication, blue-green deployments with weighted traffic distribution, comprehensive telemetry collection
+  - Use cases: Web services, APIs, microservices, real-time applications
+
+  ## Container Reference
+
+  ### Core Infrastructure Containers
+
+  | Container | Container Name | Purpose | Technical Details |
+  |-----------|----------------|---------|-------------------|
+  | envoy-sidecar | `k8se-envoysc` | Service mesh L7 proxy that manages all incoming/outgoing HTTP/gRPC traffic | Receives dynamic configuration via xDS APIs from envoy-controller, implements load balancing algorithms (round-robin, least-request, weighted), terminates mTLS connections, and provides traffic routing with circuit breaker patterns |
+  | local-proxy | `k8se-localproxy` | Network traffic interceptor that redirects pod traffic through service mesh | Uses iptables rules to transparently proxy outbound connections, streams service discovery updates via gRPC from control plane, automatically detects application ports and configures routing, requires NET_ADMIN/NET_RAW capabilities |
+  | identity-service | `identity-service-0cee4339` | Azure Managed Identity token provider that enables Azure resource access | Serves MSI tokens via HTTP API on port 8080, handles automatic token refresh and credential rotation, uses certificate-based authentication with Azure Token Service (runs as main container on AKS, init container on Legion) |
+  | user-containers | User-defined | Application workload containers running business logic | Execute custom application code with full access to all sidecar services including service mesh, identity tokens, and observability instrumentation |
+
+  ### Apps-Only Containers
+
+  | Container | Container Name | Purpose | Technical Details |
+  |-----------|----------------|---------|-------------------|
+  | daprd | `daprd` | Dapr runtime sidecar that provides distributed application capabilities | Implements pub/sub messaging with event routing, state management with pluggable stores, service-to-service invocation with retries, and actor model with virtual actors. Uses mTLS with Dapr Sentry CA for secure communication and JWT token validation with JWKS endpoints |
+  | easyauth | `http-auth` | Authentication middleware that handles OAuth2/OIDC flows for applications | Validates incoming requests against multiple identity providers (Azure AD, Google, Facebook), forwards authenticated context to user containers, supports both v1 (legacy) and v2 (MISE-enabled) authentication versions, listens on HTTP (:8081) and HTTP/2 (:8082) ports |
+  | jmx-metrics | `k8se-jmxmetricssc` | Java application metrics collector that exposes JMX data | Connects to Java containers exposing JMX endpoints, collects memory usage, garbage collection, thread pools, and custom MBeans metrics, exports data in OpenTelemetry OTLP and Prometheus formats, automatically discovers Java containers with metrics enabled |
+  | otel-sidecar | `k8se-otel` | OpenTelemetry collector that aggregates observability data | Receives traces, metrics, and logs from application containers, exports to multiple destinations (Application Insights, Jaeger, Prometheus, DataDog), configured via ConfigMap with sampling rules, provides automatic SDK instrumentation via environment variables |
+
+  ### Control Plane & External Services
+
+  | Service | Container/Pod | Purpose | Integration Points |
+  |---------|---------------|---------|-------------------|
+  | Envoy Controller | `envoy-controller-*` | Service mesh configuration manager that provides centralized control | Implements xDS server protocols (CDS, LDS, RDS, EDS) to distribute cluster, listener, route, and endpoint configurations to envoy sidecars, manages certificate distribution and rotation for mTLS, enforces traffic policies and security rules |
+  | System Token Service | `k8se-token-service` | Centralized Azure token provider that bridges Kubernetes and Azure identity | Validates Kubernetes service account tokens and issues Azure MSI tokens for resource access, provides HTTPS API on port 15000 with mTLS authentication, uses certificate-based authentication for Azure AD integration |
+  | KEDA Metrics Server | `keda-metrics-apiserver-*` | Custom metrics provider that enables event-driven autoscaling | Integrates with external scalers (Azure Service Bus, Storage queues, Event Hubs) to collect scaling metrics, exposes custom metrics to Horizontal Pod Autoscaler via Kubernetes metrics API, converts external event data into HPA-compatible scaling signals |
+  | OpenTelemetry Collector | `otel-collector-*` | Observability data aggregation service that processes telemetry at scale | Receives traces, metrics, and logs from multiple application containers, applies processing rules and sampling strategies, exports to multiple destinations with dynamic configuration via ConfigMap, provides vendor-agnostic telemetry pipeline |
+  | Prometheus | `prometheus-*` | Time-series metrics storage and alerting platform | Scrapes metrics from all container endpoints using service discovery, stores time-series data with PromQL query language, evaluates alerting rules and sends notifications via Alert Manager integration, provides unified metrics storage for monitoring and scaling decisions |
+
+  ## Identity & Security Architecture
+
+  ### Authentication Layer Stack
+
+  | Layer | Component | Purpose | Implementation Details |
+  |-------|-----------|---------|----------------------|
+  | 1. Kubernetes Foundation | Service Accounts | Provides base pod identity and RBAC authorization | Creates projected token volumes with specific audiences for downstream authentication, implements automatic token rotation, controls access to Kubernetes API and custom resources through RBAC policies |
+  | 2. Azure Integration | Managed Identity | Enables seamless Azure resource access without credential management | Uses certificate-based authentication with token caching, implements K8s-to-Azure identity bridge via System Token Service, provides automatic token refresh before expiration |
+  | 3. Application Auth | EasyAuth | Handles end-user authentication with OAuth2/OIDC providers | Supports multiple identity providers with Key Vault integration for secrets, implements both v1 (legacy) and v2 (MISE-enabled) authentication flows, validates tokens and forwards authenticated context to applications |
+  | 4. Service Mesh | Dapr mTLS | Secures service-to-service communication within the mesh | Uses Dapr Sentry CA for certificate authority, implements automatic certificate rotation, validates JWKS tokens for inter-service authentication |
+  | 5. Secret Management | Key Vault Secrets | Provides secure storage and automatic rotation of sensitive data | Retrieves secrets from Azure Key Vault using Managed Identity authentication, stores as Kubernetes secrets with controller-managed lifecycle, mounts into containers as files or environment variables |
+
+  ### Managed Identity Components
+
+  | Component | Container Name | Cluster Type | Purpose | Technical Details |
+  |-----------|----------------|--------------|---------|-------------------|
+  | identity-service (init) | `identity-service-0cee4339` | Legion | Bootstraps MSI token service during pod initialization | Runs in init lifecycle mode with certificate-based authentication, establishes initial connection to Azure Token Service, sets up MSI infrastructure before main containers start |
+  | identity-service (main) | `identity-service-0cee4339` | AKS | Serves Azure MSI tokens to application containers | Provides HTTP API on port 8080 for token requests, implements automatic token refresh and credential rotation, maintains local token cache for performance, handles credential management for Azure resource access |
+  | identity-transition | `identity-service-0cee4339-transition` | Legion | Transitions MSI service from init to main container lifecycle | Updates MSI service configuration by writing to `/tmp/msi_settings_file`, changes lifecycle mode from "init" to "main", signals completion to allow main containers to start with MSI access |
+  | System Token Service | `k8se-token-service` | All | Provides centralized Azure token issuance and validation | Operates HTTPS API on port 15000 with mTLS authentication, validates Kubernetes service account tokens, issues Azure MSI tokens for authenticated workloads, bridges K8s identity to Azure resources |
+  | Session MSI Proxy | `session-msi-proxy` | Session workloads | Provides local MSI interface for session-based applications | Runs local proxy on port 42356, translates MSI requests to appropriate backend services, optimized for ephemeral session workloads with reduced overhead |
+
+  ### Authentication Flow Dependencies
+  1. Kubernetes Service Account: Base pod identity
+  2. Service Account Token: System Token Service authentication
+  3. System Token Service: Azure MSI token issuance
+  4. Managed Identity: Azure service authentication (Key Vault, Storage)
+  5. Key Vault Secrets: Kubernetes secret storage
+  6. EasyAuth Configuration: OAuth provider setup
+  7. Dapr Control Plane: Sidecar authentication
+  8. User Applications: Multi-layer authenticated context
+
+  ## Networking Architecture
+
+  ### Service Mesh Components
+
+  | Component | Purpose | Key Features |
+  |-----------|---------|--------------|
+  | envoy-sidecar | Layer 7 traffic management proxy that handles all application traffic | Receives dynamic configuration via xDS APIs (CDS, LDS, RDS, EDS), implements multiple load balancing algorithms (round-robin, least-request, weighted), provides circuit breaker patterns for fault tolerance, terminates and establishes mTLS connections, routes traffic based on HTTP/gRPC headers and paths |
+  | local-proxy | Layer 3/4 traffic interceptor that captures pod network traffic | Uses iptables REDIRECT and TPROXY targets for transparent traffic interception, establishes gRPC streaming connection to control plane for service discovery updates, automatically scans for application ports and configures routing rules, creates `/var/tmp/ready` file when network setup is complete |
+  | envoy-controller | Centralized configuration management service for the service mesh | Implements xDS server protocols to distribute configuration to all envoy sidecars, manages certificate lifecycle and distribution for mTLS authentication, enforces traffic policies and security rules across the mesh, provides real-time configuration updates without service restarts |
+
+  ### Traffic Management Features
+  - Blue-Green Deployments: Implements gradual traffic shifting between application revisions by configuring weighted routing rules in envoy, allows instant rollback by redirecting 100% traffic to previous revision, reduces deployment risk through controlled traffic migration
+  - Canary Releases: Enables percentage-based traffic splitting between stable and canary versions using envoy route configuration, supports automated rollback based on error rate thresholds, allows testing new features with subset of production traffic
+  - Load Balancing: Provides multiple algorithms (round-robin, least-request, weighted) with automatic failover to healthy endpoints, implements consistent hashing for session affinity, includes outlier detection to remove unhealthy instances from load balancing pool
+
+  ## Observability & Monitoring
+
+  ### Metrics & Telemetry Pipeline
+
+  | Component | Data Types | Export Destinations | Configuration |
+  |-----------|------------|-------------------|---------------|
+  | OpenTelemetry Collector | Traces, metrics, logs from applications | Application Insights, Jaeger, Prometheus, DataDog | Configured via ConfigMap with processors, exporters, and sampling rules, supports batch processing and filtering, provides vendor-agnostic telemetry collection |
+  | JMX Metrics (apps only) | Java application metrics (memory, GC, threads) | OpenTelemetry OTLP, Prometheus formats | Auto-discovers Java containers with JMX enabled, connects to JMX endpoints to collect MBeans data, exports standard and custom metrics without application code changes |
+  | Envoy Metrics | Service mesh telemetry (request rate, latency, errors) | Admin interface on port 15000 | Provides golden signals metrics, circuit breaker statistics, upstream connection health, detailed request/response metrics for traffic analysis and debugging |
+  | KEDA Metrics Server | External scaling metrics from event sources | HPA integration via Kubernetes metrics API | Polls external systems (Azure Service Bus, Event Hubs, custom APIs) for scaling metrics, converts external data to HPA-compatible format, enables event-driven autoscaling |
+  | Prometheus | Time-series metrics storage and alerting | Alert Manager for notifications | Scrapes metrics from discovered endpoints, stores with configurable retention, evaluates alerting rules, provides PromQL query language for analysis and dashboards |
+
+  ## Container Lifecycle Management
+
+  ### Startup Coordination
+  1. Init Containers (sequential): Security validation, MSI bootstrap, custom logic
+  2. Sidecar Readiness (parallel): Service mesh, networking, identity services
+  3. User Container Start: Application workloads with full service access
+
+  ### PostStart Hook Coordination
+  - envoy-sidecar: Configuration loading before traffic acceptance
+  - local-proxy: Network rule validation and service discovery
+  - identity-service: Control plane connectivity establishment
+  - daprd: Placement service and certificate validation
+
+  ### Job-Specific Behavior
+  - Native Sidecars: Automatic lifecycle management enabled
+  - Graceful Shutdown: Monitoring `/tmp/main_completed` for completion
+  - Resource Cleanup: Clean container exit after user workload finishes
+
+  ## Scaling & Autoscaling
+
+  ### Workload Types & Triggers
+
+  | Workload | Trigger Types | Scaling Mechanism | External Metrics |
+  |----------|---------------|-------------------|------------------|
+  | Jobs | Manual, CronJob, Event-driven | N/A (single execution) | Queue depth for triggering |
+  | Apps | HPA (CPU/memory), KEDA (external) | Horizontal Pod Autoscaler | Service Bus, Storage queues, Event Hubs, custom metrics |
+
+  ### KEDA Integration
+  - External Scalers: Azure Service Bus queues, Storage queues, Event Hubs
+  - Custom Metrics: Prometheus queries, Application Insights metrics
+  - HPA Bridge: Converts external metrics to HPA-compatible format
+
+    

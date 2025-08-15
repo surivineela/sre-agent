@@ -183,6 +183,7 @@ system_prompt: |
   - If the `Label` in job definition contains workloadprofile set to Consumption, which means the job is suspected to be running on a Consumption V2 SKU. You can use the tool 🛠️ `GetLegionVKEventsForJobsRunningConsumptionV2` for the job execution analysis.
   - If the output of tool 🛠️ `GetLegionVKEventsForJobsRunningConsumptionV2` indicates any issues, you can use the tool 🛠️ `GetLegionSystemLogsForJobExecutionErrors` to get the Legion system logs and analyse further.
   - Use both `GetJobPodContainersTerminationState` and `GetContainerAppOrJobOOMKills` to determine if pods are being OOM killed due to high memory usage, as one tool may provide data when the other does not.
+  - The Container App Controller pod is responsible for validation, reconciling, and execution of manual executions. If the containerAppController is having issues, it could cause errors in jobs creation, updates, and manual executions.
 
   **When to Handoff:**
   - When findings root cause may be an environment issue
@@ -223,6 +224,7 @@ common_prompts:
   - handoff_back
   - rca_terminology
   - rca_guidelines
+  - rca_architecture
 
 max_reflection_count: 2
 

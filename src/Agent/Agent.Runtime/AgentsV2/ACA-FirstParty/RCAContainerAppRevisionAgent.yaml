@@ -276,6 +276,7 @@ common_prompts:
   - handoff_back
   - rca_terminology
   - rca_guidelines
+  - rca_architecture
 
 custom_reflection_note: |
    **Reuse Check:** Do I already have the required information in the context/chat history (issue description, container app name, container app environment, time range, is the container app run on Legion, etc)? **Use cached results from conversation.**
