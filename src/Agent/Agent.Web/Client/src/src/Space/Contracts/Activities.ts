@@ -187,6 +187,8 @@ export type InvestigationGraphFlowNode = InvestigationTreeNode & {
     index?: number;
     isChild?: boolean;
     hasChildren?: boolean;
+    showInitialInvestigationSummary?: boolean;
+    showInitialInvestigationSteps?: boolean;
 };
 
 export enum InvestigationGraphFlowEdgeType {
@@ -229,7 +231,7 @@ export class AgentTaskNodeSize {
 
     public static readonly InitialInvestigationNode = {
         width: 400,
-        height: 180,
+        height: 240,
     };
 
     public static readonly ConclusionNode = {

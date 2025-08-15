@@ -1,10 +1,10 @@
 import { tokens } from '@fluentui/tokens';
 import { BaseEdge, EdgeProps, getBezierPath } from '@xyflow/react';
 import { memo, useContext, useMemo } from 'react';
-import { HypothesisStatus, InvestigationStatusCommon, TaskProgressStatus } from '../../Common/Contracts/DataPlane/AgentTask';
-import { GraphFlowEdge } from '../Contracts/Activities';
-import { AgentTaskContext } from '../Contracts/Context';
-import CustomEdgeMarker from '../Graph/CustomEdgeMarker';
+import { HypothesisStatus, InvestigationStatusCommon, TaskProgressStatus } from '../../../Common/Contracts/DataPlane/AgentTask';
+import { GraphFlowEdge } from '../../Contracts/Activities';
+import { AgentTaskContext } from '../../Contracts/Context';
+import CustomEdgeMarker from '../../Graph/CustomEdgeMarker';
 
 const AgentTaskGraphFlowEdge = (props: EdgeProps<GraphFlowEdge>) => {
     const { id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, data } = props;

@@ -1,8 +1,8 @@
 import { Card, CardHeader, makeStyles, Subtitle1, Subtitle2, tokens } from '@fluentui/react-components';
 import { Handle, NodeProps, Position } from '@xyflow/react';
 import { memo, useContext } from 'react';
-import { AgentTaskNodeSize, AgentTaskPhaseNodeIdSuffix, GraphFlowNode } from '../Contracts/Activities';
-import { AgentTaskContext } from '../Contracts/Context';
+import { AgentTaskNodeSize, GraphFlowNode } from '../../Contracts/Activities';
+import { AgentTaskContext } from '../../Contracts/Context';
 
 const useStyles = makeStyles({
     nodeContainer: {
@@ -48,9 +48,6 @@ const AgentTaskGraphFlowConclusionNode = (props: NodeProps<GraphFlowNode>) => {
 
     const { nodeContainer, tag, card, title, handle } = useStyles();
 
-    const isInitialInvestigation = data.id.toLowerCase().includes(AgentTaskPhaseNodeIdSuffix.InitialInvestigation);
-    const isConclusion = data.id.toLowerCase().includes(AgentTaskPhaseNodeIdSuffix.Conclusion);
-
     const { selectedNode, selectNode } = useContext(AgentTaskContext);
 
     return (
@@ -69,8 +66,7 @@ const AgentTaskGraphFlowConclusionNode = (props: NodeProps<GraphFlowNode>) => {
                     }
                 />
             </Card>
-            {!isInitialInvestigation && <Handle type={'target'} position={Position.Top} isConnectable={false} className={handle} />}
-            {!isConclusion && <Handle type={'source'} position={Position.Bottom} isConnectable={false} className={handle} />}
+            <Handle type={'target'} position={Position.Top} isConnectable={false} className={handle} />
         </div>
     );
 };

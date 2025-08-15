@@ -2,9 +2,9 @@ import { Body1, Body2, Card, CardFooter, CardHeader, makeStyles, Text, tokens } 
 import { ArrowCounterclockwiseFilled, CheckmarkCircleRegular, DismissCircleRegular, QuestionCircleRegular } from '@fluentui/react-icons';
 import { Handle, NodeProps, Position } from '@xyflow/react';
 import { memo, useContext, useMemo } from 'react';
-import { HypothesisStatus } from '../../Common/Contracts/DataPlane/AgentTask';
-import { AgentTaskNodeSize, GraphFlowNode } from '../Contracts/Activities';
-import { AgentTaskContext } from '../Contracts/Context';
+import { HypothesisStatus } from '../../../Common/Contracts/DataPlane/AgentTask';
+import { AgentTaskNodeSize, GraphFlowNode } from '../../Contracts/Activities';
+import { AgentTaskContext } from '../../Contracts/Context';
 
 const useStyles = makeStyles({
     nodeContainer: {

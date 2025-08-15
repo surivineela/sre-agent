@@ -1,7 +1,7 @@
-import { makeStyles, Subtitle2, tokens } from '@fluentui/react-components';
+import { makeStyles, mergeClasses, Subtitle2, tokens } from '@fluentui/react-components';
 import { Handle, NodeProps, Position } from '@xyflow/react';
 import { memo } from 'react';
-import { GraphFlowNode } from '../Contracts/Activities';
+import { AgentTaskPhaseNodeIdSuffix, GraphFlowNode } from '../../Contracts/Activities';
 
 const useStyles = makeStyles({
     root: {
@@ -9,8 +9,12 @@ const useStyles = makeStyles({
         width: '100%',
         height: '100%',
         backgroundColor: tokens.colorNeutralBackground2,
-        border: `5px solid ${tokens.colorNeutralStroke3} `,
+        border: `2px solid ${tokens.colorNeutralBackground3Selected} `,
         borderRadius: tokens.borderRadiusXLarge,
+    },
+    initialInvestigationGroupRoot: {
+        backgroundColor: tokens.colorBrandBackground2,
+        border: `1px solid ${tokens.colorBrandForeground1}`,
     },
     title: {
         position: 'absolute',
@@ -18,9 +22,9 @@ const useStyles = makeStyles({
         left: '50%',
         transform: 'translateX(-50%)',
         padding: '10px',
-        border: `2px solid ${tokens.colorNeutralStroke2}`,
+        border: `0.5px solid ${tokens.colorNeutralStroke2}`,
         borderRadius: tokens.borderRadiusMedium,
-        width: '100px',
+        width: 'fit-content',
         backgroundColor: tokens.colorNeutralBackground1,
     },
     handle: {
@@ -30,12 +34,15 @@ const useStyles = makeStyles({
 });
 
 const AgentTaskGraphFlowGroupNode = (props: NodeProps<GraphFlowNode>) => {
-    const { root, title, handle } = useStyles();
+    const { root, initialInvestigationGroupRoot, title, handle } = useStyles();
+
+    const isInitialInvestigation = props.data.id.toLowerCase().includes(AgentTaskPhaseNodeIdSuffix.InitialInvestigation);
+    const rootClassName = mergeClasses(root, isInitialInvestigation && initialInvestigationGroupRoot);
 
     return (
-        <div className={root}>
+        <div className={rootClassName}>
             <Subtitle2 className={title}>{props.data.title}</Subtitle2>
-            <Handle type={'target'} position={Position.Top} className={handle} />
+            {!isInitialInvestigation && <Handle type={'target'} position={Position.Top} className={handle} />}
             <Handle type={'source'} position={Position.Bottom} className={handle} />
         </div>
     );

@@ -109,10 +109,10 @@ export enum TaskProgressStatus {
 }
 
 export enum TreeNodeType {
+    Group = 'NodeGroup',
     InitialInvestigation = 'initialInvestigation',
     Conclusion = 'conclusion',
     Hypothesis = 'hypothesis',
-    Group = 'hypothesisGroup',
 }
 
 export type InvestigationTreeNodeStatus = InvestigationStatusCommon | TaskProgressStatus | HypothesisStatus | string;
