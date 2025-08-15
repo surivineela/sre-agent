@@ -1,5 +1,7 @@
 import { IncidentFilter } from '../../../Common/Contracts/Azure/IncidentHandler';
 
+export const HANDLER_TOOL_LIMIT = 30;
+
 export enum TimeDuration {
     Last15Days = 15,
     Last30Days = 30,

@@ -4587,6 +4587,20 @@
       "value": "Manage Cognitive Services accounts."
     }
   ],
+  "x++GsY": [
+    {
+      "type": 0,
+      "value": "A handler can use a maximum of "
+    },
+    {
+      "type": 1,
+      "value": "maxTools"
+    },
+    {
+      "type": 0,
+      "value": " tools."
+    }
+  ],
   "x65I0c": [
     {
       "type": 0,

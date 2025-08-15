@@ -1,12 +1,12 @@
 import { Breadcrumb, BreadcrumbButton, BreadcrumbDivider, BreadcrumbItem, tokens } from '@fluentui/react-components';
-import { Formik, useFormikContext } from 'formik';
-import { FC, useState } from 'react';
+import { Formik, FormikErrors, useFormikContext } from 'formik';
+import { FC, useCallback, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AgentMode } from '../../../Common/Contracts/Azure/SreAgent';
 import { IncidentHandlerCreateResources } from '../../../Strings/SREAgentResources';
 import { useIncidentFilterFields } from '../../Hooks/useIncidentFilterFields';
 import { QuickEditIncidentHandlerConsolidated } from '../QuickEditIncidentHandler/QuickEditIncidentHandlerConsolidated';
-import { HandlerCreateOrEditInfo, OperationStatus } from './Contracts';
+import { HANDLER_TOOL_LIMIT, HandlerCreateOrEditInfo, OperationStatus } from './Contracts';
 import { DirtyStateConfirmationWrapper } from './DirtyStateConfirmationDialog';
 import { FullEditIncidentHandlerConsolidated } from './FullEditIncidentHandler/FullEditIncidentHandlerConsolidated';
 import { IncidentHandlerConsolidatedCreateContext } from './IncidentHandlerConsolidatedCreateContext';
@@ -21,6 +21,7 @@ interface CreateIncidentHandlerProps {
 }
 
 const CreateIncidentHandlerConsolidated: FC<CreateIncidentHandlerProps> = props => {
+    const intl = useIntl();
     const { handlerCreateOrEditInfo } = props;
     const [initialValues, setInitialValues] = useState<IncidentHandlerCreateFormValues>({
         filterName: handlerCreateOrEditInfo?.filter?.id || '',
@@ -39,8 +40,22 @@ const CreateIncidentHandlerConsolidated: FC<CreateIncidentHandlerProps> = props 
         includePastIncidents: false,
     });
 
+    const validate = useCallback(
+        (formValues: IncidentHandlerCreateFormValues): Promise<FormikErrors<IncidentHandlerCreateFormValues>> => {
+            if ((formValues.toolNames?.length || 0) > HANDLER_TOOL_LIMIT) {
+                return Promise.resolve({
+                    toolNames: intl.formatMessage(IncidentHandlerCreateResources.maximumToolsErrorMessage, {
+                        maxTools: HANDLER_TOOL_LIMIT,
+                    }),
+                });
+            }
+            return Promise.resolve({});
+        },
+        [intl]
+    );
+
     return (
-        <Formik initialValues={initialValues} onSubmit={() => {}} enableReinitialize={true}>
+        <Formik initialValues={initialValues} onSubmit={() => {}} enableReinitialize={true} validate={validate}>
             <CreateIncidentHandlerConsolidatedInner {...props} setInitialValues={setInitialValues} />
         </Formik>
     );

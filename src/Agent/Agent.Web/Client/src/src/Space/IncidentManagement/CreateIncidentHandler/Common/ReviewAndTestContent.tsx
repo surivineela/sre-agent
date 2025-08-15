@@ -22,7 +22,7 @@ export interface ReviewAndTestContentProps {
 }
 
 export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view }) => {
-    const { values, setFieldValue } = useFormikContext<IncidentHandlerCreateFormValues>();
+    const { errors, values, setFieldValue } = useFormikContext<IncidentHandlerCreateFormValues>();
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
     const { tools, toolsLoading, generatingUpdatedTools, generateUpdatedTools, handlerTestMetadata } = useContext(
@@ -117,6 +117,7 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view }) =>
                     <Text size={400} weight="semibold">
                         {intl.formatMessage(IncidentHandlerCreateResources.reviewToolsTitle)}
                     </Text>
+                    {errors.toolNames && <MessageBar intent="error">{errors.toolNames}</MessageBar>}
                     <ToolsToolbar
                         onUpdateToolsClick={generateUpdatedTools}
                         onAddClick={() => setToolsPickerVisible(true)}

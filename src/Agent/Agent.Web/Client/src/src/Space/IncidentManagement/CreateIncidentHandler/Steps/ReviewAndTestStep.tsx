@@ -14,7 +14,7 @@ const tabsDivHeight = 49;
 const tabViewThreshold = 1366;
 
 export const ReviewAndTestStep: FC = () => {
-    const { dirty } = useFormikContext<IncidentHandlerCreateFormValues>();
+    const { isValid, dirty } = useFormikContext<IncidentHandlerCreateFormValues>();
     const { generatingUpdatedTools, exitToHome, setCurrentStep, saveHandler } = useContext(IncidentHandlerConsolidatedCreateContext);
     const [selectedTab, setSelectedTab] = useState<ReviewAndTestView>('review');
     const intl = useIntl();
@@ -76,7 +76,7 @@ export const ReviewAndTestStep: FC = () => {
                 >
                     {intl.formatMessage(IncidentHandlerCreateResources.back)}
                 </Button>
-                <Button appearance="primary" onClick={saveHandler} disabled={!dirty}>
+                <Button appearance="primary" onClick={saveHandler} disabled={!dirty || !isValid}>
                     {intl.formatMessage(IncidentHandlerCreateResources.save)}
                 </Button>
                 <DirtyStateConfirmationWrapper isDirty={dirty} onConfirm={exitToHome}>

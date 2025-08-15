@@ -1212,6 +1212,7 @@ export const IncidentHandlerCreateResources = defineMessages({
     customInstructionPlaceholder: { defaultMessage: 'Enter instructions', id: 'AbpmRv' },
     reviewCustomInstructionsTitle: { defaultMessage: 'Custom instructions', id: 'D7U9Zo' },
     reviewToolsTitle: { defaultMessage: 'Tools', id: 'nUT0Lv' },
+    maximumToolsErrorMessage: { defaultMessage: 'A handler can use a maximum of {maxTools} tools.', id: 'x++GsY' },
     updateTools: { defaultMessage: 'Update tools', id: 'm2z9LK' },
     updateToolsConfirmationTitle: { defaultMessage: 'Update tools', id: 'm2z9LK' },
     updateToolsConfirmationMessage: {
