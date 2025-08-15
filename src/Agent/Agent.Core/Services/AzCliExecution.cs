@@ -1,6 +1,7 @@
-using System;
+using Agent.Core.Configuration;
+using Agent.Core.Helpers;
+using Agent.Core.Interfaces;
 using Microsoft.Extensions.Logging;
-using Agent.Logging;
 
 namespace Agent.Core.Services;
 
@@ -14,8 +15,12 @@ public class AzCliExecution
     private readonly string? _identity;
     private readonly string _configDir;
     private readonly bool _isDevelopment;
+    private readonly SessionPoolSettings _sessionPoolSettings;
+    private readonly ISessionPoolService _sessionPoolService;
     public AzCliExecution(ILogger logger,
         string command,
+        SessionPoolSettings sessionPoolSettings,
+        ISessionPoolService sessionPoolService,
         string? accessToken = null,
         string? identity = null,
         bool isDevelopment = false)
@@ -26,6 +31,8 @@ public class AzCliExecution
         {
             _command = _command.Substring("az ".Length).Trim();
         }
+        _sessionPoolSettings = sessionPoolSettings;
+        _sessionPoolService = sessionPoolService;
         _accessToken = accessToken;
         _identity = identity;
         _configDir = isDevelopment ? string.Empty : Path.Join(Path.GetTempPath(), $"azcli-{Path.GetRandomFileName()}");
@@ -36,6 +43,14 @@ public class AzCliExecution
     {
         try
         {
+            if (_sessionPoolSettings.Enabled
+                && !string.IsNullOrEmpty(_sessionPoolSettings.PoolManagementEndpoint)
+                && !string.IsNullOrEmpty(_accessToken))
+            {
+                var sessionResponse = await _sessionPoolService.ExecuteCliAsync(_command, _accessToken, AgentNameHelper.GetAgentName(!_isDevelopment));
+                return sessionResponse.Result?.Stdout ?? string.Empty;
+            }
+
             // az login does not support access token
             // the token is consumed using Environment variable AZURE_CLI_ACCESS_TOKEN
             if (string.IsNullOrEmpty(_accessToken))

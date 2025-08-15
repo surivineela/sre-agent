@@ -141,6 +141,7 @@ Otherwise, there may be required settings which are not auto-populated by the pr
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Azure.Federation);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Azure.Kusto);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Azure.Indexing);
+            sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Azure.SessionPool);
 
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Experimental);
 

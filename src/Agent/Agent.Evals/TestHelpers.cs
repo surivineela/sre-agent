@@ -217,6 +217,9 @@ public static class TestHelpers
         // Add mock Crawler Trigger Service
         builder.Services.AddSingleton(Mock.Of<ICrawlerTriggerService>());
 
+        // Add mock Session Pool Service
+        builder.Services.AddSingleton(Mock.Of<ISessionPoolService>());
+
         // Add ArmHelper for ArmPlugin
         builder.Services.AddSingleton<ArmHelper>();
 

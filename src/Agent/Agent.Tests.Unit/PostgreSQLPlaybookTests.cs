@@ -39,6 +39,7 @@ namespace Agent.Tests.Unit
             var mockAzureSettings = new AzureSettings();
             var mockHostEnvironment = new Mock<IHostEnvironment>();
             var mockCrawlerTriggerService = new Mock<ICrawlerTriggerService>();
+            var mockSessionPoolService = new Mock<ISessionPoolService>();
             var mockChatClient = new Mock<IChatClient>();
 
             var armHelper = new ArmHelper(
@@ -49,6 +50,7 @@ namespace Agent.Tests.Unit
                 mockAzureSettings,
                 mockHostEnvironment.Object,
                 mockCrawlerTriggerService.Object,
+                mockSessionPoolService.Object,
                 mockChatClient.Object);
 
             // Create mock AzureMonitorMetricsHelper with all required constructor parameters

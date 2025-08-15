@@ -25,6 +25,7 @@ namespace Agent.Tests.Unit.Plugins.AzCLI
         private readonly Mock<IHostEnvironment> _mockHostEnvironment;
         private readonly Mock<IChatClient> _mockChatClient;
         private readonly Mock<ICrawlerTriggerService> _mockCrawlerTriggerService;
+        private readonly Mock<ISessionPoolService> _mockSessionPoolService;
 
         public AzCliTests()
         {
@@ -36,6 +37,7 @@ namespace Agent.Tests.Unit.Plugins.AzCLI
             _mockHostEnvironment = new Mock<IHostEnvironment>();
             _mockChatClient = new Mock<IChatClient>();
             _mockCrawlerTriggerService = new Mock<ICrawlerTriggerService>();
+            _mockSessionPoolService = new Mock<ISessionPoolService>();
             var mockAzureSettings = new AzureSettings();
 
             // Create ArmHelper instance with mocked dependencies
@@ -47,6 +49,7 @@ namespace Agent.Tests.Unit.Plugins.AzCLI
                 mockAzureSettings,
                 _mockHostEnvironment.Object,
                 _mockCrawlerTriggerService.Object,
+                _mockSessionPoolService.Object,
                 _mockChatClient.Object);
         }
 

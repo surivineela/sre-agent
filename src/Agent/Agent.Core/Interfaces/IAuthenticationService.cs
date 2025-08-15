@@ -33,6 +33,12 @@ public interface IAuthenticationService
     public TokenCredential GetSearchPluginCredential();
 
     /// <summary>
+    /// Get the credential to access the session pool
+    /// </summary>
+    /// <returns></returns>
+    public TokenCredential GetSessionPoolCredential();
+
+    /// <summary>
     /// Get the credential to crawl resources of user tenant
     /// </summary>
     /// <returns></returns>

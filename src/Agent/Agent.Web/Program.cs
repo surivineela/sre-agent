@@ -529,6 +529,7 @@ public class Program
             .AddSingleton<IAzureBlobStorageClient, AzureBlobStorageClient>()
             .AddSingleton<IAzureDevOpsService, AzureDevOpsService>()
             .AddSingleton<IGitHubService, GitHubService>()
+            .AddSingleton<ISessionPoolService, SessionPoolService>()
 
 
             .AddSingleton(sp =>
@@ -785,6 +786,7 @@ public class Program
         builder.Services.AddRazorHttpClient();
         builder.Services.AddCrawlerHttpClient();
         builder.Services.AddSearchEndpointHttpClient();
+        builder.Services.AddSessionPoolHttpClient();
 
         builder.Services.AddSingleton<ILogAnalyticsService, LogAnalyticsService>();
         builder.Services.AddSingleton<ILogAnalysisService, LogAnalysisService>();

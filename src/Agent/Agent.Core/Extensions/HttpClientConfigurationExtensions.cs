@@ -54,6 +54,15 @@ namespace Agent.Core.Extensions
                 client.DefaultRequestHeaders.Add("User-Agent", "SRE Agent");
             }).AddHttpMessageHandler<SearchEndpointAccessTokenHandler>();
         }
+
+        public static void AddSessionPoolHttpClient(this IServiceCollection services)
+        {
+            services.AddTransient<SessionPoolAccessTokenHandler>();
+            services.AddHttpClient(Constants.HttpClientForSessionPool, client =>
+            {
+                client.DefaultRequestHeaders.Add("User-Agent", "SRE Agent");
+            }).AddHttpMessageHandler<SessionPoolAccessTokenHandler>();
+        }
     }
 
     // This handler targets for Agent's arm operation
@@ -128,6 +137,32 @@ namespace Agent.Core.Extensions
             var cred = _authenticationService.GetSearchEndpointCredential();
             var accessToken = await cred.GetTokenAsync(
                 new TokenRequestContext(new[] { "https://azuresre.ai/.default" }),
+                cancellationToken);
+
+            request.Headers.Authorization = new AuthenticationHeaderValue(
+                "Bearer",
+                accessToken.Token);
+
+            return await base.SendAsync(request, cancellationToken);
+        }
+    }
+
+    public class SessionPoolAccessTokenHandler : DelegatingHandler
+    {
+        private readonly IAuthenticationService _authenticationService;
+
+        public SessionPoolAccessTokenHandler(IAuthenticationService authenticationService)
+        {
+            _authenticationService = authenticationService;
+        }
+
+        protected override async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            var cred = _authenticationService.GetSessionPoolCredential();
+            var accessToken = await cred.GetTokenAsync(
+                new TokenRequestContext(new[] { "https://dynamicsessions.io/.default" }),
                 cancellationToken);
 
             request.Headers.Authorization = new AuthenticationHeaderValue(

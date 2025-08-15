@@ -66,6 +66,7 @@ public class ArmHelper
     private readonly AzureSettings _azureSettings;
     private readonly IHostEnvironment _hostEnvironment;
     private readonly IChatClient _chatClient;
+    private readonly ISessionPoolService _sessionPoolService;
 
     private readonly ICrawlerTriggerService _crawlerTriggerService;
 
@@ -164,6 +165,7 @@ public class ArmHelper
         AzureSettings azureSettings,
         IHostEnvironment hostEnvironment,
         ICrawlerTriggerService crawlerTriggerService,
+        ISessionPoolService sessionPoolService,
         IChatClient chatClient)
     {
         _logger = logger;
@@ -173,6 +175,7 @@ public class ArmHelper
         _azureSettings = azureSettings;
         _hostEnvironment = hostEnvironment;
         _crawlerTriggerService = crawlerTriggerService;
+        _sessionPoolService = sessionPoolService;
         _chatClient = chatClient;
     }
 
@@ -2936,7 +2939,7 @@ public class ArmHelper
         {
             var cred = await _authService.GetArmOperationCredential();
             var token = await cred.GetTokenAsync(new TokenRequestContext([Constants.DefaultOboTokenScope]), default);
-            var cliExecution = new AzCliExecution(_logger, command, accessToken: token.Token, isDevelopment: _hostEnvironment.IsDevelopment());
+            var cliExecution = new AzCliExecution(_logger, command, _azureSettings.SessionPool, _sessionPoolService, accessToken: token.Token, isDevelopment: _hostEnvironment.IsDevelopment());
             var result = await cliExecution.ExecuteAsync();
 
             if (IsWriteCommand(command))

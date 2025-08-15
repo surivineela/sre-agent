@@ -34,6 +34,8 @@ namespace Agent.Core.Configuration
 
         public StorageSettings StorageSettings { get; set; } = new();
 
+        public SessionPoolSettings SessionPool { get; set; } = new();
+
         public IndexingSettings Indexing { get; set; } = new();
 
         public KustoClusterConfiguration AgentTraceKusto { get; set; } = new KustoClusterConfiguration

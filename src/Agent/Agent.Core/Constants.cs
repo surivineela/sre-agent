@@ -23,6 +23,7 @@ namespace Agent.Core
 
         public const string HttpClientForSearchEndpoint = "SearchEndpoint";
         public const string HttpClientForAzureDevOps = "AzureDevOps";
+        public const string HttpClientForSessionPool = "SessionPool";
 
         public const string SREAgentPromptStarter =
             $"""
