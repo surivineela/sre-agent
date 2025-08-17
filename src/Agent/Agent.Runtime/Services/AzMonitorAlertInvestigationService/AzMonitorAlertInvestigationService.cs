@@ -27,6 +27,7 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
     private readonly ILogQueryService _logQueryService;
     private readonly IChatClient _chatClient;
     private readonly IGraphDBPlugin _graphDBPlugin;
+    private readonly IAzureActivityLogsPlugin _azureActivityLogsPlugin;
     private readonly IAzureMonitorMetricsPlugin _azureMonitorMetricsPlugin;
 
     private const int MaxRetryAttempts = 3;
@@ -37,6 +38,7 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
         ILogQueryService logQueryService,
         [FromKeyedServices("function-invocation-enabled")] IChatClient chatClient,
         IAgentInboundCommunicationService inboundCommunicationService,
+        IAzureActivityLogsPlugin azureActivityLogsPlugin,
         IGraphDBPlugin graphDBPlugin,
         IAzureMonitorMetricsPlugin azureMonitorMetricsPlugin,
         ILogger<AzMonitorAlertInvestigationService> logger)
@@ -45,8 +47,9 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
         _inboundCommunicationService = inboundCommunicationService;
         _logQueryService = logQueryService;
         _chatClient = chatClient;
-        _graphDBPlugin = graphDBPlugin;
+        _azureActivityLogsPlugin = azureActivityLogsPlugin;
         _azureMonitorMetricsPlugin = azureMonitorMetricsPlugin;
+        _graphDBPlugin = graphDBPlugin;
         _logger = logger;
     }
 
@@ -57,7 +60,7 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
             var resourceId = alert.Properties.Essentials.TargetResource;
 
             // Fetch and summarize activity logs using the existing GraphDBPlugin method
-            var activityLogSummary = await _graphDBPlugin.FetchAndSummarizeActivityLogs(
+            var activityLogSummary = await _azureActivityLogsPlugin.FetchAndSummarizeActivityLogs(
                 resourceId,
                 hoursBack: 1,
                 threadId: alertThread.Id

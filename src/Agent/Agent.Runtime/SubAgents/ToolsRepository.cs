@@ -60,7 +60,6 @@ public class ToolsRepository : IToolsRepository
         Register200<GraphDBPluginDefinition>(x => x.ListSubscriptions);
         Register200<GraphDBPluginDefinition>(x => x.ListResourceGroups);
         Register200<GraphDBPluginDefinition>(x => x.SearchResourceByName);
-        Register200<GraphDBPluginDefinition>(x => x.GetActivityLogsSummary);
         Register200<GraphDBPluginDefinition>(x => x.ListResourcesByType);
         Register200<GraphDBPluginDefinition>(x => x.AddIgnoreTagToResource);
 

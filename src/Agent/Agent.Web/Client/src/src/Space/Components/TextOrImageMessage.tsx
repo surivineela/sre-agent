@@ -4,6 +4,7 @@ import IncidentAlert from '../../Common/Components/IncidentAlert';
 import InvestigationSummary from '../../Common/Components/InvestigationSummary';
 import InvestigationSummaryPanel from '../../Common/Components/InvestigationSummaryPanel';
 import { AgentMessageRegex } from '../Contracts/Activities';
+import ChangeDiffMessage from './ChangeDiffMessage';
 import AgentChart from './Charts';
 import MermaidChart from './Mermaid';
 import ReactMarkdownComponent from './ReactMarkdownComponent';
@@ -23,7 +24,8 @@ const processMessageText = (text: string) => {
     if (
         !AgentMessageRegex.imageRegex.test(text) &&
         !AgentMessageRegex.mermaidRegex.test(text) &&
-        !AgentMessageRegex.chartRegex.test(text)
+        !AgentMessageRegex.chartRegex.test(text) &&
+        !AgentMessageRegex.changeDiffRegex.test(text)
     ) {
         return text; // No special content, return original text
     }
@@ -32,6 +34,7 @@ const processMessageText = (text: string) => {
     AgentMessageRegex.imageRegex.lastIndex = 0;
     AgentMessageRegex.mermaidRegex.lastIndex = 0;
     AgentMessageRegex.chartRegex.lastIndex = 0;
+    AgentMessageRegex.changeDiffRegex.lastIndex = 0;
 
     // Split images, mermaid blocks, and text
     const parts: (string | { type: string; [key: string]: any })[] = [];
@@ -59,6 +62,11 @@ const processMessageText = (text: string) => {
                 type: 'chart-data',
                 content: match[0], // Include the entire match with the markers
             });
+        } else if (type === 'change-diff') {
+            parts.push({
+                type: 'change-diff',
+                content: match[1],
+            });
         }
 
         lastIndex = match.index + match[0].length;
@@ -68,13 +76,15 @@ const processMessageText = (text: string) => {
     let imageMatch: RegExpExecArray | null;
     let mermaidMatch: RegExpExecArray | null;
     let chartMatch: RegExpExecArray | null;
+    let changeDiffMatch: RegExpExecArray | null;
 
     // Initialize the first matches
     imageMatch = AgentMessageRegex.imageRegex.exec(text);
     mermaidMatch = AgentMessageRegex.mermaidRegex.exec(text);
     chartMatch = AgentMessageRegex.chartRegex.exec(text);
+    changeDiffMatch = AgentMessageRegex.changeDiffRegex.exec(text);
 
-    while (imageMatch || mermaidMatch || chartMatch) {
+    while (imageMatch || mermaidMatch || chartMatch || changeDiffMatch) {
         // Find the match that appears first in the text
         let firstMatch: RegExpExecArray | null = null;
         let matchType = '';
@@ -95,6 +105,10 @@ const processMessageText = (text: string) => {
             firstMatch = chartMatch;
             matchType = 'chart-data';
             chartMatch = AgentMessageRegex.chartRegex.exec(text);
+        } else if (changeDiffMatch) {
+            firstMatch = changeDiffMatch;
+            matchType = 'change-diff';
+            changeDiffMatch = AgentMessageRegex.changeDiffRegex.exec(text);
         }
 
         if (firstMatch) {
@@ -197,7 +211,10 @@ const TextOrImageMessage = ({ text }: { text: string }) => {
 
             case 'chart-data':
                 return <AgentChart key={index} messageText={part.content} />;
-
+            case 'change-diff': {
+                const parsedData = parseChangeDiffData(part.content);
+                return <ChangeDiffMessage key={index} changeDiffData={parsedData} />;
+            }
             default:
                 return null;
         }
@@ -223,6 +240,23 @@ const TextOrImageMessage = ({ text }: { text: string }) => {
         return regularMessageContent.map((part, index) => {
             return <RegularMessagePart key={index} part={part} index={index} />;
         });
+    }
+};
+
+const parseChangeDiffData = (jsonString: string): any => {
+    try {
+        return JSON.parse(jsonString);
+    } catch (error) {
+        console.error('Failed to parse change diff data:', error);
+        // Return a fallback object
+        return {
+            id: 'unknown',
+            title: 'Invalid Change Diff Data',
+            description: 'Failed to parse change diff information',
+            correlationId: 'unknown',
+            resourceId: 'unknown',
+            changes: [],
+        };
     }
 };
 

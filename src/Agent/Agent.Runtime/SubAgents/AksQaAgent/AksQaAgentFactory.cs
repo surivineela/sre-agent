@@ -29,7 +29,6 @@ public sealed class AksQaAgentFactory
         _toolsRegistry.RegisterTool<GraphDBPluginDefinition>(x => x.ListSubscriptions);
         _toolsRegistry.RegisterTool<GraphDBPluginDefinition>(x => x.ListResourceGroups);
         _toolsRegistry.RegisterTool<GraphDBPluginDefinition>(x => x.SearchResourceByName);
-        _toolsRegistry.RegisterTool<GraphDBPluginDefinition>(x => x.GetActivityLogsSummary);
         _toolsRegistry.RegisterTool<GraphDBPluginDefinition>(x => x.ListResourcesByType);
         _toolsRegistry.RegisterTool<GraphDBPluginDefinition>(x => x.VisualizeAKSMicroserviceTopology);
         _toolsRegistry.RegisterTool<GraphDBPluginDefinition>(x => x.GetResourceBasicProperties);

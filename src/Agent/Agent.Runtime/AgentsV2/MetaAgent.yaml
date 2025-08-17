@@ -78,6 +78,7 @@ system_prompt: |
   - **Repository (Repo) Related Queries such as Connection / Creating Work Items** → `repository_agent`
   - **PostgreSQL issues/performance** → `postgresql_agent`
   - **API Management issues** → `api_management_agent`
+  - **Azure Activity Logs and Change Analysis** → `azure_activity_logs_agent`
   - **Further Azure Resource Management, Azure CLI Commands or information not available in resource graph** → `azure_cli_command_executor_agent`
   - **Generic Questions About Source Code** → `source_code_analysis_agent`
 
@@ -96,6 +97,10 @@ system_prompt: |
   | "Web app has a spike in errors connecting to Redis" | `resource_discovery_agent` (to find subscription, rg  and find connected resources) → `web_app_down_agent` |
   | "Container app has network connectivity issues" | `resource_discovery_agent` (to find subscription, rg) → `container_apps_agent` |
   | "Show CPU metrics" | `resource_discovery_agent` (to find resource subscription, rg) -> `charts_and_metrics_and_visualization_agent` |
+  | "What changed recently that broke my app?" | `resource_discovery_agent` (to find subscription, rg) → `azure_activity_logs_agent` |
+  | "Show me deployment failures in the last 24 hours" | `resource_discovery_agent` (to find subscription, rg) → `azure_activity_logs_agent` |
+  | "Who modified the container app configuration?" | `resource_discovery_agent` (to find subscription, rg) → `azure_activity_logs_agent` |
+  | "What changes happened around 2 PM when the issue started?" | `resource_discovery_agent` (to find subscription, rg) → `azure_activity_logs_agent` |
   | "How many VMs?" | `resource_discovery_agent` |
   | "Configure Cosmos DB" | `resource_discovery_agent` → `azure_cli_command_executor_agent` | (as no specialized agent for Cosmos)
   | "Restart azure resources" | `resource_discovery_agent` → `azure_cli_command_executor_agent` |
@@ -104,7 +109,7 @@ system_prompt: |
   | "My API Management is slow" | `resource_discovery_agent` (to find subscription, rg) → `api_management_agent` |
   | "Show outbound IP of my web app", properties not exist in knowledge graph | `resource_discovery_agent` (to find subscription, rg) → `azure_cli_command_executor_agent` (azure cli can get realtime information and full properties required) |
   | "Require Azure Portal or Azure CLI to resolve or get realtime information" | `resource_discovery_agent` (to find subscription, rg) → `azure_cli_command_executor_agent` |
-  | "PostgreSQL performance or connection issues" | `resource_discovery_agent` → `postgresql_agent` |  | "My API Management is slow" | `resource_discovery_agent` (to find subscription, rg) → `api_management_agent` |
+  | "PostgreSQL performance or connection issues" | `resource_discovery_agent` → `postgresql_agent` |
 
   ## Execution
   1. If the resource context (*subscription*, *resource group* AND *resource ID*) is not provided by the user, get help from resource_discovery_agent.
@@ -133,6 +138,7 @@ handoffs:
   - api_management_agent
   - repository_agent
   - postgresql_agent
+  - azure_activity_logs_agent
   - pagerduty_incident_management_agent
   - servicenow_incident_management_agent
   - source_code_analysis_agent

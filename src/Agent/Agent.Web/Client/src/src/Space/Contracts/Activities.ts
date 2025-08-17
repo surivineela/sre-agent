@@ -165,6 +165,7 @@ export class AgentMessageRegex {
     public static readonly chartRegex = /```chart-data\n([\s\S]*?)\n```/g;
     // Check if the entire message is just a incident-alert block
     public static readonly incidentAlertRegex = /```incident-alert\s+([\s\S]*?)```/;
+    public static readonly changeDiffRegex = /```change-diff\n([\s\S]*?)\n```/g;
     // Check for investigation summary formats
     public static readonly investigationSummaryRegex = /<investigation-summary>([\s\S]*?)<\/investigation-summary>/;
     public static readonly investigationSummariesRegex = /<investigation-summaries>([\s\S]*?)<\/investigation-summaries>/;

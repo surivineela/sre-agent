@@ -464,7 +464,6 @@ $@"## Facts
             AIFunctionFactory.Create(graphDbPluginDefinition.ListResourceGroups),
             AIFunctionFactory.Create(graphDbPluginDefinition.SearchResource),
             AIFunctionFactory.Create(graphDbPluginDefinition.SearchResourceByName),
-            AIFunctionFactory.Create(graphDbPluginDefinition.GetActivityLogsSummary),
             AIFunctionFactory.Create(graphDbPluginDefinition.GetGeneralHealth),
             AIFunctionFactory.Create(graphDbPluginDefinition.VisualizeApplicationComponents),
             AIFunctionFactory.Create(graphDbPluginDefinition.GetResourceCount),

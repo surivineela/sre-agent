@@ -37,7 +37,7 @@ namespace Agent.Plugins.Implementation
     {
         private readonly ArmHelper _armHelper;
         private readonly IGraphDatabaseClient _databaseClient;
-        private readonly IGraphDBPlugin _graphDbPlugin;
+        private readonly IAzureActivityLogsPlugin _azureActivityLogsPlugin;
         private readonly ILogger<ContainerAppPlugin> _logger;
         private readonly IAuthenticationService _authService;
         private readonly ILogAnalyticsService _logAnalyticsService;
@@ -62,7 +62,7 @@ namespace Agent.Plugins.Implementation
 
         public ContainerAppPlugin(ArmHelper armHelper,
             IGraphDatabaseClient graphDbClient,
-            IGraphDBPlugin graphDBPlugin,
+            IAzureActivityLogsPlugin azureActivityLogsPlugin,
             IGraphService graphService,
             ILogger<ContainerAppPlugin> logger,
             IArmClientFactory armClientFactory,
@@ -73,7 +73,7 @@ namespace Agent.Plugins.Implementation
             IDiagnosticsPlugin diagnosticsPlugin)
         {
             _databaseClient = graphDbClient;
-            _graphDbPlugin = graphDBPlugin;
+            _azureActivityLogsPlugin = azureActivityLogsPlugin;
             _graphService = graphService;
             _armHelper = armHelper;
             _logger = logger;
@@ -2394,7 +2394,7 @@ Here are the logs in JSON format:
             ResourceIdentifier resourceIdentifier = new ResourceIdentifier(resourceId);
             string containerAppName = resourceIdentifier.Name;
 
-            var logsAndComponents = await _graphDbPlugin.FetchActivityLogsAndComponents(resourceId);
+            var logsAndComponents = await _azureActivityLogsPlugin.FetchActivityLogsAndComponents(resourceId);
             var logs = logsAndComponents.ActivityLogs;
 
             var successfulDeployments = logs.Where(l =>

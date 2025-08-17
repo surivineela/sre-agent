@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { IAgentMessageProps } from '../Contracts/Activities';
 import ApprovalMessage from './ApprovalMessage';
 import AzCliExecutionMessage from './AzCliExecutionMessage';
+import ChangeDiffMessage from './ChangeDiffMessage';
 import DailyReportMessage from './DailyReportMessage';
 import ErrorChatMessage from './ErrorMessage';
 import KubectlExecutionMessage from './KubectlExecutionMessage';
@@ -25,6 +26,8 @@ const AgentMessage = ({
                     threadId={threadId}
                     updateSpecialMessageInStreamingMessage={updateSpecialMessageInStreamingMessage}
                 />
+            ) : messageContent.changeDiff ? (
+                <ChangeDiffMessage changeDiffData={messageContent.changeDiff} />
             ) : messageContent.isDailyReport ? (
                 <DailyReportMessage text={messageContent.text} timeStamp={timeStamp} />
             ) : messageContent.azCliExecution ? (

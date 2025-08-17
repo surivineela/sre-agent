@@ -59,4 +59,9 @@ public enum StreamMessageType
     /// Agent task updates (full task object)
     /// </summary>
     TaskUpdate,
+
+    /// <summary>
+    /// Change diff viewer for resource modifications
+    /// </summary>
+    ChangeDiff,
 }

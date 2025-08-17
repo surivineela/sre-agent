@@ -37,7 +37,6 @@ public sealed class KubernetesAgentFactory
         _toolsRegistry.RegisterTool<GraphDBPluginDefinition>(x => x.ListSubscriptions);
         _toolsRegistry.RegisterTool<GraphDBPluginDefinition>(x => x.ListResourceGroups);
         _toolsRegistry.RegisterTool<GraphDBPluginDefinition>(x => x.SearchResourceByName);
-        _toolsRegistry.RegisterTool<GraphDBPluginDefinition>(x => x.GetActivityLogsSummary);
         _toolsRegistry.RegisterTool<GraphDBPluginDefinition>(x => x.ListResourcesByType);
         _toolsRegistry.RegisterTool<GraphDBPluginDefinition>(x => x.VisualizeAKSMicroserviceTopology);
         _toolsRegistry.RegisterTool<GraphDBPluginDefinition>(x => x.GetResourceBasicProperties);
@@ -82,7 +81,6 @@ public sealed class KubernetesAgentFactory
         var diagnosticAgentTools = new DiagnosisAgentToolsRegistry();
 
         diagnosticAgentTools.RegisterReadOnlyTool<GraphDBPluginDefinition>(x => x.SearchResourceByName);
-        diagnosticAgentTools.RegisterReadOnlyTool<GraphDBPluginDefinition>(x => x.GetActivityLogsSummary);
         diagnosticAgentTools.RegisterReadOnlyTool<GraphDBPluginDefinition>(x => x.GetResourceBasicProperties);
         diagnosticAgentTools.RegisterReadOnlyTool<GraphDBPluginDefinition>(x => x.ListSubscriptions);
         diagnosticAgentTools.RegisterReadOnlyTool<GraphDBPluginDefinition>(x => x.ListResourceGroups);

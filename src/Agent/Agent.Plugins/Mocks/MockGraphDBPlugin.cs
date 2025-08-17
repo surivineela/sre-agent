@@ -240,6 +240,16 @@ namespace Agent.Plugins.Mocks
         {
             throw new NotImplementedException();
         }
+
+        public Task<string> AnalyzeDeploymentFailures(string resourceId, int hoursBack = 24, Guid? threadId = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> GetChangeHistory(string correlationId, string resourceId, Guid? threadId = null)
+        {
+            return Task.FromResult($"Mock change history for correlation ID: {correlationId} and resource: {resourceId}");
+        }
     }
 }
 

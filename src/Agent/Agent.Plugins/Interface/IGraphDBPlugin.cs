@@ -138,24 +138,6 @@ namespace Agent.Plugins.Interface
         /// <returns></returns>
         Task<List<Dictionary<string, object>>> ListResourceGroupsAsync(string subscriptionId);
 
-        /// <summary>
-        /// Retrieves and summarizes activity logs for a resource and its dependent resources.
-        /// Analyzes recent operations, changes, and potential issues over a specified time period.
-        /// </summary>
-        /// <param name="resourceId">Azure Resource Id of the resource to analyze.</param>
-        /// <param name="daysBack">Number of days of logs to retrieve and analyze. Default is 30.</param>
-        /// <param name="threadId">Optional threadId for the current conversation.</param>
-        /// <returns>A summary of the activity logs with key insights and potential issues.</returns>
-        Task<string> FetchAndSummarizeActivityLogs(string resourceId, int hoursBack = 24, Guid? threadId = null);
-
-        /// <summary>
-        /// Fetches activity logs and components for a specific resource. 
-        /// </summary>
-        /// <param name="resourceId"></param>
-        /// <param name="daysBack"></param>
-        /// <param name="threadId"></param>
-        /// <returns></returns>
-        Task<(List<Dictionary<string, object>> ActivityLogs, List<Node> Components)> FetchActivityLogsAndComponents(string resourceId, int daysBack = 1, Guid? threadId = null);
 
         /// <summary>
         /// Gets a count of Azure resources of a specified type, optionally grouped by a property.

@@ -234,20 +234,6 @@ namespace Agent.Plugins
             return await _plugin.ListResourceGroupsAsync(subscriptionId);
         }
 
-        [KernelFunction("GetActivityLogsSummary")]
-        [Description("Retrieves and analyzes Azure Activity Logs for a resource and its connected components. " +
-            "This function is valuable when you need to: 1) Review recent changes made to a resource and its dependencies, " +
-            "2) Investigate who made specific configuration changes, " +
-            "3) Understand patterns of administrative activity, or " +
-            "4) Detect potentially unauthorized or unusual operations. " +
-            "The output is a natural language summary highlighting key activities, patterns, and potential concerns.")]
-        [AgentTool(ToolMode.Auto)]
-        public async Task<string> GetActivityLogsSummary(
-            [Description("Azure Resource Id of the resource to analyze. Should begin with /subscriptions/... Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp")] string resourceId,
-            [Description("Number of hours of activity logs to retrieve and analyze. Default is 24 hours.")] int hoursBack = 24)
-        {
-            return await _plugin.FetchAndSummarizeActivityLogs(resourceId, hoursBack, Context?.ThreadId);
-        }
 
         [KernelFunction("ListResourcesByType")]
         [Description("Returns a list of Azure resources OR Kubernetes-native resources of a specified type/kind, with their property details as recorded in the knowledge graph. Supports filtering by properties like AKS cluster ID (for Kubernetes), or resource group (for ARM). " +
@@ -361,5 +347,6 @@ namespace Agent.Plugins
         {
             return await _plugin.GetApplicationHealthInfoAsync(resourceId);
         }
+
     }
 }

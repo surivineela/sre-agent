@@ -13,6 +13,7 @@ export interface MessageContent {
     azCliExecution?: AzCliExecution;
     kubectlExecution?: KubectlExecution;
     isDailyReport?: boolean;
+    changeDiff?: ChangeDiffViewer;
 }
 
 export interface Message extends MessageMetaData {
@@ -21,6 +22,7 @@ export interface Message extends MessageMetaData {
     azCliExecution?: AzCliExecution;
     kubectlExecution?: KubectlExecution;
     isDailyReport?: boolean;
+    changeDiff?: ChangeDiffViewer;
 }
 
 export interface Approval {
@@ -81,4 +83,24 @@ export interface KubectlExecution {
         userId: string;
         role: string;
     };
+}
+
+export interface ChangeDiffViewer {
+    id: string;
+    title: string;
+    description: string;
+    correlationId: string;
+    resourceId: string;
+    changes: ChangeDiffItem[];
+}
+
+export interface ChangeDiffItem {
+    changeTime: string;
+    targetResourceId: string;
+    changeType: string;
+    changedBy: string;
+    clientType: string;
+    changesJson: string;
+    previousSnapshotId?: string;
+    newSnapshotId?: string;
 }
