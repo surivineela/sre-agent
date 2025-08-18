@@ -20,8 +20,6 @@ namespace Agent.Runtime.Services
 
         Task<List<ToolInfo>> FilterTools(string? searchString);
 
-        Task<List<ToolInfo>> GetIncidentHandlerTools(string platform);
-
     }
 
     public class InstructionGenerationService : IInstructionGenerationService
@@ -51,13 +49,9 @@ namespace Agent.Runtime.Services
             var availableTools = _toolFactory.FetchAvailableToolInfo();
             _logger.LogInternalInformation("FilterTools: Fetched {ToolCount} available tools.", availableTools.Count);
 
-            // Filter out incident handler tools from general tool selection
-            availableTools = availableTools.Where(tool => !tool.IsIncidentHandlerTool).ToList();
-            _logger.LogInternalInformation("FilterTools: Filtered out incident handler tools. Remaining: {FilteredCount}", availableTools.Count);
-
             if (string.IsNullOrWhiteSpace(searchString))
             {
-                _logger.LogInternalInformation("FilterTools: No search string provided. Returning all non-incident-handler tools.");
+                _logger.LogInternalInformation("FilterTools: No search string provided. Returning all available tools.");
                 return Task.FromResult(availableTools);
             }
 
@@ -69,21 +63,6 @@ namespace Agent.Runtime.Services
             _logger.LogInternalInformation("FilterTools: Filtered tools count: {FilteredCount} for searchString: {SearchString}", filteredTools.Count, searchString);
 
             return Task.FromResult(filteredTools);
-        }
-
-        public Task<List<ToolInfo>> GetIncidentHandlerTools(string platform)
-        {
-            _logger.LogInternalInformation("GetIncidentHandlerTools: Invoked for platform: {Platform}", platform);
-
-            var availableTools = _toolFactory.FetchAvailableToolInfo();
-            var incidentHandlerTools = availableTools
-                .Where(tool => tool.IsIncidentHandlerTool && 
-                              tool.IncidentHandlerPlatform?.Equals(platform, StringComparison.OrdinalIgnoreCase) == true)
-                .ToList();
-
-            _logger.LogInternalInformation("GetIncidentHandlerTools: Found {ToolCount} incident handler tools for platform: {Platform}", incidentHandlerTools.Count, platform);
-
-            return Task.FromResult(incidentHandlerTools);
         }
 
         public async Task<InstructionGenerationResponse> GenerateInstructionsFromIncidents(InstructionGenerationRequest request)

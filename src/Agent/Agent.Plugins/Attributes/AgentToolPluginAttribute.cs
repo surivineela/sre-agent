@@ -9,10 +9,6 @@ public class AgentToolPluginAttribute : Attribute
     public bool IsExperimental { get; set; } = false;
     public string Category { get; set; } = string.Empty;
     public string ResourceType { get; set; } = string.Empty;
-    
-    // Add new properties for incident handler tools
-    public bool IsIncidentHandlerPlugin { get; set; } = false;
-    public string IncidentPlatform { get; set; } = string.Empty;
 
     public AgentToolPluginAttribute() { }
 }

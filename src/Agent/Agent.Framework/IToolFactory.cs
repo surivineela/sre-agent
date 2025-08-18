@@ -67,8 +67,5 @@ public class ToolInfo
     public string PluginName { get; set; } = string.Empty;
     public string? Description { get; set; }
     public IList<string?> Parameters { get; set; } = [];
-    // Add new properties for incident handler tools
-    public bool IsIncidentHandlerTool { get; set; } = false;
-    public string? IncidentHandlerPlatform { get; set; }
 }
 

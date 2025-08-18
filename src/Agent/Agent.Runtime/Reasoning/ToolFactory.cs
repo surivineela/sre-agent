@@ -294,9 +294,6 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
                     continue;
                 }
 
-                // Check the class-level AgentToolPluginAttribute for incident handler info
-                var classAttribute = tool.Value.MethodInfo?.DeclaringType?.GetCustomAttribute<AgentToolPluginAttribute>();
-
                 result.Add(new ToolInfo
                 {
                     Name = tool.Key,
@@ -304,10 +301,7 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
                     ResourceType = tool.Value.GetToolFunction()?.GetToolResourceType(tool.Value.GetPluginResourceType()) ?? string.Empty,
                     Description = tool.Value.GetToolFunction()?.Description,
                     PluginName = tool.Value.GetPluginName(),
-                    Parameters = tool.Value.GetToolFunction()?.UnderlyingMethod?.GetParameters()?.Select(x => x.Name ?? string.Empty)?.Where(s => !string.IsNullOrEmpty(s)).ToArray() ?? [],
-                    // Use class-level attribute for incident handler info
-                    IsIncidentHandlerTool = classAttribute?.IsIncidentHandlerPlugin ?? false,
-                    IncidentHandlerPlatform = classAttribute?.IncidentPlatform
+                    Parameters = tool.Value.GetToolFunction()?.UnderlyingMethod?.GetParameters()?.Select(x => x.Name ?? string.Empty)?.Where(s => !string.IsNullOrEmpty(s)).ToArray() ?? []
                 });
             }
             catch (Exception ex)
@@ -322,8 +316,6 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
     {
         return [.. _tools.Where(kv => toolNames.Contains(kv.Key)).Select(tool =>
         {
-            // Check the class-level AgentToolPluginAttribute for incident handler info
-            var classAttribute = tool.Value.MethodInfo?.DeclaringType?.GetCustomAttribute<AgentToolPluginAttribute>();
             return new ToolInfo
             {
                 Name = tool.Key,
@@ -331,10 +323,7 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
                 ResourceType = tool.Value.GetToolFunction()?.GetToolResourceType(tool.Value.GetPluginResourceType()) ?? string.Empty,
                 Description = tool.Value.GetToolFunction()?.Description,
                 PluginName = tool.Value.GetPluginName(),
-                Parameters = tool.Value.GetToolFunction()?.UnderlyingMethod?.GetParameters()?.Select(x => x.Name)?.ToList() ?? [],
-                // Use class-level attribute for incident handler info
-                IsIncidentHandlerTool = classAttribute?.IsIncidentHandlerPlugin ?? false,
-                IncidentHandlerPlatform = classAttribute?.IncidentPlatform
+                Parameters = tool.Value.GetToolFunction()?.UnderlyingMethod?.GetParameters()?.Select(x => x.Name)?.ToList() ?? []
             };
         })];
     }

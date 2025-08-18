@@ -40,7 +40,7 @@ export interface IncidentFilterDocumentPayload {
     agentMode?: AgentMode;
 }
 
-export type IncidentDocumentType = 'ServiceNowIncident' | 'PagerDutyIncident' | 'IcmIncident' | 'AzureMonitorIncident';
+export type IncidentDocumentType = 'PagerDutyIncident' | 'IcmIncident';
 
 export interface IncidentDocument {
     createdAt: string;
