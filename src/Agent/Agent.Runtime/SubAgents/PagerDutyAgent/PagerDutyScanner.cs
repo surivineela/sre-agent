@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using System.Net;
-using System.Text;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
@@ -12,7 +11,6 @@ using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Data.DataModels;
 using Agent.Graph.Interfaces;
-using Agent.Logging;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.AI;
@@ -23,14 +21,13 @@ using Agent.Runtime.Services;
 namespace Agent.Runtime.SubAgents.PagerDutyAgent;
 
 public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
-                              //   IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator,
                               IPagerDutyService pagerDutyService,
                               CosmosClient cosmosClient,
                               CosmosDBSettings cosmosDbSettings,
                               IChatClient chatClient,
                               IGraphDatabaseClient graphDbClient,
                               IncidentManagementSettings incidentManagementSettings,
-                              IIncidentHandlingService incidentHandlingService,
+                              IIncidentHandlingService<PagerDutyIncidentFilterDocumentPayload> incidentHandlingService,
                               IAgentInboundCommunicationService agentInboundCommunicationService):IIncidentScanner
 {
     private readonly Container container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
@@ -142,7 +139,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
             if (threadDocument is null)
             {
                 logger.LogInternalInformation("Thread doesn't exist for incident {incidentId}, skipping notification", incidentDocument.Id);
-                var response = await incidentHandlingService.HandleIncidentAsync(new IncidentHandlingRequestModel()
+                var response = await incidentHandlingService.HandleIncidentAsync(new IncidentHandlingRequestModel<PagerDutyIncidentFilterDocumentPayload>()
                 {
                     IncidentId = incidentDocument.Id,
                     Title = incidentDocument.Title,

@@ -7,7 +7,6 @@ using Agent.Plugins.Interface;
 using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents.IcmScanner;
 using Microsoft.Azure.Cosmos;
-using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -17,9 +16,9 @@ public class IcmScannerTest
     private readonly Mock<ILogger<IcmScanner>> _mockLogger;
     private readonly Mock<IICMAPIClient> _mockIcmApiClient;
     private readonly Mock<CosmosClient> _mockCosmosClient;
-    private readonly Mock<IIncidentHandlingService> _mockIncidentHandlingService;
+    private readonly Mock<IIncidentHandlingService<IcmIncidentFilterDocumentPayload>> _mockIncidentHandlingService;
     private readonly Mock<IIncidentManagementService<IcmIncidentDocument>> _mockIncidentManagementService;
-    private readonly Mock<IIncidentFilterManagementService> _mockIncidentFilterManagementService;
+    private readonly Mock<IIncidentFilterManagementService<IcmIncidentFilterDocument>> _mockIncidentFilterManagementService;
     private readonly Mock<IAgentInboundCommunicationService> _mockAgentInboundCommunicationService;
     private readonly Mock<IAgentOutboundCommunicationService> _mockAgentOutboundCommunicationService;
     private readonly Mock<IICMPlugin> _mockIcmPlugin;
@@ -33,9 +32,9 @@ public class IcmScannerTest
         _mockIcmApiClient = new Mock<IICMAPIClient>();
         _mockCosmosClient = new Mock<CosmosClient>();
         _mockContainer = new Mock<Container>();
-        _mockIncidentHandlingService = new Mock<IIncidentHandlingService>();
+        _mockIncidentHandlingService = new Mock<IIncidentHandlingService<IcmIncidentFilterDocumentPayload>>();
         _mockIncidentManagementService = new Mock<IIncidentManagementService<IcmIncidentDocument>>();
-        _mockIncidentFilterManagementService = new Mock<IIncidentFilterManagementService>();
+        _mockIncidentFilterManagementService = new Mock<IIncidentFilterManagementService<IcmIncidentFilterDocument>>();
         _mockAgentInboundCommunicationService = new Mock<IAgentInboundCommunicationService>();
         _mockAgentOutboundCommunicationService = new Mock<IAgentOutboundCommunicationService>();
         _mockIcmPlugin = new Mock<IICMPlugin>();
@@ -112,11 +111,11 @@ public class IcmScannerTest
         };
     }
 
-    private List<IncidentFilterDocument> GetIncidentFilters(string titleContains)
+    private List<IcmIncidentFilterDocument> GetIncidentFilters(string titleContains)
     {
-        return new List<IncidentFilterDocument>
+        return new List<IcmIncidentFilterDocument>
         {
-            new IncidentFilterDocument(
+            new IcmIncidentFilterDocument(
                 Id: "filter1",
                 DocumentType: "IncidentFilterIcm",
                 CreatedAt: DateTime.UtcNow,
@@ -136,7 +135,7 @@ public class IcmScannerTest
         // Arrange
         var scanner = CreateScanner();
         _mockIncidentFilterManagementService.Setup(f => f.ListIncidentFilters())
-            .ReturnsAsync(new List<IncidentFilterDocument>());
+            .ReturnsAsync(new List<IcmIncidentFilterDocument>());
 
         var lastScanTimeDocResponse = new Mock<ItemResponse<LastScanTimeDoc>>();
         lastScanTimeDocResponse.Setup(r => r.Resource).Returns(new LastScanTimeDoc());
@@ -155,7 +154,7 @@ public class IcmScannerTest
         }
 
         _mockIcmApiClient.Verify(
-                c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
+                c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<List<string>>()),
                 Times.Never);
     }
 
@@ -166,7 +165,7 @@ public class IcmScannerTest
         var filters = GetIncidentFilters(title).Select(f => f.DocumentType == "IncidentFilterServiceNow").ToList(); //Wrong filter type
 
         var incident = GetIncident(title);
-        _mockIcmApiClient.Setup(c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+        _mockIcmApiClient.Setup(c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<List<string>>()))
             .ReturnsAsync(new List<Incident> { incident });
 
         var lastScanTimeDocResponse = new Mock<ItemResponse<LastScanTimeDoc>>();
@@ -188,7 +187,7 @@ public class IcmScannerTest
         }
         // Assert
         _mockIcmApiClient.Verify(
-            c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
+            c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<List<string>>()),
             Times.Never);
     }
 
@@ -201,7 +200,7 @@ public class IcmScannerTest
         _mockIncidentFilterManagementService.Setup(s => s.ListIncidentFilters()).ReturnsAsync(filters);
 
         var incident = GetIncident(title);
-        _mockIcmApiClient.Setup(c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+        _mockIcmApiClient.Setup(c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<List<string>>()))
             .ReturnsAsync(new List<Incident> { incident });
 
         var lastScanTimeDocResponse = new Mock<ItemResponse<LastScanTimeDoc>>();
@@ -260,7 +259,7 @@ public class IcmScannerTest
 
         _mockIncidentFilterManagementService.Setup(s => s.ListIncidentFilters()).ReturnsAsync(filters);
 
-        _mockIcmApiClient.Setup(c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+        _mockIcmApiClient.Setup(c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<List<string>>()))
             .ReturnsAsync(new List<Incident> { newIncident });
 
         var lastScanTimeDocResponse = new Mock<ItemResponse<LastScanTimeDoc>>();

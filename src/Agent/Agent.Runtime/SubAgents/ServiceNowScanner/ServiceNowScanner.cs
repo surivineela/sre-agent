@@ -22,9 +22,9 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
     IServiceNowAPIClient serviceNowApiClient,
     CosmosClient cosmosClient,
     CosmosDBSettings cosmosDbSettings,
-    IIncidentHandlingService incidentHandlingService,
+    IIncidentHandlingService<ServiceNowIncidentFilterDocumentPayload> incidentHandlingService,
     IIncidentManagementService<ServiceNowIncidentDocument> incidentManagementService,
-    IIncidentFilterManagementService incidentFilterManagementService,
+    IIncidentFilterManagementService<ServiceNowIncidentFilterDocument> incidentFilterManagementService,
     IAgentInboundCommunicationService agentInboundCommunicationService) : IIncidentScanner
 {
     private readonly Container container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
@@ -64,7 +64,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
         }
     }
     
-    private async Task<bool> ScanAllIncidentsAsync(CancellationToken cancellationToken, List<IncidentFilterDocument> filters)
+    private async Task<bool> ScanAllIncidentsAsync(CancellationToken cancellationToken, List<ServiceNowIncidentFilterDocument> filters)
     {
         // set to true if at least one filterDocument has scanned successfully
         bool isSuccess = false;
@@ -77,7 +77,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
                 return isSuccess;
             }
             
-            if (filter is IncidentFilterDocument filterDocument && filterDocument.DocumentType == "IncidentFilterServiceNow")
+            if (filter is ServiceNowIncidentFilterDocument filterDocument && filterDocument.DocumentType == "IncidentFilterServiceNow")
             {
                 try
                 {
@@ -93,7 +93,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
         return isSuccess;
     }
 
-    private async Task<bool> ScanIncidentsForFilter(IncidentFilterDocument filterDocument, CancellationToken cancellationToken)
+    private async Task<bool> ScanIncidentsForFilter(ServiceNowIncidentFilterDocument filterDocument, CancellationToken cancellationToken)
     {
         logger.LogInternalInformation("Scanning incidents for filter {filterId}", filterDocument.Id);
         uint page = 0;
@@ -258,7 +258,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
             if (threadDocument is null)
             {
                 logger.LogInternalInformation("Thread doesn't exist for incident {incidentNumber}, creating new incident thread", incidentDocument.Id);
-                var response = await incidentHandlingService.HandleIncidentAsync(new IncidentHandlingRequestModel()
+                var response = await incidentHandlingService.HandleIncidentAsync(new IncidentHandlingRequestModel<ServiceNowIncidentFilterDocumentPayload>()
                 {
                     IncidentId = incidentDocument.Id,
                     Title = incidentDocument.Title,

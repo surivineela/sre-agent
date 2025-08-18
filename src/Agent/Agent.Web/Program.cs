@@ -316,7 +316,6 @@ public class Program
         // builder.Services.AddSingleton<Microsoft.Bot.Schema.ConversationReference>(new Microsoft.Bot.Schema.ConversationReference());
 
         // Register plugins and their dependencies
-
         builder.Services
             .AddSingleton<Agent.Runtime.MetaAgent.IAgent, MetaAgent>()
             .AddSingleton<IIncidentHandlerAgent, IncidentHandlerAgent>()
@@ -734,53 +733,8 @@ public class Program
         builder.Services.AddKeyedSingleton<IWatchEventService, ActivityLogService>("ActivityLog");
         builder.Services.AddKeyedSingleton<IWatchEventService, KubernetesWatchService>("Kubernetes");
 
-        var serviceProvider = builder.Services.BuildServiceProvider();
-        var incidentManagementSettings = serviceProvider.GetRequiredService<IncidentManagementSettings>();
 
-        switch (incidentManagementSettings.Type)
-        {
-            case IncidentManagementType.PagerDuty:
-                builder.Services.AddSingleton<IPagerDutyService, PagerDutyService>();
-                builder.Services.AddSingleton<IICMAPIClient, NullableICMAPIClient>();
-                builder.Services.AddSingleton<IServiceNowAPIClient, NullableServiceNowAPIClient>();
-                builder.Services.AddSingleton<IIncidentScanner, PagerDutyScanner>();
-                break;
-
-            case IncidentManagementType.Icm:
-                builder.Services.AddSingleton<IPagerDutyService, NullablePagerDutyService>();
-                builder.Services.AddSingleton<LoggingHttpMessageHandler>();
-                builder.Services.AddSingleton<IICMAPIClient, ICMAPIClient>();
-                builder.Services.AddSingleton<IServiceNowAPIClient, NullableServiceNowAPIClient>();
-                builder.Services.AddSingleton<IIncidentScanner, IcmScanner>();
-
-                var logger = serviceProvider.GetRequiredService<ILogger<ICMAPITokenService>>();
-                var actionSettings = serviceProvider.GetRequiredService<ActionSettings>();
-                ICMAPITokenService.Instance.Initialize(actionSettings, incidentManagementSettings.ICMAPI, logger);
-                break;
-
-            case IncidentManagementType.ServiceNow:
-                builder.Services.AddSingleton<IPagerDutyService, NullablePagerDutyService>();
-                builder.Services.AddSingleton<IICMAPIClient, NullableICMAPIClient>();
-                builder.Services.AddSingleton<IServiceNowAPIClient, ServiceNowAPIClient>();
-                builder.Services.AddSingleton<IIncidentScanner, ServiceNowScanner>();
-                break;
-
-            default:
-                builder.Services.AddSingleton<IPagerDutyService, NullablePagerDutyService>();
-                builder.Services.AddSingleton<IICMAPIClient, NullableICMAPIClient>();
-                builder.Services.AddSingleton<IServiceNowAPIClient, NullableServiceNowAPIClient>();
-                builder.Services.AddSingleton<IIncidentScanner, NullableIncidentScanner>();
-                break;
-        }
-
-        //Todo, add generic interface/class for PagerDutyIncidentDocument/IcmDocument and dynamically register
-        builder.Services.AddSingleton<IIncidentManagementService<PagerDutyIncidentDocument>, IncidentManagementService<PagerDutyIncidentDocument>>();
-        builder.Services.AddSingleton<IIncidentManagementService<IcmIncidentDocument>, IncidentManagementService<IcmIncidentDocument>>();
-        builder.Services.AddSingleton<IIncidentManagementService<ServiceNowIncidentDocument>, IncidentManagementService<ServiceNowIncidentDocument>>();
-        builder.Services.AddSingleton<IIncidentHandlerManagementService, IncidentHandlerManagementService>();
-        builder.Services.AddSingleton<IIncidentFilterManagementService, IncidentFilterManagementService>();
-        builder.Services.AddSingleton<IInstructionGenerationService, InstructionGenerationService>();
-        builder.Services.AddSingleton<IIncidentHandlingService, IncidentHandlingService>();
+        builder.Services.AddIncidentRelatedServices();
 
         // Register HttpClientService and configure HttpClient with proper BaseAddress
         builder.Services.AddSingleton<HttpClientService>();

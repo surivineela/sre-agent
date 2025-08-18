@@ -12,16 +12,15 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
 using Agent.Plugins.Interface;
-using Microsoft.Extensions.Configuration;
 
 namespace Agent.Runtime.SubAgents.IcmScanner;
 public class IcmScanner(ILogger<IcmScanner> logger,
     IICMAPIClient icmApiClient,
     CosmosClient cosmosClient,
     CosmosDBSettings cosmosDbSettings,
-    IIncidentHandlingService incidentHandlingService,
+    IIncidentHandlingService<IcmIncidentFilterDocumentPayload> incidentHandlingService,
     IIncidentManagementService<IcmIncidentDocument> incidentManagementService,
-    IIncidentFilterManagementService incidentFilterManagementService,
+    IIncidentFilterManagementService<IcmIncidentFilterDocument> incidentFilterManagementService,
     IAgentInboundCommunicationService agentInboundCommunicationService,
     IAgentOutboundCommunicationService agentOutboundCommunicationService,
     IICMPlugin icmPlugin,
@@ -72,7 +71,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             await Task.Delay(ScanInterval, cancellationToken);
         }
     }
-    private async Task ScanAllIncidentsAsync(CancellationToken cancellationToken, List<IncidentFilterDocument> filters)
+    private async Task ScanAllIncidentsAsync(CancellationToken cancellationToken, List<IcmIncidentFilterDocument> filters)
     {
 
         foreach (var filter in filters)
@@ -82,7 +81,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 logger.LogInternalInformation("[IcmScanner] Cancellation requested, stopping the IcM scanner.");
                 return;
             }
-            if (filter is IncidentFilterDocument filterDocument && filterDocument.DocumentType == "IncidentFilterIcm")
+            if (filter is IcmIncidentFilterDocument filterDocument && filterDocument.DocumentType == "IncidentFilterIcm")
             {
                 try
                 {
@@ -96,7 +95,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
         }
     }
 
-    private async Task ScanIncidentsForFilter(IncidentFilterDocument filterDocument, CancellationToken cancellationToken)
+    private async Task ScanIncidentsForFilter(IcmIncidentFilterDocument filterDocument, CancellationToken cancellationToken)
     {
         logger.LogInternalInformation("[IcmScanner] Scanning incidents for filter: {filterId}", filterDocument.Id);
         uint page = 0;
@@ -378,7 +377,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 logger.LogInternalInformation("[IcmScanner] Thread doesn't exist for incident {incidentId}, creating new thread", incidentDocument.Id);
                 
                 // Default incident handling (manual response)
-                var response = await incidentHandlingService.HandleIncidentAsync(new IncidentHandlingRequestModel()
+                var response = await incidentHandlingService.HandleIncidentAsync(new IncidentHandlingRequestModel<IcmIncidentFilterDocumentPayload>()
                 {
                     IncidentId = incidentDocument.Id,
                     Title = incidentDocument.Title,

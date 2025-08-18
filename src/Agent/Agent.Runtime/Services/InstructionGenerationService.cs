@@ -26,19 +26,19 @@ namespace Agent.Runtime.Services
     {
         private readonly IChatClient _chatClient;
         private readonly IToolFactory<AgentContext> _toolFactory;
-        private readonly IIncidentManagementService<PagerDutyIncidentDocument> _incidentManagementService;
+        private readonly IIncidentManagementServiceFactory _incidentManagementServiceFactory;
         private readonly ILogger<InstructionGenerationService> _logger;
 
         public InstructionGenerationService(
             IToolFactory<AgentContext> toolFactory,
             IChatClient chatClient,
-            IIncidentManagementService<PagerDutyIncidentDocument> incidentManagementService,
+            IIncidentManagementServiceFactory incidentManagementServiceFactory,
             ILogger<InstructionGenerationService> logger
             )
         {
             _toolFactory = toolFactory;
             _chatClient = chatClient;
-            _incidentManagementService = incidentManagementService;
+            _incidentManagementServiceFactory = incidentManagementServiceFactory;
             _logger = logger;
         }
 
@@ -167,7 +167,11 @@ namespace Agent.Runtime.Services
             PagerDutyIncidentDocument? incidentDetails = null;
             try
             {
-                incidentDetails = await _incidentManagementService.GetIncidentDetails(incident);
+                var pagerDutyService = _incidentManagementServiceFactory.GetService<PagerDutyIncidentDocument>();
+                if(pagerDutyService is not null)
+                {
+                    incidentDetails = await pagerDutyService.GetIncidentDetails(incident);
+                }
             }
             catch (Exception ex)
             {
@@ -218,7 +222,7 @@ namespace Agent.Runtime.Services
                     incidentDetails.ExtractedKnowledge = summary;
                     try
                     {
-                        await _incidentManagementService.SaveDocument(incidentDetails);
+                        await _incidentManagementServiceFactory.SaveDocument(System.Text.Json.JsonSerializer.SerializeToNode(incidentDetails));
                         _logger.LogInternalInformation("ExtractKnowledgeFromIncident: Saved extracted knowledge for IncidentId: {IncidentId}", incident);
                     }
                     catch (Exception ex)

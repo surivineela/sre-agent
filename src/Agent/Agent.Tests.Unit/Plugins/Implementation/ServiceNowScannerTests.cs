@@ -29,9 +29,9 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         private readonly Mock<IServiceNowAPIClient> _mockServiceNowApiClient;
         private readonly Mock<CosmosClient> _mockCosmosClient;
         private readonly Mock<Container> _mockContainer;
-        private readonly Mock<IIncidentHandlingService> _mockIncidentHandlingService;
+        private readonly Mock<IIncidentHandlingService<ServiceNowIncidentFilterDocumentPayload>> _mockIncidentHandlingService;
         private readonly Mock<IIncidentManagementService<ServiceNowIncidentDocument>> _mockIncidentManagementService;
-        private readonly Mock<IIncidentFilterManagementService> _mockIncidentFilterManagementService;
+        private readonly Mock<IIncidentFilterManagementService<ServiceNowIncidentFilterDocument>> _mockIncidentFilterManagementService;
         private readonly Mock<IAgentInboundCommunicationService> _mockAgentInboundCommunicationService;
         private readonly CosmosDBSettings _cosmosDbSettings;
 
@@ -41,9 +41,9 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             _mockServiceNowApiClient = new Mock<IServiceNowAPIClient>();
             _mockCosmosClient = new Mock<CosmosClient>();
             _mockContainer = new Mock<Container>();
-            _mockIncidentHandlingService = new Mock<IIncidentHandlingService>();
+            _mockIncidentHandlingService = new Mock<IIncidentHandlingService<ServiceNowIncidentFilterDocumentPayload>>();
             _mockIncidentManagementService = new Mock<IIncidentManagementService<ServiceNowIncidentDocument>>();
-            _mockIncidentFilterManagementService = new Mock<IIncidentFilterManagementService>();
+            _mockIncidentFilterManagementService = new Mock<IIncidentFilterManagementService<ServiceNowIncidentFilterDocument>>();
             _mockAgentInboundCommunicationService = new Mock<IAgentInboundCommunicationService>();
 
             _cosmosDbSettings = new CosmosDBSettings
@@ -77,7 +77,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         {
             // Arrange
             _mockIncidentFilterManagementService.Setup(s => s.ListIncidentFilters())
-                .ReturnsAsync(new List<IncidentFilterDocument>());
+                .ReturnsAsync(new List<ServiceNowIncidentFilterDocument>());
 
             var lastScanTimeDocResponse = new Mock<ItemResponse<LastScanTimeDoc>>();
             lastScanTimeDocResponse.Setup(r => r.Resource).Returns(new LastScanTimeDoc());
@@ -109,9 +109,9 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         public async Task ScanAsync_WithNonServiceNowFilter_SkipsScanForThatFilter()
         {
             // Arrange
-            var filters = new List<IncidentFilterDocument>
+            var filters = new List<ServiceNowIncidentFilterDocument>
             {
-                new IncidentFilterDocument(
+                new ServiceNowIncidentFilterDocument(
                     Id: "filter1",
                     DocumentType: "IncidentFilterIcm", // wrong document type
                     CreatedAt: DateTime.UtcNow,
@@ -154,9 +154,9 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         public async Task ScanAsync_NewIncident_CreatesDocument()
         {
             // Arrange
-            var filters = new List<IncidentFilterDocument>
+            var filters = new List<ServiceNowIncidentFilterDocument>
             {
-                new IncidentFilterDocument(
+                new ServiceNowIncidentFilterDocument(
                     Id: "filter1",
                     DocumentType: "IncidentFilterServiceNow",
                     CreatedAt: DateTime.UtcNow,
@@ -223,9 +223,9 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         public async Task ScanAsync_ExistingIncident_UpsertsDocumentAndNotifies()
         {
             // Arrange
-            var filters = new List<IncidentFilterDocument>
+            var filters = new List<ServiceNowIncidentFilterDocument>
             {
-                new IncidentFilterDocument(
+                new ServiceNowIncidentFilterDocument(
                     Id: "filter1",
                     DocumentType: "IncidentFilterServiceNow",
                     CreatedAt: DateTime.UtcNow,

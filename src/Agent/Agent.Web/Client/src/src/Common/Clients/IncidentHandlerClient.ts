@@ -462,7 +462,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
     };
 
     public testHandler = async (request: TestHandlerPayload): Promise<Response<TestHandlerResponse>> => {
-        const url = this.getRequestUrl(`${this._apiBasePathPrefix}/IncidentWebhook/${request.source}`);
+        const url = this.getRequestUrl(`${this._apiBasePathPrefix}/IncidentWebhook/processIncident`);
         try {
             const { data } = await axios.post<TestHandlerResponse>(url, request, {
                 headers: getAgentHeaders(),

@@ -2,6 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Agent.Core.Configuration;
 using Agent.Data;
 using Agent.Data.DataModels;
@@ -18,32 +20,26 @@ public class IncidentPlaygroundController : ControllerBase
 {
     private IInstructionGenerationService _instructionGenerationService;
     private readonly IIncidentHandlerManagementService _incidentHandlerManagementService;
-    private readonly IIncidentFilterManagementService _incidentFilterManagementService;
-    private readonly IIncidentManagementService<PagerDutyIncidentDocument> _pagerDutyincidentManagementService;
-    private readonly IIncidentManagementService<IcmIncidentDocument> _icmIncidentManagementService;
-    private readonly IIncidentManagementService<ServiceNowIncidentDocument> _serviceNowIncidentManagementService;
+    private readonly IIncidentFilterManagementServiceFactory _incidentFilterManagementServiceFactory;
+    private readonly IIncidentManagementServiceFactory _incidentManagementServiceFactory;
     private readonly ILogger<IncidentPlaygroundController> _logger;
     private readonly IncidentManagementSettings _incidentManagementSettings;
     private readonly Container _container;
 
     public IncidentPlaygroundController(
         IInstructionGenerationService instructionGenerationService,
-        IIncidentManagementService<PagerDutyIncidentDocument> pagerDutyIncidentManagementService,
-        IIncidentManagementService<IcmIncidentDocument> icmIncidentManagementService,
-        IIncidentManagementService<ServiceNowIncidentDocument> serviceNowIncidentManagementService,
+        IIncidentFilterManagementServiceFactory incidentFilterManagementServiceFactory,
+        IIncidentManagementServiceFactory incidentManagementServiceFactory,
         IIncidentHandlerManagementService incidentHandlerManagementService,
-        IIncidentFilterManagementService incidentFilterManagementService,
         IncidentManagementSettings incidentManagementSettings,
         ILogger<IncidentPlaygroundController> logger,
         CosmosClient cosmosClient,
         CosmosDBSettings cosmosDbSettings)
     {
-        _pagerDutyincidentManagementService = pagerDutyIncidentManagementService;
-        _icmIncidentManagementService = icmIncidentManagementService;
-        _serviceNowIncidentManagementService = serviceNowIncidentManagementService;
         _instructionGenerationService = instructionGenerationService;
         _incidentHandlerManagementService = incidentHandlerManagementService;
-        _incidentFilterManagementService = incidentFilterManagementService;
+        _incidentFilterManagementServiceFactory = incidentFilterManagementServiceFactory;
+        _incidentManagementServiceFactory = incidentManagementServiceFactory;
         _incidentManagementSettings = incidentManagementSettings;
         _logger = logger;
         _container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
@@ -56,7 +52,8 @@ public class IncidentPlaygroundController : ControllerBase
         try
         {
             _logger.LogInternalInformation("CheckConnectivity: Checking connectivity with IncidentFilterManagementService");
-            var result = await _incidentFilterManagementService.CheckConnectivity();
+            bool result = false;
+            result = await _incidentFilterManagementServiceFactory.GetServiceDynamic().CheckConnectivity();
             _logger.LogInternalInformation("CheckConnectivity: Connectivity check succeeded with result {Result}", result);
             return Ok(result);
         }
@@ -74,8 +71,8 @@ public class IncidentPlaygroundController : ControllerBase
         try
         {
             _logger.LogInternalInformation("GetFilterFieldOptions: Listing incident filter field options");
-            var options = await _incidentFilterManagementService.ListIncidentFilterFieldOptions();
-            _logger.LogInternalInformation("GetFilterFieldOptions: Retrieved {Count} filter field options", options?.Count ?? 0);
+            var options = await _incidentFilterManagementServiceFactory.GetServiceDynamic().ListIncidentFilterFieldOptions();
+            //_logger.LogInternalInformation("GetFilterFieldOptions: Retrieved {Count} filter field options", options?.Count ?? 0);
             return Ok(options);
         }
         catch (Exception ex)
@@ -200,8 +197,8 @@ public class IncidentPlaygroundController : ControllerBase
     public async Task<IActionResult> ListIncidentFilters()
     {
         _logger.LogInternalInformation("ListIncidentFilters: Invoked");
-        var filters = await _incidentFilterManagementService.ListIncidentFilters();
-        _logger.LogInternalInformation("ListIncidentFilters: Retrieved {Count} filters", filters?.Count ?? 0);
+        var filters = await _incidentFilterManagementServiceFactory.GetServiceDynamic().ListIncidentFilters();
+        //_logger.LogInternalInformation("ListIncidentFilters: Retrieved {Count} filters", filters?.Count ?? 0);
         return Ok(filters);
     }
 
@@ -210,7 +207,7 @@ public class IncidentPlaygroundController : ControllerBase
     public async Task<IActionResult> GetIncidentFilter(string filterId)
     {
         _logger.LogInternalInformation("GetIncidentFilter: Invoked for FilterId: {FilterId}", filterId);
-        var filter = await _incidentFilterManagementService.GetIncidentFilter(filterId);
+        var filter = await _incidentFilterManagementServiceFactory.GetServiceDynamic().GetIncidentFilter(filterId);
         if (filter == null)
         {
             _logger.LogInternalWarning("GetIncidentFilter: Filter not found for FilterId: {FilterId}", filterId);
@@ -222,99 +219,103 @@ public class IncidentPlaygroundController : ControllerBase
 
     // Create a new incident filter (PUT)
     [HttpPut("filters/{filterId}")]
-    public async Task<IActionResult> CreateIncidentFilter([FromBody] IncidentFilterDocumentPayload payload)
+    public async Task<IActionResult> CreateIncidentFilter([FromBody] JsonNode payload)
     {
-        _logger.LogInternalInformation("CreateIncidentFilter: Invoked for FilterId: {FilterId}", payload?.Id);
-        if (payload == null || string.IsNullOrEmpty(payload.Id))
+        string id = payload?["Id"]?.ToString() ?? string.Empty;
+        _logger.LogInternalInformation("CreateIncidentFilter: Invoked for FilterId: {FilterId}", id);
+        if (payload is null || string.IsNullOrEmpty(id))
         {
             _logger.LogInternalWarning("CreateIncidentFilter: Invalid incident filter document");
             return BadRequest("Invalid incident filter document");
         }
-        var existingFilter = await _incidentFilterManagementService.GetIncidentFilter(payload.Id);
+        var existingFilter = await _incidentFilterManagementServiceFactory.GetServiceDynamic().GetIncidentFilter(id);
         if (existingFilter != null)
         {
-            _logger.LogInternalWarning("CreateIncidentFilter: Filter already exists for FilterId: {FilterId}", payload.Id);
+            _logger.LogInternalWarning("CreateIncidentFilter: Filter already exists for FilterId: {FilterId}", id);
             return Conflict("Incident filter with the same ID already exists. Use POST to update.");
         }
 
         var filterDoc = new IncidentFilterDocument(
-            payload.Id,
+            id,
             $"IncidentFilter{_incidentManagementSettings.Type.ToString()}",
             DateTime.UtcNow,
-            payload.Name,
-            payload.ImpactedService,
-            payload.Priority,
-            payload.IncidentType,
-            payload.AlertId,
-            payload.TitleContains,
+            payload["Name"]?.ToString() ?? string.Empty,
+            payload["ImpactedService"]?.ToString() ?? string.Empty,
+            payload["Priority"]?.ToString() ?? string.Empty,
+            payload["IncidentType"]?.ToString() ?? string.Empty,
+            payload["AlertId"]?.ToString() ?? string.Empty,
+            payload["TitleContains"]?.ToString() ?? string.Empty,
             true,
-            OwningTeamId: payload.OwningTeamId
+            OwningTeamId: payload["OwningTeamId"]?.ToString() ?? string.Empty
         );
 
-        if (!string.IsNullOrWhiteSpace(payload.AgentMode))
+        string agentMode = payload?["AgentMode"]?.ToString() ?? string.Empty;
+        if (!string.IsNullOrWhiteSpace(agentMode))
         {
-            bool isValid = _incidentFilterManagementService.ValidateAgentMode(payload.AgentMode);
+            bool isValid = _incidentFilterManagementServiceFactory.GetServiceDynamic().ValidateAgentMode(agentMode);
             if (isValid)
             {
-                filterDoc.AgentMode = payload.AgentMode;
+                filterDoc.AgentMode = agentMode;
             }
             else
             {
-                return BadRequest($"Cannot create filter with {payload.AgentMode}");
+                return BadRequest($"Cannot create filter with {agentMode}");
             }
         }
 
-        _logger.LogInternalInformation("CreateIncidentFilter: Saving new filter for FilterId: {FilterId}", payload.Id);
-        var saved = await _incidentFilterManagementService.SaveIncidentFilter(filterDoc);
-        _logger.LogInternalInformation("CreateIncidentFilter: Filter created successfully for FilterId: {FilterId}", payload.Id);
+        var filterDocJNode = JsonSerializer.SerializeToNode(filterDoc);
+        MergeJsonNode(payload, filterDocJNode, new List<string>() { "AgentMode" });
+
+
+        _logger.LogInternalInformation("CreateIncidentFilter: Saving new filter for FilterId: {FilterId}", id);
+        if (filterDocJNode is null)
+        {
+            _logger.LogInternalWarning("CreateIncidentFilter: Filter document serialization failed for FilterId: {FilterId}", id);
+            return BadRequest("Failed to serialize incident filter document");
+        }
+        var saved = await _incidentFilterManagementServiceFactory.SaveIncidentFilter(filterDocJNode);
+        _logger.LogInternalInformation("CreateIncidentFilter: Filter created successfully for FilterId: {FilterId}", id);
         return Ok(saved);
     }
 
     // Update an existing incident filter (POST)
     [HttpPost("filters/{filterId}")]
-    public async Task<IActionResult> SaveIncidentFilter([FromBody] IncidentFilterDocumentPayload payload)
+    public async Task<IActionResult> SaveIncidentFilter([FromBody] JsonNode payload)
     {
-        _logger.LogInternalInformation("SaveIncidentFilter: Invoked for FilterId: {FilterId}", payload?.Id);
-        if (payload == null || string.IsNullOrEmpty(payload.Id))
+        string id = payload?["Id"]?.ToString() ?? string.Empty;
+        _logger.LogInternalInformation("SaveIncidentFilter: Invoked for FilterId: {FilterId}", id);
+        if (payload == null || string.IsNullOrEmpty(id))
         {
             _logger.LogInternalWarning("SaveIncidentFilter: Invalid incident filter document");
             return BadRequest("Invalid incident filter document");
         }
-        var existingFilter = await _incidentFilterManagementService.GetIncidentFilter(payload.Id);
+        var existingFilter = await _incidentFilterManagementServiceFactory.GetServiceDynamic().GetIncidentFilter(id);
         if (existingFilter == null)
         {
-            _logger.LogInternalWarning("SaveIncidentFilter: Filter not found for FilterId: {FilterId}", payload.Id);
+            _logger.LogInternalWarning("SaveIncidentFilter: Filter not found for FilterId: {FilterId}", id);
             return NotFound("Incident filter not found. Use PUT to create a new filter.");
         }
 
-        if (!string.IsNullOrWhiteSpace(payload.AgentMode))
+        string agentMode = payload?["AgentMode"]?.ToString() ?? string.Empty;
+        if (!string.IsNullOrWhiteSpace(agentMode))
         {
-            bool validateRes = _incidentFilterManagementService.ValidateAgentMode(payload.AgentMode);
+            bool validateRes = _incidentFilterManagementServiceFactory.GetServiceDynamic().ValidateAgentMode(agentMode);
             if (validateRes)
             {
-                existingFilter.AgentMode = payload.AgentMode;
+                existingFilter.AgentMode = agentMode;
             }
             else
             {
-                return BadRequest($"Cannot update handler with {payload.AgentMode}");
+                return BadRequest($"Cannot update handler with {agentMode}");
             }
         }
 
-        existingFilter.ImpactedService = payload.ImpactedService;
-        existingFilter.Name = payload.Name;
-        existingFilter.Priority = payload.Priority;
-        existingFilter.IncidentType = payload.IncidentType;
-        existingFilter.AlertId = payload.AlertId;
-        existingFilter.TitleContains = payload.TitleContains;
-        existingFilter.UpdatedAt = DateTime.UtcNow;
-        if (!string.IsNullOrEmpty(payload.AgentMode))
-        {
-            existingFilter.AgentMode = payload.AgentMode;
-        }
+        var existingDocJNode = JsonSerializer.SerializeToNode(existingFilter);
+        MergeJsonNode(payload, existingDocJNode, new List<string>() { "AgentMode" });
 
-        _logger.LogInternalInformation("SaveIncidentFilter: Saving filter for FilterId: {FilterId}", payload.Id);
-        var saved = await _incidentFilterManagementService.SaveIncidentFilter(existingFilter);
-        _logger.LogInternalInformation("SaveIncidentFilter: Filter updated successfully for FilterId: {FilterId}", payload.Id);
+        _logger.LogInternalInformation("SaveIncidentFilter: Saving filter for FilterId: {FilterId}", id);
+        var saved = await _incidentFilterManagementServiceFactory.SaveIncidentFilter(existingDocJNode);
+        _logger.LogInternalInformation("SaveIncidentFilter: Filter updated successfully for FilterId: {FilterId}", id);
         return Ok(saved);
     }
 
@@ -328,7 +329,7 @@ public class IncidentPlaygroundController : ControllerBase
             _logger.LogInternalWarning("EnableIncidentFilter: Invalid filterId");
             return BadRequest("Invalid incident filter document");
         }
-        var existingFilter = await _incidentFilterManagementService.GetIncidentFilter(filterId);
+        var existingFilter = await _incidentFilterManagementServiceFactory.GetServiceDynamic().GetIncidentFilter(filterId);
         if (existingFilter == null)
         {
             _logger.LogInternalWarning("EnableIncidentFilter: Filter not found for FilterId: {FilterId}", filterId);
@@ -339,7 +340,7 @@ public class IncidentPlaygroundController : ControllerBase
         existingFilter.UpdatedAt = DateTime.UtcNow;
 
         _logger.LogInternalInformation("EnableIncidentFilter: Enabling filter for FilterId: {FilterId}", filterId);
-        var saved = await _incidentFilterManagementService.SaveIncidentFilter(existingFilter);
+        var saved = await _incidentFilterManagementServiceFactory.GetServiceDynamic().SaveIncidentFilter(existingFilter);
         _logger.LogInternalInformation("EnableIncidentFilter: Filter enabled for FilterId: {FilterId}", filterId);
         return Ok(saved);
     }
@@ -354,7 +355,7 @@ public class IncidentPlaygroundController : ControllerBase
             _logger.LogInternalWarning("DisableIncidentFilter: Invalid filterId");
             return BadRequest("Invalid incident filter document");
         }
-        var existingFilter = await _incidentFilterManagementService.GetIncidentFilter(filterId);
+        var existingFilter = await _incidentFilterManagementServiceFactory.GetServiceDynamic().GetIncidentFilter(filterId);
         if (existingFilter == null)
         {
             _logger.LogInternalWarning("DisableIncidentFilter: Filter not found for FilterId: {FilterId}", filterId);
@@ -365,7 +366,7 @@ public class IncidentPlaygroundController : ControllerBase
         existingFilter.UpdatedAt = DateTime.UtcNow;
 
         _logger.LogInternalInformation("DisableIncidentFilter: Disabling filter for FilterId: {FilterId}", filterId);
-        var saved = await _incidentFilterManagementService.SaveIncidentFilter(existingFilter);
+        var saved = await _incidentFilterManagementServiceFactory.GetServiceDynamic().SaveIncidentFilter(existingFilter);
         _logger.LogInternalInformation("DisableIncidentFilter: Filter disabled for FilterId: {FilterId}", filterId);
         return Ok(saved);
     }
@@ -375,7 +376,7 @@ public class IncidentPlaygroundController : ControllerBase
     public async Task<IActionResult> DeleteIncidentFilter(string filterId)
     {
         _logger.LogInternalInformation("DeleteIncidentFilter: Invoked for FilterId: {FilterId}", filterId);
-        var result = await _incidentFilterManagementService.DeleteIncidentFilter(filterId);
+        var result = await _incidentFilterManagementServiceFactory.GetServiceDynamic().DeleteIncidentFilter(filterId);
         if (!result)
         {
             _logger.LogInternalWarning("DeleteIncidentFilter: Filter not found for FilterId: {FilterId}", filterId);
@@ -396,32 +397,8 @@ public class IncidentPlaygroundController : ControllerBase
                 _logger.LogInternalWarning("QueryIncidents: Invalid query request");
                 return BadRequest("Invalid query request");
             }
-            if (_incidentManagementSettings.Type == IncidentManagementType.PagerDuty)
-            {
-                _logger.LogInternalInformation("QueryIncidents: Querying PagerDuty incidents");
-                var incidents = await _pagerDutyincidentManagementService.QueryIncidents(request);
-                _logger.LogInternalInformation("QueryIncidents: Retrieved {Count} PagerDuty incidents", incidents?.Items.Count ?? 0);
-                return Ok(incidents);
-            }
-            else if (_incidentManagementSettings.Type == IncidentManagementType.Icm)
-            {
-                _logger.LogInternalInformation("QueryIncidents: Querying ICM incidents");
-                var incidents = await _icmIncidentManagementService.QueryIncidents(request);
-                _logger.LogInternalInformation("QueryIncidents: Retrieved {Count} ICM incidents", incidents?.Items.Count ?? 0);
-                return Ok(incidents);
-            }
-            else if (_incidentManagementSettings.Type == IncidentManagementType.ServiceNow)
-            {
-                _logger.LogInternalInformation("QueryIncidents: Querying ServiceNow incidents");
-                var incidents = await _serviceNowIncidentManagementService.QueryIncidents(request);
-                _logger.LogInternalInformation("QueryIncidents: Retrieved {Count} ServiceNow incidents", incidents?.Items.Count ?? 0);
-                return Ok(incidents);
-            }
-            else
-            {
-                _logger.LogInternalWarning("QueryIncidents: Incident management type '{Type}' is not implemented", _incidentManagementSettings.Type);
-                return StatusCode(501, $"Incident management type '{_incidentManagementSettings.Type}' is not implemented.");
-            }
+            var incidents = await _incidentManagementServiceFactory.GetServiceDynamic().QueryIncidents(request);
+            return Ok(incidents);
         }
         catch (Exception ex)
         {
@@ -495,69 +472,34 @@ public class IncidentPlaygroundController : ControllerBase
             _logger.LogInternalWarning("GetIncident: Invalid incidentId");
             return BadRequest("Invalid incidentId");
         }
-        if (_incidentManagementSettings.Type == IncidentManagementType.PagerDuty)
+        try
         {
-            _logger.LogInternalInformation("GetIncident: Fetching PagerDuty incident");
-            try
-            {
-                var incident = await _pagerDutyincidentManagementService.GetIncidentDetails(incidentId);
-                if (incident == null)
-                {
-                    _logger.LogInternalWarning("GetIncident: PagerDuty incident not found for IncidentId: {IncidentId}", incidentId);
-                    return NotFound();
-                }
-                _logger.LogInternalInformation("GetIncident: PagerDuty incident found for IncidentId: {IncidentId}", incidentId);
-                return Ok(incident);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogInternalError(ex, "GetIncident: Error retrieving PagerDuty incident for IncidentId: {IncidentId}", incidentId);
-                return StatusCode(500, "Failed to get incident");
-            }
+            var incident = await _incidentManagementServiceFactory.GetServiceDynamic().GetIncidentDetails(incidentId);
+            return Ok(incident);
         }
-        else if (_incidentManagementSettings.Type == IncidentManagementType.Icm)
+        catch (Exception ex)
         {
-            _logger.LogInternalInformation("GetIncident: Fetching ICM incident");
-            try
-            {
-                var incident = await _icmIncidentManagementService.GetIncidentDetails(incidentId);
-                if (incident == null)
-                {
-                    _logger.LogInternalWarning("GetIncident: ICM incident not found for IncidentId: {IncidentId}", incidentId);
-                    return NotFound();
-                }
-                _logger.LogInternalInformation("GetIncident: ICM incident found for IncidentId: {IncidentId}", incidentId);
-                return Ok(incident);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogInternalError(ex, "GetIncident: Error retrieving ICM incident for IncidentId: {IncidentId}", incidentId);
-                return StatusCode(500, "Failed to get incident");
-            }
+            _logger.LogInternalError($"Failed to getIncident {incidentId}", ex);
+            return StatusCode(500, "Failed to getIncident");
         }
-        else if (_incidentManagementSettings.Type == IncidentManagementType.ServiceNow)
+    }
+
+    private void MergeJsonNode(JsonNode? source, JsonNode? target, IEnumerable<string>? excludeProperties = null)
+    {
+        if (source is null || target is null)
         {
-            _logger.LogInternalInformation("GetIncident: Fetching ServiceNow incident");
-            try {
-                var incident = await _serviceNowIncidentManagementService.GetIncidentDetails(incidentId);
-                if (incident == null)
-                {
-                    _logger.LogInternalWarning("GetIncident: ServiceNow incident not found for IncidentId: {IncidentId}", incidentId);
-                    return NotFound();
-                }
-                _logger.LogInternalInformation("GetIncident: ServiceNow incident found for IncidentId: {IncidentId}", incidentId);
-                return Ok(incident);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogInternalError(ex, "GetIncident: Error retrieving ServiceNow incident for IncidentId: {IncidentId}", incidentId);
-                return StatusCode(500, "Failed to get incident");
-            }
+            return;
         }
-        else
+        foreach (var property in source.AsObject())
         {
-            _logger.LogInternalWarning("GetIncident: Incident management type '{Type}' is not implemented", _incidentManagementSettings.Type);
-            return StatusCode(501, $"Incident management type '{_incidentManagementSettings.Type}' is not implemented.");
+            if (excludeProperties is not null && excludeProperties.Any(ep => ep.Equals(property.Key, StringComparison.OrdinalIgnoreCase)))
+            {
+                continue;
+            }
+            if (target[property.Key] is not null)
+            {
+                target[property.Key] = property.Value?.DeepClone();
+            }
         }
     }
 }

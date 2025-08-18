@@ -18,7 +18,7 @@ namespace Agent.Core.Services
     {
         //bool IsEnabled();
         Task<Incident> GetIncidentAsync(string incidentId);
-        Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains, string? owningTeamId = null, string? incidentType = null);
+        Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains, string? owningTeamId = null, string? incidentType = null, IEnumerable<string>? status = null);
         Task<List<CustomField>> GetCustomFieldsAsync(string incidentId);
         Task<List<SearchItem>> SearchIncidentsAsync(string searchString);
         Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId);
@@ -264,13 +264,13 @@ namespace Agent.Core.Services
             }
         }
 
-        public async Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains, string? owningTeamId = null, string? incidentType = null)
+        public async Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains, string? owningTeamId = null, string? incidentType = null, IEnumerable<string>? status = null)
         {
             var modifiedDate = lastModifiedDate.HasValue ? lastModifiedDate.Value : DateTime.UtcNow.AddDays(-30); // Default to 30 days ago if no date is provided
 
-            if (lastModifiedDate < DateTime.UtcNow.AddDays(-90))
+            if (lastModifiedDate < DateTime.UtcNow.AddDays(-100))
             {
-                throw new ArgumentException("lastModifiedDate cannot be more than 90 days ago.", nameof(lastModifiedDate));
+                throw new ArgumentException("lastModifiedDate cannot be more than 100 days ago.", nameof(lastModifiedDate));
             }
 
             // Validation: If OwningTeamId is specified, IncidentType must also be specified to limit search results
@@ -284,12 +284,20 @@ namespace Agent.Core.Services
             var titleFilter = !string.IsNullOrWhiteSpace(titleContains) ? $" and contains(Title, '{titleContains}')" : string.Empty;
             var teamIdFilter = !string.IsNullOrWhiteSpace(owningTeamId) ? $" and OwningTeamId eq {owningTeamId}" : string.Empty;
             var incidentTypeFilter = !string.IsNullOrWhiteSpace(incidentType) ? $" and Type eq '{incidentType}'" : string.Empty;
+
+            string stateFilter = string.Empty;
+            if (status != null && status.Count() > 0)
+            {
+                var stateConditions = status.Select(s => $"State eq '{s}'");
+                stateFilter = " and (" + string.Join(" or ", stateConditions) + ")";
+            }
+
             var queryParams = new Dictionary<string, string?>()
             {
                 ["$top"] = limit.ToString(),
                 ["$skip"] = offset.ToString(),
                 ["$orderby"] = "LastModifiedDate desc",
-                ["$filter"] = $"LastModifiedDate gt {modifiedDate.ToString("yyyy-MM-ddTHH:mm:ss'Z'")}{serviceIdFilter}{titleFilter}{teamIdFilter}{incidentTypeFilter}"
+                ["$filter"] = $"LastModifiedDate gt {modifiedDate.ToString("yyyy-MM-ddTHH:mm:ss'Z'")}{serviceIdFilter}{titleFilter}{teamIdFilter}{incidentTypeFilter}{stateFilter}"
             };
 
             return await GetIncidentsAsyncInternal(queryParams);
@@ -890,7 +898,7 @@ namespace Agent.Core.Services
             throw new NotImplementedException();
         }
 
-        public Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains, string? owningTeamId = null, string? incidentType = null)
+        public Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains, string? owningTeamId = null, string? incidentType = null, IEnumerable<string>? status = null)
         {
             throw new NotImplementedException();
         }
