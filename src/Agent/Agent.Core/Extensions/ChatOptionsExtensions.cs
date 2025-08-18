@@ -23,7 +23,7 @@ public static class ChatOptionsExtensions
     public const string LowReasoningEffort = "low";
     public const string MediumReasoningEffort = "medium";
     public const string HighReasoningEffort = "high";
-    public const string DefaultReasoningEffort = MinimalReasoningEffort;
+    public const string DefaultReasoningEffort = LowReasoningEffort;
 
     public const string VerbosityKey = "verbosity";
     public const string DefaultVerbosityLevel = "low";
