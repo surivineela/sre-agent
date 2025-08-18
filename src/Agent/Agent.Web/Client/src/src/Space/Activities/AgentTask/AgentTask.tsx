@@ -14,7 +14,7 @@ import {
 } from '@fluentui/react-components';
 import { CheckmarkCircleColor, Dismiss24Regular, DismissCircleFilled, ErrorCircleColor } from '@fluentui/react-icons';
 import { ReactFlowProvider } from '@xyflow/react';
-import { memo } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { AgentTaskMetaData, AgentTaskStatus } from '../../../Common/Contracts/DataPlane/AgentTask';
 import { AgentTaskContext } from '../../Contracts/Context';
 import { useAgentTask } from '../../Hooks/useAgentTask';
@@ -68,6 +68,8 @@ const AgentTask = (props: IAgentTaskProps) => {
     const { collapsed, setCollapsed } = props;
     const { root, header, dropdownItem, dropdownItemText, loader, loaderItem } = useAgentTaskStyles();
 
+    const [isAgentTaskResizableOpening, setIsAgentTaskResizableOpening] = useState(false);
+
     const {
         taskDropdownOptions,
         isLoadingTaskDropdown,
@@ -79,6 +81,20 @@ const AgentTask = (props: IAgentTaskProps) => {
         toggleNode,
         getNodeStatus,
     } = useAgentTask(props);
+
+    // Use isAgentTaskResizableOpening to control the timing of calling fitView in AgentTaskGraph
+    // to make sure that fitView is called after the resizable component opening transition is completed
+    useEffect(() => {
+        if (!collapsed) {
+            setIsAgentTaskResizableOpening(true);
+            setTimeout(() => {
+                setIsAgentTaskResizableOpening(false);
+                // 300ms is the transition duration when resizable component is opening
+            }, 300);
+        } else {
+            setIsAgentTaskResizableOpening(false);
+        }
+    }, [collapsed]);
 
     const TaskDropdownItem = ({ taskId, taskDropdownOptions }: { taskId: string | null; taskDropdownOptions: AgentTaskMetaData[] }) => {
         const task = taskDropdownOptions.find(option => option.id === taskId) || null;
@@ -157,7 +173,10 @@ const AgentTask = (props: IAgentTaskProps) => {
                                 </Toolbar>
                             </DrawerHeaderNavigation>
                         </DrawerHeader>
-                        <AgentTaskGraph treeStateValue={currentTreeStateValue} isLoading={isLoadingTreeState} />
+                        <AgentTaskGraph
+                            treeStateValue={currentTreeStateValue}
+                            isLoading={isLoadingTreeState || isAgentTaskResizableOpening}
+                        />
                     </div>
                 )}
             </ReactFlowProvider>
