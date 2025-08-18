@@ -22,7 +22,6 @@ export const useAgentTask = (props: IAgentTaskProps) => {
     const [treeStates, setTreeStates] = useState<Map<string, TreeStateValue>>(new Map());
     const [isLoadingTreeState, setIsLoadingTreeState] = useState(false);
     const [currentTreeStateValue, setCurrentTreeStateValue] = useState<TreeStateValue | null>(null);
-    const [selectedNode, setSelectedNode] = useState<string | null>(null);
 
     const threadIdRef = useRef<string | null>(threadId || userDefinedThreadId || null);
     const treeStatesRef = useRef<Map<string, TreeStateValue>>(treeStates);
@@ -107,10 +106,6 @@ export const useAgentTask = (props: IAgentTaskProps) => {
         },
         [selectedTaskId]
     );
-
-    const selectNode = useCallback((nodeId: string | null) => {
-        setSelectedNode(nodeId);
-    }, []);
 
     const getNodeStatus = useCallback(
         (nodeId: string) => {
@@ -277,7 +272,5 @@ export const useAgentTask = (props: IAgentTaskProps) => {
         isLoadingTreeState,
         toggleNode,
         getNodeStatus,
-        selectNode,
-        selectedNode,
     };
 };

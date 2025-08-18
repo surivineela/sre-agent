@@ -1,13 +1,12 @@
 import { Body1, Card, CardHeader, makeStyles, Subtitle1, Text, tokens } from '@fluentui/react-components';
-import { ArrowClockwiseFilled, CheckmarkCircleColor, SubtractCircleRegular } from '@fluentui/react-icons';
 import { NodeProps } from '@xyflow/react';
 import { memo, useContext } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
-import { InvestigationStatusCommon, TaskProgressStatus } from '../../../Common/Contracts/DataPlane/AgentTask';
 import { AgentTaskNodeSize, GraphFlowNode } from '../../Contracts/Activities';
-import { AgentTaskContext } from '../../Contracts/Context';
+import { AgentTaskGraphContext } from '../../Contracts/Context';
+import { getInitialInvestigationStepsIcon } from './Utility';
 
 const useStyles = makeStyles({
     nodeContainer: {
@@ -77,18 +76,14 @@ const useStyles = makeStyles({
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
     },
-    stepIcon: {
-        fontSize: `${tokens.fontSizeBase600}px`,
-        minWidth: `${tokens.fontSizeBase600}px`,
-    },
 });
 
 const AgentTaskGraphFlowInitialInvestigationNode = (props: NodeProps<GraphFlowNode>) => {
     const { id, data } = props;
 
-    const { nodeContainer, card, header, title, description, stepsContainer, stepContainer, stepText, stepIcon } = useStyles();
+    const { nodeContainer, card, header, title, description, stepsContainer, stepContainer, stepText } = useStyles();
 
-    const { selectedNode, selectNode } = useContext(AgentTaskContext);
+    const { selectedNodeId, selectNode } = useContext(AgentTaskGraphContext);
 
     const isSummaryNode = data.showInitialInvestigationSummary;
 
@@ -145,18 +140,7 @@ const AgentTaskGraphFlowInitialInvestigationNode = (props: NodeProps<GraphFlowNo
     const Steps = () => {
         const steps = data.gatheringContextSteps || [];
 
-        const getStepStatusIcon = (status: string) => {
-            switch (status.toLowerCase()) {
-                case InvestigationStatusCommon.Complete:
-                case TaskProgressStatus.Completed:
-                    return <CheckmarkCircleColor className={stepIcon} />;
-                case InvestigationStatusCommon.InProgress:
-                case TaskProgressStatus.InProgress:
-                    return <ArrowClockwiseFilled className={stepIcon} style={{ color: tokens.colorBrandForegroundLinkHover }} />;
-                default:
-                    return <SubtractCircleRegular className={stepIcon} style={{ color: tokens.colorNeutralForegroundDisabled }} />;
-            }
-        };
+        const statusIcon = getInitialInvestigationStepsIcon(data.status);
 
         let stepsToDisplay = steps.slice(0, 6); // Display only the first 6 steps
         let showEllipsis = false;
@@ -171,7 +155,7 @@ const AgentTaskGraphFlowInitialInvestigationNode = (props: NodeProps<GraphFlowNo
             <div className={stepsContainer}>
                 {stepsToDisplay.map((step, index) => (
                     <div key={index} className={stepContainer}>
-                        {getStepStatusIcon(step.status)}
+                        {statusIcon}
                         <Body1 className={stepText}>{step.title}</Body1>
                     </div>
                 ))}
@@ -186,7 +170,8 @@ const AgentTaskGraphFlowInitialInvestigationNode = (props: NodeProps<GraphFlowNo
         <div className={nodeContainer}>
             <Card
                 className={card}
-                selected={selectedNode === id}
+                // Do not check the data.id because it is the investigation group node's id
+                selected={selectedNodeId === id}
                 onSelectionChange={(_, selection) => {
                     selectNode(selection.selected ? id : null);
                 }}

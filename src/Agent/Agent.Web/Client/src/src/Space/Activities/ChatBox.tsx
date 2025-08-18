@@ -15,7 +15,7 @@ import { ChatBoxContext, ThreadAgentModeContext } from '../Contracts/Context';
 import { useChatBox } from '../Hooks/useChatBox';
 import { useThreadAgentMode } from '../Hooks/useThreadAgentMode';
 import { getChatBoxV2Styles } from '../Styles/Activities.styles';
-import AgentTask from './AgentTask';
+import AgentTask from './AgentTask/AgentTask';
 import AgentTaskDev from './AgentTaskDev';
 import AzureSREWelcome from './AzureSREWelcome';
 import { ChatSuggestions } from './ChatSuggestions';

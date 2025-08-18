@@ -1,10 +1,10 @@
-import { Body1, Body2, Card, CardFooter, CardHeader, makeStyles, Text, tokens } from '@fluentui/react-components';
-import { ArrowCounterclockwiseFilled, CheckmarkCircleRegular, DismissCircleRegular, QuestionCircleRegular } from '@fluentui/react-icons';
+import { Body1, Body2, Card, CardFooter, CardHeader, makeStyles, tokens } from '@fluentui/react-components';
 import { Handle, NodeProps, Position } from '@xyflow/react';
-import { memo, useContext, useMemo } from 'react';
+import { memo, useContext } from 'react';
 import { HypothesisStatus } from '../../../Common/Contracts/DataPlane/AgentTask';
 import { AgentTaskNodeSize, GraphFlowNode } from '../../Contracts/Activities';
-import { AgentTaskContext } from '../../Contracts/Context';
+import { AgentTaskGraphContext } from '../../Contracts/Context';
+import NodeStatusPill from './NodeStatusPill';
 
 const useStyles = makeStyles({
     nodeContainer: {
@@ -45,21 +45,6 @@ const useStyles = makeStyles({
     cardFooter: {
         justifySelf: 'flex-end',
     },
-    statusContainer: {
-        padding: '5px 10px',
-        width: '100%',
-        borderRadius: tokens.borderRadiusCircular,
-        display: 'flex',
-        flexDirection: 'row',
-        gap: tokens.spacingHorizontalXS,
-        alignItems: 'center',
-    },
-    statusTextFont: {
-        fontSize: tokens.fontSizeBase400,
-    },
-    statusIconFont: {
-        fontSize: tokens.fontSizeBase500,
-    },
     handle: {
         opacity: 0,
         pointerEvents: 'none',
@@ -80,11 +65,11 @@ const getCardBorderColor = (status: string) => {
 };
 
 const AgentTaskGraphFlowHypothesisNode = (props: NodeProps<GraphFlowNode>) => {
-    const { data } = props;
+    const { data, id } = props;
 
     const { nodeContainer, card, title, description, cardFooter, handle } = useStyles();
 
-    const { selectedNode, selectNode } = useContext(AgentTaskContext);
+    const { selectedNodeId, selectNode } = useContext(AgentTaskGraphContext);
 
     return (
         <div className={nodeContainer}>
@@ -92,8 +77,8 @@ const AgentTaskGraphFlowHypothesisNode = (props: NodeProps<GraphFlowNode>) => {
                 focusMode={'tab-only'}
                 className={card}
                 style={{ border: `1.5px solid ${getCardBorderColor(data.status)}` }}
-                selected={selectedNode === data.id}
-                onSelectionChange={(_, selection) => selectNode(selection.selected ? data.id : null)}
+                selected={selectedNodeId === id}
+                onSelectionChange={(_, selection) => selectNode(selection.selected ? id : null)}
             >
                 <CardHeader
                     header={
@@ -104,7 +89,7 @@ const AgentTaskGraphFlowHypothesisNode = (props: NodeProps<GraphFlowNode>) => {
                     description={<Body1 className={description}>{data.description}</Body1>}
                 />
                 <CardFooter className={cardFooter}>
-                    <StatusIndicator status={data.status} />
+                    <NodeStatusPill status={data.status} showIcon={true} />
                 </CardFooter>
             </Card>
             <Handle type={'target'} position={Position.Top} isConnectable={false} className={handle} />
@@ -112,68 +97,5 @@ const AgentTaskGraphFlowHypothesisNode = (props: NodeProps<GraphFlowNode>) => {
         </div>
     );
 };
-
-const StatusIndicator = memo(({ status }: { status: string }) => {
-    const { statusContainer, statusTextFont, statusIconFont } = useStyles();
-
-    const statusProps = useMemo(() => {
-        switch (status) {
-            case HypothesisStatus.Validated:
-                return {
-                    text: 'Validated',
-                    iconFontColor: tokens.colorNeutralForegroundInverted,
-                    statusTextFontColor: tokens.colorNeutralForegroundInverted,
-                    icon: CheckmarkCircleRegular,
-                    backgroundColor: tokens.colorPaletteGreenBackground3,
-                    borderColor: undefined,
-                };
-            case HypothesisStatus.Invalidated:
-                return {
-                    text: 'Invalidated',
-                    iconFontColor: undefined,
-                    statusTextFontColor: undefined,
-                    icon: DismissCircleRegular,
-                    backgroundColor: tokens.colorNeutralBackground3,
-                    borderColor: undefined,
-                };
-            case HypothesisStatus.Inconclusive:
-                return {
-                    text: 'Inconclusive',
-                    iconFontColor: tokens.colorStatusWarningForeground3,
-                    statusTextFontColor: tokens.colorStatusWarningForeground3,
-                    icon: QuestionCircleRegular,
-                    backgroundColor: undefined,
-                    borderColor: tokens.colorStatusWarningBackground2,
-                };
-            default:
-                return {
-                    text: 'Pending',
-                    iconFontColor: tokens.colorBrandForegroundLinkHover,
-                    statusTextFontColor: undefined,
-                    icon: ArrowCounterclockwiseFilled,
-                    backgroundColor: undefined,
-                    borderColor: tokens.colorNeutralBackground6,
-                };
-        }
-    }, [status]);
-
-    return (
-        <div
-            className={statusContainer}
-            style={{
-                backgroundColor: statusProps.backgroundColor,
-                border: statusProps.borderColor ? `1.5px solid ${statusProps.borderColor}` : 'none',
-            }}
-        >
-            <statusProps.icon
-                className={statusIconFont}
-                style={statusProps.iconFontColor ? { color: statusProps.iconFontColor } : undefined}
-            />
-            <Text className={statusTextFont} weight={'semibold'} style={{ color: statusProps.statusTextFontColor }}>
-                {statusProps.text}
-            </Text>
-        </div>
-    );
-});
 
 export default memo(AgentTaskGraphFlowHypothesisNode);

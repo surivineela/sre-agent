@@ -15,9 +15,9 @@ import {
 import { CheckmarkCircleColor, Dismiss24Regular, DismissCircleFilled, ErrorCircleColor } from '@fluentui/react-icons';
 import { ReactFlowProvider } from '@xyflow/react';
 import { memo } from 'react';
-import { AgentTaskMetaData, AgentTaskStatus } from '../../Common/Contracts/DataPlane/AgentTask';
-import { AgentTaskContext } from '../Contracts/Context';
-import { useAgentTask } from '../Hooks/useAgentTask';
+import { AgentTaskMetaData, AgentTaskStatus } from '../../../Common/Contracts/DataPlane/AgentTask';
+import { AgentTaskContext } from '../../Contracts/Context';
+import { useAgentTask } from '../../Hooks/useAgentTask';
 import AgentTaskGraph from './AgentTaskGraph';
 
 interface IAgentTaskProps {
@@ -78,8 +78,6 @@ const AgentTask = (props: IAgentTaskProps) => {
         isLoadingTreeState,
         toggleNode,
         getNodeStatus,
-        selectNode,
-        selectedNode,
     } = useAgentTask(props);
 
     const TaskDropdownItem = ({ taskId, taskDropdownOptions }: { taskId: string | null; taskDropdownOptions: AgentTaskMetaData[] }) => {
@@ -114,7 +112,7 @@ const AgentTask = (props: IAgentTaskProps) => {
     };
 
     return (
-        <AgentTaskContext.Provider value={{ toggleNode, getNodeStatus, selectNode, selectedNode }}>
+        <AgentTaskContext.Provider value={{ toggleNode, getNodeStatus }}>
             <ReactFlowProvider>
                 {collapsed ? null : (
                     <div className={root}>

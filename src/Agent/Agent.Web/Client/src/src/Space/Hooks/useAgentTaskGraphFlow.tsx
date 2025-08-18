@@ -1,7 +1,7 @@
 import { graphlib, layout } from '@dagrejs/dagre';
 import { MarkerType, useEdgesState, useNodesState, useReactFlow, XYPosition } from '@xyflow/react';
 import debounce from 'lodash/debounce';
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { InvestigationTreeNode, InvestigationTreeState, TreeNodeType } from '../../Common/Contracts/DataPlane/AgentTask';
 import { Guid } from '../../Common/Helpers/Guid';
 import {
@@ -40,6 +40,34 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
 
     const [nodes, setNodes, onNodesChange] = useNodesState<GraphFlowNode>([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState<GraphFlowEdge>([]);
+    const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+    const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
+
+    const selectNode = useCallback((nodeId: string | null) => {
+        setSelectedNodeId(nodeId);
+        setIsDetailsPanelOpen(!!nodeId);
+    }, []);
+
+    const closeDetailsPanel = useCallback(() => {
+        setIsDetailsPanelOpen(false);
+        setSelectedNodeId(null);
+    }, []);
+
+    const selectedNode = useMemo(() => {
+        if (!selectedNodeId) return null;
+
+        const node = nodes.find(n => n.id === selectedNodeId);
+        if (node) {
+            // if the selected node is initial investigation summary or intial investigation steps, then set the parent node as the selected node
+            if (node.type === TreeNodeType.InitialInvestigation) {
+                // summary or step node's data id is the parent node's id
+                const parentNode = nodes.find(n => n.id === node.data.id);
+                return parentNode || null;
+            }
+            return node;
+        }
+        return null;
+    }, [nodes, selectedNodeId]);
 
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -600,5 +628,11 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
         onEdgesChange,
         renderKey,
         containerRef,
+
+        selectNode,
+        selectedNodeId,
+        selectedNode,
+        isDetailsPanelOpen,
+        closeDetailsPanel,
     };
 };

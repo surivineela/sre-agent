@@ -2,7 +2,7 @@ import { Card, CardHeader, makeStyles, Subtitle1, Subtitle2, tokens } from '@flu
 import { Handle, NodeProps, Position } from '@xyflow/react';
 import { memo, useContext } from 'react';
 import { AgentTaskNodeSize, GraphFlowNode } from '../../Contracts/Activities';
-import { AgentTaskContext } from '../../Contracts/Context';
+import { AgentTaskGraphContext } from '../../Contracts/Context';
 
 const useStyles = makeStyles({
     nodeContainer: {
@@ -44,19 +44,20 @@ const useStyles = makeStyles({
 });
 
 const AgentTaskGraphFlowConclusionNode = (props: NodeProps<GraphFlowNode>) => {
-    const { data } = props;
+    const { data, id } = props;
 
     const { nodeContainer, tag, card, title, handle } = useStyles();
 
-    const { selectedNode, selectNode } = useContext(AgentTaskContext);
+    const { selectedNodeId, selectNode } = useContext(AgentTaskGraphContext);
 
     return (
         <div className={nodeContainer}>
             <Subtitle2 className={tag}>{'Conclusion'}</Subtitle2>
             <Card
+                focusMode={'tab-only'}
                 className={card}
-                selected={selectedNode === data.id}
-                onSelectionChange={(_, selection) => selectNode(selection.selected ? data.id : null)}
+                selected={selectedNodeId === id}
+                onSelectionChange={(_, selection) => selectNode(selection.selected ? id : null)}
             >
                 <CardHeader
                     header={
