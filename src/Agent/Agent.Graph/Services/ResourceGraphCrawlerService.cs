@@ -647,9 +647,27 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
         foreach (var resourceId in resourceIds)
         {
             var (subscriptionId, resourceGroupName, id) = ParseResourceId(resourceId);
+
+            // Reject obviously invalid inputs
+            if (string.IsNullOrEmpty(subscriptionId))
+            {
+                _logger.LogInternalWarning($"Invalid resource ID for Kubernetes watch: {resourceId}. Subscription ID is missing.");
+                continue;
+            }
+
+            // If an explicit resource identifier was provided, only accept managed cluster (AKS) resources.
             if (id is not null)
             {
-                aksClusters.Add(id!);
+                // Only consider this resource if it's an AKS managed cluster.
+                if (string.Equals(id.ResourceType, Constants.ManagedClusterType, StringComparison.OrdinalIgnoreCase))
+                {
+                    aksClusters.Add(id.ToString());
+                }
+                else
+                {
+                    _logger.LogInternalWarning($"Skipping resource for Kubernetes watch: {resourceId}. Only subscription, resource-group or AKS managed cluster resources are valid.");
+                }
+
                 continue;
             }
 
