@@ -32,26 +32,33 @@ public class SourceCodeAnalysisPlugin : ISourceCodeAnalysisPlugin
 
     public async Task<string> QueryRepositoryBasedOnError(string resourceId, string errorDescription)
     {
-        var searchResults = await GetSemanticSearchResult(resourceId, errorDescription);
-
-        if (searchResults is null || !searchResults.Any())
+        try
         {
-            return "No search results found.";
+            var searchResults = await GetSemanticSearchResult(resourceId, errorDescription);
+
+            if (searchResults is null || !searchResults.Any())
+            {
+                return "No search results found.";
+            }
+
+            var top5Results = searchResults.Take(5);
+            var resultStrings = top5Results.Select(result =>
+            {
+                var filePath = result?.Location?.Path ?? "Unknown";
+                var score = result?.Distance ?? 0.0;
+                var content = result?.Chunk?.Text ?? "No content";
+                var start = result?.Chunk?.Range?.Start.ToString() ?? "N/A";
+                var end = result?.Chunk?.Range?.End.ToString() ?? "N/A";
+
+                return $"File: {filePath}\nScore: {score:F2}\nContent: {content} at {start} to {end}\n";
+            });
+
+            return string.Join("\n---\n", resultStrings);
         }
-
-        var top5Results = searchResults.Take(5);
-        var resultStrings = top5Results.Select(result =>
+        catch (Exception ex)
         {
-            var filePath = result?.Location?.Path ?? "Unknown";
-            var score = result?.Distance ?? 0.0;
-            var content = result?.Chunk?.Text ?? "No content";
-            var start = result?.Chunk?.Range?.Start.ToString() ?? "N/A";
-            var end = result?.Chunk?.Range?.End.ToString() ?? "N/A";
-
-            return $"File: {filePath}\nScore: {score:F2}\nContent: {content} at {start} to {end}\n";
-        });
-
-        return string.Join("\n---\n", resultStrings);
+            return $"Error occurred while querying repository: {ex.Message}";
+        }
     }
     
     private void LogHttpResponse(HttpResponseMessage response, string apiName, string responseContent = "")
@@ -108,23 +115,39 @@ public class SourceCodeAnalysisPlugin : ISourceCodeAnalysisPlugin
         }
 
         // Ensure the repository is indexed by attempting indexing twice if necessary.
+        var errors = new List<string>();
         for (int attempt = 0; attempt < 2; attempt++)
         {
-            if (await IsRepositoryIndexed(repoUrl))
+            var (isIndexed, indexError) = await IsRepositoryIndexedWithDetails(repoUrl);
+            if (isIndexed)
             {
                 break;
             }
 
+            if (!string.IsNullOrEmpty(indexError))
+            {
+                errors.Add($"Index check attempt {attempt + 1}: {indexError}");
+            }
+
             _logger.LogInternalInformation("Repository not indexed. Attempting to index: Attempt {AttemptNumber}", attempt + 1);
-            await ForceRepositoryIndexing(repoUrl);
+            var indexingResult = await ForceRepositoryIndexing(repoUrl);
+            if (!indexingResult.Contains("successfully"))
+            {
+                errors.Add($"Indexing attempt {attempt + 1}: {indexingResult}");
+            }
 
             // Add a delay to allow indexing to take effect before rechecking.
             await Task.Delay(5000);
         }
 
-        if (!await IsRepositoryIndexed(repoUrl))
+        var (finalIsIndexed, finalIndexError) = await IsRepositoryIndexedWithDetails(repoUrl);
+        if (!finalIsIndexed)
         {
-            string errorMessage = $"Failed to index repository after multiple attempts: {repoUrl}";
+            if (!string.IsNullOrEmpty(finalIndexError))
+            {
+                errors.Add($"Final index check: {finalIndexError}");
+            }
+            string errorMessage = $"Failed to index repository after multiple attempts: {repoUrl}. Errors: {string.Join("; ", errors)}";
             _logger.LogInternalError(errorMessage);
             throw new InvalidOperationException(errorMessage);
         }
@@ -132,7 +155,7 @@ public class SourceCodeAnalysisPlugin : ISourceCodeAnalysisPlugin
         // This method throws. 
         var (owner, repo) = GitHubHelper.ParseGitHubUrl(repoUrl);
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.github.com/embeddings/code/search");
-        request.Headers.UserAgent.Add(new ProductInfoHeaderValue("GitHubEmbeddingSearchClient", "1.0"));
+        request.Headers.UserAgent.Add(new ProductInfoHeaderValue("MS-SRE-Agent", "1.0"));
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         request.Headers.Add("X-GitHub-Api-Version", "2024-05-14");
         string password = _gitHubClient.Credentials?.Password ?? throw new InvalidOperationException($"GitHub credentials are not set - please ensure the GitHub repository {repoUrl} is connected.");
@@ -170,7 +193,7 @@ public class SourceCodeAnalysisPlugin : ISourceCodeAnalysisPlugin
         }
     }
 
-    public async Task<bool> IsRepositoryIndexed(string repoUrl)
+    public async Task<(bool isIndexed, string error)> IsRepositoryIndexedWithDetails(string repoUrl)
     {
         (string owner, string repo) = GitHubHelper.ParseGitHubUrl(repoUrl);
         var endpoint = $"https://api.github.com/repos/{owner}/{repo}/copilot_internal/embeddings_index";
@@ -178,7 +201,7 @@ public class SourceCodeAnalysisPlugin : ISourceCodeAnalysisPlugin
         try
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
-            request.Headers.UserAgent.ParseAdd("IndexingStatusClient/1.0");
+            request.Headers.UserAgent.ParseAdd("MS-SRE-Agent/1.0");
             string password = _gitHubClient.Credentials?.Password ?? throw new InvalidOperationException($"GitHub credentials are not set - please ensure the GitHub repository {repoUrl} is connected.");
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", password); 
             var response = await _httpClient.SendAsync(request);
@@ -191,24 +214,39 @@ public class SourceCodeAnalysisPlugin : ISourceCodeAnalysisPlugin
             {
                 var indexStatus = JsonSerializer.Deserialize<JsonElement>(responseContent);
                 bool semanticCodeSearchOk = indexStatus.TryGetProperty("semantic_code_search_ok", out var searchOkProp) && searchOkProp.GetBoolean();
-                return semanticCodeSearchOk;
+                return (semanticCodeSearchOk, string.Empty);
             }
             else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
-                _logger.LogInternalWarning("Repository not found or token does not have access: {Endpoint}", endpoint);
-                return false;
+                var error = "Repository not found or token does not have access (404 Not Found)";
+                _logger.LogInternalWarning(error + ": {Endpoint}", endpoint);
+                return (false, error);
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                var error = "Access forbidden - this could be due to insufficient permissions or GitHub abuse rate limiting (403 Forbidden)";
+                _logger.LogInternalWarning(error + ": {Endpoint}", endpoint);
+                return (false, error);
             }
             else
             {
-                _logger.LogInternalWarning("Unexpected status code {StatusCode} from {Endpoint}", response.StatusCode, endpoint);
-                return false;
+                var error = $"Unexpected status code {response.StatusCode}";
+                _logger.LogInternalWarning(error + " from {Endpoint}", response.StatusCode, endpoint);
+                return (false, error);
             }
         }
         catch (Exception ex)
         {
+            var error = $"Error checking repository index status: {ex.Message}";
             _logger.LogInternalError(ex, "Error checking repository index status", repoUrl);
-            return false;
+            return (false, error);
         }
+    }
+
+    public async Task<bool> IsRepositoryIndexed(string repoUrl)
+    {
+        var (isIndexed, _) = await IsRepositoryIndexedWithDetails(repoUrl);
+        return isIndexed;
     }
 
     public async Task<string> ForceRepositoryIndexing(string repoUrl)
@@ -220,7 +258,7 @@ public class SourceCodeAnalysisPlugin : ISourceCodeAnalysisPlugin
         {
             // GitHub API requires User-Agent and Authorization headers
             using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
-            request.Headers.UserAgent.ParseAdd("RepositoryIndexer/1.0");
+            request.Headers.UserAgent.ParseAdd("MS-SRE-Agent/1.0");
             string password = _gitHubClient.Credentials?.Password ?? throw new InvalidOperationException($"GitHub credentials are not set - please ensure the GitHub repository {repoUrl} is connected.");
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", password);
 
@@ -234,6 +272,7 @@ public class SourceCodeAnalysisPlugin : ISourceCodeAnalysisPlugin
             {
                 System.Net.HttpStatusCode.Created => "Indexing task queued successfully (201 Created).",
                 System.Net.HttpStatusCode.NotFound => "Repository not found or access denied (404 Not Found).",
+                System.Net.HttpStatusCode.Forbidden => "Access forbidden - this could be due to insufficient permissions or GitHub abuse rate limiting (403 Forbidden).",
                 System.Net.HttpStatusCode.ServiceUnavailable => "Auto indexing not allowed right now (503 Service Unavailable). Try again later.",
                 _ => $"Unexpected response: {response.StatusCode}"
             };
@@ -270,24 +309,31 @@ public class SourceCodeAnalysisPlugin : ISourceCodeAnalysisPlugin
             throw new ArgumentException("Query cannot be null or empty.", nameof(query));
         }
 
-        var searchResults = await GetSemanticSearchResult(resourceId, query);
-
-        if (searchResults is null || !searchResults.Any())
+        try
         {
-            return "No search results found.";
+            var searchResults = await GetSemanticSearchResult(resourceId, query);
+
+            if (searchResults is null || !searchResults.Any())
+            {
+                return "No search results found.";
+            }
+
+            var resultStrings = searchResults.Select(result =>
+            {
+                var filePath = result?.Location?.Path ?? "Unknown";
+                var score = result?.Distance ?? 0.0;
+                var content = result?.Chunk?.Text ?? "No content";
+                var start = result?.Chunk?.Range?.Start.ToString() ?? "N/A";
+                var end = result?.Chunk?.Range?.End.ToString() ?? "N/A";
+
+                return $"File: {filePath}\nScore: {score:F2}\nContent: {content} at {start} to {end}\n";
+            });
+
+            return string.Join("\n---\n", resultStrings);
         }
-
-        var resultStrings = searchResults.Select(result =>
+        catch (Exception ex)
         {
-            var filePath = result?.Location?.Path ?? "Unknown";
-            var score = result?.Distance ?? 0.0;
-            var content = result?.Chunk?.Text ?? "No content";
-            var start = result?.Chunk?.Range?.Start.ToString() ?? "N/A";
-            var end = result?.Chunk?.Range?.End.ToString() ?? "N/A";
-
-            return $"File: {filePath}\nScore: {score:F2}\nContent: {content} at {start} to {end}\n";
-        });
-
-        return string.Join("\n---\n", resultStrings);
+            return $"Error occurred while querying repository: {ex.Message}";
+        }
     }
 }
