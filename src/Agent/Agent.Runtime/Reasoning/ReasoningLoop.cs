@@ -1100,6 +1100,7 @@ public class ReasoningLoop : IDisposable
                 _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelOutputTokensCount, response?.Usage?.OutputTokenCount?.ToString() ?? string.Empty);
                 _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelTotalTokensCount, response?.Usage?.TotalTokenCount?.ToString() ?? string.Empty);
                 _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelTemperature, agent?.Temperature.ToString() ?? string.Empty);
+                _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelId, response?.ModelId?.ToString() ?? string.Empty);
                 _currentGenerationSpan?.End();
                 _currentGenerationSpan = null;
 

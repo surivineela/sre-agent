@@ -37,6 +37,7 @@ public static class TraceAttribute
     public const string ModelOutputTokensCount = "model.output.tokens.count";
     public const string ModelTotalTokensCount = "model.total.tokens.count";
     public const string ModelTemperature = "model.temperature";
+    public const string ModelId = "model.id";
 
     // reasoning.loop
     public const string TriggeredBy = "triggered.by";
