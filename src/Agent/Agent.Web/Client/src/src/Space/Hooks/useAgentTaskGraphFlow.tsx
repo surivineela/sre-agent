@@ -34,7 +34,7 @@ class DagreSep {
 const GroupNodePadding = 50;
 
 export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
-    const { treeStateValue } = props;
+    const { treeStateValue, shouldFitView } = props;
 
     const { fitView } = useReactFlow();
 
@@ -42,6 +42,7 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
     const [edges, setEdges, onEdgesChange] = useEdgesState<GraphFlowEdge>([]);
     const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
     const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
+    const [renderKey, setRenderKey] = useState(Guid.newGuid());
 
     const selectNode = useCallback((nodeId: string | null) => {
         setSelectedNodeId(nodeId);
@@ -617,9 +618,11 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
 
         setNodes(graphFlowNodes);
         setEdges(graphFlowEdges);
-    }, [treeStateValue]);
 
-    const renderKey = useMemo(() => Guid.newGuid(), [nodes.length]);
+        if (shouldFitView) {
+            setRenderKey(Guid.newGuid());
+        }
+    }, [treeStateValue, shouldFitView]);
 
     return {
         nodes,

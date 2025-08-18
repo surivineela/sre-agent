@@ -78,6 +78,7 @@ const AgentTask = (props: IAgentTaskProps) => {
         taskDropdownValue,
         currentTreeStateValue,
         isLoadingTreeState,
+        shouldFitView,
         toggleNode,
         getNodeStatus,
     } = useAgentTask(props);
@@ -176,6 +177,7 @@ const AgentTask = (props: IAgentTaskProps) => {
                         <AgentTaskGraph
                             treeStateValue={currentTreeStateValue}
                             isLoading={isLoadingTreeState || isAgentTaskResizableOpening}
+                            shouldFitView={shouldFitView}
                         />
                     </div>
                 )}

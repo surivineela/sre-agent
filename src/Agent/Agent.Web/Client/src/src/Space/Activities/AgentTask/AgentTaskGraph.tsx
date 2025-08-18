@@ -8,11 +8,11 @@ import AgentTaskGraphFlowGroupNode from '../../Components/AgentTask/AgentTaskGra
 import AgentTaskGraphFlowHypothesisNode from '../../Components/AgentTask/AgentTaskGraphFlowHypothesisNode';
 import AgentTaskGraphFlowInitialInvestigationNode from '../../Components/AgentTask/AgentTaskGraphFlowInitialInvestigationNode';
 import { GraphFlowEdge, GraphFlowNode, IAgentTaskGraphProps } from '../../Contracts/Activities';
+import { AgentTaskGraphContext } from '../../Contracts/Context';
 import { useAgentTaskGraphFlow } from '../../Hooks/useAgentTaskGraphFlow';
+import AgentTaskDetailsPanel from './AgentTaskDetailsPanel';
 
 import '@xyflow/react/dist/style.css';
-import { AgentTaskGraphContext } from '../../Contracts/Context';
-import AgentTaskDetailsPanel from './AgentTaskDetailsPanel';
 
 const AgentTaskGraph = (props: IAgentTaskGraphProps) => {
     const {

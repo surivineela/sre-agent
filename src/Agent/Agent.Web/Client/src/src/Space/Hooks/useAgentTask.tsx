@@ -22,6 +22,7 @@ export const useAgentTask = (props: IAgentTaskProps) => {
     const [treeStates, setTreeStates] = useState<Map<string, TreeStateValue>>(new Map());
     const [isLoadingTreeState, setIsLoadingTreeState] = useState(false);
     const [currentTreeStateValue, setCurrentTreeStateValue] = useState<TreeStateValue | null>(null);
+    const [shouldFitView, setShouldFitView] = useState(true);
 
     const threadIdRef = useRef<string | null>(threadId || userDefinedThreadId || null);
     const treeStatesRef = useRef<Map<string, TreeStateValue>>(treeStates);
@@ -220,14 +221,17 @@ export const useAgentTask = (props: IAgentTaskProps) => {
         if (selectedTaskId) {
             const treeStateValue = treeStates.get(selectedTaskId) || null;
             setCurrentTreeStateValue(prev => {
-                if (
-                    prev === null ||
-                    treeStateValue === null ||
-                    prev.taskId !== treeStateValue.taskId ||
-                    prev.changeIdentifier !== treeStateValue.changeIdentifier
-                )
+                const isPrevNull = prev === null;
+                const isCurrentNull = treeStateValue === null;
+                const isSameTaskId = prev?.taskId === treeStateValue?.taskId;
+                const isCurrentTaskChanged = treeStateValue?.changeIdentifier !== prev?.changeIdentifier;
+                if (isPrevNull || isCurrentNull || !isSameTaskId || isCurrentTaskChanged) {
+                    const isUpdatingCurrentTreeState = !isPrevNull && !isCurrentNull && isSameTaskId && isCurrentTaskChanged;
+                    setShouldFitView(!isUpdatingCurrentTreeState);
                     return treeStateValue;
-                return prev;
+                } else {
+                    return prev;
+                }
             });
         }
     }, [selectedTaskId, treeStates]);
@@ -270,6 +274,7 @@ export const useAgentTask = (props: IAgentTaskProps) => {
 
         currentTreeStateValue,
         isLoadingTreeState,
+        shouldFitView,
         toggleNode,
         getNodeStatus,
     };
