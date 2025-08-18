@@ -8,7 +8,8 @@ import { SecretValue } from '../../Common/Components/SecretValue';
 import ShimmeredDetailsListWithSelection, { OnUpdateSelectionArgs } from '../../Common/Components/ShimmeredDetailsListWithSelection';
 import { DataConnector } from '../../Common/Contracts/Azure/SreAgent';
 import { ArmResourceDescriptor } from '../../Common/Helpers/ResourceDescriptors';
-import { DataConnectorsResources, SettingsTabResources } from '../../Strings/SREAgentResources';
+import { DataConnectorsResources, SettingsTabResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { IdentityKeys } from '../Contracts/Identity';
 import { CreateOrUpdateDataConnectorDialog, DataConnectorFormProps } from './AddEditDataConnectors';
 import DataConnectionsToolbar from './DataConnectorsToolbar';
 import { useAgentDataConnectors } from './Hooks/useAgentDataConnectors';
@@ -261,6 +262,10 @@ const DataConnectors: FC = () => {
                 isResizable: true,
                 onRender: (item: DataConnector) => {
                     if (typeof item.identity === 'string') {
+                        if (item.identity.toLowerCase() === IdentityKeys.system) {
+                            return intl.formatMessage(SreAgentResources.systemAssigned);
+                        }
+
                         const identityResourceDescriptor = new ArmResourceDescriptor(item.identity);
                         const identityName = identityResourceDescriptor.resourceName;
                         return <Link onClick={() => openManagedIdentity(item.identity as string)}>{identityName}</Link>;
@@ -270,10 +275,6 @@ const DataConnectors: FC = () => {
             },
         ];
     }, [intl, openManagedIdentity, handleEditDataConnection, isOperationInProgress]);
-
-    const identities = useMemo(() => {
-        return agent?.identity?.userAssignedIdentities ? Object.keys(agent.identity.userAssignedIdentities) : [];
-    }, [agent?.identity?.userAssignedIdentities]);
 
     return (
         <>
@@ -308,7 +309,7 @@ const DataConnectors: FC = () => {
             </div>
 
             <CreateOrUpdateDataConnectorDialog
-                identities={identities}
+                agentIdentity={agent?.identity}
                 isDialogOpen={isDialogOpen}
                 setIsDialogOpen={setIsDialogOpen}
                 createDataConnector={createDataConnection}
@@ -317,6 +318,7 @@ const DataConnectors: FC = () => {
                 isEditMode={isEditMode}
                 isOperationInProgress={isOperationInProgress}
                 existingDataConnectors={dataConnectors}
+                refreshAgent={refreshAgent}
             />
         </>
     );

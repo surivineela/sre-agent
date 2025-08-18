@@ -2,6 +2,7 @@ import { defineMessages } from 'react-intl';
 
 export const SreAgentResources = defineMessages({
     all: { defaultMessage: 'All', id: 'zQvVDJ' },
+    addIdentity: { defaultMessage: 'Add identity', id: 'xUuESs' },
     azureSreAgent: { defaultMessage: 'Azure SRE Agent', id: 'Erci0g' },
     agentPermissionsLevel: { defaultMessage: 'Agent permissions level', id: '+bJIWo' },
     deleteAgentTitle: { defaultMessage: 'Delete SRE Agent', id: 'ThSX0k' },
@@ -182,6 +183,7 @@ export const SreAgentResources = defineMessages({
     stop: { defaultMessage: 'Stop', id: 'q/uwLT' },
     sreAgentSpace: { defaultMessage: 'SRE Agent Space', id: 'iv1ryQ' },
     subscription: { defaultMessage: 'Subscription', id: 'R/6nsx' },
+    systemAssigned: { defaultMessage: 'System assigned', id: 'yh4G7g' },
     coreApplicationGroups: { defaultMessage: 'Core application groups', id: 'I8iKnF' },
     coreApplicationGroup: { defaultMessage: 'Core application group', id: 'pf5nil' },
     subscriptionId: { defaultMessage: 'Subscription ID', id: 'FUQvS0' },
@@ -239,6 +241,7 @@ export const SreAgentResources = defineMessages({
     reader: { defaultMessage: 'Reader', id: '3nhWFW' },
     privileged: { defaultMessage: 'Privileged', id: 'TDoBlx' },
     clickToShowValue: { defaultMessage: 'Click to show value', id: 'J/uqp9' },
+    userAssigned: { defaultMessage: 'User assigned', id: 'VB97cf' },
 });
 
 export const SreAgentTabResources = defineMessages({
@@ -1467,7 +1470,7 @@ export const DataConnectorsResources = defineMessages({
     typePlaceholder: { defaultMessage: 'Select connector type', id: 'ftDEuE' },
     dataSourcePlaceholder: { defaultMessage: 'Enter connector string or endpoint', id: 'jJc7jK' },
     keyVaultUriPlaceholder: { defaultMessage: 'Enter Key Vault URI', id: '69sjgc' },
-    identityPlaceholder: { defaultMessage: 'Enter identity', id: 'yoEvbh' },
+    identityPlaceholder: { defaultMessage: 'Select identity', id: '8RdOD0' },
     duplicateNameError: { defaultMessage: 'A data connector with this name already exists', id: 'pG9xP9' },
     deletingDataConnector: { defaultMessage: 'Deleting data connector', id: 'aA1SYF' },
     deletingDataConnectorDescription: { defaultMessage: 'Deleting data connector "{name}"', id: 'S6FECK' },

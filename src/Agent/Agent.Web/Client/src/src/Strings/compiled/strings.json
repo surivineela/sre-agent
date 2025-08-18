@@ -925,6 +925,12 @@
       "value": "I'm currently gathering information about your app and analyzing your resources, which might take a few minutes."
     }
   ],
+  "8RdOD0": [
+    {
+      "type": 0,
+      "value": "Select identity"
+    }
+  ],
   "8Wiwkg": [
     {
       "type": 0,
@@ -2659,6 +2665,12 @@
     {
       "type": 0,
       "value": "Repository"
+    }
+  ],
+  "VB97cf": [
+    {
+      "type": 0,
+      "value": "User assigned"
     }
   ],
   "VKbBsK": [
@@ -4629,6 +4641,12 @@
       "value": "searchString"
     }
   ],
+  "xUuESs": [
+    {
+      "type": 0,
+      "value": "Add identity"
+    }
+  ],
   "xVPoso": [
     {
       "type": 0,
@@ -4745,6 +4763,12 @@
       "value": "Failed to create data connector"
     }
   ],
+  "yh4G7g": [
+    {
+      "type": 0,
+      "value": "System assigned"
+    }
+  ],
   "yhU1et": [
     {
       "type": 0,
@@ -4761,12 +4785,6 @@
     {
       "type": 0,
       "value": "API Management Service Operator Role"
-    }
-  ],
-  "yoEvbh": [
-    {
-      "type": 0,
-      "value": "Enter identity"
     }
   ],
   "yoK+he": [

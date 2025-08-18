@@ -9,14 +9,22 @@ import {
     Dropdown,
     Field,
     Input,
+    Link,
     Option,
+    OptionGroup,
 } from '@fluentui/react-components';
 import { Dismiss24Regular } from '@fluentui/react-icons';
 import { Formik, FormikHelpers, useFormikContext } from 'formik';
-import { Dispatch, FC, useCallback, useEffect, useMemo, useState } from 'react';
+import { Dispatch, FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { ApiVersions } from '../../Common/ApiVersions';
+import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
+import { MsiIdentity } from '../../Common/Contracts/Azure/ArmObj';
 import { DataConnector } from '../../Common/Contracts/Azure/SreAgent';
 import { DataConnectorsResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { IdentityKeys, IdentityType } from '../Contracts/Identity';
+import { IdentityStatus } from './Identity.ReactView';
 
 const connectorTypeOptions = [{ id: 'Kusto' }, { id: 'TsgCrawler' }, { id: 'KustoDataIndexer' }];
 
@@ -25,20 +33,22 @@ interface CreateDataConnectorProps {
     setIsDialogOpen: Dispatch<React.SetStateAction<boolean>>;
     createDataConnector: (dataConnector: DataConnector) => Promise<void>;
     updateDataConnector: (dataConnector: DataConnector) => Promise<void>;
-    identities: string[];
+    agentIdentity?: MsiIdentity;
     isEditMode: boolean;
     initialValues?: DataConnectorFormProps;
     isOperationInProgress?: boolean;
     existingDataConnectors?: DataConnector[];
+    refreshAgent: () => void;
 }
 
 interface CreateOrUpdateDataConnectorFormProps {
     isDialogOpen: boolean;
     setIsDialogOpen: Dispatch<React.SetStateAction<boolean>>;
     isEditMode: boolean;
-    identities: string[];
+    agentIdentity?: MsiIdentity;
     isOperationInProgress?: boolean;
     existingDataConnectors?: DataConnector[];
+    refreshAgent: () => void;
 }
 
 export interface DataConnectorFormProps {
@@ -53,11 +63,12 @@ export const CreateOrUpdateDataConnectorDialog: FC<CreateDataConnectorProps> = (
     setIsDialogOpen,
     createDataConnector,
     updateDataConnector,
-    identities,
+    agentIdentity,
     initialValues,
     isEditMode = false,
     isOperationInProgress = false,
     existingDataConnectors,
+    refreshAgent,
 }) => {
     const initialFormValues = useMemo((): DataConnectorFormProps => {
         if (isEditMode && initialValues) {
@@ -104,9 +115,10 @@ export const CreateOrUpdateDataConnectorDialog: FC<CreateDataConnectorProps> = (
                 isDialogOpen={isDialogOpen}
                 setIsDialogOpen={setIsDialogOpen}
                 isEditMode={isEditMode}
-                identities={identities}
+                agentIdentity={agentIdentity}
                 isOperationInProgress={isOperationInProgress}
                 existingDataConnectors={existingDataConnectors}
+                refreshAgent={refreshAgent}
             />
         </Formik>
     );
@@ -116,27 +128,56 @@ const CreateOrUpdateDataConnectorForm = ({
     isDialogOpen,
     setIsDialogOpen,
     isEditMode,
-    identities,
+    agentIdentity,
     isOperationInProgress = false,
     existingDataConnectors,
+    refreshAgent,
 }: CreateOrUpdateDataConnectorFormProps) => {
     const intl = useIntl();
+    const azPortalContext = useContext(AzPortalContext);
+    const { resourceId } = useContext(EnvironmentContext);
     const [nameError, setNameError] = useState<string | undefined>();
 
     const { values, setFieldValue, submitForm, resetForm } = useFormikContext<DataConnectorFormProps>();
 
-    const identityOptions = useMemo(() => {
-        return (
-            identities?.map(resourceId => {
+    const isSystemAssignedIdentityEnabled = useMemo(() => {
+        return agentIdentity?.type.toLowerCase().includes(IdentityType.systemAssigned.toLowerCase());
+    }, [agentIdentity]);
+
+    const userAssignedIdentityOptions = useMemo(() => {
+        const userAssignedOptions: { id: string; name: string }[] = [];
+
+        const userAssignedIdentityRscIds = agentIdentity?.userAssignedIdentities ? Object.keys(agentIdentity.userAssignedIdentities) : [];
+        if (userAssignedIdentityRscIds.length > 0) {
+            userAssignedIdentityRscIds.forEach(resourceId => {
                 const parts = resourceId.split('/');
                 const name = parts[parts.length - 1] || resourceId;
-                return {
+                userAssignedOptions.push({
                     id: resourceId,
                     name: name,
-                };
-            }) ?? []
-        );
-    }, [identities]);
+                });
+            });
+        }
+
+        return userAssignedOptions;
+    }, [agentIdentity]);
+
+    const openIdentityBlade = useCallback(async () => {
+        const bladeClosedPromise = azPortalContext.openBlade({
+            extension: 'Microsoft_Azure_ManagedServiceIdentity',
+            detailBlade: 'AzureResourceIdentitiesBladeV2',
+            detailBladeInputs: {
+                resourceId,
+                apiVersion: ApiVersions.microsoftAppApiVersion20250501Preview,
+                systemAssignedStatus: IdentityStatus.Supported,
+                userAssignedStatus: IdentityStatus.Supported,
+            },
+        });
+
+        await bladeClosedPromise;
+
+        refreshAgent();
+    }, [azPortalContext, resourceId, refreshAgent]);
 
     useEffect(() => {
         if (!values.name || isEditMode) {
@@ -150,10 +191,18 @@ const CreateOrUpdateDataConnectorForm = ({
 
     useEffect(() => {
         // Auto-select the first identity if there's only one option and no current selection
-        if (identityOptions.length === 1 && !values.identity) {
-            setFieldValue('identity', identityOptions[0].id);
+        const allSelectableOptions = [...userAssignedIdentityOptions];
+        if (isSystemAssignedIdentityEnabled) {
+            allSelectableOptions.unshift({
+                id: IdentityKeys.system,
+                name: 'filler',
+            });
         }
-    }, [identityOptions, values.identity, setFieldValue]);
+
+        if (allSelectableOptions.length === 1 && !values.identity) {
+            setFieldValue('identity', allSelectableOptions[0].id);
+        }
+    }, [isSystemAssignedIdentityEnabled, userAssignedIdentityOptions, values.identity, setFieldValue]);
 
     const isSaveDisabled = useMemo((): boolean => {
         return !values.name || !values.dataConnectorType || !values.dataSource || !values.identity || isOperationInProgress || !!nameError;
@@ -221,22 +270,38 @@ const CreateOrUpdateDataConnectorForm = ({
                             <Field label={intl.formatMessage(DataConnectorsResources.identity)} required>
                                 <Dropdown
                                     name="identity"
-                                    value={identityOptions.find(option => option.id === values.identity)?.name || ''}
+                                    value={
+                                        values.identity === IdentityKeys.system
+                                            ? intl.formatMessage(SreAgentResources.systemAssigned)
+                                            : userAssignedIdentityOptions.find(option => option.id === values.identity)?.name || ''
+                                    }
                                     onOptionSelect={(_, data) => {
-                                        const selectedOption = identityOptions.find(option => option.name === data.optionText);
-                                        if (selectedOption) {
-                                            setFieldValue('identity', selectedOption.id);
+                                        if (data.optionValue) {
+                                            setFieldValue('identity', data.optionValue);
                                         }
                                     }}
                                     placeholder={intl.formatMessage(DataConnectorsResources.identityPlaceholder)}
                                     disabled={isOperationInProgress}
                                 >
-                                    {identityOptions.map(option => (
-                                        <Option key={option.id} value={option.name}>
-                                            {option.name}
+                                    {isSystemAssignedIdentityEnabled && (
+                                        <Option key={IdentityKeys.system} value={IdentityKeys.system}>
+                                            {intl.formatMessage(SreAgentResources.systemAssigned)}
                                         </Option>
-                                    ))}
+                                    )}
+
+                                    {userAssignedIdentityOptions.length > 0 && (
+                                        <OptionGroup label={intl.formatMessage(SreAgentResources.userAssigned)}>
+                                            {userAssignedIdentityOptions.map(option => (
+                                                <Option key={option.id} value={option.id}>
+                                                    {option.name}
+                                                </Option>
+                                            ))}
+                                        </OptionGroup>
+                                    )}
                                 </Dropdown>
+                                <Link onClick={openIdentityBlade} style={{ marginTop: '8px', display: 'block', fontSize: '14px' }}>
+                                    {intl.formatMessage(SreAgentResources.addIdentity)}
+                                </Link>
                             </Field>
                         </form>
                     </DialogContent>
