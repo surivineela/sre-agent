@@ -24,21 +24,30 @@ namespace Agent.Plugins.Kusto
             // Keep existing header/ADX link
             sb.Append(baseMessage.Text);
 
-            var (headers, rows) = ParseTsv(tsv, options.MaxTableRows);
+            var (headers, rows, totalRows) = ParseTsv(tsv, options.MaxTableRows);
 
             if (options.ShowTable && headers.Length > 0)
             {
                 sb.AppendLine();
                 sb.AppendLine();
-                sb.AppendLine("<details><summary>Preview table</summary>");
+                var label = totalRows > 0 ? $"Preview table (showing first {rows.Count} of {totalRows} rows)" : "Preview table";
+                sb.AppendLine($"<details><summary>{label}</summary>");
                 sb.AppendLine();
                 sb.AppendLine(BuildMarkdownTable(headers, rows));
+                if (totalRows > rows.Count)
+                {
+                    sb.AppendLine();
+                    sb.AppendLine("> Note: Result truncated for display. Open the ADX link above to view all rows.");
+                }
                 sb.AppendLine("</details>");
             }
 
             if (options.ShowChart && headers.Length > 1)
             {
-                var chartJson = BuildChartDataJson(headers, rows, options);
+                // Downsample to keep charts light
+                var maxChartPoints = options.MaxChartPoints > 0 ? options.MaxChartPoints : 200;
+                var chartRows = DownsampleRows(rows, maxChartPoints);
+                var chartJson = BuildChartDataJson(headers, chartRows, options);
                 if (!string.IsNullOrEmpty(chartJson))
                 {
                     sb.AppendLine();
@@ -51,21 +60,23 @@ namespace Agent.Plugins.Kusto
             return new ChatMessage(ChatRole.Tool, sb.ToString());
         }
 
-        private static (string[] headers, List<string[]> rows) ParseTsv(string tsv, int maxRows)
+    private static (string[] headers, List<string[]> rows, int totalRows) ParseTsv(string tsv, int maxRows)
         {
             var lines = tsv.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
             if (lines.Length == 0)
             {
-                return (Array.Empty<string>(), new List<string[]>());
+        return (Array.Empty<string>(), new List<string[]>(), 0);
             }
 
             var headers = lines[0].Split('\t');
-            var rows = new List<string[]>();
-            for (int i = 1; i < lines.Length && rows.Count < Math.Max(0, maxRows); i++)
+        var totalRows = Math.Max(0, lines.Length - 1);
+        var cap = Math.Max(0, maxRows);
+        var rows = new List<string[]>();
+        for (int i = 1; i < lines.Length && rows.Count < cap; i++)
             {
                 rows.Add(lines[i].Split('\t'));
             }
-            return (headers, rows);
+        return (headers, rows, totalRows);
         }
 
         private static string BuildMarkdownTable(string[] headers, List<string[]> rows)
@@ -86,6 +97,11 @@ namespace Agent.Plugins.Kusto
 
         private static string EscapeMd(string input)
         {
+            if (string.IsNullOrEmpty(input))
+            {
+                return string.Empty;
+            }
+
             return input
                 .Replace("|", "\\|")
                 .Replace("<", "&lt;")
@@ -98,12 +114,12 @@ namespace Agent.Plugins.Kusto
             // - x field must exist
             // - one or more numeric series fields exist
             var xField = options.XField;
-            var series = options.SeriesFields ?? new List<string>();
+            List<string> series = options?.SeriesFields?.ToList<string>() ?? new List<string>();
 
             if (string.IsNullOrWhiteSpace(xField))
             {
                 // Default to first column as category
-                xField = headers[0];
+                xField = headers.Length > 0 ? headers[0] : string.Empty;
             }
 
             if (series.Count == 0)
@@ -141,7 +157,7 @@ namespace Agent.Plugins.Kusto
             var payload = new
             {
                 type = "line",
-                title = options.ChartTitle ?? "Kusto Result",
+                title = options?.ChartTitle ?? "Kusto Result",
                 data = dataObjects,
                 xAxisLabel = xField,
                 yAxisLabel = series.Count == 1 ? series[0] : "Value"
@@ -151,6 +167,15 @@ namespace Agent.Plugins.Kusto
             {
                 WriteIndented = false
             });
+        }
+
+        private static List<string[]> DownsampleRows(List<string[]> rows, int maxPoints)
+        {
+            return (rows.Count <= maxPoints || maxPoints <= 0)
+                ? rows
+                : Enumerable.Range(0, maxPoints)
+                .Select(i => rows[(int)Math.Floor((double)i * rows.Count / maxPoints)])
+                .ToList();
         }
 
         private static string GetCellByHeader(string[] row, Dictionary<string, int> hIndex, string header)

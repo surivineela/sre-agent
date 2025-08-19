@@ -20,6 +20,6 @@ namespace Agent.Plugins.Kusto
 
         public string? ChartTitle { get; set; }
         public string? XField { get; set; }
-        public List<string>? SeriesFields { get; set; }
+        public IReadOnlyList<string>? SeriesFields { get; set; }
     }
 }
