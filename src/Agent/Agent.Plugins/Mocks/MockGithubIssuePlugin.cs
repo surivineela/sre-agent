@@ -27,7 +27,7 @@ public class MockGithubIssuePlugin : IGithubIssuePlugin
         return string.Empty;
     }
 
-    public Task<Issue> CreateGithubIssue(string repoUrl, string title, string body, string[] tags)
+    public Task<Issue> CreateGithubIssue(string repoUrl, string title, string body, string[] tags, string[]? assignees = null)
     {
         throw new NotImplementedException();
     }

@@ -11,7 +11,7 @@ namespace Agent.Plugins.Interface
     {
         public Guid? ThreadId { get; set; }
 
-        Task<Issue> CreateGithubIssue(string repoUrl, string title, string body, string[] tags);
+        Task<Issue> CreateGithubIssue(string repoUrl, string title, string body, string[] tags, string[]? assignees = null);
         Task<IssueComment> CreateGithubIssueComment(string repoUrl, int number, string commentBody);
         Task DeleteGithubIssueComment(string repoUrl, long id, string newCommentBody);
         Task<IReadOnlyList<GithubIssuePluginIssueComment>> FetchGithubIssueComments(string repoUrl, int issueNumber, Kernel kernel);

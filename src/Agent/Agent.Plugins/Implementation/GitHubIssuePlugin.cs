@@ -57,7 +57,8 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
         string repoUrl,
         string title,
         string body,
-        string[] tags
+        string[] tags,
+        string[]? assignees = null
     )
     {
         return await KernelFunctionHelpers.TryAction(
@@ -84,6 +85,16 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
                 foreach (var tag in tags)
                 {
                     issue.Labels.Add(tag);
+                }
+
+                if (assignees != null)
+                {
+                    // Validate assignees exist before adding them
+                    var validatedAssignees = await ValidateGitHubUsersAsync(assignees);
+                    foreach (var assignee in validatedAssignees)
+                    {
+                        issue.Assignees.Add(assignee);
+                    }
                 }
 
                 return await SendGitHubCallAsync(() => _gitHubClient.Issue.Create(owner, repo, issue));
@@ -524,6 +535,56 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
             _logger.LogInternalError(ex, "Error extracting image description");
             return string.Empty;
         }
+    }
+
+    private async Task<string[]> ValidateGitHubUsersAsync(string[] usernames)
+    {
+        var validUsers = new List<string>();
+        
+        foreach (var username in usernames)
+        {
+            if (string.IsNullOrWhiteSpace(username))
+                continue;
+
+            // Transform "copilot" to "copilot-swe-agent[bot]"
+            var actualUsername = username.Trim().ToLowerInvariant() == "copilot" 
+                ? "copilot-swe-agent[bot]" 
+                : username.Trim();
+                
+            try
+            {
+                // Try to get user information to validate existence
+                var user = await SendGitHubCallAsync(() => _gitHubClient.User.Get(actualUsername));
+                if (user != null)
+                {
+                    validUsers.Add(actualUsername);
+                    if (actualUsername != username)
+                    {
+                        _logger.LogInternalInformation($"Transformed assignee '{username}' to '{actualUsername}' and validated GitHub user.");
+                    }
+                    else
+                    {
+                        _logger.LogInternalInformation($"Validated GitHub user: {actualUsername}");
+                    }
+                }
+            }
+            catch (Octokit.NotFoundException)
+            {
+                _logger.LogInternalWarning($"GitHub user '{actualUsername}' not found. Skipping assignment.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, $"Error validating GitHub user '{actualUsername}'. Skipping assignment.");
+            }
+        }
+        
+        if (validUsers.Count != usernames.Length)
+        {
+            var invalidUsers = usernames.Except(validUsers).ToArray();
+            _logger.LogInternalWarning($"Some assignees were invalid and skipped: {string.Join(", ", invalidUsers)}");
+        }
+        
+        return validUsers.ToArray();
     }
 
     private async Task SendGitHubCallAsync(Func<Task> githubCallFunc)

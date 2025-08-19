@@ -25,15 +25,16 @@ public class GitHubIssuePluginDefinition
     }
 
     [KernelFunction("create_github_issue")]
-    [Description("Create an issue on GitHub to track a problem with a web app which you have diagnosed if you have a solution to fix it. Unless this is a sample issue, make the publisher be detailed. If the user requests to set something that isn't supported, let them know. If there are any credential related issues when executing this plugin, call generate_login_link and ask the user to follow a link to login")]
+    [Description("Create an issue on GitHub to track a problem with a web app which you have diagnosed if you have a solution to fix it. Unless this is a sample issue, make the publisher be detailed. If the user requests to set something that isn't supported, let them know. If there are any credential related issues when executing this plugin, call generate_login_link and ask the user to follow a link to login. Note: Assignees are validated to ensure they are real GitHub users before assignment.")]
     public async Task<Issue> CreateGithubIssue(
         [Description($"GitHub repository URL, e.g. {GitHubHelper.ExampleUrl}")] string repoUrl,
         [Description("Title of issue")] string title,
         [Description("Body of issue")] string body,
-        [Description("Tags to put on issue")] string[] tags
+        [Description("Tags to put on issue")] string[] tags,
+        [Description("GitHub usernames to assign to the issue (optional). Only valid GitHub users will be assigned. 'copilot' will be automatically transformed to 'copilot-swe-agent[bot]'.")] string[]? assignees = null
     )
     {
-        return await _gitHubIssuePlugin.CreateGithubIssue(repoUrl, title, body, tags);
+        return await _gitHubIssuePlugin.CreateGithubIssue(repoUrl, title, body, tags, assignees);
     }
 
     [KernelFunction("create_github_issue_comment")]
