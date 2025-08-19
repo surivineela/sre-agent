@@ -1066,6 +1066,11 @@ public class Program
             return false; // IcmAgent is not a container app first-party agent
         }
 
+        if (Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") == "RCARouterAgent")
+        {
+            return false; // RCARouterAgent is not a container app first-party agent
+        }
+
         if (args.Any(x => string.Equals(x.Trim(), "--is-first-party=true", StringComparison.OrdinalIgnoreCase)))
         {
             return true;
