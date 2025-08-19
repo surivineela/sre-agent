@@ -721,6 +721,32 @@ internal class SqlServerParser : IServiceProviderConnectorParser
     }
 }
 
+internal class CosmosDBParser : IServiceProviderConnectorParser
+{
+    public string? Parse(string parameterValue, string parameterName)
+    {
+        if (string.IsNullOrWhiteSpace(parameterValue))
+            return null;
+
+        if (string.Equals(parameterName, "connectionString", StringComparison.OrdinalIgnoreCase))
+            return ArmHelper.TryParseCosmosDbFromConnectionString(parameterValue);
+
+        return null;
+    }
+}
+
+// Generic Endpoint parser for service provider connections that only has an endpoint as a parameter
+internal class EndpointSubdomainParser : IServiceProviderConnectorParser
+{
+    public string? Parse(string parameterValue, string parameterName)
+    {
+        if (string.IsNullOrWhiteSpace(parameterValue))
+            return null;
+
+        return ArmHelper.TryParseFirstSubdomainFromHttpsUrl(parameterValue);
+    }
+}
+
 internal static class ServiceProviderConnectorRegistry
 {
     public static readonly Dictionary<string, ServiceProviderConnectorRegistryEntry> Entries = new(StringComparer.OrdinalIgnoreCase)
@@ -759,6 +785,31 @@ internal static class ServiceProviderConnectorRegistry
             new[] { "connectionString" },
             new SqlServerParser(),
             "Microsoft.Sql/servers"
+        ),
+        ["/serviceProviders/AzureCosmosDB"] = new ServiceProviderConnectorRegistryEntry(
+            new[] { "connectionString" },
+            new CosmosDBParser(),
+            "Microsoft.DocumentDb/databaseAccounts"
+        ),
+        ["/serviceProviders/keyVault"] = new ServiceProviderConnectorRegistryEntry(
+            new[] { "VaultUri" },
+            new EndpointSubdomainParser(),
+            "Microsoft.KeyVault/vaults"
+        ),
+        ["/serviceProviders/eventGridPublisher"] = new ServiceProviderConnectorRegistryEntry(
+            new[] { "topicEndpoint" },
+            new EndpointSubdomainParser(),
+            "Microsoft.EventGrid/topics"
+        ),
+        ["/serviceProviders/azureaisearch"] = new ServiceProviderConnectorRegistryEntry(
+            new[] { "searchServiceEndpoint" },
+            new EndpointSubdomainParser(),
+            "Microsoft.Search/searchServices"
+        ),
+        ["/serviceProviders/openai"] = new ServiceProviderConnectorRegistryEntry(
+            new[] { "openAIEndpoint" },
+            new EndpointSubdomainParser(),
+            "Microsoft.CognitiveServices/accounts"
         )
     };
 }

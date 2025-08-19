@@ -3111,6 +3111,16 @@ public class ArmHelper
         return server;
     }
 
+    public static string? TryParseCosmosDbFromConnectionString(string connectionString)
+    {
+        if (connectionString.StartsWith("AccountEndpoint=https://", StringComparison.OrdinalIgnoreCase))
+        {
+            return connectionString.Substring("AccountEndpoint=https://".Length).Split('.').FirstOrDefault();
+        }
+
+        return null;
+    }
+
     #endregion
 
     #region Private Methods

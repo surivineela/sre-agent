@@ -33,6 +33,7 @@ const ICON_LOOKUP: Record<string, string> = {
     sqlserver: 'SQLServer.svg',
     redis: 'AzureRedisCache.svg',
     cache: 'AzureRedisCache.svg',
+    storageaccounts: 'StorageAccount.svg',
 
     // Networking
     vnet: 'Vnet.svg',
@@ -55,6 +56,9 @@ const ICON_LOOKUP: Record<string, string> = {
     'microsoft.servicebus/namespaces': 'ServiceBusNamespace.svg',
     'microsoft.synapse/workspaces': 'SynapseWorkspace.svg',
     'microsoft.web/connections': 'Connection.svg',
+    'keyvault/vaults': 'KeyVault.svg',
+    'microsoft.search/searchservices': 'AzureAiSearch.svg',
+    'microsoft.cognitiveservices/accounts': 'AzureOpenAI.svg',
 };
 
 // Friendly names for resource types
@@ -115,6 +119,9 @@ const FRIENDLY_NAMES: Record<string, string> = {
     'microsoft.servicebus/namespaces': 'Service Bus Namespace',
     'microsoft.synapse/workspaces': 'Synapse Workspace',
     'microsoft.web/connections': 'API Connection',
+    'keyvault/vaults': 'Key Vault',
+    'microsoft.search/searchservices': 'Azure AI Search',
+    'microsoft.cognitiveservices/accounts': 'Azure OpenAI',
 };
 
 const DEFAULT_ICON = 'azureResource.svg';
