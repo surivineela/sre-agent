@@ -59,6 +59,11 @@ namespace Agent.Plugins.Mocks
             return Task.FromResult(true);
         }
 
+        public Task<bool> StartWebApp(string appResourceId)
+        {
+            return Task.FromResult(true);
+        }
+
         public void ConfigureReliability(
             IReadOnlyDictionary<string, AppReliability> statuses)
         {
@@ -201,6 +206,16 @@ namespace Agent.Plugins.Mocks
             {
                 return Task.FromResult($"Error: Exception occurred while processing storage service URI: {ex.Message}");
             }
+        }
+
+        public Task<(bool, string)> EnableTrafficManagerEndpoint(string subscriptionId, string resourceGroupName, string profileName, string endpointName, string endpointType)
+        {
+            return Task.FromResult((true, $"Mock: Traffic Manager endpoint {endpointName} enabled successfully"));
+        }
+
+        public Task<(bool, string)> DisableTrafficManagerEndpoint(string subscriptionId, string resourceGroupName, string profileName, string endpointName, string endpointType)
+        {
+            return Task.FromResult((true, $"Mock: Traffic Manager endpoint {endpointName} disabled successfully"));
         }
     }
 }

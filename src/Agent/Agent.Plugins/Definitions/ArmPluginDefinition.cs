@@ -63,6 +63,18 @@ namespace Agent.Plugins
                 : "Restart failed";
         }
 
+        [RequiresApproval]
+        [WriteAction]
+        [Description("Start an AppService app")]
+        public async Task<string> StartWebApp(
+            [Description("The resource ID of the AppService app.")]
+            string appResourceId)
+        {
+            return await _armPlugin.StartWebApp(appResourceId)
+                ? "Start succeeded"
+                : "Start failed";
+        }
+
         [Description("Get ARM properties of a resource as JSON")]
         [AgentTool(ToolMode.Auto)]
         public async Task<string> GetArmResourceAsJson(
@@ -228,6 +240,34 @@ NOTE: This is an internal tool for command validation, not for generating user d
         {
 
             return await _armPlugin.GetAzCliHelpAsync(helpTopic, grepPattern);
+        }
+
+        [RequiresApproval]
+        [WriteAction]
+        [Description("Enables (brings online) an Azure Traffic Manager endpoint")]
+        public async Task<string> EnableTrafficManagerEndpoint(
+            [Description("The subscription ID containing the Traffic Manager profile")] string subscriptionId,
+            [Description("The name of the resource group containing the Traffic Manager profile")] string resourceGroupName,
+            [Description("The name of the Traffic Manager profile")] string profileName,
+            [Description("The name of the endpoint to enable")] string endpointName,
+            [Description("The type of endpoint (e.g., 'azureEndpoints', 'externalEndpoints', 'nestedEndpoints')")] string endpointType)
+        {
+            var result = await _armPlugin.EnableTrafficManagerEndpoint(subscriptionId, resourceGroupName, profileName, endpointName, endpointType);
+            return result.Item1 ? result.Item2 : $"Failed to enable endpoint: {result.Item2}";
+        }
+
+        [RequiresApproval]
+        [WriteAction]
+        [Description("Disables (takes offline) an Azure Traffic Manager endpoint")]
+        public async Task<string> DisableTrafficManagerEndpoint(
+            [Description("The subscription ID containing the Traffic Manager profile")] string subscriptionId,
+            [Description("The name of the resource group containing the Traffic Manager profile")] string resourceGroupName,
+            [Description("The name of the Traffic Manager profile")] string profileName,
+            [Description("The name of the endpoint to disable")] string endpointName,
+            [Description("The type of endpoint (e.g., 'azureEndpoints', 'externalEndpoints', 'nestedEndpoints')")] string endpointType)
+        {
+            var result = await _armPlugin.DisableTrafficManagerEndpoint(subscriptionId, resourceGroupName, profileName, endpointName, endpointType);
+            return result.Item1 ? result.Item2 : $"Failed to disable endpoint: {result.Item2}";
         }
     }
 }

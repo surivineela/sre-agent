@@ -907,6 +907,17 @@ public class ArmHelper
         return response;
     }
 
+    public async Task<HttpResponseMessage> StartWebAppAsync(string appResourceId)
+    {
+        var requestUrl = new Uri(new Uri("https://management.azure.com"), $"{appResourceId}/start?api-version=2024-04-01");
+
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
+
+        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+        HttpResponseMessage response = await httpClient.SendAsync(request);
+        return response;
+    }
+
     public async Task<bool> RestartContainerAppAsync(string appResourceId, string revisionName)
     {
         var requestUrl = new Uri(new Uri("https://management.azure.com"), $"{appResourceId}/revisions/{revisionName}/restart?api-version=2025-01-01");
@@ -915,6 +926,84 @@ public class ArmHelper
         var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
         HttpResponseMessage response = await httpClient.SendAsync(request);
         return response.IsSuccessStatusCode;
+    }
+
+    public async Task<(bool, string)> UpdateTrafficManagerEndpointStatus(
+        string subscriptionId,
+        string resourceGroupName,
+        string profileName,
+        string endpointName,
+        string endpointType,
+        string endpointStatus)
+    {
+        try
+        {
+            var requestUrl = new Uri(new Uri("https://management.azure.com"), 
+                $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/trafficManagerProfiles/{profileName}/{endpointType}/{endpointName}?api-version=2022-04-01");
+
+            var requestBody = new
+            {
+                type = $"Microsoft.Network/trafficManagerProfiles/{endpointType}",
+                properties = new
+                {
+                    endpointStatus = endpointStatus
+                }
+            };
+
+            string jsonBody = JsonSerializer.Serialize(requestBody);
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Patch, requestUrl)
+            {
+                Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
+            };
+
+            var cred = await _authService.GetArmOperationCredential();
+            var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+
+            var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+            HttpResponseMessage response = await httpClient.SendAsync(request);
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                if (CheckForUnauthorizedAccess(response))
+                {
+                    throw new ToolExecutionUnauthorizedException($"Unauthorized access to Traffic Manager endpoint {endpointName}");
+                }
+
+                string errorMessage = $"Failed to update Traffic Manager endpoint status. Status Code: {response.StatusCode}, Response: {responseContent}";
+                _logger.LogInternalError(errorMessage);
+                return (false, errorMessage);
+            }
+
+            _logger.LogInternalInformation($"UpdateTrafficManagerEndpointStatus response: {responseContent}");
+            return (true, $"Traffic Manager endpoint {endpointName} status updated to {endpointStatus}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError($"Error updating Traffic Manager endpoint status: {ex.Message}");
+            return (false, ex.Message);
+        }
+    }
+
+    public async Task<(bool, string)> EnableTrafficManagerEndpoint(
+        string subscriptionId,
+        string resourceGroupName,
+        string profileName,
+        string endpointName,
+        string endpointType)
+    {
+        return await UpdateTrafficManagerEndpointStatus(subscriptionId, resourceGroupName, profileName, endpointName, endpointType, "Enabled");
+    }
+
+    public async Task<(bool, string)> DisableTrafficManagerEndpoint(
+        string subscriptionId,
+        string resourceGroupName,
+        string profileName,
+        string endpointName,
+        string endpointType)
+    {
+        return await UpdateTrafficManagerEndpointStatus(subscriptionId, resourceGroupName, profileName, endpointName, endpointType, "Disabled");
     }
 
     // Use the generic method for all specific cases:

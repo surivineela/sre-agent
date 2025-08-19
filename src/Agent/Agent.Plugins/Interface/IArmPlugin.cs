@@ -18,6 +18,7 @@ namespace Agent.Plugins.Interface
         Task<List<TlsStatus>> GetTlsSettings(List<string> resourceIds);
         Task<bool> CheckIfResourceExists(string appResourceId);
         Task<bool> RestartWebApp(string appResourceId);
+        Task<bool> StartWebApp(string appResourceId);
         Task<string> GetArmResourceAsJson(string resourceId);
         Task<RemediationResult> PowerOnVirtualMachine(string resourceId);
         Task<IReadOnlyDictionary<string, string>> GetVirtualMachineBootDiagnostics(string resourceId);
@@ -32,6 +33,8 @@ namespace Agent.Plugins.Interface
         Task<string> RunAzCliWriteCommandsAsync(string command);
         Task<string> GetAzCliHelpAsync(string helpTopic, string grepPattern = "");
         Task<string> GetResourceIdFromStorageServiceUri(string storageServiceUri, string subscriptionId);
+        Task<(bool, string)> EnableTrafficManagerEndpoint(string subscriptionId, string resourceGroupName, string profileName, string endpointName, string endpointType);
+        Task<(bool, string)> DisableTrafficManagerEndpoint(string subscriptionId, string resourceGroupName, string profileName, string endpointName, string endpointType);
     }
 }
 

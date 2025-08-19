@@ -89,6 +89,13 @@ namespace Agent.Plugins.Implementation
             return response.IsSuccessStatusCode;
         }
 
+        public async Task<bool> StartWebApp(string appResourceId)
+        {
+            var response = await _armHelper.StartWebAppAsync(appResourceId);
+
+            return response.IsSuccessStatusCode;
+        }
+
         public async Task<bool> CheckIfResourceExists(string appResourceId)
         {
             return await _armHelper.CheckIfResourceExistsAsync(appResourceId);
@@ -556,6 +563,16 @@ namespace Agent.Plugins.Implementation
                 _logger.LogInternalError(ex, "Error getting resource ID from storage service URI {Uri} in subscription {SubscriptionId}", storageServiceUri, subscriptionId);
                 return $"Error: Exception occurred while processing storage service URI: {ex.Message}";
             }
+        }
+
+        public async Task<(bool, string)> EnableTrafficManagerEndpoint(string subscriptionId, string resourceGroupName, string profileName, string endpointName, string endpointType)
+        {
+            return await _armHelper.EnableTrafficManagerEndpoint(subscriptionId, resourceGroupName, profileName, endpointName, endpointType);
+        }
+
+        public async Task<(bool, string)> DisableTrafficManagerEndpoint(string subscriptionId, string resourceGroupName, string profileName, string endpointName, string endpointType)
+        {
+            return await _armHelper.DisableTrafficManagerEndpoint(subscriptionId, resourceGroupName, profileName, endpointName, endpointType);
         }
 
 
