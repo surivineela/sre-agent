@@ -25,4 +25,8 @@ public record AzMonitorAlertDocument(
     public string Description { get; set; } = string.Empty;
 
     public DateTime UpdatedAt { get; set; }
+
+    public int HitCount { get; set; }
+
+    public bool UserInputRequested { get; set; } = false;
 }

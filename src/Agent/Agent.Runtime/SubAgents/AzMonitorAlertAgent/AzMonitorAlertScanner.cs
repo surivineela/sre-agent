@@ -38,6 +38,7 @@ public class AzMonitorAlertScanner
     private readonly ILogger<AzMonitorAlertScanner> _logger;
     private readonly IGraphDBPlugin _graphDBPlugin;
     private readonly IAgentInboundCommunicationService _inboundCommunicationService;
+    private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
     private readonly IThreadRepository _repository;
     private readonly IChatClient _chatClient;
     private readonly IAzMonitorAlertService _azMonitorAlertService;
@@ -50,12 +51,14 @@ public class AzMonitorAlertScanner
     private readonly WebAppDownAgentFactory _webAppDownAgentFactory;
     private readonly DurableTaskClient _durableTaskClient;
     private readonly IAgentsFactory _agentsFactory;
+    private readonly IncidentManagementSettings _incidentManagementSettings;
 
 
     public AzMonitorAlertScanner(
         IGraphDBPlugin graphDbPlugin,
         IAzMonitorAlertService azMonitorAlertService,
         IAgentInboundCommunicationService inboundCommunicationService,
+        IAgentOutboundCommunicationService outboundCommunicationService,
         IThreadRepository repository,
         CosmosClient cosmosClient,
         CosmosDBSettings cosmosDbSettings,
@@ -67,13 +70,17 @@ public class AzMonitorAlertScanner
         DurableTaskClient durableTaskClient,
         IAgentsFactory agentsFactory,
         WebAppDownAgentFactory webAppDownAgentFactory,
-        IChatClient chatClient, ILogger<AzMonitorAlertScanner> logger)
+        IChatClient chatClient,
+        IncidentManagementSettings incidentManagementSettings,
+        ILogger<AzMonitorAlertScanner> logger)
     {
         _graphDBPlugin = graphDbPlugin;
         _logger = logger;
+        _incidentManagementSettings = incidentManagementSettings;
 
         _azMonitorAlertService = azMonitorAlertService;
         _inboundCommunicationService = inboundCommunicationService;
+        _outboundCommunicationService = outboundCommunicationService;
         _repository = repository;
         _chatClient = chatClient;
 
@@ -152,20 +159,112 @@ public class AzMonitorAlertScanner
 
                 if (investigationFinished)
                 {
-                    // Investigation is complete, append message about recurring alert
-                    _logger.LogInternalInformation($"Found existing active thread {existingActiveThread.Id} with completed investigation for alert {alert.Id}. Appending recurring alert message.");
-                    var message = $"Another alert **{alert.Id}** is firing with the same alert rule. Merging the investigation.";
-                    var agentContexts = await _repository.GetAgentContextsForThreadAsync(existingActiveThread.Id);
-                    var existingAgentContext = agentContexts.First();
-                    await _inboundCommunicationService.ProcessAlertMessageAsync(new ThreadMessage(
-                       ThreadId: existingActiveThread.Id,
-                       AgentContextId: existingAgentContext.Id,
-                       MessageId: Guid.NewGuid(),
-                       Message: message,
-                       UserId: "agent-default",
-                       DisplayName: "Azure SRE Agent",
-                       Timestamp: DateTime.UtcNow
-                   ));
+                    string? alertDocumentId = existingActiveThread?.Status?.IncidentStatus?.IncidentId;
+                    if (!string.IsNullOrEmpty(alertDocumentId))
+                    {
+                        var existingAlertDocument = await GetDocumentAsync<AzMonitorAlertDocument>(alertDocumentId, alertDocumentId);
+                        if (existingAlertDocument != null)
+                        {
+                            // Check if we've reached the investigation attempt limit
+                            var currentHitCount = existingAlertDocument.HitCount;
+                            var maxRetryCount = _incidentManagementSettings.MaxAutomatedInvestigationAttempts;
+
+                            // Update hitcount for every alert
+                            var updatedAlertDocument = existingAlertDocument with
+                            {
+                                HitCount = currentHitCount + 1,
+                                UpdatedAt = DateTime.UtcNow
+                            };
+
+                            await _dbContainer.UpsertItemAsync(
+                                updatedAlertDocument,
+                                new PartitionKey(updatedAlertDocument.PartitionKey)
+                            );
+
+                            if (currentHitCount > maxRetryCount)
+                            {
+                                // skip prompting user for input if already requested
+                                if (existingAlertDocument.UserInputRequested) return;
+
+                                // Retry limit reached - ask for user input
+                                _logger.LogInternalInformation($"Found existing active thread {existingActiveThread?.Id} for alert {alert.Id}. Retry limit ({maxRetryCount}) reached. Requesting user input.");
+
+                                var userInputMessage = $"The automated investigation has been completed multiple times but was unable to identify a definitive root cause.\n\n" +
+                                    $"**Action Required:** Please provide additional context or manual investigation steps that might help resolve this recurring issue. Consider:\n" +
+                                    $"- Recent changes not captured in logs\n" +
+                                    $"- External dependencies or third-party services\n" +
+                                    $"- Known issues with the affected system\n" +
+                                    $"- Any manual remediation steps that have worked before\n" +
+                                    $"- Configuration changes or deployments\n" +
+                                    $"- Network connectivity issues\n" +
+                                    $"- Resource scaling or capacity problems\n\n" +
+                                    $"Please share any relevant information that could help identify the root cause.";
+
+                                var agentContexts = await _repository.GetAgentContextsForThreadAsync(existingActiveThread!.Id);
+                                var existingAgentContext = agentContexts.First();
+
+                                var chatMessage = new ChatMessage(ChatRole.Assistant, userInputMessage);
+                                var messageId = Guid.NewGuid();
+
+                                // Send the agent message asking for user input
+                                await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                                    existingAgentContext,
+                                    chatMessage,
+                                    messageId);
+
+                                // Signal that processing is complete and agent is waiting for user input
+                                await _outboundCommunicationService.SignalProcessingComplete(existingActiveThread.Id, messageId);
+
+                                // Update UserInputRequested to avoid appending User Input Message again
+                                updatedAlertDocument = updatedAlertDocument with
+                                {
+                                    UserInputRequested = true
+                                };
+
+                                await _dbContainer.UpsertItemAsync(
+                                    updatedAlertDocument,
+                                    new PartitionKey(updatedAlertDocument.PartitionKey)
+                                );
+
+                                // Don't increment the count when asking for user input - let them respond first
+                                return;
+                            }
+                            else
+                            {
+                                // Under retry limit - append recurring alert message and increment count
+                                _logger.LogInternalInformation($"Found existing active thread {existingActiveThread?.Id} with completed investigation for alert {alert.Id}. Appending recurring alert message. Count: {currentHitCount + 1}/{maxRetryCount}");
+
+                                var message = $"Another alert **{alert.Id}** is firing with the same alert rule. Merging the investigation.";
+                                if (existingActiveThread == null)
+                                {
+                                    _logger.LogInternalWarning("existingActiveThread is null when trying to get agent contexts.");
+                                    return;
+                                }
+
+                                var agentContexts = await _repository.GetAgentContextsForThreadAsync(existingActiveThread.Id);
+                                var existingAgentContext = agentContexts.First();
+                                await _inboundCommunicationService.ProcessAlertMessageAsync(new ThreadMessage(
+                                   ThreadId: existingActiveThread.Id,
+                                   AgentContextId: existingAgentContext.Id,
+                                   MessageId: Guid.NewGuid(),
+                                   Message: message,
+                                   UserId: "agent-default",
+                                   DisplayName: "Azure SRE Agent",
+                                   Timestamp: DateTime.UtcNow
+                               ));
+
+                                _logger.LogInternalInformation($"Updated recurring alert count to {currentHitCount + 1} for alert document {alertDocumentId}");
+                            }
+                        }
+                        else
+                        {
+                            _logger.LogInternalWarning($"Could not find alert document {alertDocumentId} for existing thread {existingActiveThread?.Id}");
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogInternalWarning($"No alert document ID found for existing thread {existingActiveThread?.Id}");
+                    }
                 }
                 else
                 {
@@ -429,7 +528,8 @@ Remember: Quality findings with specific values are better than quantity. Exclud
             )
             {
                 Description = description,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.UtcNow,
+                HitCount = 1
             };
 
             // Save to database

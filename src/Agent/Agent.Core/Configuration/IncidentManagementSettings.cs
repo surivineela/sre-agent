@@ -23,19 +23,26 @@ namespace Agent.Core.Configuration
         [Required]
         public IncidentManagementType? Type { get; set; }
 
-        public string? ConnectionName  { get; set; }
+        public string? ConnectionName { get; set; }
 
         public string? ConnectionUrl { get; set; }
 
         public string? ConnectionKey { get; set; }
 
-        // Write actions taken by this agent will be on behalf of this user. 
+        // Write actions taken by this agent will be on behalf of this user.
         // For PagerDuty, this is the email address of a valid user.
         public string? OboUser { get; set; }
 
         public ICMAPISettings ICMAPI { get; set; } = new();
 
         public AutomatedRCASettings AutomatedRCA { get; set; } = new();
+
+        /// <summary>
+        /// Maximum number of automated investigation attempts for recurring alerts before requesting user input.
+        /// When an alert fires repeatedly and automated RCA fails to find a definitive root cause,
+        /// the agent will ask the user for additional context after this many attempts.
+        /// </summary>
+        public int MaxAutomatedInvestigationAttempts { get; set; } = 3;
     }
 
     public class AutomatedRCASettings
