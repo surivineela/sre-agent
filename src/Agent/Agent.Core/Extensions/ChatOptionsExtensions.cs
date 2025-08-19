@@ -40,7 +40,7 @@ public static class ChatOptionsExtensions
             && clientMetadata.DefaultModelId.StartsWith("gpt-5", StringComparison.OrdinalIgnoreCase)
             && !clientMetadata.DefaultModelId.StartsWith("gpt-5-chat", StringComparison.OrdinalIgnoreCase))
         {
-            options.AdditionalProperties ??= [];
+            options.AdditionalProperties ??= new AdditionalPropertiesDictionary();
 
             // temperature not supported in reasoning models
             options.Temperature = 1;
@@ -61,7 +61,7 @@ public static class ChatOptionsExtensions
                 // output format: text or json
                 if (additionalProperties.TryGetValue(ResponseFormatKey, out string? responseFormat))
                 {
-                    if (string.Equals(JsonResponseFormat, responseFormat, StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(TextResponseFormat, responseFormat, StringComparison.OrdinalIgnoreCase))
                     {
                         completionOptions.ResponseFormat = OpenAI.Chat.ChatResponseFormat.CreateTextFormat();
                     }
