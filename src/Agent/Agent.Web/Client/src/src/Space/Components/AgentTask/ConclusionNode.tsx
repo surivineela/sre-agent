@@ -43,7 +43,7 @@ const useStyles = makeStyles({
     },
 });
 
-const AgentTaskGraphFlowConclusionNode = (props: NodeProps<GraphFlowNode>) => {
+const ConclusionNode = (props: NodeProps<GraphFlowNode>) => {
     const { data, id } = props;
 
     const { nodeContainer, tag, card, title, handle } = useStyles();
@@ -72,4 +72,4 @@ const AgentTaskGraphFlowConclusionNode = (props: NodeProps<GraphFlowNode>) => {
     );
 };
 
-export default memo(AgentTaskGraphFlowConclusionNode);
+export default memo(ConclusionNode);

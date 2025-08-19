@@ -33,7 +33,7 @@ const useStyles = makeStyles({
     },
 });
 
-const AgentTaskGraphFlowGroupNode = (props: NodeProps<GraphFlowNode>) => {
+const GroupNode = (props: NodeProps<GraphFlowNode>) => {
     const { root, initialInvestigationGroupRoot, title, handle } = useStyles();
 
     const isInitialInvestigation = props.data.id.toLowerCase().includes(AgentTaskPhaseNodeIdSuffix.InitialInvestigation);
@@ -48,4 +48,4 @@ const AgentTaskGraphFlowGroupNode = (props: NodeProps<GraphFlowNode>) => {
     );
 };
 
-export default memo(AgentTaskGraphFlowGroupNode);
+export default memo(GroupNode);

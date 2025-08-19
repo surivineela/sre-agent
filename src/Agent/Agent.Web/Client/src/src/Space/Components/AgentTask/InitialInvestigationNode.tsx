@@ -78,7 +78,7 @@ const useStyles = makeStyles({
     },
 });
 
-const AgentTaskGraphFlowInitialInvestigationNode = (props: NodeProps<GraphFlowNode>) => {
+const InitialInvestigationNode = (props: NodeProps<GraphFlowNode>) => {
     const { id, data } = props;
 
     const { nodeContainer, card, header, title, description, stepsContainer, stepContainer, stepText } = useStyles();
@@ -192,4 +192,4 @@ const AgentTaskGraphFlowInitialInvestigationNode = (props: NodeProps<GraphFlowNo
     );
 };
 
-export default memo(AgentTaskGraphFlowInitialInvestigationNode);
+export default memo(InitialInvestigationNode);

@@ -64,7 +64,7 @@ const getCardBorderColor = (status: string) => {
     }
 };
 
-const AgentTaskGraphFlowHypothesisNode = (props: NodeProps<GraphFlowNode>) => {
+const HypothesisNode = (props: NodeProps<GraphFlowNode>) => {
     const { data, id } = props;
 
     const { nodeContainer, card, title, description, cardFooter, handle } = useStyles();
@@ -98,4 +98,4 @@ const AgentTaskGraphFlowHypothesisNode = (props: NodeProps<GraphFlowNode>) => {
     );
 };
 
-export default memo(AgentTaskGraphFlowHypothesisNode);
+export default memo(HypothesisNode);

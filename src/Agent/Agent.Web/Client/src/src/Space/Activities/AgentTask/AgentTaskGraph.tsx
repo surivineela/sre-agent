@@ -3,10 +3,11 @@ import { useTheme } from '@fluentui/react/lib/Theme';
 import { Controls, OnEdgesChange, OnNodesChange, ReactFlow } from '@xyflow/react';
 import { memo } from 'react';
 import { TreeNodeType } from '../../../Common/Contracts/DataPlane/AgentTask';
-import AgentTaskGraphFlowConclusionNode from '../../Components/AgentTask/AgentTaskGraphFlowConclusionNode';
-import AgentTaskGraphFlowGroupNode from '../../Components/AgentTask/AgentTaskGraphFlowGroupNode';
-import AgentTaskGraphFlowHypothesisNode from '../../Components/AgentTask/AgentTaskGraphFlowHypothesisNode';
-import AgentTaskGraphFlowInitialInvestigationNode from '../../Components/AgentTask/AgentTaskGraphFlowInitialInvestigationNode';
+import ConclusionNode from '../../Components/AgentTask/ConclusionNode';
+import GroupNode from '../../Components/AgentTask/GroupNode';
+import HypothesisNode from '../../Components/AgentTask/HypothesisNode';
+import HypothesisRootGroupNode from '../../Components/AgentTask/HypothesisRootGroupNode';
+import InitialInvestigationNode from '../../Components/AgentTask/InitialInvestigationNode';
 import { GraphFlowEdge, GraphFlowNode, IAgentTaskGraphProps } from '../../Contracts/Activities';
 import { AgentTaskGraphContext } from '../../Contracts/Context';
 import { useAgentTaskGraphFlow } from '../../Hooks/useAgentTaskGraphFlow';
@@ -62,10 +63,11 @@ const AgentTaskGraphFlow = ({
             onEdgesChange={onEdgesChange}
             attributionPosition="bottom-left"
             nodeTypes={{
-                [TreeNodeType.Group]: AgentTaskGraphFlowGroupNode,
-                [TreeNodeType.InitialInvestigation]: AgentTaskGraphFlowInitialInvestigationNode,
-                [TreeNodeType.Hypothesis]: AgentTaskGraphFlowHypothesisNode,
-                [TreeNodeType.Conclusion]: AgentTaskGraphFlowConclusionNode,
+                [TreeNodeType.HypothesisRootGroup]: HypothesisRootGroupNode,
+                [TreeNodeType.NodeGroup]: GroupNode,
+                [TreeNodeType.InitialInvestigation]: InitialInvestigationNode,
+                [TreeNodeType.Hypothesis]: HypothesisNode,
+                [TreeNodeType.Conclusion]: ConclusionNode,
             }}
             nodesDraggable={false}
             proOptions={{ hideAttribution: true }}

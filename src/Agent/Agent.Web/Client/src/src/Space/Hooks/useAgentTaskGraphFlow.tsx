@@ -159,7 +159,7 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
 
             const initialInvestigationGroupNode: GraphFlowNode = {
                 id: initialInvestigation.id,
-                type: TreeNodeType.Group,
+                type: TreeNodeType.NodeGroup,
                 position: { x: 0, y: 0 },
                 data: {
                     ...initialInvestigation,
@@ -226,7 +226,6 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
                             width: 20,
                             height: 20,
                         },
-
                         data: {
                             edgeType: InvestigationGraphFlowEdgeType.HypothesisToHypothesis,
                             sourceId: parentHypothesis.id,
@@ -251,7 +250,7 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
 
                     const groupNode = {
                         id: groupNodeId,
-                        type: TreeNodeType.Group,
+                        type: TreeNodeType.NodeGroup,
                         position: { x: 0, y: 0 }, // Temporary position - will be set by dagre
                         data: {
                             ...hypothesis,
@@ -278,7 +277,28 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
             });
         }
 
-        return result;
+        const rootGroup: GraphFlowNode = {
+            id: 'hypothesisRootGroup',
+            type: TreeNodeType.HypothesisRootGroup,
+            position: { x: 0, y: 0 },
+            data: {
+                id: 'hypothesisRootGroup',
+                title: '',
+                description: '',
+                status: '',
+                childrenIds: [],
+                expanded: false,
+                isValidating: false,
+                isLoading: false,
+                parentId: undefined,
+                nodeType: TreeNodeType.HypothesisRootGroup,
+            },
+        };
+
+        return {
+            hypothesisGroups: result,
+            rootGroup,
+        };
     };
 
     const getConclusionNodesAndEdges = (phaseNodes: InvestigationTreeNode[]) => {
@@ -408,7 +428,10 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
     };
 
     const layoutHypothesisGroupAndChildrenNode = (
-        hypothesisGroups: HypothesisGroup[],
+        hypothesisGroupsAndRootGroup: {
+            hypothesisGroups: HypothesisGroup[];
+            rootGroup: GraphFlowNode;
+        },
         initialInvestigationNodeId: string,
         initialInvestigationNodePositionY: number,
         initialInvestigationNodeHeight: number,
@@ -419,6 +442,8 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
 
         let maxHeightOfGroupNodes = 0;
         const groupNodesWithDimension: GraphFlowNode[] = [];
+
+        const { hypothesisGroups, rootGroup } = hypothesisGroupsAndRootGroup;
 
         for (const group of hypothesisGroups) {
             const groupNode = group.groupNode;
@@ -444,31 +469,15 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
             // Set the width and height for the group node
             const groupNodeWithDimension: GraphFlowNode = {
                 ...groupNode,
+                parentId: rootGroup.id,
+                extent: 'parent',
                 width,
                 height,
             };
             groupNodesWithDimension.push(groupNodeWithDimension);
 
-            // Add edges from the initial investigation node to the group node
-            const edgeFromInitialInvestigationNodeToGroupNode: GraphFlowEdge = {
-                id: `${initialInvestigationNodeId}-${groupNode.id}`,
-                source: initialInvestigationNodeId,
-                target: groupNode.id,
-                zIndex: -99,
-                markerEnd: {
-                    type: MarkerType.ArrowClosed,
-                    width: 20,
-                    height: 20,
-                },
-                data: {
-                    edgeType: InvestigationGraphFlowEdgeType.HypothesisToHypothesis,
-                    sourceId: initialInvestigationNodeId,
-                    targetId: groupNode.id,
-                },
-            };
-
-            nodes.push(...[...nodesWithNewPosition]);
-            edges.push(...[edgeFromInitialInvestigationNodeToGroupNode, ...layout.edges]);
+            nodes.push(...nodesWithNewPosition);
+            edges.push(...layout.edges);
 
             maxHeightOfGroupNodes = Math.max(maxHeightOfGroupNodes, height);
         }
@@ -477,11 +486,41 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
         const groupNodesWidth =
             groupNodesWithDimension.reduce((acc, node) => acc + (node.width || 0), 0) +
             DagreSep.parentNode.nodesep * (groupNodesWithDimension.length - 1);
+        const rootGroupNodeWidth = groupNodesWidth + GroupNodePadding * 2;
+        const rootGroupNodeHeight = maxHeightOfGroupNodes + GroupNodePadding * 2;
         // Compute the start position of the group nodes based on the center position of the graph
-        let posX = graphCenterX - groupNodesWidth / 2;
-        const posY = getParentNodePositionY(initialInvestigationNodePositionY, initialInvestigationNodeHeight);
+        const rootGroupNodePosX = graphCenterX - rootGroupNodeWidth / 2;
+        const rootGroupNodePosY = getParentNodePositionY(initialInvestigationNodePositionY, initialInvestigationNodeHeight);
 
-        // Layout the group nodes horizontally
+        const rootGroupNodeWithPosAndDimension: GraphFlowNode = {
+            ...rootGroup,
+            position: { x: rootGroupNodePosX, y: rootGroupNodePosY },
+            width: rootGroupNodeWidth,
+            height: rootGroupNodeHeight,
+        };
+
+        // Add edges from the initial investigation node to the hypothesis root group node
+        const edgeFromInitialInvestigationNodeToRootGroup: GraphFlowEdge = {
+            id: `${initialInvestigationNodeId}-${rootGroupNodeWithPosAndDimension.id}`,
+            source: initialInvestigationNodeId,
+            target: rootGroupNodeWithPosAndDimension.id,
+            zIndex: -99,
+            markerEnd: {
+                type: MarkerType.ArrowClosed,
+                width: 20,
+                height: 20,
+            },
+            data: {
+                edgeType: InvestigationGraphFlowEdgeType.PhaseToHypothesis,
+                sourceId: initialInvestigationNodeId,
+                targetId: rootGroupNodeWithPosAndDimension.id,
+            },
+        };
+        edges.push(edgeFromInitialInvestigationNodeToRootGroup);
+
+        // Layout the group nodes horizontally relatively to the group node
+        let posX = GroupNodePadding;
+        const posY = GroupNodePadding;
         for (const groupNode of groupNodesWithDimension) {
             groupNode.position = { x: posX, y: posY };
             // !important: Group node must be in front of the children nodes
@@ -489,29 +528,31 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
             posX += (groupNode.width || 0) + DagreSep.parentNode.nodesep;
         }
 
+        nodes.unshift(rootGroupNodeWithPosAndDimension);
+
         return {
             nodes,
             edges,
-            maxHeightOfGroupNodes,
-            hypothesisGroupNodesPositionY: posY,
+            hypothesisRootGroupNodeHeight: rootGroupNodeHeight,
+            hypothesisRootGroupNodePositionY: rootGroupNodePosY,
         };
     };
 
     const layoutConclusionNode = (
         conclusionNode: GraphFlowNode,
-        hypothesisGroupNodeIds: string[],
-        hypothesisGroupNodesPositionY: number,
-        hypothesisGroupNodesHeight: number,
+        hypothesisGroupRootNodeId: string,
+        hypothesisRootGroupNodePositionY: number,
+        hypothesisRootGroupNodeHeight: number,
         graphCenterX: number
     ) => {
         const posX = graphCenterX - (AgentTaskNodeSize.ConclusionNode.width || 0) / 2;
-        const posY = getParentNodePositionY(hypothesisGroupNodesPositionY, hypothesisGroupNodesHeight);
+        const posY = getParentNodePositionY(hypothesisRootGroupNodePositionY, hypothesisRootGroupNodeHeight);
 
         conclusionNode = { ...conclusionNode, position: { x: posX, y: posY } };
 
-        const edges: GraphFlowEdge[] = hypothesisGroupNodeIds.map(parentId => ({
-            id: `${parentId}-${conclusionNode.id}`,
-            source: parentId,
+        const edge: GraphFlowEdge = {
+            id: `${hypothesisGroupRootNodeId}-${conclusionNode.id}`,
+            source: hypothesisGroupRootNodeId,
             target: conclusionNode.id,
             markerEnd: {
                 type: MarkerType.ArrowClosed,
@@ -521,14 +562,14 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
             zIndex: -99,
             data: {
                 edgeType: InvestigationGraphFlowEdgeType.HypothesisToConclusion,
-                sourceId: parentId,
+                sourceId: hypothesisGroupRootNodeId,
                 targetId: conclusionNode.id,
             },
-        }));
+        };
 
         return {
             conclusionNode,
-            edges,
+            edge,
         };
     };
 
@@ -575,14 +616,14 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
         graphFlowNodes.push(...initialInvestigationNodesWithLayout);
 
         // Add hypothesis nodes
-        const hypothesisGroups = getHypothesisGroups(phaseNodes, nodes);
+        const hypothesisGroupsAndRootGroup = getHypothesisGroups(phaseNodes, nodes);
         const {
             nodes: hypothesisNodes,
             edges: hypothesisEdges,
-            maxHeightOfGroupNodes,
-            hypothesisGroupNodesPositionY,
+            hypothesisRootGroupNodeHeight,
+            hypothesisRootGroupNodePositionY,
         } = layoutHypothesisGroupAndChildrenNode(
-            hypothesisGroups,
+            hypothesisGroupsAndRootGroup,
             initialInvestigationNodes.initialInvestigationGroupNode.id,
             initialInvestigationGroupNodePositionY,
             initialInvestigationGroupNodeHeight,
@@ -595,15 +636,15 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
         const conclusionNode = getConclusionNodesAndEdges(phaseNodes);
 
         if (conclusionNode) {
-            const { conclusionNode: conclusionNodeWithPosition, edges: conclusion } = layoutConclusionNode(
+            const { conclusionNode: conclusionNodeWithPosition, edge: conclusionEdge } = layoutConclusionNode(
                 conclusionNode,
-                hypothesisGroups.map(group => group.groupNode.id),
-                hypothesisGroupNodesPositionY,
-                maxHeightOfGroupNodes,
+                hypothesisGroupsAndRootGroup.rootGroup.id,
+                hypothesisRootGroupNodePositionY,
+                hypothesisRootGroupNodeHeight,
                 centerX
             );
             graphFlowNodes.push(conclusionNodeWithPosition);
-            graphFlowEdges.push(...conclusion);
+            graphFlowEdges.push(conclusionEdge);
         }
 
         return {
