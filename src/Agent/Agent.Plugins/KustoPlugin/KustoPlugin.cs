@@ -125,6 +125,7 @@ namespace Agent.Plugins.Kusto
             string? groupName
             )
         {
+            KustoCluster? cluster = null;
             try
             {
                 if (string.IsNullOrWhiteSpace(region) || string.IsNullOrWhiteSpace(query))
@@ -136,7 +137,7 @@ namespace Agent.Plugins.Kusto
                     _logger.LogInternalError("No regional clusters are configured in Kusto settings.");
                     throw new InvalidOperationException("No regional clusters are configured in Kusto settings.");
                 }
-                var cluster = GetCluster(region, groupName ?? string.Empty);
+                cluster = GetCluster(region, groupName ?? string.Empty);
 
                 var stopwatch = System.Diagnostics.Stopwatch.StartNew();
                 _logger.LogInternalInformation($"execute_kusto_query called with {region} / {query}");
@@ -153,7 +154,7 @@ namespace Agent.Plugins.Kusto
             catch (Exception ex)
             {
                 _logger.LogInternalError($"An error occurred while executing Kusto Query: {ex.Message}");
-                return CreateErrorResult(query, ex.Message);
+                return CreateErrorResult(query, ex.Message, region, cluster?.Database, null, groupName);
             }
         }
 
@@ -240,10 +241,11 @@ namespace Agent.Plugins.Kusto
 
             var query = string.IsNullOrEmpty(argList) ? $"{functionName}()" : $"{functionName}({argList})";
 
+            KustoCluster? cluster = null;
             try
             {
                 var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-                var cluster = GetCluster(region, groupName ?? string.Empty);
+                cluster = GetCluster(region, groupName ?? string.Empty);
                 using var reader = await _kustoClient.PerformQueryAsync(cluster.ClusterUri ?? string.Empty, cluster.Database ?? string.Empty, query);
                 var ret = new KustoQueryResult(reader, query);
                 stopwatch.Stop();
@@ -253,12 +255,86 @@ namespace Agent.Plugins.Kusto
             catch (Exception ex)
             {
                 _logger.LogInternalError($"An error occurred while executing Kusto Function {functionName}: {ex.Message}");
-                return CreateErrorResult(query, ex.Message, functionName);
+                return CreateErrorResult(query, ex.Message, region, cluster?.Database, functionName, groupName);
             }
         }
         private static string QuoteIfNeeded(string value)
         {
             return $"\"{value}\"";
+        }
+
+        private (string adxUri, string database) BuildAdxUriWithDatabase(string query, string regionOrClusterUri, string? database = null, string? groupName = null)
+        {
+            string adxUri = regionOrClusterUri;
+            string resultDatabase = database ?? string.Empty;
+            
+            if (regionOrClusterUri.IndexOf(".kusto.", StringComparison.OrdinalIgnoreCase) < 0)
+            {
+                // Supplied parameter is a region, lookup cluster URI for the region
+                var region = regionOrClusterUri;
+                KustoCluster? cluster = null;
+                try
+                {
+                    cluster = GetCluster(region, groupName ?? string.Empty);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError($"An error occurred while getting Kusto cluster for region {region}: {ex.Message}");
+                }
+
+                if (cluster != null)
+                {
+                    adxUri = cluster.ClusterUri ?? string.Empty;
+                    resultDatabase = cluster.Database ?? string.Empty;
+                }
+            }
+            else
+            {
+                // Supplied parameter is a cluster URI
+                adxUri = regionOrClusterUri;
+                if (string.IsNullOrWhiteSpace(database))
+                {
+                    resultDatabase = string.Empty;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(adxUri))
+            {
+                adxUri = adxUri.Replace(".kusto.windows.net", "");
+                adxUri = adxUri.Replace("https://", "");
+            }
+
+            var encodedQuery = EncodeQuery(query);
+            var fullAdxUri = $"https://dataexplorer.azure.com/clusters/{adxUri}/{resultDatabase}?query={encodedQuery}";
+            return (fullAdxUri, resultDatabase);
+        }
+
+        private string BuildDisplayText(string adxUri, string query, string regionOrClusterUri, string database, string? functionName = null, string? additionalInfo = null, bool isError = false)
+        {
+            var prefix = isError ? "Error " : "";
+            var verb = isError ? "executing" : "Executed";
+            
+            if (!string.IsNullOrWhiteSpace(functionName))
+            {
+                // For function execution
+                var functionInfo = isError ? $"{prefix}{verb.ToLowerInvariant()} function `{functionName}`" : $"{verb} function `{functionName}` against {regionOrClusterUri}{(!string.IsNullOrWhiteSpace(database) ? $"/{database}" : string.Empty)}";
+                var errorPart = isError ? $"<strong>{functionInfo}:</strong> {additionalInfo}" : functionInfo;
+                return $"[Execute in ADX]({adxUri})\n\n{errorPart}:\n<details><summary>View KQL Query</summary>\n<pre>\n{query}\n</pre>\n\n</details>{(isError ? "" : $"\n{additionalInfo}")}";
+            }
+            else if (!string.IsNullOrWhiteSpace(database))
+            {
+                // For cluster and database-specific queries
+                var queryInfo = isError ? $"{prefix}{verb.ToLowerInvariant()} query on cluster '{regionOrClusterUri}' in database '{database}'" : $"{verb} query on cluster '{regionOrClusterUri}' in database '{database}'";
+                var errorPart = isError ? $"<strong>{queryInfo}:</strong> {additionalInfo}" : queryInfo;
+                return $"[Execute in ADX]({adxUri})\n\n{errorPart}:\n<details><summary>View KQL Query</summary>\n<pre>\n{query}\n</pre>\n\n</details>{(isError ? "" : $"\n{additionalInfo}")}";
+            }
+            else
+            {
+                // For regional queries
+                var queryInfo = isError ? $"{prefix}{verb.ToLowerInvariant()} query in region {regionOrClusterUri}" : $"{verb} query in region {regionOrClusterUri}";
+                var errorPart = isError ? $"<strong>{queryInfo}:</strong> {additionalInfo}" : queryInfo;
+                return $"[Execute in ADX]({adxUri})\n\n{errorPart}:\n<details><summary>View KQL Query</summary>\n<pre>\n{query}\n</pre>\n\n</details>{(isError ? "" : $"\n{additionalInfo}")}";
+            }
         }
 
         public ChatMessage CreateChatMessage(string query, string regionOrClusterUri, int count, int queryExecutionTimeInMilliSeconds, string? database = null, string? functionName = null, string? groupName = null)
@@ -273,65 +349,17 @@ namespace Agent.Plugins.Kusto
                 throw new ArgumentNullException(regionOrClusterUri, nameof(regionOrClusterUri));
             }
 
-            string adxUri = regionOrClusterUri;
-            if (regionOrClusterUri.IndexOf(".kusto.", StringComparison.OrdinalIgnoreCase) < 0)
+            // Special validation for cluster URIs (maintaining original behavior)
+            if (regionOrClusterUri.IndexOf(".kusto.", StringComparison.OrdinalIgnoreCase) >= 0 && string.IsNullOrWhiteSpace(database))
             {
-                // Supplied parameter is a region, lookup cluster URI for the region
-                var region = regionOrClusterUri;
-
-                // TODO: update this plugin with a parameter to allow querying regional clusters for other products
-
-                KustoCluster? cluster = null;
-                try
-                {
-                    cluster = GetCluster(region, groupName ?? string.Empty);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogInternalError($"An error occurred while getting Kusto cluster for region {region}: {ex.Message}");
-                }
-
-                if (cluster != null)
-                {
-                    adxUri = cluster.ClusterUri ?? string.Empty;
-                    database = cluster.Database;
-                }
-            }
-            else
-            {
-                // Supplied parameter is a cluster URI, extract the cluster name
-                adxUri = regionOrClusterUri;
-                if (string.IsNullOrWhiteSpace(database))
-                {
-                    throw new ArgumentNullException(nameof(database), "Database name is required when using a full cluster URI.");
-                }
+                throw new ArgumentNullException(nameof(database), "Database name is required when using a full cluster URI.");
             }
 
-            if (!string.IsNullOrEmpty(adxUri))
-            {
-                adxUri = adxUri.Replace(".kusto.windows.net", "");
-                adxUri = adxUri.Replace("https://", "");
-            }
-
-            adxUri = $"https://dataexplorer.azure.com/clusters/{adxUri}/{database}?query={EncodeQuery(query)}";
+            var (adxUri, resultDatabase) = BuildAdxUriWithDatabase(query, regionOrClusterUri, database, groupName);
 
             var executionTime = $"{queryExecutionTimeInMilliSeconds / 1000.0} secs";
-            string displayText;
-            if (!string.IsNullOrWhiteSpace(functionName))
-            {
-                // For function execution
-                displayText = $"[Execute in ADX]({adxUri})\n\nExecuted function `{functionName}` against {regionOrClusterUri}{(!string.IsNullOrWhiteSpace(database) ? $"/{database}" : string.Empty)}:\n<details><summary>View KQL Query</summary>\n<pre>\n{query}\n</pre>\n\n</details>\nRows: {count} Execution time: {executionTime}";
-            }
-            else if (!string.IsNullOrWhiteSpace(database))
-            {
-                // For cluster and database-specific queries
-                displayText = $"[Execute in ADX]({adxUri})\n\nExecuted query on cluster '{regionOrClusterUri}' in database '{database}':\n<details><summary>View KQL Query</summary>\n<pre>\n{query}\n</pre>\n\n</details>\nRows: {count} Execution time: {executionTime}";
-            }
-            else
-            {
-                // For regional queries
-                displayText = $"[Execute in ADX]({adxUri})\n\nExecuted query in region {regionOrClusterUri}:\n<details><summary>View KQL Query</summary>\n<pre>\n{query}\n</pre>\n\n</details>\nRows:{count} Execution time: {executionTime}";
-            }
+            var additionalInfo = $"Rows: {count} Execution time: {executionTime}";
+            var displayText = BuildDisplayText(adxUri, query, regionOrClusterUri, resultDatabase, functionName, additionalInfo, isError: false);
 
             return new ChatMessage(ChatRole.Tool, new List<AIContent>
                 {
@@ -356,18 +384,45 @@ namespace Agent.Plugins.Kusto
             }
         }
 
-        private KustoQueryResult CreateErrorResult(string query, string errorMessage, string? functionName = null)
+        private KustoQueryResult CreateErrorResult(string query, string errorMessage, string? regionOrCluster = null, string? database = null, string? functionName = null, string? groupName = null)
         {
             var fullErrorMessage = functionName != null
                 ? $"An error occurred while executing Kusto Function {functionName}: {errorMessage}"
                 : $"An error occurred while executing Kusto Query: {errorMessage}";
+
+            ChatMessage message;
+            if (!string.IsNullOrWhiteSpace(regionOrCluster))
+            {
+                // Create message with ADX link using same logic as CreateChatMessage
+                try
+                {
+                    var (fullAdxUri, resultDatabase) = BuildAdxUriWithDatabase(query, regionOrCluster, database, groupName);
+                    var displayText = BuildDisplayText(fullAdxUri, query, regionOrCluster, resultDatabase, functionName, errorMessage, isError: true);
+                    
+                    message = new ChatMessage(ChatRole.Tool, new List<AIContent>
+                    {
+                        new UriContent(fullAdxUri, "text/html"),
+                        new Microsoft.Extensions.AI.TextContent(displayText)
+                    });
+                }
+                catch
+                {
+                    // Fallback to simple message if ADX URI construction fails
+                    message = new ChatMessage(ChatRole.Tool, $"<details><summary>View KQL Query</summary>\n<pre>\n{query}\n</pre>\n\n</details>\n\n<strong>{fullErrorMessage}</strong>");
+                }
+            }
+            else
+            {
+                // Fallback to simple message when region/cluster info is not available
+                message = new ChatMessage(ChatRole.Tool, $"<details><summary>View KQL Query</summary>\n<pre>\n{query}\n</pre>\n\n</details>\n\n<strong>{fullErrorMessage}</strong>");
+            }
 
             return new KustoQueryResult()
             {
                 Success = false,
                 Query = query,
                 Result = fullErrorMessage,
-                Message = new ChatMessage(ChatRole.Tool, $"<details><summary>View KQL Query</summary>\n<pre>\n{query}\n</pre>\n\n</details>\n\n<strong>{fullErrorMessage}</strong>"),
+                Message = message,
                 RowCount = 0,
             };
         }
@@ -442,15 +497,15 @@ namespace Agent.Plugins.Kusto
                 else
                 {
                     _logger.LogInternalInformation($"Kusto query execution failed. Result: {result?.Result}, Message: {result?.Message}");
-                    result = CreateErrorResult(fullQuery, "Kusto query execution failed.");
+                    result = CreateErrorResult(fullQuery, "Kusto query execution failed.", cluster, database);
                 }
-                result.Message = CreateChatMessage(fullQuery, cluster, result.RowCount, (int)stopwatch.ElapsedMilliseconds, string.Empty, database);
+                result.Message = CreateChatMessage(fullQuery, cluster, result.RowCount, (int)stopwatch.ElapsedMilliseconds, database);
                 return result;
             }
             catch (Exception ex)
             {
                 _logger.LogInternalError($"An error occurred while executing Kusto Query: {ex.Message}");
-                return CreateErrorResult(fullQuery, ex.Message);
+                return CreateErrorResult(fullQuery, ex.Message, cluster, database);
             }
         }
 
