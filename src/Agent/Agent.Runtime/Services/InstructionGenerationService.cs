@@ -5,6 +5,8 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Agent.Logging;
 using Newtonsoft.Json;
+using Agent.Core.Configuration;  // Add this using
+using Agent.Core.Extensions;     // Add this using
 
 namespace Agent.Runtime.Services
 {
@@ -20,6 +22,8 @@ namespace Agent.Runtime.Services
 
         Task<List<ToolInfo>> FilterTools(string? searchString);
 
+        Task<List<ToolInfo>> GetIncidentHandlerTools(string platform);
+
     }
 
     public class InstructionGenerationService : IInstructionGenerationService
@@ -28,18 +32,21 @@ namespace Agent.Runtime.Services
         private readonly IToolFactory<AgentContext> _toolFactory;
         private readonly IIncidentManagementServiceFactory _incidentManagementServiceFactory;
         private readonly ILogger<InstructionGenerationService> _logger;
+        private readonly IncidentManagementSettings _incidentManagementSettings; // Add this
 
         public InstructionGenerationService(
             IToolFactory<AgentContext> toolFactory,
             IChatClient chatClient,
             IIncidentManagementServiceFactory incidentManagementServiceFactory,
-            ILogger<InstructionGenerationService> logger
+            ILogger<InstructionGenerationService> logger,
+            IncidentManagementSettings incidentManagementSettings  
             )
         {
             _toolFactory = toolFactory;
             _chatClient = chatClient;
             _incidentManagementServiceFactory = incidentManagementServiceFactory;
             _logger = logger;
+            _incidentManagementSettings = incidentManagementSettings; // Add this
         }
 
         public Task<List<ToolInfo>> FilterTools(string? searchString)
@@ -49,9 +56,22 @@ namespace Agent.Runtime.Services
             var availableTools = _toolFactory.FetchAvailableToolInfo();
             _logger.LogInternalInformation("FilterTools: Fetched {ToolCount} available tools.", availableTools.Count);
 
+            // Get the configured platform name
+            var configuredPlatform = _incidentManagementSettings?.Type.ToString() ?? string.Empty;
+
+            // Filter out incident handler tools from general tool selection, except for the configured platform
+            availableTools = availableTools.Where(tool => 
+                !tool.IsIncidentHandlerTool || 
+                (tool.IsIncidentHandlerTool && 
+                 tool.IncidentHandlerPlatform?.Equals(configuredPlatform, StringComparison.OrdinalIgnoreCase) == true))
+                .ToList();
+            
+            _logger.LogInternalInformation("FilterTools: Filtered tools for platform {Platform}. Remaining: {FilteredCount}", 
+                configuredPlatform, availableTools.Count);
+
             if (string.IsNullOrWhiteSpace(searchString))
             {
-                _logger.LogInternalInformation("FilterTools: No search string provided. Returning all available tools.");
+                _logger.LogInternalInformation("FilterTools: No search string provided. Returning filtered tools.");
                 return Task.FromResult(availableTools);
             }
 
@@ -63,6 +83,21 @@ namespace Agent.Runtime.Services
             _logger.LogInternalInformation("FilterTools: Filtered tools count: {FilteredCount} for searchString: {SearchString}", filteredTools.Count, searchString);
 
             return Task.FromResult(filteredTools);
+        }
+
+        public Task<List<ToolInfo>> GetIncidentHandlerTools(string platform)
+        {
+            _logger.LogInternalInformation("GetIncidentHandlerTools: Invoked for platform: {Platform}", platform);
+
+            var availableTools = _toolFactory.FetchAvailableToolInfo();
+            var incidentHandlerTools = availableTools
+                .Where(tool => tool.IsIncidentHandlerTool && 
+                              tool.IncidentHandlerPlatform?.Equals(platform, StringComparison.OrdinalIgnoreCase) == true)
+                .ToList();
+
+            _logger.LogInternalInformation("GetIncidentHandlerTools: Found {ToolCount} incident handler tools for platform: {Platform}", incidentHandlerTools.Count, platform);
+
+            return Task.FromResult(incidentHandlerTools);
         }
 
         public async Task<InstructionGenerationResponse> GenerateInstructionsFromIncidents(InstructionGenerationRequest request)

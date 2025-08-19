@@ -2,13 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
+using Agent.Core;
 using Agent.Core.Attributes;
 using Agent.Core.Models.ServiceNow;
 using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Definitions;
 
-[AgentToolPlugin]
+[AgentToolPlugin(
+    IsIncidentHandlerPlugin = true,
+    IncidentPlatform = Core.Configuration.IncidentManagementType.ServiceNow)]
 public class ServiceNowPluginDefinition
 {
     private readonly IServiceNowPlugin _serviceNowPlugin;
