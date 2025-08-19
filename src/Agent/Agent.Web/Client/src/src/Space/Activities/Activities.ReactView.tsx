@@ -1,16 +1,14 @@
 import { tokens } from '@fluentui/react-components';
 import { FC, useCallback, useState } from 'react';
-import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
 import { AgentContext } from '../Contracts/Context';
 import { useActivities } from '../Hooks/useActivities';
 import { activitiesStylesRoot } from '../Styles/Activities.styles';
-import { ActivitiesAgentTask as ActivitiesAgentTaskDev } from './ActivitiesAgentTaskDev.ReactView';
 import { Resizable, ResizableChildProps } from './Resizable';
 import { ThreadActions } from './ThreadActions';
 import { ThreadContent } from './ThreadContent';
 import { ThreadsMenu } from './ThreadsMenu';
 
-const ActivitiesContent: FC = () => {
+const Activities: FC = () => {
     const {
         selectedThread,
         addThread,
@@ -78,18 +76,6 @@ const ActivitiesContent: FC = () => {
             </div>
         </AgentContext.Provider>
     );
-};
-
-// Main Activities component - conditionally wraps with AgentTaskDev features
-const Activities: FC = () => {
-    const showAgentTaskDev = useConfigSetting(SettingNames.ShowAgentTaskDev);
-
-    if (showAgentTaskDev) {
-        return <ActivitiesAgentTaskDev />;
-    }
-
-    // Return basic activities without AgentTaskDev features
-    return <ActivitiesContent />;
 };
 
 export default Activities;
