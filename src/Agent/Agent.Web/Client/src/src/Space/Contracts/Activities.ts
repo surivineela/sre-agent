@@ -51,6 +51,7 @@ export type ThreadMenuHandle = {
 export interface IChatBoxProps {
     addThread: (threadId: string, newThreadToSelect?: Thread) => void;
     updateThreadLastReadTime: (threadId: string) => void;
+    isAgentTaskEnabled: boolean;
     threadId?: string;
     threadSource?: string;
     stylesProps?: ChatBoxV2StyleProps;
@@ -124,7 +125,10 @@ export interface IChatBoxFooterProps {
     isTyping: boolean;
     isCancellingStreaming: boolean;
     threadId?: string | null;
-    openAgentTask: (task: AgentTaskMetaData | null) => void;
+    showDeepInvestigationButton: boolean;
+    toggleDeepInvestigationButton: (task: AgentTaskMetaData | null) => void;
+    deepInvestigationButtonEnabled: boolean | null;
+    deepInvestigationButtonAppearance: 'primary' | 'secondary';
 }
 
 export class ThreadLoadingCounts {
@@ -152,7 +156,9 @@ export interface IAgentModeInfo {
 }
 
 export interface IAgentModeSelectorProps {
+    id: string;
     threadId: string;
+    asOverflowItem: boolean;
     disabled?: boolean;
 }
 
@@ -179,9 +185,6 @@ export enum ThreadFilter {
 export interface IAgentTaskProps {
     threadId?: string;
     userDefinedThreadId: string;
-    task: AgentTaskMetaData | null;
-    collapsed?: boolean;
-    setCollapsed: (collapsed: boolean) => void;
 }
 
 export type InvestigationGraphFlowNode = InvestigationTreeNode & {

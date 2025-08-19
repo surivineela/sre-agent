@@ -1,12 +1,31 @@
 import { ScrollDownButton } from '@fluentui-copilot/react-copilot-chat';
-import { Button, makeStyles, mergeClasses, Popover, PopoverSurface, PopoverTrigger, Text, tokens } from '@fluentui/react-components';
-import { Lightbulb16Regular, RecordStopFilled, SendFilled, TaskListSquareLtrRegular } from '@fluentui/react-icons';
+import {
+    Button,
+    makeStyles,
+    Menu,
+    MenuDivider,
+    MenuGroup,
+    MenuGroupHeader,
+    MenuItem,
+    MenuList,
+    MenuPopover,
+    MenuTrigger,
+    mergeClasses,
+    Overflow,
+    OverflowItem,
+    Text,
+    tokens,
+    useIsOverflowItemVisible,
+    useOverflowMenu,
+} from '@fluentui/react-components';
+import { Lightbulb16Regular, MoreHorizontal20Filled, RecordStopFilled, SearchSparkle16Filled, SendFilled } from '@fluentui/react-icons';
 import { IStyle, mergeStyles } from '@fluentui/react/lib/Styling';
 import { TextField } from '@fluentui/react/lib/TextField';
 import { memo, useCallback, useContext, useMemo, useState } from 'react';
-import { useIntl } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
+import { AgentTaskMetaData } from '../../Common/Contracts/DataPlane/AgentTask';
 import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
-import { ActivitiesResources, PromptResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { ActivitiesResources, AgentTaskResources, PromptResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { IChatBoxFooterProps } from '../Contracts/Activities';
 import { StreamingContext } from '../Contracts/Context';
 import { chatInputTextStyles, sendButtonStyles, useChatInputStyles } from '../Styles/Activities.styles';
@@ -35,6 +54,12 @@ const DownButton = ({ downButtonState, onClick }: { downButtonState: { visible: 
     return <ScrollDownButton onClick={onClick} className={buttonStyles} isGenerating={downButtonState.flash} />;
 };
 
+enum ChatBoxButtonIds {
+    DeepInvestigation = 'deep-investigation',
+    AgentMode = 'agent-mode',
+    PromptLibrary = 'prompt-library',
+}
+
 const ChatBoxFooter = ({
     sendMessage,
     isLoading,
@@ -46,7 +71,10 @@ const ChatBoxFooter = ({
     isTyping,
     isCancellingStreaming,
     threadId,
-    openAgentTask,
+    showDeepInvestigationButton,
+    toggleDeepInvestigationButton,
+    deepInvestigationButtonAppearance,
+    deepInvestigationButtonEnabled,
 }: IChatBoxFooterProps) => {
     const intl = useIntl();
 
@@ -55,11 +83,8 @@ const ChatBoxFooter = ({
     const [originalInput, setOriginalInput] = useState<string>('');
 
     const showAgentModeSelector = useConfigSetting(SettingNames.ShowAgentModeForThread);
-    const showAgentTask = useConfigSetting(SettingNames.ShowAgentTask);
 
-    const { root, footer, subFooter, chatStatement, sectionHeader, promptItem, lightbulbIcon, sectionDivider, popoverSurface } =
-        useChatInputStyles();
-    const [open, setOpen] = useState(false);
+    const { root, footer, subFooter, chatStatement } = useChatInputStyles();
 
     const { isConnected } = useContext(StreamingContext);
 
@@ -82,31 +107,6 @@ const ChatBoxFooter = ({
             sendMessage(messageToSend);
         }
     }, [input, sendMessage, disableInputInteraction, isTyping]);
-
-    const handlePromptClick = useCallback(
-        (prompt: string) => {
-            if (!disableInputInteraction && !isTyping) {
-                sendMessage(prompt);
-                setOpen(false);
-            }
-        },
-        [sendMessage, disableInputInteraction, isTyping]
-    );
-
-    const PromptSection = useCallback(
-        ({ title, prompts }: { title: string; prompts: string[] }) => (
-            <div>
-                <div className={sectionHeader}>{title}</div>
-                {prompts.map((prompt, i) => (
-                    <div key={i} className={promptItem} onClick={() => handlePromptClick(prompt)}>
-                        <Lightbulb16Regular className={lightbulbIcon} />
-                        {prompt}
-                    </div>
-                ))}
-            </div>
-        ),
-        [handlePromptClick, lightbulbIcon, promptItem, sectionHeader]
-    );
 
     return (
         <div className={root}>
@@ -170,38 +170,44 @@ const ChatBoxFooter = ({
                     }}
                 />
                 <div className={footer}>
-                    <div className={subFooter}>
-                        {/** Opening Agent task for testing purpose. Once we have chat message with task id, opening agent task will be moved there */}
-                        {showAgentTask && (
-                            <Button icon={<TaskListSquareLtrRegular />} appearance="transparent" onClick={() => openAgentTask(null)} />
-                        )}
-                        {showAgentModeSelector && threadId && <AgentModeSelector threadId={threadId} disabled={isTyping} />}
-                        <Popover positioning={'after-top'} open={open} onOpenChange={(_e, data) => setOpen(data.open)}>
-                            <PopoverTrigger>
-                                <Button
-                                    style={{ fontSize: '13px', padding: '2px 4px', paddingRight: '8px' }}
-                                    appearance="outline"
-                                    icon={<Lightbulb16Regular />}
-                                    onClick={() => setOpen(!open)}
-                                    disabled={disableInputInteraction || isTyping}
-                                >
-                                    {intl.formatMessage(PromptResources.promptLibrary)}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverSurface className={popoverSurface}>
-                                {messagePromptsUsed.length > 0 && (
-                                    <>
-                                        <PromptSection
-                                            title={intl.formatMessage(PromptResources.myRecentPrompts)}
-                                            prompts={messagePromptsUsed}
-                                        />
-                                        <div className={sectionDivider} />
-                                    </>
-                                )}
-                                <PromptSection title={intl.formatMessage(PromptResources.suggestedPrompts)} prompts={prompts} />
-                            </PopoverSurface>
-                        </Popover>
-                    </div>
+                    <Overflow>
+                        <div className={subFooter}>
+                            <DeepInvestigationButton
+                                asOverflowItem={true}
+                                showDeepInvestigationButton={showDeepInvestigationButton}
+                                deepInvestigationButtonEnabled={!!deepInvestigationButtonEnabled}
+                                deepInvestigationButtonAppearance={deepInvestigationButtonAppearance}
+                                toggleDeepInvestigationButton={toggleDeepInvestigationButton}
+                            />
+                            <AgentModeSelectorButton
+                                asOverflowItem={true}
+                                isTyping={isTyping}
+                                showAgentModeSelector={showAgentModeSelector}
+                                threadId={threadId}
+                            />
+                            <PromptLibraryButton
+                                asOverflowItem={true}
+                                isTyping={isTyping}
+                                disableInputInteraction={disableInputInteraction}
+                                messagePromptsUsed={messagePromptsUsed}
+                                sendMessage={sendMessage}
+                                prompts={prompts}
+                            />
+                            <OverflowMenu
+                                isTyping={isTyping}
+                                showDeepInvestigationButton={showDeepInvestigationButton}
+                                deepInvestigationButtonEnabled={!!deepInvestigationButtonEnabled}
+                                deepInvestigationButtonAppearance={deepInvestigationButtonAppearance}
+                                toggleDeepInvestigationButton={toggleDeepInvestigationButton}
+                                threadId={threadId}
+                                disableInputInteraction={disableInputInteraction}
+                                prompts={prompts}
+                                messagePromptsUsed={messagePromptsUsed}
+                                sendMessage={sendMessage}
+                                showAgentModeSelector={showAgentModeSelector}
+                            />
+                        </div>
+                    </Overflow>
                     <Button
                         icon={<SendOrCancelButtonIcon />}
                         disabled={disableInputInteraction}
@@ -225,5 +231,246 @@ const ChatBoxFooter = ({
         </div>
     );
 };
+
+const DeepInvestigationButton = memo(
+    ({
+        asOverflowItem,
+        showDeepInvestigationButton,
+        deepInvestigationButtonEnabled,
+        deepInvestigationButtonAppearance,
+        toggleDeepInvestigationButton,
+    }: {
+        asOverflowItem: boolean;
+        showDeepInvestigationButton: boolean;
+        deepInvestigationButtonEnabled: boolean;
+        deepInvestigationButtonAppearance: 'primary' | 'secondary';
+        toggleDeepInvestigationButton: (task: AgentTaskMetaData | null) => void;
+    }) => {
+        const isVisible = useIsOverflowItemVisible(ChatBoxButtonIds.DeepInvestigation);
+
+        if (!asOverflowItem && isVisible) {
+            return null;
+        }
+
+        const ButtonComponent = () => {
+            return (
+                <Button
+                    style={{ fontSize: '13px', padding: '2px 8px 2px 4px', whiteSpace: 'nowrap' }}
+                    icon={
+                        <SearchSparkle16Filled
+                            style={{ color: deepInvestigationButtonEnabled ? undefined : tokens.colorNeutralForegroundDisabled }}
+                        />
+                    }
+                    appearance={deepInvestigationButtonAppearance}
+                    onClick={() => toggleDeepInvestigationButton(null)}
+                    disabled={!deepInvestigationButtonEnabled}
+                >
+                    <FormattedMessage {...AgentTaskResources.deepInvestigation} />
+                </Button>
+            );
+        };
+
+        return (
+            showDeepInvestigationButton &&
+            (asOverflowItem ? (
+                <OverflowItem id={ChatBoxButtonIds.DeepInvestigation}>
+                    <div>
+                        <ButtonComponent />
+                    </div>
+                </OverflowItem>
+            ) : (
+                <ButtonComponent />
+            ))
+        );
+    }
+);
+
+const AgentModeSelectorButton = memo(
+    ({
+        asOverflowItem,
+        showAgentModeSelector,
+        threadId,
+        isTyping,
+    }: {
+        asOverflowItem: boolean;
+        showAgentModeSelector: boolean;
+        threadId?: string | null;
+        isTyping: boolean;
+    }) => {
+        const isVisible = useIsOverflowItemVisible(ChatBoxButtonIds.AgentMode);
+
+        if (!asOverflowItem && isVisible) {
+            return null;
+        }
+
+        return (
+            showAgentModeSelector &&
+            threadId && (
+                <AgentModeSelector
+                    asOverflowItem={asOverflowItem}
+                    id={ChatBoxButtonIds.AgentMode}
+                    threadId={threadId}
+                    disabled={isTyping}
+                />
+            )
+        );
+    }
+);
+
+const PromptLibraryButton = memo(
+    ({
+        asOverflowItem,
+        isTyping,
+        disableInputInteraction,
+        messagePromptsUsed,
+        sendMessage,
+        prompts,
+    }: {
+        asOverflowItem: boolean;
+        isTyping: boolean;
+        disableInputInteraction: boolean;
+        messagePromptsUsed: string[];
+        sendMessage: (message: string) => Promise<void>;
+        prompts: string[];
+    }) => {
+        const { sectionHeader, promptMenuPopover, promptItem, lightbulbIcon } = useChatInputStyles();
+
+        const intl = useIntl();
+
+        const isVisible = useIsOverflowItemVisible(ChatBoxButtonIds.PromptLibrary);
+
+        const handlePromptClick = useCallback(
+            (prompt: string) => {
+                if (!disableInputInteraction && !isTyping) {
+                    sendMessage(prompt);
+                }
+            },
+            [sendMessage, disableInputInteraction, isTyping]
+        );
+
+        const PromptSection = ({ title, prompts }: { title: string; prompts: string[] }) => (
+            <MenuGroup>
+                <MenuGroupHeader className={sectionHeader}>{title}</MenuGroupHeader>
+                {prompts.map((prompt, i) => (
+                    <div key={i} className={promptItem} onClick={() => handlePromptClick(prompt)}>
+                        <Lightbulb16Regular className={lightbulbIcon} />
+                        {prompt}
+                    </div>
+                ))}
+            </MenuGroup>
+        );
+
+        const ButtonComponent = () => {
+            return (
+                <Button
+                    style={{ fontSize: '13px', padding: '2px 8px 2px 4px', whiteSpace: 'nowrap' }}
+                    icon={<Lightbulb16Regular />}
+                    disabled={disableInputInteraction || isTyping}
+                >
+                    <FormattedMessage {...PromptResources.promptLibrary} />
+                </Button>
+            );
+        };
+
+        if (!asOverflowItem && isVisible) {
+            return null;
+        }
+
+        return (
+            <Menu positioning={'after-top'}>
+                <MenuTrigger>
+                    {asOverflowItem ? (
+                        <OverflowItem id={ChatBoxButtonIds.PromptLibrary}>
+                            <div>
+                                <ButtonComponent />
+                            </div>
+                        </OverflowItem>
+                    ) : (
+                        <MenuItem icon={<Lightbulb16Regular />} disabled={disableInputInteraction || isTyping}>
+                            <FormattedMessage {...PromptResources.promptLibrary} />
+                        </MenuItem>
+                    )}
+                </MenuTrigger>
+                <MenuPopover className={promptMenuPopover}>
+                    <MenuList>
+                        {messagePromptsUsed.length > 0 && (
+                            <PromptSection title={intl.formatMessage(PromptResources.myRecentPrompts)} prompts={messagePromptsUsed} />
+                        )}
+                        {messagePromptsUsed.length > 0 && <MenuDivider />}
+                        <PromptSection title={intl.formatMessage(PromptResources.suggestedPrompts)} prompts={prompts} />
+                    </MenuList>
+                </MenuPopover>
+            </Menu>
+        );
+    }
+);
+
+const OverflowMenu = memo(
+    ({
+        isTyping,
+        showDeepInvestigationButton,
+        deepInvestigationButtonEnabled,
+        deepInvestigationButtonAppearance,
+        toggleDeepInvestigationButton,
+        threadId,
+        disableInputInteraction,
+        prompts,
+        messagePromptsUsed,
+        sendMessage,
+        showAgentModeSelector,
+    }: {
+        isTyping: boolean;
+        showDeepInvestigationButton: boolean;
+        deepInvestigationButtonEnabled: boolean | null;
+        deepInvestigationButtonAppearance: 'primary' | 'secondary';
+        toggleDeepInvestigationButton: (task: AgentTaskMetaData | null) => void;
+        threadId?: string | null;
+        disableInputInteraction: boolean;
+        prompts: string[];
+        messagePromptsUsed: string[];
+        sendMessage: (message: string) => Promise<void>;
+        showAgentModeSelector: boolean;
+    }) => {
+        const { ref, isOverflowing } = useOverflowMenu<HTMLButtonElement>();
+
+        if (!isOverflowing) {
+            return null;
+        }
+
+        return (
+            <Menu>
+                <MenuTrigger disableButtonEnhancement>
+                    <Button ref={ref} icon={<MoreHorizontal20Filled />} aria-label="More items" appearance="subtle" />
+                </MenuTrigger>
+
+                <MenuPopover>
+                    <MenuList>
+                        <DeepInvestigationButton
+                            asOverflowItem={false}
+                            showDeepInvestigationButton={showDeepInvestigationButton}
+                            deepInvestigationButtonEnabled={!!deepInvestigationButtonEnabled}
+                            deepInvestigationButtonAppearance={deepInvestigationButtonAppearance}
+                            toggleDeepInvestigationButton={toggleDeepInvestigationButton}
+                        />
+                        <AgentModeSelectorButton
+                            asOverflowItem={false}
+                            isTyping={isTyping}
+                            showAgentModeSelector={showAgentModeSelector}
+                            threadId={threadId}
+                        />
+                        <PromptLibraryButton
+                            asOverflowItem={false}
+                            isTyping={isTyping}
+                            disableInputInteraction={disableInputInteraction}
+                            messagePromptsUsed={messagePromptsUsed}
+                            sendMessage={sendMessage}
+                            prompts={prompts}
+                        />
+                    </MenuList>
+                </MenuPopover>
+            </Menu>
+        );
+    }
+);
 
 export default memo(ChatBoxFooter);

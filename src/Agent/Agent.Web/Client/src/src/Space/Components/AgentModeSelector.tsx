@@ -1,7 +1,7 @@
 import { Button } from '@fluentui/react-button';
-import { makeStyles, tokens } from '@fluentui/react-components';
+import { makeStyles, OverflowItem, tokens } from '@fluentui/react-components';
 import { Settings16Regular } from '@fluentui/react-icons';
-import { Menu, MenuItemCheckbox, MenuList, MenuPopover, MenuTrigger } from '@fluentui/react-menu';
+import { Menu, MenuItem, MenuItemCheckbox, MenuList, MenuPopover, MenuTrigger } from '@fluentui/react-menu';
 import { Spinner } from '@fluentui/react-spinner';
 import { Text } from '@fluentui/react-text';
 import { Tooltip } from '@fluentui/react-tooltip';
@@ -54,18 +54,36 @@ const AgentModeSelector = (props: IAgentModeSelectorProps) => {
         return checked;
     }, [threadAgentMode]);
 
+    const ButtonComponent = () => {
+        return (
+            <Button
+                style={{ fontSize: '13px', padding: '2px 8px 2px 4px', whiteSpace: 'nowrap' }}
+                icon={showButtonLoadingSpinner ? <Spinner size="tiny" /> : <Settings16Regular />}
+                disabled={isButtonDisabled}
+            >
+                <FormattedMessage {...AgentModeResources.agentMode} />
+            </Button>
+        );
+    };
+
     return (
         <Menu positioning={'after-top'}>
             <Tooltip content={buttonTooltipText} relationship="label">
                 <MenuTrigger>
-                    <Button
-                        style={{ fontSize: '13px', padding: '2px 4px', paddingRight: '8px' }}
-                        appearance="outline"
-                        icon={showButtonLoadingSpinner ? <Spinner size="tiny" /> : <Settings16Regular />}
-                        disabled={isButtonDisabled}
-                    >
-                        <FormattedMessage {...AgentModeResources.agentMode} />
-                    </Button>
+                    {props.asOverflowItem ? (
+                        <OverflowItem id={props.id}>
+                            <div>
+                                <ButtonComponent />
+                            </div>
+                        </OverflowItem>
+                    ) : (
+                        <MenuItem
+                            icon={showButtonLoadingSpinner ? <Spinner size="tiny" /> : <Settings16Regular />}
+                            disabled={isButtonDisabled}
+                        >
+                            <FormattedMessage {...AgentModeResources.agentMode} />
+                        </MenuItem>
+                    )}
                 </MenuTrigger>
             </Tooltip>
             <MenuPopover className={menuSurface}>

@@ -298,6 +298,10 @@ export const PromptResources = defineMessages({
     availabilityPrompt: { defaultMessage: "Can you analyze my resource's availability over the last 24 hours?", id: 'EI4WZI' },
 });
 
+export const AgentTaskResources = defineMessages({
+    deepInvestigation: { defaultMessage: 'Deep investigation', id: '2a+ttj' },
+});
+
 export const PermissionsResources = defineMessages({
     roles: { defaultMessage: 'Roles', id: 'c35gM5' },
     role: { defaultMessage: 'Role', id: '1ZgrhW' },

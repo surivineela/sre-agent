@@ -1,7 +1,6 @@
 import { CopilotChat, CopilotProvider } from '@fluentui-copilot/react-copilot';
 import { mergeClasses } from '@fluentui/react-components';
-import { memo, useCallback, useMemo, useState } from 'react';
-import { AgentTaskMetaData } from '../../Common/Contracts/DataPlane/AgentTask';
+import { memo, useMemo } from 'react';
 import { ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
@@ -12,11 +11,11 @@ import ChatMessages from '../Components/ChatMessages';
 import PermissionErrorChatMessage from '../Components/PermissionErrorChatMessage';
 import { IChatBoxProps } from '../Contracts/Activities';
 import { ChatBoxContext, ThreadAgentModeContext } from '../Contracts/Context';
+import { useAgentTask } from '../Hooks/useAgentTask';
 import { useChatBox } from '../Hooks/useChatBox';
 import { useThreadAgentMode } from '../Hooks/useThreadAgentMode';
 import { getChatBoxV2Styles } from '../Styles/Activities.styles';
 import AgentTask from './AgentTask/AgentTask';
-import AgentTaskDev from './AgentTaskDev';
 import AzureSREWelcome from './AzureSREWelcome';
 import { ChatSuggestions } from './ChatSuggestions';
 import { Resizable, ResizableChildProps } from './Resizable';
@@ -28,6 +27,7 @@ export const ChatBox = ({
     threadSource,
     stylesProps,
     collapseResizables,
+    isAgentTaskEnabled,
 }: IChatBoxProps) => {
     const {
         chatHistory,
@@ -55,7 +55,17 @@ export const ChatBox = ({
         userDefinedThreadIdRef,
     } = useChatBox(addThread, updateThreadLastReadTime, threadId, threadSource);
 
-    const showAgentTaskDev = useConfigSetting(SettingNames.ShowAgentTaskDev);
+    const {
+        isAgentTaskCollapsed,
+        setIsAgentTaskCollapsed,
+        toggleDeepInvestigationButton,
+        task,
+        deepInvestigationButtonAppearance,
+        deepInvestigationButtonEnabled,
+        ...rest
+    } = useAgentTask(threadId, userDefinedThreadIdRef.current, collapseResizables, isLoading);
+
+    const showAgentTask = useConfigSetting(SettingNames.ShowAgentTask);
 
     const threadAgentModeData = useThreadAgentMode(threadId, threadSource);
 
@@ -63,23 +73,7 @@ export const ChatBox = ({
 
     const { scrollable } = useScrollableComponentStyles();
 
-    const [isAgentTaskCollapsed, setIsAgentTaskCollapsed] = useState<boolean>(true);
-    const [task, setTask] = useState<AgentTaskMetaData | null>(null);
-
     const chatBoxStyles = useMemo(() => getChatBoxV2Styles(!isAgentTaskCollapsed, stylesProps), [isAgentTaskCollapsed, stylesProps]);
-
-    const openAgentTask = useCallback(
-        (task: AgentTaskMetaData | null) => {
-            if (isAgentTaskCollapsed) {
-                setIsAgentTaskCollapsed(false);
-                collapseResizables?.();
-            }
-            if (task) {
-                setTask(task);
-            }
-        },
-        [collapseResizables, isAgentTaskCollapsed]
-    );
 
     return (
         <ChatBoxContext.Provider value={{ getGroupedChatMessages }}>
@@ -178,30 +172,27 @@ export const ChatBox = ({
                                 isTyping={!!isAgentTyping}
                                 isCancellingStreaming={isCancellingStreaming}
                                 threadId={currentThreadId}
-                                openAgentTask={openAgentTask}
+                                showDeepInvestigationButton={showAgentTask && isAgentTaskEnabled}
+                                toggleDeepInvestigationButton={toggleDeepInvestigationButton}
+                                deepInvestigationButtonEnabled={deepInvestigationButtonEnabled}
+                                deepInvestigationButtonAppearance={deepInvestigationButtonAppearance}
                             />
                         </CopilotProvider>
                     </div>
 
-                    <Resizable
-                        position="right"
-                        initialWidth="65%"
-                        minWidthPixels={500}
-                        collapsedWidthPixels={isAgentTaskCollapsed ? 0 : 500}
-                        collapsed={isAgentTaskCollapsed}
-                        setCollapsed={setIsAgentTaskCollapsed}
-                        style={{ height: 'calc(100vh - 100px)', width: '100%' }}
-                    >
-                        {(resizableChildProps: ResizableChildProps) => (
-                            <AgentTask
-                                threadId={threadId}
-                                task={task}
-                                userDefinedThreadId={userDefinedThreadIdRef.current}
-                                {...resizableChildProps}
-                            />
-                        )}
-                    </Resizable>
-                    {showAgentTaskDev && <AgentTaskDev collapseResizables={collapseResizables} />}
+                    {showAgentTask && isAgentTaskEnabled && (
+                        <Resizable
+                            position="right"
+                            initialWidth="65%"
+                            minWidthPixels={500}
+                            collapsedWidthPixels={isAgentTaskCollapsed ? 0 : 500}
+                            collapsed={isAgentTaskCollapsed}
+                            setCollapsed={setIsAgentTaskCollapsed}
+                            style={{ height: 'calc(100vh - 100px)', width: '100%' }}
+                        >
+                            {(resizableChildProps: ResizableChildProps) => <AgentTask {...rest} {...resizableChildProps} />}
+                        </Resizable>
+                    )}
                 </div>
             </ThreadAgentModeContext.Provider>
         </ChatBoxContext.Provider>

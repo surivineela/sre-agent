@@ -18,6 +18,7 @@ export const ThreadContent = memo(
                     updateThreadLastReadTime={updateThreadLastReadTime}
                     threadSource={thread?.source}
                     collapseResizables={collapseResizables}
+                    isAgentTaskEnabled={true}
                 />
             </div>
         );

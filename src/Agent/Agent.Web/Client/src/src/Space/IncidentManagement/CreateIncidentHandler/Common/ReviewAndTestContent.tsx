@@ -249,6 +249,7 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view }) =>
                             addThread={() => {}}
                             updateThreadLastReadTime={() => {}}
                             threadSource={ThreadSource.incident}
+                            isAgentTaskEnabled={false}
                             stylesProps={{
                                 chatBoxAndAgentTask: {
                                     boxShadow: 'unset',

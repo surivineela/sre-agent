@@ -21,6 +21,7 @@ const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
     localhost: {
         [SettingNames.ShowAgentModeForThread]: true,
         [SettingNames.DataConnectors]: true,
+        [SettingNames.ShowAgentTask]: true,
     },
 };
 

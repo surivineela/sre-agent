@@ -7,22 +7,32 @@ import { AgentTask, AgentTaskMetaData } from '../../Common/Contracts/DataPlane/A
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
 import { Guid } from '../../Common/Helpers/Guid';
 import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
-import { IAgentTaskProps, TreeStateValue } from '../Contracts/Activities';
+import { TreeStateValue } from '../Contracts/Activities';
 import { StreamingContext } from '../Contracts/Context';
 import { useAgentTaskStreamHandler } from './useAgentTaskStreamHandler';
 
-export const useAgentTask = (props: IAgentTaskProps) => {
-    const { threadId, userDefinedThreadId, task } = props;
-
+export const useAgentTask = (
+    threadId: string | undefined,
+    userDefinedThreadId: string,
+    collapseResizables: (() => void) | undefined,
+    isLoadingInitialChatHistory: boolean
+) => {
     const { updateTreeState } = useAgentTaskStreamHandler();
 
+    const [isAgentTaskCollapsed, setIsAgentTaskCollapsed] = useState<boolean>(true);
+    const [task, setTask] = useState<AgentTaskMetaData | null>(null);
     const [taskDropdownOptions, setTaskDropdownOptions] = useState<AgentTaskMetaData[]>([]);
     const [selectedTaskId, setSelectedTaskId] = useState<string>('');
     const [isLoadingTaskDropdown, setIsLoadingTaskDropdown] = useState<boolean>(false);
     const [treeStates, setTreeStates] = useState<Map<string, TreeStateValue>>(new Map());
     const [isLoadingTreeState, setIsLoadingTreeState] = useState(false);
     const [currentTreeStateValue, setCurrentTreeStateValue] = useState<TreeStateValue | null>(null);
+    const [isAgentTaskResizableOpening, setIsAgentTaskResizableOpening] = useState(false);
     const [shouldFitView, setShouldFitView] = useState(true);
+
+    // When deepInvestigationButtonEnabled is null, it means that the thread is loading and at this moment do not enable the button until the loading is completed
+    const [deepInvestigationButtonEnabled, setDeepInvestigationButtonEnabled] = useState<boolean | null>(null);
+    const [deepInvestigationButtonAppearance, setDeepInvestigationButtonAppearance] = useState<'primary' | 'secondary'>('secondary');
 
     const threadIdRef = useRef<string | null>(threadId || userDefinedThreadId || null);
     const treeStatesRef = useRef<Map<string, TreeStateValue>>(treeStates);
@@ -35,6 +45,19 @@ export const useAgentTask = (props: IAgentTaskProps) => {
 
     threadIdRef.current = threadId || userDefinedThreadId || null;
     treeStatesRef.current = treeStates;
+
+    const toggleDeepInvestigationButton = useCallback(
+        (task: AgentTaskMetaData | null) => {
+            if (isAgentTaskCollapsed) {
+                setIsAgentTaskCollapsed(false);
+                collapseResizables?.();
+            } else {
+                setIsAgentTaskCollapsed(true);
+                setTask(task);
+            }
+        },
+        [collapseResizables, isAgentTaskCollapsed]
+    );
 
     const updateTaskDropdownOption = (...tasks: AgentTaskMetaData[]) => {
         setTaskDropdownOptions(prev => {
@@ -265,15 +288,61 @@ export const useAgentTask = (props: IAgentTaskProps) => {
         };
     }, [subscribeTaskUpdateEvent]);
 
+    // Use isAgentTaskResizableOpening to control the timing of calling fitView in AgentTaskGraph
+    // to make sure that fitView is called after the resizable component opening transition is completed
+    useEffect(() => {
+        if (!isAgentTaskCollapsed) {
+            setIsAgentTaskResizableOpening(true);
+            setTimeout(() => {
+                setIsAgentTaskResizableOpening(false);
+                // 300ms is the transition duration when resizable component is opening
+            }, 300);
+        } else {
+            setIsAgentTaskResizableOpening(false);
+        }
+    }, [isAgentTaskCollapsed]);
+
+    useEffect(() => {
+        setDeepInvestigationButtonAppearance(isAgentTaskCollapsed ? 'secondary' : 'primary');
+    }, [isAgentTaskCollapsed]);
+
+    // Initialize agent task button and Resizable open state
+    const hasExistingTasks = useMemo(() => taskDropdownOptions.length > 0, [taskDropdownOptions]);
+    useEffect(() => {
+        if (!isLoadingInitialChatHistory) {
+            if (hasExistingTasks) {
+                setIsAgentTaskCollapsed(false);
+                collapseResizables?.();
+            }
+
+            setDeepInvestigationButtonEnabled(hasExistingTasks);
+        }
+    }, [isLoadingInitialChatHistory, hasExistingTasks, collapseResizables]);
+
+    useEffect(() => {
+        setDeepInvestigationButtonEnabled(prev => {
+            // Do not set the deep investigation button enabled state if the button's initial state has not been set yet
+            if (prev === null) return prev;
+            return taskDropdownOptions.length > 0;
+        });
+    }, [taskDropdownOptions.length]);
+
     return {
         taskDropdownOptions,
         isLoadingTaskDropdown,
         setSelectedTaskId,
         selectedTaskId,
         taskDropdownValue,
+        isAgentTaskCollapsed,
+        setIsAgentTaskCollapsed,
+        task,
+        toggleDeepInvestigationButton,
+        deepInvestigationButtonAppearance,
+        deepInvestigationButtonEnabled,
 
         currentTreeStateValue,
         isLoadingTreeState,
+        isAgentTaskResizableOpening,
         shouldFitView,
         toggleNode,
         getNodeStatus,

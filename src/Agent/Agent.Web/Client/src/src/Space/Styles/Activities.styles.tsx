@@ -270,18 +270,17 @@ export const useChatInputStyles = makeStyles({
         display: 'flex',
         alignItems: 'center',
         gap: tokens.spacingHorizontalM,
+        overflow: 'hidden',
+        flex: '1 1 auto',
     },
     chatStatement: {
         color: tokens.colorNeutralForeground3,
         maxWidth: textFieldMaxWidth,
         margin: 'auto',
     },
-    popoverSurface: {
+    promptMenuPopover: {
         width: '280px',
         padding: '10px',
-        display: 'flex',
-        flexDirection: 'column',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
     },
     promptItem: {
         display: 'flex',
@@ -296,10 +295,6 @@ export const useChatInputStyles = makeStyles({
         fontSize: '13px',
         marginBottom: '4px',
         paddingLeft: '2px',
-    },
-    sectionDivider: {
-        margin: '8px 0px',
-        borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
     },
     lightbulbIcon: {
         fontSize: '16px',
@@ -342,6 +337,7 @@ export const chatInputTextStyles = {
 export const sendButtonStyles = {
     borderRadius: '4px',
     padding: '6px',
+    flex: '0 0 auto',
 };
 
 export const useThreadMenuStyle = () => {

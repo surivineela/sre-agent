@@ -14,16 +14,24 @@ import {
 } from '@fluentui/react-components';
 import { CheckmarkCircleColor, Dismiss24Regular, DismissCircleFilled, ErrorCircleColor } from '@fluentui/react-icons';
 import { ReactFlowProvider } from '@xyflow/react';
-import { memo, useEffect, useState } from 'react';
+import { Dispatch, memo, SetStateAction } from 'react';
 import { AgentTaskMetaData, AgentTaskStatus } from '../../../Common/Contracts/DataPlane/AgentTask';
+import { TreeStateValue } from '../../Contracts/Activities';
 import { AgentTaskContext } from '../../Contracts/Context';
-import { useAgentTask } from '../../Hooks/useAgentTask';
 import AgentTaskGraph from './AgentTaskGraph';
 
 interface IAgentTaskProps {
-    threadId?: string;
-    userDefinedThreadId: string;
-    task: AgentTaskMetaData | null;
+    taskDropdownOptions: AgentTaskMetaData[];
+    isLoadingTaskDropdown: boolean;
+    setSelectedTaskId: Dispatch<SetStateAction<string>>;
+    selectedTaskId: string;
+    taskDropdownValue: string;
+    currentTreeStateValue: TreeStateValue | null;
+    isLoadingTreeState: boolean;
+    isAgentTaskResizableOpening: boolean;
+    shouldFitView: boolean;
+    toggleNode: (nodeId: string) => void;
+    getNodeStatus: (nodeId: string) => string | null;
     collapsed?: boolean;
     setCollapsed: (collapsed: boolean) => void;
 }
@@ -65,37 +73,23 @@ const useAgentTaskStyles = makeStyles({
 });
 
 const AgentTask = (props: IAgentTaskProps) => {
-    const { collapsed, setCollapsed } = props;
-    const { root, header, dropdownItem, dropdownItemText, loader, loaderItem } = useAgentTaskStyles();
-
-    const [isAgentTaskResizableOpening, setIsAgentTaskResizableOpening] = useState(false);
-
     const {
         taskDropdownOptions,
         isLoadingTaskDropdown,
-        selectedTaskId,
         setSelectedTaskId,
+        selectedTaskId,
         taskDropdownValue,
         currentTreeStateValue,
         isLoadingTreeState,
+        isAgentTaskResizableOpening,
         shouldFitView,
         toggleNode,
         getNodeStatus,
-    } = useAgentTask(props);
+        collapsed,
+        setCollapsed,
+    } = props;
 
-    // Use isAgentTaskResizableOpening to control the timing of calling fitView in AgentTaskGraph
-    // to make sure that fitView is called after the resizable component opening transition is completed
-    useEffect(() => {
-        if (!collapsed) {
-            setIsAgentTaskResizableOpening(true);
-            setTimeout(() => {
-                setIsAgentTaskResizableOpening(false);
-                // 300ms is the transition duration when resizable component is opening
-            }, 300);
-        } else {
-            setIsAgentTaskResizableOpening(false);
-        }
-    }, [collapsed]);
+    const { root, header, dropdownItem, dropdownItemText, loader, loaderItem } = useAgentTaskStyles();
 
     const TaskDropdownItem = ({ taskId, taskDropdownOptions }: { taskId: string | null; taskDropdownOptions: AgentTaskMetaData[] }) => {
         const task = taskDropdownOptions.find(option => option.id === taskId) || null;
