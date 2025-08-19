@@ -348,5 +348,19 @@ namespace Agent.Plugins
             return await _plugin.GetApplicationHealthInfoAsync(resourceId);
         }
 
+        [Description("REAL-TIME AZURE QUERY - Queries Azure Resource Graph directly for live resource information as a fallback when the knowledge graph is missing data. " +
+            "Does a GET on ARG. Essential when you need: 1) Recently deployed resources not yet synced to knowledge graph, " +
+            "2) Current status queries ('how is it doing right now', 'live status', 'real-time'), " +
+            "3) When SearchResourceByName returns empty but resource likely exists, " +
+            "4) Latest configuration and provisioning state. " +
+            "Use for new deployments, status checks, resource validation, configuration drift. " +
+            "Bypasses knowledge graph sync delays and provides real-time Azure data with comprehensive JSON output. Use AzCLI via HandoffBack tool for more complex querying")]
+        [AgentTool(ToolMode.Auto)]
+        public async Task<string> GetResourcePropertiesRealTime(
+            [Description("Azure Resource Id to query in real-time. Must be complete, valid Resource ID: /subscriptions/.../resourceGroups/.../providers/.../resourceName")] string resourceId)
+        {
+            return await _plugin.GetResourcePropertiesRealTime(resourceId);
+        }
+
     }
 }

@@ -181,5 +181,14 @@ namespace Agent.Plugins.Interface
         Task UpdateRepoNodeWithLastScanTime(string repoUrl);
 
         Task<string> GetResourceIdForResourceName(string resourceName, string resourceType);
+
+        /// <summary>
+        /// Gets all properties for a resource from Azure Resource Graph in real-time as a fallback 
+        /// when the knowledge graph doesn't contain the needed information. Queries live Azure APIs 
+        /// for the most current resource state and properties.
+        /// </summary>
+        /// <param name="resourceId">Azure Resource ID of the resource to query.</param>
+        /// <returns>A JSON string containing all properties from the live Azure Resource Graph query.</returns>
+        Task<string> GetResourcePropertiesRealTime(string resourceId);
     }
 }

@@ -214,6 +214,21 @@ public static class TestHelpers
         // Add mock ARM client factory
         builder.Services.AddSingleton(Mock.Of<IArmClientFactory>());
 
+        // Add CrawlerSettings configuration
+        builder.Services.AddSingleton<CrawlerSettings>(sp =>
+        {
+            return new CrawlerSettings
+            {
+                TenantId = "00000000-0000-0000-0000-000000000000", // Test tenant ID
+                CrawlRoots = "",
+                Identity = "system",
+                MaxParallelism = 1
+            };
+        });
+
+        // Add AzureResourceGraphClient
+        builder.Services.AddSingleton<Agent.Graph.Crawler.ARM.AzureResourceGraphClient>();
+
         // Add mock Crawler Trigger Service
         builder.Services.AddSingleton(Mock.Of<ICrawlerTriggerService>());
 

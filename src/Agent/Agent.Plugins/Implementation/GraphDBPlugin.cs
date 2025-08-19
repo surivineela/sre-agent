@@ -55,6 +55,7 @@ namespace Agent.Plugins
         private readonly IAuthenticationService _authService;
         private readonly List<string> _crawlRoots;
         private readonly IHostEnvironment _hostEnvironment;
+        private readonly AzureResourceGraphClient _azureResourceGraphClient;
 
         private const string MermaidServiceAPI = "https://mermaid-renderer.salmonhill-ad96bd78.eastus2.azurecontainerapps.io/render";
 
@@ -76,7 +77,8 @@ namespace Agent.Plugins
             ILogger<GraphDBPlugin> logger,
             IAuthenticationService authService,
             CrawlerSettings crawlerSettings,
-            IHostEnvironment hostEnvironment)
+            IHostEnvironment hostEnvironment,
+            AzureResourceGraphClient azureResourceGraphClient)
         {
             _graphDbClient = graphDbClient;
             _chatClient = chatClient;
@@ -93,6 +95,7 @@ namespace Agent.Plugins
                 .ToList();
 
             _hostEnvironment = hostEnvironment;
+            _azureResourceGraphClient = azureResourceGraphClient;
         }
 
         /// <summary>
@@ -2746,5 +2749,53 @@ resourcechanges
         }
 
         #endregion
+
+        public async Task<string> GetResourcePropertiesRealTime(string resourceId)
+        {
+            try
+            {
+                // Validate the resource ID format
+                if (!Azure.Core.ResourceIdentifier.TryParse(resourceId, out var parsedResourceId))
+                {
+                    throw new ArgumentException($"Invalid Azure resource ID format: {resourceId}");
+                }
+
+                // Extract subscription ID from the resource ID
+                var subscriptionId = parsedResourceId!.SubscriptionId;
+                if (string.IsNullOrEmpty(subscriptionId))
+                {
+                    throw new ArgumentException($"Could not extract subscription ID from resource ID: {resourceId}");
+                }
+
+                // Build KQL query to get the specific resource
+                var query = $@"
+                    Resources 
+                    | where id =~ '{resourceId}'
+                    | project id, name, type, kind, location, resourceGroup, subscriptionId, properties, tags
+                ";
+
+                _logger.LogInternalInformation("Executing real-time Azure Resource Graph query for resource: {ResourceId}", resourceId);
+
+                // Execute the query using Azure Resource Graph
+                var result = await _azureResourceGraphClient.Query(new[] { subscriptionId }, query);
+
+                // Convert result to JSON string
+                var jsonOptions = new JsonSerializerOptions 
+                { 
+                    WriteIndented = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                };
+                
+                var jsonResult = JsonSerializer.Serialize(result.Data, jsonOptions);
+                
+                _logger.LogInternalInformation("Successfully retrieved real-time properties for resource: {ResourceId}", resourceId);
+                return jsonResult;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Error retrieving real-time properties for resource: {ResourceId}", resourceId);
+                throw new Exception($"Failed to retrieve real-time properties for resource {resourceId}: {ex.Message}", ex);
+            }
+        }
     }
 }

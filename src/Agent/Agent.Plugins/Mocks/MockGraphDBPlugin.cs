@@ -250,6 +250,11 @@ namespace Agent.Plugins.Mocks
         {
             return Task.FromResult($"Mock change history for correlation ID: {correlationId} and resource: {resourceId}");
         }
+
+        public Task<string> GetResourcePropertiesRealTime(string resourceId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 
