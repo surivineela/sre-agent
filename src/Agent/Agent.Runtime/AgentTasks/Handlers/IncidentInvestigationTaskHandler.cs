@@ -12,6 +12,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
 using Agent.Data.Repositories;
 using Agent.Framework;
+using Agent.Logging;
 using Agent.Runtime.AgentTasks.Agents;
 using Agent.Runtime.Reasoning;
 using Microsoft.Extensions.AI;
@@ -126,7 +127,7 @@ public sealed class IncidentInvestigationTaskHandler(
 
             // 1. Initial Investigation
             logger.LogInternalInformation("Starting initial investigation for task: {TaskId}", agentTask.Id);
-            tracingHelper.StartAgentTaskStepSpan("InitialInvestigation");
+            var currentStepSpan = tracingHelper.StartAgentTaskStepSpan("InitialInvestigation");
 
             if (state.InitialInvestigation.Status != InitialInvestigationStatus.Complete)
             {
@@ -157,6 +158,8 @@ public sealed class IncidentInvestigationTaskHandler(
                         new ChatMessage(ChatRole.User, msg),
                         runHooks,
                         true,
+                        tracer,
+                        currentStepSpan,
                         cancellationToken);
 
                     ValidateAndAddRequiredTools(toolNames);
@@ -179,6 +182,8 @@ public sealed class IncidentInvestigationTaskHandler(
                         new ChatMessage(ChatRole.User, msg),
                         runHooks,
                         true,
+                        tracer,
+                        currentStepSpan,
                         cancellationToken);
 
                     state.InitialInvestigation.GatheringContext.Status = InitialInvestigationStatus.Complete;
@@ -214,7 +219,7 @@ public sealed class IncidentInvestigationTaskHandler(
 
             // 2. Forming Hypothesis
             logger.LogInternalInformation("Starting forming hypothesis for task: {TaskId}", agentTask.Id);
-            tracingHelper.StartAgentTaskStepSpan("FormingHypothesis");
+            currentStepSpan = tracingHelper.StartAgentTaskStepSpan("FormingHypothesis");
 
             var finalValidatedHypotheses = new List<HypothesisTreeItem>();
             var allInvestigatedHypotheses = new List<HypothesisTreeItem>();
@@ -231,6 +236,7 @@ public sealed class IncidentInvestigationTaskHandler(
                     null,
                     context,
                     runHooks,
+                    currentStepSpan,
                     cancellationToken);
 
                 state.FormingHypothesis.Hypotheses = initialHypotheses;
@@ -264,6 +270,7 @@ public sealed class IncidentInvestigationTaskHandler(
                         current.Description,
                         context,
                         runHooks,
+                        currentStepSpan,
                         async step =>
                         {
                             // Save and update the state with the current step
@@ -350,6 +357,7 @@ public sealed class IncidentInvestigationTaskHandler(
                         validatedHypothesis,
                         context,
                         runHooks,
+                        currentStepSpan,
                         cancellationToken);
                     current.Children = hypotheses;
 
@@ -385,22 +393,22 @@ public sealed class IncidentInvestigationTaskHandler(
             // 3. >1 valid hypothesis at the end → multiple hypotheses
             // 4. 0 valid hypothesis at the end → inconclusive
             logger.LogInternalInformation("Starting conclusion generation for task: {TaskId}", agentTask.Id);
-            tracingHelper.StartAgentTaskStepSpan("Conclusion");
+            currentStepSpan = tracingHelper.StartAgentTaskStepSpan("Conclusion");
 
             if (finalValidatedHypotheses.Count == 1)
             {
                 // Stream single hypothesis conclusion
-                await GenerateSingleValidHypothesisConclusion(finalValidatedHypotheses.First(), inputData, context, runHooks, cancellationToken);
+                await GenerateSingleValidHypothesisConclusion(finalValidatedHypotheses.First(), inputData, context, runHooks, currentStepSpan, cancellationToken);
             }
             else if (finalValidatedHypotheses.Count > 1)
             {
                 // Stream multiple hypotheses conclusion
-                await GenerateMultipleValidHypothesesConclusion(finalValidatedHypotheses, inputData, context, runHooks, cancellationToken);
+                await GenerateMultipleValidHypothesesConclusion(finalValidatedHypotheses, inputData, context, runHooks, currentStepSpan, cancellationToken);
             }
             else
             {
                 // Stream inconclusive conclusion - use all investigated hypotheses
-                await GenerateInconclusiveConclusion(inputData, context, runHooks, allInvestigatedHypotheses, cancellationToken);
+                await GenerateInconclusiveConclusion(inputData, context, runHooks, currentStepSpan, allInvestigatedHypotheses, cancellationToken);
             }
 
             state = await SaveStateAndStreamUpdateAsync(newStatus: AgentTaskStatus.Complete, cancellationToken: cancellationToken);
@@ -618,7 +626,9 @@ public sealed class IncidentInvestigationTaskHandler(
         ChatMessage inputMessage,
         RunHooks<AgentContext> runHooks,
         bool enableDocumentSearch,
-        CancellationToken cancellationToken)
+        Tracer? tracer = null,
+        TelemetrySpan? parentSpan = null,
+        CancellationToken cancellationToken = default)
     {
         if (agent.HasStructuredOutput && typeof(TResult) != agent.OutputType)
         {
@@ -626,6 +636,7 @@ public sealed class IncidentInvestigationTaskHandler(
         }
 
         const int retryLimit = 3;
+        var threadId = context.ThreadId.ToString();
 
         for (var i = 0; i < retryLimit; i++)
         {
@@ -639,8 +650,27 @@ public sealed class IncidentInvestigationTaskHandler(
                         [inputMessage],
                         "How to investigate this issue?",
                         logger);
-                    docs.AddRange(await RetrieveDocumentsFromLocalStore(query));
-                    docs.AddRange(await RetrieveDocumentsFromRegionalStore(query, context.ThreadId.ToString()));
+                    TelemetrySpan? searchSpan = null;
+
+                    if (parentSpan != null && tracer != null)
+                    {
+                        searchSpan = tracer.StartActiveSpan("retrieval_local_documents", SpanKind.Internal, parentSpan);
+                        searchSpan.SetAttribute(TraceAttribute.ThreadId, threadId);
+                        searchSpan.SetAttribute(TraceAttribute.OperationName, "retrieval.local.documents");
+                    }
+
+                    // If the agent is a 1P agent, retrieve the prompts of subagents from the local store
+                    if (is1PAgent)
+                    {
+                        var docsFromLocal = await RetrieveDocumentsFromLocalStore(query);
+                        searchSpan?.SetAttribute("search.results.count", docsFromLocal.Count.ToString());
+                        searchSpan?.SetAttribute("search.results", JsonSerializer.Serialize(docsFromLocal));
+                        searchSpan?.End();
+                        docs.AddRange(docsFromLocal);
+                    }
+
+                    docs.AddRange(await RetrieveDocumentsFromRegionalStore(query, threadId, parentSpan));
+
                     string msg = inputMessage.Text;
                     msg += $"""
                         ---
@@ -734,20 +764,20 @@ public sealed class IncidentInvestigationTaskHandler(
         throw new InvalidOperationException("Retry exceeded");
     }
 
-    private async Task<IEnumerable<SearchDocument>> RetrieveDocumentsFromLocalStore(string query)
+    private async Task<ICollection<SearchDocument>> RetrieveDocumentsFromLocalStore(string query)
     {
         if (RcaAgentsStore == null)
         {
             logger.LogInternalInformation("RCA agents store is not initialized, returning empty results");
-            return Enumerable.Empty<SearchDocument>();
+            return Array.Empty<SearchDocument>();
         }
 
         return await RcaAgentsStore.SearchAsync(query, 3).ToListAsync();
     }
 
-    private async Task<IEnumerable<SearchDocument>> RetrieveDocumentsFromRegionalStore(string query, string threadId)
+    private async Task<IEnumerable<SearchDocument>> RetrieveDocumentsFromRegionalStore(string query, string threadId, TelemetrySpan? parentSpan = null)
     {
-        var results = await searchHelper.SearchAsync(query, SearchRequest.TypeDocument, retrieveFullDocument: false, threadId: threadId);
+        var results = await searchHelper.SearchAsync(query, SearchRequest.TypeDocument, false, parentSpan, threadId);
         return results;
     }
 
@@ -820,6 +850,7 @@ public sealed class IncidentInvestigationTaskHandler(
         string? validatedHypothesis,
         AgentContext context,
         RunHooks<AgentContext> runHooks,
+        TelemetrySpan currentStepSpan,
         CancellationToken cancellationToken)
     {
         logger.LogInternalInformation("Generating hypotheses for incident description.");
@@ -848,6 +879,8 @@ public sealed class IncidentInvestigationTaskHandler(
             new ChatMessage(ChatRole.User, message),
             runHooks,
             true,
+            tracer,
+            currentStepSpan,
             cancellationToken);
         var result = hypotheses.Select(h => new HypothesisTreeItem
         {
@@ -871,6 +904,7 @@ public sealed class IncidentInvestigationTaskHandler(
         string currentHypothesis,
         AgentContext context,
         RunHooks<AgentContext> runHooks,
+        TelemetrySpan currentStepSpan,
         Func<HypothesisStep, Task> saveAndUpdateCallback,
         CancellationToken cancellationToken)
     {
@@ -885,6 +919,8 @@ public sealed class IncidentInvestigationTaskHandler(
                     new ChatMessage(ChatRole.User, currentHypothesis),
                     runHooks,
                     true,
+                    tracer,
+                    currentStepSpan,
                     cancellationToken);
 
         ValidateAndAddRequiredTools(toolNames);
@@ -924,6 +960,8 @@ public sealed class IncidentInvestigationTaskHandler(
             inputMessage,
             runHooks,
             true,
+            tracer,
+            currentStepSpan,
             cancellationToken);
 
         //var toolSelectionAgent = IncidentInvestigationAgents.CreateToolSelectionAgent(
@@ -981,6 +1019,8 @@ public sealed class IncidentInvestigationTaskHandler(
                 new ChatMessage(ChatRole.User, stepInputMessage),
                 runHooks,
                 true,
+                tracer,
+                currentStepSpan,
                 cancellationToken);
 
             var item = new HypothesisStep
@@ -1011,6 +1051,8 @@ public sealed class IncidentInvestigationTaskHandler(
             new ChatMessage(ChatRole.User, "Analyze the validation steps and provide your result"),
             runHooks,
             false,
+            tracer,
+            currentStepSpan,
             cancellationToken);
 
         logger.LogInternalInformation("Hypothesis validation result: Hypothesis: {Hypothesis}, Status: {Status}, Reasoning: {Reasoning}",
@@ -1037,6 +1079,7 @@ public sealed class IncidentInvestigationTaskHandler(
         IncidentInvestigationTaskInputData inputData,
         AgentContext context,
         RunHooks<AgentContext> runHooks,
+        TelemetrySpan currentStepSpan,
         CancellationToken cancellationToken)
     {
         logger.LogInternalInformation("Generating conclusion for single valid hypothesis: {HypothesisTitle}", validHypothesis.Title);
@@ -1070,6 +1113,8 @@ public sealed class IncidentInvestigationTaskHandler(
             new(ChatRole.User, message),
             runHooks,
             false,
+            tracer,
+            currentStepSpan,
             cancellationToken
         );
 
@@ -1084,6 +1129,7 @@ public sealed class IncidentInvestigationTaskHandler(
         IncidentInvestigationTaskInputData inputData,
         AgentContext context,
         RunHooks<AgentContext> runHooks,
+        TelemetrySpan currentStepSpan,
         CancellationToken cancellationToken)
     {
         logger.LogInternalInformation("Generating conclusion for multiple valid hypotheses: {HypothesisCount}", validHypotheses.Count);
@@ -1118,6 +1164,8 @@ public sealed class IncidentInvestigationTaskHandler(
             new(ChatRole.User, message),
             runHooks,
             false,
+            tracer,
+            currentStepSpan,
             cancellationToken
         );
 
@@ -1131,6 +1179,7 @@ public sealed class IncidentInvestigationTaskHandler(
         IncidentInvestigationTaskInputData inputData,
         AgentContext context,
         RunHooks<AgentContext> runHooks,
+        TelemetrySpan currentStepSpan,
         List<HypothesisTreeItem> allInvestigatedHypotheses,
         CancellationToken cancellationToken)
     {
@@ -1166,6 +1215,8 @@ public sealed class IncidentInvestigationTaskHandler(
             new(ChatRole.User, message),
             runHooks,
             false,
+            tracer,
+            currentStepSpan,
             cancellationToken
         );
 

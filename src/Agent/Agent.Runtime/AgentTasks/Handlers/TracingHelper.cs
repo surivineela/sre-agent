@@ -136,7 +136,7 @@ public sealed class TracingHelper : IDisposable
         };
     }
 
-    public void StartAgentTaskStepSpan(string stepName)
+    public TelemetrySpan StartAgentTaskStepSpan(string stepName)
     {
         if (_currentStepSpan is not null)
         {
@@ -146,6 +146,7 @@ public sealed class TracingHelper : IDisposable
         _currentStepSpan.SetAttribute(TraceAttribute.ThreadId, _threadId);
         _currentStepSpan.SetAttribute(TraceAttribute.AgentTaskStep, stepName);
         _currentStepSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.AgentTaskStep);
+        return _currentStepSpan;
     }
 
     public void EndAgentTaskStepSpan()
