@@ -70,6 +70,7 @@ namespace Agent.Tests.Unit.Plugins
                     "GetSessionPoolInfo.kql",
                     "GetSwiftNetworkContainerHeartbeat.kql",
                     "GetSystemComponentCpuUsage.kql",
+                    "GetSystemComponentMemoryUsage.kql",
                     "GetSystemComponentErrorEvents.kql",
                     "GetTerminatedConnectionsForPod.kql",
                     "GetVKPodLeaderElection.kql",

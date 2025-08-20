@@ -238,6 +238,7 @@ tools:
   - GetCanaryAvailability
   - GetSystemComponentErrorEvents
   - GetSystemComponentCpuUsage
+  - GetSystemComponentMemoryUsage
   - GetManagedEnvironmentConfigureInfo
   - GetManagedEnvironmentStateInfo
   - GetEnvironmentQuota

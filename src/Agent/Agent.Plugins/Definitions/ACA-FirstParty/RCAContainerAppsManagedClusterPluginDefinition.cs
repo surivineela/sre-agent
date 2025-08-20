@@ -275,5 +275,37 @@ Output: CSV (tab-separated) with columns:
                 { "region", region.ToNormalizedString() }
                 });
         }
+
+        [Description(@"""
+        Purpose:
+        Retrieves system component memory usage for the given managed cluster.
+
+        Scenario:
+        Use this tool to analyze memory utilization across system components in a managed cluster. 
+        Check whether high memory usage is contributing to performance issues within the cluster.
+        
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - TimestampUtc: Timestamp of the metric
+        - podName: Name of the pod
+        - usageMb: Memory usage in MB
+        - limit: Memory limit for the pod in MB
+        - pct: Percentage of memory used relative to the limit
+        """
+        )]
+        public Task<string> GetSystemComponentMemoryUsage(
+            [Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
+        {
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetSystemComponentMemoryUsage", region,
+                new Dictionary<string, string> {
+                { "fromDate", fromDate.ToString() },
+                { "toDate", toDate.ToString() },
+                { "managedClusterName", managedClusterName },
+                { "region", region }
+                });
+        }
     }
 }

@@ -1,0 +1,55 @@
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let managedCluster = "##managedClusterName##";
+let region = replace_string("##region##", " ", "");
+let regionalMdmAccountInt = strcat("ContainerAppsIntSystemMetrics", region);
+let regionalMdmAccountShoebox = strcat("ContainerAppsShoeboxSystemMetrics", region);
+let podPrefix = "k8se";
+let kubeEnvironmentId = toscalar(ManagedEnvironmentDBState
+| where managedClusterName == managedCluster
+| distinct environmentName, managedClusterName
+| project environmentName);
+let whereClauseInt = strcat("| where kubeEnvironmentId contains '", kubeEnvironmentId, "'and podName startswith '", podPrefix , "'");
+let whereClauseShoebox = strcat("| where KubeEnvironmentId contains '", kubeEnvironmentId, "'and PodName startswith '", podPrefix , "'");
+// System component memory usage
+let systemComponentUsage = GetSparseMdm(queryFrom, queryTo, regionalMdmAccountInt, "k4apps-metrics", "UsageBytes", "'kubeEnvironmentId', 'podName'", "NullableAverage", whereClauseInt) 
+| where Max != 0
+| extend podNameTrimmed = substring(podName, 0, strlen(podName)-6)
+| summarize max(Max) by bin(TimestampUtc, 30m), podName=podNameTrimmed
+| extend usageMb = round(max_Max / 1024 / 1024, 3)
+| extend limit = case(
+    podName startswith "k8se-containerapp-controller", 3072.,
+    podName startswith "k8se-node-agent", 200.,
+    podName startswith "k8se-http-scaler", 500.,
+    podName startswith "k8se-token-service", 300.,
+    podName startswith "k8se-envoy-controller", 1024.,
+    podName startswith "k8se-event-processor", 500.,
+    podName startswith "k8se-log-processor-default", 1536.,
+    podName startswith "k8se-mdm", 500.,
+    podName startswith "k8se-swift-cleanup-manager", 30.,
+    podName startswith "k8se-swift-load-balancer", 100.,
+    podName startswith "k8se-keda-metrics-apiserver", 2000.,
+    podName startswith "k8se-swift-bootstrap-agent", 100.,
+    podName startswith "k8se-activator", 700.,
+    podName startswith "k8se-billing", 1024.,
+    podName startswith "k8se-keda-operator", 2000.,
+    podName startswith "k8se-external-auth", 100.,
+    real(null)  // default
+)
+| extend pct = usageMb/limit * 100
+| where pct > 50;
+// Envoy ingress usage
+let envoyIngressUsage = GetSparseMdm(queryFrom, queryTo, regionalMdmAccountShoebox, "env-metrics", "IngressUsageBytes", "'KubeEnvironmentId', 'NodeName', 'PodName'", "NullableAverage", whereClauseShoebox) 
+| where Max != 0
+| extend podNameTrimmed = substring(PodName, 0, strlen(PodName)-6)
+| summarize max(Max) by bin(TimestampUtc, 30m), podName=podNameTrimmed, NodeName
+| extend usageMb = round(max_Max / 1024 / 1024, 3)
+| extend limit = case(
+    podName startswith "k8se-envoy", 2048.,
+    real(null)
+)
+| extend pct = usageMb/limit * 100
+| where pct > 50;
+// Combine both results
+union systemComponentUsage, envoyIngressUsage
+| order by TimestampUtc desc, podName

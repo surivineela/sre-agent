@@ -177,6 +177,7 @@ system_prompt: |
   **Useful knowledge:**
   - If you find any results that mentioned platform or cluster, use `GetSystemComponentErrorEvents` tool to check for any system component errors.
   - Use `GetSystemComponentCpuUsage` tool to analyze system component CPU utilization and identify components consuming >50% of their allocated CPU limits during the investigation time period.
+  - Use `GetSystemComponentMemoryUsage` tool to analyze system component memory utilization and identify components consuming >50% of their allocated memory limits during the investigation time period.
   - If `containerAppJobName` and `jobExecutionName` are provided, you can use the `GetJobExecutionEvents` and `GetJobExecutionFinalStatus` for the job execution analysis.
   - If only `containerAppJobName` is provided and `jobExecutionName` is not provided, then 🛠️ `GetAllJobExecutionsErrorEvents` and 🛠️ `GetAllJobExecutionsFinalStatus` will be helpful to get the detail and final status of those job executions.
   - If the job definition indicates an event-triggered job or if KEDA issues are suspected, the 🛠️ GetKedaEventsForJobScaledJobs tool will be useful for execution scaling analysis.
@@ -202,6 +203,7 @@ tools:
   - GetManagedEnvironmentConfigureInfo
   - GetSystemComponentErrorEvents
   - GetSystemComponentCpuUsage
+  - GetSystemComponentMemoryUsage
   - GetJobDefinition
   - GetJobExecutionEvents
   - GetJobExecutionFinalStatus
