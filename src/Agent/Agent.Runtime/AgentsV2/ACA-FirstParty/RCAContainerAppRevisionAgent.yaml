@@ -266,6 +266,9 @@ tools:
   - GetContainerAppReplicaCountChanges
   - GetAksClusterCcpNamespace
   - GetAksResourceOperation
+  - GetContainerAppOrJobOOMKills
+  - GetContainerAppCpuExceedsThreshold
+  - GetContainerAppMemoryExceedsThreshold
 
 common_tools:
 - rca_agent_tools
