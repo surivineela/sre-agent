@@ -27,7 +27,6 @@ export const useAgentTask = (
     const [treeStates, setTreeStates] = useState<Map<string, TreeStateValue>>(new Map());
     const [isLoadingTreeState, setIsLoadingTreeState] = useState(false);
     const [currentTreeStateValue, setCurrentTreeStateValue] = useState<TreeStateValue | null>(null);
-    const [isAgentTaskResizableOpening, setIsAgentTaskResizableOpening] = useState(false);
     const [shouldFitView, setShouldFitView] = useState(true);
 
     // When deepInvestigationButtonEnabled is null, it means that the thread is loading and at this moment do not enable the button until the loading is completed
@@ -173,34 +172,26 @@ export const useAgentTask = (
     }, [selectedTaskId, taskDropdownOptions]);
 
     useEffect(() => {
-        let isSubscribed = true;
-
         if (threadId) {
             const setAgentTasks = async () => {
                 setIsLoadingTaskDropdown(true);
                 const response = await threadClient.getThread(threadId);
                 const tasks = response.content?.agentTasks || [];
-                if (isSubscribed) {
-                    if (tasks.length > 0) {
-                        updateTaskDropdownOption(...tasks);
-                        setSelectedTaskId(prev => {
-                            if (prev) {
-                                return prev;
-                            }
+                if (tasks.length > 0) {
+                    updateTaskDropdownOption(...tasks);
+                    setSelectedTaskId(prev => {
+                        if (prev) {
+                            return prev;
+                        }
 
-                            return tasks.length > 0 ? tasks[tasks.length - 1].id : prev;
-                        });
-                    }
-                    setIsLoadingTaskDropdown(false);
+                        return tasks.length > 0 ? tasks[tasks.length - 1].id : prev;
+                    });
                 }
+                setIsLoadingTaskDropdown(false);
             };
 
             setAgentTasks();
         }
-
-        return () => {
-            isSubscribed = false;
-        };
     }, [threadId]);
 
     useEffect(() => {
@@ -288,20 +279,6 @@ export const useAgentTask = (
         };
     }, [subscribeTaskUpdateEvent]);
 
-    // Use isAgentTaskResizableOpening to control the timing of calling fitView in AgentTaskGraph
-    // to make sure that fitView is called after the resizable component opening transition is completed
-    useEffect(() => {
-        if (!isAgentTaskCollapsed) {
-            setIsAgentTaskResizableOpening(true);
-            setTimeout(() => {
-                setIsAgentTaskResizableOpening(false);
-                // 300ms is the transition duration when resizable component is opening
-            }, 300);
-        } else {
-            setIsAgentTaskResizableOpening(false);
-        }
-    }, [isAgentTaskCollapsed]);
-
     useEffect(() => {
         setDeepInvestigationButtonAppearance(isAgentTaskCollapsed ? 'secondary' : 'primary');
     }, [isAgentTaskCollapsed]);
@@ -342,7 +319,6 @@ export const useAgentTask = (
 
         currentTreeStateValue,
         isLoadingTreeState,
-        isAgentTaskResizableOpening,
         shouldFitView,
         toggleNode,
         getNodeStatus,

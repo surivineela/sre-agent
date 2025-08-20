@@ -24,6 +24,7 @@ import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
 import { HypothesisStep, InitialInvestigationStep, TreeNodeType } from '../../../Common/Contracts/DataPlane/AgentTask';
+import { useScrollableComponentStyles } from '../../../Common/Styles/Scrollable';
 import NodeStatusPill from '../../Components/AgentTask/NodeStatusPill';
 import { GraphFlowNode } from '../../Contracts/Activities';
 
@@ -107,6 +108,7 @@ const useStyles = makeStyles({
 
 const AgentTaskDetailsPanel = ({ node, isOpen, onClose }: IAgentTaskDetailsPanelProps) => {
     const styles = useStyles();
+    const { scrollable } = useScrollableComponentStyles();
 
     const [stepsOpenItems, setStepsOpenItems] = useState<number[]>([]);
 
@@ -217,7 +219,7 @@ const AgentTaskDetailsPanel = ({ node, isOpen, onClose }: IAgentTaskDetailsPanel
                     {node?.data.title}
                 </DrawerHeaderTitle>
             </DrawerHeader>
-            <DrawerBody>
+            <DrawerBody className={scrollable}>
                 <div className={styles.root}>
                     <div className={styles.summaryRoot}>
                         <ReactMarkdownComponent text={node?.data.description} />

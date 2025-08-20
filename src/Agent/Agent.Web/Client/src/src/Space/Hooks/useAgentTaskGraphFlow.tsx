@@ -1,7 +1,7 @@
 import { graphlib, layout } from '@dagrejs/dagre';
 import { useEdgesState, useNodesState, useReactFlow, XYPosition } from '@xyflow/react';
 import debounce from 'lodash/debounce';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { InvestigationTreeNode, InvestigationTreeState, TreeNodeType } from '../../Common/Contracts/DataPlane/AgentTask';
 import { Guid } from '../../Common/Helpers/Guid';
 import {
@@ -44,6 +44,10 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
     const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
     const [renderKey, setRenderKey] = useState(Guid.newGuid());
 
+    const centerGraph = debounce(() => {
+        fitView({ padding: 50, duration: 50 });
+    }, 100);
+
     const selectNode = useCallback((nodeId: string | null) => {
         setSelectedNodeId(nodeId);
         setIsDetailsPanelOpen(!!nodeId);
@@ -69,24 +73,6 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
         }
         return null;
     }, [nodes, selectedNodeId]);
-
-    const containerRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const element = containerRef.current;
-        if (!element) return;
-
-        const centerGraph = debounce(() => {
-            fitView({ padding: 50, duration: 50 });
-        }, 100);
-
-        const resizeObserver = new ResizeObserver(() => {
-            centerGraph();
-        });
-
-        resizeObserver.observe(element);
-        return () => resizeObserver.disconnect();
-    }, []);
 
     const getDagreLayoutForHypothesisGroupChildNodes = (
         nodes: GraphFlowNode[],
@@ -659,7 +645,7 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
         onNodesChange,
         onEdgesChange,
         renderKey,
-        containerRef,
+        centerGraph,
 
         selectNode,
         selectedNodeId,

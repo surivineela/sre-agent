@@ -18,7 +18,6 @@ import { getChatBoxV2Styles } from '../Styles/Activities.styles';
 import AgentTask from './AgentTask/AgentTask';
 import AzureSREWelcome from './AzureSREWelcome';
 import { ChatSuggestions } from './ChatSuggestions';
-import { Resizable, ResizableChildProps } from './Resizable';
 
 export const ChatBox = ({
     addThread,
@@ -179,19 +178,8 @@ export const ChatBox = ({
                             />
                         </CopilotProvider>
                     </div>
-
                     {showAgentTask && isAgentTaskEnabled && (
-                        <Resizable
-                            position="right"
-                            initialWidth="65%"
-                            minWidthPixels={500}
-                            collapsedWidthPixels={isAgentTaskCollapsed ? 0 : 500}
-                            collapsed={isAgentTaskCollapsed}
-                            setCollapsed={setIsAgentTaskCollapsed}
-                            style={{ height: 'calc(100vh - 100px)', width: '100%' }}
-                        >
-                            {(resizableChildProps: ResizableChildProps) => <AgentTask {...rest} {...resizableChildProps} />}
-                        </Resizable>
+                        <AgentTask {...rest} collapsed={isAgentTaskCollapsed} setCollapsed={setIsAgentTaskCollapsed} />
                     )}
                 </div>
             </ThreadAgentModeContext.Provider>

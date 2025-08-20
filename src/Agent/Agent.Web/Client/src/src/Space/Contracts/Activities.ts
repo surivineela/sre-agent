@@ -182,6 +182,10 @@ export enum ThreadFilter {
     Unread,
 }
 
+export interface AgentTaskGraphHandle {
+    centerGraph: () => void;
+}
+
 export interface IAgentTaskProps {
     threadId?: string;
     userDefinedThreadId: string;
