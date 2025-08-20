@@ -112,7 +112,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         var defaultStartingAgentName = "meta_agent";
 
         var agentType = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") ?? string.Empty;
-        var agentName = AgentNameHelper.GetAgentName(_hostEnvironment.IsProduction());
+        var agentName = AgentNameHelper.GetCustomerAgentName(_hostEnvironment.IsProduction());
 
         // If the agent name ends with "-tasks", route to the third-party tasks meta agent
         // which can kick off investigation tasks as needed.

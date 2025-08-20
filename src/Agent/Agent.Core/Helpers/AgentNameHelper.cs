@@ -29,6 +29,19 @@ public class AgentNameHelper
         return name;
     }
 
+    /// <summary>
+    /// Retrieves the agent name from the environment variable "AGENT_NAME", and removes the unique identifier suffix ("--<unique-id>")
+    /// </summary>
+    /// <returns>The agent name as a string.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the "AGENT_NAME" environment variable is not set.</exception>
+    public static string GetCustomerAgentName(bool isProd)
+    {
+        var name = GetAgentName(isProd);
+        // Remove the unique identifier suffix after the last occurrence of "--"
+        var index = name.LastIndexOf("--", StringComparison.Ordinal);
+        return index > 0 ? name[..index] : name;
+    }
+
     public static string GetAgentRegion(bool isProd)
     {
         // AGENT_NAME is set here

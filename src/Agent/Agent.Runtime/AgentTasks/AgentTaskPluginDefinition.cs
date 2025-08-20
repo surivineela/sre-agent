@@ -48,7 +48,7 @@ public class AgentTaskPluginDefinition(
     {
         // Check if agent tasks are enabled
         var agentTasksEnabled = configuration.GetValue<bool>("AppSettings:Core:AgentTasksEnabled", false);
-        var agentName = AgentNameHelper.GetAgentName(hostEnvironment.IsProduction());
+        var agentName = AgentNameHelper.GetCustomerAgentName(hostEnvironment.IsProduction());
 
         bool agentNameException = !string.IsNullOrEmpty(agentName) && agentName.ToLowerInvariant().EndsWith("-tasks");
 
