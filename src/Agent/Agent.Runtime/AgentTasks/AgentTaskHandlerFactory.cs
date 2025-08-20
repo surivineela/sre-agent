@@ -3,20 +3,21 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Models.Api.v1;
+using Agent.Runtime.AgentTasks.Handlers;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Agent.Runtime.AgentTasks;
 
 public sealed class AgentTaskHandlerFactory(
-    IReadOnlyDictionary<AgentTaskType, IAgentTaskHandler> agentTaskHandlers
+    IServiceProvider serviceProvider
 )
 {
     public IAgentTaskHandler GetHandler(AgentTaskType agentTaskType)
     {
-        if (!agentTaskHandlers.TryGetValue(agentTaskType, out var handler))
+        return agentTaskType switch
         {
-            throw new InvalidOperationException($"No handler found for agent task type: {agentTaskType}");
-        }
-
-        return handler;
+            AgentTaskType.IncidentInvestigation => serviceProvider.GetRequiredService<IncidentInvestigationTaskHandler>(),
+            _ => throw new InvalidOperationException($"No handler found for agent task type: {agentTaskType}")
+        };
     }
 }
