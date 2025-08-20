@@ -278,8 +278,8 @@ export const useConsolidatedCreateIncidentHandler = (
                         data: additionalInfo,
                     });
                     setGenerateInstructionsStepSkipped(false);
-                    setFieldValue('toolNames', instructionsResult.content.tools);
                     setFieldValue('incidentProcessingGuide', instructionsResult.content.generatedInstructions);
+                    setFieldValue('toolNames', instructionsResult.content.tools);
                     setCurrentStep(IncidentHandlerCreateSteps.ReviewAndTestStep);
                 }
             });
