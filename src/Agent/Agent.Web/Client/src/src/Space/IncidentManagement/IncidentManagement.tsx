@@ -1,49 +1,71 @@
-import { initializeIcons, MessageBar, MessageBarType } from '@fluentui/react';
+import { INavLink, INavLinkGroup, initializeIcons, MessageBar, MessageBarType, Nav } from '@fluentui/react';
 import { Spinner } from '@fluentui/react-components';
 import { FC, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import Url from '../../Common/Helpers/Url';
-import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
 import { IncidentManagementResources } from '../../Strings/SREAgentResources';
 import { SreAgentContext } from '../Contracts/Context';
 import { IncidentManagementPlatform } from '../Contracts/IncidentManagement';
 import { getIncidentManagementPlatform } from '../Settings/Hooks/useIncidentManagementSettings';
 import IncidentManagementSettings from '../Settings/IncidentManagementSettings';
-import { HandlerCreateOrEditInfo, OperationStatus } from './CreateIncidentHandler/Contracts';
-import CreateIncidentHandler from './CreateIncidentHandler/CreateIncidentHandler';
-import CreateIncidentHandlerConsolidated from './CreateIncidentHandler/CreateIncidentHandlerConsolidated';
-import IncidentManagementHome from './IncidentManagementHome';
+import { navStyles, useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
+import HandlersOverview from './HandlersOverview';
+import IncidentsOverview from './IncidentsOverview/IncidentsOverview';
+
+export enum IncidentManagementKeys {
+    IncidentOverview = 'incidents',
+    HandlerConfiguration = 'handlers',
+    IncidentPlatform = 'setup',
+}
 
 const IncidentManagement: FC = () => {
     const intl = useIntl();
     const { agentObj, agentLoading, agentLoadFailure } = useContext(SreAgentContext);
-    const [incidentManagementPlatform, setIncidentManagementPlatform] = useState<IncidentManagementPlatform>();
 
     const [iconsInitialized, setIconsInitialized] = useState(false);
-    const [showSettings, setShowSettings] = useState(false);
-    const [handlerCreateOrEditInfo, setHandlerCreateOrEditInfo] = useState<HandlerCreateOrEditInfo>();
-    const [handlerOperationStatus, setHandlerOperationStatus] = useState<OperationStatus | undefined>(undefined);
 
-    const consolidatedCreateFlagValue = useMemo(() => Url.getFeatureValue('consolidatedcreate') === 'true', []);
-    const consolidatedCreateConfigSettingValue = useConfigSetting(SettingNames.ConsolidatedCreate);
+    const styles = useIncidentManagementStyles();
+    const { menuItem } = useParams();
+    const location = useLocation();
+    const navigate = useNavigate();
 
-    const useConsolidatedCreate = useMemo(
-        () => consolidatedCreateFlagValue || consolidatedCreateConfigSettingValue,
-        [consolidatedCreateFlagValue, consolidatedCreateConfigSettingValue]
+    const showIncidentOverview = useMemo(
+        () => Url.getFeatureValue('showIncidentOverview') === 'true' || Url.getFeatureValue('showIncidentOverviewMocked') === 'true',
+        []
     );
 
-    const keepSettingsOpen = useMemo(() => {
+    const selectedKey = useMemo(() => {
         return (
-            incidentManagementPlatform === IncidentManagementPlatform.Disconnected ||
-            incidentManagementPlatform === IncidentManagementPlatform.AzMonitor
+            Object.values(IncidentManagementKeys).find(settingsKey => settingsKey.toLocaleLowerCase() === menuItem?.toLocaleLowerCase()) ||
+            (showIncidentOverview ? IncidentManagementKeys.IncidentOverview : IncidentManagementKeys.HandlerConfiguration)
         );
-    }, [incidentManagementPlatform]);
+    }, [menuItem, showIncidentOverview]);
 
-    useEffect(() => {
-        if (keepSettingsOpen) {
-            setShowSettings(true);
+    const navLinkGroups = useMemo<INavLinkGroup[]>(() => {
+        const links: INavLink[] = [
+            {
+                name: intl.formatMessage(IncidentManagementResources.handlerConfiguration),
+                url: '',
+                key: IncidentManagementKeys.HandlerConfiguration,
+            },
+            {
+                name: intl.formatMessage(IncidentManagementResources.incidentPlatform),
+                url: '',
+                key: IncidentManagementKeys.IncidentPlatform,
+            },
+        ];
+
+        if (showIncidentOverview) {
+            links.unshift({
+                name: intl.formatMessage(IncidentManagementResources.incidentsOverview),
+                url: '',
+                key: IncidentManagementKeys.IncidentOverview,
+            });
         }
-    }, [keepSettingsOpen]);
+
+        return [{ links }];
+    }, [intl, showIncidentOverview]);
 
     useEffect(() => {
         initializeIcons();
@@ -51,52 +73,59 @@ const IncidentManagement: FC = () => {
     }, []);
 
     useEffect(() => {
-        setIncidentManagementPlatform(agentObj ? getIncidentManagementPlatform(agentObj) : undefined);
+        if (agentObj) {
+            const incidentManagementPlatform = getIncidentManagementPlatform(agentObj);
+            if (
+                incidentManagementPlatform === IncidentManagementPlatform.Disconnected ||
+                incidentManagementPlatform === IncidentManagementPlatform.AzMonitor
+            ) {
+                navigate({ ...location, pathname: `/views/incidentmanagement/${IncidentManagementKeys.IncidentPlatform}` });
+            }
+        }
     }, [agentObj]);
 
-    if (agentLoading || !iconsInitialized) {
-        return (
-            <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Spinner size="huge" />
-            </div>
-        );
-    }
-
-    if (agentLoadFailure) {
-        return (
-            <MessageBar messageBarType={MessageBarType.error}>
-                {intl.formatMessage(IncidentManagementResources.incidentManagementLoadFailure, { errorMessage: agentLoadFailure })}
-            </MessageBar>
-        );
-    }
-
-    if (keepSettingsOpen || showSettings) {
-        return <IncidentManagementSettings close={() => setShowSettings(false)} keepOpen={keepSettingsOpen} integrated={true} />;
-    }
-
-    if (handlerCreateOrEditInfo) {
-        return useConsolidatedCreate ? (
-            <CreateIncidentHandlerConsolidated
-                exitToHome={() => setHandlerCreateOrEditInfo(undefined)}
-                setHandlerOperationStatus={setHandlerOperationStatus}
-                handlerCreateOrEditInfo={handlerCreateOrEditInfo}
-            />
-        ) : (
-            <CreateIncidentHandler
-                exitToHome={() => setHandlerCreateOrEditInfo(undefined)}
-                setHandlerOperationStatus={setHandlerOperationStatus}
-                handlerCreateOrEditInfo={handlerCreateOrEditInfo}
-            />
-        );
-    }
+    const [navigationHidden, setNavigationHidden] = useState<boolean>(false);
 
     return (
-        <IncidentManagementHome
-            handlerOperationStatus={handlerOperationStatus}
-            openHandlerCreate={setHandlerCreateOrEditInfo}
-            openSettings={() => setShowSettings(true)}
-            useConsolidatedCreate={useConsolidatedCreate}
-        />
+        iconsInitialized && (
+            <div className={styles.root}>
+                {agentLoading || !iconsInitialized ? (
+                    <div className={styles.spinner}>
+                        <Spinner size="huge" />
+                    </div>
+                ) : agentLoadFailure ? (
+                    <MessageBar messageBarType={MessageBarType.error}>
+                        {intl.formatMessage(IncidentManagementResources.incidentManagementLoadFailure, { errorMessage: agentLoadFailure })}
+                    </MessageBar>
+                ) : (
+                    <>
+                        {!navigationHidden && (
+                            <Nav
+                                groups={navLinkGroups}
+                                styles={navStyles}
+                                selectedKey={selectedKey}
+                                onLinkClick={(_, item) => {
+                                    if (
+                                        item?.key &&
+                                        Object.values(IncidentManagementKeys).includes(item.key as IncidentManagementKeys) &&
+                                        item.key !== selectedKey
+                                    ) {
+                                        navigate({ ...location, pathname: `/views/incidentmanagement/${item.key}` });
+                                    }
+                                }}
+                            />
+                        )}
+                        {selectedKey === IncidentManagementKeys.IncidentOverview && (
+                            <IncidentsOverview setNavigationHidden={setNavigationHidden} />
+                        )}
+                        {selectedKey === IncidentManagementKeys.HandlerConfiguration && (
+                            <HandlersOverview setNavigationHidden={setNavigationHidden} useConsolidatedCreate={true} />
+                        )}
+                        {selectedKey === IncidentManagementKeys.IncidentPlatform && <IncidentManagementSettings />}
+                    </>
+                )}
+            </div>
+        )
     );
 };
 

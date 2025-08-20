@@ -80,6 +80,68 @@ export const getThreadsGetUrlPath = (options: ThreadsGetOptions): string => {
     return url;
 };
 
+export enum IncidentThreadsSortFields {
+    IncidentId = 'incidentId',
+    Title = 'title',
+    Status = 'status',
+}
+
+export interface IncidentThreadsGetOptions {
+    skip: number;
+    top: number;
+    orderBy: any;
+    descending: boolean;
+    filters?: ThreadsGetFilterOptions;
+    severity?: ThreadSeverity;
+}
+
+export const getIncidentThreadsGetUrlPath = (options: IncidentThreadsGetOptions): string => {
+    const { skip, top, descending, filters, severity } = options;
+
+    let url = `/api/v1/threads?skip=${skip}&top=${top}&orderby=modifiedTimestamp${descending ? '+desc' : ''}`;
+
+    if (filters) {
+        const filterStrings: string[] = [];
+
+        const { searchText, timestamps, source, unread } = filters;
+
+        if (searchText) {
+            filterStrings.push(`contains(tolower(title),'${searchText.toLowerCase()}')`);
+        }
+
+        if (timestamps) {
+            const { min, max } = timestamps;
+            if (min) {
+                const { timestamp, inclusive } = min;
+                filterStrings.push(`modifiedTimestamp ${inclusive ? 'ge' : 'gt'} ${timestamp}`);
+            }
+            if (max) {
+                const { timestamp, inclusive } = max;
+                filterStrings.push(`modifiedTimestamp ${inclusive ? 'le' : 'lt'} ${timestamp}`);
+            }
+        }
+
+        if (source) {
+            filterStrings.push(`source eq '${source}'`);
+        }
+
+        if (unread) {
+            filterStrings.push(`lastReadTime lt modifiedTimestamp`);
+        }
+
+        const filterString = filterStrings.join(' and ');
+        if (filterString) {
+            url += `&filter=${filterString}`;
+        }
+    }
+
+    if (severity) {
+        url += `&severity=${severity}`;
+    }
+
+    return url;
+};
+
 export class ThreadClient extends DataPlaneClient {
     private static _instance: ThreadClient;
 
@@ -95,6 +157,28 @@ export class ThreadClient extends DataPlaneClient {
     }
 
     public getThreads = async (options: ThreadsGetOptions): Promise<Response<Thread[]>> => {
+        try {
+            const path = getThreadsGetUrlPath(options);
+
+            const url = this.getRequestUrl(path);
+
+            const { data } = await axios.get(url, {
+                headers: getAgentHeaders(),
+            });
+
+            return {
+                isSuccessful: true,
+                content: data.value ?? [],
+            };
+        } catch (e) {
+            return {
+                isSuccessful: false,
+                error: e,
+            };
+        }
+    };
+
+    public getIncidentThreads = async (options: ThreadsGetOptions): Promise<Response<Thread[]>> => {
         try {
             const path = getThreadsGetUrlPath(options);
 

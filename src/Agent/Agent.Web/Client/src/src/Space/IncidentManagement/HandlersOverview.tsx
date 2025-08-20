@@ -14,6 +14,7 @@ import { useIncidentHandlers } from '../Hooks/useIncidentHandlers';
 import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
 import { CreateOrUpdateIncidentFilterDialog, IncidentFilterFormProps } from './CreateIncidentFilterDialog';
 import { HandlerCreateOrEditInfo, OperationStatus } from './CreateIncidentHandler/Contracts';
+import CreateIncidentHandlerConsolidated from './CreateIncidentHandler/CreateIncidentHandlerConsolidated';
 import IncidentFiltersToolbar from './IncidentFiltersToolbar';
 import IncidentsFiltersGrid from './IncidentsFiltersGrid';
 
@@ -93,64 +94,56 @@ const ConnectionFailureMessageBar: FC<ConnectionMessageBarProps> = ({ platform }
     const connectionFailureMessage = useMemo(() => {
         switch (platform) {
             case IncidentManagementType.PagerDuty:
-                return PagerDutyResources.connectionFailureMessage;
+                return intl.formatMessage(PagerDutyResources.connectionFailureMessage);
             case IncidentManagementType.Icm:
-                return IcMResources.connectionFailureMessage;
+                return intl.formatMessage(IcMResources.connectionFailureMessage);
             case IncidentManagementType.ServiceNow:
-                return ServiceNowResources.connectionFailureMessage;
+                return intl.formatMessage(ServiceNowResources.connectionFailureMessage);
             default:
-                return {};
+                return undefined;
         }
     }, [platform]);
 
-    if (!platform || !connectionFailureMessage) {
-        return null;
-    }
-
     return (
-        <MessageBarGroup
-            animate={'exit-only'}
-            style={{
-                width: '100%',
-                maxWidth: '100%',
-            }}
-        >
-            <MessageBar
+        !!platform &&
+        !!connectionFailureMessage && (
+            <MessageBarGroup
+                animate={'exit-only'}
                 style={{
-                    padding: '10px',
-                    whiteSpace: 'normal',
-                    wordBreak: 'break-word',
-                    overflow: 'hidden',
-                    overflowWrap: 'break-word',
+                    width: '100%',
+                    maxWidth: '100%',
                 }}
-                intent={'error'}
             >
-                <MessageBarBody
+                <MessageBar
                     style={{
+                        padding: '10px',
+                        whiteSpace: 'normal',
                         wordBreak: 'break-word',
+                        overflow: 'hidden',
                         overflowWrap: 'break-word',
                     }}
+                    intent={'error'}
                 >
-                    {intl.formatMessage(connectionFailureMessage)}
-                </MessageBarBody>
-            </MessageBar>
-        </MessageBarGroup>
+                    <MessageBarBody
+                        style={{
+                            wordBreak: 'break-word',
+                            overflowWrap: 'break-word',
+                        }}
+                    >
+                        {connectionFailureMessage}
+                    </MessageBarBody>
+                </MessageBar>
+            </MessageBarGroup>
+        )
     );
 };
 
-interface IncidentManagementHomeProps {
-    openHandlerCreate: (handlerCreateOrEditInfo: HandlerCreateOrEditInfo) => void;
-    openSettings: () => void;
-    handlerOperationStatus: OperationStatus | undefined;
+interface HandlersOverviewProps {
+    setNavigationHidden: (hidden: boolean) => void;
     useConsolidatedCreate: boolean;
 }
 
-const IncidentManagementHome: FC<IncidentManagementHomeProps> = ({
-    openHandlerCreate,
-    openSettings,
-    handlerOperationStatus,
-    useConsolidatedCreate,
-}) => {
+const HandlersOverview: FC<HandlersOverviewProps> = ({ setNavigationHidden, useConsolidatedCreate }) => {
     const {
         incidentManagement: { isIncidentManagementConnected, checkingConnectivity, refreshConnectivity },
         agentObj,
@@ -190,6 +183,17 @@ const IncidentManagementHome: FC<IncidentManagementHomeProps> = ({
         refreshConnectivity();
     }, [refreshIncidentFilters, refreshIncidentHandlers, refreshConnectivity]);
 
+    const [handlerCreateOrEditInfo, setHandlerCreateOrEditInfo] = useState<HandlerCreateOrEditInfo>();
+    const [handlerOperationStatus, setHandlerOperationStatus] = useState<OperationStatus | undefined>(undefined);
+
+    const setVisibleHandler = useCallback(
+        (info: HandlerCreateOrEditInfo | undefined) => {
+            setHandlerCreateOrEditInfo(info);
+            setNavigationHidden(!!info);
+        },
+        [setNavigationHidden]
+    );
+
     useEffect(() => {
         if (handlerOperationStatus === 'succeeded') {
             setIsRefreshNeeded(true);
@@ -203,76 +207,87 @@ const IncidentManagementHome: FC<IncidentManagementHomeProps> = ({
         }
     }, [refresh, isRefreshNeeded]);
 
-    return (
-        <div className={styles.root}>
-            <div className={styles.container}>
-                {!checkingConnectivity && !isIncidentManagementConnected && (
-                    <ConnectionFailureMessageBar platform={incidentManagementType} />
-                )}
-                <div className={styles.description}>{intl.formatMessage(IncidentManagementResources.incidentManagementTabDescription)}</div>
-                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-                    <IncidentFiltersToolbar
-                        onRefreshClick={() => {
-                            refresh();
-                        }}
-                        onDeleteIncidentFilterClick={() => {
-                            deleteIncidentFilter(selectedIncidentFilter?.id ?? '');
-                        }}
-                        onNewIncidentFilterClick={() => {
-                            setIsEditFilterMode(false);
-                            setInitialValues(undefined);
-                            if (useConsolidatedCreate) {
-                                openHandlerCreate({});
-                            } else {
-                                setIsCreateIncidentFilterDialogOpen(true);
-                            }
-                        }}
-                        onTurnOffIncidentFilterClick={() => {
-                            if (selectedIncidentFilter?.isEnabled) {
-                                disableIncidentFilter(selectedIncidentFilter?.id ?? '').then(() => setSelectedIncidentFilter(undefined));
-                            } else {
-                                enableIncidentFilter(selectedIncidentFilter?.id ?? '').then(() => setSelectedIncidentFilter(undefined));
-                            }
-                        }}
-                        onSettingsClick={openSettings}
-                        isFilterSelected={!!selectedIncidentFilter}
-                        isFilterEnabled={!selectedIncidentFilter || selectedIncidentFilter?.isEnabled}
-                        connected={!checkingConnectivity && isIncidentManagementConnected}
+    return handlerCreateOrEditInfo ? (
+        <CreateIncidentHandlerConsolidated
+            exitToHome={() => setVisibleHandler(undefined)}
+            setHandlerOperationStatus={setHandlerOperationStatus}
+            handlerCreateOrEditInfo={handlerCreateOrEditInfo}
+        />
+    ) : (
+        <div className={styles.navPanelWrapper}>
+            <div className={styles.navPanelContent}>
+                <div className={styles.navPanelPadding}>
+                    {!checkingConnectivity && !isIncidentManagementConnected && (
+                        <ConnectionFailureMessageBar platform={incidentManagementType} />
+                    )}
+                    <div className={styles.description}>
+                        {intl.formatMessage(IncidentManagementResources.incidentManagementTabDescription)}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                        <IncidentFiltersToolbar
+                            onRefreshClick={() => {
+                                refresh();
+                            }}
+                            onDeleteIncidentFilterClick={() => {
+                                deleteIncidentFilter(selectedIncidentFilter?.id ?? '');
+                            }}
+                            onNewIncidentFilterClick={() => {
+                                setIsEditFilterMode(false);
+                                setInitialValues(undefined);
+                                if (useConsolidatedCreate) {
+                                    setVisibleHandler({});
+                                } else {
+                                    setIsCreateIncidentFilterDialogOpen(true);
+                                }
+                            }}
+                            onTurnOffIncidentFilterClick={() => {
+                                if (selectedIncidentFilter?.isEnabled) {
+                                    disableIncidentFilter(selectedIncidentFilter?.id ?? '').then(() =>
+                                        setSelectedIncidentFilter(undefined)
+                                    );
+                                } else {
+                                    enableIncidentFilter(selectedIncidentFilter?.id ?? '').then(() => setSelectedIncidentFilter(undefined));
+                                }
+                            }}
+                            isFilterSelected={!!selectedIncidentFilter}
+                            isFilterEnabled={!selectedIncidentFilter || selectedIncidentFilter?.isEnabled}
+                            connected={!checkingConnectivity && isIncidentManagementConnected}
+                        />
+                        <ConnectionIndicator
+                            platform={incidentManagementType}
+                            connected={isIncidentManagementConnected}
+                            style={{ marginLeft: 'auto', marginRight: '16px' }}
+                            loading={checkingConnectivity}
+                        />
+                    </div>
+                    <IncidentsFiltersGrid
+                        handlerOperationStatus={handlerOperationStatus}
+                        openHandlerCreate={setVisibleHandler}
+                        incidentFilters={incidentFilters ?? []}
+                        incidentFiltersLoading={incidentFiltersLoading || checkingConnectivity}
+                        setSelectedFilter={setSelectedIncidentFilter}
+                        setIsCreateIncidentFilterDialogOpen={setIsCreateIncidentFilterDialogOpen}
+                        filterIdToHandlerMap={filterIdToHandlerMap}
+                        setIsEditFilterMode={setIsEditFilterMode}
+                        setInitialValues={setInitialValues}
+                        useConsolidatedCreate={useConsolidatedCreate}
+                        disabled={!checkingConnectivity && !isIncidentManagementConnected}
                     />
-                    <ConnectionIndicator
-                        platform={incidentManagementType}
-                        connected={isIncidentManagementConnected}
-                        style={{ marginLeft: 'auto', marginRight: '16px' }}
-                        loading={checkingConnectivity}
+                    <CreateOrUpdateIncidentFilterDialog
+                        isDialogOpen={isCreateIncidentFilterDialogOpen}
+                        setIsDialogOpen={setIsCreateIncidentFilterDialogOpen}
+                        createIncidentFilter={createIncidentFilter}
+                        updateIncidentFilter={updateIncidentFilter}
+                        priorityOptions={priorityOptions}
+                        incidentTypeOptions={incidentTypeOptions}
+                        impactedServiceOptions={impactedServiceOptions}
+                        isEditMode={isEditFilterMode}
+                        initialValues={initialValues}
                     />
                 </div>
-                <IncidentsFiltersGrid
-                    handlerOperationStatus={handlerOperationStatus}
-                    openHandlerCreate={openHandlerCreate}
-                    incidentFilters={incidentFilters ?? []}
-                    incidentFiltersLoading={incidentFiltersLoading || checkingConnectivity}
-                    setSelectedFilter={setSelectedIncidentFilter}
-                    setIsCreateIncidentFilterDialogOpen={setIsCreateIncidentFilterDialogOpen}
-                    filterIdToHandlerMap={filterIdToHandlerMap}
-                    setIsEditFilterMode={setIsEditFilterMode}
-                    setInitialValues={setInitialValues}
-                    useConsolidatedCreate={useConsolidatedCreate}
-                    disabled={!checkingConnectivity && !isIncidentManagementConnected}
-                />
-                <CreateOrUpdateIncidentFilterDialog
-                    isDialogOpen={isCreateIncidentFilterDialogOpen}
-                    setIsDialogOpen={setIsCreateIncidentFilterDialogOpen}
-                    createIncidentFilter={createIncidentFilter}
-                    updateIncidentFilter={updateIncidentFilter}
-                    priorityOptions={priorityOptions}
-                    incidentTypeOptions={incidentTypeOptions}
-                    impactedServiceOptions={impactedServiceOptions}
-                    isEditMode={isEditFilterMode}
-                    initialValues={initialValues}
-                />
             </div>
         </div>
     );
 };
 
-export default IncidentManagementHome;
+export default HandlersOverview;

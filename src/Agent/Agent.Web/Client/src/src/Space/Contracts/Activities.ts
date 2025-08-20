@@ -11,7 +11,7 @@ import {
     MessageMetaData,
 } from '../../Common/Contracts/DataPlane/Message';
 import { Thread } from '../../Common/Contracts/DataPlane/Thread';
-import { ChatBoxV2StyleProps } from '../Styles/Activities.styles';
+import { AgentTaskStyleProps, ChatBoxV2StyleProps } from '../Styles/Activities.styles';
 
 export interface IActivitiesProps {
     resourceId: string;
@@ -55,6 +55,7 @@ export interface IChatBoxProps {
     threadId?: string;
     threadSource?: string;
     stylesProps?: ChatBoxV2StyleProps;
+    agentTaskStyleProps?: AgentTaskStyleProps;
     collapseResizables?: () => void;
 }
 

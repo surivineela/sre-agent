@@ -1,11 +1,44 @@
 import { mergeStyleSets } from '@fluentui/react';
 import { makeStyles, tokens } from '@fluentui/react-components';
 
+export const navStyles = {
+    root: {
+        width: 200,
+        marginLeft: 20,
+        marginTop: 20,
+    },
+    compositeLink: {
+        backgroundColor: 'transparent',
+        selectors: {
+            '&.is-selected': {
+                backgroundColor: tokens.colorNeutralBackground3Selected,
+            },
+            '&:hover': {
+                backgroundColor: tokens.colorNeutralBackground3Hover,
+            },
+        },
+        height: 32,
+        borderRadius: 4,
+    },
+    link: {
+        paddingLeft: 5,
+        backgroundColor: 'transparent !important',
+        selectors: {
+            '&:after': {
+                inset: '5px 0px',
+                width: '0px',
+                borderWidth: `3px`,
+                borderRadius: tokens.borderRadiusCircular,
+            },
+        },
+        height: 32,
+    },
+};
+
 export const useIncidentManagementStyles = makeStyles({
     root: {
         display: 'flex',
-        flexDirection: 'column',
-        gap: '16px',
+        flexDirection: 'row',
         justifyContent: 'flex-start',
         alignItems: 'flex-start',
         overflow: 'hidden',
@@ -13,17 +46,47 @@ export const useIncidentManagementStyles = makeStyles({
         backgroundColor: tokens.colorNeutralBackground3,
         height: 'calc(100vh - 46px)',
         width: '100vw',
+        position: 'relative',
     },
-    container: {
-        margin: '16px 20px 5px 20px',
-        padding: '20px',
+    navPanelWrapper: {
         display: 'flex',
         flexDirection: 'column',
+        margin: '16px 20px 5px 20px',
         borderRadius: tokens.borderRadiusXLarge,
         boxShadow: tokens.shadow4,
         backgroundColor: tokens.colorNeutralBackground1,
-        width: 'calc(100vw - 80px)',
+        height: 'calc(100% - 21px)',
+        overflow: 'hidden',
+        position: 'relative',
         flex: 1,
+    },
+    navPanelContent: {
+        display: 'flex',
+        flexDirection: 'column',
+        overflowY: 'auto',
+        position: 'relative',
+        flex: 1,
+    },
+    navPanelPadding: {
+        padding: '16px',
+        height: 'calc(100% - 32px)',
+    },
+    breadCrumbAndPanelWrapper: {
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        width: '100%',
+    },
+    breadcrumb: {
+        display: 'flex',
+        height: '30px',
+        marginTop: '10px',
+        marginLeft: '16px',
+    },
+    incidentChatWrapper: {
+        // paddingTop: '16px',
+        // height: 'calc(100% - 16px)',
+        height: '100%',
     },
     tabRoot: {
         display: 'flex',
@@ -76,12 +139,14 @@ export const useIncidentManagementStyles = makeStyles({
         },
     },
     description: {
-        paddingTop: '20px',
-        paddingRight: '20px',
-        paddingLeft: '0px',
-        paddingBottom: '0px',
+        paddingBottom: '8px',
     },
-    incidentFiltersContainer: { display: 'flex', flexDirection: 'row', gap: '5px' },
+    incidentFiltersContainer: {
+        display: 'flex',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: '5px',
+    },
     searchBox: {
         width: '330px',
         fontSize: '13px',
@@ -102,8 +167,17 @@ export const useIncidentManagementStyles = makeStyles({
     emptyStateDescription: { color: tokens.colorNeutralForeground2, marginBottom: '16px' },
     newIncidentFilterButton: { width: 'fit-content', padding: '5px 10px' },
     greenCheckIcon: { color: tokens.colorPaletteGreenForeground1 },
+    warningIcon: { color: tokens.colorStatusWarningForeground2 },
+    spinnerIcon: { color: tokens.colorBrandForeground1 },
     setUp: { display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalXS },
     infoButton: { verticalAlign: 'middle', display: 'flex' },
+    spinner: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100%',
+        width: '100%',
+    },
 });
 
 export const generateHandlerStyles = mergeStyleSets({

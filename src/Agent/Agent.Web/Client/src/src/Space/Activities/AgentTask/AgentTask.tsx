@@ -3,7 +3,6 @@ import {
     DrawerHeaderNavigation,
     Dropdown,
     InlineDrawer,
-    makeStyles,
     Option,
     Skeleton,
     SkeletonItem,
@@ -15,11 +14,13 @@ import {
     useRestoreFocusSource,
 } from '@fluentui/react-components';
 import { CheckmarkCircleColor, Dismiss24Regular, DismissCircleFilled, ErrorCircleColor } from '@fluentui/react-icons';
+import { mergeStyleSets } from '@fluentui/react/lib/Styling';
 import { ReactFlowProvider } from '@xyflow/react';
 import { Dispatch, memo, SetStateAction, useCallback, useEffect, useRef, useState } from 'react';
 import { AgentTaskMetaData, AgentTaskStatus } from '../../../Common/Contracts/DataPlane/AgentTask';
 import { AgentTaskGraphHandle, TreeStateValue } from '../../Contracts/Activities';
 import { AgentTaskContext } from '../../Contracts/Context';
+import { AgentTaskStyleProps } from '../../Styles/Activities.styles';
 import AgentTaskGraph from './AgentTaskGraph';
 
 interface IAgentTaskProps {
@@ -35,9 +36,11 @@ interface IAgentTaskProps {
     getNodeStatus: (nodeId: string) => string | null;
     collapsed?: boolean;
     setCollapsed: (collapsed: boolean) => void;
+    stylesProps?: AgentTaskStyleProps;
 }
 
-const useAgentTaskStyles = makeStyles({
+const useAgentTaskStyles = (overrides?: AgentTaskStyleProps) =>
+    mergeStyleSets({
     root: {
         backgroundColor: tokens.colorNeutralBackground1,
         height: 'calc(100vh - 100px)',
@@ -45,18 +48,21 @@ const useAgentTaskStyles = makeStyles({
         borderTopRightRadius: tokens.borderRadiusXLarge,
         borderBottomRightRadius: tokens.borderRadiusXLarge,
         position: 'relative',
+            ...overrides?.root,
     },
     header: {
         width: '100%',
         display: 'flex',
         justifyContent: 'space-between',
         flexWrap: 'wrap',
+            ...overrides?.header,
     },
     dropdownItem: {
         display: 'flex',
         justifyItems: 'flex-start',
         alignItems: 'center',
         gap: tokens.spacingHorizontalS,
+        ...overrides?.dropdownItem,
     },
     dropdownItemText: {
         overflow: 'hidden',
@@ -64,13 +70,16 @@ const useAgentTaskStyles = makeStyles({
         whiteSpace: 'nowrap',
         minWidth: '0',
         flex: '1 1 auto',
+            ...overrides?.dropdownItemText,
     },
     loader: {
         width: '50%',
+        ...overrides?.loader,
     },
     loaderItem: {
         height: '100%',
         width: '100%',
+            ...overrides?.loaderItem,
     },
     resizer: {
         width: '2px',
@@ -97,6 +106,7 @@ const useAgentTaskStyles = makeStyles({
             cursor: 'col-resize',
             userSelect: 'none',
         },
+        ...overrides?.resizer,
     },
 });
 
@@ -114,9 +124,10 @@ const AgentTask = (props: IAgentTaskProps) => {
         getNodeStatus,
         collapsed,
         setCollapsed,
+        stylesProps,
     } = props;
 
-    const { root, header, dropdownItem, dropdownItemText, loader, loaderItem, resizer } = useAgentTaskStyles();
+    const { root, header, dropdownItem, dropdownItemText, loader, loaderItem, resizer } = useAgentTaskStyles(stylesProps);
 
     const restoreFocusSourceAttributes = useRestoreFocusSource();
 

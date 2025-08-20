@@ -368,8 +368,8 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                 name: intl.formatMessage(IncidentManagementResources.incidentHandler),
                 fieldName: IncidentsListColumnKey.id,
                 isResizable: true,
-                minWidth: 200,
-                maxWidth: 350,
+                minWidth: 150,
+                maxWidth: 250,
                 isMultiline: true,
                 onRender: onRenderId,
                 isSorted: sortColumnKey === (IncidentsListColumnKey.id as keyof IncidentFilter),
@@ -383,8 +383,8 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                 fieldName: IncidentsListColumnKey.type,
                 isResizable: true,
                 isMultiline: true,
-                minWidth: 200,
-                maxWidth: 350,
+                minWidth: 150,
+                maxWidth: 250,
                 onRender: onRenderType,
                 isSorted: sortColumnKey === (IncidentsListColumnKey.type as keyof IncidentFilter),
                 isSortedDescending:
@@ -398,8 +398,8 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                 fieldName: IncidentsListColumnKey.impactedService,
                 isResizable: true,
                 isMultiline: true,
-                minWidth: 200,
-                maxWidth: 350,
+                minWidth: 150,
+                maxWidth: 250,
                 onRender: onRenderImpactedService,
                 isSorted: sortColumnKey === (IncidentsListColumnKey.impactedService as keyof IncidentFilter),
                 isSortedDescending:
@@ -413,8 +413,8 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                 fieldName: IncidentsListColumnKey.priority,
                 isResizable: true,
                 isMultiline: true,
-                minWidth: 150,
-                maxWidth: 350,
+                minWidth: 100,
+                maxWidth: 150,
                 onRender: onRenderPriority,
                 isSorted: sortColumnKey === (IncidentsListColumnKey.priority as keyof IncidentFilter),
                 isSortedDescending:
@@ -428,8 +428,8 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                 fieldName: IncidentsListColumnKey.titleContains,
                 isResizable: true,
                 isMultiline: true,
-                minWidth: 200,
-                maxWidth: 350,
+                minWidth: 150,
+                maxWidth: 250,
                 onRender: onRenderTitleContains,
                 isSorted: sortColumnKey === (IncidentsListColumnKey.titleContains as keyof IncidentFilter),
                 onColumnClick: (_, col) => handleColumnClick(col),
@@ -442,8 +442,8 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                 name: intl.formatMessage(IncidentManagementResources.customHandler),
                 fieldName: IncidentsListColumnKey.customHandler,
                 isResizable: true,
-                minWidth: 200,
-                maxWidth: 350,
+                minWidth: 150,
+                maxWidth: 250,
                 onRender: onRenderIncidentHandler,
                 styles: { root: { width: `${columnWidth}%` } },
             },
@@ -575,9 +575,13 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                         <Button
                             appearance="primary"
                             onClick={() => {
-                                setIsEditFilterMode(false);
-                                setInitialValues(undefined);
-                                setIsCreateIncidentFilterDialogOpen(true);
+                                if (useConsolidatedCreate) {
+                                    openHandlerCreate({});
+                                } else {
+                                    setIsEditFilterMode(false);
+                                    setInitialValues(undefined);
+                                    setIsCreateIncidentFilterDialogOpen(true);
+                                }
                             }}
                             className={styles.newIncidentFilterButton}
                             disabled={disableAllControls}

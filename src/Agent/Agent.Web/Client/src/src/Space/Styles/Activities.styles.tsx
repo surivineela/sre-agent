@@ -157,6 +157,16 @@ export const ChatBoxStyles = mergeStyleSets({
     },
 });
 
+export interface AgentTaskStyleProps {
+    root?: GriffelStyle;
+    header?: GriffelStyle;
+    dropdownItem?: GriffelStyle;
+    dropdownItemText?: GriffelStyle;
+    loader?: GriffelStyle;
+    loaderItem?: GriffelStyle;
+    resizer?: GriffelStyle;
+}
+
 export interface ChatBoxV2StyleProps {
     chatBoxAndAgentTask?: GriffelStyle;
     chatBox?: GriffelStyle;

@@ -25,6 +25,7 @@ export const ChatBox = ({
     threadId,
     threadSource,
     stylesProps,
+    agentTaskStyleProps,
     collapseResizables,
     isAgentTaskEnabled,
 }: IChatBoxProps) => {
@@ -179,7 +180,7 @@ export const ChatBox = ({
                         </CopilotProvider>
                     </div>
                     {showAgentTask && isAgentTaskEnabled && (
-                        <AgentTask {...rest} collapsed={isAgentTaskCollapsed} setCollapsed={setIsAgentTaskCollapsed} />
+                        <AgentTask {...rest} collapsed={isAgentTaskCollapsed} setCollapsed={setIsAgentTaskCollapsed} stylesProps={agentTaskStyleProps}/>
                     )}
                 </div>
             </ThreadAgentModeContext.Provider>

@@ -103,6 +103,12 @@
       "value": "Manage SQL Managed Instances."
     }
   ],
+  "/Br0/Z": [
+    {
+      "type": 0,
+      "value": "Priorities"
+    }
+  ],
   "/WrP/v": [
     {
       "type": 0,
@@ -257,6 +263,12 @@
       "value": "Task"
     }
   ],
+  "12rpNY": [
+    {
+      "type": 0,
+      "value": "In-progress"
+    }
+  ],
   "14xQ4i": [
     {
       "type": 0,
@@ -399,6 +411,12 @@
       "value": "Grafana dashboard"
     }
   ],
+  "3651Wt": [
+    {
+      "type": 0,
+      "value": "Handler"
+    }
+  ],
   "3BubSI": [
     {
       "type": 0,
@@ -433,6 +451,12 @@
     {
       "type": 0,
       "value": "Suggested prompts for your resources"
+    }
+  ],
+  "3UAGOy": [
+    {
+      "type": 0,
+      "value": "Incident overview"
     }
   ],
   "3a5wL8": [
@@ -609,6 +633,12 @@
     {
       "type": 0,
       "value": "Add tools"
+    }
+  ],
+  "5jeq8P": [
+    {
+      "type": 0,
+      "value": "Unknown"
     }
   ],
   "5kp1Ie": [
@@ -1295,6 +1325,12 @@
     {
       "type": 0,
       "value": " resource groups selected."
+    }
+  ],
+  "D4T2Px": [
+    {
+      "type": 0,
+      "value": "Mitigated by agent"
     }
   ],
   "D7U9Zo": [
@@ -2239,6 +2275,12 @@
       "value": "Cognitive Services LUIS Reader"
     }
   ],
+  "PwqiFa": [
+    {
+      "type": 0,
+      "value": "P2"
+    }
+  ],
   "PxLzzW": [
     {
       "type": 0,
@@ -2273,6 +2315,12 @@
     {
       "type": 0,
       "value": "Enter a description"
+    }
+  ],
+  "QBeCBS": [
+    {
+      "type": 0,
+      "value": "P1"
     }
   ],
   "QEhO+z": [
@@ -2359,6 +2407,12 @@
     {
       "type": 0,
       "value": "\" has been updated successfully"
+    }
+  ],
+  "R7DP3y": [
+    {
+      "type": 0,
+      "value": "Resolved by agent"
     }
   ],
   "RH8rNM": [
@@ -2977,6 +3031,12 @@
     {
       "type": 0,
       "value": "Manage Logic Apps."
+    }
+  ],
+  "ZNPvsJ": [
+    {
+      "type": 0,
+      "value": "Attention needed"
     }
   ],
   "ZUXvHE": [
@@ -3645,6 +3705,12 @@
       "value": "Perform data science tasks in Azure Machine Learning."
     }
   ],
+  "i7oO8e": [
+    {
+      "type": 0,
+      "value": "Investigation in progress"
+    }
+  ],
   "iDSWYk": [
     {
       "type": 0,
@@ -3771,6 +3837,12 @@
       "value": "Enter connector string or endpoint"
     }
   ],
+  "jK9a9x": [
+    {
+      "type": 0,
+      "value": "All actions"
+    }
+  ],
   "jOkfJV": [
     {
       "type": 0,
@@ -3787,6 +3859,12 @@
     {
       "type": 0,
       "value": "Unread"
+    }
+  ],
+  "juQ8mz": [
+    {
+      "type": 0,
+      "value": "Investigations"
     }
   ],
   "jvo0vs": [
@@ -4401,6 +4479,12 @@
       "value": "\" has been created successfully"
     }
   ],
+  "tNseQe": [
+    {
+      "type": 0,
+      "value": "Investigation"
+    }
+  ],
   "tSKi9q": [
     {
       "type": 0,
@@ -4749,6 +4833,12 @@
     {
       "type": 0,
       "value": "This operation is being executed using the agent identity credentials."
+    }
+  ],
+  "yXTw0C": [
+    {
+      "type": 0,
+      "value": "Handler configuration"
     }
   ],
   "yYK6LR": [

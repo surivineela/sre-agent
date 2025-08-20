@@ -1,10 +1,11 @@
-import { Breadcrumb, BreadcrumbButton, BreadcrumbDivider, BreadcrumbItem, tokens } from '@fluentui/react-components';
+import { Breadcrumb, BreadcrumbButton, BreadcrumbDivider, BreadcrumbItem } from '@fluentui/react-components';
 import { Formik, FormikErrors, useFormikContext } from 'formik';
 import { FC, useCallback, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AgentMode } from '../../../Common/Contracts/Azure/SreAgent';
-import { IncidentHandlerCreateResources } from '../../../Strings/SREAgentResources';
+import { IncidentHandlerCreateResources, IncidentManagementResources } from '../../../Strings/SREAgentResources';
 import { useIncidentFilterFields } from '../../Hooks/useIncidentFilterFields';
+import { useIncidentManagementStyles } from '../../Styles/IncidentManagement.styles';
 import { QuickEditIncidentHandlerConsolidated } from '../QuickEditIncidentHandler/QuickEditIncidentHandlerConsolidated';
 import { HANDLER_TOOL_LIMIT, HandlerCreateOrEditInfo, OperationStatus } from './Contracts';
 import { DirtyStateConfirmationWrapper } from './DirtyStateConfirmationDialog';
@@ -73,6 +74,8 @@ const CreateIncidentHandlerConsolidatedInner: FC<CreateIncidentHandlerInnerProps
     setHandlerOperationStatus,
     setInitialValues,
 }) => {
+    const intl = useIntl();
+    const styles = useIncidentManagementStyles();
     const { dirty } = useFormikContext<IncidentHandlerCreateFormValues>();
     const incidentHandlerCreateMetadata = useConsolidatedCreateIncidentHandler(
         exitToHome,
@@ -81,22 +84,14 @@ const CreateIncidentHandlerConsolidatedInner: FC<CreateIncidentHandlerInnerProps
         setInitialValues
     );
     const { incidentTypeOptions, impactedServiceOptions, priorityOptions } = useIncidentFilterFields();
-
     const { filterMode, handlerMode } = incidentHandlerCreateMetadata;
-    const intl = useIntl();
 
     return (
-        <div
-            style={{
-                background: tokens.colorNeutralBackground3,
-                height: 'calc(100vh - 45px)',
-            }}
-        >
-            <DirtyStateNavigationConfirmDialog isDirty={dirty} />
-            <Breadcrumb style={{ display: 'flex', height: 50, marginLeft: 16 }}>
+        <div className={styles.breadCrumbAndPanelWrapper}>
+            <Breadcrumb className={styles.breadcrumb}>
                 <BreadcrumbItem>
                     <DirtyStateConfirmationWrapper isDirty={dirty} onConfirm={exitToHome}>
-                        <BreadcrumbButton>{intl.formatMessage(IncidentHandlerCreateResources.incidentManagement)}</BreadcrumbButton>
+                        <BreadcrumbButton>{intl.formatMessage(IncidentManagementResources.handlerConfiguration)}</BreadcrumbButton>
                     </DirtyStateConfirmationWrapper>
                 </BreadcrumbItem>
                 <BreadcrumbDivider />
@@ -108,26 +103,20 @@ const CreateIncidentHandlerConsolidatedInner: FC<CreateIncidentHandlerInnerProps
                     )}
                 </BreadcrumbItem>
             </Breadcrumb>
-            <div
-                style={{
-                    borderRadius: tokens.borderRadiusXLarge,
-                    boxShadow: tokens.shadow4,
-                    marginLeft: 20,
-                    marginRight: 20,
-                    height: 'calc(100% - 55px)',
-                    background: tokens.colorNeutralBackground1,
-                }}
-            >
-                <IncidentHandlerConsolidatedCreateContext.Provider
-                    value={{
-                        ...incidentHandlerCreateMetadata,
-                        incidentTypeOptions,
-                        impactedServiceOptions,
-                        priorityOptions,
-                    }}
-                >
-                    {handlerMode === 'quickEdit' ? <QuickEditIncidentHandlerConsolidated /> : <FullEditIncidentHandlerConsolidated />}
-                </IncidentHandlerConsolidatedCreateContext.Provider>
+            <div className={styles.navPanelWrapper}>
+                <div className={styles.navPanelContent}>
+                    <DirtyStateNavigationConfirmDialog isDirty={dirty} />
+                    <IncidentHandlerConsolidatedCreateContext.Provider
+                        value={{
+                            ...incidentHandlerCreateMetadata,
+                            incidentTypeOptions,
+                            impactedServiceOptions,
+                            priorityOptions,
+                        }}
+                    >
+                        {handlerMode === 'quickEdit' ? <QuickEditIncidentHandlerConsolidated /> : <FullEditIncidentHandlerConsolidated />}
+                    </IncidentHandlerConsolidatedCreateContext.Provider>
+                </div>
             </div>
         </div>
     );

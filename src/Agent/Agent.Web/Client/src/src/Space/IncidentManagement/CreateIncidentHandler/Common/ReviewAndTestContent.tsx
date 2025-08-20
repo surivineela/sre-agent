@@ -238,7 +238,7 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view }) =>
                     {creatingTestThread ? (
                         <Spinner size="huge" style={{ height: '100%' }} />
                     ) : createTestThreadFailure ? (
-                        <MessageBar intent="error" style={{ marginLeft: 20 }}>
+                        <MessageBar intent="error">
                             {intl.formatMessage(IncidentHandlerCreateResources.testHandlerRunFailure, {
                                 errorMessage: createTestThreadFailure,
                             })}
@@ -255,6 +255,7 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view }) =>
                                     boxShadow: 'unset',
                                     borderRadius: 'unset',
                                     width: '100%',
+                                    height: '100%',
                                     minHeight: '400px',
                                     marginBottom: '0px',
                                 },
