@@ -118,6 +118,19 @@ export const IncidentsAndGuidanceStep = () => {
         ];
     }, [intl]);
 
+    const incidentsTableHeight = useMemo(() => {
+        const selectedIncidentsListHeaderHeight = 55;
+        const selectedIncidentsListRowHeight = 54;
+        const selectedIncidentsListHeight =
+            (selectedIncidents?.length || 1) * selectedIncidentsListRowHeight + selectedIncidentsListHeaderHeight;
+
+        const incidentsTableHeaderHeight = 42;
+        const incidentsTableRowHeight = 32;
+        const incidentsTableHeight = (incidents?.length || 0) * incidentsTableRowHeight + incidentsTableHeaderHeight;
+
+        return incidentsTableHeight < selectedIncidentsListHeight ? 'fit-content' : undefined;
+    }, [selectedIncidents, incidents]);
+
     return (
         <>
             {generatingInstructions && (
@@ -168,7 +181,10 @@ export const IncidentsAndGuidanceStep = () => {
                 </Dropdown>
                 <div style={{ display: 'flex', flexDirection: 'row', gap: 20, marginTop: 10, width: 'calc(100% - 3px)' }}>
                     <MultipleSelectionShimmerDetailsList
-                        listContainerStyle={{ width: '100%' }}
+                        listContainerStyle={{
+                            width: '100%',
+                            height: incidentsTableHeight,
+                        }}
                         ref={incidentsListDivRef}
                         data={incidents}
                         selectedKeys={values.incidentIds || []}
