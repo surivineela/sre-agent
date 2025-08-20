@@ -3,12 +3,14 @@ import { useTheme } from '@fluentui/react/lib/Theme';
 import { Controls, OnEdgesChange, OnNodesChange, ReactFlow } from '@xyflow/react';
 import { memo } from 'react';
 import { TreeNodeType } from '../../../Common/Contracts/DataPlane/AgentTask';
+import ChildrenEdge from '../../Components/AgentTask/ChildrenEdge';
 import ConclusionNode from '../../Components/AgentTask/ConclusionNode';
 import GroupNode from '../../Components/AgentTask/GroupNode';
 import HypothesisNode from '../../Components/AgentTask/HypothesisNode';
 import HypothesisRootGroupNode from '../../Components/AgentTask/HypothesisRootGroupNode';
 import InitialInvestigationNode from '../../Components/AgentTask/InitialInvestigationNode';
-import { GraphFlowEdge, GraphFlowNode, IAgentTaskGraphProps } from '../../Contracts/Activities';
+import ParentEdge from '../../Components/AgentTask/ParentEdge';
+import { GraphFlowEdge, GraphFlowNode, IAgentTaskGraphProps, InvestigationGraphFlowEdgeType } from '../../Contracts/Activities';
 import { AgentTaskGraphContext } from '../../Contracts/Context';
 import { useAgentTaskGraphFlow } from '../../Hooks/useAgentTaskGraphFlow';
 import AgentTaskDetailsPanel from './AgentTaskDetailsPanel';
@@ -68,6 +70,10 @@ const AgentTaskGraphFlow = ({
                 [TreeNodeType.InitialInvestigation]: InitialInvestigationNode,
                 [TreeNodeType.Hypothesis]: HypothesisNode,
                 [TreeNodeType.Conclusion]: ConclusionNode,
+            }}
+            edgeTypes={{
+                [InvestigationGraphFlowEdgeType.Parents]: ParentEdge,
+                [InvestigationGraphFlowEdgeType.Children]: ChildrenEdge,
             }}
             nodesDraggable={false}
             proOptions={{ hideAttribution: true }}

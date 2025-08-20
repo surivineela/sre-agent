@@ -196,14 +196,12 @@ export type InvestigationGraphFlowNode = InvestigationTreeNode & {
 };
 
 export enum InvestigationGraphFlowEdgeType {
-    PhaseToHypothesis = 'phase-to-hypothesis',
-    HypothesisToHypothesis = 'hypothesis-to-hypothesis',
-    HypothesisToConclusion = 'hypothesis-to-conclusion',
+    Parents = 'parents',
+    Children = 'children',
 }
 
 export type InvestigationGraphFlowEdge = {
-    edgeType: InvestigationGraphFlowEdgeType;
-    sourceId: string;
+    fromInitialInvestigation?: boolean;
     targetId: string;
 };
 

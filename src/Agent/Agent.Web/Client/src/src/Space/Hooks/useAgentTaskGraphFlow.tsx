@@ -1,5 +1,5 @@
 import { graphlib, layout } from '@dagrejs/dagre';
-import { MarkerType, useEdgesState, useNodesState, useReactFlow, XYPosition } from '@xyflow/react';
+import { useEdgesState, useNodesState, useReactFlow, XYPosition } from '@xyflow/react';
 import debounce from 'lodash/debounce';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { InvestigationTreeNode, InvestigationTreeState, TreeNodeType } from '../../Common/Contracts/DataPlane/AgentTask';
@@ -221,16 +221,10 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
                         source: parentHypothesis.id,
                         target: child.id,
                         zIndex: 2000,
-                        markerEnd: {
-                            type: MarkerType.ArrowClosed,
-                            width: 20,
-                            height: 20,
-                        },
                         data: {
-                            edgeType: InvestigationGraphFlowEdgeType.HypothesisToHypothesis,
-                            sourceId: parentHypothesis.id,
                             targetId: child.id,
                         },
+                        type: InvestigationGraphFlowEdgeType.Children,
                     });
 
                     // Recursively add grandchildren
@@ -505,16 +499,11 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
             source: initialInvestigationNodeId,
             target: rootGroupNodeWithPosAndDimension.id,
             zIndex: -99,
-            markerEnd: {
-                type: MarkerType.ArrowClosed,
-                width: 20,
-                height: 20,
-            },
             data: {
-                edgeType: InvestigationGraphFlowEdgeType.PhaseToHypothesis,
-                sourceId: initialInvestigationNodeId,
+                fromInitialInvestigation: true,
                 targetId: rootGroupNodeWithPosAndDimension.id,
             },
+            type: InvestigationGraphFlowEdgeType.Parents,
         };
         edges.push(edgeFromInitialInvestigationNodeToRootGroup);
 
@@ -554,17 +543,11 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
             id: `${hypothesisGroupRootNodeId}-${conclusionNode.id}`,
             source: hypothesisGroupRootNodeId,
             target: conclusionNode.id,
-            markerEnd: {
-                type: MarkerType.ArrowClosed,
-                width: 20,
-                height: 20,
-            },
             zIndex: -99,
             data: {
-                edgeType: InvestigationGraphFlowEdgeType.HypothesisToConclusion,
-                sourceId: hypothesisGroupRootNodeId,
                 targetId: conclusionNode.id,
             },
+            type: InvestigationGraphFlowEdgeType.Parents,
         };
 
         return {

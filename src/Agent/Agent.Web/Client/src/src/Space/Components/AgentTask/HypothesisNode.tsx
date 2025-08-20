@@ -1,10 +1,10 @@
 import { Body1, Body2, Card, CardFooter, CardHeader, makeStyles, tokens } from '@fluentui/react-components';
 import { Handle, NodeProps, Position } from '@xyflow/react';
 import { memo, useContext } from 'react';
-import { HypothesisStatus } from '../../../Common/Contracts/DataPlane/AgentTask';
 import { AgentTaskNodeSize, GraphFlowNode } from '../../Contracts/Activities';
 import { AgentTaskGraphContext } from '../../Contracts/Context';
 import NodeStatusPill from './NodeStatusPill';
+import { getHypothesisNodeThemeColor } from './Utility';
 
 const useStyles = makeStyles({
     nodeContainer: {
@@ -51,19 +51,6 @@ const useStyles = makeStyles({
     },
 });
 
-const getCardBorderColor = (status: string) => {
-    switch (status) {
-        case HypothesisStatus.Validated:
-            return tokens.colorStatusSuccessForeground1;
-        case HypothesisStatus.Invalidated:
-            return tokens.colorNeutralBackground3;
-        case HypothesisStatus.Inconclusive:
-            return tokens.colorStatusWarningBackground2;
-        default:
-            return tokens.colorNeutralBackground2;
-    }
-};
-
 const HypothesisNode = (props: NodeProps<GraphFlowNode>) => {
     const { data, id } = props;
 
@@ -76,7 +63,7 @@ const HypothesisNode = (props: NodeProps<GraphFlowNode>) => {
             <Card
                 focusMode={'tab-only'}
                 className={card}
-                style={{ border: `1.5px solid ${getCardBorderColor(data.status)}` }}
+                style={{ border: `1.5px solid ${getHypothesisNodeThemeColor(data.status)}` }}
                 selected={selectedNodeId === id}
                 onSelectionChange={(_, selection) => selectNode(selection.selected ? id : null)}
             >

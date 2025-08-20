@@ -112,3 +112,16 @@ export const getStatusPillComponentText = (status?: string | null) => {
             return 'Inconclusive';
     }
 };
+
+export const getHypothesisNodeThemeColor = (status?: string | null) => {
+    switch (status?.toLowerCase()) {
+        case HypothesisStatus.Validated:
+            return tokens.colorStatusSuccessForeground1;
+        case HypothesisStatus.Invalidated:
+            return tokens.colorNeutralBackground3;
+        case HypothesisStatus.Inconclusive:
+            return tokens.colorStatusWarningBackground2;
+        default:
+            return tokens.colorNeutralBackground2;
+    }
+};
