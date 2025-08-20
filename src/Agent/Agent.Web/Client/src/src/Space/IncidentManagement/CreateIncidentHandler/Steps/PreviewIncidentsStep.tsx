@@ -116,9 +116,9 @@ export const PreviewIncidentsStep: FC = () => {
                 style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    padding: '20px 20px',
+                    padding: '20px 20px 0px 20px',
                     gap: '20px',
-                    height: 'calc(100% - 114px)',
+                    height: 'calc(100% - 94px)',
                     overflowY: 'auto',
                 }}
             >
@@ -141,7 +141,11 @@ export const PreviewIncidentsStep: FC = () => {
                 </Dropdown>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16, height: 'calc(100% - 94px)' }}>
                     <MultipleSelectionShimmerDetailsList
-                        listContainerStyle={{ width: '100%', minHeight: 'unset' }}
+                        listContainerStyle={{
+                            width: '100%',
+                            minHeight: (incidents?.length || 0) < 4 ? 'fit-content' : '200px',
+                            maxHeight: 'unset',
+                        }}
                         ref={incidentsListDivRef}
                         data={incidents}
                         selectedKeys={[]}

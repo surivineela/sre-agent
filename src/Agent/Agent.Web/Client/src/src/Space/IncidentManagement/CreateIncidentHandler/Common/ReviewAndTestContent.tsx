@@ -152,7 +152,7 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view }) =>
                         onChange={selectedKeys => setActiveToolNames(selectedKeys)}
                         getKey={(item: ToolInfo) => item.name}
                         listContainerStyle={{
-                            minHeight: '200px',
+                            minHeight: selectedToolsList.length < 4 ? 'fit-content' : '200px',
                             maxHeight: !view ? 'calc(100% - 307px)' : 'calc(100% - 269px)',
                         }}
                     />
