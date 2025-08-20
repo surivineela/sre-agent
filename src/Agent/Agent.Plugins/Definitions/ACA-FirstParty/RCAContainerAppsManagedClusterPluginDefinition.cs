@@ -294,7 +294,7 @@ Output: CSV (tab-separated) with columns:
         """
         )]
         public Task<string> GetSystemComponentMemoryUsage(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -304,7 +304,7 @@ Output: CSV (tab-separated) with columns:
                 { "fromDate", fromDate.ToString() },
                 { "toDate", toDate.ToString() },
                 { "managedClusterName", managedClusterName },
-                { "region", region }
+                { "region", region.ToNormalizedString() }
                 });
         }
     }
