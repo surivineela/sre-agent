@@ -31,7 +31,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetBillingMeterUsages(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("ARM ID of the azure resource to retrieve billing details like containerapp or job or managed environment")] string resourceId,
             [Description("Start of the time range for the query.")] DateTime fromDate,
             [Description("End of the time range for the query.")] DateTime toDate)
@@ -39,7 +39,7 @@ namespace Agent.Plugins.Definitions
             var args = new Dictionary<string, string>
             {
                 { "resourceId", resourceId },
-                { "region", region },
+                { "region", region.ToNormalizedString() },
                 { "fromDate", fromDate.ToString() },
                 { "toDate", toDate.ToString() }
             };
@@ -61,7 +61,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetContainerAppCpuUsage(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Resource ARM ID of the Container App.")] string resourceId,
             [Description("Start of the time range for the query.")] DateTime fromDate,
             [Description("End of the time range for the query.")] DateTime toDate)
@@ -69,7 +69,7 @@ namespace Agent.Plugins.Definitions
             var args = new Dictionary<string, string>
             {
                 { "resourceId", resourceId },
-                { "region", region },
+                { "region", region.ToNormalizedString() },
                 { "fromDate", fromDate.ToString() },
                 { "toDate", toDate.ToString() }
             };
@@ -90,7 +90,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetContainerAppMemoryUsage(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Resource ARM ID of the Container App.")] string resourceId,
             [Description("Start of the time range for the query.")] DateTime fromDate,
             [Description("End of the time range for the query.")] DateTime toDate)
@@ -98,7 +98,7 @@ namespace Agent.Plugins.Definitions
             var args = new Dictionary<string, string>
             {
                 { "resourceId", resourceId },
-                { "region", region },
+                { "region", region.ToNormalizedString() },
                 { "fromDate", fromDate.ToString() },
                 { "toDate", toDate.ToString() }
             };
@@ -121,7 +121,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetContainerAppReplicaCount(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Resource ARM ID of the Container App.")] string resourceId,
             [Description("Start of the time range for the query.")] DateTime fromDate,
             [Description("End of the time range for the query.")] DateTime toDate)
@@ -129,7 +129,7 @@ namespace Agent.Plugins.Definitions
             var args = new Dictionary<string, string>
             {
                 { "resourceId", resourceId },
-                { "region", region },
+                { "region", region.ToNormalizedString() },
                 { "fromDate", fromDate.ToString() },
                 { "toDate", toDate.ToString() }
             };
@@ -151,7 +151,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetMinReplicaCountChanges(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Container App name.")] string appName,
             [Description("Resource group name.")] string resourceGroup,
             [Description("Subscription ID.")] string subscriptionId,
@@ -165,7 +165,7 @@ namespace Agent.Plugins.Definitions
                 { "resourceGroup", resourceGroup },
                 { "subscriptionId", subscriptionId },
                 { "clusterName", clusterName },
-                { "region", region },
+                { "region", region.ToNormalizedString() },
                 { "fromDate", fromDate.ToString() },
                 { "toDate", toDate.ToString() }
             };
@@ -186,7 +186,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetJobCpuUsage(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Resource ARM ID of the Job.")] string resourceId,
             [Description("Start of the time range for the query.")] DateTime fromDate,
             [Description("End of the time range for the query.")] DateTime toDate)
@@ -194,7 +194,7 @@ namespace Agent.Plugins.Definitions
             var args = new Dictionary<string, string>
             {
                 { "resourceId", resourceId },
-                { "region", region },
+                { "region", region.ToNormalizedString() },
                 { "fromDate", fromDate.ToString() },
                 { "toDate", toDate.ToString() }
             };
@@ -215,7 +215,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetJobMemoryUsage(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Resource ARM ID of the Job.")] string resourceId,
             [Description("Start of the time range for the query.")] DateTime fromDate,
             [Description("End of the time range for the query.")] DateTime toDate)
@@ -223,7 +223,7 @@ namespace Agent.Plugins.Definitions
             var args = new Dictionary<string, string>
             {
                 { "resourceId", resourceId },
-                { "region", region },
+                { "region", region.ToNormalizedString() },
                 { "fromDate", fromDate.ToString() },
                 { "toDate", toDate.ToString() }
             };
@@ -252,7 +252,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetBillingPodHealth(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Managed cluster name.")] string managedClusterName,
             [Description("Start of the time range for the query.")] DateTime fromDate,
             [Description("End of the time range for the query.")] DateTime toDate)

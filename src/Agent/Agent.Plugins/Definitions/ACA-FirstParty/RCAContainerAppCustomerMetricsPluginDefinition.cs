@@ -5,6 +5,7 @@
 using System.ComponentModel;
 using Agent.Framework;
 using Agent.Plugins.Interface;
+using Agent.Plugins.Kusto;
 using Agent.Plugins.KustoPlugin;
 using Agent.Plugins.Services.Interfaces;
 using Microsoft.SemanticKernel;
@@ -33,7 +34,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetContainerAppInfraLayer(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Azure subscription ID.")] string subscriptionId,
@@ -46,7 +47,7 @@ namespace Agent.Plugins.Definitions
                 {
                             { "fromDate", fromDate.ToString() },
                             { "toDate", toDate.ToString() },
-                            { "region", region },
+                            { "region", region.ToNormalizedString() },
                             { "subscriptionId", subscriptionId },
                             { "resourceGroupName", resourceGroupName },
                             { "containerAppName", containerAppName },
@@ -68,7 +69,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetMetricsMdmCount(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Metric name to check.")] string metricName,
@@ -79,7 +80,7 @@ namespace Agent.Plugins.Definitions
              new Dictionary<string, string> {
                         { "fromDate", fromDate.ToString() },
                         { "toDate", toDate.ToString() },
-                        { "region", region },
+                        { "region", region.ToNormalizedString() },
                         { "metricName", metricName },
                         { "containerAppArmId", containerAppArmId }
              });
@@ -99,7 +100,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetMdmPodHeartbeatMissedTimes(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Managed cluster name.")] string managedClusterName
@@ -128,7 +129,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetMissedMdmMetricTimes(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Metric name to check.")] string metricName,
@@ -140,7 +141,7 @@ namespace Agent.Plugins.Definitions
                 {
                             { "fromDate", fromDate.ToString() },
                             { "toDate", toDate.ToString() },
-                            { "region", region },
+                            { "region", region.ToNormalizedString() },
                             { "metricName", metricName },
                             { "containerAppArmId", containerAppArmId }
                 });
@@ -161,7 +162,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetBillingPodLeaderElection(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Managed cluster name.")] string managedClusterName
@@ -191,7 +192,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetVKPodLeaderElection(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Managed cluster name.")] string managedClusterName
@@ -226,7 +227,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetAKSKubeletRuntimeErrors(
-            [Description("Azure region.")] string regionName,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Resource group name.")] string resourceGroupName,
@@ -238,7 +239,7 @@ namespace Agent.Plugins.Definitions
             return _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("GetAKSKubeletRuntimeErrors", "akshuba.centralus", "AKSCCPMetrics",
                 new Dictionary<string, string>
                 {
-                            { "regionName", regionName },
+                            { "regionName", region.ToNormalizedString() },
                             { "fromDate", fromDate.ToString() },
                             { "toDate", toDate.ToString() },
                             { "resourceGroupName", resourceGroupName },

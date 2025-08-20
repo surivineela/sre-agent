@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using Agent.Framework;
 using Agent.Plugins.Interface;
+using Agent.Plugins.Kusto;
 
 namespace Agent.Plugins.Definitions
 {
@@ -44,16 +45,16 @@ namespace Agent.Plugins.Definitions
             [Description("Start date for the search range in ISO 8601 format.")] DateTime fromDate,
             [Description("End date for the search range in ISO 8601 format.")] DateTime toDate,
             [Description("Name of the resource to search for.")] string resourceName,
-            [Description("Azure region of the resource to search for.")] string region,
+            [Description("Azure region of the resource to search for.")] AzureRegion region,
             [Description("Subscription ID")] string subscriptionId)
         {
-            return await _kustoPlugin.ExecuteLocalFunctionAsync("SearchResourceByName", "eastus",
+            return await _kustoPlugin.ExecuteLocalFunctionAsync("SearchResourceByName", AzureRegion.EastUS,
                 new Dictionary<string, string>
                 {
                     { "fromDate", fromDate.ToString() },
                     { "toDate", toDate.ToString() },
                     { "resourceName", resourceName },
-                    { "region", region },
+                    { "region", region.ToNormalizedString() },
                     { "subscriptionId", subscriptionId }
                 });
         }

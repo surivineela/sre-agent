@@ -51,7 +51,7 @@ namespace Agent.Plugins.Definitions
      """
         )]
         public async Task<string> GetManagedEnvironmentConfigureInfo(
-       [Description("Azure region of the managed environment.")] string region,
+       [Description("Azure region of the managed environment.")] AzureRegion region,
        [Description("Start time of the query.")] DateTime fromDate,
        [Description("End time of the query.")] DateTime toDate,
        [Description("Name of the managed environment.")] string environmentName,
@@ -59,16 +59,11 @@ namespace Agent.Plugins.Definitions
        [Description("Azure subscription ID.")] string subscriptionId,
        [Description("Name of the managed cluster")] string managedCluster)
         {
-            // We use All("ManagedEnvironmentDBState") in the query, so if the region is not specified, we can default to an arbitrary region.
-            string kustoClientRegion = string.IsNullOrEmpty(region)
-                ? "centralus"
-                : region;
-
-            string environments = await _kustoPlugin.ExecuteLocalFunctionAsync("GetManagedEnvironment", kustoClientRegion,
+            string environments = await _kustoPlugin.ExecuteLocalFunctionAsync("GetManagedEnvironment", region,
                  new Dictionary<string, string> {
                     { "fromDate", fromDate.ToString() },
                     { "toDate", toDate.ToString() },
-                    { "region", region },
+                    { "region", region.ToNormalizedString() },
                     { "environmentName", environmentName },
                     { "resourceGroupName", resourceGroupName },
                     { "subscriptionId", subscriptionId },
@@ -100,7 +95,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public async Task<string> GetManagedEnvironmentStateInfo(
-            [Description("Azure region of the managed environment.")] string region,
+            [Description("Azure region of the managed environment.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed environment.")] string environmentName,
@@ -137,7 +132,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public async Task<string> CheckManagedEnvironmentVersionAndStateMismatch(
-            [Description("Azure region of the managed environment.")] string region,
+            [Description("Azure region of the managed environment.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the resource group.")] string resourceGroupName,
@@ -193,7 +188,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public async Task<string> GetChangesInManagedEnvironment(
-            [Description("Azure region of the managed environment.")] string region,
+            [Description("Azure region of the managed environment.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Customer subscription ID of the managed environment.")] Guid customerSubscriptionId,
@@ -225,7 +220,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetASIPageForManagedEnvironment(
-    [Description("Azure region of the managed environment.")] string region,
+    [Description("Azure region of the managed environment.")] AzureRegion region,
     [Description("Start time of the query.")] DateTime fromDate,
     [Description("End time of the query.")] DateTime toDate,
     [Description("Name of the managed environment.")] string environmentName,
@@ -236,7 +231,7 @@ namespace Agent.Plugins.Definitions
 
             var cleanPath = Uri.EscapeDataString(basePath); // encodes spaces etc.
 
-            var query = $"environmentLocation={Uri.EscapeDataString(region.ToLowerInvariant())}" +
+            var query = $"environmentLocation={Uri.EscapeDataString(region.ToNormalizedString())}" +
                $"&environmentName={Uri.EscapeDataString(environmentName)}" +
                $"&environmentResourceGroup={Uri.EscapeDataString(resourceGroupName)}" +
                $"&environmentSubscription={Uri.EscapeDataString(subscriptionId)}" +
@@ -267,7 +262,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public async Task<string> GetManagedClusterEnvironmentResourceId(
-            [Description("Azure region of the managed environment.")] string region,
+            [Description("Azure region of the managed environment.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -308,7 +303,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public async Task<string> GetManagedEnvironmentAdminEvents(
-            [Description("Azure region of the managed environment.")] string region,
+            [Description("Azure region of the managed environment.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed environment.")] string environmentName,
@@ -344,7 +339,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public async Task<string> GetManagedEnvironmentOperationErrors(
-            [Description("Azure region of the managed environment.")] string region,
+            [Description("Azure region of the managed environment.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster")] string managedClusterName)
@@ -381,7 +376,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public async Task<string> GetPrivateEndpointConnectionDetails(
-            [Description("Azure region of the managed environment.")] string region,
+            [Description("Azure region of the managed environment.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -410,7 +405,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public async Task<string> GetPrivateEndpointConnectionConnectionState(
-            [Description("Azure region of the managed environment.")] string region,
+            [Description("Azure region of the managed environment.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the private endpoint connection.")] string privateEndpointConnectionName)
@@ -439,7 +434,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public async Task<string> GetPrivateEndpointConnectionProvisioningState(
-    [Description("Azure region of the managed environment.")] string region,
+    [Description("Azure region of the managed environment.")] AzureRegion region,
     [Description("Start time of the query.")] DateTime fromDate,
     [Description("End time of the query.")] DateTime toDate,
     [Description("Name of the private endpoint connection.")] string privateEndpointConnectionName)
@@ -468,7 +463,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public async Task<string> GetPrivateEndpointConnectionFrontendVmssProvisioningState(
-            [Description("Azure region of the managed environment.")] string region,
+            [Description("Azure region of the managed environment.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the frontend VMSS.")] string frontendVmssName)
@@ -497,7 +492,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public async Task<string> GetAdminEventErrorMessagesByTraceId(
-            [Description("Azure region of the managed environment.")] string region,
+            [Description("Azure region of the managed environment.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Trace ID to search for error messages.")] string traceId)
@@ -535,7 +530,7 @@ namespace Agent.Plugins.Definitions
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
         {
-            return await _kustoPlugin.ExecuteLocalFunctionAsync("GetAKSNodeAlerts", "centralus",
+            return await _kustoPlugin.ExecuteLocalFunctionAsync("GetAKSNodeAlerts", AzureRegion.CentralUS,
                 new Dictionary<string, string>
                 {
                     { "fromDate", fromDate.ToString() },
@@ -565,7 +560,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public async Task<string> GetLogsByCorrelationId(
-            [Description("Azure region of the managed environment.")] string region,
+            [Description("Azure region of the managed environment.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Correlation ID to filter the operation logs. This parameter cannot be empty")] string correlationId)
@@ -603,7 +598,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public async Task<string> GetManagedEnvironmentGenevaActionOperations(
-            [Description("Azure region of the managed environment.")] string region,
+            [Description("Azure region of the managed environment.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -642,7 +637,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public async Task<string> GetManagedEnvironmentVnetStatus(
-            [Description("Azure region of the managed environment.")] string region,
+            [Description("Azure region of the managed environment.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -675,7 +670,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public async Task<string> GetCanaryAvailability(
-            [Description("Azure region of the managed environment.")] string region,
+            [Description("Azure region of the managed environment.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)

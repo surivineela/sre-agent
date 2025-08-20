@@ -32,7 +32,7 @@ namespace Agent.Plugins.Kusto.Tools
             _definition = (KustoToolDefinition)definition;
         }
 
-        public async Task<string> Run(string region, Dictionary<string, string> args)
+        public async Task<string> Run(AzureRegion region, Dictionary<string, string> args)
         {
             string groupName = "ContainerApps";
             SamplingOptions? samplingOptions = null;
@@ -57,13 +57,6 @@ namespace Agent.Plugins.Kusto.Tools
 
                 case KustoExecutionMode.Query:
                     var formatedQuery = KustoPlugin.FormatQuery(_definition.Query!, args);
-
-                    if (string.IsNullOrEmpty(region))
-                    {
-                        // TODO: Cleaner reference needed
-                        // Region parameter will be not be configured with KustoConnector
-                        return await kustoChat.ExecuteClusterKustoQuery(connector.ClusterUrl, connector.Database, formatedQuery);
-                    }
 
                     var result = await kustoChat.ExecuteKustoQueryInternal(region, formatedQuery, groupName);
                     return result.Result;
@@ -96,7 +89,7 @@ namespace Agent.Plugins.Kusto.Tools
             _kustoChat = kustoChat;
         }
 
-        public async Task<KustoQueryResult> Run(string query, string region, Dictionary<string, string> args, string groupName = "ContainerApps")
+        public async Task<KustoQueryResult> Run(string query, AzureRegion region, Dictionary<string, string> args, string groupName = "ContainerApps")
         {
             return await _kustoChat.ExecuteKustoQueryInternal(region, query, groupName);
         }

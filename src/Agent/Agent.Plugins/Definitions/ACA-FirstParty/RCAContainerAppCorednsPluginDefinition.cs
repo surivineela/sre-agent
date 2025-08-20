@@ -6,6 +6,7 @@ using System.ComponentModel;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Framework;
 using Agent.Plugins.Interface;
+using Agent.Plugins.Kusto;
 
 namespace Agent.Plugins.Definitions
 {
@@ -35,7 +36,7 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> GetCustomDNSServers(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -65,12 +66,12 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> GetUpstreamCustomDNSServerHealthStatus(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
         {
-            return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricCountData", region.NormalizeLocation(),
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricCountData", region,
                 new Dictionary<string, string>
                 {
                     { "fromDate", fromDate.ToString() },
@@ -99,12 +100,12 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> GetAverageLatencyOfDNSResolutionRequests(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
         {
-            return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricAverageValueData", region.NormalizeLocation(),
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricAverageValueData", region,
                 new Dictionary<string, string>
                 {
                     { "fromDate", fromDate.ToString() },
@@ -133,12 +134,12 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> GetAverageLatencyOfUpstreamDNSResolutionForwardRequests(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
         {
-            return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricAverageValueData", region.NormalizeLocation(),
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricAverageValueData", region,
                 new Dictionary<string, string>
                 {
                     { "fromDate", fromDate.ToString() },
@@ -166,12 +167,12 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> GetCoreDNSProcessCrashesCount(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
         {
-            return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricCountData", region.NormalizeLocation(),
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricCountData", region,
                 new Dictionary<string, string>
                 {
                     { "fromDate", fromDate.ToString() },
@@ -199,12 +200,12 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> GetCoreDNSConfigReloadFailuresCount(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
         {
-            return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricCountData", region.NormalizeLocation(),
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricCountData", region,
                 new Dictionary<string, string>
                 {
                     { "fromDate", fromDate.ToString() },
@@ -232,12 +233,12 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> GetCoreDNSTotalDNSRequestCount(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
         {
-            return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricCountData", region.NormalizeLocation(),
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricCountData", region,
                 new Dictionary<string, string>
                 {
                     { "fromDate", fromDate.ToString() },
@@ -265,12 +266,12 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> GetCoreDNSForwardConcurrentRejectsCount(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
         {
-            return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricCountData", region.NormalizeLocation(),
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricCountData", region,
                 new Dictionary<string, string>
                 {
                     { "fromDate", fromDate.ToString() },
@@ -299,12 +300,12 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> GetAverageLatencyOfCoreDNSKubernetesDNSProgramming(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
         {
-            return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricAverageValueData", region.NormalizeLocation(),
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricAverageValueData", region,
                 new Dictionary<string, string>
                 {
                     { "fromDate", fromDate.ToString() },
@@ -335,7 +336,7 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> GetCorednsPodFailureEvents(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -371,7 +372,7 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> GetSwiftBootstrapAgentPodFailureEvents(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -410,7 +411,7 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> GetSwiftBootstrapAgentPodHealthStatus(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -443,7 +444,7 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> GetDNSConfigUpdateStatus(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -472,7 +473,7 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> CheckIfDNSServerFailedToResolveDot(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)

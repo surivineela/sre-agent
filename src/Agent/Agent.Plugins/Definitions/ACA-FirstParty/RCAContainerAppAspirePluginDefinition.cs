@@ -5,6 +5,7 @@
 using System.ComponentModel;
 using Agent.Core.Models;
 using Agent.Plugins.Interface;
+using Agent.Plugins.Kusto;
 
 namespace Agent.Plugins.Definitions;
 
@@ -32,7 +33,7 @@ public class RCAContainerAppAspirePluginDefinition
     """
     )]
     public Task<string> CheckContainerAppWorkloadProfileExists(
-        [Description("Azure region.")] string region,
+        [Description("Azure region.")] AzureRegion region,
         [Description("Managed cluster name.")] string managedClusterName,
         [Description("Start time of the query.")] DateTime fromDate,
         [Description("End time of the query.")] DateTime toDate)
@@ -41,7 +42,7 @@ public class RCAContainerAppAspirePluginDefinition
             new Dictionary<string, string>
             {
                 { "managedClusterName", managedClusterName },
-                { "region", region },
+                { "region", region.ToNormalizedString() },
                 { "fromDate", fromDate.ToString() },
                 { "toDate", toDate.ToString() }
             });
@@ -61,7 +62,7 @@ public class RCAContainerAppAspirePluginDefinition
     """
     )]
     public Task<string> GetContainerAppEnvironmentName(
-        [Description("Azure region.")] string region,
+        [Description("Azure region.")] AzureRegion region,
         [Description("Managed cluster name.")] string managedClusterName,
         [Description("Start time of the query.")] DateTime fromDate,
         [Description("End time of the query.")] DateTime toDate)
@@ -70,7 +71,7 @@ public class RCAContainerAppAspirePluginDefinition
             new Dictionary<string, string>
             {
                   { "managedClusterName", managedClusterName },
-                  { "region", region },
+                  { "region", region.ToNormalizedString() },
                   { "fromDate", fromDate.ToString() },
                   { "toDate", toDate.ToString() }
             });
@@ -90,14 +91,14 @@ public class RCAContainerAppAspirePluginDefinition
     """
     )]
     public Task<string> CheckIfAspireIsEnabled(
-        [Description("Azure region.")] string region,
+        [Description("Azure region.")] AzureRegion region,
         [Description("Managed cluster name.")] string managedClusterName)
     {
         return _kustoPlugin.ExecuteLocalFunctionAsync("CheckIfAspireIsEnabled", region,
             new Dictionary<string, string>
             {
                 {"managedClusterName", managedClusterName },
-                {"region", region },
+                {"region", region.ToNormalizedString() },
             });
     }
 
@@ -116,7 +117,7 @@ public class RCAContainerAppAspirePluginDefinition
     """
     )]
     public Task<string> CheckEnvoyFrontEndLogs(
-        [Description("Azure region.")] string region,
+        [Description("Azure region.")] AzureRegion region,
         [Description("Managed cluster name.")] string managedClusterName,
         [Description("Start time of the query.")] DateTime fromDate,
         [Description("End time of the query.")] DateTime toDate)
@@ -125,7 +126,7 @@ public class RCAContainerAppAspirePluginDefinition
             new Dictionary<string, string>
             {
                 {"managedClusterName", managedClusterName },
-                {"region", region },
+                {"region", region.ToNormalizedString() },
                 {"fromDate", fromDate.ToString() },
                 {"toDate", toDate.ToString() }
             });
@@ -145,7 +146,7 @@ public class RCAContainerAppAspirePluginDefinition
     """
     )]
     public Task<string> CheckAspireDashboardAccess(
-        [Description("Azure region.")] string region,
+        [Description("Azure region.")] AzureRegion region,
         [Description("Managed cluster name.")] string managedClusterName,
         [Description("Start time of the query.")] DateTime fromDate,
         [Description("End time of the query.")] DateTime toDate)
@@ -154,7 +155,7 @@ public class RCAContainerAppAspirePluginDefinition
             new Dictionary<string, string>
             {
                 {"managedClusterName", managedClusterName },
-                {"region", region },
+                {"region", region.ToNormalizedString() },
                 {"fromDate", fromDate.ToString() },
                 {"toDate", toDate.ToString() }
             });
@@ -174,7 +175,7 @@ public class RCAContainerAppAspirePluginDefinition
     """
     )]
     public Task<string> CheckAspireAuthorizationIssues(
-        [Description("Azure region.")] string region,
+        [Description("Azure region.")] AzureRegion region,
         [Description("Managed cluster name.")] string managedClusterName,
         [Description("Start time of the query.")] DateTime fromDate,
         [Description("End time of the query.")] DateTime toDate)
@@ -183,7 +184,7 @@ public class RCAContainerAppAspirePluginDefinition
             new Dictionary<string, string>
             {
                 {"managedClusterName", managedClusterName },
-                {"region", region },
+                {"region", region.ToNormalizedString() },
                 {"fromDate", fromDate.ToString() },
                 {"toDate", toDate.ToString() }
             });
@@ -207,7 +208,7 @@ public class RCAContainerAppAspirePluginDefinition
     """
     )]
     public Task<string> CheckEnvironmentVnet(
-        [Description("Azure region.")] string region,
+        [Description("Azure region.")] AzureRegion region,
         [Description("Managed cluster name.")] string managedClusterName,
         [Description("Start time of the query.")] DateTime fromDate,
         [Description("End time of the query.")] DateTime toDate)
@@ -216,7 +217,7 @@ public class RCAContainerAppAspirePluginDefinition
             new Dictionary<string, string>
             {
                 {"managedClusterName", managedClusterName },
-                {"region", region },
+                {"region", region.ToNormalizedString() },
                 {"fromDate", fromDate.ToString() },
                 {"toDate", toDate.ToString() }
             });
@@ -236,7 +237,7 @@ public class RCAContainerAppAspirePluginDefinition
     """
     )]
     public Task<string> CheckAspireStateVerificationIssues(
-        [Description("Azure region.")] string region,
+        [Description("Azure region.")] AzureRegion region,
         [Description("Managed cluster name.")] string managedClusterName,
         [Description("Start time of the query.")] DateTime fromDate,
         [Description("End time of the query.")] DateTime toDate)
@@ -245,7 +246,7 @@ public class RCAContainerAppAspirePluginDefinition
             new Dictionary<string, string>
             {
             {"managedClusterName", managedClusterName },
-            {"region", region },
+            {"region", region.ToNormalizedString() },
             {"fromDate", fromDate.ToString() },
             {"toDate", toDate.ToString() }
             });

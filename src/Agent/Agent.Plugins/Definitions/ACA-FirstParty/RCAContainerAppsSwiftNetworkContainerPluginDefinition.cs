@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using Agent.Framework;
 using Agent.Plugins.Interface;
+using Agent.Plugins.Kusto;
 
 namespace Agent.Plugins.Definitions
 {
@@ -28,7 +29,7 @@ Returns table data in CSV format with TAB separators. Column headers:
 - EndTime: The end time of the node's activity
 """)]
         public async Task<string> ListManagedClusterNodes(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -57,7 +58,7 @@ Returns table data in CSV format with TAB separators. Column headers:
 - NodeHeartbeat: The heartbeat status of the node (Ready or Not Ready)
 """)]
         public async Task<string> GetManagedClusterNodesHeartbeat(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName
@@ -88,7 +89,7 @@ Returns table data in CSV format with TAB separators. Column headers:
 - NetworkContainerHeartbeat: The heartbeat status of the Swift Network Container (expected to be 'Alive')
 """)]
         public async Task<string> GetManagedClusterNodesSwiftNetworkContainersHeartbeat(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -118,7 +119,7 @@ Returns table data in CSV format with TAB separators. Column headers:
 - error: Detailed error message if the operation failed
 """)]
         public async Task<string> GetSwiftNetworkContainerCreateAndDeleteEventsLog(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName,
@@ -147,7 +148,7 @@ Returns table data in CSV format with TAB separators. Column headers:
 - NetworkContainerID: The ID of the network container that may be leaked
 """)]
         public async Task<string> ListPotentialLeakedNetworkContainer(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -177,7 +178,7 @@ Returns table data in CSV format with TAB separators. Column headers:
 - Message: A detailed message about the delete operation
 """)]
         public async Task<string> GetDeleteNetworkContainerOperation(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("NetworkContainerID retrieved in the ListPotentialLeakedNetworkContainer tool")] string networkContainerID)
@@ -209,7 +210,7 @@ Returns table data in CSV format with TAB separators. Column headers:
 - HealthStatus: Detailed message of the health event (usually empty if not leaked)
 """)]
         public async Task<string> GetAggregatedNetworkContainerHealthEvent(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("NetworkContainerID retrieved in the ListPotentialLeakedNetworkContainer tool")] string networkContainerID)
@@ -237,7 +238,7 @@ Returns table data in CSV format with TAB separators. Column headers:
 - Message: A detailed message describing the event
 """)]
         public async Task<string> TrackSwiftILBGreKeyConflicts(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -290,7 +291,7 @@ Returns formatted URL strings:
 - DipAvailability_HealthProbeStatus: URL for DIP health probe status dashboard
 """)]
         public async Task<string> GetVipAndDipAvailabilityUrls(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)

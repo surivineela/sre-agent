@@ -8,6 +8,7 @@ using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Models.ICM;
 using Agent.Core.Services;
+using Agent.Plugins.Kusto;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OperationalAgent.Core.Extensions;
@@ -294,13 +295,13 @@ namespace Agent.Plugins.IcmPlugin
             return null;
         }
 
-        public async Task<string> GetSubscriptionQuota(string subscriptionId, string region, string quotaType)
+        public async Task<string> GetSubscriptionQuota(string subscriptionId, AzureRegion region, string quotaType)
         {
             const string workflowName = "Workflow-GenevaAction-GetSubscriptionQuota";
             Dictionary<string, string> body = new()
             {
                 { "SubscriptionId", subscriptionId },
-                { "Region", region },
+                { "Region", region.ToNormalizedString() },
                 { "QuotaType", quotaType },
             };
             var response = await SendICMWorkflowRequest(workflowName, JsonConvert.SerializeObject(body));
@@ -308,14 +309,14 @@ namespace Agent.Plugins.IcmPlugin
             return $"Failed to get subscription quota with {response.StatusCode} error: {await response.Content.ReadAsStringAsync()}";
         }
 
-        public async Task<string> SetSubscriptionQuota(string subscriptionId, string region, string quotaType, string quotaLimit)
+        public async Task<string> SetSubscriptionQuota(string subscriptionId, AzureRegion region, string quotaType, string quotaLimit)
         {
             const string workflowName = "Workflow-GenevaAction-SetSubscriptionQuota";
 
             Dictionary<string, string> body = new()
             {
                 { "SubscriptionId", subscriptionId },
-                { "Region", region },
+                { "Region", region.ToNormalizedString() },
                 { "QuotaType", quotaType },
                 { "QuotaLimit", quotaLimit },
             };
@@ -325,13 +326,13 @@ namespace Agent.Plugins.IcmPlugin
             return "Failed to set subscription quota";
         }
 
-        public async Task<string> GetEnvironmentQuota(string environmentUrl, string region, string quotaType)
+        public async Task<string> GetEnvironmentQuota(string environmentUrl, AzureRegion region, string quotaType)
         {
             const string workflowName = "Workflow-GenevaAction-GetEnvironmentQuota";
             Dictionary<string, string> body = new()
             {
                 { "EnvironmentURL", environmentUrl},
-                { "Region", region },
+                { "Region", region.ToNormalizedString() },
                 { "QuotaType", quotaType },
             };
             var response = await SendICMWorkflowRequest(workflowName, JsonConvert.SerializeObject(body));
@@ -342,14 +343,14 @@ namespace Agent.Plugins.IcmPlugin
             return $"Failed to get environment quota with {response.StatusCode} error: {await response.Content.ReadAsStringAsync()}";
         }
 
-        public async Task<string> SetEnvironmentQuota(string incidentId, string environmentUrl, string region, string quotaType, string quotaLimit)
+        public async Task<string> SetEnvironmentQuota(string incidentId, string environmentUrl, AzureRegion region, string quotaType, string quotaLimit)
         {
             const string workflowName = "Workflow-GenevaAction-SetEnvironmentQuota";
             Dictionary<string, string> body = new()
             {
                 { "IncidentId", incidentId },
                 { "EnvironmentURL", environmentUrl},
-                { "Region", region },
+                { "Region", region.ToNormalizedString() },
                 { "QuotaType", quotaType },
                 { "QuotaLimit", quotaLimit },
             };
@@ -502,15 +503,15 @@ namespace Agent.Plugins.IcmPlugin
 
         public Task<AcaSubscriptionUsage?> GetSubscriptionUsage(string subscriptionId) => Task.FromResult<AcaSubscriptionUsage?>(null);
 
-        public Task<string> GetSubscriptionQuota(string subscriptionId, string region, string quotaType) =>
+        public Task<string> GetSubscriptionQuota(string subscriptionId, AzureRegion region, string quotaType) =>
             Task.FromResult("ICM Plugin is disabled");
-        public Task<string> SetSubscriptionQuota(string subscriptionId, string region, string quotaType, string quotaLimit) =>
-            Task.FromResult("ICM Plugin is disabled");
-
-        public Task<string> GetEnvironmentQuota(string environmentUrl, string region, string quotaType) =>
+        public Task<string> SetSubscriptionQuota(string subscriptionId, AzureRegion region, string quotaType, string quotaLimit) =>
             Task.FromResult("ICM Plugin is disabled");
 
-        public Task<string> SetEnvironmentQuota(string incidentId, string environmentUrl, string region, string quotaType, string quotaLimit) =>
+        public Task<string> GetEnvironmentQuota(string environmentUrl, AzureRegion region, string quotaType) =>
+            Task.FromResult("ICM Plugin is disabled");
+
+        public Task<string> SetEnvironmentQuota(string incidentId, string environmentUrl, AzureRegion region, string quotaType, string quotaLimit) =>
             Task.FromResult("ICM Plugin is disabled");
         public Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId, DateTimeOffset? queryFrom = null) =>
             Task.FromResult(new List<DiscussionEntry>());
@@ -539,10 +540,10 @@ namespace Agent.Plugins.IcmPlugin
         Task<Incident?> GetIncidentAsync(string incidentId);
         Task<SubscriptionDetail?> GetSubscriptionDetail(string subscriptionId);
         Task<AcaSubscriptionUsage?> GetSubscriptionUsage(string subscriptionId);
-        Task<string> GetSubscriptionQuota(string subscriptionId, string region, string quotaType);
-        Task<string> SetSubscriptionQuota(string subscriptionId, string region, string quotaType, string quotaLimit);
-        Task<string> GetEnvironmentQuota(string environmentUrl, string region, string quotaType);
-        Task<string> SetEnvironmentQuota(string incidentId, string environmentUrl, string region, string quotaType, string quotaLimit);
+        Task<string> GetSubscriptionQuota(string subscriptionId, AzureRegion region, string quotaType);
+        Task<string> SetSubscriptionQuota(string subscriptionId, AzureRegion region, string quotaType, string quotaLimit);
+        Task<string> GetEnvironmentQuota(string environmentUrl, AzureRegion region, string quotaType);
+        Task<string> SetEnvironmentQuota(string incidentId, string environmentUrl, AzureRegion region, string quotaType, string quotaLimit);
         Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId, DateTimeOffset? queryFrom = null);
         Task<string> AddTagToIncident(string incidentId, string tag);
         Task<string> MitigateIncidentAsync(string incidentId, string discussionEntry);

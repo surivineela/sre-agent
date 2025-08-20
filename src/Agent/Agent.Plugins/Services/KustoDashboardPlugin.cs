@@ -4,6 +4,7 @@
 
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DataModels;
+using Agent.Plugins.Kusto;
 using Agent.Plugins.Services.Interfaces;
 using Agent.Plugins.Tools;
 
@@ -18,12 +19,11 @@ namespace Agent.Plugins.Services
             _regionalKustoClusters = kustoSettings.RegionalClusterGroups.Single(x => string.Equals(x.Name, "ContainerApps", StringComparison.OrdinalIgnoreCase)).Regions;
         }
 
-        public string GenerateDashboardLink(string dashboardId, string startTime, string endTime, string region, string subscriptionId, string resourceGroupName, string managedClusterName, string containerAppName, string revisionName)
+        public string GenerateDashboardLink(string dashboardId, string startTime, string endTime, AzureRegion region, string subscriptionId, string resourceGroupName, string managedClusterName, string containerAppName, string revisionName)
         {
-            region = region.NormalizeLocation();
             var startTimeParam = $"p-_startTime={startTime}";
             var endTimeParam = $"p-_endTime={endTime}";
-            var cluster = _regionalKustoClusters.Where(KustoCluster => { return KustoCluster.Region == region.NormalizeLocation(); }).FirstOrDefault();
+            var cluster = _regionalKustoClusters.Where(KustoCluster => { return KustoCluster.Region == region.ToNormalizedString(); }).FirstOrDefault();
             var clusterUriParam = $"p-ClusterUri={cluster?.ClusterUri}";
             var subscriptionIdParam = $"p-subscriptionId={subscriptionId}";
             var resourceGroupNameParam = $"p-resourceGroupName={resourceGroupName}";

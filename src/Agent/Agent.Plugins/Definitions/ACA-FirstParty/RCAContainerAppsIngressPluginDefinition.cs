@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using Agent.Framework;
 using Agent.Plugins.Interface;
+using Agent.Plugins.Kusto;
 
 namespace Agent.Plugins.Definitions
 {
@@ -29,7 +30,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetContainerAppManagedCluster(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the container app.")] string containerAppName,
@@ -67,7 +68,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetContainerAppIngressConfig(
-            [Description("Azure region of the container app.")] string region,
+            [Description("Azure region of the container app.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the container app.")] string containerAppName,
@@ -98,7 +99,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetEnvoyPodLogs(
-            [Description("Azure region of the container app.")] string region,
+            [Description("Azure region of the container app.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Managed Cluster name of the container app.")] string managedClusterName)
@@ -128,7 +129,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetEnvoyAccessRequestCountTimeSeries(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Managed Cluster Name of the container app.")] string managedClusterName,
@@ -157,7 +158,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetManagedClusterLevelEnvoyAccessRequestCount(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Managed Cluster Name of the container app.")] string managedClusterName)
@@ -192,7 +193,7 @@ namespace Agent.Plugins.Definitions
         - UpstreamHost: The upstream host's IP address and port (e.g., 100.100.202.85:8080)
         """)]
         public Task<string> GetEnvoyAccessLogs(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Managed Cluster Name of the container app.")] string managedClusterName,
@@ -229,7 +230,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetSwiftNetworkingEvents(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Managed Cluster Name of the container app.")] string managedClusterName)
@@ -263,7 +264,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetEnvoyPodStatus(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Managed Cluster Name of the container app.")] string managedClusterName)
@@ -300,7 +301,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetContainerAppPodStatus(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Managed Cluster Name of the container app.")] string managedClusterName,
@@ -334,7 +335,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetContainerAppStatus(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the container app.")] string containerAppName,
@@ -370,7 +371,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetContainerAppAdminEvents(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the container app.")] string containerAppName,

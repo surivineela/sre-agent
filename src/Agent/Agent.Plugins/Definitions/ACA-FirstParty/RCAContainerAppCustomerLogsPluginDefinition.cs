@@ -3,6 +3,7 @@ using Agent.Data.DatabaseClients.GraphDbClient;
 using Microsoft.SemanticKernel;
 using Agent.Framework;
 using Agent.Plugins.Interface;
+using Agent.Plugins.Kusto;
 
 namespace Agent.Plugins.Definitions
 {
@@ -34,7 +35,7 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> GetLogConfiguration(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Customer subscription ID of the managed environment.")] Guid customerSubscriptionId,
@@ -68,7 +69,7 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> GetEventProcessorErrors(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName,
@@ -97,7 +98,7 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> GetEventProcessorLeaderElectionEvents(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -122,7 +123,7 @@ Returns tab-separated table data in CSV format with column headers.
 """
 )]
         public Task<string> GetAppOrJobVolumeForEnv(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -151,7 +152,7 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> GetEventProcessorPods(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -181,7 +182,7 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> GetLogProcessorPods(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -217,7 +218,7 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> GetEventProcessorPodStatus(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -254,7 +255,7 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> GetLogProcessorPodStatus(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -286,7 +287,7 @@ Returns tab-separated table data in CSV format. Only includes entries for time r
 """
 )]
         public Task<string> GetLogProcessorNodeHealthStatus(
-    [Description("Azure region.")] string region,
+    [Description("Azure region.")] AzureRegion region,
     [Description("Start time of the query.")] DateTime fromDate,
     [Description("End time of the query.")] DateTime toDate,
     [Description("Name of the managed cluster.")] string managedClusterName)
@@ -312,7 +313,7 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> GetContainerAppWorkloadProfile(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the container app or job.")] string containerAppOrJobName)
@@ -341,7 +342,7 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> GetInputPressureOnLogProcessor(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -373,12 +374,12 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> GetMemoryPressureOnFluentbit(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
         {
-            return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricCountData", region.NormalizeLocation(),
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricCountData", region,
             new Dictionary<string, string> {
                 { "fromDate", fromDate.ToString() },
                 { "toDate", toDate.ToString() },
@@ -405,12 +406,12 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> GetFluentbitOutputCount(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
         {
-            return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricCountData", region.NormalizeLocation(),
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricCountData", region,
             new Dictionary<string, string> {
                 { "fromDate", fromDate.ToString() },
                 { "toDate", toDate.ToString() },
@@ -437,12 +438,12 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> GetFluentbitBufferPressure(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
         {
-            return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricCountData", region.NormalizeLocation(),
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetGenericMetricCountData", region,
             new Dictionary<string, string> {
                 { "fromDate", fromDate.ToString() },
                 { "toDate", toDate.ToString() },
@@ -465,7 +466,7 @@ Returns tab-separated table data in CSV format with column headers.
 """
 )]
         public Task<string> GetFluentbitOutputErrors(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)

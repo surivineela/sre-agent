@@ -5,6 +5,7 @@
 using System.ComponentModel;
 using Agent.Framework;
 using Agent.Plugins.Interface;
+using Agent.Plugins.Kusto;
 
 namespace Agent.Plugins.Definitions
 {
@@ -34,14 +35,14 @@ namespace Agent.Plugins.Definitions
         public Task<string> GetK4appsHelmChartUpgradeTimes(
             [Description("The start date for the query")] string fromDate,
             [Description("The end date for the query")] string toDate,
-            [Description("The region of the managed cluster")] string region,
+            [Description("The region of the managed cluster")] AzureRegion region,
             [Description("The name of the managed cluster")] string managedClusterName)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetK4appsHelmChartUpgradeTimes", region,
              new Dictionary<string, string> {
                 { "fromDate", fromDate.ToString() },
                 { "toDate", toDate.ToString() },
-                { "region", region },
+                { "region", region.ToNormalizedString() },
                 { "managedClusterName", managedClusterName }
              });
         }
@@ -62,15 +63,15 @@ namespace Agent.Plugins.Definitions
         public Task<string> GetAksNodeImageUpgradeTimes(
             [Description("The start date for the query")] string fromDate,
             [Description("The end date for the query")] string toDate,
-            [Description("The region of the managed cluster")] string region,
+            [Description("The region of the managed cluster")] AzureRegion region,
             [Description("The name of the managed cluster")] string managedClusterName)
         {
-            return _kustoPlugin.ExecuteLocalFunctionAsync("GetAksNodeImageUpgradeTimes", "centralus",
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetAksNodeImageUpgradeTimes", AzureRegion.CentralUS,
                 new Dictionary<string, string> {
                     { "fromDate", fromDate.ToString() },
                     { "toDate", toDate.ToString() },
                     { "managedClusterName", managedClusterName },
-                    { "region", region }
+                    { "region", region.ToNormalizedString() }
                 },
                 groupName: "AKS");
         }
@@ -89,7 +90,7 @@ namespace Agent.Plugins.Definitions
         public async Task<string> GetLegionHostRoleOSUpgradeTimes(
             [Description("The start date for the query")] string fromDate,
             [Description("The end date for the query")] string toDate,
-            [Description("The region of the managed cluster")] string region,
+            [Description("The region of the managed cluster")] AzureRegion region,
             [Description("The name of the managed cluster")] string managedClusterName,
             [Description("The name of the container app revision")] string revisionName)
         {
@@ -97,7 +98,7 @@ namespace Agent.Plugins.Definitions
              new Dictionary<string, string> {
                 { "fromDate", fromDate.ToString() },
                 { "toDate", toDate.ToString() },
-                { "region", region },
+                { "region", region.ToNormalizedString() },
                 { "managedClusterName", managedClusterName },
                 { "revisionName", revisionName },
              });
@@ -120,7 +121,7 @@ namespace Agent.Plugins.Definitions
             return await _kustoPlugin.ExecuteLocalFunctionAsync("GetLegionHostRoleOSUpgradeTimes", region, new Dictionary<string, string> {
                 { "fromDate", fromDate.ToString() },
                 { "toDate", toDate.ToString() },
-                { "region", region },
+                { "region", region.ToNormalizedString() },
                 { "cappPodNames", podNamesArray },
                 { "managedClusterName", managedClusterName },
              }, groupName: "Legion");

@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Agent.Core.Helpers;
+using Agent.Plugins.Kusto;
 using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Models;
@@ -260,14 +261,14 @@ namespace FirstPartyAgent.Core.Services
             }
         }
 
-        public async Task<string> SetSubscriptionQuota(string subscriptionId, string region, string quotaType, string quotaLimit)
+        public async Task<string> SetSubscriptionQuota(string subscriptionId, AzureRegion region, string quotaType, string quotaLimit)
         {
             const string workflowName = "Workflow-GenevaAction-SetSubscriptionQuota";
 
             Dictionary<string, string> body = new()
             {
                 { "SubscriptionId", subscriptionId },
-                { "Region", region },
+                { "Region", region.ToNormalizedString() },
                 { "QuotaType", quotaType },
                 { "QuotaLimit", quotaLimit },
             };
@@ -816,7 +817,7 @@ Incidents
         public Task<string> AddAttachmentToIncident(string incidentId, string fileName, string base64Content) =>
             Task.FromResult("ICM Plugin is disabled");
 
-        public Task<string> SetSubscriptionQuota(string subscriptionId, string region, string quotaType, string quotaLimit) =>
+        public Task<string> SetSubscriptionQuota(string subscriptionId, AzureRegion region, string quotaType, string quotaLimit) =>
             Task.FromResult("ICM Plugin is disabled");
 
         public Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId, DateTimeOffset? queryFrom = null) =>
@@ -882,7 +883,7 @@ Incidents
     {
         Task<Incident> GetIncidentAsync(string incidentId);
         Task<string> AddAttachmentToIncident(string incidentId, string fileName, string base64Content);
-        Task<string> SetSubscriptionQuota(string subscriptionId, string region, string quotaType, string quotaLimit);
+        Task<string> SetSubscriptionQuota(string subscriptionId, AzureRegion region, string quotaType, string quotaLimit);
         Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId, DateTimeOffset? queryFrom = null);
         Task<string> TransferIncidentAsync(string incidentId, string discussionEntry, string tenantName, string owningTeam);
         Task<string> AddTagToIncident(string incidentId, string tag);

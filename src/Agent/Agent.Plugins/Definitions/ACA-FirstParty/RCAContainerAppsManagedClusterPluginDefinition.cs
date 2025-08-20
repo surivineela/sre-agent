@@ -8,6 +8,7 @@ using Agent.Core.Interfaces;
 using Agent.Framework;
 using Agent.Plugins.Interface;
 using Agent.Plugins.KustoPlugin;
+using Agent.Plugins.Kusto;
 using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins.Definitions
@@ -49,7 +50,7 @@ Output (tab-separated):
 
 
         public async Task<string> GetAKSclusterMutatingOperations(
-         [Description("Azure region.")] string region,
+         [Description("Azure region.")] AzureRegion region,
          [Description("Start time of the query.")] DateTime fromDate,
          [Description("End time of the query.")] DateTime toDate,
          [Description("Name of the managed cluster. Used to resolve the environment context.")] string managedClusterName,
@@ -59,7 +60,7 @@ Output (tab-separated):
       
             return await _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("GetAKSclusterMutatingOperations", "akshuba.centralus", "AKSprod",
             new Dictionary<string, string> {
-                 { "region", region },
+                 { "region", region.ToNormalizedString() },
             { "fromDate", fromDate.ToString() },
             { "toDate", toDate.ToString() },
             { "resourceGroupName", $"{managedClusterName}-RG" },
@@ -83,7 +84,7 @@ Output (tab-separated):
         """
         )]
         public async Task<string> GetASIPageForManagedClusterForApp(
-         [Description("Azure region.")] string region,
+         [Description("Azure region.")] AzureRegion region,
          [Description("Start time of the query.")] DateTime fromDate,
          [Description("End time of the query.")] DateTime toDate,
          [Description("Name of the container app. Used to resolve the environment context.")] string containerAppName,
@@ -112,7 +113,7 @@ Output (tab-separated):
         """
         )]
         public Task<string> GetASIPageForManagedCluster(
-        [Description("Azure region in lower case.")] string region,
+        [Description("Azure region in lower case.")] AzureRegion region,
         [Description("Start time of the query.")] DateTime fromDate,
         [Description("End time of the query.")] DateTime toDate,
         [Description("Managed cluster name.")] string managedClusterName)
@@ -150,14 +151,14 @@ Output (tab-separated):
         """
         )]
         public Task<string> GetAksClusterCcpNamespace(
-        [Description("Azure region.")] string region,
+        [Description("Azure region.")] AzureRegion region,
         [Description("Start time of the query.")] DateTime fromDate,
         [Description("End time of the query.")] DateTime toDate,
         [Description("aks cluster resource group")] string clusterResourceGroup,
         [Description("aks managed subscription ID.")] string managedSubscriptionId,
         [Description("Name of the managed cluster.")] string managedClusterName)
         {
-            return _kustoPlugin.ExecuteLocalFunctionAsync("GetAksClusterCcpNamespace", "centralus",
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetAksClusterCcpNamespace", region,
                 new Dictionary<string, string> {
                     { "fromDate", fromDate.ToString() },
                     { "toDate", toDate.ToString() },
@@ -230,7 +231,7 @@ Output: CSV (tab-separated) with columns:
         """
         )]
         public Task<string> GetSystemComponentErrorEvents(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -261,7 +262,7 @@ Output: CSV (tab-separated) with columns:
         """
         )]
         public Task<string> GetSystemComponentCpuUsage(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName)
@@ -271,7 +272,7 @@ Output: CSV (tab-separated) with columns:
                 { "fromDate", fromDate.ToString() },
                 { "toDate", toDate.ToString() },
                 { "managedClusterName", managedClusterName },
-                { "region", region }
+                { "region", region.ToNormalizedString() }
                 });
         }
     }

@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using Agent.Framework;
 using Agent.Plugins.IcmPlugin;
 using Agent.Plugins.Interface;
+using Agent.Plugins.Kusto;
 
 namespace Agent.Plugins.Definitions
 {
@@ -77,7 +78,7 @@ Returns a string containing the quota limit value:
 )]
         public async Task<string> GetSubscriptionQuota(
             [Description("Subscription ID.")] string subscriptionId,
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Quota type.")] string quotaType)
         {
             return await _icmWorkflowClient.GetSubscriptionQuota(subscriptionId, region, quotaType);
@@ -97,7 +98,7 @@ Returns a string indicating if the operation was successful:
 )]
         public async Task<string> SetSubscriptionQuota(
             [Description("Subscription ID.")] string subscriptionId,
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Quota type.")] string quotaType,
             [Description("Target quota limit.")] string quotaLimit)
         {
@@ -118,7 +119,7 @@ Returns a string containing the quota limit value:
 )]
         public async Task<string> GetEnvironmentQuota(
             [Description("Resource URL of the container app environment.")] string environmentResourceURL,
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Quota type.")] string quotaType)
         {
             return await _icmWorkflowClient.GetEnvironmentQuota(environmentResourceURL, region, quotaType);
@@ -140,7 +141,7 @@ Returns a JSON object with operation details:
         public async Task<string> SetEnvironmentQuota(
             [Description("Incident ID.")] string incidentId,
             [Description("Resource URL of the container app environment.")] string environmentResourceURL,
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Quota type.")] string quotaType,
             [Description("Target quota limit.")] string quotaLimit)
         {
@@ -187,7 +188,7 @@ Returns tab-separated table data in CSV format. Column headers:
 )]
         public Task<string> GetEnvironmentQuotaOperationResult(
             [Description("Operation ID (trace ID).")] string operationId,
-            [Description("Azure region.")] string region)
+            [Description("Azure region.")] AzureRegion region)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetEnvironmentQuotaOperationResult", region,
             new Dictionary<string, string> {
@@ -212,7 +213,7 @@ Returns a JSON object with validation details:
         public async Task<string> ValidateQuotaRequest(
             [Description("Quota type.")] string quotaType,
             [Description("Subscription ID.")] string subscriptionId,
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Target quota limit.")] string targetQuotaLimit,
             [Description("Managed environment resource URI (optional).")] string environmentResourceURL = "")
         {
@@ -248,7 +249,7 @@ Returns a JSON object with validation details:
                 }
             }
 
-            var validationResult = ValidateQuotaRule(targetQuotaLimit, quotaType, region.ToLowerInvariant(), offerType);
+            var validationResult = ValidateQuotaRule(targetQuotaLimit, quotaType, region, offerType);
 
             string result = JsonSerializer.Serialize(new
             {
@@ -260,16 +261,11 @@ Returns a JSON object with validation details:
             return result;
         }
 
-        private static (ApprovalState approvalState, string reason) ValidateQuotaRule(string targetQuotaLimit, string quotaType, string region, string offerType)
+        private static (ApprovalState approvalState, string reason) ValidateQuotaRule(string targetQuotaLimit, string quotaType, AzureRegion region, string offerType)
         {
             if (string.IsNullOrEmpty(quotaType))
             {
                 return (ApprovalState.NotStarted, string.Format(MessageTemplates.RequestInformationMissing, "quota type"));
-            }
-
-            if (string.IsNullOrEmpty(region))
-            {
-                return (ApprovalState.NotStarted, string.Format(MessageTemplates.RequestInformationMissing, "region"));
             }
 
             if (!int.TryParse(targetQuotaLimit, out int limit))
@@ -312,9 +308,9 @@ Returns a JSON object with validation details:
             {
                 switch (region)
                 {
-                    case "northeurope":
+                    case AzureRegion.NorthEurope:
                         return (ApprovalState.NotStarted, MessageTemplates.NorthEuropeNotSupported);
-                    case "westus3":
+                    case AzureRegion.WestUS3:
                         if (isEA)
                         {
                             return limit <= 10
@@ -332,7 +328,7 @@ Returns a JSON object with validation details:
                             return (ApprovalState.Pending, string.Format(MessageTemplates.RequireManualApprove, "SubscriptionNCA100Gpus", offerType, limit.ToString()));
                         }
                     default:
-                        return (ApprovalState.NotStarted, string.Format(MessageTemplates.RegionNotSupported, "SubscriptionNCA100Gpus", region, "westus3"));
+                        return (ApprovalState.NotStarted, string.Format(MessageTemplates.RegionNotSupported, "SubscriptionNCA100Gpus", region.ToNormalizedString(), "westus3"));
                 }
             }
             else if (quotaTypeEnum.Equals(QuotaType.ManagedEnvironmentConsumptionNCA100Gpus))

@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using Agent.Framework;
 using Agent.Plugins.Interface;
+using Agent.Plugins.Kusto;
 using Agent.Plugins.KustoPlugin;
 
 namespace Agent.Plugins.Definitions
@@ -33,7 +34,7 @@ namespace Agent.Plugins.Definitions
         )]
         public Task<string> GetJobDefinition(
             [Description("Name of the Container App Job.")] string containerAppJobName,
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Name of the managed cluster.")] string cappClusterName,
             [Description("Start of the time range for the query.")] DateTime queryFrom,
             [Description("End of the time range for the query.")] DateTime queryTo)
@@ -64,7 +65,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetJobExecutionFinalStatus(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Name of the managed cluster.")] string managedClusterName,
             [Description("Name of the job execution.")] string jobExecutionName,
             [Description("Start of the time range for the query.")] DateTime queryFrom,
@@ -97,7 +98,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetJobExecutionEvents(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Name of the job execution.")] string jobExecutionName,
             [Description("Name of the managed cluster.")] string managedClusterName,
             [Description("Start of the time range for the query (UTC datetime).")] DateTime queryFrom,
@@ -128,7 +129,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetAllJobExecutionsErrorEvents(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Name of the managed cluster.")] string managedClusterName,
             [Description("Name of the container app job.")] string containerAppJobName,
             [Description("Start of the time range for the query (UTC datetime).")] DateTime queryFrom,
@@ -159,7 +160,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetAllJobExecutionsFinalStatus(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Name of the managed cluster.")] string managedClusterName,
             [Description("Name of the container app job.")] string containerAppJobName,
             [Description("Start of the time range for the query (UTC datetime).")] DateTime queryFrom,
@@ -192,7 +193,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetKedaEventsForJobScaledJobs(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Name of the managed cluster.")] string managedClusterName,
             [Description("Name of the Container App Job.")] string containerAppJobName,
             [Description("Start of the time range for the query (UTC datetime).")] DateTime queryFrom,
@@ -225,7 +226,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetLegionVKEventsForJobsRunningConsumptionV2(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Name of the managed cluster.")] string managedClusterName,
             [Description("Name of the job execution.")] string jobExecutionName,
             [Description("Start of the time range for the query (UTC datetime).")] DateTime queryFrom,
@@ -256,7 +257,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetLegionSystemLogsForJobExecutionErrors(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Name of the managed cluster.")] string managedClusterName,
             [Description("Name of the container app job.")] string containerAppJobName,
             [Description("Name of the specific job execution, or empty string.")] string jobExecutionName,
@@ -291,7 +292,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetASIPageForContainerAppJob(
-           [Description("Azure region.")] string region,
+           [Description("Azure region.")] AzureRegion region,
            [Description("Start of the time range for the query (UTC datetime).")] DateTime fromDate,
            [Description("End of the time range for the query (UTC datetime).")] DateTime toDate,
            [Description("Name of the Container App Job.")] string containerAppName,
@@ -307,7 +308,7 @@ namespace Agent.Plugins.Definitions
                 $"cappName={Uri.EscapeDataString(containerAppName.Trim())}" +
                 $"&cappResourceGroup={Uri.EscapeDataString(resourceGroupName.Trim())}" +
                 $"&cappSubscription={Uri.EscapeDataString(subscriptionId.Trim())}" +
-                $"&location={Uri.EscapeDataString(region.Trim())}" +
+                $"&location={Uri.EscapeDataString(region.ToNormalizedString())}" +
                 $"&globalFrom={Uri.EscapeDataString(fromDate.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"))}" +
                 $"&globalTo={Uri.EscapeDataString(toDate.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"))}";
 
@@ -329,7 +330,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetJobCPUUsageExceedsThreshold(
-            [Description("Azure region in lower case. Example: 'westeurope'.")] string region,
+            [Description("Azure region in lower case. Example: 'westeurope'.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName,
@@ -360,7 +361,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetJobMemoryUsageExceedsThreshold(
-            [Description("Azure region in lower case. Example: 'westeurope'.")] string region,
+            [Description("Azure region in lower case. Example: 'westeurope'.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName,
@@ -399,7 +400,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetJobPodContainersTerminationState(
-            [Description("Azure region in lower case. Example: 'westeurope'.")] string region,
+            [Description("Azure region in lower case. Example: 'westeurope'.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName,

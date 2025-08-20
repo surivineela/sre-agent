@@ -5,6 +5,7 @@
 using System.ComponentModel;
 using Agent.Framework;
 using Agent.Plugins.Interface;
+using Agent.Plugins.Kusto;
 using Agent.Plugins.KustoPlugin;
 using Agent.Plugins.Services.Interfaces;
 using Microsoft.SemanticKernel;
@@ -42,23 +43,18 @@ Returns table data in CSV format with TAB separators. Column headers:
 - legionPodPoolName: Name of the legion pod pool
 """)]
         public async Task<string> GetSessionPoolInfo(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Azure subscription ID.")] string subscriptionId,
             [Description("Resource group name.")] string resourceGroupName,
             [Description("Session pool name.")] string sessionPoolName)
         {
-            // We use AllSession("SessionPoolDBState") in the query, so if the region is not specified, we can default to an arbitrary region.
-            string kustoClientRegion = string.IsNullOrEmpty(region)
-                ? "centralus"
-                : region;
-
-            return await _kustoPlugin.ExecuteLocalFunctionAsync("GetSessionPoolInfo", kustoClientRegion,
+            return await _kustoPlugin.ExecuteLocalFunctionAsync("GetSessionPoolInfo", region,
              new Dictionary<string, string> {
                  { "fromDate", fromDate.ToString() },
                  { "toDate", toDate.ToString() },
-                 { "region", region },
+                 { "region", region.ToNormalizedString() },
                  { "subscriptionId", subscriptionId },
                  { "resourceGroupName", resourceGroupName },
                  { "sessionPoolName", sessionPoolName }
@@ -83,7 +79,7 @@ Returns table data in CSV format with TAB separators. Column headers:
 - PreviousValue: Previous value before the change
 """)]
         public async Task<string> GetChangesInSessionPool(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Azure subscription ID.")] string subscriptionId,
@@ -117,7 +113,7 @@ Returns table data in CSV format with TAB separators. Column headers:
 - env_dt_traceId: Trace identifier for the event
 """)]
         public async Task<string> GetSessionPoolCreateOrUpdateLogs(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Azure subscription ID.")] string subscriptionId,
@@ -147,7 +143,7 @@ Returns table data in CSV format with TAB separators. Column headers:
 - SuccessRate: Allocation success rate (percentage) for the time bucket
 """)]
         public async Task<string> GetCodeInterpreterSessionLegionPoolAvailability(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Legion pod pool name.")] string legionPodPoolName)
@@ -157,7 +153,7 @@ Returns table data in CSV format with TAB separators. Column headers:
                         { "fromDate", fromDate.ToString() },
                         { "toDate", toDate.ToString() },
                         { "legionPodPoolName", legionPodPoolName },
-                        { "legionEnvironmentName", region }
+                        { "legionEnvironmentName", region.ToNormalizedString() }
              },
              "legion");
         }
@@ -177,7 +173,7 @@ Returns table data in CSV format with TAB separators. Column headers:
 - poolType: Type of pool used for allocation
 """)]
         public async Task<string> GetCodeInterpreterSessionAllocatedPods(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Azure subscription ID.")] string subscriptionId,
@@ -218,7 +214,7 @@ Returns table data in CSV format with TAB separators. Column headers:
 - podName: Name of the pod
 """)]
         public async Task<string> GetCodeInterpreterSessionExecutionEventLogs(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Azure subscription ID.")] string subscriptionId,
@@ -254,7 +250,7 @@ Returns table data in CSV format with TAB separators. Column headers:
 - Message: Error message
 """)]
         public async Task<string> GetCodeInterpreterSessionPodEventLogs(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Pod name or pod ID.")] string podName)
@@ -286,7 +282,7 @@ Returns table data in CSV format with TAB separators. Column headers:
 - Tenant: Tenant name
 """)]
         public async Task<string> GetCodeInterpreterSessionPodLogs(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Pod name or pod ID.")] string podName)
@@ -325,7 +321,7 @@ Returns table data in CSV format with TAB separators. Column headers:
 - SessionPoolName: Name of the session pool
 """)]
         public async Task<string> GetCustomContainerSessionActivatorLogs(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Azure subscription ID.")] string subscriptionId,
@@ -361,7 +357,7 @@ Returns table data in CSV format with TAB separators. Column headers:
 - ResponseCodeDetails: Envoy response code details
 """)]
         public async Task<string> GetCustomContainerSessionEnvoyRequests(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Session pool name.")] string sessionPoolName,
@@ -373,7 +369,7 @@ Returns table data in CSV format with TAB separators. Column headers:
                         { "toDate", toDate.ToString() },
                         { "sessionPoolName", sessionPoolName },
                         { "managedClusterName", managedClusterName },
-                        { "region", region }
+                        { "region", region.ToNormalizedString() }
              });
         }
 
@@ -397,7 +393,7 @@ Returns table data in CSV format with TAB separators. Column headers:
 - inactive: Number of inactive pods
 """)]
         public async Task<string> GetCustomContainerSessionLegionPoolStatus(
-          [Description("Azure region.")] string region,
+          [Description("Azure region.")] AzureRegion region,
           [Description("Start time of the query.")] DateTime fromDate,
           [Description("End time of the query.")] DateTime toDate,
           [Description("Azure subscription ID.")] string subscriptionId,
@@ -411,7 +407,7 @@ Returns table data in CSV format with TAB separators. Column headers:
                         { "subscriptionId", subscriptionId },
                         { "resourceGroupName", resourceGroupName },
                         { "sessionPoolName", sessionPoolName },
-                        { "legionEnvironmentName", region }
+                        { "legionEnvironmentName", region.ToNormalizedString() }
              },
              "legion");
         }

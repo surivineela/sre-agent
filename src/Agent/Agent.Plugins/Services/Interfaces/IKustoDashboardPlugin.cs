@@ -2,6 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Plugins.Kusto;
+
 namespace Agent.Plugins.Services.Interfaces
 {
     /// <summary>
@@ -9,6 +11,6 @@ namespace Agent.Plugins.Services.Interfaces
     /// </summary>
     public interface IKustoDashboardPlugin
     {
-        string GenerateDashboardLink(string dashboardId, string startTime, string endTime, string region, string subscriptionId, string resourceGroupName, string managedClusterName, string containerAppName, string revisionName);
+        string GenerateDashboardLink(string dashboardId, string startTime, string endTime, AzureRegion region, string subscriptionId, string resourceGroupName, string managedClusterName, string containerAppName, string revisionName);
     }
 }

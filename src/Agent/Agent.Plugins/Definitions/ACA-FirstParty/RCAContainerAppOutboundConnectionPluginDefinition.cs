@@ -37,14 +37,14 @@ namespace Agent.Plugins.Definitions
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Unique identifier (GUID) of the pod.")] string podGuid,
-            [Description("Azure region name.")] string region)
+            [Description("Azure region name.")] AzureRegion region)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GracefulConnectionCount", region,
                 new Dictionary<string, string>
                 {
                     { "fromDate", fromDate.ToString() },
                     { "toDate", toDate.ToString() },
-                    { "legionEnvironmentName", region },
+                    { "legionEnvironmentName", region.ToNormalizedString() },
                     { "podGuid", podGuid }
                 }, groupName: "Legion");
         }
@@ -77,14 +77,14 @@ namespace Agent.Plugins.Definitions
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Unique identifier (GUID) of the pod.")] string podGuid,
-            [Description("Azure region name.")] string region)
+            [Description("Azure region name.")] AzureRegion region)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetTerminatedConnectionsForPod", region,
                 new Dictionary<string, string>
                 {
                     { "fromDate", fromDate.ToString() },
                     { "toDate", toDate.ToString() },
-                    { "legionEnvironmentName", region },
+                    { "legionEnvironmentName", region.ToNormalizedString() },
                     { "podGuid", podGuid }
                 }, groupName: "Legion");
         }
@@ -110,14 +110,14 @@ namespace Agent.Plugins.Definitions
             [Description("End time of the query.")] DateTime toDate,
             [Description("Namespace of the managed cluster.")] string managedCluster,
             [Description("Name of the pod.")] string podName,
-            [Description("Azure region name.")] string region)
+            [Description("Azure region name.")] AzureRegion region)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("DnsServerManagerOperation", region,
                 new Dictionary<string, string>
                 {
                     { "fromDate", fromDate.ToString() },
                     { "toDate", toDate.ToString() },
-                    { "legionEnvironmentName", region },
+                    { "legionEnvironmentName", region.ToNormalizedString() },
                     { "resourceNamespace", managedCluster },
                     { "podName", podName }
                 }, groupName: "Legion");
@@ -180,7 +180,7 @@ namespace Agent.Plugins.Definitions
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the pod.")] string podName,
             [Description("Namespace of the resource.")] string resourceNamespace,
-            [Description("Azure region name.")] string region)
+            [Description("Azure region name.")] AzureRegion region)
         {
             return _kustoPlugin.ExecuteLocalFunctionAsync("GetPodGuidFromName", region,
                 new Dictionary<string, string>

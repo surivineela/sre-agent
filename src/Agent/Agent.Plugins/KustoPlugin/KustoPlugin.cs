@@ -69,9 +69,6 @@ namespace Agent.Plugins.Kusto
 
         public KustoCluster GetCluster(string region, string groupName)
         {
-            if (string.IsNullOrWhiteSpace(region))
-                throw new ArgumentException("Region must be provided.", nameof(region));
-
             KustoRegionalGroupSettings? group = _kustoClient.KustoSettings.RegionalClusterGroups?.FirstOrDefault();
             if (!string.IsNullOrWhiteSpace(groupName))
                 group = _kustoClient.KustoSettings.RegionalClusterGroups?.FirstOrDefault(c => string.Equals(c.Name, groupName, StringComparison.OrdinalIgnoreCase));
@@ -108,27 +105,26 @@ namespace Agent.Plugins.Kusto
         }
 
         [KernelFunction("execute_kusto_query")]
-        [Description("Executes a Kusto query on a regional cluster and returns the result as a JSON string.")]
+        [Description("Executes a Kusto query on a regional cluster using a typed Azure region enum and returns the result as a JSON string. Preferred method for type safety.")]
         public async Task<string> ExecuteKustoQuery(
-            [Description("The region of the target Kusto cluster.")] string region,
+            [Description("The Azure region of the target Kusto cluster.")] AzureRegion region,
             [Description("The Kusto query to execute.")] string query,
-            [Description("Optional group name for the Kusto cluster.")] string? groupName
+            [Description("Optional group name for the Kusto cluster.")] string? groupName = null
             )
         {
             return (await ExecuteKustoQueryInternal(region, query, groupName)).Result;
         }
 
-
         public async Task<KustoQueryResult> ExecuteKustoQueryInternal(
-            string region,
-           string query,
+            AzureRegion region,
+            string query,
             string? groupName
             )
         {
             KustoCluster? cluster = null;
             try
             {
-                if (string.IsNullOrWhiteSpace(region) || string.IsNullOrWhiteSpace(query))
+                if (string.IsNullOrWhiteSpace(query))
                 {
                     throw new ArgumentException("Region and query must be provided.");
                 }
@@ -137,12 +133,12 @@ namespace Agent.Plugins.Kusto
                     _logger.LogInternalError("No regional clusters are configured in Kusto settings.");
                     throw new InvalidOperationException("No regional clusters are configured in Kusto settings.");
                 }
-                cluster = GetCluster(region, groupName ?? string.Empty);
+                cluster = GetCluster(region.ToNormalizedString(), groupName ?? string.Empty);
 
                 var stopwatch = System.Diagnostics.Stopwatch.StartNew();
                 _logger.LogInternalInformation($"execute_kusto_query called with {region} / {query}");
 
-                var normalizedRegion = RegionNormalizationRegex().Replace(region, string.Empty).ToLowerInvariant();
+                var normalizedRegion = RegionNormalizationRegex().Replace(region.ToNormalizedString(), string.Empty).ToLowerInvariant();
                 using var reader = await _kustoClient.PerformQueryAsync(cluster.ClusterUri ?? string.Empty, cluster.Database ?? string.Empty, query);
 
                 stopwatch.Stop();
@@ -154,7 +150,7 @@ namespace Agent.Plugins.Kusto
             catch (Exception ex)
             {
                 _logger.LogInternalError($"An error occurred while executing Kusto Query: {ex.Message}");
-                return CreateErrorResult(query, ex.Message, region, cluster?.Database, null, groupName);
+                return CreateErrorResult(query, ex.Message, region.ToNormalizedString(), cluster?.Database, null, groupName);
             }
         }
 
@@ -188,20 +184,14 @@ namespace Agent.Plugins.Kusto
             return directPath;
         }
 
-        Task<List<KustoFunctionInfo>> IKustoPlugin.ListFunctionsAsync(string region)
-        {
-            region = region.NormalizeLocation();
-            return ListFunctionsAsync(region);
-        }
-
         [KernelFunction("list_kusto_functions")]
-        [Description("Lists all available user-defined functions from the Kusto cluster for a given region, including metadata like name, folder, and description.")]
+        [Description("Lists all available user-defined functions from the Kusto cluster for a given region using string, including metadata like name, folder, and description. Use enum-based version for better type safety.")]
         public async Task<List<KustoFunctionInfo>> ListFunctionsAsync(
-            [Description("The region of the Kusto cluster to query.")] string region)
+            [Description("The region of the Kusto cluster to query.")] AzureRegion region)
         {
             var query = ".show functions | project Name, Folder, DocString, Parameters";
             var result = new List<KustoFunctionInfo>();
-            var cluster = GetCluster(region, string.Empty);
+            var cluster = GetCluster(region.ToNormalizedString(), string.Empty);
             using var reader = await _kustoClient.PerformQueryAsync(cluster.ClusterUri ?? string.Empty, cluster.Database ?? string.Empty, query);
             while (reader.Read())
             {
@@ -218,10 +208,10 @@ namespace Agent.Plugins.Kusto
         }
 
         [KernelFunction("execute_kusto_function")]
-        [Description("Executes a user-defined Kusto function with named arguments on the regional Kusto cluster and returns the results.")]
+        [Description("Executes a user-defined Kusto function with named arguments on the regional Kusto cluster using AzureRegion region and returns the results. Use enum-based version for better type safety.")]
         public async Task<string> ExecuteFunctionAsync(
             [Description("The name of the Kusto function to invoke.")] string functionName,
-            [Description("The region of the Kusto cluster.")] string region,
+            [Description("The region of the Kusto cluster.")] AzureRegion region,
             Dictionary<string, string>? args = null,
             [Description("Optional group name for the Kusto cluster.")] string? groupName = null)
         {
@@ -230,10 +220,10 @@ namespace Agent.Plugins.Kusto
 
 
         public async Task<KustoQueryResult> ExecuteFunctionInternalAsync(
-         string functionName,
-      string region,
-        Dictionary<string, string>? args = null,
-        string? groupName = null)
+            string functionName,
+            AzureRegion region,
+            Dictionary<string, string>? args = null,
+            string? groupName = null)
         {
             string argList = args != null && args.Count > 0
                 ? string.Join(", ", args.Select(kvp => $"{kvp.Key}={QuoteIfNeeded(kvp.Value)}"))
@@ -245,19 +235,20 @@ namespace Agent.Plugins.Kusto
             try
             {
                 var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-                cluster = GetCluster(region, groupName ?? string.Empty);
+                cluster = GetCluster(region.ToNormalizedString(), groupName ?? string.Empty);
                 using var reader = await _kustoClient.PerformQueryAsync(cluster.ClusterUri ?? string.Empty, cluster.Database ?? string.Empty, query);
                 var ret = new KustoQueryResult(reader, query);
                 stopwatch.Stop();
-                ret.Message = CreateChatMessage(query, region, ret.RowCount, (int)stopwatch.ElapsedMilliseconds, functionName: functionName, groupName: groupName ?? string.Empty);
+                ret.Message = CreateChatMessage(query, region.ToNormalizedString(), ret.RowCount, (int)stopwatch.ElapsedMilliseconds, functionName: functionName, groupName: groupName ?? string.Empty);
                 return ret;
             }
             catch (Exception ex)
             {
                 _logger.LogInternalError($"An error occurred while executing Kusto Function {functionName}: {ex.Message}");
-                return CreateErrorResult(query, ex.Message, region, cluster?.Database, functionName, groupName);
+                return CreateErrorResult(query, ex.Message, region.ToNormalizedString(), cluster?.Database, functionName, groupName);
             }
         }
+
         private static string QuoteIfNeeded(string value)
         {
             return $"\"{value}\"";
@@ -546,9 +537,8 @@ namespace Agent.Plugins.Kusto
             return queryResult.Result;
         }
 
-        public async Task<string> ExecuteLocalFunctionAsync(string functionName, string region, Dictionary<string, string> args, string? groupName, SamplingOptions? samplingOptions = null)
+        public async Task<string> ExecuteLocalFunctionAsync(string functionName, AzureRegion region, Dictionary<string, string> args, string? groupName, SamplingOptions? samplingOptions = null)
         {
-            region = region.NormalizeLocation();
             SamplingParameterHelper.AddSamplingParameters(args, samplingOptions);
             var fileName = GetKqlFilePath(functionName);
             KustoQueryResult queryResult;

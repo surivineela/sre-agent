@@ -62,7 +62,7 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> ListRevisionsForRCA(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the container app.")] string containerAppName,
@@ -94,7 +94,7 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> GetHttpScalerEventsForContainerApp(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the container app.")] string containerAppName,
@@ -133,7 +133,7 @@ Returns tab-separated table data in CSV format. Column headers:
         """
         )]
         public Task<string> GetHttpScalerMetricsForContainerApp(
-    [Description("Azure region.")] string region,
+    [Description("Azure region.")] AzureRegion region,
     [Description("Start time of the query.")] DateTime fromDate,
     [Description("End time of the query.")] DateTime toDate,
     [Description("Name of the container app.")] string containerAppName,
@@ -171,7 +171,7 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> GetKedaOperatorEventsForContainerApp(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName,
@@ -199,7 +199,7 @@ Returns tab-separated table data in CSV format. Column headers:
         """
         )]
         public async Task<string> GetASIPageForRevision(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the container app.")] string containerAppName,
@@ -243,7 +243,7 @@ Returns tab-separated table data in CSV format. Column headers:
         """
         )]
         public Task<string> GetRevisionTrafficWithReplicaCount(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time.")] DateTime fromDate,
             [Description("End time.")] DateTime toDate,
             [Description("Revision name.")] string revisionName,
@@ -274,7 +274,7 @@ Returns tab-separated table data in CSV format with status and state columns as 
 """
 )]
         public Task<string> ContainerAppRevisionStatus(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time.")] DateTime fromDate,
             [Description("End time.")] DateTime toDate,
             [Description("Revision name.")] string revisionName,
@@ -309,7 +309,7 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public async Task<string> GetReplicaCount(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time.")] DateTime fromDate,
             [Description("End time.")] DateTime toDate,
             [Description("Revision name.")] string revisionName,
@@ -380,7 +380,7 @@ Output: Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> GetActiveRevisions(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the container app.")] string containerAppName,
@@ -415,7 +415,7 @@ Returns tab-separated table data in CSV format. Column headers:
 """
 )]
         public Task<string> GetHpaHeartbeatMetrics(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time for metrics.")] DateTime fromDate,
             [Description("End time for metrics.")] DateTime toDate,
             [Description("Name of the revision.")] string revisionName,
@@ -450,7 +450,7 @@ Returns tab-separated table data in CSV format. Column headers:
         """
         )]
         public Task<string> GetRevisionSpecChanges(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time.")] DateTime fromDate,
             [Description("End time.")] DateTime toDate,
             [Description("Revision name.")] string revisionName,
@@ -490,7 +490,7 @@ Returns tab-separated table data in CSV format. Column headers:
         """
         )]
         public Task<string> GetArmOperations(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time.")] DateTime fromDate,
             [Description("End time.")] DateTime toDate,
             [Description("App name.")] string containerAppName,
@@ -527,7 +527,7 @@ Returns tab-separated table data in CSV format. Column headers:
         """
         )]
         public Task<string> GetEventProcessorEventsForRevision(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time.")] DateTime fromDate,
             [Description("End time.")] DateTime toDate,
             [Description("Revision name.")] string revisionName,
@@ -565,7 +565,7 @@ Returns tab-separated table data in CSV format. Column headers:
         """
         )]
         public Task<string> GetPodHeartbeatStatus(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start of the time range.")] DateTime fromDate,
             [Description("End of the time range.")] DateTime toDate,
             [Description("Revision name.")] string revisionName,
@@ -599,7 +599,7 @@ Returns tab-separated table data in CSV format. Column headers:
         """
         )]
         public Task<string> GetLegionErrors(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time.")] DateTime fromDate,
             [Description("End time.")] DateTime toDate,
             [Description("Revision name.")] string revisionName)
@@ -615,7 +615,7 @@ Returns tab-separated table data in CSV format. Column headers:
                         { "fromDate", fromDate.ToString() },
                         { "toDate", toDate.ToString() },
                         { "revisionName", revisionName },
-                        { "region", region }
+                        { "region", region.ToNormalizedString() }
                 });
         }
 
@@ -638,7 +638,7 @@ Returns tab-separated table data in CSV format. Column headers:
         public async Task<string> GetLegionVKEventsForContainerAppRevision(
             [Description("The start date for the query")] string fromDate,
             [Description("The end date for the query")] string toDate,
-            [Description("The region of the managed cluster")] string region,
+            [Description("The region of the managed cluster")] AzureRegion region,
             [Description("The name of the managed cluster")] string managedClusterName,
             [Description("Revision name.")] string revisionName)
          {
@@ -668,7 +668,7 @@ Returns tab-separated table data in CSV format. Column headers:
         public async Task<string> GetPodEvictionsDueToLegionHostShutdown(
             [Description("The start date for the query")] string fromDate,
             [Description("The end date for the query")] string toDate,
-            [Description("The region of the managed cluster")] string region,
+            [Description("The region of the managed cluster")] AzureRegion region,
             [Description("The name of the managed cluster")] string managedClusterName,
             [Description("Revision name.")] string revisionName)
         {
@@ -697,7 +697,7 @@ Returns tab-separated table data in CSV format. Column headers:
         public async Task<string> GetLegionHostStatus(
             [Description("The start date for the query")] string fromDate,
             [Description("The end date for the query")] string toDate,
-            [Description("The region of the managed cluster")] string region,
+            [Description("The region of the managed cluster")] AzureRegion region,
             [Description("Revision name.")] string revisionName,
             [Description("The name of the managed cluster")] string managedClusterName)
         {
@@ -726,7 +726,7 @@ Returns tab-separated table data in CSV format. Column headers:
         """
         )]
         public Task<string> GetRevisionTrafficStatus(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time.")] DateTime fromDate,
             [Description("End time.")] DateTime toDate,
             [Description("Revision name.")] string revisionName,
@@ -761,7 +761,7 @@ Returns tab-separated table data in CSV format. Column headers:
             """
         )]
         public Task<string> GetHealthProbeFailures(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the container app.")] string containerAppName,
@@ -790,7 +790,7 @@ Returns tab-separated table data in CSV format. Column headers:
         """
         )]
         public Task<string> GetHealthProbeSettings(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Subscription ID.")] string subscriptionId,
@@ -821,7 +821,7 @@ Returns tab-separated table data in CSV format. Column headers:
         """
         )]
         public Task<string> GetNodeAvailabilityFailures(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the container app.")] string containerAppName,
@@ -850,7 +850,7 @@ Returns tab-separated table data in CSV format. Column headers:
         """
 )]
         public Task<string> GetContainerAppReplicaCountChanges(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("App name.")] string appName)
@@ -861,7 +861,7 @@ Returns tab-separated table data in CSV format. Column headers:
                     { "fromDate", fromDate.ToString() },
                     { "toDate", toDate.ToString() },
                     { "appName", appName },
-                    { "region", region }
+                    { "region", region.ToNormalizedString() }
                 });
         }
 
@@ -880,7 +880,7 @@ Returns tab-separated table data in CSV format. Column headers:
         public string GenerateRevisionCustomerIssuesDashboardLink(
             [Description("Start time for the dashboard.")] string startTime,
             [Description("End time for the dashboard.")] string endTime,
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Azure subscription ID.")] string subscriptionId,
             [Description("Resource group name.name.")] string resourceGroupName,
             [Description("Managed cluster name.")] string managedClusterName,
@@ -912,23 +912,18 @@ Returns tab-separated table data in CSV format. Column headers:
         """
         )]
         public async Task<string> GetContainerAppInformation(
-            [Description("Azure region.")] string region,
+            [Description("Azure region.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the container app.")] string containerAppName,
             [Description("Name of the resource group.")] string resourceGroupName,
             [Description("Azure subscription ID.")] string subscriptionId)
         {
-            // We use All("ContainerAppDBState") in the query, so if the region is not specified, we can default to an arbitrary region.
-            string kustoClientRegion = string.IsNullOrEmpty(region)
-                ? "centralus"
-                : region;
-
-            string containerApps = await _kustoPlugin.ExecuteLocalFunctionAsync("GetContainerApp", kustoClientRegion,
+            string containerApps = await _kustoPlugin.ExecuteLocalFunctionAsync("GetContainerApp", region,
                 new Dictionary<string, string> {
                         { "fromDate", fromDate.ToString() },
                         { "toDate", toDate.ToString() },
-                        { "region", region },
+                        { "region", region.ToNormalizedString() },
                         { "containerAppName", containerAppName },
                         { "resourceGroupName", resourceGroupName },
                         { "subscriptionId", subscriptionId }

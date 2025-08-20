@@ -5,6 +5,7 @@
 using System.ComponentModel;
 using Agent.Framework;
 using Agent.Plugins.Interface;
+using Agent.Plugins.Kusto;
 using Agent.Plugins.KustoPlugin;
 using Agent.Plugins.Services.Interfaces;
 using Microsoft.SemanticKernel;
@@ -34,7 +35,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetContainerAppCpuExceedsThreshold(
-            [Description("Azure region in lower case. Example: 'westeurope'.")] string region,
+            [Description("Azure region in lower case. Example: 'westeurope'.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Relative URL specifying the ARM ID for the container app. Example: '/subscriptions/{SubscriptionId}/resourceGroups/{ResourceGroupName}/providers/Microsoft.App/containerApps/{ContainerAppName}'.")] string containerAppArmId,
@@ -46,7 +47,7 @@ namespace Agent.Plugins.Definitions
                 {
                     { "fromDate", fromDate.ToString() },
                     { "toDate", toDate.ToString() },
-                    { "region", region },
+                    { "region", region.ToNormalizedString() },
                     { "metricName", "CpuPercentage" },
                     { "samplingType", samplingType },
                     { "threshold", Threshold },
@@ -68,7 +69,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetContainerAppMemoryExceedsThreshold(
-            [Description("Azure region in lower case. Example: 'westeurope'.")] string region,
+            [Description("Azure region in lower case. Example: 'westeurope'.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Relative URL specifying the ARM ID for the container app. Example: '/subscriptions/{SubscriptionId}/resourceGroups/{ResourceGroupName}/providers/Microsoft.App/containerApps/{ContainerAppName}'.")] string containerAppArmId,
@@ -80,7 +81,7 @@ namespace Agent.Plugins.Definitions
                 {
                     { "fromDate", fromDate.ToString() },
                     { "toDate", toDate.ToString() },
-                    { "region", region },
+                    { "region", region.ToNormalizedString() },
                     { "metricName", "MemoryPercentage" },
                     { "samplingType", samplingType },
                     { "threshold", Threshold },
@@ -107,7 +108,7 @@ namespace Agent.Plugins.Definitions
         """
         )]
         public Task<string> GetContainerAppOrJobOOMKills(
-            [Description("Azure region in lower case. Example: 'westeurope'.")] string region,
+            [Description("Azure region in lower case. Example: 'westeurope'.")] AzureRegion region,
             [Description("Start time of the query.")] DateTime fromDate,
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the managed cluster.")] string managedClusterName,
