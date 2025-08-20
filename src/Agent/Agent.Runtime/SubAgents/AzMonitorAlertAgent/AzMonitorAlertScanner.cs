@@ -171,14 +171,7 @@ public class AzMonitorAlertScanner
                     }
                 }
 
-                // Check if investigation has finished before appending recurring alert message
-                if (existingActiveThread == null)
-                {
-                    _logger.LogInternalWarning("existingActiveThread is null when checking investigation status.");
-                    return;
-                }
-
-                var investigationFinished = await IsInvestigationFinishedAsync(existingActiveThread.Id);
+                var investigationFinished = await IsInvestigationFinishedAsync(existingActiveThread!.Id);
 
                 if (investigationFinished)
                 {
