@@ -586,8 +586,8 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
         const initialInvestigationNodes = getInitialInvestigationNode(phaseNodes);
         if (!initialInvestigationNodes?.initialInvestigationGroupNode) {
             return {
-                graphFlowNodes: [],
-                graphFlowEdges: [],
+                graphFlowNodes,
+                graphFlowEdges,
             };
         }
         const {
@@ -600,6 +600,12 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
 
         // Add hypothesis nodes
         const hypothesisGroupsAndRootGroup = getHypothesisGroups(phaseNodes, nodes);
+        if (hypothesisGroupsAndRootGroup.hypothesisGroups.length === 0) {
+            return {
+                graphFlowNodes,
+                graphFlowEdges,
+            };
+        }
         const {
             nodes: hypothesisNodes,
             edges: hypothesisEdges,
@@ -617,7 +623,6 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
 
         // Add conclusion nodes
         const conclusionNode = getConclusionNodesAndEdges(phaseNodes);
-
         if (conclusionNode) {
             const { conclusionNode: conclusionNodeWithPosition, edge: conclusionEdge } = layoutConclusionNode(
                 conclusionNode,
