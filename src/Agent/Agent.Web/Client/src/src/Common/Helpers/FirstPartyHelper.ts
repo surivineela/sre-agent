@@ -1,4 +1,5 @@
 import { AntUxStringComparison, equals } from './Strings';
+import Url from './Url';
 
 enum TenantType {
     AME,
@@ -32,6 +33,11 @@ export class FirstPartyHelper {
         }
 
         const type = FirstPartyHelper.getTenantType(tenantId);
-        return type === TenantType.AME || type === TenantType.Corp || type === TenantType.PME || type === TenantType.TORUS;
+        return (
+            type === TenantType.AME ||
+            type === TenantType.PME ||
+            type === TenantType.TORUS ||
+            (type === TenantType.Corp && Url.getFeatureValue('showIcmForMsftCorp') === 'true')
+        );
     }
 }

@@ -16,7 +16,7 @@ export default class Url {
     }
 
     public static getFeatureValue(featureName: string) {
-        return Url.getParameterByName(null, `appsvc.${featureName}`);
+        return Url.getParameterByName(null, featureName);
     }
 
     public static getParameterByName(url: string | null, name: string) {
