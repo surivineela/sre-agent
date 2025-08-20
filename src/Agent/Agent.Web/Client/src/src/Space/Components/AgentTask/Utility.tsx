@@ -27,30 +27,48 @@ export const getInitialInvestigationStepsIcon = (status: string) => {
     }
 };
 
-export const getStatusPillComponentProperties = (status?: string | null) => {
+export const getStatusPillComponentStyleProperties = (status?: string | null) => {
     switch (status?.toLowerCase()) {
+        case InvestigationStatusCommon.NotStarted:
+            return {
+                iconFontColor: undefined,
+                statusTextFontColor: undefined,
+                icon: SubtractCircleRegular,
+                backgroundColor: undefined,
+                borderColor: tokens.colorNeutralBackground6,
+            };
+        case InvestigationStatusCommon.InProgress:
+        case TaskProgressStatus.Started:
+        case TaskProgressStatus.InProgress:
+        case HypothesisStatus.Pending:
+        case HypothesisStatus.Validating:
+            return {
+                iconFontColor: tokens.colorBrandForegroundLinkHover,
+                statusTextFontColor: undefined,
+                icon: ArrowCounterclockwiseFilled,
+                backgroundColor: undefined,
+                borderColor: tokens.colorNeutralBackground6,
+            };
+        case InvestigationStatusCommon.Complete:
+        case TaskProgressStatus.Completed:
         case HypothesisStatus.Validated:
             return {
-                text: 'Validated',
                 iconFontColor: tokens.colorNeutralForegroundInverted,
                 statusTextFontColor: tokens.colorNeutralForegroundInverted,
                 icon: CheckmarkCircleRegular,
                 backgroundColor: tokens.colorPaletteGreenBackground3,
                 borderColor: undefined,
             };
-        case InvestigationStatusCommon.Complete:
-        case TaskProgressStatus.Completed:
+        case TaskProgressStatus.Failed:
             return {
-                text: 'Complete',
                 iconFontColor: tokens.colorNeutralForegroundInverted,
                 statusTextFontColor: tokens.colorNeutralForegroundInverted,
-                icon: CheckmarkCircleRegular,
-                backgroundColor: tokens.colorPaletteGreenBackground3,
+                icon: DismissCircleRegular,
+                backgroundColor: tokens.colorStatusDangerBackground3,
                 borderColor: undefined,
             };
         case HypothesisStatus.Invalidated:
             return {
-                text: 'Invalidated',
                 iconFontColor: undefined,
                 statusTextFontColor: undefined,
                 icon: DismissCircleRegular,
@@ -59,40 +77,38 @@ export const getStatusPillComponentProperties = (status?: string | null) => {
             };
         case HypothesisStatus.Inconclusive:
             return {
-                text: 'Inconclusive',
                 iconFontColor: tokens.colorStatusWarningForeground3,
                 statusTextFontColor: tokens.colorStatusWarningForeground3,
                 icon: QuestionCircleRegular,
                 backgroundColor: undefined,
                 borderColor: tokens.colorStatusWarningBackground2,
             };
-        case HypothesisStatus.Pending:
-            return {
-                text: 'Pending',
-                iconFontColor: tokens.colorBrandForegroundLinkHover,
-                statusTextFontColor: undefined,
-                icon: ArrowCounterclockwiseFilled,
-                backgroundColor: undefined,
-                borderColor: tokens.colorNeutralBackground6,
-            };
+    }
+};
+
+export const getStatusPillComponentText = (status?: string | null) => {
+    switch (status?.toLowerCase()) {
+        case InvestigationStatusCommon.NotStarted:
+            return 'Not started';
         case InvestigationStatusCommon.InProgress:
         case TaskProgressStatus.InProgress:
-            return {
-                text: 'In Progress',
-                iconFontColor: tokens.colorBrandForegroundLinkHover,
-                statusTextFontColor: undefined,
-                icon: ArrowCounterclockwiseFilled,
-                backgroundColor: undefined,
-                borderColor: tokens.colorNeutralBackground6,
-            };
-        default:
-            return {
-                text: 'Not Started',
-                iconFontColor: undefined,
-                statusTextFontColor: undefined,
-                icon: SubtractCircleRegular,
-                backgroundColor: undefined,
-                borderColor: tokens.colorNeutralBackground6,
-            };
+            return 'In progress';
+        case TaskProgressStatus.Started:
+            return 'Started';
+        case HypothesisStatus.Pending:
+            return 'Pending';
+        case HypothesisStatus.Validating:
+            return 'Validating';
+        case InvestigationStatusCommon.Complete:
+        case TaskProgressStatus.Completed:
+            return 'Complete';
+        case HypothesisStatus.Validated:
+            return 'Validated';
+        case TaskProgressStatus.Failed:
+            return 'Failed';
+        case HypothesisStatus.Invalidated:
+            return 'Invalidated';
+        case HypothesisStatus.Inconclusive:
+            return 'Inconclusive';
     }
 };

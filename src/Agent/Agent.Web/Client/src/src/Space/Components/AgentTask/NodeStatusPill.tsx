@@ -1,6 +1,6 @@
 import { makeStyles, Text, tokens } from '@fluentui/react-components';
 import { memo, useMemo } from 'react';
-import { getStatusPillComponentProperties } from './Utility';
+import { getStatusPillComponentStyleProperties, getStatusPillComponentText } from './Utility';
 
 const useStyles = makeStyles({
     statusContainer: {
@@ -19,22 +19,32 @@ const NodeStatusPill = ({ status, showIcon }: { status?: string | null; showIcon
     const { statusContainer } = useStyles();
 
     const statusProps = useMemo(() => {
-        return getStatusPillComponentProperties(status);
+        const text = getStatusPillComponentText(status);
+        const styleProperties = getStatusPillComponentStyleProperties(status);
+
+        if (text && styleProperties) {
+            return {
+                ...styleProperties,
+                text: text,
+            };
+        }
     }, [status]);
 
     return (
-        <div
-            className={statusContainer}
-            style={{
-                backgroundColor: statusProps.backgroundColor,
-                border: statusProps.borderColor ? `1.5px solid ${statusProps.borderColor}` : 'none',
-            }}
-        >
-            {showIcon && <statusProps.icon style={{ color: statusProps.iconFontColor ? statusProps.iconFontColor : 'undefined' }} />}
-            <Text weight={'semibold'} style={{ color: statusProps.statusTextFontColor }}>
-                {statusProps.text}
-            </Text>
-        </div>
+        statusProps && (
+            <div
+                className={statusContainer}
+                style={{
+                    backgroundColor: statusProps.backgroundColor,
+                    border: statusProps.borderColor ? `1.5px solid ${statusProps.borderColor}` : 'none',
+                }}
+            >
+                {showIcon && <statusProps.icon style={{ color: statusProps.iconFontColor ? statusProps.iconFontColor : 'undefined' }} />}
+                <Text weight={'semibold'} style={{ color: statusProps.statusTextFontColor }}>
+                    {statusProps.text}
+                </Text>
+            </div>
+        )
     );
 };
 

@@ -54,7 +54,7 @@ const useStyles = makeStyles({
 const getCardBorderColor = (status: string) => {
     switch (status) {
         case HypothesisStatus.Validated:
-            return tokens.colorStatusSuccessBackground2;
+            return tokens.colorStatusSuccessForeground1;
         case HypothesisStatus.Invalidated:
             return tokens.colorNeutralBackground3;
         case HypothesisStatus.Inconclusive:
