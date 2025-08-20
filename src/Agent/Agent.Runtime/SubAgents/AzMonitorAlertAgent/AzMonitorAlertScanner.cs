@@ -154,7 +154,30 @@ public class AzMonitorAlertScanner
 
             if (existingActiveThread != null)
             {
+                if (RequiresTargetResourceInput(alert))
+                {
+                    string? alertDocumentId = existingActiveThread?.Status?.IncidentStatus?.IncidentId;
+                    if (!string.IsNullOrEmpty(alertDocumentId))
+                    {
+                        var existingAlertDocument = await GetDocumentAsync<AzMonitorAlertDocument>(alertDocumentId, alertDocumentId);
+                        if (existingAlertDocument != null)
+                        {
+                            if (existingAlertDocument.TargetResourceInputRequested)
+                            {
+                                // return if user input already requested.
+                                return;
+                            }
+                        }
+                    }
+                }
+
                 // Check if investigation has finished before appending recurring alert message
+                if (existingActiveThread == null)
+                {
+                    _logger.LogInternalWarning("existingActiveThread is null when checking investigation status.");
+                    return;
+                }
+
                 var investigationFinished = await IsInvestigationFinishedAsync(existingActiveThread.Id);
 
                 if (investigationFinished)
@@ -203,17 +226,11 @@ public class AzMonitorAlertScanner
                                 var agentContexts = await _repository.GetAgentContextsForThreadAsync(existingActiveThread!.Id);
                                 var existingAgentContext = agentContexts.First();
 
-                                var chatMessage = new ChatMessage(ChatRole.Assistant, userInputMessage);
-                                var messageId = Guid.NewGuid();
-
-                                // Send the agent message asking for user input
-                                await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                                await PromptUserForInputAsync(
+                                    existingActiveThread.Id,
                                     existingAgentContext,
-                                    chatMessage,
-                                    messageId);
-
-                                // Signal that processing is complete and agent is waiting for user input
-                                await _outboundCommunicationService.SignalProcessingComplete(existingActiveThread.Id, messageId);
+                                    userInputMessage
+                                );
 
                                 // Update UserInputRequested to avoid appending User Input Message again
                                 updatedAlertDocument = updatedAlertDocument with
@@ -285,7 +302,41 @@ public class AzMonitorAlertScanner
 
             var investigationResult = await _investigationOrchestrator.InvestigateAlertAsync(alert, thread);
 
-            var resourceType = alert.Properties?.Essentials?.TargetResourceType;
+            if (RequiresTargetResourceInput(alert))
+            {
+                _logger.LogInternalInformation($"Alert {alert.Id} targets a {alert.Properties?.Essentials?.TargetResourceType} resource. Requesting user to specify the affected resource before investigation.");
+
+                var targetResourceInputMessage = $"This alert is targeting a **{alert.Properties?.Essentials?.TargetResourceType}** resource, which may impact the automated investigation.\n\n" +
+                    $"**Action Required:** Please specify which specific resource or application is affected by this alert to ensure the investigation focuses on the correct target.\n\n" +
+                    $"Please provide:\n" +
+                    $"- The name or resource ID of the affected application/service\n";
+
+                await PromptUserForInputAsync(thread.Id, agentContext, targetResourceInputMessage);
+
+                // Update the alert document to mark that target resource input has been requested
+                var alertDocument = await GetDocumentAsync<AzMonitorAlertDocument>(docId, docId);
+                if (alertDocument != null)
+                {
+                    if (alertDocument.TargetResourceInputRequested)
+                    {
+                        _logger.LogInternalInformation($"Target resource input has already been requested for alert {alert.Id}.");
+                        return;
+                    }
+
+                    var updatedAlertDocument = alertDocument with
+                    {
+                        TargetResourceInputRequested = true,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+
+                    await _dbContainer.UpsertItemAsync(
+                        updatedAlertDocument,
+                        new PartitionKey(updatedAlertDocument.PartitionKey)
+                    );
+                }
+
+                return;
+            }
 
             var alertInfo = GetAlertInfoAsPrompt(alert);
 
@@ -1113,6 +1164,33 @@ Remember: Quality findings with specific values are better than quantity. Exclud
         }
 
         return null;
+    }
+
+    private async Task PromptUserForInputAsync(Guid threadId, AgentContext agentContext, string message)
+    {
+        var chatMessage = new ChatMessage(ChatRole.Assistant, message);
+        var messageId = Guid.NewGuid();
+
+        await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+            agentContext,
+            chatMessage,
+            messageId);
+
+        // Signal that processing is complete and agent is waiting for user input
+        await _outboundCommunicationService.SignalProcessingComplete(threadId, messageId);
+    }
+
+    /// <summary>
+    /// Checks if the alert requires user input to specify the correct target resource
+    /// based on the target resource type (workspace/component alerts need clarification)
+    /// </summary>
+    /// <param name="alert">The alert to check</param>
+    /// <returns>True if user input is required for target resource specification, false otherwise</returns>
+    private static bool RequiresTargetResourceInput(AlertItem alert)
+    {
+        var resourceType = alert.Properties?.Essentials?.TargetResourceType?.ToLowerInvariant();
+        return resourceType == "microsoft.operationalinsights/workspaces" ||
+               resourceType == "microsoft.insights/components";
     }
 
     private class InvestigationSummaries

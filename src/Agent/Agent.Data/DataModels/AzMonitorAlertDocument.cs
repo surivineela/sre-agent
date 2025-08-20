@@ -29,4 +29,6 @@ public record AzMonitorAlertDocument(
     public int HitCount { get; set; }
 
     public bool UserInputRequested { get; set; } = false;
+
+    public bool TargetResourceInputRequested { get; set; } = false;
 }
