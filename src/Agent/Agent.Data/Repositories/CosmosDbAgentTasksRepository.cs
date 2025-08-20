@@ -374,8 +374,7 @@ public class CosmosDbAgentTasksRepository(
             string threadIdStr = threadId.ToString();
             var query = new QueryDefinition(@"
                 SELECT * FROM c
-                WHERE c.threadId = @threadId
-                AND NOT STARTSWITH(c.id, 'context-')")
+                WHERE c.documentType = 'AgentTask' AND c.threadId = @threadId")
                 .WithParameter("@threadId", threadIdStr);
 
             var iterator = cosmosClient.GetContainer<AgentTaskDocument>(databaseName).GetItemQueryIterator<AgentTaskDocument>(query);

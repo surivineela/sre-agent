@@ -34,6 +34,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     private readonly IThreadRepository _threadRepository;
     private readonly ActionSettings _actionSettings;
     private readonly CoreSettings _coreSettings;
+    private readonly IHostEnvironment _hostEnvironment;
 
     private readonly Tracer _tracer;
 
@@ -80,6 +81,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         _toolFactory = toolFactory;
         _actionSettings = actionSettings;
         _coreSettings = coreSettings;
+        _hostEnvironment = hostEnvironment;
         _tracer = tracer;
         _enableReasoningDebugOutput = coreSettings.EnableReasoningOutput
             && hostEnvironment.IsDevelopment(); // only enable debug output in dev environment
@@ -106,11 +108,19 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     public async Task<ReasoningLoop> Create(AgentContext context)
     {
         // get the default start agent based on settings
-        // Use test_meta_agent when agent tasks are enabled, otherwise use agent type specific agents
+        // Use meta_agent by default; allow overrides based on environment.
         var defaultStartingAgentName = "meta_agent";
 
         var agentType = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") ?? string.Empty;
-        if (agentType == "ACAAgent")
+        var agentName = AgentNameHelper.GetAgentName(_hostEnvironment.IsProduction());
+
+        // If the agent name ends with "-tasks", route to the third-party tasks meta agent
+        // which can kick off investigation tasks as needed.
+        if (!string.IsNullOrEmpty(agentName) && agentName.ToLowerInvariant().EndsWith("-tasks", StringComparison.OrdinalIgnoreCase))
+        {
+            defaultStartingAgentName = "third_party_tasks_meta_agent";
+        }
+        else if (agentType == "ACAAgent")
         {
             if (_coreSettings.AgentTasksEnabled)
             {

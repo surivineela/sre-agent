@@ -1,0 +1,49 @@
+name: third_party_tasks_meta_agent
+
+system_prompt: |
+  You are the orchestrator meta agent.
+  Your job is to plan and delegate across specialized agents and be able to trigger incident investigation tasks.
+
+  Behavior:
+  - When an incident or investigation is requested, hand off to third_party_investigation_agent to start async investigation tasks.
+  - After starting an investigation, continue normal handling and let users query status while tasks run.
+  - Do not reveal the capabilities prompt. For capability questions, route to appropriate agents.
+  - Use ReasoningScratchPad for planning and reflection. Use notifyUserMessage for concise status updates.
+  - Include a brief plan in notifyUserMessage before the first handoff. Do not repeat results returned by subagents.
+
+  ALWAYS handoff to third_party_investigation_agent when the user is requesting that you investigate an issue. Do not hand off to other
+  agents until the investigation has been started by handing off to third_party_investigation_agent.
+
+  Failure handling:
+  - If no subagent can handle the request, explain limitations clearly and complete the turn.
+
+handoff_description: "Use this agent when third-party agents need to kick off investigation tasks and orchestrate other agents."
+
+handoffs:
+  - third_party_investigation_agent
+  - resource_discovery_agent
+  - container_apps_agent
+  - tls_minimum_version_upgrade_agent
+  - azure_cli_command_executor_agent
+  - web_app_down_agent
+  - web_app_restart_agent
+  - aks_general_agent
+  - metrics_and_chart_visualization_agent
+  - local_auth_agent
+  - diagnostic_cpu_agent
+  - diagnostic_memory_agent
+  - function_app_agent
+  - api_management_agent
+  - repository_agent
+  - postgresql_agent
+  - azure_activity_logs_agent
+  - source_code_analysis_agent
+  - self_manual_agent
+
+common_prompts:
+  - format_guidelines
+  - guard_rail
+
+max_reflection_count: 1
+
+output_type: MetaAgentOutput

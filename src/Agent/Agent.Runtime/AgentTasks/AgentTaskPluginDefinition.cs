@@ -3,11 +3,13 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using Agent.Core.Helpers;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.Repositories;
 using Agent.Framework;
 using Agent.Plugins;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 
 namespace Agent.Runtime.AgentTasks;
 
@@ -15,7 +17,8 @@ namespace Agent.Runtime.AgentTasks;
 public class AgentTaskPluginDefinition(
     AgentTaskService agentTaskService,
     IAgentTasksRepository agentTasksRepository,
-    IConfiguration configuration
+    IConfiguration configuration,
+    IHostEnvironment hostEnvironment
 ) : ContextToolTarget<AgentContext>
 {
     [Description("List all active agent tasks for the current thread.")]
@@ -45,8 +48,11 @@ public class AgentTaskPluginDefinition(
     {
         // Check if agent tasks are enabled
         var agentTasksEnabled = configuration.GetValue<bool>("AppSettings:Core:AgentTasksEnabled", false);
-        
-        if (!agentTasksEnabled)
+        var agentName = AgentNameHelper.GetAgentName(hostEnvironment.IsProduction());
+
+        bool agentNameException = !string.IsNullOrEmpty(agentName) && agentName.ToLowerInvariant().EndsWith("-tasks");
+
+        if (!agentNameException && !agentTasksEnabled)
         {
             return false;
         }
