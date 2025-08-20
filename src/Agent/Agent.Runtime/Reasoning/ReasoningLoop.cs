@@ -903,6 +903,28 @@ public class ReasoningLoop : IDisposable
                 _context,
                 assistantMessage);
         }
+        catch (System.ClientModel.ClientResultException ex)
+            when (ex.Status == 429
+                || (ex.Message?.Contains("HTTP 429", StringComparison.OrdinalIgnoreCase) ?? false)
+                || (ex.Message?.Contains("TooManyRequests", StringComparison.OrdinalIgnoreCase) ?? false)
+                || (ex.Message?.Contains("rate limit", StringComparison.OrdinalIgnoreCase) ?? false))
+        {
+            var parentSpan = _currentAgentSpan ?? _rootSpan;
+            var errorSpan = _tracer.StartActiveSpan("error", SpanKind.Internal, parentSpan);
+            errorSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+            errorSpan.SetAttribute(TraceAttribute.OperationName, "error");
+            errorSpan.SetAttribute("error.message", $"Model Rate-limit exceeded: {ex.GetType()}: {ex.Message}");
+            errorSpan.SetAttribute("error.stacktrace", ex.StackTrace);
+            errorSpan.End();
+
+            _logger.LogInternalWarning(ex, "[{threadId}]Rate limit encountered during reasoning loop.", _context.ThreadId);
+            // Add a 'wait a moment' message to differentiate with the normal unknown internal error.
+            var message = new ChatMessage(ChatRole.Assistant, "I am unable to fully address your request due to an internal error. Please wait a moment and continue the conversation.");
+            await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                _context,
+                message
+            );
+        }
         catch (Exception ex)
         {
             var parentSpan = _currentAgentSpan ?? _rootSpan;

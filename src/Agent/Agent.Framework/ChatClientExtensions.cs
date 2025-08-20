@@ -81,12 +81,13 @@ public static partial class ChatClientExtensions
             schemaDescription: outputType.GetCustomAttribute<DescriptionAttribute>()?.Description);
 
         // retry once in case the model returns something invalid (wrong schema, etc.)
+        // for rate-limit it will try up to 120 seconds in worst case
         const int retryCount = 1;
         Exception? exception = null;
 
         for (var i = 0; i < retryCount; i++)
         {
-            var chatResponse = await client.GetResponseAsync(messages, options, cancellationToken);
+            var chatResponse = await GetResponseWithRateLimitRetriesAsync(client, messages, options, cancellationToken);
 
             var firstTextContent = chatResponse.Messages.FirstOrDefault()?.Contents.OfType<TextContent>().FirstOrDefault();
 
@@ -137,6 +138,79 @@ public static partial class ChatClientExtensions
         }
 
         throw exception!;
+    }
+
+    private static async Task<ChatResponse> GetResponseWithRateLimitRetriesAsync(
+        IChatClient client,
+        IEnumerable<ChatMessage> messages,
+        ChatOptions? options,
+        CancellationToken cancellationToken)
+    {
+        var start = DateTime.UtcNow;
+        // Use a 60s internal deadline because the caller may retry once for schema/JSON issues,
+        // keeping the overall worst-case retry window to ~120s.
+        var deadline = start.AddSeconds(60);
+        var attempt = 0;
+        bool nonRateLimitRetried = false;
+
+        while (true)
+        {
+            attempt++;
+            try
+            {
+                return await client.GetResponseAsync(messages, options, cancellationToken);
+            }
+            catch (System.ClientModel.ClientResultException ex) when (IsRateLimit(ex))
+            {
+                var remaining = deadline - DateTime.UtcNow;
+                if (remaining <= TimeSpan.Zero)
+                {
+                    throw;
+                }
+
+                var delay = TryParseRetryAfterSeconds(ex, out var seconds)
+                    ? TimeSpan.FromSeconds(seconds)
+                    : ComputeBackoff(attempt);
+
+                if (delay > remaining)
+                {
+                    delay = remaining;
+                }
+
+                await Task.Delay(delay, cancellationToken);
+                continue;
+            }
+            catch (System.ClientModel.ClientResultException)
+            {
+                if (!nonRateLimitRetried)
+                {
+                    nonRateLimitRetried = true;
+                    await Task.Delay(TimeSpan.FromMilliseconds(200), cancellationToken);
+                    continue;
+                }
+                throw;
+            }
+            catch (HttpRequestException)
+            {
+                if (!nonRateLimitRetried)
+                {
+                    nonRateLimitRetried = true;
+                    await Task.Delay(TimeSpan.FromMilliseconds(200), cancellationToken);
+                    continue;
+                }
+                throw;
+            }
+            catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                if (!nonRateLimitRetried)
+                {
+                    nonRateLimitRetried = true;
+                    await Task.Delay(TimeSpan.FromMilliseconds(200), cancellationToken);
+                    continue;
+                }
+                throw;
+            }
+        }
     }
 
     private static bool SchemaRepresentsObject(JsonElement schemaElement)
@@ -204,5 +278,45 @@ public static partial class ChatClientExtensions
         {
             ArrayPool<byte>.Shared.Return(buffer);
         }
+    }
+
+    private static bool IsRateLimit(System.ClientModel.ClientResultException ex)
+    {
+        try
+        {
+            if (ex.Status == 429)
+            {
+                return true;
+            }
+        }
+        catch
+        {
+            // Fallback to message checks if Status is not available
+        }
+
+        var msg = ex.Message ?? string.Empty;
+        return msg.Contains("HTTP 429", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("TooManyRequests", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("rate limit", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool TryParseRetryAfterSeconds(System.ClientModel.ClientResultException ex, out int seconds)
+    {
+        seconds = 0;
+        var msg = ex.Message ?? string.Empty;
+        var m = Regex.Match(msg, @"Try again in\s+(\d+)\s+seconds", RegexOptions.IgnoreCase);
+        if (m.Success && int.TryParse(m.Groups[1].Value, out var s))
+        {
+            seconds = s;
+            return true;
+        }
+        return false;
+    }
+
+    private static TimeSpan ComputeBackoff(int attempt)
+    {
+        var baseMs = Math.Min(1000 * (int)Math.Pow(2, Math.Max(0, attempt - 1)), 10_000);
+        var jitter = (int)(baseMs * 0.2 * Random.Shared.NextDouble());
+        return TimeSpan.FromMilliseconds(baseMs + jitter);
     }
 }
