@@ -176,8 +176,8 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
 
         const addChildHypotheses = (
             parentHypothesis: InvestigationTreeNode,
-            graphFlowNodes: GraphFlowNode[],
-            graphFlowEdges: GraphFlowEdge[],
+            hypothesisNodes: GraphFlowNode[],
+            hypothesisEdges: GraphFlowEdge[],
             depth: number
         ) => {
             if (parentHypothesis.childrenIds.length === 0) {
@@ -189,7 +189,7 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
             children.forEach((childId, index) => {
                 const child = nodes.get(childId);
                 if (child) {
-                    graphFlowNodes.push({
+                    hypothesisNodes.push({
                         id: child.id,
                         type: TreeNodeType.Hypothesis,
                         position: { x: 0, y: 0 }, // Temporary position - will be set by dagre
@@ -202,7 +202,7 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
                     });
 
                     // Add edge from parent to child
-                    graphFlowEdges.push({
+                    hypothesisEdges.push({
                         id: `${parentHypothesis.id}-${child.id}`,
                         source: parentHypothesis.id,
                         target: child.id,
@@ -214,7 +214,7 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
                     });
 
                     // Recursively add grandchildren
-                    addChildHypotheses(child, graphFlowNodes, graphFlowEdges, depth + 1);
+                    addChildHypotheses(child, hypothesisNodes, hypothesisEdges, depth + 1);
                 }
             });
         };
@@ -225,8 +225,8 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
                 const hypothesis = nodes.get(hypothesisId);
                 if (hypothesis) {
                     const groupNodeId = `group-${hypothesis.id}`;
-                    const graphFlowNodes: GraphFlowNode[] = [];
-                    const graphFlowEdges: GraphFlowEdge[] = [];
+                    const hypothesisNodes: GraphFlowNode[] = [];
+                    const hypothesisEdges: GraphFlowEdge[] = [];
 
                     const groupNode = {
                         id: groupNodeId,
@@ -238,7 +238,7 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
                         },
                     };
 
-                    graphFlowNodes.push({
+                    hypothesisNodes.push({
                         id: hypothesis.id,
                         type: TreeNodeType.Hypothesis,
                         position: { x: 0, y: 0 }, // Temporary position - will be set by dagre
@@ -251,8 +251,11 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
                     });
 
                     // Add child hypotheses recursively
-                    addChildHypotheses(hypothesis, graphFlowNodes, graphFlowEdges, 1);
-                    result.push({ groupNode, nodes: graphFlowNodes, edges: graphFlowEdges });
+                    if (hypothesis.expanded) {
+                        addChildHypotheses(hypothesis, hypothesisNodes, hypothesisEdges, 1);
+                    }
+
+                    result.push({ groupNode, nodes: hypothesisNodes, edges: hypothesisEdges });
                 }
             });
         }

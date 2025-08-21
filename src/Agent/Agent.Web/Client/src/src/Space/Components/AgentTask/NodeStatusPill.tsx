@@ -11,7 +11,7 @@ const useStyles = makeStyles({
         gap: tokens.spacingHorizontalXS,
         alignItems: 'center',
         width: 'fit-content',
-        flex: '1 0 auto',
+        flex: '0 0 auto',
     },
 });
 

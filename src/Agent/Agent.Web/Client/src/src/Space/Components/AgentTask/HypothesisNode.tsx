@@ -1,8 +1,9 @@
-import { Body1, Body2, Card, CardFooter, CardHeader, makeStyles, tokens } from '@fluentui/react-components';
+import { Body1, Body2, Button, Card, CardFooter, CardHeader, makeStyles, tokens } from '@fluentui/react-components';
+import { ChevronDownUpRegular, ChevronUpDownRegular } from '@fluentui/react-icons';
 import { Handle, NodeProps, Position } from '@xyflow/react';
 import { memo, useContext } from 'react';
 import { AgentTaskNodeSize, GraphFlowNode } from '../../Contracts/Activities';
-import { AgentTaskGraphContext } from '../../Contracts/Context';
+import { AgentTaskContext, AgentTaskGraphContext } from '../../Contracts/Context';
 import NodeStatusPill from './NodeStatusPill';
 import { getHypothesisNodeThemeColor } from './Utility';
 
@@ -44,6 +45,10 @@ const useStyles = makeStyles({
     },
     cardFooter: {
         justifySelf: 'flex-end',
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
     },
     handle: {
         opacity: 0,
@@ -56,6 +61,7 @@ const HypothesisNode = (props: NodeProps<GraphFlowNode>) => {
 
     const { nodeContainer, card, title, description, cardFooter, handle } = useStyles();
 
+    const { toggleNode } = useContext(AgentTaskContext);
     const { selectedNodeId, selectNode } = useContext(AgentTaskGraphContext);
 
     return (
@@ -65,7 +71,10 @@ const HypothesisNode = (props: NodeProps<GraphFlowNode>) => {
                 className={card}
                 style={{ border: `1.5px solid ${getHypothesisNodeThemeColor(data.status)}` }}
                 selected={selectedNodeId === id}
-                onSelectionChange={(_, selection) => selectNode(selection.selected ? id : null)}
+                onSelectionChange={(e, selection) => {
+                    e.stopPropagation();
+                    selectNode(selection.selected ? id : null);
+                }}
             >
                 <CardHeader
                     header={
@@ -77,6 +86,18 @@ const HypothesisNode = (props: NodeProps<GraphFlowNode>) => {
                 />
                 <CardFooter className={cardFooter}>
                     <NodeStatusPill status={data.status} showIcon={true} />
+                    {!data.isChild && data.hasChildren && (
+                        <Button
+                            appearance="transparent"
+                            icon={data.expanded ? <ChevronDownUpRegular /> : <ChevronUpDownRegular />}
+                            onClick={e => {
+                                e.stopPropagation();
+                                toggleNode(id);
+                            }}
+                        >
+                            {data.expanded ? 'Collapse' : 'Expand'}
+                        </Button>
+                    )}
                 </CardFooter>
             </Card>
             <Handle type={'target'} position={Position.Top} isConnectable={false} className={handle} />
