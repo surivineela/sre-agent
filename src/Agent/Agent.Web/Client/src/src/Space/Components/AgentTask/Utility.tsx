@@ -81,7 +81,7 @@ export const getStatusPillComponentStyleProperties = (status?: string | null) =>
                 statusTextFontColor: tokens.colorStatusWarningForeground3,
                 icon: QuestionCircleRegular,
                 backgroundColor: undefined,
-                borderColor: tokens.colorStatusWarningBackground2,
+                borderColor: tokens.colorStatusWarningForeground1,
             };
     }
 };
@@ -117,11 +117,9 @@ export const getHypothesisNodeThemeColor = (status?: string | null) => {
     switch (status?.toLowerCase()) {
         case HypothesisStatus.Validated:
             return tokens.colorStatusSuccessForeground1;
-        case HypothesisStatus.Invalidated:
-            return tokens.colorNeutralBackground3;
         case HypothesisStatus.Inconclusive:
-            return tokens.colorStatusWarningBackground2;
+            return tokens.colorStatusWarningForeground1;
         default:
-            return tokens.colorNeutralBackground2;
+            return tokens.colorNeutralForeground3;
     }
 };
