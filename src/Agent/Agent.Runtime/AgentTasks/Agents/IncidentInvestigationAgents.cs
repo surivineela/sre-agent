@@ -20,7 +20,7 @@ public record InitialInvestigationResult
 
 public record InitialInvestigationStepResult
 {
-    [Description("Brief title of the step taken.")]
+    [Description("Brief title (6-10 words maximum) of the step taken.")]
     public required string Title { get; set; }
 
     [Description("Summary of the this individual step in markdown format")]
@@ -29,7 +29,7 @@ public record InitialInvestigationStepResult
 
 public record HypothesisGenerationResult
 {
-    [Description("The title of the hypothesis. This should be a brief title that describes the hypothesis.")]
+    [Description("The title of the hypothesis. This should be a brief title (6-10 words maximum) that describes the hypothesis.")]
     public required string Title { get; set; }
 
     [Description("The detailed content of the hypothesis. This should be a more detailed description of the hypothesis, including the reasoning behind the hypothesis.")]
@@ -59,7 +59,7 @@ public record HypothesisValidationResult
 
 public record HypothesisValidationPlanStep
 {
-    [Description("Title of the step you plan to perform to validate a hypothesis. User-friendly description.")]
+    [Description("Title of the step you plan to perform to validate a hypothesis. User-friendly description. 6-10 words maximum.")]
     public required string Title { get; set; }
 
     [Description("Detailed description of the step you will take. User-friendly description.")]
@@ -74,7 +74,7 @@ public record HypothesisValidationPlanOutput
 
 public record ConclusionResult
 {
-    [Description("The title of the conclusion. This should be a concise title that summarizes the investigation outcome.")]
+    [Description("The title of the conclusion. This should be a concise title (6-10 words maximum) that summarizes the investigation outcome.")]
     public required string Title { get; set; }
 
     [Description("The detailed summary of the conclusion. This should include the investigation findings, root cause analysis, and any recommendations. Format the summary in markdown.")]
@@ -181,7 +181,7 @@ public class IncidentInvestigationAgents
                 If you are digging deeper into a previous hypothesis, it is okay to generate only 1 or 2 additional hypotheses.
 
                 # Output
-                Return a brief title and detailed content of the hypotheses with given structure.
+                Return a brief and concise title (6-15 words maximum) and detailed content of the hypotheses with given structure.
                 """,
             MaxReflectionCount = 0,
             CustomReflectionNote = """
@@ -541,7 +541,7 @@ public class IncidentInvestigationAgents
 
                 # Instructions
                 Based on the incident description, initial investigation summary, and investigation results,
-                generate a concise conclusion title and detailed summary.
+                generate a concise conclusion title (6-10 words maximum) and detailed summary.
 
                 Your conclusion should:
                 1. Clearly state the investigation outcome
