@@ -329,6 +329,16 @@ public class ReasoningLoop : IDisposable
                 {
                     case ReasoningLoopChatMessage chatMessage:
                         {
+                            if (_context.ApprovalInformation != null &&
+                                _context.ApprovalInformation.PendingApprovals.Count > 0)
+                            {
+                                await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                                    _context.ThreadId,
+                                    string.Empty,
+                                    new ChatMessage(ChatRole.Assistant, "You have pending approvals. Please resolve them before continuing."));
+                                return;
+                            }
+
                             bool shouldStop = await HandleUnprocessedToolCallsAsync(agentChatHistory, cancellationToken);
                             if (shouldStop)
                             {
@@ -391,15 +401,6 @@ public class ReasoningLoop : IDisposable
                             _msgSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.UserMessage);
                             _msgSpan.SetAttribute(TraceAttribute.MessageContent, chatMessage.Message.Text);
                             _msgSpan.End();
-                            if (_context.ApprovalInformation != null &&
-                                _context.ApprovalInformation.PendingApprovals.Count > 0)
-                            {
-                                await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
-                                    _context.ThreadId,
-                                    string.Empty,
-                                    new ChatMessage(ChatRole.Assistant, "You have pending approvals. Please resolve them before continuing."));
-                                break;
-                            }
 
                             await PersistReasoningMessageAsync(agentChatHistory, msg);
                             break;
