@@ -5,12 +5,12 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.Services;
-public class PagerDutyIncidentManagementService : IncidentManagementServiceBase<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocument>
+public class PagerDutyIncidentManagementService : IncidentManagementServiceBase<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload>
 {
     public PagerDutyIncidentManagementService(
         CosmosClient cosmosClient,
         CosmosDBSettings cosmosDbSettings,
-        IIncidentFilterManagementService<PagerDutyIncidentFilterDocument> incidentFilterManagementService,
+        IIncidentFilterManagementService<PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload> incidentFilterManagementService,
         ILogger<PagerDutyIncidentManagementService> logger)
         : base(
             cosmosClient.GetContainer(
@@ -37,7 +37,7 @@ public class PagerDutyIncidentManagementService : IncidentManagementServiceBase<
         }
     }
 
-    public override async Task<IncidentQueryResult<PagerDutyIncidentDocument>> QueryIncidents(IncidentQueryRequest request)
+    public override async Task<IncidentQueryResult<PagerDutyIncidentDocument>> QueryIncidents(IncidentQueryRequest<PagerDutyIncidentFilterDocumentPayload> request)
     {
         return await QueryIncidentsInternal(request);
     }

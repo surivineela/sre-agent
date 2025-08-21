@@ -46,7 +46,7 @@ export const useTestHandler = (
             },
             durationInDays: TimeDuration.Last90Days,
             pageSize: pageSize,
-            pageNumber: 0,
+            pageNumber: 1,
             statuses: [IncidentStatus.resolved, IncidentStatus.mitigated],
             searchTerm: searchTerm,
         };

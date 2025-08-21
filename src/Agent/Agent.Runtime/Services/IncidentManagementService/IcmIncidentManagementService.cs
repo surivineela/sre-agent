@@ -7,14 +7,14 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.Services;
-public class IcmIncidentManagementService : IncidentManagementServiceBase<IcmIncidentDocument, IcmIncidentFilterDocument>
+public class IcmIncidentManagementService : IncidentManagementServiceBase<IcmIncidentDocument, IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload>
 {
     protected override string DocumentType => "IcmIncident";
     private readonly IICMAPIClient _icmApiClient;
     public IcmIncidentManagementService(
         CosmosClient cosmosClient,
         CosmosDBSettings cosmosDbSettings,
-        IIncidentFilterManagementService<IcmIncidentFilterDocument> incidentFilterManagementService,
+        IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload> incidentFilterManagementService,
         ILogger<IcmIncidentManagementService> logger,
         IICMAPIClient icmApiClient)
         : base(
@@ -29,7 +29,7 @@ public class IcmIncidentManagementService : IncidentManagementServiceBase<IcmInc
 
     public override async Task<IcmIncidentDocument?> GetIncidentDetails(string incidentId)
     {
-        _logger.LogInternalInformation("GetIncidentDetails: Invoked for IncidentId: {IncidentId}",incidentId);
+        _logger.LogInternalInformation("GetIncidentDetails: Invoked for IncidentId: {IncidentId}", incidentId);
         try
         {
             return await GetIncidentDetailsInternal(incidentId);
@@ -41,16 +41,24 @@ public class IcmIncidentManagementService : IncidentManagementServiceBase<IcmInc
         }
     }
 
-    public override async Task<IncidentQueryResult<IcmIncidentDocument>> QueryIncidents(IncidentQueryRequest request)
+    public override async Task<IncidentQueryResult<IcmIncidentDocument>> QueryIncidents(IncidentQueryRequest<IcmIncidentFilterDocumentPayload>? request)
     {
         _logger.LogInternalInformation(
                 "QueryIcmIncidentsInternal: Invoked with Request: {Request}",
                 Newtonsoft.Json.JsonConvert.SerializeObject(request)
             );
-
+        if (request is null)
+        {
+            return new IncidentQueryResult<IcmIncidentDocument>
+            {
+                Items = [],
+                TotalCount = 0
+            };
+        }
         try
         {
-            IncidentFilterDocumentPayload? filter = null;
+            IcmIncidentFilterDocumentPayload? filter = null;
+
             var statusFilter = request.Statuses?.Select(s => s.ToLower()).ToList() ?? [];
             uint limit = request.PageSize > 0 ? (uint)request.PageSize : 20;
             uint offset = (uint)((request.PageNumber - 1) * limit);
@@ -65,22 +73,9 @@ public class IcmIncidentManagementService : IncidentManagementServiceBase<IcmInc
                     request.Filter.Id
                 );
                 var filterDocument = await _incidentFilterManagementService.GetIncidentFilter(request.Filter.Id);
-                if (filterDocument != null)
+                if (filterDocument is not null)
                 {
-                    filter = new IcmIncidentFilterDocumentPayload()
-                    {
-                        Id = filterDocument.Id,
-                        Name = filterDocument.Name,
-                        ImpactedService = filterDocument.ImpactedService,
-                        IncidentType = filterDocument.IncidentType,
-                        Priority = filterDocument.Priority,
-                        TitleContains = filterDocument.TitleContains,
-                        AlertId = filterDocument.AlertId
-                    };
-                    _logger.LogInternalInformation(
-                        "QueryIcmIncidentsInternal: Loaded filter document for FilterId: {FilterId}",
-                        filterDocument.Id
-                    );
+                    filter = filterDocument;
                 }
                 else
                 {
@@ -91,8 +86,14 @@ public class IcmIncidentManagementService : IncidentManagementServiceBase<IcmInc
                 }
             }
 
+            //If filter cannot find from db, try with request payload
+            if (filter is null)
+            {
+                filter = request?.Filter;
+            }
+
             List<Incident> incidents = new List<Incident>();
-            if (filter != null)
+            if (filter is not null)
             {
                 incidents = await _icmApiClient.GetIncidentsAsync(
                     limit: limit,

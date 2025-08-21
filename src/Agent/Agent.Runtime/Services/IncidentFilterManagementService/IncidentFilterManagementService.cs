@@ -20,22 +20,25 @@ namespace Agent.Runtime.Services
         public IncidentFilterInputType FieldInputType { get; set; } = IncidentFilterInputType.Dropdown;
     }
 
-    public interface IIncidentFilterManagementService<TIncidentFilterDocument> where TIncidentFilterDocument : IncidentFilterDocument
+    public interface IIncidentFilterManagementService<TIncidentFilterDocument, TIncidentFilterPayload>
+        where TIncidentFilterDocument : TIncidentFilterPayload, IIncidentFilterDocument
+        where TIncidentFilterPayload : IncidentFilterDocumentPayload
     {
         Task<bool> CheckConnectivity();
         Task<List<IncidentFilterFieldOption>> ListIncidentFilterFieldOptions();
         Task<List<TIncidentFilterDocument>> ListIncidentFilters();
         Task<TIncidentFilterDocument?> GetIncidentFilter(string filterId);
-        Task<TIncidentFilterDocument> SaveIncidentFilter(TIncidentFilterDocument? incidentFilterDocument);
+        Task<TIncidentFilterDocument> SaveIncidentFilter(TIncidentFilterDocument incidentFilterDocument);
         Task<bool> DeleteIncidentFilter(string filterId);
         bool ValidateAgentMode(string agentMode);
     }
 
-    public abstract class IncidentFilterManagementServiceBase<TIncidentFilterDocument> : IIncidentFilterManagementService<TIncidentFilterDocument>
-        where TIncidentFilterDocument : IncidentFilterDocument
+    public abstract class IncidentFilterManagementServiceBase<TIncidentFilterDocument, TIncidentFilterPayload> : IIncidentFilterManagementService<TIncidentFilterDocument, TIncidentFilterPayload>
+        where TIncidentFilterDocument : TIncidentFilterPayload, IIncidentFilterDocument, new()
+        where TIncidentFilterPayload : IncidentFilterDocumentPayload
     {
         private readonly Container _container;
-        protected readonly string DocumentType = "IncidentFilter";
+        protected readonly string DocumentType;
         private readonly ILogger _logger;
 
         public IncidentFilterManagementServiceBase(
@@ -45,7 +48,7 @@ namespace Agent.Runtime.Services
         {
             _container = container;
             _logger = logger;
-            DocumentType = $"IncidentFilter{incidentManagementSettings.Type.ToString()}";
+            DocumentType = IncidentFilterDocumentUtilities.GetDocumentTypeName(incidentManagementSettings.Type);
         }
 
         public abstract Task<bool> CheckConnectivity();
@@ -144,8 +147,9 @@ namespace Agent.Runtime.Services
                 _logger.LogInternalWarning("DeleteIncidentFilter: No filter found to delete for FilterId: {FilterId}", filterId);
                 return false;
             }
-            filter.IsDeleted = true;
-            filter.UpdatedAt = DateTime.UtcNow;
+            //filter.IsDeleted = true;
+            //filter.UpdatedAt = DateTime.UtcNow;
+            filter = filter with { IsDeleted = true, UpdatedAt = DateTime.UtcNow };
             try
             {
                 var response = await _container.UpsertItemAsync(filter, new PartitionKey(filter.PartitionKey ?? filter.Id));

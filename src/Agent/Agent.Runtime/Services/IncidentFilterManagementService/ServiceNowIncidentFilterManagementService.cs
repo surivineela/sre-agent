@@ -6,7 +6,7 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.Services;
-public class ServiceNowIncidentFilterManagementService : IncidentFilterManagementServiceBase<ServiceNowIncidentFilterDocument>
+public class ServiceNowIncidentFilterManagementService : IncidentFilterManagementServiceBase<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload>
 {
     private readonly IServiceNowAPIClient _serviceNowAPIClient;
     private readonly ILogger<ServiceNowIncidentFilterManagementService> _logger;

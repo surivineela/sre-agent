@@ -4,26 +4,29 @@ using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.Services;
-public interface IIncidentManagementService<T> where T : IIncidentDocument
+public interface IIncidentManagementService<TIncidentDocument, TIncidentFilterDocumentPayload>
+    where TIncidentDocument : IIncidentDocument
+    where TIncidentFilterDocumentPayload : IncidentFilterDocumentPayload
 {
-    Task<IncidentQueryResult<T>> QueryIncidents(IncidentQueryRequest request);
-    Task<T?> GetIncidentDetails(string incidentId);
-    Task<T?> SaveDocument(T? document);
+    Task<IncidentQueryResult<TIncidentDocument>> QueryIncidents(IncidentQueryRequest<TIncidentFilterDocumentPayload> request);
+    Task<TIncidentDocument?> GetIncidentDetails(string incidentId);
+    Task<TIncidentDocument?> SaveDocument(TIncidentDocument? document);
 }
 
 
-public abstract class IncidentManagementServiceBase<T, U> : IIncidentManagementService<T>
-    where T : IIncidentDocument
-    where U : IncidentFilterDocument
+public abstract class IncidentManagementServiceBase<TIncidentDocument, TIncidentFilterDocument, TIncidentFilterDocumentPayload> : IIncidentManagementService<TIncidentDocument, TIncidentFilterDocumentPayload>
+    where TIncidentDocument : IIncidentDocument
+    where TIncidentFilterDocument : TIncidentFilterDocumentPayload, IIncidentFilterDocument, new()
+    where TIncidentFilterDocumentPayload : IncidentFilterDocumentPayload, new()
 {
     protected readonly Container _container;
     protected abstract string DocumentType { get; }
     protected readonly ILogger _logger;
-    protected readonly IIncidentFilterManagementService<U> _incidentFilterManagementService;
+    protected readonly IIncidentFilterManagementService<TIncidentFilterDocument, TIncidentFilterDocumentPayload> _incidentFilterManagementService;
 
     public IncidentManagementServiceBase(
         Container container,
-        IIncidentFilterManagementService<U> incidentFilterManagementService,
+        IIncidentFilterManagementService<TIncidentFilterDocument, TIncidentFilterDocumentPayload> incidentFilterManagementService,
         ILogger logger)
     {
         _container = container;
@@ -31,13 +34,11 @@ public abstract class IncidentManagementServiceBase<T, U> : IIncidentManagementS
         _logger = logger;
     }
 
-    public abstract Task<IncidentQueryResult<T>> QueryIncidents(IncidentQueryRequest request);
+    public abstract Task<IncidentQueryResult<TIncidentDocument>> QueryIncidents(IncidentQueryRequest<TIncidentFilterDocumentPayload> request);
 
+    public abstract Task<TIncidentDocument?> GetIncidentDetails(string incidentId);
 
-
-    public abstract Task<T?> GetIncidentDetails(string incidentId);
-
-    public async Task<T?> SaveDocument(T? document)
+    public async Task<TIncidentDocument?> SaveDocument(TIncidentDocument? document)
     {
         _logger.LogInternalInformation(
             "SaveDocument: Invoked for DocumentId: {DocumentId}, DocumentType: {DocumentType}",
@@ -79,7 +80,7 @@ public abstract class IncidentManagementServiceBase<T, U> : IIncidentManagementS
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    protected async Task<IncidentQueryResult<T>> QueryIncidentsInternal(IncidentQueryRequest request)
+    protected async Task<IncidentQueryResult<TIncidentDocument>> QueryIncidentsInternal(IncidentQueryRequest<TIncidentFilterDocumentPayload> request, Func<TIncidentDocument, TIncidentFilterDocumentPayload, bool>? advancedFilterFun = null)
     {
         _logger.LogInternalInformation(
             "QueryIncidentsInternal: Invoked with Request: {Request}",
@@ -104,8 +105,8 @@ public abstract class IncidentManagementServiceBase<T, U> : IIncidentManagementS
                 request.PageSize = 20;
             }
 
-            var pagedResult = new IncidentQueryResult<T>();
-            var filteredResults = new List<T>();
+            var pagedResult = new IncidentQueryResult<TIncidentDocument>();
+            var filteredResults = new List<TIncidentDocument>();
             int totalCount = 0;
             if (request.DurationInDays > 90)
             {
@@ -119,17 +120,17 @@ public abstract class IncidentManagementServiceBase<T, U> : IIncidentManagementS
             int skip = (request.PageNumber - 1) * request.PageSize;
             int take = request.PageSize;
 
-            if (request.Filter == null)
+            if (request.Filter is null)
             {
                 if (
-                        (request.Keywords == null || request.Keywords.Length == 0) &&
-                        (request.SearchTerm == null || request.SearchTerm.Length == 0)
+                        (request.Keywords is null || request.Keywords.Length == 0) &&
+                        (request.SearchTerm is null || request.SearchTerm.Length == 0)
                     )
                 {
                     _logger.LogInternalWarning(
                         "QueryIncidentsInternal: No filter, keywords, or search term provided"
                     );
-                    pagedResult.Items = new List<T>();
+                    pagedResult.Items = new List<TIncidentDocument>();
                     pagedResult.TotalCount = 0;
                     return pagedResult;
                 }
@@ -139,7 +140,7 @@ public abstract class IncidentManagementServiceBase<T, U> : IIncidentManagementS
                     "QueryIncidentsInternal: Querying Cosmos DB for DocumentType: {DocumentType} since {Since}",
                     DocumentType, since
                 );
-                var queryable = _container.GetItemLinqQueryable<T>(allowSynchronousQueryExecution: false)
+                var queryable = _container.GetItemLinqQueryable<TIncidentDocument>(allowSynchronousQueryExecution: false)
                     .Where(c => c.DocumentType == DocumentType && c.CreatedAt >= since);
 
                 if (request.Statuses != null && request.Statuses.Count() > 0)
@@ -149,7 +150,7 @@ public abstract class IncidentManagementServiceBase<T, U> : IIncidentManagementS
                 }
 
                 var iterator = queryable.ToFeedIterator();
-                var results = new List<T>();
+                var results = new List<TIncidentDocument>();
 
                 while (iterator.HasMoreResults)
                 {
@@ -204,7 +205,7 @@ public abstract class IncidentManagementServiceBase<T, U> : IIncidentManagementS
                     "QueryIncidentsInternal: Querying with filter: {Filter}",
                     Newtonsoft.Json.JsonConvert.SerializeObject(request.Filter)
                 );
-                var queryable = _container.GetItemLinqQueryable<T>(allowSynchronousQueryExecution: false)
+                var queryable = _container.GetItemLinqQueryable<TIncidentDocument>(allowSynchronousQueryExecution: false)
                     .Where(c => c.DocumentType == DocumentType && c.CreatedAt >= since);
 
                 if (request.Statuses != null && request.Statuses.Count() > 0)
@@ -213,7 +214,7 @@ public abstract class IncidentManagementServiceBase<T, U> : IIncidentManagementS
                     queryable = queryable.Where(c => normalizedStatuses.Contains(c.Status.ToLower()));
                 }
 
-                IncidentFilterDocumentPayload? filter = null;
+                TIncidentFilterDocumentPayload? filter = null;
 
                 if (!string.IsNullOrEmpty(request.Filter.Id))
                 {
@@ -222,18 +223,9 @@ public abstract class IncidentManagementServiceBase<T, U> : IIncidentManagementS
                         request.Filter.Id
                     );
                     var filterDocument = await _incidentFilterManagementService.GetIncidentFilter(request.Filter.Id);
-                    if (filterDocument != null)
+                    if (filterDocument is not null)
                     {
-                        filter = new IncidentFilterDocumentPayload()
-                        {
-                            Id = filterDocument.Id,
-                            Name = filterDocument.Name,
-                            ImpactedService = filterDocument.ImpactedService,
-                            IncidentType = filterDocument.IncidentType,
-                            Priority = filterDocument.Priority,
-                            TitleContains = filterDocument.TitleContains,
-                            AlertId = filterDocument.AlertId
-                        };
+                        filter = (TIncidentFilterDocumentPayload)filterDocument;
                         _logger.LogInternalInformation(
                             "QueryIncidentsInternal: Loaded filter document for FilterId: {FilterId}",
                             filterDocument.Id
@@ -249,7 +241,7 @@ public abstract class IncidentManagementServiceBase<T, U> : IIncidentManagementS
                 }
 
                 // If filter hasn't been found or filterId is empty, then use the filter attributes from incoming request
-                if (filter == null)
+                if (filter is null)
                 {
                     filter = request.Filter;
                 }
@@ -268,7 +260,7 @@ public abstract class IncidentManagementServiceBase<T, U> : IIncidentManagementS
                     queryable = queryable.Where(c => c.IncidentType.Equals(filter.IncidentType, StringComparison.OrdinalIgnoreCase));
                 }
                 var iterator = queryable.ToFeedIterator();
-                var results = new List<T>();
+                var results = new List<TIncidentDocument>();
                 while (iterator.HasMoreResults)
                 {
                     var response = await iterator.ReadNextAsync();
@@ -324,6 +316,20 @@ public abstract class IncidentManagementServiceBase<T, U> : IIncidentManagementS
                 {
                     filteredResults = results;
                 }
+
+                if (advancedFilterFun is not null)
+                {
+                    _logger.LogInternalInformation(
+                        "QueryIncidentsInternal: Applying advanced filter function"
+                    );
+                    filteredResults = filteredResults
+                        .Where(c => advancedFilterFun(c, filter))
+                        .ToList();
+                    _logger.LogInternalInformation(
+                        "QueryIncidentsInternal: Advanced filter applied. FilteredCount: {FilteredCount}",
+                        filteredResults.Count
+                    );
+                }
             }
 
             totalCount = filteredResults.Count;
@@ -348,7 +354,7 @@ public abstract class IncidentManagementServiceBase<T, U> : IIncidentManagementS
         }
     }
 
-    protected async Task<T?> GetIncidentDetailsInternal(string incidentId)
+    protected async Task<TIncidentDocument?> GetIncidentDetailsInternal(string incidentId)
     {
         _logger.LogInternalInformation(
             "GetIncidentDetailsInternal: Invoked for IncidentId: {IncidentId}",
@@ -357,7 +363,7 @@ public abstract class IncidentManagementServiceBase<T, U> : IIncidentManagementS
 
         try
         {
-            var iterator = _container.GetItemLinqQueryable<T>(allowSynchronousQueryExecution: false)
+            var iterator = _container.GetItemLinqQueryable<TIncidentDocument>(allowSynchronousQueryExecution: false)
                         .Where(c => c.DocumentType == DocumentType && c.Id == incidentId)
                         .Take(1)
                         .ToFeedIterator();
@@ -417,9 +423,10 @@ public abstract class IncidentManagementServiceBase<T, U> : IIncidentManagementS
     }
 }
 
-public class IncidentQueryRequest
+public class IncidentQueryRequest<TIncidentFilterDocumentPayload> where TIncidentFilterDocumentPayload : IncidentFilterDocumentPayload
 {
-    public IncidentFilterDocumentPayload? Filter { get; set; }
+    //FilterDocumentPayload should be passing by a generic type
+    public TIncidentFilterDocumentPayload? Filter { get; set; }
 
     // Should only use Keywords in special scenarios where Filter isn't viable
     public string[] Keywords { get; set; } = [];
@@ -427,8 +434,13 @@ public class IncidentQueryRequest
 
     public string[] Statuses { get; set; } = [];
 
-    // Pagination
-    public int PageNumber { get; set; } = 1; // 1-based index
+    // 1-based index, in later .net version can use "field" to replace _pageNumber
+    private int _pageNumber = 1;
+    public int PageNumber
+    {
+        get => _pageNumber;
+        set => _pageNumber = Math.Max(1, value);
+    }
     public int PageSize { get; set; } = 20;  // Default page size
     public string SearchTerm { get; set; } = string.Empty;
 }

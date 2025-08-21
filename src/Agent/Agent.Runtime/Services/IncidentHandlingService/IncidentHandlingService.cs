@@ -10,16 +10,16 @@ using OpenTelemetry.Trace;
 namespace Agent.Runtime.Services;
 
 
-public class IncidentRequest<P> where P : IncidentFilterDocumentPayload
+public class IncidentRequest<TIncidentFilterDocumentPayload> where TIncidentFilterDocumentPayload : IncidentFilterDocumentPayload
 {
     public Dictionary<string, string>? AdditionalProperties { get; set; }
     public bool IsTest { get; set; } = false;
     public IncidentHandlerDocumentPayload? IncidentHandler { get; set; }
-    public P? IncidentFilter { get; set; }
+    public TIncidentFilterDocumentPayload? IncidentFilter { get; set; }
 }
 
-public class IncidentHandlingRequestModel<P> : IncidentRequest<P>
-    where P : IncidentFilterDocumentPayload
+public class IncidentHandlingRequestModel<TIncidentFilterDocumentPayload> : IncidentRequest<TIncidentFilterDocumentPayload>
+    where TIncidentFilterDocumentPayload : IncidentFilterDocumentPayload
 {
     public string? Title { get; set; }
     public string? Description { get; set; }
@@ -35,22 +35,22 @@ public class IncidentHandlingResponseModel
     public object? Response { get; set; }
 }
 
-public interface IIncidentHandlingService<P> where P : IncidentFilterDocumentPayload
+public interface IIncidentHandlingService<TIncidentFilterDocumentPayload> where TIncidentFilterDocumentPayload : IncidentFilterDocumentPayload
 {
-    Task<IncidentHandlingResponseModel> HandleIncidentAsync(IncidentHandlingRequestModel<P>? incidentDocument);
+    Task<IncidentHandlingResponseModel> HandleIncidentAsync(IncidentHandlingRequestModel<TIncidentFilterDocumentPayload>? incidentDocument);
 }
 
 /// <summary>
 /// Base service that provides common incident handling functionality
 /// </summary>
-public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFilterDocument, TIncidentFilterPayload> : IIncidentHandlingService<TIncidentFilterPayload>
+public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFilterDocument, TIncidentFilterDocumentPayload> : IIncidentHandlingService<TIncidentFilterDocumentPayload>
     where TIncidentDocument : IIncidentDocument
-    where TIncidentFilterDocument : IncidentFilterDocument
-    where TIncidentFilterPayload : IncidentFilterDocumentPayload
+    where TIncidentFilterDocument : TIncidentFilterDocumentPayload, IIncidentFilterDocument, new()
+    where TIncidentFilterDocumentPayload : IncidentFilterDocumentPayload
 {
     protected readonly IThreadRepository _repository;
     protected readonly IAgentInboundCommunicationService _inboundCommunicationService;
-    protected readonly IIncidentFilterManagementService<TIncidentFilterDocument> _incidentFilterManagementService;
+    protected readonly IIncidentFilterManagementService<TIncidentFilterDocument, TIncidentFilterDocumentPayload> _incidentFilterManagementService;
     protected readonly IIncidentHandlerManagementService _incidentHandlerManagementService;
     protected readonly ILogger _logger;
     protected readonly Tracer _tracer;
@@ -58,7 +58,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
     public IncidentHandlingServiceBase(
         IThreadRepository repository,
         IAgentInboundCommunicationService inboundCommunicationService,
-        IIncidentFilterManagementService<TIncidentFilterDocument> incidentFilterManagementService,
+        IIncidentFilterManagementService<TIncidentFilterDocument, TIncidentFilterDocumentPayload> incidentFilterManagementService,
         IIncidentHandlerManagementService incidentHandlerManagementService,
         ILogger logger,
         Tracer tracer)
@@ -76,12 +76,12 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
         TIncidentDocument incidentDetails,
         IncidentHandlerDocument incidentHandler,
         TIncidentFilterDocument incidentFilterDocument,
-        IncidentHandlingRequestModel<TIncidentFilterPayload> request);
+        IncidentHandlingRequestModel<TIncidentFilterDocumentPayload> request);
 
-    protected abstract TIncidentFilterDocument GetDefaultIncidentFilter(IncidentHandlingRequestModel<TIncidentFilterPayload> request);
+    protected abstract TIncidentFilterDocument GetDefaultIncidentFilter(IncidentHandlingRequestModel<TIncidentFilterDocumentPayload> request);
 
 
-    public async Task<IncidentHandlingResponseModel> HandleIncidentAsync(IncidentHandlingRequestModel<TIncidentFilterPayload>? request)
+    public async Task<IncidentHandlingResponseModel> HandleIncidentAsync(IncidentHandlingRequestModel<TIncidentFilterDocumentPayload>? request)
     {
         if(request is null)
         {
@@ -104,7 +104,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
             {
                 _logger.LogInternalWarning("[IncidentHandlingService] HandleIncidentAsync: No matching handler found for FilterId: {FilterId}, using MetaAgent", matchingFilter.Id);
 
-                var incidentRequest = new IncidentHandlingRequestModel<TIncidentFilterPayload>
+                var incidentRequest = new IncidentHandlingRequestModel<TIncidentFilterDocumentPayload>
                 {
                     Title = incidentDetails.Title ?? "New Incident",
                     Description = incidentDetails.Description ?? "Alert notification.",
@@ -156,7 +156,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
     /// <param name="request">The incident request</param>
     /// <param name="incidentFilterDocument">The matching incident filter</param>
     /// <returns>The created thread</returns>
-    public async Task<Core.Models.Api.v1.Thread> CreateIncidentMetaAgentThread(IncidentHandlingRequestModel<TIncidentFilterPayload> request, Data.DataModels.IncidentFilterDocument incidentFilterDocument)
+    public async Task<Core.Models.Api.v1.Thread> CreateIncidentMetaAgentThread(IncidentHandlingRequestModel<TIncidentFilterDocumentPayload> request, TIncidentFilterDocument incidentFilterDocument)
     {
         _logger.LogInternalInformation("[BaseIncidentService] CreateIncidentMetaAgentThread: Invoked for IncidentId: {IncidentId}", request.IncidentId);
         try
@@ -263,7 +263,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
     /// filter is null, handler is null -> Get filter and handler from DB
     /// </summary>
 
-    public async Task<(TIncidentFilterDocument, IncidentHandlerDocument?)> GetIncidentFilterAndHandlerAsync(IncidentHandlingRequestModel<TIncidentFilterPayload> request, TIncidentDocument incidentDetails)
+    public async Task<(TIncidentFilterDocument, IncidentHandlerDocument?)> GetIncidentFilterAndHandlerAsync(IncidentHandlingRequestModel<TIncidentFilterDocumentPayload> request, TIncidentDocument incidentDetails)
     {
         string handlerId = $"IncidentHandler{incidentDetails.DocumentType}";
         string filterId = $"IncidentFilter{incidentDetails.DocumentType}";
@@ -322,7 +322,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
         TIncidentDocument incidentDetails,
         IncidentHandlerDocument incidentHandler,
         TIncidentFilterDocument incidentFilterDocument,
-        IncidentHandlingRequestModel<TIncidentFilterPayload> request,
+        IncidentHandlingRequestModel<TIncidentFilterDocumentPayload> request,
         string sourceSystem,
         Func<TIncidentDocument, string>? getSourceSpecificAdditionalProperties = null)
     {

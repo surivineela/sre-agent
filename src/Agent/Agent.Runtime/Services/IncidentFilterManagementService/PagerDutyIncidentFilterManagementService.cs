@@ -7,7 +7,7 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.Services;
-public class PagerDutyIncidentFilterManagementService : IncidentFilterManagementServiceBase<PagerDutyIncidentFilterDocument>
+public class PagerDutyIncidentFilterManagementService : IncidentFilterManagementServiceBase<PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload>
 {
     private readonly IPagerDutyService _pagerDutyService;
     private readonly ILogger<PagerDutyIncidentFilterManagementService> _logger;

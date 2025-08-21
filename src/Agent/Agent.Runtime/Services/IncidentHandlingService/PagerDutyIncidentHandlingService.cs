@@ -9,7 +9,7 @@ namespace Agent.Runtime.Services;
 public class PagerDutyIncidentHandlingService : IncidentHandlingServiceBase<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload>
 {
     private readonly IPagerDutyService _pagerDutyService;
-    private readonly IIncidentManagementService<PagerDutyIncidentDocument> _pagerDutyincidentManagementService;
+    private readonly IIncidentManagementService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload> _pagerDutyincidentManagementService;
 
     public PagerDutyIncidentHandlingService(
         IPagerDutyService pagerDutyService,
@@ -17,8 +17,8 @@ public class PagerDutyIncidentHandlingService : IncidentHandlingServiceBase<Page
         IThreadRepository repository,
         ILogger<PagerDutyIncidentHandlingService> logger,
         Tracer tracer,
-        IIncidentManagementService<PagerDutyIncidentDocument> pagerDutyincidentManagementService,
-        IIncidentFilterManagementService<PagerDutyIncidentFilterDocument> incidentFilterManagementService,
+        IIncidentManagementService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload> pagerDutyincidentManagementService,
+        IIncidentFilterManagementService<PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload> incidentFilterManagementService,
         IIncidentHandlerManagementService incidentHandlerManagementService)
         : base(repository, inboundCommunicationService, incidentFilterManagementService, incidentHandlerManagementService, logger, tracer)
     {
@@ -84,16 +84,17 @@ public class PagerDutyIncidentHandlingService : IncidentHandlingServiceBase<Page
     protected override PagerDutyIncidentFilterDocument GetDefaultIncidentFilter(IncidentHandlingRequestModel<PagerDutyIncidentFilterDocumentPayload> request)
     {
         string filterId = $"IncidentFilter_PagerDuty";
-        return new PagerDutyIncidentFilterDocument(
-           Id: filterId,
-            DocumentType: filterId,
-            Name: request?.IncidentFilter?.Name ?? filterId,
-            AlertId: request?.IncidentFilter?.AlertId ?? filterId,
-            AgentMode: request?.IncidentFilter?.AgentMode ?? "",
-            ImpactedService: request?.IncidentFilter?.ImpactedService ?? "",
-            Priority: request?.IncidentFilter?.Priority ?? "",
-            IncidentType: request?.IncidentFilter?.IncidentType ?? "",
-            TitleContains: request?.IncidentFilter?.TitleContains ?? "",
-            CreatedAt: DateTime.UtcNow);
+        return new PagerDutyIncidentFilterDocument()
+        {
+            Id = filterId,
+            Name = request?.IncidentFilter?.Name ?? filterId,
+            AlertId = request?.IncidentFilter?.AlertId ?? filterId,
+            AgentMode = request?.IncidentFilter?.AgentMode ?? "",
+            ImpactedService = request?.IncidentFilter?.ImpactedService ?? "",
+            Priority = request?.IncidentFilter?.Priority ?? "",
+            IncidentType = request?.IncidentFilter?.IncidentType ?? "",
+            TitleContains = request?.IncidentFilter?.TitleContains ?? "",
+            UpdatedAt = DateTime.UtcNow
+        };
     }
 }

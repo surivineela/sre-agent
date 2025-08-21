@@ -1,32 +1,19 @@
+using Agent.Core.Configuration;
+
 namespace Agent.Data.DataModels;
-public record PagerDutyIncidentFilterDocument: IncidentFilterDocument
+public record PagerDutyIncidentFilterDocument: PagerDutyIncidentFilterDocumentPayload, IIncidentFilterDocument
 {
     public PagerDutyIncidentFilterDocument(
-        string Id, // Filter Id
-        string DocumentType,
-        DateTime CreatedAt,
-        string Name,
-        string ImpactedService,
-        string Priority,
-        string IncidentType,
-        string AlertId,
-        string TitleContains,
-        bool IsEnabled = true,
-        string AgentMode = "",
-        string OwningTeamId = ""
-    ) : base(
-        Id,
-        DocumentType,
-        CreatedAt,
-        Name,
-        ImpactedService,
-        Priority,
-        IncidentType,
-        AlertId,
-        TitleContains,
-        IsEnabled,
-        AgentMode,
-        OwningTeamId
-    ){ }
+    ) : base()
+    { }
+    public static string ContainerName => AgentDataConfiguration.ThreadContainerName;
+
+    public bool IsDeleted { get; init; }
+    public DateTime UpdatedAt { get; init; }
+    public bool IsEnabled { get; init; } = true;
+
+    public string DocumentType { get; } = IncidentFilterDocumentUtilities.GetDocumentTypeName(IncidentManagementType.PagerDuty);
+
+    public string PartitionKey => DocumentType;
 }
-public class PagerDutyIncidentFilterDocumentPayload : IncidentFilterDocumentPayload { }
+public record PagerDutyIncidentFilterDocumentPayload : IncidentFilterDocumentPayload { }

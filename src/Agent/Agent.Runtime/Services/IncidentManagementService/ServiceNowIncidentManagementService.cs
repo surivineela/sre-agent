@@ -7,7 +7,7 @@ using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.Services;
-public class ServiceNowIncidentManagementService : IncidentManagementServiceBase<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocument>
+public class ServiceNowIncidentManagementService : IncidentManagementServiceBase<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload>
 {
     protected override string DocumentType => "ServiceNowIncident";
     private readonly IServiceNowAPIClient _serviceNowAPIClient;
@@ -16,7 +16,7 @@ public class ServiceNowIncidentManagementService : IncidentManagementServiceBase
         CosmosClient cosmosClient,
         CosmosDBSettings cosmosDbSettings,
         ILogger<ServiceNowIncidentManagementService> logger,
-        IIncidentFilterManagementService<ServiceNowIncidentFilterDocument> incidentFilterManagementService,
+        IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload> incidentFilterManagementService,
         IServiceNowAPIClient serviceNowAPIClient)
         : base(
           cosmosClient.GetContainer(
@@ -83,7 +83,7 @@ public class ServiceNowIncidentManagementService : IncidentManagementServiceBase
     }
 
 
-    public override async Task<IncidentQueryResult<ServiceNowIncidentDocument>> QueryIncidents(IncidentQueryRequest request)
+    public override async Task<IncidentQueryResult<ServiceNowIncidentDocument>> QueryIncidents(IncidentQueryRequest<ServiceNowIncidentFilterDocumentPayload> request)
     {
         return await QueryIncidentsInternal(request);
     }

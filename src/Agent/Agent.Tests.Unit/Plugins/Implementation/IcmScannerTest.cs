@@ -17,8 +17,8 @@ public class IcmScannerTest
     private readonly Mock<IICMAPIClient> _mockIcmApiClient;
     private readonly Mock<CosmosClient> _mockCosmosClient;
     private readonly Mock<IIncidentHandlingService<IcmIncidentFilterDocumentPayload>> _mockIncidentHandlingService;
-    private readonly Mock<IIncidentManagementService<IcmIncidentDocument>> _mockIncidentManagementService;
-    private readonly Mock<IIncidentFilterManagementService<IcmIncidentFilterDocument>> _mockIncidentFilterManagementService;
+    private readonly Mock<IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>> _mockIncidentManagementService;
+    private readonly Mock<IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload>> _mockIncidentFilterManagementService;
     private readonly Mock<IAgentInboundCommunicationService> _mockAgentInboundCommunicationService;
     private readonly Mock<IAgentOutboundCommunicationService> _mockAgentOutboundCommunicationService;
     private readonly Mock<IICMPlugin> _mockIcmPlugin;
@@ -33,8 +33,8 @@ public class IcmScannerTest
         _mockCosmosClient = new Mock<CosmosClient>();
         _mockContainer = new Mock<Container>();
         _mockIncidentHandlingService = new Mock<IIncidentHandlingService<IcmIncidentFilterDocumentPayload>>();
-        _mockIncidentManagementService = new Mock<IIncidentManagementService<IcmIncidentDocument>>();
-        _mockIncidentFilterManagementService = new Mock<IIncidentFilterManagementService<IcmIncidentFilterDocument>>();
+        _mockIncidentManagementService = new Mock<IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>>();
+        _mockIncidentFilterManagementService = new Mock<IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload>>();
         _mockAgentInboundCommunicationService = new Mock<IAgentInboundCommunicationService>();
         _mockAgentOutboundCommunicationService = new Mock<IAgentOutboundCommunicationService>();
         _mockIcmPlugin = new Mock<IICMPlugin>();
@@ -115,17 +115,19 @@ public class IcmScannerTest
     {
         return new List<IcmIncidentFilterDocument>
         {
-            new IcmIncidentFilterDocument(
-                Id: "filter1",
-                DocumentType: "IncidentFilterIcm",
-                CreatedAt: DateTime.UtcNow,
-                Name: "Test Filter",
-                ImpactedService: "",
-                Priority: "",
-                IncidentType: "",
-                AlertId: "",
-                TitleContains: titleContains
-            )
+            new IcmIncidentFilterDocument
+            {
+                Id = "filter1",
+                UpdatedAt = DateTime.UtcNow,
+                Name = "Test Filter",
+                ImpactedService = "",
+                Priority = "",
+                IncidentType = "",
+                AlertId = "",
+                TitleContains = titleContains,
+                IsEnabled = true,
+                AgentMode = ""
+            }
         };
     }
 
@@ -162,7 +164,7 @@ public class IcmScannerTest
     public async Task ScanAsync_WithNonIcmFilter_SkipsScanForThatFilter()
     {
         var title = "Test Incident";
-        var filters = GetIncidentFilters(title).Select(f => f.DocumentType == "IncidentFilterServiceNow").ToList(); //Wrong filter type
+        var filters = GetIncidentFilters(title).Where(f => f.DocumentType == "IncidentFilterServiceNow").ToList(); //Wrong filter type
 
         var incident = GetIncident(title);
         _mockIcmApiClient.Setup(c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<List<string>>()))

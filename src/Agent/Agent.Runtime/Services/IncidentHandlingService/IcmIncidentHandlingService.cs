@@ -1,4 +1,3 @@
-using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Services;
 using Agent.Data.DataModels;
@@ -10,7 +9,7 @@ namespace Agent.Runtime.Services;
 public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmIncidentDocument, IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload>
 {
     private readonly IICMAPIClient _icmApiClient;
-    private readonly IIncidentManagementService<IcmIncidentDocument> _icmIncidentManagementService;
+    private readonly IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload> _icmIncidentManagementService;
 
     public IcmIncidentHandlingService(
         IICMAPIClient icmApiClient,
@@ -18,8 +17,8 @@ public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmInciden
         IThreadRepository repository,
         ILogger<IcmIncidentHandlingService> logger,
         Tracer tracer,
-        IIncidentManagementService<IcmIncidentDocument> icmIncidentManagementService,
-        IIncidentFilterManagementService<IcmIncidentFilterDocument> incidentFilterManagementService,
+        IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload> icmIncidentManagementService,
+        IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload> incidentFilterManagementService,
         IIncidentHandlerManagementService incidentHandlerManagementService)
         : base(repository, inboundCommunicationService, incidentFilterManagementService, incidentHandlerManagementService, logger, tracer)
     {
@@ -74,16 +73,17 @@ public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmInciden
     protected override IcmIncidentFilterDocument GetDefaultIncidentFilter(IncidentHandlingRequestModel<IcmIncidentFilterDocumentPayload> request)
     {
         string filterId = $"IncidentFilter_ICM";
-        return new IcmIncidentFilterDocument(
-           Id: filterId,
-            DocumentType: filterId,
-            Name: request?.IncidentFilter?.Name ?? filterId,
-            AlertId: request?.IncidentFilter?.AlertId ?? filterId,
-            AgentMode: request?.IncidentFilter?.AgentMode ?? "",
-            ImpactedService: request?.IncidentFilter?.ImpactedService ?? "",
-            Priority: request?.IncidentFilter?.Priority ?? "",
-            IncidentType: request?.IncidentFilter?.IncidentType ?? "",
-            TitleContains: request?.IncidentFilter?.TitleContains ?? "",
-            CreatedAt: DateTime.UtcNow);
+        return new IcmIncidentFilterDocument()
+        {
+            Id = filterId,
+            Name = request?.IncidentFilter?.Name ?? filterId,
+            AlertId = request?.IncidentFilter?.AlertId ?? filterId,
+            AgentMode = request?.IncidentFilter?.AgentMode ?? "",
+            ImpactedService = request?.IncidentFilter?.ImpactedService ?? "",
+            Priority = request?.IncidentFilter?.Priority ?? "",
+            IncidentType = request?.IncidentFilter?.IncidentType ?? "",
+            TitleContains = request?.IncidentFilter?.TitleContains ?? "",
+            UpdatedAt = DateTime.UtcNow
+        };
     }
 }

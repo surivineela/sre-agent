@@ -30,8 +30,8 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         private readonly Mock<CosmosClient> _mockCosmosClient;
         private readonly Mock<Container> _mockContainer;
         private readonly Mock<IIncidentHandlingService<ServiceNowIncidentFilterDocumentPayload>> _mockIncidentHandlingService;
-        private readonly Mock<IIncidentManagementService<ServiceNowIncidentDocument>> _mockIncidentManagementService;
-        private readonly Mock<IIncidentFilterManagementService<ServiceNowIncidentFilterDocument>> _mockIncidentFilterManagementService;
+        private readonly Mock<IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload>> _mockIncidentManagementService;
+        private readonly Mock<IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload>> _mockIncidentFilterManagementService;
         private readonly Mock<IAgentInboundCommunicationService> _mockAgentInboundCommunicationService;
         private readonly CosmosDBSettings _cosmosDbSettings;
 
@@ -42,8 +42,8 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             _mockCosmosClient = new Mock<CosmosClient>();
             _mockContainer = new Mock<Container>();
             _mockIncidentHandlingService = new Mock<IIncidentHandlingService<ServiceNowIncidentFilterDocumentPayload>>();
-            _mockIncidentManagementService = new Mock<IIncidentManagementService<ServiceNowIncidentDocument>>();
-            _mockIncidentFilterManagementService = new Mock<IIncidentFilterManagementService<ServiceNowIncidentFilterDocument>>();
+            _mockIncidentManagementService = new Mock<IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload>>();
+            _mockIncidentFilterManagementService = new Mock<IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload>>();
             _mockAgentInboundCommunicationService = new Mock<IAgentInboundCommunicationService>();
 
             _cosmosDbSettings = new CosmosDBSettings
@@ -111,18 +111,21 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Arrange
             var filters = new List<ServiceNowIncidentFilterDocument>
             {
-                new ServiceNowIncidentFilterDocument(
-                    Id: "filter1",
-                    DocumentType: "IncidentFilterIcm", // wrong document type
-                    CreatedAt: DateTime.UtcNow,
-                    Name: "Test Filter",
-                    ImpactedService: "TestService",
-                    Priority: "1",
-                    IncidentType: "Icm",
-                    AlertId: "alert1",
-                    TitleContains: "Test"
-                )
+                new ServiceNowIncidentFilterDocument
+                {
+                    Id = "filter1",
+                    UpdatedAt = DateTime.UtcNow,
+                    Name = "Test Filter",
+                    ImpactedService = "TestService",
+                    Priority = "1",
+                    IncidentType = "ServiceNow",
+                    AlertId = "alert1",
+                    TitleContains = "Test"
+                }
             };
+
+           filters = filters.Where(f => f.DocumentType == "IncidentFilterIcm").ToList();
+
             _mockIncidentFilterManagementService.Setup(s => s.ListIncidentFilters()).ReturnsAsync(filters);
             var lastScanTimeDocResponse = new Mock<ItemResponse<LastScanTimeDoc>>();
             lastScanTimeDocResponse.Setup(r => r.Resource).Returns(new LastScanTimeDoc());
@@ -156,17 +159,17 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Arrange
             var filters = new List<ServiceNowIncidentFilterDocument>
             {
-                new ServiceNowIncidentFilterDocument(
-                    Id: "filter1",
-                    DocumentType: "IncidentFilterServiceNow",
-                    CreatedAt: DateTime.UtcNow,
-                    Name: "Test Filter",
-                    ImpactedService: "",
-                    Priority: "",
-                    IncidentType: "ServiceNow",
-                    AlertId: "",
-                    TitleContains: ""
-                )
+                new ServiceNowIncidentFilterDocument
+                {
+                    Id = "filter1",
+                    UpdatedAt = DateTime.UtcNow,
+                    Name = "Test Filter",
+                    ImpactedService = "",
+                    Priority = "",
+                    IncidentType = "ServiceNow",
+                    AlertId = "",
+                    TitleContains = ""
+                }
             };
             _mockIncidentFilterManagementService.Setup(s => s.ListIncidentFilters()).ReturnsAsync(filters);
 
@@ -225,17 +228,17 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Arrange
             var filters = new List<ServiceNowIncidentFilterDocument>
             {
-                new ServiceNowIncidentFilterDocument(
-                    Id: "filter1",
-                    DocumentType: "IncidentFilterServiceNow",
-                    CreatedAt: DateTime.UtcNow,
-                    Name: "Test Filter",
-                    ImpactedService: "",
-                    Priority: "",
-                    IncidentType: "ServiceNow",
-                    AlertId: "",
-                    TitleContains: ""
-                )
+                new ServiceNowIncidentFilterDocument
+                {
+                    Id = "filter1",
+                    UpdatedAt = DateTime.UtcNow,
+                    Name = "Test Filter",
+                    ImpactedService = "",
+                    Priority = "",
+                    IncidentType = "ServiceNow",
+                    AlertId = "",
+                    TitleContains = ""
+                }
             };
             _mockIncidentFilterManagementService.Setup(s => s.ListIncidentFilters()).ReturnsAsync(filters);
 

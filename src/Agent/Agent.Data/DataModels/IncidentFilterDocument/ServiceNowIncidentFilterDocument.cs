@@ -1,33 +1,22 @@
+using Agent.Core.Configuration;
+
 namespace Agent.Data.DataModels;
-public record ServiceNowIncidentFilterDocument : IncidentFilterDocument
+public record ServiceNowIncidentFilterDocument : ServiceNowIncidentFilterDocumentPayload, IIncidentFilterDocument
 {
     public ServiceNowIncidentFilterDocument(
-        string Id, // Filter Id
-        string DocumentType,
-        DateTime CreatedAt,
-        string Name,
-        string ImpactedService,
-        string Priority,
-        string IncidentType,
-        string AlertId,
-        string TitleContains,
-        bool IsEnabled = true,
-        string AgentMode = "",
-        string OwningTeamId = ""
-    ) : base(
-        Id,
-        DocumentType,
-        CreatedAt,
-        Name,
-        ImpactedService,
-        Priority,
-        IncidentType,
-        AlertId,
-        TitleContains,
-        IsEnabled,
-        AgentMode,
-        OwningTeamId
-    )
+    ) : base()
     { }
+
+    public static string ContainerName => AgentDataConfiguration.ThreadContainerName;
+
+    public bool IsDeleted { get; init; }
+    public DateTime UpdatedAt { get; init; }
+    public bool IsEnabled { get; init; } = true;
+
+    public string DocumentType { get; } = IncidentFilterDocumentUtilities.GetDocumentTypeName(IncidentManagementType.ServiceNow);
+
+    public string PartitionKey => DocumentType;
 }
-public class ServiceNowIncidentFilterDocumentPayload : IncidentFilterDocumentPayload { }
+public record ServiceNowIncidentFilterDocumentPayload : IncidentFilterDocumentPayload {
+    public ServiceNowIncidentFilterDocumentPayload() : base() { }
+}

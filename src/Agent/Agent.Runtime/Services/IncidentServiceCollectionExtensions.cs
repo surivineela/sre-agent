@@ -40,8 +40,8 @@ public static class IncidentServiceCollectionExtensions
                 services.AddSingleton<IIncidentScanner, PagerDutyScanner>();
 
                 services.AddSingleton<IIncidentHandlingService<PagerDutyIncidentFilterDocumentPayload>, PagerDutyIncidentHandlingService>();
-                services.AddSingleton<IIncidentManagementService<PagerDutyIncidentDocument>, PagerDutyIncidentManagementService>();
-                services.AddSingleton<IIncidentFilterManagementService<PagerDutyIncidentFilterDocument>, PagerDutyIncidentFilterManagementService>();
+                services.AddSingleton<IIncidentManagementService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload>, PagerDutyIncidentManagementService>();
+                services.AddSingleton<IIncidentFilterManagementService<PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload>, PagerDutyIncidentFilterManagementService>();
                 break;
 
             case IncidentManagementType.Icm:
@@ -54,8 +54,8 @@ public static class IncidentServiceCollectionExtensions
                 ICMAPITokenService.Instance.Initialize(actionSettings, incidentManagementSettings.ICMAPI, logger);
 
                 services.AddSingleton<IIncidentHandlingService<IcmIncidentFilterDocumentPayload>, IcmIncidentHandlingService>();
-                services.AddSingleton<IIncidentManagementService<IcmIncidentDocument>, IcmIncidentManagementService>();
-                services.AddSingleton<IIncidentFilterManagementService<IcmIncidentFilterDocument>, IcmIncidentFilterManagementService>();
+                services.AddSingleton<IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>, IcmIncidentManagementService>();
+                services.AddSingleton<IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload>, IcmIncidentFilterManagementService>();
                 break;
 
             case IncidentManagementType.ServiceNow:
@@ -63,8 +63,8 @@ public static class IncidentServiceCollectionExtensions
                 services.AddSingleton<IIncidentScanner, ServiceNowScanner>();
 
                 services.AddSingleton<IIncidentHandlingService<ServiceNowIncidentFilterDocumentPayload>, ServiceNowIncidentHandlingService>();
-                services.AddSingleton<IIncidentManagementService<ServiceNowIncidentDocument>, ServiceNowIncidentManagementService>();
-                services.AddSingleton<IIncidentFilterManagementService<ServiceNowIncidentFilterDocument>, ServiceNowIncidentFilterManagementService>();
+                services.AddSingleton<IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload>, ServiceNowIncidentManagementService>();
+                services.AddSingleton<IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload>, ServiceNowIncidentFilterManagementService>();
                 break;
 
             default:
@@ -89,11 +89,7 @@ public interface IServiceFactory
 
 internal static class JsonExtensions
 {
-    public static T? DeserializeJson<T>(this JsonNode jsonNode, JsonSerializerOptions? options = null) {
-        if(jsonNode is null)
-        {
-            return default(T);
-        }
+    public static T DeserializeJson<T>(this JsonNode jsonNode, JsonSerializerOptions? options = null) {
         if(options is null)
         {
             options = new JsonSerializerOptions()
@@ -103,7 +99,12 @@ internal static class JsonExtensions
             };
         }
 
-        return JsonSerializer.Deserialize<T>(jsonNode, options);
+        T? res = JsonSerializer.Deserialize<T>(jsonNode, options);
+        if(res is null)
+        {
+            throw new JsonException($"Failed to deserialize JSON node to type {typeof(T).FullName}");
+        }
+        return res;
     }
 }
 
@@ -122,7 +123,9 @@ public abstract class IncidentServiceFactoryBase : IServiceFactory
 
 #region Incident Filter Management Service Factory
 public interface IIncidentFilterManagementServiceFactory : IServiceFactory {
-    public IIncidentFilterManagementService<T>? GetService<T>() where T : IncidentFilterDocument;
+    public IIncidentFilterManagementService<TIncidentFilterDocument, TIncidentFilterDocumentPayload>? GetService<TIncidentFilterDocument, TIncidentFilterDocumentPayload>()
+        where TIncidentFilterDocument : TIncidentFilterDocumentPayload, IIncidentFilterDocument
+        where TIncidentFilterDocumentPayload : IncidentFilterDocumentPayload;
 
     public Task<object> SaveIncidentFilter(JsonNode incidentFilterDocument);
 }
@@ -131,10 +134,12 @@ public class IncidentFilterManagementServiceFactory : IncidentServiceFactoryBase
 {
     public IncidentFilterManagementServiceFactory(IServiceProvider serviceProvider) : base(serviceProvider) { }
 
-    public IIncidentFilterManagementService<T>? GetService<T>() where T : IncidentFilterDocument
+    public IIncidentFilterManagementService<TIncidentFilterDocument, TIncidentFilterDocumentPayload>? GetService<TIncidentFilterDocument, TIncidentFilterDocumentPayload>()
+        where TIncidentFilterDocument : TIncidentFilterDocumentPayload, IIncidentFilterDocument
+        where TIncidentFilterDocumentPayload : IncidentFilterDocumentPayload
     {
-        try { 
-            return _serviceProvider.GetRequiredService<IIncidentFilterManagementService<T>>();
+        try {
+            return _serviceProvider.GetRequiredService<IIncidentFilterManagementService<TIncidentFilterDocument, TIncidentFilterDocumentPayload>>();
         }
         catch (Exception)
         {
@@ -146,9 +151,9 @@ public class IncidentFilterManagementServiceFactory : IncidentServiceFactoryBase
     {
         return _incidentManagementType switch
         {
-            IncidentManagementType.PagerDuty => _serviceProvider.GetRequiredService<IIncidentFilterManagementService<PagerDutyIncidentFilterDocument>>(),
-            IncidentManagementType.Icm => _serviceProvider.GetRequiredService<IIncidentFilterManagementService<IcmIncidentFilterDocument>>(),
-            IncidentManagementType.ServiceNow => _serviceProvider.GetRequiredService<IIncidentFilterManagementService<ServiceNowIncidentFilterDocument>>(),
+            IncidentManagementType.PagerDuty => _serviceProvider.GetRequiredService<IIncidentFilterManagementService<PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload>>(),
+            IncidentManagementType.Icm => _serviceProvider.GetRequiredService<IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload>>(),
+            IncidentManagementType.ServiceNow => _serviceProvider.GetRequiredService<IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload>>(),
             _ => throw new NotSupportedException($"Unsupported incident management type: {_incidentManagementType}")
         };
     }
@@ -157,9 +162,9 @@ public class IncidentFilterManagementServiceFactory : IncidentServiceFactoryBase
     {
         return _incidentManagementType switch
         {
-            IncidentManagementType.PagerDuty => await _serviceProvider.GetRequiredService<IIncidentFilterManagementService<PagerDutyIncidentFilterDocument>>().SaveIncidentFilter(incidentFilterDocument.DeserializeJson<PagerDutyIncidentFilterDocument>()),
-            IncidentManagementType.Icm => await _serviceProvider.GetRequiredService<IIncidentFilterManagementService<IcmIncidentFilterDocument>>().SaveIncidentFilter(incidentFilterDocument.DeserializeJson<IcmIncidentFilterDocument>()),
-            IncidentManagementType.ServiceNow => await _serviceProvider.GetRequiredService<IIncidentFilterManagementService<ServiceNowIncidentFilterDocument>>().SaveIncidentFilter(incidentFilterDocument.DeserializeJson<ServiceNowIncidentFilterDocument>()),
+            IncidentManagementType.PagerDuty => await _serviceProvider.GetRequiredService<IIncidentFilterManagementService<PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload>>().SaveIncidentFilter(incidentFilterDocument.DeserializeJson<PagerDutyIncidentFilterDocument>()),
+            IncidentManagementType.Icm => await _serviceProvider.GetRequiredService<IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload>>().SaveIncidentFilter(incidentFilterDocument.DeserializeJson<IcmIncidentFilterDocument>()),
+            IncidentManagementType.ServiceNow => await _serviceProvider.GetRequiredService<IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload>>().SaveIncidentFilter(incidentFilterDocument.DeserializeJson<ServiceNowIncidentFilterDocument>()),
             _ => throw new NotSupportedException($"Unsupported incident management type: {_incidentManagementType}")
         };
     }
@@ -169,18 +174,20 @@ public class IncidentFilterManagementServiceFactory : IncidentServiceFactoryBase
 #region IncidentManagementServiceFactory
 public interface IIncidentManagementServiceFactory : IServiceFactory
 {
-    public IIncidentManagementService<T>? GetService<T>() where T : IIncidentDocument;
+    public IIncidentManagementService<TIncidentDocument, TIncidentFilterDocumentPayload>? GetService<TIncidentDocument, TIncidentFilterDocumentPayload>() where TIncidentDocument : IIncidentDocument where TIncidentFilterDocumentPayload : IncidentFilterDocumentPayload;
     public Task<object?> SaveDocument(JsonNode? incidentDocument);
+
+    public Task<object> QueryIncidents(JsonNode request);
 }
 
 public class IncidentManagementServiceFactory : IncidentServiceFactoryBase, IIncidentManagementServiceFactory
 {
     public IncidentManagementServiceFactory(IServiceProvider serviceProvider) : base(serviceProvider) { }
-    public IIncidentManagementService<T>? GetService<T>() where T : IIncidentDocument
+    public IIncidentManagementService<TIncidentDocument, TIncidentFilterDocumentPayload>? GetService<TIncidentDocument, TIncidentFilterDocumentPayload>() where TIncidentDocument : IIncidentDocument where TIncidentFilterDocumentPayload : IncidentFilterDocumentPayload
     {
         try
         {
-            return _serviceProvider.GetRequiredService<IIncidentManagementService<T>>();
+            return _serviceProvider.GetRequiredService<IIncidentManagementService<TIncidentDocument, TIncidentFilterDocumentPayload>>();
         }
         catch (Exception)
         {
@@ -191,12 +198,24 @@ public class IncidentManagementServiceFactory : IncidentServiceFactoryBase, IInc
     {
         return _incidentManagementType switch
         {
-            IncidentManagementType.PagerDuty => _serviceProvider.GetRequiredService<IIncidentManagementService<PagerDutyIncidentDocument>>(),
-            IncidentManagementType.Icm => _serviceProvider.GetRequiredService<IIncidentManagementService<IcmIncidentDocument>>(),
-            IncidentManagementType.ServiceNow => _serviceProvider.GetRequiredService<IIncidentManagementService<ServiceNowIncidentDocument>>(),
+            IncidentManagementType.PagerDuty => _serviceProvider.GetRequiredService<IIncidentManagementService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload>>(),
+            IncidentManagementType.Icm => _serviceProvider.GetRequiredService<IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>>(),
+            IncidentManagementType.ServiceNow => _serviceProvider.GetRequiredService<IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload>>(),
             _ => throw new NotSupportedException($"Unsupported incident management type: {_incidentManagementType}")
         };
     }
+
+    public async Task<object> QueryIncidents(JsonNode request)
+    {
+        return _incidentManagementType switch
+        {
+            IncidentManagementType.PagerDuty => await _serviceProvider.GetRequiredService<IIncidentManagementService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload>>().QueryIncidents(request.DeserializeJson<IncidentQueryRequest<PagerDutyIncidentFilterDocumentPayload>>()),
+            IncidentManagementType.Icm => await _serviceProvider.GetRequiredService<IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>>().QueryIncidents(request.DeserializeJson<IncidentQueryRequest<IcmIncidentFilterDocumentPayload>>()),
+            IncidentManagementType.ServiceNow => await _serviceProvider.GetRequiredService<IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload>>().QueryIncidents(request.DeserializeJson<IncidentQueryRequest<ServiceNowIncidentFilterDocumentPayload>>()),
+            _ => throw new NotSupportedException($"Unsupported incident management type: {_incidentManagementType}")
+        };
+    }
+
     public async Task<object?> SaveDocument(JsonNode? incidentDocument)
     {
         if(incidentDocument == null)
@@ -205,9 +224,9 @@ public class IncidentManagementServiceFactory : IncidentServiceFactoryBase, IInc
         }
         return _incidentManagementType switch
         {
-            IncidentManagementType.PagerDuty => await _serviceProvider.GetRequiredService<IIncidentManagementService<PagerDutyIncidentDocument>>().SaveDocument(JsonSerializer.Deserialize<PagerDutyIncidentDocument>(incidentDocument)),
-            IncidentManagementType.Icm => await _serviceProvider.GetRequiredService<IIncidentManagementService<IcmIncidentDocument>>().SaveDocument(JsonSerializer.Deserialize<IcmIncidentDocument>(incidentDocument)),
-            IncidentManagementType.ServiceNow => await _serviceProvider.GetRequiredService<IIncidentManagementService<ServiceNowIncidentDocument>>().SaveDocument(JsonSerializer.Deserialize<ServiceNowIncidentDocument>(incidentDocument)),
+            IncidentManagementType.PagerDuty => await _serviceProvider.GetRequiredService<IIncidentManagementService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload>>().SaveDocument(JsonSerializer.Deserialize<PagerDutyIncidentDocument>(incidentDocument)),
+            IncidentManagementType.Icm => await _serviceProvider.GetRequiredService<IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>>().SaveDocument(JsonSerializer.Deserialize<IcmIncidentDocument>(incidentDocument)),
+            IncidentManagementType.ServiceNow => await _serviceProvider.GetRequiredService<IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload>>().SaveDocument(JsonSerializer.Deserialize<ServiceNowIncidentDocument>(incidentDocument)),
             _ => throw new NotSupportedException($"Unsupported incident management type: {_incidentManagementType}")
         };
     }

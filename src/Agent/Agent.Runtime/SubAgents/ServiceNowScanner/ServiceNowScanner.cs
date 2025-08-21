@@ -1,5 +1,4 @@
 using System.Net;
-using System.Threading;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
@@ -8,7 +7,6 @@ using Agent.Core.Models.ServiceNow;
 using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DataModels;
-using Agent.Logging;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents.IcmScanner;
@@ -23,8 +21,8 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
     CosmosClient cosmosClient,
     CosmosDBSettings cosmosDbSettings,
     IIncidentHandlingService<ServiceNowIncidentFilterDocumentPayload> incidentHandlingService,
-    IIncidentManagementService<ServiceNowIncidentDocument> incidentManagementService,
-    IIncidentFilterManagementService<ServiceNowIncidentFilterDocument> incidentFilterManagementService,
+    IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload> incidentManagementService,
+    IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload> incidentFilterManagementService,
     IAgentInboundCommunicationService agentInboundCommunicationService) : IIncidentScanner
 {
     private readonly Container container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);

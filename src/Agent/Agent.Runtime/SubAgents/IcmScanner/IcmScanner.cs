@@ -19,8 +19,8 @@ public class IcmScanner(ILogger<IcmScanner> logger,
     CosmosClient cosmosClient,
     CosmosDBSettings cosmosDbSettings,
     IIncidentHandlingService<IcmIncidentFilterDocumentPayload> incidentHandlingService,
-    IIncidentManagementService<IcmIncidentDocument> incidentManagementService,
-    IIncidentFilterManagementService<IcmIncidentFilterDocument> incidentFilterManagementService,
+    IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload> incidentManagementService,
+    IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload> incidentFilterManagementService,
     IAgentInboundCommunicationService agentInboundCommunicationService,
     IAgentOutboundCommunicationService agentOutboundCommunicationService,
     IICMPlugin icmPlugin,
@@ -447,7 +447,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
     /// </summary>
     /// <param name="incidentDocument">Incident document</param>
     /// <param name="filterDocument">Filter document</param>
-    private async Task ProcessTeamSpecificIncident(IcmIncidentDocument incidentDocument, IncidentFilterDocument filterDocument)
+    private async Task ProcessTeamSpecificIncident(IcmIncidentDocument incidentDocument, IcmIncidentFilterDocumentPayload filterDocument)
     {
         try
         {

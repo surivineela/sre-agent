@@ -2,7 +2,6 @@ using Agent.Core.Interfaces;
 using Agent.Data.DataModels;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
-using static Agent.Data.DataModels.ServiceNowIncidentFilterDocument;
 
 namespace Agent.Runtime.Services;
 
@@ -12,7 +11,7 @@ namespace Agent.Runtime.Services;
 public class ServiceNowIncidentHandlingService : IncidentHandlingServiceBase<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload>
 {
     private readonly IServiceNowAPIClient _serviceNowAPIClient;
-    private readonly IIncidentManagementService<ServiceNowIncidentDocument> _serviceNowIncidentManagementService;
+    private readonly IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload> _serviceNowIncidentManagementService;
 
 
     public ServiceNowIncidentHandlingService(
@@ -21,8 +20,8 @@ public class ServiceNowIncidentHandlingService : IncidentHandlingServiceBase<Ser
         IThreadRepository repository,
         ILogger<ServiceNowIncidentHandlingService> logger,
         Tracer tracer,
-        IIncidentManagementService<ServiceNowIncidentDocument> serviceNowIncidentManagementService,
-        IIncidentFilterManagementService<ServiceNowIncidentFilterDocument> incidentFilterManagementService,
+        IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload> serviceNowIncidentManagementService,
+        IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload> incidentFilterManagementService,
         IIncidentHandlerManagementService incidentHandlerManagementService
         )
         : base(repository, inboundCommunicationService, incidentFilterManagementService, incidentHandlerManagementService, logger, tracer)
@@ -85,16 +84,17 @@ public class ServiceNowIncidentHandlingService : IncidentHandlingServiceBase<Ser
     protected override ServiceNowIncidentFilterDocument GetDefaultIncidentFilter(IncidentHandlingRequestModel<ServiceNowIncidentFilterDocumentPayload> request)
     {
         string filterId = $"IncidentFilter_ServiceNow";
-        return new ServiceNowIncidentFilterDocument(
-           Id: filterId,
-            DocumentType: filterId,
-            Name: request?.IncidentFilter?.Name ?? filterId,
-            AlertId: request?.IncidentFilter?.AlertId ?? filterId,
-            AgentMode: request?.IncidentFilter?.AgentMode ?? "",
-            ImpactedService: request?.IncidentFilter?.ImpactedService ?? "",
-            Priority: request?.IncidentFilter?.Priority ?? "",
-            IncidentType: request?.IncidentFilter?.IncidentType ?? "",
-            TitleContains: request?.IncidentFilter?.TitleContains ?? "",
-            CreatedAt: DateTime.UtcNow);
+        return new ServiceNowIncidentFilterDocument()
+        {
+            Id = filterId,
+            Name = request?.IncidentFilter?.Name ?? filterId,
+            AlertId = request?.IncidentFilter?.AlertId ?? filterId,
+            AgentMode = request?.IncidentFilter?.AgentMode ?? "",
+            ImpactedService = request?.IncidentFilter?.ImpactedService ?? "",
+            Priority = request?.IncidentFilter?.Priority ?? "",
+            IncidentType = request?.IncidentFilter?.IncidentType ?? "",
+            TitleContains = request?.IncidentFilter?.TitleContains ?? "",
+            UpdatedAt = DateTime.UtcNow
+        };
     }
 }

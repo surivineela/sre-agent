@@ -235,19 +235,19 @@ public class IncidentPlaygroundController : ControllerBase
             return Conflict("Incident filter with the same ID already exists. Use POST to update.");
         }
 
-        var filterDoc = new IncidentFilterDocument(
-            id,
-            $"IncidentFilter{_incidentManagementSettings.Type.ToString()}",
-            DateTime.UtcNow,
-            payload["Name"]?.ToString() ?? string.Empty,
-            payload["ImpactedService"]?.ToString() ?? string.Empty,
-            payload["Priority"]?.ToString() ?? string.Empty,
-            payload["IncidentType"]?.ToString() ?? string.Empty,
-            payload["AlertId"]?.ToString() ?? string.Empty,
-            payload["TitleContains"]?.ToString() ?? string.Empty,
-            true,
-            OwningTeamId: payload["OwningTeamId"]?.ToString() ?? string.Empty
-        );
+        var filterDoc = new IncidentFilterDocumentPayload
+        {
+            Id = id,
+            Name = payload["Name"]?.ToString() ?? string.Empty,
+            ImpactedService = payload["ImpactedService"]?.ToString() ?? string.Empty,
+            Priority = payload["Priority"]?.ToString() ?? string.Empty,
+            IncidentType = payload["IncidentType"]?.ToString() ?? string.Empty,
+            AlertId = payload["AlertId"]?.ToString() ?? string.Empty,
+            TitleContains = payload["TitleContains"]?.ToString() ?? string.Empty,
+            AgentMode = payload["AgentMode"]?.ToString() ?? string.Empty,
+            OwningTeamId = payload["OwningTeamId"]?.ToString() ?? string.Empty,
+            MaxAutomatedInvestigationAttempts = payload?["MaxAutomatedInvestigationAttempts"]?.GetValue<int>() ?? 3
+        };
 
         string agentMode = payload?["AgentMode"]?.ToString() ?? string.Empty;
         if (!string.IsNullOrWhiteSpace(agentMode))
@@ -255,7 +255,7 @@ public class IncidentPlaygroundController : ControllerBase
             bool isValid = _incidentFilterManagementServiceFactory.GetServiceDynamic().ValidateAgentMode(agentMode);
             if (isValid)
             {
-                filterDoc.AgentMode = agentMode;
+                filterDoc = filterDoc with { AgentMode = agentMode };
             }
             else
             {
@@ -284,13 +284,14 @@ public class IncidentPlaygroundController : ControllerBase
     {
         string id = payload?["Id"]?.ToString() ?? string.Empty;
         _logger.LogInternalInformation("SaveIncidentFilter: Invoked for FilterId: {FilterId}", id);
-        if (payload == null || string.IsNullOrEmpty(id))
+        if (payload is null || string.IsNullOrEmpty(id))
         {
             _logger.LogInternalWarning("SaveIncidentFilter: Invalid incident filter document");
             return BadRequest("Invalid incident filter document");
         }
-        var existingFilter = await _incidentFilterManagementServiceFactory.GetServiceDynamic().GetIncidentFilter(id);
-        if (existingFilter == null)
+ 
+        IncidentFilterDocumentPayload existingFilter = await _incidentFilterManagementServiceFactory.GetServiceDynamic().GetIncidentFilter(id);
+        if (existingFilter is null)
         {
             _logger.LogInternalWarning("SaveIncidentFilter: Filter not found for FilterId: {FilterId}", id);
             return NotFound("Incident filter not found. Use PUT to create a new filter.");
@@ -302,7 +303,7 @@ public class IncidentPlaygroundController : ControllerBase
             bool validateRes = _incidentFilterManagementServiceFactory.GetServiceDynamic().ValidateAgentMode(agentMode);
             if (validateRes)
             {
-                existingFilter.AgentMode = agentMode;
+                existingFilter = existingFilter with { AgentMode = agentMode };
             }
             else
             {
@@ -312,6 +313,12 @@ public class IncidentPlaygroundController : ControllerBase
 
         var existingDocJNode = JsonSerializer.SerializeToNode(existingFilter);
         MergeJsonNode(payload, existingDocJNode, new List<string>() { "AgentMode" });
+
+        if(existingDocJNode is null)
+        {
+            _logger.LogInternalWarning("SaveIncidentFilter: Filter document MergeJsonNode failed for FilterId: {FilterId}", id);
+            return BadRequest("Failed to serialize incident filter document");
+        }
 
         _logger.LogInternalInformation("SaveIncidentFilter: Saving filter for FilterId: {FilterId}", id);
         var saved = await _incidentFilterManagementServiceFactory.SaveIncidentFilter(existingDocJNode);
@@ -387,22 +394,22 @@ public class IncidentPlaygroundController : ControllerBase
     }
 
     [HttpPost("queryIncidents")]
-    public async Task<IActionResult> QueryIncidents([FromBody] IncidentQueryRequest request)
+    public async Task<IActionResult> QueryIncidents([FromBody]JsonNode request)
     {
-        _logger.LogInternalInformation("QueryIncidents: Invoked with Request: {Request}", Newtonsoft.Json.JsonConvert.SerializeObject(request));
+        _logger.LogInternalInformation("QueryIncidents: Invoked with Request: {Request}", JsonSerializer.Serialize(request));
         try
         {
-            if (request == null || request.Keywords == null)
+            if (request is null || (request["Keywords"] is null && request["Filter"] is null))
             {
                 _logger.LogInternalWarning("QueryIncidents: Invalid query request");
                 return BadRequest("Invalid query request");
             }
-            var incidents = await _incidentManagementServiceFactory.GetServiceDynamic().QueryIncidents(request);
+            var incidents = await _incidentManagementServiceFactory.QueryIncidents(request);
             return Ok(incidents);
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, "QueryIncidents: Error querying incidents with Request: {Request}", Newtonsoft.Json.JsonConvert.SerializeObject(request));
+            _logger.LogInternalError(ex, "QueryIncidents: Error querying incidents with Request: {Request}", JsonSerializer.Serialize(request));
             return StatusCode(500, "Failed to query incidents");
         }
     }

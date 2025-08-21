@@ -20,7 +20,7 @@ export interface IncidentQueryRequest {
     durationInDays?: number;
     filter?: IncidentFilterDocumentPayload;
     pageSize?: number;
-    pageNumber?: number;
+    pageNumber?: number; //1-based index
     statuses?: IncidentStatus[];
     searchTerm?: string;
 }
