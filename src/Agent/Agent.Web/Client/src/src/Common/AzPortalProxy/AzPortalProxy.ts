@@ -1,11 +1,12 @@
 import { Guid } from '../Helpers/Guid';
 import Url from '../Helpers/Url';
 import { AgentSiteToAzPortalVerbs, AzPortalToAgentSiteVerbs } from './AzPortalProxyVerbs';
+import { AmplitudeControlEvent, AmplitudeNavigationEvent, AmplitudeOperationEvent } from './Models/IAmplitude';
 import { IEnvironmentInfo } from './Models/IEnvironmentInfo';
 import { IEvent } from './Models/IEvent';
 import { INotificationInfo, INotificationState } from './Models/INotificationInfo';
 import { IBladeClosed, IBladeClosedResult, IOpenBlade, IOpenBladeRequest } from './Models/IOpenBlade';
-import { ITelemetryInfo } from './Models/ITelemetryInfo';
+import { ILogBladeErrorInfo, ITelemetryInfo } from './Models/ITelemetryInfo';
 import { ITokenInfo } from './Models/ITokenInfo';
 
 export const defaultSreAgentEndpoint = '..';
@@ -59,6 +60,30 @@ export default class AzPortalProxy {
 
     public log = (info: ITelemetryInfo) => {
         this.postMessage(AgentSiteToAzPortalVerbs.log, info);
+    };
+
+    public logAmplitudeOperationEvent = (amplitudeEvent: AmplitudeOperationEvent & { errorInfo?: ILogBladeErrorInfo }) => {
+        if (this._getDontLogAmplitudeTelemetry()) {
+            return;
+        }
+
+        this.postMessage(AgentSiteToAzPortalVerbs.logAmplitudeOperationEvent, amplitudeEvent);
+    };
+
+    public logAmplitudeControlEvent = (amplitudeEvent: AmplitudeControlEvent) => {
+        if (this._getDontLogAmplitudeTelemetry()) {
+            return;
+        }
+
+        this.postMessage(AgentSiteToAzPortalVerbs.logAmplitudeControlEvent, amplitudeEvent);
+    };
+
+    public logAmplitudeNavigationEvent = (amplitudeEvent: AmplitudeNavigationEvent) => {
+        if (this._getDontLogAmplitudeTelemetry()) {
+            return;
+        }
+
+        this.postMessage(AgentSiteToAzPortalVerbs.logAmplitudeNavigationEvent, amplitudeEvent);
     };
 
     public startNotification = (title: string, description: string) => {
@@ -217,5 +242,9 @@ export default class AzPortalProxy {
         }
 
         this.setEnvironmentInfo(AzPortalProxy.envInfo);
+    };
+
+    private _getDontLogAmplitudeTelemetry = () => {
+        return AzPortalProxy.inStandaloneMode || AzPortalProxy.envInfo.isCrossTenantPortalMode;
     };
 }

@@ -1,7 +1,8 @@
-import { INavLinkGroup, initializeIcons, Nav } from '@fluentui/react';
-import { FC, useEffect, useMemo, useState } from 'react';
+import { INavLink, INavLinkGroup, initializeIcons, Nav } from '@fluentui/react';
+import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
 import GrafanaDashboard from '../../GrafanaDashboard/GrafanaDashboard.ReactView';
 import { SettingsTabResources } from '../../Strings/SREAgentResources';
@@ -28,6 +29,8 @@ const Settings: FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const showDataConnectors = useConfigSetting(SettingNames.DataConnectors);
+
+    const { logAmplitudeNavigationEvent } = useAzPortalContext();
 
     const [iconsInitialized, setIconsInitialized] = useState(false);
     const selectedKey = useMemo(() => {
@@ -81,6 +84,22 @@ const Settings: FC = () => {
         [intl, showDataConnectors]
     );
 
+    const onNavLinkClick = useCallback(
+        (item?: INavLink) => {
+            if (item?.key && Object.values(SettingsKeys).includes(item.key as SettingsKeys) && item.key !== selectedKey) {
+                logAmplitudeNavigationEvent({
+                    targetType: 'tab',
+                    targetAction: 'tabItem',
+                    targetName: item.key,
+                    targetFriendlyName: item.key,
+                });
+
+                navigate({ ...location, pathname: `/views/settings/${item.key}` });
+            }
+        },
+        [selectedKey, location, navigate, logAmplitudeNavigationEvent]
+    );
+
     useEffect(() => {
         initializeIcons();
         setIconsInitialized(true);
@@ -89,16 +108,7 @@ const Settings: FC = () => {
     return (
         iconsInitialized && (
             <div style={styles.navContainerStyles}>
-                <Nav
-                    groups={navLinkGroups}
-                    styles={navStyles}
-                    selectedKey={selectedKey}
-                    onLinkClick={(_, item) => {
-                        if (item?.key && Object.values(SettingsKeys).includes(item.key as SettingsKeys) && item.key !== selectedKey) {
-                            navigate({ ...location, pathname: `/views/settings/${item.key}` });
-                        }
-                    }}
-                />
+                <Nav groups={navLinkGroups} styles={navStyles} selectedKey={selectedKey} onLinkClick={(_, item) => onNavLinkClick(item)} />
                 <div style={styles.navPivotContainer}>
                     {selectedKey === SettingsKeys.Basics && <Basics />}
                     {selectedKey === SettingsKeys.managedResources && <ManagedResources />}

@@ -6,7 +6,7 @@ import { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react
 import { useIntl } from 'react-intl';
 import { createHashRouter, Outlet, RouterProvider, useLocation, useNavigate } from 'react-router-dom';
 import AzPortalProxy from '../Common/AzPortalProxy/AzPortalProxy';
-import { AzPortalContext } from '../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import { AzPortalContext, useAzPortalContext } from '../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { AppInsightsClient } from '../Common/Clients/AppInsightsClient';
 import { AgentAccessLevel, IncidentManagementType } from '../Common/Contracts/Azure/SreAgent';
@@ -105,6 +105,7 @@ const TabsListWrapper: FC = () => {
     const theme = useContext(ThemeContext);
     const sreAgentContext = useContext(SreAgentContext);
     const { isCrossTenantPortalMode } = useContext(EnvironmentContext);
+    const { logAmplitudeNavigationEvent } = useAzPortalContext();
 
     const {
         agent: { setMode },
@@ -145,6 +146,14 @@ const TabsListWrapper: FC = () => {
 
     const onTabSelect = useCallback(
         (_: SelectTabEvent, data: SelectTabData) => {
+            const tabValue = typeof data.value === 'string' ? data.value : 'unknown';
+            logAmplitudeNavigationEvent({
+                targetType: 'tab',
+                targetAction: 'tabItem',
+                targetName: tabValue,
+                targetFriendlyName: tabValue,
+            });
+
             if (data.value === TabValues.Activities) {
                 if (!location.pathname?.startsWith('/views/activities')) {
                     navigate({ ...location, pathname: '/views/activities' });
@@ -163,7 +172,7 @@ const TabsListWrapper: FC = () => {
                 onLogsClick();
             }
         },
-        [location, navigate, onLogsClick]
+        [location, navigate, onLogsClick, logAmplitudeNavigationEvent]
     );
 
     useEffect(() => {
@@ -260,7 +269,7 @@ const SREAgentSpace: FC = () => {
             if (!inStandaloneMode && version) {
                 console.log(`
                     ╔═══════════════════════════════════╗
-                        SRE Agent Version: ${version}
+                      🤖 SRE Agent Version: ${version}
                     ╚═══════════════════════════════════╝
                 `);
                 azPortalProxy.log({

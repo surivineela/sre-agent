@@ -4,8 +4,10 @@ import { Dialog, DialogTrigger } from '@fluentui/react-dialog';
 import { AddRegular, PanelLeftContractRegular, PanelLeftExpandRegular, SearchRegular } from '@fluentui/react-icons';
 import { Text } from '@fluentui/react-text';
 import { tokens } from '@fluentui/react-theme';
-import { ForwardedRef, forwardRef, useContext } from 'react';
+import { ForwardedRef, forwardRef, useCallback, useContext } from 'react';
 import { useIntl } from 'react-intl';
+import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
+import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { KnowledgeGraphBuildStatusContext } from '../../Common/Providers/KnowledgeGraphBuildStatusProvider';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
 import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
@@ -43,10 +45,23 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
 
         const { activeThreadId } = useContext(AgentContext);
         const { hasChatPermissions } = useContext(KnowledgeGraphBuildStatusContext);
+        const { logAmplitudeControlEvent } = useAzPortalContext();
 
         const intl = useIntl();
 
         const { incidentMetrics } = useMetrics(oldestThreadModifiedTimestamp);
+
+        const onClickNewThread = useCallback(() => {
+            selectThread(null);
+            logAmplitudeControlEvent({
+                targetType: 'button',
+                targetAction: 'clicked',
+                targetName: 'newThread',
+                targetFriendlyName: 'New chat thread',
+                valueObjectName: SpecialControlValue.DoAction,
+                valueObjectFriendlyName: SpecialControlValue.DoAction,
+            });
+        }, [selectThread, logAmplitudeControlEvent]);
 
         return (
             <div className={threadMenuStyles.root}>
@@ -76,7 +91,7 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
                             minWidth: 'unset',
                         }}
                         icon={<AddRegular />}
-                        onClick={() => selectThread(null)}
+                        onClick={() => onClickNewThread()}
                         aria-label={intl.formatMessage(ActivitiesResources.createThreadButtonText)}
                         disabled={!hasChatPermissions}
                     >

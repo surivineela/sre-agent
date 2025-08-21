@@ -3,6 +3,9 @@ export class AgentSiteToAzPortalVerbs {
     public static readonly readyForData = 'readyForData'; // Portal absorbs the first ready message, so we need our own to indicate when the iframe is ready to receive data
     public static readonly message = 'message';
     public static readonly log = 'log';
+    public static readonly logAmplitudeOperationEvent = 'log-amplitude-operation-event';
+    public static readonly logAmplitudeNavigationEvent = 'log-amplitude-navigation-event';
+    public static readonly logAmplitudeControlEvent = 'log-amplitude-control-event';
     public static readonly updateNotification = 'update-notification';
     public static readonly openBlade = 'open-blade';
 }
