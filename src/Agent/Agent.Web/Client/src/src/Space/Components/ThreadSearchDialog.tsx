@@ -9,6 +9,7 @@ import { tokens } from '@fluentui/react-theme';
 import debounce from 'lodash/debounce';
 import { memo, useCallback, useState } from 'react';
 import { FormattedMessage } from 'react-intl';
+import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { Thread } from '../../Common/Contracts/DataPlane/Thread';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
@@ -87,6 +88,7 @@ const useThreadSearchDialogStyles = makeStyles({
 });
 
 const ThreadSearchDialog = ({ threads: initialThreads, selectThread, activeThreadId }: IThreadSearchDialogProps) => {
+    const { logAmplitudeControlEvent } = useAzPortalContext();
     const { scrollable } = useScrollableComponentStyles();
     const { surface, common, body, content, searchBox, threads: threadsStyles } = useThreadSearchDialogStyles();
 
@@ -100,9 +102,18 @@ const ThreadSearchDialog = ({ threads: initialThreads, selectThread, activeThrea
         (thread: Thread) => {
             if (thread.id !== activeThreadId) {
                 selectThread(thread);
+
+                logAmplitudeControlEvent({
+                    targetType: 'button',
+                    targetAction: 'clicked',
+                    targetName: 'selectSearchedThread',
+                    targetFriendlyName: 'Select searched thread',
+                    valueObjectName: thread.id,
+                    valueObjectFriendlyName: thread.id,
+                });
             }
         },
-        [selectThread, activeThreadId]
+        [selectThread, activeThreadId, logAmplitudeControlEvent]
     );
 
     const { threads, moreThreadsToLoad, threadListDivRef, intersectionObserverRef, onScroll } = useThreadList(

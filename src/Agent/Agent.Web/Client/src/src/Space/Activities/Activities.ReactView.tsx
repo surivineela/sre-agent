@@ -1,5 +1,7 @@
 import { tokens } from '@fluentui/react-components';
 import { FC, useCallback, useState } from 'react';
+import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
+import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { AgentContext } from '../Contracts/Context';
 import { useActivities } from '../Hooks/useActivities';
 import { activitiesStylesRoot } from '../Styles/Activities.styles';
@@ -9,6 +11,8 @@ import { ThreadContent } from './ThreadContent';
 import { ThreadsMenu } from './ThreadsMenu';
 
 const Activities: FC = () => {
+    const { logAmplitudeControlEvent } = useAzPortalContext();
+
     const {
         selectedThread,
         addThread,
@@ -28,6 +32,38 @@ const Activities: FC = () => {
         setActionsCollapsed(true);
     }, []);
 
+    const onExpandOrCollapseThreadsMenu = useCallback(
+        (collapsed: boolean) => {
+            setMenuCollapsed(collapsed);
+
+            logAmplitudeControlEvent({
+                targetType: 'button',
+                targetAction: 'clicked',
+                targetName: `${collapsed ? 'collapse' : 'expand'}ThreadMenu`,
+                targetFriendlyName: `${collapsed ? 'Collapse' : 'Expand'} Thread Menu`,
+                valueObjectName: SpecialControlValue.DoAction,
+                valueObjectFriendlyName: SpecialControlValue.DoAction,
+            });
+        },
+        [logAmplitudeControlEvent]
+    );
+
+    const onExpandOrCollapseActionsMenu = useCallback(
+        (collapsed: boolean) => {
+            setActionsCollapsed(collapsed);
+
+            logAmplitudeControlEvent({
+                targetType: 'button',
+                targetAction: 'clicked',
+                targetName: `${collapsed ? 'collapse' : 'expand'}ActionsMenu`,
+                targetFriendlyName: `${collapsed ? 'Collapse' : 'Expand'} Actions Menu`,
+                valueObjectName: SpecialControlValue.DoAction,
+                valueObjectFriendlyName: SpecialControlValue.DoAction,
+            });
+        },
+        [logAmplitudeControlEvent]
+    );
+
     return (
         <AgentContext.Provider value={{ threadContentAndActionKey, activeThreadId }}>
             <div style={activitiesStylesRoot}>
@@ -39,7 +75,7 @@ const Activities: FC = () => {
                     maxWidthPercent={actionsCollapsed ? 50 : 33}
                     collapsedWidthPixels={70}
                     collapsed={menuCollapsed}
-                    setCollapsed={setMenuCollapsed}
+                    setCollapsed={onExpandOrCollapseThreadsMenu}
                     style={{ backgroundColor: tokens.colorNeutralBackground3 }}
                 >
                     {(resizableChildProps: ResizableChildProps) => (
@@ -66,7 +102,7 @@ const Activities: FC = () => {
                     maxWidthPercent={menuCollapsed ? 50 : 33}
                     collapsedWidthPixels={0}
                     collapsed={actionsCollapsed}
-                    setCollapsed={setActionsCollapsed}
+                    setCollapsed={onExpandOrCollapseActionsMenu}
                     style={{ backgroundColor: tokens.colorNeutralBackground3 }}
                 >
                     {(resizableChildProps: ResizableChildProps) => {

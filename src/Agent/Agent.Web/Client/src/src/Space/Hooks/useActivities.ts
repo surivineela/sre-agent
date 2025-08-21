@@ -146,6 +146,13 @@ export const useActivities = () => {
 
                     if (isThreadUnread(welcomeThread)) {
                         selectThread(welcomeThread);
+
+                        proxy.logAmplitudeOperationEvent({
+                            targetType: 'load',
+                            targetAction: 'loaded',
+                            targetName: 'autoLoadWelcomeThread',
+                            targetFriendlyName: 'Auto-load welcome thread',
+                        });
                     }
                 }
             };
@@ -156,7 +163,7 @@ export const useActivities = () => {
         return () => {
             isSubscribed = false;
         };
-    }, [initialThreadId, activeThreadId, selectThread, threadClient]);
+    }, [initialThreadId, activeThreadId, selectThread, threadClient, proxy]);
 
     return {
         selectedThread,

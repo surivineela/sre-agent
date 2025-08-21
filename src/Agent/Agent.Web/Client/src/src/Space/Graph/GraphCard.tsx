@@ -1,6 +1,7 @@
 import { Card, CardHeader, mergeClasses, Text } from '@fluentui/react-components';
 import { Handle, Node, NodeProps, Position } from '@xyflow/react';
 import { memo, useContext, useMemo } from 'react';
+import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { getResourceTypeFriendlyName, resolveResourceIcon } from '../../Common/Helpers/Resources';
 import { GraphContext, GraphNode, HandlePosition } from '../Contracts/Graph';
 import { useGraphNodeStyles } from '../Styles/Graph.styles';
@@ -9,6 +10,7 @@ import { getAppHealthInfo, getHandleId } from './Utility';
 
 export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
     const { id, data } = props;
+    const { logAmplitudeControlEvent } = useAzPortalContext();
     const { hoverNode, unHoverNode, nodesToHighlight, selectedNode, setSelectedNode, hoveredNodeId, selectedAppGroupId } =
         useContext(GraphContext);
 
@@ -34,7 +36,7 @@ export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
         } else {
             return 'subscription';
         }
-    }, [data?.properties?.type]);
+    }, [data?.properties?.type, data?.properties?.kind]);
 
     const ResourceNameHeader = () =>
         data.name ? (
@@ -57,6 +59,15 @@ export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
             <Card
                 onClick={() => {
                     setSelectedNode(data);
+
+                    logAmplitudeControlEvent({
+                        targetType: 'button',
+                        targetAction: 'clicked',
+                        targetName: 'graphAppGroupCard',
+                        targetFriendlyName: 'Graph App Group card',
+                        valueObjectName: id,
+                        valueObjectFriendlyName: id,
+                    });
                 }}
                 className={cardStyles}
             >

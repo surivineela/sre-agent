@@ -10,10 +10,11 @@ import {
     Link,
     Textarea,
 } from '@fluentui/react-components';
-import { useContext, useState } from 'react';
+import { useCallback, useContext, useState } from 'react';
 import { FaGithub } from 'react-icons/fa';
 import { VscAzureDevops } from 'react-icons/vsc';
 import { FormattedMessage, useIntl } from 'react-intl';
+import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { ResourceInfoResources, SreAgentResources } from '../../Strings/SREAgentResources';
@@ -46,6 +47,7 @@ export const RepositoryConnectionDialog = ({
     onSuccess,
     triggerElement,
 }: RepositoryConnectionDialogProps) => {
+    const { logAmplitudeOperationEvent } = useAzPortalContext();
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const intl = useIntl();
 
@@ -57,6 +59,12 @@ export const RepositoryConnectionDialog = ({
         if (!resourceId || !repoUrl) return;
 
         setIsLinking(true);
+        logAmplitudeOperationEvent({
+            targetType: 'update',
+            targetAction: 'start',
+            targetName: 'connectRepository',
+            targetFriendlyName: 'Connect repository',
+        });
 
         try {
             let response;
@@ -97,7 +105,16 @@ export const RepositoryConnectionDialog = ({
                 return;
             }
 
-            if (!response?.ok) throw new Error('Failed to link repository');
+            const isSuccessful = response?.ok;
+
+            logAmplitudeOperationEvent({
+                targetType: 'update',
+                targetAction: isSuccessful ? 'success' : 'failed',
+                targetName: 'connectRepository',
+                targetFriendlyName: 'Connect repository',
+            });
+
+            if (!isSuccessful) throw new Error('Failed to link repository');
 
             // Reset form and close dialog
             setRepoUrl('');
@@ -187,11 +204,25 @@ interface ConnectRepositoryLinkProps {
 }
 
 export const ConnectRepositoryLink = ({ resourceId, onSuccess, className }: ConnectRepositoryLinkProps) => {
+    const { logAmplitudeControlEvent } = useAzPortalContext();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+    const onClickConnectRepository = useCallback(() => {
+        setIsDialogOpen(true);
+
+        logAmplitudeControlEvent({
+            targetType: 'button',
+            targetAction: 'clicked',
+            targetName: 'connectRepository',
+            targetFriendlyName: 'Connect repository',
+            valueObjectName: resourceId || '',
+            valueObjectFriendlyName: resourceId || '',
+        });
+    }, [logAmplitudeControlEvent, resourceId]);
 
     return (
         <>
-            <Link className={className} onClick={() => setIsDialogOpen(true)}>
+            <Link className={className} onClick={onClickConnectRepository}>
                 <FormattedMessage {...ResourceInfoResources.connectRepository} />
             </Link>
             <RepositoryConnectionDialog

@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useParams } from 'react-router-dom';
+import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { KnowledgeGraphBuildStatusContext } from '../../Common/Providers/KnowledgeGraphBuildStatusProvider';
@@ -15,6 +16,7 @@ import { useGraphLayout } from './useGraphLayout';
 export const useGraph = () => {
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const { hasChatPermissions } = useContext(KnowledgeGraphBuildStatusContext);
+    const { logAmplitudeControlEvent } = useAzPortalContext();
     const intl = useIntl();
     const allKey = 'all';
     const { groupId: initialGroupId } = useParams();
@@ -191,16 +193,26 @@ export const useGraph = () => {
             setSelectedAppGroup(appGroups[0]);
             setIsAppGroupLoading(false);
         }
+
+        logAmplitudeControlEvent({
+            targetType: 'dropdown',
+            targetAction: 'changed',
+            targetName: 'graphSubscriptionDropdown',
+            targetFriendlyName: 'Graph Subscription dropdown',
+            valueObjectName: selectedSubscription?.id || '',
+            valueObjectFriendlyName: selectedSubscription?.id || '',
+        });
     };
 
     const onSelectRscType = (_: SelectionEvents, data: OptionOnSelectData) => {
         const rscType = data.optionValue;
-        setSelectedRscType(rscType ?? allKey);
+        const defaultedRscType = rscType ?? allKey;
+        setSelectedRscType(defaultedRscType);
 
-        if (rscType === allKey) {
+        if (defaultedRscType === allKey) {
             setFilteredAppGroups(appGroups);
         } else {
-            const filteredAppGroups = appGroups.filter(appGroup => appGroup.type === rscType);
+            const filteredAppGroups = appGroups.filter(appGroup => appGroup.type === defaultedRscType);
             setFilteredAppGroups(filteredAppGroups);
 
             // Only set selection if current one is not in filtered results
@@ -208,12 +220,30 @@ export const useGraph = () => {
                 setSelectedAppGroup(filteredAppGroups[0]);
             }
         }
+
+        logAmplitudeControlEvent({
+            targetType: 'dropdown',
+            targetAction: 'changed',
+            targetName: 'graphRscTypeDropdown',
+            targetFriendlyName: 'Graph Resource type dropdown',
+            valueObjectName: defaultedRscType,
+            valueObjectFriendlyName: defaultedRscType,
+        });
     };
 
     const onSelectAppGroupDropdown = (_: SelectionEvents, data: OptionOnSelectData) => {
         const appGroupId = data.optionValue;
         const selectedAppGroup = appGroups.find(appGroup => appGroup.id === appGroupId);
         setSelectedAppGroup(selectedAppGroup);
+
+        logAmplitudeControlEvent({
+            targetType: 'dropdown',
+            targetAction: 'changed',
+            targetName: 'graphAppGroupDropdown',
+            targetFriendlyName: 'Graph App group dropdown',
+            valueObjectName: selectedAppGroup?.id || '',
+            valueObjectFriendlyName: selectedAppGroup?.id || '',
+        });
     };
 
     const hoverNode = useCallback(

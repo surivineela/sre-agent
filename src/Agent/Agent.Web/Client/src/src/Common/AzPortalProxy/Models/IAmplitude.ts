@@ -20,7 +20,19 @@ type NavigationActionVerb =
     | 'closeCurrentBlade'
     | 'resourceLink'
     | 'externalLink';
-type OperationActionVerb = 'validationFailed' | 'bladeDisposed' | 'deploy' | 'save' | 'update' | 'cancel' | 'upload' | 'refresh' | 'loaded';
+type OperationActionVerb =
+    | 'validationFailed'
+    | 'bladeDisposed'
+    | 'deploy'
+    | 'save'
+    | 'update'
+    | 'cancel'
+    | 'upload'
+    | 'refresh'
+    | 'loaded'
+    | 'start'
+    | 'success'
+    | 'failed';
 
 type AmplitudeBaseEvent<T, V> = {
     /** The type of the object that the event is for */

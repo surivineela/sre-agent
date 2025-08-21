@@ -14,6 +14,7 @@ import { Delete16Regular } from '@fluentui/react-icons';
 import { Label } from '@fluentui/react/lib/Label';
 import { FC, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import SreAgentClient from '../../Common/Clients/SreAgentClient';
@@ -94,6 +95,14 @@ const Basics: FC = () => {
                 resourceId,
             },
         });
+        az.logAmplitudeControlEvent({
+            targetType: 'button',
+            targetAction: 'clicked',
+            targetName: 'confirmDeleteAgent',
+            targetFriendlyName: 'Confirm delete agent',
+            valueObjectName: resourceId,
+            valueObjectFriendlyName: resourceId,
+        });
 
         const response = await SreAgentClient.deleteAgent(resourceId);
 
@@ -161,7 +170,21 @@ const Basics: FC = () => {
             </div>
             <Dialog open={deleteDialogOpen}>
                 <DialogTrigger disableButtonEnhancement>
-                    <Button icon={<Delete16Regular />} style={styles.deleteButtonStyle} onClick={() => setDeleteDialogOpen(true)}>
+                    <Button
+                        icon={<Delete16Regular />}
+                        style={styles.deleteButtonStyle}
+                        onClick={() => {
+                            setDeleteDialogOpen(true);
+                            az.logAmplitudeControlEvent({
+                                targetType: 'button',
+                                targetAction: 'clicked',
+                                targetName: 'deleteAgent',
+                                targetFriendlyName: 'Delete agent (dialog)',
+                                valueObjectName: SpecialControlValue.DoAction,
+                                valueObjectFriendlyName: SpecialControlValue.DoAction,
+                            });
+                        }}
+                    >
                         {intl.formatMessage(SreAgentResources.delete)}
                     </Button>
                 </DialogTrigger>

@@ -113,6 +113,16 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
                                                 borderRadius: tokens.borderRadiusLarge,
                                                 borderColor: tokens.colorNeutralBackground3Selected,
                                             }}
+                                            onClick={() => {
+                                                logAmplitudeControlEvent({
+                                                    targetType: 'button',
+                                                    targetAction: 'clicked',
+                                                    targetName: 'searchThreads',
+                                                    targetFriendlyName: 'Search threads',
+                                                    valueObjectName: SpecialControlValue.DoAction,
+                                                    valueObjectFriendlyName: SpecialControlValue.DoAction,
+                                                });
+                                            }}
                                         />
                                     </DialogTrigger>
                                     <ThreadSearchDialog threads={threads} selectThread={selectThread} activeThreadId={activeThreadId} />

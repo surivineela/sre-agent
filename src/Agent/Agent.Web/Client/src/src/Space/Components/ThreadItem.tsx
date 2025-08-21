@@ -2,8 +2,9 @@ import { Menu, MenuButton, MenuItem, MenuList, MenuPopover, MenuTrigger } from '
 import { CopyRegular, Delete20Regular, MoreHorizontal20Regular } from '@fluentui/react-icons';
 import { Text } from '@fluentui/react-text';
 import { mergeStyles } from '@fluentui/react/lib/Styling';
-import { forwardRef, memo, useContext, useMemo, useState } from 'react';
+import { forwardRef, memo, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import DeleteThreadDialog from '../../Common/Components/DeleteThreadDialog';
 import { IncidentStatus } from '../../Common/Contracts/Azure/SreAgent';
@@ -27,6 +28,7 @@ const ThreadItem = forwardRef<HTMLDivElement, IThreadItemProps>(({ thread, selec
     const styles = useActionsStatusBarStyles();
     const intl = useIntl();
     const { resourceId } = useContext(EnvironmentContext);
+    const { logAmplitudeControlEvent } = useAzPortalContext();
     const threadDeepLink = useThreadDeepLink(resourceId, thread.id);
 
     const [isHovered, setIsHovered] = useState(false);
@@ -54,17 +56,43 @@ const ThreadItem = forwardRef<HTMLDivElement, IThreadItemProps>(({ thread, selec
         return intl.formatMessage(SreAgentResources.active);
     };
 
+    const onSelectThread = useCallback(() => {
+        if (isActive) return;
+
+        selectThread(thread);
+        logAmplitudeControlEvent({
+            targetType: 'button',
+            targetAction: 'clicked',
+            targetName: 'selectThread',
+            targetFriendlyName: 'Select thread',
+            valueObjectName: thread.id,
+            valueObjectFriendlyName: thread.id,
+        });
+    }, [logAmplitudeControlEvent, thread, isActive, selectThread]);
+
+    const onConfirmDeleteThread = useCallback(() => {
+        if (!deleteThread) return;
+
+        deleteThread(thread);
+        logAmplitudeControlEvent({
+            targetType: 'button',
+            targetAction: 'clicked',
+            targetName: 'confirmDeleteThread',
+            targetFriendlyName: 'Confirm delete thread',
+            valueObjectName: thread.id,
+            valueObjectFriendlyName: thread.id,
+        });
+    }, [logAmplitudeControlEvent, thread, deleteThread]);
+
     return (
         <div
             ref={ref}
             onClick={() => {
-                if (!isActive) {
-                    selectThread(thread);
-                }
+                onSelectThread();
             }}
             onKeyDown={e => {
                 if (e.key.toLowerCase() === 'enter') {
-                    selectThread(thread);
+                    onSelectThread();
                     e.stopPropagation();
                 }
             }}
@@ -145,7 +173,7 @@ const ThreadItem = forwardRef<HTMLDivElement, IThreadItemProps>(({ thread, selec
                 thread={thread}
                 isOpen={isDeleteDialogOpen}
                 onOpenChange={setIsDeleteDialogOpen}
-                onConfirmDelete={() => deleteThread && deleteThread(thread)}
+                onConfirmDelete={() => onConfirmDeleteThread()}
                 source="ThreadItem"
             />
         </div>
