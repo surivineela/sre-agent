@@ -26,7 +26,7 @@ public interface IAgentFactory<TContext>
     public Agent<TContext> LoadAgentFromDescriptor(YamlAgentDescriptor yamlContent, bool isCustomAgent);
 
     // Overwrite existing agent agents, useful for loading agents with different prompts when some feature flags are enabled, e.g agent memory RAG
-    public void LoadYamlAgentsFromFolder(string folderPath, bool overwriteExistingAgents);
+    public void LoadYamlAgentsFromFolder(string folderPath, bool overwriteExistingAgents, bool recursive);
 
     public void LoadExtendedAgentsFromFolder(string folderPath, bool isCustomAgent);
 
@@ -416,7 +416,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         }
     }
 
-    public void LoadYamlAgentsFromFolder(string folderPath, bool overwriteExistingAgents)
+    public void LoadYamlAgentsFromFolder(string folderPath, bool overwriteExistingAgents, bool recursive)
     {
         if (string.IsNullOrEmpty(folderPath) || !Directory.Exists(folderPath))
         {
@@ -424,8 +424,9 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             throw new DirectoryNotFoundException($"Folder path {folderPath} does not exist.");
         }
 
-        var yamlFiles = Directory.GetFiles(folderPath, "*.yaml", SearchOption.AllDirectories)
-            .Concat(Directory.GetFiles(folderPath, "*.yml", SearchOption.AllDirectories));
+        var searchOption = recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+        var yamlFiles = Directory.GetFiles(folderPath, "*.yaml", searchOption)
+            .Concat(Directory.GetFiles(folderPath, "*.yml", searchOption));
 
         foreach (var yamlFile in yamlFiles)
         {

@@ -583,7 +583,7 @@ public class Program
 
                 if (isGPT5Enabled)
                 {
-                    factory.LoadYamlAgentsFromFolder(Path.Combine(AppContext.BaseDirectory, "AgentsGPT5"), overwriteExistingAgents: true);
+                    factory.LoadYamlAgentsFromFolder(Path.Combine(AppContext.BaseDirectory, "AgentsGPT5"), overwriteExistingAgents: true, recursive: true);
                 }
 
                 if (AgentMemoryRetrievalEnabled(builder))
@@ -591,16 +591,16 @@ public class Program
                     if (!isFirstPartyAgent)
                     {
                         var path = isGPT5Enabled
-                            ? Path.Combine(AppContext.BaseDirectory, "AgentsRAG", "ThirdParty", "GPT5")
-                            : Path.Combine(AppContext.BaseDirectory, "AgentsRAG", "ThirdParty");
-                        factory.LoadYamlAgentsFromFolder(path, overwriteExistingAgents: true);
+                            ? Path.Combine(AppContext.BaseDirectory, "AgentsRag", "ThirdParty", "GPT5")
+                            : Path.Combine(AppContext.BaseDirectory, "AgentsRag", "ThirdParty");
+                        factory.LoadYamlAgentsFromFolder(path, overwriteExistingAgents: true, recursive: false);
                     }
                     else
                     {
                         var path = isGPT5Enabled
-                            ? Path.Combine(AppContext.BaseDirectory, "AgentsRAG", "FirstParty", "GPT5")
-                            : Path.Combine(AppContext.BaseDirectory, "AgentsRAG", "FirstParty");
-                        factory.LoadYamlAgentsFromFolder(path, overwriteExistingAgents: true);
+                            ? Path.Combine(AppContext.BaseDirectory, "AgentsRag", "FirstParty", "GPT5")
+                            : Path.Combine(AppContext.BaseDirectory, "AgentsRag", "FirstParty");
+                        factory.LoadYamlAgentsFromFolder(path, overwriteExistingAgents: true, recursive: false);
                     }
                 }
 
