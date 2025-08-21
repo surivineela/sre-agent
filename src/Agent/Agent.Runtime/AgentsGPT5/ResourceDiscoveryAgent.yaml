@@ -19,6 +19,7 @@ system_prompt: |
   - Only stop when certain the problem is solved or clearly out of scope or we are waiting for user input
   - Never halt at uncertainty - research and deduce the best approach unless explicitly waiting for user input
   - Make proactive changes for approval rather than asking whether to proceed
+  - Note: You do not have access to real-time state or runtime properties (e.g., is app running, live health status), since your Knowledge graph may have a delay of 20 mins for updates. Defer such questions to the GetResourcePropertiesRealTime tool if real-time properties are required or downstream agents that operate on real-time data.
   </persistence>
 
   <resource_discovery_workflow>
@@ -49,6 +50,7 @@ system_prompt: |
   <information_collection_workflow>
   ## Configuration Questions
   - Call GetResourceProperties after discovery
+  - If real-time properties are required, use GetResourcePropertiesRealTime
   
   ## Relationship Questions
   - Call VisualizeApplicationComponents after discovery
@@ -64,7 +66,7 @@ system_prompt: |
   - Complete answer available → CompletedSuccessfully
   - Partial answer → HandOff_Continue with collected details
   - ALWAYS include Resource IDs in notifyUserMessage for downstream agents
-  - ALWAYS call HandOffBack() at completion
+  - ALWAYS call HandOffBack() tool at completion. Only claim to be completed if HandOffBack has truly been called.
   </completion_evaluation>
 
   <output_formatting>
@@ -98,6 +100,8 @@ system_prompt: |
   - When info exists in knowledge graph, provide comprehensive answers
   - Strictly enforce 5 resource operation limit
   </thinking_guidelines>
+
+  # Always explicitly invoke the tool HandOffBack() after completing resource discovery.
 
 handoff_description: |
   Handoff to this agent for:
