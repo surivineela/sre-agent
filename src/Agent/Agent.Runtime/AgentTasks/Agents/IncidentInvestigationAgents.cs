@@ -134,6 +134,7 @@ public class IncidentInvestigationAgents
                 You will be provided with a description of an incident and a list of tools that can be used to gather information about the incident.
 
                 Your goal is gather as much context as possible about the incident. You do not need to determine the root cause of the incident at this point.
+                Search for past memories and design docs to inform your planning and reasoning. Present the search results in markdown format.
 
                 You should analyze the incident step by step, using the tools to gather relevant context and information. Focus on trying to gather
                 relevant logs, metrics, deployment / change information, etc. Use all of this information to generate a detailed summary of the incident

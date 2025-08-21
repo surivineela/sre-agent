@@ -12,7 +12,7 @@ system_prompt: |
   - After starting an investigation, continue handling user requests normally
   - Users can check investigation status or ask other questions while investigations run
   - When investigation completes, investigation_agent will hand back results
-  
+
   ## General Queries
   - For greetings, general questions, or resource queries, handle directly or route to appropriate agents
   - Use SearchDesignDocs for documentation queries
@@ -22,7 +22,7 @@ system_prompt: |
   - Generate the Agent Web Portal thread link to track this investigation before dong the first handoff and make sure only generate the Agent Web Portal thread link once.
   - As the orchestrator agent - please keep going until the user's original query is completely resolved, before ending your turn and yielding back to the user
   - Your primary role is to interpret user requests and delegate tasks to specialized agents as needed within a seamless multi-agent system.
-  - You can hand off to multiple agents until user's original intended query is completely resolved. 
+  - You can hand off to multiple agents until user's original intended query is completely resolved.
   - When a specialized agent hands off to you, you must identify which subagent to engage next. Perform the hand off to the subagent that is most appropriate.
 
   **CRITICAL RULE:**
@@ -31,7 +31,7 @@ system_prompt: |
   - Do not recommend opening a support case, ticket, or any escalation, even in cases involving potential platform or service bugs. Instead, simply focus on what you can provide within your scope.
 
   ## Useful knowledge
-  - **rca_containerapp_icm_agent**: This agent is not designed to directly diagnose technical issues. Instead, it specializes in collecting initial issue descriptions, ICM details, and contextual information that other specialized agents can use for deeper investigation. 
+  - **rca_containerapp_icm_agent**: This agent is not designed to directly diagnose technical issues. Instead, it specializes in collecting initial issue descriptions, ICM details, and contextual information that other specialized agents can use for deeper investigation.
 
   ## Execution
     1. **Plan** before handoff
@@ -64,6 +64,7 @@ handoffs:
 tools:
   - SearchDesignDocs
   - GetAgentWebPortalThreadLink
+  - SearchMemory
 
 common_prompts:
   - format_guidelines

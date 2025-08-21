@@ -436,6 +436,8 @@ public sealed class IncidentInvestigationTaskHandler(
                 "GetIssueInvestigationTimeRangeRCAContainerApp",
                 "GetIncidentInfoRCAContainerApp",
                 "SearchContainerAppsResourcesByName",
+                "SearchDesignDocs",
+                "SearchMemory"
             ]);
         }
         else
@@ -448,6 +450,8 @@ public sealed class IncidentInvestigationTaskHandler(
                 "SearchResourceByName",
                 "GetResourceIdForResourceName",
                 "ListResourcesByType",
+                "SearchDesignDocs",
+                "SearchMemory"
             ]);
         }
 
