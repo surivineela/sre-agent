@@ -385,7 +385,8 @@ namespace Agent.Plugins.Implementation
 
             try
             {
-                // Dictionary of valid memory-to-CPU mappings
+                // Dictionary of valid memory-to-CPU mappings. If desiredMemory is empty/whitespace,
+                // the caller wants to keep the current container resources unchanged.
                 var validCpuMemoryCombinations = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase)
                 {
                     { "0.5Gi", 0.25 }, { "1Gi", 0.50 }, { "1.5Gi", 0.75 }, { "2Gi", 1.0 },
@@ -394,10 +395,20 @@ namespace Agent.Plugins.Implementation
                     { "6.5Gi", 3.25 }, { "7Gi", 3.50 }, { "7.5Gi", 3.75 }, { "8Gi", 4.0 }
                 };
 
-                if (!validCpuMemoryCombinations.TryGetValue(desiredMemory, out double cpu))
+                // Treat empty or whitespace desiredMemory as 'leave unchanged'
+                var changeResources = !string.IsNullOrWhiteSpace(desiredMemory);
+                double cpu = 0;
+                if (changeResources)
                 {
-                    _logger.LogInternalError($"Unsupported memory size: {desiredMemory}. Valid options include: 0.25Gi, 0.5Gi, 1Gi, 2Gi, 256Mi, 512Mi, etc.");
-                    return false;
+                    if (!validCpuMemoryCombinations.TryGetValue(desiredMemory, out cpu))
+                    {
+                        _logger.LogInternalError($"Unsupported memory size: {desiredMemory}. Valid options include: 0.25Gi, 0.5Gi, 1Gi, 2Gi, 256Mi, 512Mi, etc.");
+                        return false;
+                    }
+                }
+                else
+                {
+                    _logger.LogInternalInformation("No desiredMemory provided - container CPU/memory will be left unchanged.");
                 }
 
                 var armClient = await _armClientFactory.GetArmOperationClient();
@@ -427,9 +438,16 @@ namespace Agent.Plugins.Implementation
                     }
                 }
 
-                // Update all containers' resources
+                // Update all containers' resources if requested. If desiredMemory was empty,
+                // leave existing resources untouched.
                 foreach (var container in containerAppUpdateData.Template.Containers)
                 {
+                    if (!changeResources)
+                    {
+                        _logger.LogInternalInformation($"Skipping resource update for container {container.Name} (desiredMemory left unchanged).");
+                        continue;
+                    }
+
                     if (container.Resources == null)
                     {
                         _logger.LogInternalInformation($"Creating new resources for container {container.Name}");

@@ -177,18 +177,18 @@ namespace Agent.Plugins.Definitions
         [WriteAction]
         [RequiresApproval]
         [Description(
-            "Scales a Container App by adjusting its memory allocation and replica count. Use this to resolve performance or availability issues by increasing resources or scaling out the application.")]
+            "Scales a Container App by adjusting its memory allocation and replica count. Use this to resolve performance or availability issues by increasing resources or scaling out the application. If you do NOT want to change memory/CPU, pass an empty string for desiredMemory to only update replica counts.")]
         public async Task<bool> ScaleContainerApp(
             [Description("Azure resource ID of the Container App to scale")]
             string resourceId,
-            [Description("Desired memory allocation (e.g., '1Gi', '512Mi')")]
+            [Description("Desired memory allocation (e.g., '1Gi', '512Mi'). Pass empty string to leave memory unchanged.")]
             string desiredMemory,
             [Description("Minimum number of replicas to run (e.g., 1)")]
             int minReplicas,
             [Description("Maximum number of replicas to scale to (e.g., 10)")]
             int maxReplicas)
         {
-            if (string.IsNullOrWhiteSpace(resourceId) || string.IsNullOrWhiteSpace(desiredMemory) || minReplicas < 0 ||
+            if (string.IsNullOrWhiteSpace(resourceId) || minReplicas < 0 ||
                 maxReplicas < minReplicas)
             {
                 throw new ArgumentException("Invalid input parameters.");
