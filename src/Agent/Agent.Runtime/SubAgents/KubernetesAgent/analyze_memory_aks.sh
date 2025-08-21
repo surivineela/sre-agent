@@ -153,17 +153,17 @@ elif [ ! -f "$DUMP_PATH_IN_POD" ] || [ ! -s "$DUMP_PATH_IN_POD" ]; then
 fi
 echo "[MEM_ANALYSIS_SCRIPT] Memory dump collection finished. File: $DUMP_PATH_IN_POD"
 
-# --- Download Analyzer ---
-ANALYZER_PATH="$DIAG_TOOLS_BASE_DIR/dotnetanalyzer"
-echo "[MEM_ANALYSIS_SCRIPT] Downloading analyzer to $ANALYZER_PATH..."
-curl -sSL https://dotnetanalysis.blob.core.windows.net/lin64/DotnetAnalyzer -o "$ANALYZER_PATH"
-if [ $? -ne 0 ] || [ ! -f "$ANALYZER_PATH" ]; then
-    echo "[MEM_ANALYSIS_SCRIPT] ERROR: Failed to download analyzer."
+# --- Use Pre-uploaded Analyzer Binary ---
+ANALYZER_PATH="/tmp/dotnetanalyzer"
+
+# Check if analyzer binary exists
+if [ ! -f "$ANALYZER_PATH" ]; then
+    echo "[MEM_ANALYSIS_SCRIPT] ERROR: Analyzer binary not found at $ANALYZER_PATH."
     rm -rf "$DIAG_TOOLS_BASE_DIR"
     exit 1
 fi
-chmod +x "$ANALYZER_PATH"
-echo "[MEM_ANALYSIS_SCRIPT] Analyzer downloaded."
+
+echo "[MEM_ANALYSIS_SCRIPT] Using pre-uploaded analyzer binary at $ANALYZER_PATH."
 
 # --- Memory Analysis ---
 echo "[MEM_ANALYSIS_SCRIPT] Starting memory analysis of $DUMP_PATH_IN_POD..."

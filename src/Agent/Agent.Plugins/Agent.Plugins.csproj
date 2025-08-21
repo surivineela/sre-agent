@@ -25,6 +25,7 @@
 	  <PackageReference Include="Azure.Search.Documents" />
 	  <PackageReference Include="Azure.Storage.Blobs" />
     <PackageReference Include="HtmlAgilityPack" />
+    <PackageReference Include="SharpZipLib" />
 	  <PackageReference Include="Microsoft.Azure.Management.Monitor.Fluent" />
 	  <PackageReference Include="Microsoft.Diagnostics.Runtime" />
 	  <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" />

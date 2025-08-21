@@ -19,6 +19,7 @@ using Agent.Graph.Services;
 using Agent.Plugins.Interface;
 using Agent.Prometheus;
 using Agent.Prometheus.Services;
+using ICSharpCode.SharpZipLib.Tar;
 using k8s;
 using k8s.Models;
 using Microsoft.Extensions.AI;
@@ -2193,6 +2194,79 @@ namespace Agent.Plugins
             }
         }
 
+        public static async Task<int> CopyFileToPodAsync(IKubernetes client, string name, string @namespace, string container, string sourceFilePath, string destinationFilePath, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            // The callback which processes the standard input, standard output and standard error of exec method
+            var handler = new ExecAsyncCallback(async (stdIn, stdOut, stdError) =>
+            {
+                var fileInfo = new FileInfo(destinationFilePath);
+                try
+                {
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        using (var inputFileStream = File.OpenRead(sourceFilePath))
+                        using (var tarOutputStream = new TarOutputStream(memoryStream, Encoding.Default))
+                        {
+                            tarOutputStream.IsStreamOwner = false;
+
+                            var fileSize = inputFileStream.Length;
+                            var entry = TarEntry.CreateTarEntry(fileInfo.Name);
+
+                            entry.Size = fileSize;
+
+                            tarOutputStream.PutNextEntry(entry);
+                            await inputFileStream.CopyToAsync(tarOutputStream);
+                            tarOutputStream.CloseEntry();
+                        }
+
+                        memoryStream.Position = 0;
+
+                        const int bufferSize = 31 * 1024 * 1024; // must be lower than 32 * 1024 * 1024
+                        byte[] localBuffer = new byte[bufferSize];
+                        while (true)
+                        {
+                            int numRead = await memoryStream.ReadAsync(localBuffer, 0, localBuffer.Length);
+                            if (numRead <= 0)
+                            {
+                                break;
+                            }
+                            await stdIn.WriteAsync(localBuffer, 0, numRead);
+                        }
+                        await stdIn.FlushAsync();
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    throw new IOException($"Copy command failed: {ex.Message}");
+                }
+
+                using StreamReader streamReader = new StreamReader(stdError);
+                while (streamReader.EndOfStream == false)
+                {
+                    string error = await streamReader.ReadToEndAsync();
+                    throw new IOException($"Copy command failed: {error}");
+                }
+            });
+
+            return await client.NamespacedPodExecAsync(
+                name,
+                @namespace,
+                container,
+                new string[] { "sh", "-c", $"mkdir -p /tmp && tar xmf - -C /tmp" },
+                false,
+                handler,
+                cancellationToken);
+        }
+
+
+        private static string GetFolderName(string filePath)
+        {
+            var folderName = Path.GetDirectoryName(filePath);
+
+            return string.IsNullOrEmpty(folderName) ? "." : folderName;
+        }
+
         public async Task<string> AnalyzeDotnetAppMemoryInAKSContainerAsync(
             string aksResourceId,
             string _namespace,
@@ -2232,6 +2306,31 @@ namespace Agent.Plugins
                 _logger?.LogWarning("Specified target container '{TargetContainerName}' not found in pod '{PodName}' for memory analysis. Available: {AvailableContainers}",
                                     targetContainerName, podName, string.Join(", ", pod.Spec.Containers.Select(c => c.Name)));
                 return $"Error: Container '{targetContainerName}' not found in pod '{podName}'. Available: {string.Join(", ", pod.Spec.Containers.Select(c => c.Name))}";
+            }
+
+            // Copy analyzer binary to pod using kubectl cp equivalent
+            string analyzerPath = "/tmp/dotnetanalyzer";
+            try
+            {
+                var analyzerBinaryPath = Path.Combine(
+                    AppDomain.CurrentDomain.BaseDirectory,
+                    "AgentsV2", "DiagnosticsAgents", "DiagnosticBinariesAndScripts", "DotnetAnalyzer_lin64"
+                );
+
+                if (!File.Exists(analyzerBinaryPath))
+                {
+                    _logger?.LogError("Analyzer binary not found at path: {Path}", analyzerBinaryPath);
+                    return $"Error: Analyzer binary not found at expected location.";
+                }
+
+                // Use kubectl copy functionality
+                await CopyFileToPodAsync(client, podName, _namespace, targetContainerName, analyzerBinaryPath, analyzerPath);
+                _logger?.LogInformation("Successfully copied analyzer binary to pod.");
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Failed to copy analyzer binary to pod '{PodName}'.", podName);
+                return $"Error: Could not copy analyzer binary. {ex.Message}";
             }
 
             _logger?.LogInformation("Starting in-container .NET memory analysis for pod '{PodName}', container '{ContainerName}'.", podName, targetContainerName);
