@@ -1049,7 +1049,61 @@ public class Program
                         // return a no-op processor that doesn't export anything
                         return new AgentActionLogProcessor(null);
                     }
+                })
+
+                // Register a processor to capture LLM Token Consumption logs (EventId = 2001)
+                .AddProcessor(sp =>
+                {
+                    var ClusterUri = GetInternalKustoClusterConfiguration("ClusterUri");
+                    var DatabaseName = GetInternalKustoClusterConfiguration("DatabaseName");
+                    var CertificatePath = GetInternalKustoClusterConfiguration("CertificatePath");
+                    var FirstPartyAppClientId = GetInternalKustoClusterConfiguration("FirstPartyAppClientId");
+                    var FirstPartyAppTenantId = GetInternalKustoClusterConfiguration("FirstPartyAppTenantId");
+
+                    if (!string.IsNullOrEmpty(ClusterUri))
+                    {
+                        PopulateLogColumnsDelegate populate = (logRecord, logData) =>
+                        {
+                            try
+                            {
+                                var isProd = builder.Environment.IsProduction();
+                                var subscriptionId = AgentNameHelper.GetSubscriptionId(isProd);
+                                var resourceGroup = AgentNameHelper.GetResourceGroupName(isProd);
+                                var agentName = AgentNameHelper.GetAgentName(isProd);
+
+                                var agentResourceId = $"/subscriptions/{subscriptionId}/resourcegroups/{resourceGroup}/providers/microsoft.app/agents/{agentName}";
+                                logData["AgentResourceId"] = agentResourceId;
+                            }
+                            catch (Exception)
+                            {
+                                // best-effort: do not fail ingestion if helper throws
+                                logData["AgentResourceId"] = string.Empty;
+                            }
+                        };
+
+                        var options = new AzureDataExplorerLogExporterOptions(
+                            clusterUri: ClusterUri,
+                            databaseName: DatabaseName,
+                            tableName: "TokenConsumptionEvents",
+                            populateColumns: populate,
+                            firstPartyAppCertificatePath: CertificatePath,
+                            firstPartyAppClientId: FirstPartyAppClientId,
+                            firstPartyAppTenantId: FirstPartyAppTenantId);
+
+                        var exporter = new AzureDataExplorerLogExporter(options);
+
+                        // Filter only EventId == 2001 (LogTokenConsumption)
+                        Func<LogRecord, bool> predicate = record => record.EventId.Id == 2001;
+
+                        return new CustomizedLogProcessor(exporter, predicate, "TokenConsumptionProcessor");
+                    }
+                    else
+                    {
+                        // No Kusto configured -> no-op processor (predicate false)
+                        return new CustomizedLogProcessor(null, record => false, "TokenConsumptionProcessor");
+                    }
                 });
+
         });
 
         builder.RegisterDataConnectors();

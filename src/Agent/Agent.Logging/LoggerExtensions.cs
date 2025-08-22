@@ -1,8 +1,8 @@
 using Agent.Logging;
+using System;
+using System.Collections.Generic;
 
-#pragma warning disable IDE0130 // Extension methods should be in the same namespace as the containing type
 namespace Microsoft.Extensions.Logging;
-#pragma warning restore IDE0130 // Extension methods should be in the same namespace as the containing type
 
 public static partial class LoggerExtensions
 {
@@ -230,4 +230,18 @@ public static partial class LoggerExtensions
         string status,
         long duration,
         string threadId);
+
+    /// <summary>
+    /// Logs token consumption information (model, model version, input and output tokens used)
+    /// </summary>
+    [LoggerMessage(
+        EventId = 2001,
+        Level = LogLevel.Information,
+        Message = "LLM Token Consumption: model: {Model}, modelVersion: {ModelVersion}, inputTokenUsed: {InputTokenUsed}, outputTokenUsed: {OutputTokenUsed}")]
+    public static partial void LogTokenConsumption(
+        this ILogger logger,
+        string model,
+        string modelVersion,
+        long inputTokenUsed,
+        long outputTokenUsed);
 }

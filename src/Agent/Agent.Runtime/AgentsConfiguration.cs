@@ -83,6 +83,7 @@ namespace Agent.Runtime
 
                     return new ChatClientBuilder(client.GetChatClient(openAISettings.LLMDeploymentName).AsIChatClient())
                         .Use(next => new ReasoningChatClient(next))
+                        .UseTokenLogging(loggerFactory)
                         .UseLogging(loggerFactory)
                         .Build();
                 })
@@ -94,6 +95,7 @@ namespace Agent.Runtime
 
                     return new ChatClientBuilder(client.GetChatClient(openAISettings.LLMDeploymentName).AsIChatClient())
                         .Use(next => new ReasoningChatClient(next))
+                        .UseTokenLogging(loggerFactory)
                         .UseLogging(loggerFactory)
                         .UseFunctionInvocation(loggerFactory, x =>
                         {
@@ -109,6 +111,7 @@ namespace Agent.Runtime
 
                     return new ChatClientBuilder(client.GetChatClient(openAISettings.LLMDeploymentName).AsIChatClient())
                         .Use(next => new ReasoningChatClient(next))
+                        .UseTokenLogging(loggerFactory)
                         .UseLogging(loggerFactory)
                         .UseFunctionInvocation(loggerFactory, x =>
                         {
@@ -126,6 +129,7 @@ namespace Agent.Runtime
 
                     return new ChatClientBuilder(client.GetChatClient(openAISettings.LLMDeploymentName).AsIChatClient())
                         .Use(next => new ReasoningChatClient(next))
+                        .UseTokenLogging(loggerFactory)
                         .UseLogging(loggerFactory)
                         .UseFunctionInvocation(loggerFactory, x =>
                         {

@@ -80,4 +80,46 @@ public class AgentNameHelper
     {
         return $"SRE Agent {GetAgentName(isProd)}: Resource Monitoring Dashboard";
     }
+
+    /// <summary>
+    /// Retrieves the subscription id from the environment variable "AGENT_SUBSCRIPTION_ID".
+    /// </summary>
+    /// <returns>The subscription id as a string.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the environment variable is not set in production.</exception>
+    public static string GetSubscriptionId(bool isProd)
+    {
+        var subscriptionId = Environment.GetEnvironmentVariable("AGENT_SUBSCRIPTION_ID");
+        if (string.IsNullOrEmpty(subscriptionId))
+        {
+            if (isProd)
+            {
+                throw new InvalidOperationException("AGENT_SUBSCRIPTION_ID environment variable is not set.");
+            }
+
+            return "00000000-0000-0000-0000-000000000000"; // default placeholder for non-production
+        }
+
+        return subscriptionId;
+    }
+
+    /// <summary>
+    /// Retrieves the resource group name from the environment variable "AGENT_RESOURCE_GROUP".
+    /// </summary>
+    /// <returns>The resource group name as a string.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the environment variable is not set in production.</exception>
+    public static string GetResourceGroupName(bool isProd)
+    {
+        var rg = Environment.GetEnvironmentVariable("AGENT_RESOURCE_GROUP");
+        if (string.IsNullOrEmpty(rg))
+        {
+            if (isProd)
+            {
+                throw new InvalidOperationException("AGENT_RESOURCE_GROUP environment variable is not set.");
+            }
+
+            return "test-resource-group";
+        }
+
+        return rg;
+    }
 }
