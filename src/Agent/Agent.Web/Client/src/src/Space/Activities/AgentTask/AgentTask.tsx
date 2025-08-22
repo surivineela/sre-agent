@@ -1,23 +1,33 @@
 import {
-    DrawerHeader,
-    DrawerHeaderNavigation,
-    Dropdown,
     InlineDrawer,
-    Option,
-    Skeleton,
-    SkeletonItem,
-    Spinner,
+    Menu,
+    MenuButton,
+    MenuCheckedValueChangeData,
+    MenuCheckedValueChangeEvent,
+    MenuItemRadio,
+    MenuList,
+    MenuPopover,
+    MenuTrigger,
+    Subtitle2,
+    Text,
     tokens,
     Toolbar,
     ToolbarButton,
-    ToolbarGroup,
     useRestoreFocusSource,
 } from '@fluentui/react-components';
-import { CheckmarkCircleColor, Dismiss24Regular, DismissCircleFilled, ErrorCircleColor } from '@fluentui/react-icons';
+import {
+    ArrowCounterclockwise24Regular,
+    ArrowCounterclockwiseFilled,
+    CheckmarkCircleRegular,
+    Dismiss24Regular,
+    DismissCircleFilled,
+    SubtractCircleRegular,
+} from '@fluentui/react-icons';
 import { mergeStyleSets } from '@fluentui/react/lib/Styling';
 import { ReactFlowProvider } from '@xyflow/react';
-import { Dispatch, memo, SetStateAction, useCallback, useEffect, useRef, useState } from 'react';
+import { Dispatch, memo, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AgentTaskMetaData, AgentTaskStatus } from '../../../Common/Contracts/DataPlane/AgentTask';
+import NodeStatusPill from '../../Components/AgentTask/NodeStatusPill';
 import { AgentTaskGraphHandle, TreeStateValue } from '../../Contracts/Activities';
 import { AgentTaskContext } from '../../Contracts/Context';
 import { AgentTaskStyleProps } from '../../Styles/Activities.styles';
@@ -28,7 +38,7 @@ interface IAgentTaskProps {
     isLoadingTaskDropdown: boolean;
     setSelectedTaskId: Dispatch<SetStateAction<string>>;
     selectedTaskId: string;
-    taskDropdownValue: string;
+    taskDropdownValue?: AgentTaskMetaData;
     currentTreeStateValue: TreeStateValue | null;
     isLoadingTreeState: boolean;
     shouldFitView: boolean;
@@ -41,79 +51,77 @@ interface IAgentTaskProps {
 
 const useAgentTaskStyles = (overrides?: AgentTaskStyleProps) =>
     mergeStyleSets({
-    root: {
-        backgroundColor: tokens.colorNeutralBackground1,
-        height: 'calc(100vh - 100px)',
-        flex: '1 0 auto',
-        borderTopRightRadius: tokens.borderRadiusXLarge,
-        borderBottomRightRadius: tokens.borderRadiusXLarge,
-        position: 'relative',
+        root: {
+            backgroundColor: tokens.colorNeutralBackground1,
+            height: 'calc(100vh - 100px)',
+            flex: '1 0 auto',
+            borderTopRightRadius: tokens.borderRadiusXLarge,
+            borderBottomRightRadius: tokens.borderRadiusXLarge,
+            position: 'relative',
             ...overrides?.root,
-    },
-    header: {
-        width: '100%',
-        display: 'flex',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
+        },
+        header: {
+            width: '100%',
+            maxWidth: '100%',
+            padding: `${tokens.spacingVerticalXXL} ${tokens.spacingHorizontalXXL} ${tokens.spacingVerticalS}`,
+            gap: tokens.spacingHorizontalS,
+            alignSelf: 'stretch',
+            display: 'flex',
+            justifyContent: 'space-between',
+            boxSizing: 'border-box',
+            position: 'relative',
+            zIndex: 2,
             ...overrides?.header,
-    },
-    dropdownItem: {
-        display: 'flex',
-        justifyItems: 'flex-start',
-        alignItems: 'center',
-        gap: tokens.spacingHorizontalS,
-        ...overrides?.dropdownItem,
-    },
-    dropdownItemText: {
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
-        minWidth: '0',
-        flex: '1 1 auto',
-            ...overrides?.dropdownItemText,
-    },
-    loader: {
-        width: '50%',
-        ...overrides?.loader,
-    },
-    loaderItem: {
-        height: '100%',
-        width: '100%',
-            ...overrides?.loaderItem,
-    },
-    resizer: {
-        width: '2px',
-        height: '100%',
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        bottom: 0,
-        cursor: 'col-resize',
-        border: 'none',
-        minWidth: '0px',
-
-        '&:before': {
+        },
+        titleContainer: {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-start',
+            gap: tokens.spacingHorizontalS,
+            flex: '1 1 auto',
+            ...overrides?.titleContainer,
+        },
+        titleText: { textOverflow: 'ellipsis', overflow: 'hidden', ...overrides?.titleText },
+        titleStatus: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: tokens.spacingHorizontalXS,
+            minWidth: '50px',
+            flex: '0 0 auto',
+            ...overrides?.titleStatus,
+        },
+        resizer: {
             width: '2px',
-            content: '""',
-            position: 'absolute',
-            borderLeft: `1px solid ${tokens.colorNeutralBackground5}`,
             height: '100%',
-        },
-        ':hover': {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            bottom: 0,
             cursor: 'col-resize',
+            border: 'none',
+            minWidth: '0px',
+
+            '&:before': {
+                width: '2px',
+                content: '""',
+                position: 'absolute',
+                borderLeft: `1px solid ${tokens.colorNeutralBackground5}`,
+                height: '100%',
+            },
+            ':hover': {
+                cursor: 'col-resize',
+            },
+            ':hover:active': {
+                cursor: 'col-resize',
+                userSelect: 'none',
+            },
+            ...overrides?.resizer,
         },
-        ':hover:active': {
-            cursor: 'col-resize',
-            userSelect: 'none',
-        },
-        ...overrides?.resizer,
-    },
-});
+    });
 
 const AgentTask = (props: IAgentTaskProps) => {
     const {
         taskDropdownOptions,
-        isLoadingTaskDropdown,
         setSelectedTaskId,
         selectedTaskId,
         taskDropdownValue,
@@ -127,7 +135,7 @@ const AgentTask = (props: IAgentTaskProps) => {
         stylesProps,
     } = props;
 
-    const { root, header, dropdownItem, dropdownItemText, loader, loaderItem, resizer } = useAgentTaskStyles(stylesProps);
+    const styles = useAgentTaskStyles(stylesProps);
 
     const restoreFocusSourceAttributes = useRestoreFocusSource();
 
@@ -137,6 +145,27 @@ const AgentTask = (props: IAgentTaskProps) => {
     const [sideBarWidth, setSidebarWidth] = useState<number | null>(null);
     const [isResizing, setIsResizing] = useState(false);
 
+    const selectedTaskMenuId: Record<string, string[]> = useMemo(() => {
+        return { taskId: selectedTaskId ? [selectedTaskId] : [] };
+    }, [selectedTaskId]);
+
+    const onSelectedTaskChange = useCallback((_: MenuCheckedValueChangeEvent, data: MenuCheckedValueChangeData) => {
+        setSelectedTaskId(data.checkedItems[0] || '');
+    }, []);
+
+    const getMenuItemIcon = useCallback((task: AgentTaskMetaData) => {
+        switch (task.status.toLowerCase()) {
+            case AgentTaskStatus.Complete.toLowerCase():
+                return <CheckmarkCircleRegular style={{ color: tokens.colorPaletteGreenBackground3 }} />;
+            case AgentTaskStatus.InProgress.toLowerCase():
+                return <ArrowCounterclockwiseFilled style={{ color: tokens.colorBrandForegroundLinkHover }} />;
+            case AgentTaskStatus.Failed.toLowerCase():
+                return <DismissCircleFilled style={{ color: tokens.colorStatusDangerForeground3 }} />;
+            default:
+                return <SubtractCircleRegular />;
+        }
+    }, []);
+
     const startResizing = useCallback(() => setIsResizing(true), []);
     const stopResizing = useCallback(() => setIsResizing(false), []);
 
@@ -145,7 +174,7 @@ const AgentTask = (props: IAgentTaskProps) => {
             animationFrame.current = requestAnimationFrame(() => {
                 if (isResizing && sidebarRef.current) {
                     const newSidebarWidth = sidebarRef.current.getBoundingClientRect().right - clientX;
-                    setSidebarWidth(newSidebarWidth);
+                    setSidebarWidth(Math.max(newSidebarWidth, 1000));
                     agentTaskGraphRef.current?.centerGraph();
                 }
             });
@@ -164,37 +193,6 @@ const AgentTask = (props: IAgentTaskProps) => {
         };
     }, [resize, stopResizing]);
 
-    const TaskDropdownItem = ({ taskId, taskDropdownOptions }: { taskId: string | null; taskDropdownOptions: AgentTaskMetaData[] }) => {
-        const task = taskDropdownOptions.find(option => option.id === taskId) || null;
-
-        const getAgentDropdownItemIcon = (task: AgentTaskMetaData | null) => {
-            const status = task?.status?.toLowerCase();
-            const styleProps = {
-                fontSize: tokens.fontSizeBase600,
-                style: { flex: '0 0 auto' },
-            };
-            switch (status) {
-                case AgentTaskStatus.InProgress:
-                    return <Spinner size="tiny" />;
-                case AgentTaskStatus.Complete:
-                    return <CheckmarkCircleColor {...styleProps} />;
-                case AgentTaskStatus.Failed:
-                    return <ErrorCircleColor {...styleProps} />;
-                case AgentTaskStatus.Canceled:
-                    return <DismissCircleFilled {...styleProps} />;
-                default:
-                    return null;
-            }
-        };
-
-        return (
-            <>
-                {getAgentDropdownItemIcon(task)}
-                <div className={dropdownItemText}>{task?.title || task?.id}</div>
-            </>
-        );
-    };
-
     return (
         <AgentTaskContext.Provider value={{ toggleNode, getNodeStatus }}>
             <ReactFlowProvider>
@@ -203,45 +201,52 @@ const AgentTask = (props: IAgentTaskProps) => {
                     position="end"
                     open={!collapsed}
                     ref={sidebarRef}
-                    className={root}
+                    className={styles.root}
                     style={{ width: sideBarWidth === null ? '80%' : `${sideBarWidth}px` }}
                 >
-                    <DrawerHeader>
-                        <DrawerHeaderNavigation>
-                            <Toolbar>
-                                <ToolbarGroup className={header}>
-                                    {isLoadingTaskDropdown ? (
-                                        <Skeleton className={loader}>
-                                            <SkeletonItem size={20} className={loaderItem} />
-                                        </Skeleton>
-                                    ) : (
-                                        <Dropdown
-                                            selectedOptions={selectedTaskId ? [selectedTaskId] : []}
-                                            value={taskDropdownValue}
-                                            onOptionSelect={(_, data) => {
-                                                if (data.selectedOptions.length > 0) {
-                                                    const option = data.selectedOptions[0];
-                                                    setSelectedTaskId(option);
-                                                }
-                                            }}
-                                        >
-                                            {taskDropdownOptions.map(task => (
-                                                <Option className={dropdownItem} key={task.id} text={task.title || task.id} value={task.id}>
-                                                    <TaskDropdownItem taskId={task.id} taskDropdownOptions={taskDropdownOptions} />
-                                                </Option>
-                                            ))}
-                                        </Dropdown>
-                                    )}
-                                    <ToolbarButton
-                                        aria-label="Close panel"
-                                        appearance="subtle"
-                                        icon={<Dismiss24Regular />}
-                                        onClick={() => setCollapsed(true)}
-                                    />
-                                </ToolbarGroup>
-                            </Toolbar>
-                        </DrawerHeaderNavigation>
-                    </DrawerHeader>
+                    <div className={styles.header}>
+                        <div className={styles.titleContainer}>
+                            <Subtitle2 wrap={false} block={true} className={styles.titleText}>
+                                {taskDropdownValue?.title}
+                            </Subtitle2>
+                            <div className={styles.titleStatus}>
+                                <NodeStatusPill status={taskDropdownValue?.status} showIcon={true} />
+                            </div>
+                        </div>
+                        <Toolbar>
+                            <Menu checkedValues={selectedTaskMenuId} onCheckedValueChange={onSelectedTaskChange}>
+                                <MenuTrigger disableButtonEnhancement>
+                                    <MenuButton aria-label="select task" appearance="subtle">
+                                        <ArrowCounterclockwise24Regular />
+                                    </MenuButton>
+                                </MenuTrigger>
+                                <MenuPopover>
+                                    <MenuList>
+                                        {taskDropdownOptions.map(task => {
+                                            return (
+                                                <MenuItemRadio
+                                                    key={task.id}
+                                                    name={'taskId'}
+                                                    value={task.id}
+                                                    icon={getMenuItemIcon(task)}
+                                                    style={{ alignItems: 'center', gap: tokens.spacingHorizontalS }}
+                                                >
+                                                    <Text>{task.title || task.id}</Text>
+                                                </MenuItemRadio>
+                                            );
+                                        })}
+                                    </MenuList>
+                                </MenuPopover>
+                            </Menu>
+
+                            <ToolbarButton
+                                aria-label="Close panel"
+                                appearance="subtle"
+                                icon={<Dismiss24Regular />}
+                                onClick={() => setCollapsed(true)}
+                            />
+                        </Toolbar>
+                    </div>
                     <AgentTaskGraph
                         treeStateValue={currentTreeStateValue}
                         isLoading={isLoadingTreeState}
@@ -249,7 +254,7 @@ const AgentTask = (props: IAgentTaskProps) => {
                         ref={agentTaskGraphRef}
                     />
                     <div
-                        className={resizer}
+                        className={styles.resizer}
                         onMouseDown={startResizing}
                         aria-label="Resize drawer"
                         role="separator"

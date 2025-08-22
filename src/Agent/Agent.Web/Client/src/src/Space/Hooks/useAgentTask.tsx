@@ -165,10 +165,8 @@ export const useAgentTask = (
 
     const taskDropdownValue = useMemo(() => {
         if (selectedTaskId) {
-            const option = taskDropdownOptions.find(option => option.id === selectedTaskId);
-            return option ? option.title || '' : '';
+            return taskDropdownOptions.find(option => option.id === selectedTaskId);
         }
-        return '';
     }, [selectedTaskId, taskDropdownOptions]);
 
     useEffect(() => {

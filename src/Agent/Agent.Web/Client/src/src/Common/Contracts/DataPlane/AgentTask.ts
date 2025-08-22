@@ -75,7 +75,7 @@ export enum AgentTaskStatus {
     InProgress = 'inprogress',
     Complete = 'complete',
     Failed = 'failed',
-    Canceled = 'canceled',
+    Cancelled = 'cancelled',
 }
 
 export enum InvestigationStatusCommon {

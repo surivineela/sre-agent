@@ -8,7 +8,12 @@ import {
     QuestionCircleRegular,
     SubtractCircleRegular,
 } from '@fluentui/react-icons';
-import { HypothesisStatus, InvestigationStatusCommon, TaskProgressStatus } from '../../../Common/Contracts/DataPlane/AgentTask';
+import {
+    AgentTaskStatus,
+    HypothesisStatus,
+    InvestigationStatusCommon,
+    TaskProgressStatus,
+} from '../../../Common/Contracts/DataPlane/AgentTask';
 
 export const getInitialInvestigationStepsIcon = (status: string) => {
     const style = {
@@ -37,6 +42,7 @@ export const getStatusPillComponentStyleProperties = (status?: string | null) =>
                 backgroundColor: undefined,
                 borderColor: tokens.colorNeutralBackground6,
             };
+        case AgentTaskStatus.InProgress:
         case InvestigationStatusCommon.InProgress:
         case TaskProgressStatus.Started:
         case TaskProgressStatus.InProgress:
@@ -49,6 +55,7 @@ export const getStatusPillComponentStyleProperties = (status?: string | null) =>
                 backgroundColor: undefined,
                 borderColor: tokens.colorNeutralBackground6,
             };
+        case AgentTaskStatus.Complete:
         case InvestigationStatusCommon.Complete:
         case TaskProgressStatus.Completed:
         case HypothesisStatus.Validated:
@@ -59,6 +66,7 @@ export const getStatusPillComponentStyleProperties = (status?: string | null) =>
                 backgroundColor: tokens.colorPaletteGreenBackground3,
                 borderColor: undefined,
             };
+        case AgentTaskStatus.Failed:
         case TaskProgressStatus.Failed:
             return {
                 iconFontColor: tokens.colorNeutralForegroundInverted,
@@ -83,6 +91,14 @@ export const getStatusPillComponentStyleProperties = (status?: string | null) =>
                 backgroundColor: undefined,
                 borderColor: tokens.colorStatusWarningForeground1,
             };
+        case AgentTaskStatus.Cancelled:
+            return {
+                iconFontColor: undefined,
+                statusTextFontColor: undefined,
+                icon: SubtractCircleRegular,
+                backgroundColor: undefined,
+                borderColor: tokens.colorNeutralBackground6,
+            };
     }
 };
 
@@ -90,6 +106,7 @@ export const getStatusPillComponentText = (status?: string | null) => {
     switch (status?.toLowerCase()) {
         case InvestigationStatusCommon.NotStarted:
             return 'Not started';
+        case AgentTaskStatus.InProgress:
         case InvestigationStatusCommon.InProgress:
         case TaskProgressStatus.InProgress:
             return 'In progress';
@@ -99,17 +116,21 @@ export const getStatusPillComponentText = (status?: string | null) => {
             return 'Pending';
         case HypothesisStatus.Validating:
             return 'Validating';
+        case AgentTaskStatus.Complete:
         case InvestigationStatusCommon.Complete:
         case TaskProgressStatus.Completed:
             return 'Complete';
         case HypothesisStatus.Validated:
             return 'Validated';
+        case AgentTaskStatus.Failed:
         case TaskProgressStatus.Failed:
             return 'Failed';
         case HypothesisStatus.Invalidated:
             return 'Invalidated';
         case HypothesisStatus.Inconclusive:
             return 'Inconclusive';
+        case AgentTaskStatus.Cancelled:
+            return 'Cancelled';
     }
 };
 
