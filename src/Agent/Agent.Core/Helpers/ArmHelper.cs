@@ -2587,15 +2587,23 @@ public class ArmHelper
         return await UpdateAppSettingsAsync(appServiceResourceId, appSettings);
     }
 
-    public async Task<bool> ConfigureAppSettingsForManagedIdentityStorage(string resourceId, string storageAccountName)
+    public async Task<bool> ConfigureAppSettingsForManagedIdentityStorage(string resourceId, string storageAccountName, bool useUserAssignedManagedIdentity = false, string userManagedIdentityClientId = "")
     {
         var appSettings = new Dictionary<string, string>
         {
-            { "AzureWebJobsStorage__accountName", storageAccountName },
-            { "AzureWebJobsStorage__blobServiceUri", $"https://{storageAccountName}.blob.core.windows.net" },
-            { "AzureWebJobsStorage__queueServiceUri", $"https://{storageAccountName}.queue.core.windows.net" },
-            { "AzureWebJobsStorage__tableServiceUri", $"https://{storageAccountName}.table.core.windows.net" }
+            { "AzureWebJobsStorage__accountName", storageAccountName }
         };
+
+        if (useUserAssignedManagedIdentity)
+        {
+            appSettings.Add("AzureWebJobsStorage__blobServiceUri", $"https://{storageAccountName}.blob.core.windows.net");
+            appSettings.Add("AzureWebJobsStorage__queueServiceUri", $"https://{storageAccountName}.queue.core.windows.net");
+            appSettings.Add("AzureWebJobsStorage__tableServiceUri", $"https://{storageAccountName}.table.core.windows.net");
+        }
+        else
+        {
+            appSettings.Add("AzureWebJobsStorage__clientId", userManagedIdentityClientId);
+        }
 
         return await UpdateAppSettingsAsync(resourceId, appSettings);
     }

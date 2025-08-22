@@ -137,7 +137,7 @@ namespace Agent.Plugins.Mocks
             return Task.FromResult<bool>(true);
         }
 
-        public Task<bool> ConfigureAppSettingsForManagedIdentityStorage(string resourceId, string storageAccountName)
+        public Task<bool> ConfigureAppSettingsForManagedIdentityStorage(string resourceId, string storageAccountName, bool useUserAssignedManagedIdentity = false, string userManagedIdentityClientId = "")
         {
             return Task.FromResult(true);
         }

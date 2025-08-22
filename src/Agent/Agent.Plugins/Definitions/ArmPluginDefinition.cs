@@ -120,11 +120,11 @@ namespace Agent.Plugins
             return await _armPlugin.CheckTcpConnectivity(resourceId, host, port);
         }
 
-        [Description("Check if DNS resolution from the function app to the storage account's endpoint")]
+        [Description("Performs DNS resolution test from an Azure resource to verify it can resolve a target URL's hostname")]
         [AgentTool(ToolMode.Auto)]
         public async Task<string> CheckDnsResolution(
-            [Description("Full resource id of an Azure resource")] string resourceId,
-            [Description("The url of the target storage account's endpoint")] string destinationUrl)
+            [Description("Full resource ID of the Azure resource from which to test DNS resolution")] string resourceId,
+            [Description("The target URL or hostname to resolve (e.g. storageaccount.blob.core.windows.net)")] string destinationUrl)
         {
             return await _armPlugin.CheckDnsResolution(resourceId, destinationUrl);
         }
@@ -153,9 +153,11 @@ namespace Agent.Plugins
         [Description("Configures App Settings to use managed identity authentication for Azure WebJobs Storage in a Function App.")]
         public async Task<bool> ConfigureAppSettingsForManagedIdentityStorage(
             [Description("Full resource id of an Azure Function App")] string resourceId,
-            [Description("The name of the Azure Storage account to use")] string storageAccountName)
+            [Description("The name of the Azure Storage account to use")] string storageAccountName,
+            [Description("Whether to use a user-assigned managed identity")] bool useUserAssignedManagedIdentity = false,
+            [Description("The client ID of the user-assigned managed identity")] string userManagedIdentityClientId = "")
         {
-            return await _armPlugin.ConfigureAppSettingsForManagedIdentityStorage(resourceId, storageAccountName);
+            return await _armPlugin.ConfigureAppSettingsForManagedIdentityStorage(resourceId, storageAccountName, useUserAssignedManagedIdentity, userManagedIdentityClientId);
         }
 
         [Description("Retrieves the Azure resource ID for a storage account from its storage service URI")]
