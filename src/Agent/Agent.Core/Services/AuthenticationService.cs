@@ -392,7 +392,8 @@ public class AuthenticationService : IAuthenticationService
             return "http://localhost:1743";
         }
 
-        return "https://diag-runtimehost-prod.trafficmanager.net";
+        return "http://diag-runtimehost-euap.trafficmanager.net";
     }
     #endregion
 }
+
