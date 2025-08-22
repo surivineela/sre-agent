@@ -3,6 +3,7 @@ import { Spinner } from '@fluentui/react-components';
 import { FC, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import Url from '../../Common/Helpers/Url';
 import { IncidentManagementResources } from '../../Strings/SREAgentResources';
 import { SreAgentContext } from '../Contracts/Context';
@@ -22,6 +23,7 @@ export enum IncidentManagementKeys {
 const IncidentManagement: FC = () => {
     const intl = useIntl();
     const { agentObj, agentLoading, agentLoadFailure } = useContext(SreAgentContext);
+    const { logAmplitudeNavigationEvent } = useAzPortalContext();
 
     const [iconsInitialized, setIconsInitialized] = useState(false);
 
@@ -110,6 +112,13 @@ const IncidentManagement: FC = () => {
                                         Object.values(IncidentManagementKeys).includes(item.key as IncidentManagementKeys) &&
                                         item.key !== selectedKey
                                     ) {
+                                        logAmplitudeNavigationEvent({
+                                            targetType: 'tab',
+                                            targetAction: 'tabItem',
+                                            targetName: item.key,
+                                            targetFriendlyName: item.key,
+                                        });
+
                                         navigate({ ...location, pathname: `/views/incidentmanagement/${item.key}` });
                                     }
                                 }}

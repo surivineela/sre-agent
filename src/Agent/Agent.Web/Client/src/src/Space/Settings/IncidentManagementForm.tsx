@@ -26,6 +26,7 @@ import { CheckmarkCircle16Filled } from '@fluentui/react-icons';
 import { FC, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { FirstPartyHelper } from '../../Common/Helpers/FirstPartyHelper';
 import { ArmResourceDescriptor } from '../../Common/Helpers/ResourceDescriptors';
@@ -249,6 +250,15 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                                             setFieldValue('password', undefined, false);
                                         }
                                     }
+
+                                    azPortalContext.logAmplitudeControlEvent({
+                                        targetType: 'dropdown',
+                                        targetAction: 'changed',
+                                        targetName: 'incidentPlatform',
+                                        targetFriendlyName: 'Incident platform',
+                                        valueObjectName: data?.optionValue ?? '',
+                                        valueObjectFriendlyName: data?.optionValue ?? '',
+                                    });
                                 }}
                                 disabled={loading || !!loadFailure || saving}
                             >
@@ -488,6 +498,15 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                                             onChange={(_event, newValue) => {
                                                 setFieldTouched('createDefaultHandler', true, false);
                                                 setFieldValue('createDefaultHandler', !!newValue?.checked);
+
+                                                azPortalContext.logAmplitudeControlEvent({
+                                                    targetType: 'checkbox',
+                                                    targetAction: 'changed',
+                                                    targetName: 'createDefaultHandler',
+                                                    targetFriendlyName: 'Create default handler',
+                                                    valueObjectName: newValue?.checked ? 'checked' : 'unchecked',
+                                                    valueObjectFriendlyName: newValue?.checked ? 'Checked' : 'Unchecked',
+                                                });
                                             }}
                                             disabled={saving}
                                             label={
@@ -533,6 +552,15 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                                     onClick={() => {
                                         setEditingApiKey(false);
                                         submitForm();
+
+                                        azPortalContext.logAmplitudeControlEvent({
+                                            targetType: 'button',
+                                            targetAction: 'clicked',
+                                            targetName: 'save',
+                                            targetFriendlyName: 'Save',
+                                            valueObjectName: values.platform ?? '',
+                                            valueObjectFriendlyName: values.platform ?? '',
+                                        });
                                     }}
                                     disabled={
                                         !isDirty ||
@@ -565,7 +593,21 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                             {!isSetupScenario && (
                                 <Dialog modalType="alert">
                                     <DialogTrigger disableButtonEnhancement>
-                                        <Button appearance="secondary" style={{ borderRadius: 5 }} disabled={saving}>
+                                        <Button
+                                            appearance="secondary"
+                                            style={{ borderRadius: 5 }}
+                                            disabled={saving}
+                                            onClick={() => {
+                                                azPortalContext.logAmplitudeControlEvent({
+                                                    targetType: 'button',
+                                                    targetAction: 'clicked',
+                                                    targetName: 'disconnect',
+                                                    targetFriendlyName: 'Disconnect',
+                                                    valueObjectName: SpecialControlValue.DoAction,
+                                                    valueObjectFriendlyName: SpecialControlValue.DoAction,
+                                                });
+                                            }}
+                                        >
                                             {intl.formatMessage(SreAgentResources.disconnect)}
                                         </Button>
                                     </DialogTrigger>
