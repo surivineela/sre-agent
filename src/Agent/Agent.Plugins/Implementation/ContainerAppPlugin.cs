@@ -88,7 +88,6 @@ namespace Agent.Plugins.Implementation
         public async Task<string> GetContainerAppInfoAsync(string resourceId)
         {
             _logger.LogInternalInformation($"[get_container_app_info] Invoked with resourceId: {resourceId}");
-            var getDeploymentTimes = await GetDeploymentTimes(resourceId);
 
             try
             {
