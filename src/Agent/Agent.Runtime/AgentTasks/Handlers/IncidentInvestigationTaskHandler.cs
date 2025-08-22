@@ -170,6 +170,11 @@ public sealed class IncidentInvestigationTaskHandler(
                         string.Join(", ", toolNames)
                     );
 
+                    if (is1PAgent)
+                    {
+                        state.InitialInvestigation.ToolNames = toolNames;
+                    }
+
                     state.InitialInvestigation.StatusMessage = $"Selected {toolNames.Count} investigation tools, beginning analysis...";
                     state = await SaveStateAndStreamUpdateAsync(cancellationToken: cancellationToken);
 

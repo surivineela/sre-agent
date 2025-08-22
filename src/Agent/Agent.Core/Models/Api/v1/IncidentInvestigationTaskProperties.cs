@@ -86,6 +86,11 @@ public sealed record InitialInvestigationProperties
     public required InitialInvestigationStatus Status { get; set; }
 
     public string StatusMessage { get; set; } = string.Empty;
+
+    /// <summary>
+    /// List of tool names that were selected for the initial investigation.
+    /// </summary>
+    public List<string>? ToolNames { get; set; } = null;
 }
 
 public enum InitialInvestigationStatus
