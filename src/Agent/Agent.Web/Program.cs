@@ -584,7 +584,8 @@ public class Program
 
                 if (isGPT5Enabled)
                 {
-                    factory.LoadYamlAgentsFromFolder(Path.Combine(AppContext.BaseDirectory, "AgentsGPT5"), overwriteExistingAgents: true, recursive: true);
+                    var path = isFirstPartyAgent ? Path.Combine(AppContext.BaseDirectory, "AgentsGPT5", "FirstParty") : Path.Combine(AppContext.BaseDirectory, "AgentsGPT5", "ThirdParty");
+                    factory.LoadYamlAgentsFromFolder(path, overwriteExistingAgents: true, recursive: true);
                 }
 
                 if (AgentMemoryRetrievalEnabled(builder))
