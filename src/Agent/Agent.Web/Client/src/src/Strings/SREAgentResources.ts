@@ -5,6 +5,7 @@ export const SreAgentResources = defineMessages({
     addIdentity: { defaultMessage: 'Add identity', id: 'xUuESs' },
     azureSreAgent: { defaultMessage: 'Azure SRE Agent', id: 'Erci0g' },
     agentPermissionsLevel: { defaultMessage: 'Agent permissions level', id: '+bJIWo' },
+    agentEndpoint: { defaultMessage: 'Agent endpoint', id: 's7DlV0' },
     deleteAgentTitle: { defaultMessage: 'Delete SRE Agent', id: 'ThSX0k' },
     deleteAgentDescription: {
         defaultMessage: 'Are you sure you want to delete this SRE Agent? This action cannot be undone.',

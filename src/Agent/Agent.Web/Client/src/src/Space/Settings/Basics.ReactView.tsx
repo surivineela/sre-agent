@@ -161,6 +161,10 @@ const Basics: FC = () => {
                 <Link onClick={openResourceGroup}>{resourceGroup}</Link>
                 <Label>{intl.formatMessage(SreAgentResources.region)}</Label>
                 <Shimmer isDataLoaded={!agentLoading || !!region}>{region ?? '-'}</Shimmer>
+                <Label>{intl.formatMessage(SreAgentResources.agentEndpoint)}</Label>
+                <Shimmer isDataLoaded={!agentLoading || !!agent?.properties?.agentEndpoint}>
+                    {agent?.properties?.agentEndpoint ?? '-'}
+                </Shimmer>
                 <Label>{intl.formatMessage(SreAgentResources.managedIdentity)}</Label>
                 <Shimmer isDataLoaded={!agentLoading || (!!identityId && !!identityName)}>
                     {identityId && identityName ? <Link onClick={openManagedIdentity}>{identityName}</Link> : '-'}
