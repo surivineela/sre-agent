@@ -32,6 +32,8 @@ namespace Agent.Plugins.Kusto.Tools
             _definition = (KustoToolDefinition)definition;
         }
 
+        // TODO: Remove region parameter from tool
+        // Instead allow cluster uri override and make tool code region agnostic
         public async Task<string> Run(AzureRegion region, Dictionary<string, string> args)
         {
             string groupName = "ContainerApps";
@@ -56,42 +58,29 @@ namespace Agent.Plugins.Kusto.Tools
                     return await kustoChat.ExecuteLocalFunctionAsync(_definition.Function!, region, args, groupName, samplingOptions);
 
                 case KustoExecutionMode.Query:
+                    // Region parameter is not used in Query mode, as the cluster is defined in the connector
                     var formatedQuery = KustoPlugin.FormatQuery(_definition.Query!, args);
-
-                    var result = await kustoChat.ExecuteKustoQueryInternal(region, formatedQuery, groupName);
-                    return result.Result;
-
-                case KustoExecutionMode.Script:
-
-                //var kustoChat = _kustoFactory.Create(_definition.GetConnector<KustoConnector>());
-                //switch (_definition.Mode)
-                //{
-                //    case KustoExecutionMode.Function:
-
-                //        return await kustoChat.ExecuteLocalFunctionAsync(_definition.Function ?? string.Empty, region, args, groupName, samplingOptions);
+                    return await kustoChat.ExecuteClusterKustoQuery(connector.ClusterUrl, connector.Database, formatedQuery);
 
                 default:
-                    return string.Empty; // Return empty string for unsupported modes or unhandled cases
-
-                    //}
-                    ///  return string.Empty; // Return empty string for unsupported modes or unhandled cases
-            }         //TODO unify kustosettings and kusto connector
-        }
-    }
-
-    [ToolTypeAttribute("KustoQuery")]
-    public class KustoQuery
-    {
-        private readonly IKustoPlugin _kustoChat;
-
-        public KustoQuery(IKustoPlugin kustoChat)
-        {
-            _kustoChat = kustoChat;
+                    return string.Empty;
+            }
         }
 
-        public async Task<KustoQueryResult> Run(string query, AzureRegion region, Dictionary<string, string> args, string groupName = "ContainerApps")
+        [ToolTypeAttribute("KustoQuery")]
+        public class KustoQuery
         {
-            return await _kustoChat.ExecuteKustoQueryInternal(region, query, groupName);
+            private readonly IKustoPlugin _kustoChat;
+
+            public KustoQuery(IKustoPlugin kustoChat)
+            {
+                _kustoChat = kustoChat;
+            }
+
+            public async Task<KustoQueryResult> Run(string query, AzureRegion region, Dictionary<string, string> args, string groupName = "ContainerApps")
+            {
+                return await _kustoChat.ExecuteKustoQueryInternal(region, query, groupName);
+            }
         }
     }
 }
