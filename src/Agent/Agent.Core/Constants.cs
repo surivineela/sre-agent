@@ -133,6 +133,23 @@ namespace Agent.Core
             """;
 
         public const string ExtendedAgentsRepoPath = "customAgents";
+
+        public class ArmOperations
+        {
+            public const string AgentUserReadActionId = "Microsoft.App/agents/read";
+            public const string AgentUserActionId = "Microsoft.App/agents/write";
+            public const string AgentThreadReadActionId = "Microsoft.App/agents/threads/read";
+            public const string AgentThreadWriteActionId = "Microsoft.App/agents/threads/write";
+            public const string AgentThreadApproveActionId = "Microsoft.App/agents/threads/approve/action";
+            public const string AgentGraphReadActionId = "Microsoft.App/agents/graph/read";
+            public const string AgentGraphWriteActionId = "Microsoft.App/agents/graph/write";
+            public const string AgentMemoryReadActionId = "Microsoft.App/agents/memory/read";
+            public const string AgentMemoryWriteActionId = "Microsoft.App/agents/memory/write";
+            public const string AgentIncidentManagementReadActionId = "Microsoft.App/agents/incidentmanagement/read";
+            public const string AgentIncidentManagementWriteActionId = "Microsoft.App/agents/incidentmanagement/write";
+            public const string AgentExtendedAgentReadActionId = "Microsoft.App/agents/extended/read";
+            public const string AgentExtendedAgentWriteActionId = "Microsoft.App/agents/extended/write";
+        }
     }
 }
 

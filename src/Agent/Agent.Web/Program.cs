@@ -101,6 +101,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
+using Microsoft.FeatureManagement;
 
 namespace Agent.Web;
 
@@ -856,6 +857,9 @@ public class Program
                 // Convert enum values as strings
                 options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
             });
+
+        // Feature flags
+        builder.Services.AddFeatureManagement();
 
         // Add Blazor services
         builder.Services.AddRazorPages();

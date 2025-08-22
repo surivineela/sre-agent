@@ -20,6 +20,7 @@ using Agent.Runtime.Services;
 using Agent.Plugins.Interface;
 using Agent.Runtime.Reasoning;
 using Agent.Plugins.Services.Interfaces;
+using Agent.Core;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -99,6 +100,7 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpGet("{threadId}/messages")]
+        [ArmOperation(Constants.ArmOperations.AgentThreadReadActionId)]
         public async Task<ActionResult<PagedResponseWithState<Message, ContextStateEnum?>>> GetMessages(Guid threadId, ODataQueryOptions<MessageDocument> queryOptions)
         {
             // First check if thread exists
