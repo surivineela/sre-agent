@@ -333,11 +333,11 @@ Returns a JSON object with validation details:
             }
             else if (quotaTypeEnum.Equals(QuotaType.ManagedEnvironmentConsumptionNCA100Gpus))
             {
-                if (region.Equals("westus3"))
+                if (region.Equals(AzureRegion.WestUS3))
                 {
                     return (ApprovalState.Pending, string.Format(MessageTemplates.RequireManualApproveDueToShortage, "ManagedEnvironmentConsumptionNCA100Gpus", "westus3"));
                 }
-                else if (region.Equals("swedencentral") || region.Equals("australiaeast") || region.Equals("westus"))
+                else if (region.Equals(AzureRegion.SwedenCentral) || region.Equals(AzureRegion.AustraliaEast) || region.Equals(AzureRegion.WestUS))
                 {
                     if (isEA)
                     {
@@ -363,7 +363,7 @@ Returns a JSON object with validation details:
             }
             else if (quotaTypeEnum.Equals(QuotaType.ManagedEnvironmentConsumptionT4Gpus))
             {
-                if (region.Equals("westus3") || region.Equals("swedencentral") || region.Equals("australiaeast") || region.Equals("westeurope"))
+                if (region.Equals(AzureRegion.WestUS3) || region.Equals(AzureRegion.SwedenCentral) || region.Equals(AzureRegion.AustraliaEast) || region.Equals(AzureRegion.WestEurope))
                 {
                     if (isEA)
                     {
