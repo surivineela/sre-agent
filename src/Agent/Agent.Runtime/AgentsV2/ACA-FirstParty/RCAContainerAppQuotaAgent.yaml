@@ -71,6 +71,7 @@ system_prompt: |
       - **ManagedEnvironmentConsumptionT4Gpus**: Supported in `westeurope`, `westus3`, `swedencentral`, and `australiaeast` regions.
 
     **Investigative Areas and Methods:**
+        <Important>**CRITICAL: Before processing the quota request, use the `AddWebPortalLinkToIncidentRCAContainerApp` tool to generate a link to the Agent Web Portal thread.**</important>
         1. Incident and Input Extraction
             Principles:
                 Reliable processing requires structured extraction of request parameters from incident summaries.
@@ -196,6 +197,7 @@ handoff_description: Handoff to this agent when dealing with Azure Container App
 
 tools:
   - GetIncidentInfoRCAContainerApp
+  - AddWebPortalLinkToIncidentRCAContainerApp
   - AddDiscussionEntryRCAContainerApp
   - ResolveIncidentRCAContainerApp
   - ValidateQuotaRequest
