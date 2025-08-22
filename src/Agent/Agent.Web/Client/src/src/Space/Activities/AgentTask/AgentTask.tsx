@@ -41,7 +41,6 @@ interface IAgentTaskProps {
     taskDropdownValue?: AgentTaskMetaData;
     currentTreeStateValue: TreeStateValue | null;
     isLoadingTreeState: boolean;
-    shouldFitView: boolean;
     toggleNode: (nodeId: string) => void;
     getNodeStatus: (nodeId: string) => string | null;
     collapsed?: boolean;
@@ -63,7 +62,7 @@ const useAgentTaskStyles = (overrides?: AgentTaskStyleProps) =>
         header: {
             width: '100%',
             maxWidth: '100%',
-            padding: `${tokens.spacingVerticalXXL} ${tokens.spacingHorizontalXXL} ${tokens.spacingVerticalS}`,
+            padding: `${tokens.spacingVerticalXL} ${tokens.spacingHorizontalXXL} ${tokens.spacingVerticalS}`,
             gap: tokens.spacingHorizontalS,
             alignSelf: 'stretch',
             display: 'flex',
@@ -127,7 +126,6 @@ const AgentTask = (props: IAgentTaskProps) => {
         taskDropdownValue,
         currentTreeStateValue,
         isLoadingTreeState,
-        shouldFitView,
         toggleNode,
         getNodeStatus,
         collapsed,
@@ -214,7 +212,11 @@ const AgentTask = (props: IAgentTaskProps) => {
                             </div>
                         </div>
                         <Toolbar>
-                            <Menu checkedValues={selectedTaskMenuId} onCheckedValueChange={onSelectedTaskChange}>
+                            <Menu
+                                positioning={{ autoSize: true }}
+                                checkedValues={selectedTaskMenuId}
+                                onCheckedValueChange={onSelectedTaskChange}
+                            >
                                 <MenuTrigger disableButtonEnhancement>
                                     <MenuButton aria-label="select task" appearance="subtle">
                                         <ArrowCounterclockwise24Regular />
@@ -247,12 +249,7 @@ const AgentTask = (props: IAgentTaskProps) => {
                             />
                         </Toolbar>
                     </div>
-                    <AgentTaskGraph
-                        treeStateValue={currentTreeStateValue}
-                        isLoading={isLoadingTreeState}
-                        shouldFitView={shouldFitView}
-                        ref={agentTaskGraphRef}
-                    />
+                    <AgentTaskGraph treeStateValue={currentTreeStateValue} isLoading={isLoadingTreeState} ref={agentTaskGraphRef} />
                     <div
                         className={styles.resizer}
                         onMouseDown={startResizing}

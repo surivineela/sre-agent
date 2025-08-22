@@ -10,7 +10,13 @@ import HypothesisNode from '../../Components/AgentTask/HypothesisNode';
 import HypothesisRootGroupNode from '../../Components/AgentTask/HypothesisRootGroupNode';
 import InitialInvestigationNode from '../../Components/AgentTask/InitialInvestigationNode';
 import ParentEdge from '../../Components/AgentTask/ParentEdge';
-import { AgentTaskGraphHandle, GraphFlowEdge, GraphFlowNode, IAgentTaskGraphProps, InvestigationGraphFlowEdgeType } from '../../Contracts/Activities';
+import {
+    AgentTaskGraphHandle,
+    GraphFlowEdge,
+    GraphFlowNode,
+    IAgentTaskGraphProps,
+    InvestigationGraphFlowEdgeType,
+} from '../../Contracts/Activities';
 import { AgentTaskGraphContext } from '../../Contracts/Context';
 import { useAgentTaskGraphFlow } from '../../Hooks/useAgentTaskGraphFlow';
 import AgentTaskDetailsPanel from './AgentTaskDetailsPanel';
@@ -26,6 +32,7 @@ const AgentTaskGraph = forwardRef<AgentTaskGraphHandle, IAgentTaskGraphProps>((p
         selectedNode,
         isDetailsPanelOpen,
         closeDetailsPanel,
+        reactFlowWrapperRef,
         ...agentTaskGraphFlowProps
     } = useAgentTaskGraphFlow(props);
 
@@ -40,7 +47,9 @@ const AgentTaskGraph = forwardRef<AgentTaskGraphHandle, IAgentTaskGraphProps>((p
                     <Spinner size="large" style={{ marginTop: '300px' }} />
                 </DrawerBody>
             ) : (
-                <AgentTaskGraphFlow {...agentTaskGraphFlowProps} />
+                <div ref={reactFlowWrapperRef} key={renderKey} style={{ width: '100%', height: '100%' }}>
+                    <AgentTaskGraphFlow {...agentTaskGraphFlowProps} />
+                </div>
             )}
             <AgentTaskDetailsPanel isOpen={isDetailsPanelOpen} onClose={closeDetailsPanel} node={selectedNode} />
         </AgentTaskGraphContext.Provider>
@@ -52,11 +61,13 @@ const AgentTaskGraphFlow = ({
     edges,
     onNodesChange,
     onEdgesChange,
+    minZoom,
 }: {
     nodes: GraphFlowNode[];
     edges: GraphFlowEdge[];
     onNodesChange: OnNodesChange<GraphFlowNode>;
     onEdgesChange: OnEdgesChange<GraphFlowEdge>;
+    minZoom?: number;
 }) => {
     const theme = useTheme();
 
@@ -83,6 +94,7 @@ const AgentTaskGraphFlow = ({
             proOptions={{ hideAttribution: true }}
             colorMode={theme.isInverted ? 'dark' : 'light'}
             fitView
+            minZoom={minZoom}
             fitViewOptions={{ padding: 50 }}
         >
             <Controls />

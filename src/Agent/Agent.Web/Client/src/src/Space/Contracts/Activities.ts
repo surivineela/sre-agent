@@ -216,7 +216,6 @@ export type GraphFlowEdge = Edge<InvestigationGraphFlowEdge>;
 export interface IAgentTaskGraphProps {
     isLoading: boolean;
     treeStateValue: TreeStateValue | null;
-    shouldFitView: boolean;
 }
 
 export interface TreeStateValue {

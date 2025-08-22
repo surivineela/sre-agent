@@ -27,7 +27,6 @@ export const useAgentTask = (
     const [treeStates, setTreeStates] = useState<Map<string, TreeStateValue>>(new Map());
     const [isLoadingTreeState, setIsLoadingTreeState] = useState(false);
     const [currentTreeStateValue, setCurrentTreeStateValue] = useState<TreeStateValue | null>(null);
-    const [shouldFitView, setShouldFitView] = useState(true);
 
     // When deepInvestigationButtonEnabled is null, it means that the thread is loading and at this moment do not enable the button until the loading is completed
     const [deepInvestigationButtonEnabled, setDeepInvestigationButtonEnabled] = useState<boolean | null>(null);
@@ -238,8 +237,6 @@ export const useAgentTask = (
                 const isSameTaskId = prev?.taskId === treeStateValue?.taskId;
                 const isCurrentTaskChanged = treeStateValue?.changeIdentifier !== prev?.changeIdentifier;
                 if (isPrevNull || isCurrentNull || !isSameTaskId || isCurrentTaskChanged) {
-                    const isUpdatingCurrentTreeState = !isPrevNull && !isCurrentNull && isSameTaskId && isCurrentTaskChanged;
-                    setShouldFitView(!isUpdatingCurrentTreeState);
                     return treeStateValue;
                 } else {
                     return prev;
@@ -317,7 +314,6 @@ export const useAgentTask = (
 
         currentTreeStateValue,
         isLoadingTreeState,
-        shouldFitView,
         toggleNode,
         getNodeStatus,
     };

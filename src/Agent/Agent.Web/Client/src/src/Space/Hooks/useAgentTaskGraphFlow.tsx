@@ -1,7 +1,7 @@
 import { graphlib, layout } from '@dagrejs/dagre';
 import { useEdgesState, useNodesState, useReactFlow, XYPosition } from '@xyflow/react';
 import debounce from 'lodash/debounce';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { InvestigationTreeNode, InvestigationTreeState, TreeNodeType } from '../../Common/Contracts/DataPlane/AgentTask';
 import { Guid } from '../../Common/Helpers/Guid';
 import {
@@ -34,7 +34,7 @@ class DagreSep {
 const GroupNodePadding = 50;
 
 export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
-    const { treeStateValue, shouldFitView } = props;
+    const { treeStateValue } = props;
 
     const { fitView } = useReactFlow();
 
@@ -43,6 +43,9 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
     const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
     const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
     const [renderKey, setRenderKey] = useState(Guid.newGuid());
+    const [minZoom, setMinZoom] = useState<number>();
+
+    const reactFlowWrapperRef = useRef<HTMLDivElement>(null);
 
     const centerGraph = debounce(() => {
         fitView({ padding: 50, duration: 50 });
@@ -404,6 +407,7 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
 
         return {
             nodes,
+            initialInvestigationGroupNodeWidth,
             initialInvestigationGroupNodeHeight,
             centerX: posX + initialInvestigationGroupNodeWidth / 2,
             initialInvestigationGroupNodePositionY: posY,
@@ -511,6 +515,7 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
         return {
             nodes,
             edges,
+            hypothesisRootGroupNodeWidth: rootGroupNodeWidth,
             hypothesisRootGroupNodeHeight: rootGroupNodeHeight,
             hypothesisRootGroupNodePositionY: rootGroupNodePosY,
         };
@@ -545,7 +550,39 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
         };
     };
 
-    const constructGraph = (treeState: InvestigationTreeState | null) => {
+    const computeMinZoom = (
+        initialInvestigationNodeDimension?: { width: number; height: number },
+        hypothesisGroupRootNodeDimension?: { width: number; height: number },
+        conclusionNodeDimension?: { width: number; height: number }
+    ) => {
+        if (!reactFlowWrapperRef.current) return undefined;
+
+        let width = 0,
+            height = 0;
+
+        if (initialInvestigationNodeDimension) {
+            width = initialInvestigationNodeDimension.width;
+            height = initialInvestigationNodeDimension.height;
+        }
+
+        if (hypothesisGroupRootNodeDimension) {
+            width = Math.max(width, hypothesisGroupRootNodeDimension.width);
+            height += hypothesisGroupRootNodeDimension.height + DagreSep.parentNode.ranksep;
+        }
+
+        if (conclusionNodeDimension) {
+            width = Math.max(width, conclusionNodeDimension.width);
+            height += conclusionNodeDimension.height + DagreSep.parentNode.ranksep;
+        }
+
+        if (width === 0 || height === 0) return undefined;
+
+        return Math.min(reactFlowWrapperRef.current.clientWidth / width, reactFlowWrapperRef.current.clientHeight / height, 0.6);
+    };
+
+    const constructGraph = (
+        treeState: InvestigationTreeState | null
+    ): { graphFlowNodes: GraphFlowNode[]; graphFlowEdges: GraphFlowEdge[]; minZoom?: number } => {
         const graphFlowNodes: GraphFlowNode[] = [];
         const graphFlowEdges: GraphFlowEdge[] = [];
 
@@ -581,6 +618,7 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
         }
         const {
             nodes: initialInvestigationNodesWithLayout,
+            initialInvestigationGroupNodeWidth,
             initialInvestigationGroupNodeHeight,
             centerX,
             initialInvestigationGroupNodePositionY,
@@ -593,11 +631,13 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
             return {
                 graphFlowNodes,
                 graphFlowEdges,
+                minZoom: computeMinZoom({ width: initialInvestigationGroupNodeWidth, height: initialInvestigationGroupNodeHeight }),
             };
         }
         const {
             nodes: hypothesisNodes,
             edges: hypothesisEdges,
+            hypothesisRootGroupNodeWidth,
             hypothesisRootGroupNodeHeight,
             hypothesisRootGroupNodePositionY,
         } = layoutHypothesisGroupAndChildrenNode(
@@ -612,35 +652,50 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
 
         // Add conclusion nodes
         const conclusionNode = getConclusionNodesAndEdges(phaseNodes);
-        if (conclusionNode) {
-            const { conclusionNode: conclusionNodeWithPosition, edge: conclusionEdge } = layoutConclusionNode(
-                conclusionNode,
-                hypothesisGroupsAndRootGroup.rootGroup.id,
-                hypothesisRootGroupNodePositionY,
-                hypothesisRootGroupNodeHeight,
-                centerX
-            );
-            graphFlowNodes.push(conclusionNodeWithPosition);
-            graphFlowEdges.push(conclusionEdge);
+        if (!conclusionNode) {
+            return {
+                graphFlowNodes,
+                graphFlowEdges,
+                minZoom: computeMinZoom(
+                    { width: initialInvestigationGroupNodeWidth, height: initialInvestigationGroupNodeHeight },
+                    { width: hypothesisRootGroupNodeWidth, height: hypothesisRootGroupNodeHeight }
+                ),
+            };
         }
+
+        const { conclusionNode: conclusionNodeWithPosition, edge: conclusionEdge } = layoutConclusionNode(
+            conclusionNode,
+            hypothesisGroupsAndRootGroup.rootGroup.id,
+            hypothesisRootGroupNodePositionY,
+            hypothesisRootGroupNodeHeight,
+            centerX
+        );
+        graphFlowNodes.push(conclusionNodeWithPosition);
+        graphFlowEdges.push(conclusionEdge);
 
         return {
             graphFlowNodes,
             graphFlowEdges,
+            minZoom: computeMinZoom(
+                { width: initialInvestigationGroupNodeWidth, height: initialInvestigationGroupNodeHeight },
+                { width: hypothesisRootGroupNodeWidth, height: hypothesisRootGroupNodeHeight },
+                { width: AgentTaskNodeSize.ConclusionNode.width, height: AgentTaskNodeSize.ConclusionNode.height }
+            ),
         };
     };
 
     useEffect(() => {
         const treeState = treeStateValue?.treeState || null;
-        const { graphFlowNodes, graphFlowEdges } = constructGraph(treeState);
+        const { graphFlowNodes, graphFlowEdges, minZoom } = constructGraph(treeState);
 
+        setMinZoom(minZoom);
         setNodes(graphFlowNodes);
         setEdges(graphFlowEdges);
+    }, [treeStateValue]);
 
-        if (shouldFitView) {
-            setRenderKey(Guid.newGuid());
-        }
-    }, [treeStateValue, shouldFitView]);
+    useEffect(() => {
+        setRenderKey(Guid.newGuid());
+    }, [nodes.length]);
 
     return {
         nodes,
@@ -649,6 +704,8 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
         onEdgesChange,
         renderKey,
         centerGraph,
+        reactFlowWrapperRef,
+        minZoom,
 
         selectNode,
         selectedNodeId,
