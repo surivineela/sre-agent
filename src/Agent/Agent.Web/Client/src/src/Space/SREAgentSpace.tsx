@@ -22,6 +22,13 @@ import { useSreAgent } from './Settings/Hooks/useSreAgent';
 import Settings from './Settings/Settings.ReactView';
 import { useSreAgentSpaceStyles } from './Settings/Styles/SreAgentSpaceStyles';
 
+/*
+NOTE: The current idea is to do only data plane (agent site), and NOT control plane (ARM) calls, in
+the Activities and Resource mapping tabs so that they can be used in standalone and cross-tenant.
+
+If you do see AzPortalContext, it's likely telemetry, and/or something that checks these states internally
+*/
+
 const getTabListStyle = (theme: Theme) => {
     return {
         backgroundColor: theme.semanticColors.bodyBackground,

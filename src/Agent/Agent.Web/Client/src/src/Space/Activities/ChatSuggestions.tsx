@@ -1,6 +1,7 @@
 import { Button, Image, makeStyles, Text, tokens } from '@fluentui/react-components';
 import { useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { KnowledgeGraphBuildStatusContext } from '../../Common/Providers/KnowledgeGraphBuildStatusProvider';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
 
@@ -95,6 +96,7 @@ export const ChatSuggestions = (props: ChatSuggestionsProps) => {
     const [clickedKey, setClickedKey] = useState<string>('');
 
     const { hasChatPermissions } = useContext(KnowledgeGraphBuildStatusContext);
+    const { logAmplitudeControlEvent } = useAzPortalContext();
 
     const chatSuggestionCategories = useMemo<string[]>(() => ['About me', 'App Services', 'Container Apps', 'AKS', 'APIM'], []);
 
@@ -197,6 +199,15 @@ export const ChatSuggestions = (props: ChatSuggestionsProps) => {
     const handleQuestionClick = (question: string) => {
         sendMessage(question);
         setClickedKey('');
+
+        logAmplitudeControlEvent({
+            targetType: 'button',
+            targetAction: 'clicked',
+            targetName: 'newChatPromptSuggestion',
+            targetFriendlyName: 'New chat prompt suggestion',
+            valueObjectName: question,
+            valueObjectFriendlyName: question,
+        });
     };
 
     return (

@@ -23,6 +23,8 @@ import { IStyle, mergeStyles } from '@fluentui/react/lib/Styling';
 import { TextField } from '@fluentui/react/lib/TextField';
 import { memo, useCallback, useContext, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
+import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
+import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { AgentTaskMetaData } from '../../Common/Contracts/DataPlane/AgentTask';
 import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
 import { ActivitiesResources, AgentTaskResources, PromptResources, SreAgentResources } from '../../Strings/SREAgentResources';
@@ -87,6 +89,7 @@ const ChatBoxFooter = ({
     const { root, footer, subFooter, chatStatement } = useChatInputStyles();
 
     const { isConnected } = useContext(StreamingContext);
+    const { logAmplitudeControlEvent } = useAzPortalContext();
 
     const disableInputInteraction = useMemo(() => {
         return isLoading || !isConnected || isCancellingStreaming;
@@ -105,8 +108,17 @@ const ChatBoxFooter = ({
             setHistoryIndex(-1);
             setOriginalInput('');
             sendMessage(messageToSend);
+
+            logAmplitudeControlEvent({
+                targetType: 'button',
+                targetAction: 'clicked',
+                targetName: 'sendMessage',
+                targetFriendlyName: 'Send message',
+                valueObjectName: SpecialControlValue.CustomerSuppliedData,
+                valueObjectFriendlyName: SpecialControlValue.CustomerSuppliedData,
+            });
         }
-    }, [input, sendMessage, disableInputInteraction, isTyping]);
+    }, [input, sendMessage, disableInputInteraction, isTyping, logAmplitudeControlEvent]);
 
     return (
         <div className={root}>
@@ -336,23 +348,41 @@ const PromptLibraryButton = memo(
         const { sectionHeader, promptMenuPopover, promptItem, lightbulbIcon } = useChatInputStyles();
 
         const intl = useIntl();
+        const { logAmplitudeControlEvent } = useAzPortalContext();
 
         const isVisible = useIsOverflowItemVisible(ChatBoxButtonIds.PromptLibrary);
 
         const handlePromptClick = useCallback(
-            (prompt: string) => {
+            (prompt: string, isUserPrompt: boolean) => {
                 if (!disableInputInteraction && !isTyping) {
                     sendMessage(prompt);
+
+                    logAmplitudeControlEvent({
+                        targetType: 'button',
+                        targetAction: 'clicked',
+                        targetName: 'promptLibrary',
+                        targetFriendlyName: 'Prompt library',
+                        valueObjectName: !isUserPrompt ? prompt : SpecialControlValue.CustomerSuppliedData,
+                        valueObjectFriendlyName: !isUserPrompt ? prompt : SpecialControlValue.CustomerSuppliedData,
+                    });
                 }
             },
-            [sendMessage, disableInputInteraction, isTyping]
+            [sendMessage, disableInputInteraction, isTyping, logAmplitudeControlEvent]
         );
 
-        const PromptSection = ({ title, prompts }: { title: string; prompts: string[] }) => (
+        const PromptSection = ({
+            title,
+            prompts,
+            isUserRecentPrompts,
+        }: {
+            title: string;
+            prompts: string[];
+            isUserRecentPrompts: boolean;
+        }) => (
             <MenuGroup>
                 <MenuGroupHeader className={sectionHeader}>{title}</MenuGroupHeader>
                 {prompts.map((prompt, i) => (
-                    <div key={i} className={promptItem} onClick={() => handlePromptClick(prompt)}>
+                    <div key={i} className={promptItem} onClick={() => handlePromptClick(prompt, isUserRecentPrompts)}>
                         <Lightbulb16Regular className={lightbulbIcon} />
                         {prompt}
                     </div>
@@ -394,10 +424,18 @@ const PromptLibraryButton = memo(
                 <MenuPopover className={promptMenuPopover}>
                     <MenuList>
                         {messagePromptsUsed.length > 0 && (
-                            <PromptSection title={intl.formatMessage(PromptResources.myRecentPrompts)} prompts={messagePromptsUsed} />
+                            <PromptSection
+                                title={intl.formatMessage(PromptResources.myRecentPrompts)}
+                                prompts={messagePromptsUsed}
+                                isUserRecentPrompts
+                            />
                         )}
                         {messagePromptsUsed.length > 0 && <MenuDivider />}
-                        <PromptSection title={intl.formatMessage(PromptResources.suggestedPrompts)} prompts={prompts} />
+                        <PromptSection
+                            title={intl.formatMessage(PromptResources.suggestedPrompts)}
+                            prompts={prompts}
+                            isUserRecentPrompts={false}
+                        />
                     </MenuList>
                 </MenuPopover>
             </Menu>
