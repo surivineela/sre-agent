@@ -1,67 +1,66 @@
-import { Breadcrumb, BreadcrumbButton, BreadcrumbDivider, BreadcrumbItem } from '@fluentui/react-components';
 import { FC } from 'react';
-import useIntl from 'react-intl/src/components/useIntl';
 import { Thread } from '../../Common/Contracts/DataPlane/Thread';
-import { IncidentManagementResources } from '../../Strings/SREAgentResources';
 import { ChatBox } from '../Activities/ChatBox';
 import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
-import { DirtyStateConfirmationWrapper } from './CreateIncidentHandler/DirtyStateConfirmationDialog';
+import TitleBarNavigation from './Common/TitleBarNavigation';
 
 export interface IncidentChatProps {
     selectedThread: Thread;
     exitToHome: () => void;
+    isExpandedView?: boolean;
 }
 
-const IncidentChat: FC<IncidentChatProps> = ({ selectedThread, exitToHome }) => {
+const IncidentChat: FC<IncidentChatProps> = ({ selectedThread, exitToHome, isExpandedView }) => {
     const styles = useIncidentManagementStyles();
-    const intl = useIntl();
 
-    return (
-        <div className={styles.breadCrumbAndPanelWrapper}>
-            <Breadcrumb className={styles.breadcrumb}>
-                <BreadcrumbItem>
-                    <DirtyStateConfirmationWrapper isDirty={false} onConfirm={exitToHome}>
-                        <BreadcrumbButton>{intl.formatMessage(IncidentManagementResources.incidentsOverview)}</BreadcrumbButton>
-                    </DirtyStateConfirmationWrapper>
-                </BreadcrumbItem>
-                <BreadcrumbDivider />
-                <BreadcrumbItem style={{ marginLeft: 6 }}>{selectedThread.title}</BreadcrumbItem>
-            </Breadcrumb>
-            <div className={styles.navPanelWrapper}>
-                <div className={styles.navPanelContent}>
-                    <div className={styles.incidentChatWrapper}>
-                        <ChatBox
-                            threadId={selectedThread.id}
-                            addThread={() => {}}
-                            updateThreadLastReadTime={() => {}}
-                            threadSource={selectedThread.source}
-                            collapseResizables={() => {}}
-                            isAgentTaskEnabled={true}
-                            stylesProps={{
-                                chatBoxAndAgentTask: {
-                                    boxShadow: 'unset',
-                                    borderRadius: 'unset',
-                                    width: '100%',
-                                    height: '100%',
-                                    marginBottom: '0px',
-                                },
-                                chatBox: {
-                                    height: '100%',
-                                },
-                                chatBoxInner: {
-                                    borderRadius: 'unset',
-                                },
-                                chatContainer: {
-                                    // marginLeft: 'auto',
-                                    // marginRight: 'auto',
-                                },
-                            }}
-                        />
-                    </div>
+    return isExpandedView ? (
+        <TitleBarNavigation title={selectedThread.title} onBackClick={exitToHome}>
+            <div className={styles.navPanelContent}>
+                <div className={styles.incidentChatWrapper}>
+                    <IncidentChatInner selectedThread={selectedThread} isAgentTaskEnabled={true} />
                 </div>
             </div>
-        </div>
+        </TitleBarNavigation>
+    ) : (
+        <IncidentChatInner selectedThread={selectedThread} isAgentTaskEnabled={false} />
     );
 };
 
 export default IncidentChat;
+
+interface IncidentChatInnerProps {
+    selectedThread: Thread;
+    isAgentTaskEnabled?: boolean;
+}
+
+const IncidentChatInner: FC<IncidentChatInnerProps> = ({ selectedThread, isAgentTaskEnabled }) => {
+    return (
+        <ChatBox
+            threadId={selectedThread.id}
+            addThread={() => {}}
+            updateThreadLastReadTime={() => {}}
+            threadSource={selectedThread.source}
+            collapseResizables={() => {}}
+            isAgentTaskEnabled={!!isAgentTaskEnabled}
+            stylesProps={{
+                chatBoxAndAgentTask: {
+                    boxShadow: 'unset',
+                    borderRadius: 'unset',
+                    width: '100%',
+                    height: '100%',
+                    marginBottom: '0px',
+                },
+                chatBox: {
+                    height: '100%',
+                },
+                chatBoxInner: {
+                    borderRadius: 'unset',
+                },
+                chatContainer: {
+                    // marginLeft: 'auto',
+                    // marginRight: 'auto',
+                },
+            }}
+        />
+    );
+};

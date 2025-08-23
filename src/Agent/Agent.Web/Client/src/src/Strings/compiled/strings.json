@@ -411,6 +411,12 @@
       "value": "Grafana dashboard"
     }
   ],
+  "312q4w": [
+    {
+      "type": 0,
+      "value": "No incidents found"
+    }
+  ],
   "3651Wt": [
     {
       "type": 0,
@@ -2245,6 +2251,12 @@
       "value": "Generate"
     }
   ],
+  "Pcf4MK": [
+    {
+      "type": 0,
+      "value": "Full page"
+    }
+  ],
   "Phji5P": [
     {
       "type": 0,
@@ -2413,6 +2425,12 @@
     {
       "type": 0,
       "value": "Resolved by agent"
+    }
+  ],
+  "RAjqKb": [
+    {
+      "type": 0,
+      "value": "Close panel"
     }
   ],
   "RH8rNM": [

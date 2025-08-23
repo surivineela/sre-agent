@@ -12,7 +12,7 @@ import { Thread, ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
 import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
-import { ChatMessage, ChatMessageContent, ThreadFilter } from '../Contracts/Activities';
+import { ChatMessage, ChatMessageContent } from '../Contracts/Activities';
 import { DefaultUserIdAndDisplayName } from '../Hooks/useAuthenticatedUserInfo';
 
 /**
@@ -287,20 +287,25 @@ export const shouldGroupWithPreviousMessage = (currentChatMessage?: ChatMessage,
     );
 };
 
-export const getFilteredThreads = (threads: Thread[], threadFilters?: Set<ThreadFilter>, searchText?: string): Thread[] => {
+export const getFilteredThreads = (
+    threads: Thread[],
+    excludedSources?: ThreadSource[],
+    unreadOnly?: boolean,
+    searchText?: string
+): Thread[] => {
     return threads.filter(thread => {
         let match = true;
+
+        if (thread.source && excludedSources && excludedSources.length > 0) {
+            match = !excludedSources.includes(thread.source);
+        }
 
         if (searchText) {
             match = thread.title.toLocaleLowerCase().includes(searchText.toLocaleLowerCase());
         }
 
-        if (threadFilters?.has(ThreadFilter.Incidents)) {
-            match = thread.source === ThreadSource.incident;
-        }
-
-        if (threadFilters?.has(ThreadFilter.Unread)) {
-            match = isThreadUnread(thread);
+        if (unreadOnly) {
+            match = match && isThreadUnread(thread);
         }
 
         return match;

@@ -14,14 +14,14 @@ describe('getThreadsGetUrlPath', () => {
                     min: { timestamp: '2025-01-01T00:00:00Z', inclusive: true },
                     max: { timestamp: '2025-12-31T23:59:59Z', inclusive: false },
                 },
-                source: ThreadSource.incident,
+                excludedSources: [ThreadSource.incident],
             },
             severity: ThreadSeverity.Critical,
         };
 
         const url = getThreadsGetUrlPath(options);
         expect(url).toBe(
-            `/api/v1/threads?skip=10&top=20&orderby=modifiedTimestamp+desc&filter=contains(tolower(title),'test') and modifiedTimestamp ge 2025-01-01T00:00:00Z and modifiedTimestamp lt 2025-12-31T23:59:59Z and source eq 'Incident'&severity=Critical`
+            `/api/v1/threads?skip=10&top=20&orderby=modifiedTimestamp+desc&filter=contains(tolower(title),'test') and modifiedTimestamp ge 2025-01-01T00:00:00Z and modifiedTimestamp lt 2025-12-31T23:59:59Z and source ne 'Incident'&severity=Critical`
         );
     });
 
@@ -36,14 +36,14 @@ describe('getThreadsGetUrlPath', () => {
                     min: { timestamp: '2025-01-01T00:00:00Z', inclusive: true },
                     max: { timestamp: '2025-12-31T23:59:59Z', inclusive: false },
                 },
-                source: ThreadSource.incident,
+                excludedSources: [ThreadSource.incident],
             },
             severity: ThreadSeverity.Critical,
         };
 
         const url = getThreadsGetUrlPath(options);
         expect(url).toBe(
-            `/api/v1/threads?skip=10&top=20&orderby=modifiedTimestamp&filter=contains(tolower(title),'test') and modifiedTimestamp ge 2025-01-01T00:00:00Z and modifiedTimestamp lt 2025-12-31T23:59:59Z and source eq 'Incident'&severity=Critical`
+            `/api/v1/threads?skip=10&top=20&orderby=modifiedTimestamp&filter=contains(tolower(title),'test') and modifiedTimestamp ge 2025-01-01T00:00:00Z and modifiedTimestamp lt 2025-12-31T23:59:59Z and source ne 'Incident'&severity=Critical`
         );
     });
 
@@ -57,14 +57,14 @@ describe('getThreadsGetUrlPath', () => {
                     min: { timestamp: '2025-01-01T00:00:00Z', inclusive: true },
                     max: { timestamp: '2025-12-31T23:59:59Z', inclusive: false },
                 },
-                source: ThreadSource.incident,
+                excludedSources: [ThreadSource.incident],
             },
             severity: ThreadSeverity.Critical,
         };
 
         const url = getThreadsGetUrlPath(options);
         expect(url).toBe(
-            `/api/v1/threads?skip=10&top=20&orderby=modifiedTimestamp+desc&filter=modifiedTimestamp ge 2025-01-01T00:00:00Z and modifiedTimestamp lt 2025-12-31T23:59:59Z and source eq 'Incident'&severity=Critical`
+            `/api/v1/threads?skip=10&top=20&orderby=modifiedTimestamp+desc&filter=modifiedTimestamp ge 2025-01-01T00:00:00Z and modifiedTimestamp lt 2025-12-31T23:59:59Z and source ne 'Incident'&severity=Critical`
         );
     });
 
@@ -78,14 +78,14 @@ describe('getThreadsGetUrlPath', () => {
                 timestamps: {
                     max: { timestamp: '2025-12-31T23:59:59Z', inclusive: true },
                 },
-                source: ThreadSource.incident,
+                excludedSources: [ThreadSource.incident],
             },
             severity: ThreadSeverity.Critical,
         };
 
         const url = getThreadsGetUrlPath(options);
         expect(url).toBe(
-            `/api/v1/threads?skip=10&top=20&orderby=modifiedTimestamp+desc&filter=contains(tolower(title),'test') and modifiedTimestamp le 2025-12-31T23:59:59Z and source eq 'Incident'&severity=Critical`
+            `/api/v1/threads?skip=10&top=20&orderby=modifiedTimestamp+desc&filter=contains(tolower(title),'test') and modifiedTimestamp le 2025-12-31T23:59:59Z and source ne 'Incident'&severity=Critical`
         );
     });
 
@@ -99,14 +99,14 @@ describe('getThreadsGetUrlPath', () => {
                 timestamps: {
                     min: { timestamp: '2025-01-01T00:00:00Z', inclusive: false },
                 },
-                source: ThreadSource.incident,
+                excludedSources: [ThreadSource.incident],
             },
             severity: ThreadSeverity.Critical,
         };
 
         const url = getThreadsGetUrlPath(options);
         expect(url).toBe(
-            `/api/v1/threads?skip=10&top=20&orderby=modifiedTimestamp+desc&filter=contains(tolower(title),'test') and modifiedTimestamp gt 2025-01-01T00:00:00Z and source eq 'Incident'&severity=Critical`
+            `/api/v1/threads?skip=10&top=20&orderby=modifiedTimestamp+desc&filter=contains(tolower(title),'test') and modifiedTimestamp gt 2025-01-01T00:00:00Z and source ne 'Incident'&severity=Critical`
         );
     });
 
@@ -142,13 +142,13 @@ describe('getThreadsGetUrlPath', () => {
                     min: { timestamp: '2025-01-01T00:00:00Z', inclusive: true },
                     max: { timestamp: '2025-12-31T23:59:59Z', inclusive: false },
                 },
-                source: ThreadSource.incident,
+                excludedSources: [ThreadSource.incident],
             },
         };
 
         const url = getThreadsGetUrlPath(options);
         expect(url).toBe(
-            `/api/v1/threads?skip=10&top=20&orderby=modifiedTimestamp+desc&filter=contains(tolower(title),'test') and modifiedTimestamp ge 2025-01-01T00:00:00Z and modifiedTimestamp lt 2025-12-31T23:59:59Z and source eq 'Incident'`
+            `/api/v1/threads?skip=10&top=20&orderby=modifiedTimestamp+desc&filter=contains(tolower(title),'test') and modifiedTimestamp ge 2025-01-01T00:00:00Z and modifiedTimestamp lt 2025-12-31T23:59:59Z and source ne 'Incident'`
         );
     });
 });

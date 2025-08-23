@@ -1,12 +1,19 @@
 import debounce from 'lodash/debounce';
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ThreadClient } from '../../../Common/Clients/ThreadClient';
-import { Thread, ThreadSource } from '../../../Common/Contracts/DataPlane/Thread';
+import { Thread } from '../../../Common/Contracts/DataPlane/Thread';
 import { KnowledgeGraphBuildStatusContext } from '../../../Common/Providers/KnowledgeGraphBuildStatusProvider';
 import { getIntervalBetweenLoading, getUpdatedUnreadThreadIds, processThreads } from '../../Activities/Utility';
+import { ThreadLoadingCounts } from '../../Contracts/Activities';
 
-export const useIncidentThreadList = (initialThreads: Thread[] | undefined, searchText: string | undefined) => {
+export const useIncidentThreadList = (
+    initialThreads?: Thread[],
+    searchText?: string,
+    statusFilters?: string[],
+    visible?: boolean,
+    refresh?: number
+) => {
     const [threads, setThreads] = useState<Thread[]>(initialThreads || []);
     const [moreThreadsToLoad, setMoreThreadsToLoad] = useState<boolean>(true);
     const [unreadThreadIds, setUnreadThreadIds] = useState<Set<string>>(new Set<string>());
@@ -15,7 +22,7 @@ export const useIncidentThreadList = (initialThreads: Thread[] | undefined, sear
 
     const { hasChatPermissions } = useContext(KnowledgeGraphBuildStatusContext);
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
-    const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
+    const threadClient = useMemo(() => ThreadClient.getInstance(sreAgentEndpoint), [sreAgentEndpoint]);
 
     const oldestThread = useRef<Thread>();
     const loadThreadsCallId = useRef<number>(0);
@@ -24,32 +31,35 @@ export const useIncidentThreadList = (initialThreads: Thread[] | undefined, sear
     const currentScrollTop = useRef<number>(0);
     const threadListDivRef = useRef<HTMLDivElement | null>(null);
 
-    const getThreads = async (searchText: string | undefined, oldestThread: Thread | undefined) => {
-        return await threadClient.getThreads({
-            skip: 0,
-            top: 5, //ThreadLoadingCounts.default,
-            descending: true,
-            filters: {
-                searchText,
-                timestamps: {
-                    max: oldestThread
-                        ? {
-                              timestamp: oldestThread.modifiedTimestamp,
-                              inclusive: false,
-                          }
-                        : undefined,
+    const getThreads = useCallback(
+        async (searchText: string | undefined, status: string[] | undefined, oldestThread: Thread | undefined) => {
+            return await threadClient.getIncidentThreads({
+                skip: 0,
+                top: ThreadLoadingCounts.default,
+                descending: true,
+                filters: {
+                    searchText,
+                    status: status?.some(s => s === 'all') ? [] : status,
+                    timestamps: {
+                        max: oldestThread
+                            ? {
+                                  timestamp: oldestThread.modifiedTimestamp,
+                                  inclusive: false,
+                              }
+                            : undefined,
+                    },
                 },
-                source: ThreadSource.incident,
-            },
-        });
-    };
+            });
+        },
+        [threadClient]
+    );
 
     const loadThreads = useCallback(async (): Promise<boolean | undefined> => {
         if (!isLoadingThreads.current && !isLoadingInitialChatMessages) {
             const callId = loadThreadsCallId.current;
             isLoadingThreads.current = true;
 
-            const oldThreadsResponse = await getThreads(searchText, oldestThread.current);
+            const oldThreadsResponse = await getThreads(searchText, statusFilters, oldestThread.current);
 
             if (callId === loadThreadsCallId.current) {
                 const oldThreads = oldThreadsResponse.content ?? [];
@@ -69,10 +79,9 @@ export const useIncidentThreadList = (initialThreads: Thread[] | undefined, sear
                 return undefined;
             }
         }
-    }, [searchText, isLoadingInitialChatMessages]);
+    }, [getThreads, statusFilters, searchText, isLoadingInitialChatMessages]);
 
     const handleScroll = debounce(() => {
-        console.log('handleScroll');
         loadThreads();
     }, 300);
 
@@ -92,7 +101,7 @@ export const useIncidentThreadList = (initialThreads: Thread[] | undefined, sear
             const entry = entries[0];
             setIsIntersecting(entry.isIntersecting);
         });
-        if (observer && intersectionObserverRef.current && !isLoadingInitialChatMessages) {
+        if (visible && observer && intersectionObserverRef.current && !isLoadingInitialChatMessages) {
             observer.observe(intersectionObserverRef.current);
         }
 
@@ -100,7 +109,7 @@ export const useIncidentThreadList = (initialThreads: Thread[] | undefined, sear
             observer?.disconnect();
             setIsIntersecting(false);
         };
-    }, [isLoadingInitialChatMessages]);
+    }, [isLoadingInitialChatMessages, visible]);
 
     useEffect(() => {
         let isSubscribed = true;
@@ -110,7 +119,6 @@ export const useIncidentThreadList = (initialThreads: Thread[] | undefined, sear
             let exponentialBackoffDepth = -1;
 
             const loadOldThreads = async () => {
-                console.log('useEffect: loadOldThreads', exponentialBackoffDepth);
                 const isSuccessful = await loadThreads();
 
                 exponentialBackoffDepth = isSuccessful === false ? exponentialBackoffDepth + 1 : -1;
@@ -134,14 +142,13 @@ export const useIncidentThreadList = (initialThreads: Thread[] | undefined, sear
         return () => {
             loadThreadsCallId.current += 1;
         };
-    }, [searchText, isLoadingInitialChatMessages]);
+    }, [searchText, statusFilters, isLoadingInitialChatMessages, refresh]);
 
     useEffect(() => {
         oldestThread.current = threads[threads.length - 1];
     }, [threads]);
 
     useEffect(() => {
-        console.log('useEffect: hasChatPermissions', hasChatPermissions);
         let isSubscribed = true;
 
         if (!hasChatPermissions) {
@@ -158,8 +165,7 @@ export const useIncidentThreadList = (initialThreads: Thread[] | undefined, sear
                 // Send a request to load initial threads based on the filter options to overflow the threads list div if possible
                 isLoadingThreads.current = true;
 
-                console.log('useEffect: setInitialThreads', searchText);
-                const initialThreadsResponse = await getThreads(searchText, undefined);
+                const initialThreadsResponse = await getThreads(searchText, statusFilters, undefined);
 
                 const initialThreads = initialThreadsResponse.content ?? [];
 
@@ -184,7 +190,7 @@ export const useIncidentThreadList = (initialThreads: Thread[] | undefined, sear
         return () => {
             isSubscribed = false;
         };
-    }, [searchText, hasChatPermissions]);
+    }, [searchText, statusFilters, hasChatPermissions, getThreads, refresh]);
 
     return {
         threads,

@@ -38,3 +38,9 @@ export interface HandlerCreateOrEditInfo {
     handlerId?: string;
     quickEdit?: boolean;
 }
+
+export enum IncidentManagementMenuKeys {
+    IncidentOverview = 'incidents',
+    HandlerConfiguration = 'handlers',
+    IncidentPlatform = 'setup',
+}

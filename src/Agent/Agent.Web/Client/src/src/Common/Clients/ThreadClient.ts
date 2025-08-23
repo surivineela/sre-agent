@@ -21,7 +21,8 @@ export interface ThreadsGetFilterOptions {
             inclusive: boolean;
         };
     };
-    source?: ThreadSource;
+    sources?: ThreadSource[];
+    excludedSources?: ThreadSource[];
     unread?: boolean;
 }
 
@@ -41,7 +42,7 @@ export const getThreadsGetUrlPath = (options: ThreadsGetOptions): string => {
     if (filters) {
         const filterStrings: string[] = [];
 
-        const { searchText, timestamps, source, unread } = filters;
+        const { searchText, timestamps, sources, excludedSources, unread } = filters;
 
         if (searchText) {
             filterStrings.push(`contains(tolower(title),'${searchText.toLowerCase()}')`);
@@ -59,8 +60,14 @@ export const getThreadsGetUrlPath = (options: ThreadsGetOptions): string => {
             }
         }
 
-        if (source) {
-            filterStrings.push(`source eq '${source}'`);
+        if (sources?.length) {
+            const sourcesFilter = sources.map(source => `source eq '${source}'`).join(' or ');
+            filterStrings.push(sources.length > 1 ? `(${sourcesFilter})` : sourcesFilter);
+        }
+
+        if (excludedSources?.length) {
+            const excludedSourcesFilter = excludedSources.map(source => `source ne '${source}'`).join(' and ');
+            filterStrings.push(excludedSources.length > 1 ? `(${excludedSourcesFilter})` : excludedSourcesFilter);
         }
 
         if (unread) {
@@ -86,12 +93,27 @@ export enum IncidentThreadsSortFields {
     Status = 'status',
 }
 
+export interface IncidentThreadsGetFilterOptions {
+    searchText?: string;
+    timestamps?: {
+        min?: {
+            timestamp: string;
+            inclusive: boolean;
+        };
+        max?: {
+            timestamp: string;
+            inclusive: boolean;
+        };
+    };
+    status?: string[];
+    unread?: boolean;
+}
+
 export interface IncidentThreadsGetOptions {
     skip: number;
     top: number;
-    orderBy: any;
     descending: boolean;
-    filters?: ThreadsGetFilterOptions;
+    filters?: IncidentThreadsGetFilterOptions;
     severity?: ThreadSeverity;
 }
 
@@ -103,10 +125,23 @@ export const getIncidentThreadsGetUrlPath = (options: IncidentThreadsGetOptions)
     if (filters) {
         const filterStrings: string[] = [];
 
-        const { searchText, timestamps, source, unread } = filters;
+        const { searchText, status, timestamps, unread } = filters;
 
         if (searchText) {
-            filterStrings.push(`contains(tolower(title),'${searchText.toLowerCase()}')`);
+            const searchTextToLower = searchText.toLowerCase();
+            filterStrings.push(`(contains(tolower(title),'${searchTextToLower}') or contains(tolower(incidentId),'${searchTextToLower}'))`);
+        }
+
+        if (status?.length) {
+            const statusFilterStrings = status.map(s => {
+                const adjustedStatus = s === 'active' ? '' : s.toLowerCase();
+                return `tolower(incidentStatus) eq '${adjustedStatus}'`;
+            });
+            let statusFilterString = statusFilterStrings.join(' or ');
+            if (statusFilterStrings.length > 1) {
+                statusFilterString = `(${statusFilterString})`;
+            }
+            filterStrings.push(statusFilterString);
         }
 
         if (timestamps) {
@@ -121,9 +156,7 @@ export const getIncidentThreadsGetUrlPath = (options: IncidentThreadsGetOptions)
             }
         }
 
-        if (source) {
-            filterStrings.push(`source eq '${source}'`);
-        }
+        filterStrings.push(`source eq '${ThreadSource.incident}'`);
 
         if (unread) {
             filterStrings.push(`lastReadTime lt modifiedTimestamp`);
@@ -178,9 +211,9 @@ export class ThreadClient extends DataPlaneClient {
         }
     };
 
-    public getIncidentThreads = async (options: ThreadsGetOptions): Promise<Response<Thread[]>> => {
+    public getIncidentThreads = async (options: IncidentThreadsGetOptions): Promise<Response<Thread[]>> => {
         try {
-            const path = getThreadsGetUrlPath(options);
+            const path = getIncidentThreadsGetUrlPath(options);
 
             const url = this.getRequestUrl(path);
 

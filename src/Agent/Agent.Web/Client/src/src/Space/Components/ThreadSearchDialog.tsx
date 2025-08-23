@@ -10,7 +10,7 @@ import debounce from 'lodash/debounce';
 import { memo, useCallback, useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
-import { Thread } from '../../Common/Contracts/DataPlane/Thread';
+import { Thread, ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
 import { useThreadList } from '../Hooks/useThreadList';
@@ -20,6 +20,7 @@ interface IThreadSearchDialogProps {
     threads: Thread[];
     selectThread: (thread: Thread | null) => void;
     activeThreadId?: string;
+    excludedSources?: ThreadSource[];
 }
 
 const useThreadSearchDialogStyles = makeStyles({
@@ -86,8 +87,7 @@ const useThreadSearchDialogStyles = makeStyles({
         maxWidth: '50%',
     },
 });
-
-const ThreadSearchDialog = ({ threads: initialThreads, selectThread, activeThreadId }: IThreadSearchDialogProps) => {
+const ThreadSearchDialog = ({ threads: initialThreads, selectThread, activeThreadId, excludedSources }: IThreadSearchDialogProps) => {
     const { logAmplitudeControlEvent } = useAzPortalContext();
     const { scrollable } = useScrollableComponentStyles();
     const { surface, common, body, content, searchBox, threads: threadsStyles } = useThreadSearchDialogStyles();
@@ -118,6 +118,7 @@ const ThreadSearchDialog = ({ threads: initialThreads, selectThread, activeThrea
 
     const { threads, moreThreadsToLoad, threadListDivRef, intersectionObserverRef, onScroll } = useThreadList(
         initialThreads,
+        excludedSources,
         undefined,
         searchText
     );

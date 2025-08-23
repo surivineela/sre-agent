@@ -131,7 +131,7 @@ export const useActivities = () => {
                     top: 1,
                     descending: true,
                     filters: {
-                        source: ThreadSource.welcomeMessage,
+                        sources: [ThreadSource.welcomeMessage],
                         timestamps: {
                             min: {
                                 timestamp: timestampCutoff,

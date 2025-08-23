@@ -4,21 +4,15 @@ import { FC, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
-import Url from '../../Common/Helpers/Url';
 import { IncidentManagementResources } from '../../Strings/SREAgentResources';
 import { SreAgentContext } from '../Contracts/Context';
 import { IncidentManagementPlatform } from '../Contracts/IncidentManagement';
 import { getIncidentManagementPlatform } from '../Settings/Hooks/useIncidentManagementSettings';
 import IncidentManagementSettings from '../Settings/IncidentManagementSettings';
 import { navStyles, useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
+import { IncidentManagementMenuKeys } from './CreateIncidentHandler/Contracts';
 import HandlersOverview from './HandlersOverview';
 import IncidentsOverview from './IncidentsOverview/IncidentsOverview';
-
-export enum IncidentManagementKeys {
-    IncidentOverview = 'incidents',
-    HandlerConfiguration = 'handlers',
-    IncidentPlatform = 'setup',
-}
 
 const IncidentManagement: FC = () => {
     const intl = useIntl();
@@ -32,42 +26,35 @@ const IncidentManagement: FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const showIncidentOverview = useMemo(
-        () => Url.getFeatureValue('showIncidentOverview') === 'true' || Url.getFeatureValue('showIncidentOverviewMocked') === 'true',
-        []
-    );
-
     const selectedKey = useMemo(() => {
         return (
-            Object.values(IncidentManagementKeys).find(settingsKey => settingsKey.toLocaleLowerCase() === menuItem?.toLocaleLowerCase()) ||
-            (showIncidentOverview ? IncidentManagementKeys.IncidentOverview : IncidentManagementKeys.HandlerConfiguration)
+            Object.values(IncidentManagementMenuKeys).find(
+                settingsKey => settingsKey.toLocaleLowerCase() === menuItem?.toLocaleLowerCase()
+            ) || IncidentManagementMenuKeys.IncidentOverview
         );
-    }, [menuItem, showIncidentOverview]);
+    }, [menuItem]);
 
     const navLinkGroups = useMemo<INavLinkGroup[]>(() => {
         const links: INavLink[] = [
             {
+                name: intl.formatMessage(IncidentManagementResources.incidentsOverview),
+                url: '',
+                key: IncidentManagementMenuKeys.IncidentOverview,
+            },
+            {
                 name: intl.formatMessage(IncidentManagementResources.handlerConfiguration),
                 url: '',
-                key: IncidentManagementKeys.HandlerConfiguration,
+                key: IncidentManagementMenuKeys.HandlerConfiguration,
             },
             {
                 name: intl.formatMessage(IncidentManagementResources.incidentPlatform),
                 url: '',
-                key: IncidentManagementKeys.IncidentPlatform,
+                key: IncidentManagementMenuKeys.IncidentPlatform,
             },
         ];
 
-        if (showIncidentOverview) {
-            links.unshift({
-                name: intl.formatMessage(IncidentManagementResources.incidentsOverview),
-                url: '',
-                key: IncidentManagementKeys.IncidentOverview,
-            });
-        }
-
         return [{ links }];
-    }, [intl, showIncidentOverview]);
+    }, [intl]);
 
     useEffect(() => {
         initializeIcons();
@@ -81,7 +68,7 @@ const IncidentManagement: FC = () => {
                 incidentManagementPlatform === IncidentManagementPlatform.Disconnected ||
                 incidentManagementPlatform === IncidentManagementPlatform.AzMonitor
             ) {
-                navigate({ ...location, pathname: `/views/incidentmanagement/${IncidentManagementKeys.IncidentPlatform}` });
+                navigate({ ...location, pathname: `/views/incidentmanagement/${IncidentManagementMenuKeys.IncidentPlatform}` });
             }
         }
     }, [agentObj]);
@@ -109,7 +96,7 @@ const IncidentManagement: FC = () => {
                                 onLinkClick={(_, item) => {
                                     if (
                                         item?.key &&
-                                        Object.values(IncidentManagementKeys).includes(item.key as IncidentManagementKeys) &&
+                                        Object.values(IncidentManagementMenuKeys).includes(item.key as IncidentManagementMenuKeys) &&
                                         item.key !== selectedKey
                                     ) {
                                         logAmplitudeNavigationEvent({
@@ -124,13 +111,11 @@ const IncidentManagement: FC = () => {
                                 }}
                             />
                         )}
-                        {selectedKey === IncidentManagementKeys.IncidentOverview && (
-                            <IncidentsOverview setNavigationHidden={setNavigationHidden} />
-                        )}
-                        {selectedKey === IncidentManagementKeys.HandlerConfiguration && (
+                        {selectedKey === IncidentManagementMenuKeys.IncidentOverview && <IncidentsOverview />}
+                        {selectedKey === IncidentManagementMenuKeys.HandlerConfiguration && (
                             <HandlersOverview setNavigationHidden={setNavigationHidden} useConsolidatedCreate={true} />
                         )}
-                        {selectedKey === IncidentManagementKeys.IncidentPlatform && <IncidentManagementSettings />}
+                        {selectedKey === IncidentManagementMenuKeys.IncidentPlatform && <IncidentManagementSettings />}
                     </>
                 )}
             </div>

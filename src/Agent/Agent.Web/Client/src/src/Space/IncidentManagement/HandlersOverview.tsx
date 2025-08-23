@@ -189,7 +189,7 @@ const HandlersOverview: FC<HandlersOverviewProps> = ({ setNavigationHidden, useC
     const setVisibleHandler = useCallback(
         (info: HandlerCreateOrEditInfo | undefined) => {
             setHandlerCreateOrEditInfo(info);
-            setNavigationHidden(!!info);
+            setNavigationHidden(!!info && !info.filter);
         },
         [setNavigationHidden]
     );

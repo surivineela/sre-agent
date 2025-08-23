@@ -1,14 +1,14 @@
-import { Breadcrumb, BreadcrumbButton, BreadcrumbDivider, BreadcrumbItem } from '@fluentui/react-components';
 import { Formik, FormikErrors, useFormikContext } from 'formik';
-import { FC, useCallback, useState } from 'react';
+import { FC, useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AgentMode } from '../../../Common/Contracts/Azure/SreAgent';
 import { IncidentHandlerCreateResources, IncidentManagementResources } from '../../../Strings/SREAgentResources';
 import { useIncidentFilterFields } from '../../Hooks/useIncidentFilterFields';
 import { useIncidentManagementStyles } from '../../Styles/IncidentManagement.styles';
+import BreadcrumbNavigation from '../Common/BreadcrumbNavigation';
+import TitleBarNavigation from '../Common/TitleBarNavigation';
 import { QuickEditIncidentHandlerConsolidated } from '../QuickEditIncidentHandler/QuickEditIncidentHandlerConsolidated';
 import { HANDLER_TOOL_LIMIT, HandlerCreateOrEditInfo, OperationStatus } from './Contracts';
-import { DirtyStateConfirmationWrapper } from './DirtyStateConfirmationDialog';
 import { FullEditIncidentHandlerConsolidated } from './FullEditIncidentHandler/FullEditIncidentHandlerConsolidated';
 import { IncidentHandlerConsolidatedCreateContext } from './IncidentHandlerConsolidatedCreateContext';
 import { IncidentHandlerCreateFormValues } from './IncidentHandlerCreateFormValues';
@@ -86,38 +86,40 @@ const CreateIncidentHandlerConsolidatedInner: FC<CreateIncidentHandlerInnerProps
     const { incidentTypeOptions, impactedServiceOptions, priorityOptions } = useIncidentFilterFields();
     const { filterMode, handlerMode } = incidentHandlerCreateMetadata;
 
-    return (
-        <div className={styles.breadCrumbAndPanelWrapper}>
-            <Breadcrumb className={styles.breadcrumb}>
-                <BreadcrumbItem>
-                    <DirtyStateConfirmationWrapper isDirty={dirty} onConfirm={exitToHome}>
-                        <BreadcrumbButton>{intl.formatMessage(IncidentManagementResources.handlerConfiguration)}</BreadcrumbButton>
-                    </DirtyStateConfirmationWrapper>
-                </BreadcrumbItem>
-                <BreadcrumbDivider />
-                <BreadcrumbItem style={{ marginLeft: 6 }}>
-                    {intl.formatMessage(
-                        filterMode === 'create'
-                            ? IncidentHandlerCreateResources.newIncidentHandler
-                            : IncidentHandlerCreateResources.editIncidentHandler
-                    )}
-                </BreadcrumbItem>
-            </Breadcrumb>
-            <div className={styles.navPanelWrapper}>
-                <div className={styles.navPanelContent}>
-                    <DirtyStateNavigationConfirmDialog isDirty={dirty} />
-                    <IncidentHandlerConsolidatedCreateContext.Provider
-                        value={{
-                            ...incidentHandlerCreateMetadata,
-                            incidentTypeOptions,
-                            impactedServiceOptions,
-                            priorityOptions,
-                        }}
-                    >
-                        {handlerMode === 'quickEdit' ? <QuickEditIncidentHandlerConsolidated /> : <FullEditIncidentHandlerConsolidated />}
-                    </IncidentHandlerConsolidatedCreateContext.Provider>
-                </div>
+    const innerComponent = useMemo(() => {
+        return (
+            <div className={styles.navPanelContent}>
+                <DirtyStateNavigationConfirmDialog isDirty={dirty} />
+                <IncidentHandlerConsolidatedCreateContext.Provider
+                    value={{
+                        ...incidentHandlerCreateMetadata,
+                        incidentTypeOptions,
+                        impactedServiceOptions,
+                        priorityOptions,
+                    }}
+                >
+                    {handlerMode === 'quickEdit' ? <QuickEditIncidentHandlerConsolidated /> : <FullEditIncidentHandlerConsolidated />}
+                </IncidentHandlerConsolidatedCreateContext.Provider>
             </div>
-        </div>
+        );
+    }, [dirty, incidentHandlerCreateMetadata, incidentTypeOptions, impactedServiceOptions, priorityOptions, handlerMode, styles]);
+
+    return filterMode === 'create' ? (
+        <BreadcrumbNavigation
+            title={intl.formatMessage(IncidentHandlerCreateResources.newIncidentHandler)}
+            parentTitle={intl.formatMessage(IncidentManagementResources.handlerConfiguration)}
+            onParentClick={exitToHome}
+            isDirty={dirty}
+        >
+            {innerComponent}
+        </BreadcrumbNavigation>
+    ) : (
+        <TitleBarNavigation
+            title={intl.formatMessage(IncidentHandlerCreateResources.editIncidentHandler)}
+            onBackClick={exitToHome}
+            isDirty={dirty}
+        >
+            {innerComponent}
+        </TitleBarNavigation>
     );
 };

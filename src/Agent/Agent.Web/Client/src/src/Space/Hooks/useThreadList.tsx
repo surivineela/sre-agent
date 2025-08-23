@@ -5,11 +5,12 @@ import { ThreadClient } from '../../Common/Clients/ThreadClient';
 import { Thread, ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { KnowledgeGraphBuildStatusContext } from '../../Common/Providers/KnowledgeGraphBuildStatusProvider';
 import { getFilteredThreads, getIntervalBetweenLoading, getUpdatedUnreadThreadIds, processThreads } from '../Activities/Utility';
-import { ThreadFilter, ThreadLoadingCounts } from '../Contracts/Activities';
+import { ThreadLoadingCounts } from '../Contracts/Activities';
 
 export const useThreadList = (
     initialThreads: Thread[] | undefined,
-    threadFilters: Set<ThreadFilter> | undefined,
+    excludedSources: ThreadSource[] | undefined,
+    unreadOnly: boolean | undefined,
     searchText: string | undefined
 ) => {
     const [threads, setThreads] = useState<Thread[]>(initialThreads || []);
@@ -30,7 +31,8 @@ export const useThreadList = (
     const threadListDivRef = useRef<HTMLDivElement | null>(null);
 
     const getThreads = async (
-        threadFilters: Set<ThreadFilter> | undefined,
+        excludedSources: ThreadSource[] | undefined,
+        unreadOnly: boolean | undefined,
         searchText: string | undefined,
         oldestThread: Thread | undefined
     ) => {
@@ -48,8 +50,8 @@ export const useThreadList = (
                           }
                         : undefined,
                 },
-                source: threadFilters?.has(ThreadFilter.Incidents) ? ThreadSource.incident : undefined,
-                unread: threadFilters?.has(ThreadFilter.Unread),
+                excludedSources: excludedSources,
+                unread: unreadOnly,
             },
         });
     };
@@ -59,7 +61,7 @@ export const useThreadList = (
             const callId = loadThreadsCallId.current;
             isLoadingThreads.current = true;
 
-            const oldThreadsResponse = await getThreads(threadFilters, searchText, oldestThread.current);
+            const oldThreadsResponse = await getThreads(excludedSources, unreadOnly, searchText, oldestThread.current);
 
             if (callId === loadThreadsCallId.current) {
                 const oldThreads = oldThreadsResponse.content ?? [];
@@ -79,7 +81,7 @@ export const useThreadList = (
                 return undefined;
             }
         }
-    }, [threadFilters, searchText, isLoadingInitialChatMessages]);
+    }, [excludedSources, unreadOnly, searchText, isLoadingInitialChatMessages]);
 
     const handleScroll = debounce(() => {
         loadThreads();
@@ -142,7 +144,7 @@ export const useThreadList = (
         return () => {
             loadThreadsCallId.current += 1;
         };
-    }, [threadFilters, searchText, isLoadingInitialChatMessages]);
+    }, [excludedSources, unreadOnly, searchText, isLoadingInitialChatMessages]);
 
     useEffect(() => {
         oldestThread.current = threads[threads.length - 1];
@@ -162,12 +164,12 @@ export const useThreadList = (
 
         const setInitialThreads = async () => {
             // For a better user experience, we show the existing threads in the memory based on the filter options, before making a request to get the filtered threads from service side.
-            setThreads(prev => getFilteredThreads(prev, threadFilters, searchText));
+            setThreads(prev => getFilteredThreads(prev, excludedSources, unreadOnly, searchText));
 
             // Send a request to load initial threads based on the filter options to overflow the threads list div if possible
             isLoadingThreads.current = true;
 
-            const initialThreadsResponse = await getThreads(threadFilters, searchText, undefined);
+            const initialThreadsResponse = await getThreads(excludedSources, unreadOnly, searchText, undefined);
 
             const initialThreads = initialThreadsResponse.content ?? [];
 
@@ -191,7 +193,7 @@ export const useThreadList = (
         return () => {
             isSubscribed = false;
         };
-    }, [threadFilters, searchText, hasChatPermissions]);
+    }, [excludedSources, unreadOnly, searchText, hasChatPermissions]);
 
     return {
         threads,

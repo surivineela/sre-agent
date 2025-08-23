@@ -8,16 +8,16 @@ import { ForwardedRef, forwardRef, useCallback, useContext } from 'react';
 import { useIntl } from 'react-intl';
 import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import { ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { KnowledgeGraphBuildStatusContext } from '../../Common/Providers/KnowledgeGraphBuildStatusProvider';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
 import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import Fade from '../Components/Fade';
-import ThreadFiltersAndIncidentStatus from '../Components/ThreadFiltersAndIncidentStatus';
+import ThreadFilters from '../Components/ThreadFilters';
 import ThreadItem from '../Components/ThreadItem';
 import ThreadSearchDialog from '../Components/ThreadSearchDialog';
 import { IThreadsMenuProps, ThreadMenuHandle } from '../Contracts/Activities';
 import { AgentContext } from '../Contracts/Context';
-import { useMetrics } from '../Hooks/useMetrics';
 import { useThreadsMenu } from '../Hooks/useThreadsMenu';
 import { getExpandCollapseButtonStyles, skeletonStyle, useThreadMenuStyle } from '../Styles/Activities.styles';
 
@@ -31,10 +31,9 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
             threads,
             threadListDivRef,
             intersectionObserverRef,
-            threadFilters,
-            updateThreadFilters,
+            showUnreadOnly,
+            setShowUnreadOnly,
             unreadThreadIds,
-            oldestThreadModifiedTimestamp,
             onScroll,
             moreThreadsToLoad,
             threadItemDivsRef,
@@ -48,8 +47,6 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
         const { logAmplitudeControlEvent } = useAzPortalContext();
 
         const intl = useIntl();
-
-        const { incidentMetrics } = useMetrics(oldestThreadModifiedTimestamp);
 
         const onClickNewThread = useCallback(() => {
             selectThread(null);
@@ -125,7 +122,12 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
                                             }}
                                         />
                                     </DialogTrigger>
-                                    <ThreadSearchDialog threads={threads} selectThread={selectThread} activeThreadId={activeThreadId} />
+                                    <ThreadSearchDialog
+                                        threads={threads}
+                                        selectThread={selectThread}
+                                        activeThreadId={activeThreadId}
+                                        excludedSources={[ThreadSource.incident]}
+                                    />
                                 </Dialog>
                             </div>
                         </Fade>
@@ -134,11 +136,7 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
                 {hasChatPermissions && (
                     <Fade visible={!collapsed} unmountOnExit>
                         <div>
-                            <ThreadFiltersAndIncidentStatus
-                                threadFilters={threadFilters}
-                                updateThreadFilters={updateThreadFilters}
-                                incidentMetrics={incidentMetrics}
-                            />
+                            <ThreadFilters unreadOnly={showUnreadOnly} setUnreadOnly={setShowUnreadOnly} />
                         </div>
                     </Fade>
                 )}

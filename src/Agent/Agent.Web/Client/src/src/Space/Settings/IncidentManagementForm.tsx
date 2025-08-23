@@ -44,6 +44,7 @@ import {
 } from '../../Strings/SREAgentResources';
 import { SreAgentContext } from '../Contracts/Context';
 import { IncidentManagementFormProps, IncidentManagementPlatform } from '../Contracts/IncidentManagement';
+import { IncidentManagementMenuKeys } from '../IncidentManagement/CreateIncidentHandler/Contracts';
 import { DirtyStateConfirmationWrapper } from '../IncidentManagement/CreateIncidentHandler/DirtyStateConfirmationDialog';
 import { useDialogStyles, usePagerDutyStyles, useSettingsStyles } from './Styles/Settings.styles';
 
@@ -166,7 +167,7 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
     }, [managedIdentityId]);
 
     const handleGoToIncidentManagement = useCallback(() => {
-        navigate({ ...location, pathname: '/views/incidentmanagement' });
+        navigate({ ...location, pathname: `/views/incidentmanagement/${IncidentManagementMenuKeys.HandlerConfiguration}` });
     }, [location, navigate]);
 
     const openManagedIdentity = useCallback(() => {

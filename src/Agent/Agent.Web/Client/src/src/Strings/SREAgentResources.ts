@@ -910,6 +910,9 @@ export const IncidentManagementResources = defineMessages({
     resolved: { defaultMessage: 'Resolved', id: 'W6nSYE' },
     active: { defaultMessage: 'Active', id: '3a5wL8' },
     unknown: { defaultMessage: 'Unknown', id: '5jeq8P' },
+    fullPage: { defaultMessage: 'Full page', id: 'Pcf4MK' },
+    closePanel: { defaultMessage: 'Close panel', id: 'RAjqKb' },
+    noIncidentsFound: { defaultMessage: 'No incidents found', id: '312q4w' },
 });
 
 export const IncidentManagementPlatformResources = defineMessages({

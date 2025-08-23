@@ -3,7 +3,6 @@ import { ThreadSeverity } from '../../../Common/Clients/ThreadClient';
 import { Thread, ThreadSource } from '../../../Common/Contracts/DataPlane/Thread';
 import { getSafeDateTime } from '../../../Common/Helpers/Date';
 import { Guid } from '../../../Common/Helpers/Guid';
-import { ThreadFilter } from '../../Contracts/Activities';
 import {
     getFilteredThreads,
     getUpdatedUnreadThreadIds,
@@ -379,35 +378,35 @@ describe('processThreads', () => {
 describe('getFilteredThreads', () => {
     it('Filter threads based on search text', () => {
         const threads: Thread[] = [getDefaultThread(undefined, '01', undefined, 'Thread 01')];
-        let result = getFilteredThreads(threads, undefined, '');
+        let result = getFilteredThreads(threads, undefined, undefined, '');
         expect(result.length).toBe(1);
-        result = getFilteredThreads(threads, undefined, 'Thread 02');
+        result = getFilteredThreads(threads, undefined, undefined, 'Thread 02');
         expect(result.length).toBe(0);
-        result = getFilteredThreads(threads, undefined, 'Thread 011');
+        result = getFilteredThreads(threads, undefined, undefined, 'Thread 011');
         expect(result.length).toBe(0);
-        result = getFilteredThreads(threads, undefined, 'Thread 01');
+        result = getFilteredThreads(threads, undefined, undefined, 'Thread 01');
         expect(result.length).toBe(1);
     });
 
     it('Filter threads based on source', () => {
         let threads: Thread[] = [getDefaultThread(undefined, '01', undefined, undefined, ThreadSource.incident)];
 
-        let result = getFilteredThreads(threads, new Set<ThreadFilter>([ThreadFilter.Incidents]));
-        expect(result.length).toBe(1);
+        let result = getFilteredThreads(threads, [ThreadSource.incident], undefined, undefined);
+        expect(result.length).toBe(0);
 
         threads = [getDefaultThread(undefined, '01', undefined, undefined)];
-        result = getFilteredThreads(threads, new Set<ThreadFilter>([ThreadFilter.Incidents]));
-        expect(result.length).toBe(0);
+        result = getFilteredThreads(threads, [ThreadSource.incident], undefined, undefined);
+        expect(result.length).toBe(1);
     });
 
     it('Filter threads based on unread status', () => {
         let threads: Thread[] = [getDefaultThread('2023-10-06T00:00:00Z', '01', undefined, undefined, undefined, '2023-10-05T00:00:00Z')];
 
-        let result = getFilteredThreads(threads, new Set<ThreadFilter>([ThreadFilter.Unread]));
+        let result = getFilteredThreads(threads, undefined, true, undefined);
         expect(result.length).toBe(1);
 
         threads = [getDefaultThread('2023-10-06T00:00:00Z', '01', undefined, undefined, undefined, '2023-10-07T00:00:00Z')];
-        result = getFilteredThreads(threads, new Set<ThreadFilter>([ThreadFilter.Unread]));
+        result = getFilteredThreads(threads, undefined, true, undefined);
         expect(result.length).toBe(0);
     });
 });

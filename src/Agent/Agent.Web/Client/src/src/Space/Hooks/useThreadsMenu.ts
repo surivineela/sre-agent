@@ -2,7 +2,7 @@ import { Ref, useCallback, useContext, useEffect, useImperativeHandle, useLayout
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ThreadClient } from '../../Common/Clients/ThreadClient';
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
-import { Thread } from '../../Common/Contracts/DataPlane/Thread';
+import { Thread, ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import {
     getFilteredThreads,
     getUpdatedUnreadThreadIds,
@@ -11,9 +11,11 @@ import {
     processThreads,
     removeThreadIdsFromUnreadThreads,
 } from '../Activities/Utility';
-import { ThreadFilter, ThreadMenuHandle } from '../Contracts/Activities';
+import { ThreadMenuHandle } from '../Contracts/Activities';
 import { StreamingContext } from '../Contracts/Context';
 import { useThreadList } from './useThreadList';
+
+const excludedSources = [ThreadSource.incident];
 
 export const useThreadsMenu = (ref: Ref<ThreadMenuHandle>) => {
     const { subscribeThreadUpdateEvent, subscribeMessageUpdateEvent } = useContext(StreamingContext);
@@ -21,7 +23,7 @@ export const useThreadsMenu = (ref: Ref<ThreadMenuHandle>) => {
 
     const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
 
-    const [threadFilters, setThreadFilters] = useState<Set<ThreadFilter>>(new Set<ThreadFilter>());
+    const [showUnreadOnly, setShowUnreadOnly] = useState<boolean>(false);
 
     const threadUpdateQueue = useRef<Thread[]>([]);
     const threadItemDivsRef = useRef<Map<string, HTMLDivElement>>(new Map<string, HTMLDivElement>());
@@ -29,34 +31,23 @@ export const useThreadsMenu = (ref: Ref<ThreadMenuHandle>) => {
 
     const { threads, setThreads, setUnreadThreadIds, unreadThreadIds, isLoadingInitialChatMessages, ...rest } = useThreadList(
         undefined,
-        threadFilters,
+        excludedSources,
+        showUnreadOnly,
         undefined
     );
 
     const oldestThreadModifiedTimestamp = useMemo(() => threads[threads.length - 1]?.modifiedTimestamp, [threads]);
 
-    const threadFiltersRef = useRef<Set<ThreadFilter>>(threadFilters);
+    const showUnreadOnlyRef = useRef<boolean>(showUnreadOnly);
     const isLoadingInitialChatMessagesRef = useRef(isLoadingInitialChatMessages);
 
     useEffect(() => {
-        threadFiltersRef.current = threadFilters;
-    }, [threadFilters]);
+        showUnreadOnlyRef.current = showUnreadOnly;
+    }, [showUnreadOnly]);
 
     useEffect(() => {
         isLoadingInitialChatMessagesRef.current = isLoadingInitialChatMessages;
     }, [isLoadingInitialChatMessages]);
-
-    const updateThreadFilters = useCallback((filter: ThreadFilter) => {
-        setThreadFilters(prev => {
-            const updatedFilters = new Set(prev);
-            if (updatedFilters.has(filter)) {
-                updatedFilters.delete(filter);
-            } else {
-                updatedFilters.add(filter);
-            }
-            return updatedFilters;
-        });
-    }, []);
 
     const updateThreadLastReadTime = useCallback(async (threadId: string) => {
         const response = await threadClient.updateThreadLastReadTime(threadId);
@@ -86,7 +77,7 @@ export const useThreadsMenu = (ref: Ref<ThreadMenuHandle>) => {
         setThreads(prevThreads => {
             const { threads: totalThreads, addedThreads } = processThreads(
                 prevThreads,
-                getFilteredThreads(threadsToBeUpdated, threadFiltersRef.current, undefined),
+                getFilteredThreads(threadsToBeUpdated, excludedSources, showUnreadOnlyRef.current, undefined),
                 true
             );
             setUnreadThreadIds(prev => getUpdatedUnreadThreadIds(prev, addedThreads));
@@ -181,8 +172,8 @@ export const useThreadsMenu = (ref: Ref<ThreadMenuHandle>) => {
 
     return {
         threads,
-        threadFilters,
-        updateThreadFilters,
+        showUnreadOnly,
+        setShowUnreadOnly,
         oldestThreadModifiedTimestamp,
         unreadThreadIds,
         updateThreadLastReadTime,
