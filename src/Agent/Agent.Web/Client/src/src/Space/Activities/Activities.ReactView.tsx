@@ -6,7 +6,6 @@ import { AgentContext } from '../Contracts/Context';
 import { useActivities } from '../Hooks/useActivities';
 import { activitiesStylesRoot } from '../Styles/Activities.styles';
 import { Resizable, ResizableChildProps } from './Resizable';
-import { ThreadActions } from './ThreadActions';
 import { ThreadContent } from './ThreadContent';
 import { ThreadsMenu } from './ThreadsMenu';
 
@@ -48,22 +47,6 @@ const Activities: FC = () => {
         [logAmplitudeControlEvent]
     );
 
-    const onExpandOrCollapseActionsMenu = useCallback(
-        (collapsed: boolean) => {
-            setActionsCollapsed(collapsed);
-
-            logAmplitudeControlEvent({
-                targetType: 'button',
-                targetAction: 'clicked',
-                targetName: `${collapsed ? 'collapse' : 'expand'}ActionsMenu`,
-                targetFriendlyName: `${collapsed ? 'Collapse' : 'Expand'} Actions Menu`,
-                valueObjectName: SpecialControlValue.DoAction,
-                valueObjectFriendlyName: SpecialControlValue.DoAction,
-            });
-        },
-        [logAmplitudeControlEvent]
-    );
-
     return (
         <AgentContext.Provider value={{ threadContentAndActionKey, activeThreadId }}>
             <div style={activitiesStylesRoot}>
@@ -94,21 +77,6 @@ const Activities: FC = () => {
                     updateThreadLastReadTime={updateThreadLastReadTime}
                     collapseResizables={collapseResizables}
                 />
-                <Resizable
-                    position="right"
-                    initialWidth="285px"
-                    minWidthPixels={200}
-                    maxWidthPixels={640}
-                    maxWidthPercent={menuCollapsed ? 50 : 33}
-                    collapsedWidthPixels={0}
-                    collapsed={actionsCollapsed}
-                    setCollapsed={onExpandOrCollapseActionsMenu}
-                    style={{ backgroundColor: tokens.colorNeutralBackground3 }}
-                >
-                    {(resizableChildProps: ResizableChildProps) => {
-                        return <ThreadActions thread={selectedThread} {...resizableChildProps} />;
-                    }}
-                </Resizable>
             </div>
         </AgentContext.Provider>
     );
