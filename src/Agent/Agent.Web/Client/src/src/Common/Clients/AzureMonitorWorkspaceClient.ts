@@ -52,6 +52,7 @@ export class AzureMonitorWorkspaceClient {
                 portalContext.log({
                     action: 'GetAzureMonitorWorkspaceResourcesFromArg',
                     actionModifier: 'Error',
+                    data: response?.data,
                 });
                 return [];
             }

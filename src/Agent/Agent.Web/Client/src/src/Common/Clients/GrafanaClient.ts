@@ -52,6 +52,7 @@ export class GrafanaClient {
                 portalContext.log({
                     action: 'GetGrafanaResourcesFromArg',
                     actionModifier: 'Error',
+                    data: response?.data,
                 });
                 return [];
             }

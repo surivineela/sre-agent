@@ -576,6 +576,13 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
                     true,
                     intl.formatMessage(GrafanaDashboardResources.linkGrafanaDashboardSuccess)
                 );
+                azPortalContext.log({
+                    action: 'LinkGrafanaDashboard',
+                    actionModifier: 'success',
+                    resourceId,
+                    logLevel: 'info',
+                    data: response?.data,
+                });
                 refresh();
             } else {
                 azPortalContext.stopNotification(
@@ -614,6 +621,13 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
             intl.formatMessage(GrafanaDashboardResources.linkGrafanaDashboardTitle),
             intl.formatMessage(GrafanaDashboardResources.linkGrafanaDashboardInProgress)
         );
+
+        azPortalContext.log({
+            action: 'LinkGrafanaDashboard',
+            actionModifier: 'start',
+            resourceId,
+            logLevel: 'info',
+        });
 
         const grafanaResourceId =
             selectedGrafanaResource.id === 'new'
@@ -664,6 +678,7 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
         intl,
         onLinkGrafanaDashboard,
         resourceGroupId,
+        resourceId,
         selectedAzureMonitorWorkspaceResource.id,
         selectedAzureMonitorWorkspaceResource.name,
         selectedGrafanaResource.id,
@@ -829,6 +844,13 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
                         true,
                         intl.formatMessage(GrafanaDashboardResources.grafanaCreationSuccess)
                     );
+
+                    azPortalContext.log({
+                        action: 'CreateGrafanaDashboard',
+                        actionModifier: 'success',
+                        resourceId: deploymentId,
+                        logLevel: 'info',
+                    });
 
                     handlePostDeployment();
                 } else if (provisioningState === ProvisioningStates.Failed) {
