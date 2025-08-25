@@ -172,7 +172,7 @@ const AgentTask = (props: IAgentTaskProps) => {
             animationFrame.current = requestAnimationFrame(() => {
                 if (isResizing && sidebarRef.current) {
                     const newSidebarWidth = sidebarRef.current.getBoundingClientRect().right - clientX;
-                    setSidebarWidth(Math.max(newSidebarWidth, 1000));
+                    setSidebarWidth(newSidebarWidth);
                     agentTaskGraphRef.current?.centerGraph();
                 }
             });
@@ -200,7 +200,7 @@ const AgentTask = (props: IAgentTaskProps) => {
                     open={!collapsed}
                     ref={sidebarRef}
                     className={styles.root}
-                    style={{ width: sideBarWidth === null ? '80%' : `${sideBarWidth}px` }}
+                    style={{ minWidth: '50%', width: sideBarWidth === null ? '80%' : `${sideBarWidth}px` }}
                 >
                     <div className={styles.header}>
                         <div className={styles.titleContainer}>
