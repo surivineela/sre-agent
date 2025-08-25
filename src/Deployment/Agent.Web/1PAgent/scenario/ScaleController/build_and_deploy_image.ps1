@@ -1,6 +1,6 @@
 # Set environment variables
 $ACR_NAME = "tsushiagent" # e.g., mycontainerregistry
-$IMAGE = "$ACR_NAME.azurecr.io/myrepo/agent:v1.3" # e.g., mycontainerregistry.azurecr.io/myrepo/agent:v1
+$IMAGE = "$ACR_NAME.azurecr.io/myrepo/agent:v1.6" # e.g., mycontainerregistry.azurecr.io/myrepo/agent:v1
 # Log in to Azure Container Registry
 az acr login --name $ACR_NAME
 # Navigate to agent source code directory

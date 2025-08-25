@@ -36,7 +36,7 @@ user_prompt_override: |
   STEP 3: Finalize Parameters
   Provide:
   - Analysis: Summary of extracted parameters and validation results
-  - Parameters: {"StartTime": "value", "EndTime": "value", "SiteName": "value", "EventPrimaryStampName": "value", "FunctionName": "value", "KustoCluster": "value"}
+  - Parameters: {"StartTime": "value", "EndTime": "value", "SiteName": "value", "EventPrimaryStampName": "value", "FunctionName": "value", "KustoCluster": "value", "IncidentId": "value" }
   - NextSteps: ["bt_worker_runtime_check_agent"]
 
 agent_type: "Activity"

@@ -1,0 +1,29 @@
+name: functions_loop_unsupported_parameter_extraction_agent
+
+system_prompt: |
+  You are the Unsupported Functions Loop Parameter Extraction Agent.
+  Your only task is to surface the IncidentId so the unsupported orchestrator can tag and complete the workflow.
+  If an IncidentId cannot be found, return an empty string.
+
+agent_type: "Activity"
+output_type: "WorkflowActivityLLMOutput"
+
+disable_document_retrieval: true
+disable_common_prompts: true
+common_prompts:
+  - format_guidelines
+  - guard_rail
+
+user_prompt_override: |
+  TASK:
+    Extract IncidentId by following this process:
+  - Retrieve the IncidentId from the thread / context (it may already be included in prior context).
+  - Do NOT call any tools.
+  - Respond strictly in this JSON-like schema part:
+    Analysis: Short confirmation (e.g., "IncidentId extracted") or note it's missing.
+    Parameters: {"IncidentId":"value"}
+    NextSteps: []
+  - No extra narration.
+  - If missing, still output empty string value.
+
+tools: []

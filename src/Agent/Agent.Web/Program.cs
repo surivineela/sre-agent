@@ -433,6 +433,7 @@ public class Program
             .AddTransient<SearchPluginDefinition>()
             .AddTransient<ScaleControllerRCAPreflightPluginDefinition>()
             .AddTransient<BlobTriggerRCAPreflightPluginDefinition>()
+            .AddTransient<RCAPreflightICMPluginDefinition>()
             .AddTransient<ColdStartPluginDefinition>()
             .AddTransient<LogsPluginDefinition>()
             .AddTransient<IMetaAgentContainerAppsRemediationPlugin, ContainerAppsRemediationPlugin>()

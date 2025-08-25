@@ -72,8 +72,6 @@ public class IcmScannerTest
             _mockIncidentManagementService.Object,
             _mockIncidentFilterManagementService.Object,
             _mockAgentInboundCommunicationService.Object,
-            _mockAgentOutboundCommunicationService.Object,
-            _mockIcmPlugin.Object,
             _incidentManagementSettings
         );
     }

@@ -34,6 +34,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     private readonly IThreadRepository _threadRepository;
     private readonly ActionSettings _actionSettings;
     private readonly CoreSettings _coreSettings;
+    private readonly IncidentManagementSettings _incidentManagementSettings;
     private readonly IHostEnvironment _hostEnvironment;
 
     private readonly Tracer _tracer;
@@ -68,7 +69,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         SearchHelper searchHelper,
         IAgentMemoryClient agentMemoryClient,
         ISearchIndexService searchIndexService,
-        IMeterFactory meterFactory)
+        IMeterFactory meterFactory,
+        IncidentManagementSettings incidentManagementSettings)
     {
         _loggerFactory = loggerFactory;
         _logger = _loggerFactory.CreateLogger<ReasoningLoopFactory>();
@@ -89,6 +91,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         _searchHelper = searchHelper;
         _agentMemoryClient = agentMemoryClient;
         _searchIndexService = searchIndexService;
+        _incidentManagementSettings = incidentManagementSettings;
 
         // enable handoff reasoning for developer envs
         var enableHandoffReasoning = coreSettings.Experimental?.EnableHandoffReasoning
@@ -187,7 +190,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
                     context: context,
                     agentFactory: _agentFactory,
                     toolFactory: _toolFactory,
-                    tracer: _tracer);
+                    tracer: _tracer,
+                    incidentManagementSettings: _incidentManagementSettings);
 
                 await workflowOrchestrator.LoadChatHistoryAsync();
 
@@ -212,7 +216,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
                     agentMemoryClient: _agentMemoryClient,
                     searchIndexService: _searchIndexService,
                     featureConfig: _featureConfig,
-                    agentRuntimeModifier: _agentRuntimeModifier);
+                    agentRuntimeModifier: _agentRuntimeModifier,
+                    incidentManagementSettings: _incidentManagementSettings);
 
             }
             catch (Exception ex)

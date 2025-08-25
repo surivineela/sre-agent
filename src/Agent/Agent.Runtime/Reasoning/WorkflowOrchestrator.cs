@@ -13,6 +13,8 @@ using Agent.Runtime.Workflow;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
+using Agent.Core.Helpers;
+using Agent.Core.Configuration;
 
 namespace Agent.Runtime.Reasoning;
 
@@ -32,6 +34,7 @@ public class WorkflowOrchestrator : IDisposable
     private readonly AgentContext _context;
     private readonly IToolFactory<AgentContext> _toolFactory;
     private readonly Tracer _tracer;
+    private readonly IncidentManagementSettings _incidentManagementSettings;
 
     // Telemetry spans for workflow tracing
     private TelemetrySpan? _rootSpan;
@@ -54,7 +57,8 @@ public class WorkflowOrchestrator : IDisposable
         AgentContext context,
         IAgentFactory<AgentContext> agentFactory,
         IToolFactory<AgentContext> toolFactory,
-        Tracer tracer)
+        Tracer tracer,
+        IncidentManagementSettings incidentManagementSettings)
     {
         _loggerFactory = loggerFactory;
         _logger = _loggerFactory.CreateLogger<WorkflowOrchestrator>();
@@ -65,6 +69,7 @@ public class WorkflowOrchestrator : IDisposable
         _agentFactory = agentFactory;
         _toolFactory = toolFactory;
         _tracer = tracer;
+        _incidentManagementSettings = incidentManagementSettings;
 
         // Initialize root span for workflow execution
         _rootSpan = _tracer.StartSpan($"workflow.orchestrator.{_context.ThreadId}");
@@ -267,6 +272,20 @@ public class WorkflowOrchestrator : IDisposable
                 StartedAt = DateTime.UtcNow
             };
 
+            // Bootstrap IncidentId from thread if available
+            try
+            {
+                var threadBootstrap = await _threadRepository.GetThreadAsync(_context.ThreadId);
+                var bootstrapIncidentId = threadBootstrap?.Status?.IncidentStatus?.IncidentId;
+                if (!string.IsNullOrWhiteSpace(bootstrapIncidentId))
+                {
+                    baseExecutionContext.IncidentId = bootstrapIncidentId;
+                    // Also seed parameters so downstream agents can see it
+                    baseExecutionContext.AccumulatedParameters.SetString("IncidentId", bootstrapIncidentId);
+                }
+            }
+            catch { }
+
             if (!string.IsNullOrEmpty(parameterExtractionAgentName))
             {
                 _logger.LogInternalInformation($"Executing parameter extraction agent: {parameterExtractionAgentName}");
@@ -285,6 +304,12 @@ public class WorkflowOrchestrator : IDisposable
                     {
                         // Sometimes, it returns parameters that can't parse.
                         baseExecutionContext.AccumulatedParameters.SetString("parameters", parameterResult.Parameters);
+                    }
+
+                    // If IncidentId was extracted, also set it on the context property
+                    if (parameterResult.ParsedParameters.TryGetValue("IncidentId", out var extractedIncidentId) && !string.IsNullOrWhiteSpace(extractedIncidentId))
+                    {
+                        baseExecutionContext.IncidentId = extractedIncidentId;
                     }
                 }
             }
@@ -313,6 +338,42 @@ public class WorkflowOrchestrator : IDisposable
 
                 // Wait for all branches to complete
                 await Task.WhenAll(branchTasks);
+            }
+            else
+            {
+                // No start agents: inject a synthetic result so that incidentId/parameters are discoverable by summarizer logic.
+                // This preserves existing SummarizeAndPostResults behavior (it already looks at _executionResults for incidentId).
+                const string syntheticKey = "orchestrator_parameters";
+                if (!_executionResults.ContainsKey(syntheticKey))
+                {
+                    try
+                    {
+                        var paramJson = JsonSerializer.Serialize(baseExecutionContext.AccumulatedParameters.Values);
+                        var synthetic = new WorkflowActivityAgentOutput
+                        {
+                            // Required workflow content
+                            Analysis = "Parameter extraction completed (no activity agents executed).",
+                            Parameters = string.IsNullOrWhiteSpace(paramJson) ? "{}" : paramJson,
+                            NextSteps = new List<string>(),
+                            // Required IAgentOutput properties
+                            ReasoningScratchPad = "Synthetic output (no activity agents).",
+                            NotifyUserMessage = "Collected parameters only.",
+                            State = "Completed",
+                            StateExplanation = "No activity agents configured; parameter extraction (or bootstrap) finished.",
+                            // Programmatic fields
+                            AgentName = parameterExtractionAgentName ?? syntheticKey,
+                            ExecutionContext = baseExecutionContext,
+                            GeneratedAt = DateTime.UtcNow
+                        };
+                        synthetic.ParseParameters();
+                        _executionResults[syntheticKey] = synthetic;
+                        _logger.LogInternalInformation("Injected synthetic parameters result for orchestrator {AgentName}", orchestratorAgent.Name);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogInternalWarning(ex, "Failed to inject synthetic parameters result.");
+                    }
+                }
             }
 
             // Step 3: Summarize results and post to thread
@@ -387,6 +448,23 @@ public class WorkflowOrchestrator : IDisposable
 
             // Set AsyncLocal for tool factory access
             Agent.Core.ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
+
+            // Backfill IncidentId from parameters if context property not yet set
+            if (string.IsNullOrWhiteSpace(executionContext.IncidentId))
+            {
+                var pidFromParams = executionContext.AccumulatedParameters.GetString("IncidentId");
+                if (!string.IsNullOrWhiteSpace(pidFromParams))
+                {
+                    executionContext.IncidentId = pidFromParams;
+                }
+            }
+
+            // Ensure IncidentId exists in parameters if known on the context
+            if (!string.IsNullOrWhiteSpace(executionContext.IncidentId) &&
+                string.IsNullOrWhiteSpace(executionContext.AccumulatedParameters.GetString("IncidentId")))
+            {
+                executionContext.AccumulatedParameters.SetString("IncidentId", executionContext.IncidentId!);
+            }
 
             // Create a minimal message with workflow parameters
             var parametersJson = JsonSerializer.Serialize(executionContext.AccumulatedParameters.Values);
@@ -468,6 +546,13 @@ public class WorkflowOrchestrator : IDisposable
                 // Parse the result parameters
                 result.ParseParameters();
 
+                // If this result includes an IncidentId, propagate into the branch context property
+                var returnedIncidentId = result.ParsedParameters.TryGetValue("IncidentId", out var pid) ? pid : null;
+                if (!string.IsNullOrWhiteSpace(returnedIncidentId))
+                {
+                    branchContext.IncidentId = returnedIncidentId;
+                }
+
                 // Determine next steps using result.NextSteps or agent's NextAgentMappings
                 var nextSteps = result.NextSteps ?? new List<string>();
 
@@ -500,6 +585,12 @@ public class WorkflowOrchestrator : IDisposable
                             foreach (var param in result.ParsedParameters)
                             {
                                 nextStepContext.AccumulatedParameters.SetString(param.Key, param.Value);
+                            }
+
+                            // Propagate IncidentId to cloned context as well
+                            if (!string.IsNullOrWhiteSpace(returnedIncidentId))
+                            {
+                                nextStepContext.IncidentId = returnedIncidentId;
                             }
 
                             // Recursively execute the next step with the updated cloned context
@@ -586,12 +677,132 @@ Please consolidate the findings, identify key insights, and provide actionable r
                 summaryMessages.Add(new ChatMessage(ChatRole.User, "Here are the agent analysis results to summarize:\n\n" + resultsBuilder.ToString()));
             }
 
-            var response = await _chatClient.GetResponseAsync(summaryMessages, cancellationToken: cancellationToken);
-            var summaryText = response.GetMessage().Text ?? "Unable to generate summary";
+            // Resolve incidentId from thread and choose default tag based on orchestrator agent
+            string? incidentId = null;
+            try
+            {
+                var thread = await _threadRepository.GetThreadAsync(_context.ThreadId);
+                incidentId = thread?.Status?.IncidentStatus?.IncidentId;
+            }
+            catch { }
 
-            // Add thread link for detailed view
-            var threadLink = $"/static/#/views/activities/threads/{_context.ThreadId}";
-            var finalMessage = $"{summaryText}\n\n**Thread Details:** [View detailed conversation]({threadLink})";
+            // Fallback to any IncidentId present in execution contexts/parameters
+            if (string.IsNullOrWhiteSpace(incidentId))
+            {
+                incidentId = _executionResults.Values
+                    .Select(v => v.ExecutionContext?.IncidentId
+                                 ?? v.ExecutionContext?.AccumulatedParameters.GetString("IncidentId"))
+                    .FirstOrDefault(s => !string.IsNullOrWhiteSpace(s));
+            }
+
+            var defaultTag = orchestratorAgent.Name switch
+            {
+                "scale_controller_preflight_agent" => "ScaleCtrlRCAProcessed",
+                "blob_trigger_preflight_agent" => "BlobTrigRCAProcessed",
+                "functions_loop_unsupported_preflight_agent" => "FuncLoopUnsupportedRCAProcessed",
+                _ => "RCAPreflightProcessed"
+            };
+
+            // Only when scanner-origin (set by IcmScanner) and incidentId resolvable, inject tool and instruction
+            var tools = new List<AITool>();
+            var allowNonScannerPost = false;
+            try
+            {
+                var env = Environment.GetEnvironmentVariable("SREAGENT_ALLOW_NON_SCANNER_RCA_POST");
+                allowNonScannerPost = !string.IsNullOrWhiteSpace(env) && (env.Equals("1", StringComparison.OrdinalIgnoreCase) || env.Equals("true", StringComparison.OrdinalIgnoreCase) || env.Equals("yes", StringComparison.OrdinalIgnoreCase));
+            }
+            catch { }
+
+            if ((IncidentProcessingContext.IsScannerOrigin || allowNonScannerPost) && !string.IsNullOrWhiteSpace(incidentId))
+            {
+                try
+                {
+                    var postTool = _toolFactory.GetTool("PostIcmRcaSummary", _context.ThreadId);
+                    if (postTool != null) tools.Add(postTool);
+                }
+                catch { /* Tool might not be registered; proceed without it */ }
+
+                if (tools.Count > 0)
+                {
+                    // Merge tool instruction into the first System (or User) message, instead of adding another System message
+                    var toolInstruction =
+                        $"After you generate the summary, call the tool PostIcmRcaSummary with parameters: incidentId={incidentId}, tag={defaultTag}, summary=<the exact summary text you generated>. Then return the summary.";
+
+                    var sysIdx = summaryMessages.FindIndex(m => m.Role == ChatRole.System);
+                    if (sysIdx >= 0)
+                    {
+                        var merged = (summaryMessages[sysIdx].Text ?? string.Empty);
+                        merged = string.IsNullOrEmpty(merged) ? toolInstruction : $"{merged}\n\n{toolInstruction}";
+                        summaryMessages[sysIdx] = new ChatMessage(ChatRole.System, merged);
+                    }
+                    else
+                    {
+                        var userIdx = summaryMessages.FindIndex(m => m.Role == ChatRole.User);
+                        if (userIdx >= 0)
+                        {
+                            var merged = (summaryMessages[userIdx].Text ?? string.Empty);
+                            merged = string.IsNullOrEmpty(merged) ? toolInstruction : $"{merged}\n\n{toolInstruction}";
+                            summaryMessages[userIdx] = new ChatMessage(ChatRole.User, merged);
+                        }
+                        else
+                        {
+                            // Fallback: if neither System nor User exists (unlikely), add one System message
+                            summaryMessages.Add(new ChatMessage(ChatRole.System, toolInstruction));
+                        }
+                    }
+                }
+            }
+
+            var chatOptions = new ChatOptions { Tools = tools.Count > 0 ? tools : null };
+            if (tools.OfType<AIFunction>().Any(f => string.Equals(f.Name, "PostIcmRcaSummary", StringComparison.OrdinalIgnoreCase)))
+            {
+                // Force the model to call the specified tool when present
+                chatOptions.ToolMode = ChatToolMode.RequireSpecific("PostIcmRcaSummary");
+            }
+
+            // Build thread link (localhost => /static path, otherwise production /sreLink path)
+            var baseUrl = _incidentManagementSettings?.AutomatedRCA?.WebBaseUrl;
+            var isLocal = string.IsNullOrWhiteSpace(baseUrl) ||
+                          baseUrl.Contains("localhost", StringComparison.OrdinalIgnoreCase) ||
+                          baseUrl.Contains("127.0.0.1", StringComparison.OrdinalIgnoreCase) ||
+                          baseUrl.Contains("::1");
+
+            var threadPath = isLocal
+                ? $"/static/#/views/activities/threads/{_context.ThreadId}"
+                : $"/sreLink/views%2Factivities%2Fthreads%2F{_context.ThreadId}";
+
+            var threadLink = isLocal || string.IsNullOrWhiteSpace(baseUrl)
+                ? threadPath
+                : $"{baseUrl!.TrimEnd('/')}{threadPath}";
+
+            var response = await _chatClient.GetResponseAsync(summaryMessages, options: chatOptions, cancellationToken: cancellationToken);
+
+            // The first response will likely be a tool-call; get the final summary after tool execution
+            string? finalSummaryFromToolFlow = null;
+            if (tools.Count > 0 && (IncidentProcessingContext.IsScannerOrigin || allowNonScannerPost) && !string.IsNullOrWhiteSpace(incidentId))
+            {
+                finalSummaryFromToolFlow = await HandleToolCallsAsync(
+                    response,
+                    tools,
+                    incidentId!,
+                    defaultTag,
+                    fallbackSummary: "Generated summary",
+                    threadLink: threadLink,
+                    promptContext: summaryMessages,
+                    ct: cancellationToken);
+            }
+
+            var summaryText = !string.IsNullOrWhiteSpace(finalSummaryFromToolFlow)
+                ? finalSummaryFromToolFlow!
+                : (TryGetAssistantText(response) ?? "Unable to generate summary");
+
+            // Add thread link for detailed view + conditional access note
+            string accessNote = string.Empty;
+            if (!isLocal)
+            {
+                accessNote = "\n\n> Note: You currently need to open this link using your AME account on a Secure Access Workstation (SAW). This is temporary; direct access with your microsoft.com account will be enabled soon.";
+            }
+            var finalMessage = $"{summaryText}\n\n**Thread Details:** [View detailed conversation]({threadLink}){accessNote}";
 
             // Post summary to thread
             var summaryMessage = new ChatMessage(ChatRole.Assistant, finalMessage + $"Id: {_context.Id} ThreadId: {_context.ThreadId}");
@@ -866,6 +1077,162 @@ Please consolidate the findings, identify key insights, and provide actionable r
         {
             return $"MessageCount: {messages.Count()}";
         }
+    }
+
+    private static string? TryGetAssistantText(ChatResponse response)
+    {
+        try
+        {
+            return response?.GetMessage()?.Text;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private async Task<string?> HandleToolCallsAsync(
+        ChatResponse response,
+        List<AITool> tools,
+        string incidentId,
+        string defaultTag,
+        string fallbackSummary,
+        string threadLink,
+        IReadOnlyList<ChatMessage> promptContext,
+        CancellationToken ct)
+    {
+        try
+        {
+            var calls = ExtractFunctionCalls(response);
+            if (calls.Count == 0) return null;
+
+            string? lastFinalText = null;
+
+            foreach (var call in calls)
+            {
+                var func = ResolveFunctionByName(tools, call.Name);
+                if (func is null)
+                {
+                    _logger.LogInternalWarning("Tool call requested unknown tool: {ToolName}", call.Name);
+                    continue;
+                }
+
+                var args = ParseArguments(call);
+
+                // Fill required params if the model omitted them
+                if (!args.ContainsKey("incidentId") || args["incidentId"] is null || string.IsNullOrWhiteSpace(args["incidentId"]?.ToString()))
+                {
+                    args["incidentId"] = incidentId;
+                }
+                if (!args.ContainsKey("tag") || args["tag"] is null || string.IsNullOrWhiteSpace(args["tag"]?.ToString()))
+                {
+                    args["tag"] = defaultTag;
+                }
+                if (!args.ContainsKey("summary") || args["summary"] is null || string.IsNullOrWhiteSpace(args["summary"]?.ToString()))
+                {
+                    args["summary"] = fallbackSummary;
+                }
+
+                // Ensure plugin-posted content also includes the thread link
+                var summaryArg = args["summary"]?.ToString() ?? string.Empty;
+                if (!string.IsNullOrWhiteSpace(threadLink) && !summaryArg.Contains(threadLink, StringComparison.OrdinalIgnoreCase))
+                {
+                    summaryArg = $"{summaryArg}\n\n**Thread Details:** [View detailed conversation]({threadLink})";
+                    args["summary"] = summaryArg;
+                }
+
+                _logger.LogInternalInformation("Invoking tool from model call: {ToolName} with args: {Args}", func.Name, JsonSerializer.Serialize(args));
+                var result = await func.InvokeAsync(new AIFunctionArguments(args), ct);
+
+                // Follow-up: provide tool result back to the model with the original prompt context to finalize its reply
+                try
+                {
+                    var assistant = response.GetMessage();
+
+                    var aiContents = new List<AIContent>
+                    {
+                        new FunctionResultContent(call.CallId, result)
+                    };
+
+                    var followup = new List<ChatMessage>();
+                    followup.AddRange(promptContext);     // original instruction + results context
+                    followup.Add(assistant);              // assistant message that called the tool
+                    followup.Add(new ChatMessage(ChatRole.Tool, aiContents)); // tool result
+
+                    var followupResponse = await _chatClient.GetResponseAsync(followup, cancellationToken: ct);
+                    var text = TryGetAssistantText(followupResponse);
+                    if (!string.IsNullOrWhiteSpace(text))
+                    {
+                        lastFinalText = text;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalWarning(ex, "Follow-up after tool execution failed.");
+                }
+            }
+
+            return lastFinalText;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, "HandleToolCallsAsync failed.");
+            return null;
+        }
+    }
+
+    private static List<FunctionCallContent> ExtractFunctionCalls(ChatResponse response)
+    {
+        var list = new List<FunctionCallContent>();
+        try
+        {
+            var assistantMsg = response?.GetMessage();
+            if (assistantMsg?.Contents != null)
+            {
+                list.AddRange(assistantMsg.Contents.OfType<FunctionCallContent>());
+            }
+
+            if (response?.Messages != null)
+            {
+                foreach (var m in response.Messages)
+                {
+                    if (m?.Contents != null)
+                    {
+                        list.AddRange(m.Contents.OfType<FunctionCallContent>());
+                    }
+                }
+            }
+        }
+        catch { /* ignore */ }
+
+        return list;
+    }
+
+    private static AIFunction? ResolveFunctionByName(IEnumerable<AITool> tools, string name)
+    {
+        return tools?.OfType<AIFunction>()
+                     .FirstOrDefault(t => string.Equals(t.Name, name, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static Dictionary<string, object?> ParseArguments(FunctionCallContent call)
+    {
+        try
+        {
+            if (call.Arguments is IReadOnlyDictionary<string, object?> dict)
+            {
+                return new Dictionary<string, object?>(dict);
+            }
+
+            var raw = call.Arguments?.ToString();
+            if (!string.IsNullOrWhiteSpace(raw))
+            {
+                var parsed = JsonSerializer.Deserialize<Dictionary<string, object?>>(raw!);
+                if (parsed != null) return parsed;
+            }
+        }
+        catch { /* ignored */ }
+
+        return new Dictionary<string, object?>();
     }
 
     public void Dispose()

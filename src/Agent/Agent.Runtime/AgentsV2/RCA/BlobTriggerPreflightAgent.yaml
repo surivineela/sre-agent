@@ -14,15 +14,42 @@ orchestration_start_agents:
   - "bt_site_metadata_agent" 
   
 result_summarization_prompt: |
-  Provide a concise Blob Trigger RCA preflight summary:
-  - Worker/runtime status
-  - Most frequent EventIpAddress
-  - Stop/Recovered timestamps (largest gap)
-  - Polling/listener status
-  - Mismatch rules or blob enqueues/dequeues
-  - Function correlation result
-  - Clear next steps or confirmation
+  Based on the comprehensive Blob Trigger RCA preflight analysis results from multiple specialized agents, provide a detailed summary in this EXACT format:
 
+  ---
+  ## 📋 Blob Trigger RCA Preflight Summary
+
+  ### 🔍 Analysis Results by Component:
+
+  **✅ Worker/Runtime Status:**
+  [Detailed findings from bt_worker_runtime_check_agent analysis]
+
+  **✅ Site Metadata:**
+  [Key site details relevant to diagnosis (SKU, VNET, triggers, host config, concurrency)]
+
+  **✅ Event Source IP Analysis:**
+  [Most frequent EventIpAddress and implications from bt_select_event_ip_agent analysis]
+
+  **✅ Stop/Recovered Time Window (Gap Detection):**
+  [Largest gap with stop/recovered timestamps and supporting evidence from bt_extract_gap_timestamps_agent]
+
+  **✅ Polling/Listener Health:**
+  [Polling or listener status and sample timestamps from bt_polling_check_agent]
+
+  **✅ Pattern Mismatch / Enqueue–Dequeue Consistency:**
+  [Findings on BlobDoesNotMatchPattern or enqueue/dequeue anomalies from bt_mismatch_rules_agent and related checks]
+
+  **✅ Function Correlation Result:**
+  [End-to-end correlation between FunctionStarted/FunctionCompleted and insights from bt_determine_function_has_been_triggered_agent]
+
+  ### 🎯 Root Cause Summary:
+  [Correlated explanation of why Blob Trigger stopped or delayed; tie evidence across components and timestamps.]
+
+  ### 💡 Recommendations / Next Steps:
+  [Actionable steps: config fixes, scaling, networking, retry/poison handling, additional logs to check. Include confirmation if system is healthy.]
+  ---
+
+  Consolidate ALL analysis results to identify likely cause(s) and provide actionable recommendations. Ensure each component is addressed and reasoning is explicit.
 
 
 tools:

@@ -61,7 +61,7 @@ user_prompt_override: |
   After successfully extracting and validating all parameters, I will provide:
   
   **Analysis**: Summary of extracted parameters and validation results
-  **Parameters**: {"StartTime": "value", "EndTime": "value", "SiteName": "value", "EventPrimaryStampName": "value", "FunctionName": "value", "KustoCluster": "value"}  
+  **Parameters**: {"StartTime": "value", "EndTime": "value", "SiteName": "value", "EventPrimaryStampName": "value", "FunctionName": "value", "KustoCluster": "value", "IncidentId": "value" }  
   **NextSteps**: ["check_if_scale_controller_monitors_app_agent"]
 
   I will ensure all required parameters are properly extracted and validated before proceeding.

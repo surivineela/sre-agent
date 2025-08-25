@@ -13,6 +13,10 @@ user_prompt_override: |
   
   Focus on accurate routing based on team ownership patterns.
 
+  Additional routing rule:
+  - If OwningTeamName is APPSERVICEWEBAPPS\AntaresFunctionsEventHub/ServiceBus/StorageLoop AND incident title/description does NOT mention any of ("blob trigger", "blobtrigger", "blob") case-insensitive → handoff to functions_loop_unsupported_preflight_agent.
+  - If it DOES mention blob trigger terms → handoff to blob_trigger_preflight_agent.
+
 enable_handoff_prompt_override: true
 
 system_prompt: |
@@ -37,6 +41,11 @@ system_prompt: |
   - OwningTeamName is APPSERVICEWEBAPPS\AntaresFunctionsEventHub/ServiceBus/StorageLoop and ICM mentioned Blob Trigger issue.
     → Handoff to: `blob_trigger_preflight_agent`
     → Purpose: Blob Trigger RCA preflight analysis (polling, listener, enqueues, function correlation)
+
+  **Functions Loop Non-Blob (Unsupported Yet):**
+  - OwningTeamName is APPSERVICEWEBAPPS\AntaresFunctionsEventHub/ServiceBus/StorageLoop and NOT mentioning blob trigger terms ("blob trigger", "blobtrigger", "blob") in title/description.
+    → Handoff to: `functions_loop_unsupported_preflight_agent`
+    → Purpose: Post unsupported-status summary and mark completed to suppress future scans.
 
   **Future Routing Rules:**
   - Additional team mappings will be added as new specialized agents become available
@@ -83,6 +92,7 @@ handoff_description: "Handoff to this agent to route RCA incidents to appropriat
 handoffs:
   - scale_controller_preflight_agent
   - blob_trigger_preflight_agent
+  - functions_loop_unsupported_preflight_agent
 
 tools:
   - GetIncidentInfoForFunctions

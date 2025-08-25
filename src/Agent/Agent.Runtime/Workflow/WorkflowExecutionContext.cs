@@ -46,6 +46,11 @@ public class WorkflowExecutionContext
     public DateTime StartedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>
+    /// IncidentId associated with this workflow execution, if any.
+    /// </summary>
+    public string? IncidentId { get; set; }
+
+    /// <summary>
     /// Creates a deep clone of this execution context for independent branch execution.
     /// Each branch gets its own parameter context while maintaining workflow metadata.
     /// </summary>
@@ -59,7 +64,8 @@ public class WorkflowExecutionContext
             MaxAgentCount = MaxAgentCount,
             AccumulatedParameters = new WorkflowParameters(AccumulatedParameters.Values),
             OrchestratorAgent = OrchestratorAgent,
-            StartedAt = StartedAt
+            StartedAt = StartedAt,
+            IncidentId = IncidentId
         };
     }
 }

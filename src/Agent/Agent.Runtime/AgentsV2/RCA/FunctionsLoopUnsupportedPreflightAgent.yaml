@@ -1,0 +1,53 @@
+name: functions_loop_unsupported_preflight_agent
+
+system_prompt: |
+  You are the Functions EventHub/ServiceBus/Storage Loop Unsupported Scenario RCA Orchestrator Agent. Finish the execution with returning a message 'Completed'.
+
+handoff_description: "Handoff to this agent for unsupported (non-BlobTrigger) Functions EventHub/ServiceBus/StorageLoop RCA scenario"
+
+agent_type: "Orchestrator"
+
+parameter_extraction_agent: "functions_loop_unsupported_parameter_extraction_agent"
+
+orchestration_start_agents: []
+
+result_summarization_prompt: |
+  You must generate and return the following EXACT summary (update the UTC timestamp automatically). Do NOT invent analysis details.
+
+  ---
+  ## ⚠ Functions Loop RCA Unsupported Scenario
+
+  The incident belongs to the Functions EventHub/ServiceBus/Storage Loop owning team but is NOT a Blob Trigger issue currently covered by automated RCA workflows.
+
+  ### 🧾 Detected Context
+  - Owning Team: APPSERVICEWEBAPPS\\AntaresFunctionsEventHub/ServiceBus/StorageLoop
+  - Automation Coverage: Not available for this trigger type yet
+  - Action: Marking as completed to avoid re-scanning until support is added
+
+  ### 🔜 Roadmap / Notes
+  - Future support will include Event Hub, Service Bus, Queue & Timer trigger RCA modules.
+  - If deeper analysis is required, escalate manually or gather logs (host, function invocation, scale controller, trigger adapter).
+
+  ### ✅ Status
+  This incident is now tagged as completed for this owning team to suppress duplicate automated scans.
+  ---
+
+  After you output the summary above:
+  1. Call the tool PostIcmRcaSummary with (incidentId=<resolved incident id>, tag=FuncLoopUnsupportedRCAProcessed, summary=<exact summary text>)
+  2. Then return the same summary text followed by the word 'Completed'.
+
+  If no incident id can be resolved, still output the summary and the word 'Completed', but skip the tool call.
+
+# Tools needed for posting into ICM
+# (ShareAgentResult included for consistency though no start agents produce results)
+tools:
+  - ShareAgentResult
+  - PostIcmRcaSummary
+
+disable_document_retrieval: true
+
+common_prompts:
+  - format_guidelines
+  - guard_rail
+
+max_reflection_count: 0

@@ -47,7 +47,8 @@ public class WorkflowReasoningLoop : ReasoningLoop
         IAgentMemoryClient agentMemoryClient,
         ISearchIndexService searchIndexService,
         FeatureConfigModel featureConfig,
-        IAgentRuntimeModifier<AgentContext> agentRuntimeModifier)
+        IAgentRuntimeModifier<AgentContext> agentRuntimeModifier,
+        IncidentManagementSettings incidentManagementSettings)
         : base(
             loggerFactory: loggerFactory,
             chatClient: chatClient,
@@ -77,7 +78,8 @@ public class WorkflowReasoningLoop : ReasoningLoop
             context: context,
             agentFactory: agentFactory,
             toolFactory: toolFactory,
-            tracer: tracer);
+            tracer: tracer,
+            incidentManagementSettings: incidentManagementSettings);
 
         _logger = loggerFactory.CreateLogger<WorkflowReasoningLoop>();
     }

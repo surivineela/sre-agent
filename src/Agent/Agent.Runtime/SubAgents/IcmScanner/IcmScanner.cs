@@ -12,6 +12,7 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
 using Agent.Plugins.Interface;
+using Agent.Core.Helpers; // Added for IncidentProcessingContext
 
 namespace Agent.Runtime.SubAgents.IcmScanner;
 public class IcmScanner(ILogger<IcmScanner> logger,
@@ -22,8 +23,6 @@ public class IcmScanner(ILogger<IcmScanner> logger,
     IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload> incidentManagementService,
     IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload> incidentFilterManagementService,
     IAgentInboundCommunicationService agentInboundCommunicationService,
-    IAgentOutboundCommunicationService agentOutboundCommunicationService,
-    IICMPlugin icmPlugin,
     IncidentManagementSettings incidentManagementSettings) : IIncidentScanner
 {
 
@@ -183,28 +182,28 @@ public class IcmScanner(ILogger<IcmScanner> logger,
 
                 try
                 {
-                    // Check agent context state
+                    // Prefer tag-based completion check
+                    var incident = await icmApiClient.GetIncidentAsync(incidentId);
+                    var teamCompletedTag = !string.IsNullOrWhiteSpace(incident?.OwningTeam) ? $"{incident.OwningTeam}:Completed" : null;
+                    if (!string.IsNullOrWhiteSpace(teamCompletedTag) &&
+                        incident?.Tags?.Any(t => string.Equals(t, teamCompletedTag, StringComparison.OrdinalIgnoreCase)) == true)
+                    {
+                        logger.LogInternalInformation("[IcmScanner] RCA completed for incident {incidentId} (found tag {tag})", incidentId, teamCompletedTag);
+                        _processedIncidents.Remove(incidentId);
+                        return;
+                    }
+
+                    // Legacy: context-state based (may never reach Completed; keep as secondary)
                     var agentContexts = await GetAgentContextsForThread(threadId);
                     var activeContext = agentContexts?.FirstOrDefault();
-
                     if (activeContext == null)
                     {
                         logger.LogInternalWarning("[IcmScanner] No agent context found for thread {threadId}, attempt {attempt}", threadId, attempt + 1);
                         continue;
                     }
 
-                    // Check if agent has completed
-                    if (activeContext.ContextState == ContextStateEnum.Completed)
+                    if (activeContext.ContextState == ContextStateEnum.Failed)
                     {
-                        logger.LogInternalInformation("[IcmScanner] RCA completed for incident {incidentId}", incidentId);
-                        await AddTagToICMOrThreadAsync(incidentId, threadId, "AgentProcessed");
-                        _processedIncidents.Remove(incidentId);
-                        return;
-                    }
-                    else if (activeContext.ContextState == ContextStateEnum.Failed)
-                    {
-                        // Error state
-                        var errorMessage = $"❌ **RCA Analysis Error**: The automated analysis encountered an error. Please check the [analysis thread]({threadUrl}) for details.";
                         logger.LogInternalWarning("[IcmScanner] RCA encountered error for incident {incidentId}", incidentId);
                         _processedIncidents.Remove(incidentId);
                         return;
@@ -480,10 +479,11 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 return;
             }
 
-            // Skip if AgentProcessed tag exists
-            if (incident.Tags?.Any(tag => tag.Equals("AgentProcessed", StringComparison.OrdinalIgnoreCase)) == true)
+            // New: Skip if team-specific Completed tag exists
+            var teamCompletedTag = !string.IsNullOrWhiteSpace(incident.OwningTeam) ? $"{incident.OwningTeam}:Completed" : null;
+            if (!string.IsNullOrWhiteSpace(teamCompletedTag) && incident.Tags?.Any(t => string.Equals(t, teamCompletedTag, StringComparison.OrdinalIgnoreCase)) == true)
             {
-                logger.LogInternalInformation("[IcmScanner] Incident {incidentId} already processed by agent (has AgentProcessed tag)", incidentDocument.Id);
+                logger.LogInternalInformation("[IcmScanner] Incident {incidentId} already completed for owning team (tag: {tag})", incidentDocument.Id, teamCompletedTag);
                 return;
             }
 
@@ -507,38 +507,6 @@ public class IcmScanner(ILogger<IcmScanner> logger,
     }
 
     /// <summary>
-    /// Adds a tag to ICM incident or posts tag info to thread based on ReadOnly setting
-    /// </summary>
-    /// <param name="incidentId">The incident ID</param>
-    /// <param name="threadId">The thread ID (used when ReadOnly is true)</param>
-    /// <param name="tag">The tag to add</param>
-    private async Task AddTagToICMOrThreadAsync(string incidentId, Guid threadId, string tag)
-    {
-        try
-        {
-            if (IsICMAPIReadOnly)
-            {
-                // Post tag information to thread instead of ICM when in read-only mode
-                logger.LogInternalInformation("[IcmScanner] ICM API is read-only, posting tag info to thread {threadId} instead of tagging incident {incidentId}", 
-                    threadId, incidentId);
-                
-                var tagMessage = $"**[ICM TAG]** (Incident: {incidentId})\n\n🏷️ Would add tag: **{tag}**\n\n*Note: This is shown here because ICM API is in read-only mode.*";
-                await agentOutboundCommunicationService.AppendAgentStreamMessage(threadId, tagMessage, null);
-            }
-            else
-            {
-                // Add tag to ICM normally
-                logger.LogInternalInformation("[IcmScanner] Adding tag '{tag}' to ICM incident {incidentId}", tag, incidentId);
-                await icmPlugin.AddTagToIncident(incidentId, tag);
-            }
-        }
-        catch (Exception ex)
-        {
-            logger.LogInternalError(ex, "[IcmScanner] Error adding tag '{tag}' to incident {incidentId}", tag, incidentId);
-        }
-    }
-
-    /// <summary>
     /// Executes automated RCA for the given incident
     /// </summary>
     /// <param name="incidentDocument">The incident document to process</param>
@@ -551,33 +519,37 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             // Mark incident as processed to avoid duplicate processing
             _processedIncidents.Add(incidentDocument.Id);
 
-            // Create thread that will trigger agent execution with the incident ID
-            var (thread, agentContext) = await agentInboundCommunicationService.CreateAgentThread(
-                title: $"🤖 Automated RCA for ICM {incidentDocument.Id}: {incidentDocument.Title}",
-                message: $"Please analyze and route IncidentId {incidentDocument.Id} for RCA analysis.",
-                agentTypeEnum: AgentTypeEnum.Incident,
-                source: ThreadSource.Agent,
-                incidentId: incidentDocument.Id,
-                incidentSource: new IncidentSource(Agent.Core.Models.Api.v1.IncidentType.Icm, incidentDocument.Id)
-            );
-            
-            // Start agent execution
-            await agentInboundCommunicationService.ProcessAlertMessageAsync(new ThreadMessage(
-                ThreadId: thread.Id,
-                AgentContextId: agentContext.Id,
-                MessageId: thread.StartMessage?.Id ?? new Guid(),
-                Message: $"Please analyze and route IncidentId {incidentDocument.Id} for RCA analysis.",
-                UserId: "icm-scanner",
-                DisplayName: "ICM Scanner",
-                Timestamp: DateTime.UtcNow
-            ));
+            // Begin scanner-origin scope so downstream components can gate ICM posting/tagging
+            using (IncidentProcessingContext.BeginScannerOriginScope())
+            {
+                // Create thread that will trigger agent execution with the incident ID
+                var (thread, agentContext) = await agentInboundCommunicationService.CreateAgentThread(
+                    title: $"🤖 Automated RCA for ICM {incidentDocument.Id}: {incidentDocument.Title}",
+                    message: $"Please analyze and route IncidentId {incidentDocument.Id} for RCA analysis.",
+                    agentTypeEnum: AgentTypeEnum.Incident,
+                    source: ThreadSource.Agent,
+                    incidentId: incidentDocument.Id,
+                    incidentSource: new IncidentSource(Agent.Core.Models.Api.v1.IncidentType.Icm, incidentDocument.Id)
+                );
+                
+                // Start agent execution
+                await agentInboundCommunicationService.ProcessAlertMessageAsync(new ThreadMessage(
+                    ThreadId: thread.Id,
+                    AgentContextId: agentContext.Id,
+                    MessageId: thread.StartMessage?.Id ?? new Guid(),
+                    Message: $"Please analyze and route IncidentId {incidentDocument.Id} for RCA analysis.",
+                    UserId: "icm-scanner",
+                    DisplayName: "ICM Scanner",
+                    Timestamp: DateTime.UtcNow
+                ));
 
-            var threadUrl = $"{WebBaseUrl}/static/#/views/activities/threads/{thread.Id}";
-            logger.LogInternalInformation($"[IcmScanner] Automated RCA thread created and started for incident {incidentDocument.Id}. Thread ID: {thread.Id}, URL: {threadUrl}", 
-                incidentDocument.Id, thread.Id, threadUrl);
+                var threadUrl = $"{WebBaseUrl}/static/#/views/activities/threads/{thread.Id}";
+                logger.LogInternalInformation($"[IcmScanner] Automated RCA thread created and started for incident {incidentDocument.Id}. Thread ID: {thread.Id}, URL: {threadUrl}", 
+                    incidentDocument.Id, thread.Id, threadUrl);
 
-            // Start background monitoring for RCA completion
-            _ = Task.Run(() => MonitorRCACompletionAsync(incidentDocument.Id, thread.Id, threadUrl));
+                // Start background monitoring for RCA completion
+                _ = Task.Run(() => MonitorRCACompletionAsync(incidentDocument.Id, thread.Id, threadUrl));
+            }
         }
         catch (Exception ex)
         {
