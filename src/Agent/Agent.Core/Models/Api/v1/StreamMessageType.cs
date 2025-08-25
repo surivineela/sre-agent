@@ -64,4 +64,9 @@ public enum StreamMessageType
     /// Change diff viewer for resource modifications
     /// </summary>
     ChangeDiff,
+
+    /// <summary>
+    /// Agent Task/Deep investigation message card   
+    /// </summary>
+    DeepInvestigation,
 }

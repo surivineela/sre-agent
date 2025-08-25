@@ -87,6 +87,9 @@ public sealed class IncidentInvestigationTaskHandler(
                 "Executing incident investigation task {TaskId} for thread {ThreadId}",
                 agentTask.Id, context.ThreadId);
 
+            // Send deep investigation notification immediately when investigation starts
+            await SendDeepInvestigationNotificationAsync(agentTask.ThreadId, agentTask.Id);
+
             // Save the agent task to the thread document immediately when investigation starts
             await threadRepository.UpdateTaskOnThreadAsync(agentTask.ThreadId, agentTask.ToShortForm());
             logger.LogInternalInformation("Agent task {TaskId} saved to thread {ThreadId}", agentTask.Id, agentTask.ThreadId);
@@ -429,6 +432,37 @@ public sealed class IncidentInvestigationTaskHandler(
 
             logger.LogInternalError(e, "Error while executing investigation");
             throw;
+        }
+    }
+
+    /// <summary>
+    /// Sends a deep investigation notification to the user.
+    /// </summary>
+    /// <param name="threadId">The thread ID</param>
+    /// <param name="agentTaskId">The agent task ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    private async Task SendDeepInvestigationNotificationAsync(Guid threadId, Guid agentTaskId)
+    {
+        try
+        {
+            logger.LogInternalInformation("Sending deep investigation notification for thread {ThreadId}, task {TaskId}", threadId, agentTaskId);
+
+            ChatMessage message = new ChatMessage(ChatRole.User, "Running Deep investigation in parallel. You can still chat with the agent");
+
+            await outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                threadId,
+                string.Empty,
+                message: message, 
+                type: StreamMessageType.DeepInvestigation,
+                agentTaskId: agentTaskId
+               );
+
+            logger.LogInternalInformation("Successfully sent deep investigation notification for thread {ThreadId}, task {TaskId}", threadId, agentTaskId);
+        }
+        catch (Exception ex)
+        {
+            logger.LogInternalWarning(ex, "Failed to send deep investigation notification for thread {ThreadId}, task {TaskId}. Investigation will continue.", threadId, agentTaskId);
+            // Don't rethrow - notification failure shouldn't break the investigation
         }
     }
 

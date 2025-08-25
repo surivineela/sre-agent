@@ -43,9 +43,10 @@ namespace Agent.Core.Interfaces
         /// <param name="threadId">The thread ID to stream the message to</param>
         /// <param name="message">The message content to stream</param>
         /// <param name="type">The type of message being streamed, if null just pure normal text</param>
+        /// <param name ="agentTaskId> Optional agent task ID associated with the message used when streaming a agent task notification </param>
         /// <param name="cancellationToken">Cancellation token to cancel the streaming operation</param>
         /// <returns>Task representing the async operation</returns>
-        Task StreamMessageAsync(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default);
+        Task StreamMessageAsync(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, Guid? agentTaskId = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Streams a task update directly to clients for the specified thread

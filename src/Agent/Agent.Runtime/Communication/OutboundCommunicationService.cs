@@ -55,7 +55,8 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         _azCliKubectlSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     }
 
-    public async Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message, Guid? messageId = null)
+    // main method to update thread with agent message
+    public async Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message, Guid? messageId = null, StreamMessageType? type = null, Guid? agentTaskId = null)
     {
         if (!string.IsNullOrEmpty(orchestrationInstanceId))
         {
@@ -65,8 +66,20 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             orchestrationInstanceId, threadId, message.Text);
         Guid agentMessageId = messageId ?? Guid.NewGuid();
         DateTime recordedDateTime = DateTime.UtcNow;
-        await AppendAgentStreamMessage(threadId ?? Guid.Empty, message.Text ?? string.Empty, null, agentMessageId, recordedDateTime);
+        await AppendAgentStreamMessage(threadId ?? Guid.Empty, message.Text ?? string.Empty, type, agentMessageId, recordedDateTime, agentTaskId: agentTaskId);
         await _sinkService.SinkAgentMessageAsync(threadId ?? Guid.Empty, message.Text ?? string.Empty, agentResponseMessageId: agentMessageId, recordedDateTime: recordedDateTime);
+    }
+
+    // over load method that also takes agent context
+    public async Task UpdateThreadWithAgentMessageAsync(AgentContext context, ChatMessage message, Guid? messageId = null)
+    {
+        _logger.LogExternalInformation("Agent context {AgentContextId} of type {AgentType} message to thread {ThreadId}: {message}",
+            context.Id, context.AgentType.ToString(), context.ThreadId, message.Text);
+
+        Guid agentMessageId = messageId ?? Guid.NewGuid();
+        DateTime recordedDateTime = DateTime.UtcNow;
+        await AppendAgentStreamMessage(context.ThreadId, message.Text ?? string.Empty, null, agentMessageId, recordedDateTime);
+        await _sinkService.SinkAgentMessageAsync(context.ThreadId, message.Text ?? string.Empty, agentResponseMessageId: agentMessageId, recordedDateTime: recordedDateTime);
     }
 
     public async Task<Guid> AppendAgentImageMessage(Guid threadId, string message, Guid messageId = default)
@@ -220,7 +233,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         }
     }
 
-    public async Task AppendAgentStreamMessage(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
+    public async Task AppendAgentStreamMessage(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, Guid? agentTaskId = null, CancellationToken cancellationToken = default)
     {
         if (threadId == Guid.Empty)
         {
@@ -240,7 +253,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             cancellationToken.ThrowIfCancellationRequested();
 
             // Use the streaming service abstraction to send the message
-            await _streamingService.StreamMessageAsync(threadId, message, type, messageId, recordedDateTime: recordedDateTime, cancellationToken: cancellationToken);
+            await _streamingService.StreamMessageAsync(threadId, message, type, messageId, recordedDateTime: recordedDateTime, agentTaskId: agentTaskId, cancellationToken: cancellationToken);
 
             _logger.LogExternalInformation("Successfully sent direct stream message for thread {ThreadId} with type {Type}",
                 threadId, type);
@@ -308,17 +321,6 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
     public async Task PostActivity(string threadId, Activity activity, string messageId = "")
     {
         await _postToTeamsService.PostTeamsMessage(threadId, activity, messageId);
-    }
-
-    public async Task UpdateThreadWithAgentMessageAsync(AgentContext context, ChatMessage message, Guid? messageId = null)
-    {
-        _logger.LogExternalInformation("Agent context {AgentContextId} of type {AgentType} message to thread {ThreadId}: {message}",
-            context.Id, context.AgentType.ToString(), context.ThreadId, message.Text);
-
-        Guid agentMessageId = messageId ?? Guid.NewGuid();
-        DateTime recordedDateTime = DateTime.UtcNow;
-        await AppendAgentStreamMessage(context.ThreadId, message.Text ?? string.Empty, null, agentMessageId, recordedDateTime);
-        await _sinkService.SinkAgentMessageAsync(context.ThreadId, message.Text ?? string.Empty, agentResponseMessageId: agentMessageId, recordedDateTime: recordedDateTime);
     }
 
     public Task NotifyCompletionAsync(AgentContext context, string subAgentIdentifier, string status, string? summary = null)
@@ -465,7 +467,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             await _streamingService.StreamChatResponseUpdateAsync(threadId, stopMessageToolCalls, cancellationToken);
 
             List<AIContent> toolCalls = new List<AIContent>();
-            foreach(var toolCall in manualToolCalls)
+            foreach (var toolCall in manualToolCalls)
             {
                 var functionCall = toolCall.FunctionCall;
                 functionCall.AdditionalProperties ??= new AdditionalPropertiesDictionary();

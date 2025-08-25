@@ -47,7 +47,7 @@ namespace Agent.Tests.Common.Mocks
             return Task.CompletedTask;
         }
 
-        public Task AppendAgentStreamMessage(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
+        public Task AppendAgentStreamMessage(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, Guid? agentTaskId = null, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             _logger?.LogInternalInformation($"Mock: Streaming message for thread {threadId} with type {type}: {message}");
@@ -153,9 +153,9 @@ namespace Agent.Tests.Common.Mocks
             return Task.CompletedTask;
         }
 
-        public Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string agentId, ChatMessage message, Guid? messageId = null)
+        public Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message, Guid? messageId = null, StreamMessageType? type = null, Guid? agentTaskId = null)
         {
-            _logger?.LogInternalInformation($"ThreadId: {threadId}, AgentId: {agentId}, Message: {message.Text}");
+            _logger?.LogInternalInformation($"ThreadId: {threadId}, OrchestrationInstanceId: {orchestrationInstanceId}, Message: {message.Text}");
             Messages.Add(message.Text);
             return Task.CompletedTask;
         }

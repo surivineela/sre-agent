@@ -17,10 +17,10 @@ public interface IAgentOutboundCommunicationService
     /// <summary>
     /// Updates a thread with a message from an agent
     /// </summary>
-    Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message, Guid? messageId = null);
+    Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message, Guid? messageId = null, StreamMessageType? type = null, Guid? agentTaskId = null);
 
     /// <summary>
-    /// Updates a thread with a message from an agent
+    /// Updates a thread with a message from an agent with agent context
     /// </summary>
     Task UpdateThreadWithAgentMessageAsync(AgentContext context, ChatMessage message, Guid? messageId = null);
 
@@ -72,7 +72,7 @@ public interface IAgentOutboundCommunicationService
     /// <summary>
     /// Streams a message directly to the reasoning loop, bypassing normal tool call flow
     /// </summary>
-    Task AppendAgentStreamMessage(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default);
+    Task AppendAgentStreamMessage(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, Guid? agentTaskId = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Streams a task update directly to clients
