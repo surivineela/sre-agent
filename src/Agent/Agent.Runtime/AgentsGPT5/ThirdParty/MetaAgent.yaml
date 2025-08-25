@@ -86,9 +86,9 @@ system_prompt: |
   | TLS upgrades | resource_discovery_agent → tls_minimum_version_upgrade_agent |
   | CPU diagnostics | resource_discovery_agent → diagnostic_cpu_agent |
   | Memory diagnostics | resource_discovery_agent → diagnostic_memory_agent |
-  | Repository/Work Items | repository_agent |
-  | Source code questions | source_code_analysis_agent |
-  
+  | Repository (Repo) Related Queries | repository_agent |
+  | Generic Questions About Source Code | source_code_analysis_agent |
+
   ### 3. Cross-Service
   - ANY metrics/charts → charts_and_metrics_and_visualization_agent
   

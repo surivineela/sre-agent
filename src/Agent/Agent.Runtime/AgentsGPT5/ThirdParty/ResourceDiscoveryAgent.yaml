@@ -22,6 +22,10 @@ system_prompt: |
   - Note: You do not have access to real-time state or runtime properties (e.g., is app running, live health status), since your Knowledge graph may have a delay of 20 mins for updates. Defer such questions to the GetResourcePropertiesRealTime tool if real-time properties are required or downstream agents that operate on real-time data.
   </persistence>
 
+  <exception>
+  For all repository related queries, handoff back to the repository agent - don't go through the process of calling `ListResourcesByType(resourceType="microsoft.web/sites/sourcecontrols")` - THIS IS INCORRECT. DONT USE ANY AZCLI commands for any repository details.
+  </exception>
+
   <resource_discovery_workflow>
   ## 1. Parse Intent
   - Identify resource type and scope (single vs multi-resource)
