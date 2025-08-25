@@ -44,7 +44,7 @@ public class GraphService : IGraphService
     private readonly string[] allowedTypes = { "namespaces", "deployments", "statefulsets" };
 
     public const string GithubRepoRegexPattern = @"^https:\/\/github\.com\/[\w.-]+\/[\w.-]+(?:\.git)?$";
-    public const string AzDoRepoRegexPattern = @"^https:\/\/(?:(?<org1>dev\.azure\.com)\/(?<organization>[\w-]+)\/(?<project>[\w-]+)|(?<organization>[\w-]+)\.visualstudio\.com\/(?<project>[\w-]+))\/_git\/(?<repo>[\w.-]+)$";
+    public const string AzDoRepoRegexPattern = @"^https:\/\/(?:(?:dev\.azure\.com\/(?<organization>(?:[A-Za-z0-9._\-~]|%[0-9A-Fa-f]{2})+)\/(?<project>(?:[A-Za-z0-9._\-~]|%[0-9A-Fa-f]{2})+))|(?<organization>(?:[A-Za-z0-9._\-~]|%[0-9A-Fa-f]{2})+)\.visualstudio\.com\/(?<project>(?:[A-Za-z0-9._\-~]|%[0-9A-Fa-f]{2})+))\/_git\/(?<repo>(?:[A-Za-z0-9._\-~]|%[0-9A-Fa-f]{2})+)$";
 
     public GraphService(IGraphDatabaseClient graphDatabaseClient, DashboardSettings dashboardSettings, ILogger<GraphService> logger, IHttpClientFactory httpClientFactory, IAuthenticationService authenticationService, ICrawlerService crawlerService, IThreadRepository threadRepository, IGithubIssuePlugin githubIssuePlugin, IAzureDevOpsWorkItemPlugin azureDevOpsWorkItemPlugin)
     {
