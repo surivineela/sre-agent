@@ -25,6 +25,33 @@ namespace Agent.Plugins.Implementation
         private readonly IAppInsightsPlugin _appInsightsPlugin = appInsightsPlugin;
         private readonly ILogger<FunctionAppExecutionFailuresPlugin> _logger = logger;
 
+        /// <summary>
+        /// Determines the appropriate time grain based on the time range to avoid returning too many results
+        /// </summary>
+        /// <param name="startTime">Start time of the query</param>
+        /// <param name="endTime">End time of the query</param>
+        /// <returns>Time grain string (5m, 10m, or 1d)</returns>
+        private static string GetTimeGrain(DateTime startTime, DateTime endTime)
+        {
+            var timeSpan = endTime - startTime;
+            
+            // For time ranges less than or equal to 6 hours, use 5 minute grain
+            if (timeSpan.TotalHours <= 6)
+            {
+                return "5m";
+            }
+            // For time ranges less than or equal to 24 hours, use 10 minute grain
+            else if (timeSpan.TotalHours <= 24)
+            {
+                return "10m";
+            }
+            // For longer time ranges, use 1 day grain
+            else
+            {
+                return "1d";
+            }
+        }
+
         public async Task<string> GetFunctionAppExecutionFailures(string resourceId)
         {
             _logger.LogInternalInformation("[get_function_app_execution_failures] Invoked with resourceId {resourceId}", resourceId);
@@ -149,13 +176,16 @@ namespace Agent.Plugins.Implementation
                 resourceName = splitResourceParts[splitResourceParts.Length - 1];
             }
 
+            // Determine timeGrain based on the time range
+            string timeGrain = GetTimeGrain(startTime, endTime);
+
             string failedRequestsPerFunctionQuery = $@"
                     let start=datetime({startTime:O});
                     let end=datetime({endTime:O});
-                    let timeGrain=5m;
+                    let timeGrain={timeGrain};
                     let dataset=requests
                         | where timestamp > start and timestamp < end
-                        | where cloud_RoleName =~ ""{resourceName}"" //or cloud_RoleName startswith strcat(""{resourceName}"",""-"")
+                        | where cloud_RoleName =~ ""{resourceName}"" or cloud_RoleName startswith strcat(""{resourceName}"",""-"")
                         | where client_Type != ""Browser"";
                     dataset
                     | summarize FailedCount=sumif(itemCount, success == false) by name, bin(timestamp, timeGrain)";
@@ -241,19 +271,25 @@ namespace Agent.Plugins.Implementation
             }
             _logger.LogInternalInformation("[GetTop3ExceptionsPerFunction] Invoked with resourceId {resourceId}, startTime {startTime}, endTime {endTime}", resourceId, startTime, endTime);
 
+            // Determine timeGrain based on the time range
+            string timeGrain = GetTimeGrain(startTime.Value, endTime.Value);
+
             string top3ExceptionsPerFunctionQuery = $@"
                     let start=datetime({startTime.Value:O});
                     let end=datetime({endTime.Value:O});
-                    let timeGrain=5m;
+                    let timeGrain={timeGrain};
                     let dataset=exceptions
                         | where timestamp > start and timestamp < end
                         | where client_Type != ""Browser""
-                        | where cloud_RoleName =~ ""{resourceName}""
+                        | where cloud_RoleName =~ ""{resourceName}"" or cloud_RoleName startswith strcat(""{resourceName}"",""-"")
                         | extend FunctionName = iif(outerMessage has ""Result: Function"", extract(@""Result: Function '([^']+)'"", 1, outerMessage), """")
                         | extend FunctionName = iif(isempty(FunctionName), iif(method has "".Run"", extract(@""([^.]+).([^.]+).Run"", 2, method), method), FunctionName)
-                        | extend FunctionName = iif(isempty(FunctionName),method,FunctionName);
+                        | extend FunctionName = iif(isempty(FunctionName),method,FunctionName)
+                        | extend FunctionName = iif(isempty(FunctionName),extract(@""Function '([^']+)'"", 1, outerMessage),FunctionName)
+                        | parse outerMessage with * ""Exception: "" ExceptionType "":"" ExceptionMessage ""\n"" StackTrace;
                     dataset
-                        | summarize _count=sum(itemCount) by type
+                        | extend ExceptionOrType = iif(isempty(ExceptionType), type, ExceptionType)
+                        | summarize _count = sum(itemCount) by ExceptionOrType
                         | sort by _count desc
                         | top 3 by _count";
 

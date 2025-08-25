@@ -58,13 +58,13 @@ namespace Agent.Core.Helpers
         /// <summary>
         /// Gets the detector response for a resource with specified start time, enforcing a maximum time range of 3 days.
         /// The end time is always set to current time minus 15 minutes.
+        /// If the time range exceeds 3 days, the start time is automatically adjusted to ensure the maximum range.
         /// </summary>
         /// <param name="resourceId">The Azure resource ID for which to get detector data</param>
         /// <param name="detectorId">The ID of the detector to query</param>
-        /// <param name="startTime">Optional start time for the query (defaults to 1 hour ago if not specified)</param>
+        /// <param name="startTime">Optional start time for the query (defaults to 1 hour ago if not specified, may be adjusted if range exceeds 3 days)</param>
         /// <param name="endTime">Optional end time parameter (ignored - always uses current time minus 15 minutes)</param>
         /// <returns>The detector response as a JSON string</returns>
-        /// <exception cref="ArgumentException">Thrown when the time range exceeds 3 days</exception>
         public async Task<string> GetDetectorResponseWithTime(string resourceId, string detectorId, DateTime? startTime = null, DateTime? endTime = null)
         {
             startTime ??= DateTime.UtcNow.AddHours(-1);
@@ -80,7 +80,8 @@ namespace Agent.Core.Helpers
 
             if (actualDuration > maxDuration)
             {
-                throw new ArgumentException($"Time range cannot exceed 3 days. Requested: {actualDuration.TotalDays:F1} days");
+                // Adjust the start time to ensure the time range doesn't exceed 3 days
+                startTime = endTime.Value.Subtract(maxDuration);
             }
 
             string formattedStartTime = startTime.Value.ToString("yyyy-MM-dd HH:mm");
@@ -115,13 +116,13 @@ namespace Agent.Core.Helpers
         /// <summary>
         /// Gets the analysis response for a resource with specified start time, enforcing a maximum time range of 3 days.
         /// The end time is always set to current time minus 15 minutes.
+        /// If the time range exceeds 3 days, the start time is automatically adjusted to ensure the maximum range.
         /// </summary>
         /// <param name="resourceId">The Azure resource ID for which to get analysis data</param>
         /// <param name="analysisId">The ID of the analysis to query</param>
-        /// <param name="startTime">Optional start time for the query (defaults to 1 hour ago if not specified)</param>
+        /// <param name="startTime">Optional start time for the query (defaults to 1 hour ago if not specified, may be adjusted if range exceeds 3 days)</param>
         /// <param name="endTime">Optional end time parameter (ignored - always uses current time minus 15 minutes)</param>
         /// <returns>The analysis response as a JSON string</returns>
-        /// <exception cref="ArgumentException">Thrown when the time range exceeds 3 days</exception>
         public async Task<string> GetAnalysisWithTime(string resourceId, string analysisId, DateTime? startTime = null, DateTime? endTime = null)
         {
             startTime ??= DateTime.UtcNow.AddHours(-1);
@@ -137,7 +138,8 @@ namespace Agent.Core.Helpers
 
             if (actualDuration > maxDuration)
             {
-                throw new ArgumentException($"Time range cannot exceed 3 days. Requested: {actualDuration.TotalDays:F1} days");
+                // Adjust the start time to ensure the time range doesn't exceed 3 days
+                startTime = endTime.Value.Subtract(maxDuration);
             }
 
             // First get the analysis response
