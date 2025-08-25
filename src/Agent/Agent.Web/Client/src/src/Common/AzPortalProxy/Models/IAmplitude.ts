@@ -7,7 +7,7 @@ export enum SpecialControlValue {
 
 type ControlTargetTypes = 'checkbox' | 'dropdown' | 'radioButton' | 'textbox' | 'button' | 'link' | 'accordion' | 'combobox';
 type NavigationTargetTypes = 'menuItem' | 'tabBlade' | 'tab' | 'button' | 'link' | 'card' | 'image';
-type OperationTargetTypes = 'create' | 'update' | 'delete' | 'refresh' | 'load';
+type OperationTargetTypes = 'create' | 'update' | 'delete' | 'refresh' | 'load' | 'connection';
 
 type ControlActionVerb = 'changed' | 'clicked';
 type NavigationActionVerb =

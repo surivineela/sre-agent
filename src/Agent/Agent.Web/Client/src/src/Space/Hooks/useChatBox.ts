@@ -79,6 +79,7 @@ export const useChatBox = (
     const typingCharsTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
     const isCancellingStreamingRef = useRef<boolean>(false);
     const addThreadRef = useRef(addThread);
+    const responseEndLoggedRef = useRef<boolean>(false);
 
     const { chatHistory, isLoadingInitialChatHistory, loadOlderMessagesRef, newestMessageTimestampInOldMessages } = useChatHistory(
         threadId,
@@ -135,13 +136,23 @@ export const useChatBox = (
         messageChunkQueue.current = [];
         isTypingChars.current = false;
         typingCharIndex.current = 0;
+        responseEndLoggedRef.current = false;
 
         clearTimeout(typingCharsTimeout.current);
     };
 
     const cancelStreaming = useCallback(() => {
         setIsCancellingStreaming(true);
-    }, []);
+        if (!responseEndLoggedRef.current) {
+            proxy.logAmplitudeOperationEvent({
+                targetType: 'update',
+                targetAction: 'cancel',
+                targetName: 'agentResponse',
+                targetFriendlyName: 'Agent response',
+            });
+            responseEndLoggedRef.current = true;
+        }
+    }, [proxy]);
 
     useEffect(() => {
         if (isCancellingStreaming && currentThreadId) {
@@ -343,6 +354,15 @@ export const useChatBox = (
         const handleCompletedMessageChunk = (messageChunk: StreamingMessage) => {
             messageChunkQueue.current.shift();
             if (isFinalStreamingMessage(messageChunk)) {
+                if (!responseEndLoggedRef.current) {
+                    proxy.logAmplitudeOperationEvent({
+                        targetType: 'update',
+                        targetAction: isCancellingStreamingRef.current ? 'cancel' : 'success',
+                        targetName: 'agentResponse',
+                        targetFriendlyName: 'Agent response',
+                    });
+                    responseEndLoggedRef.current = true;
+                }
                 finishStreaming();
             } else {
                 handleMessageTyping();

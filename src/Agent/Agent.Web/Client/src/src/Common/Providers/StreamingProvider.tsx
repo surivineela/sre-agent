@@ -183,6 +183,12 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
                                     message: `Error in SignalR Hub connection from agent url: ${sreAgentEndpoint}. Message: ${messagesToLog}`,
                                 },
                             });
+                            proxy.logAmplitudeOperationEvent({
+                                targetType: 'connection',
+                                targetAction: 'failed',
+                                targetName: 'signalRHubConnection',
+                                targetFriendlyName: 'SignalR Hub connection',
+                            });
                         }
 
                         if (isLocalHost) {
@@ -210,6 +216,12 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
                             message: `Reconnecting to SignalR hub from agent url: ${sreAgentEndpoint}`,
                         },
                     });
+                    proxy.logAmplitudeOperationEvent({
+                        targetType: 'connection',
+                        targetAction: 'start',
+                        targetName: 'signalRHubReconnect',
+                        targetFriendlyName: 'SignalR Hub reconnect',
+                    });
                 }
             });
 
@@ -223,6 +235,12 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
                         data: {
                             message: `Reconnected to SignalR hub from agent url: ${sreAgentEndpoint}`,
                         },
+                    });
+                    proxy.logAmplitudeOperationEvent({
+                        targetType: 'connection',
+                        targetAction: 'success',
+                        targetName: 'signalRHubReconnect',
+                        targetFriendlyName: 'SignalR Hub reconnect',
                     });
                 }
             });
