@@ -5,8 +5,10 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using Agent.Cli.Services;
+using Agent.Cli.Helpers;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
+using System.Diagnostics;
 
 namespace Agent.Cli.Services;
 
@@ -23,15 +25,76 @@ public class ApiService : IDisposable
 
     public async Task<string?> GetAccessTokenAsync()
     {
+        var stopwatch = Stopwatch.StartNew();
         try
         {
+            DebugLogger.LogAuth("Attempting to get Azure CLI credentials");
             var credential = new AzureCliCredential();
             var token = await credential.GetTokenAsync(new TokenRequestContext(new[] { "https://azuresre.dev/.default" }));
+
+            stopwatch.Stop();
+            DebugLogger.LogAuth($"Successfully obtained access token (expires: {token.ExpiresOn})");
+            DebugLogger.LogTiming("GetAccessToken", stopwatch.Elapsed);
+
             return token.Token;
         }
-        catch
+        catch (Exception ex)
         {
+            stopwatch.Stop();
+            DebugLogger.LogAuth($"Failed to get access token: {ex.Message}");
+            DebugLogger.LogTiming("GetAccessToken (failed)", stopwatch.Elapsed);
             return null;
+        }
+    }
+
+    /// <summary>
+    /// Makes an HTTP request with comprehensive debug logging
+    /// </summary>
+    private async Task<(HttpResponseMessage Response, string Content, long ResponseTimeMs)> MakeHttpRequestAsync(HttpRequestMessage request)
+    {
+        var stopwatch = Stopwatch.StartNew();
+
+        // Log request details
+        var requestContent = request.Content != null ? await request.Content.ReadAsStringAsync() : null;
+        DebugLogger.LogHttpRequest(
+            request.Method.ToString(),
+            request.RequestUri?.ToString() ?? "unknown",
+            request.Content?.Headers?.ContentType?.ToString(),
+            requestContent
+        );
+
+        // Log authentication
+        if (request.Headers.Authorization != null)
+        {
+            DebugLogger.LogAuth($"Using {request.Headers.Authorization.Scheme} authentication");
+        }
+        else
+        {
+            DebugLogger.LogAuth("No authentication header");
+        }
+
+        try
+        {
+            var response = await _httpClient.SendAsync(request);
+            var content = await response.Content.ReadAsStringAsync();
+
+            stopwatch.Stop();
+
+            // Log response details
+            DebugLogger.LogHttpResponse(
+                (int)response.StatusCode,
+                response.StatusCode.ToString(),
+                content,
+                stopwatch.ElapsedMilliseconds
+            );
+
+            return (response, content, stopwatch.ElapsedMilliseconds);
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+            DebugLogger.LogNetwork($"HTTP request failed after {stopwatch.ElapsedMilliseconds}ms: {ex.Message}");
+            throw;
         }
     }
 
@@ -44,6 +107,9 @@ public class ApiService : IDisposable
             {
                 return (false, "Configuration not found. Please run 'srectl init' first.");
             }
+
+            DebugLogger.LogConfig("ResourceUrl", resourceUrl);
+            DebugLogger.LogConfig("IsLocalhost", CliConfigurationService.IsLocalhost(resourceUrl).ToString());
 
             var request = new HttpRequestMessage(HttpMethod.Get, $"{resourceUrl.TrimEnd('/')}/api/v1/extendedAgent/agents");
 
@@ -58,54 +124,60 @@ public class ApiService : IDisposable
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
 
-            var response = await _httpClient.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
+            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
                 try
                 {
+                    DebugLogger.Debug("Parsing", "Parsing connection test response as JSON");
+
                     // Parse the response to get agent names using robust parsing
                     var jsonDoc = JsonDocument.Parse(content);
-                    
+
                     JsonElement agents = default;
                     bool foundAgents = false;
-                    
+
                     // Try different response structure patterns
                     if (jsonDoc.RootElement.TryGetProperty("data", out var dataElement))
                     {
                         // Pattern 1: { "data": { "agents": [...] } } - ExtendedAgentsListResponse style
-                        if (dataElement.ValueKind == JsonValueKind.Object && 
+                        if (dataElement.ValueKind == JsonValueKind.Object &&
                             dataElement.TryGetProperty("agents", out agents) && agents.ValueKind == JsonValueKind.Array)
                         {
                             foundAgents = true;
+                            DebugLogger.Debug("Parsing", "Found agents in data.agents structure");
                         }
                         // Pattern 2: { "data": [...] } - PaginatedResponse style (actual current API)
                         else if (dataElement.ValueKind == JsonValueKind.Array)
                         {
                             agents = dataElement;
                             foundAgents = true;
+                            DebugLogger.Debug("Parsing", "Found agents in data array structure");
                         }
                     }
                     // Pattern 3: { "agents": [...] } - Direct agents property
                     else if (jsonDoc.RootElement.TryGetProperty("agents", out agents) && agents.ValueKind == JsonValueKind.Array)
                     {
                         foundAgents = true;
+                        DebugLogger.Debug("Parsing", "Found agents in direct agents property");
                     }
                     // Pattern 4: [...] - Direct array (legacy)
                     else if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
                     {
                         agents = jsonDoc.RootElement;
                         foundAgents = true;
+                        DebugLogger.Debug("Parsing", "Found agents in direct array structure");
                     }
-                    
+
                     if (!foundAgents)
                     {
+                        DebugLogger.Debug("Parsing", "No agents array found in response");
                         return (true, "✅ Connection successful! (Unexpected response format)");
                     }
-                    
+
                     var agentNames = new List<string>();
-                    
+
                     foreach (var agent in agents.EnumerateArray())
                     {
                         if (agent.TryGetProperty("name", out var nameElement))
@@ -113,6 +185,8 @@ public class ApiService : IDisposable
                             agentNames.Add(nameElement.GetString() ?? "");
                         }
                     }
+
+                    DebugLogger.Debug("Parsing", $"Successfully parsed {agentNames.Count} agent names");
 
                     if (agentNames.Count == 0)
                     {
@@ -123,8 +197,9 @@ public class ApiService : IDisposable
                         return (true, $"✅ Connection successful! Found {agentNames.Count} agents: {string.Join(", ", agentNames)}");
                     }
                 }
-                catch (JsonException)
+                catch (JsonException ex)
                 {
+                    DebugLogger.Debug("Parsing", $"JSON parsing failed: {ex.Message}");
                     return (true, "✅ Connection successful! (Server returned non-JSON response)");
                 }
             }
@@ -135,18 +210,22 @@ public class ApiService : IDisposable
         }
         catch (HttpRequestException ex)
         {
+            DebugLogger.LogNetwork($"Connection failed: {ex.Message}");
             return (false, $"❌ Network connection failed: {ex.Message}\n   Check if the URL is correct and accessible: {resourceUrl}");
         }
         catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
         {
+            DebugLogger.LogNetwork($"Connection timed out: {resourceUrl}");
             return (false, $"❌ Connection timed out: {resourceUrl}\n   The server may be unreachable or overloaded.");
         }
         catch (JsonException ex)
         {
+            DebugLogger.Debug("Parsing", $"JSON exception: {ex.Message}");
             return (false, $"❌ Invalid JSON response from server: {ex.Message}\n   The server may have returned an error page instead of expected data.\n   This often indicates authentication or permission issues.");
         }
         catch (Exception ex)
         {
+            DebugLogger.Debug("Exception", $"Unexpected error: {ex.Message}");
             return (false, $"❌ Connection failed: {ex.Message}");
         }
     }
@@ -155,12 +234,12 @@ public class ApiService : IDisposable
     {
         var statusCode = (int)response.StatusCode;
         var statusName = response.StatusCode.ToString();
-        
+
         // Check if response is HTML (common for error pages)
         var isHtmlResponse = content.TrimStart().StartsWith("<", StringComparison.OrdinalIgnoreCase);
-        
+
         var errorMessage = $"❌ Connection failed: HTTP {statusCode} ({statusName})";
-        
+
         // Provide specific guidance based on status code
         switch (response.StatusCode)
         {
@@ -170,7 +249,7 @@ public class ApiService : IDisposable
                 errorMessage += "\n   • Your Azure CLI session has expired";
                 errorMessage += "\n   • The token audience/scope is incorrect";
                 break;
-                
+
             case HttpStatusCode.Forbidden: // 403
                 errorMessage += "\n   Access denied. This usually means:";
                 errorMessage += "\n   • You don't have permission to access this SRE Agent resource";
@@ -181,28 +260,28 @@ public class ApiService : IDisposable
                 errorMessage += "\n   2. Find the ARM resource ID for this SRE Agent";
                 errorMessage += "\n   3. Run: az resource patch --ids <ARM_RESOURCE_ID> -p '{\"adminUsers\":[{\"objectId\":\"<YOUR_OBJECT_ID>\",\"tenantId\":\"72f988bf-86f1-41af-91ab-2d7cd011db47\"}]}'";
                 break;
-                
+
             case HttpStatusCode.NotFound: // 404
                 errorMessage += $"\n   The endpoint was not found. Check if the URL is correct: {resourceUrl}";
                 break;
-                
+
             case HttpStatusCode.InternalServerError: // 500
                 errorMessage += "\n   Server error. The SRE Agent service may be experiencing issues.";
                 break;
-                
+
             case HttpStatusCode.BadGateway: // 502
             case HttpStatusCode.ServiceUnavailable: // 503
             case HttpStatusCode.GatewayTimeout: // 504
                 errorMessage += "\n   The service is temporarily unavailable. Please try again later.";
                 break;
         }
-        
+
         // If we got an HTML response, it's likely an error page
         if (isHtmlResponse)
         {
             errorMessage += "\n   \n   ⚠️  Server returned an HTML error page instead of expected JSON data.";
             errorMessage += "\n   This typically indicates authentication or authorization issues.";
-            
+
             // Try to extract title from HTML for more context
             var titleMatch = System.Text.RegularExpressions.Regex.Match(content, @"<title[^>]*>([^<]+)</title>", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
             if (titleMatch.Success && !string.IsNullOrWhiteSpace(titleMatch.Groups[1].Value))
@@ -220,12 +299,12 @@ public class ApiService : IDisposable
                 {
                     var error = errorElement.GetString();
                     errorMessage += $"\n   Server error: {error}";
-                    
+
                     if (jsonDoc.RootElement.TryGetProperty("error_description", out var descElement))
                     {
                         var description = descElement.GetString();
                         errorMessage += $"\n   Details: {description}";
-                        
+
                         // Specific handling for audience validation errors
                         if (description?.Contains("Audience validation failed") == true)
                         {
@@ -242,19 +321,24 @@ public class ApiService : IDisposable
                 errorMessage += $"\n   Server response: {truncatedContent}";
             }
         }
-        
+
         return errorMessage;
     }
 
     public async Task<(bool Success, string Response)> ApplyAgentAsync(string agentName)
     {
+        var stopwatch = Stopwatch.StartNew();
         try
         {
+            DebugLogger.Debug("ApplyAgent", $"Starting agent apply for '{agentName}'");
+
             var config = await _configService.LoadConfigurationAsync();
             if (config == null)
             {
                 return (false, "Configuration not found. Please run 'srectl init' first.");
             }
+
+            DebugLogger.LogConfig("ResourceUrl", config.ResourceUrl);
 
             // Check if agent YAML file exists
             var agentFilePath = Path.Combine("agents", $"{agentName}.yaml");
@@ -264,19 +348,26 @@ public class ApiService : IDisposable
                 var agentFilePathSubdir = Path.Combine("agents", agentName, $"{agentName}.yaml");
                 if (!File.Exists(agentFilePathSubdir))
                 {
+                    DebugLogger.LogFile("SEARCH", agentFilePath, "File not found");
+                    DebugLogger.LogFile("SEARCH", agentFilePathSubdir, "File not found");
                     return (false, $"Agent file not found: {agentFilePath} or {agentFilePathSubdir}");
                 }
                 agentFilePath = agentFilePathSubdir;
             }
 
+            DebugLogger.LogFile("READ", agentFilePath);
+
             // Read the agent YAML file
             var agentYamlContent = await File.ReadAllTextAsync(agentFilePath);
+            DebugLogger.LogFile("READ", agentFilePath, $"Content size: {agentYamlContent.Length} characters");
 
             // Parse the agent YAML to extract the tools list
             var deserializer = new DeserializerBuilder()
                 .WithNamingConvention(UnderscoredNamingConvention.Instance)
                 .Build();
-            
+
+            DebugLogger.Debug("YAML", "Deserializing agent YAML content");
+
             // Parse agent as dynamic object to extract tools list
             var agentDynamic = deserializer.Deserialize<Dictionary<string, object>>(agentYamlContent);
             var agentData = deserializer.Deserialize<object>(agentYamlContent);
@@ -288,16 +379,18 @@ public class ApiService : IDisposable
                 toolNames = toolsList.Cast<string>().ToList();
             }
 
+            DebugLogger.Debug("Tools", $"Agent references {toolNames.Count} tools: {string.Join(", ", toolNames)}");
+
             // Get available tools from local and remote sources
             var toolAvailabilityService = new ToolAvailabilityService(this);
             var (localTools, remoteTools, errors) = await toolAvailabilityService.GetAvailableToolsAsync();
 
-            // DEBUG: Log the results
-            Console.WriteLine($"🔍 DEBUG: Found {localTools.Count} local tools: {string.Join(", ", localTools.Take(5))}...");
-            Console.WriteLine($"🔍 DEBUG: Found {remoteTools.Count} remote tools: {string.Join(", ", remoteTools.Take(5))}...");
+            // Log the results using debug logger
+            DebugLogger.Debug("Tools", $"Found {localTools.Count} local tools: {string.Join(", ", localTools.Take(5))}{(localTools.Count > 5 ? "..." : "")}");
+            DebugLogger.Debug("Tools", $"Found {remoteTools.Count} remote tools: {string.Join(", ", remoteTools.Take(5))}{(remoteTools.Count > 5 ? "..." : "")}");
             if (errors.Any())
             {
-                Console.WriteLine($"🔍 DEBUG: Errors: {string.Join("; ", errors)}");
+                DebugLogger.Debug("Tools", $"Errors: {string.Join("; ", errors)}");
             }
 
             // Load available tool YAML files locally and track missing tools
@@ -319,23 +412,24 @@ public class ApiService : IDisposable
 
                     if (File.Exists(toolFilePath))
                     {
+                        DebugLogger.LogFile("READ", toolFilePath, "Loading tool YAML");
                         var toolYamlContent = await File.ReadAllTextAsync(toolFilePath);
                         var toolData = deserializer.Deserialize<object>(toolYamlContent);
                         toolsData.Add(toolData);
-                        Console.WriteLine($"📦 Loaded tool: {toolName}");
+                        DebugLogger.Debug("Tools", $"📦 Loaded tool: {toolName}");
                     }
                 }
                 else if (remoteTools.Contains(toolName))
                 {
                     // Tool exists on server but not locally - this is okay
                     missingLocallyButRemote.Add(toolName);
-                    Console.WriteLine($"🌐 Tool '{toolName}' exists on server (not loading locally)");
+                    DebugLogger.Debug("Tools", $"🌐 Tool '{toolName}' exists on server (not loading locally)");
                 }
                 else
                 {
                     // Tool doesn't exist locally or remotely
                     completelyMissingTools.Add(toolName);
-                    Console.WriteLine($"⚠️  Tool '{toolName}' not found locally or on server");
+                    DebugLogger.Debug("Tools", $"⚠️  Tool '{toolName}' not found locally or on server");
                 }
             }
 
@@ -343,8 +437,11 @@ public class ApiService : IDisposable
             if (completelyMissingTools.Count > 0)
             {
                 var missingToolsList = string.Join(", ", completelyMissingTools);
+                DebugLogger.Debug("Tools", $"Missing tools validation failed: {missingToolsList}");
                 return (false, $"❌ Cannot apply agent '{agentName}': Referenced tools not found: {missingToolsList}. Please create the missing tools first or ensure they exist on the server.");
             }
+
+            DebugLogger.Debug("Wrapper", "Creating combined agent wrapper");
 
             // Create the combined wrapper with agent and tools
             var combinedWrapper = new CombinedAgentWrapper
@@ -359,18 +456,22 @@ public class ApiService : IDisposable
                     CreatedAt = config.CreatedAt != default(DateTime) ? config.CreatedAt.ToString("yyyy-MM-dd") : DateTime.UtcNow.ToString("yyyy-MM-dd"),
                     UpdatedAt = DateTime.UtcNow.ToString("yyyy-MM-dd")
                 },
-                Spec = new CombinedAgentSpec 
-                { 
+                Spec = new CombinedAgentSpec
+                {
                     Agent = agentData,
                     Tools = toolsData
                 }
             };
+
+            DebugLogger.Debug("YAML", "Serializing combined wrapper to YAML");
 
             // Serialize to YAML
             var serializer = new SerializerBuilder()
                 .WithNamingConvention(UnderscoredNamingConvention.Instance)
                 .Build();
             var wrappedYamlContent = serializer.Serialize(combinedWrapper);
+
+            DebugLogger.Debug("YAML", $"Generated YAML content size: {wrappedYamlContent.Length} characters");
 
             // Create the request
             var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/apply";
@@ -388,15 +489,15 @@ public class ApiService : IDisposable
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
 
-            var response = await _httpClient.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
+            DebugLogger.Debug("Request", $"Making apply request to {requestUrl}");
+            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
                 var localToolCount = toolsData.Count;
                 var remoteToolCount = missingLocallyButRemote.Count;
                 var totalToolCount = localToolCount + remoteToolCount;
-                
+
                 var toolsMessage = "";
                 if (totalToolCount > 0)
                 {
@@ -413,16 +514,23 @@ public class ApiService : IDisposable
                         toolsMessage = $" with {remoteToolCount} server tool(s)";
                     }
                 }
-                
+
+                stopwatch.Stop();
+                DebugLogger.LogTiming("ApplyAgent", stopwatch.Elapsed);
                 return (true, $"✅ Agent '{agentName}'{toolsMessage} applied successfully!");
             }
             else
             {
+                stopwatch.Stop();
+                DebugLogger.LogTiming("ApplyAgent (failed)", stopwatch.Elapsed);
                 return (false, $"❌ Failed to apply agent: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
             }
         }
         catch (Exception ex)
         {
+            stopwatch.Stop();
+            DebugLogger.Debug("Exception", $"ApplyAgent failed: {ex.Message}");
+            DebugLogger.LogTiming("ApplyAgent (exception)", stopwatch.Elapsed);
             return (false, $"❌ Failed to apply agent: {ex.Message}");
         }
     }
@@ -451,22 +559,21 @@ public class ApiService : IDisposable
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
 
-            var response = await _httpClient.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
+            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
                 // Parse the response to get agent information from different possible structures
                 var jsonDoc = JsonDocument.Parse(content);
-                
+
                 JsonElement agents = default;
                 bool foundAgents = false;
-                
+
                 // Try different response structure patterns
                 if (jsonDoc.RootElement.TryGetProperty("data", out var dataElement))
                 {
                     // Pattern 1: { "data": { "agents": [...] } } - ExtendedAgentsListResponse style
-                    if (dataElement.ValueKind == JsonValueKind.Object && 
+                    if (dataElement.ValueKind == JsonValueKind.Object &&
                         dataElement.TryGetProperty("agents", out agents) && agents.ValueKind == JsonValueKind.Array)
                     {
                         foundAgents = true;
@@ -489,23 +596,23 @@ public class ApiService : IDisposable
                     agents = jsonDoc.RootElement;
                     foundAgents = true;
                 }
-                
+
                 if (!foundAgents)
                 {
                     return (false, $"❌ Unexpected response format - no agents array found: {content}");
                 }
-                
+
                 var agentList = new List<string>();
                 agentList.Add("📋 Available Agents:");
                 agentList.Add("==================");
-                
+
                 foreach (var agent in agents.EnumerateArray())
                 {
                     var name = agent.TryGetProperty("name", out var nameElement) ? nameElement.GetString() : "Unknown";
                     var instructions = agent.TryGetProperty("instructions", out var instructionsElement) ? instructionsElement.GetString() : "";
                     var handoffDescription = agent.TryGetProperty("handoffDescription", out var handoffElement) ? handoffElement.GetString() : "";
                     var createdAt = agent.TryGetProperty("created_at", out var createdElement) ? createdElement.GetString() : "";
-                    
+
                     agentList.Add($"\n🤖 {name}");
                     if (!string.IsNullOrEmpty(handoffDescription))
                     {
@@ -515,7 +622,7 @@ public class ApiService : IDisposable
                     {
                         agentList.Add($"   Created: {createdAt}");
                     }
-                    
+
                     // Get tools
                     if (agent.TryGetProperty("tools", out var toolsElement) && toolsElement.ValueKind == JsonValueKind.Array)
                     {
@@ -525,7 +632,7 @@ public class ApiService : IDisposable
                             agentList.Add($"   Tools: {string.Join(", ", tools)}");
                         }
                     }
-                    
+
                     // Get handoffs
                     if (agent.TryGetProperty("handoffs", out var handoffsElement) && handoffsElement.ValueKind == JsonValueKind.Array)
                     {
@@ -548,7 +655,7 @@ public class ApiService : IDisposable
                     bool hasMore = false;
                     int pageSize = 50;
                     int pageIndex = 0;
-                    
+
                     // Try to get pagination info from PaginatedResponse structure
                     if (jsonDoc.RootElement.TryGetProperty("total_count", out var totalCountElement))
                     {
@@ -588,9 +695,9 @@ public class ApiService : IDisposable
                             pageIndex = legacyOffsetElement.GetInt32() / pageSize; // Convert offset to page index
                         }
                     }
-                    
+
                     agentList.Add($"\nTotal: {totalCount} agent(s)");
-                    
+
                     // Add pagination info if available
                     if (hasMore || pageIndex > 0)
                     {
@@ -638,18 +745,17 @@ public class ApiService : IDisposable
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
 
-            var response = await _httpClient.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
+            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
                 // Parse the response using the shared tool response parser
                 var toolElements = ToolResponseParser.ParseToolElements(content);
-                
+
                 var toolList = new List<string>();
                 toolList.Add("🔧 Available Tools:");
                 toolList.Add("==================");
-                
+
                 if (toolElements.Length == 0)
                 {
                     toolList.Add("\nNo tools found on the server.");
@@ -698,18 +804,17 @@ public class ApiService : IDisposable
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
 
-            var response = await _httpClient.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
+            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
                 // Parse the response using the shared tool response parser
                 var toolElements = ToolResponseParser.ParseToolElements(content);
-                
+
                 var toolList = new List<string>();
                 toolList.Add("🔧 Extended Tools:");
                 toolList.Add("==================");
-                
+
                 if (toolElements.Length == 0)
                 {
                     toolList.Add("\nNo extended tools found on the server.");
@@ -719,14 +824,14 @@ public class ApiService : IDisposable
                 {
                     var extendedToolDisplayInfo = ToolResponseParser.ExtractExtendedToolDisplayInfo(toolElements);
                     toolList.AddRange(extendedToolDisplayInfo);
-                    
+
                     // Get pagination info from the original response structure
                     var jsonDoc = JsonDocument.Parse(content);
                     int totalCount = toolElements.Length; // Default fallback
                     bool hasMore = false;
                     int pageSize = 50;
                     int pageIndex = 0;
-                    
+
                     // Try to get pagination info from PaginatedResponse structure
                     if (jsonDoc.RootElement.TryGetProperty("total_count", out var totalCountElement))
                     {
@@ -766,9 +871,9 @@ public class ApiService : IDisposable
                             pageIndex = legacyOffsetElement.GetInt32() / pageSize; // Convert offset to page index
                         }
                     }
-                    
+
                     toolList.Add($"\nTotal: {totalCount} extended tool(s)");
-                    
+
                     // Add pagination info if available
                     if (hasMore || pageIndex > 0)
                     {
@@ -802,17 +907,11 @@ public class ApiService : IDisposable
                 return (false, "Configuration not found. Please run 'srectl init' first.");
             }
 
-            // Check if tool YAML file exists
-            var toolFilePath = Path.Combine("tools", $"{toolName}.yaml");
-            if (!File.Exists(toolFilePath))
+            // Find tool YAML file using flexible search
+            var toolFilePath = FindToolFile(toolName);
+            if (toolFilePath == null)
             {
-                // Try the subdirectory structure
-                var toolFilePathSubdir = Path.Combine("tools", toolName, $"{toolName}.yaml");
-                if (!File.Exists(toolFilePathSubdir))
-                {
-                    return (false, $"Tool file not found: {toolFilePath} or {toolFilePathSubdir}");
-                }
-                toolFilePath = toolFilePathSubdir;
+                return (false, $"Tool file not found for '{toolName}'. Searched in tools directory and subdirectories for '{toolName}.yaml'");
             }
 
             // Read the YAML file
@@ -861,8 +960,7 @@ public class ApiService : IDisposable
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
 
-            var response = await _httpClient.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
+            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
@@ -921,16 +1019,15 @@ public class ApiService : IDisposable
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
 
-            var response = await _httpClient.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
+            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
                 var jsonDoc = JsonDocument.Parse(content);
                 var root = jsonDoc.RootElement;
 
-                var generatedInstructions = root.TryGetProperty("generatedInstructions", out var instructionsElement) 
-                    ? instructionsElement.GetString() ?? "" 
+                var generatedInstructions = root.TryGetProperty("generatedInstructions", out var instructionsElement)
+                    ? instructionsElement.GetString() ?? ""
                     : "";
 
                 var recommendedTools = new List<string>();
@@ -999,8 +1096,7 @@ public class ApiService : IDisposable
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
 
-            var response = await _httpClient.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
+            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
@@ -1055,14 +1151,13 @@ public class ApiService : IDisposable
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
 
-            var response = await _httpClient.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
+            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
                 var jsonDoc = JsonDocument.Parse(content);
-                var threadId = jsonDoc.RootElement.TryGetProperty("id", out var idElement) 
-                    ? idElement.GetString() ?? "" 
+                var threadId = jsonDoc.RootElement.TryGetProperty("id", out var idElement)
+                    ? idElement.GetString() ?? ""
                     : "";
 
                 return (true, threadId, $"✅ Thread created successfully with ID: {threadId}");
@@ -1112,14 +1207,13 @@ public class ApiService : IDisposable
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
 
-            var response = await _httpClient.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
+            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
                 var jsonDoc = JsonDocument.Parse(content);
-                var messageId = jsonDoc.RootElement.TryGetProperty("id", out var idElement) 
-                    ? idElement.GetString() ?? "" 
+                var messageId = jsonDoc.RootElement.TryGetProperty("id", out var idElement)
+                    ? idElement.GetString() ?? ""
                     : "";
 
                 return (true, messageId, $"✅ Message sent successfully with ID: {messageId}");
@@ -1148,9 +1242,11 @@ public class ApiService : IDisposable
             var messages = new List<ThreadMessage>();
             var retryCount = 0;
 
-            // For blipping dots animation
-            string[] dots = new[] {".", "..", "..."};
+            // For snappy spinner animation with shimmer effect
+            string[] dots = new[] {"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"};
+            string[] colors = new[] {"[36m", "[96m", "[37m", "[97m"}; // Mono cyan color
             int dotIndex = 0;
+            int colorIndex = 0;
             bool waitingPrinted = false;
 
             while (retryCount < maxRetries)
@@ -1169,8 +1265,7 @@ public class ApiService : IDisposable
                     request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 }
 
-                var response = await _httpClient.SendAsync(request);
-                var content = await response.Content.ReadAsStringAsync();
+                var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -1214,11 +1309,12 @@ public class ApiService : IDisposable
                     if (retryCount < maxRetries)
                     {
                         // Print or update the waiting line with blipping dots
-                        string waitMsg = $"Waiting{dots[dotIndex]}";
+                        string waitMsg = $"{colors[colorIndex]}{dots[dotIndex]}[0m Working...";
+                        colorIndex = (colorIndex + 1) % colors.Length;
                         Console.Write($"\r{waitMsg}   ");
                         dotIndex = (dotIndex + 1) % dots.Length;
                         waitingPrinted = true;
-                        await Task.Delay(delaySeconds * 1000);
+                        await Task.Delay(150); // Much faster animation
                     }
                 }
                 else
@@ -1243,7 +1339,11 @@ public class ApiService : IDisposable
         }
     }
 
-    public async Task<(bool Success, List<ThreadMessage> Messages, string Response)> GetThreadMessagesStreamingAsync(string threadId, int maxRetries = 60, int delaySeconds = 2, int noNewMessageRetries = 3)
+    public async Task<(bool Success, List<ThreadMessage> Messages, string Response)> GetThreadMessagesStreamingAsync(
+        string threadId,
+        int maxRetries = 60,
+        int delaySeconds = 2,
+        int noNewMessageRetries = 3)
     {
         try
         {
@@ -1258,141 +1358,234 @@ public class ApiService : IDisposable
             var retryCount = 0;
             var noNewMessageCount = 0;
             var hasSeenAgentResponse = false;
+            var waitingPrinted = false;
 
-            // For blipping dots animation
-            string[] dots = new[] {".", "..", "..."};
-            int dotIndex = 0;
-            bool waitingPrinted = false;
+            // Enhanced shimmer utilities
+            static bool UseAnsi()
+            {
+                if (Console.IsOutputRedirected) return false;
+                if (!OperatingSystem.IsWindows()) return true;
+                var noColor = Environment.GetEnvironmentVariable("NO_COLOR");
+                if (!string.IsNullOrEmpty(noColor)) return false;
+                if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WT_SESSION"))) return true;
+                if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("TERM"))) return true;
+                if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ConEmuANSI"))) return true;
+                return true;
+            }
 
+            bool ansi = UseAnsi();
+            const string Mono = "\x1b[36m";
+            const string Reset = "\x1b[0m";
+            const string Dim = "\x1b[2m";
+            const string Bold = "\x1b[1m";
+
+            string RenderFrame(int idx)
+            {
+                if (!ansi) return new string('.', (idx % 3) + 1).PadRight(3, ' ');
+                var dots = new[]
+                {
+                idx % 3 == 0 ? $"{Mono}{Bold}●{Reset}" : $"{Mono}{Dim}●{Reset}",
+                idx % 3 == 1 ? $"{Mono}{Bold}●{Reset}" : $"{Mono}{Dim}●{Reset}",
+                idx % 3 == 2 ? $"{Mono}{Bold}●{Reset}" : $"{Mono}{Dim}●{Reset}",
+            };
+                return string.Join("", dots);
+            }
+
+            void PrintShimmer(int frame, string label = " reasoning ")
+            {
+                var frameText = RenderFrame(frame);
+                var spacer = "  ";
+                if (ansi)
+                {
+                    Console.Write($"\r{Mono}{Dim}{label}{Reset}{frameText}{spacer}");
+                }
+                else
+                {
+                    Console.Write($"\r{label}{frameText}{spacer}");
+                }
+            }
+
+            void ClearLine()
+            {
+                try
+                {
+                    var width = Console.IsOutputRedirected ? 80 : Math.Max(20, Console.WindowWidth - 1);
+                    Console.Write("\r" + new string(' ', width) + "\r");
+                }
+                catch
+                {
+                    Console.Write("\r                                                  \r");
+                }
+            }
+
+            // Show initial status
             Console.WriteLine("Conversation:");
             Console.WriteLine("═══════════════");
             Console.WriteLine();
 
+            int frame = 0;
+
+            // START SPINNER IMMEDIATELY - this fixes spinner not showing on early failures
+            PrintShimmer(frame++, " connecting ");
+            waitingPrinted = true;
+
             while (retryCount < maxRetries)
             {
-                var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/threads/{threadId}/messages";
-                var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
-
-                // Add auth header if not localhost
-                if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
+                try
                 {
-                    var token = await GetAccessTokenAsync();
-                    if (string.IsNullOrEmpty(token))
+                    var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/threads/{threadId}/messages";
+                    var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+
+                    // Add auth header if not localhost
+                    if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
                     {
-                        return (false, new List<ThreadMessage>(), "Failed to get access token. Please run 'az login' first.");
-                    }
-                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                }
-
-                var response = await _httpClient.SendAsync(request);
-                var content = await response.Content.ReadAsStringAsync();
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var jsonDoc = JsonDocument.Parse(content);
-                    var value = jsonDoc.RootElement.GetProperty("value");
-
-                    var currentMessages = new List<ThreadMessage>();
-                    foreach (var messageElement in value.EnumerateArray())
-                    {
-                        var id = messageElement.TryGetProperty("id", out var idElement) ? idElement.GetString() ?? "" : "";
-                        var text = messageElement.TryGetProperty("text", out var textElement) ? textElement.GetString() ?? "" : "";
-                        var timestamp = messageElement.TryGetProperty("timeStamp", out var timestampElement) ? timestampElement.GetDateTime() : DateTime.MinValue;
-
-                        var authorRole = "User";
-                        var authorUserId = "";
-                        var authorDisplayName = "";
-
-                        if (messageElement.TryGetProperty("author", out var authorElement))
-                        {
-                            authorRole = authorElement.TryGetProperty("role", out var roleElement) ? roleElement.GetString() ?? "User" : "User";
-                            authorUserId = authorElement.TryGetProperty("userId", out var userIdElement) ? userIdElement.GetString() ?? "" : "";
-                            authorDisplayName = authorElement.TryGetProperty("displayName", out var displayNameElement) ? displayNameElement.GetString() ?? "" : "";
-                        }
-
-                        currentMessages.Add(new ThreadMessage(id, text, timestamp, authorRole, authorUserId, authorDisplayName));
-                    }
-
-                    // Sort messages by timestamp
-                    currentMessages = currentMessages.OrderBy(m => m.Timestamp).ToList();
-
-                    // Display new messages
-                    if (currentMessages.Count > lastDisplayedMessageCount)
-                    {
-                        if (waitingPrinted)
-                        {
-                            // Clear the waiting line
-                            Console.Write("\r" + new string(' ', 30) + "\r");
-                            waitingPrinted = false;
-                        }
-
-                        // Display only the new messages
-                        for (int i = lastDisplayedMessageCount; i < currentMessages.Count; i++)
-                        {
-                            var msg = currentMessages[i];
-                            var roleLabel = msg.AuthorRole.Equals("SREAgent", StringComparison.OrdinalIgnoreCase) ? "SRE Agent" : "You";
-                            var timestamp = msg.Timestamp.ToString("HH:mm:ss");
-                            Console.WriteLine($"{roleLabel} ({timestamp}):");
-                            Console.WriteLine($"   {msg.Text}");
-                            Console.WriteLine();
-                        }
-
-                        lastDisplayedMessageCount = currentMessages.Count;
-                        allMessages = currentMessages;
-                        noNewMessageCount = 0; // Reset no new message counter
-                    }
-                    else
-                    {
-                        // No new messages received
-                        noNewMessageCount++;
-                    }
-
-                    // Check if we have agent responses
-                    var agentMessages = currentMessages.Where(m => m.AuthorRole.Equals("SREAgent", StringComparison.OrdinalIgnoreCase)).ToList();
-                    if (agentMessages.Any())
-                    {
-                        hasSeenAgentResponse = true;
-                        
-                        // If we've seen agent responses and haven't received new messages for a while, assume we're done
-                        if (noNewMessageCount >= noNewMessageRetries)
+                        var token = await GetAccessTokenAsync();
+                        if (string.IsNullOrEmpty(token))
                         {
                             if (waitingPrinted)
                             {
-                                Console.Write("\r" + new string(' ', 30) + "\r");
+                                ClearLine();
                             }
-                            return (true, allMessages, "Conversation complete");
+                            return (false, new List<ThreadMessage>(), "Failed to get access token. Please run 'az login' first.");
+                        }
+                        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                    }
+
+                    var (response, content, responseTime) = await MakeHttpRequestAsync(request);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var currentMessages = ParseThreadMessages(content);
+                        if (currentMessages == null)
+                        {
+                            // Invalid JSON response
+                            if (waitingPrinted)
+                            {
+                                ClearLine();
+                                waitingPrinted = false;
+                            }
+                            Console.WriteLine("⚠️  Received invalid response format from server");
+
+                            retryCount++;
+                            if (retryCount < maxRetries)
+                            {
+                                PrintShimmer(frame++, " retrying ");
+                                waitingPrinted = true;
+                                await Task.Delay(1000); // Longer delay for retry
+                            }
+                            continue;
+                        }
+
+                        // Sort messages by timestamp
+                        currentMessages = currentMessages.OrderBy(m => m.Timestamp).ToList();
+
+                        // Display new messages
+                        if (currentMessages.Count > lastDisplayedMessageCount)
+                        {
+                            if (waitingPrinted)
+                            {
+                                ClearLine();
+                                waitingPrinted = false;
+                            }
+
+                            // Display only the new messages
+                            for (int i = lastDisplayedMessageCount; i < currentMessages.Count; i++)
+                            {
+                                var msg = currentMessages[i];
+                                var roleLabel = msg.AuthorRole.Equals("SREAgent", StringComparison.OrdinalIgnoreCase) ? "SRE Agent" : "You";
+                                var ts = msg.Timestamp.ToString("HH:mm:ss");
+                                Console.WriteLine($"{roleLabel} ({ts}):");
+                                Console.WriteLine($"   {msg.Text}");
+                                Console.WriteLine();
+                            }
+
+                            lastDisplayedMessageCount = currentMessages.Count;
+                            allMessages = currentMessages;
+                            noNewMessageCount = 0;
+                        }
+                        else
+                        {
+                            noNewMessageCount++;
+                        }
+
+                        // Check if we have agent responses
+                        var agentMessages = currentMessages.Where(m => m.AuthorRole.Equals("SREAgent", StringComparison.OrdinalIgnoreCase)).ToList();
+                        if (agentMessages.Any())
+                        {
+                            hasSeenAgentResponse = true;
+
+                            // If we've seen agent responses and haven't received new messages for a while, assume we're done
+                            if (noNewMessageCount >= noNewMessageRetries)
+                            {
+                                if (waitingPrinted)
+                                {
+                                    ClearLine();
+                                }
+                                return (true, allMessages, "Conversation complete");
+                            }
+                        }
+
+                        retryCount++;
+                        if (retryCount < maxRetries)
+                        {
+                            // Show appropriate shimmer based on state
+                            string label = hasSeenAgentResponse ? " continuing " : " reasoning ";
+                            PrintShimmer(frame++, label);
+                            waitingPrinted = true;
+                            await Task.Delay(150);
                         }
                     }
+                    else
+                    {
+                        if (waitingPrinted)
+                        {
+                            ClearLine();
+                            waitingPrinted = false;
+                        }
+
+                        // Show error and retry if we have retries left
+                        Console.WriteLine($"⚠️  Request failed ({response.StatusCode}), retrying...");
+
+                        retryCount++;
+                        if (retryCount < maxRetries)
+                        {
+                            PrintShimmer(frame++, " retrying ");
+                            waitingPrinted = true;
+                            await Task.Delay(2000); // Longer delay for error retry
+                        }
+                        else
+                        {
+                            return (false, new List<ThreadMessage>(), $"Failed to get messages: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
+                        }
+                    }
+                }
+                catch (HttpRequestException ex)
+                {
+                    if (waitingPrinted)
+                    {
+                        ClearLine();
+                        waitingPrinted = false;
+                    }
+
+                    Console.WriteLine($"⚠️  Network error: {ex.Message}, retrying...");
 
                     retryCount++;
                     if (retryCount < maxRetries)
                     {
-                        // Show waiting indicator only if we haven't seen agent response yet or are still getting messages
-                        if (!hasSeenAgentResponse || noNewMessageCount < noNewMessageRetries)
-                        {
-                            string waitMsg = !hasSeenAgentResponse ? 
-                                $"Waiting for SRE Agent response{dots[dotIndex]}" : 
-                                $"Waiting for more messages{dots[dotIndex]}";
-                            Console.Write($"\r{waitMsg}   ");
-                            dotIndex = (dotIndex + 1) % dots.Length;
-                            waitingPrinted = true;
-                        }
-                        await Task.Delay(delaySeconds * 1000);
+                        PrintShimmer(frame++, " reconnecting ");
+                        waitingPrinted = true;
+                        await Task.Delay(3000); // Longer delay for network errors
                     }
-                }
-                else
-                {
-                    if (waitingPrinted)
+                    else
                     {
-                        Console.Write("\r" + new string(' ', 30) + "\r");
+                        return (false, new List<ThreadMessage>(), $"Network error: {ex.Message}");
                     }
-                    return (false, new List<ThreadMessage>(), $"Failed to get messages: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
                 }
             }
 
             if (waitingPrinted)
             {
-                Console.Write("\r" + new string(' ', 30) + "\r");
+                ClearLine();
             }
 
             if (hasSeenAgentResponse)
@@ -1407,6 +1600,98 @@ public class ApiService : IDisposable
         catch (Exception ex)
         {
             return (false, new List<ThreadMessage>(), $"Failed to get messages: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Robust JSON message parsing with error handling
+    /// </summary>
+    private List<ThreadMessage>? ParseThreadMessages(string content)
+    {
+        try
+        {
+            var jsonDoc = JsonDocument.Parse(content);
+
+            // Handle empty content
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                return new List<ThreadMessage>();
+            }
+
+            // Extract messages from various response formats
+            JsonElement messagesElement;
+            if (jsonDoc.RootElement.TryGetProperty("value", out messagesElement) &&
+                messagesElement.ValueKind == JsonValueKind.Array)
+            {
+                // Standard format: { "value": [...] }
+            }
+            else if (jsonDoc.RootElement.TryGetProperty("messages", out messagesElement) &&
+                     messagesElement.ValueKind == JsonValueKind.Array)
+            {
+                // Alternative format: { "messages": [...] }
+            }
+            else if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
+            {
+                // Direct array format: [...]
+                messagesElement = jsonDoc.RootElement;
+            }
+            else
+            {
+                // Unknown format
+                Console.WriteLine($"⚠️  Unexpected response format: {content.Substring(0, Math.Min(100, content.Length))}...");
+                return null;
+            }
+
+            var messages = new List<ThreadMessage>();
+            foreach (var messageElement in messagesElement.EnumerateArray())
+            {
+                try
+                {
+                    var id = messageElement.TryGetProperty("id", out var idElement) ?
+                        idElement.GetString() ?? "" : "";
+                    var text = messageElement.TryGetProperty("text", out var textElement) ?
+                        textElement.GetString() ?? "" : "";
+                    var timestamp = messageElement.TryGetProperty("timeStamp", out var timestampElement) ?
+                        timestampElement.GetDateTime() : DateTime.MinValue;
+
+                    var authorRole = "User";
+                    var authorUserId = "";
+                    var authorDisplayName = "";
+
+                    if (messageElement.TryGetProperty("author", out var authorElement))
+                    {
+                        authorRole = authorElement.TryGetProperty("role", out var roleElement) ?
+                            roleElement.GetString() ?? "User" : "User";
+                        authorUserId = authorElement.TryGetProperty("userId", out var userIdElement) ?
+                            userIdElement.GetString() ?? "" : "";
+                        authorDisplayName = authorElement.TryGetProperty("displayName", out var displayNameElement) ?
+                            displayNameElement.GetString() ?? "" : "";
+                    }
+
+                    // Skip empty messages
+                    if (!string.IsNullOrWhiteSpace(text))
+                    {
+                        messages.Add(new ThreadMessage(id, text, timestamp, authorRole, authorUserId, authorDisplayName));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"⚠️  Failed to parse message: {ex.Message}");
+                    // Continue processing other messages
+                }
+            }
+
+            return messages;
+        }
+        catch (JsonException ex)
+        {
+            Console.WriteLine($"⚠️  JSON parsing error: {ex.Message}");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"⚠️  Unexpected error parsing messages: {ex.Message}");
+            return null;
         }
     }
 
@@ -1427,9 +1712,11 @@ public class ApiService : IDisposable
             var hasSeenAgentResponse = false;
             var hasDisplayedInitialMessages = false;
 
-            // For blipping dots animation
-            string[] dots = new[] {".", "..", "..."};
+            // For snappy spinner animation with shimmer effect
+            string[] dots = new[] {"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"};
+            string[] colors = new[] {"[36m", "[96m", "[37m", "[97m"}; // Mono cyan color
             int dotIndex = 0;
+            int colorIndex = 0;
             bool waitingPrinted = false;
 
             Console.WriteLine("Conversation:");
@@ -1452,8 +1739,7 @@ public class ApiService : IDisposable
                     request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 }
 
-                var response = await _httpClient.SendAsync(request);
-                var content = await response.Content.ReadAsStringAsync();
+                var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -1560,7 +1846,7 @@ public class ApiService : IDisposable
                     if (currentAgentMessages.Any())
                     {
                         hasSeenAgentResponse = true;
-                        
+
                         // If we've seen agent responses and haven't received new messages for a while, assume we're done
                         if (noNewMessageCount >= noNewMessageRetries)
                         {
@@ -1578,14 +1864,15 @@ public class ApiService : IDisposable
                         // Show waiting indicator only if we haven't seen agent response yet or are still getting messages
                         if (!hasSeenAgentResponse || noNewMessageCount < noNewMessageRetries)
                         {
-                            string waitMsg = !hasSeenAgentResponse ? 
-                                $"Waiting for new messages{dots[dotIndex]}" : 
-                                $"Monitoring for additional messages{dots[dotIndex]}";
+                            string waitMsg = !hasSeenAgentResponse ?
+                                $"{colors[colorIndex]}{dots[dotIndex]}[0m" :
+                                $"{colors[colorIndex]}Monitoring for additional messages{dots[dotIndex]}[0m";
+                            colorIndex = (colorIndex + 1) % colors.Length;
                             Console.Write($"\r{waitMsg}   ");
                             dotIndex = (dotIndex + 1) % dots.Length;
                             waitingPrinted = true;
                         }
-                        await Task.Delay(delaySeconds * 1000);
+                        await Task.Delay(150); // Much faster animation
                     }
                 }
                 else
@@ -1642,14 +1929,13 @@ public class ApiService : IDisposable
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
 
-            var response = await _httpClient.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
+            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
                 var jsonDoc = JsonDocument.Parse(content);
                 var value = jsonDoc.RootElement.GetProperty("value");
-                
+
                 var threads = new List<ThreadInfo>();
                 foreach (var threadElement in value.EnumerateArray())
                 {
@@ -1698,8 +1984,7 @@ public class ApiService : IDisposable
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
 
-            var response = await _httpClient.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
+            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
@@ -1740,8 +2025,7 @@ public class ApiService : IDisposable
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
 
-            var response = await _httpClient.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
+            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
@@ -1759,11 +2043,11 @@ public class ApiService : IDisposable
                             .Select(x => x.GetString())
                             .Where(x => !string.IsNullOrEmpty(x))
                             .ToList();
-                        
+
                         var agentList = dependentAgents.Any() ? string.Join(", ", dependentAgents) : "unknown agents";
                         return (false, $"Cannot delete agent '{agentName}': it is used by the following agents: {agentList}");
                     }
-                    
+
                     if (conflictData.TryGetProperty("message", out var messageElement))
                     {
                         return (false, messageElement.GetString() ?? $"Conflict deleting agent '{agentName}'");
@@ -1773,7 +2057,7 @@ public class ApiService : IDisposable
                 {
                     // Fall back to generic conflict message if parsing fails
                 }
-                
+
                 return (false, $"Cannot delete agent '{agentName}': it is being used by other agents or tools");
             }
             else if (response.StatusCode == HttpStatusCode.NotFound)
@@ -1815,8 +2099,7 @@ public class ApiService : IDisposable
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
 
-            var response = await _httpClient.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
+            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
@@ -1834,11 +2117,11 @@ public class ApiService : IDisposable
                             .Select(x => x.GetString())
                             .Where(x => !string.IsNullOrEmpty(x))
                             .ToList();
-                        
+
                         var agentList = dependentAgents.Any() ? string.Join(", ", dependentAgents) : "unknown agents";
                         return (false, $"Cannot delete tool '{toolName}': it is used by the following agents: {agentList}");
                     }
-                    
+
                     if (conflictData.TryGetProperty("message", out var messageElement))
                     {
                         return (false, messageElement.GetString() ?? $"Conflict deleting tool '{toolName}'");
@@ -1848,7 +2131,7 @@ public class ApiService : IDisposable
                 {
                     // Fall back to generic conflict message if parsing fails
                 }
-                
+
                 return (false, $"Cannot delete tool '{toolName}': it is being used by agents");
             }
             else if (response.StatusCode == HttpStatusCode.NotFound)
@@ -1919,21 +2202,20 @@ public class ApiService : IDisposable
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
 
-            var response = await _httpClient.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
+            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
                 var jsonDoc = JsonDocument.Parse(content);
-                
+
                 var connectorList = new List<string>();
                 connectorList.Add("🔌 Available Data Connectors:");
                 connectorList.Add("=============================");
-                
+
                 if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
                 {
                     var connectors = jsonDoc.RootElement.EnumerateArray().ToArray();
-                    
+
                     if (connectors.Length == 0)
                     {
                         connectorList.Add("\nNo data connectors found on the server.");
@@ -1947,7 +2229,7 @@ public class ApiService : IDisposable
                             var connectorType = connector.TryGetProperty("connectorType", out var typeElement) ? typeElement.GetString() ?? "Unknown" : "Unknown";
                             var dataSource = connector.TryGetProperty("dataSource", out var dataSourceElement) ? dataSourceElement.GetString() ?? "Not specified" : "Not specified";
                             var identity = connector.TryGetProperty("identity", out var identityElement) ? identityElement.GetString() ?? "Not specified" : "Not specified";
-                            
+
                             connectorList.Add($"\n🔌 {name}");
                             connectorList.Add($"   Type: {connectorType}");
                             connectorList.Add($"   Data Source: {dataSource}");
@@ -1956,7 +2238,7 @@ public class ApiService : IDisposable
                                 connectorList.Add($"   Identity: {identity}");
                             }
                         }
-                        
+
                         connectorList.Add($"\nTotal: {connectors.Length} data connector(s)");
                     }
                 }
@@ -2007,9 +2289,9 @@ public class ApiService : IDisposable
             }
 
             var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/AgentMemory/upload";
-            
+
             using var multipartContent = new MultipartFormDataContent();
-            
+
             // Add indexing parameter
             multipartContent.Add(new StringContent(triggerIndexing.ToString().ToLower()), "triggerIndexing");
 
@@ -2021,11 +2303,11 @@ public class ApiService : IDisposable
                 {
                     var fileStream = File.OpenRead(filePath);
                     fileContents.Add(fileStream);
-                    
+
                     var fileName = Path.GetFileName(filePath);
                     var fileContent = new StreamContent(fileStream);
                     fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("text/plain");
-                    
+
                     multipartContent.Add(fileContent, "files", fileName);
                 }
 
@@ -2043,8 +2325,7 @@ public class ApiService : IDisposable
                     request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
                 }
 
-                var response = await _httpClient.SendAsync(request);
-                var content = await response.Content.ReadAsStringAsync();
+                var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -2063,7 +2344,7 @@ public class ApiService : IDisposable
                     {
                         // If JSON parsing fails, fall back to simple success message
                     }
-                    
+
                     var indexingSuffix = triggerIndexing ? " and indexing triggered" : "";
                     return (true, $"Successfully uploaded {filePaths.Count} file(s){indexingSuffix}.");
                 }
@@ -2091,7 +2372,7 @@ public class ApiService : IDisposable
                             errorMessage = content.Length > 200 ? content.Substring(0, 200) + "..." : content;
                         }
                     }
-                    
+
                     return (false, $"Failed to upload documents: {response.StatusCode} - {errorMessage}");
                 }
             }
@@ -2131,7 +2412,7 @@ public class ApiService : IDisposable
             }
 
             var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/AgentMemory/documents";
-            
+
             // Create request payload
             var requestPayload = new
             {
@@ -2155,8 +2436,7 @@ public class ApiService : IDisposable
                 request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
             }
 
-            var response = await _httpClient.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
+            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
@@ -2164,16 +2444,16 @@ public class ApiService : IDisposable
                 {
                     var jsonDoc = System.Text.Json.JsonDocument.Parse(content);
                     var searchResults = new List<string>();
-                    
+
                     searchResults.Add("Search Results:");
                     searchResults.Add("═══════════════");
                     searchResults.Add("");
 
-                    if (jsonDoc.RootElement.TryGetProperty("results", out var resultsElement) && 
+                    if (jsonDoc.RootElement.TryGetProperty("results", out var resultsElement) &&
                         resultsElement.ValueKind == System.Text.Json.JsonValueKind.Array)
                     {
                         var results = resultsElement.EnumerateArray().ToArray();
-                        
+
                         if (results.Length == 0)
                         {
                             searchResults.Add("No documents found matching your query.");
@@ -2188,29 +2468,29 @@ public class ApiService : IDisposable
                             for (int i = 0; i < results.Length; i++)
                             {
                                 var result = results[i];
-                                var title = result.TryGetProperty("title", out var titleElement) ? 
+                                var title = result.TryGetProperty("title", out var titleElement) ?
                                     titleElement.GetString() ?? "Untitled" : "Untitled";
-                                var content_snippet = result.TryGetProperty("content", out var contentElement) ? 
+                                var content_snippet = result.TryGetProperty("content", out var contentElement) ?
                                     contentElement.GetString() ?? "" : "";
-                                var score = result.TryGetProperty("score", out var scoreElement) ? 
+                                var score = result.TryGetProperty("score", out var scoreElement) ?
                                     scoreElement.GetDecimal() : 0m;
-                                var source = result.TryGetProperty("source", out var sourceElement) ? 
+                                var source = result.TryGetProperty("source", out var sourceElement) ?
                                     sourceElement.GetString() ?? "Unknown" : "Unknown";
 
                                 searchResults.Add($"📄 Result {i + 1}: {title}");
                                 searchResults.Add($"   Source: {source}");
                                 searchResults.Add($"   Relevance Score: {score:F2}");
-                                
+
                                 if (!string.IsNullOrEmpty(content_snippet))
                                 {
                                     // Truncate content snippet if too long
-                                    var snippet = content_snippet.Length > 200 ? 
+                                    var snippet = content_snippet.Length > 200 ?
                                         content_snippet.Substring(0, 200) + "..." : content_snippet;
                                     searchResults.Add($"   Content: {snippet}");
                                 }
                                 searchResults.Add("");
                             }
-                            
+
                             searchResults.Add($"Found {results.Length} document(s) matching your query.");
                         }
                     }
@@ -2256,7 +2536,7 @@ public class ApiService : IDisposable
                         errorMessage = content.Length > 200 ? content.Substring(0, 200) + "..." : content;
                     }
                 }
-                
+
                 return (false, $"Failed to search documents: {response.StatusCode} - {errorMessage}");
             }
         }
@@ -2294,8 +2574,7 @@ public class ApiService : IDisposable
                 request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
             }
 
-            var response = await _httpClient.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
+            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
@@ -2347,6 +2626,49 @@ public class ApiService : IDisposable
         {
             return (false, $"❌ Reindexing failed: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Finds a tool YAML file by searching recursively under the tools directory.
+    /// Supports flexible folder organization.
+    /// </summary>
+    /// <param name="toolName">The name of the tool to find</param>
+    /// <returns>The full path to the tool YAML file, or null if not found</returns>
+    private static string? FindToolFile(string toolName)
+    {
+        var toolsDir = "tools";
+        if (!Directory.Exists(toolsDir))
+        {
+            return null;
+        }
+
+        // First, try the legacy structure: tools/{toolName}/{toolName}.yaml
+        var legacyPath = Path.Combine(toolsDir, toolName, $"{toolName}.yaml");
+        if (File.Exists(legacyPath))
+        {
+            return legacyPath;
+        }
+
+        // Then try the flat structure: tools/{toolName}.yaml
+        var flatPath = Path.Combine(toolsDir, $"{toolName}.yaml");
+        if (File.Exists(flatPath))
+        {
+            return flatPath;
+        }
+
+        // Finally, search recursively for any YAML file with the matching tool name
+        var yamlFiles = Directory.GetFiles(toolsDir, "*.yaml", SearchOption.AllDirectories);
+
+        foreach (var file in yamlFiles)
+        {
+            var fileName = Path.GetFileNameWithoutExtension(file);
+            if (fileName.Equals(toolName, StringComparison.OrdinalIgnoreCase))
+            {
+                return file;
+            }
+        }
+
+        return null;
     }
 }
 

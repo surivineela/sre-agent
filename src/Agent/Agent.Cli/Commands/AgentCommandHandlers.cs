@@ -20,6 +20,12 @@ public static class AgentCommandHandlers
     /// </summary>
     public static async Task HandleCreateCommand(ParseResult parseResult)
     {
+        // Set debug mode first
+        var debug = parseResult.GetValue(AgentCommandOptions.DebugOption);
+        DebugLogger.SetDebugMode(debug);
+
+        DebugLogger.Debug("Command", "Starting agent create command");
+
         var name = parseResult.GetValue(AgentCommandOptions.NameOptionCreate);
         var instructions = parseResult.GetValue(AgentCommandOptions.InstructionsOptionCreate);
         var tools = parseResult.GetValue(AgentCommandOptions.ToolsOptionCreate);
@@ -34,6 +40,8 @@ public static class AgentCommandHandlers
         var temperature = parseResult.GetValue(AgentCommandOptions.TemperatureOption);
         var outputType = parseResult.GetValue(AgentCommandOptions.OutputTypeOption);
         var useSmart = parseResult.GetValue(AgentCommandOptions.SmartOption);
+
+        DebugLogger.Debug("Parameters", $"Name: {name}, Smart: {useSmart}, Tools: {tools?.Length ?? 0} items");
 
         string finalInstructions;
         List<string> finalTools;
@@ -112,9 +120,17 @@ public static class AgentCommandHandlers
     /// </summary>
     public static async Task HandleValidateCommand(ParseResult parseResult)
     {
+        // Set debug mode first
+        var debug = parseResult.GetValue(AgentCommandOptions.DebugOption);
+        DebugLogger.SetDebugMode(debug);
+
+        DebugLogger.Debug("Command", "Starting agent validate command");
+
         var validateAll = parseResult.GetValue(AgentCommandOptions.AllOption);
         var filePath = parseResult.GetValue(AgentCommandOptions.FileOptionValidate);
         var checkTools = parseResult.GetValue(AgentCommandOptions.CheckToolsOption);
+
+        DebugLogger.Debug("Parameters", $"ValidateAll: {validateAll}, FilePath: {filePath ?? "none"}, CheckTools: {checkTools}");
 
         if (validateAll)
         {
@@ -136,7 +152,22 @@ public static class AgentCommandHandlers
     /// </summary>
     public static async Task HandleApplyCommand(ParseResult parseResult)
     {
+        // Set debug mode first
+        var debug = parseResult.GetValue(AgentCommandOptions.DebugOption);
+        DebugLogger.SetDebugMode(debug);
+
+        DebugLogger.Debug("Command", "Starting agent apply command");
+
         var name = parseResult.GetValue(AgentCommandOptions.ApplyNameOption);
+        var dryRun = parseResult.GetValue(AgentCommandOptions.ApplyDryRunOption);
+
+        DebugLogger.Debug("Parameters", $"Name: {name}, DryRun: {dryRun}");
+        
+        if (dryRun)
+        {
+            await HandleAgentApplyDryRun(name!);
+            return;
+        }
         
         using var apiService = new ApiService();
         var (success, response) = await apiService.ApplyAgentAsync(name!);
@@ -166,10 +197,39 @@ public static class AgentCommandHandlers
 
         ToolAvailabilityService? toolService = null;
         ApiService? apiService = null;
-        if (checkTools)
+        
+        // Always validate configuration first to catch corrupted config files
+        try
         {
-            apiService = new ApiService();
-            toolService = new ToolAvailabilityService(apiService);
+            var configService = new CliConfigurationService();
+            var config = await configService.LoadConfigurationAsync();
+            
+            if (checkTools)
+            {
+                if (config == null)
+                {
+                    Console.WriteLine("❌ Configuration not found. Run 'srectl init' first.");
+                    Environment.Exit(1);
+                    return;
+                }
+                
+                // Validate URL format
+                if (!Uri.TryCreate(config.ResourceUrl, UriKind.Absolute, out _))
+                {
+                    Console.WriteLine($"❌ Invalid resource URL format in configuration: {config.ResourceUrl}");
+                    Environment.Exit(1);
+                    return;
+                }
+                
+                apiService = new ApiService();
+                toolService = new ToolAvailabilityService(apiService);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Configuration error: {ex.Message}");
+            Environment.Exit(1);
+            return;
         }
 
         bool allValid = true;
@@ -229,12 +289,40 @@ public static class AgentCommandHandlers
             Environment.Exit(1);
         }
 
+        // Always validate configuration first to catch corrupted config files
         ToolAvailabilityService? toolService = null;
         ApiService? apiService = null;
-        if (checkTools)
+        try
         {
-            apiService = new ApiService();
-            toolService = new ToolAvailabilityService(apiService);
+            var configService = new CliConfigurationService();
+            var config = await configService.LoadConfigurationAsync();
+            
+            if (checkTools)
+            {
+                if (config == null)
+                {
+                    Console.WriteLine("❌ Configuration not found. Run 'srectl init' first.");
+                    Environment.Exit(1);
+                    return;
+                }
+                
+                // Validate URL format
+                if (!Uri.TryCreate(config.ResourceUrl, UriKind.Absolute, out _))
+                {
+                    Console.WriteLine($"❌ Invalid resource URL in configuration: {config.ResourceUrl}");
+                    Environment.Exit(1);
+                    return;
+                }
+                
+                apiService = new ApiService();
+                toolService = new ToolAvailabilityService(apiService);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Configuration error: {ex.Message}");
+            Environment.Exit(1);
+            return;
         }
 
         try
@@ -281,7 +369,15 @@ public static class AgentCommandHandlers
     /// </summary>
     public static async Task HandleDeleteCommand(ParseResult parseResult)
     {
+        // Set debug mode first
+        var debug = parseResult.GetValue(AgentCommandOptions.DebugOption);
+        DebugLogger.SetDebugMode(debug);
+
+        DebugLogger.Debug("Command", "Starting agent delete command");
+
         var agentName = parseResult.GetValue(AgentCommandOptions.DeleteNameOption);
+
+        DebugLogger.Debug("Parameters", $"AgentName: {agentName}");
         
         if (string.IsNullOrWhiteSpace(agentName))
         {
@@ -294,7 +390,7 @@ public static class AgentCommandHandlers
         {
             using var apiService = new ApiService();
             Console.WriteLine($"🗑️  Deleting agent '{agentName}'...");
-            
+
             var (success, response) = await apiService.DeleteAgentAsync(agentName);
             
             if (success)
@@ -309,16 +405,21 @@ public static class AgentCommandHandlers
         }
         catch (Exception ex)
         {
+            DebugLogger.Debug("Exception", $"DeleteAgent failed: {ex.Message}");
             Console.WriteLine($"❌ Failed to delete agent: {ex.Message}");
             Environment.Exit(1);
         }
-    }
-
-    /// <summary>
+    }    /// <summary>
     /// Handles the agent test command to test an agent with a specific message.
     /// </summary>
     public static async Task HandleTestCommand(ParseResult parseResult)
     {
+        // Set debug mode first
+        var debug = parseResult.GetValue(AgentCommandOptions.DebugOption);
+        DebugLogger.SetDebugMode(debug);
+
+        DebugLogger.Debug("Command", "Starting agent test command");
+
         try
         {        
             var agentName = parseResult.GetValue(AgentCommandOptions.TestNameOption);
@@ -329,6 +430,8 @@ public static class AgentCommandHandlers
 
             // Default behavior is to wait unless --no-wait is specified
             var shouldWait = !noWait;
+
+            DebugLogger.Debug("Parameters", $"AgentName: {agentName}, Message: {message}, UserId: {userId}, Wait: {shouldWait}");
 
             if (string.IsNullOrWhiteSpace(agentName))
             {
@@ -405,5 +508,131 @@ public static class AgentCommandHandlers
             Console.WriteLine($"Failed to test agent: {ex.Message}");
             Environment.Exit(1);
         }
+    }
+
+    /// <summary>
+    /// Handles dry-run for agent apply command.
+    /// </summary>
+    private static async Task HandleAgentApplyDryRun(string agentName)
+    {
+        try
+        {
+            Console.WriteLine($"🔍 DRY RUN: Agent apply for '{agentName}'");
+            Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+            // Find and validate agent file exists
+            var agentFilePath = FindAgentFile(agentName);
+            if (agentFilePath == null)
+            {
+                Console.WriteLine($"❌ Agent file not found for '{agentName}'");
+                Console.WriteLine($"   Expected: agents/{agentName}/{agentName}.yaml");
+                Environment.Exit(1);
+                return;
+            }
+
+            Console.WriteLine($"📂 Agent file found: {agentFilePath}");
+
+            // Read and parse the YAML file
+            var yamlContent = await File.ReadAllTextAsync(agentFilePath);
+            Console.WriteLine($"📄 YAML content size: {yamlContent.Length} characters");
+
+            // Validate YAML structure
+            try
+            {
+                var agentConfig = YamlHelper.CreateCamelCaseDeserializer()
+                    .Deserialize<Dictionary<string, object>>(yamlContent);
+                
+                Console.WriteLine("✅ YAML structure is valid");
+                Console.WriteLine($"📝 Agent details:");
+                
+                if (agentConfig.TryGetValue("name", out var nameValue))
+                    Console.WriteLine($"   Name: {nameValue}");
+                    
+                if (agentConfig.TryGetValue("instructions", out var instructionsValue))
+                    Console.WriteLine($"   Instructions length: {instructionsValue?.ToString()?.Length ?? 0} characters");
+                
+                if (agentConfig.TryGetValue("tools", out var toolsValue) && toolsValue is List<object> toolsList)
+                {
+                    var tools = toolsList.Select(t => t.ToString()).Where(t => !string.IsNullOrEmpty(t)).ToList();
+                    Console.WriteLine($"   Tools ({tools.Count}): {string.Join(", ", tools)}");
+                    
+                    // Check if referenced tools exist locally
+                    var missingTools = new List<string>();
+                    foreach (var tool in tools)
+                    {
+                        var toolPath = ToolCommandHandlers.FindToolFile(tool!);
+                        if (toolPath == null)
+                        {
+                            missingTools.Add(tool!);
+                        }
+                    }
+                    
+                    if (missingTools.Any())
+                    {
+                        Console.WriteLine($"   ⚠️  Missing local tool files: {string.Join(", ", missingTools)}");
+                    }
+                    else
+                    {
+                        Console.WriteLine("   ✅ All referenced tools found locally");
+                    }
+                }
+                
+                if (agentConfig.TryGetValue("handoffs", out var handoffsValue) && handoffsValue is List<object> handoffsList)
+                {
+                    var handoffs = handoffsList.Select(h => h.ToString()).Where(h => !string.IsNullOrEmpty(h)).ToList();
+                    Console.WriteLine($"   Handoffs ({handoffs.Count}): {string.Join(", ", handoffs)}");
+                }
+                
+                if (agentConfig.TryGetValue("temperature", out var tempValue))
+                    Console.WriteLine($"   Temperature: {tempValue}");
+                if (agentConfig.TryGetValue("maxReflectionCount", out var reflectionValue))
+                    Console.WriteLine($"   Max reflection count: {reflectionValue}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ YAML parsing failed: {ex.Message}");
+                Environment.Exit(1);
+                return;
+            }
+
+            // Check server connectivity
+            var configService = new CliConfigurationService();
+            var config = await configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                Console.WriteLine("❌ Configuration not found. Run 'srectl init' first.");
+                Environment.Exit(1);
+                return;
+            }
+
+            Console.WriteLine($"🌐 Target server: {config.ResourceUrl}");
+            Console.WriteLine($"🔐 Authentication required: {config.AuthRequired}");
+
+            Console.WriteLine("\n✅ DRY RUN COMPLETE");
+            Console.WriteLine("📋 Summary:");
+            Console.WriteLine($"   • Agent '{agentName}' configuration is valid");
+            Console.WriteLine("   • YAML file can be parsed successfully");
+            Console.WriteLine("   • Server configuration is available");
+            Console.WriteLine($"   • Would apply to: {config.ResourceUrl}");
+            Console.WriteLine("\n💡 To actually apply the agent, run: srectl agent apply --name " + agentName);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ DRY RUN FAILED: {ex.Message}");
+            Environment.Exit(1);
+        }
+    }
+
+    /// <summary>
+    /// Finds an agent YAML file by name.
+    /// </summary>
+    private static string? FindAgentFile(string agentName)
+    {
+        var agentsDir = "agents";
+        if (!Directory.Exists(agentsDir))
+            return null;
+
+        var expectedPath = Path.Combine(agentsDir, agentName, $"{agentName}.yaml");
+        return File.Exists(expectedPath) ? expectedPath : null;
     }
 }

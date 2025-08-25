@@ -1,6 +1,7 @@
 using System.CommandLine;
 using System.CommandLine.Parsing;
 using Agent.Cli.Services;
+using Agent.Cli.Helpers;
 
 namespace Agent.Cli.Commands;
 
@@ -15,6 +16,12 @@ public static class DocumentCommandHandlers
     /// <param name="parseResult">Command line parse result</param>
     public static async Task HandleUploadCommand(ParseResult parseResult)
     {
+        // Set debug mode first
+        var debug = parseResult.GetValue(DocumentCommandOptions.DebugOption);
+        DebugLogger.SetDebugMode(debug);
+
+        DebugLogger.Debug("Command", "Starting document upload command");
+
         try
         {
             // Extract options
@@ -23,6 +30,8 @@ public static class DocumentCommandHandlers
             var triggerIndexing = parseResult.GetValue(DocumentCommandOptions.TriggerIndexingOption);
             var noIndexing = parseResult.GetValue(DocumentCommandOptions.NoIndexingOption);
             var recursive = parseResult.GetValue(DocumentCommandOptions.RecursiveOption);
+
+            DebugLogger.Debug("Parameters", $"File: {filePath ?? "none"}, Folder: {folderPath ?? "none"}, TriggerIndexing: {triggerIndexing}, NoIndexing: {noIndexing}, Recursive: {recursive}");
 
             // Validate mutually exclusive options
             if (!string.IsNullOrEmpty(filePath) && !string.IsNullOrEmpty(folderPath))
@@ -42,7 +51,7 @@ public static class DocumentCommandHandlers
             // Determine indexing setting (default to true unless --no-indexing is specified)
             var shouldTriggerIndexing = !noIndexing;
 
-            // Set default recursive behavior (true unless explicitly set to false)  
+            // Set default recursive behavior (true unless explicitly set to false)
             var shouldSearchRecursive = recursive;
 
             List<string> filesToUpload;
@@ -50,11 +59,13 @@ public static class DocumentCommandHandlers
             if (!string.IsNullOrEmpty(filePath))
             {
                 // Single file upload
+                DebugLogger.Debug("FileProcessing", $"Processing single file: {filePath}");
                 filesToUpload = await GetSingleFileForUpload(filePath);
             }
             else
             {
                 // Folder upload
+                DebugLogger.Debug("FileProcessing", $"Processing folder: {folderPath}, recursive: {shouldSearchRecursive}");
                 filesToUpload = await GetFilesFromFolder(folderPath!, shouldSearchRecursive);
             }
 
@@ -69,6 +80,7 @@ public static class DocumentCommandHandlers
             foreach (var file in filesToUpload)
             {
                 Console.WriteLine($"   📄 {Path.GetFileName(file)}");
+                DebugLogger.LogFile("UPLOAD", file, $"Size: {new FileInfo(file).Length} bytes");
             }
 
             // Perform the upload
@@ -89,6 +101,7 @@ public static class DocumentCommandHandlers
         }
         catch (Exception ex)
         {
+            DebugLogger.Debug("Exception", $"DocumentUpload failed: {ex.Message}");
             Console.WriteLine($"❌ Error: {ex.Message}");
             Environment.Exit(1);
         }
@@ -181,7 +194,7 @@ public static class DocumentCommandHandlers
                     try
                     {
                         var fileInfo = new FileInfo(file);
-                        
+
                         // Skip empty files
                         if (fileInfo.Length == 0)
                         {
@@ -225,10 +238,18 @@ public static class DocumentCommandHandlers
     /// <param name="parseResult">Command line parse result</param>
     public static async Task HandleSearchCommand(ParseResult parseResult)
     {
+        // Set debug mode first
+        var debug = parseResult.GetValue(DocumentCommandOptions.DebugOption);
+        DebugLogger.SetDebugMode(debug);
+
+        DebugLogger.Debug("Command", "Starting document search command");
+
         try
         {
             // Extract options
             var query = parseResult.GetValue(DocumentCommandOptions.QueryOption);
+
+            DebugLogger.Debug("Parameters", $"Query: {query}");
 
             // Validate query parameter
             if (string.IsNullOrWhiteSpace(query))
@@ -259,6 +280,7 @@ public static class DocumentCommandHandlers
         }
         catch (Exception ex)
         {
+            DebugLogger.Debug("Exception", $"DocumentSearch failed: {ex.Message}");
             Console.WriteLine($"❌ Search failed: {ex.Message}");
             Environment.Exit(1);
         }
@@ -270,6 +292,12 @@ public static class DocumentCommandHandlers
     /// <param name="parseResult">Command line parse result</param>
     public static async Task HandleReindexCommand(ParseResult parseResult)
     {
+        // Set debug mode first
+        var debug = parseResult.GetValue(DocumentCommandOptions.DebugOption);
+        DebugLogger.SetDebugMode(debug);
+
+        DebugLogger.Debug("Command", "Starting document reindex command");
+
         try
         {
             Console.WriteLine("🔄 Triggering document reindexing...");
@@ -296,6 +324,7 @@ public static class DocumentCommandHandlers
         }
         catch (Exception ex)
         {
+            DebugLogger.Debug("Exception", $"DocumentReindex failed: {ex.Message}");
             Console.WriteLine($"❌ Reindexing failed: {ex.Message}");
             Environment.Exit(1);
         }

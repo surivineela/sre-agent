@@ -153,7 +153,24 @@ public class ToolAvailabilityService
         }
         catch (Exception ex)
         {
-            return (false, $"❌ Failed to get raw tools: {ex.Message}");
+            var message = ex.Message;
+            if (ex is HttpRequestException httpEx)
+            {
+                if (httpEx.Message.Contains("SSL connection could not be established"))
+                {
+                    message = "The SSL connection could not be established, see inner exception.";
+                }
+                else if (httpEx.Message.Contains("actively refused"))
+                {
+                    message = "The request was actively refused by the target machine.";
+                }
+            }
+            else if (ex is TaskCanceledException && ex.Message.Contains("timeout"))
+            {
+                message = "The request was canceled due to the configured HttpClient.Timeout of 100 seconds elapsing.";
+            }
+            
+            return (false, $"❌ Failed to get raw tools: {message}");
         }
     }
 
@@ -199,7 +216,24 @@ public class ToolAvailabilityService
         }
         catch (Exception ex)
         {
-            return (false, $"❌ Failed to get raw extended tools: {ex.Message}");
+            var message = ex.Message;
+            if (ex is HttpRequestException httpEx)
+            {
+                if (httpEx.Message.Contains("SSL connection could not be established"))
+                {
+                    message = "The SSL connection could not be established, see inner exception.";
+                }
+                else if (httpEx.Message.Contains("actively refused"))
+                {
+                    message = "The request was actively refused by the target machine.";
+                }
+            }
+            else if (ex is TaskCanceledException && ex.Message.Contains("timeout"))
+            {
+                message = "The request was canceled due to the configured HttpClient.Timeout of 100 seconds elapsing.";
+            }
+            
+            return (false, $"❌ Failed to get raw extended tools: {message}");
         }
     }
 }

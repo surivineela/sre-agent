@@ -1,6 +1,7 @@
 using System.CommandLine;
 using System.CommandLine.NamingConventionBinder;
 using Agent.Cli.Commands;
+using Agent.Cli.Services;
 
 namespace Agent.Cli.Commands;
 
@@ -55,21 +56,45 @@ public static class CommandBuilder
         doc.Subcommands.Add(docSearch);
         doc.Subcommands.Add(docReindex);
 
+        // Build profile commands
+        var profileList = CreateProfileListCommand();
+        var profileGet = CreateProfileGetCommand();
+        var profileCreate = CreateProfileCreateCommand();
+        var profileSet = CreateProfileSetCommand();
+        var profileDelete = CreateProfileDeleteCommand();
+
+        var profile = new Command("profile", "Profile management commands. Profiles store connection settings for different SRE Agent instances (local or remote)");
+        profile.Subcommands.Add(profileList);
+        profile.Subcommands.Add(profileGet);
+        profile.Subcommands.Add(profileCreate);
+        profile.Subcommands.Add(profileSet);
+        profile.Subcommands.Add(profileDelete);
+
         // Build general commands
         var initCommand = CreateInitCommand();
         var listCommand = CreateListCommand();
         var applyYamlCommand = CreateApplyYamlCommand();
         var threadCommand = CreateThreadCommand();
+        var chatCommand = CreateChatCommand();
+
+        // Global options
+        var debugOption = new Option<bool>("--debug") { Description = "Enable debug logging" };
+        var quietOption = new Option<bool>("--quiet") { Description = "Minimize output" };
 
         // Root command
         var root = new RootCommand("SRE Agent CLI");
+        root.Options.Add(debugOption);
+        root.Options.Add(quietOption);
+
         root.Subcommands.Add(initCommand);
         root.Subcommands.Add(listCommand);
         root.Subcommands.Add(applyYamlCommand);
         root.Subcommands.Add(threadCommand);
+        root.Subcommands.Add(chatCommand);
         root.Subcommands.Add(agent);
         root.Subcommands.Add(tool);
         root.Subcommands.Add(doc);
+        root.Subcommands.Add(profile);
 
         return root;
     }
@@ -78,6 +103,7 @@ public static class CommandBuilder
     {
         var agentCreate = new Command("create", "Create a new agent YAML")
         {
+            AgentCommandOptions.DebugOption,
             AgentCommandOptions.NameOptionCreate,
             AgentCommandOptions.InstructionsOptionCreate,
             AgentCommandOptions.ToolsOptionCreate,
@@ -104,11 +130,12 @@ public static class CommandBuilder
     {
         var agentValidate = new Command("validate", "Validate an agent")
         {
+            AgentCommandOptions.DebugOption,
             AgentCommandOptions.FileOptionValidate,
             AgentCommandOptions.AllOption,
             AgentCommandOptions.CheckToolsOption
         };
-        agentValidate.SetAction(async parseResult => 
+        agentValidate.SetAction(async parseResult =>
         {
             await AgentCommandHandlers.HandleValidateCommand(parseResult);
         });
@@ -119,9 +146,11 @@ public static class CommandBuilder
     {
         var agentApply = new Command("apply", "Apply an agent configuration to the remote server")
         {
-            AgentCommandOptions.ApplyNameOption
+            AgentCommandOptions.DebugOption,
+            AgentCommandOptions.ApplyNameOption,
+            AgentCommandOptions.ApplyDryRunOption
         };
-        agentApply.SetAction(async parseResult => 
+        agentApply.SetAction(async parseResult =>
         {
             await AgentCommandHandlers.HandleApplyCommand(parseResult);
         });
@@ -132,9 +161,10 @@ public static class CommandBuilder
     {
         var agentDelete = new Command("delete", "Delete an agent from the remote server")
         {
+            AgentCommandOptions.DebugOption,
             AgentCommandOptions.DeleteNameOption
         };
-        agentDelete.SetAction(async parseResult => 
+        agentDelete.SetAction(async parseResult =>
         {
             await AgentCommandHandlers.HandleDeleteCommand(parseResult);
         });
@@ -145,13 +175,14 @@ public static class CommandBuilder
     {
         var agentTest = new Command("test", "Test an agent with a specific message")
         {
+            AgentCommandOptions.DebugOption,
             AgentCommandOptions.TestNameOption,
             AgentCommandOptions.TestMessageOption,
             AgentCommandOptions.TestUserIdOption,
             AgentCommandOptions.TestDisplayNameOption,
             AgentCommandOptions.TestNoWaitOption
         };
-        agentTest.SetAction(async parseResult => 
+        agentTest.SetAction(async parseResult =>
         {
             await AgentCommandHandlers.HandleTestCommand(parseResult);
         });
@@ -162,11 +193,13 @@ public static class CommandBuilder
     {
         var toolCreate = new Command("create", "Create a new tool YAML")
         {
+            ToolCommandOptions.DebugOption,
             ToolCommandOptions.NameOption,
             ToolCommandOptions.TypeOption,
+            ToolCommandOptions.PathOption,
             ToolCommandOptions.ExtraOption
         };
-        toolCreate.SetAction(async parseResult => 
+        toolCreate.SetAction(async parseResult =>
         {
             await ToolCommandHandlers.HandleCreateCommand(parseResult);
         });
@@ -177,10 +210,11 @@ public static class CommandBuilder
     {
         var toolValidate = new Command("validate", "Validate a tool YAML")
         {
+            ToolCommandOptions.DebugOption,
             ToolCommandOptions.NameOptionValidate,
             ToolCommandOptions.AllOption
         };
-        toolValidate.SetAction(parseResult => 
+        toolValidate.SetAction(parseResult =>
         {
             ToolCommandHandlers.HandleValidateCommand(parseResult);
         });
@@ -191,9 +225,11 @@ public static class CommandBuilder
     {
         var toolApply = new Command("apply", "Apply a tool configuration to the remote server")
         {
-            ToolCommandOptions.ApplyNameOption
+            ToolCommandOptions.DebugOption,
+            ToolCommandOptions.ApplyNameOption,
+            ToolCommandOptions.DryRunOption
         };
-        toolApply.SetAction(async parseResult => 
+        toolApply.SetAction(async parseResult =>
         {
             await ToolCommandHandlers.HandleApplyCommand(parseResult);
         });
@@ -204,9 +240,11 @@ public static class CommandBuilder
     {
         var toolDelete = new Command("delete", "Delete a tool from the remote server")
         {
-            ToolCommandOptions.DeleteNameOption
+            ToolCommandOptions.DebugOption,
+            ToolCommandOptions.DeleteNameOption,
+            ToolCommandOptions.DeleteDryRunOption
         };
-        toolDelete.SetAction(async parseResult => 
+        toolDelete.SetAction(async parseResult =>
         {
             await ToolCommandHandlers.HandleDeleteCommand(parseResult);
         });
@@ -232,28 +270,28 @@ public static class CommandBuilder
     {
         // List agents subcommand
         var listAgentsCommand = new Command("agents", "List all agents from the remote server");
-        listAgentsCommand.SetAction(async parseResult => 
+        listAgentsCommand.SetAction(async parseResult =>
         {
             await GeneralCommandHandlers.HandleListAgentsCommand(parseResult);
         });
 
         // List tools subcommand
         var listToolsCommand = new Command("tools", "List all tools from the remote server");
-        listToolsCommand.SetAction(async parseResult => 
+        listToolsCommand.SetAction(async parseResult =>
         {
             await GeneralCommandHandlers.HandleListToolsCommand(parseResult);
         });
 
         // List extended-tools subcommand
         var listExtendedToolsCommand = new Command("extended-tools", "List all extended tools added to the server through apply command");
-        listExtendedToolsCommand.SetAction(async parseResult => 
+        listExtendedToolsCommand.SetAction(async parseResult =>
         {
             await GeneralCommandHandlers.HandleListExtendedToolsCommand(parseResult);
         });
 
         // List data-connectors subcommand
         var listDataConnectorsCommand = new Command("data-connectors", "List all data connectors configured on the server");
-        listDataConnectorsCommand.SetAction(async parseResult => 
+        listDataConnectorsCommand.SetAction(async parseResult =>
         {
             await GeneralCommandHandlers.HandleListDataConnectorsCommand(parseResult);
         });
@@ -274,7 +312,7 @@ public static class CommandBuilder
             ToolCommandOptions.VerboseOption,
             ToolCommandOptions.TypeFilterOption
         };
-        toolShowTypes.SetAction(parseResult => 
+        toolShowTypes.SetAction(parseResult =>
         {
             ToolCommandHandlers.HandleShowTypesCommand(parseResult);
         });
@@ -287,7 +325,7 @@ public static class CommandBuilder
         {
             ToolCommandOptions.VerboseOption
         };
-        toolShowConnectors.SetAction(parseResult => 
+        toolShowConnectors.SetAction(parseResult =>
         {
             ToolCommandHandlers.HandleShowConnectorsCommand(parseResult);
         });
@@ -408,5 +446,79 @@ public static class CommandBuilder
             await DocumentCommandHandlers.HandleReindexCommand(parseResult);
         });
         return docReindex;
+    }
+
+    private static Command CreateChatCommand()
+    {
+        var chatCommand = new Command("chat", "Start persistent interactive chat session");
+        chatCommand.SetAction(async parseResult =>
+        {
+            await GeneralCommandHandlers.HandleChatCommand(parseResult);
+        });
+        return chatCommand;
+    }
+
+    private static Command CreateProfileListCommand()
+    {
+        var profileList = new Command("list", "List all available profiles and show which one is currently active");
+        profileList.SetAction(async parseResult =>
+        {
+            await ProfileCommandHandlers.HandleListCommand(parseResult);
+        });
+        return profileList;
+    }
+
+    private static Command CreateProfileGetCommand()
+    {
+        var profileGet = new Command("get", "Get details of a specific profile or the current active profile")
+        {
+            ProfileCommandOptions.ProfileNameOption
+        };
+        profileGet.SetAction(async parseResult =>
+        {
+            await ProfileCommandHandlers.HandleGetCommand(parseResult);
+        });
+        return profileGet;
+    }
+
+    private static Command CreateProfileCreateCommand()
+    {
+        var profileCreate = new Command("create", "Create a new profile to connect to an SRE Agent instance (local or remote)")
+        {
+            ProfileCommandOptions.ProfileNameRequiredOption,
+            ProfileCommandOptions.ResourceUrlOption,
+            ProfileCommandOptions.SetCurrentOption
+        };
+        profileCreate.SetAction(async parseResult =>
+        {
+            await ProfileCommandHandlers.HandleCreateCommand(parseResult);
+        });
+        return profileCreate;
+    }
+
+    private static Command CreateProfileSetCommand()
+    {
+        var profileSet = new Command("set", "Switch to a different profile to change which SRE Agent instance you're connected to")
+        {
+            ProfileCommandOptions.ProfileNameRequiredOption
+        };
+        profileSet.SetAction(async parseResult =>
+        {
+            await ProfileCommandHandlers.HandleSetCommand(parseResult);
+        });
+        return profileSet;
+    }
+
+    private static Command CreateProfileDeleteCommand()
+    {
+        var profileDelete = new Command("delete", "Delete a profile (cannot delete the currently active profile)")
+        {
+            ProfileCommandOptions.ProfileNameRequiredOption
+        };
+        profileDelete.SetAction(async parseResult =>
+        {
+            await ProfileCommandHandlers.HandleDeleteCommand(parseResult);
+        });
+        return profileDelete;
     }
 }

@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    
+
     <!-- Global Tool Configuration -->
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>srectl</ToolCommandName>
@@ -32,6 +32,7 @@
     <PackageReference Include="System.CommandLine" />
     <PackageReference Include="System.CommandLine.NamingConventionBinder" />
     <PackageReference Include="YamlDotNet" />
+  <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
   </ItemGroup>
 
   <ItemGroup>

@@ -18,19 +18,29 @@ public static class ToolCommandHandlers
     /// </summary>
     public static async Task HandleCreateCommand(ParseResult parseResult)
     {
+        // Set debug mode first
+        var debug = parseResult.GetValue(ToolCommandOptions.DebugOption);
+        DebugLogger.SetDebugMode(debug);
+
+        DebugLogger.Debug("Command", "Starting tool create command");
+
         try
         {
             var name = parseResult.GetValue(ToolCommandOptions.NameOption);
             var type = parseResult.GetValue(ToolCommandOptions.TypeOption);
+            var customPath = parseResult.GetValue(ToolCommandOptions.PathOption);
             var extra = parseResult.GetValue(ToolCommandOptions.ExtraOption);
+
+            DebugLogger.Debug("Parameters", $"Name: {name}, Type: {type}, Path: {customPath ?? "default"}, Extra: {extra?.Length ?? 0} items");
 
             // Validate tool type is supported
             var availableTypes = ToolDefinitionService.GetAvailableToolTypes();
-            var toolTypeInfo = availableTypes.FirstOrDefault(t => 
+            var toolTypeInfo = availableTypes.FirstOrDefault(t =>
                 t.Name.Equals(type, StringComparison.OrdinalIgnoreCase));
 
             if (toolTypeInfo == null)
             {
+                DebugLogger.Debug("Validation", $"Unknown tool type: {type}");
                 Console.WriteLine($"[ERROR] Unknown tool type '{type}'");
                 Console.WriteLine("Available tool types:");
                 foreach (var availableType in availableTypes)
@@ -45,6 +55,7 @@ public static class ToolCommandHandlers
             // Tool validation
             if (!ToolValidation.ValidateTool(name!, type!, out var errors))
             {
+                DebugLogger.LogValidation($"Tool {name}", false, errors);
                 Console.WriteLine("❌ Tool validation failed:");
                 foreach (var error in errors)
                     Console.WriteLine($"  - {error}");
@@ -52,17 +63,33 @@ public static class ToolCommandHandlers
                 return;
             }
 
+            DebugLogger.LogValidation($"Tool {name}", true);
+
             // Create tool using template based on actual definitions
             var toolYaml = CreateToolFromTemplate(name!, type!, extra);
 
             // Write tool to file
             var toolsDir = "tools";
-            var toolDir = Path.Combine(toolsDir, name!);
-            Directory.CreateDirectory(toolDir);
+            string yamlPath;
 
-            var yamlPath = Path.Combine(toolDir, $"{name}.yaml");
+            if (!string.IsNullOrWhiteSpace(customPath))
+            {
+                // Use custom path: tools/{customPath}/{name}.yaml
+                var toolDir = Path.Combine(toolsDir, customPath);
+                Directory.CreateDirectory(toolDir);
+                yamlPath = Path.Combine(toolDir, $"{name}.yaml");
+            }
+            else
+            {
+                // Use legacy structure: tools/{name}/{name}.yaml
+                var toolDir = Path.Combine(toolsDir, name!);
+                Directory.CreateDirectory(toolDir);
+                yamlPath = Path.Combine(toolDir, $"{name}.yaml");
+            }
+
+            DebugLogger.LogFile("WRITE", yamlPath, $"Tool YAML content size: {toolYaml.Length} characters");
+
             await File.WriteAllTextAsync(yamlPath, toolYaml);
-
             Console.WriteLine($"[SUCCESS] Tool YAML created at {yamlPath}");
             Console.WriteLine($"Tool type: {toolTypeInfo.Name} - {toolTypeInfo.Description}");
             Console.WriteLine("\nNext steps:");
@@ -72,6 +99,7 @@ public static class ToolCommandHandlers
         }
         catch (Exception ex)
         {
+            DebugLogger.Debug("Exception", $"CreateTool failed: {ex.Message}");
             Console.WriteLine($"[ERROR] {ex.Message}");
             Environment.Exit(1);
         }
@@ -82,8 +110,16 @@ public static class ToolCommandHandlers
     /// </summary>
     public static void HandleValidateCommand(ParseResult parseResult)
     {
+        // Set debug mode first
+        var debug = parseResult.GetValue(ToolCommandOptions.DebugOption);
+        DebugLogger.SetDebugMode(debug);
+
+        DebugLogger.Debug("Command", "Starting tool validate command");
+
         var validateAll = parseResult.GetValue(ToolCommandOptions.AllOption);
         var name = parseResult.GetValue(ToolCommandOptions.NameOptionValidate);
+
+        DebugLogger.Debug("Parameters", $"ValidateAll: {validateAll}, Name: {name ?? "none"}");
 
         var deserializer = YamlHelper.CreateCamelCaseDeserializer();
 
@@ -107,11 +143,26 @@ public static class ToolCommandHandlers
     /// </summary>
     public static async Task HandleApplyCommand(ParseResult parseResult)
     {
+        // Set debug mode first
+        var debug = parseResult.GetValue(ToolCommandOptions.DebugOption);
+        DebugLogger.SetDebugMode(debug);
+
+        DebugLogger.Debug("Command", "Starting tool apply command");
+
         var name = parseResult.GetValue(ToolCommandOptions.ApplyNameOption);
-        
+        var dryRun = parseResult.GetValue(ToolCommandOptions.DryRunOption);
+
+        DebugLogger.Debug("Parameters", $"Name: {name}, DryRun: {dryRun}");
+
+        if (dryRun)
+        {
+            await HandleApplyDryRun(name!);
+            return;
+        }
+
         using var apiService = new ApiService();
         var (success, response) = await apiService.ApplyToolAsync(name!);
-        
+
         Console.WriteLine(response);
         Environment.Exit(success ? 0 : 1);
     }
@@ -169,7 +220,7 @@ public static class ToolCommandHandlers
             {
                 Console.WriteLine($"\n[{connector.Name}]");
                 Console.WriteLine($"  Description: {connector.Description}");
-                
+
                 if (verbose)
                 {
                     Console.WriteLine($"  Type: {connector.TypeName}");
@@ -242,21 +293,20 @@ public static class ToolCommandHandlers
         if (extra != null && extra.Length > 0)
         {
             var keyValuePairs = ArgumentParser.ParseKeyValuePairs(extra);
-            
+
             // Simple replacement for basic properties
             foreach (var kv in keyValuePairs)
             {
                 // Replace property values in YAML (basic approach)
                 var propertyPattern = $"{kv.Key}:.*";
                 var replacement = $"{kv.Key}: {kv.Value}";
-                
-                // This is a simple replacement - for production, you'd want proper YAML manipulation
+
                 if (yamlContent.Contains($"{kv.Key}:"))
                 {
                     yamlContent = System.Text.RegularExpressions.Regex.Replace(
-                        yamlContent, 
-                        $"^{kv.Key}:.*$", 
-                        replacement, 
+                        yamlContent,
+                        $"^{kv.Key}:.*$",
+                        replacement,
                         System.Text.RegularExpressions.RegexOptions.Multiline);
                 }
                 else
@@ -326,10 +376,11 @@ public static class ToolCommandHandlers
 
     private static void ValidateSingleTool(string name, YamlDotNet.Serialization.IDeserializer deserializer)
     {
-        var filePath = Path.Combine("tools", name, $"{name}.yaml");
-        if (!File.Exists(filePath))
+        var filePath = FindToolFile(name);
+        if (filePath == null)
         {
-            Console.WriteLine($"❌ Tool YAML file not found: {filePath}");
+            Console.WriteLine($"❌ Tool YAML file not found for tool '{name}'");
+            Console.WriteLine($"   Searched in tools directory and subdirectories for '{name}.yaml'");
             Environment.Exit(1);
         }
 
@@ -343,11 +394,11 @@ public static class ToolCommandHandlers
 
             if (ToolValidation.ValidateTool(toolName, toolType, out var errors))
             {
-                Console.WriteLine("✅ Tool validation succeeded.");
+                Console.WriteLine($"✅ Tool validation succeeded for '{name}' at {filePath}");
             }
             else
             {
-                Console.WriteLine("❌ Tool validation failed:");
+                Console.WriteLine($"❌ Tool validation failed for '{name}' at {filePath}:");
                 foreach (var error in errors)
                     Console.WriteLine($"  - {error}");
                 Environment.Exit(1);
@@ -378,7 +429,7 @@ public static class ToolCommandHandlers
         {
             Console.WriteLine($"\n[{toolType.Name}]");
             Console.WriteLine($"  Description: {toolType.Description}");
-            
+
             if (verbose)
             {
                 Console.WriteLine($"  Type: {toolType.TypeName}");
@@ -434,8 +485,17 @@ public static class ToolCommandHandlers
     /// </summary>
     public static async Task HandleDeleteCommand(ParseResult parseResult)
     {
+        // Set debug mode first
+        var debug = parseResult.GetValue(ToolCommandOptions.DebugOption);
+        DebugLogger.SetDebugMode(debug);
+
+        DebugLogger.Debug("Command", "Starting tool delete command");
+
         var toolName = parseResult.GetValue(ToolCommandOptions.DeleteNameOption);
-        
+        var dryRun = parseResult.GetValue(ToolCommandOptions.DeleteDryRunOption);
+
+        DebugLogger.Debug("Parameters", $"ToolName: {toolName}, DryRun: {dryRun}");
+
         if (string.IsNullOrWhiteSpace(toolName))
         {
             Console.WriteLine("❌ Tool name is required.");
@@ -443,13 +503,19 @@ public static class ToolCommandHandlers
             return;
         }
 
+        if (dryRun)
+        {
+            await HandleDeleteDryRun(toolName);
+            return;
+        }
+
         try
         {
             using var apiService = new ApiService();
             Console.WriteLine($"🗑️  Deleting tool '{toolName}'...");
-            
+
             var (success, response) = await apiService.DeleteToolAsync(toolName);
-            
+
             if (success)
             {
                 Console.WriteLine($"✅ {response}");
@@ -462,8 +528,236 @@ public static class ToolCommandHandlers
         }
         catch (Exception ex)
         {
+            DebugLogger.Debug("Exception", $"DeleteTool failed: {ex.Message}");
             Console.WriteLine($"❌ Failed to delete tool: {ex.Message}");
             Environment.Exit(1);
         }
+    }
+
+    /// <summary>
+    /// Finds a tool YAML file by searching recursively under the tools directory.
+    /// Supports flexible folder organization.
+    /// </summary>
+    /// <param name="toolName">The name of the tool to find</param>
+    /// <returns>The full path to the tool YAML file, or null if not found</returns>
+    public static string? FindToolFile(string toolName)
+    {
+        var toolsDir = "tools";
+        if (!Directory.Exists(toolsDir))
+        {
+            return null;
+        }
+
+        // First, try the legacy structure: tools/{toolName}/{toolName}.yaml
+        var legacyPath = Path.Combine(toolsDir, toolName, $"{toolName}.yaml");
+        if (File.Exists(legacyPath))
+        {
+            return legacyPath;
+        }
+
+        // Then try the flat structure: tools/{toolName}.yaml
+        var flatPath = Path.Combine(toolsDir, $"{toolName}.yaml");
+        if (File.Exists(flatPath))
+        {
+            return flatPath;
+        }
+
+        // Finally, search recursively for any YAML file with the matching tool name
+        var yamlFiles = Directory.GetFiles(toolsDir, "*.yaml", SearchOption.AllDirectories);
+
+        foreach (var file in yamlFiles)
+        {
+            var fileName = Path.GetFileNameWithoutExtension(file);
+            if (fileName.Equals(toolName, StringComparison.OrdinalIgnoreCase))
+            {
+                return file;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Handles dry-run for tool apply command.
+    /// </summary>
+    private static async Task HandleApplyDryRun(string toolName)
+    {
+        try
+        {
+            Console.WriteLine($"🔍 DRY RUN: Tool apply for '{toolName}'");
+            Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+            // Find and validate tool file exists
+            var toolFilePath = FindToolFile(toolName);
+            if (toolFilePath == null)
+            {
+                Console.WriteLine($"❌ Tool file not found for '{toolName}'");
+                Console.WriteLine($"   Searched in tools directory and subdirectories for '{toolName}.yaml'");
+                Environment.Exit(1);
+                return;
+            }
+
+            Console.WriteLine($"📂 Tool file found: {toolFilePath}");
+
+            // Read and parse the YAML file
+            var yamlContent = await File.ReadAllTextAsync(toolFilePath);
+            Console.WriteLine($"📄 YAML content size: {yamlContent.Length} characters");
+
+            // Validate YAML structure
+            var deserializer = YamlHelper.CreateCamelCaseDeserializer();
+            try
+            {
+                var toolConfig = deserializer.Deserialize<Dictionary<string, object>>(yamlContent);
+
+                Console.WriteLine("✅ YAML structure is valid");
+                Console.WriteLine($"📝 Tool details:");
+
+                if (toolConfig.TryGetValue("name", out var nameValue))
+                    Console.WriteLine($"   Name: {nameValue}");
+                if (toolConfig.TryGetValue("type", out var typeValue))
+                    Console.WriteLine($"   Type: {typeValue}");
+                if (toolConfig.TryGetValue("description", out var descValue))
+                    Console.WriteLine($"   Description: {descValue}");
+                if (toolConfig.TryGetValue("connector", out var connectorValue))
+                    Console.WriteLine($"   Connector: {connectorValue}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ YAML parsing failed: {ex.Message}");
+                Environment.Exit(1);
+                return;
+            }
+
+            // Check server connectivity
+            var configService = new CliConfigurationService();
+            var config = await configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                Console.WriteLine("❌ Configuration not found. Run 'srectl init' first.");
+                Environment.Exit(1);
+                return;
+            }
+
+            Console.WriteLine($"🌐 Target server: {config.ResourceUrl}");
+            Console.WriteLine($"🔐 Authentication required: {config.AuthRequired}");
+
+            Console.WriteLine("\n✅ DRY RUN COMPLETE");
+            Console.WriteLine("📋 Summary:");
+            Console.WriteLine($"   • Tool '{toolName}' configuration is valid");
+            Console.WriteLine("   • YAML file can be parsed successfully");
+            Console.WriteLine("   • Server configuration is available");
+            Console.WriteLine($"   • Would apply to: {config.ResourceUrl}");
+            Console.WriteLine("\n💡 To actually apply the tool, run: srectl tool apply --name " + toolName);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ DRY RUN FAILED: {ex.Message}");
+            Environment.Exit(1);
+        }
+    }
+
+    /// <summary>
+    /// Handles dry-run for tool delete command.
+    /// </summary>
+    private static async Task HandleDeleteDryRun(string toolName)
+    {
+        try
+        {
+            Console.WriteLine($"🔍 DRY RUN: Tool delete for '{toolName}'");
+            Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+            // Check if tool exists locally
+            var toolFilePath = FindToolFile(toolName);
+            if (toolFilePath != null)
+            {
+                Console.WriteLine($"📂 Local tool file found: {toolFilePath}");
+            }
+            else
+            {
+                Console.WriteLine($"⚠️  No local tool file found for '{toolName}'");
+            }
+
+            // Check server connectivity
+            var configService = new CliConfigurationService();
+            var config = await configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                Console.WriteLine("❌ Configuration not found. Run 'srectl init' first.");
+                Environment.Exit(1);
+                return;
+            }
+
+            Console.WriteLine($"🌐 Target server: {config.ResourceUrl}");
+            Console.WriteLine($"🔐 Authentication required: {config.AuthRequired}");
+
+            // Check for dependencies by searching for tool references in agent files
+            var dependencies = FindToolDependencies(toolName);
+            if (dependencies.Any())
+            {
+                Console.WriteLine($"⚠️  Found {dependencies.Count} potential dependencies:");
+                foreach (var dep in dependencies)
+                {
+                    Console.WriteLine($"   • {dep}");
+                }
+                Console.WriteLine("   Delete might fail if these agents are deployed and reference this tool");
+            }
+            else
+            {
+                Console.WriteLine("✅ No local dependencies found");
+            }
+
+            Console.WriteLine("\n✅ DRY RUN COMPLETE");
+            Console.WriteLine("📋 Summary:");
+            Console.WriteLine($"   • Tool '{toolName}' would be deleted from server");
+            Console.WriteLine($"   • Target server: {config.ResourceUrl}");
+            if (dependencies.Any())
+            {
+                Console.WriteLine($"   • ⚠️  {dependencies.Count} potential dependencies found");
+            }
+            Console.WriteLine("\n💡 To actually delete the tool, run: srectl tool delete --name " + toolName);
+            if (dependencies.Any())
+            {
+                Console.WriteLine("⚠️  Consider updating dependent agents first to avoid deployment issues");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ DRY RUN FAILED: {ex.Message}");
+            Environment.Exit(1);
+        }
+    }
+
+    /// <summary>
+    /// Finds agents that depend on the specified tool.
+    /// </summary>
+    private static List<string> FindToolDependencies(string toolName)
+    {
+        var dependencies = new List<string>();
+        var agentsDir = "agents";
+
+        if (!Directory.Exists(agentsDir))
+            return dependencies;
+
+        var yamlFiles = Directory.GetFiles(agentsDir, "*.yaml", SearchOption.AllDirectories);
+
+        foreach (var file in yamlFiles)
+        {
+            try
+            {
+                var content = File.ReadAllText(file);
+                if (content.Contains(toolName))
+                {
+                    var agentName = Path.GetFileNameWithoutExtension(file);
+                    var relativePath = Path.GetRelativePath(agentsDir, file);
+                    dependencies.Add($"{agentName} ({relativePath})");
+                }
+            }
+            catch
+            {
+                // Ignore files that can't be read
+            }
+        }
+
+        return dependencies;
     }
 }

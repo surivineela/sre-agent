@@ -1,4 +1,5 @@
 using System.CommandLine;
+using Agent.Cli.Services;
 
 namespace Agent.Cli.Commands;
 
@@ -7,11 +8,17 @@ namespace Agent.Cli.Commands;
 /// </summary>
 public static class AgentCommandOptions
 {
+    // Global debug option for all agent commands
+    public static readonly Option<bool> DebugOption = new("--debug")
+    {
+        Description = "Enable verbose debug logging for network calls and operations"
+    };
+
     // Agent options for create (only name is required)
     public static readonly Option<string> NameOptionCreate = new("--name") { Required = true };
     public static readonly Option<string> InstructionsOptionCreate = new("--instructions");
-    public static readonly Option<string[]> ToolsOptionCreate = new("--tools") 
-    { 
+    public static readonly Option<string[]> ToolsOptionCreate = new("--tools")
+    {
         Arity = ArgumentArity.ZeroOrMore,
         AllowMultipleArgumentsPerToken = true
     };
@@ -35,9 +42,9 @@ public static class AgentCommandOptions
     };
     public static readonly Option<float?> TemperatureOption = new("--temperature");
     public static readonly Option<string> OutputTypeOption = new("--output-type");
-    public static readonly Option<bool> SmartOption = new("--smart") 
-    { 
-        Description = "Use AI to automatically generate instructions and recommend tools" 
+    public static readonly Option<bool> SmartOption = new("--smart")
+    {
+        Description = "Use AI to automatically generate instructions and recommend tools"
     };
 
     // Agent options for validate (not required)
@@ -50,31 +57,35 @@ public static class AgentCommandOptions
 
     // Agent options for apply
     public static readonly Option<string> ApplyNameOption = new("--name") { Required = true };
+    public static readonly Option<bool> ApplyDryRunOption = new("--dry-run")
+    {
+        Description = "Show what would be applied without making changes"
+    };
 
     // Agent options for delete
     public static readonly Option<string> DeleteNameOption = new("--name") { Required = true };
 
     // Agent options for test
-    public static readonly Option<string> TestNameOption = new("--name") 
-    { 
+    public static readonly Option<string> TestNameOption = new("--name")
+    {
         Required = true,
         Description = "Name of the agent to test"
     };
-    public static readonly Option<string> TestMessageOption = new("--message") 
-    { 
+    public static readonly Option<string> TestMessageOption = new("--message")
+    {
         Required = true,
         Description = "Test message to send to the agent"
     };
-    public static readonly Option<string> TestUserIdOption = new("--user-id") 
-    { 
+    public static readonly Option<string> TestUserIdOption = new("--user-id")
+    {
         Description = "User ID for the test message (defaults to current user)"
     };
-    public static readonly Option<string> TestDisplayNameOption = new("--display-name") 
-    { 
+    public static readonly Option<string> TestDisplayNameOption = new("--display-name")
+    {
         Description = "Display name for the test message (defaults to current user)"
     };
-    public static readonly Option<bool> TestNoWaitOption = new("--no-wait") 
-    { 
+    public static readonly Option<bool> TestNoWaitOption = new("--no-wait")
+    {
         Description = "Don't wait for the agent's response, just send the test message"
     };
 
@@ -85,40 +96,51 @@ public static class AgentCommandOptions
     };
 
     // Options for thread commands
-    public static readonly Option<string> ThreadMessageOption = new("--message") 
-    { 
+    public static readonly Option<string> ThreadMessageOption = new("--message")
+    {
         Required = true,
         Description = "The message to send to the SRE Agent"
     };
-    public static readonly Option<string> ThreadMessageOptionalOption = new("--message") 
-    { 
+    public static readonly Option<string> ThreadMessageOptionalOption = new("--message")
+    {
         Required = false,
         Description = "The message to send to the SRE Agent (optional)"
     };
-    public static readonly Option<string> ThreadUserIdOption = new("--user-id") 
-    { 
+    public static readonly Option<string> ThreadUserIdOption = new("--user-id")
+    {
         Description = "User ID for the message (defaults to current user)"
     };
-    public static readonly Option<string> ThreadDisplayNameOption = new("--display-name") 
-    { 
+    public static readonly Option<string> ThreadDisplayNameOption = new("--display-name")
+    {
         Description = "Display name for the message (defaults to current user)"
     };
-    public static readonly Option<bool> ThreadWaitOption = new("--wait") 
-    { 
+    public static readonly Option<bool> ThreadWaitOption = new("--wait")
+    {
         Description = "Wait for the agent's response (default: true)",
         Arity = ArgumentArity.ZeroOrOne
     };
-    public static readonly Option<bool> ThreadNoWaitOption = new("--no-wait") 
-    { 
+    public static readonly Option<bool> ThreadNoWaitOption = new("--no-wait")
+    {
         Description = "Don't wait for the agent's response (overrides default wait behavior)"
     };
-    public static readonly Option<string> ThreadIdOption = new("--thread-id") 
-    { 
+    public static readonly Option<string> ThreadIdOption = new("--thread-id")
+    {
         Description = "Thread ID to continue (if not provided, uses the last used thread)"
     };
-    public static readonly Option<string> ThreadIdRequiredOption = new("--thread-id") 
-    { 
+    public static readonly Option<string> ThreadIdRequiredOption = new("--thread-id")
+    {
         Required = true,
         Description = "Thread ID to delete"
     };
+
+    // TODO: Add completion support in future version
+    // static AgentCommandOptions()
+    // {
+    //     // Configure completions
+    //     ApplyNameOption.AddCompletions(CompletionService.GetAgentNames);
+    //     DeleteNameOption.AddCompletions(CompletionService.GetAgentNames);
+    //     TestNameOption.AddCompletions(CompletionService.GetAgentNames);
+    //     ToolsOptionCreate.AddCompletions(CompletionService.GetToolNames);
+    //     HandoffsOption.AddCompletions(CompletionService.GetAgentNames);
+    // }
 }

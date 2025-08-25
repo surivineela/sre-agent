@@ -7,6 +7,12 @@ namespace Agent.Cli.Commands;
 /// </summary>
 public static class DocumentCommandOptions
 {
+    // Global debug option for all document commands
+    public static readonly Option<bool> DebugOption = new("--debug")
+    {
+        Description = "Enable verbose debug logging for network calls and operations"
+    };
+
     // Document upload options (mutually exclusive)
     public static readonly Option<string> FileOption = new("--file")
     {

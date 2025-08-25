@@ -65,7 +65,7 @@ if !errorlevel! equ 0 (
 echo.
 
 REM Test 3: Agent creation with custom properties
-echo [TEST 3] Agent creation with custom properties  
+echo [TEST 3] Agent creation with custom properties
 set /a TOTAL_TESTS+=1
 dotnet run --project .. -- agent create --name custom_agent --instructions "Custom agent with additional properties - this is a comprehensive test with sufficient length" --tools CustomTool --temperature 0.8 --max-reflection-count 2 --common-prompts format_guidelines > test3_output.txt 2>&1
 if !errorlevel! equ 0 (
@@ -824,7 +824,7 @@ echo { "invalid": "json" "missing_comma": true > ".sreagent-config.json"
 dotnet run --project .. -- agent validate --file agents\example_agent.yaml > test44_output.txt 2>&1
 REM Should handle corrupted config gracefully
 if !errorlevel! neq 0 (
-    findstr /i "config\|json\|parse" test44_output.txt >nul
+    findstr /i "Configuration corrupted" test44_output.txt >nul
     if !errorlevel! equ 0 (
         echo [PASS] Corrupted configuration file - Appropriate error handling
         set /a TESTS_PASSED+=1
@@ -855,7 +855,7 @@ echo { "resourceUrl": "not-a-valid-url" } > ".sreagent-config.json"
 dotnet run --project .. -- agent validate --file agents\example_agent.yaml --check-tools > test45_output.txt 2>&1
 REM Should handle invalid URL gracefully
 if !errorlevel! neq 0 (
-    findstr /i "url\|connection\|invalid" test45_output.txt >nul
+    findstr /i "Invalid resource URL" test45_output.txt >nul
     if !errorlevel! equ 0 (
         echo [PASS] Invalid resource URL - Appropriate error handling
         set /a TESTS_PASSED+=1
@@ -890,7 +890,7 @@ echo [TEST 46] Tool creation - Invalid tool type
 set /a TOTAL_TESTS+=1
 dotnet run --project .. -- tool create --name invalid_type_tool --type InvalidToolType --extra description "Tool with invalid type" > test46_output.txt 2>&1
 if !errorlevel! neq 0 (
-    findstr /i "invalid\|type\|unknown" test46_output.txt >nul
+    findstr /i "Unknown tool type" test46_output.txt >nul
     if !errorlevel! equ 0 (
         echo [PASS] Tool creation - Invalid tool type - Expected failure occurred
         set /a TESTS_PASSED+=1
@@ -928,7 +928,7 @@ echo [TEST 48] Tool creation - Multiple valid types
 set /a TOTAL_TESTS+=1
 dotnet run --project .. -- tool create --name valid_type_tool1 --type KustoTool --extra description "Valid Kusto tool" > test48a_output.txt 2>&1
 set RESULT1=!errorlevel!
-dotnet run --project .. -- tool create --name valid_type_tool2 --type GenericTool --extra description "Valid Generic tool" > test48b_output.txt 2>&1
+dotnet run --project .. -- tool create --name valid_type_tool2 --type KustoQuery --extra description "Valid Kusto Query tool" > test48b_output.txt 2>&1
 set RESULT2=!errorlevel!
 if !RESULT1! equ 0 (
     if !RESULT2! equ 0 (
@@ -1378,6 +1378,432 @@ echo.
 echo.
 
 REM ===========================================
+REM PROFILE MANAGEMENT TESTS
+REM ===========================================
+
+echo ===========================================
+echo PROFILE MANAGEMENT TESTS
+echo ===========================================
+echo.
+
+REM Test 67: Create test profile with local URL
+echo [TEST 67] Create test profile with local URL
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- profile create --name test_local --url "https://localhost:7023" > test67_output.txt 2>&1
+if !errorlevel! equ 0 (
+    findstr /i "Connection successful" test67_output.txt >nul
+    if !errorlevel! equ 0 (
+        echo [PASS] Create test profile with local URL
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Create test profile - Missing success message
+        type test67_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Create test profile - Command failed
+    type test67_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 68: Create test profile with remote URL
+echo [TEST 68] Create test profile with remote URL
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- profile create --name test_remote --url "https://localhost:7023" > test68_output.txt 2>&1
+if !errorlevel! equ 0 (
+    findstr /i "created successfully" test68_output.txt >nul
+    if !errorlevel! equ 0 (
+        echo [PASS] Create test profile with remote URL
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Create test profile remote - Missing success message
+        type test68_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Create test profile remote - Command failed
+    type test68_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 69: Create profile with set-current option
+echo [TEST 69] Create profile with set-current option
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- profile create --name test_current --url "https://localhost:7023" --set-current > test69_output.txt 2>&1
+if !errorlevel! equ 0 (
+    findstr /i "created successfully" test69_output.txt >nul
+    if !errorlevel! equ 0 (
+        findstr /i "Set as current profile: Yes" test69_output.txt >nul
+        if !errorlevel! equ 0 (
+            echo [PASS] Create profile with set-current option
+            set /a TESTS_PASSED+=1
+        ) else (
+            echo [FAIL] Create profile with set-current - Missing current profile message
+            type test69_output.txt
+            set /a TESTS_FAILED+=1
+        )
+    ) else (
+        echo [FAIL] Create profile with set-current - Missing success message
+        type test69_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Create profile with set-current - Command failed
+    type test69_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 70: List profiles
+echo [TEST 70] List profiles
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- profile list > test70_output.txt 2>&1
+if !errorlevel! equ 0 (
+    findstr /i "test_local" test70_output.txt >nul
+    if !errorlevel! equ 0 (
+        findstr /i "test_remote" test70_output.txt >nul
+        if !errorlevel! equ 0 (
+            findstr /i "test_current.*current" test70_output.txt >nul
+            if !errorlevel! equ 0 (
+                echo [PASS] List profiles - All test profiles found with current marker
+                set /a TESTS_PASSED+=1
+            ) else (
+                echo [FAIL] List profiles - Current profile marker not found
+                type test70_output.txt
+                set /a TESTS_FAILED+=1
+            )
+        ) else (
+            echo [FAIL] List profiles - test_remote not found
+            type test70_output.txt
+            set /a TESTS_FAILED+=1
+        )
+    ) else (
+        echo [FAIL] List profiles - test_local not found
+        type test70_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] List profiles - Command failed
+    type test70_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 71: Get current profile (without name argument)
+echo [TEST 71] Get current profile (without name argument)
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- profile get > test71_output.txt 2>&1
+if !errorlevel! equ 0 (
+    findstr /i "Current profile: test_current" test71_output.txt >nul
+    if !errorlevel! equ 0 (
+        findstr /i "Resource URL: https://localhost:7025" test71_output.txt >nul
+        if !errorlevel! equ 0 (
+            echo [PASS] Get current profile - Shows correct current profile details
+            set /a TESTS_PASSED+=1
+        ) else (
+            echo [FAIL] Get current profile - Missing or wrong resource URL
+            type test71_output.txt
+            set /a TESTS_FAILED+=1
+        )
+    ) else (
+        echo [FAIL] Get current profile - Wrong profile name
+        type test71_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Get current profile - Command failed
+    type test71_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 72: Get specific profile by name
+echo [TEST 72] Get specific profile by name
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- profile get --name test_remote > test72_output.txt 2>&1
+if !errorlevel! equ 0 (
+    findstr /i "Profile: test_remote" test72_output.txt >nul
+    if !errorlevel! equ 0 (
+        findstr /i "Resource URL: https://remote.example.com" test72_output.txt >nul
+        if !errorlevel! equ 0 (
+            findstr /i "Auth Required: true" test72_output.txt >nul
+            if !errorlevel! equ 0 (
+                echo [PASS] Get specific profile - Shows correct profile details with auth required
+                set /a TESTS_PASSED+=1
+            ) else (
+                echo [FAIL] Get specific profile - Missing or wrong auth required setting
+                type test72_output.txt
+                set /a TESTS_FAILED+=1
+            )
+        ) else (
+            echo [FAIL] Get specific profile - Missing or wrong resource URL
+            type test72_output.txt
+            set /a TESTS_FAILED+=1
+        )
+    ) else (
+        echo [FAIL] Get specific profile - Wrong profile name
+        type test72_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Get specific profile - Command failed
+    type test72_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 73: Set different profile as current
+echo [TEST 73] Set different profile as current
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- profile set --name test_local > test73_output.txt 2>&1
+if !errorlevel! equ 0 (
+    findstr /i "Switched to profile 'test_local'" test73_output.txt >nul
+    if !errorlevel! equ 0 (
+        findstr /i "Resource URL: https://localhost:7024" test73_output.txt >nul
+        if !errorlevel! equ 0 (
+            echo [PASS] Set different profile as current
+            set /a TESTS_PASSED+=1
+        ) else (
+            echo [FAIL] Set profile - Missing or wrong resource URL
+            type test73_output.txt
+            set /a TESTS_FAILED+=1
+        )
+    ) else (
+        echo [FAIL] Set profile - Missing success message
+        type test73_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Set profile - Command failed
+    type test73_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 74: Verify profile switch by listing profiles
+echo [TEST 74] Verify profile switch by listing profiles
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- profile list > test74_output.txt 2>&1
+if !errorlevel! equ 0 (
+    findstr /i "test_local.*current" test74_output.txt >nul
+    if !errorlevel! equ 0 (
+        findstr /i "test_current" test74_output.txt >nul
+        if !errorlevel! equ 0 (
+            REM Make sure test_current doesn't have (current) marker
+            findstr /i "test_current.*current" test74_output.txt >nul
+            if !errorlevel! neq 0 (
+                echo [PASS] Verify profile switch - Current profile correctly updated
+                set /a TESTS_PASSED+=1
+            ) else (
+                echo [FAIL] Verify profile switch - Old profile still marked as current
+                type test74_output.txt
+                set /a TESTS_FAILED+=1
+            )
+        ) else (
+            echo [FAIL] Verify profile switch - test_current profile missing
+            type test74_output.txt
+            set /a TESTS_FAILED+=1
+        )
+    ) else (
+        echo [FAIL] Verify profile switch - test_local not marked as current
+        type test74_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Verify profile switch - List command failed
+    type test74_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM =======================
+REM Test 75
+REM =======================
+echo [TEST 75] Try to delete current profile (should fail)
+set /a TOTAL_TESTS+=1
+
+dotnet run --project .. -- profile delete --name test_local > test75_output.txt 2>&1
+
+REM dotnet should fail -> errorlevel >= 1
+if errorlevel 1 (
+    REM Look for the specific message
+    findstr /i /r /c:"Cannot delete.*current profile" test75_output.txt >nul
+
+    if not errorlevel 1 (
+        echo [PASS] Try to delete current profile - Properly prevented
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Try to delete current profile - Wrong error message
+        type test75_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Try to delete current profile - Should have failed but succeeded
+    type test75_output.txt
+    set /a TESTS_FAILED+=1
+)
+
+echo.
+
+REM Test 76: Switch to different profile then delete non-current profile
+echo [TEST 76] Switch to different profile then delete non-current profile
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- profile set --name test_remote > test76a_output.txt 2>&1
+if !errorlevel! equ 0 (
+    dotnet run --project .. -- profile delete --name test_current > test76_output.txt 2>&1
+    if !errorlevel! equ 0 (
+        findstr /i "deleted successfully" test76_output.txt >nul
+        if !errorlevel! equ 0 (
+            echo [PASS] Delete non-current profile
+            set /a TESTS_PASSED+=1
+        ) else (
+            echo [FAIL] Delete non-current profile - Missing success message
+            type test76_output.txt
+            set /a TESTS_FAILED+=1
+        )
+    ) else (
+        echo [FAIL] Delete non-current profile - Command failed
+        type test76_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Switch profile before delete - Command failed
+    type test76a_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 77: Try to create profile with duplicate name (should fail)
+echo [TEST 77] Try to create profile with duplicate name (should fail)
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- profile create --name test_remote --url "https://localhost:7026" > test77_output.txt 2>&1
+if !errorlevel! neq 0 (
+    findstr /i "already exists" test77_output.txt >nul
+    if !errorlevel! equ 0 (
+        echo [PASS] Create duplicate profile - Properly prevented
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Create duplicate profile - Wrong error message
+        type test77_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Create duplicate profile - Should have failed but succeeded
+    type test77_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 78: Try to create profile with invalid URL (should fail)
+echo [TEST 78] Try to create profile with invalid URL (should fail)
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- profile create --name test_invalid --url "not-a-valid-url" > test78_output.txt 2>&1
+if !errorlevel! neq 0 (
+    findstr /i "Invalid URL format" test78_output.txt >nul
+    if !errorlevel! equ 0 (
+        echo [PASS] Create profile with invalid URL - Properly prevented
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Create profile with invalid URL - Wrong error message
+        type test78_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Create profile with invalid URL - Should have failed but succeeded
+    type test78_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 79: Try to get non-existent profile (should fail)
+echo [TEST 79] Try to get non-existent profile (should fail)
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- profile get --name non_existent_profile > test79_output.txt 2>&1
+if !errorlevel! neq 0 (
+    findstr /i "not found" test79_output.txt >nul
+    if !errorlevel! equ 0 (
+        echo [PASS] Get non-existent profile - Proper error handling
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Get non-existent profile - Wrong error message
+        type test79_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Get non-existent profile - Should have failed but succeeded
+    type test79_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 80: Try to set non-existent profile (should fail)
+echo [TEST 80] Try to set non-existent profile (should fail)
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- profile set --name non_existent_profile > test80_output.txt 2>&1
+if !errorlevel! neq 0 (
+    findstr /i "not found" test80_output.txt >nul
+    if !errorlevel! equ 0 (
+        echo [PASS] Set non-existent profile - Proper error handling
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Set non-existent profile - Wrong error message
+        type test80_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Set non-existent profile - Should have failed but succeeded
+    type test80_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 81: Try to delete non-existent profile (should fail)
+echo [TEST 81] Try to delete non-existent profile (should fail)
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- profile delete --name non_existent_profile > test81_output.txt 2>&1
+if !errorlevel! neq 0 (
+    findstr /i "not found" test81_output.txt >nul
+    if !errorlevel! equ 0 (
+        echo [PASS] Delete non-existent profile - Proper error handling
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Delete non-existent profile - Wrong error message
+        type test81_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Delete non-existent profile - Should have failed but succeeded
+    type test81_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 82: Clean up test profiles
+echo [TEST 82] Clean up test profiles
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- profile set --name test_local > test82a_output.txt 2>&1
+if !errorlevel! equ 0 (
+    dotnet run --project .. -- profile delete --name test_remote > test82b_output.txt 2>&1
+    if !errorlevel! equ 0 (
+        echo [PASS] Clean up test profiles
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Clean up test profiles - Failed to delete test_remote
+        type test82b_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Clean up test profiles - Failed to switch to test_local
+    type test82a_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+echo.
+
+REM ===========================================
 REM CLEANUP AND SUMMARY
 REM ===========================================
 
@@ -1403,7 +1829,7 @@ if exist "agents" (
     if exist "agents\DeleteTestAgent1" rmdir /s /q "agents\DeleteTestAgent1"
     if exist "agents\DeleteTestAgent2" rmdir /s /q "agents\DeleteTestAgent2"
     if exist "agents\DependentAgent" rmdir /s /q "agents\DependentAgent"
-    
+
     REM Keep example_agent.yaml as it was created by init
 )
 
@@ -1418,7 +1844,7 @@ if exist "tools" (
     if exist "tools\valid_type_tool2.yaml" del "tools\valid_type_tool2.yaml"
     if exist "tools\DeleteTestTool1.yaml" del "tools\DeleteTestTool1.yaml"
     if exist "tools\DeleteTestTool2.yaml" del "tools\DeleteTestTool2.yaml"
-    
+
     REM Keep example_tool.yaml as it was created by init
 )
 
@@ -1428,6 +1854,13 @@ if exist "agents" (
     if exist "agents\missing_fields.yaml" del "agents\missing_fields.yaml"
     if exist "agents\invalid_types.yaml" del "agents\invalid_types.yaml"
     if exist "agents\malformed_structure.yaml" del "agents\malformed_structure.yaml"
+)
+
+REM Clean up test profile files
+if exist ".sreagent-profiles" (
+    if exist ".sreagent-profiles\test_local.json" del ".sreagent-profiles\test_local.json"
+    if exist ".sreagent-profiles\test_remote.json" del ".sreagent-profiles\test_remote.json"
+    if exist ".sreagent-profiles\test_current.json" del ".sreagent-profiles\test_current.json"
 )
 
 REM Clean up test output files
@@ -1453,7 +1886,7 @@ if !TESTS_FAILED! equ 0 (
     echo.
     echo Key features tested:
     echo - Agent creation and validation
-    echo - Tool creation and validation 
+    echo - Tool creation and validation
     echo - Basic YAML validation
     echo - Tool existence validation (--check-tools)
     echo - Error handling for missing tools
@@ -1469,6 +1902,9 @@ if !TESTS_FAILED! equ 0 (
     echo - Delete command error handling
     echo - Dependency checking for deletion
     echo - Server integration for delete operations
+    echo - Profile management (create, list, get, set, delete)
+    echo - Profile switching and current profile tracking
+    echo - Profile validation and error handling
     exit /b 0
 ) else (
     echo.
