@@ -1,39 +1,70 @@
 import { mergeStyleSets } from '@fluentui/react';
 import { makeStyles, tokens } from '@fluentui/react-components';
 
-export const navStyles = {
-    root: {
-        width: 200,
-        marginLeft: 20,
-        marginTop: 20,
-    },
-    compositeLink: {
+const drawerStyle = {
+    height: 'calc(100% - 16px)',
+    paddingTop: '16px',
+    paddingLeft: '16px',
+    maxWidth: '215px',
+    backgroundColor: 'transparent',
+};
+
+const iconStyle = {
+    height: '16px',
+    width: '16px',
+    '&:hover': {
         backgroundColor: 'transparent',
-        selectors: {
-            '&.is-selected': {
-                backgroundColor: tokens.colorNeutralBackground3Selected,
-            },
-            '&:hover': {
-                backgroundColor: tokens.colorNeutralBackground3Hover,
-            },
-        },
-        height: 32,
-        borderRadius: 4,
-    },
-    link: {
-        paddingLeft: 5,
-        backgroundColor: 'transparent !important',
-        selectors: {
-            '&:after': {
-                inset: '5px 0px',
-                width: '0px',
-                borderWidth: `3px`,
-                borderRadius: tokens.borderRadiusCircular,
-            },
-        },
-        height: 32,
     },
 };
+
+export const useNavStyles = makeStyles({
+    drawer: drawerStyle,
+    drawerCollapsed: {
+        ...drawerStyle,
+        width: '56px',
+    },
+    drawerHeader: {
+        backgroundColor: 'transparent',
+        padding: `0px 0px ${tokens.spacingVerticalXXS} 0px !important`,
+    },
+    headerButton: {
+        paddingLeft: '8px',
+        paddingRight: '8px',
+        height: '40px',
+        maxWidth: '40px',
+    },
+    headerIcon: iconStyle,
+    drawerBody: {
+        backgroundColor: 'transparent',
+        padding: '0px',
+    },
+    item: {
+        backgroundColor: 'transparent',
+        '&.is-selected': {
+            backgroundColor: tokens.colorNeutralBackground3Selected,
+        },
+        '&:hover': {
+            backgroundColor: tokens.colorNeutralBackground3Hover,
+        },
+        '::after': {
+            marginInlineStart: '-8px',
+        },
+        paddingLeft: '8px',
+        borderRadius: '4px',
+        gap: '8px',
+        alignItems: 'center',
+    },
+    itemIcon: {
+        ...iconStyle,
+        margin: 'auto',
+    },
+    itemText: {
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        flex: 1,
+    },
+});
 
 export const useIncidentManagementStyles = makeStyles({
     root: {

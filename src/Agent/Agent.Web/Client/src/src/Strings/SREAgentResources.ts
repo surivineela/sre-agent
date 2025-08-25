@@ -913,6 +913,8 @@ export const IncidentManagementResources = defineMessages({
     fullPage: { defaultMessage: 'Full page', id: 'Pcf4MK' },
     closePanel: { defaultMessage: 'Close panel', id: 'RAjqKb' },
     noIncidentsFound: { defaultMessage: 'No incidents found', id: '312q4w' },
+    expandNavigation: { defaultMessage: 'Expand navigation', id: '3wVEAO' },
+    collapseNavigation: { defaultMessage: 'Collapse navigation', id: 'IoApza' },
 });
 
 export const IncidentManagementPlatformResources = defineMessages({

@@ -483,6 +483,12 @@
       "value": "Can view cost data and configuration (e.g. budgets, exports)."
     }
   ],
+  "3wVEAO": [
+    {
+      "type": 0,
+      "value": "Expand navigation"
+    }
+  ],
   "3zLsNR": [
     {
       "type": 0,
@@ -1717,6 +1723,12 @@
     {
       "type": 0,
       "value": "New thread"
+    }
+  ],
+  "IoApza": [
+    {
+      "type": 0,
+      "value": "Collapse navigation"
     }
   ],
   "IuFETn": [
