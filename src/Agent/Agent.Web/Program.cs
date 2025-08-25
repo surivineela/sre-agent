@@ -1076,7 +1076,12 @@ public class Program
                                 var resourceGroup = AgentNameHelper.GetResourceGroupName(isProd);
                                 var agentName = AgentNameHelper.GetAgentName(isProd);
 
-                                var agentResourceId = $"/subscriptions/{subscriptionId}/resourcegroups/{resourceGroup}/providers/microsoft.app/agents/{agentName}";
+                                // Remove the prefix unique ID part (everything after the last double dashes)
+                                var agentNameWithoutPrefix = agentName.Contains("--")
+                                    ? agentName.Substring(0, agentName.LastIndexOf("--"))
+                                    : agentName;
+
+                                var agentResourceId = $"/subscriptions/{subscriptionId}/resourcegroups/{resourceGroup}/providers/microsoft.app/agents/{agentNameWithoutPrefix}";
                                 logData["AgentResourceId"] = agentResourceId;
                             }
                             catch (Exception)
