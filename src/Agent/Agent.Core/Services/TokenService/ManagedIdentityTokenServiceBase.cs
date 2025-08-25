@@ -1,4 +1,3 @@
-using Agent.Logging;
 using Azure.Core;
 using Azure.Identity;
 using Microsoft.Extensions.Logging;
@@ -15,7 +14,7 @@ namespace Agent.Core.Services.TokenService
         /// <summary>
         /// Gets AAD issued auth token.
         /// </summary>
-        public string? AuthorizationToken { get; set; }
+        public string AuthorizationToken { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets AAD Resource.
@@ -70,27 +69,14 @@ namespace Agent.Core.Services.TokenService
                         AccessToken token = await acquireTokenTask;
                         AuthorizationToken = GetAuthTokenFromValueTask(token);
                         tokenAcquiredAtleastOnce = true;
-                        message = $"Token Acquisition Status Client id {ClientId} Resource id {Resource} : Success";
+                        logger.LogInternalInformation($"[{TokenServiceName}]Token Acquisition Status Client id {ClientId} Resource id {Resource} : Success");
                     }
                 }
                 catch (Exception ex)
                 {
                     exceptionType = ex.GetType().ToString();
                     exceptionDetails = ex.ToString();
-                    message = $"Token Acquisition Status Client id {ClientId} Resource id {Resource} : Failed, Reason {exceptionDetails}";
-                }
-                finally
-                {
-                    DateTime invocationEndTime = DateTime.UtcNow;
-                    long latencyInMs = Convert.ToInt64((invocationEndTime - invocationStartTime).TotalMilliseconds);
-                    logger.LogInternalInformation(
-                       TokenServiceName,
-                        message,
-                        latencyInMs,
-                        invocationStartTime.ToString("HH:mm:ss.fff"),
-                        invocationEndTime.ToString("HH:mm:ss.fff"),
-                        exceptionType,
-                        exceptionDetails);
+                    logger.LogInternalError($"[{TokenServiceName}]Token Acquisition Status Client id {ClientId} Resource id {Resource} : Failed, Reason {exceptionDetails}");
                 }
 
                 await Task.Delay(TokenServiceConstants.TokenRefreshIntervalInMs);
@@ -104,7 +90,7 @@ namespace Agent.Core.Services.TokenService
             // This will help default to VS credentials when developing locally
             if (Environment.GetEnvironmentVariable("MSI_ENDPOINT") != null)
             {
-                if(!string.IsNullOrEmpty(ResourceId))
+                if (!string.IsNullOrEmpty(ResourceId))
                 {
                     authOptions.ManagedIdentityResourceId = new ResourceIdentifier(ResourceId);
                 }
@@ -121,11 +107,11 @@ namespace Agent.Core.Services.TokenService
         /// <summary>
         /// Gets AAD issued auth token.
         /// </summary>
-        public virtual async Task<string?> GetAuthorizationTokenAsync()
+        public virtual async Task<string> GetAuthorizationTokenAsync()
         {
             if (!ManagedIdentityEnabled)
             {
-                return null;
+                return string.Empty;
             }
             if (TokenCredential == null)
             {
@@ -142,6 +128,10 @@ namespace Agent.Core.Services.TokenService
 
         private string GetAuthTokenFromValueTask(AccessToken accessToken)
         {
+            if (string.IsNullOrEmpty(accessToken.Token))
+            {
+                throw new InvalidOperationException($"[{TokenServiceName}]Failed to acquire token from Managed Identity for Resource: {Resource}, ClientId: {ClientId}");
+            }
             return accessToken.Token;
         }
     }
