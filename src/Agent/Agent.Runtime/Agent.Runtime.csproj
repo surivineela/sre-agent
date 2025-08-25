@@ -17,6 +17,7 @@
     <PackageReference Include="ScottPlot" />
     <PackageReference Include="Azure.AI.OpenAI" />
     <PackageReference Include="Grpc.Net.Client" />
+    <PackageReference Include="Microsoft.Extensions.AI.Evaluation.Quality" />
     <PackageReference Include="Microsoft.DurableTask.Client.AzureManaged" />
     <PackageReference Include="Microsoft.DurableTask.Worker.AzureManaged" />
     <PackageReference Include="Microsoft.DurableTask.Generators" OutputItemType="Analyzer" />

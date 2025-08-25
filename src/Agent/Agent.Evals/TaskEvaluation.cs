@@ -76,13 +76,15 @@ public class TaskEvaluation
 
         // Create a mock IThreadRepository
         var mockThreadRepository = new Mock<IThreadRepository>();
+        var mockRagEvaluator = new Mock<IRagEvaluator>();
 
         // Create the ThreadEvaluator with proper dependencies
         var threadEvaluator = new ThreadEvaluator(
             logger: mockLogger,
             threadRepository: mockThreadRepository.Object,
             chatClient: mockChatClient,
-            tracer: mockTracer
+            tracer: mockTracer,
+            ragEvaluator: mockRagEvaluator.Object
         );
 
         // Create a test thread model

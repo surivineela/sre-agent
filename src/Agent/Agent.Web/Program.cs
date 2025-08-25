@@ -533,6 +533,7 @@ public class Program
             .AddSingleton<IAzureDevOpsService, AzureDevOpsService>()
             .AddSingleton<IGitHubService, GitHubService>()
             .AddSingleton<ISessionPoolService, SessionPoolService>()
+            .AddSingleton<IRagEvaluator, RagEvaluator>()
 
 
             .AddSingleton(sp =>

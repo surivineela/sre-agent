@@ -31,14 +31,17 @@ public partial class ThreadEvaluator
     private readonly IThreadRepository _threadRepository;
     private readonly IChatClient _chatClient;
     private readonly Tracer _tracer;
+    private readonly IRagEvaluator _ragEvaluator;
     // Configurable time windows for thread filtering
     private readonly TimeSpan _evaluationHistoryRange; // How far back to search for threads
     private readonly TimeSpan _coolDownPeriod;         // Minimum time since last modification before evaluation
+
     public ThreadEvaluator(
       ILogger<ThreadEvaluator> logger,
       IThreadRepository threadRepository,
       IChatClient chatClient,
       Tracer tracer,
+      IRagEvaluator ragEvaluator,
       TimeSpan? evaluationHistoryRange = null,
       TimeSpan? coolDownPeriod = null)
     {
@@ -46,6 +49,7 @@ public partial class ThreadEvaluator
         _threadRepository = threadRepository;
         _chatClient = chatClient;
         _tracer = tracer;
+        _ragEvaluator = ragEvaluator;
 
         // Allow overriding default time windows
         _evaluationHistoryRange = evaluationHistoryRange ?? TimeSpan.FromHours(24);
@@ -88,6 +92,7 @@ public partial class ThreadEvaluator
 
                     // If isEvaluationUpToDate == false, proceed with evaluation
                     var evaluationResult = await EvaluateThread(thread, cancellationToken);
+                    var ragEvalResult = await _ragEvaluator.EvaluateRagPerformanceAsync(thread, cancellationToken);
                 }
                 catch (Exception ex)
                 {
