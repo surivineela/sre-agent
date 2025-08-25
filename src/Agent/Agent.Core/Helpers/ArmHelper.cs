@@ -613,7 +613,8 @@ public class ArmHelper
     public static AppPlanSku GetNextSku(AppPlanSku currentSku)
     {
         // Define the SKU progression
-        var skuProgression = new[] { "F1", "D1", "B1", "B2", "B3", "S1", "S2", "S3", "P1", "P1v2", "P2v2", "P3v2", "P0v3", "P1v3", "P2v3", "P3v3" };
+        var skuProgression = new[] { "F1", "D1", "B1", "B2", "B3", "S1", "S2", "S3", "P1", "P1v2", "P2v2", "P3v2", "P0v3", "P1v3", "P2v3", "P3v3",
+            "P1mv3", "P2v3", "P2mv3", "P3v3", "P3mv3", "P4mv3", "P5mv3", "I1v2", "I2v2", "I3v2", "I4v2", "I5v2", "I6v2"};
 
         // Find the index of the current SKU
         int currentIndex = Array.IndexOf(skuProgression, currentSku.Size);
@@ -2627,8 +2628,11 @@ public class ArmHelper
             "P3v2" => 4,
             "P0v3" => 1,
             "P1v3" => 2,
+            "P1mv3" => 2,
             "P2v3" => 4,
+            "P2mv3" => 4,
             "P3v3" => 8,
+            "P3mv3" => 8,
             "P4mv3" => 16,
             "P5mv3" => 32,
             "I1v2" => 2,
@@ -3316,6 +3320,17 @@ public class ArmHelper
             "P1v3" => "Pv3",
             "P2v3" => "Pv3",
             "P3v3" => "Pv3",
+            "P1mv3" => "Pvm3",
+            "P2mv3" => "Pvm3",
+            "P3mv3" => "Pvm3",
+            "P4mv3" => "Pvm3",
+            "P5mv3" => "Pvm3",
+            "I1v2" => "Iv2",
+            "I2v2" => "Iv2",
+            "I3v2" => "Iv2",
+            "I4v2" => "Iv2",
+            "I5v2" => "Iv2",
+            "I6v2" => "Iv2",
             _ => throw new ArgumentException("Unknown SKU")
         };
     }
@@ -3342,6 +3357,17 @@ public class ArmHelper
             "P1v3" => "PremiumV3",
             "P2v3" => "PremiumV3",
             "P3v3" => "PremiumV3",
+            "P1mv3" => "PremiumV3",
+            "P2mv3" => "PremiumV3",
+            "P3mv3" => "PremiumV3",
+            "P4mv3" => "PremiumV3",
+            "P5mv3" => "PremiumV3",
+            "I1v2" => "IsolatedV2",
+            "I2v2" => "IsolatedV2",
+            "I3v2" => "IsolatedV2",
+            "I4v2" => "IsolatedV2",
+            "I5v2" => "IsolatedV2",
+            "I6v2" => "IsolatedV2",
             _ => throw new ArgumentException("Unknown SKU")
         };
     }
