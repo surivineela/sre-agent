@@ -7,6 +7,7 @@ using System.Text.Json.Serialization;
 using Agent.Core.Configuration;
 using Agent.Data.DataModels;
 using Agent.Graph.Interfaces;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -39,35 +40,112 @@ public class PagerDutyService : IPagerDutyService
 
     }
 
-    public async Task<PagerDutyIncidentsResponse> GetIncidentsAsync(uint limit, uint offset)
+    public async Task<IEnumerable<PagerDutyIncident>> GetIncidentsAsync(uint limit, uint offset, DateTime? since, string? impactServiceId, string? priority, string? titleContains, string? urgency, IEnumerable<string>? statuses)
     {
         _logger.LogInternalInformation("Getting PagerDuty incidents with limit: {limit}, offset: {offset}", limit, offset);
-        using var client = CreateHttpClient();
+
+        var incidents = new List<PagerDutyIncident>();
+
+        if (limit == 0 || limit > 100)
+        {
+            throw new ArgumentOutOfRangeException(nameof(limit), "Limit must be between 1 and 100.");
+        }
+
+        if (!since.HasValue)
+        {
+            since = DateTime.UtcNow.AddDays(-90);
+        }
+        if (since < DateTime.UtcNow.AddDays(-180))
+        {
+            throw new ArgumentOutOfRangeException(nameof(since), "Since must be within the last 180 days.");
+        }
+
         // The default time range of Listing incidents is a month, per https://developer.pagerduty.com/api-reference/9d0b4b12e36f9-list-incidents
         // Note: include%5B%5D=first_trigger_log_entries is required to get the full log entry, which contains the real incident description.
         // Note: removing the status filters as they prevent indexing incidents that will be used to derive learnings from
-        var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.pagerduty.com/incidents?limit={limit}&offset={offset}&include%5B%5D=first_trigger_log_entries");
+
+
+        var queryParams = new List<KeyValuePair<string, string?>> {
+            new KeyValuePair<string, string?>("limit", limit.ToString()),
+            new KeyValuePair<string, string?>("offset", offset.ToString()),
+            new KeyValuePair<string, string?>("include[]", "first_trigger_log_entries"),
+            new KeyValuePair<string, string?>("since", since?.ToString("o"))
+        };
+
+        //If impactServiceId is provided(could be name or id), we need to translate it to service ID via /services API.
+        if (!string.IsNullOrEmpty(impactServiceId))
+        {
+            var servicesResponse = await GetPagerDutyRequest("services");
+            var services = await servicesResponse.Content.ReadFromJsonAsync<PDServicesResponse>();
+            var service = services?.Services.FirstOrDefault(s => impactServiceId.Equals(s.Name, StringComparison.OrdinalIgnoreCase) || impactServiceId.Equals(s.Id, StringComparison.OrdinalIgnoreCase));
+            if (string.IsNullOrEmpty(service?.Id))
+            {
+                var availableServices = string.Join(",", services?.Services.Select(s => s.Name) ?? []);
+                _logger.LogInternalWarning($"Cannot find {impactServiceId} in {availableServices}");
+            }
+            else
+            {
+                queryParams.Add(new KeyValuePair<string, string?>("service_ids[]", service.Id));
+            }
+        }
+
+        if (!string.IsNullOrEmpty(urgency))
+        {
+            queryParams.Add(new KeyValuePair<string, string?>("urgencies[]", urgency));
+        }
+
+        if (statuses is not null && statuses.Any())
+        {
+            queryParams.AddRange(statuses.Select(status => new KeyValuePair<string, string?>("status[]", status)));
+        }
+
+        var allIncidents = await GetIncidentsAsyncInternal(queryParams);
+
+        //For some properties that cannot be filtered via API query parameters, we filter in-memory.
+        return allIncidents.Where(incident =>
+        {
+            bool isMatch = true;
+            if (!string.IsNullOrEmpty(priority))
+            {
+                isMatch = isMatch && priority.Equals(incident.Priority?.Summary, StringComparison.OrdinalIgnoreCase);
+            }
+
+            if (!string.IsNullOrEmpty(titleContains))
+            {
+                isMatch = isMatch && (incident.Title?.Contains(titleContains, StringComparison.OrdinalIgnoreCase) == true);
+            }
+            return isMatch;
+        });
+    }
+
+    private async Task<IEnumerable<PagerDutyIncident>> GetIncidentsAsyncInternal(IEnumerable<KeyValuePair<string, string?>> queryParams)
+    {
+        string apiPath = QueryHelpers.AddQueryString("https://api.pagerduty.com/incidents", queryParams);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, apiPath);
+
+        using var client = CreateHttpClient();
         var response = await client.SendAsync(request);
         if (response.IsSuccessStatusCode)
         {
             var incidentsResponse = await response.Content.ReadFromJsonAsync<PagerDutyIncidentsResponse>();
-            if (incidentsResponse != null)
+            if (incidentsResponse is not null)
             {
                 _logger.LogInternalInformation("Successfully retrieved {count} PagerDuty incidents.", incidentsResponse.Incidents.Count);
-                return incidentsResponse;
+                return incidentsResponse.Incidents;
             }
             else
             {
                 _logger.LogInternalError("Failed to deserialize PagerDuty incidents response.");
+                throw new Exception("Failed to deserialize OData response.");
             }
         }
         else
         {
             var errorContent = await response.Content.ReadAsStringAsync();
-            _logger.LogInternalError("Failed to get PagerDuty incidents: {errorContent}", errorContent);
+            _logger.LogInternalError("Failed to get PagerDuty incidents: {errorContent}, url: {url}", errorContent, apiPath);
+            throw new HttpRequestException($"Failed to get PagerDuty incidents: {response.StatusCode}");
         }
-
-        throw new HttpRequestException($"Failed to get PagerDuty incidents: {response.StatusCode}");
     }
 
     public async Task<HttpResponseMessage> GetPagerDutyRequest(string requestPath)
@@ -326,6 +404,11 @@ public class PagerDutyService : IPagerDutyService
             throw new HttpRequestException($"Failed to acknowledge PagerDuty incident ID: {incidentId}. Error: {errorContent}");
         }
     }
+
+    public Task<IEnumerable<PagerDutyIncident>> GetIncidentsAsyncGetIncidentsAsync(uint limit, uint offset, DateTime? since, string? impactServiceId, string? priority, string? titleContains, string? urgency, IEnumerable<string>? statuses)
+    {
+        throw new NotImplementedException();
+    }
 }
 
 public class NullablePagerDutyService : IPagerDutyService
@@ -335,7 +418,7 @@ public class NullablePagerDutyService : IPagerDutyService
         throw new NotImplementedException();
     }
 
-    public Task<PagerDutyIncidentsResponse> GetIncidentsAsync(uint limit, uint offset)
+    public Task<IEnumerable<PagerDutyIncident>> GetIncidentsAsync(uint limit, uint offset, DateTime? since, string? impactServiceId, string? priority, string? titleContains, string? urgency, IEnumerable<string>? statuses)
     {
         throw new NotImplementedException();
     }

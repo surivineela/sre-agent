@@ -115,7 +115,8 @@ public interface IPagerDutyService
     /// List all incidents. limit and offset are used for pagination.
     /// </summary>
     /// <returns></returns>
-    Task<PagerDutyIncidentsResponse> GetIncidentsAsync(uint limit, uint offset);
+    //Task<PagerDutyIncidentsResponse> GetIncidentsAsync(uint limit, uint offset);
+    Task<IEnumerable<PagerDutyIncident>> GetIncidentsAsync(uint limit, uint offset, DateTime? since = null, string? impactServiceId = null, string? priority = null, string? titleContains = null, string? urgency = null, IEnumerable<string>? statuses = null);
 
     Task<PagerDutyIncident> GetPagerDutyIncidentAsync(string incidentId);
 

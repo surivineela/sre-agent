@@ -70,14 +70,14 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
             try
             {
                 logger.LogInternalInformation("Scanning PagerDuty incidents, page {page}", page);
-                var response = await pagerDutyService.GetIncidentsAsync(limit: PageSize, offset: offset);
-                if (response is null || response.Incidents.Count == 0)
+                var response = await pagerDutyService.GetIncidentsAsync(PageSize, offset);
+                if (response is null || !response.Any())
                 {
                     logger.LogInternalInformation("No more incidents to process, stopping the scanner.");
                     return;
                 }
 
-                foreach (var incident in response.Incidents)
+                foreach (var incident in response)
                 {
                     var incidentDocument = await GetDocumentAsync<PagerDutyIncidentDocument>(incident.IncidentId, incident.IncidentId);
                     incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident, cancellationToken);
