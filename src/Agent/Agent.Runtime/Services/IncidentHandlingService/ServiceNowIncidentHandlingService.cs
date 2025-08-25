@@ -1,5 +1,9 @@
+using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
+using Agent.Framework;
+using Agent.Runtime.Interfaces;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
 
@@ -22,9 +26,11 @@ public class ServiceNowIncidentHandlingService : IncidentHandlingServiceBase<Ser
         Tracer tracer,
         IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload> serviceNowIncidentManagementService,
         IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload> incidentFilterManagementService,
-        IIncidentHandlerManagementService incidentHandlerManagementService
+        IIncidentHandlerManagementService incidentHandlerManagementService,
+        IAgentFactory<AgentContext> agentFactory,
+        ExperimentalSettings experimentalSettings
         )
-        : base(repository, inboundCommunicationService, incidentFilterManagementService, incidentHandlerManagementService, logger, tracer)
+        : base(repository, inboundCommunicationService, incidentFilterManagementService, incidentHandlerManagementService, logger, tracer, agentFactory, experimentalSettings)
     {
         _serviceNowAPIClient = serviceNowAPIClient;
         _serviceNowIncidentManagementService = serviceNowIncidentManagementService;

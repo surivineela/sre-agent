@@ -52,6 +52,7 @@ public static class TraceAttribute
 
     public const string IncidentSource = "incident.source";
     public const string IncidentMessage = "incident.message";
+    public const string IncidentHandler = "incident.handler";
 
     // agent task
     public const string AgentTaskType = "task.type";

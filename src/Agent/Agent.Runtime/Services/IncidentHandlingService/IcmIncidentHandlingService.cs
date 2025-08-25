@@ -1,6 +1,9 @@
+using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
 using Agent.Data.DataModels;
+using Agent.Framework;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
 
@@ -19,8 +22,10 @@ public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmInciden
         Tracer tracer,
         IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload> icmIncidentManagementService,
         IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload> incidentFilterManagementService,
-        IIncidentHandlerManagementService incidentHandlerManagementService)
-        : base(repository, inboundCommunicationService, incidentFilterManagementService, incidentHandlerManagementService, logger, tracer)
+        IIncidentHandlerManagementService incidentHandlerManagementService,
+        IAgentFactory<AgentContext> agentFactory,
+        ExperimentalSettings experimentalSettings)
+        : base(repository, inboundCommunicationService, incidentFilterManagementService, incidentHandlerManagementService, logger, tracer, agentFactory, experimentalSettings)
     {
         _icmApiClient = icmApiClient;
         _icmIncidentManagementService = icmIncidentManagementService;

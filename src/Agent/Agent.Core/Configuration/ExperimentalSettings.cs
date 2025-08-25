@@ -8,6 +8,7 @@ namespace Agent.Core.Configuration
     {
         public bool AutoHandoffToMeta { get; set; } = false;
         public bool EnableHandoffReasoning { get; set; } = false;
+        public bool UseYamlForIncidentHandling { get; set; } = false;
     }
 }
 

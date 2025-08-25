@@ -530,8 +530,7 @@ namespace Agent.Core.Services
             else
             {
                 _logger.LogInternalError($"Failed to post discussion entry. Status code: {response.StatusCode} : {await response.Content.ReadAsStringAsync()}");
-                return "Hi";
-                //throw new Exception($"Failed to post discussion entry. Status code: {response.StatusCode}");
+                throw new Exception($"Failed to post discussion entry. Status code: {response.StatusCode} : {await response.Content.ReadAsStringAsync()}");
             }
         }
 

@@ -6,6 +6,8 @@ using Agent.Data.DataModels;
 using Agent.Logging;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
+using Agent.Framework;
+using Agent.Core.Configuration;
 
 namespace Agent.Runtime.Services;
 
@@ -54,6 +56,8 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
     protected readonly IIncidentHandlerManagementService _incidentHandlerManagementService;
     protected readonly ILogger _logger;
     protected readonly Tracer _tracer;
+    protected readonly IAgentFactory<AgentContext> _agentFactory;
+    protected readonly ExperimentalSettings _experimentalSettings;
 
     public IncidentHandlingServiceBase(
         IThreadRepository repository,
@@ -61,7 +65,9 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
         IIncidentFilterManagementService<TIncidentFilterDocument, TIncidentFilterDocumentPayload> incidentFilterManagementService,
         IIncidentHandlerManagementService incidentHandlerManagementService,
         ILogger logger,
-        Tracer tracer)
+        Tracer tracer,
+        IAgentFactory<AgentContext> agentFactory,
+        ExperimentalSettings experimentalSettings)
     {
         _repository = repository;
         _inboundCommunicationService = inboundCommunicationService;
@@ -69,6 +75,8 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
         _incidentHandlerManagementService = incidentHandlerManagementService;
         _logger = logger;
         _tracer = tracer;
+        _agentFactory = agentFactory;
+        _experimentalSettings = experimentalSettings;
     }
 
     protected abstract Task<TIncidentDocument> GetIncidentAsync(string incidentId);
@@ -79,6 +87,75 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
         IncidentHandlingRequestModel<TIncidentFilterDocumentPayload> request);
 
     protected abstract TIncidentFilterDocument GetDefaultIncidentFilter(IncidentHandlingRequestModel<TIncidentFilterDocumentPayload> request);
+
+    /// <summary>
+    /// Builds a system prompt from the incident handler configuration
+    /// </summary>
+    /// <param name="handler">The incident handler document</param>
+    /// <param name="incident">The incident document</param>
+    /// <returns>The formatted system prompt</returns>
+    protected virtual string BuildSystemPromptFromHandler(
+        IncidentHandlerDocument handler, 
+        TIncidentDocument incident)
+    {
+        var promptBuilder = new StringBuilder();
+        
+        // Base instruction
+        promptBuilder.AppendLine($"You are an incident handler agent for {handler.Name}.");
+        promptBuilder.AppendLine($"You are handling incident: {incident.Title}");
+        promptBuilder.AppendLine();
+        
+        // Add instructions for status updates using the tool
+        promptBuilder.AppendLine("IMPORTANT: Use the 'NotifyUser' tool to provide status updates as you work through the incident. Do not provide repetitive updates. Only send updates about new steps that are being taken.");
+        promptBuilder.AppendLine("Send status updates for major steps like:");
+        promptBuilder.AppendLine("- Starting investigation");
+        promptBuilder.AppendLine("- Analyzing metrics or logs");
+        promptBuilder.AppendLine("- Identifying root cause");
+        promptBuilder.AppendLine("- Applying remediation");
+        promptBuilder.AppendLine();
+        
+        // Add processing guide as instructions
+        if (handler.IncidentProcessingGuide?.Count > 0)
+        {
+            promptBuilder.AppendLine("Follow these incident processing guidelines:");
+            foreach (var guideline in handler.IncidentProcessingGuide)
+            {
+                promptBuilder.AppendLine($"- {guideline}");
+            }
+            promptBuilder.AppendLine();
+        }
+        
+        // Add custom instructions
+        if (!string.IsNullOrEmpty(handler.CustomInstructions))
+        {
+            promptBuilder.AppendLine("Additional Instructions:");
+            promptBuilder.AppendLine(handler.CustomInstructions);
+        }
+        
+        return promptBuilder.ToString();
+    }
+    
+    /// <summary>
+    /// Registers a dynamic YAML agent with the agent factory
+    /// </summary>
+    /// <param name="descriptor">The YAML agent descriptor</param>
+    /// <returns>Task</returns>
+    protected virtual Task RegisterDynamicYamlAgent(YamlAgentDescriptor descriptor)
+    {
+        // Ensure the agent has the status tool
+        if (!descriptor.Tools.Contains("NotifyUser"))
+        {
+            descriptor.Tools.Insert(0, "NotifyUser");
+        }
+        
+        // Register with agent factory
+        _agentFactory.LoadAgentFromDescriptor(descriptor, isCustomAgent: true);
+        
+        // Update handoffs to include this agent in meta_agent if needed
+        _agentFactory.UpdateHandoffs();
+        
+        return Task.CompletedTask;
+    }
 
 
     public async Task<IncidentHandlingResponseModel> HandleIncidentAsync(IncidentHandlingRequestModel<TIncidentFilterDocumentPayload>? request)
@@ -126,7 +203,21 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
             }
 
             _logger.LogInternalInformation("[IncidentHandlingService] HandleIncidentAsync: Matched Handler. Creating IncidentHandlerAgent thread for IncidentId: {IncidentId}, FilterId: {FilterId} and HandlerId: {HandlerId}", incidentId, matchingFilter.Id, matchingHandler.Id);
-            var thread = await CreateIncidentHandlerAgentThreadAsync(incidentDetails, matchingHandler, matchingFilter, request);
+            
+            Core.Models.Api.v1.Thread thread;
+            
+            // Check if YAML-based incident handling is enabled
+            if (_experimentalSettings.UseYamlForIncidentHandling)
+            {
+                _logger.LogInternalInformation("[IncidentHandlingService] Using YAML-based incident handling for IncidentId: {IncidentId}", incidentId);
+                thread = await CreateIncidentHandlerAgentThreadAsync(incidentDetails, matchingHandler, matchingFilter, request);
+            }
+            else
+            {
+                _logger.LogInternalInformation("[IncidentHandlingService] Using legacy incident handling for IncidentId: {IncidentId}", incidentId);
+                thread = await CreateIncidentHandlerAgentThreadAsync(incidentDetails, matchingHandler, matchingFilter, request);
+            }
+            
             _logger.LogInternalInformation("[IncidentHandlingService] HandleIncidentAsync: Created IncidentHandlerAgent thread with ThreadId: {ThreadId} for IncidentId: {IncidentId} and HandlerId: {HandlerId}", thread.Id, incidentId, matchingHandler.Id);
 
             response.StatusCode = 200;
@@ -363,16 +454,44 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
                     $"**Custom Instructions for Incident Processing:**\n" +
                     $"{customInstructionsForAlert}\n\n" +
                     $"**Incident Handler:** {incidentHandler.Name}";
+
+                // NEW: Create dynamic YAML agent from incident handler
+                var dynamicAgentName = $"incident_handler_{incidentHandler.Id}";
+
+                // Build system prompt from incident processing guide
+                var systemPrompt = BuildSystemPromptFromHandler(incidentHandler, incidentDetails);
+
+                // Create YAML agent descriptor
+                var yamlDescriptor = new YamlAgentDescriptor
+                {
+                    Name = dynamicAgentName,
+                    Instructions = systemPrompt,
+                    Tools = incidentHandler.Tools ?? new List<string>(),
+                    Handoffs = new List<string>(), // Can be extended if needed
+                    AllowParallelToolCalls = false,
+                    Temperature = 0.7f
+                };
+
+                // Register the agent dynamically
+                await RegisterDynamicYamlAgent(yamlDescriptor);
+
                 (var thread, var agentContext) = await _inboundCommunicationService.CreateAgentThread(
                     title: $"Incident - {title}",
                     message: alertMessage,
-                    agentTypeEnum: AgentTypeEnum.Incident,
+                    agentTypeEnum: _experimentalSettings.UseYamlForIncidentHandling ? AgentTypeEnum.Meta : AgentTypeEnum.Incident, // Use Meta to trigger YAML agent framework
                     source: ThreadSource.Incident,
                     incidentId: incidentDetails.Id ?? string.Empty,
                     AllowedTools: incidentHandler.Tools,
                     threadType: request.IsTest ? ThreadType.Test : ThreadType.Prod,
                     overrideAgentMode: incidentFilterDocument.AgentMode
                 );
+
+                if (_experimentalSettings.UseYamlForIncidentHandling)
+                {
+                    // Update agent context to use our dynamic agent
+                    agentContext = agentContext with { CurrentAgent = dynamicAgentName };
+                    await _repository.UpdateAgentContextAsync(agentContext);
+                }
 
                 if (span != null)
                 {
@@ -381,9 +500,10 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
                     span.SetAttribute(TraceAttribute.IncidentId, incidentDetails.Id);
                     span.SetAttribute(TraceAttribute.IncidentSource, incidentDetails.DocumentType);
                     span.SetAttribute(TraceAttribute.IncidentMessage, alertMessage);
+                    span.SetAttribute(TraceAttribute.IncidentHandler, incidentHandler.Name);
                 }
 
-                _logger.LogInternalInformation($"{logPrefix} CreateIncidentHandlerAgentThreadInternalAsync: Created thread with ThreadId: {{ThreadId}} for IncidentId: {{IncidentId}}", thread.Id, incidentDetails.Id);
+                _logger.LogInternalInformation($"{logPrefix} CreateIncidentHandlerAgentThreadInternalAsync: Created thread with ThreadId: {{ThreadId}} for IncidentId: {{IncidentId}} HandlerId: {{HandlerId}}", thread.Id, incidentDetails.Id, incidentHandler.Id);
 
                 var agentMessage = $"**Acknowledging the incident**. I'm starting to investigate and see how I can help.";
                 await _repository.AddMessageAsync(thread.Id, new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"), agentMessage));
@@ -396,7 +516,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
                     UserId: "incident-system",
                     DisplayName: "Incident System",
                     Timestamp: DateTime.UtcNow
-                ), defaultHandler: false);
+                ), defaultHandler: _experimentalSettings.UseYamlForIncidentHandling);
 
                 return thread;
             }
