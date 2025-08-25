@@ -11,6 +11,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Core.Models.Streaming;
 using Agent.Data.Repositories;
 using Agent.Runtime.MetaAgent.Interfaces;
+using FirstPartyAgent.Common.Configuration;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Builder.Teams;
@@ -21,6 +22,7 @@ using Microsoft.Bot.Schema;
 using Microsoft.Bot.Schema.Teams;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using Activity = Microsoft.Bot.Schema.Activity;
 using Attachment = Microsoft.Bot.Schema.Attachment;
@@ -38,6 +40,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
     private readonly IThreadRepository _threadRepository;
     private readonly IBotFrameworkHttpAdapter _teamsAdapter;
     private readonly ITitleGenerationService _titleGenerationService;
+    private readonly FirstPartyAgent.Common.Configuration.GeneralSettings _generalSettings;
 
     private readonly CancellationTokenSource _pollingCancellationSource = new();
     private bool _isPollingStarted = false;
@@ -69,7 +72,8 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         IThreadTeamsMappingRepository threadTeamsMappingRepository,
         TeamsBotSettings teamsBot,
         ITitleGenerationService titleGenerationService,
-        IChatClient chatClient)
+        IChatClient chatClient,
+        IOptions<FirstPartyAgent.Common.Configuration.GeneralSettings> generalSettings)
     {
         _logger = logger;
         _chatClient = chatClient;
@@ -79,6 +83,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         _agentOutboundCommunicationService = agentOutboundCommunicationService;
         _threadRepository = threadRepository;
         _titleGenerationService = titleGenerationService;
+        _generalSettings = generalSettings.Value ?? new GeneralSettings();
 
         // Initialize credentials from configuration
         _appId = teamsBot.AppId;
@@ -113,8 +118,23 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         conversationReference.ChannelId = teamsChannelId;
 
         // Get or create thread ID for this conversation, store conversation reference for later proactive messaging
-        string threadId = await GetOrCreateThread(startMessageId, turnContext.Activity.Conversation.Id, serviceUrl, teamsChannelId, messageText, conversationReference, turnContext.Activity.From);
+        var (threadId, isNewThread) = await GetOrCreateThread(startMessageId, turnContext.Activity.Conversation.Id, serviceUrl, teamsChannelId, messageText, conversationReference, turnContext.Activity.From);
         Guid chatIdGuid = Guid.Parse(threadId);
+
+        // Send thread id message to Teams if a new thread was created
+        if (isNewThread)
+        {
+            try
+            {
+                var threadIdMessage = GetThreadCreationMessage(threadId);
+                await turnContext.SendActivityAsync(MessageFactory.Text(threadIdMessage), cancellationToken);
+                _logger.LogInternalInformation($"Sent thread creation confirmation message to Teams for thread {threadId}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, $"Failed to send thread creation confirmation message for thread {threadId}");
+            }
+        }
         var agentContexts = await _threadRepository.GetAgentContextsForThreadAsync(chatIdGuid);
         var agentContext = agentContexts.First();
 
@@ -269,14 +289,14 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
     /// <summary>
     /// Get or create a thread ID for this conversation with improved performance
     /// </summary>
-    private async Task<string> GetOrCreateThread(Guid startMessageId, string conversationId, string serviceUrl, string channelId, string messageText, ConversationReference? reference = null, ChannelAccount? sender = null)
+    private async Task<(string threadId, bool isNewThread)> GetOrCreateThread(Guid startMessageId, string conversationId, string serviceUrl, string channelId, string messageText, ConversationReference? reference = null, ChannelAccount? sender = null)
     {
         _logger.LogInternalInformation($"Get or create thread ID for conversation {conversationId}, service URL: {serviceUrl}, channel ID: {channelId}, reference: {reference}");
         var mapping = await _conversationThreadMapping.GetMappingByConversationIdAsync(conversationId);
         if (mapping != null)
         {
             _logger.LogInternalInformation($"Found existing thread ID {mapping.ThreadId} for conversation {conversationId}");
-            return mapping.ThreadId;
+            return (mapping.ThreadId, false); // Existing thread, not new
         }
 
         string senderName = sender?.Name ?? "Unknown User";
@@ -359,7 +379,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
             reference
         ));
         _logger.LogInternalInformation($"Created new thread ID {newThreadId} for conversation {conversationId}");
-        return newThreadId.ToString();
+        return (newThreadId.ToString(), true); // New thread created
     }
 
     /// <summary>
@@ -699,6 +719,35 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, $"Error in PostMessagesToTeams for conversation {conversationId}");
+        }
+    }
+
+    /// <summary>
+    /// Generates a thread creation confirmation message identical to GetAgentWebPortalThreadLink
+    /// </summary>
+    private string GetThreadCreationMessage(string threadId)
+    {
+        try
+        {
+            // Build portal link identical to GetAgentWebPortalThreadLink method
+            var templateUrl = _generalSettings.PortalThreadIdLink;
+
+            if (!string.IsNullOrEmpty(templateUrl))
+            {
+                var threadLink = string.Format(templateUrl, threadId);
+                // Use the exact same message content as GetAgentWebPortalThreadLink
+                return $"You can view this conversation in a more compact and user-friendly format using the [Azure portal thread link]({threadLink}).{Environment.NewLine + Environment.NewLine}**Thread ID:** {threadId}";
+            }
+            else
+            {
+                // Fallback message if PortalThreadIdLink is not configured
+                return $"You can view this conversation in a more compact and user-friendly format using the Azure portal thread link.{Environment.NewLine + Environment.NewLine}**Thread ID:** {threadId}";
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, $"Failed to generate thread creation message for thread {threadId}, using fallback");
+            return $"**Thread ID:** {threadId}";
         }
     }
 }

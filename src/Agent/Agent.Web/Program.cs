@@ -650,7 +650,6 @@ public class Program
         {
             // Register ACA First Party tools
             builder.Services
-                .AddTransient<RCAContainerAppsMetaAgentPluginDefinition>()
                 .AddTransient<RCAContainerAppsIngressPluginDefinition>()
                 .AddTransient<RCAContainerAppAspirePluginDefinition>()
                 .AddTransient<RCAContainerAppCorednsPluginDefinition>()
