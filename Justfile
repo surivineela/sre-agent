@@ -50,10 +50,10 @@ delete3p *args='':
   bash -c "./src/Agent/Infra/Scripts/deploy.bash {{args}}"
 
 setup-windows:
-  winget install Microsoft.NuGet
+  winget list Microsoft.NuGet || winget install Microsoft.NuGet
   nuget.exe setApiKey az -Source https://msazure.pkgs.visualstudio.com/Antares/_packaging/antares-websites/nuget/v3/index.json
 
-  winget install OpenJS.NodeJS.LTS
+  winget list OpenJS.NodeJS.LTS || winget install OpenJS.NodeJS.LTS
   npm install -g vsts-npm-auth --registry https://registry.npmjs.com --always-auth false
   vsts-npm-auth -config src\Agent\Agent.Web\Client\.npmrc
   npx vsts-npm-auth -R -E 131400 -C src\Agent\Agent.Web\Client\.npmrc
