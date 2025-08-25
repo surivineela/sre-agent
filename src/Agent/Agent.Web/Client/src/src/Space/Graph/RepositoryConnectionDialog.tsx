@@ -21,7 +21,7 @@ import { ResourceInfoResources, SreAgentResources } from '../../Strings/SREAgent
 
 export const githubRepoRegex = /^https:\/\/github\.com\/[\w-]+\/[\w.-]+(?:\.git)?$/;
 export const azdoRepoRegex =
-    /^https:\/\/(?:dev\.azure\.com\/[\w-]+\/[\w-]+\/_git\/[\w.-]+|[\w-]+\.visualstudio\.com\/[\w-]+\/_git\/[\w.-]+)$/;
+    /^https:\/\/(?:dev\.azure\.com\/[\w-]+\/(?:[\w.-]|%[0-9A-Fa-f]{2}| )+\/_git\/(?:[\w.-]|%[0-9A-Fa-f]{2}| )+|[\w-]+\.visualstudio\.com\/(?:[\w.-]|%[0-9A-Fa-f]{2}| )+\/_git\/(?:[\w.-]|%[0-9A-Fa-f]{2}| )+)$/;
 
 export const getRepoIcon = (url: string) => {
     if (githubRepoRegex.test(url)) {
