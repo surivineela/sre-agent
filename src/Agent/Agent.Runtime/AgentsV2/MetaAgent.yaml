@@ -80,6 +80,7 @@ system_prompt: |
   - **PostgreSQL issues/performance** → `postgresql_agent`
   - **API Management issues** → `api_management_agent`
   - **Azure Activity Logs and Change Analysis** → `azure_activity_logs_agent`
+  - **Application Insights Analysis and Telemetry** → `azure_application_insights_agent`
   - **Further Azure Resource Management, Azure CLI Commands or information not available in resource graph** → `azure_cli_command_executor_agent`
   - **Generic Questions About Source Code** → `source_code_analysis_agent`
 
@@ -102,6 +103,10 @@ system_prompt: |
   | "Show me deployment failures in the last 24 hours" | `resource_discovery_agent` (to find subscription, rg) → `azure_activity_logs_agent` |
   | "Who modified the container app configuration?" | `resource_discovery_agent` (to find subscription, rg) → `azure_activity_logs_agent` |
   | "What changes happened around 2 PM when the issue started?" | `resource_discovery_agent` (to find subscription, rg) → `azure_activity_logs_agent` |
+  | "Application is throwing exceptions, analyze the telemetry" | `resource_discovery_agent` (to find subscription, rg) → `azure_application_insights_agent` |
+  | "Performance is slow, check Application Insights" | `resource_discovery_agent` (to find subscription, rg) → `azure_application_insights_agent` |
+  | "Analyze user behavior and engagement metrics" | `resource_discovery_agent` (to find subscription, rg) → `azure_application_insights_agent` |
+  | "Trace a specific request using correlation ID" | `resource_discovery_agent` (to find subscription, rg) → `azure_application_insights_agent` |
   | "How many VMs?" | `resource_discovery_agent` |
   | "Configure Cosmos DB" | `resource_discovery_agent` → `azure_cli_command_executor_agent` | (as no specialized agent for Cosmos)
   | "Restart azure resources" | `resource_discovery_agent` → `azure_cli_command_executor_agent` |
@@ -141,6 +146,7 @@ handoffs:
   - repository_agent
   - postgresql_agent
   - azure_activity_logs_agent
+  - azure_application_insights_agent
   - pagerduty_incident_management_agent
   - servicenow_incident_management_agent
   - source_code_analysis_agent

@@ -13,10 +13,8 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Plugins.Definitions;
 using Agent.Core.Services;
-using Agent.Core.Services.TokenService;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
-using Agent.Data.DataModels;
 using Agent.Framework;
 using Agent.Framework.Reasoning.Models;
 using Agent.Graph.Crawler;
@@ -31,6 +29,8 @@ using Agent.Plugins.DataConnectors.Documentation;
 using Agent.Plugins.DataConnectors.KustoMetadata;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Implementation;
+using Agent.Plugins.Implementation.AzureApplicationInsightsPlugin;
+using Agent.Plugins.Implementation.AzureApplicationInsightsPlugin.Services;
 using Agent.Plugins.Implementation.DiagnosticsPlugin;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Kusto;
@@ -68,12 +68,9 @@ using Agent.Runtime.SubAgents.FunctionAppConnectivityAgent;
 using Agent.Runtime.SubAgents.FunctionAppDeploymentChecksAgent;
 using Agent.Runtime.SubAgents.FunctionAppDiagnosticsAgent;
 using Agent.Runtime.SubAgents.FunctionAppExecutionFailuresAgent;
-using Agent.Runtime.SubAgents.IcmScanner;
 using Agent.Runtime.SubAgents.KubernetesAgent;
 using Agent.Runtime.SubAgents.LocalAuthAgent;
 using Agent.Runtime.SubAgents.ManagedIdentityMigration;
-using Agent.Runtime.SubAgents.PagerDutyAgent;
-using Agent.Runtime.SubAgents.ServiceNowScanner;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Agent.Runtime.SubAgents.SqlDbQueryPerfAgent;
 using Agent.Runtime.SubAgents.TlsBestPractices;
@@ -363,6 +360,7 @@ public class Program
             .AddTransient<IMetaAgentFunctionAppExecutionFailuresAgentPlugin, FunctionAppExecutionFailuresAgentPlugin>()
             .AddSingleton<IPrometheusQueryService, PrometheusQueryService>()
             .AddSingleton<IRoleAssignmentPlugin, RoleAssignmentPlugin>()
+            .AddSingleton<IAppLogsQueryService, AppLogsQueryService>()
 
             .AddSingleton<SqlDbQueryPerfAgentFactory>()
             .AddTransient<IMetaAgentSqlDbQueryPerfPlugin, SqlDbQueryPerfPlugin>()
@@ -389,6 +387,7 @@ public class Program
             .AddTransient<GrafanaPluginDefinition>()
             .AddTransient<GraphDBPluginDefinition>()
             .AddTransient<AzureActivityLogsPluginDefinition>()
+            .AddTransient<AzureApplicationInsightsPluginDefinition>()
             .AddTransient<ArmPluginDefinition>()
             .AddTransient<TimePluginDefinition>()
             .AddTransient<MIConfigurationCheckPluginDefinition>()
@@ -450,6 +449,7 @@ public class Program
             .AddTransient<ChartPluginV2>()
             .AddTransient<IGraphDBPlugin, GraphDBPlugin>()
             .AddTransient<IAzureActivityLogsPlugin, AzureActivityLogsPlugin>()
+            .AddTransient<IAzureApplicationInsightsPlugin, AzureApplicationInsightsPlugin>()
             .AddTransient<IPagerDutyIncidentPlugin, PagerDutyIncidentPlugin>()
             .AddTransient<IFunctionAppExecutionFailuresPlugin, FunctionAppExecutionFailuresPlugin>()
             .AddTransient<IAzureMonitorMetricsPlugin, AzureMonitorMetricsPlugin>()
