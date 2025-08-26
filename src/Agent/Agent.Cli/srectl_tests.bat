@@ -1801,6 +1801,56 @@ if !errorlevel! equ 0 (
 )
 echo.
 
+REM ===========================================
+REM CHARACTER LIMIT VALIDATION TESTS
+REM ===========================================
+
+echo ===========================================
+echo CHARACTER LIMIT VALIDATION TESTS (60K)
+echo ===========================================
+echo.
+
+echo [TEST 83] Agent YAML with very long instructions (60k limit)
+set /a TOTAL_TESTS+=1
+REM Seed the 60k YAML from repo root into the test workspace
+if exist "..\agents\test_agent_60k\test_agent_60k.yaml" (
+    if not exist "agents\test_agent_60k" mkdir "agents\test_agent_60k"
+    copy /Y "..\agents\test_agent_60k\test_agent_60k.yaml" "agents\test_agent_60k\test_agent_60k.yaml" >nul
+)
+if exist "agents\test_agent_60k\test_agent_60k.yaml" (
+    dotnet run --project .. -- agent validate --file agents\test_agent_60k\test_agent_60k.yaml > test83_output.txt 2>&1
+    if !errorlevel! equ 0 (
+        echo [PASS] Agent validation from YAML with ~60k instructions
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Agent validation from YAML - Command failed
+        type test83_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] test_agent_60k.yaml not found. Create it under agents\test_agent_60k\ per the template.
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+echo [TEST 84] Apply YAML with very long instructions
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- apply-yaml --file agents\test_agent_60k\test_agent_60k.yaml > test84_output.txt 2>&1
+if !errorlevel! equ 0 (
+    findstr /i "applied successfully" test84_output.txt >nul
+    if !errorlevel! equ 0 (
+        echo [PASS] Apply YAML with 60k instructions
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Apply YAML with 60k instructions - Wrong success message
+        type test84_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Apply YAML with 60k instructions - Command failed
+    type test84_output.txt
+    set /a TESTS_FAILED+=1
+)
 echo.
 
 REM ===========================================
@@ -1829,6 +1879,7 @@ if exist "agents" (
     if exist "agents\DeleteTestAgent1" rmdir /s /q "agents\DeleteTestAgent1"
     if exist "agents\DeleteTestAgent2" rmdir /s /q "agents\DeleteTestAgent2"
     if exist "agents\DependentAgent" rmdir /s /q "agents\DependentAgent"
+    if exist "agents\test_agent_60k" rmdir /s /q "agents\test_agent_60k"
 
     REM Keep example_agent.yaml as it was created by init
 )
@@ -1905,6 +1956,7 @@ if !TESTS_FAILED! equ 0 (
     echo - Profile management (create, list, get, set, delete)
     echo - Profile switching and current profile tracking
     echo - Profile validation and error handling
+    echo - 60k character limit validation (^~15k tokens)
     exit /b 0
 ) else (
     echo.

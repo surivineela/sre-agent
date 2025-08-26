@@ -113,9 +113,9 @@ public static class AgentDescriptorValidation
             {
                 errors.Add("System prompt must be longer than 50 characters.");
             }
-            else if (agentDescriptor.Instructions.Length > 5000)
+            else if (agentDescriptor.Instructions.Length > 60000) // ~15k tokens
             {
-                errors.Add("System prompt must be under 5000 characters.");
+                errors.Add("System prompt must be under 60000 characters.");
             }
         }
 
