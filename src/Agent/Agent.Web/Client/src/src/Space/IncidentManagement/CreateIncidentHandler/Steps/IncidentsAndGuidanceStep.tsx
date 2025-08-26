@@ -153,76 +153,80 @@ export const IncidentsAndGuidanceStep = () => {
                     display: 'flex',
                     flexDirection: 'column',
                     padding: '20px 20px',
-                    gap: '20px',
+                    gap: '32px',
                     height: 'calc(100% - 114px)',
                     overflowY: 'auto',
                 }}
             >
                 <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.customHandlerCreateDescription)}</Text>
-                <Text size={400} weight="semibold">
-                    {intl.formatMessage(IncidentHandlerCreateResources.chooseIncidentsTitle)}
-                </Text>
-                <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.chooseIncidentDescription)}</Text>
-                <Dropdown
-                    id="timespanDropdown"
-                    style={{ maxWidth: 300 }}
-                    value={selectedTimespanOption?.text}
-                    onOptionSelect={(_event, data) => {
-                        const selectedOption = timespanDropdownOptions.find(option => option.key === data.optionValue);
-                        onSelectedTimespanChange(selectedOption?.value || TimeDuration.Last60Days);
-                    }}
-                    disabled={loadingIncidents || generatingInstructions || !handlerLoaded}
-                >
-                    {timespanDropdownOptions.map(option => (
-                        <Option value={option.key} checkIcon={null}>
-                            {option.text}
-                        </Option>
-                    ))}
-                </Dropdown>
-                <div style={{ display: 'flex', flexDirection: 'row', gap: 20, marginTop: 10, width: 'calc(100% - 3px)' }}>
-                    <MultipleSelectionShimmerDetailsList
-                        listContainerStyle={{
-                            width: '100%',
-                            height: incidentsTableHeight,
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <Text size={400} weight="semibold">
+                        {intl.formatMessage(IncidentHandlerCreateResources.chooseIncidentsTitle)}
+                    </Text>
+                    <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.chooseIncidentDescription)}</Text>
+                    <Dropdown
+                        id="timespanDropdown"
+                        style={{ maxWidth: 300 }}
+                        value={selectedTimespanOption?.text}
+                        onOptionSelect={(_event, data) => {
+                            const selectedOption = timespanDropdownOptions.find(option => option.key === data.optionValue);
+                            onSelectedTimespanChange(selectedOption?.value || TimeDuration.Last60Days);
                         }}
-                        ref={incidentsListDivRef}
-                        data={incidents}
-                        selectedKeys={values.incidentIds || []}
-                        loading={loadingIncidents}
-                        columns={incidentTableColumns}
+                        disabled={loadingIncidents || generatingInstructions || !handlerLoaded}
+                    >
+                        {timespanDropdownOptions.map(option => (
+                            <Option value={option.key} checkIcon={null}>
+                                {option.text}
+                            </Option>
+                        ))}
+                    </Dropdown>
+                    <div style={{ display: 'flex', flexDirection: 'row', gap: 20, width: 'calc(100% - 3px)' }}>
+                        <MultipleSelectionShimmerDetailsList
+                            listContainerStyle={{
+                                width: '100%',
+                                height: incidentsTableHeight,
+                            }}
+                            ref={incidentsListDivRef}
+                            data={incidents}
+                            selectedKeys={values.incidentIds || []}
+                            loading={loadingIncidents}
+                            columns={incidentTableColumns}
+                            disabled={!handlerLoaded || generatingInstructions}
+                            onChange={onSelectedIncidentsChange}
+                            getKey={(item: IncidentDocument) => item.id}
+                            selectionLimit={5}
+                            isLoadingInitialItems={isLoadingInitialIncidents}
+                            loadMoreItems={loadMoreOldIncidents}
+                            hasMoreItems={hasMoreOldIncidents}
+                            isPicker
+                        />
+                        <SelectedItemsList
+                            items={selectedIncidents || []}
+                            onRemove={removedIncident =>
+                                onSelectedIncidentsChange(values.incidentIds?.filter(incidentId => incidentId !== removedIncident.id) || [])
+                            }
+                            getItemTitle={incident => incident.title}
+                            getItemId={incident => incident.id}
+                            title={intl.formatMessage(IncidentHandlerCreateResources.selectedIncidents)}
+                            emptyText={intl.formatMessage(IncidentHandlerCreateResources.selectedIncidentsEmptyText)}
+                            disabled={!handlerLoaded || generatingInstructions}
+                        />
+                    </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <Text size={400} weight="semibold">
+                        {intl.formatMessage(IncidentHandlerCreateResources.addCustomInstructionTitle)}
+                    </Text>
+                    <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.addCustomInstructionDescription)}</Text>
+                    <Textarea
+                        placeholder={intl.formatMessage(IncidentHandlerCreateResources.customInstructionPlaceholder)}
+                        value={values.customInstructions}
+                        onChange={(_e, newValue) => setFieldValue('customInstructions', newValue.value ?? '')}
+                        rows={4}
                         disabled={!handlerLoaded || generatingInstructions}
-                        onChange={onSelectedIncidentsChange}
-                        getKey={(item: IncidentDocument) => item.id}
-                        selectionLimit={5}
-                        isLoadingInitialItems={isLoadingInitialIncidents}
-                        loadMoreItems={loadMoreOldIncidents}
-                        hasMoreItems={hasMoreOldIncidents}
-                        isPicker
-                    />
-                    <SelectedItemsList
-                        items={selectedIncidents || []}
-                        onRemove={removedIncident =>
-                            onSelectedIncidentsChange(values.incidentIds?.filter(incidentId => incidentId !== removedIncident.id) || [])
-                        }
-                        getItemTitle={incident => incident.title}
-                        getItemId={incident => incident.id}
-                        title={intl.formatMessage(IncidentHandlerCreateResources.selectedIncidents)}
-                        emptyText={intl.formatMessage(IncidentHandlerCreateResources.selectedIncidentsEmptyText)}
-                        disabled={!handlerLoaded || generatingInstructions}
+                        className={generateHandlerStyles.textField}
                     />
                 </div>
-                <Text size={400} weight="semibold">
-                    {intl.formatMessage(IncidentHandlerCreateResources.addCustomInstructionTitle)}
-                </Text>
-                <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.addCustomInstructionDescription)}</Text>
-                <Textarea
-                    placeholder={intl.formatMessage(IncidentHandlerCreateResources.customInstructionPlaceholder)}
-                    value={values.customInstructions}
-                    onChange={(_e, newValue) => setFieldValue('customInstructions', newValue.value ?? '')}
-                    rows={4}
-                    disabled={!handlerLoaded || generatingInstructions}
-                    className={generateHandlerStyles.textField}
-                />
             </div>
             <div
                 style={{

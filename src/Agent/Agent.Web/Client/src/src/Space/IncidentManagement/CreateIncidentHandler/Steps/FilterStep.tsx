@@ -63,22 +63,19 @@ export const FilterStep: FC = () => {
                     display: 'flex',
                     flexDirection: 'column',
                     padding: '20px 20px',
-                    gap: '20px',
+                    gap: '32px',
                     height: 'calc(100% - 114px)',
                     overflowY: 'auto',
                 }}
             >
-                <div style={{ paddingBottom: '10px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                     {filterMode === 'edit' ? (
                         <MessageBar intent="info">
                             {intl.formatMessage(IncidentManagementResources.editIncidentHandlerDescription)}
                         </MessageBar>
                     ) : (
-                        <>{intl.formatMessage(IncidentManagementResources.createIncidentHandlerDescription)}</>
+                        <Text size={300}>{intl.formatMessage(IncidentManagementResources.createIncidentHandlerDescription)}</Text>
                     )}
-                </div>
-
-                <form style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                     <Field label={intl.formatMessage(IncidentManagementResources.incidentHandlerName)} required>
                         <Input
                             name="filterName"
@@ -88,7 +85,9 @@ export const FilterStep: FC = () => {
                             disabled={filterMode === 'edit'}
                         />
                     </Field>
+                </div>
 
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                     <Text size={400} weight="semibold">
                         {intl.formatMessage(IncidentHandlerCreateResources.filterParametersTitle)}
                     </Text>
@@ -155,46 +154,49 @@ export const FilterStep: FC = () => {
                             placeholder={intl.formatMessage(IncidentManagementResources.titlePlaceholder)}
                         />
                     </Field>
-                    <Field label={intl.formatMessage(IncidentManagementResources.agentAutonomyLevel)}>
-                        <RadioGroup
-                            name="agentMode"
-                            value={values.agentMode}
-                            onChange={(_, data) => setFieldValue('agentMode', data.value)}
-                        >
-                            <Radio
-                                value={AgentMode.review}
-                                label={
-                                    <>
-                                        {intl.formatMessage(IncidentManagementResources.reviewDefault)}
-                                        <br />
-                                        <Text size={200}>
-                                            {intl.formatMessage(IncidentManagementResources.autonomyLevelReviewDescription)}
-                                        </Text>
-                                    </>
-                                }
-                            />
-                            <Radio
-                                value={AgentMode.autonomous}
-                                label={
-                                    <>
-                                        {intl.formatMessage(IncidentManagementResources.autonomousWord)}
-                                        <br />
-                                        <Text size={200}>
-                                            {intl.formatMessage(IncidentManagementResources.autonomyLevelAutonomousDescription)}
-                                        </Text>
-                                    </>
-                                }
-                            />
-                        </RadioGroup>
-                    </Field>
+                </div>
+
+                <Field label={intl.formatMessage(IncidentManagementResources.agentAutonomyLevel)}>
+                    <RadioGroup name="agentMode" value={values.agentMode} onChange={(_, data) => setFieldValue('agentMode', data.value)}>
+                        <Radio
+                            value={AgentMode.review}
+                            label={
+                                <>
+                                    {intl.formatMessage(IncidentManagementResources.reviewDefault)}
+                                    <br />
+                                    <Text size={200}>{intl.formatMessage(IncidentManagementResources.autonomyLevelReviewDescription)}</Text>
+                                </>
+                            }
+                        />
+                        <Radio
+                            value={AgentMode.autonomous}
+                            label={
+                                <>
+                                    {intl.formatMessage(IncidentManagementResources.autonomousWord)}
+                                    <br />
+                                    <Text size={200}>
+                                        {intl.formatMessage(IncidentManagementResources.autonomyLevelAutonomousDescription)}
+                                    </Text>
+                                </>
+                            }
+                        />
+                    </RadioGroup>
+                </Field>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <Text size={400} weight="semibold">
+                        {intl.formatMessage(IncidentHandlerCreateResources.addCustomResponseGuidanceTitle)}
+                    </Text>
+                    <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.addCustomResponseGuidanceDescription)}</Text>
+
                     <Checkbox
                         name={'useCustomHandler'}
                         checked={values.useCustomHandler}
                         onChange={(_, data) => setFieldValue('useCustomHandler', data.checked)}
-                        label={intl.formatMessage(IncidentHandlerCreateResources.addCustomInstructions)}
+                        label={intl.formatMessage(IncidentHandlerCreateResources.addCustomResponseGuidanceLabel)}
                         labelPosition="after"
                     />
-                </form>
+                </div>
             </div>
             <div
                 style={{

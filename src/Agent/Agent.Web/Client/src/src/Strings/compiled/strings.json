@@ -233,6 +233,12 @@
       "value": "To get optimal agent performance for diagnostics, metrics, knowledge, and more during preview, use resource groups that include one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, or Web Apps."
     }
   ],
+  "0mx8D9": [
+    {
+      "type": 0,
+      "value": "The tool list is generated from the custom response guidance. If you modify the guidance, select Regenerate to update the tool list. Once regenerated, the previous list cannot be restored. To add or remove tools, select Manage tools."
+    }
+  ],
   "0q6E9l": [
     {
       "type": 0,
@@ -641,12 +647,6 @@
       "value": "error"
     }
   ],
-  "5fVEet": [
-    {
-      "type": 0,
-      "value": "Add tools"
-    }
-  ],
   "5jeq8P": [
     {
       "type": 0,
@@ -663,12 +663,6 @@
     {
       "type": 0,
       "value": "Last 15 days"
-    }
-  ],
-  "5lBLYV": [
-    {
-      "type": 0,
-      "value": "Test handler"
     }
   ],
   "5pQrWI": [
@@ -1343,12 +1337,6 @@
     {
       "type": 0,
       "value": "Mitigated by agent"
-    }
-  ],
-  "D7U9Zo": [
-    {
-      "type": 0,
-      "value": "Custom instructions"
     }
   ],
   "DHc2gc": [
@@ -2943,12 +2931,6 @@
       "value": "Select or search for an incident"
     }
   ],
-  "XUVR/7": [
-    {
-      "type": 0,
-      "value": "The incident handler defines which incidents the agent should handle by applying your filter criteria, ensuring responses to the required set of incidents."
-    }
-  ],
   "XYSJsS": [
     {
       "type": 0,
@@ -3043,12 +3025,6 @@
     {
       "type": 0,
       "value": "Monitoring Data Reader Role"
-    }
-  ],
-  "Z5fLCi": [
-    {
-      "type": 0,
-      "value": "Add custom instructions"
     }
   ],
   "Z7Aj91": [
@@ -3345,6 +3321,12 @@
       "value": "Manage API Management workspaces."
     }
   ],
+  "d6hQf3": [
+    {
+      "type": 0,
+      "value": "Regenerate tools list"
+    }
+  ],
   "d8dECB": [
     {
       "type": 0,
@@ -3411,6 +3393,12 @@
       "value": "Read-only actions in the project. Readers can't create or update the project."
     }
   ],
+  "eEu4cm": [
+    {
+      "type": 0,
+      "value": "Instruction generation guidance"
+    }
+  ],
   "eFKqV0": [
     {
       "type": 0,
@@ -3429,10 +3417,28 @@
       "value": "Read-only mode"
     }
   ],
+  "eZMksq": [
+    {
+      "type": 0,
+      "value": "Add guidance"
+    }
+  ],
+  "eackGq": [
+    {
+      "type": 0,
+      "value": "This is the prompt the agent will use. It includes your custom response guidance. Review and edit if needed."
+    }
+  ],
   "ecG+OD": [
     {
       "type": 0,
       "value": "Manage Azure Search services."
+    }
+  ],
+  "et+X02": [
+    {
+      "type": 0,
+      "value": "Custom response guidance"
     }
   ],
   "ezP+aQ": [
@@ -3921,6 +3927,12 @@
       "value": "Update the data connector configuration."
     }
   ],
+  "koWZK8": [
+    {
+      "type": 0,
+      "value": "Add custom response guidance (optional)"
+    }
+  ],
   "ku+mDU": [
     {
       "type": 0,
@@ -3973,12 +3985,6 @@
       "value": "Region"
     }
   ],
-  "loVng6": [
-    {
-      "type": 0,
-      "value": "This guidance helps generate the final prompt the agent uses when handling incidents. This might include additional incident context and resolution steps."
-    }
-  ],
   "lvNWLS": [
     {
       "type": 0,
@@ -3989,12 +3995,6 @@
     {
       "type": 0,
       "value": "Apply only to incidents triggered after the handler is created"
-    }
-  ],
-  "m2z9LK": [
-    {
-      "type": 0,
-      "value": "Update tools"
     }
   ],
   "m57OnF": [
@@ -4037,6 +4037,12 @@
     {
       "type": 0,
       "value": "After the platform is connected, create incident handlers and custom handlers so that the agent can respond to incidents."
+    }
+  ],
+  "mtC1dz": [
+    {
+      "type": 0,
+      "value": "An incident handler defines which incidents the agent should handle by applying your filter criteria, ensuring responses to the required set of incidents."
     }
   ],
   "mtUOcI": [
@@ -4089,12 +4095,6 @@
     {
       "type": 0,
       "value": "Primary resource type"
-    }
-  ],
-  "nUT0Lv": [
-    {
-      "type": 0,
-      "value": "Tools"
     }
   ],
   "nmpevl": [
@@ -4419,6 +4419,12 @@
       "value": "Location"
     }
   ],
+  "rwwXv0": [
+    {
+      "type": 0,
+      "value": "Test incident response"
+    }
+  ],
   "s7DlV0": [
     {
       "type": 0,
@@ -4599,6 +4605,12 @@
       "value": "Time"
     }
   ],
+  "unxs9C": [
+    {
+      "type": 0,
+      "value": "Tools selected for incident response"
+    }
+  ],
   "v8lolG": [
     {
       "type": 0,
@@ -4633,6 +4645,12 @@
     {
       "type": 0,
       "value": "Failed"
+    }
+  ],
+  "vao/Lv": [
+    {
+      "type": 0,
+      "value": "This guidance helps generate the tools list and the final prompt the agent uses during incident handling."
     }
   ],
   "vbdOl/": [
@@ -4889,6 +4907,12 @@
       "value": "Enter a handler name"
     }
   ],
+  "ybIDiK": [
+    {
+      "type": 0,
+      "value": "Manage tools"
+    }
+  ],
   "yd187T": [
     {
       "type": 0,
@@ -4905,6 +4929,12 @@
     {
       "type": 0,
       "value": "Tasks"
+    }
+  ],
+  "yiAEBc": [
+    {
+      "type": 0,
+      "value": "Guidance might include resolution steps, specific instructions, or other relevant context."
     }
   ],
   "yilQrD": [

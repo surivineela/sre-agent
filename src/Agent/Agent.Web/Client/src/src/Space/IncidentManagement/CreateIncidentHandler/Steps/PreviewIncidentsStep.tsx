@@ -117,9 +117,9 @@ export const PreviewIncidentsStep: FC = () => {
                     display: 'flex',
                     flexDirection: 'column',
                     padding: '20px 20px 0px 20px',
-                    gap: '20px',
                     height: 'calc(100% - 94px)',
                     overflowY: 'auto',
+                    gap: 16,
                 }}
             >
                 <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.previewIncidentsDescription)}</Text>
@@ -139,27 +139,25 @@ export const PreviewIncidentsStep: FC = () => {
                         </Option>
                     ))}
                 </Dropdown>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16, height: 'calc(100% - 94px)' }}>
-                    <MultipleSelectionShimmerDetailsList
-                        listContainerStyle={{
-                            width: '100%',
-                            minHeight: (incidents?.length || 0) < 4 ? 'fit-content' : '200px',
-                            maxHeight: 'unset',
-                        }}
-                        ref={incidentsListDivRef}
-                        data={incidents}
-                        selectedKeys={[]}
-                        loading={loadingIncidents}
-                        columns={incidentTableColumns}
-                        onChange={() => {}}
-                        getKey={(item: IncidentDocument) => item.id}
-                        selectionLimit={5}
-                        isLoadingInitialItems={isLoadingInitialIncidents}
-                        loadMoreItems={loadMoreOldIncidents}
-                        hasMoreItems={hasMoreOldIncidents}
-                        disallowSelection={true}
-                    />
-                </div>
+                <MultipleSelectionShimmerDetailsList
+                    listContainerStyle={{
+                        width: '100%',
+                        minHeight: (incidents?.length || 0) < 4 ? 'fit-content' : '200px',
+                        maxHeight: 'unset',
+                    }}
+                    ref={incidentsListDivRef}
+                    data={incidents}
+                    selectedKeys={[]}
+                    loading={loadingIncidents}
+                    columns={incidentTableColumns}
+                    onChange={() => {}}
+                    getKey={(item: IncidentDocument) => item.id}
+                    selectionLimit={5}
+                    isLoadingInitialItems={isLoadingInitialIncidents}
+                    loadMoreItems={loadMoreOldIncidents}
+                    hasMoreItems={hasMoreOldIncidents}
+                    disallowSelection={true}
+                />
             </div>
             <div
                 style={{

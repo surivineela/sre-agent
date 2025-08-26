@@ -8,7 +8,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@fluentui/react-components';
-import { Add16Regular, ArrowClockwise16Regular, Delete16Regular } from '@fluentui/react-icons';
+import { Add16Regular, ArrowClockwise16Regular } from '@fluentui/react-icons';
 import { FC } from 'react';
 import { useIntl } from 'react-intl';
 import { IncidentHandlerCreateResources, SreAgentResources } from '../../../Strings/SREAgentResources';
@@ -17,20 +17,10 @@ import { useIncidentManagementStyles } from '../../Styles/IncidentManagement.sty
 export interface ToolsToolbarProps {
     onUpdateToolsClick: () => void;
     onAddClick: () => void;
-    onDeleteClick: () => void;
     disabled: boolean;
-    addDisabled?: boolean;
-    hasToolsSelected: boolean;
 }
 
-export const ToolsToolbar: FC<ToolsToolbarProps> = ({
-    onUpdateToolsClick,
-    onAddClick,
-    onDeleteClick,
-    disabled,
-    hasToolsSelected,
-    addDisabled,
-}) => {
+export const ToolsToolbar: FC<ToolsToolbarProps> = ({ onUpdateToolsClick, onAddClick, disabled }) => {
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
 
@@ -39,13 +29,15 @@ export const ToolsToolbar: FC<ToolsToolbarProps> = ({
             <Dialog modalType="alert">
                 <DialogTrigger disableButtonEnhancement>
                     <Button icon={<ArrowClockwise16Regular />} appearance="transparent" className={styles.button} disabled={disabled}>
-                        {intl.formatMessage(IncidentHandlerCreateResources.updateTools)}
+                        {intl.formatMessage(IncidentHandlerCreateResources.regenerateTools)}
                     </Button>
                 </DialogTrigger>
                 <DialogSurface>
                     <DialogBody>
-                        <DialogTitle>{intl.formatMessage(IncidentHandlerCreateResources.updateToolsConfirmationTitle)}</DialogTitle>
-                        <DialogContent>{intl.formatMessage(IncidentHandlerCreateResources.updateToolsConfirmationMessage)}</DialogContent>
+                        <DialogTitle>{intl.formatMessage(IncidentHandlerCreateResources.regenerateToolsConfirmationTitle)}</DialogTitle>
+                        <DialogContent>
+                            {intl.formatMessage(IncidentHandlerCreateResources.regenerateToolsConfirmationMessage)}
+                        </DialogContent>
                         <DialogActions>
                             <DialogTrigger>
                                 <Button className={styles.dangerButton} onClick={() => onUpdateToolsClick()}>
@@ -64,19 +56,9 @@ export const ToolsToolbar: FC<ToolsToolbarProps> = ({
                 appearance="transparent"
                 className={styles.button}
                 onClick={() => onAddClick()}
-                disabled={disabled || addDisabled}
+                disabled={disabled}
             >
-                {intl.formatMessage(SreAgentResources.add)}
-            </Button>
-            <div className={styles.divider} />
-            <Button
-                icon={<Delete16Regular />}
-                appearance="transparent"
-                className={styles.button}
-                onClick={() => onDeleteClick()}
-                disabled={disabled || !hasToolsSelected}
-            >
-                {intl.formatMessage(SreAgentResources.delete)}
+                {intl.formatMessage(IncidentHandlerCreateResources.manageTools)}
             </Button>
         </div>
     );

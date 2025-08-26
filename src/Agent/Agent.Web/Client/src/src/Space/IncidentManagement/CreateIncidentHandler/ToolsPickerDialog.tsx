@@ -28,7 +28,7 @@ export interface ToolsPickerProps {
 export const ToolsPickerDialog = ({ visible, onDismiss, onSave, existingToolsSelection, tools, loading }: ToolsPickerProps) => {
     const intl = useIntl();
 
-    const [selectedToolNames, setSelectedToolNames] = useState<string[]>([]);
+    const [selectedToolNames, setSelectedToolNames] = useState<string[]>(existingToolsSelection);
 
     const toolsTableColumns: IColumn[] = useMemo(() => {
         return [
@@ -51,10 +51,6 @@ export const ToolsPickerDialog = ({ visible, onDismiss, onSave, existingToolsSel
         ];
     }, [intl]);
 
-    const toolsToShow = useMemo(() => {
-        return tools.filter(tool => !existingToolsSelection.includes(tool.name));
-    }, [tools, existingToolsSelection]);
-
     return (
         <Dialog modalType="modal" open={visible}>
             <DialogSurface
@@ -64,30 +60,39 @@ export const ToolsPickerDialog = ({ visible, onDismiss, onSave, existingToolsSel
                 }}
             >
                 <DialogBody>
-                    <DialogTitle>{intl.formatMessage(IncidentHandlerCreateResources.addToolsTitle)}</DialogTitle>
+                    <DialogTitle>{intl.formatMessage(IncidentHandlerCreateResources.manageTools)}</DialogTitle>
                     <DialogContent>
-                        <MultipleSelectionShimmerDetailsList
-                            data={toolsToShow}
-                            selectedKeys={selectedToolNames}
-                            loading={loading}
-                            columns={toolsTableColumns}
-                            onChange={setSelectedToolNames}
-                            getKey={(item: ToolInfo) => item.name}
-                            filter={(searchTerm, item) => {
-                                return (
-                                    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                    !!item.description?.toLowerCase().includes(searchTerm.toLowerCase())
-                                );
+                        <div
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                padding: 0,
+                                height: '100%',
+                                overflowY: 'auto',
                             }}
-                        />
+                        >
+                            <MultipleSelectionShimmerDetailsList
+                                data={tools}
+                                selectedKeys={selectedToolNames}
+                                loading={loading}
+                                columns={toolsTableColumns}
+                                onChange={setSelectedToolNames}
+                                getKey={(item: ToolInfo) => item.name}
+                                filter={(searchTerm, item) => {
+                                    return (
+                                        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                        !!item.description?.toLowerCase().includes(searchTerm.toLowerCase())
+                                    );
+                                }}
+                            />
+                        </div>
                     </DialogContent>
                     <DialogActions>
                         <DialogTrigger disableButtonEnhancement>
                             <Button
                                 appearance="primary"
                                 onClick={() => {
-                                    onSave([...existingToolsSelection, ...selectedToolNames]);
-                                    setSelectedToolNames([]);
+                                    onSave(selectedToolNames);
                                 }}
                             >
                                 {intl.formatMessage(SreAgentResources.save)}

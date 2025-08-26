@@ -25,7 +25,7 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view }) =>
     const { errors, values, setFieldValue } = useFormikContext<IncidentHandlerCreateFormValues>();
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
-    const { tools, toolsLoading, generatingUpdatedTools, generateUpdatedTools, handlerTestMetadata } = useContext(
+    const { tools, toolsLoading, generatingUpdatedTools, generateUpdatedTools, handlerTestMetadata, handlerMode, filterMode } = useContext(
         IncidentHandlerConsolidatedCreateContext
     );
 
@@ -44,7 +44,6 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view }) =>
         return tools.filter(tool => values.toolNames?.includes(tool.name));
     }, [tools, values.toolNames]);
 
-    const [activeToolNames, setActiveToolNames] = useState<string[]>([]);
     const [toolsPickerVisible, setToolsPickerVisible] = useState<boolean>(false);
 
     const toolsTableColumns: IColumn[] = useMemo(() => {
@@ -100,62 +99,62 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view }) =>
                         display: 'flex',
                         flexDirection: 'column',
                         paddingTop: 20,
-                        gap: 16,
                     }}
                 >
-                    {!view && (
-                        <Text size={400} weight="semibold">
-                            {intl.formatMessage(IncidentHandlerCreateResources.reviewCustomInstructionsTitle)}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '33%', flex: 'none' }}>
+                        {!view && (
+                            <Text size={400} weight="semibold">
+                                {intl.formatMessage(IncidentHandlerCreateResources.reviewCustomInstructionsTitle)}
+                            </Text>
+                        )}
+                        {(handlerMode === 'create' || filterMode === 'create') && (
+                            <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.reviewCustomInstructionsDescription)}</Text>
+                        )}
+                        <Textarea
+                            value={values.incidentProcessingGuide}
+                            onChange={(_, data) => setFieldValue('incidentProcessingGuide', data.value)}
+                            rows={8}
+                            disabled={generatingUpdatedTools}
+                            root={{ style: { height: 'auto', flex: '1' } }}
+                            textarea={{ style: { maxHeight: '100%' } }}
+                        />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '67%', flex: 'none' }}>
+                        <Text size={400} weight="semibold" style={{ marginTop: 32 }}>
+                            {intl.formatMessage(IncidentHandlerCreateResources.reviewToolsTitle)}
                         </Text>
-                    )}
-                    <Textarea
-                        value={values.incidentProcessingGuide}
-                        onChange={(_, data) => setFieldValue('incidentProcessingGuide', data.value)}
-                        rows={8}
-                        disabled={generatingUpdatedTools}
-                    />
-                    <Text size={400} weight="semibold">
-                        {intl.formatMessage(IncidentHandlerCreateResources.reviewToolsTitle)}
-                    </Text>
-                    {errors.toolNames && <MessageBar intent="error">{errors.toolNames}</MessageBar>}
-                    <ToolsToolbar
-                        onUpdateToolsClick={generateUpdatedTools}
-                        onAddClick={() => setToolsPickerVisible(true)}
-                        onDeleteClick={() => {
-                            setFieldValue(
-                                'toolNames',
-                                values.toolNames?.filter(name => !activeToolNames.includes(name))
-                            );
-                            setActiveToolNames([]);
-                        }}
-                        disabled={generatingUpdatedTools}
-                        addDisabled={!tools.length || tools.length === selectedToolsList.length}
-                        hasToolsSelected={activeToolNames.length > 0}
-                    />
-                    <ToolsPickerDialog
-                        visible={toolsPickerVisible}
-                        onDismiss={() => setToolsPickerVisible(false)}
-                        onSave={(toolNames: string[]) => {
-                            setFieldValue('toolNames', toolNames);
-                            setToolsPickerVisible(false);
-                        }}
-                        existingToolsSelection={values.toolNames || []}
-                        tools={tools}
-                        loading={toolsLoading}
-                    />
-                    <MultipleSelectionShimmerDetailsList
-                        data={selectedToolsList}
-                        selectedKeys={activeToolNames}
-                        loading={toolsLoading}
-                        columns={toolsTableColumns}
-                        disabled={generatingUpdatedTools}
-                        onChange={selectedKeys => setActiveToolNames(selectedKeys)}
-                        getKey={(item: ToolInfo) => item.name}
-                        listContainerStyle={{
-                            minHeight: selectedToolsList.length < 4 ? 'fit-content' : '200px',
-                            maxHeight: !view ? 'calc(100% - 307px)' : 'calc(100% - 269px)',
-                        }}
-                    />
+                        <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.reviewToolsDescription)}</Text>
+                        {errors.toolNames && <MessageBar intent="error">{errors.toolNames}</MessageBar>}
+                        <ToolsToolbar
+                            onUpdateToolsClick={generateUpdatedTools}
+                            onAddClick={() => setToolsPickerVisible(true)}
+                            disabled={generatingUpdatedTools}
+                        />
+                        <ToolsPickerDialog
+                            visible={toolsPickerVisible}
+                            onDismiss={() => setToolsPickerVisible(false)}
+                            onSave={(toolNames: string[]) => {
+                                setFieldValue('toolNames', toolNames);
+                                setToolsPickerVisible(false);
+                            }}
+                            existingToolsSelection={values.toolNames || []}
+                            tools={tools}
+                            loading={toolsLoading}
+                        />
+                        <MultipleSelectionShimmerDetailsList
+                            data={selectedToolsList}
+                            loading={toolsLoading}
+                            columns={toolsTableColumns}
+                            disallowSelection={true}
+                            disabled={generatingUpdatedTools}
+                            onChange={() => {}}
+                            getKey={(item: ToolInfo) => item.name}
+                            listContainerStyle={{
+                                minHeight: selectedToolsList.length < 4 ? 'fit-content' : '200px',
+                                maxHeight: 'unset',
+                            }}
+                        />
+                    </div>
                 </div>
             )}
             {(!view || view === 'test') && (

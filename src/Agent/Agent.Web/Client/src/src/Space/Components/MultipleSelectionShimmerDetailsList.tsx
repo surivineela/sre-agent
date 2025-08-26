@@ -117,6 +117,7 @@ const useStyles = makeStyles({
     searchBox: {
         width: '300px',
         fontSize: '13px',
+        marginBottom: '16px',
         zIndex: 1,
     },
     iconButton: {
@@ -378,7 +379,17 @@ export const MultipleSelectionShimmerDetailsList: MultipleSelectionShimmerDetail
                             useReducedRowRenderer={true}
                             constrainMode={ConstrainMode.horizontalConstrained}
                             compact={true}
-                            detailsListStyles={mergeStyleSets({ root: { overflowX: 'visible' } }, listStyles)}
+                            detailsListStyles={mergeStyleSets(
+                                {
+                                    root: { overflowX: 'visible' },
+                                    headerWrapper: {
+                                        '& > div': {
+                                            paddingTop: '0px !important',
+                                        },
+                                    },
+                                },
+                                listStyles
+                            )}
                         />
                         {hasMoreItems && (
                             <Skeleton ref={intersectionObserverRef}>

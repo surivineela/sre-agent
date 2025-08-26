@@ -662,24 +662,32 @@ export const IncidentHandlerCreateResources = defineMessages({
         defaultMessage: `The agent uses these available tools to generate incident handler instructions, based on patterns it learned from the past incidents. You can remove any tools you don't want the agent to use.`,
         id: 'U4e+Yf',
     },
-    addCustomInstructionTitle: { defaultMessage: 'Add custom instructions', id: 'Z5fLCi' },
+    addCustomInstructionTitle: { defaultMessage: 'Instruction generation guidance', id: 'eEu4cm' },
     addCustomInstructionDescription: {
-        defaultMessage:
-            'This guidance helps generate the final prompt the agent uses when handling incidents. This might include additional incident context and resolution steps.',
-        id: 'loVng6',
+        defaultMessage: 'Guidance might include resolution steps, specific instructions, or other relevant context.',
+        id: 'yiAEBc',
     },
     customInstructionPlaceholder: { defaultMessage: 'Enter instructions', id: 'AbpmRv' },
-    reviewCustomInstructionsTitle: { defaultMessage: 'Custom instructions', id: 'D7U9Zo' },
-    reviewToolsTitle: { defaultMessage: 'Tools', id: 'nUT0Lv' },
+    reviewCustomInstructionsTitle: { defaultMessage: 'Custom response guidance', id: 'et+X02' },
+    reviewCustomInstructionsDescription: {
+        defaultMessage: 'This is the prompt the agent will use. It includes your custom response guidance. Review and edit if needed.',
+        id: 'eackGq',
+    },
+    reviewToolsTitle: { defaultMessage: 'Tools selected for incident response', id: 'unxs9C' },
+    reviewToolsDescription: {
+        defaultMessage:
+            'The tool list is generated from the custom response guidance. If you modify the guidance, select Regenerate to update the tool list. Once regenerated, the previous list cannot be restored. To add or remove tools, select Manage tools.',
+        id: '0mx8D9',
+    },
     maximumToolsErrorMessage: { defaultMessage: 'A handler can use a maximum of {maxTools} tools.', id: 'x++GsY' },
-    updateTools: { defaultMessage: 'Update tools', id: 'm2z9LK' },
-    updateToolsConfirmationTitle: { defaultMessage: 'Update tools', id: 'm2z9LK' },
-    updateToolsConfirmationMessage: {
+    regenerateTools: { defaultMessage: 'Regenerate tools list', id: 'd6hQf3' },
+    regenerateToolsConfirmationTitle: { defaultMessage: 'Regenerate tools list', id: 'd6hQf3' },
+    regenerateToolsConfirmationMessage: {
         defaultMessage: 'This will overwrite your tool selections. Are you sure you want to continue?',
         id: '0VuGey',
     },
-    addToolsTitle: { defaultMessage: 'Add tools', id: '5fVEet' },
-    testHandlerTitle: { defaultMessage: 'Test handler', id: '5lBLYV' },
+    manageTools: { defaultMessage: 'Manage tools', id: 'ybIDiK' },
+    testHandlerTitle: { defaultMessage: 'Test incident response', id: 'rwwXv0' },
     incidentLabel: { defaultMessage: 'Incident', id: 'zaYxwd' },
     incidentPlaceholder: { defaultMessage: 'Select or search for an incident', id: 'XRdOZL' },
     testHandlerEmptyMessage: {
@@ -758,7 +766,12 @@ export const IncidentHandlerCreateResources = defineMessages({
             'Filters define which incidents the incident handler applies to. These apply to the list of incidents previewed in the next step.',
         id: 'T8mrCM',
     },
-    addCustomInstructions: { defaultMessage: 'Add custom instructions', id: 'Z5fLCi' },
+    addCustomResponseGuidanceTitle: { defaultMessage: 'Add custom response guidance (optional)', id: 'koWZK8' },
+    addCustomResponseGuidanceDescription: {
+        defaultMessage: 'This guidance helps generate the tools list and the final prompt the agent uses during incident handling.',
+        id: 'vao/Lv',
+    },
+    addCustomResponseGuidanceLabel: { defaultMessage: 'Add guidance', id: 'eZMksq' },
     includedIncidentsLabel: { defaultMessage: 'Choose how to set up this incident handler', id: 'OuEM6V' },
     includedIncidentsFutureOnly: { defaultMessage: 'Apply only to incidents triggered after the handler is created', id: 'lyc2l+' },
     includedIncidentsPastAndFuture: { defaultMessage: 'Apply to all current and future active incidents', id: '0w0iFy' },
@@ -785,8 +798,8 @@ export const IncidentManagementResources = defineMessages({
     },
     createIncidentHandlerDescription: {
         defaultMessage:
-            'The incident handler defines which incidents the agent should handle by applying your filter criteria, ensuring responses to the required set of incidents.',
-        id: 'XUVR/7',
+            'An incident handler defines which incidents the agent should handle by applying your filter criteria, ensuring responses to the required set of incidents.',
+        id: 'mtC1dz',
     },
     refresh: { defaultMessage: 'Refresh', id: 'rELDbB' },
     incidentPlatform: { defaultMessage: 'Incident platform', id: 'EZBG/A' },

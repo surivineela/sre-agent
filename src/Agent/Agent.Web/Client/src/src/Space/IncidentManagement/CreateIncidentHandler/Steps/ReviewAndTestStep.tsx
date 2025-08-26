@@ -53,7 +53,6 @@ export const ReviewAndTestStep: FC = () => {
                     display: 'flex',
                     flexDirection: 'column',
                     padding: '0px 20px 0px 20px',
-                    gap: '20px',
                     height: panelHeight,
                     overflowY: 'auto',
                 }}
