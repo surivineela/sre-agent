@@ -975,13 +975,7 @@ public class Program
                 // Register a processor to capture LLM Token Consumption logs (EventId = 2001)
                 .AddProcessor(sp =>
                 {
-                    var ClusterUri = GetInternalKustoClusterConfiguration("ClusterUri");
-                    var DatabaseName = GetInternalKustoClusterConfiguration("DatabaseName");
-                    var CertificatePath = GetInternalKustoClusterConfiguration("CertificatePath");
-                    var FirstPartyAppClientId = GetInternalKustoClusterConfiguration("FirstPartyAppClientId");
-                    var FirstPartyAppTenantId = GetInternalKustoClusterConfiguration("FirstPartyAppTenantId");
-
-                    if (!string.IsNullOrEmpty(ClusterUri))
+                    try
                     {
                         PopulateLogColumnsDelegate populate = (logRecord, logData) =>
                         {
@@ -1007,25 +1001,53 @@ public class Program
                             }
                         };
 
-                        var options = new AzureDataExplorerLogExporterOptions(
-                            clusterUri: ClusterUri,
-                            databaseName: DatabaseName,
-                            tableName: "TokenConsumptionEvents",
-                            populateColumns: populate,
-                            firstPartyAppCertificatePath: CertificatePath,
-                            firstPartyAppClientId: FirstPartyAppClientId,
-                            firstPartyAppTenantId: FirstPartyAppTenantId);
+                        // Prefer Event Hub exporter when configured; otherwise fall back to ADX if available
+                        // If trace Event Hub settings are present, use EventHubLogExporter for token consumption logs
+                        if (!string.IsNullOrEmpty(azureSettings?.AgentTraceEventHub.FullyQualifiedNamespace))
+                        {
+                            var ehOptions = new EventHubLogExporterOptions(
+                                fullyQualifiedNamespace: azureSettings.AgentTraceEventHub.FullyQualifiedNamespace,
+                                eventHubName: "tokenconsumptionevents",
+                                populateColumns: populate,
+                                firstPartyAppCertificatePath: azureSettings.AgentTraceEventHub.CertificatePath,
+                                firstPartyAppClientId: azureSettings.AgentTraceEventHub.FirstPartyAppClientId,
+                                firstPartyAppTenantId: azureSettings.AgentTraceEventHub.FirstPartyAppTenantId);
 
-                        var exporter = new AzureDataExplorerLogExporter(options);
+                            var exporter = new EventHubLogExporter(ehOptions);
+                            Func<LogRecord, bool> predicate = record => record.EventId.Id == 2001;
+                            return new CustomizedLogProcessor(exporter, predicate, "TokenConsumptionProcessor");
+                        }
 
-                        // Filter only EventId == 2001 (LogTokenConsumption)
-                        Func<LogRecord, bool> predicate = record => record.EventId.Id == 2001;
+                        var clusterUri = GetInternalKustoClusterConfiguration("ClusterUri");
+                        var databaseName = GetInternalKustoClusterConfiguration("DatabaseName");
+                        var certificatePath = GetInternalKustoClusterConfiguration("CertificatePath");
+                        var firstPartyAppClientId = GetInternalKustoClusterConfiguration("FirstPartyAppClientId");
+                        var firstPartyAppTenantId = GetInternalKustoClusterConfiguration("FirstPartyAppTenantId");
 
-                        return new CustomizedLogProcessor(exporter, predicate, "TokenConsumptionProcessor");
+                        // Fallback to Azure Data Explorer when ADX cluster is available
+                        if (!string.IsNullOrEmpty(clusterUri))
+                        {
+                            var options = new AzureDataExplorerLogExporterOptions(
+                                clusterUri: clusterUri,
+                                databaseName: databaseName,
+                                tableName: "TokenConsumptionEvents",
+                                populateColumns: populate,
+                                firstPartyAppCertificatePath: certificatePath,
+                                firstPartyAppClientId: firstPartyAppClientId,
+                                firstPartyAppTenantId: firstPartyAppTenantId);
+
+                            var exporter = new AzureDataExplorerLogExporter(options);
+                            Func<LogRecord, bool> predicate = record => record.EventId.Id == 2001;
+                            return new CustomizedLogProcessor(exporter, predicate, "TokenConsumptionProcessor");
+                        }
+
+                        // No exporter configured -> no-op processor (predicate false)
+                        return new CustomizedLogProcessor(null, record => false, "TokenConsumptionProcessor");
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        // No Kusto configured -> no-op processor (predicate false)
+                        var logger = sp.GetService<ILogger<Program>>();
+                        logger?.LogWarning(ex, "Failed to configure TokenConsumptionProcessor exporter, falling back to no-op processor");
                         return new CustomizedLogProcessor(null, record => false, "TokenConsumptionProcessor");
                     }
                 });
