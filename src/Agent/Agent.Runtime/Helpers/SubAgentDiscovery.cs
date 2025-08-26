@@ -54,37 +54,7 @@ namespace Agent.Core.Helpers
 
         public static List<AITool> GetSubAgentTools(Guid threadGuid, Assembly subAgentsAssembly, IServiceProvider serviceProvider)
         {
-
-            // DEPRACTED DO NOT USE SimpleResourceSubAgentPluginBase
             List<AITool> subAgentAItools = [];
-            // Get all instances of background-scanning subagents and register their methods
-            var subClasses = TypeReflectionHelpers.GetClassesDerivedFromGeneric(
-                subAgentsAssembly,
-                typeof(SimpleResourceSubAgentPluginBase<,,,,>)
-            );
-            foreach (var type in subClasses)
-            {
-                // Instantiate the type using DI
-                var instance = serviceProvider.GetService(type);
-                if (instance is null)
-                {
-                    continue;
-                }
-
-                // Set the context
-                var prop = type.GetProperty("ThreadId", BindingFlags.Public | BindingFlags.Instance);
-                if (prop == null)
-                {
-                    throw new InvalidOperationException($"Property 'ThreadId' not found on plugin '{type.Name}'");
-                }
-                prop.SetValue(instance, threadGuid);
-
-                // Get a handle to its methods, and register them in the tools
-                var listWorkflowsAsync = type.GetMethod("ListWorkflowsAsync", BindingFlags.Public | BindingFlags.Instance) ?? throw new Exception("Method ListWorkflowsAsync not found");
-                var startAgentAsync = type.GetMethod("StartAgentAsync", BindingFlags.Public | BindingFlags.Instance) ?? throw new Exception("Method StartAgentAsync not found");
-                subAgentAItools.Add(AIFunctionFactory.Create(listWorkflowsAsync, instance));
-                subAgentAItools.Add(AIFunctionFactory.Create(startAgentAsync, instance));
-            }
 
             //Best pratice using Attributes to register Workflow Classes , to avoid calling the last workflow registered for any reasoning 
             var allTypes = subAgentsAssembly.GetTypes();

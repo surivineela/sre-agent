@@ -7,7 +7,6 @@ using Agent.Core.Models.Api.v1;
 using Agent.Logging;
 using Agent.Runtime.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Web.Controllers.v1
@@ -25,7 +24,6 @@ namespace Agent.Web.Controllers.v1
             IApprovalService approvalService,
             ILogger<ApprovalsController> logger,
             IAgentOutboundCommunicationService agentOutboundCommunicationService,
-            DurableTaskClient durableTaskClient,
             IThreadRepository threadRepository)
         {
             _approvalService = approvalService;

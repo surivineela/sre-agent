@@ -6,7 +6,6 @@ using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
-using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using ArmConstants = Agent.Graph.Crawler.ARM.Constants;
 
@@ -43,7 +42,6 @@ public record LocalAuthResourceInformation(string ResourceId, string Name, strin
 /// This scanner operates independently without requiring separate agent or factory classes.
 /// </summary>
 public class LocalAuthScanner(
-    DurableTaskClient durableTaskClient,
     IThreadRepository threadRepository,
     ILogger<LocalAuthScanner> logger,
     IAgentInboundCommunicationService agentInboundCommunicationService,
@@ -51,7 +49,6 @@ public class LocalAuthScanner(
     ArmHelper armHelper)
 {
     private readonly ILogger<LocalAuthScanner> _logger = logger;
-    private readonly DurableTaskClient _durableTaskClient = durableTaskClient;
     private readonly IAgentInboundCommunicationService _agentInboundCommunicationService = agentInboundCommunicationService;
     private readonly IGraphDatabaseClient _graphDatabaseClient = graphDatabaseClient;
     private readonly ArmHelper _armHelper = armHelper;

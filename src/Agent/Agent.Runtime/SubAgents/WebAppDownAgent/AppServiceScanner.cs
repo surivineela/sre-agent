@@ -8,8 +8,6 @@ using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
 using Agent.Logging;
-using Agent.Runtime.SubAgents.ContainerAppsRemediation;
-using Agent.Runtime.SubAgents.FunctionAppConnectivityAgent;
 using Microsoft.Extensions.Logging;
 using Agent.Runtime.Helpers;
 using Agent.Core.Helpers;
@@ -20,12 +18,10 @@ public class AppServiceScanner
     private readonly ILogger<AppServiceScanner> _logger;
     private readonly ScoreCardService _scoreCardService;
     private readonly IGraphDatabaseClient _graphDBClient;
-    private readonly WebAppDownAgentFactory _webAppDownAgentFactory;
     private readonly List<object> _webAppsToMitigate;
 
     public AppServiceScanner(
         ScoreCardService scoreCardService,
-        WebAppDownAgentFactory webAppDownAgentFactory,
         IGraphDatabaseClient graphDBClient,
         ILogger<AppServiceScanner> logger)
     {
@@ -33,7 +29,6 @@ public class AppServiceScanner
         _scoreCardService = scoreCardService;
         _graphDBClient = graphDBClient;
         _webAppsToMitigate = [];
-        _webAppDownAgentFactory = webAppDownAgentFactory;
     }
 
     public async Task Scan(CancellationToken cancellationToken)

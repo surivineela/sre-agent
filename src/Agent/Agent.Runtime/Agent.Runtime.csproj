@@ -126,9 +126,6 @@
     <None Update="AgentsV2\RepositoryAgents\RepositoryAgent.yaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="SubAgents\AppCodeAnalysisAgent\AppCodeAnalysisPlan.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="SubAgents\ContainerAppsAgent\dotnet-detect.sh">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -138,43 +135,13 @@
     <None Update="SubAgents\ContainerAppsAgent\dotnet-dump.sh">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="SubAgents\CPUAnalysisAgent\CPUAnalysisPlan.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="SubAgents\DailySummaryAgent\Dashboards\Azure App Service Monitoring.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="SubAgents\DailySummaryAgent\Dashboards\AppGroupDashboard.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="SubAgents\FunctionAppConnectivityAgent\FunctionAppConnectivityAgentPlan.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="SubAgents\SqlDbQueryPerfAgent\SqlDbQueryPerfAgentPlan.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="SubAgents\CVEAgent\CVEPlan.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="SubAgents\TlsBestPracticesAgent\TlsBestPracticesInfo.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="SubAgents\TlsBestPracticesAgent\TlsBestPracticesPlan.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="SubAgents\ManagedIdentityMigrationAgent\ManagedIdentityMigrationPlan.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="SubAgents\AppServiceRemediationAgent\AppServiceAgent.txt">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </None>
-    <None Update="SubAgents\ContainerAppsAgent\ContainerAppsAgent.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="SubAgents\ContainerAppsAgent\Docs\scalers\*.md">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="SubAgents\KubernetesAgent\KubernetesAgent.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="SubAgents\KubernetesAgent\profile_script.sh">
@@ -183,21 +150,12 @@
     <None Update="SubAgents\KubernetesAgent\analyze_memory_aks.sh">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="SubAgents\AksQaAgent\AksQaAgentPlan.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
 	<None Update="SubAgents\DailySummaryAgent\Dashboards\Main-Dashboard.json">
 	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	</None>
 	  <None Update="SubAgents\DailySummaryAgent\DailySummaryPlan.txt">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
-	  <None Update="SubAgents\VmRdpInvestigatorAgent\VmRdpInvestigatorAgentPlan.txt">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-    <None Update="SubAgents\WebAppDownAgent\WebAppDownPlan.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="ToolsV2\GetEnvoyControllerLogs - Copy.yaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

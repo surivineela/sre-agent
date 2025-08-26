@@ -47,35 +47,22 @@ using Agent.Runtime.IncidentHandlerAgent;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.MetaAgent.Interfaces;
-using Agent.Runtime.MetaAgent.SubAgentPlugins;
 using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
 using Agent.Runtime.Services.AzMonitorAlertInvestigation;
 using Agent.Runtime.Services.AzMonitorAlertInvestigationService;
 using Agent.Runtime.SubAgents;
-using Agent.Runtime.SubAgents.AppCodeAnalysisAgent;
-using Agent.Runtime.SubAgents.AppReliabilityAgent;
-//using Agent.Runtime.SubAgents.AppServiceRemediation;
 using Agent.Runtime.SubAgents.AzMonitorAlertAgent;
-using Agent.Runtime.SubAgents.ContainerAppsRemediation;
 using Agent.Runtime.SubAgents.Core;
-using Agent.Runtime.SubAgents.CPUAnalysisAgent;
 using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.DailyReportSummary;
 using Agent.Runtime.SubAgents.FeedbackRCAAgent;
-using Agent.Runtime.SubAgents.FunctionAppConfigurationCheck;
-using Agent.Runtime.SubAgents.FunctionAppConnectivityAgent;
-using Agent.Runtime.SubAgents.FunctionAppDeploymentChecksAgent;
-using Agent.Runtime.SubAgents.FunctionAppDiagnosticsAgent;
-using Agent.Runtime.SubAgents.FunctionAppExecutionFailuresAgent;
-using Agent.Runtime.SubAgents.KubernetesAgent;
 using Agent.Runtime.SubAgents.LocalAuthAgent;
-using Agent.Runtime.SubAgents.ManagedIdentityMigration;
+using Agent.Runtime.SubAgents.IcmScanner;
+using Agent.Runtime.SubAgents.PagerDutyAgent;
+using Agent.Runtime.SubAgents.ServiceNowScanner;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
-using Agent.Runtime.SubAgents.SqlDbQueryPerfAgent;
-using Agent.Runtime.SubAgents.TlsBestPractices;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
-using Agent.Runtime.SubAgents.VmRdpInvestigatorAgent;
 using Agent.Runtime.SubAgents.WebAppDownAgent;
 using Agent.Runtime.TeamsChatServices;
 using Agent.Runtime.ThreadEvaluator;
@@ -85,11 +72,6 @@ using FirstPartyAgent.Core.FirstPartyAgents;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Connector.Authentication;
-using Microsoft.DurableTask;
-using Microsoft.DurableTask.Client;
-using Microsoft.DurableTask.Client.AzureManaged;
-using Microsoft.DurableTask.Worker;
-using Microsoft.DurableTask.Worker.AzureManaged;
 using Microsoft.Extensions.AI;
 using Microsoft.SemanticKernel;
 using OpenTelemetry;
@@ -342,39 +324,21 @@ public class Program
             .AddSingleton<ICrawlerService, ResourceGraphCrawlerService>()
             .AddSingleton<ICrawlerTriggerService, CrawlerTriggerService>()
             .AddSingleton<IReliabilityPlugin, ReliabilityPlugin>()
-            .AddTransient<IMetaAgentAppReliabilityPlugin, AppReliabilityPlugin>()
-            .AddSingleton<AppReliabilityAgentFactory>()
-            .AddSingleton<AppCodeAnalysisAgentFactory>()
             .AddSingleton<INSGRulePlugin, NSGRulePlugin>()
-            .AddSingleton<ContainerAppsRemediationAgentFactory>()
             .AddSingleton<IContainerAppPlugin, ContainerAppPlugin>()
             .AddSingleton<IRemoteWriteService, RemoteWriteService>()
             .AddSingleton<AzureSupportCenterHelper>()
             .AddSingleton<IAzureSupportCenterPlugin, AzureSupportCenterPlugin>()
-            .AddSingleton<VmRdpInvestigatorAgentFactory>()
-            .AddTransient<IMetaAgentVmRdpInvestigatorPlugin, VmRdpInvestigatorPlugin>()
             .AddSingleton<AppInsightsSettings>()
-            .AddSingleton<FunctionAppConnectivityAgentFactory>()
-            .AddTransient<IMetaAgentFunctionAppConnectivityPlugin, FunctionAppConnectivityPlugin>()
-            .AddSingleton<FunctionAppExecutionFailuresAgentFactory>()
-            .AddTransient<IMetaAgentFunctionAppExecutionFailuresAgentPlugin, FunctionAppExecutionFailuresAgentPlugin>()
             .AddSingleton<IPrometheusQueryService, PrometheusQueryService>()
             .AddSingleton<IRoleAssignmentPlugin, RoleAssignmentPlugin>()
             .AddSingleton<IAppLogsQueryService, AppLogsQueryService>()
 
-            .AddSingleton<SqlDbQueryPerfAgentFactory>()
-            .AddTransient<IMetaAgentSqlDbQueryPerfPlugin, SqlDbQueryPerfPlugin>()
 
-            .AddTransient<IMetaAgentFunctionAppDiagnosticsPlugin, FunctionAppDiagnosticsPlugin>()
-            .AddSingleton<FunctionAppDiagnosticsAgentFactory>()
 
-            .AddSingleton<FunctionAppConfigurationCheckAgentFactory>()
             .AddTransient<IFunctionAppConfigurationChecksPlugin, FunctionAppConfigurationChecksPlugin>()
-            .AddTransient<IMetaAgentFunctionAppConfigurationCheckAgentPlugin, FunctionAppConfigurationCheckPlugin>()
 
-            .AddSingleton<FunctionAppDeploymentChecksAgentFactory>()
             .AddTransient<IFunctionAppDeploymentChecksPlugin, FunctionAppDeploymentChecksPlugin>()
-            .AddTransient<IMetaAgentFunctionAppDeploymentChecksAgentPlugin, FunctionAppDeploymentChecksAgentPlugin>()
 
             .AddTransient<IPostgreSQLPlugin, PostgreSQLPlugin>()
             .AddTransient<PostgreSQLPluginDefinition>()
@@ -435,14 +399,6 @@ public class Program
             .AddTransient<RCAPreflightICMPluginDefinition>()
             .AddTransient<ColdStartPluginDefinition>()
             .AddTransient<LogsPluginDefinition>()
-            .AddTransient<IMetaAgentContainerAppsRemediationPlugin, ContainerAppsRemediationPlugin>()
-            .AddTransient<IMetaAgentManagedIdentityMigrationPlugin, ManagedIdentityMigrationPlugin>()
-            .AddTransient<IMetaAgentTlsBestPracticesPlugin, TlsBestPracticesPlugin>()
-            .AddTransient<IMetaAgentKubernetesAgentPlugin, KubernetesAgentPlugin>()
-            .AddTransient<IMetaAgentAksQaAgentPlugin, AksQaAgentPlugin>()
-            .AddTransient<IMetaAgentWebAppDownPlugin, WebAppDownPlugin>()
-            .AddTransient<IMetaAgentCPUAnalysisPlugin, CPUAnalysisAgentPlugin>()
-            .AddTransient<IMetaAgentAppCodeAnalysisPlugin, AppCodeAnalysisAgentPlugin>()
             .AddTransient<IKubePlugin, KubePlugin>()
             //.AddTransient<IMetaAgentAppServiceRemediationPlugin, AppServiceRemediationPlugin>()
             .AddTransient<IChartPlugin, ChartPluginV2>()
@@ -462,18 +418,10 @@ public class Program
             .AddTransient<IAzureAlertingPlugin, AzureAlertingPlugin>()
             .AddTransient<IWebAppPlugin, WebAppPlugin>()
 
-            //.AddSingleton<AppServiceRemediationAgentFactory>()
-            .AddSingleton<KubernetesAgentFactory>()
-            .AddSingleton<AksQaAgentFactory>()
-            .AddSingleton<ManagedIdentityMigrationAgentFactory>()
             .AddSingleton<ThreadEvaluator>()
             .AddSingleton<TrajectoryEvaluator>()
-            .AddSingleton<TlsBestPracticeAgentFactory>()
             .AddSingleton<TlsBestPracticesScanner>()
             .AddTransient<LocalAuthScanner>()
-            .AddSingleton<WebAppDownAgentFactory>()
-            .AddSingleton<CPUAnalysisAgentFactory>()
-            .AddSingleton<AppCodeAnalysisAgentFactory>()
             .AddSingleton<SourceCodeScanner>()
             .AddSingleton<CVEScanner>()
             .AddSingleton<FeedbackRCAScanner>()
@@ -493,7 +441,6 @@ public class Program
             .AddSingleton<PostToTeamsPluginDefinition>()
             .AddSingleton<DailyReportScanner>()
             .AddSingleton<AppServiceScanner>()
-            .AddSingleton<DailyReportSummaryAgentFactory>()
             .AddSingleton<IPostToTeamsPlugin, PostToTeamsPlugin>()
             .AddSingleton<IConnectedIntegrationsPlugin, ConnectedIntegrationsPlugin>()
             .AddSingleton<IGrafanaPlugin, GrafanaPlugin>()
@@ -611,12 +558,9 @@ public class Program
                 return factory;
             })
             .AddSingleton<IDiagnosticsPlugin, DiagnosticsPlugin>()
-            .AddSingleton<IMetaAgentFunctionAppDiagnosticsPlugin, FunctionAppDiagnosticsPlugin>()
             .AddSingleton<ISearchPlugin, SearchPlugin>()
 
-            // Register the communication activities
-            .AddSingleton<UpdateThreadWithAgentMessageActivity>()
-            .AddSingleton<NotifyCompletionActivity>()
+
             .AddSingleton<Octokit.IGitHubClient>(provider =>
             {
                 var client = new Octokit.GitHubClient(new Octokit.ProductHeaderValue("AzureSreAgent"));
@@ -803,39 +747,6 @@ public class Program
                         .AddSingleton<IBotPollingMessage, TeamsBot>();
         // Add the new polling service
         builder.Services.AddHostedService<TeamsMessagePollingService>();
-
-        builder.Services.AddDurableTaskWorker(b =>
-        {
-            b.AddTasks(r =>
-            {
-                DurableHelper.AddAllGeneratedTasks(r);
-            });
-
-            string durableConnectionString = builder.ResolveDtsConnectionString();
-            b.UseDurableTaskScheduler(durableConnectionString);
-
-            builder.Services.AddOptions<DurableTaskSchedulerWorkerOptions>(b.Name).Configure<IServiceProvider>((option, sp) =>
-            {
-                var authService = sp.GetRequiredService<IAuthenticationService>();
-                var tokenCredential = authService.GetDtsCredential();
-
-                option.Credential = tokenCredential;
-            });
-        });
-
-        builder.Services.AddDurableTaskClient(b =>
-        {
-            string durableConnectionString = builder.ResolveDtsConnectionString();
-            b.UseDurableTaskScheduler(durableConnectionString);
-
-            builder.Services.AddOptions<DurableTaskSchedulerClientOptions>(b.Name).Configure<IServiceProvider>((option, sp) =>
-            {
-                var authService = sp.GetRequiredService<IAuthenticationService>();
-                var tokenCredential = authService.GetDtsCredential();
-
-                option.Credential = tokenCredential;
-            });
-        });
 
         builder.Services.AddCosmosClient();
         ConfigureAgentMemory(builder);

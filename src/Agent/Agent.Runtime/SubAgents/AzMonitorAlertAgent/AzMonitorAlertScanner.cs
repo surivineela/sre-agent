@@ -18,12 +18,10 @@ using Agent.Plugins.Interface;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.Services;
-using Agent.Runtime.SubAgents.ContainerAppsRemediation;
 using Agent.Runtime.SubAgents.WebAppDownAgent;
 using Azure.Core;
 using Azure.ResourceManager.AlertsManagement.Models;
 using Microsoft.Azure.Cosmos;
-using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Author = Agent.Core.Models.Api.v1.Author;
@@ -47,9 +45,6 @@ public class AzMonitorAlertScanner
     private readonly IGraphDatabaseClient _graphDbClient;
     private readonly ILogQueryService _logQueryService;
     private readonly IAzMonitorAlertInvestigationService _azMonitorInvestigationService;
-    private readonly ContainerAppsRemediationAgentFactory _containerAppsRemediationAgentFactory;
-    private readonly WebAppDownAgentFactory _webAppDownAgentFactory;
-    private readonly DurableTaskClient _durableTaskClient;
     private readonly IAgentsFactory _agentsFactory;
     private readonly IncidentManagementSettings _incidentManagementSettings;
 
@@ -66,10 +61,7 @@ public class AzMonitorAlertScanner
         ILogQueryService logQueryService,
         IAzMonitorAlertInvestigationService alertInvestigationService,
         IInvestigationOrchestrator investigationOrchestrator,
-        ContainerAppsRemediationAgentFactory containerAppsRemediationAgentFactory,
-        DurableTaskClient durableTaskClient,
         IAgentsFactory agentsFactory,
-        WebAppDownAgentFactory webAppDownAgentFactory,
         IChatClient chatClient,
         IncidentManagementSettings incidentManagementSettings,
         ILogger<AzMonitorAlertScanner> logger)
@@ -90,10 +82,7 @@ public class AzMonitorAlertScanner
         _azMonitorInvestigationService = alertInvestigationService;
         _investigationOrchestrator = investigationOrchestrator;
 
-        _containerAppsRemediationAgentFactory = containerAppsRemediationAgentFactory;
-        _durableTaskClient = durableTaskClient;
         _agentsFactory = agentsFactory;
-        _webAppDownAgentFactory = webAppDownAgentFactory;
     }
 
     /// <summary>

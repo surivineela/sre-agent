@@ -1,5 +1,4 @@
 using Azure.ResourceManager.AppService.Models;
-using Microsoft.DurableTask.Client;
 
 namespace Agent.Plugins.Interface
 {
@@ -19,6 +18,5 @@ namespace Agent.Plugins.Interface
 
         Task<string> GetAppsToMonitor(CancellationToken cancellationToken = default);
 
-        Task<OrchestrationRuntimeStatus?> GetReliabilityOrchestrationStatus(string instanceId);
     }
 }

@@ -17,7 +17,6 @@ using Agent.Data.DataModels;
 using Agent.Data.Repositories;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Services.Interfaces;
-using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -29,9 +28,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
     public class DailyReportScanner
     {
         private readonly ILogger<DailyReportScanner> _logger;
-        private readonly DurableTaskClient _durableTaskClient;
         private readonly IThreadRepository _threadRepository;
-        private readonly DailyReportSummaryAgentFactory _dailyReportSummaryAgentFactory;
         private readonly IAgentInboundCommunicationService _agentInboundCommunicationService;
         private readonly IGraphDatabaseClient _graphDatabaseClient;
         private readonly IGrafanaPlugin _grafanaPlugin;
@@ -71,9 +68,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         };
 
         public DailyReportScanner(
-            DurableTaskClient durableTaskClient,
             IThreadRepository threadRepository,
-            DailyReportSummaryAgentFactory dailyReportSummaryAgentFactory,
             ILogger<DailyReportScanner> logger,
             IAgentInboundCommunicationService agentInboundCommunicationService,
             IGraphDatabaseClient graphDatabaseClient,
@@ -94,9 +89,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             string puppeteerScreenshotApiUrl = "https://test-capp.ambitiouspond-10f27fe1.canadaeast.azurecontainerapps.io")
         {
             _logger = logger;
-            _durableTaskClient = durableTaskClient;
             _threadRepository = threadRepository;
-            _dailyReportSummaryAgentFactory = dailyReportSummaryAgentFactory;
             _agentInboundCommunicationService = agentInboundCommunicationService;
             _graphDatabaseClient = graphDatabaseClient;
             _grafanaPlugin = grafanaPlugin;
@@ -137,33 +130,6 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
 
         public async Task<Thread?> ScanAndGenerateReport(CancellationToken cancellationToken)
         {
-            if (!_coreSettings.UseAgentFramework)
-            {
-                // Check if a report agent is already running
-                var runningAgents = await _durableTaskClient.GetAllInstancesAsync(new OrchestrationQuery
-                {
-                    Statuses = new[] { OrchestrationRuntimeStatus.Running },
-                    InstanceIdPrefix = DailyReportSummaryAgentFactory.OrchestrationInstanceIdPrefix
-                }).ToListAsync();
-
-                foreach (var agent in runningAgents)
-                {
-                    await _durableTaskClient.TerminateInstanceAsync(agent.InstanceId);
-                }
-
-                runningAgents = await _durableTaskClient.GetAllInstancesAsync(new OrchestrationQuery
-                {
-                    Statuses = new[] { OrchestrationRuntimeStatus.Running },
-                    InstanceIdPrefix = DailyReportSummaryAgentFactory.OrchestrationInstanceIdPrefix
-                }).ToListAsync();
-
-                if (runningAgents.Count > 0)
-                {
-                    _logger.LogInternalInformation("Daily report summary agent already running, skipping this run.");
-                    return null;
-                }
-            }
-
             _logger.LogInternalInformation("Starting daily report generation...");
 
             // Check if we need to run the daily report (e.g., only during certain hours)
@@ -244,55 +210,17 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
 
             _logger.LogInternalInformation("Created thread for daily report: {ThreadId}", thread.Id);
 
-            if (_coreSettings.UseAgentFramework)
-            {
-                _logger.LogInternalInformation("Using Agent Framework to process daily report summary");
-                var message = new ThreadMessage(
-                    ThreadId: agentContext.ThreadId,
-                    AgentContextId: agentContext.Id,
-                    MessageId: Guid.NewGuid(),
-                    Message: "Summarize the report.",
-                    UserId: "",
-                    DisplayName: "",
-                    Timestamp: DateTime.UtcNow);
-                await _agentInboundCommunicationService.ProcessUserMessageAsync(message);
-                return thread;
-            }
-            else
-            {
-                // Start the agent orchestration
-                var instanceId = await _dailyReportSummaryAgentFactory.StartOrchestration(input, agentContext.ThreadId);
-
-                _logger.LogInternalInformation("Started daily report generation with instance ID: {InstanceId}", instanceId);
-
-                // Wait for completion or handle timeout
-                try
-                {
-                    using (var timeoutCts = new CancellationTokenSource(TimeSpan.FromHours(1))) // 1 hour timeout
-                    using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken))
-                    {
-                        await _durableTaskClient.WaitForInstanceCompletionAsync(instanceId, linkedCts.Token);
-                        _logger.LogInternalInformation("Daily report generation completed successfully.");
-                    }
-                }
-                catch (OperationCanceledException)
-                {
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        _logger.LogInternalWarning("Daily report generation was cancelled.");
-                    }
-                    else
-                    {
-                        _logger.LogInternalWarning("Daily report generation timed out.");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogInternalError(ex, "Error waiting for daily report generation: {Message}", ex.Message);
-                }
-
-                return thread;
-            }
+            _logger.LogInternalInformation("Using Agent Framework to process daily report summary");
+            var message = new ThreadMessage(
+                ThreadId: agentContext.ThreadId,
+                AgentContextId: agentContext.Id,
+                MessageId: Guid.NewGuid(),
+                Message: "Summarize the report.",
+                UserId: "",
+                DisplayName: "",
+                Timestamp: DateTime.UtcNow);
+            await _agentInboundCommunicationService.ProcessUserMessageAsync(message);
+            return thread;
         }
 
         // Returns main dashboard url

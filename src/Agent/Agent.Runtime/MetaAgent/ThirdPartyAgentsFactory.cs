@@ -242,29 +242,18 @@ $@"## Facts
     private readonly McpToolsRepository _mcpToolsRepository;
     private readonly IServiceProvider _serviceProvider;
 
-    private readonly IMetaAgentManagedIdentityMigrationPlugin _managedIdentityMigrationPlugin;
-    private readonly IMetaAgentTlsBestPracticesPlugin _tlsBestPracticesPlugin;
     private readonly IAppServicePlugin _appServicePlugin;
-    private readonly IMetaAgentContainerAppsRemediationPlugin _containerAppsRemediationPlugin;
-    private readonly IMetaAgentKubernetesAgentPlugin _kubernetesAgentPlugin;
-    private readonly IMetaAgentAksQaAgentPlugin _aksQaAgentPlugin;
     private readonly IContainerAppPlugin _containerAppPlugin;
     private readonly IKubePlugin _kubePlugin;
     private readonly IChartPlugin _chartPlugin;
     private readonly IGraphDBPlugin _graphDbPlugin;
     private readonly IGithubIssuePlugin _githubIssuePlugin;
-    private readonly IMetaAgentVmRdpInvestigatorPlugin _vmRdpInvestigatorPlugin;
-    private readonly IMetaAgentWebAppDownPlugin _webAppDownPlugin;
-    private readonly IMetaAgentFunctionAppConnectivityPlugin _functionAppConnectivityPlugin;
     private readonly IFunctionAppsPlugin _functionAppsPlugin;
-    private readonly IMetaAgentSqlDbQueryPerfPlugin _sqlDbQueryPerfPlugin;
     private readonly IConnectedIntegrationsPlugin _connectedIntegrationsPlugin;
     private readonly IAppCodeAnalysisPlugin _appCodeAnalysisPlugin;
     private readonly IMetricsPlugin _metricsPlugin;
     private readonly IPagerDutyIncidentPlugin _incidentPlugin;
-    private readonly IMetaAgentFunctionAppExecutionFailuresAgentPlugin _functionAppExecutionFailuresAgentPlugin;
     private readonly IAzureMonitorMetricsPlugin _azureMonitorMetricsPlugin;
-    private readonly IMetaAgentFunctionAppDiagnosticsPlugin _functionAppDiagnosticsPlugin;
     private readonly IArmPlugin _armPlugin;
     private readonly IDiagnosticsPlugin _diagnosticsPlugin;
     private readonly IAzureDevOpsWorkItemPlugin _azureDevOpsWorkItemPlugin;
@@ -280,12 +269,7 @@ $@"## Facts
         IServiceProvider serviceProvider,
 
         IChartPlugin chartPlugin,
-        IMetaAgentManagedIdentityMigrationPlugin managedIdentityMigrationPlugin,
-        IMetaAgentTlsBestPracticesPlugin tlsBestPracticesPlugin,
         //IMetaAgentAppServiceRemediationPlugin appServiceRemediationPlugin,
-        IMetaAgentContainerAppsRemediationPlugin containerAppsRemediationPlugin,
-        IMetaAgentKubernetesAgentPlugin kubernetesAgentPlugin,
-        IMetaAgentAksQaAgentPlugin aksQaAgentPlugin,
         IAppServicePlugin appServicePlugin,
         IContainerAppPlugin containerAppPlugin,
         IFunctionAppsPlugin functionAppsPlugin,
@@ -293,19 +277,13 @@ $@"## Facts
         IGithubIssuePlugin githubIssuePlugin,
         IGraphDBPlugin graphDBPlugin,
         //IMetaAgentAppReliabilityPlugin appReliabilityPlugin,
-        IMetaAgentWebAppDownPlugin webAppDownPlugin,
-        IMetaAgentVmRdpInvestigatorPlugin vmRdpInvestigatorPlugin,
-        IMetaAgentFunctionAppConnectivityPlugin functionAppConnectivityPlugin,
-        IMetaAgentSqlDbQueryPerfPlugin sqlDbQueryPerfPlugin,
         IConnectedIntegrationsPlugin connectedIntegrationsPlugin,
         IAppCodeAnalysisPlugin appCodeAnalysisPlugin,
         IDiagnosticsPlugin diagnosticsPlugin,
         IMetricsPlugin metricsPlugin,
         InstanceManagementSettings instanceManagementSettings,
         IPagerDutyIncidentPlugin incidentPlugin,
-        IMetaAgentFunctionAppExecutionFailuresAgentPlugin functionAppExecutionFailuresAgentPlugin,
         IAzureMonitorMetricsPlugin azureMonitorMetricsPlugin,
-        IMetaAgentFunctionAppDiagnosticsPlugin functionAppDiagnosticsPlugin,
         IArmPlugin armPlugin,
         ISearchPlugin searchPlugin,
         IRemediationPlugin remediationPlugin,
@@ -317,13 +295,8 @@ $@"## Facts
         _mcpToolsRepository = mcpToolsRepository;
         _serviceProvider = serviceProvider;
 
-        _tlsBestPracticesPlugin = tlsBestPracticesPlugin;
-        _managedIdentityMigrationPlugin = managedIdentityMigrationPlugin;
         //_appServiceRemediationPlugin = appServiceRemediationPlugin;
         _appServicePlugin = appServicePlugin;
-        _containerAppsRemediationPlugin = containerAppsRemediationPlugin;
-        _kubernetesAgentPlugin = kubernetesAgentPlugin;
-        _aksQaAgentPlugin = aksQaAgentPlugin;
         _kubePlugin = kubePlugin;
         _containerAppPlugin = containerAppPlugin;
         _chartPlugin = chartPlugin;
@@ -333,22 +306,16 @@ $@"## Facts
 
         _graphDbPlugin = graphDBPlugin;
         //_appReliabilityPlugin = appReliabilityPlugin;
-        _webAppDownPlugin = webAppDownPlugin;
         _appCodeAnalysisPlugin = appCodeAnalysisPlugin;
-        _vmRdpInvestigatorPlugin = vmRdpInvestigatorPlugin;
-        _functionAppConnectivityPlugin = functionAppConnectivityPlugin;
         _functionAppsPlugin = functionAppsPlugin;
         _metricsPlugin = metricsPlugin;
-        _functionAppExecutionFailuresAgentPlugin = functionAppExecutionFailuresAgentPlugin;
         _azureMonitorMetricsPlugin = azureMonitorMetricsPlugin;
         _diagnosticsPlugin = diagnosticsPlugin;
         _azureDevOpsWorkItemPlugin = azureDevOpsWorkItemPlugin;
 
-        _sqlDbQueryPerfPlugin = sqlDbQueryPerfPlugin;
         _incidentPlugin = incidentPlugin;
 
         _instanceManagementSettings = instanceManagementSettings;
-        _functionAppDiagnosticsPlugin = functionAppDiagnosticsPlugin;
         _armPlugin = armPlugin;
         _searchPlugin = searchPlugin;
 
@@ -359,22 +326,11 @@ $@"## Facts
 
     public List<AITool> GetSubAgentsAITools(Guid threadGuid, AgentContext context)
     {
-        _tlsBestPracticesPlugin.ThreadId = threadGuid;
-        _managedIdentityMigrationPlugin.ThreadId = threadGuid;
         //_appServiceRemediationPlugin.ThreadId = threadGuid;
         _armPlugin.ThreadId = threadGuid;
-        _containerAppsRemediationPlugin.ThreadId = threadGuid;
-        _kubernetesAgentPlugin.ThreadId = threadGuid;
-        _aksQaAgentPlugin.ThreadId = threadGuid;
         _graphDbPlugin.ThreadId = threadGuid;
         //_appReliabilityPlugin.ThreadId = threadGuid;
-        _webAppDownPlugin.ThreadId = threadGuid;
-        _vmRdpInvestigatorPlugin.ThreadId = threadGuid;
-        _functionAppConnectivityPlugin.ThreadId = threadGuid;
-        _sqlDbQueryPerfPlugin.ThreadId = threadGuid;
         _chartPlugin.ThreadId = threadGuid;
-        _functionAppExecutionFailuresAgentPlugin.ThreadId = threadGuid;
-        _functionAppDiagnosticsPlugin.ThreadId = threadGuid;
         _githubIssuePlugin.ThreadId = threadGuid;
 
         var chartPluginDefinition = new ChartPluginDefinition(_chartPlugin);
@@ -408,20 +364,10 @@ $@"## Facts
 
         List<AITool> _aiTools =
         [
-            AIFunctionFactory.Create(_managedIdentityMigrationPlugin.ListManagedIdentityMigrations),
-            AIFunctionFactory.Create(_managedIdentityMigrationPlugin.StartManagedIdentityMigrationAgent),
-            AIFunctionFactory.Create(_tlsBestPracticesPlugin.ListTlsBestPracticeWorkflows),
-            AIFunctionFactory.Create(_tlsBestPracticesPlugin.StartTlsBestPracticeAgent),
             //AIFunctionFactory.Create(_appReliabilityPlugin.ListAppReliabilityWorkflows),
             //AIFunctionFactory.Create(_appReliabilityPlugin.StartAppReliabilityAgent),
             //AIFunctionFactory.Create(_appServiceRemediationPlugin.ListAppServiceRemediationWorkflows),
             //AIFunctionFactory.Create(_appServiceRemediationPlugin.StartAppServiceRemediationAgent),
-            AIFunctionFactory.Create(_containerAppsRemediationPlugin.ListContainerAppsRemediationWorkflows),
-            AIFunctionFactory.Create(_containerAppsRemediationPlugin.StartContainerAppsRemediationAgent),
-            AIFunctionFactory.Create(_kubernetesAgentPlugin.StartKubernetesAgent),
-            AIFunctionFactory.Create(_kubernetesAgentPlugin.ListKubernetesAgentWorkflow),
-            AIFunctionFactory.Create(_aksQaAgentPlugin.StartAksQaAgent),
-            AIFunctionFactory.Create(_aksQaAgentPlugin.ListAksQaAgentWorkflow),
             AIFunctionFactory.Create(aksPluginDefinition.GetAKSClusterResourceIdAsync),
             AIFunctionFactory.Create(aksPluginDefinition.GetKubeNamespacesAsync),
             AIFunctionFactory.Create(aksPluginDefinition.ListKubeResourcesAsync),
@@ -471,25 +417,16 @@ $@"## Facts
             AIFunctionFactory.Create(graphDbPluginDefinition.GetKnowledgeGraphResourceUsageDashboard),
             AIFunctionFactory.Create(graphDbPluginDefinition.GetResourceDetailedProperties),
             AIFunctionFactory.Create(graphDbPluginDefinition.GetResourceIdForResourceName),
-            AIFunctionFactory.Create(_vmRdpInvestigatorPlugin.ListVmRdpInvestigateWorkflows),
-            AIFunctionFactory.Create(_vmRdpInvestigatorPlugin.StartVMRdpInvestigatorAgent),
-            AIFunctionFactory.Create(_webAppDownPlugin.ListWebAppDownWorkflows),
-            AIFunctionFactory.Create(_webAppDownPlugin.StartWebAppDownAgent),
             //AIFunctionFactory.Create(metricsPluginDefinition.GetWebAppCpuMetrics),
             AIFunctionFactory.Create(appCodeAnalysisPluginDefinition.GetAppConsoleLogs),
-            AIFunctionFactory.Create(_functionAppConnectivityPlugin.StartFunctionAppConnectivityAgent),
-            AIFunctionFactory.Create(_sqlDbQueryPerfPlugin.ListAzureSqlDbQueryPerfInvestigatorAgentWorkflows),
-            AIFunctionFactory.Create(_sqlDbQueryPerfPlugin.StartAzureSqlDbQueryPerfInvestigatorAgent),
             AIFunctionFactory.Create(connectedIntegrationsPluginDefinition.GetAllActiveConnectedIntegrations),
             AIFunctionFactory.Create(incidentPluginDefinition.GetPagerDutyIncidentsAsync),
             // AIFunctionFactory.Create(incidentPluginDefinition.ResolvePagerDutyIncidentAsync),
             AIFunctionFactory.Create(functionAppPluginDefinition.ListFunctionAppsAsync),
             //AIFunctionFactory.Create(functionAppPluginDefinition.GetFunctionAppInfoAsync),
             AIFunctionFactory.Create(_connectedIntegrationsPlugin.GetAllActiveIntegrations),
-            AIFunctionFactory.Create(_functionAppExecutionFailuresAgentPlugin.StartFunctionAppExecutionFailuresAgent),
             AIFunctionFactory.Create(azureMonitorMetricsPluginDefinition.ListAvailableMetrics),
             AIFunctionFactory.Create(azureMonitorMetricsPluginDefinition.GetMetricTimeSeriesElementsForAzureResource),
-            AIFunctionFactory.Create(_functionAppDiagnosticsPlugin.StartFunctionAppDiagnosticsAgent),
             AIFunctionFactory.Create(_githubIssuePlugin.FetchGithubIssues),
             AIFunctionFactory.Create(_githubIssuePlugin.FetchGithubIssueComments),
             AIFunctionFactory.Create(_githubIssuePlugin.CreateGithubIssue),

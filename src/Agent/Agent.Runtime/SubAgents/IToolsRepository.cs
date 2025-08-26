@@ -14,5 +14,4 @@ public interface IToolsRepository : IMcpConnectable
     public IEnumerable<ChatMessage> GetMCPServerInstructions();
     public string GetSignature(Expression<Func<Delegate>> actionSelector);
     public string GetSignature(MethodInfo method);
-    public IToolFunction ResolveTool(ExecuteActionInput action);
 }

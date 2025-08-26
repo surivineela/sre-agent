@@ -357,10 +357,6 @@ public static class TestHelpers
         builder.Services.AddTransient<ArmPluginDefinition>();
         builder.Services.AddTransient<IArmPlugin, ArmPlugin>();
 
-        // should be removed later - currently required because ThreadManagementService has code for handling UseAgentFramework=false
-        // required because InboundCommunicationService has code for handling durable
-        builder.ConfigureDurable();
-
         // Runtime–modifier for agent-mode switching
         builder.Services.AddSingleton<IAgentRuntimeModifier<AgentContext>, AgentRuntimeModifier>();
 

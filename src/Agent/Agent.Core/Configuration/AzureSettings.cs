@@ -18,9 +18,6 @@ namespace Agent.Core.Configuration
         public CosmosDBSettings CosmosDB { get; set; } = new();
 
         [Required]
-        public DurableTaskSchedulerSettings DTS { get; set; } = new();
-
-        [Required]
         public CrawlerSettings Crawler { get; set; } = new();
 
         [Required]

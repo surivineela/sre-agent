@@ -19,7 +19,7 @@ public static class ApprovalHelper
     /// Generates a unique title for the approval request based on the thread ID, processor ID, operation name, and arguments.
     /// </summary>
     /// <param name="threadId">Thread ID</param>
-    /// <param name="processorId">For durable-agents, this is the orchestration ID. Otherwise, this is the agentContext ID</param>
+    /// <param name="processorId">This is the agentContext ID</param>
     /// <param name="operationName">Name of the target function</param>
     /// <param name="arguments">Function arguments</param>
     /// <returns></returns>

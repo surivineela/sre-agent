@@ -7,7 +7,6 @@ using Agent.Core.Models.Api.v1;
 using Agent.Data.Repositories;
 using Agent.Runtime.Communication;
 using Agent.Runtime.Services;
-using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Thread = Agent.Core.Models.Api.v1.Thread;
@@ -141,117 +140,6 @@ public class TestThreadService
 
         // Assert
         Assert.Equal(string.Empty, result);
-    }
-
-    [Fact]
-    public async Task CleanOrchestration_WithFailedOrchestration_ReturnsTrue()
-    {
-        // Arrange
-        var threadId = Guid.NewGuid();
-        var orchestrationInstanceId = "failed-orchestration-id";
-
-        await CreateTestThreadAsync(threadId);
-
-        // Add a mapping for the thread
-        await _mappingManager.AddMappingAsync(threadId.ToString(), orchestrationInstanceId);
-
-        // Create a failed orchestration metadata
-        var failedOrchestration = new OrchestrationMetadata(
-            "TestOrchestration",
-            orchestrationInstanceId)
-        {
-            RuntimeStatus = OrchestrationRuntimeStatus.Failed,
-            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10),
-            LastUpdatedAt = DateTimeOffset.UtcNow
-        };
-
-        // Act
-        var result = await _threadService.CleanOrchestration(threadId, orchestrationInstanceId, failedOrchestration);
-
-        // Assert
-        Assert.True(result);
-
-        // Check that a message was added to the thread
-        var messages = await _threadRepository.GetMessagesAsync(threadId);
-        var agentMessage = messages.LastOrDefault(m => m.Author.Role == Role.SREAgent);
-        Assert.NotNull(agentMessage);
-        Assert.Contains("has failed", agentMessage.Text);
-
-        // Verify mapping was removed
-        var mappings = await _mappingManager.GetMappingsByThreadIdAsync(threadId.ToString());
-        Assert.Empty(mappings);
-    }
-
-    [Fact]
-    public async Task CleanOrchestration_WithCompletedOrchestration_ReturnsFalse()
-    {
-        // Arrange
-        var threadId = Guid.NewGuid();
-        var orchestrationInstanceId = "completed-orchestration-id";
-
-        await CreateTestThreadAsync(threadId);
-
-        // Initial message count
-        var initialMessages = (await _threadRepository.GetMessagesAsync(threadId)).Count();
-
-        // Create a completed orchestration metadata
-        var completedOrchestration = new OrchestrationMetadata(
-            "TestOrchestration",
-            orchestrationInstanceId)
-        {
-            RuntimeStatus = OrchestrationRuntimeStatus.Completed,
-            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10),
-            LastUpdatedAt = DateTimeOffset.UtcNow
-        };
-
-        // Act
-        var result = await _threadService.CleanOrchestration(threadId, orchestrationInstanceId, completedOrchestration);
-
-        // Assert
-        Assert.False(result);
-
-        // Check no message was added
-        var messages = await _threadRepository.GetMessagesAsync(threadId);
-        Assert.Equal(initialMessages, messages.Count());
-    }
-
-    [Fact]
-    public async Task CleanOrchestration_WithTerminatedOrchestration_ReturnsTrue()
-    {
-        // Arrange
-        var threadId = Guid.NewGuid();
-        var orchestrationInstanceId = "terminated-orchestration-id";
-
-        await CreateTestThreadAsync(threadId);
-
-        // Add a mapping for the thread
-        await _mappingManager.AddMappingAsync(threadId.ToString(), orchestrationInstanceId);
-
-        // Create a terminated orchestration metadata (which is also considered completed)
-        var terminatedOrchestration = new OrchestrationMetadata(
-            "TestOrchestration",
-            orchestrationInstanceId)
-        {
-            RuntimeStatus = OrchestrationRuntimeStatus.Terminated,
-            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10),
-            LastUpdatedAt = DateTimeOffset.UtcNow
-        };
-
-        // Act
-        var result = await _threadService.CleanOrchestration(threadId, orchestrationInstanceId, terminatedOrchestration);
-
-        // Assert
-        Assert.True(result);
-
-        // Check that a message was added to the thread
-        var messages = await _threadRepository.GetMessagesAsync(threadId);
-        var agentMessage = messages.LastOrDefault(m => m.Author.Role == Role.SREAgent);
-        Assert.NotNull(agentMessage);
-        Assert.Contains("has failed", agentMessage.Text);
-
-        // Verify mapping was removed
-        var mappings = await _mappingManager.GetMappingsByThreadIdAsync(threadId.ToString());
-        Assert.Empty(mappings);
     }
 
     // Helper method to create a test thread

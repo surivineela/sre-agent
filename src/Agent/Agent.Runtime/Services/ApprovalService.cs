@@ -6,28 +6,25 @@ using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Runtime.Reasoning;
-using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.Services
 {
     public class ApprovalService : IApprovalService
     {
-        private readonly DurableTaskClient _durableTaskClient;
         private readonly ILogger<ApprovalService> _logger;
         private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
         private readonly IThreadRepository _threadRepository;
         private readonly CoreSettings _coreSettings;
         private readonly IReasoningLoopManager _reasoningLoopManager;
 
-        public ApprovalService(DurableTaskClient durableTaskClient,
+        public ApprovalService(
             IAgentOutboundCommunicationService agentOutboundCommunicationService,
             ILogger<ApprovalService> logger,
             IThreadRepository threadRepository,
             CoreSettings coreSettings,
             IReasoningLoopManager reasoningLoopManager)
         {
-            _durableTaskClient = durableTaskClient;
             _logger = logger;
             _agentOutboundCommunicationService = agentOutboundCommunicationService;
             _threadRepository = threadRepository;

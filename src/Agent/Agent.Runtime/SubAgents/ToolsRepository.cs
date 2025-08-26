@@ -266,11 +266,4 @@ public class ToolsRepository : IToolsRepository
     {
         return _connectionToToolSignatures.Values.SelectMany(t => t).Concat(localTools).ToList().AsReadOnly();
     }
-
-    public virtual IToolFunction ResolveTool(ExecuteActionInput action)
-    {
-        var aiFunctions = this.GetAllTools(action.ToolSignatures).Select(this.FindAiFunction);
-        var matchingTool = aiFunctions.Single(x => x.ToolFunction.Name == action.FunctionCallContent.Name);
-        return matchingTool;
-    }
 }

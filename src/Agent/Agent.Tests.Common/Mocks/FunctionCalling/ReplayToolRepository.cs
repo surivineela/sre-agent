@@ -32,17 +32,6 @@ public class ReplayToolRepository : IToolsRepository
         _replayCore.LoadLogFromString(logContent);
     }
 
-    public IToolFunction ResolveTool(ExecuteActionInput action)
-    {
-        // Validate that there are no incomplete calls for this function and arguments
-        _replayCore.ValidateNoIncompleteCallsForFunction(
-            action.FunctionCallContent.Name,
-            action.FunctionCallContent.Arguments);
-
-        var original = _innerRepository.ResolveTool(action);
-        return new ToolFunction200(_replayCore.CreateReplayWrapper(action.FunctionCallContent.Name, original.ToolFunction));
-    }
-
     public List<AITool> ResolveTools(IReadOnlyList<string> toolSignatures)
     {
         // TODO: decide whether we want to replay here too.

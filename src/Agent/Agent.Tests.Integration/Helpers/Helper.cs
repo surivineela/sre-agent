@@ -6,7 +6,6 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Runtime;
 using Agent.Tests.Common;
-using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
@@ -28,34 +27,6 @@ namespace Agent.Tests.Integration.Helpers
             return await chatClient.GetResponseAsync(message);
         }
 
-        public static async Task DoApproval(
-            DurableTaskClient durableTaskClient,
-            IThreadRepository threadRepository,
-            Guid threadId,
-            CancellationToken cancellationToken,
-            ILogger? logger = null)
-        {
-            await ApprovalTestHelper.DoApproval(durableTaskClient, threadRepository, threadId, logger, cancellationToken);
-        }
-
-        public static async Task CleanupAllOrchestration<T>(
-            DurableTaskClient durableTaskClient)
-        {
-            // todo - this might cause problems once we have tests running in parallel
-
-            var query = new OrchestrationQuery
-            {
-                Statuses = [OrchestrationRuntimeStatus.Running, OrchestrationRuntimeStatus.Pending]
-            };
-
-            var instances = durableTaskClient.GetAllInstancesAsync(query);
-
-            await foreach (var instance in instances.Where(x => x.Name == nameof(T)))
-            {
-                await durableTaskClient.TerminateInstanceAsync(instance.InstanceId, new TerminateInstanceOptions { Output = "Test cleanup", Recursive = true });
-                await durableTaskClient.WaitForInstanceCompletionAsync(instance.InstanceId);
-            }
-        }
     }
 }
 

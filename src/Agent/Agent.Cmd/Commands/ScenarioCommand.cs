@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Agent.Core.Helpers;
-using DurableTask.Core;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.CommandLineUtils;
 using Microsoft.Extensions.DependencyInjection;

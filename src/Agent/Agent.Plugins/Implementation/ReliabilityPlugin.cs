@@ -4,7 +4,6 @@ using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
 using Azure.ResourceManager.AppService.Models;
 using Azure.ResourceManager.ResourceGraph.Models;
-using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -21,17 +20,15 @@ namespace Agent.Plugins.Implementation
         public ILogger<ReliabilityPlugin> _logger;
         private readonly IChatCompletionService _chatCompletionService;
         private readonly AzureResourceGraphClient _graphClient;
-        private readonly DurableTaskClient _durableTaskClient;
         private readonly ArmHelper _armHelper;
         private readonly Kernel _kernel;
         private readonly IGraphDBPlugin _graphDBPlugin;
 
-        public ReliabilityPlugin(Kernel kernel, IGraphDBPlugin graphDBPlugin, IChatCompletionService chatCompletionService, AzureResourceGraphClient graphClient, DurableTaskClient durableTaskClient, ArmHelper armHelper, ILogger<ReliabilityPlugin> logger)
+        public ReliabilityPlugin(Kernel kernel, IGraphDBPlugin graphDBPlugin, IChatCompletionService chatCompletionService, AzureResourceGraphClient graphClient, ArmHelper armHelper, ILogger<ReliabilityPlugin> logger)
         {
             _chatCompletionService = chatCompletionService;
             _logger = logger;
             _graphClient = graphClient;
-            _durableTaskClient = durableTaskClient;
             _armHelper = armHelper;
             _kernel = kernel;
             _graphDBPlugin = graphDBPlugin;
@@ -246,14 +243,6 @@ namespace Agent.Plugins.Implementation
                 _logger.LogInternalError(ex, $"GetAppsToMonitor failed: {ex.ToString()}");
                 throw;
             }
-        }
-
-        public async Task<OrchestrationRuntimeStatus?> GetReliabilityOrchestrationStatus(string instanceId)
-        {
-            _logger.LogInternalInformation("Invoked GetReliabilityOrchestrationStatus function");
-
-            var instance = await _durableTaskClient.GetInstanceAsync(instanceId);
-            return instance?.RuntimeStatus;
         }
 
         private async Task<string> GetReliabilityOfAppService(

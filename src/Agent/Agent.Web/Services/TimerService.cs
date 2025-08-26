@@ -219,26 +219,6 @@ public class TimerService : IHostedService, IDisposable
         _localAuthScanner = localAuthScanner;
         _agentMemorySettings = agentMemorySettings;
 
-        // Register all the scanners that implement this base type
-        var scannerSubClasses = TypeReflectionHelpers.GetClassesDerivedFromGeneric(typeof(MetaAgent).Assembly, typeof(SimpleResourceSubAgentScannerBase<,,,>));
-        foreach (var type in scannerSubClasses)
-        {
-            // Instantiate the type using DI
-            var instance = serviceProvider.GetRequiredService(type);
-            // Get a handle to the scan method
-            var scanMethod = type.GetMethod("ScanAsync", BindingFlags.Public | BindingFlags.Instance)
-                ?? throw new Exception($"Could not find scanning method on type {type.Name}");
-            var scanIntervalProp = type.GetProperty("RunInterval", BindingFlags.Public | BindingFlags.Instance)
-                ?? throw new Exception($"Could not find RunInterval property on type {type.Name}");
-            // With this safer version:
-            var scanIntervalObj = scanIntervalProp.GetValue(instance);
-            if (scanIntervalObj is not TimeSpan scanInterval)
-            {
-                throw new Exception($"RunInterval property on type {type.Name} is null or not a TimeSpan.");
-            }
-            GenericSubAgentScannerTimers.Add(new ScannerTimerInformation(type.Name, scanMethod, instance) { Interval = scanInterval });
-        }
-
         _customerAuditLogger = customerAuditLogger;
     }
 

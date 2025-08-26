@@ -2,7 +2,6 @@ using Agent.Core.Attributes;
 using Agent.Plugins.Attributes;
 using Agent.Plugins.Interface;
 using Azure.ResourceManager.AppService.Models;
-using Microsoft.DurableTask.Client;
 using Microsoft.SemanticKernel;
 using System.ComponentModel;
 
@@ -83,19 +82,11 @@ namespace Agent.Plugins.Definitions
             return await _reliabilityPlugin.GetReliabilityStatusForSubscriptions(cancellationToken);
         }
 
-        [Submit202(ExecuteMethodName = nameof(GetReliabilityOrchestrationStatus))]
         [KernelFunction("get_apps_to_monitor")]
         [Description("To find the apps and their metrics relevant to resilience, reliability, and optimization")]
         public async Task<string> GetAppsToMonitor(CancellationToken cancellationToken = default)
         {
             return await _reliabilityPlugin.GetAppsToMonitor(cancellationToken);
-        }
-
-        [KernelFunction("get_reliability_orchestration_status")]
-        [Description("To get the current state or status of the orchestration task to update the apps' reliability metrics")]
-        public async Task<OrchestrationRuntimeStatus?> GetReliabilityOrchestrationStatus(string instanceId)
-        {
-            return await _reliabilityPlugin.GetReliabilityOrchestrationStatus(instanceId);
         }
     }
 }

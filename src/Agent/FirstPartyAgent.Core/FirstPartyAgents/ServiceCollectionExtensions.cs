@@ -27,7 +27,6 @@ public static class ServiceCollectionExtensions
         builder.ValidateAndRegisterFirstPartyAppSettings();
         builder.Services.RegisterFirstPartyPluginDependencies();
         builder.Services.RegisterFirstPartySubAgentPluginImplementationDependencies();
-        builder.RegisterFirstPartySubAgents();
     }
 
     private static void ValidateAndRegisterFirstPartyAppSettings(this IHostApplicationBuilder builder)
@@ -97,28 +96,5 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IHelloWorldService, HelloWorldService>();
         services.AddSingleton<IRevisionService, RevisionService>();
         services.AddSingleton<ICMWorkflowClient, ICMWorkflowClient>();
-    }
-
-    // !!! Note: no new sub-agent plugin should be added here !!!
-    private static void RegisterFirstPartySubAgents(this IHostApplicationBuilder builder)
-    {
-        // Register all subagent factories that derive from the shared impl
-        var genericSubAgentFactories = TypeReflectionHelpers.GetClassesDerivedFromGeneric(typeof(FirstPartyAgentsFactory).Assembly, typeof(SimpleResourceSubAgentFactoryBase<,,,>));
-        foreach (var type in genericSubAgentFactories)
-        {
-            builder.Services.AddSingleton(type);
-        }
-        // Register all subagent plugins that derive from the shared impl
-        var genericSubAgentPlugins = TypeReflectionHelpers.GetClassesDerivedFromGeneric(typeof(FirstPartyAgentsFactory).Assembly, typeof(SimpleResourceSubAgentPluginBase<,,,,>));
-        foreach (var type in genericSubAgentPlugins)
-        {
-            builder.Services.AddTransient(type);
-        }
-        // Register all subagent scanners that derive from the shared impl
-        var genericSubAgentScanners = TypeReflectionHelpers.GetClassesDerivedFromGeneric(typeof(FirstPartyAgentsFactory).Assembly, typeof(SimpleResourceSubAgentScannerBase<,,,>));
-        foreach (var type in genericSubAgentScanners)
-        {
-            builder.Services.AddSingleton(type);
-        }
     }
 }
