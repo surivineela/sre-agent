@@ -15,7 +15,7 @@ namespace FirstPartyAgent.Core.Services
     public interface IAzureDevOpsClient
     {
         Task<string> ListFilesAsync(string path, int topN, string recursionLevel = "OneLevel");
-        Task<string> ReadFileAsync(string path, string branch="master");
+        Task<string> ReadFileAsync(string path, string branch = "master");
         Task<string> GetCommitHistoryAsync(int top = 10);
         Task<string> CreateBranchAsync(string sourceBranchName, string newBranchName);
         Task<string> CreateCommitAsync(string branchName, string filePath, string fileContent, string commitMessage);
@@ -29,7 +29,7 @@ namespace FirstPartyAgent.Core.Services
         string MainBranchName { get; }
     }
 
-    public class NullableAzureDevOpsRestClient: IAzureDevOpsClient
+    public class NullableAzureDevOpsRestClient : IAzureDevOpsClient
     {
         public Task<string> ListFilesAsync(string path, int topN, string recursionLevel = "OneLevel") => Task.FromResult<string>("Azure DevOps Client is Disabled.");
         public Task<string> ReadFileAsync(string path, string branch = "master") => Task.FromResult<string>("Azure DevOps Client is Disabled.");
@@ -49,7 +49,7 @@ namespace FirstPartyAgent.Core.Services
     /// <summary>
     /// A client for interacting with Azure DevOps REST API.
     /// </summary>
-    public class AzureDevOpsRestClient: IAzureDevOpsClient
+    public class AzureDevOpsRestClient : IAzureDevOpsClient
     {
         private readonly HttpClient _httpClient;
         private readonly string _organization;
@@ -87,7 +87,7 @@ namespace FirstPartyAgent.Core.Services
                     {
                         ManagedIdentityClientId = devOpsSettings.ManagedIdentityClientId
                     };
-                var credential = new DefaultAzureCredential(credentialOptions);
+                var credential = new DefaultAzureCredential(credentialOptions); // CodeQL [SM05137] This is non-production code which is deprecated and not deployed.
                 var tokenRequestContext = new TokenRequestContext(new[] { devOpsSettings.TokenRequestContext });
                 accessToken = credential.GetToken(tokenRequestContext, default).Token;
             }
@@ -315,7 +315,7 @@ namespace FirstPartyAgent.Core.Services
 
         public async Task<string> QueryWorkItemsAsync(string wiqlQuery, string? organization = null, string? project = null)
         {
-            var url = $"{_endpoint}{organization??_organization}/{project??_project}/_apis/wit/wiql?api-version=7.0";
+            var url = $"{_endpoint}{organization ?? _organization}/{project ?? _project}/_apis/wit/wiql?api-version=7.0";
             var payload = new { query = wiqlQuery };
             var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
             var response = await _httpClient.PostAsync(url, content);
@@ -333,7 +333,7 @@ namespace FirstPartyAgent.Core.Services
 
         public async Task<string> CreateWorkItemAsync(string workItemType, string title, string? description = null, string? assignedTo = null, string? organization = null, string? project = null)
         {
-            var url = $"{_endpoint}{organization??_organization}/{project??_project}/_apis/wit/workitems/{workItemType}?api-version=7.0";
+            var url = $"{_endpoint}{organization ?? _organization}/{project ?? _project}/_apis/wit/workitems/{workItemType}?api-version=7.0";
             var patchDocument = new List<object>
             {
                 new { op = "add", path = "/fields/System.Title", value = title }

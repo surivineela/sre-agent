@@ -4,7 +4,8 @@ using FirstPartyAgent.Core.Configuration;
 using Azure.Identity;
 
 namespace FirstPartyAgent.Core.Services.TokenService;
-public class ICMAPITokenService: ManagedIdentityTokenServiceBase
+
+public class ICMAPITokenService : ManagedIdentityTokenServiceBase
 {
     private static readonly Lazy<ICMAPITokenService> instance = new Lazy<ICMAPITokenService>(() => new ICMAPITokenService());
 
@@ -13,7 +14,7 @@ public class ICMAPITokenService: ManagedIdentityTokenServiceBase
     protected override string Resource { get; set; } = string.Empty;
     protected override string ClientId { get; set; } = string.Empty;
     protected override string TokenServiceName { get; set; } = string.Empty;
-    protected override TokenCredential TokenCredential { get; set; } = new DefaultAzureCredential();
+    protected override TokenCredential TokenCredential { get; set; } = new DefaultAzureCredential(); // CodeQL [SM05137] This is non-production code which is deprecated and not deployed.
     protected override TokenRequestContext TokenRequestContext { get; set; }
     public void Initialize(ICMAPISettings icmApiSettings, ILogger<ICMAPITokenService> logger)
     {

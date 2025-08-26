@@ -61,7 +61,8 @@ namespace FirstPartyAgent.Core.Extensions
                 if (icmWorkflowSettings.Enabled)
                 {
                     var logger = sp.GetRequiredService<ILogger<ICMWorkflowClient>>();
-                    return new ICMWorkflowClient(environment, logger, icmWorkflowSettings);
+                    var authService = sp.GetRequiredService<IAuthenticationService>();
+                    return new ICMWorkflowClient(environment, logger, icmWorkflowSettings, authService);
                 }
                 return new NullableICMWorkflowClient();
             });
@@ -231,7 +232,7 @@ namespace FirstPartyAgent.Core.Extensions
                     kernelBuilder.AddAzureOpenAIChatCompletion(
                         deploymentName: openAISettings.LLMDeploymentName,
                         endpoint: openAISettings.Endpoint,
-                        new DefaultAzureCredential());
+                        new DefaultAzureCredential());  // CodeQL [SM05137] This is non-production code which is deprecated and not deployed.
                 }
 
                 kernelBuilder.Services.AddLogging(builder =>

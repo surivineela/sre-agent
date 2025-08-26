@@ -140,7 +140,7 @@ namespace FirstPartyAgent.Core.Services
             if (Debugger.IsAttached)
             {
                 _logger.LogInformation("Using DefaultAzureCredential for CosmosDB authentication (Debug Mode)");
-                return new CosmosClient(endpoint, new DefaultAzureCredential(), options);
+                return new CosmosClient(endpoint, new DefaultAzureCredential(), options); // CodeQL [SM05137] This is non-production code which is deprecated and not deployed.
             }
             else if (!string.IsNullOrWhiteSpace(_federationSettings?.ClientId))
             {

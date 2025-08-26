@@ -49,7 +49,7 @@ namespace Agent.Tests.End2End.Fixtures
             this.Client = new HttpClient();
             this.Client.BaseAddress = new Uri($"http://localhost:{_port}");
         }
-        
+
         public ChatClient GetChatClient()
         {
             // Extract configuration values
@@ -75,7 +75,7 @@ namespace Agent.Tests.End2End.Fixtures
             if (string.IsNullOrEmpty(key))
             {
                 Console.WriteLine("No `OpenAIAPI_KEY` found. Using DefaultAzureCredential.");
-                client = new AzureOpenAIClient(new Uri(aoaiEndpoint), new DefaultAzureCredential());
+                client = new AzureOpenAIClient(new Uri(aoaiEndpoint), new DefaultAzureCredential());  // CodeQL [SM05137] This is non-production testing code which is not deployed.
             }
             else
             {

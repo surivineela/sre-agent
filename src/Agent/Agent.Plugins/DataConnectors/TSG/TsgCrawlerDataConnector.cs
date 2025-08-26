@@ -4,6 +4,7 @@
 
 using Agent.Core.Configuration;
 using Agent.Core.DataConnectors;
+using Agent.Core.Interfaces;
 using Agent.Framework.Reasoning.Models;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -25,6 +26,7 @@ namespace Agent.Plugins.DataConnectors.TSG
         private readonly IHostEnvironment _hostEnvironment;
         private readonly DataConnectorIndex _tsgMetadataIndex;
         private readonly DataConnectorStorage<TsgCrawlerDataConnector> _storage;
+        private readonly IAuthenticationService _authService;
 
         private DataConnectorInstanceSettings? _dataConnectorInstanceSettings;
         private TsgAzureDevOpsClient? _azureDevOpsClient;
@@ -35,7 +37,8 @@ namespace Agent.Plugins.DataConnectors.TSG
             IHttpClientFactory httpClientFactory,
             IHostEnvironment hostEnvironment,
             DataConnectorIndex tsgMetadataIndex,
-            DataConnectorStorage<TsgCrawlerDataConnector> storage)
+            DataConnectorStorage<TsgCrawlerDataConnector> storage,
+            IAuthenticationService authService)
         {
             _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
             _logger = loggerFactory.CreateLogger<TsgCrawlerDataConnector>();
@@ -43,6 +46,7 @@ namespace Agent.Plugins.DataConnectors.TSG
             _hostEnvironment = hostEnvironment ?? throw new ArgumentNullException(nameof(hostEnvironment));
             _tsgMetadataIndex = tsgMetadataIndex;
             _storage = storage ?? throw new ArgumentNullException(nameof(storage));
+            _authService = authService;
         }
 
         /// <summary>
@@ -79,7 +83,8 @@ namespace Agent.Plugins.DataConnectors.TSG
                 _logger,
                 _httpClientFactory,
                 azureDevOpsSettings,
-                authSettings);
+                authSettings,
+                _authService);
 
             return Task.CompletedTask;
         }

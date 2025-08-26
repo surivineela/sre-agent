@@ -7,6 +7,7 @@ using System.Data;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using Agent.Core.Interfaces;
 using Agent.Framework.Reasoning.Models;
 using Agent.Plugins.Kusto;
 using Agent.Plugins.KustoPlugin;
@@ -34,12 +35,12 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
         private readonly Uri _clusterUri;
         private readonly ILogger<KustoTableSummarizer> _logger;
 
-        public KustoTableSummarizer(IChatClient chatClient, Uri clusterUri, string managedIdentityResourceId, ILoggerFactory loggerFactory)
+        public KustoTableSummarizer(IChatClient chatClient, Uri clusterUri, string managedIdentityResourceId, ILoggerFactory loggerFactory, IAuthenticationService authService)
         {
             _chatClient = chatClient;
             _clusterUri = clusterUri;
             _logger = loggerFactory.CreateLogger<KustoTableSummarizer>();
-            _kustoClient = BuildKustoClient(loggerFactory, managedIdentityResourceId);
+            _kustoClient = BuildKustoClient(loggerFactory, authService, managedIdentityResourceId);
 
             _chatOptions = new ChatOptions()
             {
@@ -542,7 +543,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
             }
         }
 
-        private static KustoClient BuildKustoClient(ILoggerFactory loggerFactory, string managedIdentityResourceId)
+        private static KustoClient BuildKustoClient(ILoggerFactory loggerFactory, IAuthenticationService authService, string managedIdentityResourceId)
         {
             ConnectorAuthSettings authSettings = string.IsNullOrEmpty(managedIdentityResourceId) ?
                 new ConnectorAuthSettings()
@@ -558,7 +559,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
             return new KustoClient(loggerFactory.CreateLogger<KustoClient>(), new KustoConnector()
             {
                 Auth = authSettings
-            });
+            }, authService);
         }
     }
 }

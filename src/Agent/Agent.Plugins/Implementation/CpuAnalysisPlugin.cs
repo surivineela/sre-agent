@@ -4,6 +4,7 @@
 
 using System.ComponentModel;
 using Agent.Core.Helpers;
+using Agent.Core.Interfaces;
 using Microsoft.SemanticKernel;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
@@ -17,13 +18,15 @@ public class CpuAnalysisPlugin : ICpuAnalysisPlugin
 {
     private readonly ArmHelper _armHelper;
     private readonly IMetricsPlugin _metricsPlugin;
+    private readonly IAuthenticationService _authService;
 
     public Guid? ThreadId { get; set; }
 
-    public CpuAnalysisPlugin(ArmHelper armHelper, IMetricsPlugin metricsPlugin)
+    public CpuAnalysisPlugin(ArmHelper armHelper, IMetricsPlugin metricsPlugin, IAuthenticationService authService)
     {
         _metricsPlugin = metricsPlugin;
         _armHelper = armHelper;
+        _authService = authService;
     }
 
     [KernelFunction("scale_up_app_service_plan_by_sku")]
@@ -101,8 +104,8 @@ public class CpuAnalysisPlugin : ICpuAnalysisPlugin
 
     private async Task<string> ReadMemoryDumpFromStorageAsync(string accountUrl, string containerName, string blobName)
     {
-        var credential = new DefaultAzureCredential();
-        var blobServiceClient = new BlobServiceClient(new Uri(accountUrl), credential);
+        var cred = await _authService.GetArmOperationCredential();
+        var blobServiceClient = new BlobServiceClient(new Uri(accountUrl), cred);
         BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient(containerName);
 
         BlobClient blobClient = containerClient.GetBlobClient(blobName);

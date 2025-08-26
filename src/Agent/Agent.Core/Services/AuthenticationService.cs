@@ -1,12 +1,16 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
+using Agent.Framework.Reasoning.Models;
+using Agent.Logging;
 using Azure.Core;
 using Azure.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.OperationalAgent.Core.Extensions;
 
 namespace Agent.Core.Services;
 
@@ -19,6 +23,7 @@ public class AuthenticationService : IAuthenticationService
     private readonly IHostEnvironment _hostEnvironment;
     private readonly DashboardSettings _dashboardSettings;
     private readonly GitHubSettings _gitHubSettings;
+    private readonly AzureSearchSettings _azureSearchSettings;
     private readonly Lazy<IThreadRepository> _threadRepository;
 
     public AuthenticationService(
@@ -28,6 +33,7 @@ public class AuthenticationService : IAuthenticationService
         FederationSettings federationSettings,
         DashboardSettings dashboardSettings,
         GitHubSettings gitHubSettings,
+        AzureSearchSettings azureSearchSettings,
         IHostEnvironment hostEnvironment,
         IServiceProvider serviceProvider)
     {
@@ -38,6 +44,7 @@ public class AuthenticationService : IAuthenticationService
         _hostEnvironment = hostEnvironment;
         _dashboardSettings = dashboardSettings;
         _gitHubSettings = gitHubSettings;
+        _azureSearchSettings = azureSearchSettings;
 
         // To avoid cyclic dependency between cosmos client
         _threadRepository = new Lazy<IThreadRepository>(() => serviceProvider.GetRequiredService<IThreadRepository>());
@@ -262,6 +269,116 @@ public class AuthenticationService : IAuthenticationService
         return token.AccessToken;
     }
 
+    public TokenCredential Get1PAgentKeyVaultCredential(string managedIdentityId)
+    {
+        if (_hostEnvironment.IsDevelopment())
+        {
+            return GetDefaultAzureCredential();
+        }
+
+        if (ResourceIdentifier.TryParse(managedIdentityId, out _))
+        {
+            // This is true when the MSI is being specified as a resource ID via ARM settings
+            return GetManagedIdentityCredential(managedIdentityId);
+        }
+        else
+        {
+            return GetManagedIdentityCredentialForClientId(managedIdentityId);
+        }
+    }
+
+    public TokenCredential GetIcmApiCredential()
+    {
+        if (_hostEnvironment.IsDevelopment())
+        {
+            return GetDefaultAzureCredential();
+        }
+
+        return GetManagedIdentityCredential(_actionSettings.Identity);
+    }
+
+    public TokenCredential GetDataConnectorCredential(ConnectorAuthSettings connectorAuthSettings)
+    {
+        switch (connectorAuthSettings.AuthenticationType)
+        {
+            case ConnectorAuthType.ManagedIdentity:
+                return GetManagedIdentityCredential(Constants.SystemManagedIdentityName);
+            case ConnectorAuthType.UAMI:
+                {
+                    if (!string.IsNullOrEmpty(connectorAuthSettings.ManagedIdentityClientId))
+                    {
+                        return GetManagedIdentityCredentialForClientId(connectorAuthSettings.ManagedIdentityClientId);
+                    }
+                    else if (!string.IsNullOrEmpty(connectorAuthSettings.ManagedIdentityResourceId))
+                    {
+                        return GetManagedIdentityCredential(connectorAuthSettings.ManagedIdentityResourceId);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Either ManagedIdentityClientId or ManagedIdentityResourceId must be provided for UAMI authentication.");
+                    }
+                }
+            case ConnectorAuthType.App:
+                {
+                    if (string.IsNullOrEmpty(connectorAuthSettings.ApplicationClientId) ||
+                        string.IsNullOrEmpty(connectorAuthSettings.ApplicationCertificate) ||
+                        string.IsNullOrEmpty(connectorAuthSettings.Authority))
+                    {
+                        throw new InvalidOperationException("ApplicationClientId, ApplicationCertificate, and Authority must be provided for App authentication.");
+                    }
+
+                    var certificate = System.Security.Cryptography.X509Certificates.X509Certificate2
+                        .CreateFromPem(connectorAuthSettings.ApplicationCertificate);
+
+                    return new ClientCertificateCredential(
+                        connectorAuthSettings.Authority,
+                        connectorAuthSettings.ApplicationClientId,
+                        certificate);
+                }
+            case ConnectorAuthType.User:
+            default:
+                return GetDefaultAzureCredential();
+        }
+    }
+
+    public TokenCredential GetAzureSearchCredential()
+    {
+        if (_hostEnvironment.IsDevelopment())
+        {
+            return GetDefaultAzureCredential();
+        }
+
+        return GetManagedIdentityCredentialForClientId(_azureSearchSettings.UserAssignedMIClientId);
+    }
+
+    public TokenCredential GetEventHubTraceExportCredential(EventHubTraceExporterOptions options)
+    {
+        if (_hostEnvironment.IsDevelopment())
+        {
+            return GetDefaultAzureCredential();
+        }
+
+        if (!string.IsNullOrEmpty(options.FirstPartyAppCertificatePath) &&
+            !string.IsNullOrEmpty(options.FirstPartyAppClientId) &&
+            !string.IsNullOrEmpty(options.FirstPartyAppTenantId))
+        {
+            var certPem = File.ReadAllText($"{options.FirstPartyAppCertificatePath}/tls.crt");
+            var keyPem = File.ReadAllText($"{options.FirstPartyAppCertificatePath}/tls.key");
+
+            var certificate = X509Certificate2.CreateFromPem(certPem, keyPem);
+
+            return new ClientCertificateCredential(options.FirstPartyAppTenantId, options.FirstPartyAppClientId, certificate,
+                new ClientCertificateCredentialOptions
+                {
+                    SendCertificateChain = true
+                });
+        }
+        else
+        {
+            throw new ArgumentException("FirstPartyAppCertificatePath, FirstPartyAppClientId, and FirstPartyAppTenantId must be provided for EventHub trace export credential.");
+        }
+    }
+
     #endregion
 
     // helper method that prefers to use obo if approval is available in the context
@@ -309,6 +426,15 @@ public class AuthenticationService : IAuthenticationService
         return new ManagedIdentityCredential(credOptions);
     }
 
+    private ManagedIdentityCredential GetManagedIdentityCredentialForClientId(string clientId)
+    {
+        if (clientId == null) throw new ArgumentNullException(nameof(clientId));
+
+        var mi = ManagedIdentityId.FromUserAssignedClientId(clientId);
+        var credOptions = new ManagedIdentityCredentialOptions(mi);
+
+        return new ManagedIdentityCredential(credOptions);
+    }
 
     private WorkloadIdentityCredential GetWorkloadIdentityCredential(string clientId, string tenantId, string authorityHost)
     {
@@ -324,7 +450,9 @@ public class AuthenticationService : IAuthenticationService
 
     private DefaultAzureCredential GetDefaultAzureCredential()
     {
-        return new DefaultAzureCredential();
+#pragma warning disable CUSTOM003 // This is only used in local development
+        return new DefaultAzureCredential(); // CodeQL [SM05137] This is not used in production code and only used in local development.
+#pragma warning restore CUSTOM003
     }
 
     private TokenCredential GetOboTokenCredential(string token)
@@ -374,7 +502,7 @@ public class AuthenticationService : IAuthenticationService
         {
             return "b9a1efcd-32ee-4330-834c-c04eb00f4b33/.default";
         }
-        
+
         // AME tenant (33e01921-4d64-4f8c-a055-5bdaffd5e33d)
         if (_federationSettings.TenantId == "33e01921-4d64-4f8c-a055-5bdaffd5e33d")
         {

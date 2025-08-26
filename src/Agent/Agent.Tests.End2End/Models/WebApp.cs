@@ -26,7 +26,7 @@ namespace E2ETests.Models
             _output = output;
             _testSettings = testSettings;
 
-            ArmClient client = new ArmClient(new DefaultAzureCredential());
+            ArmClient client = new ArmClient(new DefaultAzureCredential());  // CodeQL [SM05137] This is non-production testing code which is not deployed.
             subscription = client.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{testSettings.SubscriptionId}"));
 
         }

@@ -6,6 +6,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
+using Agent.Core.Interfaces;
 using Agent.Core.Models.ICM;
 using Agent.Core.Services;
 using Agent.Plugins.Kusto;
@@ -27,7 +28,7 @@ namespace Agent.Plugins.IcmPlugin
         private bool _processImages = true;
         public bool ProcessImages => _processImages;
 
-        public ICMWorkflowClient(IHostEnvironment environment, ILogger<ICMWorkflowClient> logger, ICMWorkflowSettings icmWorkflowSettings, IKeyVaultService keyVaultService)
+        public ICMWorkflowClient(IHostEnvironment environment, ILogger<ICMWorkflowClient> logger, ICMWorkflowSettings icmWorkflowSettings, IKeyVaultService keyVaultService, IAuthenticationService authService)
         {
             _icmWorkflowSettings = icmWorkflowSettings;
             _processImages = _icmWorkflowSettings.ProcessImages;
@@ -35,10 +36,10 @@ namespace Agent.Plugins.IcmPlugin
             _logger = logger;
             _keyVaultService = keyVaultService;
 
-            _httpClientLazy = new Lazy<Task<HttpClient>>(() => InitializeHttpClientAsync(icmWorkflowSettings, keyVaultService, environment.IsDevelopment(), logger));
+            _httpClientLazy = new Lazy<Task<HttpClient>>(() => InitializeHttpClientAsync(icmWorkflowSettings, keyVaultService, environment.IsDevelopment(), logger, authService));
         }
 
-        private static async Task<HttpClient> InitializeHttpClientAsync(ICMWorkflowSettings icmWorkflowSettings, IKeyVaultService userKeyVaultService, bool isDevelopment, ILogger<ICMWorkflowClient> logger)
+        private static async Task<HttpClient> InitializeHttpClientAsync(ICMWorkflowSettings icmWorkflowSettings, IKeyVaultService userKeyVaultService, bool isDevelopment, ILogger<ICMWorkflowClient> logger, IAuthenticationService authService)
         {
             logger.LogInternalInformation($"[IcmWorkflowClient] Initializing HttpClient for ICMWorkflowClient");
             const int TimeoutInSeconds = 600;
@@ -118,6 +119,7 @@ namespace Agent.Plugins.IcmPlugin
                         if (!string.IsNullOrWhiteSpace(certificateKeyVaultSecretName))
                         {
                             var certificate = CertLoader.LoadCertFromKeyVault(
+                                authService,
                                 KeyVaultConfigurationExtension.GetPlatformKeyVaultSettingFromEnvironment("KeyVaultUri"),
                                 certificateKeyVaultSecretName,
                                 KeyVaultConfigurationExtension.GetPlatformKeyVaultSettingFromEnvironment("Identity"),
@@ -144,7 +146,7 @@ namespace Agent.Plugins.IcmPlugin
                         string certMsi = icmWorkflowSettings.ManagedIdentityClientId ?? string.Empty;
 
                         logger.LogInternalInformation($"[IcmWorkflowClient] Loading cert from Key Vault: {keyVaultUri}, Certificate Name: {certKvSecretName}, Managed Identity Client Id: {certMsi}");
-                        var certificate = CertLoader.LoadCertFromKeyVault(keyVaultUri, certKvSecretName, certMsi, null, logger);
+                        var certificate = CertLoader.LoadCertFromKeyVault(authService, keyVaultUri, certKvSecretName, certMsi, null, logger);
 
                         var handler = new HttpClientHandler();
                         handler.ClientCertificates.Add(certificate);
@@ -159,7 +161,7 @@ namespace Agent.Plugins.IcmPlugin
                     {
                         var handler = new HttpClientHandler();
                         logger.LogInternalInformation($"[IcmWorkflowClient] Loading cert from Key Vault: {icmWorkflowSettings.CertificateKeyVaultUri}, Certificate Name: {icmWorkflowSettings.CertificateKeyVaultSecretName}, Managed Identity Client Id: {icmWorkflowSettings.ManagedIdentityClientId}");
-                        var certificate = CertLoader.LoadCertFromKeyVault(icmWorkflowSettings.CertificateKeyVaultUri, icmWorkflowSettings.CertificateKeyVaultSecretName, icmWorkflowSettings.ManagedIdentityClientId, null, logger);
+                        var certificate = CertLoader.LoadCertFromKeyVault(authService, icmWorkflowSettings.CertificateKeyVaultUri, icmWorkflowSettings.CertificateKeyVaultSecretName, icmWorkflowSettings.ManagedIdentityClientId, null, logger);
                         handler.ClientCertificates.Add(certificate);
                         logger.LogExternalInformation("[IcmWorkflowClient] Successfully loaded Cert from keyvault for ICMWorkflowClient.");
                         return new HttpClient(handler)

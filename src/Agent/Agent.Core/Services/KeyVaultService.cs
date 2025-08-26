@@ -43,7 +43,7 @@ public class KeyVaultService : IKeyVaultService
     public KeyVaultService(
         KeyVaultSettings keyVaultSettings,
         ILogger<KeyVaultService> logger,
-        IHostEnvironment hostEnvironment)
+        IAuthenticationService authService)
     {
         _logger = logger;
 
@@ -56,23 +56,13 @@ public class KeyVaultService : IKeyVaultService
         IsEnabled = true;
         KeyVaultUri = keyVaultSettings.VaultUri;
 
-        if (hostEnvironment.IsDevelopment())
+        if (string.IsNullOrEmpty(keyVaultSettings.ManagedIdentityClientId))
         {
-            _secretClient = new SecretClient(new Uri(keyVaultSettings.VaultUri), new DefaultAzureCredential());
-
+            throw new ArgumentException("ManagedIdentityClientId must be set in production environment for KeyVaultService.");
         }
-        else
-        {
-            if (string.IsNullOrEmpty(keyVaultSettings.ManagedIdentityClientId))
-            {
-                throw new ArgumentException("ManagedIdentityClientId must be set in production environment for KeyVaultService.");
-            }
 
-            _secretClient = new SecretClient(new Uri(keyVaultSettings.VaultUri), new DefaultAzureCredential(new DefaultAzureCredentialOptions()
-            {
-                ManagedIdentityResourceId = new Azure.Core.ResourceIdentifier(keyVaultSettings.ManagedIdentityClientId)
-            }));
-        }
+        var cred = authService.Get1PAgentKeyVaultCredential(keyVaultSettings.ManagedIdentityClientId);
+        _secretClient = new SecretClient(new Uri(keyVaultSettings.VaultUri), cred);
     }
 
     public async Task<string> ReadSecretAsync(string secretName)

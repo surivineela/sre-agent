@@ -1,9 +1,11 @@
 using Agent.Core.Configuration;
+using Agent.Core.Interfaces;
 using Azure.Core;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Core.Services.TokenService;
-public class ICMAPITokenService: ManagedIdentityTokenServiceBase
+
+public class ICMAPITokenService : ManagedIdentityTokenServiceBase
 {
     private static readonly Lazy<ICMAPITokenService> instance = new Lazy<ICMAPITokenService>(() => new ICMAPITokenService());
 
@@ -16,12 +18,14 @@ public class ICMAPITokenService: ManagedIdentityTokenServiceBase
     protected override TokenCredential? TokenCredential { get; set; }
     protected override TokenRequestContext TokenRequestContext { get; set; }
 
-    public void Initialize(ActionSettings actionSettings, ICMAPISettings icmApiSettings, ILogger<ICMAPITokenService> logger)
+    public void Initialize(IAuthenticationService authService, ActionSettings actionSettings, ICMAPISettings icmApiSettings, ILogger<ICMAPITokenService> logger)
     {
         ManagedIdentityEnabled = !string.IsNullOrEmpty(actionSettings.Identity);
         Resource = icmApiSettings.IcmMSIResource;
         ResourceId = actionSettings.Identity;
         TokenServiceName = "ICMAPITokenService";
+        TokenCredential = authService.GetIcmApiCredential();
+        TokenRequestContext = new TokenRequestContext(scopes: new string[] { Resource });
         _ = StartTokenRefresh(logger);
     }
 }

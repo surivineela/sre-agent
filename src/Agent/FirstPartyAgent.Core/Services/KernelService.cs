@@ -35,7 +35,7 @@ namespace FirstPartyAgent.Core.Services
         public string Description { get; set; } = string.Empty;
     }
 
-    public class KernelService: IKernelService
+    public class KernelService : IKernelService
     {
         private readonly Dictionary<string, Kernel> _kernels;
         private readonly HttpClient _httpClient;
@@ -152,7 +152,7 @@ namespace FirstPartyAgent.Core.Services
                 kernelBuilder.AddAzureOpenAIChatCompletion(
                     deploymentName: openAISettings.LLMDeploymentName,
                     endpoint: openAISettings.Endpoint,
-                    new DefaultAzureCredential());
+                    new DefaultAzureCredential()); // CodeQL [SM05137] This is non-production code which is deprecated and not deployed.
             }
 
             kernelBuilder.Services.AddLogging(builder =>

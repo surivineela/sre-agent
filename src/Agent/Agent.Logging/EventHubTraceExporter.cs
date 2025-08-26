@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
+using Azure.Core;
 using Azure.Identity;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
@@ -54,43 +55,25 @@ public class EventHubTraceExporter : BaseExporter<Activity>
 
     public PopulateColumnsDelegate? PopulateColumns { get; set; }
 
-    public EventHubTraceExporter(EventHubTraceExporterOptions options)
+    public EventHubTraceExporter(EventHubTraceExporterOptions options, TokenCredential cred)
     {
         if (options == null)
         {
             throw new ArgumentNullException(nameof(options));
         }
+
+        if (string.IsNullOrEmpty(_fullyQualifiedNamespace))
+        {
+            throw new ArgumentException("FullyQualifiedNamespace must be specified");
+        }
+
         Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Initializing Event Hub exporter with options: {options.FullyQualifiedNamespace}, {options.EventHubName}, {options.FirstPartyAppClientId}, {options.FirstPartyAppTenantId}, {options.FirstPartyAppCertificatePath}");
 
         _fullyQualifiedNamespace = options.FullyQualifiedNamespace;
         _eventHubName = options.EventHubName;
         PopulateColumns = options.PopulateColumns;
 
-        if (!string.IsNullOrEmpty(options.FirstPartyAppCertificatePath) &&
-            !string.IsNullOrEmpty(options.FirstPartyAppClientId) &&
-            !string.IsNullOrEmpty(options.FirstPartyAppTenantId))
-        {
-            var certPem = File.ReadAllText($"{options.FirstPartyAppCertificatePath}/tls.crt");
-            var keyPem = File.ReadAllText($"{options.FirstPartyAppCertificatePath}/tls.key");
-
-            var certificate = X509Certificate2.CreateFromPem(certPem, keyPem);
-
-            var credential = new ClientCertificateCredential(options.FirstPartyAppTenantId, options.FirstPartyAppClientId, certificate,
-                new ClientCertificateCredentialOptions
-                {
-                    SendCertificateChain = true
-                });
-            _producerClient = new EventHubProducerClient(_fullyQualifiedNamespace, _eventHubName, credential);
-        }
-        else
-        {
-            if (string.IsNullOrEmpty(_fullyQualifiedNamespace))
-            {
-                throw new ArgumentException("FullyQualifiedNamespace must be specified");
-            }
-            var credential = new DefaultAzureCredential();
-            _producerClient = new EventHubProducerClient(_fullyQualifiedNamespace, _eventHubName, credential);
-        }
+        _producerClient = new EventHubProducerClient(_fullyQualifiedNamespace, _eventHubName, cred);
     }
 
     public override ExportResult Export(in Batch<Activity> batch)

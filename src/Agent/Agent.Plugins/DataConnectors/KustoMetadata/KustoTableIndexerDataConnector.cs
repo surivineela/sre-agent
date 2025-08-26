@@ -10,6 +10,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
     using System.Threading;
     using Agent.Core.Configuration;
     using Agent.Core.DataConnectors;
+    using Agent.Core.Interfaces;
     using Azure.Storage.Blobs.Models;
     using Microsoft.Extensions.AI;
     using Microsoft.Extensions.Logging;
@@ -38,6 +39,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
         private readonly ILoggerFactory _loggerFactory;
         private readonly DataConnectorIndex _kustoMetadataIndex;
         private readonly DataConnectorStorage<KustoTableIndexerDataConnector> _storage;
+        private readonly IAuthenticationService _authService;
 
         private DataConnectorInstanceSettings? _dataConnectorInstanceSettings;
         private KustoTableSummarizer? _kustoSummarizer;
@@ -46,13 +48,15 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
             IChatClient chatClient,
             ILoggerFactory loggerFactory,
             DataConnectorIndex kustoMetadataIndex,
-            DataConnectorStorage<KustoTableIndexerDataConnector> storage)
+            DataConnectorStorage<KustoTableIndexerDataConnector> storage,
+            IAuthenticationService authService)
         {
             _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
             _logger = loggerFactory.CreateLogger<KustoTableIndexerDataConnector>();
             _chatClient = chatClient ?? throw new ArgumentNullException(nameof(chatClient));
             _kustoMetadataIndex = kustoMetadataIndex;
             _storage = storage;
+            _authService = authService;
 
             _blobUploadRetryPolicy = Policy
                 .Handle<Exception>()
@@ -79,7 +83,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
 
             _logger.LogInternalInformation($"Using managed identity resource ID {instanceSettings.Identity} for Kusto summarizer.");
 
-            _kustoSummarizer = new KustoTableSummarizer(_chatClient, new Uri(instanceSettings.DataSource), instanceSettings.Identity, _loggerFactory);
+            _kustoSummarizer = new KustoTableSummarizer(_chatClient, new Uri(instanceSettings.DataSource), instanceSettings.Identity, _loggerFactory, _authService);
 
             return Task.CompletedTask;
         }
@@ -213,7 +217,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
 
             catch (Exception ex) when (ex.IsNotTokenCancellation(stoppingToken))
             {
-              
+
                 _logger.LogInternalError(ex, "Failed to process cluster {ClusterUri}.", clusterUri);
             }
         }

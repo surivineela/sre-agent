@@ -51,7 +51,8 @@ public static class IncidentServiceCollectionExtensions
 
                 var logger = serviceProvider.GetRequiredService<ILogger<ICMAPITokenService>>();
                 var actionSettings = serviceProvider.GetRequiredService<ActionSettings>();
-                ICMAPITokenService.Instance.Initialize(actionSettings, incidentManagementSettings.ICMAPI, logger);
+                var authService = serviceProvider.GetRequiredService<IAuthenticationService>();
+                ICMAPITokenService.Instance.Initialize(authService, actionSettings, incidentManagementSettings.ICMAPI, logger);
 
                 services.AddSingleton<IIncidentHandlingService<IcmIncidentFilterDocumentPayload>, IcmIncidentHandlingService>();
                 services.AddSingleton<IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>, IcmIncidentManagementService>();
@@ -89,8 +90,9 @@ public interface IServiceFactory
 
 internal static class JsonExtensions
 {
-    public static T DeserializeJson<T>(this JsonNode jsonNode, JsonSerializerOptions? options = null) {
-        if(options is null)
+    public static T DeserializeJson<T>(this JsonNode jsonNode, JsonSerializerOptions? options = null)
+    {
+        if (options is null)
         {
             options = new JsonSerializerOptions()
             {
@@ -100,7 +102,7 @@ internal static class JsonExtensions
         }
 
         T? res = JsonSerializer.Deserialize<T>(jsonNode, options);
-        if(res is null)
+        if (res is null)
         {
             throw new JsonException($"Failed to deserialize JSON node to type {typeof(T).FullName}");
         }
@@ -122,7 +124,8 @@ public abstract class IncidentServiceFactoryBase : IServiceFactory
 }
 
 #region Incident Filter Management Service Factory
-public interface IIncidentFilterManagementServiceFactory : IServiceFactory {
+public interface IIncidentFilterManagementServiceFactory : IServiceFactory
+{
     public IIncidentFilterManagementService<TIncidentFilterDocument, TIncidentFilterDocumentPayload>? GetService<TIncidentFilterDocument, TIncidentFilterDocumentPayload>()
         where TIncidentFilterDocument : TIncidentFilterDocumentPayload, IIncidentFilterDocument
         where TIncidentFilterDocumentPayload : IncidentFilterDocumentPayload;
@@ -138,7 +141,8 @@ public class IncidentFilterManagementServiceFactory : IncidentServiceFactoryBase
         where TIncidentFilterDocument : TIncidentFilterDocumentPayload, IIncidentFilterDocument
         where TIncidentFilterDocumentPayload : IncidentFilterDocumentPayload
     {
-        try {
+        try
+        {
             return _serviceProvider.GetRequiredService<IIncidentFilterManagementService<TIncidentFilterDocument, TIncidentFilterDocumentPayload>>();
         }
         catch (Exception)
@@ -218,7 +222,7 @@ public class IncidentManagementServiceFactory : IncidentServiceFactoryBase, IInc
 
     public async Task<object?> SaveDocument(JsonNode? incidentDocument)
     {
-        if(incidentDocument == null)
+        if (incidentDocument == null)
         {
             throw new ArgumentNullException(nameof(incidentDocument), "Incident document cannot be null.");
         }

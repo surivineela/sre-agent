@@ -53,7 +53,7 @@ namespace Agent.Core.Services.TokenService
             {
                 return;
             }
-            SetTokenCredentials();
+
             while (true)
             {
                 DateTime invocationStartTime = DateTime.UtcNow;
@@ -83,27 +83,6 @@ namespace Agent.Core.Services.TokenService
             }
         }
 
-        private void SetTokenCredentials()
-        {
-            var authOptions = new DefaultAzureCredentialOptions();
-            // Use Managed Identity only when in a MSI supported environment like app service
-            // This will help default to VS credentials when developing locally
-            if (Environment.GetEnvironmentVariable("MSI_ENDPOINT") != null)
-            {
-                if (!string.IsNullOrEmpty(ResourceId))
-                {
-                    authOptions.ManagedIdentityResourceId = new ResourceIdentifier(ResourceId);
-                }
-                else if (!string.IsNullOrEmpty(ClientId))
-                {
-                    // If ResourceId is not set, use ClientId for user-assigned managed identity
-                    authOptions.ManagedIdentityClientId = ClientId;
-                }
-            }
-            TokenCredential = new DefaultAzureCredential(authOptions);
-            TokenRequestContext = new TokenRequestContext(scopes: new string[] { Resource });
-        }
-
         /// <summary>
         /// Gets AAD issued auth token.
         /// </summary>
@@ -113,10 +92,7 @@ namespace Agent.Core.Services.TokenService
             {
                 return string.Empty;
             }
-            if (TokenCredential == null)
-            {
-                SetTokenCredentials();
-            }
+
             if (!tokenAcquiredAtleastOnce)
             {
                 var authResult = await acquireTokenTask;

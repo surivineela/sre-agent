@@ -72,7 +72,9 @@ namespace Agent.Runtime
             {
                 credOptions.ManagedIdentityClientId = ManagedIdentityClientId;
             }
-            DefaultAzureCredential cred = new DefaultAzureCredential(credOptions);
+#pragma warning disable CUSTOM003 // App config is only used in local development
+            DefaultAzureCredential cred = new DefaultAzureCredential(credOptions); // CodeQL [SM05137] This is not used in production code and only used in local development.
+#pragma warning restore CUSTOM003
 
             builder.Configuration.AddAzureAppConfiguration(options =>
             {

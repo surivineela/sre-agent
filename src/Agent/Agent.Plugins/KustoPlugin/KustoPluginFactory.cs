@@ -13,14 +13,16 @@ namespace Agent.Plugins.Kusto
     {
         private readonly IKustoPlugin _kustoPlugin;
         private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
+        private readonly IAuthenticationService _authService;
 
         private readonly ILoggerFactory _loggerFactory;
 
-        public KustoPluginFactory(IKustoPlugin kustoPlugin, IAgentOutboundCommunicationService agentOutboundCommunicationService, ILoggerFactory loggerFactory)
+        public KustoPluginFactory(IKustoPlugin kustoPlugin, IAgentOutboundCommunicationService agentOutboundCommunicationService, ILoggerFactory loggerFactory, IAuthenticationService authService)
         {
             _kustoPlugin = kustoPlugin;
             _agentOutboundCommunicationService = agentOutboundCommunicationService;
             _loggerFactory = loggerFactory;
+            _authService = authService;
         }
 
         public KustoPlugin Create(
@@ -29,7 +31,8 @@ namespace Agent.Plugins.Kusto
             var kustoPlugin = new KustoPlugin(_loggerFactory.CreateLogger<KustoPlugin>(),
                 new KustoClient(
                     _loggerFactory.CreateLogger<KustoClient>(),
-                    kustoSettings
+                    kustoSettings,
+                    _authService
                 ), _agentOutboundCommunicationService
             );
 

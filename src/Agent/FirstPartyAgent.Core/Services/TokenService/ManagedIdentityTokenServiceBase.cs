@@ -98,7 +98,7 @@ namespace FirstPartyAgent.Core.Services.TokenService
             {
                 authOptions.ManagedIdentityClientId = ClientId;
             }
-            TokenCredential = new DefaultAzureCredential(authOptions);
+            TokenCredential = new DefaultAzureCredential(authOptions); // CodeQL [SM05137] This is non-production code which is deprecated and not deployed.
             TokenRequestContext = new TokenRequestContext(scopes: new string[] { Resource });
         }
 

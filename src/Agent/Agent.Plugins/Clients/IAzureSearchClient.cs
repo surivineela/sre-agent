@@ -4,6 +4,7 @@
 
 using System.Collections.Concurrent;
 using Agent.Core.Configuration;
+using Agent.Core.Interfaces;
 using Azure;
 using Azure.Identity;
 using Azure.Search.Documents;
@@ -29,11 +30,13 @@ namespace Agent.Plugins.Clients
     {
         private const int MAX_RESULTS_TO_FETCH = 20;
         private readonly AzureSearchSettings _azureSearchSettings;
+        private readonly IAuthenticationService _authService;
         private readonly ConcurrentDictionary<string, SearchClient> _searchClients = new(StringComparer.OrdinalIgnoreCase);
 
-        public AzureSearchClient(AzureSearchSettings searchSettings)
+        public AzureSearchClient(AzureSearchSettings searchSettings, IAuthenticationService authService)
         {
             _azureSearchSettings = searchSettings;
+            _authService = authService;
         }
 
         private static bool IsDevelopment()
@@ -52,11 +55,8 @@ namespace Agent.Plugins.Clients
                 }
                 else if (!string.IsNullOrWhiteSpace(_azureSearchSettings.UserAssignedMIClientId))
                 {
-                    var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
-                    {
-                        ManagedIdentityClientId = _azureSearchSettings.UserAssignedMIClientId
-                    });
-                    return new SearchClient(new Uri(_azureSearchSettings.SearchServiceUri), searchIndex, credential);
+                    var cred = _authService.GetAzureSearchCredential();
+                    return new SearchClient(new Uri(_azureSearchSettings.SearchServiceUri), searchIndex, cred);
                 }
                 else
                 {

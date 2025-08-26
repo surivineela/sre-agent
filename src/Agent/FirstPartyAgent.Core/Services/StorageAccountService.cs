@@ -44,23 +44,23 @@ namespace FirstPartyAgent.Core.Services
     }
     public class StorageService : IStorageService
     {
-        public bool IsEnabled => true;        
+        public bool IsEnabled => true;
         private readonly BlobServiceClient _blobServiceClient;
 
         public StorageService(StorageAccountSettings storageAccountSettings)
         {
             string storageAccountUrl = storageAccountSettings.AccountUrl;
-            DefaultAzureCredential credential;
+            DefaultAzureCredential credential; // CodeQL [SM05137] This is non-production code which is deprecated and not deployed.
             if (!string.IsNullOrEmpty(storageAccountSettings.ManagedIdentityClientId))
             {
-                credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
+                credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions // CodeQL [SM05137] This is non-production code which is deprecated and not deployed.
                 {
                     ManagedIdentityClientId = storageAccountSettings.ManagedIdentityClientId
                 });
             }
             else
             {
-                credential = new DefaultAzureCredential();
+                credential = new DefaultAzureCredential(); // CodeQL [SM05137] This is non-production code which is deprecated and not deployed.
             }
 
             _blobServiceClient = new BlobServiceClient(new Uri(storageAccountUrl), credential);

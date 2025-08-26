@@ -2,6 +2,7 @@ using Azure.Identity;
 using Microsoft.Extensions.Configuration;
 
 namespace FirstPartyAgent.Core.Extensions;
+
 public static class KeyVaultConfigurationExtension
 {
     public static string GetPlatformKeyVaultSettingFromEnvironment(string settingName)
@@ -20,14 +21,14 @@ public static class KeyVaultConfigurationExtension
             if (!string.IsNullOrWhiteSpace(kvMsiResourceUri))
             {
                 configBuilder.AddAzureKeyVault(new Uri(kvEndpointUri),
-                new DefaultAzureCredential(new DefaultAzureCredentialOptions()
+                new DefaultAzureCredential(new DefaultAzureCredentialOptions() // CodeQL [SM05137] This is non-production code which is deprecated and not deployed.
                 {
                     ManagedIdentityResourceId = new Azure.Core.ResourceIdentifier(kvMsiResourceUri)
                 }));
             }
             else
             {
-                configBuilder.AddAzureKeyVault(new Uri(kvEndpointUri), new DefaultAzureCredential());
+                configBuilder.AddAzureKeyVault(new Uri(kvEndpointUri), new DefaultAzureCredential()); // CodeQL [SM05137] This is non-production code which is deprecated and not deployed.
             }
         }
         return configBuilder;

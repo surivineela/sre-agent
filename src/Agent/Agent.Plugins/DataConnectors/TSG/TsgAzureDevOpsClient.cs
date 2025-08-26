@@ -5,6 +5,7 @@
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using Agent.Core.Interfaces;
 using Agent.Framework.Reasoning.Models;
 using Agent.Logging;
 using Azure.Core;
@@ -28,63 +29,13 @@ namespace Agent.Plugins.DataConnectors.TSG
             ILogger logger,
             IHttpClientFactory httpClientFactory,
             AzureDevOpsSettings settings,
-            ConnectorAuthSettings authSettings)
+            ConnectorAuthSettings authSettings,
+            IAuthenticationService authService)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _httpClient = httpClientFactory.CreateClient();
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
-            
-            _tokenCredential = CreateTokenCredential(authSettings);
-        }
-
-        private static TokenCredential CreateTokenCredential(ConnectorAuthSettings authSettings)
-        {
-            return authSettings.AuthenticationType switch
-            {
-                ConnectorAuthType.ManagedIdentity => new ManagedIdentityCredential(),
-                ConnectorAuthType.UAMI => CreateDefaultAzureCredential(authSettings),
-                ConnectorAuthType.App => CreateClientCertificateCredential(authSettings),
-                ConnectorAuthType.User => new DefaultAzureCredential(),
-                _ => new DefaultAzureCredential()
-            };
-        }
-
-        private static DefaultAzureCredential CreateDefaultAzureCredential(ConnectorAuthSettings authSettings)
-        {
-            var options = new DefaultAzureCredentialOptions();
-            
-            if (!string.IsNullOrEmpty(authSettings.ManagedIdentityClientId))
-            {
-                options.ManagedIdentityClientId = authSettings.ManagedIdentityClientId;
-            }
-            else if (!string.IsNullOrEmpty(authSettings.ManagedIdentityResourceId))
-            {
-                options.ManagedIdentityResourceId = new ResourceIdentifier(authSettings.ManagedIdentityResourceId);
-            }
-            else
-            {
-                throw new InvalidOperationException("Either ManagedIdentityClientId or ManagedIdentityResourceId must be provided for UAMI authentication.");
-            }
-            
-            return new DefaultAzureCredential(options);
-        }
-
-        private static ClientCertificateCredential CreateClientCertificateCredential(ConnectorAuthSettings authSettings)
-        {
-            if (string.IsNullOrEmpty(authSettings.ApplicationClientId) ||
-                string.IsNullOrEmpty(authSettings.ApplicationCertificate) ||
-                string.IsNullOrEmpty(authSettings.Authority))
-            {
-                throw new InvalidOperationException("ApplicationClientId, ApplicationCertificate, and Authority must be provided for App authentication.");
-            }
-
-            var certificate = System.Security.Cryptography.X509Certificates.X509Certificate2
-                .CreateFromPem(authSettings.ApplicationCertificate);
-
-            return new ClientCertificateCredential(
-                authSettings.Authority,
-                authSettings.ApplicationClientId,
-                certificate);
+            _tokenCredential = authService.GetDataConnectorCredential(authSettings);
         }
 
         /// <summary>
@@ -93,7 +44,7 @@ namespace Agent.Plugins.DataConnectors.TSG
         public async Task<List<string>> GetAllFilesAsync(string path)
         {
             var allFiles = new List<string>();
-            
+
             try
             {
                 // Fix: Use "Full" as string parameter, not int.MaxValue
@@ -115,7 +66,7 @@ namespace Agent.Plugins.DataConnectors.TSG
                                     if (filePath != null)
                                     {
                                         allFiles.Add(filePath);
-                                    }                                
+                                    }
                                 }
                             }
                         }
@@ -139,7 +90,7 @@ namespace Agent.Plugins.DataConnectors.TSG
             try
             {
                 var token = await GetAccessTokenAsync();
-                
+
                 // Use scopePath instead of path when using recursionLevel to get all items
                 var url = $"https://dev.azure.com/{_settings.Organization}/{_settings.ProjectName}/_apis/git/repositories/{_settings.RepositoryName}/items?scopePath={Uri.EscapeDataString(path)}&recursionLevel={recursionLevel}&includeContent=false&api-version=7.0";
 
@@ -175,7 +126,7 @@ namespace Agent.Plugins.DataConnectors.TSG
                 response.EnsureSuccessStatusCode();
 
                 var responseContent = await response.Content.ReadAsStringAsync();
-                
+
                 // The responseContent is the actual file contents, not JSON
                 return responseContent ?? string.Empty;
             }
@@ -196,7 +147,7 @@ namespace Agent.Plugins.DataConnectors.TSG
                 // Request a token for Azure DevOps scope
                 var tokenRequestContext = new TokenRequestContext(new[] { "499b84ac-1321-427f-aa17-267ca6975798/.default" });
                 var tokenResult = await _tokenCredential.GetTokenAsync(tokenRequestContext, CancellationToken.None);
-                
+
                 if (string.IsNullOrEmpty(tokenResult.Token))
                 {
                     throw new InvalidOperationException("Failed to obtain Azure DevOps access token");

@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Agent.Core.Helpers;
+using Agent.Core.Interfaces;
 using Agent.Plugins.Kusto;
 using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Core.Extensions;
@@ -17,24 +18,26 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace FirstPartyAgent.Core.Services
-{    
-    public class ICMWorkflowClient: IICMWorkflowClient
+{
+    public class ICMWorkflowClient : IICMWorkflowClient
     {
         private readonly bool IsDevelopment;
         private readonly HttpClient? _httpClient;
         private readonly ILogger<ICMWorkflowClient> _logger;
         private readonly ICMWorkflowSettings _icmWorkflowSettings;
+        private readonly IAuthenticationService _authService;
         private const string ActionPath = "triggers/manual/execute";
         private readonly int TimeoutInSeconds = 600;
         private bool _processImages = true;
         public bool ProcessImages => _processImages;
 
-        public ICMWorkflowClient(IHostEnvironment environment, ILogger<ICMWorkflowClient> logger, ICMWorkflowSettings icmWorkflowSettings)
+        public ICMWorkflowClient(IHostEnvironment environment, ILogger<ICMWorkflowClient> logger, ICMWorkflowSettings icmWorkflowSettings, IAuthenticationService authService)
         {
             _icmWorkflowSettings = icmWorkflowSettings;
             _processImages = _icmWorkflowSettings.ProcessImages;
             IsDevelopment = environment.IsDevelopment();
             _logger = logger;
+            _authService = authService;
 
             if (!icmWorkflowSettings.Enabled)
             {
@@ -111,7 +114,7 @@ namespace FirstPartyAgent.Core.Services
                         certMsi = _icmWorkflowSettings.ManagedIdentityClientId ?? string.Empty;
                     }
 
-                    var certificate = CertLoader.LoadCertFromKeyVault(keyVaultUri, certKvSecretName, certMsi, null, _logger);
+                    var certificate = CertLoader.LoadCertFromKeyVault(_authService, keyVaultUri, certKvSecretName, certMsi, null, _logger);
 
                     var handler = new HttpClientHandler();
                     handler.ClientCertificates.Add(certificate);
@@ -125,7 +128,7 @@ namespace FirstPartyAgent.Core.Services
                 else if (!string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateKeyVaultUri) && !string.IsNullOrEmpty(_icmWorkflowSettings.CertificateKeyVaultSecretName))
                 {
                     var handler = new HttpClientHandler();
-                    var certificate = CertLoader.LoadCertFromKeyVault(_icmWorkflowSettings.CertificateKeyVaultUri, _icmWorkflowSettings.CertificateKeyVaultSecretName, _icmWorkflowSettings.ManagedIdentityClientId, null, _logger);
+                    var certificate = CertLoader.LoadCertFromKeyVault(_authService, _icmWorkflowSettings.CertificateKeyVaultUri, _icmWorkflowSettings.CertificateKeyVaultSecretName, _icmWorkflowSettings.ManagedIdentityClientId, null, _logger);
                     handler.ClientCertificates.Add(certificate);
                     _logger.LogInformation("Successfully loaded Cert from keyvault for ICMWorkflowClient.");
                     result = new HttpClient(handler)
@@ -177,7 +180,7 @@ namespace FirstPartyAgent.Core.Services
         private async Task<HttpResponseMessage> SendICMWorkflowRequest(string workflowName, string body, string? tenantId = null)
         {
             if (_httpClient == null)
-                            {
+            {
                 throw new InvalidOperationException("ICMWorkflowClient is not properly initialized. HttpClient is null.");
             }
 
@@ -401,7 +404,7 @@ namespace FirstPartyAgent.Core.Services
                     .SelectMany(column =>
                         filters.Where(f => string.Equals(f.ColumnName, column, StringComparison.OrdinalIgnoreCase))
                             .GroupBy(f => f.ColumnName, StringComparer.OrdinalIgnoreCase)
-                            .Where(g => (g.Count()%2 > 0) || g.Any(f => f.Operator == ">=" || f.Operator == "<=") &&
+                            .Where(g => (g.Count() % 2 > 0) || g.Any(f => f.Operator == ">=" || f.Operator == "<=") &&
                                       !(g.Any(f => f.Operator == ">=") && g.Any(f => f.Operator == "<=")))
                             )
                     .FirstOrDefault();
@@ -426,11 +429,11 @@ namespace FirstPartyAgent.Core.Services
 
             // Build the basic Kusto query structure
             var queryBuilder = new StringBuilder();
-            if(!hasDateRangeFilter && !(filters?.Any(f => f.ColumnName.Equals("IncidentId", StringComparison.OrdinalIgnoreCase)) == true))
+            if (!hasDateRangeFilter && !(filters?.Any(f => f.ColumnName.Equals("IncidentId", StringComparison.OrdinalIgnoreCase)) == true))
             {
                 queryBuilder.AppendLine($"let lookbackPeriod = ago({lookbackPeriodInDays}d);");
             }
-            
+
             queryBuilder.AppendLine($"let resultLimit = {resultLimit};");
             queryBuilder.AppendLine("Incidents");
 
@@ -439,7 +442,7 @@ namespace FirstPartyAgent.Core.Services
             {
                 queryBuilder.AppendLine("| where CreateDate > lookbackPeriod");
             }
-            
+
             // Add each custom filter with AND logic
             if (filters != null && filters.Count > 0)
             {
@@ -460,10 +463,10 @@ namespace FirstPartyAgent.Core.Services
 
             var query = queryBuilder.ToString();
             _logger.LogInformation($"Executing Kusto query: {query}");
-            
+
             var payload = JsonConvert.SerializeObject(new { query });
             var response = await SendICMWorkflowRequest(_icmWorkflowSettings.IncidentLookupWorkflowName, payload);
-            
+
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();

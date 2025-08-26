@@ -2,6 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Framework.Reasoning.Models;
+using Agent.Logging;
 using Azure.Core;
 
 namespace Agent.Core.Interfaces;
@@ -117,4 +119,14 @@ public interface IAuthenticationService
     /// </summary>
     /// <returns></returns>
     public string GetApplensRuntimeHostUrl();
+
+    public TokenCredential Get1PAgentKeyVaultCredential(string managedIdentityId);
+
+    public TokenCredential GetIcmApiCredential();
+
+    public TokenCredential GetDataConnectorCredential(ConnectorAuthSettings connectorAuthSettings);
+
+    public TokenCredential GetAzureSearchCredential();
+
+    public TokenCredential GetEventHubTraceExportCredential(EventHubTraceExporterOptions options);
 }

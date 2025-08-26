@@ -207,9 +207,10 @@ namespace Agent.Plugins.Implementation
                 _logger.LogInternalInformation("Checking if blob exists: Account: {AccountName}, Container: {ContainerName}, Blob: {BlobPath}",
                     accountName, containerName, blobPath);
 
+                var cred = await _authService.GetArmOperationCredential();
                 var blobServiceClient = new BlobServiceClient(
                     new Uri($"https://{accountName}.blob.core.windows.net"),
-                    new DefaultAzureCredential());
+                    cred);
 
                 var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
                 var blobClient = containerClient.GetBlobClient(blobPath);

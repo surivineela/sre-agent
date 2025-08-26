@@ -4,6 +4,7 @@
 
 using System.Collections.Concurrent;
 using System.Security.Cryptography.X509Certificates;
+using Agent.Core.Interfaces;
 using Agent.Logging;
 using Azure.Core;
 using Azure.Identity;
@@ -95,29 +96,15 @@ namespace Agent.Core.Helpers
             }
         }
 
-        public static X509Certificate2 LoadCertFromKeyVault(string keyVaultUrl, string certificateName, string? managedIdentityId = null,  string? certPassword = null, ILogger? log = null)
+        public static X509Certificate2 LoadCertFromKeyVault(IAuthenticationService authService, string keyVaultUrl, string certificateName, string managedIdentityId, string? certPassword = null, ILogger? log = null)
         {
             try
             {
-                var credOptions = new DefaultAzureCredentialOptions();
-                if (!string.IsNullOrEmpty(managedIdentityId))
-                {
-                    if (Azure.Core.ResourceIdentifier.TryParse(managedIdentityId, out ResourceIdentifier? certMsiResourceUri))
-                    {
-                        // This is true when the MSI is being specified as a resource ID via ARM settings
-                        credOptions.ManagedIdentityResourceId = certMsiResourceUri;
-                    }
-                    else
-                    {
-                        credOptions.ManagedIdentityClientId = managedIdentityId;
-                    }
-                }
-
                 log?.LogInternalInformation($"Loading cert from Key Vault: {keyVaultUrl}, Certificate Name: {certificateName}, Managed Identity Client Id: {managedIdentityId}");
-                DefaultAzureCredential cred = new DefaultAzureCredential(credOptions);
 
-                KeyVaultCertificateWithPolicy certificateWithPolicy = GetKVCertificateClient(keyVaultUrl, credOptions, log).GetCertificate(certificateName);                
-                KeyVaultSecret secret = GetKVSecretClient(keyVaultUrl, credOptions, log).GetSecret(certificateWithPolicy.Name);
+                var cred = authService.Get1PAgentKeyVaultCredential(managedIdentityId);
+                KeyVaultCertificateWithPolicy certificateWithPolicy = GetKVCertificateClient(keyVaultUrl, cred, log).GetCertificate(certificateName);
+                KeyVaultSecret secret = GetKVSecretClient(keyVaultUrl, cred, log).GetSecret(certificateWithPolicy.Name);
 
                 byte[] privateKeyBytes = Convert.FromBase64String(secret.Value);
 
@@ -134,7 +121,7 @@ namespace Agent.Core.Helpers
             }
         }
 
-        private static CertificateClient GetKVCertificateClient(string keyVaultUrl, DefaultAzureCredentialOptions? credOptions = null, ILogger? log = null)
+        private static CertificateClient GetKVCertificateClient(string keyVaultUrl, TokenCredential cred, ILogger? log = null)
         {
             if (kvCertClientCache.TryGetValue(keyVaultUrl, out var certClient))
             {
@@ -142,10 +129,7 @@ namespace Agent.Core.Helpers
             }
             try
             {
-                var client = credOptions != null
-                    ? new CertificateClient(new Uri(keyVaultUrl), new DefaultAzureCredential(credOptions))
-                    : new CertificateClient(new Uri(keyVaultUrl), new DefaultAzureCredential());
-
+                var client = new CertificateClient(new Uri(keyVaultUrl), cred);
                 kvCertClientCache[keyVaultUrl] = client;
                 log?.LogInternalInformation($"Successfully created CertificateClient for Key Vault: {keyVaultUrl}");
                 return client;
@@ -157,7 +141,7 @@ namespace Agent.Core.Helpers
             }
         }
 
-        private static SecretClient GetKVSecretClient(string keyVaultUrl, DefaultAzureCredentialOptions? credOptions = null, ILogger? log = null)
+        private static SecretClient GetKVSecretClient(string keyVaultUrl, TokenCredential cred, ILogger? log = null)
         {
             if (kvSecretClientCache.TryGetValue(keyVaultUrl, out var secretClient))
             {
@@ -165,9 +149,7 @@ namespace Agent.Core.Helpers
             }
             try
             {
-                var client = credOptions != null
-                    ? new SecretClient(new Uri(keyVaultUrl), new DefaultAzureCredential(credOptions))
-                    : new SecretClient(new Uri(keyVaultUrl), new DefaultAzureCredential());
+                var client = new SecretClient(new Uri(keyVaultUrl), cred);
                 kvSecretClientCache[keyVaultUrl] = client;
                 log?.LogInternalInformation($"Successfully created SecretClient for Key Vault: {keyVaultUrl}");
                 return client;

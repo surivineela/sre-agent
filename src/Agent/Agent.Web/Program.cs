@@ -725,7 +725,8 @@ public class Program
             {
                 var logger = sp.GetRequiredService<ILogger<KustoClient>>();
                 var kustoSetting = sp.GetRequiredService<KustoConnector>();
-                return new KustoClient(logger, kustoSetting);
+                var authSvc = sp.GetRequiredService<IAuthenticationService>();
+                return new KustoClient(logger, kustoSetting, authSvc);
             });
         }
 
@@ -913,13 +914,16 @@ public class Program
                 // Add EventHub exporter if configured, otherwise use Azure Data Explorer exporter
                 if (!string.IsNullOrEmpty(azureSettings?.AgentTraceEventHub.FullyQualifiedNamespace))
                 {
-                    exporters.Add(new EventHubTraceExporter(new EventHubTraceExporterOptions(
+                    var authService = sp.GetRequiredService<IAuthenticationService>();
+                    var option = new EventHubTraceExporterOptions(
                         azureSettings.AgentTraceEventHub.FullyQualifiedNamespace,
                         azureSettings.AgentTraceEventHub.EventHubName,
                         populateColumns,
                         azureSettings.AgentTraceEventHub.CertificatePath,
                         azureSettings.AgentTraceEventHub.FirstPartyAppClientId,
-                        azureSettings.AgentTraceEventHub.FirstPartyAppTenantId)));
+                        azureSettings.AgentTraceEventHub.FirstPartyAppTenantId);
+                    var cred = authService.GetEventHubTraceExportCredential(option);
+                    exporters.Add(new EventHubTraceExporter(option, cred));
                 }
                 else if (builder.Environment.IsProduction() && !string.IsNullOrEmpty(azureSettings?.AgentTraceKusto.ClusterUri))
                 {

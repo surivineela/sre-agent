@@ -9,7 +9,7 @@ namespace FirstPartyAgent.Core.Helpers
 {
     public static class LocalAadAuthenticator
     {
-        private static DefaultAzureCredential _credential = new DefaultAzureCredential();
+        private static DefaultAzureCredential _credential = new DefaultAzureCredential(); // CodeQL [SM05137] This is non-production code which is deprecated and not deployed.
 
         public static void Initialize()
         {
@@ -26,7 +26,7 @@ namespace FirstPartyAgent.Core.Helpers
                 ExcludeAzurePowerShellCredential = false
             };
 
-            _credential = new DefaultAzureCredential(options);
+            _credential = new DefaultAzureCredential(options); // CodeQL [SM05137] This is non-production code which is deprecated and not deployed.
         }
 
         /// <summary>
