@@ -6,7 +6,6 @@ import { IncidentHandlerClient } from '../../../Common/Clients/IncidentHandlerCl
 import { IncidentDocument, IncidentQueryRequest } from '../../../Common/Contracts/Azure/IncidentHandler';
 import { AgentMode, IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../../Common/Helpers/Guid';
-import { IncidentHandlerCreateResources } from '../../../Strings/SREAgentResources';
 import { HandlerCreateOrEditInfo, TimeDuration } from './Contracts';
 import { IncidentHandlerCreateFormValues } from './IncidentHandlerCreateFormValues';
 
@@ -82,45 +81,8 @@ export const useTestHandler = (
         setCreateTestThreadFailure(undefined);
         setCreatingTestThread(true);
 
-        let testIncident = incidents?.find(incident => incident.id === searchTerm);
-        if (!testIncident) {
-            const getIncidentResult = await incidentHandlerClient.getIncident(searchTerm);
-            if (!getIncidentResult.isSuccessful || !getIncidentResult.content) {
-                const error = !getIncidentResult.isSuccessful ? getDataPlaneErrorMessage(getIncidentResult.error) : 'Incident not found';
-                azPortalContext.log({
-                    action: 'create-test-thread',
-                    actionModifier: 'failed',
-                    logLevel: 'error',
-                    resourceId: resourceId,
-                    data: { error },
-                });
-                setCreateTestThreadFailure(
-                    intl.formatMessage(IncidentHandlerCreateResources.testHandlerRunIncidentNotFound, { incidentId: searchTerm })
-                );
-                setCreatingTestThread(false);
-                return;
-            }
-            testIncident = getIncidentResult.content;
-        }
-
-        let source: 'pagerDuty' | 'icm' | undefined = undefined;
-
-        switch (testIncident?.documentType) {
-            case 'PagerDutyIncident':
-                source = 'pagerDuty';
-                break;
-            case 'IcmIncident':
-                source = 'icm';
-                break;
-            default:
-                break;
-        }
-
         const testHandlerResult = await incidentHandlerClient.testHandler({
-            title: testIncident?.title || '',
-            description: testIncident?.description || '',
-            incidentId: testIncident?.id || '',
-            source: source,
+            incidentId: searchTerm || '',
             isTest: true,
             incidentHandler: {
                 id: handlerCreateOrEditInfo?.handlerId || `${values.filterName || ''}-custom-handler`,

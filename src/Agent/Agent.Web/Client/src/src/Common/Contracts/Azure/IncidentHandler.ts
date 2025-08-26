@@ -102,11 +102,8 @@ export interface IncidentFilterPayload {
 }
 
 export interface TestHandlerPayload {
-    title: string;
-    description: string;
     incidentId?: string;
     severity?: string;
-    source?: string;
     isTest?: boolean;
     incidentHandler?: IncidentHandler;
     incidentFilter?: IncidentFilterDocumentPayload;
