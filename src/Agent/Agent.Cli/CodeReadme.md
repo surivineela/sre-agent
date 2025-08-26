@@ -13,9 +13,14 @@ Agent.Cli/
 │   ├── CommandBuilder.cs        # CLI structure and command configuration
 │   ├── AgentCommandHandlers.cs  # Agent-related command implementations
 │   ├── ToolCommandHandlers.cs   # Tool-related command implementations
-│   ├── GeneralCommandHandlers.cs # General command implementations (validate-all)
+│   ├── GeneralCommandHandlers.cs # General command implementations
+│   ├── DocumentCommandHandlers.cs # Document management implementations
+│   ├── ThreadCommandHandlers.cs # Thread management implementations
+│   ├── ProfileCommandHandlers.cs # Profile management implementations
 │   ├── AgentCommandOptions.cs   # Agent command option definitions
-│   └── ToolCommandOptions.cs    # Tool command option definitions
+│   ├── ToolCommandOptions.cs    # Tool command option definitions
+│   ├── DocumentCommandOptions.cs # Document command option definitions
+│   └── ProfileCommandOptions.cs # Profile command option definitions
 ├── Helpers/                      # Utility classes
 │   ├── YamlHelper.cs            # YAML serialization and formatting
 │   ├── ArgumentParser.cs        # Key-value pair parsing utilities
@@ -207,11 +212,17 @@ public static class YamlHelper
 ## Extension Points
 
 ### Adding New Commands
-1. Define options class in `Commands/` folder
-2. Implement handler in appropriate handler class
+1. Define options class in `Commands/` folder (e.g., ProfileCommandOptions.cs)
+2. Implement handler in appropriate handler class (e.g., ProfileCommandHandlers.cs)
 3. Register command in `CommandBuilder.cs`
 4. Add validation logic if needed
 5. Create tests for new functionality
+6. Update documentation
+
+**Recent Examples:**
+- Profile management commands demonstrate multi-instance support
+- Document commands show file system integration patterns
+- Thread track command illustrates real-time monitoring capabilities
 
 **Example: Tool Discovery Commands**
 
@@ -296,6 +307,56 @@ srectl apply-yaml --file <path-to-yaml-file>
 ### Implementation Notes
 - See `GeneralCommandHandlers.HandleApplyYamlCommand` and `ApiService.ApplyYamlFileAsync` for details.
 - Option defined in `AgentCommandOptions.ApplyYamlFileOption`.
+
+## Profile Management Commands
+
+### Overview
+Profile management enables users to work with multiple SRE Agent instances seamlessly. Profiles store connection settings and can be switched between easily.
+
+### Implementation Architecture
+- **Profile Storage**: JSON files in `.sreagent-profiles/` directory
+- **Current Profile**: Tracked in `.sreagent-current-profile` file
+- **Profile Structure**: Contains resource URL and authentication requirements
+
+### Design Principles
+- **Isolation**: Each profile maintains independent configuration
+- **Persistence**: Profiles survive across sessions
+- **Safety**: Cannot delete the active profile
+- **Simplicity**: Easy switching between environments
+
+### Command Categories
+- **List**: Display all available profiles with active indicator
+- **Get**: Retrieve details of specific or current profile
+- **Create**: Add new profile with resource URL configuration
+- **Set**: Switch active profile context
+- **Delete**: Remove unused profiles (with safety checks)
+
+### Implementation Details
+
+#### Profile Structure
+```json
+{
+  "name": "production",
+  "resourceUrl": "https://prod.azuresre.ai",
+  "authRequired": true,
+  "createdAt": "2024-08-26T10:30:00Z"
+}
+```
+
+#### File System Organization
+```
+.sreagent-profiles/
+├── local-dev.json           # Local development profile
+├── staging.json             # Staging environment profile
+└── production.json          # Production environment profile
+.sreagent-current-profile    # Text file containing active profile name
+```
+
+#### Safety Features
+- **Active Profile Protection**: Cannot delete currently active profile
+- **Validation**: Profile names and URLs validated before creation
+- **Error Handling**: Comprehensive error handling for missing profiles
+- **Backup**: Current profile context preserved during switches
 
 ## Document Management Commands
 
@@ -537,3 +598,23 @@ private static async Task StartInteractiveChatSession(
 - **Exit Instructions**: Clear guidance on how to exit the session
 - **Error Recovery**: Graceful handling of network issues with continuation options
 - **Progress Feedback**: Real-time status updates during message processing
+
+## Interactive Features
+
+### Chat Command
+The `srectl chat` command provides an interactive conversation interface:
+- **Session Management**: Maintains conversation context
+- **Exit Handling**: Graceful termination with 'exit' or 'quit'
+- **Thread Persistence**: Automatically manages underlying threads
+
+### Thread Tracking
+The `srectl thread track` command enables real-time message monitoring:
+- **Live Updates**: Polls for new messages continuously
+- **Interrupt Handling**: Clean exit on Ctrl+C
+- **Display Formatting**: Consistent message presentation
+
+### Design Patterns for Interactive Commands
+- **Cancellation Token Support**: All interactive commands support graceful cancellation
+- **State Management**: Persistent conversation state across sessions
+- **User Experience**: Clear prompts and intuitive interaction patterns
+- **Error Recovery**: Robust handling of network interruptions and API failures

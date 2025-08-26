@@ -1839,6 +1839,155 @@ if exist "agents\test_agent_60k\test_agent_60k.yaml" (
 )
 echo.
 
+REM Test 83: Document upload - single file
+echo [TEST 83] Document upload single file
+set /a TOTAL_TESTS+=1
+echo "Test document content for knowledge base" > test_doc.txt
+dotnet run --project .. -- doc upload --file test_doc.txt > test83_output.txt 2>&1
+if !errorlevel! equ 0 (
+    findstr /i "uploaded successfully" test83_output.txt >nul
+    if !errorlevel! equ 0 (
+        echo [PASS] Document upload single file
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Document upload single file - Missing success message
+        type test83_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Document upload single file - Command failed
+    type test83_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 84: Document upload - folder
+echo [TEST 84] Document upload folder
+set /a TOTAL_TESTS+=1
+mkdir test_docs 2>nul
+echo "Test runbook content" > test_docs\runbook.md
+echo "Troubleshooting guide" > test_docs\troubleshoot.md
+dotnet run --project .. -- doc upload --folder test_docs > test84_output.txt 2>&1
+if !errorlevel! equ 0 (
+    findstr /i "uploaded successfully" test84_output.txt >nul
+    if !errorlevel! equ 0 (
+        echo [PASS] Document upload folder
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Document upload folder - Missing success message
+        type test84_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Document upload folder - Command failed
+    type test84_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 85: Document search
+echo [TEST 85] Document search
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- doc search --query "test document" > test85_output.txt 2>&1
+if !errorlevel! equ 0 (
+    echo [PASS] Document search
+    set /a TESTS_PASSED+=1
+) else (
+    echo [FAIL] Document search - Command failed
+    type test85_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 86: Document reindex
+echo [TEST 86] Document reindex
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- doc reindex > test86_output.txt 2>&1
+if !errorlevel! equ 0 (
+    findstr /i "reindex" test86_output.txt >nul
+    if !errorlevel! equ 0 (
+        echo [PASS] Document reindex
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Document reindex - Missing reindex message
+        type test86_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Document reindex - Command failed
+    type test86_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 87: Thread track command (will timeout quickly)
+echo [TEST 87] Thread track command
+set /a TOTAL_TESTS+=1
+timeout /t 3 /nobreak >nul 2>&1 & echo exit | dotnet run --project .. -- thread track --thread-id "test-thread-id" > test87_output.txt 2>&1
+if !errorlevel! equ 0 (
+    echo [PASS] Thread track command initialization
+    set /a TESTS_PASSED+=1
+) else (
+    REM Track command might fail with test thread ID, which is expected
+    findstr /i "thread.*not found\|invalid.*thread" test87_output.txt >nul
+    if !errorlevel! equ 0 (
+        echo [PASS] Thread track command - Proper error handling for invalid thread
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Thread track command - Unexpected error
+        type test87_output.txt
+        set /a TESTS_FAILED+=1
+    )
+)
+echo.
+
+REM Test 88: Apply-yaml command
+echo [TEST 88] Apply YAML directly
+set /a TOTAL_TESTS+=1
+if exist "agents\example_agent.yaml" (
+    dotnet run --project .. -- apply-yaml --file agents\example_agent.yaml > test88_output.txt 2>&1
+    if !errorlevel! equ 0 (
+        echo [PASS] Apply YAML directly
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Apply YAML directly - Command failed
+        type test88_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Apply YAML directly - Example agent YAML not found
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 89: List data-connectors
+echo [TEST 89] List data connectors
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- list data-connectors > test89_output.txt 2>&1
+if !errorlevel! equ 0 (
+    echo [PASS] List data connectors
+    set /a TESTS_PASSED+=1
+) else (
+    echo [FAIL] List data connectors - Command failed
+    type test89_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 90: Chat command initialization (exit immediately)
+echo [TEST 90] Chat command initialization
+set /a TOTAL_TESTS+=1
+echo exit | dotnet run --project .. -- chat > test90_output.txt 2>&1
+if !errorlevel! equ 0 (
+    echo [PASS] Chat command initialization
+    set /a TESTS_PASSED+=1
+) else (
+    echo [FAIL] Chat command initialization - Command failed
+    type test90_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
 REM ===========================================
 REM CLEANUP AND SUMMARY
 REM ===========================================

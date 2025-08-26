@@ -8,8 +8,9 @@ A comprehensive reference guide for all SRECTL commands, parameters, and usage p
 3. [Tool Commands](#tool-commands)
 4. [Document Management Commands](#document-management-commands)
 5. [Thread Management Commands](#thread-management-commands)
-6. [List Commands](#list-commands)
-7. [Utility Commands](#utility-commands)
+6. [Profile Management Commands](#profile-management-commands)
+7. [List Commands](#list-commands)
+8. [Utility Commands](#utility-commands)
 
 ---
 
@@ -673,6 +674,144 @@ srectl thread delete --thread-id thread_abc123
 
 ---
 
+### `srectl thread track`
+
+Track an existing thread for new messages in real-time.
+
+**Syntax:**
+```bash
+srectl thread track --thread-id <thread-id>
+```
+
+**Parameters:**
+- `--thread-id` (required): ID of the thread to track
+
+**What it does:**
+- Monitors the specified thread for new messages
+- Displays new messages as they arrive
+- Continues tracking until interrupted (Ctrl+C)
+
+**Example:**
+```bash
+srectl thread track --thread-id thread_abc123
+```
+
+---
+
+## Profile Management Commands
+
+### `srectl profile list`
+
+List all available profiles and show which one is currently active.
+
+**Syntax:**
+```bash
+srectl profile list
+```
+
+**What it displays:**
+- Profile names
+- Resource URLs for each profile
+- Authentication requirements
+- Current active profile indicator (marked with *)
+
+**Example:**
+```bash
+srectl profile list
+```
+
+---
+
+### `srectl profile get`
+
+Get details of a specific profile or the current active profile.
+
+**Syntax:**
+```bash
+srectl profile get [--name <ProfileName>]
+```
+
+**Parameters:**
+- `--name`: Specific profile name (optional, defaults to current profile)
+
+**Example:**
+```bash
+# Get current profile details
+srectl profile get
+
+# Get specific profile details
+srectl profile get --name production
+```
+
+---
+
+### `srectl profile create`
+
+Create a new profile to connect to an SRE Agent instance (local or remote).
+
+**Syntax:**
+```bash
+srectl profile create --name <ProfileName> --resource-url <ResourceURL> [--set-current]
+```
+
+**Required Parameters:**
+- `--name`: Unique profile name
+- `--resource-url`: URL of the SRE Agent instance
+
+**Optional Parameters:**
+- `--set-current`: Switch to this profile immediately after creation
+
+**Examples:**
+```bash
+# Create local development profile
+srectl profile create --name local-dev --resource-url https://localhost:7023
+
+# Create production profile and switch to it
+srectl profile create --name production --resource-url https://prod.azuresre.ai --set-current
+```
+
+---
+
+### `srectl profile set`
+
+Switch to a different profile to change which SRE Agent instance you're connected to.
+
+**Syntax:**
+```bash
+srectl profile set --name <ProfileName>
+```
+
+**Required Parameters:**
+- `--name`: Profile name to switch to
+
+**Example:**
+```bash
+srectl profile set --name production
+```
+
+---
+
+### `srectl profile delete`
+
+Delete a profile (cannot delete the currently active profile).
+
+**Syntax:**
+```bash
+srectl profile delete --name <ProfileName>
+```
+
+**Required Parameters:**
+- `--name`: Profile name to delete
+
+**Example:**
+```bash
+srectl profile delete --name old-dev-instance
+```
+
+**Note:** You must switch to a different profile before deleting the current one.
+
+---
+
 ## List Commands
 
 ### `srectl list agents`
@@ -742,6 +881,29 @@ srectl list extended-tools
 
 ---
 
+### `srectl list data-connectors`
+
+List all data connectors configured on the server.
+
+**Syntax:**
+```bash
+srectl list data-connectors
+```
+
+**What it displays:**
+- Data connector names and types
+- Configuration status
+- Connection endpoints
+- Authentication methods
+- Total connector count
+
+**Example:**
+```bash
+srectl list data-connectors
+```
+
+---
+
 ## Utility Commands
 
 ### `srectl apply-yaml`
@@ -764,6 +926,41 @@ srectl apply-yaml --file <path-to-yaml-file>
 **Examples:**
 ```bash
 srectl apply-yaml --file custom-config.yaml
+```
+
+---
+
+### `srectl chat`
+
+Start a persistent interactive chat session with the SRE Agent.
+
+**Syntax:**
+```bash
+srectl chat
+```
+
+**Features:**
+- Interactive conversation mode
+- Maintains context across messages
+- Type 'exit' or 'quit' to end the session
+- Automatic thread management
+
+**Example:**
+```bash
+srectl chat
+```
+
+**Usage:**
+```
+> srectl chat
+Starting interactive chat session...
+Type 'exit' or 'quit' to end the session.
+
+You: How do I troubleshoot a Kubernetes pod that's not starting?
+Agent: I can help you troubleshoot a Kubernetes pod that's not starting...
+
+You: exit
+Chat session ended.
 ```
 
 ---

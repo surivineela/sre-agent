@@ -850,7 +850,108 @@ srectl thread track --thread-id thread_abc123
 
 ---
 
-### 4. Remote Resource Listing
+### 5. Profile Management
+
+SRECTL supports multiple connection profiles for managing different SRE Agent instances (local development, staging, production, etc.).
+
+#### List All Profiles
+```bash
+srectl profile list
+```
+
+Shows all configured profiles with the active profile marked with an asterisk (*).
+
+#### Create a New Profile
+```bash
+# Create a local development profile
+srectl profile create --name local-dev --resource-url https://localhost:7023
+
+# Create and immediately switch to a production profile
+srectl profile create --name production --resource-url https://prod.azuresre.ai --set-current
+```
+
+#### Switch Between Profiles
+```bash
+srectl profile set --name production
+```
+
+#### Get Profile Details
+```bash
+# Get current profile details
+srectl profile get
+
+# Get specific profile details
+srectl profile get --name staging
+```
+
+#### Delete a Profile
+```bash
+srectl profile delete --name old-instance
+```
+
+**Note:** You cannot delete the currently active profile. Switch to another profile first.
+
+---
+
+### 6. Document Management
+
+SRECTL provides comprehensive document management capabilities for the SRE Agent's knowledge base.
+
+#### Upload Documents
+```bash
+# Upload a single file
+srectl doc upload --file ./docs/runbook.md
+
+# Upload all files in a folder
+srectl doc upload --folder ./knowledge-base
+
+# Upload recursively with subdirectories
+srectl doc upload --folder ./docs --recursive
+
+# Upload without triggering indexing (useful for bulk uploads)
+srectl doc upload --folder ./docs --no-index
+```
+
+#### Search Documents
+```bash
+# Search for specific content
+srectl doc search --query "redis troubleshooting"
+
+# Search with more context
+srectl doc search --query "how to restart kubernetes pods"
+```
+
+#### Reindex Documents
+```bash
+# Trigger a full reindex of all documents
+srectl doc reindex
+```
+
+Use reindexing after bulk uploads or when search results seem outdated.
+
+---
+
+### 7. Utility Commands
+
+#### Apply YAML Directly
+```bash
+# Apply any YAML file directly to the server
+srectl apply-yaml --file custom-config.yaml
+```
+
+This bypasses type-specific validation and is useful for advanced scenarios.
+
+#### Interactive Chat
+```bash
+# Start an interactive chat session
+srectl chat
+```
+
+Provides a persistent conversation interface with the SRE Agent. Type 'exit' to quit.
+
+---
+
+### 8. Remote Resource Listing
 
 #### List Agents
 Retrieve and display all agents available on the remote server:
