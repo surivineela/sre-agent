@@ -62,14 +62,15 @@ public class EventHubTraceExporter : BaseExporter<Activity>
             throw new ArgumentNullException(nameof(options));
         }
 
+        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Initializing Event Hub exporter with options: {options.FullyQualifiedNamespace}, {options.EventHubName}, {options.FirstPartyAppClientId}, {options.FirstPartyAppTenantId}, {options.FirstPartyAppCertificatePath}");
+
+        _fullyQualifiedNamespace = options.FullyQualifiedNamespace;
+
         if (string.IsNullOrEmpty(_fullyQualifiedNamespace))
         {
             throw new ArgumentException("FullyQualifiedNamespace must be specified");
         }
 
-        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Initializing Event Hub exporter with options: {options.FullyQualifiedNamespace}, {options.EventHubName}, {options.FirstPartyAppClientId}, {options.FirstPartyAppTenantId}, {options.FirstPartyAppCertificatePath}");
-
-        _fullyQualifiedNamespace = options.FullyQualifiedNamespace;
         _eventHubName = options.EventHubName;
         PopulateColumns = options.PopulateColumns;
 
