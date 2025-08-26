@@ -142,7 +142,7 @@ namespace Agent.Core.Services
             else if (_authType == AuthType.ManagedIdentity)
             {
                 _loggingHandler.InnerHandler = new HttpClientHandler();
-                result= new HttpClient(_loggingHandler)
+                result = new HttpClient(_loggingHandler)
                 {
                     Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                 };
@@ -163,6 +163,8 @@ namespace Agent.Core.Services
             }
 
             var requestUri = $"{_icmApiSettings.APIEndpoint}{apiPath}";
+            _logger.LogInternalInformation($"Making GET request to ICM API: {requestUri}");
+
             var requestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
             if (_authType == AuthType.ManagedIdentity)
             {
@@ -173,6 +175,8 @@ namespace Agent.Core.Services
                 }
             }
             var response = await _httpClient.SendAsync(requestMessage);
+
+            _logger.LogInternalInformation($"ICM API GET response - Status: {response.StatusCode}, Endpoint: {requestUri}");
             return response;
         }
 
@@ -187,44 +191,54 @@ namespace Agent.Core.Services
                 throw new ArgumentException("content must be provided.", nameof(content));
             }
             var requestUri = $"{_icmApiSettings.APIEndpoint}{apiPath}";
+            var serializedContent = JsonConvert.SerializeObject(content);
+            _logger.LogInternalInformation($"Making POST request to ICM API: {requestUri} with payload: {serializedContent}");
+
             var requestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
-            requestMessage.Content = new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
+            requestMessage.Content = new StringContent(serializedContent, Encoding.UTF8, "application/json");
             if (_authType == AuthType.ManagedIdentity)
             {
                 string? authToken = await ICMAPITokenService.Instance.GetAuthorizationTokenAsync();
                 if (!string.IsNullOrEmpty(authToken))
                 {
                     requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authToken);
-                }                    
+                }
             }
             var response = await _httpClient.SendAsync(requestMessage);
+
+            _logger.LogInternalInformation($"ICM API POST response - Status: {response.StatusCode}, Endpoint: {requestUri}");
             return response;
         }
 
         private async Task<HttpResponseMessage> SendICMPatchRequestAsync(string apiPath, object content)
         {
-                if (string.IsNullOrWhiteSpace(apiPath))
-                {
-                    throw new ArgumentException("apiPath must be provided.", nameof(apiPath));
-                }
-                if (content == null)
-                {
-                    throw new ArgumentException("content must be provided.", nameof(content));
-                }
+            if (string.IsNullOrWhiteSpace(apiPath))
+            {
+                throw new ArgumentException("apiPath must be provided.", nameof(apiPath));
+            }
+            if (content == null)
+            {
+                throw new ArgumentException("content must be provided.", nameof(content));
+            }
 
-                var requestUri = $"{_icmApiSettings.APIEndpoint}{apiPath}";
-                var requestMessage = new HttpRequestMessage(HttpMethod.Patch, requestUri);
-                requestMessage.Content = new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
-                if (_authType == AuthType.ManagedIdentity)
+            var requestUri = $"{_icmApiSettings.APIEndpoint}{apiPath}";
+            var serializedContent = JsonConvert.SerializeObject(content);
+            _logger.LogInternalInformation($"Making PATCH request to ICM API: {requestUri} with payload: {serializedContent}");
+
+            var requestMessage = new HttpRequestMessage(HttpMethod.Patch, requestUri);
+            requestMessage.Content = new StringContent(serializedContent, Encoding.UTF8, "application/json");
+            if (_authType == AuthType.ManagedIdentity)
+            {
+                string? authToken = await ICMAPITokenService.Instance.GetAuthorizationTokenAsync();
+                if (!string.IsNullOrEmpty(authToken))
                 {
-                    string? authToken = await ICMAPITokenService.Instance.GetAuthorizationTokenAsync();
-                    if (!string.IsNullOrEmpty(authToken))
-                    {
-                        requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authToken);
-                    }
+                    requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authToken);
                 }
-                var response = await _httpClient.SendAsync(requestMessage);
-                return response;
+            }
+            var response = await _httpClient.SendAsync(requestMessage);
+
+            _logger.LogInternalInformation($"ICM API PATCH response - Status: {response.StatusCode}, Endpoint: {requestUri}");
+            return response;
         }
 
         private async Task<HttpResponseMessage> SendICMDeleteRequestAsync(string apiPath)
@@ -234,6 +248,8 @@ namespace Agent.Core.Services
                 throw new ArgumentException("apiPath must be provided.", nameof(apiPath));
             }
             var requestUri = $"{_icmApiSettings.APIEndpoint}{apiPath}";
+            _logger.LogInternalInformation($"Making DELETE request to ICM API: {requestUri}");
+
             var requestMessage = new HttpRequestMessage(HttpMethod.Delete, requestUri);
             if (_authType == AuthType.ManagedIdentity)
             {
@@ -244,6 +260,8 @@ namespace Agent.Core.Services
                 }
             }
             var response = await _httpClient.SendAsync(requestMessage);
+
+            _logger.LogInternalInformation($"ICM API DELETE response - Status: {response.StatusCode}, Endpoint: {requestUri}");
             return response;
         }
 
@@ -593,6 +611,7 @@ namespace Agent.Core.Services
         {
             if (_icmApiSettings.ReadOnly)
             {
+                _logger.LogInternalInformation($"AcknowledgeIncident called for incident {incidentId} in read-only mode");
                 return ("Success. ICM API is in read-only mode.");
             }
             var content = new
@@ -603,12 +622,16 @@ namespace Agent.Core.Services
                 },
             };
             var response = await SendICMPostRequestAsync($"{IcmAPIPathPrefix}/incidents({incidentId})/AcknowledgeIncident", content);
+            var responseContent = await response.Content.ReadAsStringAsync();
+
             if (response.IsSuccessStatusCode)
             {
+                _logger.LogInternalInformation($"Successfully acknowledged incident {incidentId}. Response: {responseContent}");
                 return "Incident acknowledged successfully.";
             }
             else
             {
+                _logger.LogInternalError($"Failed to acknowledge incident {incidentId}. Status: {response.StatusCode}, Response: {responseContent}");
                 throw new Exception($"Failed to acknowledge incident. Status code: {response.StatusCode}");
             }
         }
@@ -709,19 +732,24 @@ namespace Agent.Core.Services
         public async Task<string> GetParentIncidentInfoAsync(long incidentId)
         {
             var response = await SendICMGetRequestAsync($"{IcmAPIPathPrefix}/incidents({incidentId})/ParentIncident");
+            var responseContent = await response.Content.ReadAsStringAsync();
+
             if (response.IsSuccessStatusCode)
             {
-                return await response.Content.ReadAsStringAsync();
+                _logger.LogInternalInformation($"Successfully retrieved parent incident for incident {incidentId}. Response: {responseContent}");
+                return responseContent;
             }
             else
             {
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
-                    return $"No parent incident found.: {await response.Content.ReadAsStringAsync()}";
+                    _logger.LogInternalInformation($"No parent incident found for incident {incidentId}. Status: {response.StatusCode}, Response: {responseContent}");
+                    return $"No parent incident found.: {responseContent}";
                 }
                 else
                 {
-                    throw new Exception($"Failed to retrieve parent incident. Status code: {response.StatusCode} : {await response.Content.ReadAsStringAsync()}");
+                    _logger.LogInternalError($"Failed to retrieve parent incident for incident {incidentId}. Status: {response.StatusCode}, Response: {responseContent}");
+                    throw new Exception($"Failed to retrieve parent incident. Status code: {response.StatusCode} : {responseContent}");
                 }
             }
         }
@@ -730,6 +758,7 @@ namespace Agent.Core.Services
         {
             if (_icmApiSettings.ReadOnly)
             {
+                _logger.LogInternalInformation($"AddParentIncidentLink called for incident {incidentId} with parent {parentIncidentId} in read-only mode");
                 return "Success. ICM API is in read-only mode.";
             }
 
@@ -739,13 +768,17 @@ namespace Agent.Core.Services
             };
 
             var response = await SendICMPostRequestAsync($"{IcmAPIPathPrefix}/incidents({incidentId})/\\$links/ParentIncident", content);
+            var responseContent = await response.Content.ReadAsStringAsync();
+
             if (response.IsSuccessStatusCode)
             {
+                _logger.LogInternalInformation($"Successfully linked parent incident {parentIncidentId} to incident {incidentId}. Response: {responseContent}");
                 return "Parent incident linked successfully.";
             }
             else
             {
-                throw new Exception($"Failed to link parent to incident. Status code: {response.StatusCode} : {await response.Content.ReadAsStringAsync()}");
+                _logger.LogInternalError($"Failed to link parent incident {parentIncidentId} to incident {incidentId}. Status: {response.StatusCode}, Response: {responseContent}");
+                throw new Exception($"Failed to link parent to incident. Status code: {response.StatusCode} : {responseContent}");
             }
         }
 
@@ -753,17 +786,22 @@ namespace Agent.Core.Services
         {
             if (_icmApiSettings.ReadOnly)
             {
+                _logger.LogInternalInformation($"RemoveParentIncidentLink called for incident {incidentId} in read-only mode");
                 return "Success. ICM API is in read-only mode.";
             }
 
             var response = await SendICMDeleteRequestAsync($"{IcmAPIPathPrefix}/incidents({incidentId})/\\$links/ParentIncident");
+            var responseContent = await response.Content.ReadAsStringAsync();
+
             if (response.IsSuccessStatusCode)
             {
+                _logger.LogInternalInformation($"Successfully removed parent incident link from incident {incidentId}. Response: {responseContent}");
                 return "Parent incident removed successfully.";
             }
             else
             {
-                throw new Exception($"Failed to remove parent from incident. Status code: {response.StatusCode} : ${await response.Content.ReadAsStringAsync()}");
+                _logger.LogInternalError($"Failed to remove parent incident link from incident {incidentId}. Status: {response.StatusCode}, Response: {responseContent}");
+                throw new Exception($"Failed to remove parent from incident. Status code: {response.StatusCode} : {responseContent}");
             }
         }
         #endregion
@@ -771,9 +809,11 @@ namespace Agent.Core.Services
         public async Task<List<string>> GetChildIncidentsInfoAsync(long incidentId)
         {
             var response = await SendICMGetRequestAsync($"{IcmAPIPathPrefix}/incidents({incidentId})/ChildIncidents");
+            var responseContent = await response.Content.ReadAsStringAsync();
+
             if (response.IsSuccessStatusCode)
             {
-                var responseContent = await response.Content.ReadAsStringAsync();
+                _logger.LogInternalInformation($"Successfully retrieved child incidents for incident {incidentId}. Response: {responseContent}");
                 var obj = JsonConvert.DeserializeObject<JObject>(responseContent);
                 if (obj == null || !obj.TryGetValue("value", out var incidentsToken))
                 {
@@ -806,11 +846,13 @@ namespace Agent.Core.Services
             {
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
-                    return new List<string> { $"No child incidents found.: {await response.Content.ReadAsStringAsync()}" };
+                    _logger.LogInternalInformation($"No child incidents found for incident {incidentId}. Status: {response.StatusCode}, Response: {responseContent}");
+                    return new List<string> { $"No child incidents found.: {responseContent}" };
                 }
                 else
                 {
-                    throw new Exception($"Failed to retrieve child incidents. Status code: {response.StatusCode} : {await response.Content.ReadAsStringAsync()}");
+                    _logger.LogInternalError($"Failed to retrieve child incidents for incident {incidentId}. Status: {response.StatusCode}, Response: {responseContent}");
+                    throw new Exception($"Failed to retrieve child incidents. Status code: {response.StatusCode} : {responseContent}");
                 }
             }
         }
@@ -958,5 +1000,3 @@ namespace Agent.Core.Services
         }
     }
 }
-
-

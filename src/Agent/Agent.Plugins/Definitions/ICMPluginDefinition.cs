@@ -141,7 +141,7 @@ public class ICMPluginDefinition
         return await _icmPlugin.AddKeywordToIncident(incidentId, keyword);
     }
 
-    [Description("Acknowledges an ICM incident")]
+    [Description("Acknowledges an ICM incident. Before Acknowledging validate if the incident is not already acknowledged, skip calling this tool if already acknowledged")]
     public async Task<string> AcknowledgeIncident(
         [Description("Incident ID")] string incidentId)
     {
