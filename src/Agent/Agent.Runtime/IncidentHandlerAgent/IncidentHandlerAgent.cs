@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Text;
+using System.Text.Json;
 using Agent.Core;
 using Agent.Core.Configuration;
 using Agent.Core.Extensions;
@@ -36,6 +37,12 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
     private readonly IAgentsFactory _agentsFactory;
     private readonly IToolFactory<AgentContext> _toolFactory;
     private readonly ActionSettings _actionSettings;
+
+    private static readonly JsonSerializerOptions _toolArgumentsJsonOptions = new()
+    {
+        WriteIndented = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
 
     public IncidentHandlerAgent(
         [FromKeyedServices("function-invocation-enabled")] IChatClient chatClient,
@@ -96,7 +103,6 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
                 "[IncidentHandlerAgent] ProcessIncidentStream: Appended last user message to chat history for ThreadId: {ThreadId}",
                 threadGuid);
         }
-
         // Always use the latest System Prompt in case we have some urgent fix to patch for the old chat history.
         if (chatHistory[0].Role == ChatRole.System)
         {
@@ -141,7 +147,7 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
             if (response.FinishReason == ChatFinishReason.ToolCalls && !isProcessingToolCalls)
             {
                 isProcessingToolCalls = true;
-                
+
                 // Send initial "processing tools" notification
                 await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
                     threadGuid,
@@ -159,7 +165,7 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
                     {
                         var toolName = functionCall.Name;
                         var toolDescription = GetToolCallDescription(toolName);
-                        
+
                         await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
                             threadGuid,
                             orchestrationInstanceId,
@@ -228,19 +234,7 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
                 "[IncidentHandlerAgent] ProcessIncidentAsync: Calling GetModelResponse for AgentContextId: {AgentContextId}, ThreadId: {ThreadId}",
                 agentContext.Id, threadGuid);
 
-            using var generationSpan = _tracer.StartSpan(TraceOperationName.ModelGeneration, SpanKind.Internal, span);
-            generationSpan.SetAttribute(TraceAttribute.ThreadId, agentContext.ThreadId.ToString());
-            generationSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.ModelGeneration);
-            generationSpan.SetAttribute(TraceAttribute.ModelInput, ChatMessageFormatter.FormatChatMessages(chatHistory));
-
-            var response = await GetModelResponse(agentContext, threadGuid, chatHistory);
-
-            generationSpan.SetAttribute(TraceAttribute.ModelOutput, ChatMessageFormatter.FormatChatMessages(response?.Messages ?? []));
-            generationSpan.SetAttribute(TraceAttribute.ModelInputTokensCount, response?.Usage?.InputTokenCount?.ToString() ?? string.Empty);
-            generationSpan.SetAttribute(TraceAttribute.ModelOutputTokensCount, response?.Usage?.OutputTokenCount?.ToString() ?? string.Empty);
-            generationSpan.SetAttribute(TraceAttribute.ModelTotalTokensCount, response?.Usage?.TotalTokenCount?.ToString() ?? string.Empty);
-            generationSpan.SetAttribute(TraceAttribute.ModelTemperature, "0.7");
-
+            var response = await GetModelResponse(agentContext, threadGuid, chatHistory, span);
             //await response.UpdateAgentChatHistoryAsync(agentChatHistory, _threadRepository, agentContext.Id);
 
             var responseMessageId = Guid.Empty;
@@ -287,7 +281,7 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
         }
     }
 
-    public async Task<ChatResponse> GetModelResponse(AgentContext agentContext, Guid threadGuid, List<ChatMessage> chatHistory)
+    public async Task<ChatResponse> GetModelResponse(AgentContext agentContext, Guid threadGuid, List<ChatMessage> chatHistory, TelemetrySpan? parentSpan = null)
     {
         _logger.LogInternalInformation(
             "[IncidentHandlerAgent] GetModelResponse: Invoked for AgentContextId: {AgentContextId}, ThreadId: {ThreadId}, AgentMode: {AgentMode}",
@@ -296,10 +290,10 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
         var mode = GetModeForSystemPrompt(agentContext);
         string systemPrompt = _agentsFactory.GetIncidentHandlerAgentSystemPrompt(mode);
         var _aiTools = _agentsFactory.GetSubAgentsAITools(threadGuid, agentContext);
-        
+
         // Updated to pass the agent mode to tool factory
-        var _toolFactoryTools = agentContext.AllowedTools != null 
-            ? agentContext.AllowedTools.Select(x => (AITool)_toolFactory.GetTool(x, threadGuid, mode)).ToList() 
+        var _toolFactoryTools = agentContext.AllowedTools != null
+            ? agentContext.AllowedTools.Select(x => (AITool)_toolFactory.GetTool(x, threadGuid, mode)).ToList()
             : new List<AITool>();
 
         var selectedTools = agentContext.AllowedTools != null && agentContext.AllowedTools.Count > 0
@@ -330,7 +324,8 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
                     chatHistory,
                     selectedTools,
                     threadGuid,
-                    agentContext
+                    agentContext,
+                    parentSpan: parentSpan
                 ),
                 _logger, 10);
 
@@ -357,7 +352,8 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
         List<ChatMessage> chatHistory,
         List<AITool>? selectedTools,
         Guid threadGuid,
-        AgentContext agentContext)
+        AgentContext agentContext,
+        TelemetrySpan? parentSpan = null)
     {
         var streamingResponse = _chatClient.GetStreamingResponseAsync(
             chatHistory,
@@ -376,16 +372,20 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
         var responseMessages = new List<ChatMessage>();
         var currentMessageBuilder = new StringBuilder();
         var currentFunctionCalls = new List<FunctionCallContent>();
-        
+
+        // Track spans per function call id
+        var functionCallSpans = new Dictionary<string, TelemetrySpan>();
+
         bool isProcessingToolCalls = false;
 
         await foreach (var update in streamingResponse)
         {
+
             // Check if we're starting to process tool calls
-            if (update.FinishReason == ChatFinishReason.ToolCalls && !isProcessingToolCalls)
+            if (update?.FinishReason == ChatFinishReason.ToolCalls && !isProcessingToolCalls)
             {
                 isProcessingToolCalls = true;
-                
+
                 // Send initial "processing tools" notification
                 await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
                     threadGuid,
@@ -395,24 +395,56 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
             }
 
             // Collect text content
-            if (!string.IsNullOrEmpty(update.Text))
+            if (!string.IsNullOrEmpty(update?.Text))
             {
                 currentMessageBuilder.Append(update.Text);
             }
 
             // Handle function calls in the streaming response
-            if (update.Contents != null)
+            if (update?.Contents != null)
             {
                 foreach (var content in update.Contents)
                 {
                     if (content is FunctionCallContent functionCall)
                     {
                         currentFunctionCalls.Add(functionCall);
-                        
+
+                        // Start a span for this tool call and record input
+                        try
+                        {
+                            var callId = functionCall.CallId ?? Guid.NewGuid().ToString();
+                            // attach tool span to parentSpan if provided, otherwise create standalone
+                            var parentForTool = parentSpan;
+                            var toolSpan = parentForTool is not null
+                                ? _tracer.StartActiveSpan($"tool.{functionCall.Name}", SpanKind.Internal, parentForTool)
+                                : _tracer.StartActiveSpan($"tool.{functionCall.Name}", SpanKind.Internal);
+                            toolSpan.SetAttribute(TraceAttribute.ThreadId, threadGuid.ToString());
+                            toolSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Tool);
+                            toolSpan.SetAttribute(TraceAttribute.ToolName, functionCall.Name);
+                            // serialize arguments if present
+                            try
+                            {
+                                var args = functionCall.Arguments;
+                                var serialized = args != null ? JsonSerializer.Serialize(args, _toolArgumentsJsonOptions) : string.Empty;
+                                toolSpan.SetAttribute(TraceAttribute.ToolInput, serialized);
+                            }
+                            catch (Exception ex)
+                            {
+                                toolSpan.SetAttribute(TraceAttribute.ToolInput, string.Empty);
+                                _logger.LogInternalWarning(ex, "[IncidentHandlerAgent] GetResponseWithStreamingNotifications: Failed to serialize tool arguments for {CallId}", callId);
+                            }
+
+                            functionCallSpans[functionCall.CallId ?? callId] = toolSpan;
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogInternalWarning(ex, "[IncidentHandlerAgent] GetResponseWithStreamingNotifications: Failed to start span for tool {ToolName}", functionCall.Name);
+                        }
+
                         // Send notification for each tool call
                         var toolName = functionCall.Name;
                         var toolDescription = GetToolCallDescription(toolName);
-                        
+
                         await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
                             threadGuid,
                             orchestrationInstanceId,
@@ -423,7 +455,83 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
                             "[IncidentHandlerAgent] GetResponseWithStreamingNotifications: Sent tool call notification for {ToolName} in thread {ThreadId}",
                             toolName, threadGuid);
                     }
+
+                    else if (content is FunctionResultContent functionResult)
+                    {
+                        // Log function/tool result (preview + length) for debugging
+                        var resultString = functionResult.Result?.ToString() ?? "null";
+                        var preview = resultString.Length > 200 ? resultString.Substring(0, 200) + "..." : resultString;
+                        _logger.LogInternalInformation(
+                            "[IncidentHandlerAgent] GetResponseWithStreamingNotifications: Received function result for CallId {CallId} in thread {ThreadId}. ResultPreview: {Preview}, ResultLength: {Length}",
+                            functionResult.CallId, threadGuid, preview, resultString.Length);
+
+                        // If we have a span for this call id, set output and duration and end it
+                        if (!string.IsNullOrEmpty(functionResult.CallId) && functionCallSpans.TryGetValue(functionResult.CallId, out var span))
+                        {
+                            try
+                            {
+                                span.SetAttribute(TraceAttribute.ToolOutput, resultString);
+                                span.End();
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogInternalWarning(ex, "[IncidentHandlerAgent] GetResponseWithStreamingNotifications: Failed to finalize span for CallId {CallId}", functionResult.CallId);
+                            }
+                            finally
+                            {
+                                functionCallSpans.Remove(functionResult.CallId);
+                            }
+                        }
+                    }
+
+
                 }
+            }
+        }
+
+        // Record a single model.generation span for the assembled response (only if non-empty)
+        var finalText = currentMessageBuilder.ToString();
+        if (!string.IsNullOrEmpty(finalText))
+        {
+            try
+            {
+                var genSpan = parentSpan is not null
+                    ? _tracer.StartActiveSpan(TraceOperationName.ModelGeneration, SpanKind.Internal, parentSpan)
+                    : _tracer.StartActiveSpan(TraceOperationName.ModelGeneration, SpanKind.Internal);
+                genSpan.SetAttribute(TraceAttribute.ThreadId, threadGuid.ToString());
+                genSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.ModelGeneration);
+
+                // Set model input from the first chatHistory message (system prompt) if available
+                try
+                {
+                    var modelInput = chatHistory != null && chatHistory.Count > 0 ? chatHistory[0].Text ?? string.Empty : string.Empty;
+                    genSpan.SetAttribute(TraceAttribute.ModelInput, modelInput);
+                }
+                catch (Exception ex)
+                {
+                    genSpan.SetAttribute(TraceAttribute.ModelInput, string.Empty);
+                    _logger.LogInternalWarning(ex, "[IncidentHandlerAgent] GetResponseWithStreamingNotifications: Failed to set model input on final generation span");
+                }
+
+                try
+                {
+                    genSpan.SetAttribute(TraceAttribute.ModelOutput, finalText);
+                    var preview = finalText.Length > 200 ? finalText.Substring(0, 200) + "..." : finalText;
+                    _logger.LogInternalInformation(
+                        "[IncidentHandlerAgent] GetResponseWithStreamingNotifications: Model generation final preview for ThreadId {ThreadId}: {Preview}",
+                        threadGuid, preview);
+                }
+                catch (Exception ex)
+                {
+                    genSpan.SetAttribute(TraceAttribute.ModelOutput, string.Empty);
+                    _logger.LogInternalWarning(ex, "[IncidentHandlerAgent] GetResponseWithStreamingNotifications: Failed to set model output on span");
+                }
+
+                genSpan.End();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalWarning(ex, "[IncidentHandlerAgent] GetResponseWithStreamingNotifications: Failed to create final model.generation span");
             }
         }
 
@@ -452,24 +560,24 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
             // Kusto/Query tools
             "execute_kusto_query_on_cluster" => "Executing Kusto query to analyze data...",
             "kusto_query" => "Running data analysis query...",
-            
+
             // Azure CLI tools
             "run_az_cli_read_commands" => "Running Azure CLI Read command...",
             "run_az_cli_commands" => "Executing Azure CLI operations...",
-            
+
             // Resource discovery
             "list_resources_by_type" => "Discovering Azure resources...",
             "get_resource_details" => "Getting resource details...",
-            
+
             // Chart/Visualization tools
             "plot_scatter" => "Creating scatter plot visualization...",
             "plot_time_series_data" => "Generating time series chart...",
             "plot_pie_chart" => "Creating pie chart...",
             "plot_bar_chart" => "Generating bar chart...",
-            
+
             // Transfer tools
             var transfer when transfer.StartsWith("transfer_to_") => "Transferring to specialized agent...",
-            
+
             // Default
             _ => $"Executing {toolName.Replace("_", " ")}..."
         };
