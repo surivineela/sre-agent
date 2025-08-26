@@ -50,11 +50,20 @@ export enum ApprovalDecision {
     Authorized = 'Authorized',
 }
 
+export enum ExecutionStatus {
+    Pending = 'Pending',
+    Running = 'Running',
+    Completed = 'Completed',
+    Failed = 'Failed',
+    Cancelled = 'Cancelled',
+    PendingAuthorization = 'PendingAuthorization',
+}
+
 export interface AzCliExecution {
     id: string;
     command: string;
     description: string;
-    status: 'Pending' | 'Running' | 'Completed' | 'Failed' | 'Cancelled' | 'PendingAuthorization';
+    status: ExecutionStatus;
     output?: string;
     error?: string;
     createdTimestamp: string;
@@ -72,7 +81,7 @@ export interface KubectlExecution {
     command: string;
     stdin?: string;
     description: string;
-    status: 'Pending' | 'Running' | 'Completed' | 'Failed' | 'Cancelled' | 'PendingAuthorization';
+    status: ExecutionStatus;
     output?: string;
     error?: string;
     createdTimestamp: string;

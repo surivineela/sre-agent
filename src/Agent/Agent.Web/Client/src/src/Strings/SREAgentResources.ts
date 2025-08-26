@@ -1154,10 +1154,6 @@ export const IcMResources = defineMessages({
         defaultMessage: 'Allowlist below Managed Identity on your ICM Service Team.',
         id: 'oTNrPz',
     },
-    allowListLink: {
-        defaultMessage: 'Learn How to',
-        id: 'if9CEr',
-    },
     managedIdentity: {
         defaultMessage: 'Managed Identity',
         id: 'UZMdQH',

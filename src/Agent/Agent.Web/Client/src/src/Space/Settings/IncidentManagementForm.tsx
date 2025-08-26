@@ -357,7 +357,7 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                                             href="https://eng.ms/docs/products/icm/developers/authorizingcertificatesforprogrammaticaccesstoicm"
                                             target="_blank"
                                         >
-                                            {intl.formatMessage(IcMResources.allowListLink)}
+                                            {intl.formatMessage(SreAgentResources.learnMore)}
                                         </Link>
                                     </Text>
                                     <Text block>
