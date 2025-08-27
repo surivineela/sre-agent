@@ -69,4 +69,9 @@ public enum StreamMessageType
     /// Agent Task/Deep investigation message card   
     /// </summary>
     DeepInvestigation,
+
+    /// <summary>
+    /// Status update for an incident, re-reported when an incident appears
+    /// </summary>
+    IncidentStatus,
 }

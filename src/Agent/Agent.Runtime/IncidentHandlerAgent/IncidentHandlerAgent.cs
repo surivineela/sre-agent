@@ -29,6 +29,7 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
     private readonly IThreadRepository _threadRepository;
     private readonly AsyncReaderWriterLock _lock = new();
     private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
+    private readonly IIncidentStatusMetricsService _incidentsStatusMetricsService;
 
     private readonly IChatClient _chatClient;
     private readonly ILogger<IncidentHandlerAgent> _logger;
@@ -53,7 +54,8 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
         ThreadService threadService,
         IThreadRepository threadRepository,
         ActionSettings actionSettings,
-        IAgentOutboundCommunicationService agentOutboundCommunicationService
+        IAgentOutboundCommunicationService agentOutboundCommunicationService,
+        IIncidentStatusMetricsService incidentsStatusMetricsService
         )
     {
         _chatClient = chatClient;
@@ -69,6 +71,7 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
             _agentsFactory.GetType());
         _actionSettings = actionSettings;
         _agentOutboundCommunicationService = agentOutboundCommunicationService;
+        _incidentsStatusMetricsService = incidentsStatusMetricsService;
     }
 
     public async IAsyncEnumerable<ChatResponseUpdate> ProcessIncidentStream(AgentContext agentContext, AgentChatHistory agentChatHistory)
@@ -194,6 +197,10 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
             yield return response;
         }
 
+        var incidentStatusMetrics = await _incidentsStatusMetricsService.GetIncidentStatusMetricsAsync(null, DateTime.Now);
+        await _agentOutboundCommunicationService.NotifyIncidentStatusMetrics(threadGuid, incidentStatusMetrics);
+
+
         _logger.LogInternalInformation(
             "[IncidentHandlerAgent] ProcessIncidentStream: Completed streaming responses for AgentContextId: {AgentContextId}, ThreadId: {ThreadId}, ResponseCount: {ResponseCount}",
             agentContext.Id, threadGuid, bufferedResponses.Count);
@@ -254,6 +261,9 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
                        responseMessageId);
                 }
             }
+
+            var incidentStatusMetrics = await _incidentsStatusMetricsService.GetIncidentStatusMetricsAsync(null, DateTime.Now);
+            await _agentOutboundCommunicationService.NotifyIncidentStatusMetrics(threadGuid, incidentStatusMetrics);
 
             await _agentOutboundCommunicationService.SignalProcessingComplete(threadGuid, responseMessageId);
 

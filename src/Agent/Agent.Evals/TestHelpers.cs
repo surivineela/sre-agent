@@ -257,7 +257,9 @@ public static class TestHelpers
         builder.Services.AddSingleton(Mock.Of<IHostEnvironment>());
 
         builder.Services.AddSingleton<IIncidentHandlerAgent, IncidentHandlerAgent>();
+        builder.Services.AddSingleton<IIncidentStatusMetricsService, IncidentStatusMetricsService>();
         builder.Services.AddSingleton<IExtendedAgentRepository, InMemoryExtendedAgentRepository>();
+        builder.Services.AddSingleton<IIncidentRepository, InMemoryIncidentRepository>();
         builder.Services.AddSingleton<ThreadManagementService>();
         builder.Services.AddSingleton<IAgentInboundCommunicationService, InboundCommunicationService>();
         builder.Services.AddSingleton<IAgentRuntimeModifier<AgentContext>, AgentRuntimeModifier>();
@@ -637,6 +639,13 @@ class MockStreamingService : IStreamingService
     public Task StreamTaskUpdateAsync(Guid threadId, string taskData, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
     {
         _logger.LogInternalInformation("Mock: Task update for thread {ThreadId}: {TaskData}", threadId, taskData);
+        return Task.CompletedTask;
+    }
+
+    public Task StreamIncidentUpdateAsync(Guid threadId, string incidentData, Guid? messageId = null, DateTime? recordedDateTime = null, StreamMessageType? messageType = null, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInternalInformation("Mock: Incident update for thread {ThreadId} with type {Type}: {Message}",
+            threadId, messageType, incidentData);
         return Task.CompletedTask;
     }
 }

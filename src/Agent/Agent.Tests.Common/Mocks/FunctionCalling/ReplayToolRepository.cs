@@ -1,14 +1,8 @@
-using System;
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.Json;
-using System.Threading.Tasks;
-using Agent.Plugins;
 using Agent.Runtime.Models;
 using Agent.Runtime.SubAgents;
-using Agent.Runtime.SubAgents.Core;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Tests.Common.Mocks.FunctionCalling;

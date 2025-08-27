@@ -60,6 +60,18 @@ namespace Agent.Core.Interfaces
         Task StreamTaskUpdateAsync(Guid threadId, string taskData, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Streams an incident update directly to clients for the specified thread
+        /// </summary>
+        /// <param name="threadId"></param>
+        /// <param name="incidentData"></param>
+        /// <param name="messageId"></param>
+        /// <param name="recordedDateTime"></param>
+        /// <param name="messageType"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        Task StreamIncidentUpdateAsync(Guid threadId, string incidentData, Guid? messageId = null, DateTime? recordedDateTime = null, StreamMessageType? messageType = null, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Streams a ChatResponseUpdate message to clients for the specified thread
         /// </summary>
         /// <param name="threadId"></param>

@@ -139,6 +139,12 @@ class MockStreamingService : IStreamingService
         _logger.LogInformation("Mock: Task update for thread {ThreadId}: {TaskData}", threadId, taskData);
         return Task.CompletedTask;
     }
+
+    public Task StreamIncidentUpdateAsync(Guid threadId, string incidentData, Guid? messageId = null, DateTime? recordedDateTime = null, StreamMessageType? messageType = null, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Mock: Streaming incident for thread {ThreadId}", threadId);
+        return Task.CompletedTask;
+    }
 }
 
 class Program

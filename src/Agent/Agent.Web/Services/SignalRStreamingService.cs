@@ -7,7 +7,6 @@ using Agent.Core.Models.Api.v1;
 using Agent.Web.SignalR;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.AI;
-using Agent.Logging;
 
 namespace Agent.Web.Services
 {
@@ -181,6 +180,46 @@ namespace Agent.Web.Services
                 await _hubContext.Clients.All.TaskUpdate(streamMessage);
 
                 _logger.LogInternalInformation("Successfully streamed task update for thread {ThreadId}", threadId);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInternalInformation("Task update streaming cancelled for thread {ThreadId}", threadId);
+                // Don't rethrow cancellation - it's expected
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Failed to stream task update for thread {ThreadId}", threadId);
+                // Don't rethrow - streaming failures should not break the tool call
+            }
+        }
+
+        public async Task StreamIncidentUpdateAsync(Guid threadId, string incidentData, Guid? messageId = null, DateTime? recordedDateTime = null, StreamMessageType? messageType = null, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                // Check for cancellation before processing
+                cancellationToken.ThrowIfCancellationRequested();
+
+                _logger.LogInternalInformation("Streaming incident update for thread {ThreadId}", threadId);
+
+                // Create a ChatResponseUpdate with the incident data and IncidentStatus type
+                var streamMessage = new ChatResponseUpdate
+                {
+                    AuthorName = "Azure SRE Agent",
+                    Role = ChatRole.Assistant,
+                    CreatedAt = recordedDateTime ?? DateTime.UtcNow,
+                    Contents = [new TextContent(incidentData)],
+                    AdditionalProperties = new AdditionalPropertiesDictionary
+                    {
+                        { "streamMessageType", messageType?.ToString() ?? StreamMessageType.IncidentStatus.ToString() },
+                        { "threadId", threadId.ToString() },
+                        { "messageId", messageId?.ToString() ?? Guid.NewGuid().ToString() },
+                    }
+                };
+
+                await _hubContext.Clients.All.IncidentUpdate(streamMessage);
+
+                _logger.LogInternalInformation("Successfully streamed incident update for thread {ThreadId}", threadId);
             }
             catch (OperationCanceledException)
             {

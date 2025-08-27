@@ -118,6 +118,25 @@ namespace Agent.Tests.Common.Mocks
 
             return Task.CompletedTask;
         }
+
+        public Task StreamIncidentUpdateAsync(Guid threadId, string incidentData, Guid? messageId = null, DateTime? recordedDateTime = null, StreamMessageType? messageType = null, CancellationToken cancellationToken = default)
+        {
+            var streamedMessage = new StreamedMessage
+            {
+                ThreadId = threadId,
+                Message = incidentData,
+                Type = messageType,
+                Timestamp = DateTime.UtcNow,
+                MessageId = messageId ?? Guid.NewGuid()
+            };
+
+            StreamedMessages.Add(streamedMessage);
+
+            _logger.LogInternalInformation("Mock: Streamed incident update for thread {ThreadId} with type {Type}: {Message}",
+                threadId, messageType, incidentData);
+
+            return Task.CompletedTask;
+        }
     }
 
     public class StreamedMessage

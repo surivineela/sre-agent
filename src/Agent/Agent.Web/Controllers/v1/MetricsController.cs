@@ -5,7 +5,7 @@
 using Agent.Core.Models.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using Agent.Core.Interfaces;
-using Agent.Data.Repositories;
+using Agent.Runtime.Services;
 using System.Text.Json.Serialization;
 
 namespace Agent.Web.Controllers.v1
@@ -15,18 +15,17 @@ namespace Agent.Web.Controllers.v1
     public class MetricsController : ControllerBase
     {
         private readonly IThreadRepository _repository;
-        private readonly IIncidentRepository _incidentRepository;
+        private readonly IIncidentStatusMetricsService _incidentStatusMetricsService;
         private readonly ILogger<MetricsController> _logger;
 
         public MetricsController(
             IThreadRepository repository,
             ILogger<MetricsController> logger,
-            IIncidentRepository incidentRepository)
+            IIncidentStatusMetricsService incidentStatusMetricsService)
         {
             _repository = repository;
-            _incidentRepository = incidentRepository;
+            _incidentStatusMetricsService = incidentStatusMetricsService;
             _logger = logger;
-            _incidentRepository = incidentRepository;
         }
 
         [HttpGet("actionSeverity")]
@@ -103,59 +102,8 @@ namespace Agent.Web.Controllers.v1
         {
             try
             {
-                _logger.LogInternalInformation("Fetching all incidents from Cosmos DB.");
-
-                // Get all pager duty incidents
-                var pagerDutyIncidents = await _incidentRepository.GetAllPagerDutyIncidentsAsync();
-                var azMonIncidents = await _incidentRepository.GetAllAzMonIncidentsAsync();
-
-                var activeCount = 0;
-                var mitigatedCount = 0;
-                var resolvedCount = 0;
-
-                if (startTime.HasValue)
-                {
-                    pagerDutyIncidents = pagerDutyIncidents.Where(i => i.CreatedAt >= startTime.Value).ToList();
-                    azMonIncidents = azMonIncidents.Where(i => i.CreatedAt >= startTime.Value).ToList();
-                }
-
-                if (endTime.HasValue)
-                {
-                    pagerDutyIncidents = pagerDutyIncidents.Where(i => i.CreatedAt <= endTime.Value).ToList();
-                    azMonIncidents = azMonIncidents.Where(i => i.CreatedAt <= endTime.Value).ToList();
-                }
-
-                if (pagerDutyIncidents != null)
-                {
-                    // pager duty incident status: triggered, acknowledged, resolved (no mitigated)
-                    activeCount += pagerDutyIncidents.Count(i =>
-                        Enum.TryParse<PagerDutyIncidentStatus>(i.Status, true, out var status) &&
-                        (status == PagerDutyIncidentStatus.Triggered || status == PagerDutyIncidentStatus.Acknowledged));
-                    resolvedCount += pagerDutyIncidents.Count(i =>
-                        Enum.TryParse<PagerDutyIncidentStatus>(i.Status, true, out var status) &&
-                        status == PagerDutyIncidentStatus.Resolved); // No explicit "mitigated" status
-                }
-
-                if (azMonIncidents != null)
-                {
-                    // az monitor incident status: new, acknowledged, closed (no mitigated)
-                    activeCount += azMonIncidents.Count(i =>
-                        Enum.TryParse<AzMonIncidentStatus>(i.Status, true, out var status) &&
-                        (status == AzMonIncidentStatus.New || status == AzMonIncidentStatus.Acknowledged));
-                    resolvedCount += azMonIncidents.Count(i =>
-                        Enum.TryParse<AzMonIncidentStatus>(i.Status, true, out var status) &&
-                        status == AzMonIncidentStatus.Closed);
-                }
-
-                _logger.LogInternalInformation("Successfully calculated incident status metrics.");
-
-                // Return the metrics
-                return Ok(new IncidentStatusMetrics
-                {
-                    ActiveCount = activeCount,
-                    MitigatedCount = mitigatedCount,
-                    ResolvedCount = resolvedCount
-                });
+                var metrics = await _incidentStatusMetricsService.GetIncidentStatusMetricsAsync(startTime, endTime);
+                return Ok(metrics);
             }
             catch (Exception ex)
             {

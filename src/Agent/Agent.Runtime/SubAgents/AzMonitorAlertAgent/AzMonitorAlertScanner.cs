@@ -18,7 +18,6 @@ using Agent.Plugins.Interface;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.Services;
-using Agent.Runtime.SubAgents.WebAppDownAgent;
 using Azure.Core;
 using Azure.ResourceManager.AlertsManagement.Models;
 using Microsoft.Azure.Cosmos;
@@ -46,6 +45,7 @@ public class AzMonitorAlertScanner
     private readonly ILogQueryService _logQueryService;
     private readonly IAzMonitorAlertInvestigationService _azMonitorInvestigationService;
     private readonly IAgentsFactory _agentsFactory;
+    private readonly IIncidentStatusMetricsService _incidentsStatusMetricsService;
     private readonly IncidentManagementSettings _incidentManagementSettings;
 
 
@@ -62,6 +62,7 @@ public class AzMonitorAlertScanner
         IAzMonitorAlertInvestigationService alertInvestigationService,
         IInvestigationOrchestrator investigationOrchestrator,
         IAgentsFactory agentsFactory,
+        IIncidentStatusMetricsService incidentsStatusMetricsService,
         IChatClient chatClient,
         IncidentManagementSettings incidentManagementSettings,
         ILogger<AzMonitorAlertScanner> logger)
@@ -83,6 +84,7 @@ public class AzMonitorAlertScanner
         _investigationOrchestrator = investigationOrchestrator;
 
         _agentsFactory = agentsFactory;
+        _incidentsStatusMetricsService = incidentsStatusMetricsService;
     }
 
     /// <summary>
@@ -125,6 +127,9 @@ public class AzMonitorAlertScanner
                     await ProcessAlertAsync(alert, ct);
                 }
             }
+            // periodically refresh incident metrics
+            var incidentMetrics = await _incidentsStatusMetricsService.GetIncidentStatusMetricsAsync(null, DateTime.Now);
+            await _outboundCommunicationService.NotifyIncidentStatusMetrics(Guid.Empty, incidentMetrics);
         }
         catch (Exception ex)
         {
@@ -242,15 +247,17 @@ public class AzMonitorAlertScanner
 
                                 var agentContexts = await _repository.GetAgentContextsForThreadAsync(existingActiveThread.Id);
                                 var existingAgentContext = agentContexts.First();
+                                var incidentMetrics = await _incidentsStatusMetricsService.GetIncidentStatusMetricsAsync(null, DateTime.Now);
+                                await _outboundCommunicationService.NotifyIncidentStatusMetrics(existingActiveThread.Id, incidentMetrics);
                                 await _inboundCommunicationService.ProcessAlertMessageAsync(new ThreadMessage(
-                                   ThreadId: existingActiveThread.Id,
-                                   AgentContextId: existingAgentContext.Id,
-                                   MessageId: Guid.NewGuid(),
-                                   Message: message,
-                                   UserId: "agent-default",
-                                   DisplayName: "Azure SRE Agent",
-                                   Timestamp: DateTime.UtcNow
-                               ));
+                                    ThreadId: existingActiveThread.Id,
+                                    AgentContextId: existingAgentContext.Id,
+                                    MessageId: Guid.NewGuid(),
+                                    Message: message,
+                                    UserId: "agent-default",
+                                    DisplayName: "Azure SRE Agent",
+                                    Timestamp: DateTime.UtcNow
+                                    ));
 
                                 _logger.LogInternalInformation($"Updated recurring alert count to {currentHitCount + 1} for alert document {alertDocumentId}");
                             }

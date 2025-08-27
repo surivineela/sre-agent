@@ -140,6 +140,11 @@ namespace Agent.Tests.Common.Mocks
             return Task.CompletedTask;
         }
 
+        public Task NotifyIncidentStatusMetrics(Guid threadId, IncidentStatusMetrics metrics, Guid? messageId = null)
+        {
+            _logger?.LogInternalInformation($"ThreadId: {threadId}, Metrics: {metrics}");
+            return Task.CompletedTask;
+        }
 
         public Task PostActivity(string threadId, Activity activity, string messageId = "")
         {

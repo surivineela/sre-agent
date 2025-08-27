@@ -64,6 +64,8 @@ public interface IAgentOutboundCommunicationService
     /// </summary>
     Task NotifyKubectlUpdate(Guid threadId, KubectlExecution execution, Guid messageId = default);
 
+    Task NotifyIncidentStatusMetrics(Guid threadId, IncidentStatusMetrics metrics, Guid? messageId = null);
+
     Task PostActivity(string threadId, Microsoft.Bot.Schema.Activity activity, string messageId = "");
 
     Task<Guid> AppendAgentImageMessage(Guid threadId, string message, Guid messageId = default);

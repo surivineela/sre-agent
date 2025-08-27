@@ -2,7 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Models.Api.v1;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Web.SignalR
@@ -31,6 +30,11 @@ namespace Agent.Web.SignalR
         /// Sends a task update to the client
         /// </summary>
         Task TaskUpdate(ChatResponseUpdate update);
+
+        /// <summary>
+        /// Sends an incident update to the client
+        /// </summary>
+        Task IncidentUpdate(ChatResponseUpdate update);
 
         /// <summary>
         /// Sends a text-only update to the client

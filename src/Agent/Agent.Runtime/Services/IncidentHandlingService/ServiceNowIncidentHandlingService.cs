@@ -22,6 +22,8 @@ public class ServiceNowIncidentHandlingService : IncidentHandlingServiceBase<Ser
         IServiceNowAPIClient serviceNowAPIClient,
         IAgentInboundCommunicationService inboundCommunicationService,
         IThreadRepository repository,
+        IIncidentStatusMetricsService incidentStatusMetricsService,
+        IAgentOutboundCommunicationService agentOutboundCommunicationService,
         ILogger<ServiceNowIncidentHandlingService> logger,
         Tracer tracer,
         IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload> serviceNowIncidentManagementService,
@@ -30,7 +32,7 @@ public class ServiceNowIncidentHandlingService : IncidentHandlingServiceBase<Ser
         IAgentFactory<AgentContext> agentFactory,
         ExperimentalSettings experimentalSettings
         )
-        : base(repository, inboundCommunicationService, incidentFilterManagementService, incidentHandlerManagementService, logger, tracer, agentFactory, experimentalSettings)
+        : base(repository, inboundCommunicationService, incidentFilterManagementService, incidentHandlerManagementService, incidentStatusMetricsService, agentOutboundCommunicationService, logger, tracer, agentFactory, experimentalSettings)
     {
         _serviceNowAPIClient = serviceNowAPIClient;
         _serviceNowIncidentManagementService = serviceNowIncidentManagementService;

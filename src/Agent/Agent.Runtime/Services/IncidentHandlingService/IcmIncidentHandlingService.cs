@@ -18,6 +18,8 @@ public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmInciden
         IICMAPIClient icmApiClient,
         IAgentInboundCommunicationService inboundCommunicationService,
         IThreadRepository repository,
+        IIncidentStatusMetricsService incidentStatusMetricsService,
+        IAgentOutboundCommunicationService agentOutboundCommunicationService,
         ILogger<IcmIncidentHandlingService> logger,
         Tracer tracer,
         IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload> icmIncidentManagementService,
@@ -25,7 +27,7 @@ public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmInciden
         IIncidentHandlerManagementService incidentHandlerManagementService,
         IAgentFactory<AgentContext> agentFactory,
         ExperimentalSettings experimentalSettings)
-        : base(repository, inboundCommunicationService, incidentFilterManagementService, incidentHandlerManagementService, logger, tracer, agentFactory, experimentalSettings)
+        : base(repository, inboundCommunicationService, incidentFilterManagementService, incidentHandlerManagementService, incidentStatusMetricsService, agentOutboundCommunicationService, logger, tracer, agentFactory, experimentalSettings)
     {
         _icmApiClient = icmApiClient;
         _icmIncidentManagementService = icmIncidentManagementService;

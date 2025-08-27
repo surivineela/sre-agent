@@ -3,7 +3,6 @@ using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
 using Agent.Framework;
 using Agent.Graph.Interfaces;
-using Agent.Runtime.Interfaces;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
 using Agent.Core.Configuration;
@@ -19,6 +18,8 @@ public class PagerDutyIncidentHandlingService : IncidentHandlingServiceBase<Page
         IPagerDutyService pagerDutyService,
         IAgentInboundCommunicationService inboundCommunicationService,
         IThreadRepository repository,
+        IIncidentStatusMetricsService incidentStatusMetricsService,
+        IAgentOutboundCommunicationService agentOutboundCommunicationService,
         ILogger<PagerDutyIncidentHandlingService> logger,
         Tracer tracer,
         IIncidentManagementService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload> pagerDutyincidentManagementService,
@@ -26,7 +27,7 @@ public class PagerDutyIncidentHandlingService : IncidentHandlingServiceBase<Page
         IIncidentHandlerManagementService incidentHandlerManagementService,
         IAgentFactory<AgentContext> agentFactory,
         ExperimentalSettings experimentalSettings)
-        : base(repository, inboundCommunicationService, incidentFilterManagementService, incidentHandlerManagementService, logger, tracer, agentFactory, experimentalSettings)
+        : base(repository, inboundCommunicationService, incidentFilterManagementService, incidentHandlerManagementService, incidentStatusMetricsService, agentOutboundCommunicationService, logger, tracer, agentFactory, experimentalSettings)
     {
         _pagerDutyService = pagerDutyService;
         _pagerDutyincidentManagementService = pagerDutyincidentManagementService;

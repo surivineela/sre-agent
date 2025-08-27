@@ -8,7 +8,6 @@ using Agent.Core;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
-using Agent.Logging;
 using Agent.Plugins.Interface;
 using Agent.Runtime.Helpers;
 using Microsoft.Bot.Schema;
@@ -232,6 +231,28 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             _logger.LogInternalError(ex, "Failed to stream Approval update for thread {ThreadId}", threadId);
         }
     }
+
+    public async Task NotifyIncidentStatusMetrics(Guid threadId, IncidentStatusMetrics metrics, Guid? messageId = null)
+    {
+        try
+        {
+            string jsonString = JsonSerializer.Serialize(metrics, _serializerOptions);
+            if (messageId != default)
+            {
+                await _streamingService.StreamIncidentUpdateAsync(threadId, jsonString, messageId, messageType: StreamMessageType.IncidentStatus);
+            }
+            else
+            {
+                await _streamingService.StreamIncidentUpdateAsync(threadId, jsonString, messageType: StreamMessageType.IncidentStatus);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to stream Approval update for thread {ThreadId}", threadId);
+        }
+
+    }
+
 
     public async Task AppendAgentStreamMessage(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, Guid? agentTaskId = null, CancellationToken cancellationToken = default)
     {

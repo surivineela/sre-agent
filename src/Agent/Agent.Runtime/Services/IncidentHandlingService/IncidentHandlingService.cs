@@ -54,6 +54,8 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
     protected readonly IAgentInboundCommunicationService _inboundCommunicationService;
     protected readonly IIncidentFilterManagementService<TIncidentFilterDocument, TIncidentFilterDocumentPayload> _incidentFilterManagementService;
     protected readonly IIncidentHandlerManagementService _incidentHandlerManagementService;
+    protected readonly IIncidentStatusMetricsService _incidentStatusMetricsService;
+    protected readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
     protected readonly ILogger _logger;
     protected readonly Tracer _tracer;
     protected readonly IAgentFactory<AgentContext> _agentFactory;
@@ -64,6 +66,8 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
         IAgentInboundCommunicationService inboundCommunicationService,
         IIncidentFilterManagementService<TIncidentFilterDocument, TIncidentFilterDocumentPayload> incidentFilterManagementService,
         IIncidentHandlerManagementService incidentHandlerManagementService,
+        IIncidentStatusMetricsService incidentStatusMetricsService,
+        IAgentOutboundCommunicationService agentOutboundCommunicationService,
         ILogger logger,
         Tracer tracer,
         IAgentFactory<AgentContext> agentFactory,
@@ -73,6 +77,8 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
         _inboundCommunicationService = inboundCommunicationService;
         _incidentFilterManagementService = incidentFilterManagementService;
         _incidentHandlerManagementService = incidentHandlerManagementService;
+        _incidentStatusMetricsService = incidentStatusMetricsService;
+        _agentOutboundCommunicationService = agentOutboundCommunicationService;
         _logger = logger;
         _tracer = tracer;
         _agentFactory = agentFactory;
@@ -196,6 +202,9 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
 
                 var defaultThread = await CreateIncidentMetaAgentThread(incidentRequest, matchingFilter);
                 _logger.LogInternalInformation("[IncidentHandlingService] HandleIncidentAsync: Created MetaAgent thread with ThreadId: {ThreadId} for IncidentId: {IncidentId}", defaultThread.Id, incidentId);
+
+                var incidentStatusMetrics = await _incidentStatusMetricsService.GetIncidentStatusMetricsAsync(null, DateTime.Now);
+                await _agentOutboundCommunicationService.NotifyIncidentStatusMetrics(defaultThread.Id, incidentStatusMetrics);
 
                 response.StatusCode = 200;
                 response.Response = new { threadId = defaultThread.Id, message = "Incident received" };
