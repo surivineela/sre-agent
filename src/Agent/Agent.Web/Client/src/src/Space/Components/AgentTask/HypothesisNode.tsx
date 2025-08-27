@@ -1,4 +1,4 @@
-import { Body1, Body2, Button, Card, CardFooter, CardHeader, makeStyles, tokens } from '@fluentui/react-components';
+import { Body1, Body2, Button, Card, CardFooter, CardHeader, makeStyles, tokens, useRestoreFocusTarget } from '@fluentui/react-components';
 import { ChevronDownUpRegular, ChevronUpDownRegular } from '@fluentui/react-icons';
 import { Handle, NodeProps, Position } from '@xyflow/react';
 import { memo, useContext } from 'react';
@@ -64,9 +64,12 @@ const HypothesisNode = (props: NodeProps<GraphFlowNode>) => {
     const { toggleNode } = useContext(AgentTaskContext);
     const { selectedNodeId, selectNode } = useContext(AgentTaskGraphContext);
 
+    const restoreFocusTargetAttributes = useRestoreFocusTarget();
+
     return (
         <div className={nodeContainer}>
             <Card
+                {...restoreFocusTargetAttributes}
                 focusMode={'tab-only'}
                 className={card}
                 style={{ border: `1.5px solid ${getHypothesisNodeThemeColor(data.status)}` }}

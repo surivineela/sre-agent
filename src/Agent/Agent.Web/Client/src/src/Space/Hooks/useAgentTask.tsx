@@ -103,7 +103,8 @@ export const useAgentTask = (
                 const { treeState, ...rest } = treeStateValue;
 
                 if (treeState) {
-                    const node = treeState.nodes.get(nodeId);
+                    const nodes = new Map(treeState.nodes);
+                    const node = nodes.get(nodeId);
 
                     if (node) {
                         const updatedNode = {
@@ -111,15 +112,23 @@ export const useAgentTask = (
                             expanded: !node.expanded,
                         };
 
-                        treeState.nodes.set(nodeId, updatedNode);
+                        nodes.set(nodeId, updatedNode);
 
-                        prev.set(selectedTaskId, {
+                        // Create a new treeState object
+                        const newTreeState = {
+                            ...treeState,
+                            nodes,
+                        };
+
+                        // Create a new Map for prev and set the updated treeState
+                        const newTreeStates = new Map(prev);
+                        newTreeStates.set(selectedTaskId, {
                             ...rest,
-                            treeState,
+                            treeState: newTreeState,
                             changeIdentifier: Guid.newGuid(),
                         });
 
-                        return cloneDeep(new Map(prev));
+                        return cloneDeep(newTreeStates);
                     }
                 }
 
