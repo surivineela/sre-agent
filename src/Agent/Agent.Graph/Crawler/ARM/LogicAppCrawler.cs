@@ -367,7 +367,7 @@ public class LogicAppCrawler : AppServiceCrawler
         var connectionToResourceEdge = new ArmResourceEdge(
             workflowConnectionNode.GetNodeId(),
             serviceProviderResourceNode.GetNodeId(),
-            Constants.Relationships.Connected);
+            Constants.Relationships.Uses);
         await _graphDbClient.AddOrUpdateEdgeAsync(connectionToResourceEdge);
 
         return serviceProviderResourceNode;
