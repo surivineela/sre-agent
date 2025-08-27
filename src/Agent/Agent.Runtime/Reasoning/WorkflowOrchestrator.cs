@@ -31,7 +31,7 @@ public class WorkflowOrchestrator : IDisposable
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
     private readonly IThreadRepository _threadRepository;
     private readonly IAgentFactory<AgentContext> _agentFactory;
-    private readonly AgentContext _context;
+    private AgentContext _context; // made mutable to allow state transitions similar to ReasoningLoop
     private readonly IToolFactory<AgentContext> _toolFactory;
     private readonly Tracer _tracer;
     private readonly IncidentManagementSettings _incidentManagementSettings;
@@ -208,6 +208,11 @@ public class WorkflowOrchestrator : IDisposable
     /// </summary>
     private async Task ExecuteWorkflowAsync(CancellationToken cancellationToken)
     {
+        // Transition to Processing (align with ReasoningLoop semantics) at the beginning of workflow execution.
+        if (_context.ContextState != ContextStateEnum.Processing)
+        {
+            await ChangeAgentContextStateAsync(ContextStateEnum.Processing);
+        }
 
         try
         {
@@ -385,6 +390,50 @@ public class WorkflowOrchestrator : IDisposable
         {
             _logger.LogInternalError(ex, "Error during workflow execution");
             throw;
+        }
+        finally
+        {
+            // Ensure we always attempt to signal the client that processing is complete.
+            // Unlike ReasoningLoop we currently do not distinguish user cancellation token here.
+            try
+            {
+               await _outboundCommunicationService.SignalProcessingComplete(_context.ThreadId, cancellationToken: cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected if the provided cancellation token was canceled before signaling stop.
+                _logger.LogInternalInformation("SignalProcessingComplete canceled for workflow thread {ThreadId}", _context.ThreadId);
+            }
+            catch (Exception ex)
+            {
+                // Do not rethrow; we still want to attempt context state transition.
+                _logger.LogInternalError(ex, "Failed to send SignalProcessingComplete for workflow thread {ThreadId}", _context.ThreadId);
+            }
+
+            // Return context state to Idle (single place handles all early returns)
+            await ChangeAgentContextStateAsync(ContextStateEnum.Idle);
+        }
+    }
+
+    /// <summary>
+    /// Change AgentContext state safely (mirrors ReasoningLoop.ChangeAgentContextStateAsync).
+    /// </summary>
+    private async Task ChangeAgentContextStateAsync(ContextStateEnum newState)
+    {
+        var oldState = _context.ContextState;
+        if (oldState == newState)
+        {
+            return; // no-op
+        }
+        try
+        {
+            _context = _context with { ContextState = newState };
+            await _threadRepository.UpdateAgentContextAsync(_context);
+            _logger.LogInternalInformation("Workflow context state changed {OldState} -> {NewState} (thread {ThreadId})", oldState, newState, _context.ThreadId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, "Failed to change workflow context state {OldState} -> {NewState} (thread {ThreadId})", oldState, newState, _context.ThreadId);
         }
     }
 

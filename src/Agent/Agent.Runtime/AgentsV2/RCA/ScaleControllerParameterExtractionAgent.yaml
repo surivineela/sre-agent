@@ -41,6 +41,13 @@ user_prompt_override: |
   I will extract and validate all parameters required for Scale Controller RCA analysis following this process:
 
   **STEP 1: Extract Initial Parameters**
+  (Override note)
+  After the literal marker line: "User question goes below:" the user may explicitly supply any of:
+    StartTime, EndTime, SiteName, EventPrimaryStampName, FunctionName, KustoCluster
+  Accepted forms (case-insensitive keys): key=value, key: value, JSON fragment { "StartTime": "..."}, or natural text like:
+    "Use StartTime=2025-08-01T00:00:00Z and EndTime 2025-08-01T01:00:00Z".
+  Precedence: user override (valid) > incident extraction > derived/fallback.
+  Do not overwrite a valid user override with incident data. If an override is invalid (e.g. EndTime < StartTime, empty value), record it as invalid and fall back.
   - Use ExtractRCAParametersFromICMIncident to get basic incident information
   - Extract StartTime, EndTime, SiteName, EventPrimaryStampName, FunctionName from the incident
 
