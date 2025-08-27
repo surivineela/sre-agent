@@ -43,20 +43,24 @@ export interface MessageAuthor {
 }
 
 export enum ApprovalDecision {
+    /** Will use agent identity */
     Pending = 'Pending',
-    Approved = 'Approved',
-    Cancelled = 'Cancelled',
+    /** Will use user identity temporarily */
     PendingAuthorization = 'PendingAuthorization',
+    Approved = 'Approved',
     Authorized = 'Authorized',
+    Cancelled = 'Cancelled',
 }
 
 export enum ExecutionStatus {
+    /** Will use agent identity */
     Pending = 'Pending',
+    /** Will use user identity temporarily */
+    PendingAuthorization = 'PendingAuthorization',
     Running = 'Running',
     Completed = 'Completed',
     Failed = 'Failed',
     Cancelled = 'Cancelled',
-    PendingAuthorization = 'PendingAuthorization',
 }
 
 export interface AzCliExecution {

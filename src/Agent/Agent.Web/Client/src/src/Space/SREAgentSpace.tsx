@@ -200,7 +200,15 @@ const TabsListWrapper: FC = () => {
 
     return (
         <div>
-            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div
+                style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    backgroundColor: (theme as Theme).semanticColors.bodyBackground,
+                }}
+            >
                 <TabList selectedValue={selectedValue} onTabSelect={onTabSelect} style={getTabListStyle(theme as Theme)}>
                     <Tab id="Activities" value={TabValues.Activities}>
                         {intl.formatMessage(SreAgentTabResources.activities)}

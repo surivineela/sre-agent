@@ -1,11 +1,10 @@
 import { memo } from 'react';
 import { IAgentMessageProps } from '../Contracts/Activities';
 import ApprovalMessage from './ApprovalMessage';
-import AzCliExecutionMessage from './AzCliExecutionMessage';
 import ChangeDiffMessage from './ChangeDiffMessage';
 import DailyReportMessage from './DailyReportMessage';
 import ErrorChatMessage from './ErrorMessage';
-import KubectlExecutionMessage from './KubectlExecutionMessage';
+import ExecutionMessage, { ExecutionMessageType } from './ExecutionMessage';
 import TextOrImageMessage from './TextOrImageMessage';
 
 const AgentMessage = ({
@@ -31,13 +30,15 @@ const AgentMessage = ({
             ) : messageContent.isDailyReport ? (
                 <DailyReportMessage text={messageContent.text} timeStamp={timeStamp} />
             ) : messageContent.azCliExecution ? (
-                <AzCliExecutionMessage
+                <ExecutionMessage
+                    type={ExecutionMessageType.AzCli}
                     execution={messageContent.azCliExecution}
                     threadId={threadId}
                     updateSpecialMessageInStreamingMessage={updateSpecialMessageInStreamingMessage}
                 />
             ) : messageContent.kubectlExecution ? (
-                <KubectlExecutionMessage
+                <ExecutionMessage
+                    type={ExecutionMessageType.Kubectl}
                     execution={messageContent.kubectlExecution}
                     threadId={threadId}
                     updateSpecialMessageInStreamingMessage={updateSpecialMessageInStreamingMessage}

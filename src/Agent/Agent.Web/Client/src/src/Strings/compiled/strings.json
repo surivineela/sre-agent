@@ -349,6 +349,20 @@
       "value": "PagerDuty is connected."
     }
   ],
+  "28HRcH": [
+    {
+      "type": 0,
+      "value": "The action is in progress using temporary permissions granted by "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "29xePt": [
     {
       "type": 0,
@@ -1683,6 +1697,12 @@
       "value": "- completed"
     }
   ],
+  "I80vfn": [
+    {
+      "type": 0,
+      "value": "Approve action"
+    }
+  ],
   "I8iKnF": [
     {
       "type": 0,
@@ -1717,6 +1737,20 @@
     {
       "type": 0,
       "value": "New thread"
+    }
+  ],
+  "IiNwpr": [
+    {
+      "type": 0,
+      "value": "The action was canceled by "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "IoApza": [
@@ -1871,6 +1905,12 @@
       "value": "Last 60 days"
     }
   ],
+  "KN7zKn": [
+    {
+      "type": 0,
+      "value": "Error"
+    }
+  ],
   "KVPNxV": [
     {
       "type": 0,
@@ -1935,6 +1975,12 @@
     {
       "type": 0,
       "value": "View all resources, but does not allow you to make any changes."
+    }
+  ],
+  "LyHqqV": [
+    {
+      "type": 0,
+      "value": "Standard input"
     }
   ],
   "MACADd": [
@@ -2601,10 +2647,22 @@
       "value": "Get more info"
     }
   ],
+  "TDUfVk": [
+    {
+      "type": 0,
+      "value": "Started"
+    }
+  ],
   "TDoBlx": [
     {
       "type": 0,
       "value": "Privileged"
+    }
+  ],
+  "TFQBcG": [
+    {
+      "type": 0,
+      "value": "Agent permissions were used, but the action failed to run."
     }
   ],
   "TIDNOO": [
@@ -2847,6 +2905,20 @@
       "value": "Chat"
     }
   ],
+  "WVTzuw": [
+    {
+      "type": 0,
+      "value": "The action was completed using temporary permissions granted by "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "WY8nWe": [
     {
       "type": 0,
@@ -2911,6 +2983,12 @@
     {
       "type": 0,
       "value": "To change the incident platform, you need to disconnect from IcM. The agent will no longer manage incidents. Are you sure you want to disconnect?"
+    }
+  ],
+  "X8lXsV": [
+    {
+      "type": 0,
+      "value": "The action was canceled."
     }
   ],
   "XEso9C": [
@@ -3107,6 +3185,18 @@
       "value": "Yes"
     }
   ],
+  "a6ZyBy": [
+    {
+      "type": 0,
+      "value": "Your permissions will be used temporarily to complete this action."
+    }
+  ],
+  "a8l/yJ": [
+    {
+      "type": 0,
+      "value": "The action was completed using agent permissions."
+    }
+  ],
   "aA1SYF": [
     {
       "type": 0,
@@ -3205,6 +3295,12 @@
     {
       "type": 0,
       "value": "Key Vault URI"
+    }
+  ],
+  "ayDbML": [
+    {
+      "type": 0,
+      "value": "Output logs"
     }
   ],
   "b7D4Lh": [
@@ -3313,6 +3409,20 @@
     {
       "type": 0,
       "value": "Give as much detail as you can, but do not include any personal information."
+    }
+  ],
+  "cubQfQ": [
+    {
+      "type": 0,
+      "value": "Temporary permissions were granted by "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", but the action failed to run."
     }
   ],
   "cyR7Kh": [
@@ -4085,6 +4195,12 @@
       "value": "error"
     }
   ],
+  "nDyaq/": [
+    {
+      "type": 0,
+      "value": "Running"
+    }
+  ],
   "nFOo9o": [
     {
       "type": 0,
@@ -4197,6 +4313,12 @@
       "value": "Provide response feedback"
     }
   ],
+  "ovJ26C": [
+    {
+      "type": 0,
+      "value": "Medium"
+    }
+  ],
   "p/xAmY": [
     {
       "type": 0,
@@ -4249,6 +4371,12 @@
     {
       "type": 0,
       "value": "Password is required."
+    }
+  ],
+  "pSGxDG": [
+    {
+      "type": 0,
+      "value": "Agent permissions will be used to complete this action."
     }
   ],
   "pSfQh6": [
@@ -4443,6 +4571,12 @@
       "value": "Log Analytics Reader"
     }
   ],
+  "sNutPl": [
+    {
+      "type": 0,
+      "value": "Timestamps"
+    }
+  ],
   "sRb5P9": [
     {
       "type": 0,
@@ -4561,6 +4695,12 @@
     {
       "type": 0,
       "value": "Cognitive Services Custom Vision Reader"
+    }
+  ],
+  "u4WKBH": [
+    {
+      "type": 0,
+      "value": "Grant permissions"
     }
   ],
   "u4hSyh": [
@@ -4713,6 +4853,12 @@
       "value": "Failed to update the agent mode."
     }
   ],
+  "wXKSRT": [
+    {
+      "type": 0,
+      "value": "The action is in progress with agent permissions."
+    }
+  ],
   "wbigtI": [
     {
       "type": 0,
@@ -4755,6 +4901,12 @@
     {
       "type": 0,
       "value": " tools."
+    }
+  ],
+  "x3aQrV": [
+    {
+      "type": 0,
+      "value": "An on-behalf-of token will be used with the following scope"
     }
   ],
   "x65I0c": [
