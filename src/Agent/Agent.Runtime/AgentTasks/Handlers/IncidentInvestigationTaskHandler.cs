@@ -16,7 +16,6 @@ using Agent.Logging;
 using Agent.Runtime.AgentTasks.Agents;
 using Agent.Runtime.Reasoning;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
 
@@ -30,35 +29,17 @@ public sealed class IncidentInvestigationTaskHandler(
     IChatClient chatClient,
     IToolFactory<AgentContext> toolFactory,
     IAgentOutboundCommunicationService outboundCommunicationService,
-    IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator,
+    AgentTaskLocalStore rcaAgentsStore,
     SearchHelper searchHelper,
-    Tracer tracer,
-    IConfiguration configuration
+    Tracer tracer
 ) : IAgentTaskHandler
 {
     private readonly SemaphoreSlim _stateLock = new(1, 1);
     private AgentTask? _currentAgentTask;
     private readonly ConcurrentDictionary<string, object?> _toolCache = new();
-    private readonly Lazy<AgentTaskLocalStore?> _rcaAgentsStore = new(() =>
-    {
-        var agentTasksEnabled = configuration.GetValue<bool>("AppSettings:Core:AgentTasksEnabled", false);
-        if (!agentTasksEnabled)
-        {
-            logger.LogInternalInformation("Agent tasks are disabled, skipping RCA agents store initialization");
-            return null;
-        }
-
-        logger.LogInternalInformation("Initializing RCA agents store");
-        return new AgentTaskLocalStore(["AgentsV2\\ACA-FirstParty\\"], embeddingGenerator);
-    });
     private readonly List<ChatMessage> _aggregatedToolHistory = new();
     private List<string>? toolSubset = null;
     private readonly bool is1PAgent = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") == "ACAAgent";
-
-    /// <summary>
-    /// Gets the RCA agents store if agent tasks are enabled, otherwise returns null.
-    /// </summary>
-    private AgentTaskLocalStore? RcaAgentsStore => _rcaAgentsStore.Value;
 
     public async Task ExecuteAsync(AgentTask agentTask, CancellationToken cancellationToken)
     {
@@ -809,13 +790,7 @@ public sealed class IncidentInvestigationTaskHandler(
 
     private async Task<ICollection<SearchDocument>> RetrieveDocumentsFromLocalStore(string query)
     {
-        if (RcaAgentsStore == null)
-        {
-            logger.LogInternalInformation("RCA agents store is not initialized, returning empty results");
-            return Array.Empty<SearchDocument>();
-        }
-
-        return await RcaAgentsStore.SearchAsync(query, 3).ToListAsync();
+        return await rcaAgentsStore.SearchAsync(query, 3).ToListAsync();
     }
 
     private async Task<IEnumerable<SearchDocument>> RetrieveDocumentsFromRegionalStore(string query, string threadId, TelemetrySpan? parentSpan = null)

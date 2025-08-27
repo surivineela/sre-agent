@@ -6,13 +6,15 @@ using Microsoft.SemanticKernel.Connectors.InMemory;
 
 namespace Agent.Runtime.AgentTasks;
 
-internal class AgentTaskLocalStore
+public class AgentTaskLocalStore
 {
     private readonly InMemoryCollection<string, SearchDocumentInternal> _memoryCollection;
+    private readonly int count;
 
     public AgentTaskLocalStore(List<string> yamlDirectories, IEmbeddingGenerator embeddingGenerator)
     {
         var docs = LoadDocumentsFromYamlDirectories(yamlDirectories, "RCA");
+        count = docs.Count;
 
         _memoryCollection = new InMemoryCollection<string, SearchDocumentInternal>(
             "rcaagents",
@@ -21,6 +23,11 @@ internal class AgentTaskLocalStore
                 EmbeddingGenerator = embeddingGenerator
             });
         _memoryCollection.EnsureCollectionExistsAsync().GetAwaiter().GetResult();
+
+        if (count == 0)
+        {
+            return;
+        }
         _memoryCollection.UpsertAsync(docs).GetAwaiter().GetResult();
     }
 
@@ -28,6 +35,11 @@ internal class AgentTaskLocalStore
         string query,
         int top)
     {
+        if (count == 0)
+        {
+            yield break;
+        }
+
         await foreach (var result in _memoryCollection.SearchAsync(query, top))
         {
             yield return new SearchDocument(result.Record.Id, result.Record.Content, result.Record.Title);
