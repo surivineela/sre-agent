@@ -15,9 +15,7 @@ import { ThreadMenuHandle } from '../Contracts/Activities';
 import { StreamingContext } from '../Contracts/Context';
 import { useThreadList } from './useThreadList';
 
-const excludedSources = [ThreadSource.incident];
-
-export const useThreadsMenu = (ref: Ref<ThreadMenuHandle>) => {
+export const useThreadsMenu = (ref: Ref<ThreadMenuHandle>, excludedSources?: ThreadSource[]) => {
     const { subscribeThreadUpdateEvent, subscribeMessageUpdateEvent } = useContext(StreamingContext);
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
 
@@ -31,9 +29,12 @@ export const useThreadsMenu = (ref: Ref<ThreadMenuHandle>) => {
 
     const { threads, setThreads, setUnreadThreadIds, unreadThreadIds, isLoadingInitialChatMessages, ...rest } = useThreadList(
         undefined,
+        undefined,
+        undefined,
         excludedSources,
         showUnreadOnly,
-        undefined
+        undefined,
+        'modifiedTimestamp'
     );
 
     const oldestThreadModifiedTimestamp = useMemo(() => threads[threads.length - 1]?.modifiedTimestamp, [threads]);
@@ -77,7 +78,7 @@ export const useThreadsMenu = (ref: Ref<ThreadMenuHandle>) => {
         setThreads(prevThreads => {
             const { threads: totalThreads, addedThreads } = processThreads(
                 prevThreads,
-                getFilteredThreads(threadsToBeUpdated, excludedSources, showUnreadOnlyRef.current, undefined),
+                getFilteredThreads(threadsToBeUpdated, undefined, excludedSources, showUnreadOnlyRef.current, undefined),
                 true
             );
             setUnreadThreadIds(prev => getUpdatedUnreadThreadIds(prev, addedThreads));
@@ -178,6 +179,7 @@ export const useThreadsMenu = (ref: Ref<ThreadMenuHandle>) => {
         unreadThreadIds,
         updateThreadLastReadTime,
         threadItemDivsRef,
+        excludedSources,
         ...rest,
     };
 };

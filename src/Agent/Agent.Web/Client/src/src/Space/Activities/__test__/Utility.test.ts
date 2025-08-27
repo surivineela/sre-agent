@@ -378,35 +378,35 @@ describe('processThreads', () => {
 describe('getFilteredThreads', () => {
     it('Filter threads based on search text', () => {
         const threads: Thread[] = [getDefaultThread(undefined, '01', undefined, 'Thread 01')];
-        let result = getFilteredThreads(threads, undefined, undefined, '');
+        let result = getFilteredThreads(threads, undefined, undefined, undefined, '');
         expect(result.length).toBe(1);
-        result = getFilteredThreads(threads, undefined, undefined, 'Thread 02');
+        result = getFilteredThreads(threads, undefined, undefined, undefined, 'Thread 02');
         expect(result.length).toBe(0);
-        result = getFilteredThreads(threads, undefined, undefined, 'Thread 011');
+        result = getFilteredThreads(threads, undefined, undefined, undefined, 'Thread 011');
         expect(result.length).toBe(0);
-        result = getFilteredThreads(threads, undefined, undefined, 'Thread 01');
+        result = getFilteredThreads(threads, undefined, undefined, undefined, 'Thread 01');
         expect(result.length).toBe(1);
     });
 
     it('Filter threads based on source', () => {
         let threads: Thread[] = [getDefaultThread(undefined, '01', undefined, undefined, ThreadSource.incident)];
 
-        let result = getFilteredThreads(threads, [ThreadSource.incident], undefined, undefined);
+        let result = getFilteredThreads(threads, undefined, [ThreadSource.incident], undefined, undefined);
         expect(result.length).toBe(0);
 
         threads = [getDefaultThread(undefined, '01', undefined, undefined)];
-        result = getFilteredThreads(threads, [ThreadSource.incident], undefined, undefined);
+        result = getFilteredThreads(threads, undefined, [ThreadSource.incident], undefined, undefined);
         expect(result.length).toBe(1);
     });
 
     it('Filter threads based on unread status', () => {
         let threads: Thread[] = [getDefaultThread('2023-10-06T00:00:00Z', '01', undefined, undefined, undefined, '2023-10-05T00:00:00Z')];
 
-        let result = getFilteredThreads(threads, undefined, true, undefined);
+        let result = getFilteredThreads(threads, undefined, undefined, true, undefined);
         expect(result.length).toBe(1);
 
         threads = [getDefaultThread('2023-10-06T00:00:00Z', '01', undefined, undefined, undefined, '2023-10-07T00:00:00Z')];
-        result = getFilteredThreads(threads, undefined, true, undefined);
+        result = getFilteredThreads(threads, undefined, undefined, true, undefined);
         expect(result.length).toBe(0);
     });
 });

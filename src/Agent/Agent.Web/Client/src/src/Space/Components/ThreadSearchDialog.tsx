@@ -117,10 +117,13 @@ const ThreadSearchDialog = ({ threads: initialThreads, selectThread, activeThrea
     );
 
     const { threads, moreThreadsToLoad, threadListDivRef, intersectionObserverRef, onScroll } = useThreadList(
+        undefined,
         initialThreads,
+        undefined,
         excludedSources,
         undefined,
-        searchText
+        searchText,
+        'modifiedTimestamp'
     );
 
     return (

@@ -1538,3 +1538,7 @@ export const DataConnectorsResources = defineMessages({
     updateDataConnectorFailed: { defaultMessage: 'Failed to update data connector', id: 'EYRPA4' },
     updateDataConnectorWithMessageFailed: { defaultMessage: 'Failed to update data connector with error: {error}', id: 'aqnJe8' },
 });
+
+export const DailyReportsTabResources = defineMessages({
+    selectADate: { defaultMessage: 'Select a date', id: '7qOQpv' },
+});

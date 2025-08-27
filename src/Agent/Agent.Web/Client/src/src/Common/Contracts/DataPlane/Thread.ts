@@ -31,5 +31,7 @@ export enum ThreadSource {
     conversation = 'Conversation',
     incident = 'Incident',
     welcomeMessage = 'WelcomeMessage',
-    Portal = 'Portal', // legacy
+    agent = 'Agent',
+    portal = 'Portal', // legacy
+    dailyReport = 'DailyReport',
 }

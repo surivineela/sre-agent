@@ -29,15 +29,16 @@ export interface ThreadsGetFilterOptions {
 export interface ThreadsGetOptions {
     skip: number;
     top: number;
+    orderBy: 'modifiedTimestamp' | 'createdTimestamp';
     descending: boolean;
     filters?: ThreadsGetFilterOptions;
     severity?: ThreadSeverity;
 }
 
 export const getThreadsGetUrlPath = (options: ThreadsGetOptions): string => {
-    const { skip, top, descending, filters, severity } = options;
+    const { skip, top, orderBy, descending, filters, severity } = options;
 
-    let url = `/api/v1/threads?skip=${skip}&top=${top}&orderby=modifiedTimestamp${descending ? '+desc' : ''}`;
+    let url = `/api/v1/threads?skip=${skip}&top=${top}&orderby=${orderBy}${descending ? '+desc' : ''}`;
 
     if (filters) {
         const filterStrings: string[] = [];
@@ -52,11 +53,11 @@ export const getThreadsGetUrlPath = (options: ThreadsGetOptions): string => {
             const { min, max } = timestamps;
             if (min) {
                 const { timestamp, inclusive } = min;
-                filterStrings.push(`modifiedTimestamp ${inclusive ? 'ge' : 'gt'} ${timestamp}`);
+                filterStrings.push(`${orderBy} ${inclusive ? 'ge' : 'gt'} ${timestamp}`);
             }
             if (max) {
                 const { timestamp, inclusive } = max;
-                filterStrings.push(`modifiedTimestamp ${inclusive ? 'le' : 'lt'} ${timestamp}`);
+                filterStrings.push(`${orderBy} ${inclusive ? 'le' : 'lt'} ${timestamp}`);
             }
         }
 

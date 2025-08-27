@@ -11,10 +11,12 @@ import { EnvironmentContext } from '../Common/AzPortalProxy/Providers/StartupInf
 import { AppInsightsClient } from '../Common/Clients/AppInsightsClient';
 import { AgentAccessLevel, IncidentManagementType } from '../Common/Contracts/Azure/SreAgent';
 import { ArmResourceDescriptor } from '../Common/Helpers/ResourceDescriptors';
+import { SettingNames, useConfigSetting } from '../Common/Hooks/ConfigSettings';
 import { SreAgentTabResources } from '../Strings/SREAgentResources';
 import Activities from './Activities/Activities.ReactView';
 import { FeedbackDialog } from './Components/FeedbackDialog';
 import { SreAgentContext } from './Contracts/Context';
+import DailyReports from './DailyReports/DailyReports';
 import Graph from './Graph/Graph';
 import { useIncidentManagementConnectivity } from './Hooks/useIncidentManagementConnectivity';
 import IncidentManagement from './IncidentManagement/IncidentManagement';
@@ -41,6 +43,7 @@ enum TabValues {
     Graph = 'graph',
     Logs = 'logs',
     IncidentManagement = 'incidentmanagement',
+    DailyReports = 'dailyreports',
 }
 
 const inStandaloneMode = AzPortalProxy.inStandaloneMode;
@@ -124,6 +127,8 @@ const TabsListWrapper: FC = () => {
     const [appInsightsResourceId, setAppInsightsResourceId] = useState<string>();
     const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
 
+    const showDailyReportsTab = useConfigSetting(SettingNames.ShowDailyReportsTab);
+
     const selectedValue = useMemo(() => {
         if (location.pathname?.startsWith('/views/activities')) {
             return TabValues.Activities;
@@ -136,6 +141,9 @@ const TabsListWrapper: FC = () => {
         }
         if (location.pathname?.startsWith('/views/incidentmanagement')) {
             return TabValues.IncidentManagement;
+        }
+        if (location.pathname?.startsWith('/views/dailyreports')) {
+            return TabValues.DailyReports;
         }
         return TabValues.Activities;
     }, [location.pathname]);
@@ -175,6 +183,8 @@ const TabsListWrapper: FC = () => {
                 if (!location.pathname?.startsWith('/views/settings')) {
                     navigate({ ...location, pathname: '/views/settings' });
                 }
+            } else if (data.value === TabValues.DailyReports) {
+                navigate({ ...location, pathname: '/views/dailyreports' });
             } else if (data.value === TabValues.Logs) {
                 onLogsClick();
             }
@@ -198,6 +208,11 @@ const TabsListWrapper: FC = () => {
                     <Tab id="Knowledge" value={TabValues.Graph}>
                         {intl.formatMessage(SreAgentTabResources.resourceMapping)}
                     </Tab>
+                    {showDailyReportsTab && (
+                        <Tab id="DailyReports" value={TabValues.DailyReports}>
+                            {'Daily Reports'}
+                        </Tab>
+                    )}
                     {!inStandaloneMode && !isCrossTenantPortalMode && (
                         <ControlPlaneDependentTabs
                             appInsightsResourceId={appInsightsResourceId}
@@ -235,6 +250,7 @@ const router = createHashRouter([
             { path: 'views/incidentmanagement', element: <IncidentManagement /> },
             { path: 'views/activities/threads/:threadId', element: <Activities /> },
             { path: 'views/activities', element: <Activities /> },
+            { path: 'views/dailyreports', element: <DailyReports /> },
             { path: '*', element: <Activities /> },
         ],
     },

@@ -4,7 +4,7 @@ import { Dialog, DialogTrigger } from '@fluentui/react-dialog';
 import { AddRegular, PanelLeftContractRegular, PanelLeftExpandRegular, SearchRegular } from '@fluentui/react-icons';
 import { Text } from '@fluentui/react-text';
 import { tokens } from '@fluentui/react-theme';
-import { ForwardedRef, forwardRef, useCallback, useContext } from 'react';
+import { ForwardedRef, forwardRef, useCallback, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
@@ -27,6 +27,8 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
     (props: IThreadsMenuProps, ref: ForwardedRef<ThreadMenuHandle>) => {
         const { selectThread, deleteThread, collapsed, setCollapsed } = props;
 
+        const excludedSources: ThreadSource[] = useMemo(() => [ThreadSource.incident], []);
+
         const {
             threads,
             threadListDivRef,
@@ -37,7 +39,7 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
             onScroll,
             moreThreadsToLoad,
             threadItemDivsRef,
-        } = useThreadsMenu(ref);
+        } = useThreadsMenu(ref, excludedSources);
 
         const threadMenuStyles = useThreadMenuStyle();
         const { scrollable } = useScrollableComponentStyles();
@@ -126,7 +128,7 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
                                         threads={threads}
                                         selectThread={selectThread}
                                         activeThreadId={activeThreadId}
-                                        excludedSources={[ThreadSource.incident]}
+                                        excludedSources={excludedSources}
                                     />
                                 </Dialog>
                             </div>

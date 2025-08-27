@@ -129,6 +129,7 @@ export const useActivities = () => {
                 const threadsResponse = await threadClient.getThreads({
                     skip: 0,
                     top: 1,
+                    orderBy: 'modifiedTimestamp',
                     descending: true,
                     filters: {
                         sources: [ThreadSource.welcomeMessage],

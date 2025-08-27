@@ -7,6 +7,7 @@ export enum SettingNames {
     ConsolidatedCreate = 'consolidatedCreate',
     DataConnectors = 'dataConnectors',
     ShowAgentTask = 'showAgentTask',
+    ShowDailyReportsTab = 'showDailyReportsTab',
 }
 
 const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
@@ -21,6 +22,7 @@ const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
         [SettingNames.ShowAgentModeForThread]: true,
         [SettingNames.DataConnectors]: true,
         [SettingNames.ShowAgentTask]: true,
+        [SettingNames.ShowDailyReportsTab]: true,
     },
 };
 

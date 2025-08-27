@@ -289,12 +289,17 @@ export const shouldGroupWithPreviousMessage = (currentChatMessage?: ChatMessage,
 
 export const getFilteredThreads = (
     threads: Thread[],
-    excludedSources?: ThreadSource[],
-    unreadOnly?: boolean,
-    searchText?: string
+    includedSources: ThreadSource[] | undefined,
+    excludedSources: ThreadSource[] | undefined,
+    unreadOnly: boolean | undefined,
+    searchText: string | undefined
 ): Thread[] => {
     return threads.filter(thread => {
         let match = true;
+
+        if (thread.source && includedSources && includedSources.length > 0) {
+            match = includedSources.includes(thread.source);
+        }
 
         if (thread.source && excludedSources && excludedSources.length > 0) {
             match = !excludedSources.includes(thread.source);

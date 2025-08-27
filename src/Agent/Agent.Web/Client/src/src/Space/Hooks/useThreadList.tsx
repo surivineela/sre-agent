@@ -8,10 +8,13 @@ import { getFilteredThreads, getIntervalBetweenLoading, getUpdatedUnreadThreadId
 import { ThreadLoadingCounts } from '../Contracts/Activities';
 
 export const useThreadList = (
+    isThreadListHidden: boolean | undefined,
     initialThreads: Thread[] | undefined,
+    includedSources: ThreadSource[] | undefined,
     excludedSources: ThreadSource[] | undefined,
     unreadOnly: boolean | undefined,
-    searchText: string | undefined
+    searchText: string | undefined,
+    orderBy: 'modifiedTimestamp' | 'createdTimestamp'
 ) => {
     const [threads, setThreads] = useState<Thread[]>(initialThreads || []);
     const [moreThreadsToLoad, setMoreThreadsToLoad] = useState<boolean>(true);
@@ -31,6 +34,7 @@ export const useThreadList = (
     const threadListDivRef = useRef<HTMLDivElement | null>(null);
 
     const getThreads = async (
+        includedSources: ThreadSource[] | undefined,
         excludedSources: ThreadSource[] | undefined,
         unreadOnly: boolean | undefined,
         searchText: string | undefined,
@@ -39,17 +43,19 @@ export const useThreadList = (
         return await threadClient.getThreads({
             skip: 0,
             top: ThreadLoadingCounts.default,
+            orderBy,
             descending: true,
             filters: {
                 searchText,
                 timestamps: {
                     max: oldestThread
                         ? {
-                              timestamp: oldestThread.modifiedTimestamp,
+                              timestamp: orderBy === 'modifiedTimestamp' ? oldestThread.modifiedTimestamp : oldestThread.createdTimestamp,
                               inclusive: false,
                           }
                         : undefined,
                 },
+                sources: includedSources,
                 excludedSources: excludedSources,
                 unread: unreadOnly,
             },
@@ -61,7 +67,7 @@ export const useThreadList = (
             const callId = loadThreadsCallId.current;
             isLoadingThreads.current = true;
 
-            const oldThreadsResponse = await getThreads(excludedSources, unreadOnly, searchText, oldestThread.current);
+            const oldThreadsResponse = await getThreads(includedSources, excludedSources, unreadOnly, searchText, oldestThread.current);
 
             if (callId === loadThreadsCallId.current) {
                 const oldThreads = oldThreadsResponse.content ?? [];
@@ -81,7 +87,7 @@ export const useThreadList = (
                 return undefined;
             }
         }
-    }, [excludedSources, unreadOnly, searchText, isLoadingInitialChatMessages]);
+    }, [includedSources, excludedSources, unreadOnly, searchText, isLoadingInitialChatMessages]);
 
     const handleScroll = debounce(() => {
         loadThreads();
@@ -103,7 +109,7 @@ export const useThreadList = (
             const entry = entries[0];
             setIsIntersecting(entry.isIntersecting);
         });
-        if (observer && intersectionObserverRef.current && !isLoadingInitialChatMessages) {
+        if (observer && intersectionObserverRef.current && !isLoadingInitialChatMessages && !isThreadListHidden) {
             observer.observe(intersectionObserverRef.current);
         }
 
@@ -111,7 +117,7 @@ export const useThreadList = (
             observer?.disconnect();
             setIsIntersecting(false);
         };
-    }, [isLoadingInitialChatMessages]);
+    }, [isLoadingInitialChatMessages, isThreadListHidden]);
 
     useEffect(() => {
         let isSubscribed = true;
@@ -144,7 +150,7 @@ export const useThreadList = (
         return () => {
             loadThreadsCallId.current += 1;
         };
-    }, [excludedSources, unreadOnly, searchText, isLoadingInitialChatMessages]);
+    }, [includedSources, excludedSources, unreadOnly, searchText, isLoadingInitialChatMessages]);
 
     useEffect(() => {
         oldestThread.current = threads[threads.length - 1];
@@ -164,12 +170,12 @@ export const useThreadList = (
 
         const setInitialThreads = async () => {
             // For a better user experience, we show the existing threads in the memory based on the filter options, before making a request to get the filtered threads from service side.
-            setThreads(prev => getFilteredThreads(prev, excludedSources, unreadOnly, searchText));
+            setThreads(prev => getFilteredThreads(prev, includedSources, excludedSources, unreadOnly, searchText));
 
             // Send a request to load initial threads based on the filter options to overflow the threads list div if possible
             isLoadingThreads.current = true;
 
-            const initialThreadsResponse = await getThreads(excludedSources, unreadOnly, searchText, undefined);
+            const initialThreadsResponse = await getThreads(includedSources, excludedSources, unreadOnly, searchText, undefined);
 
             const initialThreads = initialThreadsResponse.content ?? [];
 
@@ -193,7 +199,7 @@ export const useThreadList = (
         return () => {
             isSubscribed = false;
         };
-    }, [excludedSources, unreadOnly, searchText, hasChatPermissions]);
+    }, [includedSources, excludedSources, unreadOnly, searchText, hasChatPermissions]);
 
     return {
         threads,

@@ -7,6 +7,7 @@ describe('getThreadsGetUrlPath', () => {
         const options: ThreadsGetOptions = {
             skip: 10,
             top: 20,
+            orderBy: 'modifiedTimestamp',
             descending: true,
             filters: {
                 searchText: 'test',
@@ -29,6 +30,7 @@ describe('getThreadsGetUrlPath', () => {
         const options: ThreadsGetOptions = {
             skip: 10,
             top: 20,
+            orderBy: 'modifiedTimestamp',
             descending: false,
             filters: {
                 searchText: 'test',
@@ -51,6 +53,7 @@ describe('getThreadsGetUrlPath', () => {
         const options: ThreadsGetOptions = {
             skip: 10,
             top: 20,
+            orderBy: 'modifiedTimestamp',
             descending: true,
             filters: {
                 timestamps: {
@@ -72,6 +75,7 @@ describe('getThreadsGetUrlPath', () => {
         const options: ThreadsGetOptions = {
             skip: 10,
             top: 20,
+            orderBy: 'modifiedTimestamp',
             descending: true,
             filters: {
                 searchText: 'test',
@@ -93,6 +97,7 @@ describe('getThreadsGetUrlPath', () => {
         const options: ThreadsGetOptions = {
             skip: 10,
             top: 20,
+            orderBy: 'modifiedTimestamp',
             descending: true,
             filters: {
                 searchText: 'test',
@@ -114,6 +119,7 @@ describe('getThreadsGetUrlPath', () => {
         const options: ThreadsGetOptions = {
             skip: 10,
             top: 20,
+            orderBy: 'modifiedTimestamp',
             descending: true,
             filters: {
                 searchText: 'test',
@@ -135,6 +141,7 @@ describe('getThreadsGetUrlPath', () => {
         const options: ThreadsGetOptions = {
             skip: 10,
             top: 20,
+            orderBy: 'modifiedTimestamp',
             descending: true,
             filters: {
                 searchText: 'test',
