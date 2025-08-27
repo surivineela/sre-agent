@@ -2,15 +2,132 @@ import debounce from 'lodash/debounce';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ThreadClient } from '../../../Common/Clients/ThreadClient';
-import { Thread } from '../../../Common/Contracts/DataPlane/Thread';
+import { Thread, ThreadSource } from '../../../Common/Contracts/DataPlane/Thread';
+import { getSafeDateTime } from '../../../Common/Helpers/Date';
 import { KnowledgeGraphBuildStatusContext } from '../../../Common/Providers/KnowledgeGraphBuildStatusProvider';
-import { getIntervalBetweenLoading, getUpdatedUnreadThreadIds, processThreads } from '../../Activities/Utility';
+import { getIntervalBetweenLoading, getUpdatedUnreadThreadIds } from '../../Activities/Utility';
 import { ThreadLoadingCounts } from '../../Contracts/Activities';
+
+export type SortColumn = 'incidentId' | 'title' | 'incidentStatus';
+
+const getColumnDetails = (column: SortColumn | 'modifiedTimestamp') => {
+    switch (column) {
+        case 'incidentId':
+            return { isDistinct: true, type: 'string' };
+        case 'title':
+            return { isDistinct: false, type: 'string' };
+        case 'incidentStatus':
+            return { isDistinct: false, type: 'string' };
+        case 'modifiedTimestamp':
+            return { isDistinct: true, type: 'date' };
+        default:
+            return { isDistinct: undefined, type: undefined };
+    }
+};
+
+const getColumnValue = (thread: Thread, column: SortColumn | 'modifiedTimestamp'): string | undefined => {
+    switch (column) {
+        case 'incidentId':
+            return thread.status?.incidentStatus?.incidentId;
+        case 'title':
+            return thread.title;
+        case 'incidentStatus':
+            return thread.status?.incidentStatus?.status;
+        case 'modifiedTimestamp':
+            return thread.modifiedTimestamp;
+        default:
+            return undefined;
+    }
+};
+
+const processThreads = (
+    prevThreads: Thread[],
+    threads: Thread[],
+    areThreadsNew: boolean,
+    sortColumn?: SortColumn | 'modifiedTimestamp',
+    sortDescending?: boolean
+) => {
+    if (threads.length === 0) {
+        return {
+            threads: prevThreads,
+            addedThreads: [],
+        };
+    }
+
+    const threadIdsToRemoveFromPrevThreads: Set<string> = new Set<string>();
+
+    const threadsMap: Map<string, Thread> = new Map();
+    threads.forEach(thread => threadsMap.set(thread.id, thread));
+
+    for (let i = 0; i < prevThreads.length; i++) {
+        const prevThreadId = prevThreads[i].id;
+        const duplicatedThread = threadsMap.get(prevThreadId);
+        if (duplicatedThread) {
+            if (areThreadsNew && duplicatedThread.modifiedTimestamp > prevThreads[i].modifiedTimestamp) {
+                // if the threads are new and the modified time is greter than the existing duplicated one from prev threads, then remove it from the prev threads
+                threadIdsToRemoveFromPrevThreads.add(prevThreadId);
+            } else {
+                // Remove thread out of the threadsMap because the thread is already in the existing threads and has not been modified
+                threadsMap.delete(prevThreadId);
+            }
+        }
+    }
+
+    const threadsToAdd: Thread[] = Array.from(threadsMap.values());
+    const sortColumnName = sortColumn || 'modifiedTimestamp';
+    threadsToAdd.sort((a, b) => {
+        const columnDetails = getColumnDetails(sortColumnName);
+        const aValue = getColumnValue(a, sortColumnName);
+        const bValue = getColumnValue(b, sortColumnName);
+
+        if (aValue === undefined || bValue === undefined) {
+            return 0;
+        }
+
+        if (columnDetails.type === 'string') {
+            const comparison = String(aValue).localeCompare(String(bValue));
+            return sortDescending ? -comparison : comparison;
+        } else if (columnDetails.type === 'number') {
+            const aValueNum = Number(aValue);
+            const bValueNum = Number(bValue);
+            if (isNaN(aValueNum) || isNaN(bValueNum)) {
+                return 0;
+            }
+            const comparison = aValueNum - bValueNum;
+            return sortDescending ? -comparison : comparison;
+        } else if (columnDetails.type === 'date') {
+            const comparison = getSafeDateTime(aValue as string).getTime() - getSafeDateTime(bValue as string).getTime();
+            return sortDescending ? -comparison : comparison;
+        }
+        return 0;
+    });
+
+    const updatedExistingThreads = [...prevThreads].filter(thread => {
+        return !threadIdsToRemoveFromPrevThreads.has(thread.id);
+    });
+
+    const existingThreads = threadIdsToRemoveFromPrevThreads.size > 0 ? updatedExistingThreads : prevThreads;
+
+    if (threadsToAdd.length === 0) {
+        return {
+            threads: existingThreads,
+            addedThreads: [],
+        };
+    }
+
+    const resultThreads = areThreadsNew ? [...threadsToAdd, ...existingThreads] : [...existingThreads, ...threadsToAdd];
+    return {
+        threads: resultThreads,
+        addedThreads: threadsToAdd,
+    };
+};
 
 export const useIncidentThreadList = (
     initialThreads?: Thread[],
     searchText?: string,
     statusFilters?: string[],
+    sortColumn?: 'incidentId' | 'title' | 'incidentStatus',
+    sortDescending?: boolean,
     visible?: boolean,
     refresh?: number
 ) => {
@@ -18,56 +135,128 @@ export const useIncidentThreadList = (
     const [moreThreadsToLoad, setMoreThreadsToLoad] = useState<boolean>(true);
     const [unreadThreadIds, setUnreadThreadIds] = useState<Set<string>>(new Set<string>());
     const [isIntersecting, setIsIntersecting] = useState<boolean>(false);
-    const [isLoadingInitialChatMessages, setIsLoadingInitialChatMessages] = useState<boolean>(true);
+    const [isLoadingInitialThreads, setIsLoadingInitialThreads] = useState<boolean>(true);
 
     const { hasChatPermissions } = useContext(KnowledgeGraphBuildStatusContext);
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const threadClient = useMemo(() => ThreadClient.getInstance(sreAgentEndpoint), [sreAgentEndpoint]);
 
     const oldestThread = useRef<Thread>();
-    const loadThreadsCallId = useRef<number>(0);
+    const threadCount = useRef<number>(0);
+    const loadThreadsCallTimestamp = useRef<string>(new Date().toISOString());
     const isLoadingThreads = useRef<boolean>(false);
     const intersectionObserverRef = useRef<HTMLDivElement | null>(null);
     const currentScrollTop = useRef<number>(0);
     const threadListDivRef = useRef<HTMLDivElement | null>(null);
 
     const getThreads = useCallback(
-        async (searchText: string | undefined, status: string[] | undefined, oldestThread: Thread | undefined) => {
+        async (
+            searchText: string | undefined,
+            status: string[] | undefined,
+            threadCount: number | undefined,
+            trailingThread: Thread | undefined,
+            sortColumn: 'incidentId' | 'title' | 'incidentStatus' | undefined,
+            sortDescending: boolean | undefined = true
+        ) => {
+            let skip: number | undefined;
+            let paginationFilter: string | undefined;
+
+            const sortColumnName = sortColumn || 'modifiedTimestamp';
+            const sortColumnDetails = getColumnDetails(sortColumnName);
+
+            if (sortColumnDetails.isDistinct) {
+                // When sorting by a distinct column, we use a pagination filter to fetch threads that come after the last thread's sort column value.
+                skip = 0;
+                if (trailingThread) {
+                    const sortColumnValue = getColumnValue(trailingThread, sortColumnName);
+                    const sortColumnValueWrapped = sortColumnDetails.type === 'string' ? `'${sortColumnValue}'` : sortColumnValue;
+                    paginationFilter = `${sortColumnName} ${sortDescending ? 'lt' : 'gt'} ${sortColumnValueWrapped}`;
+                }
+            } else {
+                // When sorting by a non-distinct column, we use skip to paginate.
+                skip = threadCount;
+            }
+
+            const statusFilter = status?.some(s => s === 'all') ? [] : status;
+
+            const filterStrings: string[] = [`source eq '${ThreadSource.incident}'`];
+
+            if (paginationFilter) {
+                filterStrings.push(paginationFilter);
+            }
+
+            if (loadThreadsCallTimestamp.current && sortDescending) {
+                filterStrings.push(`createdTimestamp le ${loadThreadsCallTimestamp.current}`);
+            }
+
+            if (searchText) {
+                const searchTextToLower = searchText.toLowerCase();
+                filterStrings.push(
+                    `(contains(tolower(title),'${searchTextToLower}') or contains(tolower(incidentId),'${searchTextToLower}'))`
+                );
+            }
+
+            if (statusFilter?.length) {
+                const statusFilterStrings = statusFilter.map(s => {
+                    const adjustedStatus = s === 'active' ? '' : s.toLowerCase();
+                    return `tolower(incidentStatus) eq '${adjustedStatus}'`;
+                });
+                let statusFilterString = statusFilterStrings.join(' or ');
+                if (statusFilterStrings.length > 1) {
+                    statusFilterString = `(${statusFilterString})`;
+                }
+                filterStrings.push(statusFilterString);
+            }
+
             return await threadClient.getIncidentThreads({
-                skip: 0,
+                skip: skip ?? 0,
                 top: ThreadLoadingCounts.default,
-                descending: true,
-                filters: {
-                    searchText,
-                    status: status?.some(s => s === 'all') ? [] : status,
-                    timestamps: {
-                        max: oldestThread
-                            ? {
-                                  timestamp: oldestThread.modifiedTimestamp,
-                                  inclusive: false,
-                              }
-                            : undefined,
-                    },
-                },
+                orderBy: `${sortColumnName}${sortDescending ? '+desc' : ''}`,
+                filter: filterStrings.join(' and '),
             });
         },
         [threadClient]
     );
 
+    const getInitialThreads = useCallback(
+        async (
+            searchText: string | undefined,
+            status: string[] | undefined,
+            sortColumn: 'incidentId' | 'title' | 'incidentStatus' | undefined,
+            sortDescending: boolean | undefined
+        ) => {
+            return await getThreads(searchText, status, 0, undefined, sortColumn, sortDescending);
+        },
+        [getThreads]
+    );
+
     const loadThreads = useCallback(async (): Promise<boolean | undefined> => {
-        if (!isLoadingThreads.current && !isLoadingInitialChatMessages) {
-            const callId = loadThreadsCallId.current;
+        if (!isLoadingThreads.current && !isLoadingInitialThreads) {
+            const callId = loadThreadsCallTimestamp.current;
             isLoadingThreads.current = true;
 
-            const oldThreadsResponse = await getThreads(searchText, statusFilters, oldestThread.current);
+            const oldThreadsResponse = await getThreads(
+                searchText,
+                statusFilters,
+                threadCount.current,
+                oldestThread.current,
+                sortColumn as 'incidentId' | 'title' | 'incidentStatus' | undefined,
+                sortDescending
+            );
 
-            if (callId === loadThreadsCallId.current) {
+            if (callId === loadThreadsCallTimestamp.current) {
                 const oldThreads = oldThreadsResponse.content ?? [];
                 if (oldThreadsResponse.isSuccessful && oldThreads.length === 0) {
                     setMoreThreadsToLoad(false);
                 }
                 setThreads(prevThread => {
-                    const { threads: totalThreads, addedThreads } = processThreads(prevThread, oldThreads, false);
+                    const { threads: totalThreads, addedThreads } = processThreads(
+                        prevThread,
+                        oldThreads,
+                        false,
+                        sortColumn,
+                        sortDescending
+                    );
                     setUnreadThreadIds(prev => getUpdatedUnreadThreadIds(prev, addedThreads));
                     return totalThreads;
                 });
@@ -79,7 +268,7 @@ export const useIncidentThreadList = (
                 return undefined;
             }
         }
-    }, [getThreads, statusFilters, searchText, isLoadingInitialChatMessages]);
+    }, [getThreads, searchText, statusFilters, sortColumn, sortDescending, isLoadingInitialThreads]);
 
     const handleScroll = debounce(() => {
         loadThreads();
@@ -101,7 +290,7 @@ export const useIncidentThreadList = (
             const entry = entries[0];
             setIsIntersecting(entry.isIntersecting);
         });
-        if (visible && observer && intersectionObserverRef.current && !isLoadingInitialChatMessages) {
+        if (visible && observer && intersectionObserverRef.current && !isLoadingInitialThreads) {
             observer.observe(intersectionObserverRef.current);
         }
 
@@ -109,7 +298,7 @@ export const useIncidentThreadList = (
             observer?.disconnect();
             setIsIntersecting(false);
         };
-    }, [isLoadingInitialChatMessages, visible]);
+    }, [isLoadingInitialThreads, visible]);
 
     useEffect(() => {
         let isSubscribed = true;
@@ -138,24 +327,19 @@ export const useIncidentThreadList = (
     }, [isIntersecting, loadThreads, moreThreadsToLoad]);
 
     useEffect(() => {
-        // Increment loadThreadsCallId when threadsFilterOptions or isLoadingInitialThreads changes, to ensure that the result from calling loadMoreThreads with outdated filter options and isLoadingInitialThreads state value is disregarded
-        return () => {
-            loadThreadsCallId.current += 1;
-        };
-    }, [searchText, statusFilters, isLoadingInitialChatMessages, refresh]);
-
-    useEffect(() => {
         oldestThread.current = threads[threads.length - 1];
+        threadCount.current = threads.length;
     }, [threads]);
 
     useEffect(() => {
         let isSubscribed = true;
+        loadThreadsCallTimestamp.current = new Date().toISOString();
 
         if (!hasChatPermissions) {
             setThreads([]);
-            setIsLoadingInitialChatMessages(false);
+            setIsLoadingInitialThreads(false);
         } else {
-            setIsLoadingInitialChatMessages(true);
+            setIsLoadingInitialThreads(true);
             setMoreThreadsToLoad(true);
 
             const setInitialThreads = async () => {
@@ -165,7 +349,12 @@ export const useIncidentThreadList = (
                 // Send a request to load initial threads based on the filter options to overflow the threads list div if possible
                 isLoadingThreads.current = true;
 
-                const initialThreadsResponse = await getThreads(searchText, statusFilters, undefined);
+                const initialThreadsResponse = await getInitialThreads(
+                    searchText,
+                    statusFilters,
+                    sortColumn as 'incidentId' | 'title' | 'incidentStatus' | undefined,
+                    sortDescending
+                );
 
                 const initialThreads = initialThreadsResponse.content ?? [];
 
@@ -175,10 +364,10 @@ export const useIncidentThreadList = (
                         setMoreThreadsToLoad(false);
                     }
                     // Replace the current filtered threads with the initial threads
-                    const { threads: totalThreads, addedThreads } = processThreads([], initialThreads, false);
+                    const { threads: totalThreads, addedThreads } = processThreads([], initialThreads, false, sortColumn, sortDescending);
                     setThreads(totalThreads);
                     setUnreadThreadIds(prev => getUpdatedUnreadThreadIds(prev, addedThreads));
-                    setIsLoadingInitialChatMessages(false);
+                    setIsLoadingInitialThreads(false);
                 }
 
                 isLoadingThreads.current = false;
@@ -190,7 +379,7 @@ export const useIncidentThreadList = (
         return () => {
             isSubscribed = false;
         };
-    }, [searchText, statusFilters, hasChatPermissions, getThreads, refresh]);
+    }, [searchText, statusFilters, sortColumn, sortDescending, hasChatPermissions, getInitialThreads, refresh]);
 
     return {
         threads,
@@ -198,7 +387,7 @@ export const useIncidentThreadList = (
         setUnreadThreadIds,
         unreadThreadIds,
         moreThreadsToLoad,
-        isLoadingInitialChatMessages,
+        isLoadingInitialThreads,
 
         threadListDivRef,
         intersectionObserverRef,

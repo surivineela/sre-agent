@@ -113,68 +113,9 @@ export interface IncidentThreadsGetFilterOptions {
 export interface IncidentThreadsGetOptions {
     skip: number;
     top: number;
-    descending: boolean;
-    filters?: IncidentThreadsGetFilterOptions;
-    severity?: ThreadSeverity;
+    filter?: string;
+    orderBy?: string;
 }
-
-export const getIncidentThreadsGetUrlPath = (options: IncidentThreadsGetOptions): string => {
-    const { skip, top, descending, filters, severity } = options;
-
-    let url = `/api/v1/threads?skip=${skip}&top=${top}&orderby=modifiedTimestamp${descending ? '+desc' : ''}`;
-
-    if (filters) {
-        const filterStrings: string[] = [];
-
-        const { searchText, status, timestamps, unread } = filters;
-
-        if (searchText) {
-            const searchTextToLower = searchText.toLowerCase();
-            filterStrings.push(`(contains(tolower(title),'${searchTextToLower}') or contains(tolower(incidentId),'${searchTextToLower}'))`);
-        }
-
-        if (status?.length) {
-            const statusFilterStrings = status.map(s => {
-                const adjustedStatus = s === 'active' ? '' : s.toLowerCase();
-                return `tolower(incidentStatus) eq '${adjustedStatus}'`;
-            });
-            let statusFilterString = statusFilterStrings.join(' or ');
-            if (statusFilterStrings.length > 1) {
-                statusFilterString = `(${statusFilterString})`;
-            }
-            filterStrings.push(statusFilterString);
-        }
-
-        if (timestamps) {
-            const { min, max } = timestamps;
-            if (min) {
-                const { timestamp, inclusive } = min;
-                filterStrings.push(`modifiedTimestamp ${inclusive ? 'ge' : 'gt'} ${timestamp}`);
-            }
-            if (max) {
-                const { timestamp, inclusive } = max;
-                filterStrings.push(`modifiedTimestamp ${inclusive ? 'le' : 'lt'} ${timestamp}`);
-            }
-        }
-
-        filterStrings.push(`source eq '${ThreadSource.incident}'`);
-
-        if (unread) {
-            filterStrings.push(`lastReadTime lt modifiedTimestamp`);
-        }
-
-        const filterString = filterStrings.join(' and ');
-        if (filterString) {
-            url += `&filter=${filterString}`;
-        }
-    }
-
-    if (severity) {
-        url += `&severity=${severity}`;
-    }
-
-    return url;
-};
 
 export class ThreadClient extends DataPlaneClient {
     private static _instance: ThreadClient;
@@ -214,7 +155,15 @@ export class ThreadClient extends DataPlaneClient {
 
     public getIncidentThreads = async (options: IncidentThreadsGetOptions): Promise<Response<Thread[]>> => {
         try {
-            const path = getIncidentThreadsGetUrlPath(options);
+            let path = `/api/v1/threads?skip=${options.skip}&top=${options.top}`;
+
+            if (options.filter) {
+                path += `&filter=${options.filter}`;
+            }
+
+            if (options.orderBy) {
+                path += `&orderby=${options.orderBy}`;
+            }
 
             const url = this.getRequestUrl(path);
 

@@ -37,7 +37,7 @@ import Url from '../../../Common/Helpers/Url';
 import { IncidentManagementResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import { useIncidentManagementStyles } from '../../Styles/IncidentManagement.styles';
 import IncidentChat from '../IncidentChat';
-import { useIncidentThreadList } from './useIncidentThreadList';
+import { SortColumn, useIncidentThreadList } from './useIncidentThreadList';
 
 type ISortedDetailsListColumn<T> = IColumn & {
     sort?: (items: T[], isSortedDescending: boolean) => T[];
@@ -45,10 +45,10 @@ type ISortedDetailsListColumn<T> = IColumn & {
 };
 
 enum IncidentsListColumnKey {
-    id = 'id',
+    incidentId = 'incidentId',
     title = 'title',
     priority = 'priority',
-    status = 'status',
+    status = 'incidentStatus',
     investigation = 'investigation',
     handler = 'handler',
 }
@@ -86,7 +86,7 @@ const IncidentsOverview: FC = () => {
     const [priorityOptions, setIncidentPriorities] = useState<LabelValuePair[]>([]);
     const [actionOptions, setActionOptions] = useState<LabelValuePair[]>([]);
     const [sortColumnKey, setSortColumnKey] = useState<IncidentsListColumnKey | undefined>();
-    const [isSortedDescending, setIsSortedDescending] = useState<boolean>(false);
+    const [isSortedDescending, setIsSortedDescending] = useState<boolean>(true);
     const [refreshCounter, setRefreshCounter] = useState<number>(0);
 
     const [selectedThreadInfo, setSelectedThreadInfo] = useState<SelectedThreadInfo | null>(null);
@@ -107,23 +107,28 @@ const IncidentsOverview: FC = () => {
 
     const {
         threads: incidentThreads,
-        isLoadingInitialChatMessages: incidentThreadsLoading,
+        isLoadingInitialThreads: incidentThreadsLoading,
         moreThreadsToLoad,
         threadListDivRef,
         intersectionObserverRef,
         onScroll,
-    } = useIncidentThreadList(undefined, searchText, selectedStatuses, !selectedThreadInfo?.fullScreen, refreshCounter);
+    } = useIncidentThreadList(
+        undefined,
+        searchText,
+        selectedStatuses,
+        sortColumnKey as SortColumn | undefined,
+        isSortedDescending,
+        !selectedThreadInfo?.fullScreen,
+        refreshCounter
+    );
 
     const handleColumnClick = useCallback(
         (column: IColumn) => {
-            if (!showMockedComponents) {
-                return;
-            }
             const isSameColumn = column.key === sortColumnKey;
             setSortColumnKey(column.key as IncidentsListColumnKey);
             setIsSortedDescending(isSameColumn ? !isSortedDescending : false);
         },
-        [sortColumnKey, isSortedDescending, showMockedComponents]
+        [sortColumnKey, isSortedDescending]
     );
 
     const disableAllControls = useMemo(() => {
@@ -395,17 +400,17 @@ const IncidentsOverview: FC = () => {
     const columns = useMemo<ISortedDetailsListColumn<Thread>[]>(() => {
         const columns: ISortedDetailsListColumn<Thread>[] = [
             {
-                key: IncidentsListColumnKey.id,
+                key: IncidentsListColumnKey.incidentId,
                 name: intl.formatMessage(IncidentManagementResources.incidentId),
-                fieldName: IncidentsListColumnKey.id,
+                fieldName: IncidentsListColumnKey.incidentId,
                 isResizable: true,
                 minWidth: 100,
                 maxWidth: 150,
                 isMultiline: true,
                 onRender: (item: Thread) => item.status?.incidentStatus?.incidentId,
-                isSorted: sortColumnKey === (IncidentsListColumnKey.id as IncidentsListColumnKey),
+                isSorted: sortColumnKey === (IncidentsListColumnKey.incidentId as IncidentsListColumnKey),
                 isSortedDescending:
-                    sortColumnKey === (IncidentsListColumnKey.id as IncidentsListColumnKey) ? isSortedDescending : undefined,
+                    sortColumnKey === (IncidentsListColumnKey.incidentId as IncidentsListColumnKey) ? isSortedDescending : undefined,
                 onColumnClick: (_, col) => handleColumnClick(col),
             },
             {
@@ -449,6 +454,10 @@ const IncidentsOverview: FC = () => {
             minWidth: 100,
             maxWidth: 250,
             onRender: item => getStatusText(item.status?.incidentStatus?.status || IncidentStatus.active),
+            isSorted: sortColumnKey === (IncidentsListColumnKey.status as IncidentsListColumnKey),
+            isSortedDescending:
+                sortColumnKey === (IncidentsListColumnKey.status as IncidentsListColumnKey) ? isSortedDescending : undefined,
+            onColumnClick: (_, col) => handleColumnClick(col),
         });
 
         if (showMockedComponents) {
