@@ -323,7 +323,8 @@ namespace Agent.Core.Services
 
         private async Task<List<Incident>> GetIncidentsAsyncInternal(Dictionary<string, string?> queryParams)
         {
-            var apiPath = QueryHelpers.AddQueryString($"{IcmAPIPathPrefix}/incidents", queryParams);
+            var apiPathPrefix = IcmAPIPathPrefix.StartsWith("/api/user") ? IcmAPIPathPrefix.Replace("/api/user", "/api2/user/incidentapi") : IcmAPIPathPrefix;
+            var apiPath = QueryHelpers.AddQueryString($"{apiPathPrefix}/incidents", queryParams);
             var response = await SendICMGetRequestAsync(apiPath);
             if (response.IsSuccessStatusCode)
             {
