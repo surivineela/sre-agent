@@ -2067,6 +2067,12 @@
       "value": "Alert Rule"
     }
   ],
+  "NYTGIb": [
+    {
+      "type": 0,
+      "value": "Got it"
+    }
+  ],
   "NcxGiD": [
     {
       "type": 0,
@@ -2477,6 +2483,12 @@
     {
       "type": 0,
       "value": "Resolved by agent"
+    }
+  ],
+  "R7g7UT": [
+    {
+      "type": 0,
+      "value": "Incident threads have moved"
     }
   ],
   "RAjqKb": [
@@ -5105,6 +5117,12 @@
     {
       "type": 0,
       "value": "Core application group type"
+    }
+  ],
+  "z8ZYoc": [
+    {
+      "type": 0,
+      "value": "Find incident threads and incident response plans together on the Incident Management tab."
     }
   ],
   "zGhyFV": [

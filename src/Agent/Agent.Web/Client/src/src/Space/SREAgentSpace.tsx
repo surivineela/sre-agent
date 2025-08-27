@@ -1,8 +1,19 @@
 import { ThemeContext } from '@fluentui/react';
-import { Button, SelectTabData, SelectTabEvent, Tab, TabList } from '@fluentui/react-components';
+import {
+    Button,
+    SelectTabData,
+    SelectTabEvent,
+    Tab,
+    TabList,
+    TeachingPopover,
+    TeachingPopoverBody,
+    TeachingPopoverFooter,
+    TeachingPopoverSurface,
+    TeachingPopoverTitle,
+} from '@fluentui/react-components';
 import { LineHorizontal120Regular, Open16Regular, PersonFeedback20Regular } from '@fluentui/react-icons';
 import type { Theme } from '@fluentui/theme';
-import { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { FC, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { createHashRouter, Outlet, RouterProvider, useLocation, useNavigate } from 'react-router-dom';
 import AzPortalProxy from '../Common/AzPortalProxy/AzPortalProxy';
@@ -12,7 +23,8 @@ import { AppInsightsClient } from '../Common/Clients/AppInsightsClient';
 import { AgentAccessLevel, IncidentManagementType } from '../Common/Contracts/Azure/SreAgent';
 import { ArmResourceDescriptor } from '../Common/Helpers/ResourceDescriptors';
 import { SettingNames, useConfigSetting } from '../Common/Hooks/ConfigSettings';
-import { SreAgentTabResources } from '../Strings/SREAgentResources';
+import { LocalStorageFlags, useLocalStorage } from '../Common/Hooks/useLocalStorage';
+import { IncidentManagementResources, SreAgentResources, SreAgentTabResources } from '../Strings/SREAgentResources';
 import Activities from './Activities/Activities.ReactView';
 import { FeedbackDialog } from './Components/FeedbackDialog';
 import { SreAgentContext } from './Contracts/Context';
@@ -51,22 +63,21 @@ const inStandaloneMode = AzPortalProxy.inStandaloneMode;
 const query = `traces | where timestamp > ago(1d)`;
 const source = `PaasServerless.SreAgentSpace`;
 
-interface ControlPlaneDependentTabsProps {
-    appInsightsResourceId: string | undefined;
-    setAppInsightsResourceId: (resourceId: string) => void;
+interface UseControlPlaneDependentTabsProps {
+    inStandaloneMode: boolean | undefined;
+    isCrossTenantPortalMode: boolean | undefined;
 }
 
-const ControlPlaneDependentTabs = ({ appInsightsResourceId, setAppInsightsResourceId }: ControlPlaneDependentTabsProps) => {
+const useControlPlaneDependentTabs = ({ inStandaloneMode, isCrossTenantPortalMode }: UseControlPlaneDependentTabsProps) => {
     const environmentContext = useContext(EnvironmentContext);
     const sreAgentContext = useContext(SreAgentContext);
     const {
         agent: { setMode, setAccessLevel },
     } = sreAgentContext;
 
-    const intl = useIntl();
-    const styles = useSreAgentSpaceStyles();
-
     const { agent, agentLoaded } = useSreAgent(environmentContext.resourceId);
+
+    const [appInsightsResourceId, setAppInsightsResourceId] = useState<string>();
 
     const fetchAppInsightsId = useCallback(async () => {
         const { subscription, resourceGroup } = new ArmResourceDescriptor(environmentContext.resourceId);
@@ -84,6 +95,17 @@ const ControlPlaneDependentTabs = ({ appInsightsResourceId, setAppInsightsResour
         setAppInsightsResourceId,
     ]);
 
+    const onLogsClick = useCallback(() => {
+        if (appInsightsResourceId) {
+            window.open(
+                `https://portal.azure.com#view/Microsoft_OperationsManagementSuite_Workspace/Logs.ReactView/query/${query}/resourceId/${encodeURIComponent(
+                    appInsightsResourceId
+                )}/source/${source}`,
+                '_blank'
+            );
+        }
+    }, [appInsightsResourceId]);
+
     useEffect(() => {
         if (agent) {
             fetchAppInsightsId();
@@ -92,23 +114,12 @@ const ControlPlaneDependentTabs = ({ appInsightsResourceId, setAppInsightsResour
         }
     }, [agent, fetchAppInsightsId, setAccessLevel, setMode]);
 
-    return (
-        <>
-            <Tab id="IncidentManagement" value={TabValues.IncidentManagement} disabled={!agentLoaded}>
-                {intl.formatMessage(SreAgentTabResources.incidentManagement)}
-            </Tab>
-            <Tab id="Settings" value={TabValues.Settings}>
-                {intl.formatMessage(SreAgentTabResources.settings)}
-            </Tab>{' '}
-            <LineHorizontal120Regular className={styles.lineIconStyle} />
-            <Tab id="Logs" value={TabValues.Logs} disabled={!agentLoaded || !appInsightsResourceId}>
-                <div className={styles.logsMenuItemContainer}>
-                    <Open16Regular />
-                    {intl.formatMessage(SreAgentTabResources.logs)}
-                </div>
-            </Tab>
-        </>
-    );
+    return {
+        controlPlaneTabsVisible: !inStandaloneMode && !isCrossTenantPortalMode,
+        incidentManagementTabDisabled: !agentLoaded,
+        logsTabDisabled: !agentLoaded || !appInsightsResourceId,
+        onLogsClick,
+    };
 };
 
 const TabsListWrapper: FC = () => {
@@ -123,11 +134,24 @@ const TabsListWrapper: FC = () => {
     const intl = useIntl();
     const location = useLocation();
     const navigate = useNavigate();
+    const styles = useSreAgentSpaceStyles();
 
-    const [appInsightsResourceId, setAppInsightsResourceId] = useState<string>();
     const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
 
+    const incidentManagementTabRef = useRef<HTMLButtonElement>(null);
+    const { item: isIncidentManagementTeachingPopoverDismissed, setItem: setIsIncidentManagementTeachingPopoverDismissed } =
+        useLocalStorage(LocalStorageFlags.IncidentManagementPopoverDismissed);
+
+    const showIncidentManagementTeachingPopover = useMemo(() => {
+        return isIncidentManagementTeachingPopoverDismissed !== 'true';
+    }, [isIncidentManagementTeachingPopoverDismissed]);
+
     const showDailyReportsTab = useConfigSetting(SettingNames.ShowDailyReportsTab);
+
+    const { controlPlaneTabsVisible, incidentManagementTabDisabled, logsTabDisabled, onLogsClick } = useControlPlaneDependentTabs({
+        inStandaloneMode,
+        isCrossTenantPortalMode,
+    });
 
     const selectedValue = useMemo(() => {
         if (location.pathname?.startsWith('/views/activities')) {
@@ -147,17 +171,6 @@ const TabsListWrapper: FC = () => {
         }
         return TabValues.Activities;
     }, [location.pathname]);
-
-    const onLogsClick = useCallback(() => {
-        if (appInsightsResourceId) {
-            window.open(
-                `https://portal.azure.com#view/Microsoft_OperationsManagementSuite_Workspace/Logs.ReactView/query/${query}/resourceId/${encodeURIComponent(
-                    appInsightsResourceId
-                )}/source/${source}`,
-                '_blank'
-            );
-        }
-    }, [appInsightsResourceId]);
 
     const onTabSelect = useCallback(
         (_: SelectTabEvent, data: SelectTabData) => {
@@ -213,6 +226,41 @@ const TabsListWrapper: FC = () => {
                     <Tab id="Activities" value={TabValues.Activities}>
                         {intl.formatMessage(SreAgentTabResources.activities)}
                     </Tab>
+                    {controlPlaneTabsVisible && (
+                        <>
+                            <Tab
+                                id="IncidentManagement"
+                                value={TabValues.IncidentManagement}
+                                ref={incidentManagementTabRef}
+                                disabled={incidentManagementTabDisabled}
+                            >
+                                {intl.formatMessage(SreAgentTabResources.incidentManagement)}
+                            </Tab>
+                            <TeachingPopover
+                                appearance="brand"
+                                open={showIncidentManagementTeachingPopover}
+                                withArrow={true}
+                                positioning={{ target: incidentManagementTabRef.current, position: 'below', align: 'start' }}
+                                onOpenChange={(_, data) => {
+                                    if (!data.open) {
+                                        setIsIncidentManagementTeachingPopoverDismissed('true');
+                                    }
+                                }}
+                            >
+                                <TeachingPopoverSurface>
+                                    <TeachingPopoverBody>
+                                        <TeachingPopoverTitle>
+                                            {intl.formatMessage(IncidentManagementResources.incidentThreadsMovedTitle)}
+                                        </TeachingPopoverTitle>
+                                        <div style={{ maxWidth: '280px', wordWrap: 'break-word' }}>
+                                            {intl.formatMessage(IncidentManagementResources.incidentThreadsMovedDescription)}
+                                        </div>
+                                    </TeachingPopoverBody>
+                                    <TeachingPopoverFooter primary={intl.formatMessage(SreAgentResources.gotIt)} />
+                                </TeachingPopoverSurface>
+                            </TeachingPopover>
+                        </>
+                    )}
                     <Tab id="Knowledge" value={TabValues.Graph}>
                         {intl.formatMessage(SreAgentTabResources.resourceMapping)}
                     </Tab>
@@ -221,11 +269,19 @@ const TabsListWrapper: FC = () => {
                             {'Daily Reports'}
                         </Tab>
                     )}
-                    {!inStandaloneMode && !isCrossTenantPortalMode && (
-                        <ControlPlaneDependentTabs
-                            appInsightsResourceId={appInsightsResourceId}
-                            setAppInsightsResourceId={setAppInsightsResourceId}
-                        />
+                    {controlPlaneTabsVisible && (
+                        <>
+                            <Tab id="Settings" value={TabValues.Settings}>
+                                {intl.formatMessage(SreAgentTabResources.settings)}
+                            </Tab>{' '}
+                            <LineHorizontal120Regular className={styles.lineIconStyle} />
+                            <Tab id="Logs" value={TabValues.Logs} disabled={logsTabDisabled}>
+                                <div className={styles.logsMenuItemContainer}>
+                                    <Open16Regular />
+                                    {intl.formatMessage(SreAgentTabResources.logs)}
+                                </div>
+                            </Tab>
+                        </>
                     )}
                 </TabList>
                 <Button
@@ -237,7 +293,6 @@ const TabsListWrapper: FC = () => {
                     {intl.formatMessage(SreAgentTabResources.feedback)}
                 </Button>
             </div>
-
             <FeedbackDialog isOpen={isFeedbackDialogOpen} setIsOpen={setIsFeedbackDialogOpen} />
             <Outlet />
         </div>

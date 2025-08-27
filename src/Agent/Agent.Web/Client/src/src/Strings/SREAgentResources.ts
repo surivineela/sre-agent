@@ -268,6 +268,7 @@ export const SreAgentResources = defineMessages({
     standardInput: { defaultMessage: 'Standard input', id: 'LyHqqV' },
     error: { defaultMessage: 'Error', id: 'KN7zKn' },
     oboTokenUsed: { defaultMessage: 'An on-behalf-of token will be used with the following scope', id: 'x3aQrV' },
+    gotIt: { defaultMessage: 'Got it', id: 'NYTGIb' },
 });
 
 export const SreAgentTabResources = defineMessages({
@@ -953,6 +954,11 @@ export const IncidentManagementResources = defineMessages({
     noIncidentsFound: { defaultMessage: 'No incidents found', id: '312q4w' },
     expandNavigation: { defaultMessage: 'Expand navigation', id: '3wVEAO' },
     collapseNavigation: { defaultMessage: 'Collapse navigation', id: 'IoApza' },
+    incidentThreadsMovedTitle: { defaultMessage: 'Incident threads have moved', id: 'R7g7UT' },
+    incidentThreadsMovedDescription: {
+        defaultMessage: 'Find incident threads and incident response plans together on the Incident Management tab.',
+        id: 'z8ZYoc',
+    },
 });
 
 export const IncidentManagementPlatformResources = defineMessages({
