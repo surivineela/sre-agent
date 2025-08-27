@@ -1543,7 +1543,7 @@ export const DataConnectorsResources = defineMessages({
     editDataConnectorDescription: { defaultMessage: 'Update the data connector configuration.', id: 'ko0rr4' },
     namePlaceholder: { defaultMessage: 'Enter connector name', id: '+2NFJn' },
     typePlaceholder: { defaultMessage: 'Select connector type', id: 'ftDEuE' },
-    dataSourcePlaceholder: { defaultMessage: 'Enter connector string or endpoint', id: 'jJc7jK' },
+    dataSourcePlaceholder: { defaultMessage: 'Enter connection string or endpoint', id: 'f+cHle' },
     keyVaultUriPlaceholder: { defaultMessage: 'Enter Key Vault URI', id: '69sjgc' },
     identityPlaceholder: { defaultMessage: 'Select identity', id: '8RdOD0' },
     duplicateNameError: { defaultMessage: 'A data connector with this name already exists', id: 'pG9xP9' },

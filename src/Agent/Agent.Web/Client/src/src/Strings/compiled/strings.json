@@ -3563,6 +3563,12 @@
       "value": "With incident handlers, the agent chooses the tools it needs to manage common types of incidents. Custom handlers replace this capability by giving the agent specific instructions that you provide."
     }
   ],
+  "f+cHle": [
+    {
+      "type": 0,
+      "value": "Enter connection string or endpoint"
+    }
+  ],
   "f0Luxo": [
     {
       "type": 0,
@@ -3975,12 +3981,6 @@
     {
       "type": 0,
       "value": "Lets you manage the web plans for websites, but not access to them."
-    }
-  ],
-  "jJc7jK": [
-    {
-      "type": 0,
-      "value": "Enter connector string or endpoint"
     }
   ],
   "jK9a9x": [
