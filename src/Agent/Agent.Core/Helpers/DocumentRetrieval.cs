@@ -52,7 +52,62 @@ public static class DocumentRetrieval
             {
                 Dimensions = dimensions,
             };
-            var embedding = await embeddingGenerator.GenerateAsync(searchQuery, options);
+            // Call the core GenerateAsync that returns GeneratedEmbeddings so we can inspect Usage metadata.
+            var generated = await embeddingGenerator.GenerateAsync(new[] { searchQuery }, options);
+
+            if (generated == null || generated.Count == 0)
+            {
+                return Array.Empty<float>();
+            }
+
+            // Pull the first embedding result now so we can read its ModelId for logging
+            var embedding = generated[0];
+
+            // Log usage info when available, including model/modelVersion parsed from embedding.ModelId
+            if (generated.Usage != null)
+            {
+                try
+                {
+                    var modelId = embedding?.ModelId?.ToString() ?? string.Empty;
+
+                    // Split modelId into Model and ModelVersion when in format "model-modelVersion" (modelVersion is a date like 2025-04-14)
+                    string model = modelId;
+                    string modelVersion = string.Empty;
+
+                    if (!string.IsNullOrEmpty(modelId))
+                    {
+                        var m = System.Text.RegularExpressions.Regex.Match(modelId, "^(.*)-(\\d{4}-\\d{2}-\\d{2})$");
+                        if (m.Success && m.Groups.Count == 3)
+                        {
+                            model = m.Groups[1].Value;
+                            modelVersion = m.Groups[2].Value;
+                        }
+                        else
+                        {
+                            // Fallback: put full modelId into model and leave modelVersion empty
+                            model = modelId;
+                            modelVersion = string.Empty;
+                        }
+                    }
+
+                    // Use the project's structured logger helper for token consumption
+                    logger.LogTokenConsumption(
+                        model,
+                        modelVersion,
+                        generated.Usage.InputTokenCount ?? 0,
+                        generated.Usage.OutputTokenCount ?? 0);
+                }
+                catch
+                {
+                    // don't fail the embedding flow because logging failed
+                }
+            }
+
+            if (embedding == null)
+            {
+                return Array.Empty<float>();
+            }
+
             return embedding.Vector.ToArray();
         }
         catch (Exception ex)
