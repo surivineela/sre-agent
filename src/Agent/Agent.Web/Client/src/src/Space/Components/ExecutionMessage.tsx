@@ -14,12 +14,15 @@ import {
     tokens,
 } from '@fluentui/react-components';
 import { CheckmarkCircle16Filled, Dismiss16Regular, DismissCircle16Filled } from '@fluentui/react-icons';
-import axios from 'axios';
-import { useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { FormattedMessage } from 'react-intl';
+import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
+import { getDataPlaneErrorMessage } from '../../Common/Clients/DataPlaneClient';
 import CopyButton from '../../Common/Components/CopyButton';
 import { Approval, AzCliExecution, ExecutionStatus, KubectlExecution } from '../../Common/Contracts/DataPlane/Message';
-import { getAgentHeaders } from '../../Common/Helpers/headers';
+// headers handled in ThreadClient
+import { ThreadClient } from '../../Common/Clients/ThreadClient';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
 import { ApprovalTimestamps } from './ApprovalTimestamps';
@@ -109,6 +112,9 @@ const useStyles = makeStyles({
 });
 
 const ExecutionMessage = ({ execution, threadId, type, updateSpecialMessageInStreamingMessage }: ExecutionMessageProps) => {
+    const { resourceId, sreAgentEndpoint } = useContext(EnvironmentContext);
+    const azPortalProxy = useAzPortalContext();
+
     const [currentExecution, setCurrentExecution] = useState<ExecutionLike>(execution);
     const [isActionLoading, setIsActionLoading] = useState(false);
     const [loadingAction, setLoadingAction] = useState<'run' | 'cancel' | null>(null);
@@ -122,17 +128,19 @@ const ExecutionMessage = ({ execution, threadId, type, updateSpecialMessageInStr
     const executedByName = currentExecution.executedBy?.displayName;
     const isExecutedWithUserPerms = executedByName && executedByName !== SreAgentDisplayName;
 
+    const threadClient = useMemo(() => ThreadClient.getInstance(sreAgentEndpoint), [sreAgentEndpoint]);
+
     const { basePath, executionTypeLabel } = useMemo(() => {
         switch (type) {
             case ExecutionMessageType.Kubectl:
                 return {
-                    basePath: 'kubectlExecution',
+                    basePath: 'kubectlExecution' as const,
                     executionTypeLabel: 'Kubernetes',
                 };
             case ExecutionMessageType.AzCli:
             default:
                 return {
-                    basePath: 'azCliExecution',
+                    basePath: 'azCliExecution' as const,
                     executionTypeLabel: 'Azure CLI',
                 };
         }
@@ -195,17 +203,21 @@ const ExecutionMessage = ({ execution, threadId, type, updateSpecialMessageInStr
             if (!isPolling) return;
 
             try {
-                const response = await fetch(`/api/v1/${basePath}/${threadId}/${execution.id}/status`, {
-                    headers: getAgentHeaders(),
-                    cache: 'no-cache',
-                });
-
-                if (!response.ok) {
-                    console.error('Failed to fetch execution status:', response.status, response.statusText);
+                const client = ThreadClient.getInstance(sreAgentEndpoint);
+                const result = await client.getExecutionStatus(basePath as any, threadId, execution.id);
+                if (!result.isSuccessful) {
+                    azPortalProxy.log({
+                        action: 'fetchExecutionStatus',
+                        actionModifier: 'failed',
+                        logLevel: 'error',
+                        resourceId,
+                        data: {
+                            error: getDataPlaneErrorMessage(result.error),
+                        },
+                    });
                     return;
                 }
-
-                const data = await response.json();
+                const data = result.content || {};
 
                 if (isPolling) {
                     const updatedExecution: ExecutionLike = {
@@ -233,7 +245,15 @@ const ExecutionMessage = ({ execution, threadId, type, updateSpecialMessageInStr
                     }
                 }
             } catch (error) {
-                console.error('Error polling for execution status:', error);
+                azPortalProxy.log({
+                    action: 'fetchExecutionStatus',
+                    actionModifier: 'failed',
+                    logLevel: 'error',
+                    resourceId,
+                    data: {
+                        error,
+                    },
+                });
             }
         }, 2000);
 
@@ -241,7 +261,17 @@ const ExecutionMessage = ({ execution, threadId, type, updateSpecialMessageInStr
             isPolling = false;
             clearInterval(pollInterval);
         };
-    }, [currentExecution, execution.id, threadId, basePath, updateSpecialMessageInStreamingMessage, type]);
+    }, [
+        currentExecution,
+        execution.id,
+        threadId,
+        basePath,
+        updateSpecialMessageInStreamingMessage,
+        type,
+        azPortalProxy,
+        resourceId,
+        sreAgentEndpoint,
+    ]);
 
     const showOutputAccordion = currentExecution.status === ExecutionStatus.Completed || currentExecution.status === ExecutionStatus.Failed;
 
@@ -251,57 +281,68 @@ const ExecutionMessage = ({ execution, threadId, type, updateSpecialMessageInStr
         setIsActionLoading(true);
         setLoadingAction(action);
 
+        azPortalProxy.logAmplitudeControlEvent({
+            targetType: 'button',
+            targetAction: 'clicked',
+            targetName: `${action}Action`,
+            targetFriendlyName: `${action} action`,
+            valueObjectName: execution.description,
+            valueObjectFriendlyName: execution.description,
+        });
+
         const maxRetries = 3;
         const baseDelay = 1000;
 
         for (let attempt = 0; attempt <= maxRetries; attempt++) {
-            try {
-                const response = await axios.post(
-                    `/api/v1/${basePath}/${threadId}/${execution.id}/action`,
-                    {
-                        action,
-                        user: userIdAndDisplayName?.userId || 'sreagent-client',
-                    },
-                    { headers: getAgentHeaders() }
-                );
+            const result = await threadClient.postExecutionAction(
+                basePath,
+                threadId,
+                execution.id,
+                action,
+                userIdAndDisplayName?.userId || 'sreagent-client'
+            );
 
-                if (response.data) {
-                    const updatedExecution: ExecutionLike = {
-                        ...currentExecution,
-                        status: response.data.status,
-                        startedTimestamp: response.data.startedTimestamp || currentExecution.startedTimestamp,
-                        // Don't set executedBy here unless 'cancel' as it will always be the user you sent even if using agent creds
-                        executedBy:
-                            action === 'cancel' && response.data.executedBy
-                                ? {
-                                      displayName: response.data.executedBy,
-                                      userId: response.data.executedById,
-                                      role: 'User',
-                                  }
-                                : currentExecution.executedBy,
-                    };
+            if (result.isSuccessful && result.content) {
+                const updatedExecution: ExecutionLike = {
+                    ...currentExecution,
+                    status: result.content.status,
+                    startedTimestamp: result.content.startedTimestamp || currentExecution.startedTimestamp,
+                    // Don't set executedBy here unless 'cancel' as it will always be the user you sent even if using agent creds
+                    executedBy:
+                        action === 'cancel' && result.content.executedBy
+                            ? {
+                                  displayName: result.content.executedBy,
+                                  userId: result.content.executedById,
+                                  role: 'User',
+                              }
+                            : currentExecution.executedBy,
+                };
 
-                    if (updateSpecialMessageInStreamingMessage) {
-                        if (type === ExecutionMessageType.AzCli) {
-                            updateSpecialMessageInStreamingMessage({ azCliExecution: updatedExecution as AzCliExecution });
-                        } else {
-                            updateSpecialMessageInStreamingMessage({ kubectlExecution: updatedExecution as KubectlExecution });
-                        }
+                if (updateSpecialMessageInStreamingMessage) {
+                    if (type === ExecutionMessageType.AzCli) {
+                        updateSpecialMessageInStreamingMessage({ azCliExecution: updatedExecution as AzCliExecution });
                     } else {
-                        setCurrentExecution(updatedExecution);
+                        updateSpecialMessageInStreamingMessage({ kubectlExecution: updatedExecution as KubectlExecution });
                     }
+                } else {
+                    setCurrentExecution(updatedExecution);
                 }
 
                 break;
-            } catch (error: any) {
-                console.error(`Failed to ${action} execution (attempt ${attempt + 1}/${maxRetries + 1}):`, error);
-                if (attempt === maxRetries) {
-                    if (error.response?.status === 409) {
-                        console.error(`Cannot ${action} - execution is already ${error.response.data.currentStatus}`);
-                    } else {
-                        console.error(`Failed to ${action} execution after ${maxRetries + 1} attempts. Please try again.`);
-                    }
-                } else {
+            } else {
+                azPortalProxy.log({
+                    action: 'runExecution',
+                    actionModifier: 'failed',
+                    logLevel: 'error',
+                    resourceId,
+                    data: {
+                        action: execution.description,
+                        error: result.error,
+                        attemptNum: attempt + 1,
+                    },
+                });
+
+                if (attempt !== maxRetries) {
                     const delay = baseDelay * Math.pow(2, attempt);
                     await new Promise(resolve => setTimeout(resolve, delay));
                 }

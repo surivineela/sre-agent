@@ -14,12 +14,13 @@ import {
 } from '@fluentui/react-components';
 import { CheckmarkCircle16Filled, Dismiss16Regular } from '@fluentui/react-icons';
 import { InfoLabel } from '@fluentui/react-infolabel';
-import axios from 'axios';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { FormattedMessage } from 'react-intl';
+import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { Approval, ApprovalDecision, AzCliExecution, KubectlExecution } from '../../Common/Contracts/DataPlane/Message';
-import { getAgentHeaders } from '../../Common/Helpers/headers';
+// headers handled by ThreadClient
+import { ThreadClient } from '../../Common/Clients/ThreadClient';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
 import { ApprovalTimestamps } from './ApprovalTimestamps';
@@ -68,12 +69,11 @@ const ApprovalMessage = ({
     const [loadingButton, setLoadingButton] = useState<'approve' | 'deny' | null>(null);
     const classes = useStyles();
 
-    const { sreAgentEndpoint } = useContext(EnvironmentContext);
+    const { sreAgentEndpoint, resourceId } = useContext(EnvironmentContext);
+    const azPortalProxy = useAzPortalContext();
     const { userIdAndDisplayName } = useAuthenticatedUserInfo();
 
-    useEffect(() => {
-        setApproval(approvalInput);
-    }, [approvalInput]);
+    const threadClient = useMemo(() => ThreadClient.getInstance(sreAgentEndpoint), [sreAgentEndpoint]);
 
     const isPending = approval?.status === ApprovalDecision.Pending || approval?.status === ApprovalDecision.PendingAuthorization;
 
@@ -112,56 +112,83 @@ const ApprovalMessage = ({
 
     const primaryButtonText = approval?.status === ApprovalDecision.Pending ? SreAgentResources.continue : SreAgentResources.authorize;
 
-    const sendApprovalDecision = async (threadId: string, approvalId: string, decision: ApprovalDecision, scope?: string) => {
-        const url = `${sreAgentEndpoint}/api/v1/approvals/${threadId}/${approvalId}/decision`;
+    const handleApprovalDecision = async (approved: boolean) => {
+        if (!approval) return;
 
-        const response = await axios.post(
-            url,
-            {
-                Status: decision,
-                User: userIdAndDisplayName.userId,
-                Scope: scope,
-            },
-            {
-                headers: getAgentHeaders(scope),
-            }
+        // Check if already approved/rejected/canceled/authorized
+        if (approval.status !== ApprovalDecision.Pending && approval.status !== ApprovalDecision.PendingAuthorization) {
+            return;
+        }
+
+        setIsApprovalLoading(true);
+        setLoadingButton(approved ? 'approve' : 'deny');
+
+        azPortalProxy.logAmplitudeControlEvent({
+            targetType: 'button',
+            targetAction: 'clicked',
+            targetName: `${approved ? 'approved' : 'denied'}Execution`,
+            targetFriendlyName: `${approved ? 'Approved' : 'Denied'} execution`,
+            valueObjectName: approval?.description,
+            valueObjectFriendlyName: approval?.description,
+        });
+
+        let decision: ApprovalDecision;
+        if (approval.status === ApprovalDecision.Pending) {
+            decision = approved ? ApprovalDecision.Approved : ApprovalDecision.Cancelled;
+        } else {
+            decision = approved ? ApprovalDecision.Authorized : ApprovalDecision.Cancelled;
+        }
+
+        const approvalDecisionResult = await threadClient.postApprovalDecision(
+            threadId,
+            approval.id,
+            decision,
+            userIdAndDisplayName.userId,
+            approval.oboTokenScope
         );
 
-        return response.data;
-    };
+        if (approvalDecisionResult.isSuccessful && approvalDecisionResult.content) {
+            const approvalData = approvalDecisionResult.content;
+            const updatedApproval: Approval = {
+                ...approval,
+                status: approvalData.status as ApprovalDecision,
+                decisionUser: {
+                    displayName: approvalData.decisionMakerName || approvalData.decisionMaker || 'Web Client User',
+                    userId: approvalData.decisionMakerId || approvalData.decisionMaker,
+                    role: 'User',
+                },
+                decisionTimestamp: approvalData.decisionTimestamp,
+            };
 
-    const handleApprovalDecision = async (approved: boolean) => {
-        try {
-            if (approval) {
-                // Check if already approved/rejected/canceled/authorized
-                if (approval.status !== ApprovalDecision.Pending && approval.status !== ApprovalDecision.PendingAuthorization) {
-                    console.warn(`Approval ${approval.id} is already ${approval.status}`);
-                    return;
-                }
+            setApproval(updatedApproval);
+            updateSpecialMessageInStreamingMessage?.({
+                approval: updatedApproval,
+            });
+        } else {
+            azPortalProxy.log({
+                action: 'approvalDecision',
+                actionModifier: 'failed',
+                logLevel: 'error',
+                resourceId,
+                data: {
+                    error: approvalDecisionResult.error,
+                    messageId,
+                    approvalId: approval?.id,
+                },
+            });
 
-                setIsApprovalLoading(true);
-                setLoadingButton(approved ? 'approve' : 'deny');
-
-                let decision: ApprovalDecision;
-                if (approval.status === ApprovalDecision.Pending) {
-                    decision = approved ? ApprovalDecision.Approved : ApprovalDecision.Cancelled;
-                } else {
-                    decision = approved ? ApprovalDecision.Authorized : ApprovalDecision.Cancelled;
-                }
-
-                const approvalData = await sendApprovalDecision(threadId, approval.id, decision, approval.oboTokenScope);
-
-                console.log(`Approval decision sent for message ID: ${messageId}, approved: ${approved}`);
-
+            const errorData = approvalDecisionResult.error.response?.data;
+            // Conflict - already approved/rejected/canceled/authorized
+            if (approval && errorData && approvalDecisionResult.error.response?.status === 409) {
                 const updatedApproval: Approval = {
                     ...approval,
-                    status: approvalData.status as ApprovalDecision,
+                    status: errorData.status as ApprovalDecision,
                     decisionUser: {
-                        displayName: approvalData.decisionMakerName || approvalData.decisionMaker || 'Web Client User',
-                        userId: approvalData.decisionMakerId || approvalData.decisionMaker,
+                        displayName: errorData.decisionMakerName || 'Unknown User',
+                        userId: errorData.decisionMakerId || '',
                         role: 'User',
                     },
-                    decisionTimestamp: approvalData.decisionTimestamp,
+                    decisionTimestamp: errorData.decisionTimestamp,
                 };
 
                 setApproval(updatedApproval);
@@ -169,43 +196,15 @@ const ApprovalMessage = ({
                     approval: updatedApproval,
                 });
             }
-        } catch (error: any) {
-            console.error(`Failed to send approval decision for message ID: ${messageId}`, error);
-
-            if (error.response?.status === 409) {
-                // Conflict - already approved/rejected/canceled/authorized
-                const errorData = error.response?.data;
-
-                if (approval && errorData) {
-                    const updatedApproval: Approval = {
-                        ...approval,
-                        status: errorData.status as ApprovalDecision,
-                        decisionUser: {
-                            displayName: errorData.decisionMakerName || 'Unknown User',
-                            userId: errorData.decisionMakerId || '',
-                            role: 'User',
-                        },
-                        decisionTimestamp: errorData.decisionTimestamp,
-                    };
-
-                    setApproval(updatedApproval);
-                    updateSpecialMessageInStreamingMessage?.({
-                        approval: updatedApproval,
-                    });
-                }
-
-                const formattedDate = errorData.decisionTimestamp ? new Date(errorData.decisionTimestamp).toLocaleString() : 'unknown date';
-                console.error(
-                    `This operation was already ${errorData.status?.toLowerCase()} by ${errorData.decisionMakerName || 'Unknown User'} on ${formattedDate}`
-                );
-            } else {
-                console.error('Failed to process approval decision. Please try again.');
-            }
-        } finally {
-            setIsApprovalLoading(false);
-            setLoadingButton(null);
         }
+
+        setIsApprovalLoading(false);
+        setLoadingButton(null);
     };
+
+    useEffect(() => {
+        setApproval(approvalInput);
+    }, [approvalInput]);
 
     if (!approval) return null;
 

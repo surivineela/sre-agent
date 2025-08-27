@@ -357,4 +357,88 @@ export class ThreadClient extends DataPlaneClient {
             };
         }
     };
+
+    public postApprovalDecision = async (
+        threadId: string,
+        approvalId: string,
+        decision: string,
+        userId: string,
+        oboScope?: string
+    ): Promise<Response<any>> => {
+        const url = this.getRequestUrl(`/api/v1/approvals/${threadId}/${approvalId}/decision`);
+        try {
+            const response = await axios.post(
+                url,
+                {
+                    Status: decision,
+                    User: userId,
+                    Scope: oboScope,
+                },
+                {
+                    headers: getAgentHeaders(oboScope),
+                }
+            );
+
+            return {
+                isSuccessful: true,
+                content: response.data,
+            };
+        } catch (e) {
+            return {
+                isSuccessful: false,
+                error: e,
+            };
+        }
+    };
+
+    public getExecutionStatus = async (
+        basePath: 'azCliExecution' | 'kubectlExecution',
+        threadId: string,
+        executionId: string
+    ): Promise<Response<any>> => {
+        const url = this.getRequestUrl(`/api/v1/${basePath}/${threadId}/${executionId}/status`);
+        try {
+            const response = await axios.get(url, {
+                headers: getAgentHeaders(),
+            });
+            return {
+                isSuccessful: true,
+                content: response.data,
+            };
+        } catch (e) {
+            return {
+                isSuccessful: false,
+                error: e,
+            };
+        }
+    };
+
+    public postExecutionAction = async (
+        basePath: 'azCliExecution' | 'kubectlExecution',
+        threadId: string,
+        executionId: string,
+        action: 'run' | 'cancel',
+        userId: string
+    ): Promise<Response<any>> => {
+        const url = this.getRequestUrl(`/api/v1/${basePath}/${threadId}/${executionId}/action`);
+        try {
+            const response = await axios.post(
+                url,
+                {
+                    action,
+                    user: userId,
+                },
+                { headers: getAgentHeaders() }
+            );
+            return {
+                isSuccessful: true,
+                content: response.data,
+            };
+        } catch (e) {
+            return {
+                isSuccessful: false,
+                error: e,
+            };
+        }
+    };
 }
