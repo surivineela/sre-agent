@@ -36,7 +36,7 @@ const GroupNodePadding = 50;
 export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
     const { treeStateValue } = props;
 
-    const { fitView } = useReactFlow();
+    const { fitView, getNode, setCenter } = useReactFlow();
 
     const [nodes, setNodes, onNodesChange] = useNodesState<GraphFlowNode>([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState<GraphFlowEdge>([]);
@@ -46,20 +46,72 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
     const [minZoom, setMinZoom] = useState<number>();
 
     const reactFlowWrapperRef = useRef<HTMLDivElement>(null);
+    const selectedNodeIdRef = useRef<string | null>(selectedNodeId);
 
-    const centerGraph = debounce(() => {
-        fitView({ padding: 50, duration: 50 });
-    }, 100);
+    const centerNode = useCallback(
+        (nodeId: string | null, zoomOutDuration = 500) => {
+            requestAnimationFrame(() => {
+                if (nodeId) {
+                    const node = getNode(nodeId);
 
-    const selectNode = useCallback((nodeId: string | null) => {
-        setSelectedNodeId(nodeId);
-        setIsDetailsPanelOpen(!!nodeId);
-    }, []);
+                    const getAbsolutePosition = (nodeId?: string | null): { absoluteX: number; absoluteY: number } => {
+                        const node = nodeId ? getNode(nodeId) : null;
+                        if (!node) {
+                            return {
+                                absoluteX: 0,
+                                absoluteY: 0,
+                            };
+                        }
+
+                        const parentNodePosition = getAbsolutePosition(node.parentId);
+
+                        return {
+                            absoluteX: node.position.x + parentNodePosition.absoluteX,
+                            absoluteY: node.position.y + parentNodePosition.absoluteY,
+                        };
+                    };
+
+                    const { absoluteX, absoluteY } = getAbsolutePosition(nodeId);
+                    const centerX = absoluteX + (node?.width || 0) / 2 + 150; // offset a bit to move the center away from the details panel
+                    const centerY = absoluteY + (node?.height || 0) / 2;
+
+                    // Use setCenter with animation options for smooth centering
+                    setCenter(centerX, centerY, {
+                        duration: 500,
+                        zoom: 1.5,
+                    });
+                } else {
+                    // When the node is unselected, call fitview to recenter the entire graph
+                    fitView({
+                        padding: 50,
+                        duration: zoomOutDuration,
+                    });
+                }
+            });
+        },
+        [getNode, fitView, setCenter]
+    );
+
+    const centerGraph = useCallback(
+        debounce(() => {
+            centerNode(selectedNodeId, 50);
+        }, 100),
+        [centerNode, selectedNodeId]
+    );
+
+    const selectNode = useCallback(
+        (nodeId: string | null) => {
+            setSelectedNodeId(nodeId);
+            selectedNodeIdRef.current = nodeId;
+            setIsDetailsPanelOpen(!!nodeId);
+            centerNode(nodeId);
+        },
+        [centerNode]
+    );
 
     const closeDetailsPanel = useCallback(() => {
-        setIsDetailsPanelOpen(false);
-        setSelectedNodeId(null);
-    }, []);
+        selectNode(null);
+    }, [selectNode]);
 
     const selectedNode = useMemo(() => {
         if (!selectedNodeId) return null;
@@ -694,7 +746,10 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
     }, [treeStateValue]);
 
     useEffect(() => {
-        setRenderKey(Guid.newGuid());
+        // Reset render key to center graph only when no node is selected
+        if (!selectedNodeIdRef.current) {
+            setRenderKey(Guid.newGuid());
+        }
     }, [nodes.length]);
 
     return {
