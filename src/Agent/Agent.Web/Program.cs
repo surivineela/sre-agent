@@ -939,6 +939,27 @@ public class Program
                     .AddService(serviceName: "SREAgent", serviceVersion: "1.1.0"))
                 .AddProcessor(sp =>
                 {
+                    // Prefer Event Hub exporter when configured; otherwise fall back to ADX if available
+                    if (!string.IsNullOrEmpty(azureSettings?.AgentTraceEventHub.FullyQualifiedNamespace))
+                    {
+                        var ehOptions = new EventHubLogExporterOptions(
+                            fullyQualifiedNamespace: azureSettings.AgentTraceEventHub.FullyQualifiedNamespace,
+                            eventHubName: "agentactionevents",
+                            populateColumns: null,
+                            firstPartyAppCertificatePath: azureSettings.AgentTraceEventHub.CertificatePath,
+                            firstPartyAppClientId: azureSettings.AgentTraceEventHub.FirstPartyAppClientId,
+                            firstPartyAppTenantId: azureSettings.AgentTraceEventHub.FirstPartyAppTenantId);
+
+                        var exporter = new EventHubLogExporter(ehOptions);
+
+                        // Create the processor with the exporter (use CustomizedLogProcessor)
+                        Func<LogRecord, bool> agentActionPredicate = record =>
+                            (record.EventId.Id == 1001 || record.EventId.Id == 1002)
+                            && (record.CategoryName?.StartsWith("Agent.", StringComparison.OrdinalIgnoreCase) == true);
+
+                        return new CustomizedLogProcessor(exporter, agentActionPredicate, "AgentActionProcessor");
+                    }
+
                     // Create Azure Data Explorer Log Exporter only if configuration is available
                     // Get Azure Data Explorer configuration
                     var ClusterUri = GetInternalKustoClusterConfiguration("ClusterUri");
@@ -947,10 +968,9 @@ public class Program
                     var FirstPartyAppClientId = GetInternalKustoClusterConfiguration("FirstPartyAppClientId");
                     var FirstPartyAppTenantId = GetInternalKustoClusterConfiguration("FirstPartyAppTenantId");
 
-                    // Only create the Azure Data Explorer exporter if ClusterUri is configured
+                    // Fallback to Azure Data Explorer exporter when ADX cluster is available
                     if (!string.IsNullOrEmpty(ClusterUri))
                     {
-                        // Create the exporter with configuration
                         var exporter = new AzureDataExplorerLogExporter(
                             new AzureDataExplorerLogExporterOptions(
                                 clusterUri: ClusterUri,
@@ -961,15 +981,15 @@ public class Program
                                 firstPartyAppClientId: FirstPartyAppClientId,
                                 firstPartyAppTenantId: FirstPartyAppTenantId));
 
-                        // Create the processor with the exporter
-                        return new AgentActionLogProcessor(exporter);
+                        Func<LogRecord, bool> agentActionPredicate = record =>
+                            (record.EventId.Id == 1001 || record.EventId.Id == 1002)
+                            && (record.CategoryName?.StartsWith("Agent.", StringComparison.OrdinalIgnoreCase) == true);
+
+                        return new CustomizedLogProcessor(exporter, agentActionPredicate, "AgentActionProcessor");
                     }
-                    else
-                    {
-                        // In test or development environments without Azure Data Explorer configuration,
-                        // return a no-op processor that doesn't export anything
-                        return new AgentActionLogProcessor(null);
-                    }
+
+                    // No exporter configured -> no-op processor (predicate false)
+                    return new CustomizedLogProcessor(null, record => false, "AgentActionProcessor");
                 })
 
                 // Register a processor to capture LLM Token Consumption logs (EventId = 2001)
