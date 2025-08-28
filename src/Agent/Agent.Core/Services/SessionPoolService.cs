@@ -35,7 +35,7 @@ public class SessionPoolService : ISessionPoolService
         _logger = logger;
     }
 
-    public async Task<SessionResponse> ExecuteCliAsync(string command, string accessToken, string identifier)
+    public async Task<string> ExecuteCliAsync(string command, string accessToken, string identifier)
     {
         if (string.IsNullOrEmpty(accessToken))
         {
@@ -46,24 +46,30 @@ public class SessionPoolService : ISessionPoolService
             throw new InvalidOperationException("Identifier must be provided to execute CLI commands.");
         }
 
-        _logger.LogInternalInformation($"Executing CLI command: {command}");
+        _logger.LogInternalInformation($"Executing CLI command: {command} with identifier {identifier}");
 
         command = command.StartsWith("az ", StringComparison.OrdinalIgnoreCase) ? command : $"az {command}";
         var finalCommand = $"export AZURE_CLI_ACCESS_TOKEN={accessToken} && {command}".Trim();
 
-        return await ExecuteShellCommandAsync(finalCommand, identifier);
+        var sessionResponse = await ExecuteShellCommandAsync(finalCommand, identifier);
+        var result = sessionResponse.ExitCode == 0 ? sessionResponse.Result?.Stdout : sessionResponse.Result?.Stderr;
+
+        return result ?? string.Empty;
     }
 
     public async Task<SessionResponse> ExecuteShellCommandAsync(string command, string identifier)
     {
-        _logger.LogInternalInformation($"Executing shell command for identifier {identifier}");
+        _logger.LogInternalInformation($"Executing shell command with identifier {identifier}");
         var sessionRequest = new SessionRequest
         {
             Commands = ["/bin/bash", "-c", command],
             TimeoutInSeconds = 30
         };
 
-        return await SendRequestAsync<SessionResponse>(HttpMethod.Post, "/shellExecute", identifier, sessionRequest);
+        var sessionResponse = await SendRequestAsync<SessionResponse>(HttpMethod.Post, "/shellExecute", identifier, sessionRequest);
+        _logger.LogInternalInformation($"Shell command executed successfully, identifier {identifier}, exit code {sessionResponse.ExitCode}, ExecutionTimeInMilliseconds {sessionResponse.Result?.ExecutionTimeInMilliseconds}");
+
+        return sessionResponse;
     }
 
     private async Task<T> SendRequestAsync<T>(HttpMethod method, string path, string identifier, SessionRequest? sessionRequest = null)

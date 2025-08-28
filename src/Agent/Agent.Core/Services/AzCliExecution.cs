@@ -47,8 +47,7 @@ public class AzCliExecution
                 && !string.IsNullOrEmpty(_sessionPoolSettings.PoolManagementEndpoint)
                 && !string.IsNullOrEmpty(_accessToken))
             {
-                var sessionResponse = await _sessionPoolService.ExecuteCliAsync(_command, _accessToken, AgentNameHelper.GetAgentName(!_isDevelopment));
-                return sessionResponse.Result?.Stdout ?? string.Empty;
+                return await _sessionPoolService.ExecuteCliAsync(_command, _accessToken, $"{AgentNameHelper.GetAgentName(!_isDevelopment)}-{Guid.NewGuid().ToString("N").Substring(0, 8)}");
             }
 
             // az login does not support access token

@@ -14,10 +14,10 @@ public class SessionResponse
     public string? Identifier { get; set; }
 
     /// <summary>
-    /// The status code of the execution.
+    /// The exit code of the execution.
     /// </summary>
-    [JsonPropertyName("status")]
-    public string? Status { get; set; }
+    [JsonPropertyName("exitCode")]
+    public int? ExitCode { get; set; }
 
     /// <summary>
     /// The result of the command execution.

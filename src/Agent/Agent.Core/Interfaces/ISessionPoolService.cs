@@ -8,7 +8,7 @@ namespace Agent.Core.Interfaces;
 
 public interface ISessionPoolService
 {
-    Task<SessionResponse> ExecuteCliAsync(string command, string accessToken, string identifier);
+    Task<string> ExecuteCliAsync(string command, string accessToken, string identifier);
 
     Task<SessionResponse> ExecuteShellCommandAsync(string command, string identifier);
 }
