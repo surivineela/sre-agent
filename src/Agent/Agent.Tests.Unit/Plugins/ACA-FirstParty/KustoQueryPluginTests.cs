@@ -69,6 +69,8 @@ namespace Agent.Tests.Unit.Plugins
                     "GetSessionPoolCreateOrUpdateLogs.kql",
                     "GetSessionPoolInfo.kql",
                     "GetSwiftNetworkContainerHeartbeat.kql",
+                    "GetUDRDetails.kql",
+                    "GetNSGDetails.kql",
                     "GetSystemComponentCpuUsage.kql",
                     "GetSystemComponentMemoryUsage.kql",
                     "GetSystemComponentErrorEvents.kql",

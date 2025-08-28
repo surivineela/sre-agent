@@ -387,5 +387,65 @@ namespace Agent.Plugins.Definitions
                 { "resourceName", containerAppName }
             });
         }
+
+        [Description("""
+        Purpose:
+        Retrieves User Defined Route (UDR) details for a specified route table.
+
+        Scenario:
+        Use this tool when you need to analyze routing configuration for network troubleshooting, particularly when investigating connectivity issues or understanding traffic flow in Container Apps environments with custom VNets.
+
+        Output:
+        Returns table data in CSV format with TAB separators. Column headers:
+        - routes: JSON array containing the route table's route definitions
+        - subscriptionId: Azure subscription ID where the route table is located
+        """
+        )]
+        public Task<string> GetUDRDetails(
+            [Description("The full resource URI of the route table (e.g., /subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.Network/routeTables/{route-table-name}).")] string routeTableUri)
+        {
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetUDRDetails", AzureRegion.AustraliaCentral,
+            new Dictionary<string, string> {
+                { "routeTableUri", routeTableUri }
+            });
+        }
+
+        [Description("""
+        Purpose:
+        Retrieves Network Security Group (NSG) rules and configuration details for a specified NSG.
+
+        Scenario:
+        Use this tool when you need to analyze network security rules for troubleshooting connectivity issues, particularly when investigating blocked traffic or understanding security restrictions in Container Apps environments with custom VNets.
+
+        Output:
+        Returns table data in CSV format with TAB separators. Column headers:
+        - name
+        - provisioningState
+        - description
+        - protocol
+        - sourcePortRange: Source port range(s)
+        - destinationPortRange
+        - sourceAddressPrefix
+        - destinationAddressPrefix
+        - priority: Rule priority (lower numbers have higher priority)
+        - direction: Traffic direction (Inbound or Outbound)
+        - internalSecurityRuleName: Internal rule name
+        - Type: Rule type (DefaultSecurityRule or CustomSecurityRule)
+        - access: Rule action (Allow or Deny)
+        - level: Severity level (error for Deny rules, info for Allow rules)
+        """
+        )]
+        public Task<string> GetNSGDetails(
+            [Description("Azure subscription ID.")] string subscriptionId,
+            [Description("Name of the resource group of the NSG.")] string resourceGroupName,
+            [Description("Name of the Network Security Group.")] string nsgName)
+        {
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetNSGDetails", AzureRegion.AustraliaCentral,
+            new Dictionary<string, string> {
+                { "subscriptionId", subscriptionId },
+                { "resourceGroupName", resourceGroupName },
+                { "nsgName", nsgName }
+            });
+        }
     }
 }

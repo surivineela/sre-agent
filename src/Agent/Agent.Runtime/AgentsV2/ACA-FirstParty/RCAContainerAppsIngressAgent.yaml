@@ -241,6 +241,8 @@ tools:
   - GetContainerAppStatus
   - GetContainerAppAdminEvents
   - GetContainerAppReplicaCountChanges
+  - GetUDRDetails
+  - GetNSGDetails
 
 common_tools:
   - rca_agent_tools

@@ -1,0 +1,5 @@
+let routeTableUri = "##routeTableUri##";
+cluster("argwus2nrpone.westus2.kusto.windows.net").database("AzureResourceGraph").Resources
+| where type =~ 'microsoft.network/routetables' and id =~ routeTableUri
+| summarize arg_max(timestamp, *) by id
+| project routes=properties.routes, subscriptionId
