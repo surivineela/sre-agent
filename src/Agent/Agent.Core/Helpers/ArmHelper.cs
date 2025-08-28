@@ -3573,6 +3573,73 @@ public class ArmHelper
                 response.StatusCode == System.Net.HttpStatusCode.Forbidden);
     }
 
+    /// <summary>
+    /// Gets all deployment slots for a Web App or Function App and returns their resource IDs
+    /// </summary>
+    /// <param name="resourceId">The Azure resource ID of the Web App or Function App</param>
+    /// <returns>List of resource IDs for all deployment slots</returns>
+    public async Task<List<string>> GetDeploymentSlotsResourceIdsAsync(string resourceId)
+    {
+        if (string.IsNullOrWhiteSpace(resourceId))
+            throw new ArgumentException("Resource ID is required", nameof(resourceId));
+
+        // Validate resource ID format
+        if (!IsWellFormattedResourceId(resourceId))
+            throw new ArgumentException($"Invalid resource ID format: {resourceId}", nameof(resourceId));
+
+        try
+        {
+            // Construct the URL for getting deployment slots
+            // Format: {resourceId}/slots?api-version=2022-03-01
+            string requestUrl = $"https://management.azure.com{resourceId}/slots?api-version=2022-03-01";
+
+            var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+            using HttpResponseMessage response = await httpClient.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                if (CheckForUnauthorizedAccess(response))
+                {
+                    throw new ToolExecutionUnauthorizedException($"Unauthorized access to resource {resourceId}");
+                }
+
+                string errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogInternalError($"Failed to get deployment slots for resource {resourceId}: {errorContent}");
+                
+                // Return empty list for failed requests
+                return new List<string>();
+            }
+
+            string jsonResponse = await response.Content.ReadAsStringAsync();
+            var jsonDocument = JsonDocument.Parse(jsonResponse);
+            
+            var slotResourceIds = new List<string>();
+            
+            if (jsonDocument.RootElement.TryGetProperty("value", out var valueArray))
+            {
+                foreach (var slot in valueArray.EnumerateArray())
+                {
+                    if (slot.TryGetProperty("id", out var idProperty))
+                    {
+                        var slotId = idProperty.GetString();
+                        if (!string.IsNullOrEmpty(slotId))
+                        {
+                            slotResourceIds.Add(slotId);
+                        }
+                    }
+                }
+            }
+
+            return slotResourceIds;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError($"Failed to get deployment slots for resource {resourceId}: {ex.Message}");
+            throw;
+        }
+    }
+
     public static bool IsReadOnlyCommand(string command)
     {
         var commandLower = command.ToLower().Trim();

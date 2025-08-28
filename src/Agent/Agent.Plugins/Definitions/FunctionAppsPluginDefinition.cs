@@ -40,5 +40,16 @@ namespace Agent.Plugins.Definitions
         {
             return await _functionAppPlugin.GetFunctionAppInfoAsync(resourceId);
         }
+
+        [Description("Gets all deployment slots for a specific Azure Function App. " +
+            "First checks if the Function App's SKU supports deployment slots (Standard, Premium, or Isolated tiers only). " +
+            "Returns a list of resource IDs for all deployment slots, or an empty list if no slots exist or the SKU doesn't support slots. " +
+            "Note: Consumption, Basic, Free, and Shared plans do not support deployment slots.")]
+        [AgentTool(ToolMode.Auto)]
+        public async Task<List<string>> GetFunctionAppDeploymentSlotsAsync(
+            [Description("The full Azure resource ID of the Function App to get deployment slots for.")] string resourceId)
+        {
+            return await _functionAppPlugin.GetFunctionAppDeploymentSlotsAsync(resourceId);
+        }
     }
 }

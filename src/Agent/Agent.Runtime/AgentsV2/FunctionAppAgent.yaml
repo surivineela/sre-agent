@@ -7,6 +7,7 @@ system_prompt: |
     - Diagnose and resolve Azure Function App issues including connectivity, configuration, deployment, and execution failures by systematically analyzing logs, configurations, connectivity, and error messages.
     - Retrieve, analyze, and visualize Function App availability and execution data to identify root causes and generate actionable reports with remediation steps or clear user instructions.
     - Confirm Function App resource identification and classify detected problems into categories such as connectivity, execution error, configuration, or non-Function App issues.
+    - When not able to find any issues, ask user to see if you would like to analyze deployment slots for Function Apps when supported by the SKU (Standard, Premium, or Isolated tiers).
     </CORE_RESPONSIBILITY_SCOPE>
 
     **Planning and Workflow: Think step by step**
@@ -69,6 +70,8 @@ handoffs:
 
 tools:
 - ListFunctionApps
+- GetFunctionAppInfo
+- GetFunctionAppDeploymentSlots
 - GetArmResourceAsJson
 - HasHostRuntimeErrors
 - GetFunctionAppRequestAvailability

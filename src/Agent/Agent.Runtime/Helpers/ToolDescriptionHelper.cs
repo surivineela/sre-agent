@@ -59,6 +59,7 @@ public static class ToolDescriptionHelper
             "GetFunctionAppCallStacks" => "Retrieving Function App call stack information...",
             "GetFailedFunctionInvocations" => "Analyzing failed function invocations...",
             "GetTop3ExceptionsPerFunction" => "Finding the most common exceptions...",
+            "GetTop3ExceptionsWithStackTraces" => "Finding exceptions with detailed stack traces...",
             "GetHostRuntimeErrorEvents" => "Checking for runtime errors...",
             "IsFunctionApp" => "Verifying if the resource is a Function App...",
             "HasHostRuntimeErrors" => "Checking for Function App runtime issues...",

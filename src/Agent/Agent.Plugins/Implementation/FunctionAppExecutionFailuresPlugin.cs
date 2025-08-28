@@ -185,7 +185,7 @@ namespace Agent.Plugins.Implementation
                     let timeGrain={timeGrain};
                     let dataset=requests
                         | where timestamp > start and timestamp < end
-                        | where cloud_RoleName =~ ""{resourceName}"" or cloud_RoleName startswith strcat(""{resourceName}"",""-"")
+                        | where cloud_RoleName =~ ""{resourceName}""
                         | where client_Type != ""Browser"";
                     dataset
                     | summarize FailedCount=sumif(itemCount, success == false) by name, bin(timestamp, timeGrain)";
@@ -281,7 +281,7 @@ namespace Agent.Plugins.Implementation
                     let dataset=exceptions
                         | where timestamp > start and timestamp < end
                         | where client_Type != ""Browser""
-                        | where cloud_RoleName =~ ""{resourceName}"" or cloud_RoleName startswith strcat(""{resourceName}"",""-"")
+                        | where cloud_RoleName =~ ""{resourceName}""
                         | extend FunctionName = iif(outerMessage has ""Result: Function"", extract(@""Result: Function '([^']+)'"", 1, outerMessage), """")
                         | extend FunctionName = iif(isempty(FunctionName), iif(method has "".Run"", extract(@""([^.]+).([^.]+).Run"", 2, method), method), FunctionName)
                         | extend FunctionName = iif(isempty(FunctionName),method,FunctionName)
@@ -289,12 +289,63 @@ namespace Agent.Plugins.Implementation
                         | parse outerMessage with * ""Exception: "" ExceptionType "":"" ExceptionMessage ""\n"" StackTrace;
                     dataset
                         | extend ExceptionOrType = iif(isempty(ExceptionType), type, ExceptionType)
-                        | summarize _count = sum(itemCount) by ExceptionOrType
+                        | summarize _count = sum(itemCount), 
+                                   ExceptionMessage = any(iif(isempty(ExceptionMessage), message, ExceptionMessage)),
+                                   StackTrace = any(iif(isempty(StackTrace), details, StackTrace))
+                          by ExceptionOrType
                         | sort by _count desc
-                        | top 3 by _count";
+                        | top 3 by _count
+                        | project ExceptionType = ExceptionOrType, ExceptionMessage, StackTrace, Count = _count";
 
             var top3ExceptionsPerFunction = await _appInsightsPlugin.ExecuteAppInsightsQuery(resourceId, top3ExceptionsPerFunctionQuery);
             return top3ExceptionsPerFunction;
+        }
+
+        public async Task<string> GetTop3ExceptionsWithStackTraces(string resourceId, DateTime? startTime = null, DateTime? endTime = null)
+        {
+            // Default to past hour if not specified, with endTime being now minus 15 minutes
+            startTime ??= DateTime.UtcNow.AddHours(-1);
+            endTime ??= DateTime.UtcNow.AddMinutes(-15);
+
+            string resourceName = resourceId;
+            if (resourceId.Contains('/'))
+            {
+                var splitResourceParts = resourceId.Split('/');
+                resourceName = splitResourceParts[splitResourceParts.Length - 1];
+            }
+            _logger.LogInternalInformation("[GetTop3ExceptionsWithStackTraces] Invoked with resourceId {resourceId}, startTime {startTime}, endTime {endTime}", resourceId, startTime, endTime);
+
+            // Determine timeGrain based on the time range
+            string timeGrain = GetTimeGrain(startTime.Value, endTime.Value);
+
+            string top3ExceptionsWithStackTracesQuery = $@"
+                    let start=datetime({startTime.Value:O});
+                    let end=datetime({endTime.Value:O});
+                    let timeGrain={timeGrain};
+                    let dataset=exceptions
+                        | where timestamp > start and timestamp < end
+                        | where client_Type != ""Browser""
+                        | where cloud_RoleName =~ ""{resourceName}""
+                        | extend FunctionName = iif(outerMessage has ""Result: Function"", extract(@""Result: Function '([^']+)'"", 1, outerMessage), """")
+                        | extend FunctionName = iif(isempty(FunctionName), iif(method has "".Run"", extract(@""([^.]+).([^.]+).Run"", 2, method), method), FunctionName)
+                        | extend FunctionName = iif(isempty(FunctionName),method,FunctionName)
+                        | extend FunctionName = iif(isempty(FunctionName),extract(@""Function '([^']+)'"", 1, outerMessage),FunctionName)
+                        | parse outerMessage with * ""Exception: "" ExceptionType "":"" ExceptionMessage ""\n"" StackTrace;
+                    dataset
+                        | extend ExceptionOrType = iif(isempty(ExceptionType), type, ExceptionType)
+                        | extend FullExceptionMessage = iif(isempty(ExceptionMessage), message, ExceptionMessage)
+                        | extend FullStackTrace = iif(isempty(StackTrace), details, StackTrace)
+                        | summarize _count = sum(itemCount), 
+                                   ExceptionMessages = make_list(FullExceptionMessage, 3),
+                                   StackTraces = make_list(FullStackTrace, 3),
+                                   FunctionNames = make_list(FunctionName, 3)
+                          by ExceptionOrType
+                        | sort by _count desc
+                        | top 3 by _count
+                        | project ExceptionType = ExceptionOrType, ExceptionMessages, StackTraces, FunctionNames, Count = _count";
+
+            var top3ExceptionsWithStackTraces = await _appInsightsPlugin.ExecuteAppInsightsQuery(resourceId, top3ExceptionsWithStackTracesQuery);
+            return top3ExceptionsWithStackTraces;
         }
 
         public async Task<string> GetHostRuntimeErrorEvents(string resourceId, DateTime? startTime = null, DateTime? endTime = null)

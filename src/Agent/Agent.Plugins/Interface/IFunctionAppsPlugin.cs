@@ -10,4 +10,6 @@ public interface IFunctionAppsPlugin
     Task<IReadOnlyList<FunctionAppDescriptor>> ListFunctionAppsAsync(Guid subscriptionId);
 
     Task<FunctionAppDescriptor?> GetFunctionAppInfoAsync(string resourceId);
+
+    Task<List<string>> GetFunctionAppDeploymentSlotsAsync(string resourceId);
 }

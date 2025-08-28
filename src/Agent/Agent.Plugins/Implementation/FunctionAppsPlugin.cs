@@ -7,19 +7,23 @@ using Agent.Graph.Crawler.ARM;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
 using Microsoft.Extensions.Logging;
+using Agent.Core.Helpers;
 
 namespace Agent.Plugins.Implementation;
 public class FunctionAppsPlugin : IFunctionAppsPlugin
 {
     private readonly IGraphDatabaseClient _databaseClient;
     private readonly ILogger<FunctionAppsPlugin> _logger;
+    private readonly ArmHelper _armHelper;
 
     public FunctionAppsPlugin(
         IGraphDatabaseClient graphDatabaseClient,
-        ILogger<FunctionAppsPlugin> logger)
+        ILogger<FunctionAppsPlugin> logger,
+        ArmHelper armHelper)
     {
         _databaseClient = graphDatabaseClient;
         _logger = logger;
+        _armHelper = armHelper;
     }
 
     public async Task<FunctionAppDescriptor?> GetFunctionAppInfoAsync(string resourceId)
@@ -223,5 +227,80 @@ public class FunctionAppsPlugin : IFunctionAppsPlugin
         }
 
         return null;
+    }
+
+    public async Task<List<string>> GetFunctionAppDeploymentSlotsAsync(string resourceId)
+    {
+        _logger.LogInternalInformation($"[get_function_app_deployment_slots] Invoked with resourceId: {resourceId}");
+
+        try
+        {
+            // First, get the Function App information to check its SKU
+            var functionAppInfo = await GetFunctionAppInfoAsync(resourceId);
+            if (functionAppInfo == null)
+            {
+                _logger.LogInternalWarning($"Function App with ID '{resourceId}' not found.");
+                return new List<string>();
+            }
+
+            // Check if the SKU supports deployment slots
+            if (!SupportsDeploymentSlots(functionAppInfo.Sku))
+            {
+                _logger.LogInternalInformation($"Function App '{functionAppInfo.Name}' has SKU '{functionAppInfo.Sku}' which does not support deployment slots.");
+                return new List<string>();
+            }
+
+            // Get deployment slots using ArmHelper
+            var slotResourceIds = await _armHelper.GetDeploymentSlotsResourceIdsAsync(resourceId);
+            
+            _logger.LogInternalInformation($"Found {slotResourceIds.Count} deployment slots for Function App '{functionAppInfo.Name}'.");
+            return slotResourceIds;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Error in GetFunctionAppDeploymentSlotsAsync with resourceId {resourceId}");
+            return new List<string>();
+        }
+    }
+
+    /// <summary>
+    /// Determines if the given SKU supports deployment slots
+    /// </summary>
+    /// <param name="sku">The SKU name (e.g., Standard, Premium, etc.)</param>
+    /// <returns>True if deployment slots are supported, false otherwise</returns>
+    private static bool SupportsDeploymentSlots(string sku)
+    {
+        if (string.IsNullOrEmpty(sku))
+            return false;
+
+        // Convert to upper case for case-insensitive comparison
+        string skuUpper = sku.ToUpperInvariant();
+
+        // SKUs that support deployment slots:
+        // - Standard (S1, S2, S3)
+        // - Premium (P1, P2, P3, P1v2, P2v2, P3v2, P1v3, P2v3, P3v3, etc.)
+        // - Premium V2 (P1V2, P2V2, P3V2)
+        // - Premium V3 (P1V3, P2V3, P3V3)
+        // - Isolated (I1, I2, I3, I1v2, I2v2, I3v2)
+        
+        // SKUs that do NOT support deployment slots:
+        // - Free (F1)
+        // - Shared (D1)
+        // - Basic (B1, B2, B3)
+        // - Consumption (Y1, Consumption)
+        // - Flex Consumption (FC)
+
+        return skuUpper.StartsWith("STANDARD") ||
+               skuUpper.StartsWith("PREMIUM") ||
+               skuUpper.StartsWith("P1") ||
+               skuUpper.StartsWith("P2") ||
+               skuUpper.StartsWith("P3") ||
+               skuUpper.StartsWith("S1") ||
+               skuUpper.StartsWith("S2") ||
+               skuUpper.StartsWith("S3") ||
+               skuUpper.StartsWith("ISOLATED") ||
+               skuUpper.StartsWith("I1") ||
+               skuUpper.StartsWith("I2") ||
+               skuUpper.StartsWith("I3");
     }
 }

@@ -7,6 +7,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
+using Moq;
+using Agent.Core.Helpers;
+using Agent.Core.Interfaces;
+using Agent.Core.Models;
+using Agent.Core.Services;
+using Agent.Core.Configuration;
 
 namespace Agent.Tests.Integration;
 public class FunctionsGraphTests
@@ -36,7 +42,30 @@ public class FunctionsGraphTests
     public async Task ListFunctionApps()
     {
         var loggerFactory = _host.Services.GetRequiredService<ILoggerFactory>();
-        var plugin = new FunctionAppsPlugin(_graphClient, loggerFactory.CreateLogger<FunctionAppsPlugin>());
+        
+        // Create a mock ArmHelper with minimal setup for integration test
+        var mockArmLogger = new Mock<ILogger<ArmHelper>>();
+        var mockHttpClientFactory = new Mock<IHttpClientFactory>();
+        var mockArmClientFactory = new Mock<IArmClientFactory>();
+        var mockAuthService = new Mock<IAuthenticationService>();
+        var mockHostEnvironment = new Mock<IHostEnvironment>();
+        var mockChatClient = new Mock<IChatClient>();
+        var mockCrawlerTriggerService = new Mock<ICrawlerTriggerService>();
+        var mockSessionPoolService = new Mock<ISessionPoolService>();
+        var azureSettings = new AzureSettings();
+
+        var armHelper = new ArmHelper(
+            mockArmLogger.Object,
+            mockHttpClientFactory.Object,
+            mockArmClientFactory.Object,
+            mockAuthService.Object,
+            azureSettings,
+            mockHostEnvironment.Object,
+            mockCrawlerTriggerService.Object,
+            mockSessionPoolService.Object,
+            mockChatClient.Object);
+
+        var plugin = new FunctionAppsPlugin(_graphClient, loggerFactory.CreateLogger<FunctionAppsPlugin>(), armHelper);
         var definition = new FunctionAppsPluginDefinition(plugin);
 
         var apps = await definition.ListFunctionAppsAsync(new Guid("29e3378b-0aaf-45da-b3c6-6fd0eea164e4"));

@@ -5,6 +5,7 @@ system_prompt: |
 
     <CORE_RESPONSIBILITY_SCOPE>
     - Diagnose and resolve configuration issues in Azure Function Apps.
+    - When not able to find any issues, ask user to see if you would like to analyze deployment slots for Function Apps when supported by the SKU (Standard, Premium, or Isolated tiers).
     </CORE_RESPONSIBILITY_SCOPE>
 
     <FUNCTION_APP_CONFIGURATION_GUIDELINES>
@@ -66,6 +67,8 @@ tools:
 - GetFunctionAppCallStacks
 - GetEventGridSubscriptions
 - GetResourceIdFromStorageServiceUri
+- GetFunctionAppInfo
+- GetFunctionAppDeploymentSlots
 - NotifyUser
 - HandoffBack
 

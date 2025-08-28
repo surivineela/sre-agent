@@ -40,6 +40,15 @@ namespace Agent.Plugins.Interface
         Task<string> GetTop3ExceptionsPerFunction(string resourceId, DateTime? startTime = null, DateTime? endTime = null);
 
         /// <summary>
+        /// Gets top 3 exceptions with detailed stack traces and exception messages
+        /// </summary>
+        /// <param name="resourceId">The Azure resource ID of the Function App</param>
+        /// <param name="startTime">Optional start time for the query (defaults to 1 hour ago)</param>
+        /// <param name="endTime">Optional end time for the query (defaults to current time minus 15 minutes)</param>
+        /// <returns>The top 3 exceptions with detailed stack traces and messages</returns>
+        Task<string> GetTop3ExceptionsWithStackTraces(string resourceId, DateTime? startTime = null, DateTime? endTime = null);
+
+        /// <summary>
         /// Gets host runtime error events from the activity logs
         /// </summary>
         /// <param name="resourceId">The Azure resource ID of the Function App</param>
