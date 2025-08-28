@@ -24,6 +24,8 @@ import IncidentsOverview from './IncidentsOverview/IncidentsOverview';
 const IncidentManagement: FC = () => {
     const intl = useIntl();
     const { agentObj, agentLoading, agentLoadFailure } = useContext(SreAgentContext);
+    const [disableOverviewAndHandlers, setDisableOverviewAndHandlers] = useState(false);
+
     const { logAmplitudeNavigationEvent } = useAzPortalContext();
 
     const [iconsInitialized, setIconsInitialized] = useState(false);
@@ -52,19 +54,22 @@ const IncidentManagement: FC = () => {
                 key: IncidentManagementMenuKeys.IncidentOverview,
                 label: intl.formatMessage(IncidentManagementResources.incidentsOverview),
                 icon: <Warning24Filled className={navigationStyles.itemIcon} />,
+                disabled: disableOverviewAndHandlers,
             },
             {
                 key: IncidentManagementMenuKeys.HandlerConfiguration,
                 label: intl.formatMessage(IncidentManagementResources.handlerConfiguration),
                 icon: <ClipboardTaskList16Regular className={navigationStyles.itemIcon} />,
+                disabled: disableOverviewAndHandlers,
             },
             {
                 key: IncidentManagementMenuKeys.IncidentPlatform,
                 label: intl.formatMessage(IncidentManagementResources.incidentPlatform),
                 icon: <LinkSettings24Regular className={navigationStyles.itemIcon} />,
+                disabled: false,
             },
         ],
-        [intl]
+        [intl, disableOverviewAndHandlers]
     );
 
     const onNavigationClick = useCallback(
@@ -99,6 +104,7 @@ const IncidentManagement: FC = () => {
                 incidentManagementPlatform === IncidentManagementPlatform.Disconnected ||
                 incidentManagementPlatform === IncidentManagementPlatform.AzMonitor
             ) {
+                setDisableOverviewAndHandlers(true);
                 navigate({ ...location, pathname: `/views/incidentmanagement/${IncidentManagementMenuKeys.IncidentPlatform}` });
             }
         }
@@ -118,7 +124,7 @@ const IncidentManagement: FC = () => {
                 ) : (
                     <>
                         <NavDrawer
-                            defaultSelectedValue={IncidentManagementMenuKeys.IncidentOverview}
+                            defaultSelectedValue={selectedKey || IncidentManagementMenuKeys.IncidentOverview}
                             defaultSelectedCategoryValue=""
                             open={!navigationHidden}
                             type="inline"
@@ -153,6 +159,7 @@ const IncidentManagement: FC = () => {
                                         href=""
                                         onClick={() => onNavigationClick(navItem.key)}
                                         className={navigationStyles.item}
+                                        disabled={navItem.disabled}
                                     >
                                         {!navigationCollapsed && <span className={navigationStyles.itemText}>{navItem.label}</span>}
                                     </NavItem>
