@@ -2,6 +2,7 @@ using Agent.Core.Helpers;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Azure.Core;
 using Azure.ResourceManager;
+using Azure.ResourceManager.AppService;
 
 namespace Agent.Graph.Extensions;
 
@@ -17,7 +18,28 @@ internal static class ArmClientExtensions
         var subscription = armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{subscriptionId}"));
         await foreach (var resource in subscription.GetGenericResourcesAsync(filter: $"resourceType eq '{resourceType}'"))
         {
-            if (resource.Data.Name.Equals(resourceName, StringComparison.OrdinalIgnoreCase))
+            if (!resource.Data.Name.Equals(resourceName, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            if (string.Equals(resourceType, "Microsoft.Web/sites", StringComparison.OrdinalIgnoreCase))
+            {
+                var rawKind = resource.Data.Kind;
+                var normalizedKind = ResourceKindHelper.getResourceKind(resourceType, rawKind);
+
+                var appServiceNode = new AppServiceNode(
+                    resourceType: resourceType,
+                    resourceId: resource.Data.Id.ToString(),
+                    subscriptionId: subscriptionId,
+                    resourceGroupName: resource.Data.Id.ResourceGroupName!,
+                    resourceName: resource.Data.Name,
+                    resourceKind: normalizedKind,
+                    location: resource.Data.Location);
+
+                appServiceNode.Kind = rawKind;
+
+                return appServiceNode;
+            }
+            else
             {
                 return new ArmResourceNode(
                     resourceType: resourceType,

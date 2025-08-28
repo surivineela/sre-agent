@@ -14,6 +14,8 @@ const ICON_LOOKUP: Record<string, string> = {
 
     // Logic Apps
     'web/sites/connections': 'Connection.svg',
+    'microsoft.web/sites/apimanagementconnections': 'Connection.svg',
+    'microsoft.web/sites/functionconnections': 'Connection.svg',
 
     // Web & Functions
     webapp: 'WebApp.svg',
@@ -56,7 +58,7 @@ const ICON_LOOKUP: Record<string, string> = {
     'microsoft.servicebus/namespaces': 'ServiceBusNamespace.svg',
     'microsoft.synapse/workspaces': 'SynapseWorkspace.svg',
     'microsoft.web/connections': 'Connection.svg',
-    'keyvault/vaults': 'KeyVault.svg',
+    'microsoft.keyvault/vaults': 'KeyVault.svg',
     'microsoft.search/searchservices': 'AzureAiSearch.svg',
     'microsoft.cognitiveservices/accounts': 'AzureOpenAI.svg',
 };
@@ -76,6 +78,8 @@ const FRIENDLY_NAMES: Record<string, string> = {
 
     // Logic Apps
     'web/sites/connections': 'Service Provider Connection',
+    'microsoft.web/sites/apimanagementconnections': 'API Management Connection',
+    'microsoft.web/sites/functionconnections': 'Function Connection',
 
     // Web & Functions
     webapp: 'Web App',
@@ -119,7 +123,7 @@ const FRIENDLY_NAMES: Record<string, string> = {
     'microsoft.servicebus/namespaces': 'Service Bus Namespace',
     'microsoft.synapse/workspaces': 'Synapse Workspace',
     'microsoft.web/connections': 'API Connection',
-    'keyvault/vaults': 'Key Vault',
+    'microsoft.keyvault/vaults': 'Key Vault',
     'microsoft.search/searchservices': 'Azure AI Search',
     'microsoft.cognitiveservices/accounts': 'Azure OpenAI',
 };

@@ -92,9 +92,8 @@ public class LogicAppCrawler : AppServiceCrawler
 
         var logicAppConnections = await GetConnectionsWithAppSettingsResolved(webApp, appSettings);
 
-        Dictionary<string, ArmResourceNode> managedApiConnectionNodes = new Dictionary<string, ArmResourceNode>();
-        Dictionary<string, ArmResourceNode> serviceProviderResourceNodes = new Dictionary<string, ArmResourceNode>();
-       
+        var nodesAccumulatorDictionary = new NodeAccumulatorDictionary();
+
         foreach (var workflowNode in await GetSiteWorkflows(logicAppNode, webApp))
         {    
             if (logicAppConnections == null)
@@ -104,20 +103,30 @@ public class LogicAppCrawler : AppServiceCrawler
                 break;
             }
 
-            await CrawlSiteWorkflow(webApp, workflowNode, logicAppConnections, managedApiConnectionNodes, serviceProviderResourceNodes);
+            await CrawlSiteWorkflow(webApp, workflowNode, logicAppConnections, nodesAccumulatorDictionary);
             
             // Since we crawled this node, we need to remove any stale edges that might exist.
             await CrawlerExtensions.RemoveStaleEdgeForNode(_graphDbClient, workflowNode, start);
         }
 
-        foreach (var managedApiConnectionNode in managedApiConnectionNodes.Values)
+        foreach (var managedApiConnectionNode in nodesAccumulatorDictionary.GetByKind(NodeType.ManagedApiConnection))
         {
             yield return managedApiConnectionNode;
         }
 
-        foreach(var serviceProviderResourceNode in serviceProviderResourceNodes.Values)
+        foreach (var serviceProviderResourceNode in nodesAccumulatorDictionary.GetByKind(NodeType.ServiceProviderResource))
         {
-           yield return serviceProviderResourceNode;
+            yield return serviceProviderResourceNode;
+        }
+
+        foreach (var apiManagementResourceNode in nodesAccumulatorDictionary.GetByKind(NodeType.ApiManagementResource))
+        {
+            yield return apiManagementResourceNode;
+        }
+
+        foreach (var functionResourceNode in nodesAccumulatorDictionary.GetByKind(NodeType.FunctionResource))
+        {
+            yield return functionResourceNode;
         }
     }
 
@@ -222,12 +231,9 @@ public class LogicAppCrawler : AppServiceCrawler
         }
     }
 
-    private async Task CrawlSiteWorkflow(WebSiteResource siteResource, WorkflowNode workflowNode, LogicAppConnections connections, Dictionary<string, ArmResourceNode> managedApiConnectionNodes, Dictionary<string, ArmResourceNode> serviceProviderResourceNodes)
+    private async Task CrawlSiteWorkflow(WebSiteResource siteResource, WorkflowNode workflowNode, LogicAppConnections connections, NodeAccumulatorDictionary nodeAccumulatorDictionary)
     {
         var start = DateTime.UtcNow.Ticks;
-
-        // Local Dictionary to track service provider connection nodes for avoiding duplicate crawls
-        Dictionary<string, ArmResourceNode> serviceProviderConnectionNodes = new Dictionary<string, ArmResourceNode>();
 
         var siteWorkflowResponse = siteResource.GetSiteWorkflow(workflowNode.ResourceName);
         if (!siteWorkflowResponse.HasValue)
@@ -256,11 +262,15 @@ public class LogicAppCrawler : AppServiceCrawler
             {
                 var actionType = GetActionType(action);
 
-                if (actionType != "ApiConnection" && actionType != "ServiceProvider")
+                if (actionType != "ApiConnection" &&
+                    actionType != "ServiceProvider" &&
+                    actionType != "ApiManagement" &&
+                    actionType != "Function")
                 {
                     continue;
                 }
-                var connectionReferenceName = actionType == "ApiConnection" ? GetApiConnectionReferenceName(action) : GetServiceProviderReferenceName(action);
+
+                var connectionReferenceName = GetConnectionReferenceName(actionType, action);
 
                 if (string.IsNullOrEmpty(connectionReferenceName))
                 {
@@ -270,7 +280,7 @@ public class LogicAppCrawler : AppServiceCrawler
 
                 if (actionType == "ServiceProvider" && connections.ServiceProviderConnections.TryGetValue(connectionReferenceName, out var serviceProviderConnection))
                 {
-                    if (serviceProviderConnectionNodes.TryGetValue(connectionReferenceName, out var existingNode))
+                    if (nodeAccumulatorDictionary.Contains(NodeType.ServiceProviderConnection, connectionReferenceName))
                     {
                         // If the node already exists, we can skip as the connection is already crawled
                         continue;
@@ -293,24 +303,24 @@ public class LogicAppCrawler : AppServiceCrawler
                     );
                     await _graphDbClient.AddOrUpdateEdgeAsync(edge);
 
-                    serviceProviderConnectionNodes[connectionReferenceName] = serviceProviderConnectionNode;
+                    nodeAccumulatorDictionary.Add(NodeType.ServiceProviderConnection, connectionReferenceName, serviceProviderConnectionNode);
 
                     // Find the corresponding ServiceProviderResourceNode
                     var serviceProviderResourceNode = await CrawlServiceProviderConnection(
-                            connections,
+                            serviceProviderConnection,
                             connectionReferenceName,
                             serviceProviderConnectionNode);
 
                     if (serviceProviderResourceNode != null)
                     {
-                        serviceProviderResourceNodes[connectionReferenceName] = serviceProviderResourceNode;
+                        nodeAccumulatorDictionary.Add(NodeType.ServiceProviderResource, connectionReferenceName, serviceProviderResourceNode);
                     }
                     // Remove any stale edges for the service provider connection node
                     await CrawlerExtensions.RemoveStaleEdgeForNode(_graphDbClient, serviceProviderConnectionNode, start);
                 }
-                else if (connections.ManagedApiConnections.TryGetValue(connectionReferenceName, out var managedConnection))
+                else if (actionType == "ApiConnection" && connections.ManagedApiConnections.TryGetValue(connectionReferenceName, out var managedConnection))
                 {
-                    if (managedApiConnectionNodes.TryGetValue(connectionReferenceName, out var existingNode))
+                    if (nodeAccumulatorDictionary.Contains(NodeType.ManagedApiConnection, connectionReferenceName))
                     {
                         // If the node already exists, we can skip as the connection is already crawled
                         continue;
@@ -336,23 +346,95 @@ public class LogicAppCrawler : AppServiceCrawler
                         );
                         await _graphDbClient.AddOrUpdateEdgeAsync(edge);
 
-                        managedApiConnectionNodes[connectionReferenceName] = managedApiConnectionNode;
+                        nodeAccumulatorDictionary.Add(NodeType.ManagedApiConnection, connectionReferenceName, managedApiConnectionNode);
                     }
+                }
+                else if (actionType == "ApiManagement" && connections.ApiManagementConnections.TryGetValue(connectionReferenceName, out var apiManagementConnection))
+                {
+                    if (nodeAccumulatorDictionary.Contains(NodeType.ApiManagementConnection, connectionReferenceName))
+                    {
+                        // If the node already exists, we can skip as the connection is already crawled
+                        continue;
+                    }
+
+                    var apimConnectionNode = new ArmResourceNode(
+                        resourceType: Constants.ApiManagementConnectionType, 
+                        resourceId: $"{Constants.ApiManagementConnectionType}/{siteResource.Data.Id}/{connectionReferenceName}",
+                        subscriptionId: workflowNode.SubscriptionId,
+                        resourceGroupName: workflowNode.ResourceGroupName!,
+                        resourceName: connectionReferenceName,
+                        location: workflowNode.Location ?? string.Empty);
+                    await _graphDbClient.AddOrUpdateNodeAsync(apimConnectionNode);
+
+                    nodeAccumulatorDictionary.Add(NodeType.ApiManagementConnection, connectionReferenceName, apimConnectionNode);
+
+                    var edge = new ArmResourceEdge(
+                        workflowNode.GetNodeId(),
+                        apimConnectionNode.GetNodeId(),
+                        Constants.Relationships.Uses
+                    );
+                    await _graphDbClient.AddOrUpdateEdgeAsync(edge);
+
+                    // Find the corresponding ApiManagementResourceNode
+                    var apimResourceNode = await CrawlApiManagementConnection(
+                            apiManagementConnection,
+                            connectionReferenceName,
+                            apimConnectionNode);
+
+                    if (apimResourceNode != null)
+                    {
+                        nodeAccumulatorDictionary.Add(NodeType.ApiManagementResource, connectionReferenceName, apimResourceNode);
+                    }
+
+                    await CrawlerExtensions.RemoveStaleEdgeForNode(_graphDbClient, apimConnectionNode, start);
+                }
+                else if (actionType == "Function" && connections.FunctionConnections.TryGetValue(connectionReferenceName, out var functionConnection))
+                {
+                    if (nodeAccumulatorDictionary.Contains(NodeType.FunctionConnection, connectionReferenceName))
+                    {
+                        // If the node already exists, we can skip as the connection is already crawled
+                        continue;
+                    }
+
+                    var functionConnectionNode = new ArmResourceNode(
+                        resourceType: Constants.FunctionConnectionType,
+                        resourceId: $"{Constants.FunctionConnectionType}/{siteResource.Data.Id}/{connectionReferenceName}",
+                        subscriptionId: workflowNode.SubscriptionId,
+                        resourceGroupName: workflowNode.ResourceGroupName!,
+                        resourceName: connectionReferenceName,
+                        location: workflowNode.Location ?? string.Empty);
+                    await _graphDbClient.AddOrUpdateNodeAsync(functionConnectionNode);
+
+                    nodeAccumulatorDictionary.Add(NodeType.FunctionConnection, connectionReferenceName, functionConnectionNode);
+
+                    var edge = new ArmResourceEdge(
+                        workflowNode.GetNodeId(),
+                        functionConnectionNode.GetNodeId(),
+                        Constants.Relationships.Uses);
+                    await _graphDbClient.AddOrUpdateEdgeAsync(edge);
+
+                    // Find the corresponding FunctionResourceNode
+                    var functionResourceNode = await CrawlFunctionConnection(
+                        functionConnection,
+                        connectionReferenceName,
+                        functionConnectionNode);
+
+                    if (functionResourceNode != null)
+                    {
+                        nodeAccumulatorDictionary.Add(NodeType.FunctionResource, connectionReferenceName, functionResourceNode);
+                    }
+
+                    // Remove any stale edges for the service provider connection node
+                    await CrawlerExtensions.RemoveStaleEdgeForNode(_graphDbClient, functionConnectionNode, start);
                 }
             }
         }
     }
 
-    private async Task<ArmResourceNode?> CrawlServiceProviderConnection(LogicAppConnections? logicAppConnections,
+    private async Task<ArmResourceNode?> CrawlServiceProviderConnection(ServiceProviderConnection serviceProviderConnection,
         string connectionReference,
         ArmResourceNode workflowConnectionNode)
     {
-        if (logicAppConnections?.ServiceProviderConnections == null)
-            return null;
-
-        if (!logicAppConnections.ServiceProviderConnections.TryGetValue(connectionReference, out var serviceProviderConnection))
-            return null;
-
         var serviceProviderResourceNode = await GetServiceProviderResourceNode(
             serviceProviderConnection,
             workflowConnectionNode.SubscriptionId);
@@ -371,6 +453,66 @@ public class LogicAppCrawler : AppServiceCrawler
         await _graphDbClient.AddOrUpdateEdgeAsync(connectionToResourceEdge);
 
         return serviceProviderResourceNode;
+    }
+
+    private async Task<ArmResourceNode?> CrawlApiManagementConnection(ApiManagementConnection apiManagementConnection,
+        string connectionReferenceName,
+        ArmResourceNode apiManagementConnectionNode)
+    {
+        var baseUrl = apiManagementConnection.BaseUrl;
+
+        if (string.IsNullOrEmpty(baseUrl))
+        {
+            _logger.LogInternalWarning($"Api Management connection {connectionReferenceName} does not have a valid base URL.");
+            return null;
+        }
+
+        var resourceName = ArmHelper.TryParseFirstSubdomainFromHttpsUrl(baseUrl);
+        var apiManagementResourceNode = await _armClient.FindGenericArmResource(apiManagementConnectionNode.SubscriptionId, "Microsoft.ApiManagement/service", resourceName);
+
+        if (apiManagementResourceNode == null)
+            return null;
+
+        await _graphDbClient.AddOrUpdateNodeAsync(apiManagementResourceNode);
+
+        // Create edge from connection node to API Management resource
+        var connectionToResourceEdge = new ArmResourceEdge(
+            apiManagementConnectionNode.GetNodeId(),
+            apiManagementResourceNode.GetNodeId(),
+            Constants.Relationships.Uses);
+        await _graphDbClient.AddOrUpdateEdgeAsync(connectionToResourceEdge);
+
+        return apiManagementResourceNode;
+    }
+
+    private async Task<ArmResourceNode?> CrawlFunctionConnection(FunctionConnection functionConnection,
+        string connectionReferenceName,
+        ArmResourceNode functionConnectionNode)
+    {
+        var triggerUrl = functionConnection.TriggerUrl;
+
+        if (string.IsNullOrEmpty(triggerUrl))
+        {
+            _logger.LogInternalWarning($"Function connection {connectionReferenceName} does not have a valid trigger URL.");
+            return null;
+        }
+
+        var resourceName = ArmHelper.TryParseFirstSubdomainFromHttpsUrl(functionConnection.TriggerUrl);
+        var functionResourceNode = await _armClient.FindGenericArmResource(functionConnectionNode.SubscriptionId, Constants.AppServiceType, resourceName);
+
+        if (functionResourceNode == null)
+            return null;
+
+        await _graphDbClient.AddOrUpdateNodeAsync(functionResourceNode);
+
+        // Create edge from connection Node to Function resource
+        var connectionToResourceEdge = new ArmResourceEdge(
+            functionConnectionNode.GetNodeId(),
+            functionResourceNode.GetNodeId(),
+            Constants.Relationships.Uses);
+        await _graphDbClient.AddOrUpdateEdgeAsync(connectionToResourceEdge);
+
+        return functionResourceNode;
     }
 
     private string? GetActionType(JsonElement action)
@@ -500,7 +642,7 @@ public class LogicAppCrawler : AppServiceCrawler
         return resourceNode;
     }
 
-    private string? GetApiConnectionReferenceName(JsonElement operation)
+    private string? GetManagedApiConnectionReferenceName(JsonElement operation)
     {
         if (!operation.TryGetProperty("type", out var type) || type.ValueKind != JsonValueKind.String || !"ApiConnection".Equals(type.GetString(), StringComparison.OrdinalIgnoreCase))
         {
@@ -535,6 +677,49 @@ public class LogicAppCrawler : AppServiceCrawler
         }
 
         return null;
+    }
+
+    private string? GetApiManagementConnectionReferenceName(JsonElement operation)
+    {
+        if (operation.TryGetProperty("inputs", out var inputs) &&
+            inputs.TryGetProperty("apiManagement", out var host) &&
+            host.TryGetProperty("connection", out var referenceName) &&
+            referenceName.ValueKind == JsonValueKind.String)
+        {
+            return referenceName.GetString();
+        }
+
+        return null;
+    }
+
+    private string? GetFunctionConnectionReferenceName(JsonElement operation)
+    {
+        if (operation.TryGetProperty("inputs", out var inputs) &&
+            inputs.TryGetProperty("function", out var host) &&
+            host.TryGetProperty("connectionName", out var referenceName) &&
+            referenceName.ValueKind == JsonValueKind.String)
+        {
+            return referenceName.GetString();
+        }
+
+        return null;
+    }
+
+    private string? GetConnectionReferenceName(string actionType, JsonElement operation)
+    {
+        switch (actionType)
+        {
+            case "ApiConnection":
+                return GetManagedApiConnectionReferenceName(operation);
+            case "ServiceProvider":
+                return GetServiceProviderReferenceName(operation);
+            case "ApiManagement":
+                return GetApiManagementConnectionReferenceName(operation);
+            case "Function":
+                return GetFunctionConnectionReferenceName(operation);
+            default:
+                return null;
+        }
     }
 
     private static string? ExtractInstrumentationKeyFromConnectionString(string connectionString)
@@ -606,6 +791,8 @@ public class LogicAppCrawler : AppServiceCrawler
     {
         public Dictionary<string, ManagedApiConnection> ManagedApiConnections { get; set; } = new();
         public Dictionary<string, ServiceProviderConnection> ServiceProviderConnections { get; set; } = new();
+        public Dictionary<string, ApiManagementConnection> ApiManagementConnections { get; set; } = new();
+        public Dictionary<string, FunctionConnection> FunctionConnections { get; set; } = new();
     }
 
     public class ManagedApiConnection
@@ -622,6 +809,22 @@ public class LogicAppCrawler : AppServiceCrawler
         public string? ParameterSetName { get; set; }
         public required Dictionary<string, Object> ParameterValues { get; set; }
         public required ServiceProviderReference ServiceProvider { get; set; }
+    }
+
+    public class ApiManagementConnection
+    {
+        public string? ApiId { get; set; }
+        public string? BaseUrl { get; set; }
+        public string? DisplayName { get; set; }
+        public string? SubscriptionKey { get; set; }
+    }
+
+    public class FunctionConnection
+    {
+        public FunctionAuthentication? Authentication { get; set; }
+        public string? FunctionName { get; set; }
+        public FunctionReference? Function { get; set; }
+        public string? TriggerUrl { get; set; }
     }
 
     public class ApiReference
@@ -642,6 +845,45 @@ public class LogicAppCrawler : AppServiceCrawler
     public class ServiceProviderReference
     {
         public required string Id { get; set; }
+    }
+
+    public class FunctionAuthentication
+    {
+        public string? Name { get; set; }
+        public string? Type { get; set; }
+        public string? Value { get; set; }
+    }
+
+    public class FunctionReference
+    {
+        public string? Id { get; set; }
+    }
+
+    private enum NodeType
+    {
+        ManagedApiConnection,      // Logic App managed API connection node
+        ServiceProviderResource,   // ARM resource from a Service Provider connection
+        ServiceProviderConnection, // Logic App Service Provider connection node
+        ApiManagementConnection,   // Logic App APIM connection node
+        ApiManagementResource,     // API Management service resource
+        FunctionConnection,        // Logic App Function connection node
+        FunctionResource           // Function App resource
+    }
+
+    private sealed class NodeAccumulatorDictionary
+    {
+        private readonly Dictionary<(NodeType Type, string ReferenceName), ArmResourceNode> _nodes = new();
+
+        public bool Add(NodeType type, string referenceName, ArmResourceNode node) =>
+            _nodes.TryAdd((type, referenceName), node);
+
+        public bool Contains(NodeType type, string referenceName) =>
+            _nodes.ContainsKey((type, referenceName));
+
+        public IEnumerable<ArmResourceNode> GetAll() => _nodes.Values;
+
+        public IEnumerable<ArmResourceNode> GetByKind(NodeType type) =>
+            _nodes.Where(kv => kv.Key.Type == type).Select(kv => kv.Value);
     }
 }
 

@@ -38,6 +38,8 @@ public class Constants
     public const string ApplicationInsightsType = "Microsoft.Insights/components";
     public const string ServiceProviderConnectionType = "Microsoft.Web/sites/connections";
     public const string ApiConnectionType = "Microsoft.Web/connections";
+    public const string ApiManagementConnectionType = "Microsoft.Web/sites/apiManagementConnections";
+    public const string FunctionConnectionType = "Microsoft.Web/sites/functionConnections";
 
     // New constants for App Service Web/Function Apps and App Service Plans.
     public const string AppServiceType = "Microsoft.Web/sites";
