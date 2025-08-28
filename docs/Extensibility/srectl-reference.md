@@ -11,6 +11,7 @@ A comprehensive reference guide for all SRECTL commands, parameters, and usage p
 6. [Profile Management Commands](#profile-management-commands)
 7. [List Commands](#list-commands)
 8. [Utility Commands](#utility-commands)
+9. [Incident Handler Commands](#incident-handler-commands)
 
 ---
 
@@ -1028,3 +1029,197 @@ srectl --help
 srectl agent create --help
 srectl --version
 ```
+
+---
+
+## Incident Handler Commands
+
+### `srectl incidenthandler create`
+
+Create a new incident filter with comprehensive filtering criteria and agent mapping capabilities.
+
+**Syntax:**
+```bash
+srectl incidenthandler create --id <FilterID> [options]
+```
+
+**Required Parameters:**
+- `--id`: Unique identifier for the incident filter
+
+**Optional Parameters:**
+- `--name`: Human-readable name for the filter
+- `--impacted-service`: Service affected by incidents matching this filter  
+- `--priority`: Priority level for incidents (e.g., 1, 2, 3, 4)
+- `--incident-type`: Type of incident (e.g., LiveSite, Monitoring, Service Issue)
+- `--alert-id`: Alert ID pattern to match
+- `--title-contains`: Text that must be contained in the incident title
+- `--agent-mode`: Agent mode (autonomous, manual) [default: autonomous]
+- `--handling-agent`: YAML agent to handle incidents for this filter
+- `--owning-team-id`: ID of the team that owns this filter
+- `--max-attempts`: Maximum automated investigation attempts [default: 3]
+
+**What it does:**
+1. Validates that the filter ID doesn't already exist
+2. Creates a new incident filter with specified criteria
+3. Configures filtering rules for incident matching
+4. Sets up agent handling and automation parameters
+5. Enables the filter for active incident processing
+
+**API Integration:**
+- GET `/api/v1/incidentplayground/filters` - Check for duplicates
+- PUT `/api/v1/incidentplayground/filters/{filterId}` - Create new filter
+
+**Examples:**
+```bash
+# Create basic incident filter
+srectl incidenthandler create --id web_service_outages --name "Web Service Outages"
+
+# Create comprehensive filter with all options
+srectl incidenthandler create \
+  --id database_critical \
+  --name "Database Critical Issues" \
+  --impacted-service "Database Service" \
+  --priority "1" \
+  --incident-type "LiveSite" \
+  --title-contains "database" \
+  --handling-agent "database_expert_agent" \
+  --owning-team-id "team_database" \
+  --max-attempts 5
+
+# Create filter for specific alert pattern
+srectl incidenthandler create \
+  --id redis_alerts \
+  --name "Redis Performance Alerts" \
+  --alert-id "REDIS_*" \
+  --impacted-service "Cache Service" \
+  --handling-agent "redis_agent"
+```
+
+**Filter Criteria Behavior:**
+- **Empty values**: Optional parameters left empty will match any value
+- **Combining criteria**: All specified criteria must match for incident processing
+- **Pattern matching**: `title-contains` and `alert-id` support substring/pattern matching
+- **Priority handling**: Numeric priority levels (1=highest, 4=lowest)
+
+**Error Handling:**
+- **Duplicate ID**: Prevents creating filters with existing IDs
+- **Invalid parameters**: Validates parameter formats and ranges
+- **API failures**: Detailed error messages for troubleshooting
+
+**Prerequisites:**
+- Initialized SRECTL configuration
+- Valid authentication for remote servers
+- Unique filter ID
+
+### `srectl incidenthandler map-agent`
+
+Map a YAML-based agent to handle incidents for a specific filter, replacing traditional incident handlers.
+
+**Syntax:**
+```bash
+srectl incidenthandler map-agent --name <FilterName> --handling-agent <AgentName>
+```
+
+**Required Parameters:**
+- `--name`: Name of the incident filter to update
+- `--handling-agent`: Name of the YAML agent to handle incidents
+
+**What it does:**
+1. Fetches the specified incident filter from the server
+2. Validates that the specified agent exists on the server
+3. Updates the filter's `HandlingAgent` property
+4. Searches for existing incident handlers linked to the filter
+5. Deletes any traditional incident handlers found
+6. Configures YAML-based incident handling for the filter
+
+**API Integration:**
+- GET `/api/v1/incidentplayground/filters` - List all filters
+- GET `/api/v1/extendedAgent/agents` - Verify agent exists
+- POST `/api/v1/incidentplayground/filters/{filterId}` - Update filter
+- GET `/api/v1/incidentplayground/handlers` - List handlers
+- DELETE `/api/v1/incidentplayground/handlers/{handlerId}` - Delete handlers
+
+**Examples:**
+```bash
+# Map agent to handle Redis incidents
+srectl incidenthandler map-agent --name redis_incidents --handling-agent redis_agent
+
+# Map agent to handle database performance issues
+srectl incidenthandler map-agent --name db_perf_filter --handling-agent database_performance_agent
+```
+
+**Error Handling:**
+- **Filter not found**: Clear error if the filter doesn't exist
+- **Agent not found**: Validates agent existence before updating
+- **API failures**: Comprehensive error messages for troubleshooting
+- **Partial success**: Reports which operations succeeded/failed
+
+**Prerequisites:**
+- Initialized SRECTL configuration
+- Valid authentication for remote servers
+- Both filter and agent must exist on the server
+
+### `srectl list incidenthandlers`
+
+List all incident handlers configured on the server.
+
+**Syntax:**
+```bash
+srectl list incidenthandlers [--verbose]
+```
+
+**Optional Parameters:**
+- `--verbose, -v`: Show detailed information including filter details
+
+**What it does:**
+1. Fetches all incident handlers from the server
+2. Displays handler information (ID, name, filter associations)
+3. In verbose mode, fetches and displays associated filter details
+4. Shows which handlers have YAML agents mapped
+
+**API Integration:**
+- GET `/api/v1/incidentplayground/handlers` - List all handlers
+- GET `/api/v1/incidentplayground/filters` - Get filter details (verbose mode)
+
+**Examples:**
+```bash
+# Basic list of incident handlers
+srectl list incidenthandlers
+
+# Detailed view with filter information
+srectl list incidenthandlers --verbose
+
+# Alternative command format
+srectl incidenthandler list --verbose
+```
+
+**Sample Output:**
+```
+📋 Fetching incident handlers...
+Found 2 incident handler(s):
+
+[1] Database Performance Handler
+    ID: handler_001
+    Filter ID: filter_db_perf
+    Filter Name: database_performance_filter
+    Handling Agent: database_perf_agent
+    Created: 2024-08-15T10:30:00Z
+    Updated: 2024-08-20T14:22:15Z
+
+[2] Network Diagnostics Handler  
+    ID: handler_002
+    Filter ID: filter_network
+    Filter Name: network_issues
+    Created: 2024-08-16T09:15:30Z
+    Updated: 2024-08-16T09:15:30Z
+```
+
+**Use Cases:**
+- Audit existing incident handler configurations
+- Verify handler-to-filter associations
+- Monitor handler activity and updates
+- Identify handlers with YAML agent mappings
+
+**Prerequisites:**
+- Initialized SRECTL configuration
+- Valid authentication for remote servers

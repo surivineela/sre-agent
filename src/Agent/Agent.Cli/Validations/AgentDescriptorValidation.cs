@@ -53,11 +53,8 @@ public static class AgentDescriptorValidation
             errors.Add($"Agent descriptor {agentDescriptor.Name} does not have instructions.");
         }
 
-        if (agentDescriptor.Tools == null || agentDescriptor.Tools.Count == 0)
-        {
-            errors.Add($"Agent descriptor {agentDescriptor.Name} must have at least one tool.");
-        }
-        else
+        // Validate individual tool names if tools are provided
+        if (agentDescriptor.Tools != null && agentDescriptor.Tools.Count > 0)
         {
             foreach (var tool in agentDescriptor.Tools)
             {

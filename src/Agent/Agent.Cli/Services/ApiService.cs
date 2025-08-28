@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Agent.Cli.Services;
 using Agent.Cli.Helpers;
 using YamlDotNet.Serialization;
@@ -2218,7 +2219,7 @@ public class ApiService : IDisposable
 
                     if (connectors.Length == 0)
                     {
-                        connectorList.Add("\nNo data connectors found on the server.");
+                        connectorList.Add("No data connectors found on the server.");
                         connectorList.Add("Data connectors are configured through server settings.");
                     }
                     else
@@ -2669,6 +2670,215 @@ public class ApiService : IDisposable
         }
 
         return null;
+    }
+
+    public async Task<List<JsonNode>?> GetIncidentFiltersAsync()
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                Console.WriteLine("[ERROR] Configuration not found. Please run 'srectl init' first.");
+                return null;
+            }
+
+            var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/incidentplayground/filters";
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+            // Add auth header if not localhost
+            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
+            {
+                var token = await GetAccessTokenAsync();
+                if (string.IsNullOrEmpty(token))
+                {
+                    Console.WriteLine("[ERROR] Failed to get access token. Please run 'az login' first.");
+                    return null;
+                }
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                return JsonSerializer.Deserialize<List<JsonNode>>(content);
+            }
+            else
+            {
+                Console.WriteLine($"[ERROR] Failed to get incident filters: {response.StatusCode}");
+                return null;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] Failed to get incident filters: {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task<(bool success, string message)> CreateIncidentFilterAsync(JsonNode filter)
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return (false, "Configuration not found. Please run 'srectl init' first.");
+            }
+
+            var filterId = filter["id"]?.ToString();
+            var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/incidentplayground/filters/{filterId}";
+            var request = new HttpRequestMessage(HttpMethod.Put, url);
+
+            // Add auth header if not localhost
+            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
+            {
+                var token = await GetAccessTokenAsync();
+                if (string.IsNullOrEmpty(token))
+                {
+                    return (false, "Failed to get access token. Please run 'az login' first.");
+                }
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var json = JsonSerializer.Serialize(filter);
+            request.Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
+            if (response.IsSuccessStatusCode)
+            {
+                return (true, "Success");
+            }
+            else
+            {
+                return (false, $"API call failed with status {response.StatusCode}: {content}");
+            }
+        }
+        catch (Exception ex)
+        {
+            return (false, $"Exception: {ex.Message}");
+        }
+    }
+
+    public async Task<bool> UpdateIncidentFilterAsync(string filterId, JsonNode filter)
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                Console.WriteLine("[ERROR] Configuration not found. Please run 'srectl init' first.");
+                return false;
+            }
+
+            var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/incidentplayground/filters/{filterId}";
+            var request = new HttpRequestMessage(HttpMethod.Post, url);
+
+            // Add auth header if not localhost
+            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
+            {
+                var token = await GetAccessTokenAsync();
+                if (string.IsNullOrEmpty(token))
+                {
+                    Console.WriteLine("[ERROR] Failed to get access token. Please run 'az login' first.");
+                    return false;
+                }
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var json = JsonSerializer.Serialize(filter);
+            request.Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] Failed to update incident filter: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<List<JsonNode>?> GetIncidentHandlersAsync()
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                Console.WriteLine("[ERROR] Configuration not found. Please run 'srectl init' first.");
+                return null;
+            }
+
+            var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/incidentplayground/handlers";
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+            // Add auth header if not localhost
+            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
+            {
+                var token = await GetAccessTokenAsync();
+                if (string.IsNullOrEmpty(token))
+                {
+                    Console.WriteLine("[ERROR] Failed to get access token. Please run 'az login' first.");
+                    return null;
+                }
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                return JsonSerializer.Deserialize<List<JsonNode>>(content);
+            }
+            else
+            {
+                Console.WriteLine($"[ERROR] Failed to get incident handlers: {response.StatusCode}");
+                return null;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] Failed to get incident handlers: {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task<bool> DeleteIncidentHandlerAsync(string handlerId)
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                Console.WriteLine("[ERROR] Configuration not found. Please run 'srectl init' first.");
+                return false;
+            }
+
+            var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/incidentplayground/handlers/{handlerId}";
+            var request = new HttpRequestMessage(HttpMethod.Delete, url);
+
+            // Add auth header if not localhost
+            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
+            {
+                var token = await GetAccessTokenAsync();
+                if (string.IsNullOrEmpty(token))
+                {
+                    Console.WriteLine("[ERROR] Failed to get access token. Please run 'az login' first.");
+                    return false;
+                }
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] Failed to delete incident handler: {ex.Message}");
+            return false;
+        }
     }
 }
 

@@ -17,10 +17,12 @@ Agent.Cli/
 │   ├── DocumentCommandHandlers.cs # Document management implementations
 │   ├── ThreadCommandHandlers.cs # Thread management implementations
 │   ├── ProfileCommandHandlers.cs # Profile management implementations
+│   ├── IncidentHandlerCommandHandlers.cs # Incident handler command implementations
 │   ├── AgentCommandOptions.cs   # Agent command option definitions
 │   ├── ToolCommandOptions.cs    # Tool command option definitions
 │   ├── DocumentCommandOptions.cs # Document command option definitions
-│   └── ProfileCommandOptions.cs # Profile command option definitions
+│   ├── ProfileCommandOptions.cs # Profile command option definitions
+│   └── IncidentHandlerCommandOptions.cs # Incident handler command option definitions
 ├── Helpers/                      # Utility classes
 │   ├── YamlHelper.cs            # YAML serialization and formatting
 │   ├── ArgumentParser.cs        # Key-value pair parsing utilities
@@ -518,103 +520,68 @@ public static async Task HandleDeleteCommand(ParseResult parseResult)
 }
 ```
 
-### Quality Assurance
-
-#### Testing Coverage
-- Input validation testing (files, folders, parameters)
-- API integration testing with mock and real endpoints
-- Error scenario testing (missing files, network issues)
-- Bulk operation testing (large folders, many files)
-
-#### Error Handling Standards
-- File system validation before API calls
-- HTTP error code handling with user-friendly messages
-- Graceful degradation for partial failures
-- Clear success/failure feedback
-
-#### Performance Considerations
-- Efficient file discovery with LINQ
-- Streaming file uploads for large documents
-- Minimal memory footprint during operations
-- Progress indicators for long-running tasks
-
-## Interactive Thread Management
+## Incident Handler Management
 
 ### Overview
-The thread management system provides an interactive chat experience that allows users to have seamless conversations with the SRE Agent without needing to exit and restart commands.
+The incident handler management functionality enables mapping YAML-based agents to incident filters, replacing traditional incident handlers with more flexible agent-based handling.
 
-### Architecture
+### Implementation Architecture
+- **Command Options**: Defined in `IncidentHandlerCommandOptions.cs`
+- **Command Handlers**: Implemented in `IncidentHandlerCommandHandlers.cs`
+- **API Integration**: Extended `ApiService.cs` with incident filter and handler methods
+- **Command Registration**: Added to `CommandBuilder.cs` under `incidenthandler` command
 
-#### Interactive Chat Session
-The `StartInteractiveChatSession` method implements a persistent conversation loop that:
-- Handles user input with cancellation token support (Ctrl+C)
-- Provides real-time message sending and response streaming
-- Manages conversation state and thread persistence
-- Offers multiple exit strategies (Ctrl+C, explicit commands)
+### Design Principles
+- **Validation First**: Ensures both filter and agent exist before mapping
+- **Clean Migration**: Automatically removes old handlers when mapping agents
+- **User Feedback**: Clear progress indicators throughout the process
+- **Error Recovery**: Comprehensive error handling with actionable messages
 
-#### Key Features
-- **Seamless Conversation Flow**: After agent responses, users are immediately prompted for follow-up messages
-- **Graceful Cancellation**: Ctrl+C handling preserves conversation state and provides clean exit
-- **Multiple Exit Options**: Users can exit via Ctrl+C or explicit commands (exit, quit, /exit, /quit)
-- **Real-time Streaming**: Agent responses appear as they're generated
-- **Thread Persistence**: Conversations are saved and can be resumed later
+### Workflow
+1. **Filter Retrieval**: Fetches the filter by name from the server
+2. **Agent Validation**: Confirms the specified agent exists
+3. **Filter Update**: Sets the `HandlingAgent` property on the filter
+4. **Handler Cleanup**: Identifies and deletes traditional handlers
+5. **Confirmation**: Provides clear success/failure feedback
 
-#### Implementation Details
+### Commands Implemented
+- **`srectl incidenthandler create`**: Creates new incident filters with comprehensive configuration options
+- **`srectl incidenthandler map-agent`**: Maps YAML agents to incident filters
+- **`srectl list incidenthandlers`**: Lists all incident handlers (also available as `srectl incidenthandler list`)
 
+### API Methods Added
 ```csharp
-private static async Task StartInteractiveChatSession(
-    ApiService apiService, 
-    ThreadManagerService threadManager, 
-    string threadId, 
-    string userId, 
-    string displayName)
-{
-    // Console cancellation handling
-    var cancellationTokenSource = new CancellationTokenSource();
-    Console.CancelKeyPress += (_, e) => {
-        e.Cancel = true;
-        cancellationTokenSource.Cancel();
-    };
+// Create a new incident filter
+public async Task<(bool success, string message)> CreateIncidentFilterAsync(JsonNode filter)
 
-    // Interactive input/response loop
-    while (!cancellationTokenSource.Token.IsCancellationRequested)
-    {
-        // User input with cancellation support
-        // Message sending and response streaming
-        // Error handling and recovery
-    }
-}
+// Get all incident filters
+public async Task<List<JsonNode>?> GetIncidentFiltersAsync()
+
+// Update an incident filter
+public async Task<bool> UpdateIncidentFilterAsync(string filterId, JsonNode filter)
+
+// Get all incident handlers
+public async Task<List<JsonNode>?> GetIncidentHandlersAsync()
+
+// Delete an incident handler
+public async Task<bool> DeleteIncidentHandlerAsync(string handlerId)
 ```
 
-#### Integration Points
-- **Thread New Command**: Automatically starts interactive session after initial agent response
-- **Thread Continue Command**: Resumes interactive session for existing conversations
-- **API Service**: Integrates with streaming message retrieval for real-time responses
-- **Thread Manager**: Maintains conversation state and last-used thread tracking
+### HTTP Method Patterns
+- **PUT**: Used for creating new resources (`CreateIncidentFilterAsync`)
+- **POST**: Used for updating existing resources (`UpdateIncidentFilterAsync`)
+- **GET**: Used for retrieving resources
+- **DELETE**: Used for removing resources
 
-#### User Experience Design
-- **Clear Prompts**: Obvious input prompts with "You: " prefix
-- **Visual Separators**: Conversation sections clearly delineated
-- **Exit Instructions**: Clear guidance on how to exit the session
-- **Error Recovery**: Graceful handling of network issues with continuation options
-- **Progress Feedback**: Real-time status updates during message processing
+### Command Integration
+- Added comprehensive `create` command with 10+ configuration options
+- Added to main `list` command for consistency with other resources
+- Available both as `srectl list incidenthandlers` and `srectl incidenthandler list`
+- Supports `--verbose` flag for detailed output including filter information
+- Follows established patterns for authentication and error handling
 
-## Interactive Features
-
-### Chat Command
-The `srectl chat` command provides an interactive conversation interface:
-- **Session Management**: Maintains conversation context
-- **Exit Handling**: Graceful termination with 'exit' or 'quit'
-- **Thread Persistence**: Automatically manages underlying threads
-
-### Thread Tracking
-The `srectl thread track` command enables real-time message monitoring:
-- **Live Updates**: Polls for new messages continuously
-- **Interrupt Handling**: Clean exit on Ctrl+C
-- **Display Formatting**: Consistent message presentation
-
-### Design Patterns for Interactive Commands
-- **Cancellation Token Support**: All interactive commands support graceful cancellation
-- **State Management**: Persistent conversation state across sessions
-- **User Experience**: Clear prompts and intuitive interaction patterns
-- **Error Recovery**: Robust handling of network interruptions and API failures
+### Field Name Mapping
+The implementation handles JSON field name inconsistencies between different API endpoints:
+- **Incident Handlers**: Use lowercase field names (`id`, `incidentFilterId`, `createdAt`, `updatedAt`)
+- **Incident Filters**: Use PascalCase field names (`Id`, `Name`, `HandlingAgent`)
+- **Mapping Logic**: Handles both cases gracefully for maximum compatibility

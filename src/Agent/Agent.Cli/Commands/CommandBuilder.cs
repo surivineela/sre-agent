@@ -95,6 +95,7 @@ public static class CommandBuilder
         root.Subcommands.Add(tool);
         root.Subcommands.Add(doc);
         root.Subcommands.Add(profile);
+        root.Subcommands.Add(BuildIncidentHandlerCommand());
 
         return root;
     }
@@ -296,11 +297,22 @@ public static class CommandBuilder
             await GeneralCommandHandlers.HandleListDataConnectorsCommand(parseResult);
         });
 
-        var listCommand = new Command("list", "List agents, tools, extended tools, or data connectors from the remote server");
+        // List incident handlers subcommand
+        var listIncidentHandlersCommand = new Command("incidenthandlers", "List all incident handlers from the remote server")
+        {
+            IncidentHandlerCommandOptions.VerboseOption
+        };
+        listIncidentHandlersCommand.SetAction(async parseResult =>
+        {
+            await IncidentHandlerCommandHandlers.HandleListCommand(parseResult);
+        });
+
+        var listCommand = new Command("list", "List agents, tools, extended tools, data connectors, or incident handlers from the remote server");
         listCommand.Subcommands.Add(listAgentsCommand);
         listCommand.Subcommands.Add(listToolsCommand);
         listCommand.Subcommands.Add(listExtendedToolsCommand);
         listCommand.Subcommands.Add(listDataConnectorsCommand);
+        listCommand.Subcommands.Add(listIncidentHandlersCommand);
 
         return listCommand;
     }
@@ -520,5 +532,54 @@ public static class CommandBuilder
             await ProfileCommandHandlers.HandleDeleteCommand(parseResult);
         });
         return profileDelete;
+    }
+
+    // Add this method or update existing BuildCommands method:
+    private static Command BuildIncidentHandlerCommand()
+    {
+        var incidentHandlerCommand = new Command("incidenthandler", "Manage incident handlers and filters");
+        
+        var mapAgentCommand = new Command("map-agent", "Map a YAML agent to an incident filter")
+        {
+            IncidentHandlerCommandOptions.FilterNameOption,
+            IncidentHandlerCommandOptions.HandlingAgentOption
+        };
+        mapAgentCommand.SetAction(async parseResult =>
+        {
+            await IncidentHandlerCommandHandlers.HandleMapAgentCommand(parseResult);
+        });
+
+        var listCommand = new Command("list", "List all incident handlers")
+        {
+            IncidentHandlerCommandOptions.VerboseOption
+        };
+        listCommand.SetAction(async parseResult =>
+        {
+            await IncidentHandlerCommandHandlers.HandleListCommand(parseResult);
+        });
+
+        var createCommand = new Command("create", "Create a new incident filter")
+        {
+            IncidentHandlerCommandOptions.CreateIdOption,
+            IncidentHandlerCommandOptions.CreateNameOption,
+            IncidentHandlerCommandOptions.ImpactedServiceOption,
+            IncidentHandlerCommandOptions.PriorityOption,
+            IncidentHandlerCommandOptions.IncidentTypeOption,
+            IncidentHandlerCommandOptions.AlertIdOption,
+            IncidentHandlerCommandOptions.TitleContainsOption,
+            IncidentHandlerCommandOptions.AgentModeOption,
+            IncidentHandlerCommandOptions.CreateHandlingAgentOption,
+            IncidentHandlerCommandOptions.OwningTeamIdOption,
+            IncidentHandlerCommandOptions.MaxAttemptsOption
+        };
+        createCommand.SetAction(async parseResult =>
+        {
+            await IncidentHandlerCommandHandlers.HandleCreateCommand(parseResult);
+        });
+        
+        incidentHandlerCommand.Add(mapAgentCommand);
+        incidentHandlerCommand.Add(listCommand);
+        incidentHandlerCommand.Add(createCommand);
+        return incidentHandlerCommand;
     }
 }

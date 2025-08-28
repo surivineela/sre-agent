@@ -181,6 +181,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
         {
             var incidentDetails = await GetIncidentAsync(incidentId);
 
+            // Check if JSON-based custom handler is mapped to the filter
             var (matchingFilter, matchingHandler) = await GetIncidentFilterAndHandlerAsync(request, incidentDetails);
 
             if (matchingHandler == null)
@@ -200,7 +201,8 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
                     IncidentFilter = request.IncidentFilter
                 };
 
-                var defaultThread = await CreateIncidentMetaAgentThread(incidentRequest, matchingFilter);
+                // use handler id from filter to set current agent for meta agent thread
+                var defaultThread = await CreateIncidentMetaAgentThread(incidentRequest, matchingFilter, matchingFilter.HandlingAgent ?? string.Empty);
                 _logger.LogInternalInformation("[IncidentHandlingService] HandleIncidentAsync: Created MetaAgent thread with ThreadId: {ThreadId} for IncidentId: {IncidentId}", defaultThread.Id, incidentId);
 
                 var incidentStatusMetrics = await _incidentStatusMetricsService.GetIncidentStatusMetricsAsync(null, DateTime.Now);
@@ -256,7 +258,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
     /// <param name="request">The incident request</param>
     /// <param name="incidentFilterDocument">The matching incident filter</param>
     /// <returns>The created thread</returns>
-    public async Task<Core.Models.Api.v1.Thread> CreateIncidentMetaAgentThread(IncidentHandlingRequestModel<TIncidentFilterDocumentPayload> request, TIncidentFilterDocument incidentFilterDocument)
+    public async Task<Core.Models.Api.v1.Thread> CreateIncidentMetaAgentThread(IncidentHandlingRequestModel<TIncidentFilterDocumentPayload> request, TIncidentFilterDocument incidentFilterDocument, string currentAgent)
     {
         _logger.LogInternalInformation("[BaseIncidentService] CreateIncidentMetaAgentThread: Invoked for IncidentId: {IncidentId}", request.IncidentId);
         try
@@ -300,7 +302,14 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
                 overrideAgentMode: incidentFilterDocument.AgentMode
             );
 
-            _logger.LogInternalInformation("[BaseIncidentService] CreateIncidentMetaAgentThread: Created thread with ThreadId: {ThreadId} for IncidentId: {IncidentId}", thread.Id, request.IncidentId);
+            if (!string.IsNullOrEmpty(currentAgent))
+            {
+                // Update agent context to use specified current agent
+                agentContext = agentContext with { CurrentAgent = currentAgent };
+                await _repository.UpdateAgentContextAsync(agentContext);
+            }
+
+            _logger.LogInternalInformation("[BaseIncidentService] CreateIncidentMetaAgentThread: Created thread with ThreadId: {ThreadId} for IncidentId: {IncidentId} with CurrentAgent: {CurrentAgent}", thread.Id, request.IncidentId, currentAgent);
 
             var agentMessage = $"**Acknowledging the incident**. I'm starting to investigate and see how I can help.";
             await _repository.AddMessageAsync(thread.Id, new Message(Guid.NewGuid(), DateTime.UtcNow, new Core.Models.Api.v1.Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"), agentMessage));

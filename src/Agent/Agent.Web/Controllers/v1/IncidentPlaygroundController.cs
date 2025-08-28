@@ -246,6 +246,7 @@ public class IncidentPlaygroundController : ControllerBase
             TitleContains = payload["TitleContains"]?.ToString() ?? string.Empty,
             AgentMode = payload["AgentMode"]?.ToString() ?? string.Empty,
             OwningTeamId = payload["OwningTeamId"]?.ToString() ?? string.Empty,
+            HandlingAgent = payload["HandlingAgent"]?.ToString() ?? string.Empty,
             MaxAutomatedInvestigationAttempts = payload?["MaxAutomatedInvestigationAttempts"]?.GetValue<int>() ?? 3
         };
 
