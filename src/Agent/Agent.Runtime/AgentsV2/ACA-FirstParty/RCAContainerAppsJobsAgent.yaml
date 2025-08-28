@@ -217,6 +217,7 @@ tools:
   - GetJobMemoryUsageExceedsThreshold
   - GetJobPodContainersTerminationState
   - GetContainerAppOrJobOOMKills
+  - GetPodsInWorkloadProfile
 
 common_tools:
   - rca_agent_tools

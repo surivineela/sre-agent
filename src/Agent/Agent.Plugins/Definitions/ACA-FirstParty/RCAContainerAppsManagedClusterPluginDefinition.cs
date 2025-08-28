@@ -310,6 +310,45 @@ Output: CSV (tab-separated) with columns:
 
         [Description(@"""
         Purpose:
+        Retrieves all pods scheduled in the same workload profile node given a pod name. If left empty, returns all pods in all workload profiles.
+
+        Scenario:
+        Use this tool to analyze pod co-location and examine system pod health for that workload profile.
+        Identify pods running on the same node as the target pod, which can be useful for 
+        investigating missing logs, networking issues, or understanding workload placement.
+        
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - NodeName: Name of the node where the pod is scheduled
+        - podRevisionName: Revision name of the pod 
+        - ParentId: Parent node identifier
+        - EventId: Pod identifier
+        - EventName: Pod name
+        - StartTime: Pod start timestamp
+        - EndTime: Pod end timestamp
+        - Healthy: Whether the pod is in a healthy state
+        - NodePoolName: Name of the node pool
+        """
+        )]
+        public Task<string> GetPodsInWorkloadProfile(
+            [Description("Azure region.")] AzureRegion region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName,
+            [Description("Target pod name to find co-located pods. Optional - when empty, returns all pods on all nodes.")] string targetEventName = "")
+        {
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetPodsInWorkloadProfile", region,
+                new Dictionary<string, string> {
+                { "fromDate", fromDate.ToString() },
+                { "toDate", toDate.ToString() },
+                { "managedClusterName", managedClusterName },
+                { "targetEventName", targetEventName }
+                });
+        }
+      
+        [Description(@"""
+        Purpose:
+
         Retrieves AKS activity log events from ManagedClusterMonitoringEvents for the given managed cluster.
 
         Scenario:

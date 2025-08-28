@@ -1,0 +1,42 @@
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let queryManagedCluster = "##managedClusterName##";
+let queryTargetEventName = "##targetEventName##";
+let revisionArray=dynamic(["private-registry-k8s","k8se-swift-bootstrap-agent","k8se-node-agent","k8se-log-processor","k8se-azsecpack"]);
+let nodeStatusRaw=ContainerAppControllerEvents
+| where PreciseTimeStamp between (queryFrom .. queryTo)
+| where EnvironmentName == queryManagedCluster
+| where msg has "Node Heartbeat"
+| extend NodePoolName = iff(NodeName startswith "aks", tostring(split(NodeName,"-")[1]),"")
+| parse NodeLabels with something "node.kubernetes.io/instance-type: " vmSize "," somethingFinal
+| parse NodeLabels with "beta.kubernetes.io/instance-type: " vmSize2 "," somethingFinal
+| parse NodeLabels with something "k8se.microsoft.com/workloadProfileName: " workloadProfileFriendlyName ", " somethingFnal
+| parse NodeLabels with something "k8se.microsoft.com/workloadProfileName: " workloadProfileFriendlyName2
+| project PreciseTimeStamp,NodePoolName,NodeName, workloadProfileFriendlyName2, workloadProfileFriendlyName, NodeLabels;
+let k8sePodTimeLine = ContainerAppControllerEvents
+| where PreciseTimeStamp between (queryFrom .. queryTo)
+| where EnvironmentName == queryManagedCluster
+| where msg == 'Pod Heartbeat'
+| extend NodePoolName = iff(NodeName startswith "aks", tostring(split(NodeName,"-")[1]),"")
+| extend PodNameSpace = PodNamespace
+| project PreciseTimeStamp,PodName,PodStatus,NodeName,PodContainerStatus,PodNameSpace,NodePoolName
+| extend onlyOneSuffix = iff(PodName has_any(revisionArray), true,false)
+| extend PodNameSplit = iff(onlyOneSuffix,array_slice(split(PodName, '-'),-1,-1),array_slice(split(PodName, '-'),-2,-1))
+| extend PodSuffix = strcat_array(PodNameSplit, "-")
+| extend podRevisionName = substring(PodName,0,indexof(PodName,PodSuffix)-1)
+| summarize StartTime = min(PreciseTimeStamp),EndTime=max(PreciseTimeStamp) by PodName,podRevisionName,PodStatus,NodeName,PodNameSpace, NodePoolName
+| project
+        NodeName,
+        podRevisionName, 
+        ParentId = NodeName,
+        EventId = PodName,
+        EventName = PodName,
+        StartTime,
+        EndTime,
+        Healthy=iff(PodStatus == "Running" or PodStatus == "Succeeded", true, false),
+        NodePoolName
+;
+let targetParent = toscalar(k8sePodTimeLine | where EventName startswith queryTargetEventName | project ParentId);
+k8sePodTimeLine
+| where (isempty(targetParent) or ParentId == targetParent)
+        or (isempty(queryTargetEventName) or EventName startswith queryTargetEventName)

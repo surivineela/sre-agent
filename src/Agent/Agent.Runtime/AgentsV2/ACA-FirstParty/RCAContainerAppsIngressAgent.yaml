@@ -241,6 +241,7 @@ tools:
   - GetContainerAppStatus
   - GetContainerAppAdminEvents
   - GetContainerAppReplicaCountChanges
+  - GetPodsInWorkloadProfile
   - GetUDRDetails
   - GetNSGDetails
 

@@ -271,6 +271,7 @@ tools:
   - GetContainerAppOrJobOOMKills
   - GetContainerAppCpuExceedsThreshold
   - GetContainerAppMemoryExceedsThreshold
+  - GetPodsInWorkloadProfile
 
 common_tools:
 - rca_agent_tools
