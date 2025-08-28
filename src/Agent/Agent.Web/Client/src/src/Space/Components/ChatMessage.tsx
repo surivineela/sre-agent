@@ -67,80 +67,6 @@ mermaid.initialize({
     securityLevel: 'loose',
 });
 
-// Add table styling for markdown tables
-const tableStyles = `
-  table {
-    border-spacing: 0;
-    border-collapse: collapse;
-    display: block;
-    padding: 1px;
-    margin-top: 0;
-    margin-bottom: 16px;
-    width: max-content;
-    max-width: 100%;
-    overflow: auto;
-    border-radius: 8px;
-  }
-
-  tr {
-    background-color: var(--color-canvas-default, #ffffff);
-    border-top: 1px solid var(--color-border-muted, #d0d7de);
-  }
-
-  tr:nth-child(2n) {
-    background-color: var(--color-canvas-subtle, #f6f8fa);
-  }
-
-  td,
-  th {
-    padding: 6px 13px;
-    border: 1px solid var(--color-border-default, #d0d7de);
-  }
-
-  th {
-    font-weight: 600;
-  }
-
-  /* Round corners for first and last cells in first and last rows */
-  tr:first-child th:first-child {
-    border-top-left-radius: 8px;
-  }
-  tr:first-child th:last-child {
-    border-top-right-radius: 8px;
-  }
-  tr:last-child td:first-child {
-    border-bottom-left-radius: 8px;
-  }
-  tr:last-child td:last-child {
-    border-bottom-right-radius: 8px;
-  }
-
-  table img {
-    background-color: transparent;
-  }
-
-  @media (prefers-color-scheme: dark) {
-  tr {
-    background-color: #161b22;
-    border-top: 1px solid #30363d;
-  }
-
-  tr:nth-child(2n) {
-    background-color: #21262d;
-  }
-
-  td,
-  th {
-    border: 1px solid #444c56;
-    color: #c9d1d9;
-  }
-
-  th {
-    background-color: #21262d;
-    font-weight: bold;
-  }
-}`;
-
 const ChatMessage = ({
     message,
     previousMessage,
@@ -226,7 +152,6 @@ const ChatMessage = ({
         case 'SREAgent':
             return (
                 <div style={isStreamingMessage ? { minHeight: 'calc(100% - 120px)' } : undefined}>
-                    <style>{tableStyles}</style>
                     <CopilotMessage
                         {...agentMessageProps}
                         key={message.id}

@@ -1,4 +1,14 @@
-import { mergeClasses, tokens } from '@fluentui/react-components';
+import {
+    mergeClasses,
+    Table,
+    TableBody,
+    TableCell,
+    TableHeader,
+    TableHeaderCell,
+    TableRow,
+    Text,
+    tokens,
+} from '@fluentui/react-components';
 import { mergeStyleSets } from '@fluentui/react/lib/Styling';
 import { memo, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
@@ -88,6 +98,34 @@ const ReactMarkdownComponent = ({ content, isUserMessage }: { content?: string |
         return <h1 className={chatMessageStyles.h1}>{props.children}</h1>;
     }, []);
 
+    const tableRenderer = useCallback((props: any) => {
+        return <Table style={{ tableLayout: 'auto' }}>{props.children}</Table>;
+    }, []);
+
+    const theadRenderer = useCallback((props: any) => {
+        return <TableHeader>{props.children}</TableHeader>;
+    }, []);
+
+    const tbodyRenderer = useCallback((props: any) => {
+        return <TableBody>{props.children}</TableBody>;
+    }, []);
+
+    const trRenderer = useCallback((props: any) => {
+        return <TableRow>{props.children}</TableRow>;
+    }, []);
+
+    const thRenderer = useCallback((props: any) => {
+        return (
+            <TableHeaderCell>
+                <Text weight="semibold">{props.children}</Text>
+            </TableHeaderCell>
+        );
+    }, []);
+
+    const tdRenderer = useCallback((props: any) => {
+        return <TableCell>{props.children ?? '-'}</TableCell>;
+    }, []);
+
     return (
         <div className={mergeClasses('markdown-content', isUserMessage ? undefined : chatMessageStyles.root)}>
             <ReactMarkdown
@@ -99,6 +137,12 @@ const ReactMarkdownComponent = ({ content, isUserMessage }: { content?: string |
                     h3: h3Renderer,
                     h2: h2Renderer,
                     h1: h1Renderer,
+                    table: tableRenderer,
+                    thead: theadRenderer,
+                    tbody: tbodyRenderer,
+                    tr: trRenderer,
+                    th: thRenderer,
+                    td: tdRenderer,
                 }}
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeRaw]}
