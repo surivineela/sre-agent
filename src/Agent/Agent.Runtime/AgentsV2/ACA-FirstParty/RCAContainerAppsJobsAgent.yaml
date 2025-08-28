@@ -204,6 +204,7 @@ tools:
   - GetSystemComponentErrorEvents
   - GetSystemComponentCpuUsage
   - GetSystemComponentMemoryUsage
+  - GetAKSActivityLogEvents
   - GetJobDefinition
   - GetJobExecutionEvents
   - GetJobExecutionFinalStatus

@@ -307,5 +307,32 @@ Output: CSV (tab-separated) with columns:
                 { "region", region.ToNormalizedString() }
                 });
         }
+
+        [Description(@"""
+        Purpose:
+        Retrieves AKS activity log events from ManagedClusterMonitoringEvents for the given managed cluster.
+
+        Scenario:
+        Use this tool to analyze AKS activity log events to understand cluster operations and activities.
+        Helpful for troubleshooting and understanding what operations occurred during a specific time window.
+        
+        Output:
+        Returns tab-separated table data in CSV format. Column headers:
+        - message: AKS activity log message
+        """
+        )]
+        public Task<string> GetAKSActivityLogEvents(
+            [Description("Azure region.")] AzureRegion region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the managed cluster.")] string managedClusterName)
+        {
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetAKSActivityLogEvents", region,
+                new Dictionary<string, string> {
+                { "fromDate", fromDate.ToString() },
+                { "toDate", toDate.ToString() },
+                { "managedClusterName", managedClusterName }
+                });
+        }
     }
 }

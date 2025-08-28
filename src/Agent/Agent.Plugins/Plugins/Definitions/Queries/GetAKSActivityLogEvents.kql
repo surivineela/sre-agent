@@ -1,0 +1,9 @@
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let managedCluster = "##managedClusterName##";
+ManagedClusterMonitoringEvents
+| where PreciseTimeStamp > queryFrom and PreciseTimeStamp <= queryTo
+| where managedClusterName == managedCluster
+| where message startswith_cs "[AKSActivityLog]"
+| project message
+| order by PreciseTimeStamp desc

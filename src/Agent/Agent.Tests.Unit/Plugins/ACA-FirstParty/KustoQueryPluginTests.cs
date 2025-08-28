@@ -72,6 +72,7 @@ namespace Agent.Tests.Unit.Plugins
                     "GetSystemComponentCpuUsage.kql",
                     "GetSystemComponentMemoryUsage.kql",
                     "GetSystemComponentErrorEvents.kql",
+                    "GetAKSActivityLogEvents.kql",
                     "GetTerminatedConnectionsForPod.kql",
                     "GetVKPodLeaderElection.kql",
                     "GracefulConnectionCount.kql",

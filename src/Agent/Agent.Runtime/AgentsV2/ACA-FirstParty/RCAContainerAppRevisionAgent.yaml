@@ -239,6 +239,7 @@ tools:
   - GetSystemComponentErrorEvents
   - GetSystemComponentCpuUsage
   - GetSystemComponentMemoryUsage
+  - GetAKSActivityLogEvents
   - GetManagedEnvironmentConfigureInfo
   - GetManagedEnvironmentStateInfo
   - GetEnvironmentQuota
