@@ -246,9 +246,30 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
                 return;
             }
 
-            if (incidentDocument.Status.Equals("resolved", StringComparison.OrdinalIgnoreCase) || incidentDocument.Status.Equals("closed", StringComparison.OrdinalIgnoreCase))
+            // ServiceNow status values: 6=resolved, 7=closed, 8=cancelled
+            if (incidentDocument.Status.Equals("6") || incidentDocument.Status.Equals("7") || incidentDocument.Status.Equals("8"))
             {
-                logger.LogInternalInformation("Incident {incidentNumber} is resolved/closed, skipping notification.", incidentDocument.Id);
+                logger.LogInternalInformation("Incident {incidentNumber} is resolved/closed/cancelled (status: {status}), updating thread status if exists.", incidentDocument.Id, incidentDocument.Status);
+                
+                // Update thread status if exists
+                try
+                {
+                    var existingThreadDocument = await GetIncidentThread(incidentDocument.Id);
+                    if (existingThreadDocument is not null)
+                    {
+                        if (existingThreadDocument.IncidentStatus != "resolved")
+                        {
+                            existingThreadDocument.IncidentStatus = "resolved";
+                            logger.LogInternalInformation("Updating thread status to resolved for ServiceNow incident {incidentNumber}", incidentDocument.Id);
+                            await container.UpsertItemAsync(existingThreadDocument, new PartitionKey(existingThreadDocument.Id));
+                            logger.LogInternalInformation("Updated thread status to resolved for ServiceNow incident {incidentNumber}", incidentDocument.Id);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogInternalError(ex, "Error updating thread status for ServiceNow incident {incidentNumber}", incidentDocument.Id);
+                }
                 return;
             }
 

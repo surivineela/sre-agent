@@ -366,7 +366,28 @@ public class IcmScanner(ILogger<IcmScanner> logger,
 
             if (incidentDocument.Status.ToString().Equals("resolved", StringComparison.OrdinalIgnoreCase) || incidentDocument.Status.ToString().Equals("mitigated", StringComparison.OrdinalIgnoreCase))
             {
-                logger.LogInternalInformation("[IcmScanner] Incident {incidentId} is mitigated/resolved, skipping notification.", incidentDocument.Id);
+                logger.LogInternalInformation("[IcmScanner] Incident {incidentId} is mitigated/resolved, updating thread status if exists.", incidentDocument.Id);
+                
+                // Update thread status if exists
+                try
+                {
+                    var existingThreadDocument = await GetIncidentThread(incidentDocument.Id);
+                    if (existingThreadDocument is not null)
+                    {
+                        var newStatus = incidentDocument.Status.ToString().Equals("mitigated", StringComparison.OrdinalIgnoreCase) ? "mitigated" : "resolved";
+                        if (existingThreadDocument.IncidentStatus != newStatus)
+                        {
+                            existingThreadDocument.IncidentStatus = newStatus;
+                            logger.LogInternalInformation("[IcmScanner] Updating thread status to {status} for ICM incident {incidentId}", newStatus, incidentDocument.Id);
+                            await container.UpsertItemAsync(existingThreadDocument, new PartitionKey(existingThreadDocument.Id));
+                            logger.LogInternalInformation("[IcmScanner] Updated thread status to {status} for ICM incident {incidentId}", newStatus, incidentDocument.Id);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogInternalError(ex, "[IcmScanner] Error updating thread status for ICM incident {incidentId}", incidentDocument.Id);
+                }
                 return;
             }
 
