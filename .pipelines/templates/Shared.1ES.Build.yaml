@@ -75,6 +75,9 @@ extends:
           ArtifactDirectory: '$(Build.SourcesDirectory)\out'
 
         steps:
+        - checkout: self
+          persistCredentials: true # For localized file check-in
+
           # Used to get the packages that referenced by generated WorkerExtensions.csproj 
         - task: NuGetAuthenticate@1
           displayName: NuGetAuthenticate
@@ -145,6 +148,10 @@ extends:
             outDir: '$(ArtifactDirectory)' # \loc
             packageSourceAuth: 'patAuth'
             dependencyPackageSource: 'https://msazure.pkgs.visualstudio.com/One/_packaging/OnelocbuildLocToolsFeed/nuget/v3/index.json'
+            repoType: gitHub
+            isCreatePrSelected: true
+            gitHubPrMergeMethod: squash
+            prSourceBranchPrefix: 'locfiles'
 
         #
         # UX - Set node version for installing npm packages
