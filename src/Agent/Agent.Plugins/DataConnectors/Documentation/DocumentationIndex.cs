@@ -47,7 +47,7 @@ public class DocumentationIndex
         indexer.FieldMappings.Add(new FieldMapping("metadata_storage_name") {  TargetFieldName = "title" });
 
         await _searchIndexingClient.CreateOrUpdateBlobDataSourceAsync(dataSourceName, blobContainer, blobRootPath, new ResourceIdentifier(_indexingSettings.BlobStorageResourceId), new ResourceIdentifier(_indexingSettings.ManagedIdentityResourceId));
-        await _searchIndexingClient.CreateOrUpdateIndexAsync(index, recreateOnError: true);
+        await _searchIndexingClient.CreateOrUpdateIndexAsync(index);
         await _searchIndexingClient.CreateOrUpdateSkillsetAsync(skillset);
         await _searchIndexingClient.CreateOrUpdateIndexerAsync(indexer);
     }

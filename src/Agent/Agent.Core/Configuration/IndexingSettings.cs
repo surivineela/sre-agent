@@ -9,7 +9,7 @@ namespace Agent.Core.Configuration
         /// <summary>
         /// The endpoint for the Azure AI Search service
         /// </summary>
-        public string SearchEndpoint { get; init; } = string.Empty;
+        public string SearchEndpointUrl { get; init; } = string.Empty;
 
         /// <summary>
         /// The resource ID of the Azure Blob Storage account used to hold content that will be indexed

@@ -11,7 +11,9 @@ namespace Agent.Core.DataConnectors;
 public class DataConnectorIndexDocument
 {
     [SearchableField(IsKey = true, IsFilterable = true, AnalyzerName = LexicalAnalyzerName.Values.Keyword)]
-    public required string Id { get; init; }
+#pragma warning disable IDE1006 // Naming Styles - The index created by the control plane uses lower-casing
+    public required string id { get; init; }
+#pragma warning restore IDE1006 // Naming Styles
 
     [SearchableField(IsFilterable = true, IsSortable = true, IsFacetable = true, AnalyzerName = LexicalAnalyzerName.Values.Keyword)]
     public string ChunkId { get; set; } = string.Empty;

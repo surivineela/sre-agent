@@ -217,7 +217,6 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
 
             catch (Exception ex) when (ex.IsNotTokenCancellation(stoppingToken))
             {
-
                 _logger.LogInternalError(ex, "Failed to process cluster {ClusterUri}.", clusterUri);
             }
         }

@@ -28,27 +28,38 @@ public class DataConnectorService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        if (_dataConnectors.Count == 0)
+        try
         {
-            _logger.LogInternalWarning("No data connectors configured. Exiting data connector service.");
-            return;
+            if (_dataConnectors.Count == 0)
+            {
+                _logger.LogInternalWarning("No data connectors configured. Exiting data connector service.");
+                return;
+            }
+
+            _logger.LogInternalInformation($"Creating index for data connectors.");
+
+            await _dataConnectorIndex.CreateOrUpdateIndex();
+
+            _logger.LogInternalInformation($"Starting {_dataConnectors.Count} data connectors.");
+
+            List<Task> tasks = new List<Task>(_dataConnectors.Count);
+            foreach (DataConnectorInstance dataConnector in _dataConnectors)
+            {
+                tasks.Add(Task.Run(async () => await RunDataConnectorAsync(dataConnector, stoppingToken), stoppingToken));
+            }
+
+            _logger.LogInternalInformation($"Started {_dataConnectors.Count} data connectors. Waiting for application shutdown.");
+
+            await Task.WhenAll(tasks);
         }
-
-        _logger.LogInternalInformation($"Creating index for data connectors.");
-
-        await _dataConnectorIndex.CreateOrUpdateIndex();
-
-        _logger.LogInternalInformation($"Starting {_dataConnectors.Count} data connectors.");
-
-        List<Task> tasks = new List<Task>(_dataConnectors.Count);
-        foreach (DataConnectorInstance dataConnector in _dataConnectors)
+        catch (OperationCanceledException ex) when (ex.CancellationToken == stoppingToken)
         {
-            tasks.Add(Task.Run(async () => await RunDataConnectorAsync(dataConnector, stoppingToken), stoppingToken));
+            _logger.LogInternalInformation("Data connector service shutting down due to cancellation token.");
         }
-
-        _logger.LogInternalInformation($"Started {_dataConnectors.Count} data connectors. Waiting for application shutdown.");
-
-        await Task.WhenAll(tasks);
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Error during data connector service setup: {ex}");
+        }
     }
 
     private async Task RunDataConnectorAsync(DataConnectorInstance instance, CancellationToken stoppingToken)
@@ -56,7 +67,20 @@ public class DataConnectorService : BackgroundService
         string implementationTypeName = instance.DataConnector.GetType().Name;
         _logger.LogInternalInformation("Initializing data connector: {Name}, {DataConnectorType}, {ImplementationType}", instance.InstanceSettings.Name, instance.InstanceSettings.DataConnectorType, implementationTypeName);
 
-        await instance.DataConnector.InitAsync(instance.InstanceSettings, stoppingToken);
+        try
+        { 
+            await instance.DataConnector.InitAsync(instance.InstanceSettings, stoppingToken);
+        }
+        catch (OperationCanceledException ex) when (ex.CancellationToken == stoppingToken)
+        {
+            _logger.LogInternalInformation("Data connector initialize canceled due to cancellation token. {Name}, {DataConnectorType}, {ImplementationType}", instance.InstanceSettings.Name, instance.InstanceSettings.DataConnectorType, implementationTypeName);
+            return;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error during data connector initialization: {Message}, {Name}, {DataConnectorType}, {ImplementationType}", ex.Message, instance.InstanceSettings.Name, instance.InstanceSettings.DataConnectorType, implementationTypeName);
+            return;
+        }
 
         TimeSpan interval = instance.DataConnector.Interval;
         if (interval < TimeSpan.FromSeconds(5))

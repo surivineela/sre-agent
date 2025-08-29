@@ -229,7 +229,7 @@ public class KustoMetadataIndex<T>
             SemanticSearch = semanticSearch
         };
 
-        await _searchIndexingClient.CreateOrUpdateIndexAsync(index, recreateOnError: true);
+        await _searchIndexingClient.CreateOrUpdateIndexAsync(index);
 
         string dataSourceName = $"{_indexNamePrefix}-blob-datasource";
         await _searchIndexingClient.CreateOrUpdateBlobDataSourceAsync(

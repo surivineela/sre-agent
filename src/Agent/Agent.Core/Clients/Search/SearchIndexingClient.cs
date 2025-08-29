@@ -4,7 +4,6 @@
 
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
-using Agent.Logging;
 using Azure;
 using Azure.Core;
 using Azure.Search.Documents;
@@ -24,7 +23,7 @@ public class SearchIndexingClient : ISearchIndexingClient
     public SearchIndexingClient(IAuthenticationService authService, IndexingSettings indexingSettings, ILogger<SearchIndexingClient> logger)
     {
         TokenCredential credential = authService.GetSearchEndpointCredential();
-        var searchEndpoint = indexingSettings.SearchEndpoint;
+        var searchEndpoint = indexingSettings.SearchEndpointUrl;
         if (string.IsNullOrEmpty(searchEndpoint))
         {
             searchEndpoint = "https://dummy-sre-search.azurewebsites.net";
@@ -34,24 +33,11 @@ public class SearchIndexingClient : ISearchIndexingClient
         _logger = logger;
     }
 
-    public async Task<Response<SearchIndex>> CreateOrUpdateIndexAsync(SearchIndex searchIndex, bool recreateOnError = false)
+    public async Task<Response<SearchIndex>> CreateOrUpdateIndexAsync(SearchIndex searchIndex)
     {
         _logger.LogInternalInformation("Creating or updating search index {Name}", searchIndex.Name);
 
-        try
-        {
-            return await _searchIndexClient.CreateOrUpdateIndexAsync(searchIndex);
-        }
-        catch (RequestFailedException ex)
-        {
-            if (ex.Status == 400 && ex.ErrorCode == "OperationNotAllowed" && recreateOnError)
-            {
-                await _searchIndexClient.DeleteIndexAsync(searchIndex.Name);
-                return await _searchIndexClient.CreateIndexAsync(searchIndex);
-            }
-
-            throw;
-        }
+        return await _searchIndexClient.CreateOrUpdateIndexAsync(searchIndex);
     }
 
     public async Task<Response<SearchIndexerSkillset>> CreateOrUpdateSkillsetAsync(SearchIndexerSkillset skillsetDefinition)
@@ -97,7 +83,7 @@ public class SearchIndexingClient : ISearchIndexingClient
     {
         _logger.LogInternalInformation("Performing search on index {IndexName} with query '{SearchText}'", indexName, searchText);
         SearchClient searchClient = _searchIndexClient.GetSearchClient(indexName);
-
+        
         Response<SearchResults<TResult>> results = await searchClient.SearchAsync<TResult>(searchText, searchOptions, cancellationToken);
 
         return results.Value;

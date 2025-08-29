@@ -50,6 +50,7 @@ public class DataConnectorIndex
         _openAiSettings = openAiSettings;
 
         FieldBuilder builder = new FieldBuilder();
+
         _fields = (List<SearchField>)builder.Build(typeof(DataConnectorIndexDocument));
         List<SearchField> contentFields = new List<SearchField>();
 
@@ -273,7 +274,7 @@ public class DataConnectorIndex
             TargetFieldName = nameof(DataConnectorIndexDocument.SourceDocumentUrl)
         });
 
-        await _searchIndexingClient.CreateOrUpdateIndexAsync(index, recreateOnError: true);
+        await _searchIndexingClient.CreateOrUpdateIndexAsync(index);
         await _searchIndexingClient.CreateOrUpdateSkillsetAsync(skillset);
         await _searchIndexingClient.CreateOrUpdateBlobDataSourceAsync(
             name: dataSourceName,

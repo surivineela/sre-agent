@@ -1,6 +1,7 @@
 using Agent.Core.Clients.Search;
 using Azure;
 using Azure.Core;
+using Azure.Core.Serialization;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Indexes.Models;
 using Azure.Search.Documents.Models;
@@ -21,7 +22,7 @@ internal class MockSearchIndexingClient : ISearchIndexingClient
             new MockAzureHttpResponse(200));
     }
 
-    public async Task<Response<SearchIndex>> CreateOrUpdateIndexAsync(SearchIndex searchIndex, bool recreateOnError = false)
+    public async Task<Response<SearchIndex>> CreateOrUpdateIndexAsync(SearchIndex searchIndex)
     {
         await Task.Yield();
 
