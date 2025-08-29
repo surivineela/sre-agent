@@ -63,7 +63,7 @@ public class SessionPoolService : ISessionPoolService
         var sessionRequest = new SessionRequest
         {
             Commands = ["/bin/bash", "-c", command],
-            TimeoutInSeconds = 30
+            TimeoutInSeconds = 900 // 15 minutes
         };
 
         var sessionResponse = await SendRequestAsync<SessionResponse>(HttpMethod.Post, "/shellExecute", identifier, sessionRequest);

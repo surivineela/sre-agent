@@ -61,6 +61,7 @@ namespace Agent.Core.Extensions
             services.AddHttpClient(Constants.HttpClientForSessionPool, client =>
             {
                 client.DefaultRequestHeaders.Add("User-Agent", "SRE Agent");
+                client.Timeout = TimeSpan.FromMinutes(15); // Set timeout to 15 minutes
             }).AddHttpMessageHandler<SessionPoolAccessTokenHandler>();
         }
     }
