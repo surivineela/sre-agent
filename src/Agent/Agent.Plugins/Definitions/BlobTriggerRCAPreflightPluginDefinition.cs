@@ -42,6 +42,27 @@ namespace Agent.Plugins.Definitions
             return a;
         }
 
+        [Description(@"Gets Storage Blob Trigger related extension version for the app.")]
+        [AgentTool(ToolMode.Auto)]
+        public Task<string> GetBlobTriggerExtensionVersion(
+            [Description("Kusto cluster name.")] string clusterName,
+            [Description("Start time yyyy-MM-ddTHH:mm:ss.fff")] string fromDate,
+            [Description("End time yyyy-MM-ddTHH:mm:ss.fff")] string toDate,
+            [Description("SiteName/application.")] string siteName,
+            [Description("EventPrimaryStampName.")] string eventPrimaryStampName)
+        {
+            var message = FunctionsHelper.ProcessEventPrimaryStampName(eventPrimaryStampName, out bool isValid);
+            if (!isValid)
+            {
+                return Task.FromResult(message);
+            }
+
+            return _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("RCA.BlobTriggerPreflight.GetBlobTriggerExtensionVersion", clusterName, DefaultDatabaseName,
+                new Dictionary<string, string> {
+                    {"startTime", fromDate}, {"endTime", toDate}, {"siteName", siteName}, {"eventPrimaryStampName", eventPrimaryStampName}
+                }, TableOnly);
+        }
+
         [Description(@"Gets the most frequent EventIpAddress for the app/stamp.")]
         [AgentTool(ToolMode.Auto)]
         public Task<string> GetMostFrequentEventIpAddress(
@@ -56,6 +77,8 @@ namespace Agent.Plugins.Definitions
                     {"startTime", fromDate}, {"endTime", toDate}, {"siteName", siteName}, {"eventPrimaryStampName", eventPrimaryStampName}
                 }, TableOnly);
         }
+
+
 
         [Description(@"Returns hourly FunctionCompleted counts for a function on a specific EventIpAddress.")]
         [AgentTool(ToolMode.Auto)]

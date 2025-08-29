@@ -27,6 +27,9 @@ result_summarization_prompt: |
   **✅ Site Metadata:**
   [Key site details relevant to diagnosis (SKU, VNET, triggers, host config, concurrency)]
 
+  **✅ Blob Trigger Extension Version:**
+  [Blob Trigger Extension Version and implications from bt_get_extension_version_agent analysis]
+
   **✅ Event Source IP Analysis:**
   [Most frequent EventIpAddress and implications from bt_select_event_ip_agent analysis]
 

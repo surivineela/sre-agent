@@ -1,0 +1,15 @@
+let _startTime = datetime("##startTime##")-3d;
+let _endTime = datetime("##endTime##");
+let _siteName = "##siteName##";
+let _eventPrimaryStampName = "##eventPrimaryStampName##";
+FunctionsLogs
+| where PreciseTimeStamp between (_startTime .. _endTime)
+| where AppName =~ _siteName
+| where EventPrimaryStampName == _eventPrimaryStampName
+| where EventName == 'ScriptStartUpLoadedExtension'
+| parse Summary with "Loaded extension '" ExtensionName "' (" ExtensionVersion ")"
+| project AppName, ExtensionName, ExtensionVersion,PreciseTimeStamp = format_datetime(todatetime(PreciseTimeStamp),'yyyy-MM-dd')
+| summarize AppCount = dcount(AppName) by ExtensionName, ExtensionVersion,PreciseTimeStamp
+| project-away AppCount
+| where ExtensionName in ("AzureStorageBlobs")
+| take 1

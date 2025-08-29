@@ -134,6 +134,7 @@ namespace Agent.Tests.Unit.Plugins
                     "FetchSiteMetadata.kql",
                     "FindBlobMismatchPattern.kql",
                     "GetFunctionCompletedHourlyForIp.kql",
+                    "GetBlobTriggerExtensionVersion.kql",
                     "GetMostFrequentEventIpAddress.kql",
                     "VerifyQueueDequeueGetMessages.kql",
                     "GetCanaryAvailability.kql"
