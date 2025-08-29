@@ -8,6 +8,8 @@ export enum SettingNames {
     DataConnectors = 'dataConnectors',
     ShowAgentTask = 'showAgentTask',
     ShowDailyReportsTab = 'showDailyReportsTab',
+    /** Only used by unit tests */
+    ForUnitTests = 'forUnitTests',
 }
 
 const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
@@ -23,6 +25,7 @@ const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
         [SettingNames.DataConnectors]: true,
         [SettingNames.ShowAgentTask]: true,
         [SettingNames.ShowDailyReportsTab]: true,
+        [SettingNames.ForUnitTests]: true,
     },
 };
 
