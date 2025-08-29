@@ -43,7 +43,7 @@ describe('useThreadDeepLink', () => {
         const link = useThreadDeepLink(threadId, '/rsc-id', agentEndpoint);
         const expected = `${sreAgentPortalAkaLink}#view/Microsoft_Azure_PaasServerless/FirstPartyAgentFrameBlade.ReactView/agentDisplayName/${encodeURIComponent(
             displayName
-        )}/agentUrl/${encodeURIComponent(agentEndpoint)}/sreLink/${encodeURIComponent(`views/activities/threads/${threadId}`)}`;
+        )}/agentUrl/${encodeURIComponent(agentEndpoint)}/sreDeepLink/${encodeURIComponent(`views/activities/threads/${threadId}`)}`;
         expect(link).toBe(expected);
     });
 

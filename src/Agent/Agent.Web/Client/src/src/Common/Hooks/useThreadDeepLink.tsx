@@ -15,7 +15,7 @@ export const useThreadDeepLink = (threadId: string, resourceId: string, agentEnd
 
     if (isCrossTenantMode) {
         const displayName = agentEndpoint.split('.')[0].replace('https://', '');
-        return `${sreAgentPortalAkaLink}#view/Microsoft_Azure_PaasServerless/FirstPartyAgentFrameBlade.ReactView/agentDisplayName/${encodeURIComponent(displayName)}/agentUrl/${encodeURIComponent(agentEndpoint)}/sreLink/${encodeURIComponent(agentSiteDeepLink)}`;
+        return `${sreAgentPortalAkaLink}#view/Microsoft_Azure_PaasServerless/FirstPartyAgentFrameBlade.ReactView/agentDisplayName/${encodeURIComponent(displayName)}/agentUrl/${encodeURIComponent(agentEndpoint)}/sreDeepLink/${encodeURIComponent(agentSiteDeepLink)}`;
     }
 
     return `${sreAgentPortalAkaLink}#view/Microsoft_Azure_PaasServerless/AgentFrameBlade.ReactView/id/${encodeURIComponent(resourceId)}/sreLink/${encodeURIComponent(agentSiteDeepLink)}`;
