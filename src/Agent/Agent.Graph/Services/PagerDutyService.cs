@@ -51,25 +51,23 @@ public class PagerDutyService : IPagerDutyService
             throw new ArgumentOutOfRangeException(nameof(limit), "Limit must be between 1 and 100.");
         }
 
-        if (!since.HasValue)
-        {
-            since = DateTime.UtcNow.AddDays(-90);
-        }
-        if (since < DateTime.UtcNow.AddDays(-180))
+        if (since.HasValue && since.Value < DateTime.UtcNow.AddDays(-180))
         {
             throw new ArgumentOutOfRangeException(nameof(since), "Since must be within the last 180 days.");
         }
-
+ 
         // The default time range of Listing incidents is a month, per https://developer.pagerduty.com/api-reference/9d0b4b12e36f9-list-incidents
         // Note: include%5B%5D=first_trigger_log_entries is required to get the full log entry, which contains the real incident description.
         // Note: removing the status filters as they prevent indexing incidents that will be used to derive learnings from
-
+        var defaultStartTime = DateTime.UtcNow.AddDays(-90);
 
         var queryParams = new List<KeyValuePair<string, string?>> {
             new KeyValuePair<string, string?>("limit", limit.ToString()),
             new KeyValuePair<string, string?>("offset", offset.ToString()),
             new KeyValuePair<string, string?>("include[]", "first_trigger_log_entries"),
-            new KeyValuePair<string, string?>("since", since?.ToString("o"))
+            new KeyValuePair<string, string?>("since", since.GetValueOrDefault(defaultStartTime).ToString("o")),
+            new KeyValuePair<string, string?>("until", DateTime.UtcNow.AddMinutes(30).ToString("o")),
+            new KeyValuePair<string, string?>("sort_by","created_at:desc")
         };
 
         //If impactServiceId is provided(could be name or id), we need to translate it to service ID via /services API.
