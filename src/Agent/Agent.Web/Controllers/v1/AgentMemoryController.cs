@@ -8,6 +8,7 @@ using Agent.Data.AgentMemory;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.AI;
 using System.Collections.Concurrent;
+using ArmOperations = Agent.Core.Constants.ArmOperations;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -23,6 +24,7 @@ namespace Agent.Web.Controllers.v1
         private HashSet<string> allowedExtensions = [".md", ".txt"];
 
         [HttpPost("upload")]
+        [AuthorizeArmOperation(ArmOperations.AgentMemoryWriteActionId)]
         [RequestFormLimits(MultipartBodyLengthLimit = 100 * 1024 * 1024)] // 100MB limit for the entire request
         [Consumes("multipart/form-data")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -132,6 +134,7 @@ namespace Agent.Web.Controllers.v1
 
         // Delete a single document
         [HttpDelete("document/{fileName}")]
+        [AuthorizeArmOperation(ArmOperations.AgentMemoryWriteActionId)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -184,6 +187,7 @@ namespace Agent.Web.Controllers.v1
 
         // Delete multiple documents at once
         [HttpDelete("documents")]
+        [AuthorizeArmOperation(ArmOperations.AgentMemoryWriteActionId)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -264,6 +268,7 @@ namespace Agent.Web.Controllers.v1
 
         // Get the status of the AgentMemory feature
         [HttpGet("status")]
+        [AuthorizeArmOperation(ArmOperations.AgentMemoryReadActionId)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult GetAgentMemoryStatus()
         {
@@ -312,6 +317,7 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpPost("rebuildIndex")]
+        [AuthorizeArmOperation(ArmOperations.AgentMemoryWriteActionId)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> TriggerIndexing()
@@ -329,6 +335,7 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpPost("indexTrajectory")]
+        [AuthorizeArmOperation(ArmOperations.AgentMemoryWriteActionId)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -361,6 +368,7 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpGet("documents")]
+        [AuthorizeArmOperation(ArmOperations.AgentMemoryReadActionId)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -390,6 +398,7 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpGet("trajectories")]
+        [AuthorizeArmOperation(ArmOperations.AgentMemoryReadActionId)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -419,6 +428,7 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpGet("userMemories")]
+        [AuthorizeArmOperation(ArmOperations.AgentMemoryReadActionId)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]

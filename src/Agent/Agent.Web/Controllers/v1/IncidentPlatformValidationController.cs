@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using ArmOperations = Agent.Core.Constants.ArmOperations;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -43,6 +44,7 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpPost("servicenow")]
+        [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementReadActionId)]
         public async Task<IActionResult> ValidateServiceNow([FromBody] ServiceNowValidationRequest request)
         {
             try
@@ -93,15 +95,15 @@ namespace Agent.Web.Controllers.v1
                     return Ok(new ValidationResponse { Result = "invalidCredentials" });
                 }
 
-                _logger.LogInternalWarning("ServiceNow validation failed with status code: {StatusCode} for endpoint: {Endpoint}", 
+                _logger.LogInternalWarning("ServiceNow validation failed with status code: {StatusCode} for endpoint: {Endpoint}",
                     response.StatusCode, request.Endpoint);
                 return Ok(new ValidationResponse { Result = "unknownError", ErrorMessage = $"HTTP {response.StatusCode}" });
             }
-            catch (HttpRequestException ex) when (ex.Message.Contains("Name or service not known") || 
+            catch (HttpRequestException ex) when (ex.Message.Contains("Name or service not known") ||
                                                    ex.Message.Contains("No such host is known") ||
                                                    ex.Message.Contains("The remote name could not be resolved"))
             {
-                _logger.LogInternalWarning("ServiceNow validation failed: Connection error for endpoint: {Endpoint}. Error: {Error}", 
+                _logger.LogInternalWarning("ServiceNow validation failed: Connection error for endpoint: {Endpoint}. Error: {Error}",
                     request.Endpoint, ex.Message);
                 return Ok(new ValidationResponse { Result = "connectionError", ErrorMessage = ex.Message });
             }

@@ -6,6 +6,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Runtime.Services;
 using Microsoft.AspNetCore.Mvc;
+using ArmOperations = Agent.Core.Constants.ArmOperations;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -33,6 +34,7 @@ namespace Agent.Web.Controllers.v1
         /// <param name="filter">ODATA filter query</param>
         /// <returns>List of approvals</returns>
         [HttpGet("{threadId}")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
         public async Task<IActionResult> GetApprovals(string threadId, [FromQuery] string? filter = null)
         {
             // TODO: Implement pagination and filtering logic
@@ -50,6 +52,7 @@ namespace Agent.Web.Controllers.v1
         /// <param name="id">Approval ID</param>
         /// <returns>The approval if found</returns>
         [HttpGet("{threadId}/{id}")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
         public async Task<IActionResult> GetApproval(string threadId, string id)
         {
             // TODO: Implement getting a specific approval
@@ -68,6 +71,7 @@ namespace Agent.Web.Controllers.v1
         /// <param name="request">Decision request</param>
         /// <returns>Success or error status</returns>
         [HttpPost("{threadId}/{id}/decision")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadApproveActionId)]
         public async Task<IActionResult> SubmitApprovalDecision(string threadId, string id, [FromBody] ApprovalDecisionRequest request)
         {
             _logger.LogInternalInformation("Submitting approval decision for thread {ThreadId} with ID: {Id}, Status: {Status}",

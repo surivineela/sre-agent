@@ -27,7 +27,9 @@ public class BotController : ControllerBase
     }
 
     [HttpPost, HttpGet]
+#pragma warning disable CUSTOM004 // HTTP action must declare AuthorizeArmOperation: teams callback
     public async Task PostAsync()
+#pragma warning restore CUSTOM004
     {
         // First verify Teams configuration is valid
         if (string.IsNullOrEmpty(_setting.AppId) || string.Equals(_setting.AppId, "dummy", StringComparison.OrdinalIgnoreCase))

@@ -28,7 +28,9 @@ namespace Agent.Web.Controllers.v1
         /// <returns>Action result</returns>
         [HttpPost]
         [HttpPut]
+#pragma warning disable CUSTOM004 // HTTP action must declare AuthorizeArmOperation: webhook
         public async Task<IActionResult> GrafanaAlert([FromBody] GrafanaAlertWebhookRequest? request)
+#pragma warning restore CUSTOM004
         {
             // Create a default request if none provided
             request ??= new GrafanaAlertWebhookRequest

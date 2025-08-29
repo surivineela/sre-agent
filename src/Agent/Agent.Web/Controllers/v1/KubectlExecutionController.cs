@@ -10,6 +10,7 @@ using Agent.Runtime.Helpers;
 using Agent.Runtime.Reasoning;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.AI;
+using ArmOperations = Agent.Core.Constants.ArmOperations;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -47,6 +48,7 @@ namespace Agent.Web.Controllers.v1
         /// Execute or cancel a Kubectl command
         /// </summary>
         [HttpPost("{threadId}/{executionId}/action")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadApproveActionId)]
         public async Task<IActionResult> ExecuteAction(
             string threadId,
             string executionId,
@@ -334,6 +336,7 @@ namespace Agent.Web.Controllers.v1
         /// Get execution status
         /// </summary>
         [HttpGet("{threadId}/{executionId}/status")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
         public async Task<IActionResult> GetExecutionStatus(string threadId, string executionId)
         {
             _logger.LogInternalInformation("Getting execution status for thread {ThreadId} execution {ExecutionId}",
@@ -367,6 +370,7 @@ namespace Agent.Web.Controllers.v1
         /// Get kubectl execution output
         /// </summary>
         [HttpGet("{threadId}/{executionId}/output")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
         public async Task<IActionResult> GetExecutionOutput(string threadId, string executionId)
         {
             _logger.LogInternalInformation("Getting kubectl execution output for thread {ThreadId} execution {ExecutionId}",

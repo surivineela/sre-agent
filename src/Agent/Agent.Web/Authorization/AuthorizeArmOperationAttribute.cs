@@ -22,7 +22,7 @@ namespace Agent.Web
     /// and will cause authorization to fail.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
-    public sealed class ArmOperationAttribute : Attribute, IAsyncAuthorizationFilter
+    public sealed class AuthorizeArmOperationAttribute : Attribute, IAsyncAuthorizationFilter
     {
         private const string HeaderName = "x-allowed-actions";
         private const string FeatureFlagName = "PdpAuthZv2";
@@ -32,7 +32,7 @@ namespace Agent.Web
         /// </summary>
         public string Action { get; }
 
-        public ArmOperationAttribute(string action)
+        public AuthorizeArmOperationAttribute(string action)
         {
             Action = action?.Trim() ?? string.Empty;
         }

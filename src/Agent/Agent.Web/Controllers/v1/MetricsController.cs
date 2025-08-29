@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Agent.Core.Interfaces;
 using Agent.Runtime.Services;
 using System.Text.Json.Serialization;
+using ArmOperations = Agent.Core.Constants.ArmOperations;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -29,6 +30,7 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpGet("actionSeverity")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
         public async Task<ActionResult<actionSeverityMetrics>> GetActionSeverityMetrics([FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime)
         {
             _logger.LogInternalInformation("Getting action severity metrics from {StartTime} to {EndTime}", startTime, endTime);
@@ -63,6 +65,7 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpGet("actionStatus")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
         public async Task<ActionResult<actionStatusMetrics>> GetActionStatusMetrics([FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime)
         {
             _logger.LogInternalInformation("Getting status metrics for actions");
@@ -98,6 +101,7 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpGet("incidentStatus")]
+        [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementReadActionId)]
         public async Task<IActionResult> GetIncidentStatusMetrics([FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime)
         {
             try

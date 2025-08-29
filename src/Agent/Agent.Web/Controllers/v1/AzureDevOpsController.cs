@@ -8,6 +8,7 @@ using Agent.Graph.Crawler.ARM;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Services;
 using Microsoft.AspNetCore.Mvc;
+using ArmOperations = Agent.Core.Constants.ArmOperations;
 
 namespace Agent.Web.Controllers.v1;
 
@@ -21,7 +22,9 @@ public class AzureDevOpsController(
     ICrawlerTriggerService _crawlerTriggerService) : ControllerBase
 {
     [HttpGet("auth/start")]
+#pragma warning disable CUSTOM004 // HTTP action must declare AuthorizeArmOperation
     public async Task<IActionResult> StartAzureDevOpsAuth([FromQuery] string resourceId)
+#pragma warning restore CUSTOM004 // HTTP action must declare AuthorizeArmOperation
     {
         try
         {
@@ -67,6 +70,7 @@ public class AzureDevOpsController(
     }
 
     [HttpPost("link")]
+    [AuthorizeArmOperation(ArmOperations.AgentGraphWriteActionId)]
     public async Task<IActionResult> LinkSourceCode([FromBody] LinkSourceCodeRequest request)
     {
         try
@@ -121,6 +125,7 @@ public class AzureDevOpsController(
     }
 
     [HttpPost("unlink")]
+    [AuthorizeArmOperation(ArmOperations.AgentGraphWriteActionId)]
     public async Task<IActionResult> UnlinkSourceCode([FromBody] LinkSourceCodeRequest request)
     {
         try

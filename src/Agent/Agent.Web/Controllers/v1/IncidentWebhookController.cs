@@ -34,7 +34,9 @@ public class IncidentWebhookController : ControllerBase
 
 #if DEBUG
     [HttpPost("azmonitor")]
+#pragma warning disable CUSTOM004 // HTTP action must declare AuthorizeArmOperation: webhook
     public async Task AzMonitorAlertsWebhook([FromBody] AlertItem alertItem)
+#pragma warning restore CUSTOM004
     {
         if (alertItem == null)
         {
@@ -66,7 +68,9 @@ public class IncidentWebhookController : ControllerBase
 #endif
 
     [HttpPost("processIncident")]
+#pragma warning disable CUSTOM004 // HTTP action must declare AuthorizeArmOperation: webhook
     public async Task<IActionResult> IncidentWebhook([FromBody] JsonNode request)
+#pragma warning restore CUSTOM004
     {
         _logger.LogInternalInformation(
             "IncidentWebhook: Invoked with Request: {Request}",
@@ -80,7 +84,7 @@ public class IncidentWebhookController : ControllerBase
 
         try
         {
-           return await ProcessIncidentAsync(request);
+            return await ProcessIncidentAsync(request);
         }
         catch (Exception ex)
         {

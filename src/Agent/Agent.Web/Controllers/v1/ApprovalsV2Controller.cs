@@ -38,7 +38,9 @@ namespace Agent.Web.Controllers.v1
         /// <param name="filter">ODATA filter query</param>
         /// <returns>List of approvals</returns>
         [HttpGet]
+#pragma warning disable CUSTOM004 // HTTP action must declare AuthorizeArmOperation: This controller is not used
         public async Task<IActionResult> GetApprovals()
+#pragma warning restore CUSTOM004
         {
             // TODO: Implement pagination
             _logger.LogInternalInformation("GET approvals requested");
@@ -53,7 +55,9 @@ namespace Agent.Web.Controllers.v1
         /// <param name="id">Approval ID</param>
         /// <returns>The approval if found</returns>
         [HttpGet("{id}")]
+#pragma warning disable CUSTOM004 // HTTP action must declare AuthorizeArmOperation: This controller is not used
         public async Task<IActionResult> GetApproval(string id, [FromQuery] string agentContextId)
+#pragma warning restore CUSTOM004
         {
             // TODO: Implement getting a specific approval
             _logger.LogInternalInformation("GET approval requested with ID: {Id}, AgentContextId: {agentContextId}", id, agentContextId);
@@ -71,7 +75,9 @@ namespace Agent.Web.Controllers.v1
         /// <param name="request">Decision request</param>
         /// <returns>Success or error status</returns>
         [HttpPost("{id}/decision")]
+#pragma warning disable CUSTOM004 // HTTP action must declare AuthorizeArmOperation: This controller is not used
         public async Task<IActionResult> SubmitApprovalDecision(string id, [FromQuery] string agentContextId, [FromBody] ApprovalDecisionRequest request)
+#pragma warning restore CUSTOM004
         {
             _logger.LogInternalInformation("Submitting approval decision for ID: {Id}, Status: {Status}",
                 id, request.Status);

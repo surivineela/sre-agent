@@ -8,6 +8,7 @@ using Agent.Graph.Crawler.ARM;
 using Agent.Logging;
 using Agent.Plugins.Services;
 using Microsoft.AspNetCore.Mvc;
+using ArmOperations = Agent.Core.Constants.ArmOperations;
 
 namespace Agent.Web.Controllers.v1;
 
@@ -20,7 +21,9 @@ public class GithubController(
     ICrawlerTriggerService _crawlerTriggerService) : ControllerBase
 {
     [HttpPost("auth/complete")]
+#pragma warning disable CUSTOM004 // HTTP action must declare AuthorizeArmOperation
     public async Task<IActionResult> CompleteGitHubAuth([FromForm] string accessToken)
+#pragma warning restore CUSTOM004
     {
         await _threadRepository.CreateOrUpdateGitHubAccessTokenAsync(new GitHubAccessToken(accessToken, ExpiresOn: null));
 
@@ -57,6 +60,7 @@ public class GithubController(
     }
 
     [HttpPost("link")]
+    [AuthorizeArmOperation(ArmOperations.AgentGraphWriteActionId)]
     public async Task<IActionResult> LinkSourceCode([FromBody] LinkSourceCodeRequest request)
     {
         try

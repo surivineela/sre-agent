@@ -31,7 +31,9 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpGet("agentFramework/{threadId}")]
+#pragma warning disable CUSTOM004 // HTTP action must declare AuthorizeArmOperation: test api
         public async Task<IActionResult> GetAgentFrameworkChatHistory(Guid threadId)
+#pragma warning restore CUSTOM004
         {
             var contexts = await _threadRepository.GetAgentContextsForThreadAsync(threadId);
             if (contexts.Count() == 0)

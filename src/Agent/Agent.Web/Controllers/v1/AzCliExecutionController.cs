@@ -14,6 +14,7 @@ using Agent.Runtime.Helpers;
 using Agent.Runtime.Reasoning;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.AI;
+using ArmOperations = Agent.Core.Constants.ArmOperations;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -51,6 +52,7 @@ namespace Agent.Web.Controllers.v1
         /// <summary>
         /// Execute or cancel an Azure CLI command
         /// </summary>
+        [AuthorizeArmOperation(ArmOperations.AgentThreadApproveActionId)]
         [HttpPost("{threadId}/{executionId}/action")]
         public async Task<IActionResult> ExecuteAction(
             string threadId,
@@ -333,6 +335,7 @@ namespace Agent.Web.Controllers.v1
         /// <summary>
         /// Get execution status
         /// </summary>
+        [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
         [HttpGet("{threadId}/{executionId}/status")]
         public async Task<IActionResult> GetExecutionStatus(string threadId, string executionId)
         {
@@ -366,6 +369,7 @@ namespace Agent.Web.Controllers.v1
         /// <summary>
         /// Get execution output (non-streaming version)
         /// </summary>
+        [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
         [HttpGet("{threadId}/{executionId}/output")]
         public async Task<IActionResult> GetExecutionOutput(string threadId, string executionId)
         {

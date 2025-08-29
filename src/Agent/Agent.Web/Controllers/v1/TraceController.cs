@@ -25,7 +25,10 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpPost("fetch")]
+#pragma warning disable CUSTOM004 // HTTP action must declare AuthorizeArmOperation: test api
         public ActionResult<List<TraceResponse>> GetTraces([FromBody] TraceRequest request)
+#pragma warning restore CUSTOM004
+
         {
             _logger.LogInternalInformation("Fetching exported traces for threadId: {ThreadId}", request.ThreadId);
 
@@ -96,13 +99,17 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpGet("health")]
+#pragma warning disable CUSTOM004 // HTTP action must declare AuthorizeArmOperation: test api
         public ActionResult CheckHealth()
+#pragma warning restore CUSTOM004
         {
             return Ok(new { status = "healthy", timestamp = DateTime.UtcNow });
         }
 
         [HttpDelete("clear")]
+#pragma warning disable CUSTOM004 // HTTP action must declare AuthorizeArmOperation: test api
         public ActionResult ClearTraces()
+#pragma warning restore CUSTOM004
         {
             _logger.LogInternalInformation("Clearing exported traces");
             _exportedActivities.Clear();

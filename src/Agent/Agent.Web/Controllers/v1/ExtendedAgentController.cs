@@ -14,6 +14,7 @@ using Agent.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
+using ArmOperations = Agent.Core.Constants.ArmOperations;
 
 namespace Agent.Web.Controllers.v1;
 
@@ -44,6 +45,7 @@ public class ExtendedAgentController : ControllerBase
     /// </summary>
     /// <returns>Apply response with operation details</returns>
     [HttpPut("apply")]
+    [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentWriteActionId)]
     [Consumes("application/yaml", "application/x-yaml", "text/yaml", "text/plain")]
     [ProducesResponseType(typeof(ExtendedAgentApplyResponse), StatusCodes.Status202Accepted)]
     [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status400BadRequest)]
@@ -139,6 +141,7 @@ public class ExtendedAgentController : ControllerBase
     /// <param name="search">Search agents by name or description</param>
     /// <returns>List of agents with pagination</returns>
     [HttpGet("agents")]
+    [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentReadActionId)]
     [ProducesResponseType(typeof(ExtendedAgentsListResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status500InternalServerError)]
@@ -172,6 +175,7 @@ public class ExtendedAgentController : ControllerBase
     /// <param name="search">Search tools by name or description</param>
     /// <returns>List of tools with pagination</returns>
     [HttpGet("tools")]
+    [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentReadActionId)]
     [ProducesResponseType(typeof(ExtendedAgentToolsResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status500InternalServerError)]
@@ -202,6 +206,7 @@ public class ExtendedAgentController : ControllerBase
     /// </summary>
     /// <returns>List of data connectors</returns>
     [HttpGet("dataconnectors")]
+    [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentReadActionId)]
     [ProducesResponseType(typeof(List<DataConnectorBasicInfo>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status500InternalServerError)]
@@ -229,6 +234,7 @@ public class ExtendedAgentController : ControllerBase
     /// <param name="agentName">The name of the agent to delete</param>
     /// <returns>Delete operation result</returns>
     [HttpDelete("agents/{agentName}")]
+    [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentWriteActionId)]
     [ProducesResponseType(typeof(ExtendedAgentDeleteResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status401Unauthorized)]
@@ -238,7 +244,7 @@ public class ExtendedAgentController : ControllerBase
         try
         {
             var deleted = await _extendedAgentService.DeleteAgentAsync(agentName);
-            
+
             if (!deleted)
             {
                 return NotFound(new ExtendedAgentErrorResponse
@@ -273,6 +279,7 @@ public class ExtendedAgentController : ControllerBase
     /// <param name="toolName">The name of the tool to delete</param>
     /// <returns>Delete operation result</returns>
     [HttpDelete("tools/{toolName}")]
+    [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentWriteActionId)]
     [ProducesResponseType(typeof(ExtendedAgentDeleteResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ExtendedAgentConflictResponse), StatusCodes.Status409Conflict)]
@@ -283,7 +290,7 @@ public class ExtendedAgentController : ControllerBase
         try
         {
             var (deleted, dependentAgents) = await _extendedAgentService.DeleteToolAsync(toolName);
-            
+
             if (dependentAgents.Any())
             {
                 return Conflict(new ExtendedAgentConflictResponse
@@ -297,7 +304,7 @@ public class ExtendedAgentController : ControllerBase
                     DependentAgents = dependentAgents
                 });
             }
-            
+
             if (!deleted)
             {
                 return NotFound(new ExtendedAgentErrorResponse

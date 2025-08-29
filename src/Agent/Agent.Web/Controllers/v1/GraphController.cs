@@ -5,6 +5,7 @@ using Agent.Plugins.Services.Interfaces;
 using Gremlin.Net.Driver;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
+using ArmOperations = Agent.Core.Constants.ArmOperations;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -25,6 +26,7 @@ namespace Agent.Web.Controllers.v1
         /// <param name="request">requests that has query string and optional max message size</param>
         /// <returns>graph data array</returns>
         [HttpPost]
+        [AuthorizeArmOperation(ArmOperations.AgentGraphReadActionId)]
         public async Task<ActionResult<ResultSet<dynamic>>> Query([FromBody] GraphQueryRequest request)
         {
             return await _graphService.QueryAsync(request.Query);
@@ -35,6 +37,7 @@ namespace Agent.Web.Controllers.v1
         /// </summary>
         /// <returns>list of subscriptions</returns>
         [HttpGet("subscriptions")]
+        [AuthorizeArmOperation(ArmOperations.AgentGraphReadActionId)]
         public async Task<ActionResult<ResultSet<dynamic>>> QuerySubscriptions()
         {
             var result = await _graphService.QuerySubscriptionsAsync();
@@ -46,6 +49,7 @@ namespace Agent.Web.Controllers.v1
         /// </summary>
         /// <returns>List of resource types</returns>
         [HttpGet("resourceTypes")]
+        [AuthorizeArmOperation(ArmOperations.AgentGraphReadActionId)]
         public async Task<ActionResult<IEnumerable<string>>> GetResourceTypes()
         {
             var result = await _graphService.GetResourceTypesAsync();
@@ -59,6 +63,7 @@ namespace Agent.Web.Controllers.v1
         /// <param name="resourceType">Optional resource type to filter app groups</param>
         /// <returns>List of app groups</returns>
         [HttpGet("{subId}/appGroups")]
+        [AuthorizeArmOperation(ArmOperations.AgentGraphReadActionId)]
         public async Task<ActionResult<ResultSet<dynamic>>> GetAppGroupsBySubscription(string subId, [FromQuery] string? resourceType = null)
         {
             var result = await _graphService.GetAppGroupsBySubscriptionAsync(subId, resourceType);
@@ -72,6 +77,7 @@ namespace Agent.Web.Controllers.v1
         /// <param name="resourceId">The app group ID is the app group root resource id</param>
         /// <returns>App group details</returns>
         [HttpGet("{subscriptionId}/appGroups/{appGroupId}")]
+        [AuthorizeArmOperation(ArmOperations.AgentGraphReadActionId)]
         public async Task<ActionResult<ResultSet<AppGroupItem>>> GetAppGroupResources(string subscriptionId, string appGroupId)
         {
             var result = await _graphService.GetAppGroupResourcesAsync(appGroupId);
@@ -84,6 +90,7 @@ namespace Agent.Web.Controllers.v1
         /// <param name="resourceId">The app group ID is the app group root resource id</param>
         /// <returns>App group details</returns>
         [HttpGet("resource/{resourceId}")]
+        [AuthorizeArmOperation(ArmOperations.AgentGraphReadActionId)]
         public async Task<ActionResult<ResultSet<AppGroupItem>>> GetResource(string resourceId)
         {
             var result = await _graphService.GetGraphResourceAsync(resourceId);
@@ -96,6 +103,7 @@ namespace Agent.Web.Controllers.v1
         /// </summary>
         /// <returns></returns>
         [HttpGet("progress")]
+        [AuthorizeArmOperation(ArmOperations.AgentGraphReadActionId)]
         public async Task<ActionResult<ResultSet<dynamic>>> GetGraphProgressAsync()
         {
             var result = await _graphService.GetGraphProgressAsync();
@@ -111,6 +119,7 @@ namespace Agent.Web.Controllers.v1
         /// <param name="request">The request containing the remark to update.</param>
         /// <returns></returns>
         [HttpPatch("resource/{resourceId}/remarks")]
+        [AuthorizeArmOperation(ArmOperations.AgentGraphWriteActionId)]
         public async Task<ActionResult<AppGroupItem>> AddOrUpdateResourceRemark(string resourceId, [FromBody] ResourceRemarkRequest request)
         {
             if (request == null)
@@ -130,6 +139,7 @@ namespace Agent.Web.Controllers.v1
         /// <param name="resourceId">Azure resource id.</param>
         /// <returns></returns>
         [HttpDelete("resource/{resourceId}/remarks")]
+        [AuthorizeArmOperation(ArmOperations.AgentGraphWriteActionId)]
         public async Task<ActionResult> DeleteResourceRemark(string resourceId)
         {
             var properties = new Dictionary<string, string> { { "remarks", "" } }; // Just mark the remark as empty for deletion.

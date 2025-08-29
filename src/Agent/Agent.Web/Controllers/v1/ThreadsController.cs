@@ -21,6 +21,7 @@ using Agent.Plugins.Interface;
 using Agent.Runtime.Reasoning;
 using Agent.Plugins.Services.Interfaces;
 using Agent.Core;
+using ArmOperations = Agent.Core.Constants.ArmOperations;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -57,6 +58,7 @@ namespace Agent.Web.Controllers.v1
         // Threads can be filtered by severity using the `severity` query option.
         // Example: /api/v1/threads?severity=Critical
         [HttpGet]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
         public async Task<ActionResult<PagedResponse<Thread>>> GetThreads(ODataQueryOptions<ThreadDocument> queryOptions,
         [FromQuery] ActionSeverity? severity = null)
         {
@@ -66,6 +68,7 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpGet("testThreads")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
         public async Task<ActionResult<PagedResponse<Thread>>> GetTestThreads(ODataQueryOptions<ThreadDocument> queryOptions,
         [FromQuery] ActionSeverity? severity = null)
         {
@@ -75,6 +78,7 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpGet("{id}")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
         public async Task<ActionResult<Thread>> GetThread(Guid id)
         {
             logger.LogInternalInformation("Trying to get thread: {Id}", id);
@@ -90,6 +94,7 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpPost]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadWriteActionId)]
         public async Task<ActionResult<Thread>> CreateThread(CreateThreadRequest request)
         {
             if (!ModelState.IsValid)
@@ -100,7 +105,7 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpGet("{threadId}/messages")]
-        [ArmOperation(Constants.ArmOperations.AgentThreadReadActionId)]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
         public async Task<ActionResult<PagedResponseWithState<Message, ContextStateEnum?>>> GetMessages(Guid threadId, ODataQueryOptions<MessageDocument> queryOptions)
         {
             // First check if thread exists
@@ -119,6 +124,7 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpGet("{threadId}/messages/{messageId}")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
         public async Task<ActionResult<Message>> GetMessage(Guid threadId, Guid messageId)
         {
             var message = await repository.GetMessageAsync(threadId, messageId);
@@ -130,6 +136,7 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpPost("{threadId}/messages")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadWriteActionId)]
         public async Task<ActionResult<Message>> CreateMessage(Guid threadId, CreateMessageRequest request)
         {
             if (!ModelState.IsValid)
@@ -162,6 +169,7 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpPost("{threadId}/cancel")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadWriteActionId)]
         public async Task<ActionResult<string>> CancelThreadExecution(Guid threadId)
         {
             logger.LogInternalInformation($"Canceling thread execution for thread {threadId}");
@@ -186,6 +194,7 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpGet("{threadId}/feedbacks/{messageFeedbackId}")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
         public async Task<ActionResult<MessageFeedback>> GetFeedback(Guid threadId, Guid messageFeedbackId)
         {
             var messageFeedback = await repository.GetMessageFeedbackAsync(threadId, messageFeedbackId);
@@ -197,6 +206,7 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpPost("{threadId}/feedbacks")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadWriteActionId)]
         public async Task<ActionResult<MessageFeedback>> CreateFeedback(Guid threadId, FeedbackRequest request)
         {
             if (!ModelState.IsValid)
@@ -228,6 +238,7 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpGet("{threadId}/actions")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
         public async Task<ActionResult<PagedResponse<Action>>> GetActions(Guid threadId, ODataQueryOptions<ActionDocument> queryOptions)
         {
             // First check if thread exists
@@ -242,6 +253,7 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpGet("{threadId}/welcomeMessage")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
         public async Task<ActionResult<WelcomeMessage>> GetWelcomeMessage(Guid threadId)
         {
             // First check if thread exists
@@ -307,6 +319,7 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpDelete("{threadId}")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadWriteActionId)]
         public async Task<IActionResult> DeleteThread(Guid threadId)
         {
             var thread = await repository.GetThreadAsync(threadId);
@@ -337,6 +350,7 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpPost("incidents")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadWriteActionId)]
         public async Task<ActionResult<Thread>> CreateIncidentThread([FromBody] IncidentCallbackRequest request)
         {
             if (!ModelState.IsValid)
@@ -412,6 +426,7 @@ namespace Agent.Web.Controllers.v1
         /// <param name="threadId">Thread ID to mark as read</param>
         /// <returns>Updated Thread object</returns>
         [HttpPost("{threadId}/markRead")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
         public async Task<ActionResult<Thread>> MarkThreadAsRead(Guid threadId)
         {
             logger.LogInternalInformation("Marking thread as read: {Id}", threadId);
@@ -437,6 +452,7 @@ namespace Agent.Web.Controllers.v1
         /// <param name="threadId">Thread ID to check for unread messages</param>
         /// <returns>Count of unread messages</returns>
         [HttpPost("{threadId}/getUnreadCount")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
         public async Task<ActionResult<int>> GetUnreadMessageCount(Guid threadId)
         {
             logger.LogInternalInformation("Getting unread message count for thread: {Id}", threadId);
@@ -464,6 +480,7 @@ namespace Agent.Web.Controllers.v1
         /// <param name="request">Request containing the new agent mode</param>
         /// <returns>Updated Thread object</returns>
         [HttpPost("{threadId}/agentMode")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadWriteActionId)]
         public async Task<ActionResult<Thread>> UpdateThreadAgentMode(Guid threadId, [FromBody] UpdateAgentModeRequest request)
         {
             if (!ModelState.IsValid)
@@ -557,6 +574,7 @@ namespace Agent.Web.Controllers.v1
         /// </summary>
         /// <returns>Array of available agent mode strings</returns>
         [HttpGet("agentModes")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string[]))]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public ActionResult<string[]> GetAvailableAgentModes()
@@ -575,6 +593,7 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpGet("{threadId}/agentTasks/{agentTaskId}")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
         public async Task<ActionResult<AgentTask>> GetAgentTask(Guid threadId, Guid agentTaskId)
         {
             logger.LogInternalInformation("Trying to get agent task: {AgentTaskId} for thread: {ThreadId}", agentTaskId, threadId);
@@ -592,6 +611,7 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpGet("{threadId}/incidentInvestigationTasks/{agentTaskId}/hypotheses/{hypothesisId}")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
         public async Task<ActionResult<HypothesisDetails>> GetHypothesisDetails(Guid threadId, Guid agentTaskId, Guid hypothesisId)
         {
             logger.LogInternalInformation("Trying to get hypothesis details: {HypothesisId} for agent task: {AgentTaskId} in thread: {ThreadId}", hypothesisId, agentTaskId, threadId);
@@ -626,6 +646,7 @@ namespace Agent.Web.Controllers.v1
         /// <param name="queryOptions">OData query options for pagination, filtering, and sorting</param>
         /// <returns>Paged response of thread evaluation results</returns>
         [HttpGet("evaluations")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
         public async Task<ActionResult<PagedResponse<ThreadEvaluateResultResponse>>> GetThreadEvaluations(ODataQueryOptions<ThreadEvaluateResultDocument> queryOptions)
         {
             try
@@ -653,6 +674,7 @@ namespace Agent.Web.Controllers.v1
         /// <param name="evaluationId">The evaluation ID</param>
         /// <returns>Thread evaluation result</returns>
         [HttpGet("evaluations/{evaluationId}")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
         public async Task<ActionResult<ThreadEvaluateResultResponse>> GetThreadEvaluation(Guid evaluationId)
         {
             try
@@ -686,6 +708,7 @@ namespace Agent.Web.Controllers.v1
         /// <param name="threadId">The thread ID</param>
         /// <returns>Thread evaluation result for the specified thread</returns>
         [HttpGet("{threadId}/evaluation")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
         public async Task<ActionResult<ThreadEvaluateResultResponse>> GetThreadEvaluationByThreadId(Guid threadId)
         {
             try
@@ -726,6 +749,7 @@ namespace Agent.Web.Controllers.v1
         /// <param name="evaluateResult">The thread evaluation result to create</param>
         /// <returns>Created thread evaluation result</returns>
         [HttpPost("evaluations")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadWriteActionId)]
         public async Task<ActionResult<ThreadEvaluateResult>> CreateThreadEvaluation([FromBody] ThreadEvaluateResult evaluateResult)
         {
             try
@@ -763,6 +787,7 @@ namespace Agent.Web.Controllers.v1
         /// <param name="evaluateResult">The updated thread evaluation result</param>
         /// <returns>Updated thread evaluation result</returns>
         [HttpPut("evaluations/{evaluationId}")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadWriteActionId)]
         public async Task<ActionResult<ThreadEvaluateResult>> UpdateThreadEvaluation(Guid evaluationId, [FromBody] ThreadEvaluateResult evaluateResult)
         {
             try
@@ -806,6 +831,7 @@ namespace Agent.Web.Controllers.v1
         /// <param name="evaluationId">The evaluation ID to delete</param>
         /// <returns>Success status</returns>
         [HttpDelete("evaluations/{evaluationId}")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadWriteActionId)]
         public async Task<IActionResult> DeleteThreadEvaluation(Guid evaluationId)
         {
             try

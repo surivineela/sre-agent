@@ -11,6 +11,7 @@ using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents.IcmScanner;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Cosmos;
+using ArmOperations = Agent.Core.Constants.ArmOperations;
 
 namespace Agent.Web.Controllers.v1;
 
@@ -46,6 +47,7 @@ public class IncidentPlaygroundController : ControllerBase
     }
 
     [HttpGet("checkConnectivity")]
+    [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementReadActionId)]
     public async Task<IActionResult> CheckConnectivity()
     {
         _logger.LogInternalInformation("CheckConnectivity: Invoked");
@@ -65,6 +67,7 @@ public class IncidentPlaygroundController : ControllerBase
     }
 
     [HttpGet("filterFieldOptions")]
+    [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementReadActionId)]
     public async Task<IActionResult> GetFilterFieldOptions()
     {
         _logger.LogInternalInformation("GetFilterFieldOptions: Invoked");
@@ -83,6 +86,7 @@ public class IncidentPlaygroundController : ControllerBase
     }
 
     [HttpGet("handlers")]
+    [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementReadActionId)]
     public async Task<IActionResult> ListIncidentHandlers()
     {
         _logger.LogInternalInformation("ListIncidentHandlers: Invoked");
@@ -92,6 +96,7 @@ public class IncidentPlaygroundController : ControllerBase
     }
 
     [HttpPost("queryHandlers")]
+    [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementReadActionId)]
     public async Task<IActionResult> QueryIncidentHandlers([FromBody] List<string> filteringKeywords)
     {
         _logger.LogInternalInformation("QueryIncidentHandlers: Invoked with FilteringKeywords: {FilteringKeywords}", filteringKeywords);
@@ -101,6 +106,7 @@ public class IncidentPlaygroundController : ControllerBase
     }
 
     [HttpGet("handlers/{handlerId}")]
+    [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementReadActionId)]
     public async Task<IActionResult> GetIncidentHandler(string handlerId)
     {
         _logger.LogInternalInformation("GetIncidentHandler: Invoked for HandlerId: {HandlerId}", handlerId);
@@ -115,6 +121,7 @@ public class IncidentPlaygroundController : ControllerBase
     }
 
     [HttpPut("handlers/{handlerId}")]
+    [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementWriteActionId)]
     public async Task<IActionResult> CreateIncidentHandler([FromBody] IncidentHandlerDocumentPayload document)
     {
         _logger.LogInternalInformation("CreateIncidentHandler: Invoked for HandlerId: {HandlerId}", document?.Id);
@@ -148,6 +155,7 @@ public class IncidentPlaygroundController : ControllerBase
     }
 
     [HttpPost("handlers/{handlerId}")]
+    [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementWriteActionId)]
     public async Task<IActionResult> SaveIncidentHandler([FromBody] IncidentHandlerDocumentPayload document)
     {
         _logger.LogInternalInformation("SaveIncidentHandler: Invoked for HandlerId: {HandlerId}", document?.Id);
@@ -179,6 +187,7 @@ public class IncidentPlaygroundController : ControllerBase
     }
 
     [HttpDelete("handlers/{handlerId}")]
+    [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementWriteActionId)]
     public async Task<IActionResult> DeleteIncidentHandler(string handlerId)
     {
         _logger.LogInternalInformation("DeleteIncidentHandler: Invoked for HandlerId: {HandlerId}", handlerId);
@@ -194,6 +203,7 @@ public class IncidentPlaygroundController : ControllerBase
 
     // List all incident filters
     [HttpGet("filters")]
+    [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementReadActionId)]
     public async Task<IActionResult> ListIncidentFilters()
     {
         _logger.LogInternalInformation("ListIncidentFilters: Invoked");
@@ -204,6 +214,7 @@ public class IncidentPlaygroundController : ControllerBase
 
     // Get a specific incident filter by ID
     [HttpGet("filters/{filterId}")]
+    [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementReadActionId)]
     public async Task<IActionResult> GetIncidentFilter(string filterId)
     {
         _logger.LogInternalInformation("GetIncidentFilter: Invoked for FilterId: {FilterId}", filterId);
@@ -219,6 +230,7 @@ public class IncidentPlaygroundController : ControllerBase
 
     // Create a new incident filter (PUT)
     [HttpPut("filters/{filterId}")]
+    [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementWriteActionId)]
     public async Task<IActionResult> CreateIncidentFilter([FromBody] JsonNode payload)
     {
         string id = payload?["Id"]?.ToString() ?? string.Empty;
@@ -281,6 +293,7 @@ public class IncidentPlaygroundController : ControllerBase
 
     // Update an existing incident filter (POST)
     [HttpPost("filters/{filterId}")]
+    [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementWriteActionId)]
     public async Task<IActionResult> SaveIncidentFilter([FromBody] JsonNode payload)
     {
         string id = payload?["Id"]?.ToString() ?? string.Empty;
@@ -290,7 +303,7 @@ public class IncidentPlaygroundController : ControllerBase
             _logger.LogInternalWarning("SaveIncidentFilter: Invalid incident filter document");
             return BadRequest("Invalid incident filter document");
         }
- 
+
         IncidentFilterDocumentPayload existingFilter = await _incidentFilterManagementServiceFactory.GetServiceDynamic().GetIncidentFilter(id);
         if (existingFilter is null)
         {
@@ -315,7 +328,7 @@ public class IncidentPlaygroundController : ControllerBase
         var existingDocJNode = JsonSerializer.SerializeToNode(existingFilter);
         MergeJsonNode(payload, existingDocJNode, new List<string>() { "AgentMode" });
 
-        if(existingDocJNode is null)
+        if (existingDocJNode is null)
         {
             _logger.LogInternalWarning("SaveIncidentFilter: Filter document MergeJsonNode failed for FilterId: {FilterId}", id);
             return BadRequest("Failed to serialize incident filter document");
@@ -329,6 +342,7 @@ public class IncidentPlaygroundController : ControllerBase
 
     // Enable an existing incident filter (POST)
     [HttpPost("filters/{filterId}/enable")]
+    [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementWriteActionId)]
     public async Task<IActionResult> EnableIncidentFilter(string filterId)
     {
         _logger.LogInternalInformation("EnableIncidentFilter: Invoked for FilterId: {FilterId}", filterId);
@@ -355,6 +369,7 @@ public class IncidentPlaygroundController : ControllerBase
 
     // Disable an existing incident filter (POST)
     [HttpPost("filters/{filterId}/disable")]
+    [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementWriteActionId)]
     public async Task<IActionResult> DisableIncidentFilter(string filterId)
     {
         _logger.LogInternalInformation("DisableIncidentFilter: Invoked for FilterId: {FilterId}", filterId);
@@ -381,6 +396,7 @@ public class IncidentPlaygroundController : ControllerBase
 
     // Delete an incident filter
     [HttpDelete("filters/{filterId}")]
+    [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementWriteActionId)]
     public async Task<IActionResult> DeleteIncidentFilter(string filterId)
     {
         _logger.LogInternalInformation("DeleteIncidentFilter: Invoked for FilterId: {FilterId}", filterId);
@@ -395,7 +411,8 @@ public class IncidentPlaygroundController : ControllerBase
     }
 
     [HttpPost("queryIncidents")]
-    public async Task<IActionResult> QueryIncidents([FromBody]JsonNode request)
+    [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementReadActionId)]
+    public async Task<IActionResult> QueryIncidents([FromBody] JsonNode request)
     {
         _logger.LogInternalInformation("QueryIncidents: Invoked with Request: {Request}", JsonSerializer.Serialize(request));
         try
@@ -416,6 +433,7 @@ public class IncidentPlaygroundController : ControllerBase
     }
 
     [HttpGet("listTools")]
+    [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementReadActionId)]
     public async Task<IActionResult> ListTools(string? searchString)
     {
         _logger.LogInternalInformation("ListTools: Invoked with SearchString: {SearchString}", searchString);
@@ -436,6 +454,7 @@ public class IncidentPlaygroundController : ControllerBase
     /// Handles Generate Instructions requests
     /// </summary>
     [HttpPost("generateInstructions")]
+    [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementReadActionId)]
     public async Task<IActionResult> GenerateInstructions([FromBody] InstructionGenerationRequest instructionGenerationRequest)
     {
         _logger.LogInternalInformation("GenerateInstructions: Invoked for AgentName: {AgentName}", instructionGenerationRequest.AgentName);
@@ -453,6 +472,7 @@ public class IncidentPlaygroundController : ControllerBase
     }
 
     [HttpPost("restLastScanTimeIcm")]
+    [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementWriteActionId)]
     public async Task<IActionResult> ResetLastScanTime()
     {
         var doc = new LastScanTimeDoc()
@@ -472,6 +492,7 @@ public class IncidentPlaygroundController : ControllerBase
     }
 
     [HttpGet("getIncident/{incidentId}")]
+    [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementReadActionId)]
     public async Task<IActionResult> GetIncident(string incidentId)
     {
         _logger.LogInternalInformation("GetIncident: Invoked for IncidentId: {IncidentId}", incidentId);
