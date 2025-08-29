@@ -67,8 +67,8 @@ interface ThreadActionsMenuProps {
 const ThreadActionsMenu = ({ thread, handleThreadDelete }: ThreadActionsMenuProps) => {
     const { infoContent, threadIdHighlight, section, sectionTitle } = useStyles();
     const intl = useIntl();
-    const { resourceId, isCrossTenantPortalMode } = useContext(EnvironmentContext);
-    const threadDeepLink = useThreadDeepLink(resourceId, thread.id);
+    const { resourceId, isCrossTenantPortalMode, sreAgentEndpoint } = useContext(EnvironmentContext);
+    const threadDeepLink = useThreadDeepLink(thread.id, resourceId, sreAgentEndpoint);
 
     const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);

@@ -27,9 +27,9 @@ const ThreadItem = forwardRef<HTMLDivElement, IThreadItemProps>(({ thread, selec
     const ThreadMenuStyles = useThreadMenuStyle();
     const styles = useActionsStatusBarStyles();
     const intl = useIntl();
-    const { resourceId } = useContext(EnvironmentContext);
+    const { resourceId, sreAgentEndpoint } = useContext(EnvironmentContext);
     const { logAmplitudeControlEvent } = useAzPortalContext();
-    const threadDeepLink = useThreadDeepLink(resourceId, thread.id);
+    const threadDeepLink = useThreadDeepLink(thread.id, resourceId, sreAgentEndpoint);
 
     const [isHovered, setIsHovered] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
