@@ -1,6 +1,5 @@
 export const copyToClipboard = async (textToCopy: string): Promise<void> => {
     try {
-        // This seems to be blocked in portal iframes
         await navigator.clipboard.writeText(textToCopy);
     } catch (error) {
         // Fallback method
