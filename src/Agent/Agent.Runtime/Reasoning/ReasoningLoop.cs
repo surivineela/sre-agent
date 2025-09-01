@@ -1006,7 +1006,7 @@ public class ReasoningLoop : IDisposable
                 _currentAgentSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.InvokeAgent);
 
                 _logger.LogAgentAction(
-                    action: "InvokeAgent",
+                    action: AgentActionEvents.InvokeAgent,
                     parameter: agent.Name,
                     status: "Success",
                     duration: 0,
@@ -1053,7 +1053,7 @@ public class ReasoningLoop : IDisposable
                 _currentToolSpan.SetAttribute(TraceAttribute.ToolDescription, tool.Description);
 
                 _logger.LogAgentAction(
-                    action: "InvokeTool",
+                    action: AgentActionEvents.InvokeTool,
                     parameter: tool.Name,
                     status: "Success",
                     duration: 0,
@@ -1128,7 +1128,7 @@ public class ReasoningLoop : IDisposable
                 _currentGenerationSpan = null;
 
                 _logger.LogAgentAction(
-                    action: "GenerateModelResponse",
+                    action: AgentActionEvents.GenerateModelResponse,
                     parameter: response?.Usage?.TotalTokenCount?.ToString() ?? "0",
                     status: "Success",
                     duration: 0,
@@ -1183,7 +1183,7 @@ public class ReasoningLoop : IDisposable
                 _currentCriticSpan = null;
 
                 _logger.LogAgentAction(
-                    action: "CriticEvaluation",
+                    action: AgentActionEvents.CriticEvaluation,
                     parameter: wasApproved ? "Approved" : "Failed",
                     status: "Success",
                     duration: 0,
