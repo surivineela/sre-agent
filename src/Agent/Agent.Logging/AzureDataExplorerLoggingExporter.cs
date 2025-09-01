@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using Kusto.Data.Common;
@@ -62,6 +63,11 @@ public class AzureDataExplorerLogExporterOptions
     public string? FirstPartyAppTenantId { get; set; } = "";
 
     /// <summary>
+    /// Gets or sets the managed identity client ID for user-assigned managed identity authentication.
+    /// </summary>
+    public string? Identity { get; set; } = "";
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="AzureDataExplorerLogExporterOptions"/> class.
     /// </summary>
     /// <param name="clusterUri">URI of the Azure Data Explorer cluster.</param>
@@ -71,6 +77,7 @@ public class AzureDataExplorerLogExporterOptions
     /// <param name="firstPartyAppCertificatePath">Optional path to the First Party App certificate.</param>
     /// <param name="firstPartyAppClientId">Optional First Party App client ID.</param>
     /// <param name="firstPartyAppTenantId">Optional First Party App tenant ID.</param>
+    /// <param name="identity">Optional managed identity client ID for user-assigned managed identity authentication.</param>
     public AzureDataExplorerLogExporterOptions(
         string clusterUri,
         string databaseName,
@@ -78,7 +85,8 @@ public class AzureDataExplorerLogExporterOptions
         PopulateLogColumnsDelegate? populateColumns = null,
         string? firstPartyAppCertificatePath = "",
         string? firstPartyAppClientId = "",
-        string? firstPartyAppTenantId = "")
+        string? firstPartyAppTenantId = "",
+        string? identity = "")
     {
         ClusterUri = clusterUri;
         DatabaseName = databaseName;
@@ -87,6 +95,7 @@ public class AzureDataExplorerLogExporterOptions
         FirstPartyAppCertificatePath = firstPartyAppCertificatePath;
         FirstPartyAppClientId = firstPartyAppClientId;
         FirstPartyAppTenantId = firstPartyAppTenantId;
+        Identity = identity;
     }
 }
 
@@ -151,6 +160,17 @@ public class AzureDataExplorerLogExporter : BaseExporter<LogRecord>
                                 certificate,
                                 authority: options.FirstPartyAppTenantId,
                                 sendX5c: true);
+
+            _kustoClient = KustoIngestFactory.CreateQueuedIngestClient(kustoConnectionStringBuilder);
+        }
+        else if (!string.IsNullOrEmpty(options.Identity))
+        {
+            if (string.IsNullOrEmpty(options.ClusterUri))
+            {
+                throw new ArgumentException("ClusterUri must be specified");
+            }
+            var kustoConnectionStringBuilder = new KustoConnectionStringBuilder(options.ClusterUri)
+                .WithAadUserManagedIdentity(options.Identity);
 
             _kustoClient = KustoIngestFactory.CreateQueuedIngestClient(kustoConnectionStringBuilder);
         }
@@ -222,6 +242,9 @@ public class AzureDataExplorerLogExporter : BaseExporter<LogRecord>
         var logData = new Dictionary<string, object>
         {
             ["PreciseTimeStamp"] = logRecord.Timestamp,
+            ["LogLevel"] = logRecord.LogLevel.ToString(),
+            ["Message"] = logRecord.FormattedMessage ?? string.Empty,
+            ["Exception"] = logRecord.Exception?.ToString() ?? string.Empty,
         };
 
         // Add common columns from cached values

@@ -937,6 +937,7 @@ public class Program
             loggingBuilder
                 .SetResourceBuilder(ResourceBuilder.CreateDefault()
                     .AddService(serviceName: "SREAgent", serviceVersion: "1.1.0"))
+                // Add a processor for Agent Action Events
                 .AddProcessor(sp =>
                 {
                     // Prefer Event Hub exporter when configured; otherwise fall back to ADX if available
@@ -992,7 +993,7 @@ public class Program
                     return new CustomizedLogProcessor(null, record => false, "AgentActionProcessor");
                 })
 
-                // Register a processor to capture LLM Token Consumption logs (EventId = 2001)
+                // Add a processor to capture LLM Token Consumption logs (EventId = 2001)
                 .AddProcessor(sp =>
                 {
                     try
@@ -1070,6 +1071,219 @@ public class Program
                         logger?.LogWarning(ex, "Failed to configure TokenConsumptionProcessor exporter, falling back to no-op processor");
                         return new CustomizedLogProcessor(null, record => false, "TokenConsumptionProcessor");
                     }
+                })
+
+                // Add a processor for LogInternalXX logs
+                .AddProcessor(sp =>
+                {
+                    // Get Azure Data Explorer configuration for internal logs
+                    var ClusterUri = GetInternalKustoClusterConfiguration("ClusterUri");
+                    var DatabaseName = GetInternalKustoClusterConfiguration("DatabaseName");
+                    var CertificatePath = GetInternalKustoClusterConfiguration("CertificatePath");
+                    var FirstPartyAppClientId = GetInternalKustoClusterConfiguration("FirstPartyAppClientId");
+                    var FirstPartyAppTenantId = GetInternalKustoClusterConfiguration("FirstPartyAppTenantId");
+
+                    BaseExporter<LogRecord>? internalLogExporter = null;
+
+                    // Create populate columns delegate for internal logs (shared for EventHub or ADX)
+                    PopulateLogColumnsDelegate populateInternalLogColumns = (logRecord, logData) =>
+                    {
+                        // Get the message template and attributes for formatting
+                        string logMessage = logRecord.FormattedMessage ?? logRecord.Body?.ToString() ?? string.Empty;
+
+                        // Try to format the message properly if it contains unformatted placeholders
+                        if (!string.IsNullOrEmpty(logMessage) && logMessage.Contains("{") && logRecord.Attributes != null)
+                        {
+                            try
+                            {
+                                // Try to get the original template and format it
+                                var messageTemplate = logMessage;
+
+                                // Extract values from structured logging attributes
+                                foreach (var kvp in logRecord.Attributes)
+                                {
+                                    if (kvp.Key != "{OriginalFormat}" && kvp.Key != "LogType")
+                                    {
+                                        // Replace placeholder in template with actual value
+                                        var placeholder = "{" + kvp.Key + "}";
+                                        if (messageTemplate.Contains(placeholder))
+                                        {
+                                            messageTemplate = messageTemplate.Replace(placeholder, kvp.Value?.ToString() ?? "null");
+                                        }
+                                    }
+                                }
+                                logMessage = messageTemplate;
+                            }
+                            catch (Exception)
+                            {
+                                // Fall back to original message if formatting fails
+                            }
+                        }
+
+                        // Remove any "Internal>>>" prefix if it exists (for backward compatibility)
+                        if (!string.IsNullOrEmpty(logMessage) && logMessage.Contains(">>> "))
+                        {
+                            var logMessageStartIndex = logMessage.IndexOf(">>>", StringComparison.Ordinal) + 4;
+                            logMessage = logMessage.Substring(logMessageStartIndex);
+                        }
+
+                        // Set the cleaned message in the log data
+                        logData["Message"] = logMessage;
+                    };
+
+                    // Prefer Event Hub exporter when configured; otherwise fall back to ADX if available
+                    try
+                    {
+                        if (!string.IsNullOrEmpty(azureSettings?.AgentTraceEventHub.FullyQualifiedNamespace))
+                        {
+                            var ehOptions = new EventHubLogExporterOptions(
+                                fullyQualifiedNamespace: azureSettings.AgentTraceEventHub.FullyQualifiedNamespace,
+                                eventHubName: "sreagentdataplaneevents",
+                                populateColumns: populateInternalLogColumns,
+                                firstPartyAppCertificatePath: azureSettings.AgentTraceEventHub.CertificatePath,
+                                firstPartyAppClientId: azureSettings.AgentTraceEventHub.FirstPartyAppClientId,
+                                firstPartyAppTenantId: azureSettings.AgentTraceEventHub.FirstPartyAppTenantId);
+
+                            internalLogExporter = new EventHubLogExporter(ehOptions);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        var logger = sp.GetService<ILogger<Program>>();
+                        logger?.LogWarning(ex, "Failed to configure EventHub exporter for InternalLogProcessor, falling back to ADX if available");
+                    }
+
+                    // If Event Hub exporter wasn't configured, create ADX exporter when ClusterUri is available
+                    if (internalLogExporter == null && !string.IsNullOrEmpty(ClusterUri))
+                    {
+                        internalLogExporter = new AzureDataExplorerLogExporter(
+                            new AzureDataExplorerLogExporterOptions(
+                                clusterUri: ClusterUri,
+                                databaseName: DatabaseName,
+                                tableName: "SREAgentDataPlaneEvents",
+                                populateColumns: populateInternalLogColumns,
+                                firstPartyAppCertificatePath: CertificatePath,
+                                firstPartyAppClientId: FirstPartyAppClientId,
+                                firstPartyAppTenantId: FirstPartyAppTenantId));
+                    }
+
+                    return new CustomizedLogProcessor(
+                        internalLogExporter, // Export internal logs to separate table
+                        record =>
+                        {
+                            // Process only logs from LogInternalXX methods
+                            // Check LogType attribute (from structured logging parameters)
+                            if (record.Attributes != null)
+                            {
+                                foreach (var kvp in record.Attributes)
+                                {
+                                    if (kvp.Key == "LogType" && kvp.Value?.ToString() == "Internal")
+                                    {
+                                        return true; // Process internal logs
+                                    }
+                                }
+                            }
+
+                            return false; // Filter out all other logs
+                        },
+                        "InternalLogProcessor");
+                })
+
+                // Add a processor for LogExternalXX logs
+                .AddProcessor(sp =>
+                {
+                    // This processor exports external logs to customer's Kusto cluster
+
+                    // Get external Kusto cluster configuration
+                    var externalClusterUri = GetKustoClusterConfiguration("ClusterUri");
+                    var externalDatabaseName = GetKustoClusterConfiguration("DatabaseName");
+                    var externalIdentity = GetKustoClusterConfiguration("Identity");
+
+                    BaseExporter<LogRecord>? externalLogExporter = null;
+
+                    // Only create the exporter if external Kusto cluster is configured
+                    if (!string.IsNullOrEmpty(externalClusterUri) && !string.IsNullOrEmpty(externalDatabaseName) && !string.IsNullOrEmpty(externalIdentity))
+                    {
+                        // Create populate columns delegate for external logs
+                        PopulateLogColumnsDelegate populateExternalLogColumns = (logRecord, logData) =>
+                        {
+                            // Get the message template and attributes for formatting
+                            string logMessage = logRecord.FormattedMessage ?? logRecord.Body?.ToString() ?? string.Empty;
+
+                            // Try to format the message properly if it contains unformatted placeholders
+                            if (!string.IsNullOrEmpty(logMessage) && logMessage.Contains("{") && logRecord.Attributes != null)
+                            {
+                                try
+                                {
+                                    // Try to get the original template and format it
+                                    var messageTemplate = logMessage;
+
+                                    // Extract values from structured logging attributes
+                                    foreach (var kvp in logRecord.Attributes)
+                                    {
+                                        if (kvp.Key != "{OriginalFormat}" && kvp.Key != "LogType")
+                                        {
+                                            // Replace placeholder in template with actual value
+                                            var placeholder = "{" + kvp.Key + "}";
+                                            if (messageTemplate.Contains(placeholder))
+                                            {
+                                                messageTemplate = messageTemplate.Replace(placeholder, kvp.Value?.ToString() ?? "null");
+                                            }
+                                        }
+                                    }
+                                    logMessage = messageTemplate;
+                                }
+                                catch (Exception)
+                                {
+                                    // Fall back to original message if formatting fails
+                                }
+                            }
+
+                            // Remove any "External>>>" prefix if it exists (for backward compatibility)
+                            if (!string.IsNullOrEmpty(logMessage) && logMessage.Contains(">>> "))
+                            {
+                                var logMessageStartIndex = logMessage.IndexOf(">>>", StringComparison.Ordinal) + 4;
+                                logMessage = logMessage.Substring(logMessageStartIndex);
+                            }
+
+                            // Set the cleaned message in the log data
+                            logData["Message"] = logMessage;
+                        };
+
+                        // Create the exporter with configuration for external logs table
+                        // For external clusters, use managed identity authentication
+                        externalLogExporter = new AzureDataExplorerLogExporter(
+                            new AzureDataExplorerLogExporterOptions(
+                                clusterUri: externalClusterUri,
+                                databaseName: externalDatabaseName,
+                                tableName: "SREAgentDataPlaneEvents",
+                                populateColumns: populateExternalLogColumns,
+                                firstPartyAppCertificatePath: null,
+                                firstPartyAppClientId: null, // Use managed identity client ID
+                                firstPartyAppTenantId: null,
+                                identity: externalIdentity));
+                    }
+
+                    return new CustomizedLogProcessor(
+                        externalLogExporter, // Export external logs to customer's Kusto cluster
+                        record =>
+                        {
+                            // Process only logs from LogExternalXX methods
+                            // Check LogType attribute (from structured logging parameters)
+                            if (record.Attributes != null)
+                            {
+                                foreach (var kvp in record.Attributes)
+                                {
+                                    if (kvp.Key == "LogType" && kvp.Value?.ToString() == "External")
+                                    {
+                                        return true; // Process external logs
+                                    }
+                                }
+                            }
+
+                            return false; // Filter out all other logs
+                        },
+                        "ExternalLogProcessor");
                 });
 
         });
@@ -1188,7 +1402,7 @@ public class Program
             }
         }
 
-        ConfigureKustoLoggers(builder);
+        // ConfigureKustoLoggers(builder);
         ConfigureApplicationInsightsLoggers(builder);
     }
 

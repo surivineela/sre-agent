@@ -85,7 +85,6 @@ public class TimerService : IHostedService, IDisposable
     private AzMonitorAlertScanner _azMonitorAlertScanner;
     private ThreadEvaluator _threadEvaluator;
     private TrajectoryEvaluator _trajectoryEvaluator;
-    private AzureDataExplorerLogger _azureDataExplorerLogger;
     private CustomerLogger _customerLogger;
     private CustomerAuditLogger _customerAuditLogger;
     private LocalAuthScanner _localAuthScanner;
@@ -184,7 +183,6 @@ public class TimerService : IHostedService, IDisposable
         AzMonitorAlertScanner azMonitorAlertScanner,
         ThreadEvaluator threadEvaluator,
         TrajectoryEvaluator trajectoryEvaluator,
-        AzureDataExplorerLogger azureDataExplorerLogger,
         CustomerLogger customerLogger,
         CustomerAuditLogger customerAuditLogger,
         IIncidentScanner incidentScanner,
@@ -212,7 +210,6 @@ public class TimerService : IHostedService, IDisposable
         _azMonitorAlertScanner = azMonitorAlertScanner;
         _threadEvaluator = threadEvaluator;
         _trajectoryEvaluator = trajectoryEvaluator;
-        _azureDataExplorerLogger = azureDataExplorerLogger;
         _customerLogger = customerLogger;
         _customerAuditLogger = customerAuditLogger;
         _incidentScanner = incidentScanner;
@@ -781,31 +778,12 @@ public class TimerService : IHostedService, IDisposable
 
             Console.WriteLine("Flushing logs...");
 
-            await Task.WhenAll(AzureDataExplorerLoggerFlushAsync(cancellationToken),
-                         CustomerLoggerFlushAsync(cancellationToken),
+            await Task.WhenAll(CustomerLoggerFlushAsync(cancellationToken),
                          CustomerAuditLoggerFlushAsync(cancellationToken));
 
             _logFlushTimerIsRunning = false;
 
         }, null, TimeSpan.Zero, _logFlushTimerInterval);
-    }
-
-    private async Task AzureDataExplorerLoggerFlushAsync(CancellationToken cancellationToken)
-    {
-        if (_azureDataExplorerLogger == null)
-        {
-            Console.WriteLine("Azure Data Explorer logger is not initialized. Skip this round.");
-            return;
-        }
-
-        try
-        {
-            await _azureDataExplorerLogger.FlushLogBufferAsync();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error executing Azure Data Explorer log flusher. {ex}");
-        }
     }
 
     private async Task CustomerLoggerFlushAsync(CancellationToken cancellationToken)
