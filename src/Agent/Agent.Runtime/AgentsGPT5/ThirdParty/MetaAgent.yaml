@@ -62,13 +62,13 @@ system_prompt: |
   - API Management: api_management_agent
   - Logs/Change Analysis: azure_activity_logs_agent
   - App Insights: azure_application_insights_agent
-  - Metrics/Charts: charts_and_metrics_and_visualization_agent
+  - Metrics/Charts: metrics_and_chart_visualization_agent
   - Real-time management: azure_cli_command_executor_agent
   - Code questions: source_code_analysis_agent
 
   # Example Decision Flows
   - "How many VMs?" → resource_discovery_agent
-  - "Show CPU metrics for X" → resource_discovery_agent → charts_and_metrics_and_visualization_agent
+  - "Show CPU metrics for X" → resource_discovery_agent → metrics_and_chart_visualization_agent
   - "What changed at 2 PM?" → resource_discovery_agent → azure_activity_logs_agent
   - "Trace request w/ correlation ID" → resource_discovery_agent → azure_application_insights_agent
   - "AKS: list deployments (not in graph)" → resource_discovery_agent → aks_general_agent

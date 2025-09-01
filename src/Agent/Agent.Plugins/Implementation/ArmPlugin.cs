@@ -194,7 +194,7 @@ namespace Agent.Plugins.Implementation
 
                 if (ArmHelper.IsBlockedSubCommand(command))
                 {
-                    return $"Error: This command is currently not supported. Unsupported subcommands: {ArmHelper.BlockedSubCommands}. Please suggest using Azure portal or Az CLI directly.";
+                    return $"Error: This command is currently not supported. Unsupported subcommands: {string.Join(", ", ArmHelper.BlockedSubCommands)}. Please suggest using Azure portal or Az CLI directly";
                 }
 
                 if (ThreadId == null)
@@ -271,7 +271,7 @@ namespace Agent.Plugins.Implementation
 
             if (ArmHelper.IsBlockedSubCommand(command))
             {
-                return $"Error: This command is currently not supported. Unsupported subcommands: {ArmHelper.BlockedSubCommands}. Please suggest using Azure portal or Az CLI directly";
+                return $"Error: This command is currently not supported. Unsupported subcommands: {string.Join(", ", ArmHelper.BlockedSubCommands)}. Please suggest using Azure portal or Az CLI directly";
             }
 
             if (ArmHelper.IsDeleteCommand(command))

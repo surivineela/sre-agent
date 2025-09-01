@@ -182,7 +182,7 @@ namespace Agent.Plugins
         [Description("""
 Execute az commands for Azure resource read operations. Commands run IMMEDIATELY without approval.
 USAGE: Provide complete az cli command string. ALWAYS specify --subscription parameter with valid subscriptionId/guid.
-ALLOWED: Only 'list', 'show', 'get' commands.
+ALLOWED: Read-only commands such as 'list', 'show', 'get'. (non-mutating only)
 FORBIDDEN: 'aks command invoke' NOT allowed.
 EXAMPLES:
 - List: 'az containerapp list -g MyRG --subscription <subId>'

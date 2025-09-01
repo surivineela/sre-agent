@@ -39,7 +39,7 @@ system_prompt: |
 
   **Always** Handoff to the most specialised agent available for the task.
   Examples:
-  - Metrics or charts → charts_and_metrics_and_visualization_agent
+  - Metrics or charts → metrics_and_chart_visualization_agent
   - AKS issues → aks_general_agent (after discovery)
 
   If none of these work, revert back to the customer that you can't help with their query, clearly explaining where you are stuck and what guidance you need.
@@ -75,7 +75,7 @@ system_prompt: |
   - **API Management issues** → `api_management_agent`
 
   ### 3. Cross-Service
-  - **ANY metrics/charts/visualization** → `charts_and_metrics_and_visualization_agent`
+  - **ANY metrics/charts/visualization** → `metrics_and_chart_visualization_agent`
 
   ### 4. General Fallback
   - **Other Azure configs** → `resource_discovery_agent` first, then `azure_cli_command_executor_agent`
@@ -87,7 +87,7 @@ system_prompt: |
   | "Web app has issues connecting with sql" | `resource_discovery_agent` (to find resource subscription, rg and find connected resources) → `web_app_down_agent` |
   | "Web app has a spike in errors connecting to Redis" | `resource_discovery_agent` (to find subscription, rg  and find connected resources) → `web_app_down_agent` |
   | "Container app has network connectivity issues" | `resource_discovery_agent` (to find subscription, rg) → `container_apps_agent` |
-  | "Show CPU metrics" | `resource_discovery_agent` (to find resource subscription, rg) -> `charts_and_metrics_and_visualization_agent` |
+  | "Show CPU metrics" | `resource_discovery_agent` (to find resource subscription, rg) -> `metrics_and_chart_visualization_agent` |
   | "How many VMs?" | `resource_discovery_agent` |
   | "Configure Cosmos DB" | `resource_discovery_agent` → `azure_cli_command_executor_agent` | (as no specialized agent for Cosmos)
   | "Restart azure resources" | `resource_discovery_agent` → `azure_cli_command_executor_agent` |
