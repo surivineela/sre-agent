@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Diagnostics;
+using System.Text.Json.Serialization;
 using Agent.Core.Clients.Search;
 using Agent.Core.Clients.Storage;
 using Agent.Core.Configuration;

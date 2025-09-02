@@ -90,9 +90,11 @@ public class WorkflowReasoningLoop : ReasoningLoop
         await _workflowOrchestrator.LoadChatHistoryAsync();
     }
 
-    public override async Task AppendNewUserMessageAsync(ChatMessage msg, CancellationToken cancellationToken = default)
+    public override async Task AppendNewUserMessageAsync(ChatMessage msg, ConversationModifierEnum? conversationModifier = null, CancellationToken cancellationToken = default)
     {
         _logger.LogInternalInformation("WorkflowReasoningLoop: Processing new user message via WorkflowOrchestrator");
+        // Note: WorkflowOrchestrator doesn't currently support conversation modifiers
+        // For now, pass through without modifier processing
         await _workflowOrchestrator.AppendNewUserMessageAsync(msg, cancellationToken);
     }
 

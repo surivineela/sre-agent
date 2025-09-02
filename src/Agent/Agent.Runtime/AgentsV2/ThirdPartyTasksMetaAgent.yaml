@@ -44,6 +44,4 @@ common_prompts:
   - format_guidelines
   - guard_rail
 
-max_reflection_count: 1
-
 output_type: MetaAgentOutput

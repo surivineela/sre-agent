@@ -4,7 +4,6 @@
 
 using System.Text.Json;
 using Agent.Core.Configuration;
-using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Logging;
@@ -13,11 +12,7 @@ using Agent.Runtime.IncidentHandlerAgent;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
-using Agent.Runtime.SubAgents;
-using Agent.Runtime.SubAgents.CVEAgent;
-using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.Communication;
@@ -135,6 +130,9 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         await _reasoningLoopManager.AppendNewMessageAsync(
             context: agentContext!,
             msg: new ChatMessage(chatRole, threadMessage.Message),
+            conversationModifier: threadMessage.ConversationModifier,
+            // uncomment this line and comment the one above for testing until the frontend change is in
+            //conversationModifier: ConversationModifierEnum.DeepInvestigation,
             cancellationToken: default);
 
         return new InboundServiceResponse(threadMessage.ThreadId, Guid.Empty, string.Empty);

@@ -12,7 +12,8 @@ public record ThreadMessage(
     string UserId,
     string DisplayName,
     DateTime Timestamp,
-    Posted? Posted = null);
+    Posted? Posted = null,
+    ConversationModifierEnum? ConversationModifier = null);
 
 public record InboundServiceResponse(
     Guid ThreadId,

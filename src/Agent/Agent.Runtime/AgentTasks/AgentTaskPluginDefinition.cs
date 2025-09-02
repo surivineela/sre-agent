@@ -22,6 +22,7 @@ public class AgentTaskPluginDefinition(
 ) : ContextToolTarget<AgentContext>
 {
     [Description("List all active agent tasks for the current thread.")]
+    [AgentTool(ToolMode.Auto)]
     public async Task<List<AgentTaskShort>> ListAllActiveTasks()
     {
         var threadId = Context?.ThreadId ?? throw new InvalidOperationException("ThreadId is not set");
@@ -36,6 +37,7 @@ public class AgentTaskPluginDefinition(
         Start an incident investigation task. This will create a new task and start the investigation process.
         The task will run in the background and you can check the status of the task by calling the ListAllActiveTasks tool.
         """)]
+    [AgentTool(ToolMode.Auto)]
     public async Task<bool> StartIncidentInvestigationTask(
         [Description("A brief but descriptive title for the investigation task, should be a single sentence and effectively describe the incident.")]
         string title,

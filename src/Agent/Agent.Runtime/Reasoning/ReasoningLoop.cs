@@ -15,11 +15,11 @@ using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
-using Agent.Core.Services;
 using Agent.Data.AgentMemory;
 using Agent.Framework;
 using Agent.Logging;
 using Agent.Plugins.Definitions;
+using Agent.Runtime.ConversationModifiers;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.SubAgents.Core;
 using Microsoft.Extensions.AI;
@@ -176,12 +176,15 @@ public class ReasoningLoop : IDisposable
         }
     }
 
-    public virtual async Task AppendNewUserMessageAsync(ChatMessage msg, CancellationToken cancellationToken = default)
+    public virtual async Task AppendNewUserMessageAsync(
+        ChatMessage msg,
+        ConversationModifierEnum? conversationModifier = null,
+        CancellationToken cancellationToken = default)
     {
         if (await _msgCh.Writer.WaitToWriteAsync(cancellationToken))
         {
             _logger.LogInternalInformation("[{threadId}]Appending new chat message", _context.ThreadId);
-            await _msgCh.Writer.WriteAsync(new ReasoningLoopChatMessage(msg), cancellationToken);
+            await _msgCh.Writer.WriteAsync(new ReasoningLoopChatMessage(msg, conversationModifier), cancellationToken);
 
             _ = Task.Run(RunWithUserCancellationAsync, cancellationToken);
         }
@@ -369,8 +372,17 @@ public class ReasoningLoop : IDisposable
 
                             StringBuilder sb = new StringBuilder();
 
-                            // Check if current agent has UserPromptOverride configured
-                            if (!string.IsNullOrEmpty(_currentAgent.UserPromptOverride))
+                            // Check for user prompt override
+                            if (chatMessage.ConversationModifier.HasValue
+                                && Modifiers.TryGet(chatMessage.ConversationModifier.Value, out var modifier)
+                                && modifier != null
+                                && !string.IsNullOrEmpty(modifier.UserPromptOverride))
+                            {
+                                _logger.LogInternalInformation("[{threadId}]Using UserPromptOverride from modifier {modifierName}",
+                                    _context.ThreadId, modifier.DisplayName);
+                                sb.AppendLine(modifier.UserPromptOverride);
+                            }
+                            else if (!string.IsNullOrEmpty(_currentAgent.UserPromptOverride))
                             {
                                 _logger.LogInternalInformation("[{threadId}]Using UserPromptOverride from agent {agentName}",
                                     _context.ThreadId, _currentAgent.Name);
@@ -403,6 +415,18 @@ public class ReasoningLoop : IDisposable
                             _msgSpan.End();
 
                             await PersistReasoningMessageAsync(agentChatHistory, msg);
+
+                            // Process conversation modifier if present
+                            if (chatMessage.ConversationModifier.HasValue)
+                            {
+                                var modificationResult = await ProcessConversationModifierAsync(chatMessage.ConversationModifier.Value, chatMessage.Message.Text, cancellationToken);
+                                if (!modificationResult.PassToMainLoop)
+                                {
+                                    // Modifier handled the message, no need to continue with main loop
+                                    return;
+                                }
+                            }
+
                             break;
                         }
                     case ReasoningLoopApprovalMessage approvalMessage:
@@ -1986,6 +2010,137 @@ public class ReasoningLoop : IDisposable
             _logger.LogInternalInformation("User cancellation token source refreshed.");
         }
     }
+
+    private async Task<ModificationResult> ProcessConversationModifierAsync(
+        ConversationModifierEnum modifierEnum,
+        string userMessage,
+        CancellationToken cancellationToken)
+    {
+        if (Modifiers.TryGet(modifierEnum, out var modifier) && modifier != null)
+        {
+            _logger.LogInternalInformation("[{threadId}]Processing conversation modifier: {ModifierKey}", _context.ThreadId, modifierEnum);
+
+            // Get the agent chat history for persistence
+            var agentChatHistory = await _threadRepository.GetAgentChatHistoryAsync(_context.Id);
+            if (agentChatHistory == null)
+            {
+                _logger.LogInternalError("[{threadId}] AgentChatHistory is null during modifier processing", _context.ThreadId);
+                return new ModificationResult { PassToMainLoop = true };
+            }
+
+            // Get the modifier agent
+            var modifierAgent = modifier.GetModifierAgent();
+
+            // Set up RunConfig for direct agent invocation
+            var runConfig = new RunConfig
+            {
+                ChatClient = _chatClient,
+                LoggerFactory = _loggerFactory,
+                EnableDebugOutput = _enableReasoningDebugOutput,
+                ThreadId = _context.ThreadId
+            };
+
+            try
+            {
+                var runHooks = CreateRunHooks();
+
+                // Run the modifier agent with the full chat history plus new user message
+                var runResult = await Runner.RunAsync(
+                    startingAgent: modifierAgent,
+                    input: _chatHistory!,
+                    config: runConfig,
+                    runtimeModifier: _agentRuntimeModifier,
+                    context: _context,
+                    hooks: runHooks,
+                    displayModelOutput: DisplayModelResponse,
+                    cancellationToken: cancellationToken);
+
+                _logger.LogInternalInformation("[{threadId}]Modifier agent completed execution", _context.ThreadId);
+
+                // Persist all new messages from the modifier agent to chat history
+                if (runResult.NewItems.Count != 0)
+                {
+                    await PersistReasoningMessagesAsync(agentChatHistory, runResult.NewItems);
+                    _logger.LogInternalInformation("[{threadId}]Persisted {MessageCount} modifier agent messages to chat history",
+                        _context.ThreadId, runResult.NewItems.Count);
+                }
+
+                // Handle manual tool calls from the modifier agent
+                while (runResult.ManualToolCalls != null && runResult.ManualToolCalls.Count > 0)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    List<ManualToolCallResult> toolResults = [];
+
+                    var toolCall = runResult.ManualToolCalls.Single(); // Should only be one tool call at a time
+                    Guid toolCallMessageId = Guid.NewGuid();
+
+                    await _outboundCommunicationService.AppendAgentManualToolCallMessage(
+                        _context.ThreadId,
+                        runResult.ManualToolCalls,
+                        toolCallMessageId);
+
+                    // TODO: Add support for read-only mode checking, approval flow, and CLI/kubectl execution handling
+                    // For now, we'll execute tools directly without these checks
+                    try
+                    {
+                        var functionResult = await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
+
+                        toolResults.Add(new ManualToolCallResult()
+                        {
+                            FunctionCall = toolCall.FunctionCall,
+                            Output = functionResult
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        toolResults.Add(new ManualToolCallResult()
+                        {
+                            FunctionCall = toolCall.FunctionCall,
+                            Output = GetErrorMessage(toolCall.FunctionCall, ex),
+                        });
+                    }
+
+                    runResult = await Runner.ResumeFromManualToolsAsync(
+                        previousResult: runResult,
+                        manualToolResults: toolResults,
+                        config: runConfig,
+                        context: _context,
+                        hooks: runHooks,
+                        displayModelOutput: DisplayModelResponse,
+                        cancellationToken: cancellationToken
+                    );
+
+                    await _outboundCommunicationService.AppendAgentManualToolCallResult(
+                        _context.ThreadId,
+                        toolResults,
+                        toolCallMessageId);
+
+                    await PersistReasoningMessagesAsync(agentChatHistory, runResult.NewItems);
+                }
+
+                // Process the agent output to determine modification result
+                var modificationResult = await modifier.ProcessModificationAsync(runResult, cancellationToken);
+
+                _logger.LogInternalInformation("[{threadId}]Modifier result: PassToMainLoop={PassToMainLoop}",
+                    _context.ThreadId, modificationResult.PassToMainLoop);
+
+                return modificationResult;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "[{threadId}]Error running conversation modifier: {ModifierKey}", _context.ThreadId, modifierEnum);
+                // On error, pass to main loop as fallback
+                return new ModificationResult { PassToMainLoop = true };
+            }
+        }
+        else
+        {
+            _logger.LogInternalWarning("[{threadId}]Unknown conversation modifier: {ModifierKey}", _context.ThreadId, modifierEnum);
+            // Unknown modifier, pass to main loop
+            return new ModificationResult { PassToMainLoop = true };
+        }
+    }
+
     public void Dispose()
     {
         Dispose(true);

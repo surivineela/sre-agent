@@ -11,7 +11,7 @@ namespace Agent.Runtime.Reasoning;
 
 public interface IReasoningLoopManager
 {
-    Task AppendNewMessageAsync(AgentContext context, ChatMessage msg, CancellationToken cancellationToken = default);
+    Task AppendNewMessageAsync(AgentContext context, ChatMessage msg, ConversationModifierEnum? conversationModifier = null, CancellationToken cancellationToken = default);
     Task AppendFunctionCallMessagesAsync(AgentContext context, List<ChatMessage> msgs, CancellationToken cancellationToken = default);
     void CancelCurrentOperation(AgentContext context);
     Task<IEnumerable<ChatMessage>> ExportChatHistory(AgentContext agentContext, CancellationToken token = default);
@@ -28,10 +28,10 @@ public class ReasoningLoopManager : IReasoningLoopManager
         _reasoningLoopFactory = reasoningLoopFactory;
     }
 
-    public async Task AppendNewMessageAsync(AgentContext context, ChatMessage msg, CancellationToken cancellationToken = default)
+    public async Task AppendNewMessageAsync(AgentContext context, ChatMessage msg, ConversationModifierEnum? conversationModifier = null, CancellationToken cancellationToken = default)
     {
         var loop = await GetOrCreateReasoningLoopAsync(context);
-        await loop.AppendNewUserMessageAsync(msg, cancellationToken);
+        await loop.AppendNewUserMessageAsync(msg, conversationModifier, cancellationToken);
     }
 
     public async Task AppendFunctionCallMessagesAsync(AgentContext context, List<ChatMessage> msgs, CancellationToken cancellationToken = default)

@@ -122,7 +122,8 @@ public class ThreadManagementService(
             Message: request.StartMessage.Text,
             UserId: request.StartMessage.UserId,
             DisplayName: request.StartMessage.DisplayName,
-            Timestamp: DateTime.UtcNow
+            Timestamp: DateTime.UtcNow,
+            ConversationModifier: request.StartMessage.ConversationModifier
         ));
         stopwatch.Stop();
         logger.LogAgentAction(

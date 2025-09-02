@@ -627,14 +627,15 @@ public sealed class IncidentInvestigationTaskHandler(
         if (_aggregatedToolHistory.Count > 0)
         {
             // Add a context message explaining the tool history
-            var contextMessage = new ChatMessage(ChatRole.System,
-                $"The following {_aggregatedToolHistory.Count / 2} tool interactions have been performed previously in this investigation. " +
-                "Use this information and avoid redundant tool calls and build upon previous results. IMPORTANT: Do not repeat tool calls with same parameters");
+            //var contextMessage = new ChatMessage(ChatRole.System,
+            //    $"The following {_aggregatedToolHistory.Count / 2} tool interactions have been performed previously in this investigation. " +
+            //    "Use this information and avoid redundant tool calls and build upon previous results. IMPORTANT: Do not repeat tool calls with same parameters");
 
-            chatHistory.Insert(0, contextMessage);
+            //chatHistory.Insert(0, contextMessage);
 
             // Insert the aggregated tool history after the context message
-            chatHistory.InsertRange(1, _aggregatedToolHistory);
+            //chatHistory.InsertRange(1, _aggregatedToolHistory);
+            chatHistory.InsertRange(0, _aggregatedToolHistory);
 
             logger.LogInternalInformation(
                 "Injected {Count} tool history messages into agent input",

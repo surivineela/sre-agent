@@ -245,7 +245,8 @@ namespace Agent.Web.SignalR
                                 Message: request.Text,
                                 UserId: request.UserId ?? string.Empty,
                                 DisplayName: request.DisplayName ?? string.Empty,
-                                Timestamp: DateTime.UtcNow
+                                Timestamp: DateTime.UtcNow,
+                                ConversationModifier: request.ConversationModifier
                             ), defaultHandler: false);
                             _logger.LogInternalInformation($"Processed alert message for thread {threadId}");
                             break;
@@ -258,7 +259,8 @@ namespace Agent.Web.SignalR
                                 Message: request.Text,
                                 UserId: request.UserId ?? string.Empty,
                                 DisplayName: request.DisplayName ?? string.Empty,
-                                Timestamp: DateTime.UtcNow
+                                Timestamp: DateTime.UtcNow,
+                                ConversationModifier: request.ConversationModifier
                             ));
                             _logger.LogInternalInformation($"Processed user message for thread {threadId} with result: {result}");
                             if (result.Busy)

@@ -15,9 +15,12 @@ public class ReasoningLoopChatMessage : ReasoningLoopMessage
 {
     public ChatMessage Message { get; }
 
-    public ReasoningLoopChatMessage(ChatMessage message)
+    public ConversationModifierEnum? ConversationModifier { get; }
+
+    public ReasoningLoopChatMessage(ChatMessage message, ConversationModifierEnum? conversationModifier = null)
     {
         Message = message;
+        ConversationModifier = conversationModifier;
     }
 }
 

@@ -85,7 +85,8 @@ namespace Agent.Core.Models.Api.v1
     public record CreateMessageRequest(
         [Required] string Text,
         string UserId,
-        string DisplayName
+        string DisplayName,
+        ConversationModifierEnum? ConversationModifier = null
     );
 
     public record FeedbackRequest(
