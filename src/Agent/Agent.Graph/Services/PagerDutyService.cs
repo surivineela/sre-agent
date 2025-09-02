@@ -2,12 +2,15 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using Agent.Core.Configuration;
+using Agent.Data;
 using Agent.Data.DataModels;
 using Agent.Graph.Interfaces;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -20,8 +23,10 @@ public class PagerDutyService : IPagerDutyService
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IncidentManagementSettings? _settings;
     private IncidentManagementSettings _current;
+    private readonly Container _container;
 
-    public PagerDutyService(ILogger<PagerDutyService> logger, IHttpClientFactory httpClientFactory, IOptionsMonitor<IncidentManagementSettings> monitor)
+
+    public PagerDutyService(ILogger<PagerDutyService> logger, IHttpClientFactory httpClientFactory, IOptionsMonitor<IncidentManagementSettings> monitor, CosmosClient cosmosClient, CosmosDBSettings cosmosDbSettings)
     {
         _current = monitor.CurrentValue;
         monitor.OnChange(newConfig =>
@@ -38,6 +43,7 @@ public class PagerDutyService : IPagerDutyService
             _pagerDutyApiKey = _settings.ConnectionKey;
         }
 
+        _container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
     }
 
     public async Task<IEnumerable<PagerDutyIncident>> GetIncidentsAsync(uint limit, uint offset, DateTime? since, string? impactServiceId, string? priority, string? titleContains, string? urgency, IEnumerable<string>? statuses)
@@ -372,6 +378,36 @@ public class PagerDutyService : IPagerDutyService
         if (response.IsSuccessStatusCode)
         {
             _logger.LogInternalInformation("Successfully resolved PagerDuty incident ID: {incidentId}", incidentId);
+            var incidentDocument = await GetDocumentAsync<PagerDutyIncidentDocument>(incidentId, incidentId);
+            if (incidentDocument != null)
+            {
+                incidentDocument.Status = "resolved";
+                incidentDocument.ResolvedAt = DateTime.UtcNow;
+                incidentDocument.UpdatedAt = DateTime.UtcNow;
+                incidentDocument.Tags.Add("SREAgent_Resolved");
+                await _container.UpsertItemAsync(incidentDocument, new PartitionKey(incidentDocument.PartitionKey));
+                _logger.LogInternalInformation("Successfully updated PagerDuty incident document ID: {incidentId} in Cosmos DB", incidentId);
+            }
+            else
+            {
+                var incident = await GetPagerDutyIncidentAsync(incidentId);
+                var updatedDoc = new PagerDutyIncidentDocument(
+                    incident.IncidentId,
+                    incident.HtmlUrl,
+                    "resolved",
+                    incident.Priority?.ToString() ?? string.Empty,
+                    incident.Urgency ?? string.Empty,
+                    incident.IncidentType?.ToString() ?? string.Empty,
+                    incident.ImpactedService?.Id ?? string.Empty,
+                    incident.ImpactedService?.Summary ?? string.Empty,
+                    DateTime.UtcNow);
+
+                updatedDoc.Tags.Add("SREAgent_Resolved");
+                updatedDoc.UpdatedAt = DateTime.UtcNow;
+
+                _ = await _container.CreateItemAsync<PagerDutyIncidentDocument>(updatedDoc, new PartitionKey(updatedDoc.PartitionKey));
+                _logger.LogInternalWarning("PagerDuty incident document ID: {incidentId} not found in Cosmos DB", incidentId);
+            }
         }
         else
         {
@@ -406,6 +442,22 @@ public class PagerDutyService : IPagerDutyService
     public Task<IEnumerable<PagerDutyIncident>> GetIncidentsAsyncGetIncidentsAsync(uint limit, uint offset, DateTime? since, string? impactServiceId, string? priority, string? titleContains, string? urgency, IEnumerable<string>? statuses)
     {
         throw new NotImplementedException();
+    }
+
+    private async Task<T?> GetDocumentAsync<T>(string id, string partitionKey) where T : ICosmosDocument
+    {
+        try
+        {
+            ItemResponse<T> response = await _container.ReadItemAsync<T>(
+                id,
+                new PartitionKey(partitionKey)
+            );
+            return response.Resource;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return default;
+        }
     }
 }
 

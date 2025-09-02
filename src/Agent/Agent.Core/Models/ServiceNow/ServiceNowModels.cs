@@ -57,6 +57,23 @@ namespace Agent.Core.Models.ServiceNow
         [JsonPropertyName("sys_updated_on")]
         [JsonConverter(typeof(ServiceNowDateTimeConverter))]
         public DateTime UpdatedAt { get; set; }
+
+        [JsonPropertyName("resolved_at")]
+        [JsonConverter(typeof(ServiceNowDateTimeConverter))]
+        public DateTime ResolvedAt { get; set; }
+
+        [JsonPropertyName("closed_at")]
+        [JsonConverter(typeof(ServiceNowDateTimeConverter))]
+        public DateTime ClosedAt { get; set; }
+
+        [JsonPropertyName("closed_by")]
+        [JsonConverter(typeof(ServiceNowStringConverter))]
+        public string ClosedBy { get; set; } = string.Empty;
+
+        [JsonPropertyName("resolved_by")]
+        [JsonConverter(typeof(ServiceNowStringConverter))]
+        public string ResolvedBy { get; set; } = string.Empty;
+
     }
 
     public class ServiceNowDiscussionEntry

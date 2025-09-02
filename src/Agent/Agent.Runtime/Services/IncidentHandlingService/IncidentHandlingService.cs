@@ -56,6 +56,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
     protected readonly IIncidentHandlerManagementService _incidentHandlerManagementService;
     protected readonly IIncidentStatusMetricsService _incidentStatusMetricsService;
     protected readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
+    protected readonly IIncidentAnalysisService _incidentAnalysisService;
     protected readonly ILogger _logger;
     protected readonly Tracer _tracer;
     protected readonly IAgentFactory<AgentContext> _agentFactory;
@@ -68,6 +69,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
         IIncidentHandlerManagementService incidentHandlerManagementService,
         IIncidentStatusMetricsService incidentStatusMetricsService,
         IAgentOutboundCommunicationService agentOutboundCommunicationService,
+        IIncidentAnalysisService incidentAnalysisService,
         ILogger logger,
         Tracer tracer,
         IAgentFactory<AgentContext> agentFactory,
@@ -79,6 +81,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
         _incidentHandlerManagementService = incidentHandlerManagementService;
         _incidentStatusMetricsService = incidentStatusMetricsService;
         _agentOutboundCommunicationService = agentOutboundCommunicationService;
+        _incidentAnalysisService = incidentAnalysisService;
         _logger = logger;
         _tracer = tracer;
         _agentFactory = agentFactory;
@@ -208,6 +211,37 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
                 var incidentStatusMetrics = await _incidentStatusMetricsService.GetIncidentStatusMetricsAsync(null, DateTime.Now);
                 await _agentOutboundCommunicationService.NotifyIncidentStatusMetrics(defaultThread.Id, incidentStatusMetrics);
 
+                try
+                {
+                    var data = new IncidentAIData
+                    {
+                        HandlerId = matchingFilter.Id ?? matchingFilter.Name ?? incidentRequest.IncidentFilter?.Id ?? incidentRequest.IncidentFilter?.Name ?? $"no-handler",
+                        IncidentId = incidentRequest.IncidentId,
+                        IncidentTitle = incidentRequest.Title,
+                        IncidentCreatedAt = incidentDetails.CreatedAt,
+                        IncidentUpdatedAt = incidentDetails.UpdatedAt,
+                        HandlerCreatedAt = DateTime.UtcNow,
+                        HandlerUpdatedAt = DateTime.UtcNow,
+                        IncidentHandledAt = DateTime.UtcNow,
+                        MitigatedAt = null,
+                        Status = incidentDetails.Status.ToString(),
+                        Priority = incidentRequest.Severity,
+                        IsMitigatedByAgent = false,
+                        RootCause = incidentDetails.RootCause,
+                        Summary = incidentDetails.GeneralSummary,
+                        ImpactedService = incidentDetails.ImpactedServiceName,
+                        RunMode = incidentRequest.IncidentFilter?.AgentMode ?? matchingFilter?.AgentMode ?? string.Empty,
+                        InstructionType = string.IsNullOrWhiteSpace(incidentRequest.IncidentHandler?.CustomInstructions) ? "Default" : "Custom"
+
+                    };
+                    // Can not yet ingest data for Azure Monitor
+                    _incidentAnalysisService.Ingest(data);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError($"[IncidentHandlingService] HandleIncidentAsync: Error logging incident handling data to Incident Analysis Service; {ex.Message}");
+                }
+
                 response.StatusCode = 200;
                 response.Response = new { threadId = defaultThread.Id, message = "Incident received" };
                 return response;
@@ -230,6 +264,38 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
             }
             
             _logger.LogInternalInformation("[IncidentHandlingService] HandleIncidentAsync: Created IncidentHandlerAgent thread with ThreadId: {ThreadId} for IncidentId: {IncidentId} and HandlerId: {HandlerId}", thread.Id, incidentId, matchingHandler.Id);
+
+            try
+            {
+                var data = new IncidentAIData
+                {
+                    HandlerId = matchingFilter.Id,
+                    IncidentId = incidentDetails.Id,
+                    IncidentTitle = incidentDetails.Title,
+                    HandlerCreatedAt = matchingFilter.CreatedAt,
+                    HandlerUpdatedAt = matchingFilter.UpdatedAt,
+                    IncidentCreatedAt = incidentDetails.CreatedAt,
+                    IncidentUpdatedAt = incidentDetails.UpdatedAt,
+                    IncidentHandledAt = DateTime.UtcNow,
+                    MitigatedAt = null,
+                    Status = incidentDetails.Status.ToString(),
+                    Priority = incidentDetails.Priority,
+                    IsMitigatedByAgent = false,
+                    RootCause = incidentDetails.RootCause,
+                    Summary = incidentDetails.GeneralSummary,
+                    ImpactedService = incidentDetails.ImpactedServiceName,
+                    RunMode = matchingFilter?.AgentMode ?? request.IncidentFilter?.AgentMode ?? string.Empty,
+                    InstructionType = string.IsNullOrWhiteSpace(matchingHandler.CustomInstructions) ? "Default" : "Custom"
+
+                };
+
+                // Can not yet ingest data for Azure Monitor
+                _incidentAnalysisService.Ingest(data);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError($"[IncidentHandlingService] HandleIncidentAsync: Error logging incident handling data to Incident Analysis Service; {ex.Message}");
+            }
 
             response.StatusCode = 200;
             response.Response = new { threadId = thread.Id, message = "Incident received" };

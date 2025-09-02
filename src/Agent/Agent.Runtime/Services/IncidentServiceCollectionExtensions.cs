@@ -79,6 +79,8 @@ public static class IncidentServiceCollectionExtensions
         services.AddSingleton<IIncidentFilterManagementServiceFactory, IncidentFilterManagementServiceFactory>();
         services.AddSingleton<IIncidentManagementServiceFactory, IncidentManagementServiceFactory>();
         services.AddSingleton<IIncidentHandlingServiceFactory, IncidentHandlingServiceFactory>();
+        services.AddSingleton<IIncidentAnalysisService, IncidentAnalysisService>(); // To Do: allow for the handling of Az Monitor
+
 
         return services;
     }

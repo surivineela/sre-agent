@@ -7,6 +7,7 @@ using Agent.Core.Models.ICM;
 using Agent.Core.Models.ServiceNow;
 using System;
 using System.Collections.Generic;
+using System.Threading.Channels;
 
 namespace Agent.Data.DataModels
 {
@@ -39,7 +40,14 @@ namespace Agent.Data.DataModels
         public string Severity { get; set; } = string.Empty;
         public string ExtractedKnowledge { get; set; } = string.Empty;
         public string IncidentSystemId { get; set; } = string.Empty;
-
+        public DateTime ResolvedAt { get; set; }
+        public string ResolvedBy { get; set; } = string.Empty;
+        public DateTime ClosedAt { get; set; }
+        public string ClosedBy { get; set; } = string.Empty;
+        public string RootCause { get; set; } = string.Empty;
+        public string GeneralSummary { get; set; } = string.Empty;
+        public List<string> Tags { get; set; } = new List<string>();
+        public DateTime HandledAt { get; set; }
         public ServiceNowIncidentDocument() : this(
             string.Empty, 
             string.Empty, 
@@ -69,6 +77,10 @@ namespace Agent.Data.DataModels
             UpdatedAt = incident.UpdatedAt;
             AssignedTo = incident.AssignedTo;
             IncidentSystemId = incident.IncidentId;  // Store the original sys_id
+            ResolvedAt = incident.ResolvedAt;
+            ResolvedBy = incident.ResolvedBy;
+            ClosedAt = incident.ClosedAt;
+            ClosedBy = incident.ClosedBy;
         }
     }
 }

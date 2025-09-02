@@ -149,7 +149,7 @@ namespace Agent.Runtime.Services
             }
             //filter.IsDeleted = true;
             //filter.UpdatedAt = DateTime.UtcNow;
-            filter = filter with { IsDeleted = true, UpdatedAt = DateTime.UtcNow };
+            filter = filter with { IsDeleted = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
             try
             {
                 var response = await _container.UpsertItemAsync(filter, new PartitionKey(filter.PartitionKey ?? filter.Id));

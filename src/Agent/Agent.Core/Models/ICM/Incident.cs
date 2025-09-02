@@ -21,6 +21,7 @@ namespace Agent.Core.Models.ICM
         public required DateTime CreatedDate { get; set; }
         public DateTime? MitigatedDate { get; set; }
         public MitigationData? MitigateData { get; set; }
+        public ResolutionData? ResolveData { get; set; }
         public required DateTime LastModifiedDate { get; set; }
         public required IncidentStatus Status { get; set; }
         public required string OwningService { get; set; }
@@ -38,6 +39,8 @@ namespace Agent.Core.Models.ICM
         public required string MonitoringSlice { get; set; }
         public required string SubscriptionId { get; set; }
         public required string[] Tags { get; set; } = Array.Empty<string>();
+        public string? Stamp { get; set; }
+        public string? Datacenter { get; set; }
     }
 
     public class MitigationData
@@ -45,6 +48,12 @@ namespace Agent.Core.Models.ICM
         public required string MitigationSteps { get; set; }
         public required string MitigatedBy { get; set; }
         public DateTime? MitigateTime { get; set; }
+    }
+
+    public class ResolutionData
+    {
+        public required string ResolvedBy { get; set; }
+        public DateTime? ResolveTime { get; set; }
     }
 
     public class DiscussionEntry

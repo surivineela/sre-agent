@@ -1,17 +1,22 @@
+using System.ComponentModel;
+using System.Net;
+using System.Text;
+using Agent.Core.Configuration;
+using Agent.Core.Helpers;
+using Agent.Core.Models.ICM;
+using Agent.Core.Services;
+using Agent.Data;
+using Agent.Data.DataModels;
+using Agent.Plugins.Helpers;
+using Agent.Plugins.Interface;
+using Microsoft.Azure.Cosmos;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Newtonsoft.Json;
-using System.ComponentModel;
-using System.Text;
-using Agent.Core.Services;
-using Agent.Core.Helpers;
-using Agent.Core.Models.ICM;
-using Agent.Plugins.Helpers;
-using Microsoft.Extensions.AI;
 using ChatMessageContent = Microsoft.SemanticKernel.ChatMessageContent;
 using TextContent = Microsoft.SemanticKernel.TextContent;
-using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Implementation;
 public class ICMPlugin : IICMPlugin

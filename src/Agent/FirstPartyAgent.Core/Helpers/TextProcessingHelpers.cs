@@ -212,6 +212,18 @@ namespace FirstPartyAgent.Helpers
             {
                 obj["Severity"] = severity.ToString();
             }
+
+            if (obj["Stamp"] == null &&
+                (obj["OccuringLocation"]?["Instance"] != null || obj["OccuringLocation"]?["Slice"] != null))
+            {
+                obj["Stamp"] = obj["OccuringLocation"]?["Instance"] ?? obj["OccuringLocation"]?["Slice"];
+            }
+
+            if (obj["Datacenter"] == null && obj["OccuringLocation"]?["Datacenter"] != null)
+            {
+                obj["Datacenter"] = obj["OccuringLocation"]?["Datacenter"];
+            }
+
             // Additional mappings can be added here if needed.  
             return obj;
         }

@@ -23,7 +23,8 @@ public class IcmScanner(ILogger<IcmScanner> logger,
     IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload> incidentManagementService,
     IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload> incidentFilterManagementService,
     IAgentInboundCommunicationService agentInboundCommunicationService,
-    IncidentManagementSettings incidentManagementSettings) : IIncidentScanner
+    IncidentManagementSettings incidentManagementSettings,
+    IIncidentAnalysisService incidentAnalysisService) : IIncidentScanner
 {
 
     private readonly Container container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
@@ -256,8 +257,8 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 logger.LogInternalInformation("[IcmScanner] Creating new incident document for IcM by id {incidentId}", incident.IncidentId);
 
                 incidentDocument = new IcmIncidentDocument(incident);
-                incidentDocument = await container.CreateItemAsync(incidentDocument, new PartitionKey(incidentDocument.PartitionKey), cancellationToken: cancellationToken);
 
+                incidentDocument = await container.CreateItemAsync(incidentDocument, new PartitionKey(incidentDocument.PartitionKey), cancellationToken: cancellationToken);
                 logger.LogInternalInformation("[IcmScanner] Created new incident document for IcM incident {incidentId}", incident.IncidentId);
             }
             else if (incidentDocument.Id == incident.IncidentId)
@@ -292,11 +293,43 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 //    incidentDocument = await container.PatchItemAsync<IcmIncidentDocument>(incidentDocument.Id, new PartitionKey(incidentDocument.PartitionKey), patchOperationList, cancellationToken: cancellationToken);
                 //}
 
-                //For now use UpsertItemAsync for updating IcmIncidentDocument, later can switch to PatchItemAsync if needed.
+                //For now use UpsertItemAsync for updating IcmIncidentDocument with latest non-critical fields, later can switch to PatchItemAsync if needed.
                 var updatedDoc = new IcmIncidentDocument(incident)
                 {
-                    UpdatedAt = DateTime.UtcNow
+                    RootCause = incidentDocument.RootCause,
+                    GeneralSummary = incidentDocument.GeneralSummary,
+                    MitigatedAt = incident.MitigateData?.MitigateTime,
+                    ResolvedAt = incident.ResolveData?.ResolveTime,
+                    HandledAt = incidentDocument.HandledAt
                 };
+
+                // Once incident is mitigated or resolved, do AI analysis
+                if ((updatedDoc.Status == Agent.Core.Models.ICM.IncidentStatus.Mitigated ||
+                    updatedDoc.Status == Agent.Core.Models.ICM.IncidentStatus.Resolved) &&
+                    (string.IsNullOrWhiteSpace(updatedDoc.RootCause) || string.IsNullOrWhiteSpace(updatedDoc.GeneralSummary)))
+                {
+                    try
+                    {
+                        updatedDoc = await incidentAnalysisService.AnalyzeIncident(updatedDoc, incident);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogInternalError($"[IcmScanner] Error generating AI-generated insights for incident; {ex.Message}");
+                    }
+                }
+
+                if (updatedDoc.UpdatedAt > incidentDocument.UpdatedAt)
+                {
+                    try
+                    {
+                        await incidentAnalysisService.Ingest(updatedDoc);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogInternalError(ex, "[IcmScanner] Failed to ingest incident data into App Insights");
+                    }
+                }
+
                 logger.LogInternalInformation("[IcmScanner] Upserting existing incident document for IcM incident {incidentId}", incident.IncidentId);
                 incidentDocument = await container.UpsertItemAsync(updatedDoc, new PartitionKey(updatedDoc.PartitionKey), cancellationToken: cancellationToken);
             }
@@ -402,7 +435,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                     IncidentId = incidentDocument.Id,
                     Title = incidentDocument.Title,
                     Description = incidentDocument.Description,
-                    Severity = incidentDocument.Priority
+                    Severity = incidentDocument.Priority,
                 });
             }
             else

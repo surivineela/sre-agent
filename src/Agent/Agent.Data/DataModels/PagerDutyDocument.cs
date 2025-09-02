@@ -24,7 +24,7 @@ public record PagerDutyIncidentDocument(
     public string Id { get; } = Id; // Use the incident id as the document id
     public string PartitionKey => Id; // Use incident id as partition key
     public DateTime CreatedAt { get; } = CreatedAt;
-    public DateTime UpdatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public string ImpactedServiceId { get; set; } = ImpactedServiceId;
     public string ImpactedServiceName { get; set; } = ImpactedServiceName;
     public string Status { get; set; } = Status;
@@ -35,6 +35,12 @@ public record PagerDutyIncidentDocument(
     public string Description { get; set; } = string.Empty;
     public string ExtractedKnowledge { get; set; } = string.Empty;
     public List<PagerDutyIncidentNote> Notes { get; set; } = []; // Notes of the incident sorted by CreatedAt in decending order.
+    public DateTime? ResolvedAt { get; set; }
+    public string RootCause { get; set; } = string.Empty;
+    public string GeneralSummary { get; set; } = string.Empty;
+
+    public List<string> Tags = new List<string>();
+    public DateTime HandledAt { get; set;  }
 }
 
 public record PagerDutyAgent(

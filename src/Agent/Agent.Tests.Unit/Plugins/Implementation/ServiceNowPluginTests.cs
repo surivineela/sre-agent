@@ -1,8 +1,12 @@
 using System;
 using System.Threading.Tasks;
+using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.ServiceNow;
+using Agent.Data.DataModels;
 using Agent.Plugins.Implementation;
+using Agent.Runtime.SubAgents.IcmScanner;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -14,15 +18,32 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         private readonly ServiceNowPlugin _serviceNowPlugin;
         private readonly Mock<IServiceNowAPIClient> _mockServiceNowApiClient;
         private readonly Mock<ILogger<ServiceNowPlugin>> _mockLogger;
+        private readonly Mock<CosmosClient> _mockCosmosClient;
+        private readonly CosmosDBSettings _cosmosDbSettings;
+        private readonly Mock<Container> _mockContainer;
+
 
         public ServiceNowPluginTests()
         {
             // Create mocks
             _mockServiceNowApiClient = new Mock<IServiceNowAPIClient>();
             _mockLogger = new Mock<ILogger<ServiceNowPlugin>>();
+            _mockCosmosClient = new Mock<CosmosClient>();
+            _cosmosDbSettings = new CosmosDBSettings
+            {
+                Docs = new DocsSettings
+                {
+                    Database = "TestDb"
+                }
+            };
+            _mockContainer = new Mock<Container>();
+
+            _mockCosmosClient.Setup(c => c.GetContainer(It.IsAny<string>(), It.IsAny<string>())).Returns(_mockContainer.Object);
 
             // Create the plugin instance with mocked dependencies
             _serviceNowPlugin = new ServiceNowPlugin(
+                _mockCosmosClient.Object,
+                _cosmosDbSettings,
                 _mockServiceNowApiClient.Object,
                 _mockLogger.Object);
         }
@@ -31,8 +52,8 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         public void Constructor_WithNullServiceNowApiClient_ThrowsArgumentNullException()
         {
             // Arrange & Act & Assert
-            Assert.Throws<ArgumentNullException>(() => 
-                new ServiceNowPlugin(null!, _mockLogger.Object));
+            Assert.Throws<ArgumentNullException>(() =>
+                new ServiceNowPlugin(_mockCosmosClient.Object, _cosmosDbSettings, null!, _mockLogger.Object));
         }
 
         [Fact]
@@ -40,7 +61,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         {
             // Arrange & Act & Assert
             Assert.Throws<ArgumentNullException>(() => 
-                new ServiceNowPlugin(_mockServiceNowApiClient.Object, null!));
+                new ServiceNowPlugin(_mockCosmosClient.Object, _cosmosDbSettings, _mockServiceNowApiClient.Object, null!));
         }
 
         [Fact]
@@ -138,6 +159,11 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             _mockServiceNowApiClient
                 .Setup(x => x.ResolveIncidentAsync(incidentId, discussionEntry))
                 .ReturnsAsync(expectedResult);
+
+            var lastServiceNowDocument = new Mock<ItemResponse<ServiceNowIncidentDocument>>();
+            lastServiceNowDocument.Setup(r => r.Resource).Returns(new ServiceNowIncidentDocument());
+            _mockContainer.Setup(c => c.ReadItemAsync<ServiceNowIncidentDocument>(It.IsAny<string>(), It.IsAny<PartitionKey>(), It.IsAny<ItemRequestOptions>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(lastServiceNowDocument.Object);
 
             // Act
             var result = await _serviceNowPlugin.ResolveServiceNowIncident(incidentId, discussionEntry);

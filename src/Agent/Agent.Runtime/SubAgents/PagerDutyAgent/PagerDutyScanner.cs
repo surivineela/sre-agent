@@ -28,6 +28,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                               IGraphDatabaseClient graphDbClient,
                               IncidentManagementSettings incidentManagementSettings,
                               IIncidentHandlingService<PagerDutyIncidentFilterDocumentPayload> incidentHandlingService,
+                              IIncidentAnalysisService incidentAnalysisService,
                               IAgentInboundCommunicationService agentInboundCommunicationService):IIncidentScanner
 {
     private readonly Container container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
@@ -81,7 +82,6 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                 {
                     var incidentDocument = await GetDocumentAsync<PagerDutyIncidentDocument>(incident.IncidentId, incident.IncidentId);
                     incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident, cancellationToken);
-
                     var relatedResourceIds = await UpdateResourceGraph(incidentDocument, incident);
 
                     await NotifyUserAsync(incidentDocument, relatedResourceIds);
@@ -313,6 +313,39 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                     {
                         incidentDocument.IncidentType = incident.IncidentType.Name;
                         needsUpsert = true;
+                    }
+
+                    if (incidentDocument.Tags != null && incidentDocument.Tags.Contains("SREAgent_Resolved")) {
+                        needsUpsert = true;
+                    }
+
+                    // Once incident is mitigated or resolved, do AI analysis
+                    if ((incidentDocument.Status.ToLower() == "resolved" || incidentDocument.Status.ToLower() == "closed") &&
+                        (string.IsNullOrWhiteSpace(incidentDocument.RootCause) || string.IsNullOrWhiteSpace(incidentDocument.GeneralSummary)))
+                    {
+                        try
+                        {
+                            incidentDocument = await incidentAnalysisService.AnalyzeIncident(incidentDocument, incident);
+                            needsUpsert = true;
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.LogInternalError($"[PagerDutyScanner] Error generating AI-generated insights for incident; {ex.Message}");
+                        }
+                    }
+
+                    if (incident.UpdatedAt > incidentDocument.UpdatedAt)
+                    {
+                        incidentDocument.UpdatedAt = incident.UpdatedAt;
+                        needsUpsert = true;
+                        try
+                        {
+                            await incidentAnalysisService.Ingest(incidentDocument);
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.LogInternalError(ex, "[PagerDutyScanner] Failed to ingest incident data into App Insights");
+                        }
                     }
 
                 }

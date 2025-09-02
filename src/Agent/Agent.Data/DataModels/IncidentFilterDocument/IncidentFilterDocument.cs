@@ -9,6 +9,7 @@ namespace Agent.Data.DataModels;
 public interface IIncidentFilterDocument : ICosmosDocument
 {
     bool IsDeleted { get; init; } // Flag to indicate if the filter is deleted. This is used for soft delete.
+    DateTime CreatedAt { get; init; }
     DateTime UpdatedAt { get; init; }
     public bool IsEnabled { get; init; }
     public string HandlingAgent { get; init; }

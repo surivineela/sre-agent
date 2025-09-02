@@ -20,6 +20,7 @@ public class PagerDutyIncidentHandlingService : IncidentHandlingServiceBase<Page
         IThreadRepository repository,
         IIncidentStatusMetricsService incidentStatusMetricsService,
         IAgentOutboundCommunicationService agentOutboundCommunicationService,
+        IIncidentAnalysisService incidentAnalysisService,
         ILogger<PagerDutyIncidentHandlingService> logger,
         Tracer tracer,
         IIncidentManagementService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload> pagerDutyincidentManagementService,
@@ -27,7 +28,7 @@ public class PagerDutyIncidentHandlingService : IncidentHandlingServiceBase<Page
         IIncidentHandlerManagementService incidentHandlerManagementService,
         IAgentFactory<AgentContext> agentFactory,
         ExperimentalSettings experimentalSettings)
-        : base(repository, inboundCommunicationService, incidentFilterManagementService, incidentHandlerManagementService, incidentStatusMetricsService, agentOutboundCommunicationService, logger, tracer, agentFactory, experimentalSettings)
+        : base(repository, inboundCommunicationService, incidentFilterManagementService, incidentHandlerManagementService, incidentStatusMetricsService, agentOutboundCommunicationService, incidentAnalysisService, logger, tracer, agentFactory, experimentalSettings)
     {
         _pagerDutyService = pagerDutyService;
         _pagerDutyincidentManagementService = pagerDutyincidentManagementService;
@@ -101,7 +102,8 @@ public class PagerDutyIncidentHandlingService : IncidentHandlingServiceBase<Page
             Priority = request?.IncidentFilter?.Priority ?? "",
             IncidentType = request?.IncidentFilter?.IncidentType ?? "",
             TitleContains = request?.IncidentFilter?.TitleContains ?? "",
-            UpdatedAt = DateTime.UtcNow
+            UpdatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow
         };
     }
 }

@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Agent.Core.Models.ICM;
+using Azure.ResourceManager.AppService.Models;
 
 namespace Agent.Data.DataModels;
 public class IcmIncidentDocument : Incident, IIncidentDocument
@@ -38,12 +39,16 @@ public class IcmIncidentDocument : Incident, IIncidentDocument
         MonitoringSlice = incident.MonitoringSlice;
         SubscriptionId = incident.SubscriptionId;
         Tags = incident.Tags;
+        Stamp = incident.Stamp;
+        Datacenter = incident.Datacenter;
+        MitigateData = incident.MitigateData;
         Status = incident.Status;
         IncidentType = incident.IncidentType;
 
         //Overwrite with few properties that added for IIncidentDocument
         Id = incident.IncidentId;
         CreatedAt = incident.CreatedDate;
+        UpdatedAt = incident.LastModifiedDate;
         Description = incident.Summary;
         Priority = incident.Severity;
     }
@@ -76,10 +81,20 @@ public class IcmIncidentDocument : Incident, IIncidentDocument
 
     public DateTime CreatedAt { get; init; }
 
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; }
     public List<DiscussionEntry> DiscussionEntries { get; set; } = new List<DiscussionEntry>();
 
     public string ExtractedKnowledge { get; set; } = string.Empty;
+
+    public DateTime? MitigatedAt { get; set; } = null;
+
+    public DateTime? ResolvedAt { get; set; } = null;
+
+    public string RootCause { get; set; } = string.Empty;
+
+    public string GeneralSummary { get; set; } = string.Empty;
+
+    public DateTime HandledAt { get; set; }
 
     public static IcmIncidentDocument TruncateIcmIncidentDocument(Incident incident)
     {

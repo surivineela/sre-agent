@@ -20,6 +20,7 @@ public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmInciden
         IThreadRepository repository,
         IIncidentStatusMetricsService incidentStatusMetricsService,
         IAgentOutboundCommunicationService agentOutboundCommunicationService,
+        IIncidentAnalysisService incidentAnalysisService,
         ILogger<IcmIncidentHandlingService> logger,
         Tracer tracer,
         IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload> icmIncidentManagementService,
@@ -27,7 +28,7 @@ public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmInciden
         IIncidentHandlerManagementService incidentHandlerManagementService,
         IAgentFactory<AgentContext> agentFactory,
         ExperimentalSettings experimentalSettings)
-        : base(repository, inboundCommunicationService, incidentFilterManagementService, incidentHandlerManagementService, incidentStatusMetricsService, agentOutboundCommunicationService, logger, tracer, agentFactory, experimentalSettings)
+        : base(repository, inboundCommunicationService, incidentFilterManagementService, incidentHandlerManagementService, incidentStatusMetricsService, agentOutboundCommunicationService, incidentAnalysisService, logger, tracer, agentFactory, experimentalSettings)
     {
         _icmApiClient = icmApiClient;
         _icmIncidentManagementService = icmIncidentManagementService;
@@ -90,7 +91,8 @@ public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmInciden
             Priority = request?.IncidentFilter?.Priority ?? "",
             IncidentType = request?.IncidentFilter?.IncidentType ?? "",
             TitleContains = request?.IncidentFilter?.TitleContains ?? "",
-            UpdatedAt = DateTime.UtcNow
+            UpdatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow
         };
     }
 }

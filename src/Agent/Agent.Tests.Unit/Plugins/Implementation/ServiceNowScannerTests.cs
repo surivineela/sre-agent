@@ -33,6 +33,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         private readonly Mock<IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload>> _mockIncidentManagementService;
         private readonly Mock<IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload>> _mockIncidentFilterManagementService;
         private readonly Mock<IAgentInboundCommunicationService> _mockAgentInboundCommunicationService;
+        private readonly Mock<IIncidentAnalysisService> _mockIncidentAnalysisService;
         private readonly CosmosDBSettings _cosmosDbSettings;
 
         public ServiceNowScannerTests()
@@ -45,6 +46,8 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             _mockIncidentManagementService = new Mock<IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload>>();
             _mockIncidentFilterManagementService = new Mock<IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload>>();
             _mockAgentInboundCommunicationService = new Mock<IAgentInboundCommunicationService>();
+            _mockIncidentAnalysisService = new Mock<IIncidentAnalysisService>();
+            
 
             _cosmosDbSettings = new CosmosDBSettings
             {
@@ -68,7 +71,8 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                 _mockIncidentHandlingService.Object,
                 _mockIncidentManagementService.Object,
                 _mockIncidentFilterManagementService.Object,
-                _mockAgentInboundCommunicationService.Object
+                _mockAgentInboundCommunicationService.Object,
+                _mockIncidentAnalysisService.Object
             );
         }
 
@@ -114,6 +118,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                 new ServiceNowIncidentFilterDocument
                 {
                     Id = "filter1",
+                    CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                     Name = "Test Filter",
                     ImpactedService = "TestService",
@@ -162,6 +167,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                 new ServiceNowIncidentFilterDocument
                 {
                     Id = "filter1",
+                    CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                     Name = "Test Filter",
                     ImpactedService = "",
@@ -192,6 +198,8 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             _mockContainer.Setup(c => c.CreateItemAsync(It.IsAny<ServiceNowIncidentDocument>(), It.IsAny<PartitionKey>(), It.IsAny<ItemRequestOptions>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(mockItemResponse.Object);
+
+            _mockIncidentAnalysisService.Setup(c => c.AnalyzeIncident(It.IsAny<ServiceNowIncidentDocument>(), It.IsAny<ServiceNowIncident>())).ReturnsAsync(mockItemResponse.Object);
 
             // Setup LINQ queryable to return empty result for ThreadDocument queries
             var emptyThreadDocuments = new List<ThreadDocument>().AsQueryable();
@@ -231,6 +239,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                 new ServiceNowIncidentFilterDocument
                 {
                     Id = "filter1",
+                    CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                     Name = "Test Filter",
                     ImpactedService = "",

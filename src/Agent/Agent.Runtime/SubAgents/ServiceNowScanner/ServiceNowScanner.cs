@@ -23,7 +23,8 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
     IIncidentHandlingService<ServiceNowIncidentFilterDocumentPayload> incidentHandlingService,
     IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload> incidentManagementService,
     IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload> incidentFilterManagementService,
-    IAgentInboundCommunicationService agentInboundCommunicationService) : IIncidentScanner
+    IAgentInboundCommunicationService agentInboundCommunicationService,
+    IIncidentAnalysisService incidentAnalysisService) : IIncidentScanner
 {
     private readonly Container container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
     private const uint PageSize = 20;
@@ -173,17 +174,48 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
                 {
                     // ServiceNowIncidentDocument constructor will now use Number instead of IncidentId as ID
                 };
+
                 incidentDocument = await container.CreateItemAsync(incidentDocument, new PartitionKey(incidentDocument.PartitionKey), cancellationToken: cancellationToken);
 
                 logger.LogInternalInformation("Created new incident document for ServiceNow incident {incidentNumber}", incident.Number);
             }
             else if (incidentDocument.Id == incident.Number)
             {
-                var updatedDoc = new ServiceNowIncidentDocument(incident)
+                var updatedDoc = new ServiceNowIncidentDocument(incident);
+
+                // if App Insights doesn't have the latest status change to Resolved, ingest into App Insights **** We don't care about Closed for ServiceNow Incident Analysis
+                if ((updatedDoc.Status.ToLower() == "resolved" || updatedDoc.Status.ToLower() == "closed") &&
+                   (incidentDocument.Tags != null && incidentDocument.Tags.Contains("SREAgent_Resolved")))
                 {
-                    UpdatedAt = DateTime.UtcNow
-                };
-                
+                    updatedDoc.Tags = incidentDocument.Tags;
+
+                    if (string.IsNullOrWhiteSpace(incidentDocument.RootCause) || string.IsNullOrWhiteSpace(incidentDocument.GeneralSummary))
+                    {
+                        try
+                        {
+                            updatedDoc = await incidentAnalysisService.AnalyzeIncident(updatedDoc, incident);
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.LogInternalError($"[ServiceNowScanner] Error generating AI-generated insights for incident; {ex.Message}");
+                        }
+                    }
+                }
+
+                updatedDoc.HandledAt = incidentDocument.HandledAt;
+
+                if (updatedDoc.UpdatedAt > incidentDocument.UpdatedAt)
+                {
+                    try
+                    {
+                        await incidentAnalysisService.Ingest(updatedDoc);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogInternalError(ex, "[ServiceNowScanner] Failed to ingest incident data into App Insights");
+                    }
+                }
+
                 logger.LogInternalInformation("Upserting existing incident document for ServiceNow incident {incidentNumber}", incident.Number);
                 incidentDocument = await container.UpsertItemAsync(updatedDoc, new PartitionKey(updatedDoc.PartitionKey), cancellationToken: cancellationToken);
             }

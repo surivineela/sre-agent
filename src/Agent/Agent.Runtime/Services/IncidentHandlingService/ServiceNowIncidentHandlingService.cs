@@ -24,6 +24,7 @@ public class ServiceNowIncidentHandlingService : IncidentHandlingServiceBase<Ser
         IThreadRepository repository,
         IIncidentStatusMetricsService incidentStatusMetricsService,
         IAgentOutboundCommunicationService agentOutboundCommunicationService,
+        IIncidentAnalysisService incidentAnalysisService,
         ILogger<ServiceNowIncidentHandlingService> logger,
         Tracer tracer,
         IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload> serviceNowIncidentManagementService,
@@ -32,7 +33,7 @@ public class ServiceNowIncidentHandlingService : IncidentHandlingServiceBase<Ser
         IAgentFactory<AgentContext> agentFactory,
         ExperimentalSettings experimentalSettings
         )
-        : base(repository, inboundCommunicationService, incidentFilterManagementService, incidentHandlerManagementService, incidentStatusMetricsService, agentOutboundCommunicationService, logger, tracer, agentFactory, experimentalSettings)
+        : base(repository, inboundCommunicationService, incidentFilterManagementService, incidentHandlerManagementService, incidentStatusMetricsService, agentOutboundCommunicationService, incidentAnalysisService, logger, tracer, agentFactory, experimentalSettings)
     {
         _serviceNowAPIClient = serviceNowAPIClient;
         _serviceNowIncidentManagementService = serviceNowIncidentManagementService;
@@ -102,7 +103,8 @@ public class ServiceNowIncidentHandlingService : IncidentHandlingServiceBase<Ser
             Priority = request?.IncidentFilter?.Priority ?? "",
             IncidentType = request?.IncidentFilter?.IncidentType ?? "",
             TitleContains = request?.IncidentFilter?.TitleContains ?? "",
-            UpdatedAt = DateTime.UtcNow
+            UpdatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow
         };
     }
 }

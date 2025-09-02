@@ -126,6 +126,7 @@ namespace Agent.Runtime.Services
                     throw new ArgumentNullException(nameof(document));
                 }
                 var response = await _container.UpsertItemAsync(document, new PartitionKey(document.PartitionKey ?? document.Id));
+
                 _logger.LogInternalInformation(
                     "SaveIncidentHandler: Successfully saved HandlerId: {HandlerId}", document.Id);
                 return response.Resource;
