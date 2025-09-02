@@ -66,6 +66,7 @@ public class AgentMemoryClient : IAgentMemoryClient
     {
         if (!_agentMemorySettings.StorageAccountEnabled)
         {
+            _logger.LogInternalWarning($"NoOp on UploadDocumentAsync as storage account is disabled");
             return false;
         }
 
@@ -405,5 +406,49 @@ public class AgentMemoryClient : IAgentMemoryClient
     {
         var additionalFilter = string.IsNullOrEmpty(searchParams.Filter) ? "" : $"and ({searchParams.Filter})";
         return await SearchAsync(searchParams with { Filter = $"type eq '{AgentMemoryType.UserMemory.ToLowerString()}' {additionalFilter}" }, cancellationToken);
+    }
+
+    public async Task<BlobListPage> ListFilesAsync(string? prefix = null, int? pageSize = null, string? continuationToken = null, CancellationToken cancellationToken = default)
+    {
+        if (!_agentMemorySettings.StorageAccountEnabled)
+        {
+            _logger.LogInternalWarning($"NoOp on ListFilesAsync as storage account is disabled");
+            return new BlobListPage(Array.Empty<string>(), null);
+        }
+
+        try
+        {
+            var containerClient = _agentBlobClient.GetBlobContainerClient(_blobContainerName);
+
+            var exists = await containerClient.ExistsAsync();
+            if (!exists.Value)
+            {
+                _logger.LogInternalWarning($"ListFiles failed: Container '{_blobContainerName}' does not exist");
+                return new BlobListPage(Array.Empty<string>(), null);
+            }
+
+            var items = new List<string>();
+            var pageable = containerClient.GetBlobsAsync(prefix: prefix, cancellationToken: cancellationToken);
+            string? nextToken = null;
+
+            await foreach (var page in pageable.AsPages(continuationToken, pageSize))
+            {
+                foreach (var blobItem in page.Values)
+                {
+                    // blobItem.Deleted is already excluded by BlobStates.None
+                    items.Add(blobItem.Name);
+                }
+
+                nextToken = page.ContinuationToken; // null when no more pages
+                break;
+            }
+
+            return new BlobListPage(items, nextToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Failed to list files: {ex.Message}");
+            return new BlobListPage(Array.Empty<string>(), null);
+        }
     }
 }

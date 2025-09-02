@@ -41,4 +41,10 @@ public class DummyAgentMemoryClient() : IAgentMemoryClient
     {
         return Task.FromResult<IList<SearchDocumentResult>>([]);
     }
+
+    public Task<BlobListPage> ListFilesAsync(string? prefix = null, int? pageSize = null, string? continuationToken = null, CancellationToken cancellationToken = default)
+    {
+        // Dummy implementation returns empty list
+        return Task.FromResult(new BlobListPage(Array.Empty<string>(), null));
+    }
 }

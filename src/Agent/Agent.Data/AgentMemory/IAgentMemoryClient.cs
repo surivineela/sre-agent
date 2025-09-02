@@ -34,6 +34,10 @@ public record SearchParams(
     bool EnableSemanticSearch = false // whether to enable semantic search or not. If true, the query will be processed using semantic search capabilities.
 );
 
+public record BlobListPage(
+    IReadOnlyList<string> Items,
+    string? ContinuationToken);
+
 public interface IAgentMemoryClient
 {
     /// <summary>
@@ -86,4 +90,13 @@ public interface IAgentMemoryClient
         SearchParams searchOptions,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Lists all files in the agent's memory storage (blob container).
+    /// </summary>
+    /// <returns>List of file names</returns>
+    Task<BlobListPage> ListFilesAsync(
+        string? prefix = null,
+        int? pageSize = null,
+        string? continuationToken = null,
+        CancellationToken cancellationToken = default);
 }

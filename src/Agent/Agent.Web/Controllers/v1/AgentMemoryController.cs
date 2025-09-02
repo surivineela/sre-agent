@@ -456,5 +456,43 @@ namespace Agent.Web.Controllers.v1
                 return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Failed to search user memory." });
             }
         }
+
+        [HttpGet("files")]
+        [AuthorizeArmOperation(ArmOperations.AgentMemoryReadActionId)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> ListFiles(
+            [FromQuery] string? prefix = null,
+            [FromQuery] int? pageSize = null,
+            [FromQuery] string? continuationToken = null,
+            CancellationToken cancellationToken = default)
+        {
+
+            if (pageSize.HasValue && (pageSize <= 0 || pageSize > 1000))
+            {
+                return BadRequest(new { error = "pageSize must be between 1 and 1000 if provided." });
+            }
+
+            try
+            {
+                var page = await agentMemoryClient.ListFilesAsync(
+                    prefix: prefix,
+                    pageSize: pageSize,
+                    continuationToken: continuationToken,
+                    cancellationToken: cancellationToken);
+
+                return Ok(new
+                {
+                    files = page.Items,
+                    continuationToken = page.ContinuationToken
+                });
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalError(ex, "Failed to list files.");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Failed to list files." });
+            }
+        }
     }
 }

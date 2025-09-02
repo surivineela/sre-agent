@@ -1,0 +1,34 @@
+# For more info on HTTP files go to https://aka.ms/vs/httpfile
+
+### Get Agent Memory Status
+GET https://{{apiHostname}}/api/v1/agentmemory/status
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Upload Single Document
+POST https:///{{apiHostname}}/api/v1/agentmemory/upload
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="files"; filename="test-document.txt"
+Content-Type: text/plain
+
+This is a test document content for agent memory.
+It contains some sample text that can be indexed and searched.
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="triggerIndexing"
+
+true
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### List Documents
+GET https://{{apiHostname}}/api/v1/agentmemory/files?prefix={{prefix}}&pageSize={{pageSize}}&continuationToken={{continuationToken}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Rebuild Index
+POST https:///{{apiHostname}}/api/v1/agentmemory/rebuildIndex
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
