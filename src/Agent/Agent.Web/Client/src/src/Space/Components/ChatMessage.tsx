@@ -8,6 +8,7 @@ import { Image, mergeClasses, Text, tokens } from '@fluentui/react-components';
 import mermaid from 'mermaid';
 import { memo, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
+import ReactMarkdownComponent from '../../Common/Components/ReactMarkdownComponent';
 import { getAgentModeDisplayName } from '../../Common/Helpers/AgentMode';
 import { formatDateTimeWithShortYear, getSafeDateTime } from '../../Common/Helpers/Date';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
@@ -20,7 +21,6 @@ import AgentMessage from './AgentMessage';
 import AgentMessageLoadingComponent from './AgentMessageLoadingComponent';
 import ChatMessageFooter from './ChatMessageFooter';
 import ConnectionErrorComponent from './ConnectionErrorComponent';
-import ReactMarkdownComponent from './ReactMarkdownComponent';
 
 const chatMessageStyles = mergeStyleSets({
     regularMessageContent: {
@@ -208,7 +208,7 @@ const ChatMessage = ({
                         </div>
                     )}
                     <UserMessage className={chatStyles.userBubble} message={{ className: chatStyles.userBubbleMessage }} key={message.id}>
-                        <ReactMarkdownComponent key={message.id} content={message.contents?.[0]?.text} isUserMessage={true} />
+                        <ReactMarkdownComponent key={message.id} content={message.contents?.[0]?.text} variant="chat" isUserMessage />
                     </UserMessage>
                 </div>
             );

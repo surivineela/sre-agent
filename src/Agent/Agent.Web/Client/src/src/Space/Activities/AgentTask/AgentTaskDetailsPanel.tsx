@@ -8,21 +8,15 @@ import {
     DrawerBody,
     DrawerHeader,
     DrawerHeaderTitle,
-    Link,
     makeStyles,
     OverlayDrawer,
-    Subtitle1,
     Subtitle2,
-    Text,
-    Title3,
     tokens,
     useRestoreFocusSource,
 } from '@fluentui/react-components';
 import { Dismiss24Regular } from '@fluentui/react-icons';
 import { memo, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
-import rehypeRaw from 'rehype-raw';
-import remarkGfm from 'remark-gfm';
+import ReactMarkdownComponent from '../../../Common/Components/ReactMarkdownComponent';
 import { HypothesisStep, InitialInvestigationStep, TreeNodeType } from '../../../Common/Contracts/DataPlane/AgentTask';
 import { useScrollableComponentStyles } from '../../../Common/Styles/Scrollable';
 import NodeStatusPill from '../../Components/AgentTask/NodeStatusPill';
@@ -75,35 +69,6 @@ const useStyles = makeStyles({
         justifyContent: 'flex-start',
         gap: tokens.spacingHorizontalS,
     },
-    codeBlock: {
-        backgroundColor: tokens.colorNeutralBackground6,
-        fontFamily: tokens.fontFamilyMonospace,
-        fontSize: tokens.fontSizeBase200,
-        display: 'inline-block',
-        padding: '2px 4px',
-        borderRadius: tokens.borderRadiusSmall,
-    },
-    codeBlockInPre: {
-        backgroundColor: tokens.colorTransparentBackground,
-        fontFamily: tokens.fontFamilyMonospace,
-        fontSize: tokens.fontSizeBase200,
-        display: 'block',
-    },
-    preBlock: {
-        overflowX: 'auto',
-        overflowY: 'hidden',
-        backgroundColor: tokens.colorNeutralBackground6,
-        borderRadius: tokens.borderRadiusSmall,
-        padding: '15px',
-    },
-    markdownBlockquote: {
-        borderLeft: `4px solid ${tokens.colorNeutralStroke1}`,
-        paddingLeft: '10px',
-        marginLeft: '0',
-        marginRight: '0',
-        marginBottom: '10px',
-        fontStyle: 'italic',
-    },
 });
 
 const AgentTaskDetailsPanel = ({ node, isOpen, onClose }: IAgentTaskDetailsPanelProps) => {
@@ -143,75 +108,6 @@ const AgentTaskDetailsPanel = ({ node, isOpen, onClose }: IAgentTaskDetailsPanel
 
     const restoreFocusSourceAttributes = useRestoreFocusSource();
 
-    const ReactMarkdownComponent = ({ text }: { text?: string | null }) => {
-        return (
-            <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                rehypePlugins={[rehypeRaw]}
-                components={{
-                    p: ({ children }) => <Text as="p">{children}</Text>,
-                    h1: ({ children }) => (
-                        <Title3 as={'h1'} block>
-                            {children}
-                        </Title3>
-                    ),
-                    h2: ({ children }) => (
-                        <Subtitle1 as={'h2'} block>
-                            {children}
-                        </Subtitle1>
-                    ),
-                    h3: ({ children }) => (
-                        <Subtitle2 as={'h3'} block>
-                            {children}
-                        </Subtitle2>
-                    ),
-                    h4: ({ children }) => (
-                        <Subtitle2 as={'h4'} block>
-                            {children}
-                        </Subtitle2>
-                    ),
-                    h5: ({ children }) => (
-                        <Subtitle2 as={'h5'} block>
-                            {children}
-                        </Subtitle2>
-                    ),
-                    h6: ({ children }) => (
-                        <Subtitle2 as={'h6'} block>
-                            {children}
-                        </Subtitle2>
-                    ),
-                    code: (props: any) => {
-                        // Check if this code element is inside a pre element (code block)
-                        const isInPre = props.node?.parent?.tagName === 'pre';
-                        const className = isInPre ? styles.codeBlockInPre : styles.codeBlock;
-                        return <code className={className}>{props.children}</code>;
-                    },
-                    pre: (props: any) => {
-                        return <pre className={styles.preBlock}>{props.children}</pre>;
-                    },
-                    blockquote: ({ children }) => <blockquote className={styles.markdownBlockquote}>{children}</blockquote>,
-                    strong: ({ children }) => (
-                        <Text as={'strong'} weight={'bold'}>
-                            {children}
-                        </Text>
-                    ),
-                    em: ({ children }) => (
-                        <Text as={'em'} italic>
-                            {children}
-                        </Text>
-                    ),
-                    a: ({ children, href }) => (
-                        <Link href={href} target="_blank" rel="noopener noreferrer">
-                            {children}
-                        </Link>
-                    ),
-                }}
-            >
-                {text}
-            </ReactMarkdown>
-        );
-    };
-
     return (
         <OverlayDrawer open={isOpen && !!node} position={'end'} modalType={'non-modal'} size={'medium'} {...restoreFocusSourceAttributes}>
             <DrawerHeader>
@@ -222,7 +118,7 @@ const AgentTaskDetailsPanel = ({ node, isOpen, onClose }: IAgentTaskDetailsPanel
             <DrawerBody className={scrollable}>
                 <div className={styles.root}>
                     <div className={styles.summaryRoot}>
-                        <ReactMarkdownComponent text={node?.data.description} />
+                        <ReactMarkdownComponent content={node?.data.description} variant="panel" />
                     </div>
                     {steps.length > 0 ? (
                         <div className={styles.stepsRoot}>
@@ -240,7 +136,7 @@ const AgentTaskDetailsPanel = ({ node, isOpen, onClose }: IAgentTaskDetailsPanel
                                                 </div>
                                             </AccordionHeader>
                                             <AccordionPanel className={styles.stepsDescription}>
-                                                <ReactMarkdownComponent text={step.description} />
+                                                <ReactMarkdownComponent content={step.description} />
                                             </AccordionPanel>
                                         </AccordionItem>
                                     );

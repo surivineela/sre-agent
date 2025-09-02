@@ -3,11 +3,11 @@ import { memo, useMemo } from 'react';
 import IncidentAlert from '../../Common/Components/IncidentAlert';
 import InvestigationSummary from '../../Common/Components/InvestigationSummary';
 import InvestigationSummaryPanel from '../../Common/Components/InvestigationSummaryPanel';
+import ReactMarkdownComponent from '../../Common/Components/ReactMarkdownComponent';
 import { AgentMessageRegex } from '../Contracts/Activities';
 import ChangeDiffMessage from './ChangeDiffMessage';
 import AgentChart from './Charts';
 import MermaidChart from './Mermaid';
-import ReactMarkdownComponent from './ReactMarkdownComponent';
 
 // Initialize mermaid with default configuration
 mermaid.initialize({
@@ -193,7 +193,7 @@ const TextOrImageMessage = ({ text }: { text: string }) => {
     const RegularMessagePart = ({ part, index }: { part: any; index: number }) => {
         // Plain text markdown
         if (typeof part === 'string') {
-            return <ReactMarkdownComponent key={index} content={part} />;
+            return <ReactMarkdownComponent key={index} content={part} variant="chat" />;
         }
 
         // Handle different content types
@@ -233,7 +233,7 @@ const TextOrImageMessage = ({ text }: { text: string }) => {
         return <AgentChart messageText={text} />;
     } else if (regularMessageContent) {
         if (!Array.isArray(regularMessageContent)) {
-            return <ReactMarkdownComponent content={regularMessageContent} />;
+            return <ReactMarkdownComponent content={regularMessageContent} variant="chat" />;
         }
 
         // Mixed content with special blocks
