@@ -151,14 +151,13 @@ Output (tab-separated):
         """
         )]
         public Task<string> GetAksClusterCcpNamespace(
-        [Description("Azure region.")] AzureRegion region,
         [Description("Start time of the query.")] DateTime fromDate,
         [Description("End time of the query.")] DateTime toDate,
         [Description("aks cluster resource group")] string clusterResourceGroup,
         [Description("aks managed subscription ID.")] string managedSubscriptionId,
         [Description("Name of the managed cluster.")] string managedClusterName)
         {
-            return _kustoPlugin.ExecuteLocalFunctionAsync("GetAksClusterCcpNamespace", region,
+            return _kustoPlugin.ExecuteLocalFunctionAsync("GetAksClusterCcpNamespace", AzureRegion.CentralUS,
                 new Dictionary<string, string> {
                     { "fromDate", fromDate.ToString() },
                     { "toDate", toDate.ToString() },
