@@ -53,7 +53,7 @@ internal sealed class ContainerAppDiagnosticStrategy : ComputeResourceDiagnostic
 
         else
         {
-            string errorMessage = $"Unsupported language stack for memory analysis: {resourceId}";
+            string errorMessage = $"Unsupported language stack for latency analysis: {resourceId}";
             _logger.LogInternalError(errorMessage);
             throw new ArgumentException(errorMessage);
         }
@@ -87,6 +87,47 @@ internal sealed class ContainerAppDiagnosticStrategy : ComputeResourceDiagnostic
             _logger.LogInternalError(errorMessage);
             throw new ArgumentException(errorMessage);
         }
+    }
+
+    private async Task<string> ExecuteScriptFromUrl(string resourceId, string scriptName, string operationName)
+    {
+        try
+        {
+            string commands = $" apt-get update; apt-get install -y curl; curl https://dotnetanalysis.blob.core.windows.net/acascripts/{scriptName} -o /tmp/{scriptName}; chmod +x /tmp/{scriptName}; sh /tmp/{scriptName}";
+            return await InvokeExecCommand(resourceId, commands);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError($"[{operationName}] Error executing command: {ex.Message} for {resourceId}");
+            throw;
+        }
+    }
+
+    private async Task<string> ExecuteLocalScript(string resourceId, string scriptFileName, string operationName)
+    {
+        try
+        {
+            string scriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AgentsV2", "DiagnosticsAgents", "DiagnosticBinariesAndScripts", scriptFileName);
+            string[] commandsAsArray = await File.ReadAllLinesAsync(scriptPath);
+            string commands = commandsAsArray.Aggregate((a, b) => a + "; " + b);
+            var result = await InvokeExecCommand(resourceId, commands);
+            return CleanAnalysisResult(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError($"[{operationName}] Error executing command: {ex.Message} for {resourceId}");
+            throw;
+        }
+    }
+
+    private static string CleanAnalysisResult(string result)
+    {
+        return string.Join("\n",
+            result.Split('\n')                            // split into lines
+                  .Select(line => line.Trim())            // trim each line
+                  .Where(line => !string.IsNullOrEmpty(line) && line != "<<") // remove empty lines and '<<'
+                  .Select(line => Regex.Replace(line, @"\s+", " ")) // collapse multiple spaces to one
+        );
     }
 
     private async Task<string> InvokeExecCommand(string resourceId, string command)
@@ -192,33 +233,14 @@ internal sealed class ContainerAppDiagnosticStrategy : ComputeResourceDiagnostic
     public async Task<string> GetMemoryAnalysis(string resourceId)
     {
         _logger.LogInternalInformation($"[GetMemoryAnalysis] Getting memory analysis for {resourceId}");
-        try
-        {
-            string commands = " apt-get update; apt-get install -y curl; curl https://dotnetanalysis.blob.core.windows.net/acascripts/dotnet-dump-analyze.sh -o /tmp/dotnet-dump-analyze.sh; chmod +x /tmp/dotnet-dump-analyze.sh; sh /tmp/dotnet-dump-analyze.sh";
-            return await InvokeExecCommand(resourceId, commands);
-        }
-
-        catch (Exception ex)
-        {
-            _logger.LogInternalError($"[GetMemoryAnalysis] Error executing command: {ex.Message} for {resourceId}");
-            throw;
-        }
+        return await ExecuteScriptFromUrl(resourceId, "dotnet-dump-analyze.sh", "GetMemoryAnalysis");
     }
 
     public async Task<string> GetCPUAnalysis(string resourceId)
     {
         _logger.LogInternalInformation($"[GetCPUAnalysis] Getting CPU analysis for {resourceId}");
-        try
-        {
-            string commands = " apt-get update; apt-get install -y curl; curl https://dotnetanalysis.blob.core.windows.net/acascripts/dotnet-cpu-analyzer.sh -o /tmp/dotnet-cpu-analyzer.sh; chmod +x /tmp/dotnet-cpu-analyzer.sh; sh /tmp/dotnet-cpu-analyzer.sh";
-            return await InvokeExecCommand(resourceId, commands);
-        }
-
-        catch (Exception ex)
-        {
-            _logger.LogInternalError($"[GetContainerMemoryAnalysisForDotnet] Error executing command: {ex.Message} for {resourceId}");
-            throw;
-        }
+        // TODO: Fix this to remove the dotnet scripts
+        return await ExecuteLocalScript(resourceId, "dotnet-cpu-analyzer-aca.sh", "GetCPUAnalysis");
     }
 
     public async Task<bool> IsDotnetBased(string resourceId)
@@ -226,9 +248,10 @@ internal sealed class ContainerAppDiagnosticStrategy : ComputeResourceDiagnostic
         _logger.LogInternalInformation($"[IsDotnetBased] Checking if .NET Based for resourceId: {resourceId}");
         try
         {
-            string commands = " apt-get update; apt-get install -y curl; curl https://dotnetanalysis.blob.core.windows.net/acascripts/dotnet-detect.sh -o /tmp/dotnet-detect.sh; chmod +x /tmp/dotnet-detect.sh; sh /tmp/dotnet-detect.sh";
-            var result = await InvokeExecCommand(resourceId, commands);
-            return result.Any();
+            // File read all the commands, separated by ;
+            // If any of the commands return a result, then it is .NET based.
+            var result = await ExecuteLocalScript(resourceId, "dotnet-detect.sh", "IsDotnetBased");
+            return result.Trim().Any(); 
         }
 
         catch (Exception ex)
