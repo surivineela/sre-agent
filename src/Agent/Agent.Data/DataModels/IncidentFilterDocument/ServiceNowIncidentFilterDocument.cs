@@ -9,10 +9,10 @@ public record ServiceNowIncidentFilterDocument : ServiceNowIncidentFilterDocumen
 
     public static string ContainerName => AgentDataConfiguration.ThreadContainerName;
 
-    public bool IsDeleted { get; init; }
-    public DateTime CreatedAt { get; init; }
-    public DateTime UpdatedAt { get; init; }
-    public bool IsEnabled { get; init; } = true;
+    public bool IsDeleted { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+    public bool IsEnabled { get; set; } = true;
 
     public string DocumentType { get; } = IncidentFilterDocumentUtilities.GetDocumentTypeName(IncidentManagementType.ServiceNow);
 

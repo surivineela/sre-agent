@@ -352,7 +352,7 @@ public class IncidentPlaygroundController : ControllerBase
             return BadRequest("Invalid incident filter document");
         }
         var existingFilter = await _incidentFilterManagementServiceFactory.GetServiceDynamic().GetIncidentFilter(filterId);
-        if (existingFilter == null)
+        if (existingFilter is null)
         {
             _logger.LogInternalWarning("EnableIncidentFilter: Filter not found for FilterId: {FilterId}", filterId);
             return NotFound($"Incident filter with id '{filterId}' not found.");
@@ -379,7 +379,7 @@ public class IncidentPlaygroundController : ControllerBase
             return BadRequest("Invalid incident filter document");
         }
         var existingFilter = await _incidentFilterManagementServiceFactory.GetServiceDynamic().GetIncidentFilter(filterId);
-        if (existingFilter == null)
+        if (existingFilter is null)
         {
             _logger.LogInternalWarning("DisableIncidentFilter: Filter not found for FilterId: {FilterId}", filterId);
             return NotFound($"Incident filter with id '{filterId}' not found.");
