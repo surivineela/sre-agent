@@ -397,7 +397,8 @@ namespace Agent.Core.Services
 
         public async Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId)
         {
-            var response = await SendICMGetRequestAsync($"{IcmAPIPathPrefix}/incidents({incidentId})/DescriptionEntries?/$inlinecount=allpages");
+            var apiPathPrefix = IcmAPIPathPrefix.StartsWith("/api/user") ? IcmAPIPathPrefix.Replace("/api/user", "/api2/user/incidentapi") : IcmAPIPathPrefix;
+            var response = await SendICMGetRequestAsync($"{apiPathPrefix}/incidents({incidentId})/DescriptionEntries?/$inlinecount=allpages");
             if (response.IsSuccessStatusCode)
             {
                 var responseString = await response.Content.ReadAsStringAsync();

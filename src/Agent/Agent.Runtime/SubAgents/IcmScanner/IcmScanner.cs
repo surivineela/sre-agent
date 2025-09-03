@@ -1,5 +1,6 @@
 using System.Net;
 using Agent.Core.Configuration;
+using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Models.ICM;
@@ -11,8 +12,6 @@ using Agent.Runtime.Services;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
-using Agent.Plugins.Interface;
-using Agent.Core.Helpers; // Added for IncidentProcessingContext
 
 namespace Agent.Runtime.SubAgents.IcmScanner;
 public class IcmScanner(ILogger<IcmScanner> logger,
@@ -141,7 +140,13 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 {
                     var incidentDocument = await GetDocumentAsync<IcmIncidentDocument>(incident.IncidentId, incident.IncidentId);
                     incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident);
-                    
+
+                    if(!await isIncidentNeedToHandle(incident))
+                    {
+                        logger.LogInternalInformation("[IcmScanner] Incident {incidentId} does not need to be handled.", incident.IncidentId);
+                        continue;
+                    }
+
                     // Process team-specific incidents for automated RCA when OwningTeamId is set
                     if (!string.IsNullOrWhiteSpace(filterDocument.OwningTeamId) && IsAutomatedRCAEnabled)
                     {
@@ -653,6 +658,30 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             return null;
         }
     }
+
+    /// <summary>
+    /// If is newly created or newly transferred, agent need to handle it.
+    /// </summary>
+    /// <param name="incident"></param>
+    /// <returns></returns>
+    private async Task<bool> isIncidentNeedToHandle(Incident incident)
+    {
+        //check if is newly created
+        if(incident.CreatedDate > DateTime.UtcNow.AddMinutes(-5))
+        {
+            logger.LogInternalInformation("[IcmScanner] Incident {incidentId} is newly created.", incident.IncidentId);
+            return true;
+        }
+        //check if is newly transferred
+        var discussionEntries = await icmApiClient.GetIncidentDiscussionEntriesAsync(incident.IncidentId);
+        var hasTransferDiscussionEntry = discussionEntries.Any(entry => entry.Date > DateTime.UtcNow.AddMinutes(-5) && entry.Text.StartsWith("<div>Transferred from", StringComparison.OrdinalIgnoreCase));
+        if (hasTransferDiscussionEntry)
+        {
+            logger.LogInternalInformation("[IcmScanner] Incident {incidentId} is newly transferred.", incident.IncidentId);
+            return true;
+        }
+        return false;
+    }   
 }
 
 public class NullableIncidentScanner : IIncidentScanner
