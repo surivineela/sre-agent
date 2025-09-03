@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Agent.Core.Models.ICM;
+using Agent.Core.Services;
 using Agent.Logging;
 using Agent.Plugins.Interface;
 using Microsoft.Extensions.AI;
@@ -20,11 +21,11 @@ public class ContainerAppIcMPlugin : IContainerAppIcMPlugin
     private readonly ILogger<ContainerAppIcMPlugin> _logger;
     private readonly IChatClient _chatClient;
     private readonly ITimePlugin _timePlugin;
-    internal readonly ICMWorkflowClient _icmAutomationClient;
+    internal readonly IICMAPIClient _icmApiClient;
 
     public ContainerAppIcMPlugin(
             IConfiguration config,
-            ICMWorkflowClient icmAutomationClient,
+            IICMAPIClient icmApiClient,
             IChatClient chatClient,
             ITimePlugin timePlugin,
             ILogger<ContainerAppIcMPlugin> logger)
@@ -32,7 +33,7 @@ public class ContainerAppIcMPlugin : IContainerAppIcMPlugin
         _logger = logger;
         _chatClient = chatClient;
         _timePlugin = timePlugin;
-        _icmAutomationClient = icmAutomationClient;
+        _icmApiClient = icmApiClient;
     }
 
     public (DateTime StartDate, DateTime EndDate) GetIssueInvestigationTimeRange(DateTime? issueFirstOccurence, DateTime? issueLastOccurene, DateTime? reportedIssueObservedOnTime)
@@ -81,7 +82,7 @@ public class ContainerAppIcMPlugin : IContainerAppIcMPlugin
     public async Task<Incident?> GetIncidentInfo(string incidentId)
     {
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        Incident? incident = await _icmAutomationClient.GetIncidentAsync(incidentId);
+        Incident? incident = await _icmApiClient.GetIncidentAsync(incidentId);
         if (incident != null)
         {
             incident.DiscussionEntry = RemoveImageTags(incident.DiscussionEntry);
@@ -97,7 +98,13 @@ public class ContainerAppIcMPlugin : IContainerAppIcMPlugin
         DateTimeOffset queryFrom)
     {
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        List<DiscussionEntry> discussionEntries = await _icmAutomationClient.GetIncidentDiscussionEntriesAsync(incidentId, queryFrom) ?? new List<DiscussionEntry>();
+        List<DiscussionEntry> allDiscussionEntries = await _icmApiClient.GetIncidentDiscussionEntriesAsync(incidentId) ?? new List<DiscussionEntry>();
+        
+        // Filter discussion entries based on queryFrom date
+        List<DiscussionEntry> discussionEntries = allDiscussionEntries
+            .Where(entry => entry.Date >= queryFrom.DateTime)
+            .ToList();
+            
         foreach (var discussionEntry in discussionEntries)
         {
             if (discussionEntry.Text != null && discussionEntry.IsHtml)
@@ -144,27 +151,27 @@ public class ContainerAppIcMPlugin : IContainerAppIcMPlugin
             [Description("Incident ID")] string incidentId,
             [Description("Tag to add")] string tag)
     {
-        return await _icmAutomationClient.AddTagToIncident(incidentId, tag) == "Success";
+        return await _icmApiClient.AddTagToIncident(incidentId, tag) == "Success";
     }
 
     public async Task<bool> MitigateIncident(
         [Description("Id of the incident")] string incidentId,
         [Description("The comment for mitigation action")] string reason)
     {
-        return await _icmAutomationClient.MitigateIncidentAsync(incidentId, reason) == "Success";
+        return await _icmApiClient.MitigateIncidentAsync(incidentId, reason) == "Success";
     }
 
     public async Task<bool> ResolveIncident(
             [Description("Id of the incident")] string incidentId,
             [Description("comment/reason for resolution action")] string reason)
     {
-        return await _icmAutomationClient.ResolveIncidentAsync(incidentId, reason) == "Success";
+        return await _icmApiClient.ResolveIncidentAsync(incidentId, reason) == "Success";
     }
 
     public async Task<bool> AddDiscussionEntry(
             [Description("Incident ID")] string incidentId,
             [Description("Discussion entry text")] string text)
     {
-        return await _icmAutomationClient.PostDiscussionEntryAsync(incidentId, text) == "Success";
+        return await _icmApiClient.PostDiscussionEntryAsync(incidentId, text) == "Success";
     }
 }

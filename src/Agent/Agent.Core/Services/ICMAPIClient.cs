@@ -3,6 +3,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
+using Agent.Core.Interfaces;
 using Agent.Core.Models.ICM;
 using Agent.Core.Services.TokenService;
 using Agent.Logging;
@@ -55,11 +56,13 @@ namespace Agent.Core.Services
         private readonly ILogger<ICMAPIClient> _logger;
         private readonly string _identity = string.Empty;
         private readonly LoggingHttpMessageHandler _loggingHandler;
+        private readonly IAuthenticationService _authService;
 
-        public ICMAPIClient(IHostEnvironment environment, IOptionsMonitor<IncidentManagementSettings> monitor, ILogger<ICMAPIClient> logger, ActionSettings actionSettings, LoggingHttpMessageHandler loggingHandler)
+        public ICMAPIClient(IHostEnvironment environment, IOptionsMonitor<IncidentManagementSettings> monitor, ILogger<ICMAPIClient> logger, ActionSettings actionSettings, LoggingHttpMessageHandler loggingHandler, IAuthenticationService authService)
         {
             _logger = logger;
             _loggingHandler = loggingHandler;
+            _authService = authService;
             _current = monitor.CurrentValue;
             monitor.OnChange(newConfig =>
             {
@@ -84,7 +87,8 @@ namespace Agent.Core.Services
                 _authType = AuthType.ManagedIdentity;
                 IcmAPIPathPrefix = "/api/user";
             }
-            else if (!string.IsNullOrWhiteSpace(_icmApiSettings.CertificateSubjectName))
+            else if (!string.IsNullOrWhiteSpace(_icmApiSettings.CertificateSubjectName) ||
+                     (!string.IsNullOrWhiteSpace(_icmApiSettings.CertificateKeyVaultUri) && !string.IsNullOrWhiteSpace(_icmApiSettings.CertificateKeyVaultSecretName)))
             {
                 _authType = AuthType.Certificate;
                 IcmAPIPathPrefix = "/api/cert";
@@ -96,7 +100,7 @@ namespace Agent.Core.Services
             }
             else
             {
-                throw new Exception("At least one of the environment variables 'ICMAPI:UserToken' or 'ICMAPI:CertificateSubjectName' must be set.");
+                throw new Exception("At least one of the environment variables 'ICMAPI:UserToken', 'ICMAPI:CertificateSubjectName', or 'ICMAPI:CertificateKeyVaultUri' with 'ICMAPI:CertificateKeyVaultSecretName' must be set.");
             }
 
             _httpClient = GetHttpClient();
@@ -118,23 +122,45 @@ namespace Agent.Core.Services
             else if (_authType == AuthType.Certificate)
             {
                 var handler = new HttpClientHandler();
+                X509Certificate2 certificate;
 
-                // Open the "My" certificate store in the current user's context.
-                using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))
+                // Try to load certificate from KeyVault first
+                if (!string.IsNullOrWhiteSpace(_icmApiSettings.CertificateKeyVaultUri) && !string.IsNullOrWhiteSpace(_icmApiSettings.CertificateKeyVaultSecretName))
                 {
-                    store.Open(OpenFlags.ReadOnly);
+                    _logger.LogInternalInformation("Trying to loaded certificate from KeyVault for ICMAPIClient.");
 
-                    // Locate the certificate by matching the subject name.
-                    var certificates = store.Certificates.Find(X509FindType.FindBySubjectName, _icmApiSettings.CertificateSubjectName, validOnly: false);
-                    if (certificates == null || certificates.Count == 0)
+                    string keyVaultUri = _icmApiSettings.CertificateKeyVaultUri;
+                    string certKvSecretName = _icmApiSettings.CertificateKeyVaultSecretName;
+
+                    certificate = CertLoader.LoadCertFromKeyVault(_authService, keyVaultUri, certKvSecretName, string.Empty, null, _logger);
+                    _logger.LogInternalInformation("Successfully loaded certificate from KeyVault for ICMAPIClient.");
+                }
+                // Fallback to local certificate store
+                else if (!string.IsNullOrWhiteSpace(_icmApiSettings.CertificateSubjectName))
+                {
+                    // Open the "My" certificate store in the current user's context.
+                    using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))
                     {
-                        throw new Exception($"Certificate with subject matching '{_icmApiSettings.CertificateSubjectName}' not found.");
-                    }
+                        store.Open(OpenFlags.ReadOnly);
 
-                    // Use the first matching certificate.
-                    handler.ClientCertificates.Add(certificates[0]);
+                        // Locate the certificate by matching the subject name.
+                        var certificates = store.Certificates.Find(X509FindType.FindBySubjectName, _icmApiSettings.CertificateSubjectName, validOnly: false);
+                        if (certificates == null || certificates.Count == 0)
+                        {
+                            throw new Exception($"Certificate with subject matching '{_icmApiSettings.CertificateSubjectName}' not found.");
+                        }
+
+                        // Use the first matching certificate.
+                        certificate = certificates[0];
+                    }
+                    _logger.LogInternalInformation("Successfully loaded certificate from local store for ICMAPIClient.");
+                }
+                else
+                {
+                    throw new Exception("No certificate configuration found for ICMAPIClient. Please configure either CertificateKeyVaultUri with CertificateKeyVaultSecretName or CertificateSubjectName.");
                 }
 
+                handler.ClientCertificates.Add(certificate);
                 _loggingHandler.InnerHandler = handler;
                 result = new HttpClient(_loggingHandler)
                 {
