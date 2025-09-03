@@ -377,7 +377,10 @@ public partial class TrajectoryEval
         {
             var trajectoryContent = await File.ReadAllTextAsync(trajectoryFile);
             var trajectory = JsonSerializer.Deserialize<ProcessedTrajectoryOutput_v3>(trajectoryContent, JsonSerializerOptions.Web);
-            var embedding = await embeddingGenerator.GenerateVectorForAgentMemoryAsync(trajectory!.SymptomsObserved);
+            // Use a console logger for token logging during test indexing
+            var loggerFactory = _host.Services.GetRequiredService<ILoggerFactory>();
+            var consoleLogger = loggerFactory.CreateLogger("TrajectoryRetrievalEval");
+            var embedding = await embeddingGenerator.GenerateVectorForAgentMemoryAsync(trajectory!.SymptomsObserved, consoleLogger);
             var agentMemory = AgentMemory.FromTrajectory(Guid.NewGuid().ToString(), trajectory, [.. embedding.Span]);
 
             // Index the trajectory content
