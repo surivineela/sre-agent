@@ -1,19 +1,12 @@
-import { Ref, useCallback, useContext, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Ref, useCallback, useContext, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ThreadClient } from '../../Common/Clients/ThreadClient';
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
 import { Thread, ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
-import {
-    getFilteredThreads,
-    getUpdatedUnreadThreadIds,
-    isFinalStreamingMessage,
-    parseThreadFromStreamingText,
-    processThreads,
-    removeThreadIdsFromUnreadThreads,
-} from '../Activities/Utility';
+import { isFinalStreamingMessage, parseThreadFromStreamingText } from '../Activities/Utility';
 import { ThreadMenuHandle } from '../Contracts/Activities';
 import { StreamingContext } from '../Contracts/Context';
-import { useThreadList } from './useThreadList';
+import { InputForThreadListWithFavoriteList, useThreadListWithFavoriteList } from './useThreadListWithFavoriteList';
 
 export const useThreadsMenu = (ref: Ref<ThreadMenuHandle>, excludedSources?: ThreadSource[]) => {
     const { subscribeThreadUpdateEvent, subscribeMessageUpdateEvent } = useContext(StreamingContext);
@@ -22,41 +15,44 @@ export const useThreadsMenu = (ref: Ref<ThreadMenuHandle>, excludedSources?: Thr
     const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
 
     const [showUnreadOnly, setShowUnreadOnly] = useState<boolean>(false);
+    const [isFavoriteThreadListHidden, setIsFavoriteThreadListHidden] = useState<boolean>(false);
+    const [isRegularThreadListHidden, setIsRegularThreadListHidden] = useState<boolean>(false);
 
-    const threadUpdateQueue = useRef<Thread[]>([]);
-    const threadItemDivsRef = useRef<Map<string, HTMLDivElement>>(new Map<string, HTMLDivElement>());
-    const updatedThreadItemPositions = useRef<Map<string, DOMRect>>(new Map<string, DOMRect>());
+    const filter: InputForThreadListWithFavoriteList = useMemo(
+        () => ({
+            includedSources: undefined,
+            excludedSources,
+            unreadOnly: showUnreadOnly,
+            searchText: undefined,
+        }),
+        [excludedSources, showUnreadOnly]
+    );
 
-    const { threads, setThreads, setUnreadThreadIds, unreadThreadIds, isLoadingInitialChatMessages, ...rest } = useThreadList(
+    const { removeThread, removeUnreadThreadId, onThreadModifiedTimestampUpdated, ...rest } = useThreadListWithFavoriteList(
+        isFavoriteThreadListHidden,
+        isRegularThreadListHidden,
         undefined,
-        undefined,
-        undefined,
-        excludedSources,
-        showUnreadOnly,
-        undefined,
+        filter,
         'modifiedTimestamp'
     );
 
-    const oldestThreadModifiedTimestamp = useMemo(() => threads[threads.length - 1]?.modifiedTimestamp, [threads]);
+    const updateThreadLastReadTime = useCallback(
+        async (threadId: string) => {
+            const response = await threadClient.updateThreadLastReadTime(threadId);
 
-    const showUnreadOnlyRef = useRef<boolean>(showUnreadOnly);
-    const isLoadingInitialChatMessagesRef = useRef(isLoadingInitialChatMessages);
+            if (response.isSuccessful) {
+                removeUnreadThreadId(threadId);
+            }
+        },
+        [removeUnreadThreadId]
+    );
 
-    useEffect(() => {
-        showUnreadOnlyRef.current = showUnreadOnly;
-    }, [showUnreadOnly]);
-
-    useEffect(() => {
-        isLoadingInitialChatMessagesRef.current = isLoadingInitialChatMessages;
-    }, [isLoadingInitialChatMessages]);
-
-    const updateThreadLastReadTime = useCallback(async (threadId: string) => {
-        const response = await threadClient.updateThreadLastReadTime(threadId);
-
-        if (response.isSuccessful) {
-            setUnreadThreadIds(prev => removeThreadIdsFromUnreadThreads(prev, threadId));
-        }
-    }, []);
+    const removeThreadFromList = useCallback(
+        (threadId: string) => {
+            removeThread(threadId);
+        },
+        [removeThread]
+    );
 
     const getThread = async (threadId: string): Promise<Thread | undefined> => {
         const response = await threadClient.getThread(threadId);
@@ -66,61 +62,8 @@ export const useThreadsMenu = (ref: Ref<ThreadMenuHandle>, excludedSources?: Thr
         return undefined;
     };
 
-    const updateThreadList = (threadsToBeUpdated: Thread[]) => {
-        // Record the current position of each thread that is about to be updated
-        threadsToBeUpdated.forEach(thread => {
-            const dom = threadItemDivsRef.current.get(thread.id);
-            if (dom) {
-                updatedThreadItemPositions.current.set(thread.id, dom.getBoundingClientRect());
-            }
-        });
-
-        setThreads(prevThreads => {
-            const { threads: totalThreads, addedThreads } = processThreads(
-                prevThreads,
-                getFilteredThreads(threadsToBeUpdated, undefined, excludedSources, showUnreadOnlyRef.current, undefined),
-                true
-            );
-            setUnreadThreadIds(prev => getUpdatedUnreadThreadIds(prev, addedThreads));
-            return totalThreads;
-        });
-    };
-
-    const updateThreadInfo = async (thread: Thread) => {
-        if (!isLoadingInitialChatMessagesRef.current) {
-            updateThreadList([thread]);
-        } else {
-            threadUpdateQueue.current.push(thread);
-        }
-    };
-
-    useLayoutEffect(() => {
-        threads.forEach(thread => {
-            const first = updatedThreadItemPositions.current.get(thread.id);
-            const dom = threadItemDivsRef.current.get(thread.id);
-            const last = dom?.getBoundingClientRect();
-
-            if (!first || !dom || !last) {
-                return;
-            }
-
-            const deltaY = first.top - last.top;
-            dom.style.transform = `translateY(${deltaY}px)`;
-            dom.style.transition = 'none';
-
-            requestAnimationFrame(() => {
-                dom.style.transform = '';
-                dom.style.transition = 'transform 350ms ease';
-            });
-        });
-
-        updatedThreadItemPositions.current.clear();
-    }, [threads]);
-
     useImperativeHandle(ref, () => ({
-        removeThreadFromList: (thread: Thread) => {
-            setThreads(prevThreads => prevThreads.filter(t => t.id !== thread.id));
-        },
+        removeThreadFromList: (threadId: string) => removeThreadFromList(threadId),
         updateThreadLastReadTime: (threadId: string) => updateThreadLastReadTime(threadId),
     }));
 
@@ -130,7 +73,7 @@ export const useThreadsMenu = (ref: Ref<ThreadMenuHandle>, excludedSources?: Thr
             if (threadId && isFinalStreamingMessage(message)) {
                 const updatedThread = await getThread(threadId);
                 if (updatedThread) {
-                    updateThreadInfo(updatedThread);
+                    onThreadModifiedTimestampUpdated(updatedThread);
                 }
             }
         };
@@ -141,11 +84,11 @@ export const useThreadsMenu = (ref: Ref<ThreadMenuHandle>, excludedSources?: Thr
             if (threadId) {
                 try {
                     const thread = parseThreadFromStreamingText(text);
-                    updateThreadInfo(thread);
+                    onThreadModifiedTimestampUpdated(thread);
                 } catch {
                     const updatedThread = await getThread(threadId);
                     if (updatedThread) {
-                        updateThreadInfo(updatedThread);
+                        onThreadModifiedTimestampUpdated(updatedThread);
                     }
                 }
             }
@@ -163,23 +106,13 @@ export const useThreadsMenu = (ref: Ref<ThreadMenuHandle>, excludedSources?: Thr
         };
     }, [subscribeThreadUpdateEvent, subscribeMessageUpdateEvent]);
 
-    useEffect(() => {
-        if (!isLoadingInitialChatMessages && threadUpdateQueue.current.length > 0) {
-            const threadsToBeUpdated = [...threadUpdateQueue.current];
-            threadUpdateQueue.current = [];
-            updateThreadList(threadsToBeUpdated);
-        }
-    }, [isLoadingInitialChatMessages]);
-
     return {
-        threads,
         showUnreadOnly,
         setShowUnreadOnly,
-        oldestThreadModifiedTimestamp,
-        unreadThreadIds,
-        updateThreadLastReadTime,
-        threadItemDivsRef,
-        excludedSources,
+        isFavoriteThreadListHidden,
+        setIsFavoriteThreadListHidden,
+        isRegularThreadListHidden,
+        setIsRegularThreadListHidden,
         ...rest,
     };
 };

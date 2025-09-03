@@ -33,10 +33,11 @@ export interface ThreadsGetOptions {
     descending: boolean;
     filters?: ThreadsGetFilterOptions;
     severity?: ThreadSeverity;
+    favorite?: boolean;
 }
 
 export const getThreadsGetUrlPath = (options: ThreadsGetOptions): string => {
-    const { skip, top, orderBy, descending, filters, severity } = options;
+    const { skip, top, orderBy, descending, filters, severity, favorite } = options;
 
     let url = `/api/v1/threads?skip=${skip}&top=${top}&orderby=${orderBy}${descending ? '+desc' : ''}`;
 
@@ -83,6 +84,10 @@ export const getThreadsGetUrlPath = (options: ThreadsGetOptions): string => {
 
     if (severity) {
         url += `&severity=${severity}`;
+    }
+
+    if (favorite !== undefined) {
+        url += `&favorite=${favorite}`;
     }
 
     return url;
@@ -290,6 +295,30 @@ export class ThreadClient extends DataPlaneClient {
             const response = await axios.post(
                 url,
                 { agentMode },
+                {
+                    headers: getAgentHeaders(),
+                }
+            );
+
+            return {
+                isSuccessful: true,
+                content: response.data as Thread,
+            };
+        } catch (e) {
+            return {
+                isSuccessful: false,
+                error: e,
+            };
+        }
+    };
+
+    public updateThreadFavorite = async (threadId: string, favorite: boolean): Promise<Response<Thread | undefined>> => {
+        const url = this.getRequestUrl(`/api/v1/threads/${threadId}/favorite`);
+
+        try {
+            const response = await axios.post(
+                url,
+                { favorite },
                 {
                     headers: getAgentHeaders(),
                 }

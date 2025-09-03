@@ -4,20 +4,21 @@ import { DialogBody, DialogContent, DialogSurface, DialogTitle, DialogTrigger } 
 import { ChatRegular } from '@fluentui/react-icons';
 import { SearchBox } from '@fluentui/react-search';
 import { Skeleton, SkeletonItem } from '@fluentui/react-skeleton';
-import { Body1, Caption2 } from '@fluentui/react-text';
+import { Body1, Caption2, Text } from '@fluentui/react-text';
 import { tokens } from '@fluentui/react-theme';
 import debounce from 'lodash/debounce';
-import { memo, useCallback, useState } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { Thread, ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
-import { SreAgentResources } from '../../Strings/SREAgentResources';
-import { useThreadList } from '../Hooks/useThreadList';
+import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { ThreadListsState } from '../Contracts/Activities';
+import { InputForThreadListWithFavoriteList, useThreadListWithFavoriteList } from '../Hooks/useThreadListWithFavoriteList';
 import { useActionsStatusBarStyles } from '../Styles/Incident.styles';
 
 interface IThreadSearchDialogProps {
-    threads: Thread[];
+    threadListsState: ThreadListsState;
     selectThread: (thread: Thread | null) => void;
     activeThreadId?: string;
     excludedSources?: ThreadSource[];
@@ -87,7 +88,12 @@ const useThreadSearchDialogStyles = makeStyles({
         maxWidth: '50%',
     },
 });
-const ThreadSearchDialog = ({ threads: initialThreads, selectThread, activeThreadId, excludedSources }: IThreadSearchDialogProps) => {
+const ThreadSearchDialog = ({
+    threadListsState: initializeThreadListsState,
+    selectThread,
+    activeThreadId,
+    excludedSources,
+}: IThreadSearchDialogProps) => {
     const { logAmplitudeControlEvent } = useAzPortalContext();
     const { scrollable } = useScrollableComponentStyles();
     const { surface, common, body, content, searchBox, threads: threadsStyles } = useThreadSearchDialogStyles();
@@ -97,6 +103,15 @@ const ThreadSearchDialog = ({ threads: initialThreads, selectThread, activeThrea
     const onSearchTextChange = debounce((searchString: string) => {
         setSearchText(searchString);
     }, 1000);
+
+    const filter: InputForThreadListWithFavoriteList = useMemo(
+        () => ({
+            includedSources: undefined,
+            excludedSources,
+            searchText,
+        }),
+        [excludedSources, searchText]
+    );
 
     const onClickThreadButton = useCallback(
         (thread: Thread) => {
@@ -116,15 +131,8 @@ const ThreadSearchDialog = ({ threads: initialThreads, selectThread, activeThrea
         [selectThread, activeThreadId, logAmplitudeControlEvent]
     );
 
-    const { threads, moreThreadsToLoad, threadListDivRef, intersectionObserverRef, onScroll } = useThreadList(
-        undefined,
-        initialThreads,
-        undefined,
-        excludedSources,
-        undefined,
-        searchText,
-        'modifiedTimestamp'
-    );
+    const { threadListsState, favoriteThreadsIntersectionObserverRef, regularThreadsIntersectionObserverRef, threadListDivRef, onScroll } =
+        useThreadListWithFavoriteList(false, false, initializeThreadListsState, filter, 'modifiedTimestamp');
 
     return (
         <DialogSurface className={surface}>
@@ -135,11 +143,29 @@ const ThreadSearchDialog = ({ threads: initialThreads, selectThread, activeThrea
                 <DialogContent className={mergeClasses(common, content)}>
                     <SearchBox className={searchBox} onChange={(_, data) => onSearchTextChange(data?.value || '')} />
                     <div className={mergeClasses(scrollable, common, threadsStyles)} ref={threadListDivRef} onScroll={onScroll}>
-                        {threads.map(thread => (
-                            <ThreadItemButton key={thread.id} thread={thread} onClickThreadButton={onClickThreadButton} />
-                        ))}
-                        {moreThreadsToLoad && (
-                            <div ref={intersectionObserverRef}>
+                        <SectionTitle isFavorite={true} />
+                        <ThreadList
+                            threads={threadListsState.favoriteThreadListState.threads}
+                            threadsThatHaveFavoritePropertiesChanged={
+                                threadListsState.favoriteThreadListState.threadsThatHaveFavoritePropertyChanged
+                            }
+                            onClickThreadButton={onClickThreadButton}
+                        />
+                        {threadListsState.favoriteThreadListState.moreThreadsToLoad && (
+                            <div ref={favoriteThreadsIntersectionObserverRef}>
+                                <ThreadItemLoader />
+                            </div>
+                        )}
+                        <SectionTitle isFavorite={false} />
+                        <ThreadList
+                            threads={threadListsState.regularThreadListState.threads}
+                            threadsThatHaveFavoritePropertiesChanged={
+                                threadListsState.regularThreadListState.threadsThatHaveFavoritePropertyChanged
+                            }
+                            onClickThreadButton={onClickThreadButton}
+                        />
+                        {threadListsState.regularThreadListState.moreThreadsToLoad && (
+                            <div ref={regularThreadsIntersectionObserverRef}>
                                 <ThreadItemLoader />
                             </div>
                         )}
@@ -149,6 +175,41 @@ const ThreadSearchDialog = ({ threads: initialThreads, selectThread, activeThrea
         </DialogSurface>
     );
 };
+
+const SectionTitle = memo(({ isFavorite }: { isFavorite: boolean }) => (
+    <div style={{ padding: `${tokens.spacingVerticalS} ${tokens.spacingVerticalS}` }}>
+        <Text>
+            {isFavorite ? (
+                <FormattedMessage {...ActivitiesResources.favoriteThreadListTitle} />
+            ) : (
+                <FormattedMessage {...ActivitiesResources.regularThreadListTitle} />
+            )}
+        </Text>
+    </div>
+));
+
+const ThreadList = memo(
+    ({
+        threads,
+        threadsThatHaveFavoritePropertiesChanged,
+        onClickThreadButton,
+    }: {
+        threads: Thread[];
+        threadsThatHaveFavoritePropertiesChanged: Thread[];
+        onClickThreadButton: (thread: Thread) => void;
+    }) => {
+        return (
+            <>
+                {threads.map(thread => (
+                    <ThreadItemButton key={thread.id} thread={thread} onClickThreadButton={onClickThreadButton} />
+                ))}
+                {threadsThatHaveFavoritePropertiesChanged.map(thread => (
+                    <ThreadItemButton key={thread.id} thread={thread} onClickThreadButton={onClickThreadButton} />
+                ))}
+            </>
+        );
+    }
+);
 
 const ThreadItemButton = memo(({ thread, onClickThreadButton }: { thread: Thread; onClickThreadButton: (thread: Thread) => void }) => {
     const { threadTitleContainer } = useThreadSearchDialogStyles();

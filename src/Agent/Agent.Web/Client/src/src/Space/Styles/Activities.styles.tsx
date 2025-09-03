@@ -371,14 +371,15 @@ export const useThreadMenuStyle = () => {
         height: `${ThreadItemHeightInPx}px`,
         willChange: 'transform',
         marginTop: '5px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: tokens.spacingHorizontalS,
+        position: 'relative',
     };
 
     const activeThreadItem: IStyle = {
         backgroundColor: tokens.colorNeutralBackground1Selected,
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: '6px',
         borderRadius: tokens.borderRadiusXLarge,
     };
 
@@ -391,10 +392,6 @@ export const useThreadMenuStyle = () => {
 
     const hoveredThreadItem: IStyle = {
         backgroundColor: tokens.colorNeutralBackground1Selected,
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: '6px',
         borderRadius: tokens.borderRadiusXLarge,
     };
 
@@ -405,6 +402,7 @@ export const useThreadMenuStyle = () => {
         backgroundColor: tokens.colorBrandForeground1,
         borderRadius: '6px',
         flexShrink: 0,
+        position: 'absolute',
     };
 
     const content = {
@@ -518,6 +516,12 @@ export const shimmerStyle: CSSProperties = {
 
 export const skeletonStyle: CSSProperties = {
     paddingLeft: '10px',
+    height: `${ThreadItemHeightInPx}px`,
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+    gap: '5px',
+    margin: '20px 0px',
 };
 
 export const nameAndTimestampContainerStyle: CSSProperties = {

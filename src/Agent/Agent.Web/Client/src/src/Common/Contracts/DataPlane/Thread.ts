@@ -14,6 +14,7 @@ export interface Thread {
     lastReadTime?: string;
     agentMode?: string;
     agentTasks?: AgentTaskMetaData[];
+    favorite?: boolean;
 }
 
 export interface AgentStatus {

@@ -44,9 +44,24 @@ export interface IThreadActivitiesProps {
 }
 
 export type ThreadMenuHandle = {
-    removeThreadFromList: (thread: Thread) => void;
+    removeThreadFromList: (threadId: string) => void;
     updateThreadLastReadTime: (threadId: string) => void;
 };
+
+export interface ThreadListState {
+    threads: Thread[];
+    // A temporary storage for threads that have their 'favorite' property changed and whose modifiedTimestamp is older than the oldest thread in the current threads list and there are more threads to load.
+    threadsThatHaveFavoritePropertyChanged: Thread[];
+    moreThreadsToLoad: boolean;
+}
+
+export interface ThreadListsState {
+    favoriteThreadListState: ThreadListState;
+    regularThreadListState: ThreadListState;
+    isLoadingInitialThreads: boolean;
+    // A temporary storage for threads that have their modifiedTimestamp updated and waiting to be moved to the top of the threads list while isLoadingInitialThreads is true and no threads are presented yet.
+    threadsThatHaveModifiedTimestampUpdated: Thread[];
+}
 
 export interface IChatBoxProps {
     addThread: (threadId: string, newThreadToSelect?: Thread) => void;

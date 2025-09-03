@@ -1107,6 +1107,12 @@
       "value": "Repository URL"
     }
   ],
+  "ABAQyo": [
+    {
+      "type": 0,
+      "value": "Chats"
+    }
+  ],
   "ABo5XY": [
     {
       "type": 0,
@@ -2581,6 +2587,12 @@
       "value": "errorMessage"
     }
   ],
+  "SMrXWc": [
+    {
+      "type": 0,
+      "value": "Favorites"
+    }
+  ],
   "SNuQo7": [
     {
       "type": 0,
@@ -2985,6 +2997,12 @@
       "value": "Monitored Resource"
     }
   ],
+  "X1m3hH": [
+    {
+      "type": 0,
+      "value": "Remove from favorites"
+    }
+  ],
   "X4Y2nv": [
     {
       "type": 0,
@@ -3061,6 +3079,12 @@
     {
       "type": 0,
       "value": "Monitoring metrics publisher"
+    }
+  ],
+  "Y5mX2J": [
+    {
+      "type": 0,
+      "value": "Add to favorites"
     }
   ],
   "Y7Lbpf": [

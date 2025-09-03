@@ -60,9 +60,9 @@ namespace Agent.Web.Controllers.v1
         [HttpGet]
         [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
         public async Task<ActionResult<PagedResponse<Thread>>> GetThreads(ODataQueryOptions<ThreadDocument> queryOptions,
-        [FromQuery] ActionSeverity? severity = null)
+        [FromQuery] ActionSeverity? severity = null, [FromQuery] bool? favorite = null)
         {
-            var threads = await repository.GetThreadsAsync(queryOptions, severity, ThreadType.Prod);
+            var threads = await repository.GetThreadsAsync(queryOptions, severity, ThreadType.Prod, favorite);
 
             return Ok(new PagedResponse<Thread>(threads));
         }
@@ -418,6 +418,32 @@ namespace Agent.Web.Controllers.v1
             ));
 
             return CreatedAtAction(nameof(GetThread), new { id = thread.Id }, thread);
+        }
+
+        /// <summary>
+        /// Change the favorite property of a thread
+        /// </summary>
+        /// <param name="threadId">Thread ID to change the favorite property</param>
+        /// <returns>Updated Thread object</returns>
+        [HttpPost("{threadId}/favorite")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadWriteActionId)]
+        public async Task<ActionResult<Thread>> updateFavoriteThread(Guid threadId, [FromBody] UpdateFavoriteRequest request)
+        {
+            logger.LogInternalInformation("Marking thread's favorite value as {favorite}: {Id}", request.Favorite, threadId);
+
+            // First check if thread exists
+            var thread = await repository.GetThreadAsync(threadId);
+
+            if (thread == null)
+            {
+                logger.LogInternalInformation("Thread not found: {Id}", threadId);
+                return NotFound();
+            }
+
+            // Update thread in repository
+            var updatedThread = await repository.UpdateThreadFavoriteAsync(threadId, request.Favorite);
+
+            return Ok(updatedThread);
         }
 
         /// <summary>

@@ -635,6 +635,22 @@ export const ActivitiesResources = defineMessages({
         defaultMessage: 'Reconnecting to the agent...',
         id: 'sd1Vy+',
     },
+    favoriteThreadListTitle: {
+        defaultMessage: 'Favorites',
+        id: 'SMrXWc',
+    },
+    regularThreadListTitle: {
+        defaultMessage: 'Chats',
+        id: 'ABAQyo',
+    },
+    removeFromFavorites: {
+        defaultMessage: 'Remove from favorites',
+        id: 'eG1C0k',
+    },
+    addToFavorites: {
+        defaultMessage: 'Add to favorites',
+        id: 'tWX1j9',
+    },
 });
 
 export const ActivitiesThreadHeaderResources = defineMessages({

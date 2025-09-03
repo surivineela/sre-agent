@@ -1,14 +1,23 @@
 import { Button } from '@fluentui/react-button';
-import { mergeClasses, Skeleton, SkeletonItem } from '@fluentui/react-components';
+import {
+    Accordion,
+    AccordionHeader,
+    AccordionItem,
+    AccordionPanel,
+    AccordionToggleEventHandler,
+    mergeClasses,
+    Skeleton,
+    SkeletonItem,
+} from '@fluentui/react-components';
 import { Dialog, DialogTrigger } from '@fluentui/react-dialog';
 import { AddRegular, PanelLeftContractRegular, PanelLeftExpandRegular, SearchRegular } from '@fluentui/react-icons';
 import { Text } from '@fluentui/react-text';
 import { tokens } from '@fluentui/react-theme';
-import { ForwardedRef, forwardRef, useCallback, useContext, useMemo } from 'react';
-import { useIntl } from 'react-intl';
+import { ForwardedRef, forwardRef, ReactNode, useCallback, useContext, useMemo, useState } from 'react';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
-import { ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
+import { Thread, ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { KnowledgeGraphBuildStatusContext } from '../../Common/Providers/KnowledgeGraphBuildStatusProvider';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
 import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
@@ -23,6 +32,11 @@ import { getExpandCollapseButtonStyles, skeletonStyle, useThreadMenuStyle } from
 
 const expandCollapseButtonStyles = getExpandCollapseButtonStyles('left');
 
+enum ThreadSection {
+    Favorite,
+    Chats,
+}
+
 export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
     (props: IThreadsMenuProps, ref: ForwardedRef<ThreadMenuHandle>) => {
         const { selectThread, deleteThread, collapsed, setCollapsed } = props;
@@ -30,15 +44,19 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
         const excludedSources: ThreadSource[] = useMemo(() => [ThreadSource.incident], []);
 
         const {
-            threads,
             threadListDivRef,
-            intersectionObserverRef,
+            threadItemDivsRef,
+            threadListsState,
+            unreadThreadIds,
             showUnreadOnly,
             setShowUnreadOnly,
-            unreadThreadIds,
+            setIsFavoriteThreadListHidden,
+            setIsRegularThreadListHidden,
+            updateThreadFavoriteProperty,
             onScroll,
-            moreThreadsToLoad,
-            threadItemDivsRef,
+            favoriteThreadsIntersectionObserverRef,
+            regularThreadsIntersectionObserverRef,
+            isUpdatingThreadFavoriteProperty,
         } = useThreadsMenu(ref, excludedSources);
 
         const threadMenuStyles = useThreadMenuStyle();
@@ -47,6 +65,14 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
         const { activeThreadId } = useContext(AgentContext);
         const { hasChatPermissions } = useContext(KnowledgeGraphBuildStatusContext);
         const { logAmplitudeControlEvent } = useAzPortalContext();
+
+        const [openThreadSections, setOpenThreadSections] = useState<ThreadSection[]>([ThreadSection.Favorite, ThreadSection.Chats]);
+
+        const toggleThreadSection: AccordionToggleEventHandler<ThreadSection> = (_, item) => {
+            setOpenThreadSections(item.openItems);
+            setIsFavoriteThreadListHidden(!item.openItems.includes(ThreadSection.Favorite));
+            setIsRegularThreadListHidden(!item.openItems.includes(ThreadSection.Chats));
+        };
 
         const intl = useIntl();
 
@@ -61,6 +87,10 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
                 valueObjectFriendlyName: SpecialControlValue.DoAction,
             });
         }, [selectThread, logAmplitudeControlEvent]);
+
+        const assignThreadItemDivRef = useCallback((threadId: string, el: HTMLDivElement) => {
+            threadItemDivsRef.current.set(threadId, el);
+        }, []);
 
         return (
             <div className={threadMenuStyles.root}>
@@ -125,7 +155,7 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
                                         />
                                     </DialogTrigger>
                                     <ThreadSearchDialog
-                                        threads={threads}
+                                        threadListsState={threadListsState}
                                         selectThread={selectThread}
                                         activeThreadId={activeThreadId}
                                         excludedSources={excludedSources}
@@ -138,7 +168,11 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
                 {hasChatPermissions && (
                     <Fade visible={!collapsed} unmountOnExit>
                         <div>
-                            <ThreadFilters unreadOnly={showUnreadOnly} setUnreadOnly={setShowUnreadOnly} />
+                            <ThreadFilters
+                                disabled={isUpdatingThreadFavoriteProperty}
+                                unreadOnly={showUnreadOnly}
+                                setUnreadOnly={setShowUnreadOnly}
+                            />
                         </div>
                     </Fade>
                 )}
@@ -150,24 +184,47 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
                             ref={threadListDivRef}
                             onScroll={onScroll}
                         >
-                            {threads.map(thread => {
-                                return (
-                                    <ThreadItem
-                                        key={thread.id}
-                                        thread={thread}
-                                        selectThread={selectThread}
-                                        deleteThread={deleteThread}
-                                        isActive={activeThreadId === thread.id}
-                                        isThreadUnread={unreadThreadIds.has(thread.id)}
-                                        ref={(el: HTMLDivElement) => threadItemDivsRef.current.set(thread.id, el)}
-                                    />
-                                );
-                            })}
-                            {moreThreadsToLoad && (
-                                <Skeleton style={skeletonStyle} ref={intersectionObserverRef}>
-                                    <SkeletonItem />
-                                </Skeleton>
-                            )}
+                            <Accordion<ThreadSection> openItems={openThreadSections} onToggle={toggleThreadSection} multiple collapsible>
+                                <ThreadListAccordion
+                                    isFavorite={true}
+                                    threads={threadListsState.favoriteThreadListState.threads}
+                                    threadsThatHaveFavoritePropertyChanged={
+                                        threadListsState.favoriteThreadListState.threadsThatHaveFavoritePropertyChanged
+                                    }
+                                    unreadThreadIds={unreadThreadIds}
+                                    activeThreadId={activeThreadId}
+                                    selectThread={selectThread}
+                                    deleteThread={deleteThread}
+                                    assignThreadItemDivRef={assignThreadItemDivRef}
+                                    updateThreadFavoriteProperty={updateThreadFavoriteProperty}
+                                >
+                                    {threadListsState.favoriteThreadListState.moreThreadsToLoad && (
+                                        <div ref={favoriteThreadsIntersectionObserverRef}>
+                                            <Loader />
+                                        </div>
+                                    )}
+                                </ThreadListAccordion>
+
+                                <ThreadListAccordion
+                                    isFavorite={false}
+                                    threads={threadListsState.regularThreadListState.threads}
+                                    threadsThatHaveFavoritePropertyChanged={
+                                        threadListsState.regularThreadListState.threadsThatHaveFavoritePropertyChanged
+                                    }
+                                    unreadThreadIds={unreadThreadIds}
+                                    activeThreadId={activeThreadId}
+                                    selectThread={selectThread}
+                                    deleteThread={deleteThread}
+                                    assignThreadItemDivRef={assignThreadItemDivRef}
+                                    updateThreadFavoriteProperty={updateThreadFavoriteProperty}
+                                >
+                                    {threadListsState.regularThreadListState.moreThreadsToLoad && (
+                                        <div ref={regularThreadsIntersectionObserverRef}>
+                                            <Loader />
+                                        </div>
+                                    )}
+                                </ThreadListAccordion>
+                            </Accordion>
                         </div>
                     </Fade>
                 )}
@@ -175,3 +232,90 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
         );
     }
 );
+
+const ThreadListAccordion = ({
+    children,
+    isFavorite,
+    threads,
+    threadsThatHaveFavoritePropertyChanged,
+    unreadThreadIds,
+    activeThreadId,
+    selectThread,
+    deleteThread,
+    assignThreadItemDivRef,
+    updateThreadFavoriteProperty,
+}: {
+    children: ReactNode;
+    isFavorite: boolean;
+    threads: Thread[];
+    threadsThatHaveFavoritePropertyChanged: Thread[];
+    unreadThreadIds: Set<string>;
+    activeThreadId: string;
+    selectThread: (thread: Thread | null) => void;
+    deleteThread: ((thread: Thread) => void) | undefined;
+    assignThreadItemDivRef: (threadId: string, el: HTMLDivElement) => void;
+    updateThreadFavoriteProperty: (threadId: string, favorite: boolean) => Promise<void>;
+}) => {
+    return (
+        <AccordionItem value={isFavorite ? ThreadSection.Favorite : ThreadSection.Chats} style={{ marginTop: '10px' }}>
+            <AccordionHeader
+                style={{
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 10,
+                    backgroundColor: tokens.colorNeutralBackground3,
+                }}
+            >
+                {isFavorite ? (
+                    <FormattedMessage {...ActivitiesResources.favoriteThreadListTitle} />
+                ) : (
+                    <FormattedMessage {...ActivitiesResources.regularThreadListTitle} />
+                )}
+            </AccordionHeader>
+            <AccordionPanel style={{ marginLeft: tokens.spacingHorizontalXXS, marginRight: '0px' }}>
+                {threads.map(thread => {
+                    return (
+                        <ThreadItem
+                            key={thread.id}
+                            thread={thread}
+                            selectThread={selectThread}
+                            deleteThread={deleteThread}
+                            isActive={activeThreadId === thread.id}
+                            isThreadUnread={unreadThreadIds.has(thread.id)}
+                            ref={(el: HTMLDivElement) => assignThreadItemDivRef(thread.id, el)}
+                            favorite={isFavorite}
+                            updateThreadFavoriteProperty={updateThreadFavoriteProperty}
+                        />
+                    );
+                })}
+                {threadsThatHaveFavoritePropertyChanged.map(thread => {
+                    return (
+                        <ThreadItem
+                            key={thread.id}
+                            thread={thread}
+                            selectThread={selectThread}
+                            deleteThread={deleteThread}
+                            isActive={activeThreadId === thread.id}
+                            isThreadUnread={unreadThreadIds.has(thread.id)}
+                            ref={(el: HTMLDivElement) => assignThreadItemDivRef(thread.id, el)}
+                            favorite={isFavorite}
+                            updateThreadFavoriteProperty={updateThreadFavoriteProperty}
+                        />
+                    );
+                })}
+                {children}
+            </AccordionPanel>
+        </AccordionItem>
+    );
+};
+
+const Loader = () => {
+    return Array.from({ length: 3 }).map((_, index) => {
+        return (
+            <Skeleton key={index} style={skeletonStyle}>
+                <SkeletonItem size={20} style={{ maxWidth: '50%' }} />
+                <SkeletonItem size={16} />
+            </Skeleton>
+        );
+    });
+};

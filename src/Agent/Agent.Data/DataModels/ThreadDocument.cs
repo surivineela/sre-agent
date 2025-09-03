@@ -21,7 +21,8 @@ public record ThreadDocument(
     IncidentSource? IncidentSource = null,
     ThreadType? ThreadType = ThreadType.Prod,
     FeatureConfig? FeatureConfig = null,
-    IEnumerable<AgentTaskShort>? AgentTasks = null
+    IEnumerable<AgentTaskShort>? AgentTasks = null,
+    bool? Favorite = false
 ) : ICosmosDocument
 {
     public string DocumentType => "Thread";
@@ -53,7 +54,8 @@ public record ThreadDocument(
             IncidentId = thread.Status?.IncidentStatus?.IncidentId ?? string.Empty,
             IncidentStatus = thread.Status?.IncidentStatus?.Status ?? string.Empty,
             LastReadTime = thread.LastReadTime,
-            AgentMode = thread.AgentMode
+            AgentMode = thread.AgentMode,
+            Favorite = thread.Favorite ?? null
         };
 
     public Thread ToDomainModel(Message startMessage, Message? lastMessage) =>
@@ -82,6 +84,7 @@ public record ThreadDocument(
                     IncidentId = IncidentId,
                     Status = IncidentStatus
                 }
-            }
+            },
+            Favorite = Favorite
         };
 }

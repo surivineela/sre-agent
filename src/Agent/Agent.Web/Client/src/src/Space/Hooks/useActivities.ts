@@ -65,7 +65,7 @@ export const useActivities = () => {
 
             try {
                 await threadClient.deleteThread(thread.id);
-                threadMenuHandleRef.current?.removeThreadFromList(thread);
+                threadMenuHandleRef.current?.removeThreadFromList(thread.id);
                 selectThread(null);
 
                 proxy.log({

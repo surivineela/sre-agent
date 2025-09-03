@@ -26,11 +26,6 @@ export const useActionsStatusBarStyles = makeStyles({
         maxWidth: 'fit-content',
         minWidth: '30px',
     },
-    threadTitleWithAction: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
     subtitleContainer: {
         display: 'flex',
         alignItems: 'center',

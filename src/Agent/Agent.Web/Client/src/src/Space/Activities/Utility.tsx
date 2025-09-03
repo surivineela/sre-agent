@@ -12,10 +12,11 @@ import { Thread, ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
 import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
-import { ChatMessage, ChatMessageContent } from '../Contracts/Activities';
+import { ChatMessage, ChatMessageContent, ThreadListsState, ThreadListState } from '../Contracts/Activities';
 import { DefaultUserIdAndDisplayName } from '../Hooks/useAuthenticatedUserInfo';
 
 /**
+ * Use this when your thread list does not have favorite section or any addition section.
  * Add additional threads to the existing threads list and update existing threads if they have been modified.
  * @param prevThreads existing threads sorted in descending order by modifiedTimestamp
  * @param threads additional threads sorted in descending order by modifiedTimestamp
@@ -68,6 +69,402 @@ export const processThreads = (prevThreads: Thread[], threads: Thread[], areThre
     return {
         threads: areThreadsNew ? [...threadsToAdd, ...existingThreads] : [...existingThreads, ...threadsToAdd],
         addedThreads: threadsToAdd,
+    };
+};
+
+/**
+ * Use this when your component has multiple thread list section interacting among each other.
+ *
+ * Add old threads returned from threads pagination to bottom of the list.
+ * @param prevThreads existing threads sorted in descending order by modifiedTimestamp
+ * @param prevThreadsThatHaveFavoritePropertyChanged threads that have favorite property changed sorted in descending order by modifiedTimestamp
+ */
+export const addOldThreads = (
+    prevThreadListState: ThreadListState,
+    oldThreads: Thread[],
+    moreThreadsToLoad: boolean
+): {
+    threadListState: ThreadListState;
+    addedThreads: Thread[];
+} => {
+    const getThreadListStateWithNoOldThreadsToAdd = () => {
+        return {
+            threadListState:
+                moreThreadsToLoad !== prevThreadListState.moreThreadsToLoad
+                    ? {
+                          ...prevThreadListState,
+                          moreThreadsToLoad,
+                      }
+                    : prevThreadListState,
+            addedThreads: [],
+        };
+    };
+
+    if (oldThreads.length === 0) {
+        return getThreadListStateWithNoOldThreadsToAdd();
+    }
+
+    const { threads: prevThreads, threadsThatHaveFavoritePropertyChanged: prevThreadsThatHaveFavoritePropertyChanged } =
+        prevThreadListState;
+
+    // Remove thread from old threads if it is duplicated in prevThreads
+    const uniqueOldThreads = (
+        prevThreads.length > 0
+            ? [
+                  ...oldThreads.filter(thread => {
+                      return !prevThreads.find(prevThread => prevThread.id === thread.id);
+                  }),
+              ]
+            : [...oldThreads]
+    ).sort((a, b) => getSafeDateTime(b.modifiedTimestamp).getTime() - getSafeDateTime(a.modifiedTimestamp).getTime());
+
+    // Remove thread from prevThreadsThatHaveFavoritePropertyChanged if it is duplicated in old threads because those threads
+    // now can be properly added to the thread list
+    const updatedThreadsThatHaveFavoritePropertyChanged =
+        uniqueOldThreads.length > 0
+            ? prevThreadsThatHaveFavoritePropertyChanged.filter(thread => {
+                  return !uniqueOldThreads.find(oldThread => oldThread.id === thread.id);
+              })
+            : prevThreadsThatHaveFavoritePropertyChanged;
+
+    if (uniqueOldThreads.length === 0) {
+        return getThreadListStateWithNoOldThreadsToAdd();
+    }
+
+    return {
+        threadListState: {
+            threads: [...prevThreads, ...uniqueOldThreads],
+            threadsThatHaveFavoritePropertyChanged: updatedThreadsThatHaveFavoritePropertyChanged,
+            moreThreadsToLoad,
+        },
+        addedThreads: uniqueOldThreads,
+    };
+};
+
+const getIndexToInsertThread = (threads: Thread[], threadToInsert: Thread): number => {
+    let start = 0,
+        end = threads.length - 1;
+    const threadToInsertTimestamp = getSafeDateTime(threadToInsert.modifiedTimestamp).getTime();
+
+    while (start <= end) {
+        const mid = start + Math.floor((end - start) / 2);
+        const midTimestamp = getSafeDateTime(threads[mid].modifiedTimestamp).getTime();
+        if (midTimestamp < threadToInsertTimestamp) {
+            end = mid - 1;
+        } else if (midTimestamp > threadToInsertTimestamp) {
+            start = mid + 1;
+        } else {
+            return mid;
+        }
+    }
+    return start;
+};
+
+const insertThreadToThreadList = (threads: Thread[], thread: Thread): Thread[] => {
+    const indexToInsert = getIndexToInsertThread(threads, thread);
+    const updatedThreads = [...threads];
+    updatedThreads.splice(indexToInsert, 0, thread);
+    return updatedThreads;
+};
+
+/**
+ * Use this when your component has multiple thread list section interacting among each other.
+ * When being notified that a new thread is added or an existing thread's modified time is updated, add it to the temporary storage while the initial loading is not finished
+ * @param prevThreadListState
+ * @param thread
+ */
+export const addThreadToThreadsThatHaveModifiedTimestampUpdated = (
+    threadListsState: ThreadListsState,
+    thread: Thread
+): {
+    threadListsState: ThreadListsState;
+    addedThreads: Thread[];
+} => {
+    const threadsThatHaveModifiedTimestampUpdated = [...threadListsState.threadsThatHaveModifiedTimestampUpdated];
+
+    // Check if this thread is duplicated.
+    for (let i = 0; i < threadsThatHaveModifiedTimestampUpdated.length; i++) {
+        if (threadsThatHaveModifiedTimestampUpdated[i].id === thread.id) {
+            // If the thread is duplicated and the one is being added is newer than the existing one, replace the existing one
+            if (threadsThatHaveModifiedTimestampUpdated[i].modifiedTimestamp < thread.modifiedTimestamp) {
+                const updatedThreadsThatHaveModifiedTimestampUpdated = [...threadsThatHaveModifiedTimestampUpdated];
+                updatedThreadsThatHaveModifiedTimestampUpdated[i] = { ...thread };
+                return {
+                    threadListsState: {
+                        ...threadListsState,
+                        threadsThatHaveModifiedTimestampUpdated: updatedThreadsThatHaveModifiedTimestampUpdated,
+                    },
+                    addedThreads: [thread],
+                };
+                // If the thread is duplicated and the one is being added is older than or same as the existing one, do nothing
+            } else {
+                return {
+                    threadListsState,
+                    addedThreads: [],
+                };
+            }
+        }
+    }
+
+    // If no duplication, add the thread to the temporary list
+    return {
+        threadListsState: {
+            ...threadListsState,
+            threadsThatHaveModifiedTimestampUpdated: [...threadsThatHaveModifiedTimestampUpdated, thread],
+        },
+        addedThreads: [thread],
+    };
+};
+
+export const removeThreadFromThreadListsState = (threadListsState: ThreadListsState, threadId: string): ThreadListsState => {
+    return {
+        ...threadListsState,
+        favoriteThreadListState: {
+            ...threadListsState.favoriteThreadListState,
+            threads: threadListsState.favoriteThreadListState.threads.filter(t => t.id !== threadId),
+            threadsThatHaveFavoritePropertyChanged: threadListsState.favoriteThreadListState.threadsThatHaveFavoritePropertyChanged.filter(
+                t => t.id !== threadId
+            ),
+        },
+        regularThreadListState: {
+            ...threadListsState.regularThreadListState,
+            threads: threadListsState.regularThreadListState.threads.filter(t => t.id !== threadId),
+            threadsThatHaveFavoritePropertyChanged: threadListsState.regularThreadListState.threadsThatHaveFavoritePropertyChanged.filter(
+                t => t.id !== threadId
+            ),
+        },
+        threadsThatHaveModifiedTimestampUpdated: threadListsState.threadsThatHaveModifiedTimestampUpdated.filter(t => t.id !== threadId),
+    };
+};
+
+/**
+ * Use this when your component has multiple thread list section interacting among each other.
+ *
+ * Insert the thread that has favorite property changed to the existing threads list or the threadsThatHaveFavoritePropertyChanged list based on its modified timestamp.
+ * @param prevThreadListState
+ * @param thread
+ * @returns
+ */
+export const insertThreadThatHasFavoritePropertyChangedToThreadListState = (
+    prevThreadListState: ThreadListState,
+    thread: Thread
+): ThreadListState => {
+    const {
+        threads: prevThreads,
+        threadsThatHaveFavoritePropertyChanged: prevThreadsThatHaveFavoritePropertyChanged,
+        moreThreadsToLoad,
+    } = prevThreadListState;
+
+    // If the thread is already in the existing threads list, do nothing
+    if (prevThreads.some(t => t.id === thread.id)) {
+        return prevThreadListState;
+    } else {
+        // Find the index to insert the thread in the existing threads list to maintain the descending order by modifiedTimestamp
+        const indexToInsertInPrevThreads = getIndexToInsertThread(prevThreads, thread);
+        // Do not insert it to the bottom of the thread list if there are more old threads to load, otherwise it will break the pagination based on the oldest existing thread's modified timestamp. In this
+        // case, insert it to the threadsThatHaveFavoritePropertyChanged list instead.
+        if (indexToInsertInPrevThreads < prevThreads.length || !moreThreadsToLoad) {
+            const updatedThreads = [...prevThreads];
+            updatedThreads.splice(indexToInsertInPrevThreads, 0, thread);
+
+            // Do a filter in case the prevThreadsThatHaveFavoritePropertyChanged already has the thread
+            const updatedThreadsThatHaveFavoritePropertyChanged = prevThreadsThatHaveFavoritePropertyChanged.filter(
+                t => t.id !== thread.id
+            );
+            return {
+                ...prevThreadListState,
+                threads: updatedThreads,
+                threadsThatHaveFavoritePropertyChanged: updatedThreadsThatHaveFavoritePropertyChanged,
+            };
+        } else if (!prevThreadsThatHaveFavoritePropertyChanged.some(t => t.id === thread.id)) {
+            return {
+                ...prevThreadListState,
+                threads: prevThreads,
+                threadsThatHaveFavoritePropertyChanged: insertThreadToThreadList(prevThreadsThatHaveFavoritePropertyChanged, thread),
+            };
+        } else {
+            return prevThreadListState;
+        }
+    }
+};
+
+/**
+ * Use this when your component has multiple thread list section interacting among each other.
+ * @param prevThreads
+ * @param prevThreadsThatHaveFavoritePropertyChanged
+ * @param thread
+ * @returns
+ */
+export const insertThreadThatHasFavoritePropertyChangedToThreadListsState = (
+    prevThreadListsState: ThreadListsState,
+    thread: Thread
+): ThreadListsState => {
+    const fromFavoriteToRegular = !thread.favorite;
+
+    return {
+        ...prevThreadListsState,
+        favoriteThreadListState: fromFavoriteToRegular
+            ? prevThreadListsState.favoriteThreadListState
+            : insertThreadThatHasFavoritePropertyChangedToThreadListState(prevThreadListsState.favoriteThreadListState, thread),
+        regularThreadListState: fromFavoriteToRegular
+            ? insertThreadThatHasFavoritePropertyChangedToThreadListState(prevThreadListsState.regularThreadListState, thread)
+            : prevThreadListsState.regularThreadListState,
+    };
+};
+
+/**
+ * Use this when your component has multiple thread list section interacting among each other.
+ * Push all threads that have favorite property changed to the existing threads list and maintain the descending order by modifiedTimestamp, when there are no more threads to load
+ * @param prevThreads
+ * @param prevThreadsThatHaveFavoritePropertyChanged
+ * @returns
+ */
+export const pushAllThreadsThatHaveFavoritePropertyChangedToThreadLists = (prevThreadsList: ThreadListsState): ThreadListsState => {
+    const { favoriteThreadListState, regularThreadListState } = prevThreadsList;
+
+    if (
+        favoriteThreadListState.threadsThatHaveFavoritePropertyChanged.length === 0 &&
+        regularThreadListState.threadsThatHaveFavoritePropertyChanged.length === 0
+    )
+        return prevThreadsList;
+
+    return {
+        ...prevThreadsList,
+        favoriteThreadListState: {
+            ...favoriteThreadListState,
+            threads: [...favoriteThreadListState.threads, ...favoriteThreadListState.threadsThatHaveFavoritePropertyChanged],
+            threadsThatHaveFavoritePropertyChanged: [],
+        },
+        regularThreadListState: {
+            ...regularThreadListState,
+            threads: [...regularThreadListState.threads, ...regularThreadListState.threadsThatHaveFavoritePropertyChanged],
+            threadsThatHaveFavoritePropertyChanged: [],
+        },
+    };
+};
+
+/**
+ * Use this when your component has multiple thread list section interacting among each other.
+ * Remove threadsThatHaveModifiedTimestampUpdated and push to the top of the existing threads list when initial loading is completed.
+ * @param prevThreads
+ * @param prevThreadsThatHaveFavoritePropertyChanged
+ * @param newThreads
+ * @returns
+ */
+export const pushAllThreadsThatHaveModifiedTimestampUpdatedToThreadLists = (
+    prevThreadListsState: ThreadListsState,
+    newThreads: Thread[]
+): {
+    threadListsState: ThreadListsState;
+    addedThreads: Thread[];
+} => {
+    const { favoriteThreadListState, regularThreadListState } = prevThreadListsState;
+
+    if (newThreads.length === 0) {
+        return {
+            threadListsState: prevThreadListsState,
+            addedThreads: [],
+        };
+    }
+
+    const threadIdsToRemoveFromPrevFavoriteThreads: Set<string> = new Set<string>();
+    const threadIdsToRemoveFromPrevFavoriteThreadsThatHaveFavoritePropertyChanged: Set<string> = new Set<string>();
+    const threadIdsToRemoveFromPrevRegularThreads: Set<string> = new Set<string>();
+    const threadIdsToRemoveFromPrevRegularThreadsThatHaveFavoritePropertyChanged: Set<string> = new Set<string>();
+
+    const newFavoriteThreadsMap: Map<string, Thread> = new Map();
+    const newRegularThreadsMap: Map<string, Thread> = new Map();
+    newThreads.forEach(thread => {
+        // Manually set the thread's favorite property in case the existing property is outdated.
+        if (
+            favoriteThreadListState.threads.some(t => t.id === thread.id) ||
+            favoriteThreadListState.threadsThatHaveFavoritePropertyChanged.some(t => t.id === thread.id)
+        ) {
+            newFavoriteThreadsMap.set(thread.id, { ...thread, favorite: true });
+        } else {
+            newRegularThreadsMap.set(thread.id, { ...thread, favorite: false });
+        }
+    });
+
+    const processThreads = (oldThreads: Thread[], oldThreadIdsToRemove: Set<string>, newThreadsMap: Map<string, Thread>) => {
+        if (newThreadsMap.size === 0) return;
+
+        for (let i = 0; i < oldThreads.length; i++) {
+            const oldThreadId = oldThreads[i].id;
+            const duplicatedThread = newThreadsMap.get(oldThreadId);
+            if (duplicatedThread) {
+                if (duplicatedThread.modifiedTimestamp > oldThreads[i].modifiedTimestamp) {
+                    // If the threads are new and the modified time is greter than the existing duplicated one from the old threads, then remove it from the old threads
+                    oldThreadIdsToRemove.add(oldThreadId);
+                } else {
+                    // Remove thread out of the threadsMap because the thread is already in the existing threads and has not been modified
+                    newThreadsMap.delete(oldThreadId);
+                }
+            }
+        }
+    };
+
+    processThreads(favoriteThreadListState.threads, threadIdsToRemoveFromPrevFavoriteThreads, newFavoriteThreadsMap);
+    processThreads(
+        favoriteThreadListState.threadsThatHaveFavoritePropertyChanged,
+        threadIdsToRemoveFromPrevFavoriteThreadsThatHaveFavoritePropertyChanged,
+        newFavoriteThreadsMap
+    );
+    processThreads(regularThreadListState.threads, threadIdsToRemoveFromPrevRegularThreads, newRegularThreadsMap);
+    processThreads(
+        regularThreadListState.threadsThatHaveFavoritePropertyChanged,
+        threadIdsToRemoveFromPrevRegularThreadsThatHaveFavoritePropertyChanged,
+        newRegularThreadsMap
+    );
+
+    const favoriteThreadsToAdd: Thread[] = Array.from(newFavoriteThreadsMap.values());
+    favoriteThreadsToAdd.sort((a, b) => getSafeDateTime(b.modifiedTimestamp).getTime() - getSafeDateTime(a.modifiedTimestamp).getTime());
+
+    const regularThreadsToAdd: Thread[] = Array.from(newRegularThreadsMap.values());
+    regularThreadsToAdd.sort((a, b) => getSafeDateTime(b.modifiedTimestamp).getTime() - getSafeDateTime(a.modifiedTimestamp).getTime());
+
+    const filteredFavoriteThreads = [...favoriteThreadListState.threads].filter(thread => {
+        return !threadIdsToRemoveFromPrevFavoriteThreads.has(thread.id);
+    });
+
+    const filteredFavoriteThreadsThatHaveFavoritePropertyChanged = [
+        ...favoriteThreadListState.threadsThatHaveFavoritePropertyChanged,
+    ].filter(thread => {
+        return !threadIdsToRemoveFromPrevFavoriteThreadsThatHaveFavoritePropertyChanged.has(thread.id);
+    });
+
+    const filteredRegularThreads = [...regularThreadListState.threads].filter(thread => {
+        return !threadIdsToRemoveFromPrevRegularThreads.has(thread.id);
+    });
+
+    const filteredRegularThreadsThatHaveFavoritePropertyChanged = [...regularThreadListState.threadsThatHaveFavoritePropertyChanged].filter(
+        thread => {
+            return !threadIdsToRemoveFromPrevRegularThreadsThatHaveFavoritePropertyChanged.has(thread.id);
+        }
+    );
+
+    if (favoriteThreadsToAdd.length === 0 && regularThreadsToAdd.length === 0) {
+        return {
+            threadListsState: prevThreadListsState,
+            addedThreads: [],
+        };
+    }
+
+    return {
+        threadListsState: {
+            ...prevThreadListsState,
+            favoriteThreadListState: {
+                ...favoriteThreadListState,
+                threads: [...favoriteThreadsToAdd, ...filteredFavoriteThreads],
+                threadsThatHaveFavoritePropertyChanged: filteredFavoriteThreadsThatHaveFavoritePropertyChanged,
+            },
+            regularThreadListState: {
+                ...regularThreadListState,
+                threads: [...regularThreadsToAdd, ...filteredRegularThreads],
+                threadsThatHaveFavoritePropertyChanged: filteredRegularThreadsThatHaveFavoritePropertyChanged,
+            },
+        },
+        addedThreads: [...favoriteThreadsToAdd, ...regularThreadsToAdd],
     };
 };
 

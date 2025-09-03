@@ -194,7 +194,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         return threads;
     }
 
-    public async Task<IEnumerable<Thread>> GetThreadsAsync(ODataQueryOptions? queryOptions, ActionSeverity? severity = null, ThreadType? threadType = ThreadType.Prod)
+    public async Task<IEnumerable<Thread>> GetThreadsAsync(ODataQueryOptions? queryOptions, ActionSeverity? severity = null, ThreadType? threadType = ThreadType.Prod, bool? favorite = null)
     {
         var threads = new List<Thread>();
 
@@ -212,6 +212,18 @@ public class CosmosDbThreadRepository : IThreadRepository
             else
             {
                 query = query.Where(t => t.ThreadType == threadType) as IOrderedQueryable<ThreadDocument>;
+            }
+        }
+
+        if ((query is not null) && (favorite is not null))
+        {
+            if (favorite == true)
+            {
+                query = query.Where(t => t.Favorite == true) as IOrderedQueryable<ThreadDocument>;
+            }
+            else
+            {
+                query = query.Where(t => t.Favorite.IsDefined() == false || t.Favorite == false) as IOrderedQueryable<ThreadDocument>;
             }
         }
 
@@ -667,6 +679,52 @@ public class CosmosDbThreadRepository : IThreadRepository
         {
             _logger.LogInternalWarning(ex, "Thread {ThreadId} not found during agent mode update", threadId);
             return null;
+        }
+    }
+
+    public async Task<Thread?> UpdateThreadFavoriteAsync(Guid threadId, bool favorite)
+    {
+        string threadIdStr = threadId.ToString();
+
+        try
+        {
+            // Get the current thread document
+            ThreadDocument? threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
+
+            if (threadDoc == null)
+            {
+                _logger.LogInternalWarning("Cannot update thread's favorite property: Thread {ThreadId} not found", threadId);
+                return null;
+            }
+
+            // Update the favorite property
+            var updatedThreadDoc = threadDoc with
+            {
+                Favorite = favorite,
+            };
+
+            // Save the updated document
+            await _client.GetContainer<ThreadDocument>(_databaseName).ReplaceItemAsync(
+                updatedThreadDoc,
+                updatedThreadDoc.Id,
+                new PartitionKey(updatedThreadDoc.PartitionKey)
+            );
+
+            var updatedThread = await GetThreadAsync(threadId);
+
+            // Return the complete updated Thread domain model
+            _logger.LogInternalInformation("Successfully updated favorite property for thread {ThreadId}", threadId);
+            return updatedThread;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            _logger.LogInternalWarning("Cannot update favorite property: Thread {ThreadId} not found", threadId);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error updating favorite property for thread {ThreadId}", threadId);
+            throw;
         }
     }
 

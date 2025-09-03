@@ -17,24 +17,40 @@ const useThreadFiltersStyles = makeStyles({
     },
 });
 
-const ThreadFilters = ({ unreadOnly, setUnreadOnly }: { unreadOnly: boolean; setUnreadOnly: (value: boolean) => void }) => {
+const ThreadFilters = ({
+    disabled,
+    unreadOnly,
+    setUnreadOnly,
+}: {
+    disabled: boolean;
+    unreadOnly: boolean;
+    setUnreadOnly: (value: boolean) => void;
+}) => {
     const { root, filterContainer } = useThreadFiltersStyles();
 
     return (
         <div className={root}>
             <div className={filterContainer}>
-                <ThreadFilterButton isSelected={unreadOnly} update={setUnreadOnly} />
+                <ThreadFilterButton isSelected={unreadOnly} update={setUnreadOnly} disabled={disabled} />
             </div>
         </div>
     );
 };
 
-const ThreadFilterButton = memo(({ isSelected, update }: { isSelected: boolean; update: (value: boolean) => void }) => {
-    return (
-        <Button shape={'circular'} size={'small'} appearance={isSelected ? 'primary' : 'outline'} onClick={() => update(!isSelected)}>
-            <FormattedMessage {...SreAgentResources.unread} />
-        </Button>
-    );
-});
+const ThreadFilterButton = memo(
+    ({ isSelected, update, disabled }: { isSelected: boolean; update: (value: boolean) => void; disabled: boolean }) => {
+        return (
+            <Button
+                shape={'circular'}
+                size={'small'}
+                appearance={isSelected ? 'primary' : 'outline'}
+                onClick={() => update(!isSelected)}
+                disabled={disabled}
+            >
+                <FormattedMessage {...SreAgentResources.unread} />
+            </Button>
+        );
+    }
+);
 
 export default memo(ThreadFilters);

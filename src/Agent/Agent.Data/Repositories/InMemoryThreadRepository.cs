@@ -58,7 +58,7 @@ namespace Agent.Data.Repositories
             return Task.FromResult(thread);
         }
 
-        public Task<IEnumerable<Thread>> GetThreadsAsync(ODataQueryOptions? queryOptions, ActionSeverity? severity = null, ThreadType? threadType = ThreadType.Prod)
+        public Task<IEnumerable<Thread>> GetThreadsAsync(ODataQueryOptions? queryOptions, ActionSeverity? severity = null, ThreadType? threadType = ThreadType.Prod, bool? favorite = null)
         {
             IQueryable<Thread> threads = _threads.Values.AsQueryable().OrderBy(t => t.CreatedTimestamp);
 
@@ -71,6 +71,17 @@ namespace Agent.Data.Repositories
                 else
                 {
                     threads = threads.Where(t => t.Type == threadType);
+                }
+            }
+
+            if (favorite is not null)
+            {
+                if(favorite == true)
+                {
+                    threads = threads.Where(t => t.Favorite == true);
+                } else
+                {
+                    threads = threads.Where(t => t.Favorite == null || t.Favorite == false);
                 }
             }
 
@@ -333,6 +344,26 @@ namespace Agent.Data.Repositories
 
             _logger.LogInternalInformation("Successfully updated agent mode for thread {ThreadId}", threadId);
             return updatedThread;
+        }
+
+        public Task<Thread?> UpdateThreadFavoriteAsync(Guid threadId, bool favorite)
+        {
+            if (!_threads.TryGetValue(threadId, out var thread))
+            {
+                _logger.LogInternalWarning("Cannot update favorite property: Thread {ThreadId} not found", threadId);
+                return Task.FromResult<Thread?>(null);
+            }
+
+            // Update the favorite property
+            var updatedThread = thread with
+            {
+                Favorite = favorite,
+            };
+
+            _threads[threadId] = updatedThread;
+
+            _logger.LogInternalInformation("Successfully updated favorite property for thread {ThreadId}", threadId);
+            return Task.FromResult<Thread?>(updatedThread);
         }
 
         #endregion

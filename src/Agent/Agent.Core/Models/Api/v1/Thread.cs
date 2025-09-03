@@ -57,6 +57,7 @@ namespace Agent.Core.Models.Api.v1
         public DateTime EvaluatedTimestamp { get; set; } = default;
         public DateTime TrajectoryGeneratedTimestamp { get; set; } = default;
         public string? AgentMode { get; set; } = null;
+        public bool? Favorite { get; set; } = null;
     };
 
     public class Status
@@ -97,6 +98,10 @@ namespace Agent.Core.Models.Api.v1
 
     public record UpdateAgentModeRequest(
         [Required] string AgentMode
+    );
+
+    public record UpdateFavoriteRequest(
+        [Required] bool Favorite
     );
 }
 

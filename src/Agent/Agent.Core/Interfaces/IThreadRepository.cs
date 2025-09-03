@@ -12,7 +12,7 @@ namespace Agent.Core.Interfaces;
 public interface IThreadRepository
 {
     Task<Thread?> GetThreadAsync(Guid threadId);
-    Task<IEnumerable<Thread>> GetThreadsAsync(ODataQueryOptions? queryOptions = null, ActionSeverity? severity = null, ThreadType? threadType = ThreadType.Prod);
+    Task<IEnumerable<Thread>> GetThreadsAsync(ODataQueryOptions? queryOptions = null, ActionSeverity? severity = null, ThreadType? threadType = ThreadType.Prod, bool? favorite = null);
     Task<IEnumerable<Thread>> GetThreadsBySourceAsync(ODataQueryOptions? queryOptions = null, ThreadSource? source = null, IncidentType? incidentType = null, DateTime? createdAfter = null);
     Task<Thread> CreateThreadAsync(Thread thread);
     Task<bool> DeleteThreadAsync(Guid threadId);
@@ -23,6 +23,7 @@ public interface IThreadRepository
     Task<Thread?> UpdateTrajectoryGeneratedTimestampAsync(Guid threadId, DateTime evaluatedTimestamp);
     Task<Thread?> UpdateThreadAgentModeAsync(Guid threadId, string? agentMode);
     Task<Thread?> UpdateThreadFeatureSetAsync(Guid threadId, FeatureConfig featureConfig);
+    Task<Thread?> UpdateThreadFavoriteAsync(Guid threadId, bool favorite);
 
     Task<Message?> GetMessageAsync(Guid threadId, Guid messageId);
     Task<IEnumerable<Message>> GetMessagesAsync(Guid threadId, ODataQueryOptions? queryOptions = null);
