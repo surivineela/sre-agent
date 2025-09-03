@@ -32,15 +32,15 @@ public static class ProfileCommandHandlers
 
             if (!profiles.Any())
             {
-                Console.WriteLine("No profiles found.");
+                ConsoleUI.WriteInfo("No profiles found.", ConsoleColor.Gray);
                 return Task.CompletedTask;
             }
 
-            Console.WriteLine("Available profiles:");
+            ConsoleUI.WriteSection("Available profiles");
             foreach (var profile in profiles)
             {
                 var marker = profile == currentProfile ? " (current)" : "";
-                Console.WriteLine($"  • {profile}{marker}");
+                ConsoleUI.WriteBullet($"{profile}{marker}", ConsoleColor.White);
             }
 
             Environment.Exit(0);
@@ -48,7 +48,7 @@ public static class ProfileCommandHandlers
         catch (Exception ex)
         {
             DebugLogger.Debug("Exception", $"ProfileList failed: {ex.Message}");
-            Console.WriteLine($"❌ Failed to list profiles: {ex.Message}");
+            ConsoleUI.WriteStatus(false, $"Failed to list profiles: {ex.Message}");
             Environment.Exit(1);
         }
 
@@ -80,7 +80,7 @@ public static class ProfileCommandHandlers
                 var currentConfig = await configService.LoadProfileAsync(currentProfile);
                 if (currentConfig == null)
                 {
-                    Console.WriteLine($"❌ Current profile '{currentProfile}' not found.");
+                    ConsoleUI.WriteStatus(false, $"Current profile '{currentProfile}' not found.");
                     Environment.Exit(1);
                     return;
                 }
@@ -96,7 +96,7 @@ public static class ProfileCommandHandlers
 
                 if (profile == null)
                 {
-                    Console.WriteLine($"❌ Profile '{profileName}' not found.");
+                    ConsoleUI.WriteStatus(false, $"Profile '{profileName}' not found.");
                     Environment.Exit(1);
                     return;
                 }
@@ -109,7 +109,7 @@ public static class ProfileCommandHandlers
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Failed to get profile: {ex.Message}");
+            ConsoleUI.WriteStatus(false, $"Failed to get profile: {ex.Message}");
             Environment.Exit(1);
         }
     }
@@ -135,14 +135,14 @@ public static class ProfileCommandHandlers
 
             if (string.IsNullOrWhiteSpace(profileName))
             {
-                Console.WriteLine("❌ Profile name is required.");
+                ConsoleUI.WriteStatus(false, "Profile name is required.");
                 Environment.Exit(1);
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(resourceUrl))
             {
-                Console.WriteLine("❌ Resource URL is required.");
+                ConsoleUI.WriteStatus(false, "Resource URL is required.");
                 Environment.Exit(1);
                 return;
             }
@@ -151,7 +151,7 @@ public static class ProfileCommandHandlers
             if (!Uri.TryCreate(resourceUrl, UriKind.Absolute, out _))
             {
                 DebugLogger.Debug("Validation", $"Invalid URL format: {resourceUrl}");
-                Console.WriteLine("❌ Invalid URL format provided.");
+                ConsoleUI.WriteStatus(false, "Invalid URL format provided.");
                 Environment.Exit(1);
                 return;
             }
@@ -163,8 +163,35 @@ public static class ProfileCommandHandlers
             if (existingProfile != null)
             {
                 DebugLogger.Debug("Validation", $"Profile already exists: {profileName}");
-                Console.WriteLine($"❌ Profile '{profileName}' already exists.");
-                Environment.Exit(1);
+                
+                // Test connection to verify the existing profile is still valid
+                ConsoleUI.WriteInfo("Profile exists, testing connection...", ConsoleColor.Cyan);
+                using var existingApiService = new ApiService();
+                var (existingSuccess, existingResponse) = await existingApiService.TestConnectionAsync(existingProfile.ResourceUrl);
+
+                if (!existingSuccess)
+                {
+                    ConsoleUI.WriteStatus(false, $"Existing profile '{profileName}' has connection issues");
+                    Console.WriteLine($"   Resource URL: {existingProfile.ResourceUrl}");
+                    Console.WriteLine($"   Error: {existingResponse}");
+                    Environment.Exit(1);
+                    return;
+                }
+
+                // Profile exists and connection is successful
+                ConsoleUI.WriteStatus(true, $"Profile '{profileName}' already exists and connection is valid");
+                Console.WriteLine($"   Resource URL: {existingProfile.ResourceUrl}");
+                Console.WriteLine($"   Auth Required: {existingProfile.AuthRequired}");
+                Console.WriteLine($"   Connection successful");
+
+                // Set as current profile if requested
+                if (setCurrent)
+                {
+                    await configService.SetCurrentProfileAsync(profileName);
+                    Console.WriteLine($"   Set as current profile: Yes");
+                }
+
+                Environment.Exit(0);
                 return;
             }
 
@@ -180,32 +207,45 @@ public static class ProfileCommandHandlers
             DebugLogger.LogConfig("ResourceUrl", config.ResourceUrl);
             DebugLogger.LogConfig("AuthRequired", config.AuthRequired.ToString());
 
-            // Save the profile
-            await configService.SaveProfileAsync(profileName, config);
+            // Test connection first before saving
+            ConsoleUI.WriteInfo("Testing connection...", ConsoleColor.Cyan);
+            using var apiService = new ApiService();
+            var (success, response) = await apiService.TestConnectionAsync(resourceUrl);
 
-            Console.WriteLine($"✅ Profile '{profileName}' created successfully!");
-            Console.WriteLine($"   Resource URL: {resourceUrl}");
-            Console.WriteLine($"   Auth Required: {config.AuthRequired}");
+            if (!success)
+            {
+                ConsoleUI.WriteStatus(false, $"Profile creation failed: Unable to connect to server");
+                Console.WriteLine($"   Resource URL: {resourceUrl}");
+                Console.WriteLine($"   Error: {response}");
+                Environment.Exit(1);
+                return;
+            }
+
+            // Save the profile only after successful connection test
+            await configService.SaveProfileAsync(profileName, config);
 
             // Set as current profile if requested
             if (setCurrent)
             {
                 await configService.SetCurrentProfileAsync(profileName);
-                Console.WriteLine($"   Set as current profile: Yes");
             }
 
-            // Test connection
-            Console.WriteLine("\n🔄 Testing connection...");
-            using var apiService = new ApiService();
-            var (success, response) = await apiService.TestConnectionAsync(resourceUrl);
-            Console.WriteLine(response);
+            // Show success message only after everything succeeds
+            ConsoleUI.WriteStatus(true, $"Profile '{profileName}' created successfully!");
+            Console.WriteLine($"   Resource URL: {resourceUrl}");
+            Console.WriteLine($"   Auth Required: {config.AuthRequired}");
+            if (setCurrent)
+            {
+                Console.WriteLine($"   Set as current profile: Yes");
+            }
+            Console.WriteLine($"   Connection: {response}");
 
-            Environment.Exit(success ? 0 : 1);
+            Environment.Exit(0);
         }
         catch (Exception ex)
         {
             DebugLogger.Debug("Exception", $"ProfileCreate failed: {ex.Message}");
-            Console.WriteLine($"❌ Failed to create profile: {ex.Message}");
+            ConsoleUI.WriteStatus(false, $"Failed to create profile: {ex.Message}");
             Environment.Exit(1);
         }
     }
@@ -221,7 +261,7 @@ public static class ProfileCommandHandlers
 
             if (string.IsNullOrWhiteSpace(profileName))
             {
-                Console.WriteLine("❌ Profile name is required.");
+                ConsoleUI.WriteStatus(false, "Profile name is required.");
                 Environment.Exit(1);
                 return;
             }
@@ -232,7 +272,7 @@ public static class ProfileCommandHandlers
             var profile = await configService.LoadProfileAsync(profileName);
             if (profile == null)
             {
-                Console.WriteLine($"❌ Profile '{profileName}' not found.");
+                ConsoleUI.WriteStatus(false, $"Profile '{profileName}' not found.");
                 Environment.Exit(1);
                 return;
             }
@@ -243,7 +283,7 @@ public static class ProfileCommandHandlers
             // Also save as the main configuration for backward compatibility
             await configService.SaveConfigurationAsync(profile);
 
-            Console.WriteLine($"✅ Switched to profile '{profileName}'");
+            ConsoleUI.WriteStatus(true, $"Switched to profile '{profileName}'");
             Console.WriteLine($"   Resource URL: {profile.ResourceUrl}");
             Console.WriteLine($"   Auth Required: {profile.AuthRequired}");
 
@@ -251,7 +291,7 @@ public static class ProfileCommandHandlers
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Failed to switch profile: {ex.Message}");
+            ConsoleUI.WriteStatus(false, $"Failed to switch profile: {ex.Message}");
             Environment.Exit(1);
         }
     }
@@ -267,7 +307,7 @@ public static class ProfileCommandHandlers
 
             if (string.IsNullOrWhiteSpace(profileName))
             {
-                Console.WriteLine("❌ Profile name is required.");
+                ConsoleUI.WriteStatus(false, "Profile name is required.");
                 Environment.Exit(1);
                 return Task.CompletedTask;
             }
@@ -275,10 +315,9 @@ public static class ProfileCommandHandlers
             var configService = new CliConfigurationService();
 
             // Check if profile exists
-            var profilePath = Path.Combine(".sreagent-profiles", $"{profileName}.json");
-            if (!File.Exists(profilePath))
+            if (!configService.ProfileExists(profileName))
             {
-                Console.WriteLine($"❌ Profile '{profileName}' not found.");
+                ConsoleUI.WriteStatus(false, $"Profile '{profileName}' not found.");
                 Environment.Exit(1);
                 return Task.CompletedTask;
             }
@@ -287,22 +326,22 @@ public static class ProfileCommandHandlers
             var currentProfile = configService.GetCurrentProfile();
             if (currentProfile == profileName)
             {
-                Console.WriteLine($"❌ Cannot delete '{profileName}' because it's the current profile.");
+                ConsoleUI.WriteStatus(false, $"Cannot delete '{profileName}' because it's the current profile.");
                 Console.WriteLine("   Switch to another profile first using 'srectl profile set <profile-name>'");
                 Environment.Exit(1);
                 return Task.CompletedTask;
             }
 
-            // Delete the profile file
-            File.Delete(profilePath);
+            // Delete the profile
+            configService.DeleteProfile(profileName);
 
-            Console.WriteLine($"✅ Profile '{profileName}' deleted successfully.");
+            ConsoleUI.WriteStatus(true, $"Profile '{profileName}' deleted successfully.");
 
             Environment.Exit(0);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Failed to delete profile: {ex.Message}");
+            ConsoleUI.WriteStatus(false, $"Failed to delete profile: {ex.Message}");
             Environment.Exit(1);
         }
 

@@ -11,14 +11,14 @@ namespace Agent.Web.Models.ExtendedAgents;
 public class GenericResourceModel
 {
 
-    [JsonPropertyName( "api_version")]
-    public required string ApiVersion { get; set; }
+    [JsonPropertyName("api_version")]
+    public string? ApiVersion { get; set; }
 
-    [JsonPropertyName( "kind")]
-    public required string Kind { get; set; }
+    [JsonPropertyName("kind")]
+    public string? Kind { get; set; }
 
-    [JsonPropertyName( "metadata")]
-    public required YamlMetadata Metadata { get; set; }
+    [JsonPropertyName("metadata")]
+    public YamlMetadata? Metadata { get; set; }
 
     [JsonPropertyName("spec")]
     public JsonElement Spec { get; set; }

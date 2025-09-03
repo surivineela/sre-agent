@@ -1,110 +1,116 @@
+// CommandBuilder.cs
+using System.Collections.Generic;
 using System.CommandLine;
-using System.CommandLine.NamingConventionBinder;
-using Agent.Cli.Commands;
+using System.CommandLine.Help;
+using System.Text;
+using System.Threading.Tasks;
+using System.Threading;
+using System.Linq;
+using Agent.Cli.Helpers;
 using Agent.Cli.Services;
 
 namespace Agent.Cli.Commands;
 
-/// <summary>
-/// Builds the complete command-line interface structure for the SRECTL tool.
-/// </summary>
 public static class CommandBuilder
 {
-    /// <summary>
-    /// Creates and configures all CLI commands and their hierarchical structure.
-    /// </summary>
-    /// <returns>The root command with all subcommands configured</returns>
     public static RootCommand BuildCommands()
     {
-        // Build agent commands
-        var agentCreate = CreateAgentCreateCommand();
-        var agentValidate = CreateAgentValidateCommand();
-        var agentApply = CreateAgentApplyCommand();
-        var agentDelete = CreateAgentDeleteCommand();
-        var agentTest = CreateAgentTestCommand();
+        // ----- Build subcommand trees
+        var agent = new Command("agent", "Agent commands for managing SRE automation agents")
+        {
+            CreateAgentCreateCommand(),
+            CreateAgentValidateCommand(),
+            CreateAgentApplyCommand(),
+            CreateAgentDeleteCommand(),
+            CreateAgentTestCommand(),
+            CreateAgentDiffCommand(),
+            CreateAgentListCommand()
+        };
 
-        var agent = new Command("agent", "Agent commands");
-        agent.Subcommands.Add(agentCreate);
-        agent.Subcommands.Add(agentValidate);
-        agent.Subcommands.Add(agentApply);
-        agent.Subcommands.Add(agentDelete);
-        agent.Subcommands.Add(agentTest);
+        // Add default action for agent command to show formatted help
+        agent.SetAction((ParseResult pr) => ShowFormattedAgentHelp(agent));
 
-        // Build tool commands
-        var toolCreate = CreateToolCreateCommand();
-        var toolValidate = CreateToolValidateCommand();
-        var toolApply = CreateToolApplyCommand();
-        var toolDelete = CreateToolDeleteCommand();
-        var toolShowTypes = CreateToolShowTypesCommand();
-        var toolShowConnectors = CreateToolShowConnectorsCommand();
+        var tool = new Command("tool", "Tool commands for managing SRE automation tools")
+        {
+            CreateToolCreateCommand(),
+            CreateToolValidateCommand(),
+            CreateToolApplyCommand(),
+            CreateToolDeleteCommand(),
+            CreateToolDiffCommand(),
+            CreateToolShowTypesCommand(),
+            CreateToolShowConnectorsCommand(),
+            CreateToolListCommand()
+        };
 
-        var tool = new Command("tool", "Tool commands");
-        tool.Subcommands.Add(toolCreate);
-        tool.Subcommands.Add(toolValidate);
-        tool.Subcommands.Add(toolApply);
-        tool.Subcommands.Add(toolDelete);
-        tool.Subcommands.Add(toolShowTypes);
-        tool.Subcommands.Add(toolShowConnectors);
+        // Add default action for tool command to show formatted help
+        tool.SetAction((ParseResult pr) => ShowFormattedToolHelp(tool));
 
-        // Build document commands
-        var docUpload = CreateDocumentUploadCommand();
-        var docSearch = CreateDocumentSearchCommand();
-        var docReindex = CreateDocumentReindexCommand();
+        var doc = new Command("doc", "Document management commands. Upload and manage documents like TSGs, architecture docs, runbooks, and other reference materials for agents to use")
+        {
+            CreateDocumentUploadCommand(),
+            CreateDocumentSearchCommand(),
+            CreateDocumentReindexCommand()
+        };
 
-        var doc = new Command("doc", "Document management commands");
-        doc.Subcommands.Add(docUpload);
-        doc.Subcommands.Add(docSearch);
-        doc.Subcommands.Add(docReindex);
+        // Add default action for doc command to show formatted help
+        doc.SetAction((ParseResult pr) => ShowFormattedDocHelp(doc));
 
-        // Build profile commands
-        var profileList = CreateProfileListCommand();
-        var profileGet = CreateProfileGetCommand();
-        var profileCreate = CreateProfileCreateCommand();
-        var profileSet = CreateProfileSetCommand();
-        var profileDelete = CreateProfileDeleteCommand();
+        var profile = new Command("profile", "Profile management commands. Profiles store connection settings for different SRE Agent instances (local or remote)")
+        {
+            CreateProfileListCommand(),
+            CreateProfileGetCommand(),
+            CreateProfileCreateCommand(),
+            CreateProfileSetCommand(),
+            CreateProfileDeleteCommand()
+        };
 
-        var profile = new Command("profile", "Profile management commands. Profiles store connection settings for different SRE Agent instances (local or remote)");
-        profile.Subcommands.Add(profileList);
-        profile.Subcommands.Add(profileGet);
-        profile.Subcommands.Add(profileCreate);
-        profile.Subcommands.Add(profileSet);
-        profile.Subcommands.Add(profileDelete);
+        // Add default action for profile command to show formatted help
+        profile.SetAction((ParseResult pr) => ShowFormattedProfileHelp(profile));
 
-        // Build general commands
         var initCommand = CreateInitCommand();
         var listCommand = CreateListCommand();
+
+        // Add default action for list command to show formatted help
+        listCommand.SetAction((ParseResult pr) => ShowFormattedListHelp(listCommand));
         var applyYamlCommand = CreateApplyYamlCommand();
         var threadCommand = CreateThreadCommand();
+
+        // Add default action for thread command to show formatted help
+        threadCommand.SetAction((ParseResult pr) => ShowFormattedThreadHelp(threadCommand));
         var chatCommand = CreateChatCommand();
+        var welcomeCommand = CreateWelcomeCommand();
+        var helpCommand = CreateEnhancedHelpCommand();
+        var suggestCommand = CreateSuggestCommand();
+        var statusCommand = CreateStatusCommand();
+        var interactiveCommand = CreateInteractiveCommand();
+        var versionCommand = CreateVersionCommand();
 
-        // Global options
-        var debugOption = new Option<bool>("--debug") { Description = "Enable debug logging" };
-        var quietOption = new Option<bool>("--quiet") { Description = "Minimize output" };
+        var incidentHandler = BuildIncidentHandlerCommand();
 
-        // Root command
-        var root = new RootCommand("SRE Agent CLI");
-        root.Options.Add(debugOption);
-        root.Options.Add(quietOption);
+        // Add default action for incident handler command to show formatted help
+        incidentHandler.SetAction((ParseResult pr) => ShowFormattedIncidentHandlerHelp(incidentHandler));
 
-        root.Subcommands.Add(initCommand);
-        root.Subcommands.Add(listCommand);
-        root.Subcommands.Add(applyYamlCommand);
-        root.Subcommands.Add(threadCommand);
-        root.Subcommands.Add(chatCommand);
-        root.Subcommands.Add(agent);
-        root.Subcommands.Add(tool);
-        root.Subcommands.Add(doc);
-        root.Subcommands.Add(profile);
-        root.Subcommands.Add(BuildIncidentHandlerCommand());
+        // ----- Root
+        var root = new RootCommand("SRE Agent CLI - Your intelligent assistant for managing SRE agents and automating incident response")
+        {
+            welcomeCommand, helpCommand, suggestCommand, statusCommand, interactiveCommand, versionCommand,
+            initCommand, listCommand, applyYamlCommand, threadCommand, chatCommand,
+            agent, tool, doc, profile, incidentHandler
+        };
+
+        // Single root action (runs when no verb provided)
+        root.SetAction((ParseResult pr) => HandleRootCommand(pr));
+
+        // Simulate global options on all commands (older System.CommandLine lacks AddGlobalOption)
+        root.AddGlobalOptionsCompat(GlobalOptions.Debug, GlobalOptions.Quiet);
 
         return root;
     }
 
     private static Command CreateAgentCreateCommand()
     {
-        var agentCreate = new Command("create", "Create a new agent YAML")
+        var cmd = new Command("create", CommandExamples.Agent.CreateDescription)
         {
-            AgentCommandOptions.DebugOption,
             AgentCommandOptions.NameOptionCreate,
             AgentCommandOptions.InstructionsOptionCreate,
             AgentCommandOptions.ToolsOptionCreate,
@@ -120,182 +126,286 @@ public static class CommandBuilder
             AgentCommandOptions.OutputTypeOption,
             AgentCommandOptions.SmartOption
         };
-        agentCreate.SetAction(async parseResult =>
+
+        cmd.SetAction((ParseResult pr) =>
         {
-            await AgentCommandHandlers.HandleCreateCommand(parseResult);
+            if (IsHelpRequested(pr))
+                return ShowFormattedSubcommandHelp("Agent Create", "Create a new agent YAML configuration file", cmd,
+                    new[] {
+                        "srectl agent create --name DevOpsAgent --instructions \"Help with DevOps tasks\"",
+                        "srectl agent create --name KustoAgent --tools QueryKusto AnalyzeMetrics",
+                        "srectl agent create --name StorageAgent --smart --instructions \"Help troubleshoot Azure Storage issues\""
+                    });
+            return AgentCommandHandlers.HandleCreateCommand(pr);
         });
-        return agentCreate;
+        return cmd;
     }
 
     private static Command CreateAgentValidateCommand()
     {
-        var agentValidate = new Command("validate", "Validate an agent")
+        var cmd = new Command("validate", CommandExamples.Agent.ValidateDescription)
         {
-            AgentCommandOptions.DebugOption,
             AgentCommandOptions.FileOptionValidate,
             AgentCommandOptions.AllOption,
             AgentCommandOptions.CheckToolsOption
         };
-        agentValidate.SetAction(async parseResult =>
+
+        cmd.SetAction((ParseResult pr) =>
         {
-            await AgentCommandHandlers.HandleValidateCommand(parseResult);
+            if (IsHelpRequested(pr))
+                return ShowFormattedSubcommandHelp("Agent Validate", "Validate agent YAML configuration files", cmd,
+                    new[] {
+                        "srectl agent validate --file agents/MyAgent/MyAgent.yaml",
+                        "srectl agent validate --all",
+                        "srectl agent validate --all --check-tools"
+                    });
+            return AgentCommandHandlers.HandleValidateCommand(pr);
         });
-        return agentValidate;
+        return cmd;
     }
 
     private static Command CreateAgentApplyCommand()
     {
-        var agentApply = new Command("apply", "Apply an agent configuration to the remote server")
+        var cmd = new Command("apply", CommandExamples.Agent.ApplyDescription)
         {
-            AgentCommandOptions.DebugOption,
             AgentCommandOptions.ApplyNameOption,
             AgentCommandOptions.ApplyDryRunOption
         };
-        agentApply.SetAction(async parseResult =>
+
+        cmd.SetAction((ParseResult pr) =>
         {
-            await AgentCommandHandlers.HandleApplyCommand(parseResult);
+            if (IsHelpRequested(pr))
+                return ShowFormattedSubcommandHelp("Agent Apply", "Apply an agent configuration to the remote server", cmd,
+                    new[] {
+                        "srectl agent apply --name DevOpsAgent",
+                        "srectl agent apply --name KustoAgent --dry-run",
+                        "srectl agent apply --name MyAgent --debug"
+                    });
+            return AgentCommandHandlers.HandleApplyCommand(pr);
         });
-        return agentApply;
+        return cmd;
     }
 
     private static Command CreateAgentDeleteCommand()
     {
-        var agentDelete = new Command("delete", "Delete an agent from the remote server")
+        var cmd = new Command("delete", CommandExamples.Agent.DeleteDescription)
         {
-            AgentCommandOptions.DebugOption,
             AgentCommandOptions.DeleteNameOption
         };
-        agentDelete.SetAction(async parseResult =>
+
+        cmd.SetAction((ParseResult pr) =>
         {
-            await AgentCommandHandlers.HandleDeleteCommand(parseResult);
+            if (IsHelpRequested(pr))
+                return ShowFormattedSubcommandHelp("Agent Delete", "Delete an agent from the remote server", cmd,
+                    new[] {
+                        "srectl agent delete --name OldAgent",
+                        "srectl agent delete --name TestAgent --debug"
+                    });
+            return AgentCommandHandlers.HandleDeleteCommand(pr);
         });
-        return agentDelete;
+        return cmd;
     }
 
     private static Command CreateAgentTestCommand()
     {
-        var agentTest = new Command("test", "Test an agent with a specific message")
+        var cmd = new Command("test", CommandExamples.Agent.TestDescription)
         {
-            AgentCommandOptions.DebugOption,
             AgentCommandOptions.TestNameOption,
             AgentCommandOptions.TestMessageOption,
             AgentCommandOptions.TestUserIdOption,
             AgentCommandOptions.TestDisplayNameOption,
-            AgentCommandOptions.TestNoWaitOption
+            AgentCommandOptions.ThreadWaitOption,
+            AgentCommandOptions.ThreadNoWaitOption
         };
-        agentTest.SetAction(async parseResult =>
+
+        cmd.Validators.Add(result =>
         {
-            await AgentCommandHandlers.HandleTestCommand(parseResult);
+            var w = result.GetValue(AgentCommandOptions.ThreadWaitOption);
+            var nw = result.GetValue(AgentCommandOptions.ThreadNoWaitOption);
+            if (w && nw) result.AddError("Specify either --wait or --no-wait, not both.");
         });
-        return agentTest;
+
+        cmd.SetAction((ParseResult pr) =>
+        {
+            if (IsHelpRequested(pr))
+                return ShowFormattedSubcommandHelp("Agent Test", "Test an agent with a specific message", cmd,
+                    new[] {
+                        "srectl agent test --name DevOpsAgent --message \"Check pod status in namespace production\"",
+                        "srectl agent test --name KustoAgent --message \"Query memory usage\" --no-wait",
+                        "srectl agent test --name MyAgent --message \"Help me\" --user-id john.doe --display-name \"John Doe\""
+                    });
+            return AgentCommandHandlers.HandleTestCommand(pr);
+        });
+        return cmd;
+    }
+
+    private static Command CreateAgentDiffCommand()
+    {
+        var cmd = new Command("diff", "Compare local and remote agent configurations")
+        {
+            AgentCommandOptions.DiffNameOption,
+            AgentCommandOptions.DiffToolOption,
+            AgentCommandOptions.DiffRawOption
+        };
+
+        cmd.SetAction((ParseResult pr) =>
+        {
+            if (IsHelpRequested(pr))
+                return ShowFormattedSubcommandHelp("Agent Diff", "Compare local and remote agent configurations", cmd,
+                    new[] {
+                        "srectl agent diff --name DevOpsAgent",
+                        "srectl agent diff --name KustoAgent --tool code",
+                        "srectl agent diff --name MyAgent --raw"
+                    });
+            return AgentCommandHandlers.HandleDiffCommand(pr);
+        });
+        return cmd;
+    }
+
+    private static Command CreateAgentListCommand()
+    {
+        var cmd = new Command("list", "List remote extended agents from the server")
+        {
+            AgentCommandOptions.DebugOption,
+            AgentCommandOptions.AllOption
+        };
+        cmd.SetAction((ParseResult pr) =>
+        {
+            if (IsHelpRequested(pr))
+                return ShowFormattedSubcommandHelp("Agent List", "List remote extended agents from the server", cmd,
+                    new[] { "srectl agent list", "srectl agent list --all", "srectl agent list --debug" });
+            return GeneralCommandHandlers.HandleListAgentsCommand(pr);
+        });
+        return cmd;
     }
 
     private static Command CreateToolCreateCommand()
     {
-        var toolCreate = new Command("create", "Create a new tool YAML")
+        var cmd = new Command("create", CommandExamples.Tool.CreateDescription)
         {
-            ToolCommandOptions.DebugOption,
             ToolCommandOptions.NameOption,
             ToolCommandOptions.TypeOption,
             ToolCommandOptions.PathOption,
             ToolCommandOptions.ExtraOption
         };
-        toolCreate.SetAction(async parseResult =>
-        {
-            await ToolCommandHandlers.HandleCreateCommand(parseResult);
-        });
-        return toolCreate;
+
+        cmd.SetAction((ParseResult pr) => ToolCommandHandlers.HandleCreateCommand(pr));
+        return cmd;
     }
 
     private static Command CreateToolValidateCommand()
     {
-        var toolValidate = new Command("validate", "Validate a tool YAML")
+        var cmd = new Command("validate", CommandExamples.Tool.ValidateDescription)
         {
-            ToolCommandOptions.DebugOption,
             ToolCommandOptions.NameOptionValidate,
             ToolCommandOptions.AllOption
         };
-        toolValidate.SetAction(parseResult =>
-        {
-            ToolCommandHandlers.HandleValidateCommand(parseResult);
-        });
-        return toolValidate;
+
+        cmd.SetAction((ParseResult pr) => ToolCommandHandlers.HandleValidateCommand(pr));
+        return cmd;
     }
 
     private static Command CreateToolApplyCommand()
     {
-        var toolApply = new Command("apply", "Apply a tool configuration to the remote server")
+        var cmd = new Command("apply", CommandExamples.Tool.ApplyDescription)
         {
-            ToolCommandOptions.DebugOption,
             ToolCommandOptions.ApplyNameOption,
             ToolCommandOptions.DryRunOption
         };
-        toolApply.SetAction(async parseResult =>
-        {
-            await ToolCommandHandlers.HandleApplyCommand(parseResult);
-        });
-        return toolApply;
+
+        cmd.SetAction((ParseResult pr) => ToolCommandHandlers.HandleApplyCommand(pr));
+        return cmd;
     }
 
     private static Command CreateToolDeleteCommand()
     {
-        var toolDelete = new Command("delete", "Delete a tool from the remote server")
+        var cmd = new Command("delete", CommandExamples.Tool.DeleteDescription)
         {
-            ToolCommandOptions.DebugOption,
             ToolCommandOptions.DeleteNameOption,
             ToolCommandOptions.DeleteDryRunOption
         };
-        toolDelete.SetAction(async parseResult =>
+
+        cmd.SetAction((ParseResult pr) => ToolCommandHandlers.HandleDeleteCommand(pr));
+        return cmd;
+    }
+
+    private static Command CreateToolDiffCommand()
+    {
+        var cmd = new Command("diff", "Compare local and remote tool configurations")
         {
-            await ToolCommandHandlers.HandleDeleteCommand(parseResult);
+            ToolCommandOptions.DiffNameOption,
+            ToolCommandOptions.DiffToolOption,
+            ToolCommandOptions.DiffRawOption
+        };
+
+        cmd.SetAction((ParseResult pr) =>
+        {
+            if (IsHelpRequested(pr))
+                return ShowFormattedSubcommandHelp("Tool Diff", "Compare local and remote tool configurations", cmd,
+                    new[] {
+                        "srectl tool diff --name QueryMetrics",
+                        "srectl tool diff --name KustoTool --tool code",
+                        "srectl tool diff --name MyTool --raw"
+                    });
+            return ToolCommandHandlers.HandleDiffCommand(pr);
         });
-        return toolDelete;
+        return cmd;
     }
 
     private static Command CreateInitCommand()
     {
-        var initResourceUrlOption = new Option<string>("--resource-url") { Required = true };
-        var initCommand = new Command("init", "Initialize SREAgent CLI configuration")
+        var resourceUrl = new Option<string>("--resource-url")
         {
-            initResourceUrlOption
+            Required = true,
+            Description = "Base URL of the SRE Agent server"
         };
-        initCommand.SetAction(async parseResult =>
+
+        var cmd = new Command("init", CommandExamples.General.InitDescription) { resourceUrl };
+
+        // Guard so flow analysis knows it's enforced at runtime
+        cmd.Validators.Add(r =>
         {
-            var resourceUrl = parseResult.GetValue(initResourceUrlOption);
-            await GeneralCommandHandlers.HandleInitCommandWithResourceUrl(resourceUrl!);
+            var v = r.GetValue(resourceUrl);
+            if (string.IsNullOrWhiteSpace(v))
+                r.AddError("--resource-url must be provided and non-empty.");
         });
-        return initCommand;
+
+        // Now it's safe to use ! (or do an explicit check)
+        cmd.SetAction((ParseResult pr) =>
+            GeneralCommandHandlers.HandleInitCommandWithResourceUrl(pr.GetValue(resourceUrl)!));
+
+        // If you prefer an explicit check instead of '!'
+        // cmd.SetAction((ParseResult pr) =>
+        // {
+        //     var url = pr.GetValue(resourceUrl);
+        //     if (string.IsNullOrWhiteSpace(url))
+        //         throw new ArgumentException("--resource-url must be provided and non-empty.");
+        //     return GeneralCommandHandlers.HandleInitCommandWithResourceUrl(url);
+        // });
+
+        return cmd;
     }
 
     private static Command CreateListCommand()
     {
-        // List agents subcommand
-        var listAgentsCommand = new Command("agents", "List all agents from the remote server");
-        listAgentsCommand.SetAction(async parseResult =>
+        var listAgents = new Command("agents", "List remote extended agents from the server")
         {
-            await GeneralCommandHandlers.HandleListAgentsCommand(parseResult);
-        });
+            AgentCommandOptions.DebugOption,
+            AgentCommandOptions.AllOption
+        };
+        listAgents.SetAction((ParseResult pr) => GeneralCommandHandlers.HandleListAgentsCommand(pr));
 
-        // List tools subcommand
-        var listToolsCommand = new Command("tools", "List all tools from the remote server");
-        listToolsCommand.SetAction(async parseResult =>
+        var listExtendedTools = new Command("extended-tools", "List all extended tools added to the server through apply command")
         {
-            await GeneralCommandHandlers.HandleListToolsCommand(parseResult);
-        });
+            ToolCommandOptions.DebugOption
+        };
+        listExtendedTools.SetAction((ParseResult pr) => GeneralCommandHandlers.HandleListExtendedToolsCommand(pr));
 
-        // List extended-tools subcommand
-        var listExtendedToolsCommand = new Command("extended-tools", "List all extended tools added to the server through apply command");
-        listExtendedToolsCommand.SetAction(async parseResult =>
+        var listDataConnectors = new Command("data-connectors", "List all data connectors configured on the server")
         {
-            await GeneralCommandHandlers.HandleListExtendedToolsCommand(parseResult);
-        });
-
-        // List data-connectors subcommand
-        var listDataConnectorsCommand = new Command("data-connectors", "List all data connectors configured on the server");
-        listDataConnectorsCommand.SetAction(async parseResult =>
-        {
-            await GeneralCommandHandlers.HandleListDataConnectorsCommand(parseResult);
-        });
+            ToolCommandOptions.DebugOption
+        };
+        listDataConnectors.SetAction((ParseResult pr) => GeneralCommandHandlers.HandleListDataConnectorsCommand(pr));
 
         // List incident handlers subcommand
         var listIncidentHandlersCommand = new Command("incidenthandlers", "List all incident handlers from the remote server")
@@ -307,59 +417,71 @@ public static class CommandBuilder
             await IncidentHandlerCommandHandlers.HandleListCommand(parseResult);
         });
 
-        var listCommand = new Command("list", "List agents, tools, extended tools, data connectors, or incident handlers from the remote server");
-        listCommand.Subcommands.Add(listAgentsCommand);
-        listCommand.Subcommands.Add(listToolsCommand);
-        listCommand.Subcommands.Add(listExtendedToolsCommand);
-        listCommand.Subcommands.Add(listDataConnectorsCommand);
-        listCommand.Subcommands.Add(listIncidentHandlersCommand);
-
-        return listCommand;
+        var cmd = new Command("list", CommandExamples.General.ListDescription)
+        {
+            listAgents, listExtendedTools, listDataConnectors, listIncidentHandlersCommand
+        };
+        return cmd;
     }
 
     private static Command CreateToolShowTypesCommand()
     {
-        var toolShowTypes = new Command("show-types", "Show available tool types and their definitions")
+        var cmd = new Command("show-types", CommandExamples.Tool.ShowTypesDescription)
         {
             ToolCommandOptions.VerboseOption,
             ToolCommandOptions.TypeFilterOption
         };
-        toolShowTypes.SetAction(parseResult =>
-        {
-            ToolCommandHandlers.HandleShowTypesCommand(parseResult);
-        });
-        return toolShowTypes;
+
+        cmd.SetAction((ParseResult pr) => ToolCommandHandlers.HandleShowTypesCommand(pr));
+        return cmd;
     }
 
     private static Command CreateToolShowConnectorsCommand()
     {
-        var toolShowConnectors = new Command("show-connectors", "Show available connector types")
+        var cmd = new Command("show-connectors", CommandExamples.Tool.ShowConnectorsDescription)
         {
             ToolCommandOptions.VerboseOption
         };
-        toolShowConnectors.SetAction(parseResult =>
+
+        cmd.SetAction((ParseResult pr) => ToolCommandHandlers.HandleShowConnectorsCommand(pr));
+        return cmd;
+    }
+
+    private static Command CreateToolListCommand()
+    {
+        var cmd = new Command("list", "List all tools from the remote server")
         {
-            ToolCommandHandlers.HandleShowConnectorsCommand(parseResult);
-        });
-        return toolShowConnectors;
+            ToolCommandOptions.DebugOption
+        };
+        cmd.SetAction((ParseResult pr) => GeneralCommandHandlers.HandleListToolsCommand(pr));
+        return cmd;
     }
 
     private static Command CreateApplyYamlCommand()
     {
-        var applyYamlCommand = new Command("apply-yaml", "Apply a YAML file directly to the remote server")
+        var cmd = new Command("apply-yaml", CommandExamples.General.ApplyYamlDescription)
         {
             AgentCommandOptions.ApplyYamlFileOption
         };
-        applyYamlCommand.SetAction(async parseResult =>
+
+        cmd.SetAction((ParseResult pr) =>
         {
-            await GeneralCommandHandlers.HandleApplyYamlCommand(parseResult);
+            // If no file option provided, show formatted help
+            var filePath = pr.GetValue(AgentCommandOptions.ApplyYamlFileOption);
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                return ShowFormattedApplyYamlHelp(cmd);
+            }
+
+            return GeneralCommandHandlers.HandleApplyYamlCommand(pr);
         });
-        return applyYamlCommand;
+
+        return cmd;
     }
 
     private static Command CreateThreadCommand()
     {
-        var threadNew = new Command("new", "Create a new thread and send a message")
+        var threadNew = new Command("new", CommandExamples.Thread.NewDescription)
         {
             AgentCommandOptions.ThreadMessageOption,
             AgentCommandOptions.ThreadUserIdOption,
@@ -367,12 +489,15 @@ public static class CommandBuilder
             AgentCommandOptions.ThreadWaitOption,
             AgentCommandOptions.ThreadNoWaitOption
         };
-        threadNew.SetAction(async parseResult =>
+        threadNew.Validators.Add(result =>
         {
-            await ThreadCommandHandlers.HandleThreadNewCommand(parseResult);
+            var w = result.GetValue(AgentCommandOptions.ThreadWaitOption);
+            var nw = result.GetValue(AgentCommandOptions.ThreadNoWaitOption);
+            if (w && nw) result.AddError("Specify either --wait or --no-wait, not both.");
         });
+        threadNew.SetAction((ParseResult pr) => ThreadCommandHandlers.HandleThreadNewCommand(pr));
 
-        var threadContinue = new Command("continue", "Continue an existing thread")
+        var threadContinue = new Command("continue", CommandExamples.Thread.ContinueDescription)
         {
             AgentCommandOptions.ThreadIdOption,
             AgentCommandOptions.ThreadMessageOptionalOption,
@@ -381,48 +506,40 @@ public static class CommandBuilder
             AgentCommandOptions.ThreadWaitOption,
             AgentCommandOptions.ThreadNoWaitOption
         };
-        threadContinue.SetAction(async parseResult =>
+        threadContinue.Validators.Add(result =>
         {
-            await ThreadCommandHandlers.HandleThreadContinueCommand(parseResult);
+            var w = result.GetValue(AgentCommandOptions.ThreadWaitOption);
+            var nw = result.GetValue(AgentCommandOptions.ThreadNoWaitOption);
+            if (w && nw) result.AddError("Specify either --wait or --no-wait, not both.");
         });
+        threadContinue.SetAction((ParseResult pr) => ThreadCommandHandlers.HandleThreadContinueCommand(pr));
 
         var threadList = new Command("list", "List all threads");
-        threadList.SetAction(async parseResult =>
-        {
-            await ThreadCommandHandlers.HandleThreadListCommand(parseResult);
-        });
+        threadList.SetAction((ParseResult pr) => ThreadCommandHandlers.HandleThreadListCommand(pr));
 
-        var threadDelete = new Command("delete", "Delete a thread")
+        var threadDelete = new Command("delete", CommandExamples.Thread.DeleteDescription)
         {
             AgentCommandOptions.ThreadIdRequiredOption
         };
-        threadDelete.SetAction(async parseResult =>
-        {
-            await ThreadCommandHandlers.HandleThreadDeleteCommand(parseResult);
-        });
+        threadDelete.SetAction((ParseResult pr) => ThreadCommandHandlers.HandleThreadDeleteCommand(pr));
 
         var threadTrack = new Command("track", "Track an existing thread for new messages")
         {
             AgentCommandOptions.ThreadIdRequiredOption
         };
-        threadTrack.SetAction(async parseResult =>
-        {
-            await ThreadCommandHandlers.HandleThreadTrackCommand(parseResult);
-        });
+        threadTrack.SetAction((ParseResult pr) => ThreadCommandHandlers.HandleThreadTrackCommand(pr));
 
-        var thread = new Command("thread", "Thread management commands");
-        thread.Subcommands.Add(threadNew);
-        thread.Subcommands.Add(threadContinue);
-        thread.Subcommands.Add(threadList);
-        thread.Subcommands.Add(threadDelete);
-        thread.Subcommands.Add(threadTrack);
+        var thread = new Command("thread", "Thread management commands")
+        {
+            threadNew, threadContinue, threadList, threadDelete, threadTrack
+        };
 
         return thread;
     }
 
     private static Command CreateDocumentUploadCommand()
     {
-        var docUpload = new Command("upload", "Upload documents to the SRE Agent memory storage")
+        var cmd = new Command("upload", CommandExamples.Document.UploadDescription)
         {
             DocumentCommandOptions.FileOption,
             DocumentCommandOptions.FolderOption,
@@ -430,132 +547,689 @@ public static class CommandBuilder
             DocumentCommandOptions.NoIndexingOption,
             DocumentCommandOptions.RecursiveOption
         };
-        docUpload.SetAction(async parseResult =>
-        {
-            await DocumentCommandHandlers.HandleUploadCommand(parseResult);
-        });
-        return docUpload;
+
+        cmd.SetAction((ParseResult pr) => DocumentCommandHandlers.HandleUploadCommand(pr));
+        return cmd;
     }
 
     private static Command CreateDocumentSearchCommand()
     {
-        var docSearch = new Command("search", "Search documents in the SRE Agent knowledge base")
+        var cmd = new Command("search", CommandExamples.Document.SearchDescription)
         {
             DocumentCommandOptions.QueryOption
         };
-        docSearch.SetAction(async parseResult =>
-        {
-            await DocumentCommandHandlers.HandleSearchCommand(parseResult);
-        });
-        return docSearch;
+
+        cmd.SetAction((ParseResult pr) => DocumentCommandHandlers.HandleSearchCommand(pr));
+        return cmd;
     }
 
     private static Command CreateDocumentReindexCommand()
     {
-        var docReindex = new Command("reindex", "Trigger reindexing of all documents in the SRE Agent knowledge base");
-        docReindex.SetAction(async parseResult =>
-        {
-            await DocumentCommandHandlers.HandleReindexCommand(parseResult);
-        });
-        return docReindex;
+        var cmd = new Command("reindex", CommandExamples.Document.ReindexDescription);
+        cmd.SetAction((ParseResult pr) => DocumentCommandHandlers.HandleReindexCommand(pr));
+        return cmd;
     }
 
     private static Command CreateChatCommand()
     {
-        var chatCommand = new Command("chat", "Start persistent interactive chat session");
-        chatCommand.SetAction(async parseResult =>
+        var cmd = new Command("chat", CommandExamples.General.ChatDescription)
         {
-            await GeneralCommandHandlers.HandleChatCommand(parseResult);
-        });
-        return chatCommand;
+            AgentCommandOptions.ChatAgentNameOption
+        };
+        cmd.SetAction((ParseResult pr) => GeneralCommandHandlers.HandleChatCommand(pr));
+        return cmd;
     }
 
     private static Command CreateProfileListCommand()
     {
-        var profileList = new Command("list", "List all available profiles and show which one is currently active");
-        profileList.SetAction(async parseResult =>
+        var cmd = new Command("list", CommandExamples.Profile.ListDescription);
+        cmd.SetAction((ParseResult pr) =>
         {
-            await ProfileCommandHandlers.HandleListCommand(parseResult);
+            if (IsHelpRequested(pr))
+                return ShowFormattedSubcommandHelp("Profile List", "List all available profiles and show which one is currently active", cmd,
+                    new[] { "srectl profile list", "srectl profile list --verbose" });
+            return ProfileCommandHandlers.HandleListCommand(pr);
         });
-        return profileList;
+
+        // Help is already handled by IsHelpRequested check in the command action
+        return cmd;
     }
 
     private static Command CreateProfileGetCommand()
     {
-        var profileGet = new Command("get", "Get details of a specific profile or the current active profile")
+        var cmd = new Command("get", CommandExamples.Profile.GetDescription)
         {
             ProfileCommandOptions.ProfileNameOption
         };
-        profileGet.SetAction(async parseResult =>
+        cmd.SetAction((ParseResult pr) =>
         {
-            await ProfileCommandHandlers.HandleGetCommand(parseResult);
+            if (IsHelpRequested(pr))
+            {
+                return ShowFormattedSubcommandHelp("Profile Get", "Get details of a specific profile or the current active profile", cmd,
+                    new[] { "srectl profile get", "srectl profile get --name production", "srectl profile get --name local --debug" });
+            }
+            return ProfileCommandHandlers.HandleGetCommand(pr);
         });
-        return profileGet;
+
+        // Help is already handled by IsHelpRequested check in the command action
+        return cmd;
     }
 
     private static Command CreateProfileCreateCommand()
     {
-        var profileCreate = new Command("create", "Create a new profile to connect to an SRE Agent instance (local or remote)")
+        var cmd = new Command("create", CommandExamples.Profile.CreateDescription)
         {
             ProfileCommandOptions.ProfileNameRequiredOption,
             ProfileCommandOptions.ResourceUrlOption,
             ProfileCommandOptions.SetCurrentOption
         };
-        profileCreate.SetAction(async parseResult =>
+        cmd.SetAction((ParseResult pr) =>
         {
-            await ProfileCommandHandlers.HandleCreateCommand(parseResult);
+            if (IsHelpRequested(pr))
+                return ShowFormattedSubcommandHelp("Profile Create", "Create a new connection profile", cmd,
+                    new[] {
+                        "srectl profile create --name local --url https://localhost:7023",
+                        "srectl profile create --name production --url https://prod-sreagent.company.com",
+                        "srectl profile create --name staging --url https://staging.company.com --set-current"
+                    });
+            return ProfileCommandHandlers.HandleCreateCommand(pr);
         });
-        return profileCreate;
+
+        // Help is already handled by IsHelpRequested check in the command action
+        return cmd;
     }
 
     private static Command CreateProfileSetCommand()
     {
-        var profileSet = new Command("set", "Switch to a different profile to change which SRE Agent instance you're connected to")
+        var cmd = new Command("set", CommandExamples.Profile.SetDescription)
         {
             ProfileCommandOptions.ProfileNameRequiredOption
         };
-        profileSet.SetAction(async parseResult =>
+        cmd.SetAction((ParseResult pr) =>
         {
-            await ProfileCommandHandlers.HandleSetCommand(parseResult);
+            if (IsHelpRequested(pr))
+                return ShowFormattedSubcommandHelp("Profile Set", "Set the active profile", cmd,
+                    new[] { "srectl profile set --name local", "srectl profile set --name production", "srectl profile set --name staging --debug" });
+            return ProfileCommandHandlers.HandleSetCommand(pr);
         });
-        return profileSet;
+
+        // Help is already handled by IsHelpRequested check in the command action
+        return cmd;
     }
 
     private static Command CreateProfileDeleteCommand()
     {
-        var profileDelete = new Command("delete", "Delete a profile (cannot delete the currently active profile)")
+        var cmd = new Command("delete", CommandExamples.Profile.DeleteDescription)
         {
             ProfileCommandOptions.ProfileNameRequiredOption
         };
-        profileDelete.SetAction(async parseResult =>
+        cmd.SetAction((ParseResult pr) =>
         {
-            await ProfileCommandHandlers.HandleDeleteCommand(parseResult);
+            if (IsHelpRequested(pr))
+                return ShowFormattedSubcommandHelp("Profile Delete", "Delete a profile", cmd,
+                    new[] { "srectl profile delete --name old-environment", "srectl profile delete --name test --debug" });
+            return ProfileCommandHandlers.HandleDeleteCommand(pr);
         });
-        return profileDelete;
+
+        // Help is already handled by IsHelpRequested check in the command action
+        return cmd;
+    }
+
+    private static Command CreateWelcomeCommand()
+    {
+        var cmd = new Command("welcome", "Show welcome screen and getting started guide");
+        cmd.SetAction(async (ParseResult _) =>
+        {
+            WelcomeService.ShowWelcomeBanner();
+            await WelcomeService.ShowContextualGuidance();
+        });
+        return cmd;
+    }
+
+    private static Command CreateEnhancedHelpCommand()
+    {
+        var topic = new Argument<string>("topic")
+        {
+            Description = "Help topic to display",
+            Arity = ArgumentArity.ZeroOrOne
+        };
+
+        var cmd = new Command("help", "Interactive help system with examples and troubleshooting") { topic };
+
+        // Bind the positional arg via ParseResult
+        cmd.SetAction(async (ParseResult pr) =>
+        {
+            string? t = pr.GetValue(topic);
+            await InteractiveHelpService.ShowInteractiveHelp(t);
+        });
+        return cmd;
+    }
+
+    private static Command CreateSuggestCommand()
+    {
+        var cmd = new Command("suggest", "Get intelligent command suggestions based on your workspace");
+        cmd.SetAction(async (ParseResult _) =>
+        {
+            await CommandSuggestionService.ShowSmartSuggestions();
+        });
+        return cmd;
+    }
+
+    private static Command CreateStatusCommand()
+    {
+        var cmd = new Command("status", "Show workspace status and health check")
+        {
+            GlobalOptions.Debug
+        };
+        cmd.SetAction((ParseResult pr) => GeneralCommandHandlers.HandleStatusCommand(pr));
+        return cmd;
+    }
+
+    private static Command CreateInteractiveCommand()
+    {
+        var cmd = new Command("interactive", "Start interactive guided mode for step-by-step assistance");
+        cmd.SetAction((ParseResult pr) => InteractiveCommandHandlers.HandleInteractiveMode(pr));
+        return cmd;
+    }
+
+    private static Command CreateVersionCommand()
+    {
+        var cmd = new Command("version", "Show version information and build details");
+        cmd.SetAction((ParseResult pr) => GeneralCommandHandlers.HandleVersionCommand(pr));
+        return cmd;
+    }
+
+    // -------- Root action & status --------
+
+    private static Task HandleRootCommand(ParseResult parseResult)
+    {
+        ConsoleUI.WriteSection("SRE Agent CLI (srectl)");
+        return ShowRootAfterWelcome();
+    }
+
+
+    private static async Task ShowRootAfterWelcome()
+    {
+        await WelcomeService.ShowContextualGuidance();
+        ConsoleUI.WriteSection("Quick commands");
+        ConsoleUI.WriteCommand("Interactive conversation", "srectl chat");
+        ConsoleUI.WriteCommand("Comprehensive help", "srectl help");
+        ConsoleUI.WriteCommand("Smart suggestions", "srectl suggest");
+        ConsoleUI.WriteCommand("Workspace status", "srectl status");
+        Console.WriteLine();
+    }
+
+    public static async Task ShowWorkspaceStatus()
+    {
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+        ConsoleUI.WriteSection("Workspace Status Check");
+        ConsoleUI.DrawLine();
+
+        var configService = new CliConfigurationService();
+        var hasConfig = await configService.HasValidConfigurationAsync();
+
+        var configStatus = hasConfig ? "Configured" : "Not configured";
+        ConsoleUI.WriteStatus(hasConfig, $"Configuration: {configStatus}");
+
+        if (hasConfig)
+        {
+            try
+            {
+                var config = await configService.LoadConfigurationAsync();
+                ConsoleUI.WriteBullet($"Server URL: {config?.ResourceUrl ?? "Unknown"}");
+                ConsoleUI.WriteBullet($"Auth Required: {config?.AuthRequired ?? false}");
+            }
+            catch
+            {
+                ConsoleUI.WriteStatus(false, "Configuration file corrupted");
+            }
+        }
+
+        var agentCount = Directory.Exists("agents") ? Directory.GetDirectories("agents").Length : 0;
+        var toolCount = Directory.Exists("tools") ? Directory.GetDirectories("tools").Length : 0;
+
+        ConsoleUI.WriteInfo($"Agents: {agentCount} configured");
+        ConsoleUI.WriteInfo($"Tools: {toolCount} configured");
+
+        bool serverConnected = false;
+        bool remoteAgentsAvailable = false;
+        bool remoteToolsAvailable = false;
+
+        if (hasConfig)
+        {
+            ProgressService.AnimatedSpinner.Start("Testing server connection");
+
+            try
+            {
+                var config = await configService.LoadConfigurationAsync();
+                if (config == null)
+                {
+                    ProgressService.AnimatedSpinner.Stop();
+                    ProgressService.ShowError("No configuration found. Please run 'srectl init' first.");
+                    return;
+                }
+
+                using var apiService = new ApiService();
+                var (success, response) = await apiService.TestConnectionAsync(config.ResourceUrl);
+
+                ProgressService.AnimatedSpinner.Stop();
+                if (success)
+                {
+                    serverConnected = true;
+                    ConsoleUI.WriteStatus(true, "Server Connection: Connected");
+
+                    var (agentsSuccess, _) = await apiService.ListAgentsAsync();
+                    var (toolsSuccess, _) = await apiService.ListToolsAsync();
+
+                    remoteAgentsAvailable = agentsSuccess;
+                    remoteToolsAvailable = toolsSuccess;
+
+                    if (agentsSuccess) ConsoleUI.WriteBullet("Remote Agents: Available");
+                    if (toolsSuccess) ConsoleUI.WriteBullet("Remote Tools: Available");
+                }
+                else
+                {
+                    ConsoleUI.WriteStatus(false, "Server Connection: Failed");
+                    ConsoleUI.WriteBullet($"Error: {response}");
+                }
+            }
+            catch (Exception ex)
+            {
+                ProgressService.AnimatedSpinner.Stop();
+                ConsoleUI.WriteStatus(false, "Server Connection: Failed");
+                ConsoleUI.WriteBullet($"Error: {ex.Message}");
+            }
+        }
+
+        stopwatch.Stop();
+        ProgressService.ShowTiming("Status check", stopwatch.Elapsed);
+
+        Console.WriteLine();
+        ConsoleUI.WriteSection("Suggested next steps");
+
+        if (!hasConfig)
+        {
+            ConsoleUI.WriteBullet("srectl init --resource-url <your-server>");
+        }
+        else if (agentCount == 0)
+        {
+            ConsoleUI.WriteBullet("srectl agent create --smart");
+            ConsoleUI.WriteBullet("srectl help quickstart");
+        }
+        else
+        {
+            ConsoleUI.WriteBullet("srectl chat");
+            ConsoleUI.WriteBullet("srectl agent test --name <agent>");
+
+            // Provide appropriate list commands based on connection status
+            if (serverConnected && remoteAgentsAvailable)
+            {
+                ConsoleUI.WriteBullet("srectl list agents  # List remote agents from server");
+            }
+            else if (serverConnected)
+            {
+                ConsoleUI.WriteBullet("srectl list agents  # Check remote agents (server connected)");
+            }
+            else
+            {
+                ConsoleUI.WriteBullet("srectl agent list  # List local agent configurations");
+                if (hasConfig)
+                {
+                    ConsoleUI.WriteBullet("srectl list agents  # List remote agents (requires server connection)");
+                }
+            }
+        }
+    }
+
+    private static Task ShowFormattedAgentHelp(Command agentCommand)
+    {
+        var commandGroups = new Dictionary<string, string[]>
+        {
+            ["Agent Lifecycle"] = new[] { "create", "validate", "apply", "delete" },
+            ["Agent Testing"] = new[] { "test" },
+            ["Agent Management"] = new[] { "list", "diff" }
+        };
+
+        var groupDescriptions = new Dictionary<string, string>
+        {
+            ["Agent Lifecycle"] = "Create, validate, deploy, and remove agents",
+            ["Agent Testing"] = "Test and validate agent functionality",
+            ["Agent Management"] = "List, discover, and compare deployed agents"
+        };
+
+        var examples = new[]
+        {
+            "srectl agent create --name DevOpsAgent --smart",
+            "srectl agent validate --all",
+            "srectl agent test --name MyAgent --message \"Hello\"",
+            "srectl agent diff --name MyAgent",
+            "srectl agent list"
+        };
+
+        StandardHelpFormatter.ShowCommandGroupHelp(
+            "Agent Commands",
+            "Manage SRE automation agents",
+            ConsoleColor.Green,
+            agentCommand,
+            commandGroups,
+            groupDescriptions,
+            examples);
+
+        return Task.CompletedTask;
+    }
+
+    private static Task ShowFormattedToolHelp(Command toolCommand)
+    {
+        var commandGroups = new Dictionary<string, string[]>
+        {
+            ["Tool Lifecycle"] = new[] { "create", "validate", "apply", "delete" },
+            ["Tool Discovery"] = new[] { "show-types", "show-connectors" },
+            ["Tool Management"] = new[] { "list", "diff" }
+        };
+
+        var groupDescriptions = new Dictionary<string, string>
+        {
+            ["Tool Lifecycle"] = "Create, validate, deploy, and remove automation tools",
+            ["Tool Discovery"] = "Explore available tool types and data connectors",
+            ["Tool Management"] = "List, discover, and compare deployed tools"
+        };
+
+        var examples = new[]
+        {
+            "srectl tool create --name QueryMetrics --type KustoTool",
+            "srectl tool validate --all",
+            "srectl tool diff --name QueryMetrics",
+            "srectl tool show-types",
+            "srectl tool list"
+        };
+
+        StandardHelpFormatter.ShowCommandGroupHelp(
+            "Tool Commands",
+            "Manage SRE automation tools",
+            ConsoleColor.Blue,
+            toolCommand,
+            commandGroups,
+            groupDescriptions,
+            examples);
+
+        return Task.CompletedTask;
+    }
+
+    private static Task ShowFormattedDocHelp(Command docCommand)
+    {
+        var examples = new[]
+        {
+            "srectl doc upload --file runbook.md",
+            "srectl doc search --query \"restart web services\"",
+            "srectl doc reindex"
+        };
+
+        StandardHelpFormatter.ShowCommandGroupHelp(
+            "Document Commands",
+            "Manage documentation and knowledge base",
+            ConsoleColor.Magenta,
+            docCommand,
+            null, // Single group for all commands
+            null, // No group descriptions for single group
+            examples);
+
+        return Task.CompletedTask;
+    }
+
+    private static Task ShowFormattedProfileHelp(Command profileCommand)
+    {
+        var examples = new[]
+        {
+            "srectl profile list",
+            "srectl profile create --name prod --resource-url https://prod.example.com",
+            "srectl profile set --name local-dev"
+        };
+
+        StandardHelpFormatter.ShowCommandGroupHelp(
+            "Profile Commands",
+            "Manage connection profiles for different SRE Agent instances",
+            ConsoleColor.Cyan,
+            profileCommand,
+            null, // Single group for all commands
+            null, // No group descriptions for single group
+            examples);
+
+        return Task.CompletedTask;
+    }
+
+    private static Task ShowFormattedListHelp(Command listCommand)
+    {
+        var examples = new[]
+        {
+            "srectl list agents",
+            "srectl list extended-tools",
+            "srectl list data-connectors",
+            "srectl list incidenthandlers",
+            "srectl agent list  # Alternative agent listing",
+            "srectl tool list   # Alternative tool listing"
+        };
+
+        StandardHelpFormatter.ShowCommandGroupHelp(
+            "List Commands",
+            "List resources from the remote server",
+            ConsoleColor.DarkYellow,
+            listCommand,
+            null, // Single group for all commands
+            null, // No group descriptions for single group
+            examples);
+
+        return Task.CompletedTask;
+    }
+
+    private static Task ShowFormattedThreadHelp(Command threadCommand)
+    {
+        var commandGroups = new Dictionary<string, string[]>
+        {
+            ["Thread Management"] = new[] { "new", "continue", "list", "delete", "track" }
+        };
+
+        var groupDescriptions = new Dictionary<string, string>
+        {
+            ["Thread Management"] = "Create, manage, and track conversation threads with agents"
+        };
+
+        var examples = new[]
+        {
+            "srectl thread new --message \"Help me debug an issue\"",
+            "srectl thread continue --thread-id abc123 --message \"More details\"",
+            "srectl thread list",
+            "srectl thread track --thread-id abc123"
+        };
+
+        StandardHelpFormatter.ShowCommandGroupHelp(
+            "Thread Commands",
+            "Manage conversation threads with SRE Agent",
+            ConsoleColor.DarkCyan,
+            threadCommand,
+            commandGroups,
+            groupDescriptions,
+            examples);
+
+        return Task.CompletedTask;
+    }
+
+    private static Task ShowFormattedIncidentHandlerHelp(Command incidentHandlerCommand)
+    {
+        var commandGroups = new Dictionary<string, string[]>
+        {
+            ["Incident Management"] = new[] { "create", "map-agent", "list" }
+        };
+
+        var groupDescriptions = new Dictionary<string, string>
+        {
+            ["Incident Management"] = "Create filters, map agents, and manage incident handlers"
+        };
+
+        var examples = new[]
+        {
+            "srectl incidenthandler create --id MyFilter --name \"Production Issues\" --title-contains \"production\"",
+            "srectl incidenthandler map-agent --name MyFilter --handling-agent ProductionAgent",
+            "srectl incidenthandler list --verbose"
+        };
+
+        StandardHelpFormatter.ShowCommandGroupHelp(
+            "Incident Handler Commands",
+            "Manage incident handlers and filters for automated incident response",
+            ConsoleColor.Red,
+            incidentHandlerCommand,
+            commandGroups,
+            groupDescriptions,
+            examples);
+
+        return Task.CompletedTask;
+    }
+
+    private static Task ShowFormattedApplyYamlHelp(Command applyYamlCommand)
+    {
+        var examples = new[]
+        {
+            "srectl apply-yaml --file agents/MyAgent/MyAgent.yaml",
+            "srectl apply-yaml --file tools/CustomTool/CustomTool.yaml",
+            "srectl apply-yaml --file configs/my-config.yaml"
+        };
+
+        StandardHelpFormatter.ShowCommandGroupHelp(
+            "Apply YAML Commands",
+            "Apply YAML configuration files to the server",
+            ConsoleColor.Green,
+            applyYamlCommand,
+            null, // Single command
+            null, // No group descriptions for single command
+            examples);
+
+        return Task.CompletedTask;
+    }
+
+    // Helper methods for consistent subcommand help formatting
+    private static bool IsHelpRequested(ParseResult parseResult)
+    {
+        return parseResult.Tokens.Any(token =>
+            token.Value == "-h" || token.Value == "--help" || token.Value == "-?" || token.Value == "help");
+    }
+
+    private static Task ShowFormattedSubcommandHelp(string title, string description, Command command, string[] examples)
+    {
+        StandardHelpFormatter.ShowSrectlHeader();
+
+        ConsoleUI.DrawPanel(title, description, ConsoleColor.Cyan);
+        Console.WriteLine();
+
+        // Show usage
+        ConsoleUI.WriteSection("Usage");
+        Console.WriteLine($"  srectl {GetCommandPath(command)} [options]");
+        Console.WriteLine();
+
+        // Show options
+        if (command.Options.Any())
+        {
+            ConsoleUI.WriteSection("Options");
+            foreach (var option in command.Options)
+            {
+                var aliases = string.Join(", ", option.Aliases);
+                var required = option.Required ? " (REQUIRED)" : "";
+                ConsoleUI.WriteKeyValue(aliases + required, option.Description ?? "No description", 20, ConsoleColor.Yellow);
+            }
+            Console.WriteLine();
+        }
+
+        // Show examples
+        if (examples?.Any() == true)
+        {
+            ConsoleUI.WriteSection("Examples");
+            foreach (var example in examples)
+            {
+                ConsoleUI.WriteBullet(example, ConsoleColor.Green);
+            }
+            Console.WriteLine();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private static string GetCommandPath(Command command)
+    {
+        // For subcommands, manually construct the path based on command name
+        switch (command.Name)
+        {
+            case "list":
+            case "get":
+            case "create":
+            case "set":
+            case "delete":
+                // Could be profile, agent, tool, or doc commands
+                // We'll use context clues from other properties if needed
+                if (command.Description?.Contains("profile") == true)
+                    return $"profile {command.Name}";
+                if (command.Description?.Contains("agent") == true || command.Options.Any(o => o.Aliases.Contains("--name")))
+                    return $"agent {command.Name}";
+                if (command.Description?.Contains("tool") == true)
+                    return $"tool {command.Name}";
+                if (command.Description?.Contains("document") == true)
+                    return $"doc {command.Name}";
+                break;
+            case "validate":
+            case "apply":
+            case "test":
+                return $"agent {command.Name}";
+            case "show-types":
+            case "show-connectors":
+                return $"tool {command.Name}";
+            case "upload":
+            case "search":
+            case "reindex":
+                return $"doc {command.Name}";
+        }
+
+        return command.Name ?? "";
+    }
+
+    private static Command? GetParentCommand(Command command)
+    {
+        // This is a simplified approach - in a real implementation you might need
+        // to track parent relationships differently
+        return null; // For now, we'll build the path manually
     }
 
     // Add this method or update existing BuildCommands method:
     private static Command BuildIncidentHandlerCommand()
     {
         var incidentHandlerCommand = new Command("incidenthandler", "Manage incident handlers and filters");
-        
+
         var mapAgentCommand = new Command("map-agent", "Map a YAML agent to an incident filter")
         {
             IncidentHandlerCommandOptions.FilterNameOption,
             IncidentHandlerCommandOptions.HandlingAgentOption
         };
-        mapAgentCommand.SetAction(async parseResult =>
+        mapAgentCommand.SetAction((ParseResult pr) =>
         {
-            await IncidentHandlerCommandHandlers.HandleMapAgentCommand(parseResult);
+            if (IsHelpRequested(pr))
+                return ShowFormattedSubcommandHelp("Incident Handler Map Agent", "Map a YAML agent to an incident filter", mapAgentCommand,
+                    new[] {
+                        "srectl incidenthandler map-agent --name ProductionFilter --handling-agent ProductionAgent",
+                        "srectl incidenthandler map-agent --name StorageIssues --handling-agent StorageAgent"
+                    });
+            return IncidentHandlerCommandHandlers.HandleMapAgentCommand(pr);
         });
 
         var listCommand = new Command("list", "List all incident handlers")
         {
             IncidentHandlerCommandOptions.VerboseOption
         };
-        listCommand.SetAction(async parseResult =>
+        listCommand.SetAction((ParseResult pr) =>
         {
-            await IncidentHandlerCommandHandlers.HandleListCommand(parseResult);
+            if (IsHelpRequested(pr))
+                return ShowFormattedSubcommandHelp("Incident Handler List", "List all incident handlers from the remote server", listCommand,
+                    new[] {
+                        "srectl incidenthandler list",
+                        "srectl incidenthandler list --verbose"
+                    });
+            return IncidentHandlerCommandHandlers.HandleListCommand(pr);
         });
 
         var createCommand = new Command("create", "Create a new incident filter")
@@ -572,11 +1246,18 @@ public static class CommandBuilder
             IncidentHandlerCommandOptions.OwningTeamIdOption,
             IncidentHandlerCommandOptions.MaxAttemptsOption
         };
-        createCommand.SetAction(async parseResult =>
+        createCommand.SetAction((ParseResult pr) =>
         {
-            await IncidentHandlerCommandHandlers.HandleCreateCommand(parseResult);
+            if (IsHelpRequested(pr))
+                return ShowFormattedSubcommandHelp("Incident Handler Create", "Create a new incident filter with specified criteria", createCommand,
+                    new[] {
+                        "srectl incidenthandler create --id StorageFilter --name \"Storage Issues\" --title-contains \"storage\"",
+                        "srectl incidenthandler create --id ProdFilter --priority 1 --incident-type LiveSite --handling-agent ProdAgent",
+                        "srectl incidenthandler create --id APIFilter --impacted-service \"Web API\" --max-attempts 5"
+                    });
+            return IncidentHandlerCommandHandlers.HandleCreateCommand(pr);
         });
-        
+
         incidentHandlerCommand.Add(mapAgentCommand);
         incidentHandlerCommand.Add(listCommand);
         incidentHandlerCommand.Add(createCommand);

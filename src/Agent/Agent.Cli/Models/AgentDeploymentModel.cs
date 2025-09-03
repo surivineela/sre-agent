@@ -6,12 +6,12 @@ using Agent.Framework;
 using Agent.Framework.Reasoning.Models;
 using YamlDotNet.Serialization;
 
-namespace Agent.Web.Models.ExtendedAgents
+namespace Agent.Cli.Models
 {
     public class AgentDeploymentModel
     {
         [YamlMember(Alias = "api_version")]
-        public string ApiVersion { get; set; } = string.Empty;
+        public string ApiVersion { get; set; } = "azuresre.ai/v1";
 
         [YamlMember(Alias = "kind")]
         public string Kind { get; set; } = "AgentConfiguration";

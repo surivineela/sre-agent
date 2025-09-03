@@ -176,6 +176,30 @@ public class ReasoningLoop : IDisposable
         }
     }
 
+    public virtual async Task SetCurrentAgent(string agentName)
+    {
+        if (string.IsNullOrEmpty(agentName))
+        {
+            return;
+        }
+
+        try
+        {
+            var currentAgent = _agentFactory.GetAgent(agentName);
+            _context = _context with
+            {
+                CurrentAgent = agentName.ToLower(),
+                AgentHandoffChain = [agentName.ToLower()]
+            };
+            _currentAgent = currentAgent;
+            _context = await _threadRepository.UpdateAgentContextAsync(_context);
+        }
+        catch (Exception)
+        {
+            // no-op
+        }
+    }
+
     public virtual async Task AppendNewUserMessageAsync(
         ChatMessage msg,
         ConversationModifierEnum? conversationModifier = null,

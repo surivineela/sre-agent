@@ -372,22 +372,56 @@ public static class ToolDefinitionService
         {
             "KustoTool" => @"name: MyKustoTool
 type: KustoTool
-connector: my-kusto-connector
-description: Sample Kusto tool for querying logs
+connector: analytics-cluster
 mode: query
-database: MyDatabase
-cluster_hint: westus
+description: |
+  Purpose:
+  Comprehensive check for resource impact scenarios affecting a subscription or tenant
+
+  Usage - Call with any ONE of these parameters:
+  - SubscriptionId: Check specific subscription (GUID format)
+  - Tenant: Check all subscriptions under a tenant (GUID format)
+
+  Output Format:
+  Returns table data with columns: Scenario, Tenant, Subscription, Region, ResourceGroup, ResourceName, ResourceType, ImpactLevel
+
+  CRITICAL - When data is returned:
+  1. ALWAYS present results in a clear table format showing ALL rows
+  2. Group results by Scenario and count affected resources per scenario
+  3. Emphasize required actions and deadlines
+  4. Provide scenario-specific next steps
+  5. NEVER TRUNCATE RESULTS - show every single affected resource
+  6. If no data returned, confirm the subscription/tenant is not currently affected
+
+  Note: This tool queries the comprehensive analytics data source for accurate, real-time impact assessment.
 query: |
-  MyTable
-  | where TimeGenerated > ago(1h)
-  | summarize count() by OperationName
+  cluster('analytics-cluster.region.kusto.windows.net').database('ImpactAnalysis').ResourceImpactTable
+  | extend parsed = parse_json(ImpactData)
+  | mv-expand scenario = bag_keys(parsed)
+  | extend scenarioData = parsed[tostring(scenario)]
+  | mv-expand row = scenarioData 
+  | evaluate bag_unpack(row)
+  | extend Scenario = scenario
+  | distinct tostring(Scenario), Tenant, Subscription, Region, ResourceGroup, ResourceName, ResourceType, ImpactLevel
+  | where
+      (""##SubscriptionId##"" != """" and Subscription == ""##SubscriptionId##"") or
+      (""##Tenant##"" != """" and Tenant == ""##Tenant##"")
+  | order by Scenario, ImpactLevel desc
 parameters:
-  - name: timeRange
+  - name: SubscriptionId
     type: string
-    required: true
-    description: Time range for the query
+    required: false
+    description: The subscription ID (GUID) to check for impact scenarios
     map_to: args
-    target: dictionary:args:string",
+    target: dictionary:args:string
+    value: """"
+  - name: Tenant
+    type: string
+    required: false
+    description: The tenant ID to check for impact scenarios across all subscriptions
+    map_to: args
+    target: dictionary:args:string
+    value: """"",
             "KustoQuery" => @"name: MyKustoQuery
 type: KustoQuery
 connector: my-kusto-connector

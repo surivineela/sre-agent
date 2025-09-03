@@ -19,6 +19,7 @@ namespace Agent.Runtime.Reasoning;
 public interface IReasoningLoopFactory
 {
     Task<ReasoningLoop> Create(AgentContext context);
+    Agent<AgentContext> GetAgent(string agentName);
 }
 
 public class ReasoningLoopFactory : IReasoningLoopFactory
@@ -250,6 +251,11 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
 
         await loop.LoadChatHistoryAsync();
         return loop;
+    }
+
+    public Agent<AgentContext> GetAgent(string agentName)
+    {
+        return _agentFactory.GetAgent(agentName);
     }
 
     private Task UpdateThreadFeatureConfig(Guid threadId)

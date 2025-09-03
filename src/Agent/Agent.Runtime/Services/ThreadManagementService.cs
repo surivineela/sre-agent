@@ -49,17 +49,17 @@ public class ThreadManagementService(
         );
 
         var agentContext = new AgentContext(
-            Id: Guid.NewGuid(),
-            ThreadId: thread.Id,
-            AgentType: AgentTypeEnum.Meta,
-            ContextState: ContextStateEnum.Idle,
-            WaitInformation: null,
-            ApprovalInformation: null
-        );
+                Id: Guid.NewGuid(),
+                ThreadId: thread.Id,
+                AgentType: AgentTypeEnum.Meta,
+                ContextState: ContextStateEnum.Idle,
+                WaitInformation: null,
+                ApprovalInformation: null
+            );
 
         var reasoningMessages = new List<ReasoningMessage>();
 
-        // when using new agent framework, the chat history is fully handled by reasoning loop
+        // when using new Agent framework, the chat history is fully handled by reasoning loop
         if (!coreSettings.UseAgentFramework)
         {
             var systemPromptReasoningMessage = new ReasoningMessage(
@@ -104,7 +104,7 @@ public class ThreadManagementService(
 
         agentChatHistory = await repository.CreateAgentChatHistoryAsync(agentChatHistory);
 
-        // TODO(jianbo): thread context is not used in the new agent framework, remove it later
+        // TODO(jianbo): thread context is not used in the new Agent framework, remove it later
         var threadContext = new ThreadContext(thread.Id, AgentTypeEnum.Meta);
         if (thread.StartMessage != null)
         {
@@ -123,6 +123,7 @@ public class ThreadManagementService(
             UserId: request.StartMessage.UserId,
             DisplayName: request.StartMessage.DisplayName,
             Timestamp: DateTime.UtcNow,
+            AgentName: string.IsNullOrEmpty(request.StartMessage.Agent) ? null : request.StartMessage.Agent,
             ConversationModifier: request.StartMessage.ConversationModifier
         ));
         stopwatch.Stop();
@@ -150,11 +151,11 @@ public class ThreadManagementService(
 
         var agentContexts = await repository.GetAgentContextsForThreadAsync(threadId);
 
-        // Pick out original agent context (not handed from another agent)
+        // Pick out original Agent context (not handed from another Agent)
         var agentContext = agentContexts.FirstOrDefault(c => c.HandoffFromAgentContextId == null);
         if (agentContext == null)
         {
-            logger.LogInternalWarning($"No meta agent context found for thread {threadId}");
+            logger.LogInternalWarning($"No meta Agent context found for thread {threadId}");
             return null;
         }
 
@@ -199,6 +200,6 @@ public class ThreadManagementService(
             return response;
         }
 
-        throw new Exception($"No agent context found for thread {threadId}. This should not happen.");
+        throw new Exception($"No Agent context found for thread {threadId}. This should not happen.");
     }
 }

@@ -4,6 +4,7 @@
 
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
+using Agent.Core.Validation;
 using Agent.Framework;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models.ExtendedAgents;
@@ -66,7 +67,7 @@ public class ExtendedAgentController : ControllerBase
             var jsonString = JsonSerializer.Serialize(yamlObject);
 
             // Now parse it into GenericResourceModel
-            var generic = JsonSerializer.Deserialize<GenericResourceModel>(jsonString);
+            var generic = JsonSerializer.Deserialize<Core.Validation.GenericResourceModel>(jsonString);
 
             if (generic == null || string.IsNullOrEmpty(generic.Kind))
             {
@@ -80,7 +81,49 @@ public class ExtendedAgentController : ControllerBase
                 });
             }
 
-            var resource = YamlResourceRouter.DeserializeResource(generic.Kind, yaml);
+            // Add comprehensive validation using AgentValidationService for agent deployments
+            if (generic.Kind?.Equals("AgentDeployment", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                try
+                {
+                    var validationService = new AgentValidationService();
+                    var validationResult = await validationService.ValidateYamlAsync(yaml, false);
+                    
+                    if (!validationResult.IsValid)
+                    {
+                        var errorDetails = validationResult.Errors.Select(error => 
+                            new ExtendedAgentErrorField("yaml", error)).ToList();
+                        
+                        return BadRequest(new ExtendedAgentErrorResponse
+                        {
+                            ErrorCode = "VALIDATION_FAILED",
+                            Message = "Agent validation failed",
+                            Details = new ExtendedAgentErrorDetails(errorDetails)
+                        });
+                    }
+
+                    // Log warnings but don't fail the request
+                    if (validationResult.Warnings.Count > 0)
+                    {
+                        _logger.LogInternalWarning("Agent validation warnings: {Warnings}", 
+                            string.Join("; ", validationResult.Warnings));
+                    }
+                }
+                catch (Exception validationEx)
+                {
+                    _logger.LogInternalError(validationEx, "Error during agent validation");
+                    return BadRequest(new ExtendedAgentErrorResponse
+                    {
+                        ErrorCode = "VALIDATION_ERROR",
+                        Message = $"Validation error: {validationEx.Message}",
+                        Details = new ExtendedAgentErrorDetails([
+                            new ExtendedAgentErrorField("validation", validationEx.Message)
+                        ])
+                    });
+                }
+            }
+
+            var resource = YamlResourceRouter.DeserializeResource(generic.Kind!, yaml);
 
             var result = new ExtendedAgentApply();
             switch (resource)
@@ -95,7 +138,7 @@ public class ExtendedAgentController : ControllerBase
                         Timestamp = DateTime.UtcNow,
                         Details = new ExtendedAgentApplyDetails
                         {
-                            AgentName = agent.Spec.Agent?.Name,
+                            AgentName = agent.Spec.Name,
                             ToolsCount = agent.Spec.Tools?.Count ?? 0,
                         }
                     };

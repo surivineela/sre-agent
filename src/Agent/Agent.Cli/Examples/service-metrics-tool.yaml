@@ -1,0 +1,82 @@
+name: QueryServiceMetrics
+type: KustoTool
+connector: production-telemetry-connector
+description: |
+  Query service performance and health metrics from production telemetry systems.
+  
+  This tool provides comprehensive service health data including:
+  - Request rates and response times
+  - Error rates and failure patterns  
+  - Resource utilization (CPU, memory, disk)
+  - Dependency call patterns and latencies
+  - Custom business metrics
+  
+  Use this as the first step in incident investigation to establish baseline health status.
+
+mode: query
+function: QueryServiceMetrics
+database: ProductionTelemetry
+cluster_hint: prod-telemetry-cluster
+
+query: |
+  let timeRange = ago({timeRange});
+  let serviceName = "{serviceName}";
+  
+  ServiceMetrics
+  | where TimeGenerated >= timeRange
+  | where ServiceName =~ serviceName or serviceName == "all"
+  | summarize
+      RequestCount = sum(RequestCount),
+      AvgResponseTime = avg(ResponseTimeMs),
+      ErrorRate = avg(ErrorRate),
+      P95ResponseTime = percentile(ResponseTimeMs, 95),
+      P99ResponseTime = percentile(ResponseTimeMs, 99),
+      AvgCpuUsage = avg(CpuUsagePercent),
+      AvgMemoryUsage = avg(MemoryUsagePercent)
+      by ServiceName, bin(TimeGenerated, {granularity})
+  | order by TimeGenerated desc
+  | limit 1000
+
+parameters:
+  - name: serviceName
+    type: string
+    required: true
+    description: Name of the service to query (use 'all' for all services)
+    map_to: args
+    target: dictionary:args:string
+    default: "all"
+    
+  - name: timeRange
+    type: string
+    required: false
+    description: Time range for the query (e.g., '1h', '4h', '24h')
+    map_to: args
+    target: dictionary:args:string
+    default: "4h"
+    
+  - name: granularity
+    type: string
+    required: false
+    description: Time granularity for aggregation (e.g., '5m', '15m', '1h')
+    map_to: args
+    target: dictionary:args:string
+    default: "15m"
+
+attributes:
+  - monitoring
+  - telemetry
+  - performance
+  - reliability
+
+metadata:
+  owner: sre-team
+  version: 1.0
+  category: monitoring
+  data_source: production-telemetry
+  update_frequency: real-time
+  retention_period: 90d
+  tags:
+    - kusto
+    - metrics
+    - service-health
+    - incident-response

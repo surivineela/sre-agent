@@ -13,17 +13,15 @@ public class YamlValidatorV1 : IYamlValidator
 {
     public void Validate(AgentDeploymentModel model)
     {
-        if (string.IsNullOrWhiteSpace(model.Spec.Agent.Name))
+        if (string.IsNullOrWhiteSpace(model.Spec.Name))
             throw new ValidationException("Agent name is required.");
 
-        foreach (var tool in model.Spec.Tools)
+        // Tools in the spec are just string names/references, not full tool definitions
+        // So we can't validate tool-specific properties here
+        foreach (var toolName in model.Spec.Tools)
         {
-            if (tool is KustoToolApiModel kusto)
-            {
-                if (string.IsNullOrWhiteSpace(kusto.Function))
-                    throw new ValidationException($"KustoTool '{kusto.Name}' is missing Function.");
-
-            }
+            if (string.IsNullOrWhiteSpace(toolName))
+                throw new ValidationException("Tool name cannot be empty.");
         }
     }
 }

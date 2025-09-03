@@ -36,14 +36,14 @@ public static class DocumentCommandHandlers
             // Validate mutually exclusive options
             if (!string.IsNullOrEmpty(filePath) && !string.IsNullOrEmpty(folderPath))
             {
-                Console.WriteLine("❌ Error: --file and --folder options are mutually exclusive. Use only one.");
+                ConsoleUI.WriteStatus(false, "Error: --file and --folder options are mutually exclusive. Use only one.");
                 Environment.Exit(1);
                 return;
             }
 
             if (string.IsNullOrEmpty(filePath) && string.IsNullOrEmpty(folderPath))
             {
-                Console.WriteLine("❌ Error: Either --file or --folder must be specified.");
+                ConsoleUI.WriteStatus(false, "Error: Either --file or --folder must be specified.");
                 Environment.Exit(1);
                 return;
             }
@@ -71,15 +71,15 @@ public static class DocumentCommandHandlers
 
             if (filesToUpload.Count == 0)
             {
-                Console.WriteLine("❌ No valid files found to upload. Supported file types: .md, .txt");
+                ConsoleUI.WriteStatus(false, "No valid files found to upload. Supported file types: .md, .txt");
                 Environment.Exit(1);
                 return;
             }
 
-            Console.WriteLine($"📁 Found {filesToUpload.Count} file(s) to upload");
+            ConsoleUI.WriteInfo($"Found {filesToUpload.Count} file(s) to upload", ConsoleColor.Green);
             foreach (var file in filesToUpload)
             {
-                Console.WriteLine($"   📄 {Path.GetFileName(file)}");
+                ConsoleUI.WriteBullet(Path.GetFileName(file), ConsoleColor.Gray, 3);
                 DebugLogger.LogFile("UPLOAD", file, $"Size: {new FileInfo(file).Length} bytes");
             }
 
@@ -91,18 +91,18 @@ public static class DocumentCommandHandlers
 
             if (success)
             {
-                Console.WriteLine($"✅ {response}");
+                ConsoleUI.WriteStatus(true, response);
             }
             else
             {
-                Console.WriteLine($"❌ {response}");
+                ConsoleUI.WriteStatus(false, response);
                 Environment.Exit(1);
             }
         }
         catch (Exception ex)
         {
             DebugLogger.Debug("Exception", $"DocumentUpload failed: {ex.Message}");
-            Console.WriteLine($"❌ Error: {ex.Message}");
+            ConsoleUI.WriteStatus(false, $"Error: {ex.Message}");
             Environment.Exit(1);
         }
     }
@@ -198,14 +198,14 @@ public static class DocumentCommandHandlers
                         // Skip empty files
                         if (fileInfo.Length == 0)
                         {
-                            Console.WriteLine($"⚠️  Skipping empty file: {Path.GetFileName(file)}");
+                            ConsoleUI.WriteInfo($"Skipping empty file: {Path.GetFileName(file)}", ConsoleColor.Yellow);
                             continue;
                         }
 
                         // Skip files that are too large
                         if (fileInfo.Length > maxFileSize)
                         {
-                            Console.WriteLine($"⚠️  Skipping file exceeding 16MB limit: {Path.GetFileName(file)} ({fileInfo.Length} bytes)");
+                            ConsoleUI.WriteInfo($"Skipping file exceeding 16MB limit: {Path.GetFileName(file)} ({fileInfo.Length} bytes)", ConsoleColor.Yellow);
                             continue;
                         }
 
@@ -213,7 +213,7 @@ public static class DocumentCommandHandlers
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"⚠️  Skipping file due to error: {Path.GetFileName(file)} - {ex.Message}");
+                        ConsoleUI.WriteInfo($"Skipping file due to error: {Path.GetFileName(file)} - {ex.Message}", ConsoleColor.Yellow);
                     }
                 }
             }
@@ -254,12 +254,12 @@ public static class DocumentCommandHandlers
             // Validate query parameter
             if (string.IsNullOrWhiteSpace(query))
             {
-                Console.WriteLine("❌ Error: --query parameter is required for document search.");
+                ConsoleUI.WriteStatus(false, "Error: --query parameter is required for document search.");
                 Environment.Exit(1);
                 return;
             }
 
-            Console.WriteLine($"🔍 Searching for documents related to: \"{query}\"");
+            ConsoleUI.WriteInfo($"Searching for documents related to: \"{query}\"", ConsoleColor.Cyan);
             Console.WriteLine();
 
             // Perform the search
@@ -270,18 +270,19 @@ public static class DocumentCommandHandlers
 
             if (success)
             {
-                Console.WriteLine($"✅ {response}");
+                ConsoleUI.WriteSection("Search Results");
+                Console.WriteLine(response);
             }
             else
             {
-                Console.WriteLine($"❌ {response}");
+                Console.WriteLine(response);
                 Environment.Exit(1);
             }
         }
         catch (Exception ex)
         {
             DebugLogger.Debug("Exception", $"DocumentSearch failed: {ex.Message}");
-            Console.WriteLine($"❌ Search failed: {ex.Message}");
+            ConsoleUI.WriteStatus(false, $"Search failed: {ex.Message}");
             Environment.Exit(1);
         }
     }
@@ -300,7 +301,7 @@ public static class DocumentCommandHandlers
 
         try
         {
-            Console.WriteLine("🔄 Triggering document reindexing...");
+            ConsoleUI.WriteInfo("Triggering document reindexing...", ConsoleColor.Cyan);
             Console.WriteLine();
 
             // Perform the reindexing
@@ -313,8 +314,8 @@ public static class DocumentCommandHandlers
             {
                 Console.WriteLine(response);
                 Console.WriteLine();
-                Console.WriteLine("📚 All documents in the knowledge base will be reprocessed and reindexed.");
-                Console.WriteLine("   This may take a few minutes depending on the number of documents.");
+                ConsoleUI.WriteInfo("All documents in the knowledge base will be reprocessed and reindexed.", ConsoleColor.Gray);
+                ConsoleUI.WriteBullet("This may take a few minutes depending on the number of documents.", ConsoleColor.Gray);
             }
             else
             {
@@ -325,7 +326,7 @@ public static class DocumentCommandHandlers
         catch (Exception ex)
         {
             DebugLogger.Debug("Exception", $"DocumentReindex failed: {ex.Message}");
-            Console.WriteLine($"❌ Reindexing failed: {ex.Message}");
+            ConsoleUI.WriteStatus(false, $"Reindexing failed: {ex.Message}");
             Environment.Exit(1);
         }
     }

@@ -5,6 +5,8 @@ using System.Text;
 using Agent.Cli.Helpers;
 using Agent.Cli.Services;
 using Agent.Cli.Validations;
+using YamlDotNet.Core;
+using YamlDotNet.RepresentationModel;
 
 namespace Agent.Cli.Commands;
 
@@ -41,13 +43,14 @@ public static class ToolCommandHandlers
             if (toolTypeInfo == null)
             {
                 DebugLogger.Debug("Validation", $"Unknown tool type: {type}");
-                Console.WriteLine($"[ERROR] Unknown tool type '{type}'");
-                Console.WriteLine("Available tool types:");
+                ConsoleUI.WriteStatus(false, $"Unknown tool type '{type}'");
+                ConsoleUI.WriteSection("Available tool types");
                 foreach (var availableType in availableTypes)
                 {
-                    Console.WriteLine($"  - {availableType.Name}: {availableType.Description}");
+                    ConsoleUI.WriteBullet($"{availableType.Name}: {availableType.Description}");
                 }
-                Console.WriteLine("\nUse 'srectl tool show-types' for more details.");
+                Console.WriteLine();
+                ConsoleUI.WriteInfo("Use 'srectl tool show-types' for more details.");
                 Environment.Exit(1);
                 return;
             }
@@ -56,9 +59,9 @@ public static class ToolCommandHandlers
             if (!ToolValidation.ValidateTool(name!, type!, out var errors))
             {
                 DebugLogger.LogValidation($"Tool {name}", false, errors);
-                Console.WriteLine("❌ Tool validation failed:");
+                ConsoleUI.WriteStatus(false, "Tool validation failed");
                 foreach (var error in errors)
-                    Console.WriteLine($"  - {error}");
+                    ConsoleUI.WriteBullet(error, ConsoleColor.Red);
                 Environment.Exit(1);
                 return;
             }
@@ -90,17 +93,19 @@ public static class ToolCommandHandlers
             DebugLogger.LogFile("WRITE", yamlPath, $"Tool YAML content size: {toolYaml.Length} characters");
 
             await File.WriteAllTextAsync(yamlPath, toolYaml);
-            Console.WriteLine($"[SUCCESS] Tool YAML created at {yamlPath}");
-            Console.WriteLine($"Tool type: {toolTypeInfo.Name} - {toolTypeInfo.Description}");
-            Console.WriteLine("\nNext steps:");
-            Console.WriteLine("1. Review and customize the generated YAML file");
-            Console.WriteLine("2. Update the connector reference");
-            Console.WriteLine("3. Validate using: srectl tool validate --name " + name);
+            ConsoleUI.WriteStatus(true, $"Tool YAML created at {yamlPath}");
+            ConsoleUI.WriteKeyValue("Tool type", $"{toolTypeInfo.Name} - {toolTypeInfo.Description}");
+            Console.WriteLine();
+            ConsoleUI.WriteSection("Next Steps");
+            ConsoleUI.WriteCommand("Review and customize", "Edit the generated YAML file");
+            ConsoleUI.WriteCommand("Update connector", "Set the correct connector reference");
+            ConsoleUI.WriteCommand("Validate tool", $"srectl tool validate --name {name}");
+            ConsoleUI.WriteCommand("Apply tool", $"srectl tool apply --name {name}");
         }
         catch (Exception ex)
         {
             DebugLogger.Debug("Exception", $"CreateTool failed: {ex.Message}");
-            Console.WriteLine($"[ERROR] {ex.Message}");
+            ConsoleUI.WriteStatus(false, ex.Message);
             Environment.Exit(1);
         }
     }
@@ -133,7 +138,7 @@ public static class ToolCommandHandlers
         }
         else
         {
-            Console.WriteLine("❌ Please provide either --name or --all for tool validation.");
+            ConsoleUI.WriteStatus(false, "Please provide either --name or --all for tool validation.");
             Environment.Exit(1);
         }
     }
@@ -204,36 +209,128 @@ public static class ToolCommandHandlers
         {
             var verbose = parseResult.GetValue(ToolCommandOptions.VerboseOption);
 
-            Console.WriteLine("=====================================");
-            Console.WriteLine("Available Connector Types");
-            Console.WriteLine("=====================================");
+            ConsoleUI.WriteSection("Available Connector Types");
 
             var connectorTypes = ToolDefinitionService.GetAvailableConnectorTypes();
 
             if (!connectorTypes.Any())
             {
-                Console.WriteLine("[INFO] No connector types found.");
+                ConsoleUI.WriteStatus(false, "No connector types found.");
                 return;
             }
 
             foreach (var connector in connectorTypes)
             {
-                Console.WriteLine($"\n[{connector.Name}]");
-                Console.WriteLine($"  Description: {connector.Description}");
+                ConsoleUI.WriteKeyValue(connector.Name, connector.Description, 20, ConsoleColor.Yellow, ConsoleColor.Gray);
 
                 if (verbose)
                 {
-                    Console.WriteLine($"  Type: {connector.TypeName}");
-                    Console.WriteLine($"  Assembly: {connector.Assembly}");
-                    Console.WriteLine($"  Namespace: {connector.Namespace}");
+                    ConsoleUI.WriteBullet($"Type: {connector.TypeName}", ConsoleColor.DarkGray, 4);
+                    ConsoleUI.WriteBullet($"Assembly: {connector.Assembly}", ConsoleColor.DarkGray, 4);
+                    ConsoleUI.WriteBullet($"Namespace: {connector.Namespace}", ConsoleColor.DarkGray, 4);
                 }
+                Console.WriteLine();
             }
 
-            Console.WriteLine($"\n[SUCCESS] Found {connectorTypes.Count} connector type(s)");
+            ConsoleUI.WriteKeyValue("Total", $"{connectorTypes.Count} connector type(s)", 10);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[ERROR] {ex.Message}");
+            ConsoleUI.WriteStatus(false, ex.Message);
+            Environment.Exit(1);
+        }
+    }
+
+    /// <summary>
+    /// Handles the tool list command to display available tools.
+    /// </summary>
+    public static async Task HandleListCommand(ParseResult parseResult)
+    {
+        // Set debug mode first
+        var debug = parseResult.GetValue(ToolCommandOptions.DebugOption);
+        DebugLogger.SetDebugMode(debug);
+
+        DebugLogger.Debug("Command", "Starting tool list command");
+
+        var listAll = parseResult.GetValue(ToolCommandOptions.ListAllOption);
+
+        DebugLogger.Debug("Parameters", $"ListAll: {listAll}");
+
+        try
+        {
+            using var apiService = new ApiService();
+
+            if (listAll)
+            {
+                // List both extended tools and legacy tools
+                ConsoleUI.WriteSection("All Available Tools");
+                Console.WriteLine();
+
+                // Get extended tools first
+                ConsoleUI.WriteInfo("Extended Tools (recommended):", ConsoleColor.Cyan);
+                var (extendedSuccess, extendedResponse) = await apiService.ListExtendedToolsAsync();
+
+                if (extendedSuccess)
+                {
+                    Console.WriteLine(extendedResponse);
+                }
+                else
+                {
+                    ConsoleUI.WriteStatus(false, "Failed to retrieve extended tools");
+                    Console.WriteLine($"   {extendedResponse}");
+                }
+
+                Console.WriteLine();
+                ConsoleUI.DrawLine(60);
+                Console.WriteLine();
+
+                // Get legacy tools
+                ConsoleUI.WriteInfo("Legacy Tools:", ConsoleColor.Yellow);
+                var (legacySuccess, legacyResponse) = await apiService.ListToolsAsync();
+
+                if (legacySuccess)
+                {
+                    Console.WriteLine(legacyResponse);
+                }
+                else
+                {
+                    ConsoleUI.WriteStatus(false, "Failed to retrieve legacy tools");
+                    Console.WriteLine($"   {legacyResponse}");
+                }
+
+                // Summary
+                Console.WriteLine();
+                ConsoleUI.WriteSection("Summary");
+                ConsoleUI.WriteBullet("Extended tools support advanced features and are recommended for new developments", ConsoleColor.Green);
+                ConsoleUI.WriteBullet("Legacy tools are maintained for backward compatibility", ConsoleColor.Yellow);
+                Console.WriteLine();
+                ConsoleUI.WriteCommand("Create new tool", "srectl tool create --name <name> --type <type>");
+                ConsoleUI.WriteCommand("Apply existing tool", "srectl tool apply --name <name>");
+
+                Environment.Exit((extendedSuccess || legacySuccess) ? 0 : 1);
+            }
+            else
+            {
+                // Default behavior: list extended tools only (mirrors list extended-tools)
+                var (success, response) = await apiService.ListExtendedToolsAsync();
+
+                if (success)
+                {
+                    Console.WriteLine(response);
+                    Environment.Exit(0);
+                }
+                else
+                {
+                    ConsoleUI.WriteStatus(false, "Failed to retrieve tools");
+                    Console.WriteLine(response);
+                    Environment.Exit(1);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug("Exception", $"ListTools failed: {ex.Message}");
+            ConsoleUI.WriteStatus(false, $"Failed to list tools: {ex.Message}");
             Environment.Exit(1);
         }
     }
@@ -275,49 +372,128 @@ public static class ToolCommandHandlers
         };
     }
 
+    private static string NormalizeNewlines(string s)
+    {
+        return (s ?? string.Empty).Replace("\r\n", "\n").Replace("\r", "\n");
+    }
+
+    private static void RemoveKeyIgnoreCase(YamlMappingNode mapping, string keyName)
+    {
+        YamlNode? toRemove = null;
+        foreach (var kv in mapping.Children)
+        {
+            if (kv.Key is YamlScalarNode ks &&
+                string.Equals(ks.Value, keyName, StringComparison.OrdinalIgnoreCase))
+            {
+                toRemove = kv.Key;
+                break;
+            }
+        }
+        if (toRemove != null)
+        {
+            mapping.Children.Remove(toRemove);
+        }
+    }
+
     private static string CreateToolFromTemplate(string name, string type, string[]? extra)
     {
-        // Get the tool type details to generate template
-        var details = ToolDefinitionService.GetToolTypeDetails(type);
-        if (details == null)
+        var details = ToolDefinitionService.GetToolTypeDetails(type)
+            ?? throw new InvalidOperationException($"Unable to get details for tool type '{type}'");
+
+        // Base template substitutions
+        var yamlContent = details.SampleYaml
+            .Replace("MyKustoTool", name)
+            .Replace("MyKustoQuery", name)
+            .Replace("CheckResourceImpact", name)   // legacy alias if present
+            .Replace($"My{type}", name);
+
+        if (extra == null || extra.Length == 0)
         {
-            throw new InvalidOperationException($"Unable to get details for tool type '{type}'");
+            return yamlContent;
         }
 
-        // Start with the sample YAML as base template
-        var yamlContent = details.SampleYaml.Replace("MyKustoTool", name)
-                                           .Replace("MyKustoQuery", name)
-                                           .Replace($"My{type}", name);
+        var keyValuePairs = ArgumentParser.ParseKeyValuePairs(extra); // likely Dictionary<string, object>
 
-        // Apply any extra parameters provided
-        if (extra != null && extra.Length > 0)
+        try
         {
-            var keyValuePairs = ArgumentParser.ParseKeyValuePairs(extra);
+            var stream = new YamlStream();
+            stream.Load(new StringReader(yamlContent));
 
-            // Simple replacement for basic properties
+            if (stream.Documents.Count == 0 || stream.Documents[0].RootNode is not YamlMappingNode root)
+            {
+                // Fall back to append mode if we can't safely edit the DOM
+                var sbNoDom = new StringBuilder(yamlContent.TrimEnd());
+                foreach (var kv in keyValuePairs)
+                {
+                    var raw = kv.Value?.ToString() ?? string.Empty;
+                    if (kv.Key.Equals("description", StringComparison.OrdinalIgnoreCase))
+                    {
+                        sbNoDom.AppendLine()
+                               .AppendLine("description: |");
+                        foreach (var line in NormalizeNewlines(raw).Split('\n'))
+                        {
+                            sbNoDom.Append("  ").AppendLine(line);
+                        }
+                    }
+                    else
+                    {
+                        sbNoDom.AppendLine()
+                               .Append(kv.Key).Append(": ").Append(raw);
+                    }
+                }
+                return sbNoDom.ToString();
+            }
+
+            // DOM update: remove existing keys (case-insensitive), then add
             foreach (var kv in keyValuePairs)
             {
-                // Replace property values in YAML (basic approach)
-                var propertyPattern = $"{kv.Key}:.*";
-                var replacement = $"{kv.Key}: {kv.Value}";
+                var raw = kv.Value?.ToString() ?? string.Empty;
 
-                if (yamlContent.Contains($"{kv.Key}:"))
+                RemoveKeyIgnoreCase(root, kv.Key);
+
+                var keyNode = new YamlScalarNode(kv.Key);
+                YamlScalarNode valueNode;
+                if (kv.Key.Equals("description", StringComparison.OrdinalIgnoreCase))
                 {
-                    yamlContent = System.Text.RegularExpressions.Regex.Replace(
-                        yamlContent,
-                        $"^{kv.Key}:.*$",
-                        replacement,
-                        System.Text.RegularExpressions.RegexOptions.Multiline);
+                    valueNode = new YamlScalarNode(NormalizeNewlines(raw)) { Style = ScalarStyle.Literal }; // |
                 }
                 else
                 {
-                    // Add new property
-                    yamlContent += $"\n{kv.Key}: {kv.Value}";
+                    valueNode = new YamlScalarNode(raw) { Style = ScalarStyle.Plain };
+                }
+
+                root.Add(keyNode, valueNode);
+            }
+
+            var sw = new StringWriter();
+            stream.Save(sw, assignAnchors: false);
+            return sw.ToString();
+        }
+        catch
+        {
+            // Fallback: append keys to the end, with description as a block
+            var sb = new StringBuilder(yamlContent.TrimEnd());
+            foreach (var kv in keyValuePairs)
+            {
+                var raw = kv.Value?.ToString() ?? string.Empty;
+
+                if (kv.Key.Equals("description", StringComparison.OrdinalIgnoreCase))
+                {
+                    sb.AppendLine()
+                      .AppendLine("description: |");
+                    foreach (var line in NormalizeNewlines(raw).Split('\n'))
+                    {
+                        sb.Append("  ").AppendLine(line);
+                    }
+                }
+                else
+                {
+                    sb.AppendLine()
+                      .Append(kv.Key).Append(": ").Append(raw);
                 }
             }
+            return sb.ToString();
         }
-
-        return yamlContent;
     }
 
     private static void ValidateAllTools(YamlDotNet.Serialization.IDeserializer deserializer)
@@ -325,14 +501,14 @@ public static class ToolCommandHandlers
         var toolsDir = "tools";
         if (!Directory.Exists(toolsDir))
         {
-            Console.WriteLine("No tools directory found.");
+            ConsoleUI.WriteStatus(false, "No tools directory found.");
             Environment.Exit(1);
         }
 
         var files = Directory.GetFiles(toolsDir, "*.yaml", SearchOption.AllDirectories);
         if (files.Length == 0)
         {
-            Console.WriteLine("No tool YAML files found in tools directory.");
+            ConsoleUI.WriteStatus(false, "No tool YAML files found in tools directory.");
             Environment.Exit(1);
         }
 
@@ -347,29 +523,45 @@ public static class ToolCommandHandlers
                 string toolName = doc.TryGetValue("name", out var n) ? n?.ToString() ?? string.Empty : string.Empty;
                 string toolType = doc.TryGetValue("type", out var t) ? t?.ToString() ?? string.Empty : string.Empty;
 
-                if (ToolValidation.ValidateTool(toolName, toolType, out var errors))
-                {
-                    Console.WriteLine($"✅ {file}: Validation succeeded.");
-                }
-                else
+                DebugLogger.Debug("ToolValidation", $"Validating tool '{toolName}' of type '{toolType}' from {file}");
+
+                // Basic validation first
+                if (!ToolValidation.ValidateTool(toolName, toolType, out var basicErrors))
                 {
                     allValid = false;
-                    Console.WriteLine($"❌ {file}: Validation failed:");
-                    foreach (var error in errors)
-                        Console.WriteLine($"   - {error}");
+                    DebugLogger.LogValidation($"Tool {toolName} (basic)", false, basicErrors);
+                    ConsoleUI.WriteStatus(false, $"{file}: Basic validation failed");
+                    foreach (var error in basicErrors)
+                        ConsoleUI.WriteBullet(error, ConsoleColor.Red, 6);
+                    continue;
                 }
+
+                // YAML and type-specific validation
+                if (!ToolValidation.ValidateToolYaml(yaml, out var yamlErrors))
+                {
+                    allValid = false;
+                    DebugLogger.LogValidation($"Tool {toolName} (YAML)", false, yamlErrors);
+                    ConsoleUI.WriteStatus(false, $"{file}: YAML validation failed");
+                    foreach (var error in yamlErrors)
+                        ConsoleUI.WriteBullet(error, ConsoleColor.Red, 6);
+                    continue;
+                }
+
+                DebugLogger.LogValidation($"Tool {toolName}", true);
+                ConsoleUI.WriteStatus(true, $"{file}: Validation succeeded");
             }
             catch (Exception ex)
             {
                 allValid = false;
-                Console.WriteLine($"❌ {file}: Exception during validation: {ex.Message}");
+                DebugLogger.Debug("ToolValidation", $"Exception validating {file}: {ex.Message}");
+                ConsoleUI.WriteStatus(false, $"{file}: Exception during validation: {ex.Message}");
             }
         }
         if (allValid)
-            Console.WriteLine("All tool YAML files are valid.");
+            ConsoleUI.WriteStatus(true, "All tool YAML files are valid");
         else
         {
-            Console.WriteLine("Some tool YAML files failed validation.");
+            ConsoleUI.WriteStatus(false, "Some tool YAML files failed validation");
             Environment.Exit(1);
         }
     }
@@ -379,8 +571,8 @@ public static class ToolCommandHandlers
         var filePath = FindToolFile(name);
         if (filePath == null)
         {
-            Console.WriteLine($"❌ Tool YAML file not found for tool '{name}'");
-            Console.WriteLine($"   Searched in tools directory and subdirectories for '{name}.yaml'");
+            ConsoleUI.WriteStatus(false, $"Tool YAML file not found for tool '{name}'");
+            ConsoleUI.WriteBullet($"Searched in tools directory and subdirectories for '{name}.yaml'", ConsoleColor.Yellow);
             Environment.Exit(1);
         }
 
@@ -392,54 +584,68 @@ public static class ToolCommandHandlers
             string toolName = doc.TryGetValue("name", out var n) ? n?.ToString() ?? string.Empty : string.Empty;
             string toolType = doc.TryGetValue("type", out var t) ? t?.ToString() ?? string.Empty : string.Empty;
 
-            if (ToolValidation.ValidateTool(toolName, toolType, out var errors))
+            DebugLogger.Debug("ToolValidation", $"Validating tool '{toolName}' of type '{toolType}' from {filePath}");
+
+            // First validate basic tool properties
+            if (!ToolValidation.ValidateTool(toolName, toolType, out var basicErrors))
             {
-                Console.WriteLine($"✅ Tool validation succeeded for '{name}' at {filePath}");
-            }
-            else
-            {
-                Console.WriteLine($"❌ Tool validation failed for '{name}' at {filePath}:");
-                foreach (var error in errors)
-                    Console.WriteLine($"  - {error}");
+                DebugLogger.LogValidation($"Tool {toolName} (basic)", false, basicErrors);
+                ConsoleUI.WriteStatus(false, $"Basic tool validation failed for '{name}' at {filePath}");
+                foreach (var error in basicErrors)
+                    ConsoleUI.WriteBullet(error, ConsoleColor.Red);
                 Environment.Exit(1);
+                return;
             }
+
+            // Then validate YAML content and type-specific requirements
+            if (!ToolValidation.ValidateToolYaml(yaml, out var yamlErrors))
+            {
+                DebugLogger.LogValidation($"Tool {toolName} (YAML)", false, yamlErrors);
+                ConsoleUI.WriteStatus(false, $"Tool YAML validation failed for '{name}' at {filePath}");
+                foreach (var error in yamlErrors)
+                    ConsoleUI.WriteBullet(error, ConsoleColor.Red);
+                Environment.Exit(1);
+                return;
+            }
+
+            DebugLogger.LogValidation($"Tool {toolName}", true);
+            ConsoleUI.WriteStatus(true, $"Tool validation succeeded for '{name}' at {filePath}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Exception during validation: {ex.Message}");
+            ConsoleUI.WriteStatus(false, $"Exception during validation: {ex.Message}");
             Environment.Exit(1);
         }
     }
 
     private static void ShowAllToolTypes(bool verbose)
     {
-        Console.WriteLine("=====================================");
-        Console.WriteLine("Available Tool Types");
-        Console.WriteLine("=====================================");
+        ConsoleUI.WriteSection("Available Tool Types");
 
         var toolTypes = ToolDefinitionService.GetAvailableToolTypes();
 
         if (!toolTypes.Any())
         {
-            Console.WriteLine("[INFO] No tool types found.");
+            ConsoleUI.WriteStatus(false, "No tool types found.");
             return;
         }
 
         foreach (var toolType in toolTypes)
         {
-            Console.WriteLine($"\n[{toolType.Name}]");
-            Console.WriteLine($"  Description: {toolType.Description}");
+            ConsoleUI.WriteKeyValue("🔧 " + toolType.Name, toolType.Description, 20, ConsoleColor.Yellow, ConsoleColor.Gray);
 
             if (verbose)
             {
-                Console.WriteLine($"  Type: {toolType.TypeName}");
-                Console.WriteLine($"  Assembly: {toolType.Assembly}");
-                Console.WriteLine($"  Namespace: {toolType.Namespace}");
+                ConsoleUI.WriteBullet($"Type: {toolType.TypeName}", ConsoleColor.DarkGray, 4);
+                ConsoleUI.WriteBullet($"Assembly: {toolType.Assembly}", ConsoleColor.DarkGray, 4);
+                ConsoleUI.WriteBullet($"Namespace: {toolType.Namespace}", ConsoleColor.DarkGray, 4);
             }
+            Console.WriteLine();
         }
 
-        Console.WriteLine($"\n[SUCCESS] Found {toolTypes.Count} tool type(s)");
-        Console.WriteLine("\nUsage: srectl tool show-types --type <ToolTypeName> for detailed information");
+        ConsoleUI.WriteKeyValue("Total", $"{toolTypes.Count} tool type(s)", 10);
+        Console.WriteLine();
+        ConsoleUI.WriteInfo("Use 'srectl tool show-types --type <ToolTypeName>' for detailed information");
     }
 
     private static void ShowSpecificToolTypeDetails(string toolTypeName)
@@ -448,36 +654,36 @@ public static class ToolCommandHandlers
 
         if (details == null)
         {
-            Console.WriteLine($"[ERROR] Tool type '{toolTypeName}' not found.");
-            Console.WriteLine("Use 'srectl tool show-types' to see available tool types.");
+            ConsoleUI.WriteStatus(false, $"Tool type '{toolTypeName}' not found.");
+            ConsoleUI.WriteInfo("Use 'srectl tool show-types' to see available tool types.");
             Environment.Exit(1);
             return;
         }
 
-        Console.WriteLine("=====================================");
-        Console.WriteLine($"Tool Type Details: {details.Name}");
-        Console.WriteLine("=====================================");
+        ConsoleUI.WriteSection($"🔧 Tool Type Details: {details.Name}");
 
-        Console.WriteLine($"Description: {details.Description}");
-        Console.WriteLine($"Type: {details.TypeName}");
-        Console.WriteLine($"Assembly: {details.Assembly}");
-        Console.WriteLine($"Namespace: {details.Namespace}");
+        ConsoleUI.WriteKeyValue("Description", details.Description, 12);
+        ConsoleUI.WriteKeyValue("Type", details.TypeName, 12);
+        ConsoleUI.WriteKeyValue("Assembly", details.Assembly, 12);
+        ConsoleUI.WriteKeyValue("Namespace", details.Namespace, 12);
+        Console.WriteLine();
 
         if (details.SupportedProperties.Any())
         {
-            Console.WriteLine("\nSupported Properties:");
+            ConsoleUI.WriteSection("Supported Properties");
             foreach (var prop in details.SupportedProperties)
             {
-                Console.WriteLine($"  - {prop}");
+                ConsoleUI.WriteBullet(prop);
             }
+            Console.WriteLine();
         }
 
-        Console.WriteLine("\nSample YAML:");
-        Console.WriteLine("-------------------------------------");
+        ConsoleUI.WriteSection("Sample YAML");
+        ConsoleUI.DrawLine();
         Console.WriteLine(details.SampleYaml);
-        Console.WriteLine("-------------------------------------");
+        Console.WriteLine();
 
-        Console.WriteLine($"\n[SUCCESS] Tool type details displayed for '{toolTypeName}'");
+        ConsoleUI.WriteStatus(true, $"Tool type details displayed for '{toolTypeName}'");
     }
 
     /// <summary>
@@ -498,7 +704,7 @@ public static class ToolCommandHandlers
 
         if (string.IsNullOrWhiteSpace(toolName))
         {
-            Console.WriteLine("❌ Tool name is required.");
+            ConsoleUI.WriteStatus(false, "Tool name is required.");
             Environment.Exit(1);
             return;
         }
@@ -512,24 +718,110 @@ public static class ToolCommandHandlers
         try
         {
             using var apiService = new ApiService();
-            Console.WriteLine($"🗑️  Deleting tool '{toolName}'...");
+            ConsoleUI.WriteInfo($"Deleting tool '{toolName}'...", ConsoleColor.Yellow);
 
             var (success, response) = await apiService.DeleteToolAsync(toolName);
 
             if (success)
             {
-                Console.WriteLine($"✅ {response}");
+                ConsoleUI.WriteStatus(true, response);
+
+                // After successful server deletion, offer to clean up local files
+                OfferLocalToolCleanup(toolName);
             }
             else
             {
-                Console.WriteLine($"❌ {response}");
+                ConsoleUI.WriteStatus(false, response);
                 Environment.Exit(1);
             }
         }
         catch (Exception ex)
         {
             DebugLogger.Debug("Exception", $"DeleteTool failed: {ex.Message}");
-            Console.WriteLine($"❌ Failed to delete tool: {ex.Message}");
+            ConsoleUI.WriteStatus(false, $"Failed to delete tool: {ex.Message}");
+            Environment.Exit(1);
+        }
+    }
+
+    /// <summary>
+    /// Handles the tool diff command to compare local and remote configurations.
+    /// </summary>
+    public static async Task HandleDiffCommand(ParseResult parseResult)
+    {
+        // Set debug mode first
+        var debug = parseResult.GetValue(ToolCommandOptions.DebugOption);
+        DebugLogger.SetDebugMode(debug);
+
+        DebugLogger.Debug("Command", "Starting tool diff command");
+
+        var toolName = parseResult.GetValue(ToolCommandOptions.DiffNameOption);
+        var diffTool = parseResult.GetValue(ToolCommandOptions.DiffToolOption) ?? "git";
+        var showRaw = parseResult.GetValue(ToolCommandOptions.DiffRawOption);
+
+        DebugLogger.Debug("Parameters", $"ToolName: {toolName}, Tool: {diffTool}, Raw: {showRaw}");
+
+        if (string.IsNullOrWhiteSpace(toolName))
+        {
+            ConsoleUI.WriteStatus(false, "Tool name is required.");
+            Environment.Exit(1);
+            return;
+        }
+
+        try
+        {
+            // Find local tool file
+            var localPath = FindToolFile(toolName);
+            if (localPath == null)
+            {
+                ConsoleUI.WriteStatus(false, $"Local tool file not found for '{toolName}'");
+                ConsoleUI.WriteBullet($"Searched in tools directory and subdirectories for '{toolName}.yaml'", ConsoleColor.Yellow);
+                Environment.Exit(1);
+                return;
+            }
+
+            ConsoleUI.WriteInfo($"Comparing tool '{toolName}'...", ConsoleColor.Cyan);
+
+            // Get remote configuration
+            using var apiService = new ApiService();
+            var (success, remoteYaml, errorMessage) = await apiService.GetToolConfigurationAsync(toolName);
+
+            if (!success)
+            {
+                ConsoleUI.WriteStatus(false, $"Failed to get remote configuration: {errorMessage}");
+                Environment.Exit(1);
+                return;
+            }
+
+            // Read local configuration
+            var localYaml = await File.ReadAllTextAsync(localPath);
+
+            // If both are identical, no need to diff
+            if (string.Equals(localYaml.Trim(), remoteYaml.Trim(), StringComparison.Ordinal))
+            {
+                ConsoleUI.WriteStatus(true, "Local and remote configurations are identical");
+                Environment.Exit(0);
+                return;
+            }
+
+            // Always use YAML format for comparison
+            var localContent = NormalizeYaml(localYaml);
+            var remoteContent = NormalizeYaml(remoteYaml);
+
+            if (showRaw)
+            {
+                // Show inline diff
+                ShowInlineDiff(localContent, remoteContent, toolName);
+            }
+            else
+            {
+                // Use external diff tool
+                await LaunchDiffTool(localContent, remoteContent, toolName, diffTool, ".yaml");
+            }
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug("Exception", $"Diff failed: {ex.Message}");
+            ConsoleUI.WriteStatus(false, $"Failed to compare tool: {ex.Message}");
             Environment.Exit(1);
         }
     }
@@ -584,24 +876,24 @@ public static class ToolCommandHandlers
     {
         try
         {
-            Console.WriteLine($"🔍 DRY RUN: Tool apply for '{toolName}'");
-            Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            ConsoleUI.WriteSection($"DRY RUN: Tool apply for '{toolName}'");
+            ConsoleUI.DrawLine();
 
             // Find and validate tool file exists
             var toolFilePath = FindToolFile(toolName);
             if (toolFilePath == null)
             {
-                Console.WriteLine($"❌ Tool file not found for '{toolName}'");
-                Console.WriteLine($"   Searched in tools directory and subdirectories for '{toolName}.yaml'");
+                ConsoleUI.WriteStatus(false, $"Tool file not found for '{toolName}'");
+                ConsoleUI.WriteBullet($"Searched in tools directory and subdirectories for '{toolName}.yaml'", ConsoleColor.Yellow);
                 Environment.Exit(1);
                 return;
             }
 
-            Console.WriteLine($"📂 Tool file found: {toolFilePath}");
+            ConsoleUI.WriteKeyValue("Tool file found", toolFilePath);
 
             // Read and parse the YAML file
             var yamlContent = await File.ReadAllTextAsync(toolFilePath);
-            Console.WriteLine($"📄 YAML content size: {yamlContent.Length} characters");
+            ConsoleUI.WriteKeyValue("Content size", $"{yamlContent.Length} characters");
 
             // Validate YAML structure
             var deserializer = YamlHelper.CreateCamelCaseDeserializer();
@@ -609,21 +901,22 @@ public static class ToolCommandHandlers
             {
                 var toolConfig = deserializer.Deserialize<Dictionary<string, object>>(yamlContent);
 
-                Console.WriteLine("✅ YAML structure is valid");
-                Console.WriteLine($"📝 Tool details:");
+                ConsoleUI.WriteStatus(true, "YAML structure is valid");
+                Console.WriteLine();
+                ConsoleUI.WriteSection("Tool Details");
 
                 if (toolConfig.TryGetValue("name", out var nameValue))
-                    Console.WriteLine($"   Name: {nameValue}");
+                    ConsoleUI.WriteBullet($"Name: {nameValue}");
                 if (toolConfig.TryGetValue("type", out var typeValue))
-                    Console.WriteLine($"   Type: {typeValue}");
+                    ConsoleUI.WriteBullet($"Type: {typeValue}");
                 if (toolConfig.TryGetValue("description", out var descValue))
-                    Console.WriteLine($"   Description: {descValue}");
+                    ConsoleUI.WriteBullet($"Description: {descValue}");
                 if (toolConfig.TryGetValue("connector", out var connectorValue))
-                    Console.WriteLine($"   Connector: {connectorValue}");
+                    ConsoleUI.WriteBullet($"Connector: {connectorValue}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ YAML parsing failed: {ex.Message}");
+                ConsoleUI.WriteStatus(false, $"YAML parsing failed: {ex.Message}");
                 Environment.Exit(1);
                 return;
             }
@@ -633,25 +926,28 @@ public static class ToolCommandHandlers
             var config = await configService.LoadConfigurationAsync();
             if (config == null)
             {
-                Console.WriteLine("❌ Configuration not found. Run 'srectl init' first.");
+                ConsoleUI.WriteStatus(false, "Configuration not found. Run 'srectl init' first.");
                 Environment.Exit(1);
                 return;
             }
 
-            Console.WriteLine($"🌐 Target server: {config.ResourceUrl}");
-            Console.WriteLine($"🔐 Authentication required: {config.AuthRequired}");
+            ConsoleUI.WriteKeyValue("Target server", config.ResourceUrl);
+            ConsoleUI.WriteKeyValue("Auth required", config.AuthRequired.ToString());
 
-            Console.WriteLine("\n✅ DRY RUN COMPLETE");
-            Console.WriteLine("📋 Summary:");
-            Console.WriteLine($"   • Tool '{toolName}' configuration is valid");
-            Console.WriteLine("   • YAML file can be parsed successfully");
-            Console.WriteLine("   • Server configuration is available");
-            Console.WriteLine($"   • Would apply to: {config.ResourceUrl}");
-            Console.WriteLine("\n💡 To actually apply the tool, run: srectl tool apply --name " + toolName);
+            Console.WriteLine();
+            ConsoleUI.WriteStatus(true, "DRY RUN COMPLETE");
+            Console.WriteLine();
+            ConsoleUI.WriteSection("Summary");
+            ConsoleUI.WriteBullet($"Tool '{toolName}' configuration is valid", ConsoleColor.Green);
+            ConsoleUI.WriteBullet("YAML file can be parsed successfully", ConsoleColor.Green);
+            ConsoleUI.WriteBullet("Server configuration is available", ConsoleColor.Green);
+            ConsoleUI.WriteBullet($"Would apply to: {config.ResourceUrl}", ConsoleColor.Green);
+            Console.WriteLine();
+            ConsoleUI.WriteCommand("To apply", $"srectl tool apply --name {toolName}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ DRY RUN FAILED: {ex.Message}");
+            ConsoleUI.WriteStatus(false, $"DRY RUN FAILED: {ex.Message}");
             Environment.Exit(1);
         }
     }
@@ -663,18 +959,18 @@ public static class ToolCommandHandlers
     {
         try
         {
-            Console.WriteLine($"🔍 DRY RUN: Tool delete for '{toolName}'");
+            ConsoleUI.WriteSection($"DRY RUN: Tool delete for '{toolName}'");
             Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
             // Check if tool exists locally
             var toolFilePath = FindToolFile(toolName);
             if (toolFilePath != null)
             {
-                Console.WriteLine($"📂 Local tool file found: {toolFilePath}");
+                ConsoleUI.WriteInfo($"Local tool file found: {toolFilePath}", ConsoleColor.Green);
             }
             else
             {
-                Console.WriteLine($"⚠️  No local tool file found for '{toolName}'");
+                ConsoleUI.WriteInfo($"No local tool file found for '{toolName}'", ConsoleColor.Yellow);
             }
 
             // Check server connectivity
@@ -682,19 +978,19 @@ public static class ToolCommandHandlers
             var config = await configService.LoadConfigurationAsync();
             if (config == null)
             {
-                Console.WriteLine("❌ Configuration not found. Run 'srectl init' first.");
+                ConsoleUI.WriteStatus(false, "Configuration not found. Run 'srectl init' first.");
                 Environment.Exit(1);
                 return;
             }
 
-            Console.WriteLine($"🌐 Target server: {config.ResourceUrl}");
-            Console.WriteLine($"🔐 Authentication required: {config.AuthRequired}");
+            ConsoleUI.WriteKeyValue("Target server", config.ResourceUrl);
+            ConsoleUI.WriteKeyValue("Authentication required", config.AuthRequired.ToString());
 
             // Check for dependencies by searching for tool references in agent files
             var dependencies = FindToolDependencies(toolName);
             if (dependencies.Any())
             {
-                Console.WriteLine($"⚠️  Found {dependencies.Count} potential dependencies:");
+                ConsoleUI.WriteInfo($"Found {dependencies.Count} potential dependencies:", ConsoleColor.Yellow);
                 foreach (var dep in dependencies)
                 {
                     Console.WriteLine($"   • {dep}");
@@ -703,26 +999,26 @@ public static class ToolCommandHandlers
             }
             else
             {
-                Console.WriteLine("✅ No local dependencies found");
+                ConsoleUI.WriteStatus(true, "No local dependencies found");
             }
 
-            Console.WriteLine("\n✅ DRY RUN COMPLETE");
-            Console.WriteLine("📋 Summary:");
+            ConsoleUI.WriteStatus(true, "DRY RUN COMPLETE");
+            ConsoleUI.WriteSection("Summary");
             Console.WriteLine($"   • Tool '{toolName}' would be deleted from server");
             Console.WriteLine($"   • Target server: {config.ResourceUrl}");
             if (dependencies.Any())
             {
-                Console.WriteLine($"   • ⚠️  {dependencies.Count} potential dependencies found");
+                ConsoleUI.WriteBullet($"{dependencies.Count} potential dependencies found", ConsoleColor.Yellow);
             }
-            Console.WriteLine("\n💡 To actually delete the tool, run: srectl tool delete --name " + toolName);
+            ConsoleUI.WriteCommand("To actually delete the tool", $"srectl tool delete --name {toolName}");
             if (dependencies.Any())
             {
-                Console.WriteLine("⚠️  Consider updating dependent agents first to avoid deployment issues");
+                ConsoleUI.WriteInfo("Consider updating dependent agents first to avoid deployment issues", ConsoleColor.Yellow);
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ DRY RUN FAILED: {ex.Message}");
+            ConsoleUI.WriteStatus(false, $"DRY RUN FAILED: {ex.Message}");
             Environment.Exit(1);
         }
     }
@@ -760,4 +1056,297 @@ public static class ToolCommandHandlers
 
         return dependencies;
     }
+
+    /// <summary>
+    /// Offers to clean up local tool files after successful server deletion.
+    /// </summary>
+    private static void OfferLocalToolCleanup(string toolName)
+    {
+        var toolFile = FindToolFile(toolName);
+
+        if (toolFile == null)
+        {
+            return; // No local files to clean up
+        }
+
+        var toolDir = Path.GetDirectoryName(toolFile);
+
+        Console.WriteLine();
+        ConsoleUI.WriteSection("Local File Cleanup");
+        ConsoleUI.WriteInfo("Local configuration files still exist:", ConsoleColor.Yellow);
+        ConsoleUI.WriteBullet(toolFile, ConsoleColor.Gray);
+        Console.WriteLine();
+
+        if (ConsoleUI.Confirm("Also delete local configuration files?", false))
+        {
+            try
+            {
+                // If tool is in its own directory (tools/toolname/toolname.yaml), delete the directory
+                // If tool is in flat structure (tools/toolname.yaml), delete just the file
+                if (Path.GetFileName(toolDir) == toolName)
+                {
+                    Directory.Delete(toolDir!, true);
+                    ConsoleUI.WriteStatus(true, $"Local tool directory deleted: {toolDir}");
+                }
+                else
+                {
+                    File.Delete(toolFile);
+                    ConsoleUI.WriteStatus(true, $"Local tool file deleted: {toolFile}");
+                }
+
+                Console.WriteLine();
+                ConsoleUI.WriteSection("Summary");
+                ConsoleUI.WriteBullet($"Tool '{toolName}' deleted from server", ConsoleColor.Green);
+                ConsoleUI.WriteBullet("Local configuration files cleaned up", ConsoleColor.Green);
+
+                Console.WriteLine();
+                ConsoleUI.WriteInfo($"To recreate: srectl tool create --name {toolName} --type <ToolType>", ConsoleColor.Cyan);
+            }
+            catch (Exception ex)
+            {
+                ConsoleUI.WriteStatus(false, $"Failed to delete local files: {ex.Message}");
+            }
+        }
+        else
+        {
+            Console.WriteLine();
+            ConsoleUI.WriteSection("Summary");
+            ConsoleUI.WriteBullet($"Tool '{toolName}' deleted from server", ConsoleColor.Green);
+            ConsoleUI.WriteBullet($"Local configuration files preserved: {toolFile}", ConsoleColor.Yellow);
+
+            Console.WriteLine();
+            ConsoleUI.WriteInfo($"To redeploy: srectl tool apply --name {toolName}", ConsoleColor.Cyan);
+            if (Path.GetFileName(toolDir) == toolName)
+            {
+                ConsoleUI.WriteInfo($"To delete locally: rm -rf {toolDir!.Replace('\\', '/')}", ConsoleColor.Gray);
+            }
+            else
+            {
+                ConsoleUI.WriteInfo($"To delete locally: rm {toolFile.Replace('\\', '/')}", ConsoleColor.Gray);
+            }
+        }
+    }
+
+    #region Diff Helper Methods
+
+    private static string NormalizeYaml(string yaml)
+    {
+        try
+        {
+            var deserializer = YamlHelper.CreateCamelCaseDeserializer();
+            var obj = deserializer.Deserialize<object>(yaml);
+
+            var serializer = new YamlDotNet.Serialization.SerializerBuilder()
+                .WithNamingConvention(YamlDotNet.Serialization.NamingConventions.CamelCaseNamingConvention.Instance)
+                .ConfigureDefaultValuesHandling(YamlDotNet.Serialization.DefaultValuesHandling.OmitNull)
+                .Build();
+
+            return serializer.Serialize(obj);
+        }
+        catch
+        {
+            return yaml; // Return original if normalization fails
+        }
+    }
+
+    private static void ShowInlineDiff(string local, string remote, string toolName)
+    {
+        ConsoleUI.WriteSection($"Configuration Diff for '{toolName}'");
+
+        var localLines = local.Split('\n');
+        var remoteLines = remote.Split('\n');
+
+        Console.WriteLine();
+        Console.WriteLine("Legend: ");
+        ConsoleUI.WriteBullet("Local only (will be removed)", ConsoleColor.Red);
+        ConsoleUI.WriteBullet("Remote only (will be added)", ConsoleColor.Green);
+        ConsoleUI.WriteBullet("Different values", ConsoleColor.Yellow);
+        Console.WriteLine();
+
+        // Simple line-by-line comparison
+        int maxLines = Math.Max(localLines.Length, remoteLines.Length);
+        for (int i = 0; i < maxLines; i++)
+        {
+            var localLine = i < localLines.Length ? localLines[i] : null;
+            var remoteLine = i < remoteLines.Length ? remoteLines[i] : null;
+
+            if (localLine == remoteLine)
+            {
+                // Lines are the same, skip or show context
+                continue;
+            }
+            else if (localLine != null && remoteLine == null)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"- {localLine}");
+                Console.ResetColor();
+            }
+            else if (localLine == null && remoteLine != null)
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine($"+ {remoteLine}");
+                Console.ResetColor();
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine($"< {localLine}");
+                Console.WriteLine($"> {remoteLine}");
+                Console.ResetColor();
+            }
+        }
+
+        Console.WriteLine();
+        ConsoleUI.WriteSection("Summary");
+        ConsoleUI.WriteKeyValue("Local lines", localLines.Length.ToString());
+        ConsoleUI.WriteKeyValue("Remote lines", remoteLines.Length.ToString());
+    }
+
+    private static async Task LaunchDiffTool(string localContent, string remoteContent, string toolName, string tool, string extension)
+    {
+        // Create temp files
+        var tempDir = Path.GetTempPath();
+        var localTempFile = Path.Combine(tempDir, $"{toolName}.local{extension}");
+        var remoteTempFile = Path.Combine(tempDir, $"{toolName}.remote{extension}");
+
+        try
+        {
+            await File.WriteAllTextAsync(localTempFile, localContent);
+            await File.WriteAllTextAsync(remoteTempFile, remoteContent);
+
+            ConsoleUI.WriteInfo($"Launching {tool} diff tool...", ConsoleColor.Cyan);
+
+            var process = tool.ToLower() switch
+            {
+                "git" => LaunchGitDiff(localTempFile, remoteTempFile, toolName),
+                "vimdiff" => LaunchVimDiff(localTempFile, remoteTempFile),
+                "vim" => LaunchVimDiff(localTempFile, remoteTempFile),
+                "code" => LaunchVSCode(localTempFile, remoteTempFile),
+                "vscode" => LaunchVSCode(localTempFile, remoteTempFile),
+                _ => LaunchDefaultDiff(localTempFile, remoteTempFile, toolName)
+            };
+
+            if (process != null)
+            {
+                await process.WaitForExitAsync();
+
+                if (process.ExitCode == 0)
+                {
+                    ConsoleUI.WriteStatus(true, "Diff completed successfully");
+                }
+                else if (process.ExitCode == 1 && tool == "git")
+                {
+                    // Git diff returns 1 when files differ, which is expected
+                    ConsoleUI.WriteStatus(true, "Files differ (see diff output above)");
+                }
+                else
+                {
+                    ConsoleUI.WriteStatus(false, $"Diff tool exited with code {process.ExitCode}");
+                }
+            }
+        }
+        finally
+        {
+            // Cleanup temp files
+            try
+            {
+                if (File.Exists(localTempFile)) File.Delete(localTempFile);
+                if (File.Exists(remoteTempFile)) File.Delete(remoteTempFile);
+            }
+            catch
+            {
+                // Ignore cleanup errors
+            }
+        }
+    }
+
+    private static System.Diagnostics.Process? LaunchGitDiff(string localFile, string remoteFile, string toolName)
+    {
+        try
+        {
+            var startInfo = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "git",
+                Arguments = $"diff --no-index --color=always \"{localFile}\" \"{remoteFile}\"",
+                UseShellExecute = false,
+                RedirectStandardOutput = false,
+                RedirectStandardError = false
+            };
+
+            // Add labels to make it clearer
+            Console.WriteLine($"--- a/{toolName} (local)");
+            Console.WriteLine($"+++ b/{toolName} (remote)");
+            Console.WriteLine();
+
+            return System.Diagnostics.Process.Start(startInfo);
+        }
+        catch (Exception ex)
+        {
+            ConsoleUI.WriteStatus(false, $"Failed to launch git diff: {ex.Message}");
+            ConsoleUI.WriteInfo("Make sure git is installed and in your PATH", ConsoleColor.Yellow);
+            return null;
+        }
+    }
+
+    private static System.Diagnostics.Process? LaunchVimDiff(string localFile, string remoteFile)
+    {
+        try
+        {
+            var vimCommand = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows) ? "vim" : "vimdiff";
+
+            var startInfo = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = vimCommand,
+                Arguments = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows)
+                    ? $"-d \"{localFile}\" \"{remoteFile}\""
+                    : $"\"{localFile}\" \"{remoteFile}\"",
+                UseShellExecute = false
+            };
+
+            return System.Diagnostics.Process.Start(startInfo);
+        }
+        catch (Exception ex)
+        {
+            ConsoleUI.WriteStatus(false, $"Failed to launch vimdiff: {ex.Message}");
+            ConsoleUI.WriteInfo("Make sure vim is installed and in your PATH", ConsoleColor.Yellow);
+            return null;
+        }
+    }
+
+    private static System.Diagnostics.Process? LaunchVSCode(string localFile, string remoteFile)
+    {
+        try
+        {
+            var startInfo = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "code",
+                Arguments = $"--diff \"{localFile}\" \"{remoteFile}\"",
+                UseShellExecute = false
+            };
+
+            return System.Diagnostics.Process.Start(startInfo);
+        }
+        catch (Exception ex)
+        {
+            ConsoleUI.WriteStatus(false, $"Failed to launch VS Code: {ex.Message}");
+            ConsoleUI.WriteInfo("Make sure VS Code is installed and 'code' is in your PATH", ConsoleColor.Yellow);
+            return null;
+        }
+    }
+
+    private static System.Diagnostics.Process? LaunchDefaultDiff(string localFile, string remoteFile, string toolName)
+    {
+        // Try git diff first as it's most commonly available
+        var process = LaunchGitDiff(localFile, remoteFile, toolName);
+        if (process != null) return process;
+
+        // Fall back to simple inline diff
+        ConsoleUI.WriteInfo("No external diff tool available, showing inline diff", ConsoleColor.Yellow);
+        var localContent = File.ReadAllText(localFile);
+        var remoteContent = File.ReadAllText(remoteFile);
+        ShowInlineDiff(localContent, remoteContent, toolName);
+        return null;
+    }
+
+    #endregion
 }

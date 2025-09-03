@@ -28,7 +28,7 @@ namespace Agent.Core.Models.Api.v1
     public enum ThreadType
     {
         Prod,
-        Test  // For testing purposes, agent will run in Readonly mode
+        Test  // For testing purposes, Agent will run in Readonly mode
     }
 
     public sealed record IncidentSource(
@@ -86,6 +86,7 @@ namespace Agent.Core.Models.Api.v1
         [Required] string Text,
         string UserId,
         string DisplayName,
+        string Agent = "",
         ConversationModifierEnum? ConversationModifier = null
     );
 

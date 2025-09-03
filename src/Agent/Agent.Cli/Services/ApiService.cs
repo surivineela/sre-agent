@@ -55,11 +55,20 @@ public class ApiService : IDisposable
     {
         var stopwatch = Stopwatch.StartNew();
 
-        // Log request details
+        // Log request details (including headers)
         var requestContent = request.Content != null ? await request.Content.ReadAsStringAsync() : null;
+        var requestHeaders = request.Headers.ToList();
+        if (request.Content != null)
+        {
+            foreach (var h in request.Content.Headers)
+            {
+                requestHeaders.Add(new KeyValuePair<string, IEnumerable<string>>(h.Key, h.Value));
+            }
+        }
         DebugLogger.LogHttpRequest(
             request.Method.ToString(),
             request.RequestUri?.ToString() ?? "unknown",
+            requestHeaders,
             request.Content?.Headers?.ContentType?.ToString(),
             requestContent
         );
@@ -81,10 +90,16 @@ public class ApiService : IDisposable
 
             stopwatch.Stop();
 
-            // Log response details
+            // Log response details (including headers)
+            var responseHeaders = response.Headers.ToList();
+            foreach (var h in response.Content.Headers)
+            {
+                responseHeaders.Add(new KeyValuePair<string, IEnumerable<string>>(h.Key, h.Value));
+            }
             DebugLogger.LogHttpResponse(
                 (int)response.StatusCode,
                 response.StatusCode.ToString(),
+                responseHeaders,
                 content,
                 stopwatch.ElapsedMilliseconds
             );
@@ -99,7 +114,7 @@ public class ApiService : IDisposable
         }
     }
 
-    public async Task<(bool Success, string Response)> TestConnectionAsync(string resourceUrl)
+    public async Task<(bool Success, string Response)> TestConnectionAsync()
     {
         try
         {
@@ -109,6 +124,19 @@ public class ApiService : IDisposable
                 return (false, "Configuration not found. Please run 'srectl init' first.");
             }
 
+            return await TestConnectionAsync(config.ResourceUrl);
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug("Exception", $"Unexpected error: {ex.Message}");
+            return (false, $"✗ Connection failed: {ex.Message}");
+        }
+    }
+
+    public async Task<(bool Success, string Response)> TestConnectionAsync(string resourceUrl)
+    {
+        try
+        {
             DebugLogger.LogConfig("ResourceUrl", resourceUrl);
             DebugLogger.LogConfig("IsLocalhost", CliConfigurationService.IsLocalhost(resourceUrl).ToString());
 
@@ -135,73 +163,18 @@ public class ApiService : IDisposable
 
                     // Parse the response to get agent names using robust parsing
                     var jsonDoc = JsonDocument.Parse(content);
+                    var agentCount = jsonDoc.RootElement.ValueKind == JsonValueKind.Array
+                        ? jsonDoc.RootElement.GetArrayLength()
+                        : 0;
 
-                    JsonElement agents = default;
-                    bool foundAgents = false;
+                    DebugLogger.Debug("Response", $"Successfully parsed JSON with {agentCount} agents");
 
-                    // Try different response structure patterns
-                    if (jsonDoc.RootElement.TryGetProperty("data", out var dataElement))
-                    {
-                        // Pattern 1: { "data": { "agents": [...] } } - ExtendedAgentsListResponse style
-                        if (dataElement.ValueKind == JsonValueKind.Object &&
-                            dataElement.TryGetProperty("agents", out agents) && agents.ValueKind == JsonValueKind.Array)
-                        {
-                            foundAgents = true;
-                            DebugLogger.Debug("Parsing", "Found agents in data.agents structure");
-                        }
-                        // Pattern 2: { "data": [...] } - PaginatedResponse style (actual current API)
-                        else if (dataElement.ValueKind == JsonValueKind.Array)
-                        {
-                            agents = dataElement;
-                            foundAgents = true;
-                            DebugLogger.Debug("Parsing", "Found agents in data array structure");
-                        }
-                    }
-                    // Pattern 3: { "agents": [...] } - Direct agents property
-                    else if (jsonDoc.RootElement.TryGetProperty("agents", out agents) && agents.ValueKind == JsonValueKind.Array)
-                    {
-                        foundAgents = true;
-                        DebugLogger.Debug("Parsing", "Found agents in direct agents property");
-                    }
-                    // Pattern 4: [...] - Direct array (legacy)
-                    else if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
-                    {
-                        agents = jsonDoc.RootElement;
-                        foundAgents = true;
-                        DebugLogger.Debug("Parsing", "Found agents in direct array structure");
-                    }
-
-                    if (!foundAgents)
-                    {
-                        DebugLogger.Debug("Parsing", "No agents array found in response");
-                        return (true, "✅ Connection successful! (Unexpected response format)");
-                    }
-
-                    var agentNames = new List<string>();
-
-                    foreach (var agent in agents.EnumerateArray())
-                    {
-                        if (agent.TryGetProperty("name", out var nameElement))
-                        {
-                            agentNames.Add(nameElement.GetString() ?? "");
-                        }
-                    }
-
-                    DebugLogger.Debug("Parsing", $"Successfully parsed {agentNames.Count} agent names");
-
-                    if (agentNames.Count == 0)
-                    {
-                        return (true, "✅ Connection successful! No agents found.");
-                    }
-                    else
-                    {
-                        return (true, $"✅ Connection successful! Found {agentNames.Count} agents: {string.Join(", ", agentNames)}");
-                    }
+                    return (true, $"✅ Connection successful! Found {agentCount} agents.");
                 }
                 catch (JsonException ex)
                 {
-                    DebugLogger.Debug("Parsing", $"JSON parsing failed: {ex.Message}");
-                    return (true, "✅ Connection successful! (Server returned non-JSON response)");
+                    DebugLogger.Debug("Parsing", $"JSON exception: {ex.Message}");
+                    return (false, $"[ERROR] Invalid JSON response from server: {ex.Message}\n   The server may have returned an error page instead of expected data.\n   This often indicates authentication or permission issues.");
                 }
             }
             else
@@ -212,17 +185,17 @@ public class ApiService : IDisposable
         catch (HttpRequestException ex)
         {
             DebugLogger.LogNetwork($"Connection failed: {ex.Message}");
-            return (false, $"❌ Network connection failed: {ex.Message}\n   Check if the URL is correct and accessible: {resourceUrl}");
+            return (false, $"[ERROR] Network connection failed: {ex.Message}\n   Check if the URL is correct and accessible: {resourceUrl}");
         }
         catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
         {
             DebugLogger.LogNetwork($"Connection timed out: {resourceUrl}");
-            return (false, $"❌ Connection timed out: {resourceUrl}\n   The server may be unreachable or overloaded.");
+            return (false, $"[ERROR] Connection timed out: {resourceUrl}\n   The server may be unreachable or overloaded.");
         }
         catch (JsonException ex)
         {
             DebugLogger.Debug("Parsing", $"JSON exception: {ex.Message}");
-            return (false, $"❌ Invalid JSON response from server: {ex.Message}\n   The server may have returned an error page instead of expected data.\n   This often indicates authentication or permission issues.");
+            return (false, $"[ERROR] Invalid JSON response from server: {ex.Message}\n   The server may have returned an error page instead of expected data.\n   This often indicates authentication or permission issues.");
         }
         catch (Exception ex)
         {
@@ -281,7 +254,7 @@ public class ApiService : IDisposable
         if (isHtmlResponse)
         {
             errorMessage += "\n   \n   ⚠️  Server returned an HTML error page instead of expected JSON data.";
-            errorMessage += "\n   This typically indicates authentication or authorization issues.";
+            errorMessage += "\n   This typically indicates a misconfiguration/invalid url.";
 
             // Try to extract title from HTML for more context
             var titleMatch = System.Text.RegularExpressions.Regex.Match(content, @"<title[^>]*>([^<]+)</title>", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
@@ -369,16 +342,9 @@ public class ApiService : IDisposable
 
             DebugLogger.Debug("YAML", "Deserializing agent YAML content");
 
-            // Parse agent as dynamic object to extract tools list
-            var agentDynamic = deserializer.Deserialize<Dictionary<string, object>>(agentYamlContent);
+            // Parse agent data and extract tools using shared helper
             var agentData = deserializer.Deserialize<object>(agentYamlContent);
-
-            // Extract tools list from agent
-            var toolNames = new List<string>();
-            if (agentDynamic.TryGetValue("tools", out var toolsObj) && toolsObj is List<object> toolsList)
-            {
-                toolNames = toolsList.Cast<string>().ToList();
-            }
+            var toolNames = Agent.Core.Helpers.ExtendedAgents.AgentYamlParser.ExtractToolNames(agentYamlContent);
 
             DebugLogger.Debug("Tools", $"Agent references {toolNames.Count} tools: {string.Join(", ", toolNames)}");
 
@@ -600,49 +566,72 @@ public class ApiService : IDisposable
 
                 if (!foundAgents)
                 {
-                    return (false, $"❌ Unexpected response format - no agents array found: {content}");
+                    return (false, $"Unexpected response format - no agents array found: {content}");
                 }
 
                 var agentList = new List<string>();
-                agentList.Add("📋 Available Agents:");
-                agentList.Add("==================");
 
                 foreach (var agent in agents.EnumerateArray())
                 {
-                    var name = agent.TryGetProperty("name", out var nameElement) ? nameElement.GetString() : "Unknown";
-                    var instructions = agent.TryGetProperty("instructions", out var instructionsElement) ? instructionsElement.GetString() : "";
+                    var name = agent.TryGetProperty("name", out var nameElement) ? nameElement.GetString() ?? "Unknown" : "Unknown";
+
+                    // Try both 'system_prompt' and 'instructions' fields
+                    var systemPrompt = "";
+                    if (agent.TryGetProperty("system_prompt", out var systemPromptElement))
+                    {
+                        systemPrompt = systemPromptElement.GetString() ?? "";
+                    }
+                    else if (agent.TryGetProperty("instructions", out var instructionsElement))
+                    {
+                        systemPrompt = instructionsElement.GetString() ?? "";
+                    }
+
                     var handoffDescription = agent.TryGetProperty("handoffDescription", out var handoffElement) ? handoffElement.GetString() : "";
                     var createdAt = agent.TryGetProperty("created_at", out var createdElement) ? createdElement.GetString() : "";
 
-                    agentList.Add($"\n🤖 {name}");
-                    if (!string.IsNullOrEmpty(handoffDescription))
+                    var agentOutput = Helpers.ConsoleUI.CaptureOutput(() =>
                     {
-                        agentList.Add($"   Description: {handoffDescription}");
-                    }
-                    if (!string.IsNullOrEmpty(createdAt))
-                    {
-                        agentList.Add($"   Created: {createdAt}");
-                    }
+                        Console.WriteLine();
+                        Helpers.ConsoleUI.WriteBullet(name, ConsoleColor.White, 0);
 
-                    // Get tools
-                    if (agent.TryGetProperty("tools", out var toolsElement) && toolsElement.ValueKind == JsonValueKind.Array)
-                    {
-                        var tools = toolsElement.EnumerateArray().Select(t => t.GetString()).Where(t => !string.IsNullOrEmpty(t)).ToList();
-                        if (tools.Any())
+                        if (!string.IsNullOrEmpty(handoffDescription))
                         {
-                            agentList.Add($"   Tools: {string.Join(", ", tools)}");
+                            Helpers.ConsoleUI.WriteKeyValue("  Description", handoffDescription, 13, ConsoleColor.Gray, ConsoleColor.White);
                         }
-                    }
 
-                    // Get handoffs
-                    if (agent.TryGetProperty("handoffs", out var handoffsElement) && handoffsElement.ValueKind == JsonValueKind.Array)
-                    {
-                        var handoffs = handoffsElement.EnumerateArray().Select(h => h.GetString()).Where(h => !string.IsNullOrEmpty(h)).ToList();
-                        if (handoffs.Any())
+                        if (!string.IsNullOrEmpty(systemPrompt))
                         {
-                            agentList.Add($"   Handoffs: {string.Join(", ", handoffs)}");
+                            // Truncate system prompt if it's too long for display
+                            var displayPrompt = systemPrompt.Length > 100 ? systemPrompt.Substring(0, 100) + "..." : systemPrompt;
+                            Helpers.ConsoleUI.WriteKeyValue("  System Prompt", displayPrompt, 13, ConsoleColor.Gray, ConsoleColor.White);
                         }
-                    }
+
+                        if (!string.IsNullOrEmpty(createdAt))
+                        {
+                            Helpers.ConsoleUI.WriteKeyValue("  Created", createdAt, 13, ConsoleColor.Gray, ConsoleColor.White);
+                        }
+
+                        // Get tools
+                        if (agent.TryGetProperty("tools", out var toolsElement) && toolsElement.ValueKind == JsonValueKind.Array)
+                        {
+                            var tools = toolsElement.EnumerateArray().Select(t => t.GetString()).Where(t => !string.IsNullOrEmpty(t)).ToList();
+                            if (tools.Any())
+                            {
+                                Helpers.ConsoleUI.WriteKeyValue("  Tools", string.Join(", ", tools), 13, ConsoleColor.Gray, ConsoleColor.White);
+                            }
+                        }
+
+                        // Get handoffs
+                        if (agent.TryGetProperty("handoffs", out var handoffsElement) && handoffsElement.ValueKind == JsonValueKind.Array)
+                        {
+                            var handoffs = handoffsElement.EnumerateArray().Select(h => h.GetString()).Where(h => !string.IsNullOrEmpty(h)).ToList();
+                            if (handoffs.Any())
+                            {
+                                Helpers.ConsoleUI.WriteKeyValue("  Handoffs", string.Join(", ", handoffs), 13, ConsoleColor.Gray, ConsoleColor.White);
+                            }
+                        }
+                    });
+                    agentList.Add(agentOutput);
                 }
 
                 if (agents.GetArrayLength() == 0)
@@ -699,13 +688,18 @@ public class ApiService : IDisposable
 
                     agentList.Add($"\nTotal: {totalCount} agent(s)");
 
-                    // Add pagination info if available
-                    if (hasMore || pageIndex > 0)
+                    // Add pagination info if available and we have actual results to show
+                    if ((hasMore || pageIndex > 0) && agents.GetArrayLength() > 0)
                     {
                         var currentPageAgents = agents.GetArrayLength();
-                        var startIndex = pageIndex * pageSize + 1;
-                        var endIndex = startIndex + currentPageAgents - 1;
-                        agentList.Add($"Showing agents {startIndex}-{endIndex} of {totalCount} (page {pageIndex + 1})");
+                        var actualOffset = pageIndex * pageSize;
+                        var startIndex = actualOffset + 1;
+                        var endIndex = actualOffset + currentPageAgents;
+                        // Only show pagination if it makes sense
+                        if (startIndex <= totalCount)
+                        {
+                            agentList.Add($"Showing agents {startIndex}-{endIndex} of {totalCount} (page {pageIndex + 1})");
+                        }
                     }
                 }
 
@@ -754,8 +748,6 @@ public class ApiService : IDisposable
                 var toolElements = ToolResponseParser.ParseToolElements(content);
 
                 var toolList = new List<string>();
-                toolList.Add("🔧 Available Tools:");
-                toolList.Add("==================");
 
                 if (toolElements.Length == 0)
                 {
@@ -813,8 +805,6 @@ public class ApiService : IDisposable
                 var toolElements = ToolResponseParser.ParseToolElements(content);
 
                 var toolList = new List<string>();
-                toolList.Add("🔧 Extended Tools:");
-                toolList.Add("==================");
 
                 if (toolElements.Length == 0)
                 {
@@ -875,13 +865,18 @@ public class ApiService : IDisposable
 
                     toolList.Add($"\nTotal: {totalCount} extended tool(s)");
 
-                    // Add pagination info if available
-                    if (hasMore || pageIndex > 0)
+                    // Add pagination info if available and we have actual results to show
+                    if ((hasMore || pageIndex > 0) && toolElements.Length > 0)
                     {
                         var currentPageTools = toolElements.Length;
-                        var startIndex = pageIndex * pageSize + 1;
-                        var endIndex = startIndex + currentPageTools - 1;
-                        toolList.Add($"Showing tools {startIndex}-{endIndex} of {totalCount} (page {pageIndex + 1})");
+                        var actualOffset = pageIndex * pageSize;
+                        var startIndex = actualOffset + 1;
+                        var endIndex = actualOffset + currentPageTools;
+                        // Only show pagination if it makes sense
+                        if (startIndex <= totalCount)
+                        {
+                            toolList.Add($"Showing tools {startIndex}-{endIndex} of {totalCount} (page {pageIndex + 1})");
+                        }
                     }
                 }
 
@@ -1081,7 +1076,7 @@ public class ApiService : IDisposable
                 return (false, $"YAML file is empty: {filePath}");
             }
 
-            // Create the request
+            // Create the request - send YAML directly to the same endpoint
             var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/apply";
             var request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
             request.Content = new StringContent(yamlContent, Encoding.UTF8, "application/yaml");
@@ -1114,7 +1109,7 @@ public class ApiService : IDisposable
         }
     }
 
-    public async Task<(bool Success, string ThreadId, string Response)> CreateThreadAsync(string message, string userId, string displayName)
+    public async Task<(bool Success, string ThreadId, string Response)> CreateThreadAsync(string message, string userId, string displayName, string? agentName = null)
     {
         try
         {
@@ -1125,21 +1120,41 @@ public class ApiService : IDisposable
             }
 
             // Create request payload
-            var requestPayload = new
+            object requestPayload;
+            if (string.IsNullOrWhiteSpace(agentName))
             {
-                startMessage = new
+                requestPayload = new
                 {
-                    text = message,
-                    userId = userId,
-                    displayName = displayName
-                },
-                source = "Conversation"
-            };
+                    startMessage = new
+                    {
+                        text = message,
+                        userId = userId,
+                        displayName = displayName,
+                        agent = agentName
+                    },
+                    source = "Conversation"
+                };
+            }
+            else
+            {
+                requestPayload = new
+                {
+                    startMessage = new
+                    {
+                        text = message,
+                        userId = userId,
+                        displayName = displayName,
+                        agent = agentName
+                    },
+                    source = "Conversation"
+                };
+            }
 
             var jsonContent = JsonSerializer.Serialize(requestPayload);
             var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/threads";
             var request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
-            request.Content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            request.Content = new StringContent(jsonContent, Encoding.UTF8);
+            request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
 
             // Add auth header if not localhost
             if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
@@ -2164,6 +2179,116 @@ public class ApiService : IDisposable
     }
 
     /// <summary>
+    /// Gets the YAML configuration for a specific agent from the remote server.
+    /// </summary>
+    /// <param name="agentName">The name of the agent to retrieve</param>
+    /// <returns>Success status, YAML content, and error message</returns>
+    public async Task<(bool Success, string YamlContent, string ErrorMessage)> GetAgentConfigurationAsync(string agentName)
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return (false, "", "Configuration not found. Please run 'srectl init' first.");
+            }
+
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/Agents/{Uri.EscapeDataString(agentName)}/yaml";
+            var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+
+            // Add auth header if not localhost
+            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
+            {
+                var token = await GetAccessTokenAsync();
+                if (string.IsNullOrEmpty(token))
+                {
+                    return (false, "", "Failed to get access token. Please run 'az login' first.");
+                }
+                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return (true, content, "");
+            }
+            else
+            {
+                var errorMessage = response.StatusCode switch
+                {
+                    HttpStatusCode.NotFound => $"Agent '{agentName}' not found on the remote server.",
+                    HttpStatusCode.Unauthorized => "Authentication failed. Please run 'az login' first.",
+                    HttpStatusCode.Forbidden => "Access denied. Check your permissions.",
+                    _ => $"Failed to retrieve agent configuration. Status: {response.StatusCode}"
+                };
+
+                return (false, "", errorMessage);
+            }
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug("Exception", $"GetAgentConfiguration failed: {ex.Message}");
+            return (false, "", $"Failed to retrieve agent configuration: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Gets the YAML configuration for a specific tool from the remote server.
+    /// </summary>
+    /// <param name="toolName">The name of the tool to retrieve</param>
+    /// <returns>Success status, YAML content, and error message</returns>
+    public async Task<(bool Success, string YamlContent, string ErrorMessage)> GetToolConfigurationAsync(string toolName)
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return (false, "", "Configuration not found. Please run 'srectl init' first.");
+            }
+
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/Tools/{Uri.EscapeDataString(toolName)}/yaml";
+            var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+
+            // Add auth header if not localhost
+            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
+            {
+                var token = await GetAccessTokenAsync();
+                if (string.IsNullOrEmpty(token))
+                {
+                    return (false, "", "Failed to get access token. Please run 'az login' first.");
+                }
+                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return (true, content, "");
+            }
+            else
+            {
+                var errorMessage = response.StatusCode switch
+                {
+                    HttpStatusCode.NotFound => $"Tool '{toolName}' not found on the remote server.",
+                    HttpStatusCode.Unauthorized => "Authentication failed. Please run 'az login' first.",
+                    HttpStatusCode.Forbidden => "Access denied. Check your permissions.",
+                    _ => $"Failed to retrieve tool configuration. Status: {response.StatusCode}"
+                };
+
+                return (false, "", errorMessage);
+            }
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug("Exception", $"GetToolConfiguration failed: {ex.Message}");
+            return (false, "", $"Failed to retrieve tool configuration: {ex.Message}");
+        }
+    }
+
+    /// <summary>
     /// Gets the HTTP client for internal service use.
     /// </summary>
     public HttpClient GetHttpClient()
@@ -2210,8 +2335,6 @@ public class ApiService : IDisposable
                 var jsonDoc = JsonDocument.Parse(content);
 
                 var connectorList = new List<string>();
-                connectorList.Add("🔌 Available Data Connectors:");
-                connectorList.Add("=============================");
 
                 if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
                 {
@@ -2231,13 +2354,19 @@ public class ApiService : IDisposable
                             var dataSource = connector.TryGetProperty("dataSource", out var dataSourceElement) ? dataSourceElement.GetString() ?? "Not specified" : "Not specified";
                             var identity = connector.TryGetProperty("identity", out var identityElement) ? identityElement.GetString() ?? "Not specified" : "Not specified";
 
-                            connectorList.Add($"\n🔌 {name}");
-                            connectorList.Add($"   Type: {connectorType}");
-                            connectorList.Add($"   Data Source: {dataSource}");
-                            if (!string.IsNullOrEmpty(identity) && identity != "Not specified")
+                            var connectorOutput = Helpers.ConsoleUI.CaptureOutput(() =>
                             {
-                                connectorList.Add($"   Identity: {identity}");
-                            }
+                                Console.WriteLine();
+                                Helpers.ConsoleUI.WriteBullet(name, ConsoleColor.White, 0);
+
+                                Helpers.ConsoleUI.WriteKeyValue("  Type", connectorType, 13, ConsoleColor.Gray, ConsoleColor.White);
+                                Helpers.ConsoleUI.WriteKeyValue("  Data Source", dataSource, 13, ConsoleColor.Gray, ConsoleColor.White);
+                                if (!string.IsNullOrEmpty(identity) && identity != "Not specified")
+                                {
+                                    Helpers.ConsoleUI.WriteKeyValue("  Identity", identity, 13, ConsoleColor.Gray, ConsoleColor.White);
+                                }
+                            });
+                            connectorList.Add(connectorOutput);
                         }
 
                         connectorList.Add($"\nTotal: {connectors.Length} data connector(s)");
@@ -2446,10 +2575,6 @@ public class ApiService : IDisposable
                     var jsonDoc = System.Text.Json.JsonDocument.Parse(content);
                     var searchResults = new List<string>();
 
-                    searchResults.Add("Search Results:");
-                    searchResults.Add("═══════════════");
-                    searchResults.Add("");
-
                     if (jsonDoc.RootElement.TryGetProperty("results", out var resultsElement) &&
                         resultsElement.ValueKind == System.Text.Json.JsonValueKind.Array)
                     {
@@ -2478,18 +2603,23 @@ public class ApiService : IDisposable
                                 var source = result.TryGetProperty("source", out var sourceElement) ?
                                     sourceElement.GetString() ?? "Unknown" : "Unknown";
 
-                                searchResults.Add($"📄 Result {i + 1}: {title}");
-                                searchResults.Add($"   Source: {source}");
-                                searchResults.Add($"   Relevance Score: {score:F2}");
-
-                                if (!string.IsNullOrEmpty(content_snippet))
+                                var resultOutput = Helpers.ConsoleUI.CaptureOutput(() =>
                                 {
-                                    // Truncate content snippet if too long
-                                    var snippet = content_snippet.Length > 200 ?
-                                        content_snippet.Substring(0, 200) + "..." : content_snippet;
-                                    searchResults.Add($"   Content: {snippet}");
-                                }
-                                searchResults.Add("");
+                                    Console.WriteLine();
+                                    Helpers.ConsoleUI.WriteBullet($"Result {i + 1}: {title}", ConsoleColor.White, 0);
+
+                                    Helpers.ConsoleUI.WriteKeyValue("  Source", source, 15, ConsoleColor.Gray, ConsoleColor.White);
+                                    Helpers.ConsoleUI.WriteKeyValue("  Relevance", $"{score:F2}", 15, ConsoleColor.Gray, ConsoleColor.White);
+
+                                    if (!string.IsNullOrEmpty(content_snippet))
+                                    {
+                                        // Truncate content snippet if too long
+                                        var snippet = content_snippet.Length > 200 ?
+                                            content_snippet.Substring(0, 200) + "..." : content_snippet;
+                                        Helpers.ConsoleUI.WriteKeyValue("  Content", snippet, 15, ConsoleColor.Gray, ConsoleColor.White);
+                                    }
+                                });
+                                searchResults.Add(resultOutput);
                             }
 
                             searchResults.Add($"Found {results.Length} document(s) matching your query.");
@@ -2699,7 +2829,7 @@ public class ApiService : IDisposable
             }
 
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
-            
+
             if (response.IsSuccessStatusCode)
             {
                 return JsonSerializer.Deserialize<List<JsonNode>>(content);
@@ -2827,7 +2957,7 @@ public class ApiService : IDisposable
             }
 
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
-            
+
             if (response.IsSuccessStatusCode)
             {
                 return JsonSerializer.Deserialize<List<JsonNode>>(content);

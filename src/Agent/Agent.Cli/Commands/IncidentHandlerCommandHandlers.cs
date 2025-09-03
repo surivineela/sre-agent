@@ -3,6 +3,7 @@ using System.CommandLine.Parsing;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Agent.Cli.Services;
+using Agent.Cli.Helpers;
 
 namespace Agent.Cli.Commands;
 
@@ -15,7 +16,7 @@ public static class IncidentHandlerCommandHandlers
 
         if (string.IsNullOrWhiteSpace(filterName) || string.IsNullOrWhiteSpace(handlingAgent))
         {
-            Console.WriteLine("❌ Both filter name and handling agent are required.");
+            ConsoleUI.WriteStatus(false, "Both filter name and handling agent are required.");
             Environment.Exit(1);
             return;
         }
@@ -23,49 +24,49 @@ public static class IncidentHandlerCommandHandlers
         try
         {
             using var apiService = new ApiService();
-            
-            Console.WriteLine($"🔗 Mapping agent '{handlingAgent}' to filter '{filterName}'...");
+
+            ConsoleUI.WriteSection($"Mapping agent '{handlingAgent}' to filter '{filterName}'");
 
             // Step 1: Fetch the incident filter
-            Console.WriteLine("📥 Fetching incident filter...");
+            ConsoleUI.WriteBullet("Fetching incident filter...", ConsoleColor.Cyan);
             var filters = await apiService.GetIncidentFiltersAsync();
-            
-            var filter = filters?.FirstOrDefault(f => 
-                f["Name"]?.ToString() == filterName || 
+
+            var filter = filters?.FirstOrDefault(f =>
+                f["Name"]?.ToString() == filterName ||
                 f["name"]?.ToString() == filterName ||
                 f["Id"]?.ToString() == filterName ||
                 f["id"]?.ToString() == filterName);
-            
+
             if (filter == null)
             {
-                Console.WriteLine($"❌ Filter '{filterName}' not found.");
-                
+                ConsoleUI.WriteStatus(false, $"Filter '{filterName}' not found.");
+
                 // Show available filters to help user
                 if (filters != null && filters.Count > 0)
                 {
-                    Console.WriteLine("📋 Available filters:");
+                    ConsoleUI.WriteSection("Available filters:");
                     for (int i = 0; i < filters.Count; i++)
                     {
                         var f = filters[i];
                         var id = f?["id"]?.GetValue<string>() ?? f?["Id"]?.GetValue<string>() ?? "N/A";
                         var name = f?["name"]?.GetValue<string>() ?? f?["Name"]?.GetValue<string>() ?? "N/A";
                         var titleContains = f?["titleContains"]?.GetValue<string>() ?? "";
-                        
+
                         if (string.IsNullOrEmpty(name) || name == "N/A")
                         {
-                            Console.WriteLine($"   [{i + 1}] {id} (matches title: \"{titleContains}\")");
+                            ConsoleUI.WriteBullet($"[{i + 1}] {id} (matches title: \"{titleContains}\")", ConsoleColor.White);
                         }
                         else
                         {
-                            Console.WriteLine($"   [{i + 1}] {name} (ID: {id})");
+                            ConsoleUI.WriteBullet($"[{i + 1}] {name} (ID: {id})", ConsoleColor.White);
                         }
                     }
                 }
                 else
                 {
-                    Console.WriteLine("📋 No incident filters found on the server.");
+                    ConsoleUI.WriteInfo("No incident filters found on the server.");
                 }
-                
+
                 Environment.Exit(1);
                 return;
             }
@@ -73,17 +74,17 @@ public static class IncidentHandlerCommandHandlers
             var filterId = filter["id"]?.ToString() ?? filter["Id"]?.ToString();
             if (string.IsNullOrEmpty(filterId))
             {
-                Console.WriteLine("❌ Filter ID not found.");
+                ConsoleUI.WriteStatus(false, "Filter ID not found.");
                 Environment.Exit(1);
                 return;
             }
 
             // Step 2: Check if agent exists
-            Console.WriteLine("🔍 Verifying agent exists...");
+            ConsoleUI.WriteBullet("Verifying agent exists...", ConsoleColor.Cyan);
             var (agentsSuccess, agentsResponse) = await apiService.ListAgentsAsync();
             if (!agentsSuccess)
             {
-                Console.WriteLine($"❌ Failed to list agents: {agentsResponse}");
+                ConsoleUI.WriteStatus(false, $"Failed to list agents: {agentsResponse}");
                 Environment.Exit(1);
                 return;
             }
@@ -124,7 +125,7 @@ public static class IncidentHandlerCommandHandlers
                 {
                     foreach (var agent in agents.EnumerateArray())
                     {
-                        if (agent.TryGetProperty("name", out var nameProperty) && 
+                        if (agent.TryGetProperty("name", out var nameProperty) &&
                             nameProperty.GetString() == handlingAgent)
                         {
                             agentExists = true;
@@ -135,73 +136,73 @@ public static class IncidentHandlerCommandHandlers
             }
             catch (JsonException ex)
             {
-                Console.WriteLine($"❌ Failed to parse agents response: {ex.Message}");
+                ConsoleUI.WriteStatus(false, $"Failed to parse agents response: {ex.Message}");
                 Environment.Exit(1);
                 return;
             }
 
             if (!agentExists)
             {
-                Console.WriteLine($"❌ Agent '{handlingAgent}' not found. Please create the agent first.");
+                ConsoleUI.WriteStatus(false, $"Agent '{handlingAgent}' not found. Please create the agent first.");
                 Environment.Exit(1);
                 return;
             }
 
             // Step 3: Update the filter with HandlingAgent
-            Console.WriteLine("🔄 Updating incident filter with handling agent...");
+            ConsoleUI.WriteBullet("Updating incident filter with handling agent...", ConsoleColor.Cyan);
             filter["HandlingAgent"] = handlingAgent;
-            
+
             var updateSuccess = await apiService.UpdateIncidentFilterAsync(filterId, filter);
             if (!updateSuccess)
             {
-                Console.WriteLine("❌ Failed to update incident filter.");
+                ConsoleUI.WriteStatus(false, "Failed to update incident filter.");
                 Environment.Exit(1);
                 return;
             }
 
-            Console.WriteLine("✅ Successfully updated incident filter with handling agent.");
+            ConsoleUI.WriteStatus(true, "Successfully updated incident filter with handling agent.");
 
             // Step 4: Check for existing incident handlers
-            Console.WriteLine("🔍 Checking for existing incident handlers...");
+            ConsoleUI.WriteBullet("Checking for existing incident handlers...", ConsoleColor.Cyan);
             var handlers = await apiService.GetIncidentHandlersAsync();
             var matchingHandlers = handlers?.Where(h => h["incidentFilterId"]?.ToString() == filterId).ToList();
 
             if (matchingHandlers?.Any() == true)
             {
-                Console.WriteLine($"⚠️  Found {matchingHandlers.Count} existing incident handler(s) for this filter.");
-                
+                ConsoleUI.WriteInfo($"Found {matchingHandlers.Count} existing incident handler(s) for this filter.");
+
                 foreach (var handler in matchingHandlers)
                 {
                     var handlerId = handler["Id"]?.ToString();
                     var handlerName = handler["Name"]?.ToString() ?? "Unknown";
-                    
+
                     if (!string.IsNullOrEmpty(handlerId))
                     {
-                        Console.WriteLine($"🗑️  Deleting handler '{handlerName}' (ID: {handlerId})...");
+                        ConsoleUI.WriteBullet($"Deleting handler '{handlerName}' (ID: {handlerId})...", ConsoleColor.Yellow);
                         var deleteSuccess = await apiService.DeleteIncidentHandlerAsync(handlerId);
-                        
+
                         if (deleteSuccess)
                         {
-                            Console.WriteLine($"✅ Deleted handler '{handlerName}'.");
+                            ConsoleUI.WriteStatus(true, $"Deleted handler '{handlerName}'.");
                         }
                         else
                         {
-                            Console.WriteLine($"⚠️  Failed to delete handler '{handlerName}'. You may need to delete it manually.");
+                            ConsoleUI.WriteStatus(false, $"Failed to delete handler '{handlerName}'. You may need to delete it manually.");
                         }
                     }
                 }
             }
             else
             {
-                Console.WriteLine("No existing incident handlers found for this filter.");
+                ConsoleUI.WriteInfo("No existing incident handlers found for this filter.");
             }
 
-            Console.WriteLine($"✅ Successfully mapped agent '{handlingAgent}' to filter '{filterName}'.");
-            Console.WriteLine("The agent will now handle incidents matching this filter.");
+            ConsoleUI.WriteStatus(true, $"Successfully mapped agent '{handlingAgent}' to filter '{filterName}'.");
+            ConsoleUI.WriteInfo("The agent will now handle incidents matching this filter.");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Error mapping agent to filter: {ex.Message}");
+            ConsoleUI.WriteStatus(false, $"Error mapping agent to filter: {ex.Message}");
             Environment.Exit(1);
         }
     }
@@ -222,7 +223,7 @@ public static class IncidentHandlerCommandHandlers
 
         if (string.IsNullOrWhiteSpace(id))
         {
-            Console.WriteLine("❌ Filter ID is required.");
+            ConsoleUI.WriteStatus(false, "Filter ID is required.");
             Environment.Exit(1);
             return;
         }
@@ -230,18 +231,18 @@ public static class IncidentHandlerCommandHandlers
         try
         {
             using var apiService = new ApiService();
-            
-            Console.WriteLine($"🔨 Creating incident filter '{id}'...");
+
+            ConsoleUI.WriteSection($"Creating incident filter '{id}'");
 
             // Check if filter already exists
-            Console.WriteLine("📋 Checking if filter already exists...");
+            ConsoleUI.WriteBullet("Checking if filter already exists...", ConsoleColor.Cyan);
             var existingFilters = await apiService.GetIncidentFiltersAsync();
-            var existingFilter = existingFilters?.FirstOrDefault(f => 
+            var existingFilter = existingFilters?.FirstOrDefault(f =>
                 f["id"]?.ToString() == id || f["Id"]?.ToString() == id);
-                
+
             if (existingFilter != null)
             {
-                Console.WriteLine($"❌ Filter with ID '{id}' already exists.");
+                ConsoleUI.WriteStatus(false, $"Filter with ID '{id}' already exists.");
                 Environment.Exit(1);
                 return;
             }
@@ -249,7 +250,7 @@ public static class IncidentHandlerCommandHandlers
             // If handling agent is specified, verify it exists
             if (!string.IsNullOrWhiteSpace(handlingAgent))
             {
-                Console.WriteLine("🔍 Skipping agent verification (agents API unavailable)...");
+                ConsoleUI.WriteBullet("Skipping agent verification (agents API unavailable)...", ConsoleColor.Yellow);
             }
 
             // Create the filter JSON object
@@ -275,34 +276,34 @@ public static class IncidentHandlerCommandHandlers
             };
 
             // Create the filter
-            Console.WriteLine("🔄 Creating incident filter...");
+            ConsoleUI.WriteBullet("Creating incident filter...", ConsoleColor.Cyan);
             var (createSuccess, createMessage) = await apiService.CreateIncidentFilterAsync(filter);
             if (!createSuccess)
             {
-                Console.WriteLine($"❌ Failed to create incident filter: {createMessage}");
+                ConsoleUI.WriteStatus(false, $"Failed to create incident filter: {createMessage}");
                 Environment.Exit(1);
                 return;
             }
 
-            Console.WriteLine("✅ Successfully created incident filter.");
-            Console.WriteLine($"Filter ID: {id}");
-            
+            ConsoleUI.WriteStatus(true, "Successfully created incident filter.");
+            ConsoleUI.WriteKeyValue("Filter ID", id);
+
             if (!string.IsNullOrWhiteSpace(name))
-                Console.WriteLine($"Name: {name}");
+                ConsoleUI.WriteKeyValue("Name", name);
             if (!string.IsNullOrWhiteSpace(handlingAgent))
-                Console.WriteLine($"Handling Agent: {handlingAgent}");
+                ConsoleUI.WriteKeyValue("Handling Agent", handlingAgent);
             if (!string.IsNullOrWhiteSpace(titleContains))
-                Console.WriteLine($"Title Contains: {titleContains}");
+                ConsoleUI.WriteKeyValue("Title Contains", titleContains);
             if (!string.IsNullOrWhiteSpace(incidentType))
-                Console.WriteLine($"Incident Type: {incidentType}");
+                ConsoleUI.WriteKeyValue("Incident Type", incidentType);
             if (!string.IsNullOrWhiteSpace(priority))
-                Console.WriteLine($"Priority: {priority}");
-                
-            Console.WriteLine("The filter is now ready to match incidents based on the specified criteria.");
+                ConsoleUI.WriteKeyValue("Priority", priority);
+
+            ConsoleUI.WriteInfo("The filter is now ready to match incidents based on the specified criteria.");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Error creating incident filter: {ex.Message}");
+            ConsoleUI.WriteStatus(false, $"Error creating incident filter: {ex.Message}");
             Environment.Exit(1);
         }
     }
@@ -314,32 +315,31 @@ public static class IncidentHandlerCommandHandlers
         try
         {
             using var apiService = new ApiService();
-            
-            Console.WriteLine("📋 Fetching incident handlers...");
+
+            ConsoleUI.WriteBullet("Fetching incident handlers...", ConsoleColor.Cyan);
 
             // Fetch incident handlers
             var handlers = await apiService.GetIncidentHandlersAsync();
             if (handlers == null)
             {
-                Console.WriteLine("❌ Failed to fetch incident handlers.");
+                ConsoleUI.WriteStatus(false, "Failed to fetch incident handlers.");
                 Environment.Exit(1);
                 return;
             }
 
             if (handlers.Count == 0)
             {
-                Console.WriteLine("No incident handlers found.");
+                ConsoleUI.WriteInfo("No incident handlers found.");
                 return;
             }
 
-            Console.WriteLine($"Found {handlers.Count} incident handler(s):");
-            Console.WriteLine();
+            ConsoleUI.WriteSection($"Found {handlers.Count} incident handler(s):");
 
             // Optionally fetch filters for verbose mode
             Dictionary<string, JsonNode>? filterMap = null;
             if (verbose)
             {
-                Console.WriteLine("📋 Fetching incident filters for detailed view...");
+                ConsoleUI.WriteBullet("Fetching incident filters for detailed view...", ConsoleColor.Cyan);
                 var filters = await apiService.GetIncidentFiltersAsync();
                 if (filters != null)
                 {
@@ -366,23 +366,23 @@ public static class IncidentHandlerCommandHandlers
                 var updatedAt = handler["updatedAt"]?.ToString() ?? "N/A";
 
                 Console.WriteLine($"[{i + 1}] {handlerName}");
-                Console.WriteLine($"    ID: {handlerId}");
-                Console.WriteLine($"    Filter ID: {filterId}");
-                
+                ConsoleUI.WriteKeyValue("ID", handlerId, 4);
+                ConsoleUI.WriteKeyValue("Filter ID", filterId, 4);
+
                 if (verbose && filterMap != null && filterMap.TryGetValue(filterId, out var filter))
                 {
                     var filterName = filter["Name"]?.ToString() ?? "Unknown";
                     var handlingAgent = filter["HandlingAgent"]?.ToString();
-                    
-                    Console.WriteLine($"    Filter Name: {filterName}");
+
+                    ConsoleUI.WriteKeyValue("Filter Name", filterName, 4);
                     if (!string.IsNullOrEmpty(handlingAgent))
                     {
-                        Console.WriteLine($"    Handling Agent: {handlingAgent}");
+                        ConsoleUI.WriteKeyValue("Handling Agent", handlingAgent, 4);
                     }
                 }
-                
-                Console.WriteLine($"    Created: {createdAt}");
-                Console.WriteLine($"    Updated: {updatedAt}");
+
+                ConsoleUI.WriteKeyValue("Created", createdAt, 4);
+                ConsoleUI.WriteKeyValue("Updated", updatedAt, 4);
 
                 // Show additional properties if available
                 if (verbose)
@@ -390,13 +390,13 @@ public static class IncidentHandlerCommandHandlers
                     var description = handler["Description"]?.ToString();
                     if (!string.IsNullOrEmpty(description))
                     {
-                        Console.WriteLine($"    Description: {description}");
+                        ConsoleUI.WriteKeyValue("Description", description, 4);
                     }
 
                     var enabled = handler["Enabled"]?.ToString();
                     if (!string.IsNullOrEmpty(enabled))
                     {
-                        Console.WriteLine($"    Enabled: {enabled}");
+                        ConsoleUI.WriteKeyValue("Enabled", enabled, 4);
                     }
                 }
 
@@ -408,7 +408,7 @@ public static class IncidentHandlerCommandHandlers
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Error listing incident handlers: {ex.Message}");
+            ConsoleUI.WriteStatus(false, $"Error listing incident handlers: {ex.Message}");
             Environment.Exit(1);
         }
     }

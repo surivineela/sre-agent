@@ -5,8 +5,18 @@ namespace Agent.Cli.Services;
 
 public class CliConfigurationService
 {
-    private const string ConfigFileName = ".sreagent-config.json";
-    
+    private static readonly string UserConfigDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".sreagent");
+    private static readonly string ConfigFileName = Path.Combine(UserConfigDir, "config.json");
+    private static readonly string ProfilesDir = Path.Combine(UserConfigDir, "profiles");
+    private static readonly string CurrentProfileFile = Path.Combine(UserConfigDir, "current-profile");
+
+    static CliConfigurationService()
+    {
+        // Ensure the .sreagent directory exists
+        Directory.CreateDirectory(UserConfigDir);
+        Directory.CreateDirectory(ProfilesDir);
+    }
+
     public async Task<CliConfiguration?> LoadConfigurationAsync()
     {
         try
@@ -38,6 +48,19 @@ public class CliConfigurationService
         await File.WriteAllTextAsync(ConfigFileName, json);
     }
 
+    public async Task<bool> HasValidConfigurationAsync()
+    {
+        try
+        {
+            var config = await LoadConfigurationAsync();
+            return config != null && !string.IsNullOrWhiteSpace(config.ResourceUrl);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     public static bool IsLocalhost(string url)
     {
         return url.Contains("localhost") || url.Contains("127.0.0.1");
@@ -45,11 +68,10 @@ public class CliConfigurationService
 
     public IEnumerable<string> GetAvailableProfiles()
     {
-        const string profilesDir = ".sreagent-profiles";
-        if (!Directory.Exists(profilesDir))
+        if (!Directory.Exists(ProfilesDir))
             return Enumerable.Empty<string>();
 
-        return Directory.GetFiles(profilesDir, "*.json")
+        return Directory.GetFiles(ProfilesDir, "*.json")
             .Select(Path.GetFileNameWithoutExtension)
             .Where(name => !string.IsNullOrEmpty(name))!;
     }
@@ -58,7 +80,7 @@ public class CliConfigurationService
     {
         try
         {
-            var profilePath = Path.Combine(".sreagent-profiles", $"{profileName}.json");
+            var profilePath = Path.Combine(ProfilesDir, $"{profileName}.json");
             if (!File.Exists(profilePath))
                 return null;
 
@@ -73,10 +95,8 @@ public class CliConfigurationService
 
     public async Task SaveProfileAsync(string profileName, CliConfiguration config)
     {
-        var profilesDir = ".sreagent-profiles";
-        Directory.CreateDirectory(profilesDir);
-
-        var profilePath = Path.Combine(profilesDir, $"{profileName}.json");
+        // Profiles directory is already created in the static constructor
+        var profilePath = Path.Combine(ProfilesDir, $"{profileName}.json");
         var options = new JsonSerializerOptions
         {
             WriteIndented = true
@@ -87,13 +107,12 @@ public class CliConfigurationService
 
     public string? GetCurrentProfile()
     {
-        const string currentProfileFile = ".sreagent-current-profile";
-        if (!File.Exists(currentProfileFile))
+        if (!File.Exists(CurrentProfileFile))
             return null;
 
         try
         {
-            return File.ReadAllText(currentProfileFile).Trim();
+            return File.ReadAllText(CurrentProfileFile).Trim();
         }
         catch
         {
@@ -103,7 +122,36 @@ public class CliConfigurationService
 
     public async Task SetCurrentProfileAsync(string profileName)
     {
-        const string currentProfileFile = ".sreagent-current-profile";
-        await File.WriteAllTextAsync(currentProfileFile, profileName);
+        await File.WriteAllTextAsync(CurrentProfileFile, profileName);
+    }
+
+    public void DeleteProfile(string profileName)
+    {
+        var profilePath = Path.Combine(ProfilesDir, $"{profileName}.json");
+        if (File.Exists(profilePath))
+        {
+            File.Delete(profilePath);
+        }
+
+        // If this was the current profile, clear the current profile setting
+        var currentProfile = GetCurrentProfile();
+        if (currentProfile == profileName)
+        {
+            if (File.Exists(CurrentProfileFile))
+            {
+                File.Delete(CurrentProfileFile);
+            }
+        }
+    }
+
+    public bool ProfileExists(string profileName)
+    {
+        var profilePath = Path.Combine(ProfilesDir, $"{profileName}.json");
+        return File.Exists(profilePath);
+    }
+
+    public string GetConfigDirectory()
+    {
+        return UserConfigDir;
     }
 }

@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.CommandLine;
 using System.CommandLine.NamingConventionBinder;
 using System.CommandLine.Parsing;
@@ -6,7 +10,11 @@ using Agent.Cli.Helpers;
 using Agent.Cli.Models;
 using Agent.Cli.Services;
 using Agent.Cli.Validations;
+using Agent.Core.Helpers.ExtendedAgents;
+using Agent.Core.Validation;
 using Agent.Framework;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace Agent.Cli.Commands;
 
@@ -46,27 +54,55 @@ public static class AgentCommandHandlers
         string finalInstructions;
         List<string> finalTools;
 
+        // Initialize progress tracking for all agent creation
+        var steps = useSmart 
+            ? new[] {
+                "Analyzing requirements and generating instructions",
+                "Recommending appropriate tools", 
+                "Creating agent configuration",
+                "Validating configuration"
+              }
+            : new[] {
+                "Creating agent configuration",
+                "Validating configuration", 
+                "Writing agent files"
+              };
+        
+        ProgressService.MultiStepProgress.Initialize(steps);
+
         // Handle smart agent generation
         if (useSmart)
         {
-            Console.WriteLine("🤖 Generating smart agent with AI...");
-            
+            // Steps already initialized above
+
+            ProgressService.AnimatedSpinner.Start("Generating smart agent with AI");
+
             using var apiService = new ApiService();
             var (success, generatedInstructions, recommendedTools, errorMessage) = await apiService.GenerateSmartAgentAsync(name!, instructions);
-            
+
+            ProgressService.AnimatedSpinner.Stop();
+
             if (!success)
             {
-                Console.WriteLine($"❌ Smart generation failed: {errorMessage}");
+                ProgressService.MultiStepProgress.Fail($"Smart generation failed: {errorMessage}");
+                ProgressService.ShowError("Smart generation failed", new[]
+                {
+                    "Try running without --smart flag",
+                    "Check your server connection with --debug",
+                    "Verify your server supports AI completion"
+                });
                 Environment.Exit(1);
                 return;
             }
 
+            ProgressService.MultiStepProgress.NextStep("AI generation completed successfully");
+
             finalInstructions = generatedInstructions;
             finalTools = recommendedTools;
 
-            Console.WriteLine($"✅ AI generated instructions and {recommendedTools.Count} recommended tools!");
-            Console.WriteLine($"📝 Generated Instructions Preview: {(generatedInstructions.Length > 100 ? generatedInstructions.Substring(0, 100) + "..." : generatedInstructions)}");
-            Console.WriteLine($"🔧 Recommended Tools: {string.Join(", ", recommendedTools)}");
+            ProgressService.ShowSuccess($"AI generated instructions and {recommendedTools.Count} recommended tools!");
+            ConsoleUI.WriteKeyValue("Instructions", generatedInstructions.Length > 100 ? generatedInstructions.Substring(0, 100) + ConsoleUI.Chars.Ellipsis : generatedInstructions, 15);
+            ConsoleUI.WriteKeyValue("Tools", string.Join(", ", recommendedTools), 15);
         }
         else
         {
@@ -92,19 +128,118 @@ public static class AgentCommandHandlers
             OutputType = outputType
         };
 
-        // Validate the agent using CLI validation
-        AgentDescriptorValidation.ValidateAgentDescriptor(agent, out var errors);
-        if (errors.Count > 0)
+        // Validate tool existence before creating the agent
+        if (finalTools.Any())
         {
-            Console.WriteLine("❌ Agent validation failed:");
-            foreach (var error in errors)
-                Console.WriteLine($"  - {error}");
+            ProgressService.MultiStepProgress.NextStep("Validating tool availability");
+
+            try
+            {
+                var configService = new CliConfigurationService();
+                var config = await configService.LoadConfigurationAsync();
+
+                if (config != null && Uri.TryCreate(config.ResourceUrl, UriKind.Absolute, out _))
+                {
+                    using var validationApiService = new ApiService();
+                    var toolAvailabilityService = new ToolAvailabilityService(validationApiService);
+                    var (localTools, remoteTools, errors) = await toolAvailabilityService.GetAvailableToolsAsync();
+                    var allAvailableTools = new HashSet<string>(localTools.Union(remoteTools));
+                    
+                    var missingTools = finalTools.Where(tool => !allAvailableTools.Contains(tool)).ToList();
+                    
+                    if (missingTools.Any())
+                    {
+                        ProgressService.MultiStepProgress.Fail("Tool validation failed");
+                        ConsoleUI.WriteStatus(false, "Agent creation failed: Required tools not found");
+                        
+                        foreach (var missingTool in missingTools)
+                        {
+                            ConsoleUI.WriteBullet($"Tool '{missingTool}' is not available locally or on the server", ConsoleColor.Red);
+                        }
+                        
+                        Console.WriteLine();
+                        ConsoleUI.WriteSection("Available tools:");
+                        var availableToolsList = allAvailableTools.OrderBy(t => t).ToList();
+                        if (availableToolsList.Any())
+                        {
+                            foreach (var tool in availableToolsList.Take(10))
+                            {
+                                ConsoleUI.WriteBullet(tool, ConsoleColor.Green);
+                            }
+                            if (availableToolsList.Count > 10)
+                            {
+                                ConsoleUI.WriteBullet($"... and {availableToolsList.Count - 10} more", ConsoleColor.Gray);
+                            }
+                        }
+                        else
+                        {
+                            ConsoleUI.WriteBullet("No tools available", ConsoleColor.Yellow);
+                        }
+                        
+                        Console.WriteLine();
+                        ConsoleUI.WriteCommand("Create missing tools first", "srectl tool create --name <tool_name> --type <tool_type>");
+                        ConsoleUI.WriteCommand("List all available tools", "srectl list tools");
+                        Environment.Exit(1);
+                    }
+                    
+                    DebugLogger.Debug("ToolValidation", $"All {finalTools.Count} tools validated successfully");
+                }
+                else
+                {
+                    DebugLogger.Debug("ToolValidation", "No valid configuration found, skipping tool validation");
+                    ConsoleUI.WriteBullet("Warning: Cannot validate tool existence - no server configuration", ConsoleColor.Yellow);
+                }
+            }
+            catch (Exception ex)
+            {
+                DebugLogger.Debug("ToolValidation", $"Tool validation failed: {ex.Message}");
+                ConsoleUI.WriteBullet($"Warning: Unable to validate tool existence: {ex.Message}", ConsoleColor.Yellow);
+            }
+        }
+
+        // Validate the agent using basic validation
+        ProgressService.MultiStepProgress.NextStep("Validating agent configuration");
+
+        var validationService = new AgentValidationService();
+        var validationResult = await validationService.ValidateAgentAsync(agent, false);
+        if (!validationResult.IsValid)
+        {
+            ProgressService.MultiStepProgress.Fail("Agent validation failed");
+            
+            // Show each validation error with red bullet points
+            foreach (var error in validationResult.Errors)
+            {
+                ConsoleUI.WriteBullet(error, ConsoleColor.Red);
+            }
+            
+            // Show warnings if any
+            foreach (var warning in validationResult.Warnings)
+            {
+                ConsoleUI.WriteBullet($"Warning: {warning}", ConsoleColor.Yellow);
+            }
+            Console.WriteLine();
+            
             Environment.Exit(1);
         }
 
+        ProgressService.MultiStepProgress.NextStep();
+
         // Write the agent YAML file
         YamlHelper.WriteAgentYamlFile(Path.Combine("agents", name!), name!, agent);
-        Console.WriteLine($"✅ Agent YAML created at agents/{name}/{name}.yaml");
+        
+        // Complete the final step
+        ProgressService.MultiStepProgress.NextStep();
+        
+        ConsoleUI.WriteStatus(true, $"Agent '{name}' created successfully!");
+        ConsoleUI.WriteKeyValue("Location", $"agents/{name}/{name}.yaml");
+
+        // Show next steps
+        Console.WriteLine();
+        ConsoleUI.WriteSection("Next Steps");
+        ConsoleUI.WriteCommand("Validate the agent", $"srectl agent validate --file agents/{name}/{name}.yaml");
+        ConsoleUI.WriteCommand("Apply to server", $"srectl agent apply --name {name}");
+        ConsoleUI.WriteCommand("Test the agent", $"srectl agent test --name {name} --message \"Hello\"");
+        Console.WriteLine();
     }
 
     /// <summary>
@@ -124,6 +259,12 @@ public static class AgentCommandHandlers
         var debug = parseResult.GetValue(AgentCommandOptions.DebugOption);
         DebugLogger.SetDebugMode(debug);
 
+        // Always show this to confirm debug mode is working
+        if (debug)
+        {
+            Console.WriteLine($"DEBUG MODE ACTIVATED: {DateTime.Now:HH:mm:ss.fff}");
+        }
+
         DebugLogger.Debug("Command", "Starting agent validate command");
 
         var validateAll = parseResult.GetValue(AgentCommandOptions.AllOption);
@@ -142,7 +283,7 @@ public static class AgentCommandHandlers
         }
         else
         {
-            Console.WriteLine("❌ Please provide either --file <path> or --all to validate agents.");
+            ConsoleUI.WriteStatus(false, "Please provide either --file <path> or --all to validate agents.");
             Environment.Exit(1);
         }
     }
@@ -162,16 +303,16 @@ public static class AgentCommandHandlers
         var dryRun = parseResult.GetValue(AgentCommandOptions.ApplyDryRunOption);
 
         DebugLogger.Debug("Parameters", $"Name: {name}, DryRun: {dryRun}");
-        
+
         if (dryRun)
         {
             await HandleAgentApplyDryRun(name!);
             return;
         }
-        
+
         using var apiService = new ApiService();
         var (success, response) = await apiService.ApplyAgentAsync(name!);
-        
+
         Console.WriteLine(response);
         Environment.Exit(success ? 0 : 1);
     }
@@ -197,75 +338,81 @@ public static class AgentCommandHandlers
 
         ToolAvailabilityService? toolService = null;
         ApiService? apiService = null;
-        
+
         // Always validate configuration first to catch corrupted config files
         try
         {
             var configService = new CliConfigurationService();
             var config = await configService.LoadConfigurationAsync();
-            
+
             if (checkTools)
             {
                 if (config == null)
                 {
-                    Console.WriteLine("❌ Configuration not found. Run 'srectl init' first.");
+                    ConsoleUI.WriteStatus(false, "Configuration not found. Run 'srectl init' first.");
                     Environment.Exit(1);
                     return;
                 }
-                
+
                 // Validate URL format
                 if (!Uri.TryCreate(config.ResourceUrl, UriKind.Absolute, out _))
                 {
-                    Console.WriteLine($"❌ Invalid resource URL format in configuration: {config.ResourceUrl}");
+                    ConsoleUI.WriteStatus(false, $"Invalid resource URL format in configuration: {config.ResourceUrl}");
                     Environment.Exit(1);
                     return;
                 }
-                
+
                 apiService = new ApiService();
                 toolService = new ToolAvailabilityService(apiService);
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Configuration error: {ex.Message}");
+            ConsoleUI.WriteStatus(false, $"Configuration error: {ex.Message}");
             Environment.Exit(1);
             return;
         }
 
         bool allValid = true;
+        
+        // Set up tool availability checker if needed
+        IToolAvailabilityChecker? toolChecker = null;
+        if (checkTools && toolService != null)
+        {
+            toolChecker = new CliToolAvailabilityChecker(toolService);
+        }
+        
+        var validationService = new AgentValidationService(toolChecker);
+        
         foreach (var file in files)
         {
             try
             {
                 var yaml = File.ReadAllText(file, Encoding.UTF8);
-                var agent = AgentFactory<object>.LoadAgentFromYaml(yaml);
-                var errors = new List<string>();
+                
+                // Use the unified AgentValidationService
+                var validationResult = await validationService.ValidateYamlAsync(yaml, checkTools);
 
-                if (checkTools)
+                if (validationResult.IsValid)
                 {
-                    await AgentDescriptorValidation.ValidateAgentDescriptorAsync(agent, toolService, errors);
-                }
-                else
-                {
-                    AgentDescriptorValidation.ValidateAgentDescriptor(agent, out errors);
-                }
-
-                if (errors.Count == 0)
-                {
-                    Console.WriteLine($"✅ {file}: Validation succeeded.");
+                    ConsoleUI.WriteStatus(true, $"{file}: Validation succeeded");
                 }
                 else
                 {
                     allValid = false;
-                    Console.WriteLine($"❌ {file}: Validation failed:");
-                    foreach (var error in errors)
-                        Console.WriteLine($"   - {error}");
+                    ConsoleUI.WriteStatus(false, $"{file}: Validation failed");
+                    foreach (var error in validationResult.Errors)
+                        ConsoleUI.WriteBullet(error, ConsoleColor.Red);
+                        
+                    // Also show warnings if any
+                    foreach (var warning in validationResult.Warnings)
+                        ConsoleUI.WriteBullet($"Warning: {warning}", ConsoleColor.Yellow);
                 }
             }
             catch (Exception ex)
             {
                 allValid = false;
-                Console.WriteLine($"❌ {file}: Exception during validation: {ex.Message}");
+                ConsoleUI.WriteStatus(false, $"{file}: Exception during validation: {ex.Message}");
             }
         }
 
@@ -273,10 +420,12 @@ public static class AgentCommandHandlers
         apiService?.Dispose();
 
         if (allValid)
-            Console.WriteLine("All agent YAML files are valid.");
+        {
+            ConsoleUI.WriteStatus(true, "All agent YAML files are valid");
+        }
         else
         {
-            Console.WriteLine("Some agent YAML files failed validation.");
+            ConsoleUI.WriteStatus(false, "Some agent YAML files failed validation");
             Environment.Exit(1);
         }
     }
@@ -285,7 +434,7 @@ public static class AgentCommandHandlers
     {
         if (!File.Exists(filePath))
         {
-            Console.WriteLine($"❌ Agent YAML file not found: {filePath}");
+            ConsoleUI.WriteStatus(false, $"Agent YAML file not found: {filePath}");
             Environment.Exit(1);
         }
 
@@ -296,31 +445,31 @@ public static class AgentCommandHandlers
         {
             var configService = new CliConfigurationService();
             var config = await configService.LoadConfigurationAsync();
-            
+
             if (checkTools)
             {
                 if (config == null)
                 {
-                    Console.WriteLine("❌ Configuration not found. Run 'srectl init' first.");
+                    ConsoleUI.WriteStatus(false, "Configuration not found. Run 'srectl init' first.");
                     Environment.Exit(1);
                     return;
                 }
-                
+
                 // Validate URL format
                 if (!Uri.TryCreate(config.ResourceUrl, UriKind.Absolute, out _))
                 {
-                    Console.WriteLine($"❌ Invalid resource URL in configuration: {config.ResourceUrl}");
+                    ConsoleUI.WriteStatus(false, $"Invalid resource URL in configuration: {config.ResourceUrl}");
                     Environment.Exit(1);
                     return;
                 }
-                
+
                 apiService = new ApiService();
                 toolService = new ToolAvailabilityService(apiService);
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Configuration error: {ex.Message}");
+            ConsoleUI.WriteStatus(false, $"Configuration error: {ex.Message}");
             Environment.Exit(1);
             return;
         }
@@ -328,33 +477,37 @@ public static class AgentCommandHandlers
         try
         {
             var yaml = File.ReadAllText(filePath, Encoding.UTF8);
-            var agent = AgentFactory<object>.LoadAgentFromYaml(yaml);
-            var errors = new List<string>();
-
-            if (checkTools)
+            
+            // Use the unified AgentValidationService instead of AgentDescriptorValidation
+            IToolAvailabilityChecker? toolChecker = null;
+            if (checkTools && toolService != null)
             {
-                await AgentDescriptorValidation.ValidateAgentDescriptorAsync(agent, toolService, errors);
+                toolChecker = new CliToolAvailabilityChecker(toolService);
+            }
+            
+            var validationService = new AgentValidationService(toolChecker);
+            var validationResult = await validationService.ValidateYamlAsync(yaml, checkTools);
+
+            if (validationResult.IsValid)
+            {
+                ConsoleUI.WriteStatus(true, "Agent validation succeeded");
             }
             else
             {
-                AgentDescriptorValidation.ValidateAgentDescriptor(agent, out errors);
-            }
-
-            if (errors.Count == 0)
-            {
-                Console.WriteLine("✅ Agent validation succeeded.");
-            }
-            else
-            {
-                Console.WriteLine("❌ Agent validation failed:");
-                foreach (var error in errors)
-                    Console.WriteLine($"  - {error}");
+                ConsoleUI.WriteStatus(false, "Agent validation failed");
+                foreach (var error in validationResult.Errors)
+                    ConsoleUI.WriteBullet(error, ConsoleColor.Red);
+                
+                // Also show warnings if any
+                foreach (var warning in validationResult.Warnings)
+                    ConsoleUI.WriteBullet($"Warning: {warning}", ConsoleColor.Yellow);
+                
                 Environment.Exit(1);
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Exception during validation: {ex.Message}");
+            ConsoleUI.WriteStatus(false, $"Exception during validation: {ex.Message}");
             Environment.Exit(1);
         }
         finally
@@ -378,10 +531,10 @@ public static class AgentCommandHandlers
         var agentName = parseResult.GetValue(AgentCommandOptions.DeleteNameOption);
 
         DebugLogger.Debug("Parameters", $"AgentName: {agentName}");
-        
+
         if (string.IsNullOrWhiteSpace(agentName))
         {
-            Console.WriteLine("❌ Agent name is required.");
+            ConsoleUI.WriteStatus(false, "Agent name is required.");
             Environment.Exit(1);
             return;
         }
@@ -389,24 +542,27 @@ public static class AgentCommandHandlers
         try
         {
             using var apiService = new ApiService();
-            Console.WriteLine($"🗑️  Deleting agent '{agentName}'...");
+            ConsoleUI.WriteInfo($"Deleting agent '{agentName}'...", ConsoleColor.Yellow);
 
             var (success, response) = await apiService.DeleteAgentAsync(agentName);
-            
+
             if (success)
             {
-                Console.WriteLine($"✅ {response}");
+                ConsoleUI.WriteStatus(true, response);
+                
+                // After successful server deletion, offer to clean up local files
+                OfferLocalAgentCleanup(agentName);
             }
             else
             {
-                Console.WriteLine($"❌ {response}");
+                ConsoleUI.WriteStatus(false, response);
                 Environment.Exit(1);
             }
         }
         catch (Exception ex)
         {
             DebugLogger.Debug("Exception", $"DeleteAgent failed: {ex.Message}");
-            Console.WriteLine($"❌ Failed to delete agent: {ex.Message}");
+            ConsoleUI.WriteStatus(false, $"Failed to delete agent: {ex.Message}");
             Environment.Exit(1);
         }
     }    /// <summary>
@@ -421,7 +577,7 @@ public static class AgentCommandHandlers
         DebugLogger.Debug("Command", "Starting agent test command");
 
         try
-        {        
+        {
             var agentName = parseResult.GetValue(AgentCommandOptions.TestNameOption);
             var message = parseResult.GetValue(AgentCommandOptions.TestMessageOption);
             var userId = parseResult.GetValue(AgentCommandOptions.TestUserIdOption) ?? Environment.UserName;
@@ -461,8 +617,8 @@ public static class AgentCommandHandlers
 
             // Step 1: Create a new thread with the prefixed message
             Console.WriteLine("Creating new test thread...");
-            var (createSuccess, threadId, createResponse) = await apiService.CreateThreadAsync(prefixedMessage, userId, displayName);
-            
+            var (createSuccess, threadId, createResponse) = await apiService.CreateThreadAsync(message, userId, displayName);
+
             if (!createSuccess)
             {
                 Console.WriteLine(createResponse);
@@ -480,9 +636,9 @@ public static class AgentCommandHandlers
             {
                 Console.WriteLine($"Waiting for {agentName} agent response...");
                 Console.WriteLine();
-                
+
                 var (getSuccess, messages, getResponse) = await apiService.GetThreadMessagesStreamingAsync(threadId);
-                
+
                 if (!getSuccess)
                 {
                     Console.WriteLine(getResponse);
@@ -491,9 +647,9 @@ public static class AgentCommandHandlers
                 }
 
                 Console.WriteLine();
-                Console.WriteLine("🎯 Test completed successfully!");
-                Console.WriteLine($"Thread ID: {threadId}");
-                Console.WriteLine("You can continue this conversation using 'srectl thread continue --thread-id " + threadId + "'");
+                ConsoleUI.WriteStatus(true, "Test completed successfully!");
+                ConsoleUI.WriteKeyValue("Thread ID", threadId);
+                ConsoleUI.WriteInfo($"Continue with: srectl thread continue --thread-id {threadId}", ConsoleColor.Cyan);
             }
             else
             {
@@ -517,82 +673,94 @@ public static class AgentCommandHandlers
     {
         try
         {
-            Console.WriteLine($"🔍 DRY RUN: Agent apply for '{agentName}'");
+            ConsoleUI.WriteInfo($"DRY RUN: Agent apply for '{agentName}'", ConsoleColor.Cyan);
             Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
             // Find and validate agent file exists
             var agentFilePath = FindAgentFile(agentName);
             if (agentFilePath == null)
             {
-                Console.WriteLine($"❌ Agent file not found for '{agentName}'");
+                ConsoleUI.WriteStatus(false, $"Agent file not found for '{agentName}'");
                 Console.WriteLine($"   Expected: agents/{agentName}/{agentName}.yaml");
                 Environment.Exit(1);
                 return;
             }
 
-            Console.WriteLine($"📂 Agent file found: {agentFilePath}");
+            ConsoleUI.WriteKeyValue("Agent file", agentFilePath);
 
             // Read and parse the YAML file
             var yamlContent = await File.ReadAllTextAsync(agentFilePath);
-            Console.WriteLine($"📄 YAML content size: {yamlContent.Length} characters");
+            ConsoleUI.WriteKeyValue("Content size", $"{yamlContent.Length} characters");
 
-            // Validate YAML structure
+            // Validate using unified AgentValidationService
+            var validationService = new AgentValidationService();
+            var validationResult = await validationService.ValidateYamlAsync(yamlContent, false);
+
+            if (!validationResult.IsValid)
+            {
+                ConsoleUI.WriteStatus(false, "Agent validation failed");
+                foreach (var error in validationResult.Errors)
+                    ConsoleUI.WriteBullet(error, ConsoleColor.Red);
+                    
+                foreach (var warning in validationResult.Warnings)
+                    ConsoleUI.WriteBullet($"Warning: {warning}", ConsoleColor.Yellow);
+                    
+                Environment.Exit(1);
+                return;
+            }
+
+            ConsoleUI.WriteStatus(true, "Agent validation successful");
+
+            // Parse for display purposes
             try
             {
-                var agentConfig = YamlHelper.CreateCamelCaseDeserializer()
-                    .Deserialize<Dictionary<string, object>>(yamlContent);
-                
-                Console.WriteLine("✅ YAML structure is valid");
-                Console.WriteLine($"📝 Agent details:");
-                
-                if (agentConfig.TryGetValue("name", out var nameValue))
-                    Console.WriteLine($"   Name: {nameValue}");
-                    
-                if (agentConfig.TryGetValue("instructions", out var instructionsValue))
-                    Console.WriteLine($"   Instructions length: {instructionsValue?.ToString()?.Length ?? 0} characters");
-                
-                if (agentConfig.TryGetValue("tools", out var toolsValue) && toolsValue is List<object> toolsList)
+                var agent = AgentYamlParser.ParseAgentYaml(yamlContent);
+                if (agent != null)
                 {
-                    var tools = toolsList.Select(t => t.ToString()).Where(t => !string.IsNullOrEmpty(t)).ToList();
-                    Console.WriteLine($"   Tools ({tools.Count}): {string.Join(", ", tools)}");
+                    Console.WriteLine();
+                    ConsoleUI.WriteSection("Agent Details");
+                    Console.WriteLine($"   Name: {agent.Name}");
+                    Console.WriteLine($"   Instructions length: {agent.Instructions?.Length ?? 0} characters");
                     
-                    // Check if referenced tools exist locally
-                    var missingTools = new List<string>();
-                    foreach (var tool in tools)
+                    if (agent.Tools?.Count > 0)
                     {
-                        var toolPath = ToolCommandHandlers.FindToolFile(tool!);
-                        if (toolPath == null)
+                        Console.WriteLine($"   Tools ({agent.Tools.Count}): {string.Join(", ", agent.Tools)}");
+
+                        // Check if referenced tools exist locally
+                        var missingTools = new List<string>();
+                        foreach (var tool in agent.Tools)
                         {
-                            missingTools.Add(tool!);
+                            var toolPath = ToolCommandHandlers.FindToolFile(tool);
+                            if (toolPath == null)
+                            {
+                                missingTools.Add(tool);
+                            }
+                        }
+
+                        if (missingTools.Any())
+                        {
+                            ConsoleUI.WriteInfo($"Missing local tool files: {string.Join(", ", missingTools)}", ConsoleColor.Yellow);
+                        }
+                        else
+                        {
+                            ConsoleUI.WriteInfo("All referenced tools found locally", ConsoleColor.Green);
                         }
                     }
-                    
-                    if (missingTools.Any())
+
+                    if (agent.Handoffs?.Count > 0)
                     {
-                        Console.WriteLine($"   ⚠️  Missing local tool files: {string.Join(", ", missingTools)}");
+                        Console.WriteLine($"   Handoffs ({agent.Handoffs.Count}): {string.Join(", ", agent.Handoffs)}");
                     }
-                    else
-                    {
-                        Console.WriteLine("   ✅ All referenced tools found locally");
-                    }
+
+                    if (agent.Temperature.HasValue)
+                        Console.WriteLine($"   Temperature: {agent.Temperature}");
+                        
+                    Console.WriteLine($"   Max reflection count: {agent.MaxReflectionCount}");
                 }
-                
-                if (agentConfig.TryGetValue("handoffs", out var handoffsValue) && handoffsValue is List<object> handoffsList)
-                {
-                    var handoffs = handoffsList.Select(h => h.ToString()).Where(h => !string.IsNullOrEmpty(h)).ToList();
-                    Console.WriteLine($"   Handoffs ({handoffs.Count}): {string.Join(", ", handoffs)}");
-                }
-                
-                if (agentConfig.TryGetValue("temperature", out var tempValue))
-                    Console.WriteLine($"   Temperature: {tempValue}");
-                if (agentConfig.TryGetValue("maxReflectionCount", out var reflectionValue))
-                    Console.WriteLine($"   Max reflection count: {reflectionValue}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ YAML parsing failed: {ex.Message}");
-                Environment.Exit(1);
-                return;
+                ConsoleUI.WriteInfo($"Could not parse agent details for display: {ex.Message}", ConsoleColor.Yellow);
             }
 
             // Check server connectivity
@@ -600,25 +768,111 @@ public static class AgentCommandHandlers
             var config = await configService.LoadConfigurationAsync();
             if (config == null)
             {
-                Console.WriteLine("❌ Configuration not found. Run 'srectl init' first.");
+                ConsoleUI.WriteStatus(false, "Configuration not found. Run 'srectl init' first.");
                 Environment.Exit(1);
                 return;
             }
 
-            Console.WriteLine($"🌐 Target server: {config.ResourceUrl}");
-            Console.WriteLine($"🔐 Authentication required: {config.AuthRequired}");
+            ConsoleUI.WriteKeyValue("Target server", config.ResourceUrl);
+            ConsoleUI.WriteKeyValue("Auth required", config.AuthRequired.ToString());
 
-            Console.WriteLine("\n✅ DRY RUN COMPLETE");
-            Console.WriteLine("📋 Summary:");
-            Console.WriteLine($"   • Agent '{agentName}' configuration is valid");
-            Console.WriteLine("   • YAML file can be parsed successfully");
-            Console.WriteLine("   • Server configuration is available");
-            Console.WriteLine($"   • Would apply to: {config.ResourceUrl}");
-            Console.WriteLine("\n💡 To actually apply the agent, run: srectl agent apply --name " + agentName);
+            Console.WriteLine();
+            ConsoleUI.WriteStatus(true, "DRY RUN COMPLETE");
+            Console.WriteLine();
+            ConsoleUI.WriteSection("Summary");
+            ConsoleUI.WriteBullet($"Agent '{agentName}' configuration is valid", ConsoleColor.Green);
+            ConsoleUI.WriteBullet("YAML file can be parsed successfully", ConsoleColor.Green);
+            ConsoleUI.WriteBullet("Server configuration is available", ConsoleColor.Green);
+            ConsoleUI.WriteBullet($"Would apply to: {config.ResourceUrl}", ConsoleColor.Green);
+            Console.WriteLine();
+            ConsoleUI.WriteCommand("To apply", $"srectl agent apply --name {agentName}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ DRY RUN FAILED: {ex.Message}");
+            ConsoleUI.WriteStatus(false, $"DRY RUN FAILED: {ex.Message}");
+            Environment.Exit(1);
+        }
+    }
+
+    /// <summary>
+    /// Handles the agent diff command to compare local and remote configurations.
+    /// </summary>
+    public static async Task HandleDiffCommand(ParseResult parseResult)
+    {
+        // Set debug mode first
+        var debug = parseResult.GetValue(AgentCommandOptions.DebugOption);
+        DebugLogger.SetDebugMode(debug);
+
+        DebugLogger.Debug("Command", "Starting agent diff command");
+
+        var agentName = parseResult.GetValue(AgentCommandOptions.DiffNameOption);
+        var diffTool = parseResult.GetValue(AgentCommandOptions.DiffToolOption) ?? "git";
+        var showRaw = parseResult.GetValue(AgentCommandOptions.DiffRawOption);
+
+        DebugLogger.Debug("Parameters", $"AgentName: {agentName}, Tool: {diffTool}, Raw: {showRaw}");
+
+        if (string.IsNullOrWhiteSpace(agentName))
+        {
+            ConsoleUI.WriteStatus(false, "Agent name is required.");
+            Environment.Exit(1);
+            return;
+        }
+
+        try
+        {
+            // Find local agent file
+            var localPath = FindAgentFile(agentName);
+            if (localPath == null)
+            {
+                ConsoleUI.WriteStatus(false, $"Local agent file not found for '{agentName}'");
+                Console.WriteLine($"   Expected: agents/{agentName}/{agentName}.yaml");
+                Environment.Exit(1);
+                return;
+            }
+
+            ConsoleUI.WriteInfo($"Comparing agent '{agentName}'...", ConsoleColor.Cyan);
+            
+            // Get remote configuration
+            using var apiService = new ApiService();
+            var (success, remoteYaml, errorMessage) = await apiService.GetAgentConfigurationAsync(agentName);
+            
+            if (!success)
+            {
+                ConsoleUI.WriteStatus(false, $"Failed to get remote configuration: {errorMessage}");
+                Environment.Exit(1);
+                return;
+            }
+
+            // Read local configuration
+            var localYaml = await File.ReadAllTextAsync(localPath);
+
+            // If both are identical, no need to diff
+            if (string.Equals(localYaml.Trim(), remoteYaml.Trim(), StringComparison.Ordinal))
+            {
+                ConsoleUI.WriteStatus(true, "Local and remote configurations are identical");
+                Environment.Exit(0);
+                return;
+            }
+
+            // Always use YAML format for comparison
+            var localContent = NormalizeYaml(localYaml);
+            var remoteContent = NormalizeYaml(remoteYaml);
+
+            if (showRaw)
+            {
+                // Show inline diff
+                ShowInlineDiff(localContent, remoteContent, agentName);
+            }
+            else
+            {
+                // Use external diff tool
+                await LaunchDiffTool(localContent, remoteContent, agentName, diffTool, ".yaml");
+            }
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug("Exception", $"Diff failed: {ex.Message}");
+            ConsoleUI.WriteStatus(false, $"Failed to compare agent: {ex.Message}");
             Environment.Exit(1);
         }
     }
@@ -634,5 +888,331 @@ public static class AgentCommandHandlers
 
         var expectedPath = Path.Combine(agentsDir, agentName, $"{agentName}.yaml");
         return File.Exists(expectedPath) ? expectedPath : null;
+    }
+
+    /// <summary>
+    /// Offers to clean up local agent files after successful server deletion.
+    /// </summary>
+    private static void OfferLocalAgentCleanup(string agentName)
+    {
+        var agentDir = Path.Combine("agents", agentName);
+        var agentFile = Path.Combine(agentDir, $"{agentName}.yaml");
+        
+        if (!File.Exists(agentFile))
+        {
+            return; // No local files to clean up
+        }
+
+        Console.WriteLine();
+        ConsoleUI.WriteSection("Local File Cleanup");
+        ConsoleUI.WriteInfo("Local configuration files still exist:", ConsoleColor.Yellow);
+        ConsoleUI.WriteBullet(agentFile, ConsoleColor.Gray);
+        Console.WriteLine();
+        
+        if (ConsoleUI.Confirm("Also delete local configuration files?", false))
+        {
+            try
+            {
+                if (Directory.Exists(agentDir))
+                {
+                    Directory.Delete(agentDir, true);
+                    ConsoleUI.WriteStatus(true, $"Local agent files deleted: {agentDir}");
+                }
+                
+                Console.WriteLine();
+                ConsoleUI.WriteSection("Summary");
+                ConsoleUI.WriteBullet($"Agent '{agentName}' deleted from server", ConsoleColor.Green);
+                ConsoleUI.WriteBullet("Local configuration files cleaned up", ConsoleColor.Green);
+                
+                Console.WriteLine();
+                ConsoleUI.WriteInfo($"To recreate: srectl agent create --name {agentName}", ConsoleColor.Cyan);
+            }
+            catch (Exception ex)
+            {
+                ConsoleUI.WriteStatus(false, $"Failed to delete local files: {ex.Message}");
+            }
+        }
+        else
+        {
+            Console.WriteLine();
+            ConsoleUI.WriteSection("Summary");
+            ConsoleUI.WriteBullet($"Agent '{agentName}' deleted from server", ConsoleColor.Green);
+            ConsoleUI.WriteBullet($"Local configuration files preserved: {agentFile}", ConsoleColor.Yellow);
+            
+            Console.WriteLine();
+            ConsoleUI.WriteInfo($"To redeploy: srectl agent apply --name {agentName}", ConsoleColor.Cyan);
+            ConsoleUI.WriteInfo($"To delete locally: rm -rf {agentDir.Replace('\\', '/')}", ConsoleColor.Gray);
+        }
+    }
+
+    #region Diff Helper Methods
+
+    private static string NormalizeYaml(string yaml)
+    {
+        try
+        {
+            var deserializer = YamlHelper.CreateCamelCaseDeserializer();
+            var obj = deserializer.Deserialize<object>(yaml);
+            
+            var serializer = new YamlDotNet.Serialization.SerializerBuilder()
+                .WithNamingConvention(YamlDotNet.Serialization.NamingConventions.CamelCaseNamingConvention.Instance)
+                .ConfigureDefaultValuesHandling(YamlDotNet.Serialization.DefaultValuesHandling.OmitNull)
+                .Build();
+            
+            return serializer.Serialize(obj);
+        }
+        catch
+        {
+            return yaml; // Return original if normalization fails
+        }
+    }
+
+    private static void ShowInlineDiff(string local, string remote, string agentName)
+    {
+        ConsoleUI.WriteSection($"Configuration Diff for '{agentName}'");
+        
+        var localLines = local.Split('\n');
+        var remoteLines = remote.Split('\n');
+        
+        Console.WriteLine();
+        Console.WriteLine("Legend: ");
+        ConsoleUI.WriteBullet("Local only (will be removed)", ConsoleColor.Red);
+        ConsoleUI.WriteBullet("Remote only (will be added)", ConsoleColor.Green);
+        ConsoleUI.WriteBullet("Different values", ConsoleColor.Yellow);
+        Console.WriteLine();
+
+        // Simple line-by-line comparison
+        int maxLines = Math.Max(localLines.Length, remoteLines.Length);
+        for (int i = 0; i < maxLines; i++)
+        {
+            var localLine = i < localLines.Length ? localLines[i] : null;
+            var remoteLine = i < remoteLines.Length ? remoteLines[i] : null;
+
+            if (localLine == remoteLine)
+            {
+                // Lines are the same, skip or show context
+                continue;
+            }
+            else if (localLine != null && remoteLine == null)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"- {localLine}");
+                Console.ResetColor();
+            }
+            else if (localLine == null && remoteLine != null)
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine($"+ {remoteLine}");
+                Console.ResetColor();
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine($"< {localLine}");
+                Console.WriteLine($"> {remoteLine}");
+                Console.ResetColor();
+            }
+        }
+
+        Console.WriteLine();
+        ConsoleUI.WriteSection("Summary");
+        ConsoleUI.WriteKeyValue("Local lines", localLines.Length.ToString());
+        ConsoleUI.WriteKeyValue("Remote lines", remoteLines.Length.ToString());
+    }
+
+    private static async Task LaunchDiffTool(string localContent, string remoteContent, string agentName, string tool, string extension)
+    {
+        // Create temp files
+        var tempDir = Path.GetTempPath();
+        var localTempFile = Path.Combine(tempDir, $"{agentName}.local{extension}");
+        var remoteTempFile = Path.Combine(tempDir, $"{agentName}.remote{extension}");
+
+        try
+        {
+            await File.WriteAllTextAsync(localTempFile, localContent);
+            await File.WriteAllTextAsync(remoteTempFile, remoteContent);
+
+            ConsoleUI.WriteInfo($"Launching {tool} diff tool...", ConsoleColor.Cyan);
+
+            var process = tool.ToLower() switch
+            {
+                "git" => LaunchGitDiff(localTempFile, remoteTempFile, agentName),
+                "vimdiff" => LaunchVimDiff(localTempFile, remoteTempFile),
+                "vim" => LaunchVimDiff(localTempFile, remoteTempFile),
+                "code" => LaunchVSCode(localTempFile, remoteTempFile),
+                "vscode" => LaunchVSCode(localTempFile, remoteTempFile),
+                _ => LaunchDefaultDiff(localTempFile, remoteTempFile, agentName)
+            };
+
+            if (process != null)
+            {
+                await process.WaitForExitAsync();
+                
+                if (process.ExitCode == 0)
+                {
+                    ConsoleUI.WriteStatus(true, "Diff completed successfully");
+                }
+                else if (process.ExitCode == 1 && tool == "git")
+                {
+                    // Git diff returns 1 when files differ, which is expected
+                    ConsoleUI.WriteStatus(true, "Files differ (see diff output above)");
+                }
+                else
+                {
+                    ConsoleUI.WriteStatus(false, $"Diff tool exited with code {process.ExitCode}");
+                }
+            }
+        }
+        finally
+        {
+            // Cleanup temp files
+            try
+            {
+                if (File.Exists(localTempFile)) File.Delete(localTempFile);
+                if (File.Exists(remoteTempFile)) File.Delete(remoteTempFile);
+            }
+            catch
+            {
+                // Ignore cleanup errors
+            }
+        }
+    }
+
+    private static System.Diagnostics.Process? LaunchGitDiff(string localFile, string remoteFile, string agentName)
+    {
+        try
+        {
+            var startInfo = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "git",
+                Arguments = $"diff --no-index --color=always \"{localFile}\" \"{remoteFile}\"",
+                UseShellExecute = false,
+                RedirectStandardOutput = false,
+                RedirectStandardError = false
+            };
+
+            // Add labels to make it clearer
+            Console.WriteLine($"--- a/{agentName} (local)");
+            Console.WriteLine($"+++ b/{agentName} (remote)");
+            Console.WriteLine();
+
+            return System.Diagnostics.Process.Start(startInfo);
+        }
+        catch (Exception ex)
+        {
+            ConsoleUI.WriteStatus(false, $"Failed to launch git diff: {ex.Message}");
+            ConsoleUI.WriteInfo("Make sure git is installed and in your PATH", ConsoleColor.Yellow);
+            return null;
+        }
+    }
+
+    private static System.Diagnostics.Process? LaunchVimDiff(string localFile, string remoteFile)
+    {
+        try
+        {
+            var vimCommand = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows) ? "vim" : "vimdiff";
+            
+            var startInfo = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = vimCommand,
+                Arguments = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows) 
+                    ? $"-d \"{localFile}\" \"{remoteFile}\""
+                    : $"\"{localFile}\" \"{remoteFile}\"",
+                UseShellExecute = false
+            };
+
+            return System.Diagnostics.Process.Start(startInfo);
+        }
+        catch (Exception ex)
+        {
+            ConsoleUI.WriteStatus(false, $"Failed to launch vimdiff: {ex.Message}");
+            ConsoleUI.WriteInfo("Make sure vim is installed and in your PATH", ConsoleColor.Yellow);
+            return null;
+        }
+    }
+
+    private static System.Diagnostics.Process? LaunchVSCode(string localFile, string remoteFile)
+    {
+        try
+        {
+            var startInfo = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "code",
+                Arguments = $"--diff \"{localFile}\" \"{remoteFile}\"",
+                UseShellExecute = false
+            };
+
+            return System.Diagnostics.Process.Start(startInfo);
+        }
+        catch (Exception ex)
+        {
+            ConsoleUI.WriteStatus(false, $"Failed to launch VS Code: {ex.Message}");
+            ConsoleUI.WriteInfo("Make sure VS Code is installed and 'code' is in your PATH", ConsoleColor.Yellow);
+            return null;
+        }
+    }
+
+    private static System.Diagnostics.Process? LaunchDefaultDiff(string localFile, string remoteFile, string agentName)
+    {
+        // Try git diff first as it's most commonly available
+        var process = LaunchGitDiff(localFile, remoteFile, agentName);
+        if (process != null) return process;
+
+        // Fall back to simple inline diff
+        ConsoleUI.WriteInfo("No external diff tool available, showing inline diff", ConsoleColor.Yellow);
+        var localContent = File.ReadAllText(localFile);
+        var remoteContent = File.ReadAllText(remoteFile);
+        ShowInlineDiff(localContent, remoteContent, agentName);
+        return null;
+    }
+
+    #endregion
+
+}
+
+/// <summary>
+/// CLI adapter for IToolAvailabilityChecker that wraps ToolAvailabilityService
+/// </summary>
+public class CliToolAvailabilityChecker : IToolAvailabilityChecker
+{
+    private readonly ToolAvailabilityService _toolService;
+
+    public CliToolAvailabilityChecker(ToolAvailabilityService toolService)
+    {
+        _toolService = toolService ?? throw new ArgumentNullException(nameof(toolService));
+    }
+
+    public async Task<ToolAvailabilityResult> CheckToolsAvailabilityAsync(List<string> toolNames)
+    {
+        var result = new ToolAvailabilityResult();
+
+        try
+        {
+            var (localTools, remoteTools, errors) = await _toolService.GetAvailableToolsAsync();
+            var allAvailableTools = new HashSet<string>(localTools.Union(remoteTools));
+            
+            foreach (var toolName in toolNames)
+            {
+                if (allAvailableTools.Contains(toolName))
+                {
+                    result.AvailableTools.Add(toolName);
+                }
+                else
+                {
+                    result.MissingTools.Add(toolName);
+                }
+            }
+
+            // Add any errors from the tool service as warnings
+            result.Warnings.AddRange(errors);
+        }
+        catch (Exception ex)
+        {
+            result.Warnings.Add($"Error checking tool availability: {ex.Message}");
+            // Mark all tools as missing if we can't check availability
+            result.MissingTools.AddRange(toolNames);
+        }
+
+        return result;
     }
 }

@@ -101,7 +101,7 @@ public static class ToolResponseParser
     }
 
     /// <summary>
-    /// Extracts detailed tool information for display purposes.
+    /// Extracts detailed tool information for display purposes using ConsoleUI formatting.
     /// </summary>
     /// <param name="toolElements">Array of tool JsonElements.</param>
     /// <returns>List of formatted tool information strings.</returns>
@@ -116,40 +116,46 @@ public static class ToolResponseParser
             var description = tool.TryGetProperty("description", out var descElement) ? descElement.GetString() ?? "" : "";
             var pluginName = tool.TryGetProperty("pluginName", out var pluginElement) ? pluginElement.GetString() ?? "" : "";
             
-            toolInfo.Add($"\n🛠️  {name}");
-            if (!string.IsNullOrEmpty(category))
+            var output = Helpers.ConsoleUI.CaptureOutput(() =>
             {
-                toolInfo.Add($"   Category: {category}");
-            }
-            if (!string.IsNullOrEmpty(description))
-            {
-                toolInfo.Add($"   Description: {description}");
-            }
-            if (!string.IsNullOrEmpty(pluginName))
-            {
-                toolInfo.Add($"   Plugin: {pluginName}");
-            }
-            
-            // Get parameters
-            if (tool.TryGetProperty("parameters", out var paramsElement) && paramsElement.ValueKind == JsonValueKind.Array)
-            {
-                var parameters = paramsElement.EnumerateArray().Select(p => p.GetString()).Where(p => !string.IsNullOrEmpty(p)).ToList();
-                if (parameters.Any())
+                Console.WriteLine();
+                Helpers.ConsoleUI.WriteBullet(name, ConsoleColor.White, 0);
+                
+                if (!string.IsNullOrEmpty(category))
                 {
-                    toolInfo.Add($"   Parameters: {string.Join(", ", parameters)}");
+                    Helpers.ConsoleUI.WriteKeyValue("  Category", category, 13, ConsoleColor.Gray, ConsoleColor.White);
                 }
-                else
+                if (!string.IsNullOrEmpty(description))
                 {
-                    toolInfo.Add("   Parameters: None");
+                    Helpers.ConsoleUI.WriteKeyValue("  Description", description, 13, ConsoleColor.Gray, ConsoleColor.White);
                 }
-            }
+                if (!string.IsNullOrEmpty(pluginName))
+                {
+                    Helpers.ConsoleUI.WriteKeyValue("  Plugin", pluginName, 13, ConsoleColor.Gray, ConsoleColor.White);
+                }
+                
+                // Get parameters
+                if (tool.TryGetProperty("parameters", out var paramsElement) && paramsElement.ValueKind == JsonValueKind.Array)
+                {
+                    var parameters = paramsElement.EnumerateArray().Select(p => p.GetString()).Where(p => !string.IsNullOrEmpty(p)).ToList();
+                    if (parameters.Any())
+                    {
+                        Helpers.ConsoleUI.WriteKeyValue("  Parameters", string.Join(", ", parameters), 13, ConsoleColor.Gray, ConsoleColor.White);
+                    }
+                    else
+                    {
+                        Helpers.ConsoleUI.WriteKeyValue("  Parameters", "None", 13, ConsoleColor.Gray, ConsoleColor.White);
+                    }
+                }
+            });
+            toolInfo.Add(output);
         }
 
         return toolInfo;
     }
 
     /// <summary>
-    /// Extracts detailed extended tool information for display purposes.
+    /// Extracts detailed extended tool information for display purposes using ConsoleUI formatting.
     /// Extended tools have different properties than regular tools.
     /// </summary>
     /// <param name="toolElements">Array of extended tool JsonElements.</param>
@@ -166,91 +172,97 @@ public static class ToolResponseParser
             var createdAt = tool.TryGetProperty("created_at", out var createdElement) ? createdElement.GetString() ?? "" : "";
             var updatedAt = tool.TryGetProperty("updated_at", out var updatedElement) ? updatedElement.GetString() ?? "" : "";
             
-            toolInfo.Add($"\n🛠️  {name}");
-            if (!string.IsNullOrEmpty(description))
+            var output = Helpers.ConsoleUI.CaptureOutput(() =>
             {
-                toolInfo.Add($"   Description: {description}");
-            }
-            if (!string.IsNullOrEmpty(type))
-            {
-                toolInfo.Add($"   Type: {type}");
-            }
-            if (!string.IsNullOrEmpty(createdAt))
-            {
-                toolInfo.Add($"   Created: {createdAt}");
-            }
-            if (!string.IsNullOrEmpty(updatedAt))
-            {
-                toolInfo.Add($"   Updated: {updatedAt}");
-            }
-            
-            // Get parameters if available
-            if (tool.TryGetProperty("parameters", out var paramsElement))
-            {
-                if (paramsElement.ValueKind == JsonValueKind.Array)
+                Console.WriteLine();
+                Helpers.ConsoleUI.WriteBullet(name, ConsoleColor.White, 0);
+                
+                if (!string.IsNullOrEmpty(description))
                 {
-                    var parameters = new List<string>();
-                    foreach (var param in paramsElement.EnumerateArray())
+                    Helpers.ConsoleUI.WriteKeyValue("  Description", description, 13, ConsoleColor.Gray, ConsoleColor.White);
+                }
+                if (!string.IsNullOrEmpty(type))
+                {
+                    Helpers.ConsoleUI.WriteKeyValue("  Type", type, 13, ConsoleColor.Gray, ConsoleColor.White);
+                }
+                if (!string.IsNullOrEmpty(createdAt))
+                {
+                    Helpers.ConsoleUI.WriteKeyValue("  Created", createdAt, 13, ConsoleColor.Gray, ConsoleColor.White);
+                }
+                if (!string.IsNullOrEmpty(updatedAt))
+                {
+                    Helpers.ConsoleUI.WriteKeyValue("  Updated", updatedAt, 13, ConsoleColor.Gray, ConsoleColor.White);
+                }
+                
+                // Get parameters if available
+                if (tool.TryGetProperty("parameters", out var paramsElement))
+                {
+                    if (paramsElement.ValueKind == JsonValueKind.Array)
                     {
-                        if (param.ValueKind == JsonValueKind.String)
+                        var parameters = new List<string>();
+                        foreach (var param in paramsElement.EnumerateArray())
                         {
-                            var paramStr = param.GetString();
-                            if (!string.IsNullOrEmpty(paramStr))
+                            if (param.ValueKind == JsonValueKind.String)
                             {
-                                parameters.Add(paramStr);
+                                var paramStr = param.GetString();
+                                if (!string.IsNullOrEmpty(paramStr))
+                                {
+                                    parameters.Add(paramStr);
+                                }
+                            }
+                            else if (param.ValueKind == JsonValueKind.Object)
+                            {
+                                // Handle parameter object structure - extract the name
+                                var paramName = param.TryGetProperty("name", out var paramNameElement) ? paramNameElement.GetString() ?? "" : "";
+                                if (!string.IsNullOrEmpty(paramName))
+                                {
+                                    parameters.Add(paramName);
+                                }
                             }
                         }
-                        else if (param.ValueKind == JsonValueKind.Object)
+                        if (parameters.Any())
                         {
-                            // Handle parameter object structure - extract the name
-                            var paramName = param.TryGetProperty("name", out var paramNameElement) ? paramNameElement.GetString() ?? "" : "";
-                            if (!string.IsNullOrEmpty(paramName))
-                            {
-                                parameters.Add(paramName);
-                            }
+                            Helpers.ConsoleUI.WriteKeyValue("  Parameters", string.Join(", ", parameters), 13, ConsoleColor.Gray, ConsoleColor.White);
                         }
                     }
-                    if (parameters.Any())
+                    else if (paramsElement.ValueKind == JsonValueKind.Object)
                     {
-                        toolInfo.Add($"   Parameters: {string.Join(", ", parameters)}");
+                        // Handle parameter object structure
+                        var paramNames = new List<string>();
+                        foreach (var param in paramsElement.EnumerateObject())
+                        {
+                            paramNames.Add(param.Name);
+                        }
+                        if (paramNames.Any())
+                        {
+                            Helpers.ConsoleUI.WriteKeyValue("  Parameters", string.Join(", ", paramNames), 13, ConsoleColor.Gray, ConsoleColor.White);
+                        }
                     }
                 }
-                else if (paramsElement.ValueKind == JsonValueKind.Object)
+                
+                // Get connector info if available
+                if (tool.TryGetProperty("connector", out var connectorElement))
                 {
-                    // Handle parameter object structure
-                    var paramNames = new List<string>();
-                    foreach (var param in paramsElement.EnumerateObject())
+                    if (connectorElement.ValueKind == JsonValueKind.String)
                     {
-                        paramNames.Add(param.Name);
+                        var connectorType = connectorElement.GetString() ?? "";
+                        if (!string.IsNullOrEmpty(connectorType))
+                        {
+                            Helpers.ConsoleUI.WriteKeyValue("  Connector", connectorType, 13, ConsoleColor.Gray, ConsoleColor.White);
+                        }
                     }
-                    if (paramNames.Any())
+                    else if (connectorElement.ValueKind == JsonValueKind.Object)
                     {
-                        toolInfo.Add($"   Parameters: {string.Join(", ", paramNames)}");
-                    }
-                }
-            }
-            
-            // Get connector info if available
-            if (tool.TryGetProperty("connector", out var connectorElement))
-            {
-                if (connectorElement.ValueKind == JsonValueKind.String)
-                {
-                    var connectorType = connectorElement.GetString() ?? "";
-                    if (!string.IsNullOrEmpty(connectorType))
-                    {
-                        toolInfo.Add($"   Connector: {connectorType}");
+                        // Handle connector object structure
+                        var connectorType = connectorElement.TryGetProperty("type", out var connectorTypeElement) ? connectorTypeElement.GetString() ?? "" : "";
+                        if (!string.IsNullOrEmpty(connectorType))
+                        {
+                            Helpers.ConsoleUI.WriteKeyValue("  Connector", connectorType, 13, ConsoleColor.Gray, ConsoleColor.White);
+                        }
                     }
                 }
-                else if (connectorElement.ValueKind == JsonValueKind.Object)
-                {
-                    // Handle connector object structure
-                    var connectorType = connectorElement.TryGetProperty("type", out var connectorTypeElement) ? connectorTypeElement.GetString() ?? "" : "";
-                    if (!string.IsNullOrEmpty(connectorType))
-                    {
-                        toolInfo.Add($"   Connector: {connectorType}");
-                    }
-                }
-            }
+            });
+            toolInfo.Add(output);
         }
 
         return toolInfo;

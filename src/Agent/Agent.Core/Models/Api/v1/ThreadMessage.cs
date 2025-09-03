@@ -13,6 +13,7 @@ public record ThreadMessage(
     string DisplayName,
     DateTime Timestamp,
     Posted? Posted = null,
+    string? AgentName = null,
     ConversationModifierEnum? ConversationModifier = null);
 
 public record InboundServiceResponse(

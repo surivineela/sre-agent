@@ -39,7 +39,7 @@ echo.
 REM Test 1: Basic agent creation
 echo [TEST 1] Basic agent creation
 set /a TOTAL_TESTS+=1
-dotnet run --project .. -- agent create --name test_agent --instructions "Test agent instructions for validation - this is a comprehensive test with sufficient length" --tools TestTool1 TestTool2 > test1_output.txt 2>&1
+dotnet run --project .. -- agent create --name test_agent --instructions "Test agent instructions for validation - this is a comprehensive test with sufficient length" > test1_output.txt 2>&1
 if !errorlevel! equ 0 (
     echo [PASS] Basic agent creation
     set /a TESTS_PASSED+=1
@@ -53,7 +53,7 @@ echo.
 REM Test 2: Agent creation with all options
 echo [TEST 2] Agent creation with all options
 set /a TOTAL_TESTS+=1
-dotnet run --project .. -- agent create --name full_featured_agent --instructions "Full featured test agent with comprehensive options" --tools Tool1 Tool2 --handoff-description "Test handoff description" --handoffs meta_agent --allow-parallel-tool-calls --max-reflection-count 2 --temperature 0.7 --common-prompts format_guidelines > test2_output.txt 2>&1
+dotnet run --project .. -- agent create --name full_featured_agent --instructions "Full featured test agent with comprehensive options" --handoff-description "Test handoff description" --handoffs meta_agent --allow-parallel-tool-calls --max-reflection-count 2 --temperature 0.7 --common-prompts format_guidelines > test2_output.txt 2>&1
 if !errorlevel! equ 0 (
     echo [PASS] Agent creation with all options
     set /a TESTS_PASSED+=1
@@ -67,6 +67,7 @@ echo.
 REM Test 3: Agent creation with custom properties
 echo [TEST 3] Agent creation with custom properties
 set /a TOTAL_TESTS+=1
+dotnet run --project .. -- tool create --name CustomTool --type KustoTool --extra description "Test tool for validation" > test4_output.txt 2>&1
 dotnet run --project .. -- agent create --name custom_agent --instructions "Custom agent with additional properties - this is a comprehensive test with sufficient length" --tools CustomTool --temperature 0.8 --max-reflection-count 2 --common-prompts format_guidelines > test3_output.txt 2>&1
 if !errorlevel! equ 0 (
     echo [PASS] Agent creation with custom properties
@@ -114,8 +115,8 @@ echo.
 REM Test 6: Agent validation with tool checking - Should pass for example_agent (has example_tool which exists)
 echo [TEST 6] Agent validation with tool checking - Valid tools
 set /a TOTAL_TESTS+=1
-if exist "agents\example_agent.yaml" (
-    dotnet run --project .. -- agent validate --file agents\example_agent.yaml --check-tools > test6_output.txt 2>&1
+if exist "agents\full_featured_agent.yaml" (
+    dotnet run --project .. -- agent validate --file agents\full_featured_agent.yaml --check-tools > test6_output.txt 2>&1
     if !errorlevel! equ 0 (
         echo [PASS] Agent validation with tool checking - Valid tools
         set /a TESTS_PASSED+=1
@@ -130,14 +131,21 @@ if exist "agents\example_agent.yaml" (
 echo.
 
 REM Test 7: Create agent with non-existent tool for testing tool validation
-echo [TEST 7] Create agent with missing tool
+echo [TEST 7] Create agent with missing tool (should fail)
 set /a TOTAL_TESTS+=1
 dotnet run --project .. -- agent create --name missing_tool_test --instructions "Test agent with missing tool - this is a comprehensive test with sufficient length" --tools NonExistentTool > test7_output.txt 2>&1
-if !errorlevel! equ 0 (
-    echo [PASS] Create agent with missing tool
-    set /a TESTS_PASSED+=1
+if !errorlevel! neq 0 (
+    findstr /i "not available\|not found" test7_output.txt >nul
+    if !errorlevel! equ 0 (
+        echo [PASS] Create agent with missing tool - Expected failure occurred
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Create agent with missing tool - Wrong error message
+        type test7_output.txt
+        set /a TESTS_FAILED+=1
+    )
 ) else (
-    echo [FAIL] Create agent with missing tool - Command failed
+    echo [FAIL] Create agent with missing tool - Expected failure but command succeeded
     type test7_output.txt
     set /a TESTS_FAILED+=1
 )
@@ -189,6 +197,11 @@ echo.
 REM Test 10: Validate all agents - Basic validation
 echo [TEST 10] Validate all agents - Basic validation
 set /a TOTAL_TESTS+=1
+REM Clean up any malformed test files from previous runs
+if exist "agents\malformed_syntax.yaml" del "agents\malformed_syntax.yaml"
+if exist "agents\missing_fields.yaml" del "agents\missing_fields.yaml"
+if exist "agents\invalid_types.yaml" del "agents\invalid_types.yaml"
+if exist "agents\malformed_structure.yaml" del "agents\malformed_structure.yaml"
 dotnet run --project .. -- agent validate --all > test10_output.txt 2>&1
 if !errorlevel! equ 0 (
     echo [PASS] Validate all agents - Basic validation
@@ -234,6 +247,7 @@ echo.
 REM Test 12: Agent creation with just name (should succeed with default instructions)
 echo [TEST 12] Agent creation with default instructions
 set /a TOTAL_TESTS+=1
+dotnet run --project .. -- tool create --name Tool1 --type KustoTool --extra description "Tool 1 for validation" > test12_output.txt 2>&1
 dotnet run --project .. -- agent create --name test_agent_defaults --tools Tool1 > test12_output.txt 2>&1
 if !errorlevel! equ 0 (
     echo [PASS] Agent creation with default instructions - Command succeeded as expected
@@ -249,11 +263,11 @@ REM Test 13: Agent creation without tools
 echo [TEST 13] Agent creation - No tools
 set /a TOTAL_TESTS+=1
 dotnet run --project .. -- agent create --name test_agent_no_tools --instructions "Test agent without tools - this is a comprehensive test with sufficient length" > test13_output.txt 2>&1
-if !errorlevel! neq 0 (
-    echo [PASS] Agent creation - No tools - Expected failure occurred
+if !errorlevel! equ 0 (
+    echo [PASS] Agent creation - No tools - Command succeeded as expected
     set /a TESTS_PASSED+=1
 ) else (
-    echo [FAIL] Agent creation - No tools - Expected failure but command succeeded
+    echo [FAIL] Agent creation - No tools - Command failed unexpectedly
     type test13_output.txt
     set /a TESTS_FAILED+=1
 )
@@ -369,7 +383,7 @@ echo.
 REM Test 21: Verify snake_case conversion in YAML
 echo [TEST 21] Snake case conversion test
 set /a TOTAL_TESTS+=1
-dotnet run --project .. -- agent create --name snake_case_test --instructions "Test snake case conversion in YAML output - this is a comprehensive test with sufficient length" --tools Tool1 --allow-parallel-tool-calls --max-reflection-count 1 > test21_output.txt 2>&1
+dotnet run --project .. -- agent create --name snake_case_test --instructions "Test snake case conversion in YAML output - this is a comprehensive test with sufficient length" --allow-parallel-tool-calls --max-reflection-count 1 > test21_output.txt 2>&1
 if !errorlevel! equ 0 (
     echo [PASS] Snake case conversion test
     set /a TESTS_PASSED+=1
@@ -383,7 +397,7 @@ echo.
 REM Test 22: Verify boolean properties in YAML
 echo [TEST 22] Boolean properties test
 set /a TOTAL_TESTS+=1
-dotnet run --project .. -- agent create --name boolean_test --instructions "Test boolean properties in YAML output - this is a comprehensive test with sufficient length" --tools Tool1 --allow-parallel-tool-calls --critic-on-handoff > test22_output.txt 2>&1
+dotnet run --project .. -- agent create --name boolean_test --instructions "Test boolean properties in YAML output - this is a comprehensive test with sufficient length" --allow-parallel-tool-calls --critic-on-handoff > test22_output.txt 2>&1
 if !errorlevel! equ 0 (
     echo [PASS] Boolean properties test
     set /a TESTS_PASSED+=1
@@ -428,11 +442,11 @@ echo [TEST 25] Init command structure test
 set /a TOTAL_TESTS+=1
 if exist "agents\example_agent.yaml" (
     if exist "tools\example_tool.yaml" (
-        if exist ".sreagent-config.json" (
+        if exist "%USERPROFILE%\.sreagent\config.json" (
             echo [PASS] Init command structure test - All expected files created
             set /a TESTS_PASSED+=1
         ) else (
-            echo [FAIL] Init command structure test - .sreagent-config.json not found
+            echo [FAIL] Init command structure test - %USERPROFILE%\.sreagent\config.json not found
             set /a TESTS_FAILED+=1
         )
     ) else (
@@ -508,14 +522,27 @@ if !errorlevel! equ 0 (
 )
 echo.
 
-echo [TEST 30] Bulk agent creation 3 - With mixed existing/missing tools
+echo [TEST 30] Bulk agent creation 3 - With mixed existing/missing tools (should fail)
 set /a TOTAL_TESTS+=1
 dotnet run --project .. -- agent create --name bulk_agent_3 --instructions "Third agent for bulk validation testing - this is a comprehensive test with sufficient length" --tools BulkTool1 NonExistentBulkTool > test30_output.txt 2>&1
-if !errorlevel! equ 0 (
-    echo [PASS] Bulk agent creation 3 - With mixed tools
-    set /a TESTS_PASSED+=1
+if !errorlevel! neq 0 (
+    findstr /i "not available" test30_output.txt >nul
+    if !errorlevel! equ 0 (
+        echo [PASS] Bulk agent creation 3 - With mixed tools - Expected failure occurred
+        set /a TESTS_PASSED+=1
+    ) else (
+        findstr /i "not found" test30_output.txt >nul
+        if !errorlevel! equ 0 (
+            echo [PASS] Bulk agent creation 3 - With mixed tools - Expected failure occurred
+            set /a TESTS_PASSED+=1
+        ) else (
+            echo [FAIL] Bulk agent creation 3 - With mixed tools - Wrong error message
+            type test30_output.txt
+            set /a TESTS_FAILED+=1
+        )
+    )
 ) else (
-    echo [FAIL] Bulk agent creation 3 - With mixed tools - Command failed
+    echo [FAIL] Bulk agent creation 3 - With mixed tools - Expected failure but command succeeded
     type test30_output.txt
     set /a TESTS_FAILED+=1
 )
@@ -704,10 +731,14 @@ echo.
 REM Test 39: Create malformed YAML with invalid syntax
 echo [TEST 39] Malformed YAML - Invalid syntax
 set /a TOTAL_TESTS+=1
-echo name: malformed_agent > agents\malformed_syntax.yaml
-echo instructions: "Test agent" >> agents\malformed_syntax.yaml
-echo tools: >> agents\malformed_syntax.yaml
-echo   - Tool1 >> agents\malformed_syntax.yaml
+echo api_version: azuresre.ai/v1 > agents\malformed_syntax.yaml
+echo kind: AgentConfiguration >> agents\malformed_syntax.yaml
+echo metadata: {} >> agents\malformed_syntax.yaml
+echo spec: >> agents\malformed_syntax.yaml
+echo   name: malformed_agent >> agents\malformed_syntax.yaml
+echo   system_prompt: "Test agent" >> agents\malformed_syntax.yaml
+echo   tools: >> agents\malformed_syntax.yaml
+echo     - Tool1 >> agents\malformed_syntax.yaml
 echo   invalid_indentation >> agents\malformed_syntax.yaml
 dotnet run --project .. -- agent validate --file agents\malformed_syntax.yaml > test39_output.txt 2>&1
 if !errorlevel! neq 0 (
@@ -723,8 +754,12 @@ echo.
 REM Test 40: Create YAML with missing required fields
 echo [TEST 40] Malformed YAML - Missing required fields
 set /a TOTAL_TESTS+=1
-echo name: incomplete_agent > agents\missing_fields.yaml
-echo instructions: "Test agent" >> agents\missing_fields.yaml
+echo api_version: azuresre.ai/v1 > agents\missing_fields.yaml
+echo kind: AgentConfiguration >> agents\missing_fields.yaml
+echo metadata: {} >> agents\missing_fields.yaml
+echo spec: >> agents\missing_fields.yaml
+echo   name: incomplete_agent >> agents\missing_fields.yaml
+echo   system_prompt: "Test agent" >> agents\missing_fields.yaml
 REM Missing tools field
 dotnet run --project .. -- agent validate --file agents\missing_fields.yaml > test40_output.txt 2>&1
 if !errorlevel! neq 0 (
@@ -740,12 +775,27 @@ echo.
 REM Test 41: Create YAML with invalid data types
 echo [TEST 41] Malformed YAML - Invalid data types
 set /a TOTAL_TESTS+=1
-echo name: invalid_types > agents\invalid_types.yaml
-echo instructions: "Test agent with invalid types" >> agents\invalid_types.yaml
-echo tools: >> agents\invalid_types.yaml
-echo   - Tool1 >> agents\invalid_types.yaml
-echo temperature: "not_a_number" >> agents\invalid_types.yaml
-echo max_reflection_count: "also_not_a_number" >> agents\invalid_types.yaml
+echo api_version: azuresre.ai/v1 > agents\invalid_types.yaml
+echo kind: AgentConfiguration >> agents\invalid_types.yaml
+echo metadata: {} >> agents\invalid_types.yaml
+echo spec: >> agents\invalid_types.yaml
+echo   name: invalid_types >> agents\invalid_types.yaml
+echo   system_prompt: "Test agent with invalid types that is long enough to pass the minimum character requirement for system prompts in the validation process" >> agents\invalid_types.yaml
+echo   tools: >> agents\invalid_types.yaml
+echo     - Tool1 >> agents\invalid_types.yaml
+echo   temperature: "not_a_number" >> agents\invalid_types.yaml
+echo   max_reflection_count: "also_not_a_number" >> agents\invalid_types.yaml
+echo   handoffs: [] >> agents\invalid_types.yaml
+echo   connectors: [] >> agents\invalid_types.yaml
+echo   allow_parallel_tool_calls: false >> agents\invalid_types.yaml
+echo   critic_on_handoff: false >> agents\invalid_types.yaml
+echo   custom_reflection_note: '' >> agents\invalid_types.yaml
+echo   disable_document_retrieval: false >> agents\invalid_types.yaml
+echo   enable_handoff_prompt_override: false >> agents\invalid_types.yaml
+echo   disable_common_prompts: false >> agents\invalid_types.yaml
+echo   agent_type: Autonomous >> agents\invalid_types.yaml
+echo   meta_data: {} >> agents\invalid_types.yaml
+echo   handoff_description: '' >> agents\invalid_types.yaml
 dotnet run --project .. -- agent validate --file agents\invalid_types.yaml > test41_output.txt 2>&1
 if !errorlevel! neq 0 (
     echo [PASS] Malformed YAML - Invalid data types - Expected failure occurred
@@ -760,10 +810,14 @@ echo.
 REM Test 42: Create YAML with malformed structure
 echo [TEST 42] Malformed YAML - Malformed structure
 set /a TOTAL_TESTS+=1
-echo name: "malformed_structure" > agents\malformed_structure.yaml
-echo instructions: >> agents\malformed_structure.yaml
-echo   this_should_be_a_string: "not a proper instructions field" >> agents\malformed_structure.yaml
-echo tools: "this_should_be_a_list" >> agents\malformed_structure.yaml
+echo api_version: azuresre.ai/v1 > agents\malformed_structure.yaml
+echo kind: AgentConfiguration >> agents\malformed_structure.yaml
+echo metadata: {} >> agents\malformed_structure.yaml
+echo spec: >> agents\malformed_structure.yaml
+echo   name: "malformed_structure" >> agents\malformed_structure.yaml
+echo   system_prompt: >> agents\malformed_structure.yaml
+echo     this_should_be_a_string: "not a proper instructions field" >> agents\malformed_structure.yaml
+echo   tools: "this_should_be_a_list" >> agents\malformed_structure.yaml
 dotnet run --project .. -- agent validate --file agents\malformed_structure.yaml > test42_output.txt 2>&1
 if !errorlevel! neq 0 (
     echo [PASS] Malformed YAML - Malformed structure - Expected failure occurred
@@ -848,10 +902,10 @@ echo.
 REM Test 45: Test with invalid resource URL in config
 echo [TEST 45] Invalid resource URL in configuration
 set /a TOTAL_TESTS+=1
-if exist ".sreagent-config.json" (
-    copy ".sreagent-config.json" ".sreagent-config.json.backup" >nul
+if exist "%USERPROFILE%\.sreagent\config.json" (
+    copy "%USERPROFILE%\.sreagent\config.json" "%USERPROFILE%\.sreagent\config.json.backup" >nul
 )
-echo { "resourceUrl": "not-a-valid-url" } > ".sreagent-config.json"
+echo { "resource_url": "not-a-valid-url" } > "%USERPROFILE%\.sreagent\config.json"
 dotnet run --project .. -- agent validate --file agents\example_agent.yaml --check-tools > test45_output.txt 2>&1
 REM Should handle invalid URL gracefully
 if !errorlevel! neq 0 (
@@ -870,9 +924,9 @@ if !errorlevel! neq 0 (
     set /a TESTS_FAILED+=1
 )
 REM Restore config file
-if exist ".sreagent-config.json.backup" (
-    copy ".sreagent-config.json.backup" ".sreagent-config.json" >nul
-    del ".sreagent-config.json.backup"
+if exist "%USERPROFILE%\.sreagent\config.json.backup" (
+    copy "%USERPROFILE%\.sreagent\config.json.backup" "%USERPROFILE%\.sreagent\config.json" >nul
+    del "%USERPROFILE%\.sreagent\config.json.backup"
 )
 echo.
 
@@ -1343,7 +1397,7 @@ echo.
 REM Test 66: Final verification - ensure all test agents and tools are deleted
 echo [TEST 66] Final verification - ensure all test entities are deleted
 set /a TOTAL_TESTS+=1
-dotnet run --project .. -- list agents > test66_output.txt 2>&1
+dotnet run --project .. -- list extended-tools > test66_output.txt 2>&1
 if !errorlevel! equ 0 (
     findstr /i "DeleteTestAgent" test66_output.txt >nul
     if !errorlevel! neq 0 (

@@ -47,14 +47,20 @@ public static class ToolCommandOptions
     public static readonly Option<bool> VerboseOption = new("--verbose") { Description = "Show detailed information including assembly and namespace" };
     public static readonly Option<string> TypeFilterOption = new("--type") { Description = "Show details for a specific tool type" };
 
-    // TODO: Add completion support in future version
-    // static ToolCommandOptions()
-    // {
-    //     // Configure completions
-    //     NameOptionValidate.AddCompletions(CompletionService.GetToolNames);
-    //     ApplyNameOption.AddCompletions(CompletionService.GetToolNames);
-    //     DeleteNameOption.AddCompletions(CompletionService.GetToolNames);
-    //     TypeOption.AddCompletions(CompletionService.GetToolTypes);
-    //     TypeFilterOption.AddCompletions(CompletionService.GetToolTypes);
-    // }
+    // Tool diff command options
+    public static readonly Option<string> DiffNameOption = new("--name") { Required = true };
+    public static readonly Option<string> DiffToolOption = new("--tool")
+    {
+        Description = "Diff tool to use: git, vim, code (default: git)"
+    };
+    public static readonly Option<bool> DiffRawOption = new("--raw")
+    {
+        Description = "Show inline diff instead of launching external tool"
+    };
+
+    // Tool list command options
+    public static readonly Option<bool> ListAllOption = new("--all")
+    {
+        Description = "List all tools (both extended tools and platform tools)"
+    };
 }

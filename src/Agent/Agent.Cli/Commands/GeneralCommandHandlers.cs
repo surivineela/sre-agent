@@ -1,6 +1,8 @@
 using System.CommandLine;
 using System.CommandLine.NamingConventionBinder;
 using System.CommandLine.Parsing;
+using System.Reflection;
+using System.Text.Json;
 using Agent.Cli.Helpers;
 using Agent.Cli.Models;
 using Agent.Cli.Services;
@@ -22,7 +24,7 @@ public static class GeneralCommandHandlers
             // Validate URL format
             if (!Uri.TryCreate(resourceUrl, UriKind.Absolute, out _))
             {
-                Console.WriteLine("❌ Invalid URL format provided.");
+                ConsoleUI.WriteStatus(false, "Invalid URL format provided.");
                 Environment.Exit(1);
                 return;
             }
@@ -50,15 +52,16 @@ public static class GeneralCommandHandlers
             // Create instructions.md file in .github folder
             await InstructionsFileService.CreateInstructionsFileAsync();
 
-            Console.WriteLine($"✅ SREAgent CLI initialized successfully!");
-            Console.WriteLine($"   Resource URL: {resourceUrl}");
-            Console.WriteLine($"   Auth Required: {config.AuthRequired}");
-            Console.WriteLine($"   Created directories: agents/, tools/, .github/");
-            Console.WriteLine($"   Added example files: example_agent.yaml, example_tool.yaml");
-            Console.WriteLine($"   Created comprehensive instructions file: .github/instructions.md");
+            ConsoleUI.WriteStatus(true, "SREAgent CLI initialized successfully!");
+            ConsoleUI.WriteBullet($"Resource URL: {resourceUrl}", ConsoleColor.White);
+            ConsoleUI.WriteBullet($"Auth Required: {config.AuthRequired}", ConsoleColor.White);
+            ConsoleUI.WriteBullet("Created directories: agents/, tools/, .github/", ConsoleColor.White);
+            ConsoleUI.WriteBullet("Added example files: example_agent.yaml, example_tool.yaml", ConsoleColor.White);
+            ConsoleUI.WriteBullet("Created comprehensive instructions file: .github/instructions.md", ConsoleColor.White);
 
             // Test connection
-            Console.WriteLine("\n🔄 Testing connection...");
+            Console.WriteLine();
+            ConsoleUI.WriteBullet("Testing connection...", ConsoleColor.Cyan);
             using var apiService = new ApiService();
             var (success, response) = await apiService.TestConnectionAsync(resourceUrl);
             Console.WriteLine(response);
@@ -66,15 +69,15 @@ public static class GeneralCommandHandlers
             // Exit with appropriate code, but don't fail initialization for connection issues
             if (!success)
             {
-                Console.WriteLine("⚠️  Note: Initialization completed successfully, but connection test failed.");
-                Console.WriteLine("   You can still use srectl commands that don't require server connection.");
+                ConsoleUI.WriteBullet("Note: Initialization completed successfully, but connection test failed.", ConsoleColor.Yellow);
+                ConsoleUI.WriteBullet("You can still use srectl commands that don't require server connection.", ConsoleColor.White);
             }
 
             Environment.Exit(0); // Always exit successfully if initialization steps completed
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Initialization failed: {ex.Message}");
+            ConsoleUI.WriteStatus(false, $"Initialization failed: {ex.Message}");
             Environment.Exit(1);
         }
     }
@@ -84,22 +87,149 @@ public static class GeneralCommandHandlers
     /// </summary>
     public static async Task HandleListAgentsCommand(ParseResult parseResult)
     {
+        // Set debug mode first
+        var debug = parseResult.GetValue(AgentCommandOptions.DebugOption);
+        var showAll = parseResult.GetValue(AgentCommandOptions.AllOption);
+        DebugLogger.SetDebugMode(debug);
+
+        DebugLogger.Debug("Command", "Starting agent list command");
+        DebugLogger.Debug("Parameters", $"Debug: {debug}, ShowAll: {showAll}");
+
         using var apiService = new ApiService();
-        var (success, response) = await apiService.ListAgentsAsync();
 
-        Console.WriteLine(response);
-        Environment.Exit(success ? 0 : 1);
-    }
+        if (showAll)
+        {
+            // Show all agents with full details (existing behavior)
+            var (success, response) = await apiService.ListAgentsAsync();
 
-    /// <summary>
+            if (success)
+            {
+                ConsoleUI.WriteSection("All Available Agents");
+
+                if (debug)
+                {
+                    DebugLogger.Debug("API Response", "Successfully retrieved complete agent list from server");
+                }
+
+                Console.WriteLine(response);
+            }
+            else
+            {
+                if (debug)
+                {
+                    DebugLogger.Debug("API Error", "Failed to retrieve agent list from server");
+                    DebugLogger.Debug("Error Response", response);
+                }
+                Console.WriteLine(response);
+            }
+            Environment.Exit(success ? 0 : 1);
+        }
+        else
+        {
+            // Show only remote extended agents (simplified view)
+            var (success, response) = await apiService.ListAgentsAsync();
+
+            if (success)
+            {
+                ConsoleUI.WriteSection("Remote Extended Agents");
+
+                if (debug)
+                {
+                    DebugLogger.Debug("API Response", "Successfully retrieved agent list from server");
+                }
+
+                // For simplified view, try to extract just the agent names from the response
+                try
+                {
+                    // Extract agent names from the formatted response
+                    var lines = response.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                    var agentNames = new List<string>();
+
+                    foreach (var line in lines)
+                    {
+                        // Look for lines that start with bullet point (agent names)
+                        var trimmed = line.Trim();
+                        if (trimmed.StartsWith("• ") && !trimmed.Contains("System Prompt:") &&
+                            !trimmed.Contains("Description:") && !trimmed.Contains("Tools:") &&
+                            !trimmed.Contains("Created:") && !trimmed.Contains("Handoffs:") &&
+                            !trimmed.StartsWith("• Total:"))
+                        {
+                            var agentName = trimmed.Substring(2).Trim();
+                            if (!string.IsNullOrEmpty(agentName))
+                            {
+                                agentNames.Add(agentName);
+                            }
+                        }
+                    }
+
+                    if (agentNames.Any())
+                    {
+                        foreach (var name in agentNames.OrderBy(n => n))
+                        {
+                            ConsoleUI.WriteBullet(name);
+                        }
+                        Console.WriteLine($"\nTotal: {agentNames.Count} extended agent(s)");
+                    }
+                    else
+                    {
+                        ConsoleUI.WriteInfo("No extended agents found.", ConsoleColor.Yellow);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (debug)
+                    {
+                        DebugLogger.Debug("Parser Error", $"Failed to parse agent names: {ex.Message}");
+                    }
+                    // Fall back to showing the full response
+                    Console.WriteLine(response);
+                }
+            }
+            else
+            {
+                if (debug)
+                {
+                    DebugLogger.Debug("API Error", "Failed to retrieve agent list from server");
+                    DebugLogger.Debug("Error Response", response);
+                }
+                Console.WriteLine(response);
+            }
+            Environment.Exit(success ? 0 : 1);
+        }
+    }    /// <summary>
     /// Handles the list tools command.
     /// </summary>
     public static async Task HandleListToolsCommand(ParseResult parseResult)
     {
+        // Set debug mode first
+        var debug = parseResult.GetValue(ToolCommandOptions.DebugOption);
+        DebugLogger.SetDebugMode(debug);
+
+        DebugLogger.Debug("Command", "Starting tool list command");
+
         using var apiService = new ApiService();
         var (success, response) = await apiService.ListToolsAsync();
 
-        Console.WriteLine(response);
+        if (success)
+        {
+            ConsoleUI.WriteSection("Available Tools");
+
+            if (debug)
+            {
+                DebugLogger.Debug("API Response", "Successfully retrieved tool list from server");
+            }
+
+            Console.WriteLine(response);
+        }
+        else
+        {
+            if (debug)
+            {
+                DebugLogger.Debug("API Error", "Failed to retrieve tool list from server");
+                DebugLogger.Debug("Error Response", response);
+            }
+            Console.WriteLine(response);
+        }
         Environment.Exit(success ? 0 : 1);
     }
 
@@ -108,10 +238,35 @@ public static class GeneralCommandHandlers
     /// </summary>
     public static async Task HandleListExtendedToolsCommand(ParseResult parseResult)
     {
+        // Set debug mode first
+        var debug = parseResult.GetValue(ToolCommandOptions.DebugOption);
+        DebugLogger.SetDebugMode(debug);
+
+        DebugLogger.Debug("Command", "Starting extended tools list command");
+
         using var apiService = new ApiService();
         var (success, response) = await apiService.ListExtendedToolsAsync();
 
-        Console.WriteLine(response);
+        if (success)
+        {
+            ConsoleUI.WriteSection("Extended Tools");
+
+            if (debug)
+            {
+                DebugLogger.Debug("API Response", "Successfully retrieved extended tools list from server");
+            }
+
+            Console.WriteLine(response);
+        }
+        else
+        {
+            if (debug)
+            {
+                DebugLogger.Debug("API Error", "Failed to retrieve extended tools list from server");
+                DebugLogger.Debug("Error Response", response);
+            }
+            Console.WriteLine(response);
+        }
         Environment.Exit(success ? 0 : 1);
     }
 
@@ -120,10 +275,35 @@ public static class GeneralCommandHandlers
     /// </summary>
     public static async Task HandleListDataConnectorsCommand(ParseResult parseResult)
     {
+        // Set debug mode first
+        var debug = parseResult.GetValue(ToolCommandOptions.DebugOption);
+        DebugLogger.SetDebugMode(debug);
+
+        DebugLogger.Debug("Command", "Starting data connectors list command");
+
         using var apiService = new ApiService();
         var (success, response) = await apiService.ListDataConnectorsAsync();
 
-        Console.WriteLine(response);
+        if (success)
+        {
+            ConsoleUI.WriteSection("Data Connectors");
+
+            if (debug)
+            {
+                DebugLogger.Debug("API Response", "Successfully retrieved data connectors list from server");
+            }
+
+            Console.WriteLine(response);
+        }
+        else
+        {
+            if (debug)
+            {
+                DebugLogger.Debug("API Error", "Failed to retrieve data connectors list from server");
+                DebugLogger.Debug("Error Response", response);
+            }
+            Console.WriteLine(response);
+        }
         Environment.Exit(success ? 0 : 1);
     }
 
@@ -138,14 +318,14 @@ public static class GeneralCommandHandlers
 
             if (string.IsNullOrEmpty(filePath))
             {
-                Console.WriteLine("❌ File path is required.");
+                ConsoleUI.WriteStatus(false, "File path is required.");
                 Environment.Exit(1);
                 return;
             }
 
             if (!File.Exists(filePath))
             {
-                Console.WriteLine($"❌ File not found: {filePath}");
+                ConsoleUI.WriteStatus(false, $"File not found: {filePath}");
                 Environment.Exit(1);
                 return;
             }
@@ -158,7 +338,7 @@ public static class GeneralCommandHandlers
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Failed to apply YAML file: {ex.Message}");
+            ConsoleUI.WriteStatus(false, $"Failed to apply YAML file: {ex.Message}");
             Environment.Exit(1);
         }
     }
@@ -171,12 +351,21 @@ public static class GeneralCommandHandlers
         try
         {
             LoggingService.Initialize(parseResult);
-            LoggingService.Info("🤖 Starting interactive chat session...");
+
+            var agentName = parseResult.GetValue(AgentCommandOptions.ChatAgentNameOption);
+
+            LoggingService.Info("Starting interactive chat session...");
+            if (!string.IsNullOrWhiteSpace(agentName))
+            {
+                LoggingService.Info($"Using agent: {agentName}");
+            }
             LoggingService.Info("Type 'exit', 'quit', '/exit', or '/quit' to end the session, or press Ctrl+C");
+            LoggingService.Info("Commands: /agent <name> (switch agents), /clear (start new thread)");
             LoggingService.Info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
             using var apiService = new ApiService();
             string? currentThreadId = null;
+            string? currentAgentName = agentName; // Track current agent
             // Track which agent messages we've already printed to avoid duplicates
             var printedMessageIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -230,7 +419,7 @@ public static class GeneralCommandHandlers
                             var key = !string.IsNullOrWhiteSpace(messageId) ? messageId! : $"stream|{text?.GetHashCode() ?? 0}";
                             if (!string.IsNullOrWhiteSpace(text) && printedMessageIds.Add(key))
                             {
-                                Console.WriteLine($"\n🤖 SRE Agent: {text}");
+                                Console.WriteLine($"\nSRE Agent: {text}");
                             }
                             // Agent still working unless finishReason indicates stop
                             var finished = string.Equals(msg?.finishReason, "stop", StringComparison.OrdinalIgnoreCase) || (msg?.additionalProperties?.isCancelled == true);
@@ -263,8 +452,60 @@ public static class GeneralCommandHandlers
                 // Check for exit commands
                 if (IsExitCommand(userInput))
                 {
-                    LoggingService.Info("\n👋 Goodbye! Chat session ended.");
+                    LoggingService.Info("\nGoodbye! Chat session ended.");
                     break;
+                }
+
+                // Check for /clear command - starts a new thread
+                if (userInput.Trim().Equals("/clear", StringComparison.OrdinalIgnoreCase))
+                {
+                    ConsoleUI.WriteInfo("Starting new thread...");
+                    currentThreadId = null;
+                    printedMessageIds.Clear();
+                    ConsoleUI.WriteStatus(true, "New thread started. Send a message to begin.");
+                    continue;
+                }
+
+                // Check for /agent command - switches to a specific agent without creating thread immediately
+                if (userInput.Trim().StartsWith("/agent", StringComparison.OrdinalIgnoreCase))
+                {
+                    var parts = userInput.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+                    if (parts.Length == 1) // Just "/agent" without agent name
+                    {
+                        Console.WriteLine();
+                        ConsoleUI.WriteSection("Available agents:");
+
+                        // Get list of agents
+                        var (agentListSuccess, agentListResponse) = await apiService.ListAgentsAsync();
+                        if (agentListSuccess)
+                        {
+                            Console.WriteLine(agentListResponse);
+                        }
+                        else
+                        {
+                            ConsoleUI.WriteStatus(false, "Failed to fetch agent list");
+                        }
+
+                        Console.WriteLine();
+                        ConsoleUI.WriteInfo("Usage: /agent <agent-name>");
+                        ConsoleUI.WriteInfo("Example: /agent echo-agent");
+                        continue;
+                    }
+                    else if (parts.Length >= 2)
+                    {
+                        var newAgentName = parts[1];
+
+                        // Switch to the new agent but don't create thread until first message is sent
+                        currentAgentName = newAgentName;
+                        currentThreadId = null; // Clear current thread to start fresh
+                        printedMessageIds.Clear();
+
+                        ConsoleUI.WriteStatus(true, $"• Switched to agent: {newAgentName}");
+                        ConsoleUI.WriteInfo("Type your first message to create a new thread with this agent.");
+
+                        continue;
+                    }
                 }
 
                 try
@@ -278,7 +519,7 @@ public static class GeneralCommandHandlers
                         isAgentWorking = true;
                         lastStreamMessageAt = null;
 
-                        var (threadSuccess, threadId, response) = await apiService.CreateThreadAsync(userInput, "cli-user", "CLI User");
+                        var (threadSuccess, threadId, response) = await apiService.CreateThreadAsync(userInput, "cli-user", "CLI User", currentAgentName);
 
                         if (threadSuccess && !string.IsNullOrEmpty(threadId))
                         {
@@ -400,7 +641,7 @@ public static class GeneralCommandHandlers
                 var key = GetMessageKey(msg);
                 if (printedMessageIds.Add(key))
                 {
-                    Console.WriteLine($"\n🤖 SRE Agent: {msg.Text}");
+                    Console.WriteLine($"\nSRE Agent: {msg.Text}");
                     printedAny = true;
                 }
             }
@@ -554,5 +795,175 @@ public static class GeneralCommandHandlers
         }
         var textHash = msg.Text?.GetHashCode() ?? 0;
         return $"{msg.Timestamp:O}|{msg.AuthorRole}|{textHash}";
+    }
+
+    /// <summary>
+    /// Handles the version command to display version information with banner.
+    /// </summary>
+    public static Task HandleVersionCommand(ParseResult parseResult)
+    {
+        StandardHelpFormatter.ShowSrectlHeader();
+
+        // Get version information from assembly
+        var assembly = Assembly.GetExecutingAssembly();
+        var version = assembly.GetName().Version?.ToString() ?? "Unknown";
+        var informationalVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? version;
+
+        ConsoleUI.WriteKeyValue("Version", informationalVersion, 15, ConsoleColor.Cyan, ConsoleColor.White);
+        ConsoleUI.WriteKeyValue("Runtime", Environment.Version.ToString(), 15, ConsoleColor.Cyan, ConsoleColor.White);
+        ConsoleUI.WriteKeyValue("Platform", Environment.OSVersion.Platform.ToString(), 15, ConsoleColor.Cyan, ConsoleColor.White);
+        ConsoleUI.WriteKeyValue("Architecture", Environment.Is64BitProcess ? "x64" : "x86", 15, ConsoleColor.Cyan, ConsoleColor.White);
+
+        Console.WriteLine();
+        ConsoleUI.WriteSection("Build Information");
+        var buildDate = File.GetCreationTime(assembly.Location);
+        ConsoleUI.WriteBullet($"Built: {buildDate:yyyy-MM-dd HH:mm:ss}", ConsoleColor.Gray);
+        ConsoleUI.WriteBullet($"Location: {assembly.Location}", ConsoleColor.Gray);
+
+        Console.WriteLine();
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Handles the status command with debug support.
+    /// </summary>
+    public static async Task HandleStatusCommand(ParseResult parseResult)
+    {
+        // Set debug mode first
+        var debug = parseResult.GetValue(GlobalOptions.Debug);
+        DebugLogger.SetDebugMode(debug);
+
+        DebugLogger.Debug("Command", "Starting status command");
+
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+        ConsoleUI.WriteSection("Workspace Status Check");
+        ConsoleUI.DrawLine();
+
+        var configService = new CliConfigurationService();
+        var hasConfig = await configService.HasValidConfigurationAsync();
+
+        var configStatus = hasConfig ? "Configured" : "Not configured";
+        ConsoleUI.WriteStatus(hasConfig, $"Configuration: {configStatus}");
+
+        if (hasConfig)
+        {
+            try
+            {
+                var config = await configService.LoadConfigurationAsync();
+                ConsoleUI.WriteBullet($"Server URL: {config?.ResourceUrl ?? "Unknown"}");
+                ConsoleUI.WriteBullet($"Auth Required: {config?.AuthRequired ?? false}");
+
+                DebugLogger.LogConfig("ResourceUrl", config?.ResourceUrl ?? "Unknown");
+                DebugLogger.LogConfig("AuthRequired", (config?.AuthRequired ?? false).ToString());
+            }
+            catch (Exception ex)
+            {
+                ConsoleUI.WriteStatus(false, "Configuration file corrupted");
+                DebugLogger.Debug("Exception", $"Configuration error: {ex.Message}");
+            }
+        }
+
+        var agentCount = Directory.Exists("agents") ? Directory.GetDirectories("agents").Length : 0;
+        var toolCount = Directory.Exists("tools") ? Directory.GetDirectories("tools").Length : 0;
+
+        ConsoleUI.WriteInfo($"Agents: {agentCount} configured");
+        ConsoleUI.WriteInfo($"Tools: {toolCount} configured");
+
+        DebugLogger.Debug("Local Files", $"Found {agentCount} agent directories and {toolCount} tool directories");
+
+        bool serverConnected = false;
+        bool remoteAgentsAvailable = false;
+        bool remoteToolsAvailable = false;
+
+        if (hasConfig)
+        {
+            ProgressService.AnimatedSpinner.Start("Testing server connection");
+
+            try
+            {
+                var config = await configService.LoadConfigurationAsync();
+                if (config == null)
+                {
+                    ProgressService.AnimatedSpinner.Stop();
+                    ProgressService.ShowError("No configuration found. Please run 'srectl init' first.");
+                    return;
+                }
+
+                using var apiService = new ApiService();
+                var (success, response) = await apiService.TestConnectionAsync(config.ResourceUrl);
+
+                ProgressService.AnimatedSpinner.Stop();
+                if (success)
+                {
+                    serverConnected = true;
+                    ConsoleUI.WriteStatus(true, "Server Connection: Connected");
+
+                    var (agentsSuccess, agentsResponse) = await apiService.ListAgentsAsync();
+                    var (toolsSuccess, toolsResponse) = await apiService.ListToolsAsync();
+
+                    remoteAgentsAvailable = agentsSuccess;
+                    remoteToolsAvailable = toolsSuccess;
+
+                    if (agentsSuccess) ConsoleUI.WriteBullet("Remote Agents: Available");
+                    if (toolsSuccess) ConsoleUI.WriteBullet("Remote Tools: Available");
+
+                    DebugLogger.Debug("API Response", $"Connection test successful: {response}");
+                    DebugLogger.Debug("API Response", $"Agents check success: {agentsSuccess}");
+                    DebugLogger.Debug("API Response", $"Tools check success: {toolsSuccess}");
+                }
+                else
+                {
+                    ConsoleUI.WriteStatus(false, "Server Connection: Failed");
+                    ConsoleUI.WriteBullet($"Error: {response}");
+
+                    DebugLogger.Debug("API Response", $"Connection test failed: {response}");
+                }
+            }
+            catch (Exception ex)
+            {
+                ProgressService.AnimatedSpinner.Stop();
+                ConsoleUI.WriteStatus(false, "Server Connection: Failed");
+                ConsoleUI.WriteBullet($"Error: {ex.Message}");
+
+                DebugLogger.Debug("Exception", $"Connection test exception: {ex.Message}");
+            }
+        }
+
+        stopwatch.Stop();
+        ProgressService.ShowTiming("Status check", stopwatch.Elapsed);
+
+        DebugLogger.LogTiming("StatusCommand", stopwatch.Elapsed);
+
+        Console.WriteLine();
+        ConsoleUI.WriteSection("Suggested next steps");
+
+        if (!hasConfig)
+        {
+            ConsoleUI.WriteBullet("srectl init --resource-url <your-server>");
+        }
+        else if (agentCount == 0)
+        {
+            ConsoleUI.WriteBullet("srectl agent create --name <agent-name>");
+        }
+        else if (!serverConnected)
+        {
+            ConsoleUI.WriteBullet("Check server URL and network connectivity");
+            ConsoleUI.WriteBullet("Verify authentication with 'az login'");
+        }
+        else
+        {
+            ConsoleUI.WriteBullet("srectl chat");
+            ConsoleUI.WriteBullet("srectl agent test --name <agent>");
+            if (remoteAgentsAvailable)
+            {
+                ConsoleUI.WriteBullet("srectl list agents  # List remote agents from server");
+            }
+            else
+            {
+                ConsoleUI.WriteBullet("srectl agent list  # List local agents");
+            }
+        }
     }
 }

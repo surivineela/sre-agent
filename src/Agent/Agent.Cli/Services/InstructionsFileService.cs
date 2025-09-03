@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text;
+using Agent.Cli.Helpers;
 
 namespace Agent.Cli.Services;
 
@@ -16,7 +17,7 @@ public static class InstructionsFileService
     {
         try
         {
-            Console.WriteLine("🔄 Creating instructions.md file...");
+            ConsoleUI.WriteBullet("Creating instructions.md file...", ConsoleColor.Cyan);
             
             // Create .github directory if it doesn't exist
             Directory.CreateDirectory(".github");
@@ -27,11 +28,11 @@ public static class InstructionsFileService
 
             await File.WriteAllTextAsync(filePath, instructionsContent);
 
-            Console.WriteLine($"✅ Created instructions file: {filePath}");
+            ConsoleUI.WriteStatus(true, $"Created instructions file: {filePath}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"⚠️  Warning: Failed to create instructions file: {ex.Message}");
+            ConsoleUI.WriteStatus(false, $"Warning: Failed to create instructions file: {ex.Message}");
         }
     }
 

@@ -127,6 +127,11 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             chatRole = ChatRole.System;
         }
 
+        if (!string.IsNullOrEmpty(threadMessage.AgentName))
+        {
+            await _reasoningLoopManager.SetCurrentAgentAsync(agentContext!, threadMessage.AgentName);
+        }
+
         await _reasoningLoopManager.AppendNewMessageAsync(
             context: agentContext!,
             msg: new ChatMessage(chatRole, threadMessage.Message),

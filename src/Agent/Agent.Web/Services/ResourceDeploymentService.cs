@@ -70,53 +70,40 @@ public class ResourceDeploymentService : IResourceDeploymentService
 
         // Map agent
         var agentDoc = new AgentDocumentModel(
-            Name: spec.Spec.Agent.Name,
-            Id: spec.Spec.Agent.Name,
-            Instructions: spec.Spec.Agent.Instructions,
-            HandoffDescription: spec.Spec.Agent.HandoffDescription,
-            Handoffs: spec.Spec.Agent.Handoffs,
-            Tools: spec.Spec.Agent.Tools,
-            Connectors: spec.Spec.Agent.Connectors,
-            AllowParallelToolCalls: spec.Spec.Agent.AllowParallelToolCalls,
-            AgentsAsTools: spec.Spec.Agent.AgentsAsTools,
-            MaxReflectionCount: spec.Spec.Agent.MaxReflectionCount,
-            CriticPromptPath: spec.Spec.Agent.CriticPromptPath,
-            CriticOnHandOff: spec.Spec.Agent.CriticOnHandOff,
-            CustomReflectionNote: spec.Spec.Agent.CustomReflectionNote,
-            CommonPrompts: spec.Spec.Agent.CommonPrompts,
-            CommonTools: spec.Spec.Agent.CommonTools,
-            DisableDocumentRetrieval: spec.Spec.Agent.DisableDocumentRetrieval,
-            EnableHandoffPromptOverride: spec.Spec.Agent.EnableHandoffPromptOverride,
-            HandoffPromptOverride: spec.Spec.Agent.HandoffPromptOverride,
-            UserPromptOverride: spec.Spec.Agent.UserPromptOverride,
-            InstructionsOverride: spec.Spec.Agent.InstructionsOverride,
-            Temperature: spec.Spec.Agent.Temperature,
+            Name: spec.Spec.Name,
+            Id: spec.Spec.Name,
+            Instructions: spec.Spec.Instructions,
+            HandoffDescription: spec.Spec.HandoffDescription,
+            Handoffs: spec.Spec.Handoffs,
+            Tools: spec.Spec.Tools,
+            Connectors: spec.Spec.Connectors,
+            AllowParallelToolCalls: spec.Spec.AllowParallelToolCalls,
+            AgentsAsTools: spec.Spec.AgentsAsTools,
+            MaxReflectionCount: spec.Spec.MaxReflectionCount,
+            CriticPromptPath: spec.Spec.CriticPromptPath,
+            CriticOnHandOff: spec.Spec.CriticOnHandOff,
+            CustomReflectionNote: spec.Spec.CustomReflectionNote,
+            CommonPrompts: spec.Spec.CommonPrompts,
+            CommonTools: spec.Spec.CommonTools,
+            DisableDocumentRetrieval: spec.Spec.DisableDocumentRetrieval,
+            EnableHandoffPromptOverride: spec.Spec.EnableHandoffPromptOverride,
+            HandoffPromptOverride: spec.Spec.HandoffPromptOverride,
+            UserPromptOverride: spec.Spec.UserPromptOverride,
+            InstructionsOverride: spec.Spec.InstructionsOverride,
+            Temperature: spec.Spec.Temperature,
             // Workflow agent properties
-            AgentType: spec.Spec.Agent.AgentType,
-            ParameterExtractionAgent: spec.Spec.Agent.ParameterExtractionAgent,
-            OrchestrationStartAgents: spec.Spec.Agent.OrchestrationStartAgents,
-            ResultSummarizationPrompt: spec.Spec.Agent.ResultSummarizationPrompt,
-            NextAgentMappings: spec.Spec.Agent.NextAgentMappings,
-            OutputType: spec.Spec.Agent.OutputType,
-            Metadata: spec.Spec.Agent.Metadata,
+            AgentType: spec.Spec.AgentType,
+            ParameterExtractionAgent: spec.Spec.ParameterExtractionAgent,
+            OrchestrationStartAgents: spec.Spec.OrchestrationStartAgents,
+            ResultSummarizationPrompt: spec.Spec.ResultSummarizationPrompt,
+            NextAgentMappings: spec.Spec.NextAgentMappings,
+            OutputType: spec.Spec.OutputType,
+            Metadata: spec.Spec.Metadata,
             OperationId: operationId
         );
 
-        // Map tools
-        var toolDocs = spec.Spec.Tools.Select(t =>
-            ApiToRuntimeMapper.ToDocumentTool(t, operationId)).ToList();
-
-        // Map connectors
-        var connectorDocs = spec.Spec.Connectors.Select(c =>
-            ApiToRuntimeMapper.ToDocumentConnector(c, operationId)).ToList();
-
-        // Persist agent + tools + connectors to Cosmos
+        // Persist agent to Cosmos (tools and connectors are already referenced by name in the agent document)
         await _repository.UpdateAgentAsync(agentDoc, operationId);
-        foreach (var tool in toolDocs)
-            await _repository.UpdateToolAsync(tool, operationId);
-
-        foreach (var connector in connectorDocs)
-            await _repository.UpdateConnectorAsync(connector, operationId);
         await _extendedAgentService.RefreshAgentAndToolsRegisterationsAsync();
         var result = new ExtendedAgentApply
         {
@@ -126,7 +113,7 @@ public class ResourceDeploymentService : IResourceDeploymentService
             Timestamp = DateTime.UtcNow,
             Details = new ExtendedAgentApplyDetails
             {
-                AgentName = spec.Spec.Agent?.Name,
+                AgentName = spec.Spec.Name,
                 ToolsCount = spec.Spec.Tools?.Count ?? 0,
                 ConnectorsCount = spec.Spec.Connectors?.Count ?? 0
             }

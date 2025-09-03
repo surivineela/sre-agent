@@ -58,48 +58,45 @@ public class AgentYamlTranslatorV1 : IAgentYamlTranslator
 
         return new AgentConfigurationDocumentModel
         {
-            Id = model.Spec.Agent.Name,
+            Id = model.Spec.Name,
             ApiVersion = model.ApiVersion,
             Agent = new AgentDocumentModel(
-                model.Spec.Agent.Name,
-                model.Spec.Agent.Name,
-                model.Spec.Agent.Instructions,
-                model.Spec.Agent.HandoffDescription,
-                model.Spec.Agent.Handoffs,
-                model.Spec.Agent.Tools,
-                model.Spec.Agent.Connectors,
-                model.Spec.Agent.AllowParallelToolCalls,
-                model.Spec.Agent.AgentsAsTools,
-                model.Spec.Agent.MaxReflectionCount,
-                model.Spec.Agent.CriticPromptPath,
-                model.Spec.Agent.CriticOnHandOff,
-                model.Spec.Agent.CustomReflectionNote,
-                model.Spec.Agent.CommonPrompts,
+                model.Spec.Name,
+                model.Spec.Name,
+                model.Spec.Instructions,
+                model.Spec.HandoffDescription,
+                model.Spec.Handoffs,
+                model.Spec.Tools,
+                model.Spec.Connectors,
+                model.Spec.AllowParallelToolCalls,
+                model.Spec.AgentsAsTools,
+                model.Spec.MaxReflectionCount,
+                model.Spec.CriticPromptPath,
+                model.Spec.CriticOnHandOff,
+                model.Spec.CustomReflectionNote,
+                model.Spec.CommonPrompts,
               
-                model.Spec.Agent.DisableDocumentRetrieval,
-                model.Spec.Agent.EnableHandoffPromptOverride,
-                model.Spec.Agent.UserPromptOverride,
-                model.Spec.Agent.HandoffPromptOverride,
-                model.Spec.Agent.InstructionsOverride,
-                  model.Spec.Agent.CommonTools,
-                model.Spec.Agent.Temperature,
+                model.Spec.DisableDocumentRetrieval,
+                model.Spec.EnableHandoffPromptOverride,
+                model.Spec.UserPromptOverride,
+                model.Spec.HandoffPromptOverride,
+                model.Spec.InstructionsOverride,
+                  model.Spec.CommonTools,
+                model.Spec.Temperature,
                 // Workflow agent properties
-                model.Spec.Agent.AgentType,
-                model.Spec.Agent.ParameterExtractionAgent,
-                model.Spec.Agent.OrchestrationStartAgents,
-                model.Spec.Agent.ResultSummarizationPrompt,
-                model.Spec.Agent.NextAgentMappings,
-                model.Spec.Agent.OutputType,
+                model.Spec.AgentType,
+                model.Spec.ParameterExtractionAgent,
+                model.Spec.OrchestrationStartAgents,
+                model.Spec.ResultSummarizationPrompt,
+                model.Spec.NextAgentMappings,
+                model.Spec.OutputType,
                 model.Metadata,
                 operationId
             ),
-            Tools = model.Spec.Tools.Select(t =>
-                ApiToRuntimeMapper.ToDocumentTool(t, operationId)
-            ).ToList(),
-
-            Connectors = model.Spec.Connectors.Select(c =>
-                ApiToRuntimeMapper.ToDocumentConnector(c, operationId)
-            ).ToList()
+            // Tools and Connectors in the spec are just names (string references), not full definitions
+            // So we can't create document models from them. The agent document already has the references.
+            Tools = new List<ToolDocumentModel>(),
+            Connectors = new List<ConnectorDocumentModel>()
         };
     }
 

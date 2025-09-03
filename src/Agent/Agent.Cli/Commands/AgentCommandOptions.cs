@@ -1,5 +1,8 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.CommandLine;
-using Agent.Cli.Services;
 
 namespace Agent.Cli.Commands;
 
@@ -133,14 +136,23 @@ public static class AgentCommandOptions
         Description = "Thread ID to delete"
     };
 
-    // TODO: Add completion support in future version
-    // static AgentCommandOptions()
-    // {
-    //     // Configure completions
-    //     ApplyNameOption.AddCompletions(CompletionService.GetAgentNames);
-    //     DeleteNameOption.AddCompletions(CompletionService.GetAgentNames);
-    //     TestNameOption.AddCompletions(CompletionService.GetAgentNames);
-    //     ToolsOptionCreate.AddCompletions(CompletionService.GetToolNames);
-    //     HandoffsOption.AddCompletions(CompletionService.GetAgentNames);
-    // }
+    // Chat command options
+    public static readonly Option<string> ChatAgentNameOption = new("--agent")
+    {
+        Description = "Name of the specific agent to start chatting with"
+    };
+
+    // Agent diff command options
+    public static readonly Option<string> DiffNameOption = new("--name") { Required = true };
+    public static readonly Option<string> DiffToolOption = new("--tool")
+    {
+        Description = "Diff tool to use: git, vim, code (default: git)"
+    };
+    public static readonly Option<bool> DiffRawOption = new("--raw")
+    {
+        Description = "Show inline diff instead of launching external tool"
+    };
+
+    // Completion services disabled - System.CommandLine version doesn't support AddCompletions method
+    // These services are implemented but not compatible with current CLI framework version
 }

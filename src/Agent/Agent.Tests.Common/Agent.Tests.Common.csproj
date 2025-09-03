@@ -30,6 +30,6 @@
     <None Include="../Agent.Web/appsettings*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
-  <ProjectExtensions><VisualStudio><UserProperties _1_1_4agent_1web_4appsettings_1development_1json__JsonSchema="https://www.schemastore.org/assetlinks.json" /></VisualStudio></ProjectExtensions>
+  <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
 
 </Project>
