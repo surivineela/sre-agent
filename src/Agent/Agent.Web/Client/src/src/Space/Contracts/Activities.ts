@@ -1,6 +1,6 @@
 import { Edge, Node } from '@xyflow/react';
 import { AgentMode } from '../../Common/Contracts/Azure/SreAgent';
-import { AgentTaskMetaData, InvestigationTreeNode, InvestigationTreeState } from '../../Common/Contracts/DataPlane/AgentTask';
+import { InvestigationTreeNode, InvestigationTreeState } from '../../Common/Contracts/DataPlane/AgentTask';
 import {
     Approval,
     AzCliExecution,
@@ -127,9 +127,9 @@ export interface IChatBoxFooterProps {
     isCancellingStreaming: boolean;
     threadId?: string | null;
     showDeepInvestigationButton: boolean;
-    toggleDeepInvestigationButton: (task: AgentTaskMetaData | null) => void;
-    deepInvestigationButtonEnabled: boolean | null;
-    deepInvestigationButtonAppearance: 'primary' | 'secondary';
+    isDeepInvestigationButtonEnabled: boolean;
+    isDeepInvestigationTurnedOn: boolean;
+    onClickDeepInvestigationButton: () => void;
 }
 
 export class ThreadLoadingCounts {

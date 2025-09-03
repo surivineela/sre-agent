@@ -2,7 +2,7 @@ import { createContext } from 'react';
 import { HttpResponseObject } from '../../Common/ArmHelper.types';
 import { ArmObj } from '../../Common/Contracts/Azure/ArmObj';
 import { Agent, AgentAccessLevel } from '../../Common/Contracts/Azure/SreAgent';
-import { InvestigationTreeNodeStatus } from '../../Common/Contracts/DataPlane/AgentTask';
+import { AgentTaskMetaData, InvestigationTreeNodeStatus } from '../../Common/Contracts/DataPlane/AgentTask';
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
 import { AgentContextProps, ChatMessage } from './Activities';
 
@@ -59,6 +59,7 @@ type StreamingContextProps = {
 
 type ChatBoxContextProps = {
     getGroupedChatMessages: (message: ChatMessage, isStreamingMessage?: boolean) => ChatMessage[];
+    openAgentTask: (agentTask: AgentTaskMetaData) => void;
 };
 
 type ThreadAgentModeContextProps = {
@@ -140,6 +141,7 @@ export const StreamingContext = createContext<StreamingContextProps>({
 
 export const ChatBoxContext = createContext<ChatBoxContextProps>({
     getGroupedChatMessages: (_message: ChatMessage, _isStreamingMessage?: boolean) => [],
+    openAgentTask: (_agentTask: AgentTaskMetaData) => {},
 });
 
 export const ThreadAgentModeContext = createContext<ThreadAgentModeContextProps>({

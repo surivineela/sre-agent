@@ -3,6 +3,7 @@ import debounce from 'lodash/debounce';
 import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import { AgentTaskMetaData } from '../../Common/Contracts/DataPlane/AgentTask';
 import { Approval, AzCliExecution, KubectlExecution } from '../../Common/Contracts/DataPlane/Message';
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
@@ -286,6 +287,7 @@ export const useChatBox = (
         let approval = getSpecialMessageContentFromStreamingMessage<Approval>(streamingMessage, 'approval');
         const azCliExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'azcli');
         const kubectlExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'kubectl');
+        const agentTaskInfo = getSpecialMessageContentFromStreamingMessage<AgentTaskMetaData>(streamingMessage, 'deepinvestigation');
         const text = messageContent?.text && !approval && !azCliExecution && !kubectlExecution ? messageContent.text : '';
         const isImage = isImageStreamingMessageType(streamingMessage);
 
@@ -302,6 +304,7 @@ export const useChatBox = (
             approval,
             azCliExecution,
             kubectlExecution,
+            agentTaskInfo,
             isDailyReport: false,
         };
 

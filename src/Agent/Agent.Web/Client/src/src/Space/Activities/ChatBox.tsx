@@ -58,10 +58,10 @@ export const ChatBox = ({
     const {
         isAgentTaskCollapsed,
         setIsAgentTaskCollapsed,
-        toggleDeepInvestigationButton,
-        task,
-        deepInvestigationButtonAppearance,
-        deepInvestigationButtonEnabled,
+        isDeepInvestigationButtonEnabled,
+        isDeepInvestigationTurnedOn,
+        onClickDeepInvestigationButton,
+        openAgentTask,
         ...rest
     } = useAgentTask(threadId, userDefinedThreadIdRef.current, collapseResizables, isLoading);
 
@@ -76,7 +76,7 @@ export const ChatBox = ({
     const chatBoxStyles = useMemo(() => getChatBoxV2Styles(!isAgentTaskCollapsed, stylesProps), [isAgentTaskCollapsed, stylesProps]);
 
     return (
-        <ChatBoxContext.Provider value={{ getGroupedChatMessages }}>
+        <ChatBoxContext.Provider value={{ getGroupedChatMessages, openAgentTask }}>
             <ThreadAgentModeContext.Provider value={{ ...threadAgentModeData }}>
                 <div className={chatBoxStyles.chatBoxAndAgentTask}>
                     <div className={chatBoxStyles.chatBox}>
@@ -173,9 +173,9 @@ export const ChatBox = ({
                                 isCancellingStreaming={isCancellingStreaming}
                                 threadId={currentThreadId}
                                 showDeepInvestigationButton={showAgentTask && isAgentTaskEnabled}
-                                toggleDeepInvestigationButton={toggleDeepInvestigationButton}
-                                deepInvestigationButtonEnabled={deepInvestigationButtonEnabled}
-                                deepInvestigationButtonAppearance={deepInvestigationButtonAppearance}
+                                isDeepInvestigationButtonEnabled={isDeepInvestigationButtonEnabled}
+                                isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
+                                onClickDeepInvestigationButton={onClickDeepInvestigationButton}
                             />
                         </CopilotProvider>
                     </div>

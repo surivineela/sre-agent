@@ -1,3 +1,5 @@
+import { AgentTaskMetaData } from './AgentTask';
+
 export interface MessageMetaData {
     id: string;
     timeStamp: string;
@@ -14,16 +16,10 @@ export interface MessageContent {
     kubectlExecution?: KubectlExecution;
     isDailyReport?: boolean;
     changeDiff?: ChangeDiffViewer;
+    agentTaskInfo?: AgentTaskMetaData;
 }
 
-export interface Message extends MessageMetaData {
-    text: string;
-    approval?: Approval;
-    azCliExecution?: AzCliExecution;
-    kubectlExecution?: KubectlExecution;
-    isDailyReport?: boolean;
-    changeDiff?: ChangeDiffViewer;
-}
+export interface Message extends MessageMetaData, MessageContent {}
 
 export interface Approval {
     id: string;

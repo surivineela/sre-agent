@@ -28,9 +28,8 @@ export const useAgentTask = (
     const [isLoadingTreeState, setIsLoadingTreeState] = useState(false);
     const [currentTreeStateValue, setCurrentTreeStateValue] = useState<TreeStateValue | null>(null);
 
-    // When deepInvestigationButtonEnabled is null, it means that the thread is loading and at this moment do not enable the button until the loading is completed
-    const [deepInvestigationButtonEnabled, setDeepInvestigationButtonEnabled] = useState<boolean | null>(null);
-    const [deepInvestigationButtonAppearance, setDeepInvestigationButtonAppearance] = useState<'primary' | 'secondary'>('secondary');
+    const [isDeepInvestigationButtonEnabled, setIsDeepInvestigationButtonEnabled] = useState<boolean>(false);
+    const [isDeepInvestigationTurnedOn, setIsDeepInvestigationButtonTurnedOn] = useState<boolean>(false);
 
     const threadIdRef = useRef<string | null>(threadId || userDefinedThreadId || null);
     const treeStatesRef = useRef<Map<string, TreeStateValue>>(treeStates);
@@ -40,22 +39,25 @@ export const useAgentTask = (
 
     const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
     const agentTaskClient = AgentTaskClient.getInstance(sreAgentEndpoint);
+    const isMounted = useRef(true);
 
     threadIdRef.current = threadId || userDefinedThreadId || null;
     treeStatesRef.current = treeStates;
 
-    const toggleDeepInvestigationButton = useCallback(
-        (task: AgentTaskMetaData | null) => {
+    const openAgentTask = useCallback(
+        (task: AgentTaskMetaData) => {
             if (isAgentTaskCollapsed) {
                 setIsAgentTaskCollapsed(false);
                 collapseResizables?.();
-            } else {
-                setIsAgentTaskCollapsed(true);
-                setTask(task);
             }
+            setTask(task);
         },
         [collapseResizables, isAgentTaskCollapsed]
     );
+
+    const onClickDeepInvestigationButton = useCallback(() => {
+        setIsDeepInvestigationButtonTurnedOn(prev => !prev);
+    }, []);
 
     const updateTaskDropdownOption = (...tasks: AgentTaskMetaData[]) => {
         setTaskDropdownOptions(prev => {
@@ -203,7 +205,6 @@ export const useAgentTask = (
     useEffect(() => {
         if (task) {
             setSelectedTaskId(task.id);
-            updateTaskDropdownOption(task);
         }
     }, [task]);
 
@@ -283,30 +284,26 @@ export const useAgentTask = (
         };
     }, [subscribeTaskUpdateEvent]);
 
-    useEffect(() => {
-        setDeepInvestigationButtonAppearance(isAgentTaskCollapsed ? 'secondary' : 'primary');
-    }, [isAgentTaskCollapsed]);
-
-    // Initialize agent task button and Resizable open state
     const hasExistingTasks = useMemo(() => taskDropdownOptions.length > 0, [taskDropdownOptions]);
-    useEffect(() => {
-        if (!isLoadingInitialChatHistory) {
-            if (hasExistingTasks) {
-                setIsAgentTaskCollapsed(false);
-                collapseResizables?.();
-            }
 
-            setDeepInvestigationButtonEnabled(hasExistingTasks);
+    useEffect(() => {
+        isMounted.current = true;
+
+        return () => {
+            isMounted.current = false;
+        };
+    }, []);
+    useEffect(() => {
+        // If the component is unmounted, do not call collapseResizables as it is on activities level which can accidentally open the thread menu when the thread is already navigted away.
+        if (!isLoadingInitialChatHistory && hasExistingTasks && isMounted.current) {
+            setIsAgentTaskCollapsed(false);
+            collapseResizables?.();
         }
     }, [isLoadingInitialChatHistory, hasExistingTasks, collapseResizables]);
 
     useEffect(() => {
-        setDeepInvestigationButtonEnabled(prev => {
-            // Do not set the deep investigation button enabled state if the button's initial state has not been set yet
-            if (prev === null) return prev;
-            return taskDropdownOptions.length > 0;
-        });
-    }, [taskDropdownOptions.length]);
+        setIsDeepInvestigationButtonEnabled(!isLoadingInitialChatHistory);
+    }, [isLoadingInitialChatHistory]);
 
     return {
         taskDropdownOptions,
@@ -316,10 +313,10 @@ export const useAgentTask = (
         taskDropdownValue,
         isAgentTaskCollapsed,
         setIsAgentTaskCollapsed,
-        task,
-        toggleDeepInvestigationButton,
-        deepInvestigationButtonAppearance,
-        deepInvestigationButtonEnabled,
+        openAgentTask,
+        isDeepInvestigationButtonEnabled,
+        isDeepInvestigationTurnedOn,
+        onClickDeepInvestigationButton,
 
         currentTreeStateValue,
         isLoadingTreeState,

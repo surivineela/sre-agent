@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { IAgentMessageProps } from '../Contracts/Activities';
+import AgentTaskChatMessage from './AgentTaskChatMessage';
 import ApprovalMessage from './ApprovalMessage';
 import ChangeDiffMessage from './ChangeDiffMessage';
 import DailyReportMessage from './DailyReportMessage';
@@ -43,6 +44,8 @@ const AgentMessage = ({
                     threadId={threadId}
                     updateSpecialMessageInStreamingMessage={updateSpecialMessageInStreamingMessage}
                 />
+            ) : messageContent.agentTaskInfo ? (
+                <AgentTaskChatMessage agentTask={messageContent.agentTaskInfo} />
             ) : messageContent.error ? (
                 <ErrorChatMessage error={messageContent.error} />
             ) : messageContent.text || isTyping ? (

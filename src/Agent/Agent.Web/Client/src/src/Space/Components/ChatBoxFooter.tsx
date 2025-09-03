@@ -25,7 +25,6 @@ import { memo, useCallback, useContext, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
-import { AgentTaskMetaData } from '../../Common/Contracts/DataPlane/AgentTask';
 import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
 import { ActivitiesResources, AgentTaskResources, PromptResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { IChatBoxFooterProps } from '../Contracts/Activities';
@@ -74,9 +73,9 @@ const ChatBoxFooter = ({
     isCancellingStreaming,
     threadId,
     showDeepInvestigationButton,
-    toggleDeepInvestigationButton,
-    deepInvestigationButtonAppearance,
-    deepInvestigationButtonEnabled,
+    isDeepInvestigationButtonEnabled,
+    isDeepInvestigationTurnedOn,
+    onClickDeepInvestigationButton,
 }: IChatBoxFooterProps) => {
     const intl = useIntl();
 
@@ -187,9 +186,9 @@ const ChatBoxFooter = ({
                             <DeepInvestigationButton
                                 asOverflowItem={true}
                                 showDeepInvestigationButton={showDeepInvestigationButton}
-                                deepInvestigationButtonEnabled={!!deepInvestigationButtonEnabled}
-                                deepInvestigationButtonAppearance={deepInvestigationButtonAppearance}
-                                toggleDeepInvestigationButton={toggleDeepInvestigationButton}
+                                isDeepInvestigationButtonEnabled={isDeepInvestigationButtonEnabled}
+                                isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
+                                onClickDeepInvestigationButton={onClickDeepInvestigationButton}
                             />
                             <AgentModeSelectorButton
                                 asOverflowItem={true}
@@ -208,9 +207,9 @@ const ChatBoxFooter = ({
                             <OverflowMenu
                                 isTyping={isTyping}
                                 showDeepInvestigationButton={showDeepInvestigationButton}
-                                deepInvestigationButtonEnabled={!!deepInvestigationButtonEnabled}
-                                deepInvestigationButtonAppearance={deepInvestigationButtonAppearance}
-                                toggleDeepInvestigationButton={toggleDeepInvestigationButton}
+                                isDeepInvestigationButtonEnabled={isDeepInvestigationButtonEnabled}
+                                isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
+                                onClickDeepInvestigationButton={onClickDeepInvestigationButton}
                                 threadId={threadId}
                                 disableInputInteraction={disableInputInteraction}
                                 prompts={prompts}
@@ -248,15 +247,15 @@ const DeepInvestigationButton = memo(
     ({
         asOverflowItem,
         showDeepInvestigationButton,
-        deepInvestigationButtonEnabled,
-        deepInvestigationButtonAppearance,
-        toggleDeepInvestigationButton,
+        isDeepInvestigationButtonEnabled,
+        isDeepInvestigationTurnedOn,
+        onClickDeepInvestigationButton,
     }: {
         asOverflowItem: boolean;
         showDeepInvestigationButton: boolean;
-        deepInvestigationButtonEnabled: boolean;
-        deepInvestigationButtonAppearance: 'primary' | 'secondary';
-        toggleDeepInvestigationButton: (task: AgentTaskMetaData | null) => void;
+        isDeepInvestigationButtonEnabled: boolean;
+        isDeepInvestigationTurnedOn: boolean;
+        onClickDeepInvestigationButton: () => void;
     }) => {
         const isVisible = useIsOverflowItemVisible(ChatBoxButtonIds.DeepInvestigation);
 
@@ -270,12 +269,12 @@ const DeepInvestigationButton = memo(
                     style={{ fontSize: '13px', padding: '2px 8px 2px 4px', whiteSpace: 'nowrap' }}
                     icon={
                         <SearchSparkle16Filled
-                            style={{ color: deepInvestigationButtonEnabled ? undefined : tokens.colorNeutralForegroundDisabled }}
+                            style={{ color: isDeepInvestigationButtonEnabled ? undefined : tokens.colorNeutralForegroundDisabled }}
                         />
                     }
-                    appearance={deepInvestigationButtonAppearance}
-                    onClick={() => toggleDeepInvestigationButton(null)}
-                    disabled={!deepInvestigationButtonEnabled}
+                    appearance={isDeepInvestigationTurnedOn ? 'primary' : 'secondary'}
+                    onClick={onClickDeepInvestigationButton}
+                    disabled={!isDeepInvestigationButtonEnabled}
                 >
                     <FormattedMessage {...AgentTaskResources.deepInvestigation} />
                 </Button>
@@ -447,9 +446,9 @@ const OverflowMenu = memo(
     ({
         isTyping,
         showDeepInvestigationButton,
-        deepInvestigationButtonEnabled,
-        deepInvestigationButtonAppearance,
-        toggleDeepInvestigationButton,
+        isDeepInvestigationButtonEnabled,
+        isDeepInvestigationTurnedOn,
+        onClickDeepInvestigationButton,
         threadId,
         disableInputInteraction,
         prompts,
@@ -459,9 +458,9 @@ const OverflowMenu = memo(
     }: {
         isTyping: boolean;
         showDeepInvestigationButton: boolean;
-        deepInvestigationButtonEnabled: boolean | null;
-        deepInvestigationButtonAppearance: 'primary' | 'secondary';
-        toggleDeepInvestigationButton: (task: AgentTaskMetaData | null) => void;
+        isDeepInvestigationButtonEnabled: boolean;
+        isDeepInvestigationTurnedOn: boolean;
+        onClickDeepInvestigationButton: () => void;
         threadId?: string | null;
         disableInputInteraction: boolean;
         prompts: string[];
@@ -486,9 +485,9 @@ const OverflowMenu = memo(
                         <DeepInvestigationButton
                             asOverflowItem={false}
                             showDeepInvestigationButton={showDeepInvestigationButton}
-                            deepInvestigationButtonEnabled={!!deepInvestigationButtonEnabled}
-                            deepInvestigationButtonAppearance={deepInvestigationButtonAppearance}
-                            toggleDeepInvestigationButton={toggleDeepInvestigationButton}
+                            isDeepInvestigationButtonEnabled={isDeepInvestigationButtonEnabled}
+                            isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
+                            onClickDeepInvestigationButton={onClickDeepInvestigationButton}
                         />
                         <AgentModeSelectorButton
                             asOverflowItem={false}

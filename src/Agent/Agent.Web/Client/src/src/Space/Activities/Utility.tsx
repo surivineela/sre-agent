@@ -404,6 +404,8 @@ export const convertMessageToChatMessage = (message: Message): ChatMessage => {
                 azCliExecution: message.azCliExecution,
                 kubectlExecution: message.kubectlExecution,
                 isDailyReport: message.isDailyReport,
+                changeDiff: message.changeDiff,
+                agentTaskInfo: message.agentTaskInfo,
             },
         ],
     };
