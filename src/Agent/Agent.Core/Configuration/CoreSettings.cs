@@ -35,10 +35,6 @@ namespace Agent.Core.Configuration
         [Required]
         public bool UseAgentFramework { get; set; } = false;
 
-        // set to true to enable agent tasks (incident investigation, etc.)
-        // Also controls whether to use test_meta_agent (when true) or meta_agent (when false) as default
-        public bool AgentTasksEnabled { get; set; } = false;
-
         [Required]
         public bool EnableReasoningOutput { get; set; } = false;
 

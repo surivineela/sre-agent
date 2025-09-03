@@ -21,10 +21,9 @@ public static class AgentTaskHostBuilderExtensions
         hostBuilder.Services.AddSingleton<AgentTaskHandlerFactory>();
         hostBuilder.Services.AddSingleton(provider =>
         {
-            bool agentTasksEnabled = hostBuilder.Configuration.GetValue("AppSettings:Core:AgentTasksEnabled", false);
             bool is1PAgent = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") == "ACAAgent";
             var embeddingGenerator = provider.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>();
-            return new AgentTaskLocalStore(agentTasksEnabled && is1PAgent ? ["AgentsV2\\ACA-FirstParty\\"] : [], embeddingGenerator);
+            return new AgentTaskLocalStore(is1PAgent ? ["AgentsV2\\ACA-FirstParty\\"] : [], embeddingGenerator);
         });
 
         hostBuilder.Services.AddSingleton<AgentTaskService>();

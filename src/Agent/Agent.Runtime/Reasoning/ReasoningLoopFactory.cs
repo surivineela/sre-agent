@@ -117,24 +117,10 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
 
         var agentType = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") ?? string.Empty;
         var agentName = AgentNameHelper.GetCustomerAgentName(_hostEnvironment.IsProduction());
-
-        // If the agent name ends with "-tasks", route to the third-party tasks meta agent
-        // which can kick off investigation tasks as needed.
-        if (!string.IsNullOrEmpty(agentName) && agentName.ToLowerInvariant().EndsWith("-tasks", StringComparison.OrdinalIgnoreCase))
+       
+        if (agentType == "ACAAgent")
         {
-            defaultStartingAgentName = "third_party_tasks_meta_agent";
-        }
-        else if (agentType == "ACAAgent")
-        {
-            if (_coreSettings.AgentTasksEnabled)
-            {
-                defaultStartingAgentName = "test_rca_meta_agent";
-            }
-            else
-            {
-                defaultStartingAgentName = "rca_meta_agent";
-            }
-
+            defaultStartingAgentName = "rca_meta_agent";
         }
         else if (agentType == "RCARouterAgent")
         {
