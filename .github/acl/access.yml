@@ -30,5 +30,5 @@ configuration:
     role: Read
   - team: crg-sreagentexte-f1fv-contributor-y512
     role: Write
-  - member: csigs     # For localization
-    role: Write
+  - member: csigs
+    role: Maintain
