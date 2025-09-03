@@ -31,4 +31,7 @@ public record AzMonitorAlertDocument(
     public bool UserInputRequested { get; set; } = false;
 
     public bool TargetResourceInputRequested { get; set; } = false;
+
+    // Adding an optional alert rule resource ID for deduplication purposes.
+    public string? AlertRuleResourceId { get; set; }
 }

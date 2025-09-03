@@ -347,184 +347,6 @@ public class AzMonitorAlertScanner
         }
     }
 
-    private async Task<string> StartInvestigationFlow(AlertItem alert, Thread alertThread)
-    {
-        StringBuilder investigationSummary = new();
-
-        try
-        {
-            string initMessage = ChatMessageService.InitializeInvestigationSummariesMessage("Starting investigation and forming hypothesis", new List<(string, string, bool)>());
-            var initMessageGuid = Guid.NewGuid();
-
-            // Add the initial investigation summary panel with just the title
-            await _repository.AddMessageAsync(alertThread.Id, new Message(
-                initMessageGuid,
-                DateTime.UtcNow,
-                new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-                initMessage
-            ));
-
-            // Get general app health summary (scorecard)
-            var healthSummary = await _azMonitorInvestigationService.AnalyzeApplicationHealth(alert, alertThread);
-            var healthSummaryTitle = "Analyzing resource health summary and metrics";
-            await AppendInvestigationSummaryToMessage(alertThread.Id, initMessageGuid, healthSummaryTitle, healthSummary);
-
-            // Analyze activity logs for the impacted resource
-            var activityLogSummary = await _azMonitorInvestigationService.AnalyzeActivityLogsForResource(alert, alertThread);
-            var activityLogsTitle = "Analyzing activity logs for resource changes and administrative actions";
-            await AppendInvestigationSummaryToMessage(alertThread.Id, initMessageGuid, activityLogsTitle, activityLogSummary);
-
-            // Analyze connected components
-            var kgSummary = await _azMonitorInvestigationService.AnalyzeConnectedComponents(alert, alertThread);
-            var connectedComponentsTitle = "Analyzing connected components and dependencies";
-            await AppendInvestigationSummaryToMessage(alertThread.Id, initMessageGuid, connectedComponentsTitle, kgSummary);
-
-            // Analyze saved queries from Azure Log Analytics workspace / App Insights
-            var logQuerySummary = await _azMonitorInvestigationService.AnalyzeLogQueries(alert, alertThread);
-            var logQueriesTitle = "Examining Log Analytics queries and correlating results with alert patterns";
-            await AppendInvestigationSummaryToMessage(alertThread.Id, initMessageGuid, logQueriesTitle, logQuerySummary,
-                isCollapsed: false,
-                status: "completed",
-                isFinal: true);
-
-            var alertDetails = GetAlertInfoAsPrompt(alert);
-
-            string summarizePrompt = @$"
-TASK:
-
-You are an AI assistant helping a Site Reliability Engineer analyze an Azure Monitor alert.
-The following context contains the results of an automated investigation into an Azure Monitor alert.This includes details about the alert itself,
-the health of the affected application, relevant metrics, recent activity logs, analysis of connected components to this application, and results from relevant log queries saved in user's log analytics workspace.
-
-Analyze recent exceptions, metrics, activity logs, and application topology given below to identify potential root causes for the alert specified. Consider code bugs, deployment changes, resource constraints, and topology gaps. Provide a clear hypothesis with supporting evidence and recommended next steps. Think Step by Step
-Examples:
-Example 1: Missing Topology IssueHypothesis: The alert was triggered by missing service connections in application topology. Evidence: Exception logs show connection timeouts to ServiceB, but ServiceB doesn't appear in application map for the last 6 hours. Activity logs show no recent changes to connection strings. Next steps: Verify ServiceB health and check if telemetry instrumentation is working properly in ServiceB code.
-Example 2: Thread Deadlock After DeploymentHypothesis: Recent deployment introduced a deadlock in the order processing workflow. Evidence: Thread dump shows 12 blocked threads in OrderProcessor waiting for resources held by PaymentVerifier threads, which are waiting for DatabaseConnection threads. CPU utilization spiked to 95% but processing throughput dropped to near zero after deployment at 14:30. Request queue length growing consistently. Application topology shows normal connections but transaction completion rate is 0. Next steps: Roll back to previous version or investigate synchronization changes in the Order/Payment components, focusing on lock acquisition order and shared resource access patterns.
-Example 3: Insufficient Resource Hypothesis: Database connection pool exhaustion due to increased traffic. Evidence: 500% increase in request metrics coincides with connection timeout exceptions. Database connection metrics show 95% utilization vs normal 60%. No recent deployments or code changes. Next steps: Increase connection pool size or scale up database resources to handle the current traffic pattern.
-Example 4: Cascading Microservice Failure Hypothesis: A configuration change in the authentication service is causing cascading failures across the application ecosystem. Evidence: Exception logs show 401 errors in ServiceC started at 09:15, followed by connection timeouts in ServiceD at 09:17, and data processing exceptions in ServiceE at 09:22. Activity logs show a configuration update to Azure AD B2C at 09:10. Application map shows normal traffic patterns to auth service but 80% reduction in successful transactions across downstream services. CPU and memory metrics remain normal across all services. Next steps: Rollback Azure AD B2C configuration change and verify token validation logic in ServiceC to ensure proper handling of auth challenges.
-Example 5: Potential Memory Leak Hypothesis: The alert was triggered by a increased HTTP 500 response. Evidence: Memory usage metrics show a increase trend over the time, peaking at 90% utilization. Request metrics shows no significant increase in the request volume. Activity logs show no recent deployments or configuration changes. OutOfMemory exception repeatedly observed in the application logs. Next steps: Capture memory dump and identify potential leaks in the dump, focusing on objects consuming large memory space. Restart the app for quick mitigation.
-
-BAD EXAMPLES:
-The resource /iot-dashboard is missing from the graph database, suggesting potential misconfiguration or deletion.
-No error or exception logs were found in the queried timeframe, indicating possible logging misconfiguration.
-Recent deployment or configuration changes are suspected but not confirmed due to lack of deployment logs.
-
------------------------
-
-GOAL
-
-Based on the following investigation summaries, provide:
-
-1. A concise summary of key findings across all areas (max 2 bullet points)
-2. 1-2 hypotheses about the root cause, each with:
-   - Clear description of the potential cause (one liner is good enough)
-   - Supporting evidence from the summaries
-   - Confidence score (0-100%)
-
-** CRITICAL **  DO NOT give generic suggestions. Check the entire output for any duplicate information and condense it.
-
-Now build hypothesis on this, you are unsure about any points/there is missing data you can ignore it. Only provide the most reliable, concise, actionable hypothesis which can be derived from the data below. If there is no possible root cause you can reply with 'Could not derive a hypothesis on this issue'
-** CRITICAL ** If any summaries are missing data or logs are missing for an application, or graph database is missing the resource, DO NOT include that information in the summary and hypothesis. Your job is to not tell user about the best practices at this moment. You just need to figure out relevant root cause for the alert based on the information your were able to get.
-** CRITICAL ** Try your best reasoning. If you are not sure about the findings, it's okay to just say you could not find relevant data points. There is no shame in that!
-
------------------------
-
-DATA ABOUT ALERT AND LOGS, METRICS, TOPOLOGY etc
-
-### ALERT DETAILS
-{alertDetails}
-
-### APPLICATION HEALTH SUMMARY
-{healthSummary}
-
-### ACTIVITY LOG ANALYSIS
-{activityLogSummary}
-
-### RELATED RESOURCE ANALYSIS
-{kgSummary}
-
-### LOG QUERY ANALYSIS
-{logQuerySummary}
-
----
-Based on the initial investigation summary, think about the issue and how you will investigate it step by step. Decompose the problem into simple steps.
-Keep proper tracking of the status of current subtask and next task
-You will be allowed many iterations of tool execution to guide your hypothesis exploration.
-Core Principles:
-1. Safety first - Use only non-mutating commands (get, describe, logs, metrics queries).
-2. Hypothesis-driven - Generate multiple plausible root-cause hypotheses before running commands.
-3. Incremental evidence - Gather data that can confirm or falsify a hypothesis; avoid shotgun queries.
-4. Iterative refinement - After each observation, update the hypothesis set (keep / reject / add).
-5. Stop when solved - Conclude once one hypothesis is strongly supported and alternatives are reasonably ruled out, or when you must escalate.
-6. Transparency - Show your full chain of thought (Thought:), the exact action (Action:), and the raw result (Observation:) every loop cycle.
-Investigation Workflow Template:
-            Step 0 - Planning
-            - Thought: I list 2-3 primary hypotheses that could explain <symptom>.
-            Step 1..N
-                Loop — For each surviving hypothesis do:
-                Choose the smallest action that can falsify / confirm it.
-                - Thought: Hypothesis A predicts X. I'll check metric Y or config Z to confirm.
-                - Tool Calls
-                - Observation: …
-                Then update:
-                - Thought: Observation supports/rejects Hypothesis A because…
-                - Remaining hypotheses: [ … ]
-            Step N+1 - Termination
-            When confident:
-            - Thought: Evidence strongly supports Hypothesis B and rules out others.
-            - Final answer - Use Summary: heading, covering:
-                1. Leading hypothesis & supporting facts
-                2. Ruled-out hypotheses & why
-                3. Impacted components
-                4. Next mitigation steps (if any)
-
-
-Additional things to consider after running your reasoning loop:
-1. Extract ONLY specific metrics, timestamps, and error patterns that explain this alert
-2. Focus on quantifiable evidence (numeric deviations, timing correlations)
-3. Do NOT include generic observations without specific values
-4. Do NOT mention missing data or standard operational patterns
-5. Keep your entire response under 300 words
-
-FORMAT YOUR RESPONSE AS:
-
-## Summary of Findings
-- [Specific finding with exact metric/timestamp/error]
-- [Specific finding with exact metric/timestamp/error]
-
-## Hypotheses
-### Hypothesis 1 (Confidence: XX%)
-One sentence describing specific cause with exact evidence values supporting it
-
-### Hypothesis 2 (Confidence: XX%) [Optional]
-One sentence describing specific cause with exact evidence values supporting it
-
-Remember: Quality findings with specific values are better than quantity. Exclude any hypothesis without concrete supporting evidence.";
-
-            var agentContexts = await _repository.GetAgentContextsForThreadAsync(alertThread.Id);
-            var finalSummary = await SummarizeWithLLM(summarizePrompt, alertThread.Id, agentContexts.First());
-
-            var currentMessage = await _repository.GetMessageAsync(alertThread.Id, initMessageGuid);
-            if (currentMessage != null)
-            {
-                // Append final summary directly to the message content
-                string messageWithFinalSummary = $"{currentMessage.Text}\n\n<final-summary>{finalSummary}</final-summary>";
-
-                // Update the message with the root cause appended
-                Message updatedMessage = currentMessage with { Text = messageWithFinalSummary };
-                await _repository.UpdateMessageAsync(alertThread.Id, updatedMessage);
-            }
-
-            return finalSummary;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError(ex, $"Error during alert investigation flow: {ex.Message}");
-        }
-
-        return investigationSummary.ToString();
-    }
-
     private async Task<string> SaveAlertToDocumentDb(AlertItem alert)
     {
         var alertDocument = await GetDocumentAsync<AzMonitorAlertDocument>(alert.Id, alert.Id);
@@ -540,9 +362,7 @@ Remember: Quality findings with specific values are better than quantity. Exclud
             var severity = essentials.Severity.ToString();
             var description = essentials.Description;
             var targetResource = essentials.TargetResource;
-            var monitorCondition = essentials.MonitorCondition.ToString();
 
-            var name = alertRule;
             string targetResourceType = essentials.TargetResourceType;
             string targetResourceId = targetResource;
 
@@ -569,7 +389,8 @@ Remember: Quality findings with specific values are better than quantity. Exclud
             {
                 Description = description,
                 UpdatedAt = DateTime.UtcNow,
-                HitCount = 1
+                HitCount = 1,
+                AlertRuleResourceId = alertRule
             };
 
             // Save to database
@@ -1077,11 +898,10 @@ Remember: Quality findings with specific values are better than quantity. Exclud
     {
         try
         {
-            var alertRule = alert.Properties.Essentials.AlertRule;
+            var alertRuleResourceId = alert.Properties.Essentials.AlertRule;
             var targetResource = alert.Properties?.Essentials?.TargetResource;
-            var alertRuleName = new ResourceIdentifier(alertRule).Name;
 
-            _logger.LogInternalInformation($"Looking for existing active thread for alert rule: {alertRuleName}, target resource: {targetResource}");
+            _logger.LogInternalInformation($"Looking for existing active thread for alert rule resource Id: {alertRuleResourceId}, target resource: {targetResource}");
 
             // Get threads from last 7 days only
             var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
@@ -1124,17 +944,15 @@ Remember: Quality findings with specific values are better than quantity. Exclud
                         continue;
                     }
 
-                    // Match based on alert document properties
-                    // Compare alert rule name and target resource
-                    // Right now there is no mapping b/w Thread and AzMonitorAlert document using AlertRuleId, so falling back to this.
-                    if (alertDocument.Name == alertRuleName && alertDocument.TargetResourceId == targetResource)
+                    // Match based on alert rule id
+                    if (string.IsNullOrEmpty(alertDocument.AlertRuleResourceId) && alertDocument.AlertRuleResourceId == alertRuleResourceId)
                     {
-                        _logger.LogInternalInformation($"Found existing active thread {thread.Id} for alert rule {alertRuleName} and target resource {targetResource}");
+                        _logger.LogInternalInformation($"Found existing active thread {thread.Id} for alert rule {alertRuleResourceId} and target resource {targetResource}");
                         return thread;
                     }
                     else
                     {
-                        _logger.LogInternalInformation($"Thread {thread.Id} alert document doesn't match - Document: (Name: {alertDocument.Name}, TargetResource: {alertDocument.TargetResourceId}) vs Incoming: (Name: {alertRuleName}, TargetResource: {targetResource})");
+                        _logger.LogInternalInformation($"Thread {thread.Id} alert document doesn't match - Document: (Name: {alertDocument.Name}, TargetResource: {alertDocument.TargetResourceId}) vs Incoming: (Name: {alertRuleResourceId}, TargetResource: {targetResource})");
                     }
                 }
                 catch (Exception ex)
@@ -1144,7 +962,7 @@ Remember: Quality findings with specific values are better than quantity. Exclud
                 }
             }
 
-            _logger.LogInternalInformation($"No existing active thread found for alert rule {alertRuleName} and target resource {targetResource}");
+            _logger.LogInternalInformation($"No existing active thread found for alert rule {alertRuleResourceId} and target resource {targetResource}");
             return null;
         }
         catch (Exception ex)
