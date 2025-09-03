@@ -141,6 +141,7 @@ extends:
         #
         - task: OneLocBuild@3
           displayName: '🔠 UX - Localization'
+          continueOnError: true
           env:
             SYSTEM_ACCESSTOKEN: $(System.AccessToken)
           inputs:
