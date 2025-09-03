@@ -32,6 +32,7 @@ public interface IThreadRepository
     Task<int> GetUnreadMessagesCountAsync(Guid threadId, DateTime? lastReadTime);
     Task<Message> AddMessageAsync(Guid threadId, Message message);
     Task<Message?> UpdateMessageAsync(Guid threadId, Message message);
+    Task<Message?> UpdateMessageAsync(Guid threadId, Guid messageId, string newText, AgentTaskInfo? agentTaskInfo = null);
     Task<bool> DeleteMessageAsync(Guid threadId, Guid messageId);
 
     Task<ThreadContext?> GetThreadContextAsync(Guid threadId);

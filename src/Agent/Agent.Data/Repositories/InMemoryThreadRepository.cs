@@ -902,6 +902,37 @@ namespace Agent.Data.Repositories
             throw new NotImplementedException();
         }
 
+        public Task<Message?> UpdateMessageAsync(Guid threadId, Guid messageId, string newText, AgentTaskInfo? agentTaskInfo = null)
+        {
+            if (!_messages.TryGetValue((threadId, messageId), out var existingMessage))
+            {
+                _logger.LogInternalWarning("Cannot update message: Message {MessageId} not found in thread {ThreadId}", messageId, threadId);
+                return Task.FromResult<Message?>(null);
+            }
+
+            // Create updated message with new text and agent task info
+            var updatedMessage = existingMessage with 
+            { 
+                Text = newText,
+                AgentTaskInfo = agentTaskInfo,
+                TimeStamp = DateTime.UtcNow // Update timestamp to reflect the change
+            };
+
+            // Update the message in the dictionary
+            _messages[(threadId, messageId)] = updatedMessage;
+
+            // Update the thread's modified timestamp
+            if (_threads.TryGetValue(threadId, out var thread))
+            {
+                _threads[threadId] = thread with { ModifiedTimestamp = DateTime.UtcNow };
+            }
+
+            _logger.LogInternalInformation("Successfully updated message {MessageId} in thread {ThreadId} with new text and agent task info", 
+                messageId, threadId);
+
+            return Task.FromResult<Message?>(updatedMessage);
+        }
+
         public Task<AzCliExecution?> GetAzCliExecutionAsync(Guid threadId, Guid executionId)
         {
             throw new NotImplementedException();

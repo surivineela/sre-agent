@@ -5,6 +5,7 @@
 using System.Collections.Concurrent;
 using System.Reflection;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Agent.Core.Attributes;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
@@ -40,6 +41,7 @@ public sealed class IncidentInvestigationTaskHandler(
     private readonly List<ChatMessage> _aggregatedToolHistory = new();
     private List<string>? toolSubset = null;
     private readonly bool is1PAgent = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") == "ACAAgent";
+    private Guid? _deepInvestigationNotificationMessageId;
 
     public async Task ExecuteAsync(AgentTask agentTask, CancellationToken cancellationToken)
     {
@@ -428,15 +430,26 @@ public sealed class IncidentInvestigationTaskHandler(
         {
             logger.LogInternalInformation("Sending deep investigation notification for thread {ThreadId}, task {TaskId}", threadId, agentTaskId);
 
-            ChatMessage message = new ChatMessage(ChatRole.User, "Running Deep investigation in parallel. You can still chat with the agent");
+            // Create AgentTaskInfo with proper data from the current agent task
+            var agentTaskInfo = _currentAgentTask != null 
+                ? new AgentTaskInfo(_currentAgentTask.Id, _currentAgentTask.Title, _currentAgentTask.Status, _currentAgentTask.LastModified)
+                : new AgentTaskInfo(agentTaskId, "Deep Investigation", AgentTaskStatus.InProgress, DateTime.UtcNow);
+
+            // Generate a specific message ID for this notification
+            var notificationMessageId = Guid.NewGuid();
+
+            ChatMessage message = new ChatMessage(ChatRole.User, "");
 
             await outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
                 threadId,
                 string.Empty,
-                message: message, 
-                type: StreamMessageType.DeepInvestigation,
-                agentTaskId: agentTaskId
+                message: message,
+                agentTaskInfo: agentTaskInfo,
+                messageId: notificationMessageId,
+                type: StreamMessageType.DeepInvestigation
                );
+
+            _deepInvestigationNotificationMessageId = notificationMessageId;
 
             logger.LogInternalInformation("Successfully sent deep investigation notification for thread {ThreadId}, task {TaskId}", threadId, agentTaskId);
         }
@@ -524,6 +537,14 @@ public sealed class IncidentInvestigationTaskHandler(
 
             // save the state before streaming to prevent sync issues on frontend
             _currentAgentTask = await agentTaskRepository.UpdateAgentTaskAsync(_currentAgentTask);
+
+            // Update the notification message status when the overall task status change, need to do after db save of task to have accurate lastModified time
+            if (_deepInvestigationNotificationMessageId != null && newStatus != null)
+            {
+                var updatedAgentTaskInfo = new AgentTaskInfo(_currentAgentTask.Id, _currentAgentTask.Title, _currentAgentTask.Status, _currentAgentTask.LastModified);
+
+                await threadRepository.UpdateMessageAsync(_currentAgentTask.ThreadId, (Guid)_deepInvestigationNotificationMessageId, "", updatedAgentTaskInfo);
+            }
 
             await StreamTaskUpdateAsync(_currentAgentTask.ThreadId, _currentAgentTask, cancellationToken);
 

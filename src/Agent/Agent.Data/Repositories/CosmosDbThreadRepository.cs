@@ -1149,6 +1149,57 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
+    public async Task<Message?> UpdateMessageAsync(Guid threadId, Guid messageId, string newText, AgentTaskInfo? agentTaskInfo = null)
+    {
+        string threadIdStr = threadId.ToString();
+        string messageIdStr = messageId.ToString();
+
+        try
+        {
+            // Get the existing message
+            MessageDocument? existingMessage = await GetDocumentAsync<MessageDocument>(messageIdStr, threadIdStr);
+            if (existingMessage == null)
+            {
+                _logger.LogInternalWarning("Cannot update message: Message {MessageId} not found in thread {ThreadId}",
+                    messageIdStr, threadIdStr);
+                return null;
+            }
+
+            // Create updated message with new text and agent task info
+            var updatedMessage = existingMessage.ToDomainModel() with
+            {
+                AgentTaskInfo = agentTaskInfo,
+                Text = newText
+            };
+
+            // Convert back to document and update in database
+            MessageDocument updatedMessageDoc = MessageDocument.FromDomainModel(updatedMessage, threadIdStr);
+
+            var container = _client.GetContainer<MessageDocument>(_databaseName);
+            await container.ReplaceItemAsync(
+                updatedMessageDoc,
+                messageIdStr,
+                new PartitionKey(threadIdStr)
+            );
+
+            _logger.LogInternalInformation("Successfully updated message {MessageId} in thread {ThreadId} with new text and agent task info",
+                messageIdStr, threadIdStr);
+
+            return updatedMessage;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            _logger.LogInternalWarning("Cannot update message: Message {MessageId} not found in thread {ThreadId}",
+                messageIdStr, threadIdStr);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error updating message {MessageId} in thread {ThreadId}", messageIdStr, threadIdStr);
+            throw;
+        }
+    }
+
     public async Task<bool> DeleteMessageAsync(Guid threadId, Guid messageId)
     {
         string threadIdStr = threadId.ToString();

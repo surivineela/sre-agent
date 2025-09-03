@@ -110,7 +110,7 @@ namespace Agent.Web.Services
             }
         }
 
-        public async Task StreamMessageAsync(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, Guid? agentTaskId = null, CancellationToken cancellationToken = default)
+        public async Task StreamMessageAsync(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -131,7 +131,6 @@ namespace Agent.Web.Services
                         { "streamMessageType", type?.ToString() },
                         { "threadId", threadId.ToString() },
                         { "messageId", messageId?.ToString() ?? Guid.NewGuid().ToString() },
-                        { "agentTaskId", agentTaskId?.ToString() ?? string.Empty }
                     }
                 };
 

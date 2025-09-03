@@ -627,7 +627,7 @@ class MockStreamingService : IStreamingService
         return Task.CompletedTask;
     }
 
-    public Task StreamMessageAsync(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, Guid? agentTaskId = null, CancellationToken cancellationToken = default)
+    public Task StreamMessageAsync(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
     {
         _logger.LogInternalInformation("Mock: Streaming message for thread {ThreadId} with type {Type}: {Message}",
             threadId, type, message);

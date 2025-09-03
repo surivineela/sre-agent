@@ -55,7 +55,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
     }
 
     // main method to update thread with agent message
-    public async Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message, Guid? messageId = null, StreamMessageType? type = null, Guid? agentTaskId = null)
+    public async Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message, Guid? messageId = null, StreamMessageType? type = null)
     {
         if (!string.IsNullOrEmpty(orchestrationInstanceId))
         {
@@ -63,10 +63,27 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         }
         _logger.LogExternalInformation("orchestrationInstanceId {orchestrationInstanceId} message to thread {ThreadId}: {Message}",
             orchestrationInstanceId, threadId, message.Text);
-        Guid agentMessageId = messageId ?? Guid.NewGuid();
+        Guid resolvedMessageId = messageId ?? Guid.NewGuid();
         DateTime recordedDateTime = DateTime.UtcNow;
-        await AppendAgentStreamMessage(threadId ?? Guid.Empty, message.Text ?? string.Empty, type, agentMessageId, recordedDateTime, agentTaskId: agentTaskId);
-        await _sinkService.SinkAgentMessageAsync(threadId ?? Guid.Empty, message.Text ?? string.Empty, agentResponseMessageId: agentMessageId, recordedDateTime: recordedDateTime);
+        
+        await AppendAgentStreamMessage(threadId ?? Guid.Empty, message.Text ?? string.Empty, type, resolvedMessageId, recordedDateTime);
+        await _sinkService.SinkAgentMessageAsync(threadId ?? Guid.Empty, message.Text ?? string.Empty, agentResponseMessageId: resolvedMessageId, recordedDateTime: recordedDateTime);
+    }
+
+    // overload method that takes AgentTaskInfo directly
+    public async Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message, AgentTaskInfo? agentTaskInfo, Guid? messageId = null, StreamMessageType? type = null)
+    {
+        if (!string.IsNullOrEmpty(orchestrationInstanceId))
+        {
+            await _mappingManager.AddMappingAsync(threadId?.ToString() ?? Guid.Empty.ToString(), orchestrationInstanceId);
+        }
+        _logger.LogExternalInformation("orchestrationInstanceId {orchestrationInstanceId} message to thread {ThreadId}: {Message}",
+            orchestrationInstanceId, threadId, message.Text);
+        Guid resolvedMessageId = messageId ?? Guid.NewGuid();
+        DateTime recordedDateTime = DateTime.UtcNow;
+        
+        await AppendAgentStreamMessage(threadId ?? Guid.Empty, message.Text ?? string.Empty, type, resolvedMessageId, recordedDateTime);
+        await _sinkService.SinkAgentMessageAsync(threadId ?? Guid.Empty, message.Text ?? string.Empty, agentResponseMessageId: resolvedMessageId, recordedDateTime: recordedDateTime, agentTaskInfo: agentTaskInfo);
     }
 
     // over load method that also takes agent context
@@ -254,7 +271,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
     }
 
 
-    public async Task AppendAgentStreamMessage(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, Guid? agentTaskId = null, CancellationToken cancellationToken = default)
+    public async Task AppendAgentStreamMessage(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
     {
         if (threadId == Guid.Empty)
         {
@@ -274,7 +291,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             cancellationToken.ThrowIfCancellationRequested();
 
             // Use the streaming service abstraction to send the message
-            await _streamingService.StreamMessageAsync(threadId, message, type, messageId, recordedDateTime: recordedDateTime, agentTaskId: agentTaskId, cancellationToken: cancellationToken);
+            await _streamingService.StreamMessageAsync(threadId, message, type, messageId, recordedDateTime: recordedDateTime, cancellationToken: cancellationToken);
 
             _logger.LogExternalInformation("Successfully sent direct stream message for thread {ThreadId} with type {Type}",
                 threadId, type);

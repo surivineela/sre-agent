@@ -21,7 +21,9 @@ public record MessageDocument(
     // e.g. If this message belongs to a PagerDuty incident thread and is a discussion(called note in PagerDuty),
     // it is the PagerDuty note id. PagerDuty note id is is not a guid
     string? IncidentDiscussionId = null,
-    bool IsDailyReport = false
+    bool IsDailyReport = false,
+    // Agent Task information associated with this message (for deep investigation notifications)
+    AgentTaskInfo? AgentTaskInfo = null
 ) : ICosmosDocument
 {
     public string DocumentType => "Message";
@@ -42,7 +44,8 @@ public record MessageDocument(
             AzCliExecution: message.AzCliExecution ?? null,
             KubectlExecution: message.KubectlExecution ?? null,
             IncidentDiscussionId: message.IncidentDiscussionId,
-            message.IsDailyReport
+            message.IsDailyReport,
+            message.AgentTaskInfo ?? null
         );
 
     public Message ToDomainModel(Approval? approval = null, bool isDailyReport = false) =>
@@ -57,6 +60,7 @@ public record MessageDocument(
             AzCliExecution,
             KubectlExecution,
             IncidentDiscussionId: IncidentDiscussionId,
-            IsDailyReport
+            IsDailyReport,
+            AgentTaskInfo
         );
 }
