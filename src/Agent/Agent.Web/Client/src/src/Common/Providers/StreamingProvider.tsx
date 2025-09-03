@@ -11,6 +11,7 @@ export interface MessageCreateRequest {
     text: string;
     userId: string;
     displayName: string;
+    conversationModifier?: 'DeepInvestigation';
 }
 
 export interface ThreadCreateRequest {

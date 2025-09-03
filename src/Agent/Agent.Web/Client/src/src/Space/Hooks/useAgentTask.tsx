@@ -28,9 +28,6 @@ export const useAgentTask = (
     const [isLoadingTreeState, setIsLoadingTreeState] = useState(false);
     const [currentTreeStateValue, setCurrentTreeStateValue] = useState<TreeStateValue | null>(null);
 
-    const [isDeepInvestigationButtonEnabled, setIsDeepInvestigationButtonEnabled] = useState<boolean>(false);
-    const [isDeepInvestigationTurnedOn, setIsDeepInvestigationButtonTurnedOn] = useState<boolean>(false);
-
     const threadIdRef = useRef<string | null>(threadId || userDefinedThreadId || null);
     const treeStatesRef = useRef<Map<string, TreeStateValue>>(treeStates);
 
@@ -54,10 +51,6 @@ export const useAgentTask = (
         },
         [collapseResizables, isAgentTaskCollapsed]
     );
-
-    const onClickDeepInvestigationButton = useCallback(() => {
-        setIsDeepInvestigationButtonTurnedOn(prev => !prev);
-    }, []);
 
     const updateTaskDropdownOption = (...tasks: AgentTaskMetaData[]) => {
         setTaskDropdownOptions(prev => {
@@ -301,10 +294,6 @@ export const useAgentTask = (
         }
     }, [isLoadingInitialChatHistory, hasExistingTasks, collapseResizables]);
 
-    useEffect(() => {
-        setIsDeepInvestigationButtonEnabled(!isLoadingInitialChatHistory);
-    }, [isLoadingInitialChatHistory]);
-
     return {
         taskDropdownOptions,
         isLoadingTaskDropdown,
@@ -314,9 +303,6 @@ export const useAgentTask = (
         isAgentTaskCollapsed,
         setIsAgentTaskCollapsed,
         openAgentTask,
-        isDeepInvestigationButtonEnabled,
-        isDeepInvestigationTurnedOn,
-        onClickDeepInvestigationButton,
 
         currentTreeStateValue,
         isLoadingTreeState,

@@ -62,6 +62,8 @@ export const useChatBox = (
     const [isWaitingForStreamingMessages, setIsWaitingForStreamingMessages] = useState<boolean | undefined>();
 
     const [downButtonState, setDownButtonState] = useState<{ visible: boolean; flash: boolean }>({ visible: false, flash: false });
+    const [isDeepInvestigationButtonEnabled, setIsDeepInvestigationButtonEnabled] = useState<boolean>(false);
+    const [isDeepInvestigationTurnedOn, setIsDeepInvestigationTurnedOn] = useState<boolean>(false);
 
     const messagesDivRef = useRef<HTMLDivElement>(null);
     const intersectionObserverRef = useRef<HTMLDivElement>(null);
@@ -81,6 +83,8 @@ export const useChatBox = (
     const isCancellingStreamingRef = useRef<boolean>(false);
     const addThreadRef = useRef(addThread);
     const responseEndLoggedRef = useRef<boolean>(false);
+
+    const isDeepInvestigationTurnedOnRef = useRef<boolean>(isDeepInvestigationTurnedOn);
 
     const { chatHistory, isLoadingInitialChatHistory, loadOlderMessagesRef, newestMessageTimestampInOldMessages } = useChatHistory(
         threadId,
@@ -127,6 +131,14 @@ export const useChatBox = (
         scrollToBottom(false);
         setDownButtonState({ visible: false, flash: false });
     };
+
+    const onClickDeepInvestigationButton = useCallback(() => {
+        setIsDeepInvestigationTurnedOn(prev => {
+            const isTurnedOn = !prev;
+            isDeepInvestigationTurnedOnRef.current = isTurnedOn;
+            return isTurnedOn;
+        });
+    }, []);
 
     const finishStreaming = () => {
         setIsAgentTyping(false);
@@ -201,7 +213,9 @@ export const useChatBox = (
                     text: message,
                     userId,
                     displayName,
+                    conversationModifier: isDeepInvestigationTurnedOnRef.current ? 'DeepInvestigation' : undefined,
                 };
+
                 //ToDo: Handle errors of sendMessage, createThread and pollResponses
                 if (currentThreadId) {
                     // Issue a request to create a new message in the current thread
@@ -542,6 +556,10 @@ export const useChatBox = (
         };
     }, [isLoadingInitialChatHistory]);
 
+    useEffect(() => {
+        setIsDeepInvestigationButtonEnabled(!isLoadingInitialChatHistory);
+    }, [isLoadingInitialChatHistory]);
+
     // When old messages are added at the top of the chat history, useLayoutEffect will calculate the new scroll top
     // to make sure the chat does not scroll to top before the next paint
     useLayoutEffect(() => {
@@ -654,5 +672,8 @@ export const useChatBox = (
         getGroupedChatMessages,
         updateSpecialMessageInStreamingMessage,
         userDefinedThreadIdRef,
+        isDeepInvestigationButtonEnabled,
+        isDeepInvestigationTurnedOn,
+        onClickDeepInvestigationButton,
     };
 };

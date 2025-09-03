@@ -53,17 +53,17 @@ export const ChatBox = ({
         getGroupedChatMessages,
         updateSpecialMessageInStreamingMessage,
         userDefinedThreadIdRef,
-    } = useChatBox(addThread, updateThreadLastReadTime, threadId, threadSource);
-
-    const {
-        isAgentTaskCollapsed,
-        setIsAgentTaskCollapsed,
         isDeepInvestigationButtonEnabled,
         isDeepInvestigationTurnedOn,
         onClickDeepInvestigationButton,
-        openAgentTask,
-        ...rest
-    } = useAgentTask(threadId, userDefinedThreadIdRef.current, collapseResizables, isLoading);
+    } = useChatBox(addThread, updateThreadLastReadTime, threadId, threadSource);
+
+    const { isAgentTaskCollapsed, setIsAgentTaskCollapsed, openAgentTask, ...rest } = useAgentTask(
+        threadId,
+        userDefinedThreadIdRef.current,
+        collapseResizables,
+        isLoading
+    );
 
     const showAgentTask = useConfigSetting(SettingNames.ShowAgentTask);
 
