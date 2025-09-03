@@ -7,6 +7,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.ICM;
 using Agent.Core.Services.TokenService;
 using Agent.Logging;
+using Azure.Core;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Hosting;
@@ -27,13 +28,13 @@ namespace Agent.Core.Services
         Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId);
         Task<string> TransferIncidentAsync(string incidentId, string discussionEntry, string tenantId, string teamId);
         Task<string> ChangeSeverityAsync(string incidentId, int severity, string discussionEntry, bool htmlRendering = true);
-        Task<string> MitigateIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting = false, bool isNoise = false, string howFixed = "", string mitigateContactAlias = "antagent-1p");
-        Task<string> ResolveIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting = false, bool isNoise = false, string resolveContactAlias = "antagent-1p");
+        Task<string> MitigateIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting = false, bool isNoise = false, string howFixed = "", string mitigateContactAlias = "");
+        Task<string> ResolveIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting = false, bool isNoise = false, string resolveContactAlias = "");
         Task<string> PostDiscussionEntryAsync(string incidentId, string discussionEntry, bool htmlRendering = true);
         Task<string> SetIncidentTags(string incidentId, List<string> tags);
         Task<string> AddTagToIncident(string incidentId, string tag);
         Task<string> AddKeywordToIncident(string incidentId, string keyword);
-        Task<string> AcknowledgeIncidentAsync(string incidentId, string acknowledgeContactAlias = "antagent-1p");
+        Task<string> AcknowledgeIncidentAsync(string incidentId, string acknowledgeContactAlias = "");
         Task<List<string>> GetLinkedRelatedIncidentInfoAsync(long incidentId);
         Task<string> AddRelatedIncidentLinkAsync(long incidentId, long relatedIncidentId);
         Task<string> RemoveRelatedIncidentLinkAsync(long incidentId, long relatedIncidentId);
@@ -465,7 +466,7 @@ namespace Agent.Core.Services
             }
         }
 
-        public async Task<string> MitigateIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting = false, bool isNoise = false, string howFixed = "", string mitigateContactAlias = "antagent-1p")
+        public async Task<string> MitigateIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting = false, bool isNoise = false, string howFixed = "", string mitigateContactAlias = "")
         {
             if (_icmApiSettings.ReadOnly)
             {
@@ -479,7 +480,7 @@ namespace Agent.Core.Services
                     IsNoise = isNoise,
                     Mitigation = discussionEntry,
                     HowFixed = howFixed,
-                    MitigateContactAlias = mitigateContactAlias,
+                    MitigateContactAlias = string.IsNullOrEmpty(mitigateContactAlias) ? GetDefaultAlias() : mitigateContactAlias ,
                 },
             };
             var response = await SendICMPostRequestAsync($"{IcmAPIPathPrefix}/incidents({incidentId})/MitigateIncident", content);
@@ -528,7 +529,7 @@ namespace Agent.Core.Services
             }
         }
 
-        public async Task<string> ResolveIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting = false, bool isNoise = false, string resolveContactAlias = "antagent-1p")
+        public async Task<string> ResolveIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting = false, bool isNoise = false, string resolveContactAlias = "")
         {
             if (_icmApiSettings.ReadOnly)
             {
@@ -545,7 +546,7 @@ namespace Agent.Core.Services
                         Text = discussionEntry,
                         RenderType = "Plaintext", // ICM APIs yield 403 BadRequest when using "Html" rendering
                     },
-                    ResolveContactAlias = resolveContactAlias,
+                    ResolveContactAlias = string.IsNullOrEmpty(resolveContactAlias) ? GetDefaultAlias() : resolveContactAlias,
                 },
             };
             var response = await SendICMPostRequestAsync($"{IcmAPIPathPrefix}/incidents({incidentId})/ResolveIncident", content);
@@ -636,18 +637,19 @@ namespace Agent.Core.Services
             }
         }
 
-        public async Task<string> AcknowledgeIncidentAsync(string incidentId, string acknowledgeContactAlias = "antagent-1p")
+        public async Task<string> AcknowledgeIncidentAsync(string incidentId, string acknowledgeContactAlias = "")
         {
             if (_icmApiSettings.ReadOnly)
             {
                 _logger.LogInternalInformation($"AcknowledgeIncident called for incident {incidentId} in read-only mode");
                 return ("Success. ICM API is in read-only mode.");
             }
+
             var content = new
             {
                 AcknowledgementParameters = new
                 {
-                    AcknowledgeContactAlias = acknowledgeContactAlias,
+                    AcknowledgeContactAlias = string.IsNullOrEmpty(acknowledgeContactAlias) ? GetDefaultAlias() : acknowledgeContactAlias,
                 },
             };
             var response = await SendICMPostRequestAsync($"{IcmAPIPathPrefix}/incidents({incidentId})/AcknowledgeIncident", content);
@@ -663,6 +665,17 @@ namespace Agent.Core.Services
                 _logger.LogInternalError($"Failed to acknowledge incident {incidentId}. Status: {response.StatusCode}, Response: {responseContent}");
                 throw new Exception($"Failed to acknowledge incident. Status code: {response.StatusCode}");
             }
+        }
+
+        private string GetDefaultAlias()
+        {
+            string defaultAlias = "";
+            if (!string.IsNullOrEmpty(_identity))
+            {
+                var identityResource = new ResourceIdentifier(_identity);
+                defaultAlias = identityResource.Name;
+            }
+            return defaultAlias;
         }
 
         public void Dispose()
@@ -913,7 +926,7 @@ namespace Agent.Core.Services
 
     public class NullableICMAPIClient : IICMAPIClient
     {
-        public Task<string> AcknowledgeIncidentAsync(string incidentId, string acknowledgeContactAlias = "antagent-1p")
+        public Task<string> AcknowledgeIncidentAsync(string incidentId, string? acknowledgeContactAlias)
         {
             throw new NotImplementedException();
         }
@@ -988,7 +1001,7 @@ namespace Agent.Core.Services
             throw new NotImplementedException();
         }
 
-        public Task<string> MitigateIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting = false, bool isNoise = false, string howFixed = "", string mitigateContactAlias = "antagent-1p")
+        public Task<string> MitigateIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting = false, bool isNoise = false, string howFixed = "", string mitigateContactAlias = "")
         {
             throw new NotImplementedException();
         }
@@ -1008,7 +1021,7 @@ namespace Agent.Core.Services
             throw new NotImplementedException();
         }
 
-        public Task<string> ResolveIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting = false, bool isNoise = false, string resolveContactAlias = "antagent-1p")
+        public Task<string> ResolveIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting = false, bool isNoise = false, string resolveContactAlias = "")
         {
             throw new NotImplementedException();
         }
