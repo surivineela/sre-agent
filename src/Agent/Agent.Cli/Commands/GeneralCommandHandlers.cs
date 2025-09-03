@@ -15,6 +15,180 @@ namespace Agent.Cli.Commands;
 public static class GeneralCommandHandlers
 {
     /// <summary>
+    /// Sync remote agents and tools into local agents/ and tools/ directories.
+    /// </summary>
+    public static async Task HandleSyncCommand(ParseResult parseResult)
+    {
+        try
+        {
+            ConsoleUI.WriteSection("Sync from remote");
+
+            // Ensure configuration exists
+            var configService = new CliConfigurationService();
+            var config = await configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                ConsoleUI.WriteStatus(false, "No configuration found. Run 'srectl init --resource-url <url>' first.");
+                Environment.Exit(1);
+                return;
+            }
+
+            // Ensure folders exist
+            Directory.CreateDirectory("agents");
+            Directory.CreateDirectory("tools");
+
+            using var api = new ApiService();
+
+            // Fetch names
+            ConsoleUI.WriteInfo("Fetching remote inventory (agents, tools)...", ConsoleColor.Cyan);
+            var (agentsOk, agentNames, agentsMsg) = await api.GetAgentNamesAsync();
+            var (toolsOk, toolNames, toolsMsg) = await api.GetToolNamesAsync();
+
+            if (!agentsOk && !toolsOk)
+            {
+                ConsoleUI.WriteStatus(false, "Failed to list agents and tools from server.");
+                if (!string.IsNullOrWhiteSpace(agentsMsg)) ConsoleUI.WriteBullet($"Agents: {agentsMsg}", ConsoleColor.Yellow);
+                if (!string.IsNullOrWhiteSpace(toolsMsg)) ConsoleUI.WriteBullet($"Tools: {toolsMsg}", ConsoleColor.Yellow);
+                Environment.Exit(1);
+                return;
+            }
+
+            int syncedAgents = 0, syncedTools = 0;
+
+            // Sync agents
+            if (agentsOk && agentNames.Count > 0)
+            {
+                ConsoleUI.WriteSection($"Agents ({agentNames.Count})");
+                foreach (var name in agentNames.Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(n => n))
+                {
+                    try
+                    {
+                        var (ok, yaml, err) = await api.GetAgentConfigurationAsync(name);
+                        if (!ok || string.IsNullOrWhiteSpace(yaml))
+                        {
+                            ConsoleUI.WriteBullet($"Skip {name}: {err}", ConsoleColor.Yellow);
+                            continue;
+                        }
+
+                        var dir = Path.Combine("agents", name);
+                        Directory.CreateDirectory(dir);
+                        var path = Path.Combine(dir, $"{name}.yaml");
+                        await File.WriteAllTextAsync(path, yaml, System.Text.Encoding.UTF8);
+                        ConsoleUI.WriteBullet($"Wrote {path}", ConsoleColor.Green);
+                        syncedAgents++;
+                    }
+                    catch (Exception ex)
+                    {
+                        ConsoleUI.WriteBullet($"Failed {name}: {ex.Message}", ConsoleColor.Yellow);
+                    }
+                }
+            }
+            else
+            {
+                ConsoleUI.WriteInfo("No agents found on remote or failed to fetch.", ConsoleColor.Yellow);
+            }
+
+            // Sync tools
+            if (toolsOk && toolNames.Count > 0)
+            {
+                ConsoleUI.WriteSection($"Tools ({toolNames.Count})");
+                foreach (var name in toolNames.Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(n => n))
+                {
+                    try
+                    {
+                        var (ok, yaml, err) = await api.GetToolConfigurationAsync(name);
+                        if (!ok || string.IsNullOrWhiteSpace(yaml))
+                        {
+                            ConsoleUI.WriteBullet($"Skip {name}: {err}", ConsoleColor.Yellow);
+                            continue;
+                        }
+
+                        // Allow flat or folder layout; we standardize to folder layout for parity with agents
+                        var dir = Path.Combine("tools", name);
+                        Directory.CreateDirectory(dir);
+                        var path = Path.Combine(dir, $"{name}.yaml");
+
+                        // Normalize: if the server returned a ToolList wrapper, unwrap to a single plain tool YAML
+                        var normalizedYaml = yaml;
+                        try
+                        {
+                            if (!string.IsNullOrWhiteSpace(yaml) && yaml.Contains("kind:", StringComparison.OrdinalIgnoreCase))
+                            {
+                                // Quick parse to detect ToolList and extract the first tool
+                                var des = new YamlDotNet.Serialization.DeserializerBuilder()
+                                    .IgnoreUnmatchedProperties()
+                                    .Build();
+                                var root = des.Deserialize<Dictionary<string, object>>(yaml);
+                                if (root != null &&
+                                    root.TryGetValue("kind", out var kindObj) &&
+                                    string.Equals(kindObj?.ToString(), "ToolList", StringComparison.OrdinalIgnoreCase) &&
+                                    root.TryGetValue("spec", out var specObj) && specObj is Dictionary<string, object> specDict &&
+                                    specDict.TryGetValue("tools", out var toolsObj) && toolsObj is IEnumerable<object> toolsEnum)
+                                {
+                                    var firstTool = toolsEnum.Cast<object?>().FirstOrDefault();
+                                    if (firstTool != null)
+                                    {
+                                        var ser = new YamlDotNet.Serialization.SerializerBuilder()
+                                            .WithNamingConvention(YamlDotNet.Serialization.NamingConventions.UnderscoredNamingConvention.Instance)
+                                            .DisableAliases()
+                                            .Build();
+                                        normalizedYaml = ser.Serialize(firstTool);
+                                    }
+                                }
+                            }
+                        }
+                        catch { /* best-effort normalization */ }
+
+                        // Optionally prune excessive properties using YamlHelper
+                        try
+                        {
+                            var des = YamlHelper.CreateCamelCaseDeserializer();
+                            var obj = des.Deserialize<object>(normalizedYaml);
+                            var pruned = YamlHelper.PruneEmptyNodes(obj);
+                            if (pruned != null)
+                            {
+                                // For tools: do not use agent-specific KeepImportantPropertiesVisitor
+                                var ser = new YamlDotNet.Serialization.SerializerBuilder()
+                                    .WithNamingConvention(YamlDotNet.Serialization.NamingConventions.UnderscoredNamingConvention.Instance)
+                                    .ConfigureDefaultValuesHandling(YamlDotNet.Serialization.DefaultValuesHandling.OmitNull)
+                                    .DisableAliases()
+                                    .Build();
+                                normalizedYaml = ser.Serialize(pruned);
+                            }
+                        }
+                        catch { /* best-effort pruning */ }
+
+                        await File.WriteAllTextAsync(path, normalizedYaml, System.Text.Encoding.UTF8);
+                        ConsoleUI.WriteBullet($"Wrote {path}", ConsoleColor.Green);
+                        syncedTools++;
+                    }
+                    catch (Exception ex)
+                    {
+                        ConsoleUI.WriteBullet($"Failed {name}: {ex.Message}", ConsoleColor.Yellow);
+                    }
+                }
+            }
+            else
+            {
+                ConsoleUI.WriteInfo("No tools found on remote or failed to fetch.", ConsoleColor.Yellow);
+            }
+
+            Console.WriteLine();
+            ConsoleUI.WriteSection("Summary");
+            ConsoleUI.WriteKeyValue("Agents", syncedAgents.ToString(), 10);
+            ConsoleUI.WriteKeyValue("Tools", syncedTools.ToString(), 10);
+            Console.WriteLine();
+            ConsoleUI.WriteInfo("Tip: edit YAML locally and use 'srectl apply-yaml --file <path>' or 'srectl agent/tool apply' to push updates.", ConsoleColor.Gray);
+
+            Environment.Exit(0);
+        }
+        catch (Exception ex)
+        {
+            ConsoleUI.WriteStatus(false, $"Sync failed: {ex.Message}");
+            Environment.Exit(1);
+        }
+    }
+    /// <summary>
     /// Handles the init command with a specific resource URL.
     /// </summary>
     public static async Task HandleInitCommandWithResourceUrl(string resourceUrl)
@@ -87,6 +261,8 @@ public static class GeneralCommandHandlers
     /// </summary>
     public static async Task HandleListAgentsCommand(ParseResult parseResult)
     {
+        // Ensure debug/quiet flags are honored for this handler
+        CommandExecutionContext.Initialize(parseResult);
         var showAll = parseResult.GetValue(AgentCommandOptions.AllOption);
 
         DebugLogger.Debug("Command", "Starting agent list command");
@@ -198,6 +374,9 @@ public static class GeneralCommandHandlers
     /// </summary>
     public static async Task HandleListToolsCommand(ParseResult parseResult)
     {
+        // Ensure debug/quiet flags are honored for this handler
+        CommandExecutionContext.Initialize(parseResult);
+
         DebugLogger.Debug("Command", "Starting tool list command");
 
         using var apiService = new ApiService();
@@ -231,6 +410,9 @@ public static class GeneralCommandHandlers
     /// </summary>
     public static async Task HandleListExtendedToolsCommand(ParseResult parseResult)
     {
+        // Ensure debug/quiet flags are honored for this handler
+        CommandExecutionContext.Initialize(parseResult);
+
         DebugLogger.Debug("Command", "Starting extended tools list command");
 
         using var apiService = new ApiService();
@@ -264,6 +446,9 @@ public static class GeneralCommandHandlers
     /// </summary>
     public static async Task HandleListDataConnectorsCommand(ParseResult parseResult)
     {
+        // Ensure debug/quiet flags are honored for this handler
+        CommandExecutionContext.Initialize(parseResult);
+
         DebugLogger.Debug("Command", "Starting data connectors list command");
 
         using var apiService = new ApiService();
@@ -801,9 +986,33 @@ public static class GeneralCommandHandlers
 
         Console.WriteLine();
         ConsoleUI.WriteSection("Build Information");
-        var buildDate = File.GetCreationTime(assembly.Location);
+        // In single-file publish, Assembly.Location is empty. Use Environment.ProcessPath or AppContext.BaseDirectory.
+        string? processPath = Environment.ProcessPath;
+        DateTime buildDate;
+        string locationDisplay;
+
+        if (!string.IsNullOrWhiteSpace(processPath) && File.Exists(processPath))
+        {
+            buildDate = File.GetCreationTime(processPath);
+            locationDisplay = processPath;
+        }
+        else
+        {
+            var baseDir = AppContext.BaseDirectory?.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            if (!string.IsNullOrEmpty(baseDir) && Directory.Exists(baseDir))
+            {
+                buildDate = Directory.GetCreationTime(baseDir);
+                locationDisplay = baseDir;
+            }
+            else
+            {
+                buildDate = DateTime.MinValue;
+                locationDisplay = "Unknown";
+            }
+        }
+
         ConsoleUI.WriteBullet($"Built: {buildDate:yyyy-MM-dd HH:mm:ss}", ConsoleColor.Gray);
-        ConsoleUI.WriteBullet($"Location: {assembly.Location}", ConsoleColor.Gray);
+        ConsoleUI.WriteBullet($"Location: {locationDisplay}", ConsoleColor.Gray);
 
         Console.WriteLine();
 

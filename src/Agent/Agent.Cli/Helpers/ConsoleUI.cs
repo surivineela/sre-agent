@@ -136,7 +136,7 @@ public static class ConsoleUI
     /// </summary>
     public static void WriteExamples((string Comment, string Command)[] examples, int indent = 2)
     {
-        Console.WriteLine("Examples:");
+        WithColor(ConsoleColor.DarkGray, () => Console.WriteLine("Examples:"));
         string pad = new string(' ', indent);
 
         for (int i = 0; i < examples.Length; i++)
@@ -146,7 +146,7 @@ public static class ConsoleUI
             if (!string.IsNullOrWhiteSpace(comment))
                 WithColor(ConsoleColor.DarkGray, () => Console.WriteLine($"{pad}# {comment}"));
 
-            WithColor(ConsoleColor.Yellow, () => Console.WriteLine($"{pad}{command}"));
+            WithColor(ConsoleColor.White, () => Console.WriteLine($"{pad}{command}"));
             // no per-item blank line; keeps the block compact
         }
 

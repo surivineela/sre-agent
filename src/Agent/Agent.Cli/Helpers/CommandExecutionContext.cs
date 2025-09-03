@@ -20,76 +20,51 @@ public static class CommandExecutionContext
     {
         // Try to get debug flag from various possible option locations
         var debug = TryGetDebugFlag(parseResult);
-        
         // Set debug mode globally
         DebugLogger.SetDebugMode(debug);
-        
+
         // Show debug activation message if enabled
         if (debug)
         {
             ConsoleUI.WriteInfo($"DEBUG MODE ACTIVATED: {DateTime.Now:HH:mm:ss.fff}", ConsoleColor.DarkGray);
         }
-        
         // Log command execution start
         DebugLogger.Debug("Command", $"Starting command execution at {DateTime.Now:HH:mm:ss.fff}");
     }
-    
+
     /// <summary>
     /// Try to extract the debug flag from various possible option sources in the parse result.
     /// This handles the case where different command groups might use different option objects.
     /// </summary>
     private static bool TryGetDebugFlag(ParseResult parseResult)
     {
-        // Try different possible debug options in order of preference
-        
-        // 1. Try GlobalOptions.Debug first (most common)
-        try
+        // Prefer a resilient approach: OR across all potential sources and avoid early returns.
+        // This handles duplicate --debug options attached to different command trees.
+
+        bool enabled = false;
+
+        // 1) Raw token presence (works even if bound to a different Option instance)
+        if (parseResult.Tokens.Any(t => t.Value == "--debug" || t.Value == "-d"))
         {
-            var globalDebug = parseResult.GetValue(GlobalOptions.Debug);
-            return globalDebug;
+            enabled = true;
         }
-        catch { /* Ignore if option not available */ }
-        
-        // 2. Try AgentCommandOptions.DebugOption
-        try
-        {
-            var agentDebug = parseResult.GetValue(AgentCommandOptions.DebugOption);
-            return agentDebug;
-        }
-        catch { /* Ignore if option not available */ }
-        
-        // 3. Try ToolCommandOptions.DebugOption
-        try
-        {
-            var toolDebug = parseResult.GetValue(ToolCommandOptions.DebugOption);
-            return toolDebug;
-        }
-        catch { /* Ignore if option not available */ }
-        
-        // 4. Try DocumentCommandOptions.DebugOption
-        try
-        {
-            var docDebug = parseResult.GetValue(DocumentCommandOptions.DebugOption);
-            return docDebug;
-        }
-        catch { /* Ignore if option not available */ }
-        
-        // 5. Look for --debug flag directly in the command line tokens
-        if (parseResult.Tokens.Any(token => 
-            token.Value == "--debug" || token.Value == "-d"))
-        {
-            return true;
-        }
-        
-        // Default to false if no debug flag found
-        return false;
+
+        // 2) Global option instance
+        try { enabled |= parseResult.GetValue(GlobalOptions.Debug); } catch { /* ignore */ }
+
+        // 3) Agent/tool/doc-specific option instances (may be present on some subcommands)
+        try { enabled |= parseResult.GetValue(AgentCommandOptions.DebugOption); } catch { /* ignore */ }
+        try { enabled |= parseResult.GetValue(ToolCommandOptions.DebugOption); } catch { /* ignore */ }
+        try { enabled |= parseResult.GetValue(DocumentCommandOptions.DebugOption); } catch { /* ignore */ }
+
+        return enabled;
     }
-    
+
     /// <summary>
     /// Checks if debug mode is currently enabled.
     /// </summary>
     public static bool IsDebugEnabled => DebugLogger.IsDebugEnabled;
-    
+
     /// <summary>
     /// Logs the completion of a command execution.
     /// </summary>

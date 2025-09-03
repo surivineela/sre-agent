@@ -187,16 +187,16 @@ public static class Program
         Console.WriteLine();
 
         ConsoleUI.WriteCommandGroup("Core Commands", new[] {
-            ("welcome", "Show welcome screen and getting started guide"),
-            ("help", "Interactive help system with examples and troubleshooting"),
-            ("suggest", "Get intelligent command suggestions based on workspace"),
-            ("status", "Show workspace status and health check"),
-            ("interactive", "Start interactive guided mode for step-by-step assistance"),
-            ("version", "Show version information and build details")
+            ("help", "Interactive help with examples and troubleshooting"),
+            ("status", "Connection and workspace status"),
+            ("interactive", "Interactive guided mode (recommended to get started)"),
+            ("version", "Version and build details"),
+            ("welcome", "Welcome screen and getting-started guide"),
         });
 
         ConsoleUI.WriteCommandGroup("Setup & Management", new[] {
             ("init", "Initialize SREAgent CLI configuration and workspace"),
+            ("sync", "Sync agents and tools YAML from remote into local workspace"),
             ("list", "List various resources from the remote server"),
             ("apply-yaml", "Apply any YAML configuration file to the server")
         });
@@ -207,10 +207,11 @@ public static class Program
         });
 
         ConsoleUI.WriteCommandGroup("Resource Management", new[] {
-            ("agent", "Agent commands"),
-            ("tool", "Tool commands"),
+            ("agent", "Manage user-authored, extensible agents"),
+            ("tool", "Manage user-authored, reusable tools"),
             ("doc", "Upload and manage documents like TSGs, architecture docs, and runbooks"),
-            ("profile", "Switch between different SRE Agent instances (local or remote)")
+            ("profile", "Switch between SRE Agent instances (multiple local/remote profiles supported)"),
+            ("incidenthandler", "Manage incident handlers and filters")
         });
 
         if (isFirstTime)
@@ -226,7 +227,6 @@ public static class Program
             ConsoleUI.WriteSection("Quick Actions");
             ConsoleUI.WriteCommand("Start chatting", "srectl chat");
             ConsoleUI.WriteCommand("Check status", "srectl status");
-            ConsoleUI.WriteCommand("Get suggestions", "srectl suggest");
             Console.WriteLine();
         }
 
@@ -303,13 +303,14 @@ public static class Program
             Console.WriteLine();
         }
 
-        if (cmd.Options.Any())
+    if (cmd.Options.Any())
         {
             ConsoleUI.WriteSection("Options");
             foreach (var opt in cmd.Options)
             {
-                var aliases = string.Join(", ", opt.Aliases);
-                ConsoleUI.WriteKeyValue(aliases, opt.Description ?? string.Empty, 28, ConsoleColor.Green);
+                // Normalize display to the canonical long form --{name} to avoid duplication like "----name"
+                var canonical = $"--{opt.Name}";
+                ConsoleUI.WriteKeyValue(canonical, opt.Description ?? string.Empty, 28, ConsoleColor.Green);
             }
         }
     }

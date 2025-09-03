@@ -46,6 +46,66 @@ public static class YamlHelper
         new DeserializerBuilder()
             .WithNamingConvention(CamelCaseNamingConvention.Instance)
             .Build();
+
+    /// <summary>
+    /// Recursively prunes null/empty values from arbitrary objects (Dictionary/List graphs).
+    /// Keeps non-empty strings, non-empty collections, and leaves other scalars untouched.
+    /// Useful for slimming down tool YAMLs fetched from server payloads.
+    /// </summary>
+    public static object? PruneEmptyNodes(object? node)
+    {
+        if (node == null) return null;
+
+        // Strings: drop if null/empty/whitespace
+        if (node is string s)
+        {
+            return string.IsNullOrWhiteSpace(s) ? null : s;
+        }
+
+        // IDictionary: process each entry and drop null/empty results
+        if (node is IDictionary dict)
+        {
+            var result = new Dictionary<object, object?>();
+            foreach (DictionaryEntry entry in dict)
+            {
+                var pruned = PruneEmptyNodes(entry.Value);
+                if (pruned == null) continue;
+
+                // Skip empty dictionaries/lists
+                if (pruned is IDictionary pd && pd.Count == 0) continue;
+                if (pruned is IEnumerable pe && !(pruned is string))
+                {
+                    // materialize once
+                    var hasAny = pe.Cast<object?>().Any();
+                    if (!hasAny) continue;
+                }
+                result[entry.Key] = pruned;
+            }
+            return result.Count == 0 ? null : result;
+        }
+
+        // IEnumerable (excluding string): prune each item
+        if (node is IEnumerable enumerable && node is not string)
+        {
+            var list = new List<object?>();
+            foreach (var item in enumerable)
+            {
+                var pruned = PruneEmptyNodes(item);
+                if (pruned == null) continue;
+                if (pruned is IDictionary pd && pd.Count == 0) continue;
+                if (pruned is IEnumerable pe && pruned is not string)
+                {
+                    var hasAny = pe.Cast<object?>().Any();
+                    if (!hasAny) continue;
+                }
+                list.Add(pruned);
+            }
+            return list.Count == 0 ? null : list;
+        }
+
+        // Other scalars: keep as-is
+        return node;
+    }
 }
 
 /// <summary>

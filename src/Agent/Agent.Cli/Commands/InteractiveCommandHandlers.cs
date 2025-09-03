@@ -1,14 +1,24 @@
 using Agent.Cli.Services;
 using Agent.Cli.Helpers;
+using System;
+using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Parsing;
+using System.IO;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Agent.Cli.Commands;
+using Agent.Framework; // For YamlAgentDescriptor
 
 namespace Agent.Cli.Commands;
 
 public static class InteractiveCommandHandlers
 {
+    private const string AzCliPresetToken = "__PRESET_AZCLI__";
+    private const string AksPresetToken = "__PRESET_AKS__";
+    private const string IcmKustoPresetToken = "__PRESET_ICM_KUSTO__";
+
     public static async Task HandleInteractiveMode(ParseResult parseResult)
     {
         Console.WriteLine();
@@ -143,22 +153,24 @@ public static class InteractiveCommandHandlers
 
         Console.WriteLine();
         ConsoleUI.WriteSection("What should this agent help with? Choose an option");
-        ConsoleUI.WriteKeyValue("1", "Custom Agent (recommended for getting started - I'll describe what I want)", 3);
-        ConsoleUI.WriteKeyValue("2", "Incident Response (handle ICM incidents with Kusto queries)", 3);
-        ConsoleUI.WriteKeyValue("3", "Kubernetes Operations (pod, service, deployment issues)", 3);
-        ConsoleUI.WriteKeyValue("4", "Azure CLI Operations (resource management, monitoring)", 3);
+        ConsoleUI.WriteKeyValue("1", "Custom Agent * (best first experience – describe what you want)", 3);
+        ConsoleUI.WriteKeyValue("2", "Incident Response (ICM + Kusto investigator)", 3);
+        ConsoleUI.WriteKeyValue("3", "Kubernetes Operations (AKS preset)", 3);
+        ConsoleUI.WriteKeyValue("4", "Azure CLI Operations (AzCLI preset)", 3);
         Console.WriteLine();
         ConsoleUI.WriteInline("Select an option (1-4): ");
 
         var choice = Console.ReadLine()?.Trim();
-        var instructions = choice switch
+        string? selectedCategory = choice switch
         {
-            "1" => await GetCustomInstructions("Custom Agent"),
-            "2" => await GetCustomInstructions("Incident Response"),
-            "3" => await GetCustomInstructions("Kubernetes Operations"),
-            "4" => await GetCustomInstructions("Azure CLI Operations"),
+            "1" => "Custom Agent",
+            "2" => "Incident Response",
+            "3" => "Kubernetes Operations",
+            "4" => "Azure CLI Operations",
             _ => null
         };
+
+        var instructions = selectedCategory != null ? await GetCustomInstructions(selectedCategory) : null;
 
         if (instructions == null)
         {
@@ -172,11 +184,39 @@ public static class InteractiveCommandHandlers
 
         try
         {
-            ConsoleUI.WriteCommand("Running command", $"srectl agent create --name {agentName} --smart");
+            ConsoleUI.WriteCommand("Running command", $"srectl agent create --name {agentName}");
             Console.WriteLine();
 
-            // Create the agent directly
-            await CreateAndRunAgentCommand(agentName, instructions, useSmart: true);
+            // Create the agent directly (support presets and category-aware defaults)
+            if (instructions == AzCliPresetToken)
+            {
+                await CreateAndRunAzCliPresetAgent(agentName);
+                ConsoleUI.WriteInfo("Heads-up: Ensure this agent identity has access to target Azure resources (Reader/Contributor as needed).", ConsoleColor.Yellow);
+            }
+            else if (instructions == AksPresetToken)
+            {
+                await CreateAndRunAksRemediationPresetAgent(agentName);
+                ConsoleUI.WriteInfo("Heads-up: Ensure this agent identity has access to the AKS cluster (kubeconfig/RBAC).", ConsoleColor.Yellow);
+            }
+            else if (instructions == IcmKustoPresetToken)
+            {
+                await CreateAndApplyIcmKustoAgent(agentName);
+                ConsoleUI.WriteInfo("Note: Configure the ICM handler and grant this agent identity access to Kusto clusters used by the tools.", ConsoleColor.Yellow);
+            }
+            else if (string.Equals(selectedCategory, "Azure CLI Operations", StringComparison.OrdinalIgnoreCase))
+            {
+                await CreateAgentWithAzCliTemplate(agentName, instructions);
+                ConsoleUI.WriteInfo("Heads-up: Ensure this agent identity has access to target Azure resources (Reader/Contributor as needed).", ConsoleColor.Yellow);
+            }
+            else if (string.Equals(selectedCategory, "Kubernetes Operations", StringComparison.OrdinalIgnoreCase))
+            {
+                await CreateAgentWithAksTemplate(agentName, instructions);
+                ConsoleUI.WriteInfo("Heads-up: Ensure this agent identity has appropriate Kubernetes RBAC for the target cluster.", ConsoleColor.Yellow);
+            }
+            else
+            {
+                await CreateAndRunAgentCommand(agentName, instructions, useSmart: true);
+            }
 
             Console.WriteLine();
             ConsoleUI.WriteStatus(true, $"Agent '{agentName}' created successfully!");
@@ -211,14 +251,14 @@ public static class InteractiveCommandHandlers
     private static async Task<string> GetCustomInstructions(string category)
     {
         Console.WriteLine();
-        ConsoleUI.WriteSection($"Choose a sample {category} agent or enter your own");
+    ConsoleUI.WriteSection($"Choose a sample {category} agent or enter your own");
 
         // Category-specific sample prompts
         var samples = category switch
         {
             "Custom Agent" => new[]
             {
-                "You are a friendly Hello World agent who greets users with enthusiasm and warmth. Your primary role is to welcome users to the SRE Agent platform and help them feel comfortable getting started. Always maintain a positive, encouraging tone and end every interaction with an inspirational SRE quote about reliability, automation, or continuous improvement. You should be patient with new users and guide them through basic concepts while celebrating their progress.",
+                "[Starter *] You are a friendly Hello World agent who greets users with enthusiasm and warmth. Your primary role is to welcome users to the SRE Agent platform and help them feel comfortable getting started. Keep it concise and helpful. At the end of every response, include exactly one inspirational quote about SREs fixing broken production, then stop and wait for the user to continue—do not ask follow-up questions or add anything after the quote.",
                 "You are a friendly Log Analyzer agent with expertise in analyzing application logs and identifying patterns, errors, and performance issues. You excel at parsing through complex log files, correlating events across multiple systems, and presenting findings in clear, actionable insights. Your approach is methodical yet approachable - you break down complex technical issues into understandable explanations while providing specific recommendations for remediation and monitoring improvements.",
                 "You are a friendly Alert Responder agent specializing in triaging alerts, escalating critical issues, and coordinating incident response activities. You maintain calm under pressure and excel at quickly assessing alert severity, gathering relevant context, and determining appropriate response actions. Your communication style is clear and decisive during incidents while being supportive and collaborative during post-incident reviews and process improvements.",
                 "You are a friendly Performance Monitor agent focused on system performance analysis, metrics interpretation, and optimization suggestions. You have a keen eye for identifying performance bottlenecks, resource utilization patterns, and capacity planning opportunities. Your recommendations are always data-driven and practical, helping teams understand not just what is happening but why it matters and how to improve it systematically.",
@@ -226,27 +266,16 @@ public static class InteractiveCommandHandlers
             },
             "Incident Response" => new[]
             {
-                "You are a friendly ICM Alert Triager agent who specializes in analyzing ICM incidents with precision and care. You expertly run Kusto queries to gather comprehensive diagnostics, correlate incident data across multiple systems, and prioritize alerts based on severity and business impact. Your approach combines technical expertise with clear communication, helping teams understand incident scope and recommended actions. You remain calm under pressure and provide structured, actionable guidance during critical situations.",
-                "You are a friendly Outage Coordinator agent who excels at orchestrating incident response teams during service disruptions. You help track resolution progress, manage communication channels, and ensure all stakeholders stay informed throughout the incident lifecycle. Your strength lies in maintaining situational awareness, coordinating cross-team efforts, and facilitating effective decision-making during high-stress scenarios while keeping everyone focused on restoration goals.",
-                "You are a friendly Post-Incident Analyzer agent who specializes in reviewing completed incidents to extract valuable learnings. You thoroughly analyze incident timelines, identify root causes, and develop comprehensive reports that highlight both technical and process improvements. Your recommendations are practical and actionable, focusing on preventive measures using telemetry data and system insights to strengthen overall reliability and incident response capabilities.",
-                "You are a friendly Emergency Escalator agent who monitors critical alerts and ensures high-priority incidents receive immediate attention from appropriate on-call engineers. You excel at rapid severity assessment, automated escalation workflows, and maintaining clear communication chains during critical events. Your role is crucial in minimizing mean-time-to-response while ensuring the right experts are engaged quickly and efficiently.",
-                "You are a friendly Incident Documenter agent who creates detailed, comprehensive incident reports and timeline analyses. You specialize in capturing the complete incident narrative, documenting lessons learned, and generating actionable follow-up items from ICM data. Your documentation helps teams improve their incident response processes and serves as valuable reference material for future incidents and training purposes."
+                "Use ICM + Kusto Frontend Investigator preset (recommended)",
+                "You are a friendly ICM Alert Triager agent who specializes in analyzing ICM incidents with precision and care. You expertly run Kusto queries to gather comprehensive diagnostics, correlate incident data across multiple systems, and prioritize alerts based on severity and business impact. Your approach combines technical expertise with clear communication, helping teams understand incident scope and recommended actions. You remain calm under pressure and provide structured, actionable guidance during critical situations."
             },
             "Kubernetes Operations" => new[]
             {
-                "You are a friendly Pod Troubleshooter agent specializing in diagnosing and resolving pod failures, restart loops, and resource-related issues in Kubernetes clusters. You have deep expertise in analyzing pod logs, examining resource constraints, and understanding container lifecycle management. Your troubleshooting approach is systematic and thorough, helping teams quickly identify root causes and implement effective solutions while sharing knowledge to prevent similar issues in the future.",
-                "You are a friendly Deployment Manager agent who excels at managing rolling updates, rollbacks, and resolving deployment configuration issues in Kubernetes environments. You understand the intricacies of deployment strategies, health checks, and configuration management. Your guidance helps teams achieve smooth deployments while minimizing downtime and ensuring application reliability through proper rollout procedures and rollback strategies when needed.",
-                "You are a friendly Resource Monitor agent focused on analyzing cluster resource usage, identifying performance bottlenecks, and suggesting practical optimization strategies. You have expertise in resource allocation, capacity planning, and performance tuning across Kubernetes clusters. Your recommendations help teams optimize resource utilization, improve application performance, and plan for future scaling needs through data-driven insights and best practices.",
-                "You are a friendly Service Mesh Expert agent who specializes in troubleshooting service-to-service communication, ingress configuration issues, and network policy problems. You understand the complexities of modern microservices architectures and excel at diagnosing connectivity issues, traffic routing problems, and security policy configurations. Your expertise helps teams maintain reliable service communication and implement effective network security measures.",
-                "You are a friendly Cluster Health Checker agent dedicated to monitoring and maintaining overall Kubernetes cluster stability. You continuously assess node health, etcd status, control plane components, and cluster-wide metrics. Your proactive monitoring approach helps identify potential issues before they impact applications, and you provide clear guidance on maintaining cluster health and implementing preventive maintenance procedures."
+                "Use AKS Remediation Agent preset (recommended)"
             },
             "Azure CLI Operations" => new[]
             {
-                "You are a friendly Azure Resource Manager agent who specializes in creating, configuring, and managing Azure resources using CLI commands and industry best practices. You have comprehensive knowledge of Azure services, resource templates, and automation workflows. Your guidance helps teams efficiently provision and manage cloud infrastructure while following security best practices, cost optimization principles, and operational excellence standards.",
-                "You are a friendly Azure Monitoring Specialist agent who excels at setting up comprehensive monitoring solutions using Azure Monitor, configuring intelligent alerts, creating effective log analytics queries, and building insightful dashboard configurations. You help teams establish proactive monitoring strategies, set up meaningful alerting thresholds, and create visualizations that provide actionable insights into application and infrastructure performance.",
-                "You are a friendly Azure Security Auditor agent focused on reviewing and strengthening Azure security configurations, access policies, and compliance settings. You have deep expertise in Azure security best practices, identity management, network security, and regulatory compliance requirements. Your audits help teams identify security gaps, implement robust access controls, and maintain compliance with industry standards and organizational policies.",
-                "You are a friendly Azure Cost Optimizer agent who analyzes resource usage patterns and suggests practical cost-saving measures for Azure infrastructure. You understand Azure pricing models, resource optimization techniques, and cost management best practices. Your recommendations help teams reduce unnecessary expenses while maintaining performance and reliability, providing clear ROI analysis and implementation guidance for cost optimization initiatives.",
-                "You are a friendly Azure Backup & Recovery agent who specializes in designing and managing comprehensive backup strategies, disaster recovery plans, and data protection policies. You help teams implement robust backup solutions, test recovery procedures, and ensure business continuity through well-planned disaster recovery strategies. Your expertise covers backup scheduling, retention policies, cross-region replication, and recovery testing procedures."
+                "Use Azure CLI Command Executor preset (recommended)"
             },
             _ => new[] { "Default agent description" }
         };
@@ -266,6 +295,21 @@ public static class InteractiveCommandHandlers
         {
             if (index >= 1 && index <= samples.Length)
             {
+                // Special-case: Azure CLI preset as first option
+                if (string.Equals(category, "Azure CLI Operations", StringComparison.OrdinalIgnoreCase) && index == 1)
+                {
+                    return AzCliPresetToken;
+                }
+                // Special-case: AKS preset as first option in Kubernetes
+                if (string.Equals(category, "Kubernetes Operations", StringComparison.OrdinalIgnoreCase) && index == 1)
+                {
+                    return AksPresetToken;
+                }
+                // Special-case: ICM+Kusto preset as first option in Incident Response
+                if (string.Equals(category, "Incident Response", StringComparison.OrdinalIgnoreCase) && index == 1)
+                {
+                    return IcmKustoPresetToken;
+                }
                 return samples[index - 1];
             }
             else if (index == samples.Length + 1)
@@ -1141,25 +1185,404 @@ public static class InteractiveCommandHandlers
 
     private static async Task CreateAndRunAgentCommand(string name, string instructions, bool useSmart = false)
     {
-        // Instead of creating ParseResult objects, directly call the creation logic
-        // This is a simplified approach that avoids the ParseResult complexity
-
+        // Create a valid structured YAML using the same schema as non-interactive create
         try
         {
-            var agentPath = Path.Combine("agents", name);
-            Directory.CreateDirectory(agentPath);
+            string finalInstructions = instructions;
+            List<string> finalTools = new();
 
-            var yamlContent = $@"name: {name}
-system_prompt: {instructions}
-tools: []";
-            var yamlFile = Path.Combine(agentPath, $"{name}.yaml");
-            await File.WriteAllTextAsync(yamlFile, yamlContent);
+            if (useSmart)
+            {
+                try
+                {
+                    using var api = new ApiService();
+                    var (ok, generated, recommended, err) = await api.GenerateSmartAgentAsync(name, instructions);
+                    if (ok)
+                    {
+                        finalInstructions = string.IsNullOrWhiteSpace(generated) ? instructions : generated;
+                        finalTools = recommended ?? new List<string>();
+                        ConsoleUI.WriteInfo($"AI suggested {finalTools.Count} tool(s)", ConsoleColor.Gray);
+                    }
+                    else if (!string.IsNullOrWhiteSpace(err))
+                    {
+                        ConsoleUI.WriteInfo($"AI suggestion failed: {err}. Continuing with your input.", ConsoleColor.Yellow);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ConsoleUI.WriteInfo($"AI suggestion failed: {ex.Message}. Continuing with your input.", ConsoleColor.Yellow);
+                }
+            }
 
-            ConsoleUI.WriteStatus(true, $"Agent '{name}' created at {agentPath}");
+            var agent = new YamlAgentDescriptor
+            {
+                Name = name,
+                Instructions = finalInstructions,
+                Tools = finalTools,
+                Handoffs = new List<string>(),
+                HandoffDescription = string.Empty,
+                AllowParallelToolCalls = false,
+                MaxReflectionCount = 0,
+                CriticPromptPath = string.Empty,
+                CriticOnHandOff = false,
+                CustomReflectionNote = string.Empty,
+                CommonPrompts = new List<string>(),
+                Temperature = null,
+                OutputType = null
+            };
+
+            // This writes api_version/kind/metadata/spec correctly
+            var folder = Path.Combine("agents", name);
+            YamlHelper.WriteAgentYamlFile(folder, name, agent);
+
+            ConsoleUI.WriteStatus(true, $"Agent '{name}' created at {folder}");
         }
         catch (Exception ex)
         {
             throw new InvalidOperationException($"Failed to create agent: {ex.Message}", ex);
+        }
+    }
+
+    private static Task CreateAndRunAzCliPresetAgent(string name)
+    {
+        try
+        {
+            var instructions = @"You execute Azure CLI commands safely for READ and WRITE across Azure resources.
+
+  Core rules
+  - Keep going until the user’s goal is met.
+  - Before ANY action (read/write/help), emit notifyUserMessage: ""Checking … to …"" or ""Running … to …"".
+  - Always include --subscription.
+  - Prefer cached/chat history; only query what’s missing. Don’t re-run the same WRITE if result already exists.
+
+  Execution flow
+  1) Understand & restate goal; identify resources; classify read vs write.
+  2) READ first (list/show/get) with focused --query; run immediately.
+  3) If WRITE:
+     - MUST call GetAzCliHelp on the exact operation to confirm parameters/syntax.
+     - Build minimal correct command; run exactly ONE write at a time; wait for result.
+     - For long ops, consider --no-wait and provide a status check command.
+     - Never delete/remove.
+  4) If a command fails: broaden the READ or re-check help; if help is insufficient or troubleshooting, use SearchDocuments.
+  5) Verify with targeted READ of changed fields; summarize current → desired, impact, and brief rollback.
+
+  Ask questions only for true ambiguities. Use GitHub Markdown for summaries.";
+
+            var handoffDescription = @"Handoff to this agent when an Azure CLI command must be executed—read or write—against any Azure resource.
+  <important>Prefer specialized agents first; if not covered, fall back to this agent. Always have the subscription GUID handy before handoff.</important>
+  The sub-agent securely runs the command and returns raw CLI outp";
+
+            var agent = new YamlAgentDescriptor
+            {
+                Name = name,
+                Instructions = instructions,
+                Tools = new List<string>
+                {
+                    "RunAzCliWriteCommands",
+                    "RunAzCliReadCommands",
+                    "GetAzCliHelp",
+                    "SearchDocuments"
+                },
+                CommonPrompts = new List<string>
+                {
+                    "format_guidelines",
+                    "guard_rail"
+                },
+                Handoffs = new List<string>(),
+                HandoffDescription = handoffDescription,
+                MaxReflectionCount = 2,
+                CriticPromptPath = "CriticPrompts/aks-critic-prompt_medium.txt",
+                CustomReflectionNote = @"- Reuse prior results if available.
+  - Clear notifyUserMessage before every action.
+  - READ vs WRITE classified; WRITE confirmed via help.
+  - Syntax/params verified; --subscription present; use --yes only if supported.
+  - One write at a time; plan, impact, rollback.
+  - On failure: broaden/read/help; SearchDocuments if needed.
+  - Verify outcomes with targeted reads.",
+                Temperature = 0.2f,
+                AllowParallelToolCalls = false,
+                CriticOnHandOff = false,
+                OutputType = null
+            };
+
+            var folder = Path.Combine("agents", name);
+            YamlHelper.WriteAgentYamlFile(folder, name, agent);
+            ConsoleUI.WriteStatus(true, $"Agent '{name}' created at {folder}");
+            return Task.CompletedTask;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Failed to create Azure CLI preset agent: {ex.Message}", ex);
+        }
+    }
+
+    private static Task CreateAndRunAksRemediationPresetAgent(string name)
+    {
+        try
+        {
+            var instructions = @"You are **AKS Remediation Agent**. Introduce yourself briefly and ask which AKS cluster and **workload** to target (namespace/kind/name). If unknown, try SearchResourceByName; lock onto one workload before acting.
+
+  Core scope
+  - Diagnose, remediate, and monitor AKS/Kubernetes workloads.
+  - Operate strictly inside the cluster (no app dev, no infra provisioning).
+  - If Azure/ARM changes are required (e.g., node pool scale), use HandoffBack with a short reason.
+
+  Communication
+  - Use notifyUserMessage for EVERY step (start, before action, finding, after remediation).
+  - Always show the **WORKLOAD NAME** in bold.
+  - Keep going autonomously until a mitigation is applied; don’t wait for approval.
+
+  Minimal workflow
+  1) Confirm target: cluster + single workload. Use SearchResourceByName / ListResourcesByType if needed.
+  2) Diagnose fast: RunKubectlReadCommand (status, events, logs) and metrics (GetKubeResourceMetricsRange / DiscoverPrometheusMetrics / QueryPrometheusMetrics).
+  3) Remediate: choose lowest-risk fix first (RunKubectlWriteCommand / PatchKubernetesYaml / RolloutRestartDeployment). Include simple rollback (e.g., rollout undo/previous image).
+  4) Verify & monitor: re-check health, emit timestamped updates, and continue proposing actions until stable.
+  5) If a step fails, adjust: broaden reads, refine hypothesis, try next remediation.
+
+  Output summaries in GitHub Markdown.";
+
+            var handoffDescription = @"Use this agent when you need **in-cluster AKS workload remediation** (pods, deployments, services, ingresses, configs) via kubectl-level actions.
+  Use **HandoffBack** when the request requires anything **outside the cluster data plane** or beyond kubectl scope, including:
+  - **Azure/ARM operations**: node pool scale/upgrade/drain, VMSS, subnet/NSG/UDR, Load Balancer/App Gateway, Public IP/DNS zone, Managed Identity/Key Vault/ACR auth, Log Analytics/Insights.
+  - **Control plane / cluster lifecycle**: create/upgrade AKS, rotate credentials/certs, cluster-wide policy/add-ons.
+  - **Non-Kubernetes or external deps**: databases, storage accounts, service bus, external DNS/CDN, app code changes/CI/CD.
+  - **Forbidden/insufficient RBAC** or requests to run `az aks command invoke`.
+  When handing off, include a one-line reason and the workload/cluster context gathered so far.";
+
+            var agent = new YamlAgentDescriptor
+            {
+                Name = name,
+                Instructions = instructions,
+                Tools = new List<string>
+                {
+                    "SearchResourceByName",
+                    "ListResourcesByType",
+                    "RunKubectlReadCommand",
+                    "RunKubectlWriteCommand",
+                    "PatchKubernetesYaml",
+                    "RolloutRestartDeployment",
+                    "GetKubeResourceMetricsRange",
+                    "DiscoverPrometheusMetrics",
+                    "QueryPrometheusMetrics",
+                    "PlotTimeSeriesData",
+                    "PlotPieChart",
+                    "PlotBarChart",
+                    "HandoffBack"
+                },
+                CommonPrompts = new List<string>
+                {
+                    "format_guidelines",
+                    "guard_rail"
+                },
+                Handoffs = new List<string>(),
+                HandoffDescription = handoffDescription,
+                MaxReflectionCount = 0,
+                CriticPromptPath = string.Empty,
+                CustomReflectionNote = string.Empty,
+                Temperature = null,
+                AllowParallelToolCalls = false,
+                CriticOnHandOff = false,
+                OutputType = null
+            };
+
+            var folder = Path.Combine("agents", name);
+            YamlHelper.WriteAgentYamlFile(folder, name, agent);
+            ConsoleUI.WriteStatus(true, $"Agent '{name}' created at {folder}");
+            return Task.CompletedTask;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Failed to create AKS preset agent: {ex.Message}", ex);
+        }
+    }
+
+    private static Task CreateAgentWithAzCliTemplate(string name, string instructions)
+    {
+        try
+        {
+            var agent = new YamlAgentDescriptor
+            {
+                Name = name,
+                Instructions = instructions,
+                Tools = new List<string>
+                {
+                    "RunAzCliWriteCommands",
+                    "RunAzCliReadCommands",
+                    "GetAzCliHelp",
+                    "SearchDocuments"
+                },
+                CommonPrompts = new List<string>
+                {
+                    "format_guidelines",
+                    "guard_rail"
+                },
+                Handoffs = new List<string>(),
+                HandoffDescription = string.Empty,
+                MaxReflectionCount = 1,
+                CriticPromptPath = string.Empty,
+                CustomReflectionNote = string.Empty,
+                Temperature = 0.2f,
+                AllowParallelToolCalls = false,
+                CriticOnHandOff = false,
+                OutputType = null
+            };
+
+            var folder = Path.Combine("agents", name);
+            YamlHelper.WriteAgentYamlFile(folder, name, agent);
+            ConsoleUI.WriteStatus(true, $"Agent '{name}' created at {folder}");
+            return Task.CompletedTask;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Failed to create Azure CLI template-based agent: {ex.Message}", ex);
+        }
+    }
+
+    private static Task CreateAgentWithAksTemplate(string name, string instructions)
+    {
+        try
+        {
+            var agent = new YamlAgentDescriptor
+            {
+                Name = name,
+                Instructions = instructions,
+                Tools = new List<string>
+                {
+                    "SearchResourceByName",
+                    "ListResourcesByType",
+                    "RunKubectlReadCommand",
+                    "RunKubectlWriteCommand",
+                    "PatchKubernetesYaml",
+                    "RolloutRestartDeployment",
+                    "GetKubeResourceMetricsRange",
+                    "DiscoverPrometheusMetrics",
+                    "QueryPrometheusMetrics",
+                    "PlotTimeSeriesData",
+                    "PlotPieChart",
+                    "PlotBarChart",
+                    "HandoffBack"
+                },
+                CommonPrompts = new List<string>
+                {
+                    "format_guidelines",
+                    "guard_rail"
+                },
+                Handoffs = new List<string>(),
+                HandoffDescription = string.Empty,
+                MaxReflectionCount = 0,
+                CriticPromptPath = string.Empty,
+                CustomReflectionNote = string.Empty,
+                Temperature = null,
+                AllowParallelToolCalls = false,
+                CriticOnHandOff = false,
+                OutputType = null
+            };
+
+            var folder = Path.Combine("agents", name);
+            YamlHelper.WriteAgentYamlFile(folder, name, agent);
+            ConsoleUI.WriteStatus(true, $"Agent '{name}' created at {folder}");
+            return Task.CompletedTask;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Failed to create AKS template-based agent: {ex.Message}", ex);
+        }
+    }
+
+    private static async Task CreateAndApplyIcmKustoAgent(string name)
+    {
+        try
+        {
+            // 1) Create tools first
+            var tool1Dir = Path.Combine("tools", "appservicegetregions");
+            Directory.CreateDirectory(tool1Dir);
+            var tool1Path = Path.Combine(tool1Dir, "appservicegetregions.yaml");
+            var tool1Yaml = "" +
+                "name: appservicegetregions\n" +
+                "type: KustoTool\n" +
+                "connector: wawswus\n" +
+                "description: |\n" +
+                "  Retrieves the regions where App Service is supported\n" +
+                "mode: query\n" +
+                "query: |\n" +
+                "  GetRegions\n" +
+                "  | distinct Name\n";
+            await File.WriteAllTextAsync(tool1Path, tool1Yaml);
+            ConsoleUI.WriteStatus(true, $"Tool 'appservicegetregions' created at {tool1Dir}");
+
+            var tool2Dir = Path.Combine("tools", "CheckAllScenarioImpact");
+            Directory.CreateDirectory(tool2Dir);
+            var tool2Path = Path.Combine(tool2Dir, "CheckAllScenarioImpact.yaml");
+            var tool2Yaml = "" +
+                "name: CheckAllScenarioImpact\n" +
+                "type: KustoTool\n" +
+                "connector: wawswus\n" +
+                "mode: query\n" +
+                "description: |\n" +
+                "  Checks scenario impact for a subscription or Service OID and returns a table.\n" +
+                "query: |\n" +
+                "  cluster('azrelsikusto-dev.westus.kusto.windows.net').database('Security').AzRF_OV_SR06a_DRIQuery_Table\n" +
+                "  | extend parsed = parse_json(DRIInfo)\n" +
+                "  | mv-expand scenario = bag_keys(parsed)\n" +
+                "  | extend scenarioData = parsed[tostring(scenario)]\n" +
+                "  | mv-expand row = scenarioData | evaluate bag_unpack(row)\n" +
+                "  | extend Scenario = scenario\n" +
+                "  | distinct tostring(Scenario), ServiceOid, Subscription, WebSpace, ResourceGroup, CanonicalName, SiteName, CertificateName, Thumbprint\n" +
+                "  | where\n" +
+                "      ('##SubscriptionId##' != '' and Subscription == '##SubscriptionId##') or\n" +
+                "      ('##ServiceOid##' != '' and ServiceOid == '##ServiceOid##')\n" +
+                "parameters:\n" +
+                "  - name: SubscriptionId\n" +
+                "    type: string\n" +
+                "    required: false\n" +
+                "    description: The subscription ID (GUID) to check for all scenario impacts\n" +
+                "    map_to: args\n" +
+                "    target: dictionary:args:string\n" +
+                "    value: ''\n" +
+                "  - name: ServiceOid\n" +
+                "    type: string\n" +
+                "    required: false\n" +
+                "    description: The Service OID to check for all scenario impacts\n" +
+                "    map_to: args\n" +
+                "    target: dictionary:args:string\n" +
+                "    value: ''\n";
+            await File.WriteAllTextAsync(tool2Path, tool2Yaml);
+            ConsoleUI.WriteStatus(true, $"Tool 'CheckAllScenarioImpact' created at {tool2Dir}");
+
+            // 2) Apply tools first
+            await ApplyToolDirectly("appservicegetregions");
+            await ApplyToolDirectly("CheckAllScenarioImpact");
+
+            // 3) Create agent referencing the tools
+            var agent = new YamlAgentDescriptor
+            {
+                Name = name,
+                Instructions = "You triage ICM incidents and run Kusto to investigate a web app frontend. Be concise and use the provided tools.",
+                Tools = new List<string> { "CheckAllScenarioImpact" },
+                Handoffs = new List<string>(),
+                HandoffDescription = string.Empty,
+                AllowParallelToolCalls = false,
+                MaxReflectionCount = 0,
+                CriticPromptPath = string.Empty,
+                CriticOnHandOff = false,
+                CustomReflectionNote = string.Empty,
+                CommonPrompts = new List<string>(),
+                Temperature = 0.2f,
+                OutputType = null
+            };
+
+            var folder = Path.Combine("agents", name);
+            YamlHelper.WriteAgentYamlFile(folder, name, agent);
+            ConsoleUI.WriteStatus(true, $"Agent '{name}' created at {folder}");
+
+            // 4) Apply agent
+            await ApplyAgentDirectly(name);
+
+            ConsoleUI.WriteInfo("ICM + Kusto agent deployed. Ensure ICM handler is configured and the agent identity has Kusto reader access.", ConsoleColor.Yellow);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Failed to create/apply ICM + Kusto agent: {ex.Message}", ex);
         }
     }
 

@@ -79,6 +79,18 @@ Examples:
 
   # Test with custom user details
   srectl agent test --name MyAgent --message ""Help me"" --user-id john.doe --display-name ""John Doe""";
+
+  public const string DiffDescription = @"Compare local and remote agent configurations
+
+Examples:
+  # Compare default using git-diff (default)
+  srectl agent diff --name DevOpsAgent
+
+  # Use VS Code diff
+  srectl agent diff --name KustoAgent --tool code
+
+  # Show inline diff
+  srectl agent diff --name MyAgent --raw";
     }
 
     #endregion
@@ -161,6 +173,18 @@ Examples:
 
   # Show detailed connector information
   srectl tool show-connectors --verbose";
+
+  public const string DiffDescription = @"Compare local and remote tool configurations
+
+Examples:
+  # Compare default using git
+  srectl tool diff --name QueryMetrics
+
+  # Use VS Code diff
+  srectl tool diff --name MyTool --tool code
+
+  # Show inline diff
+  srectl tool diff --name MyTool --raw";
     }
 
     #endregion

@@ -17,7 +17,7 @@ public class CliConfiguration
     public string Version { get; set; } = "1.0.0";
 
     [JsonPropertyName("api_version")]
-    public string ApiVersion { get; set; } = "agent.platform.ai/v1";
+    public string ApiVersion { get; set; } = "azuresre.ai/v1";
 
     [JsonPropertyName("owner")]
     public string Owner { get; set; } = "your-team@example.com";

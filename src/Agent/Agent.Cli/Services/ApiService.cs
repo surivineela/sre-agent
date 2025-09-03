@@ -10,6 +10,7 @@ using Agent.Cli.Helpers;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using System.Diagnostics;
+using Agent.Cli.Models;
 
 namespace Agent.Cli.Services;
 
@@ -17,6 +18,10 @@ public class ApiService : IDisposable
 {
     private readonly HttpClient _httpClient;
     private readonly CliConfigurationService _configService;
+    private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
+    {
+        PropertyNameCaseInsensitive = true
+    };
 
     public ApiService()
     {
@@ -694,6 +699,116 @@ public class ApiService : IDisposable
         }
     }
 
+    /// <summary>
+    /// Returns a simple list of agent names from the server.
+    /// </summary>
+    public async Task<(bool Success, List<string> Names, string Error)> GetAgentNamesAsync()
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return (false, new List<string>(), "Configuration not found. Please run 'srectl init' first.");
+            }
+
+            var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/agents";
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
+            {
+                var token = await GetAccessTokenAsync();
+                if (string.IsNullOrEmpty(token))
+                {
+                    return (false, new List<string>(), "Failed to get access token. Please run 'az login' first.");
+                }
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var (response, content, _) = await MakeHttpRequestAsync(request);
+            if (!response.IsSuccessStatusCode)
+            {
+                return (false, new List<string>(), $"Failed to list agents: {response.StatusCode} - {content}");
+            }
+
+            // Prefer typed deserialization matching controller's PaginatedResponse<T>
+            try
+            {
+                // Case 1: PaginatedResponse<AgentListItem>
+                var paged = JsonSerializer.Deserialize<PaginatedResponse<AgentListItem>>(content, _jsonOptions);
+                if (paged?.Data != null && paged.Data.Count > 0)
+                {
+                    var namesTyped = paged.Data
+                        .Select(a => a.Name)
+                        .Where(n => !string.IsNullOrWhiteSpace(n))
+                        .Select(n => n!)
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .ToList();
+                    return (true, namesTyped, "");
+                }
+
+                // Case 2: bare array [ { name: ... } ]
+                var bare = JsonSerializer.Deserialize<List<AgentListItem>>(content, _jsonOptions);
+                if (bare != null && bare.Count > 0)
+                {
+                    var namesBare = bare
+                        .Select(a => a.Name)
+                        .Where(n => !string.IsNullOrWhiteSpace(n))
+                        .Select(n => n!)
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .ToList();
+                    return (true, namesBare, "");
+                }
+            }
+            catch
+            {
+                // Fall back to robust JSON parsing below
+            }
+
+            // Fallback: robust parsing of multiple shapes
+            try
+            {
+                var names = new List<string>();
+                var jsonDoc = JsonDocument.Parse(content);
+                JsonElement agents;
+                if (jsonDoc.RootElement.TryGetProperty("data", out var dataElement) && dataElement.ValueKind == JsonValueKind.Array)
+                {
+                    agents = dataElement;
+                }
+                else if (jsonDoc.RootElement.TryGetProperty("agents", out var agentsElement) && agentsElement.ValueKind == JsonValueKind.Array)
+                {
+                    agents = agentsElement;
+                }
+                else if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
+                {
+                    agents = jsonDoc.RootElement;
+                }
+                else
+                {
+                    return (false, new List<string>(), "Unexpected response format for agents list");
+                }
+
+                foreach (var agent in agents.EnumerateArray())
+                {
+                    if (agent.TryGetProperty("name", out var nameEl))
+                    {
+                        var n = nameEl.GetString();
+                        if (!string.IsNullOrWhiteSpace(n)) names.Add(n);
+                    }
+                }
+                return (true, names, "");
+            }
+            catch (Exception ex)
+            {
+                return (false, new List<string>(), $"Failed to parse agents list: {ex.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            return (false, new List<string>(), ex.Message);
+        }
+    }
+
     public async Task<(bool Success, string Response)> ListToolsAsync()
     {
         try
@@ -748,6 +863,120 @@ public class ApiService : IDisposable
         catch (Exception ex)
         {
             return (false, $"❌ Failed to list tools: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Returns a simple list of tool names from the server (prefers extended tools endpoint for rich tools).
+    /// </summary>
+    public async Task<(bool Success, List<string> Names, string Error)> GetToolNamesAsync()
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return (false, new List<string>(), "Configuration not found. Please run 'srectl init' first.");
+            }
+
+            var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/tools";
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
+            {
+                var token = await GetAccessTokenAsync();
+                if (string.IsNullOrEmpty(token))
+                {
+                    return (false, new List<string>(), "Failed to get access token. Please run 'az login' first.");
+                }
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var (response, content, _) = await MakeHttpRequestAsync(request);
+            if (!response.IsSuccessStatusCode)
+            {
+                return (false, new List<string>(), $"Failed to list tools: {response.StatusCode} - {content}");
+            }
+
+            // Prefer typed deserialization matching controller's PaginatedResponse<T>
+            try
+            {
+                // Case 1: PaginatedResponse<ToolListItem>
+                var paged = JsonSerializer.Deserialize<PaginatedResponse<ToolListItem>>(content, _jsonOptions);
+                if (paged?.Data != null && paged.Data.Count > 0)
+                {
+                    var namesTyped = paged.Data
+                        .Select(t => t.Name)
+                        .Where(n => !string.IsNullOrWhiteSpace(n))
+                        .Select(n => n!)
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .ToList();
+                    return (true, namesTyped, "");
+                }
+
+                // Case 2: bare array [ { name: ... } ]
+                var bare = JsonSerializer.Deserialize<List<ToolListItem>>(content, _jsonOptions);
+                if (bare != null && bare.Count > 0)
+                {
+                    var namesBare = bare
+                        .Select(t => t.Name)
+                        .Where(n => !string.IsNullOrWhiteSpace(n))
+                        .Select(n => n!)
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .ToList();
+                    return (true, namesBare, "");
+                }
+            }
+            catch
+            {
+                // Fall back to robust JSON parsing below
+            }
+
+            // Fallback: robust parsing of multiple shapes
+            try
+            {
+                var names = new List<string>();
+                var jsonDoc = JsonDocument.Parse(content);
+                JsonElement dataEl;
+                if (jsonDoc.RootElement.TryGetProperty("data", out var de))
+                {
+                    dataEl = de;
+                }
+                else if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
+                {
+                    dataEl = jsonDoc.RootElement;
+                }
+                else
+                {
+                    return (false, new List<string>(), "Unexpected response format for tools list");
+                }
+
+                foreach (var tool in dataEl.EnumerateArray())
+                {
+                    if (tool.ValueKind == JsonValueKind.Object)
+                    {
+                        if (tool.TryGetProperty("name", out var nEl))
+                        {
+                            var n = nEl.GetString();
+                            if (!string.IsNullOrWhiteSpace(n)) names.Add(n);
+                        }
+                        else if (tool.TryGetProperty("tool", out var toolObj) && toolObj.ValueKind == JsonValueKind.Object && toolObj.TryGetProperty("name", out var innerName))
+                        {
+                            var n = innerName.GetString();
+                            if (!string.IsNullOrWhiteSpace(n)) names.Add(n);
+                        }
+                    }
+                }
+                return (true, names, "");
+            }
+            catch (Exception ex)
+            {
+                return (false, new List<string>(), $"Failed to parse tools list: {ex.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            return (false, new List<string>(), ex.Message);
         }
     }
 
@@ -900,7 +1129,7 @@ public class ApiService : IDisposable
             // Create the wrapper with proper structure
             var toolWrapper = new ToolListWrapper
             {
-                ApiVersion = config.ApiVersion ?? "agent.platform.ai/v1",
+                ApiVersion = config.ApiVersion ?? "azuresre.ai/v1",
                 Metadata = new YamlMetadata
                 {
                     Owner = config.Owner ?? "your-team@example.com",
@@ -2170,11 +2399,9 @@ public class ApiService : IDisposable
             {
                 return (false, "", "Configuration not found. Please run 'srectl init' first.");
             }
-
-            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/Agents/{Uri.EscapeDataString(agentName)}/yaml";
-            var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
-
-            // Add auth header if not localhost
+            // Only collection API exists: fetch collection, find by name, convert JSON->YAML
+            var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/agents";
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
             if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
             {
                 var token = await GetAccessTokenAsync();
@@ -2185,23 +2412,69 @@ public class ApiService : IDisposable
                 request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
             }
 
-            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
-
-            if (response.IsSuccessStatusCode)
+            var (response, content, _) = await MakeHttpRequestAsync(request);
+            if (!response.IsSuccessStatusCode)
             {
-                return (true, content, "");
+                return (false, "", $"Failed to list agents: {response.StatusCode}");
             }
-            else
+            var mediaType = response.Content.Headers.ContentType?.MediaType?.ToLowerInvariant();
+            if (!string.IsNullOrWhiteSpace(mediaType) && mediaType.Contains("html"))
             {
-                var errorMessage = response.StatusCode switch
-                {
-                    HttpStatusCode.NotFound => $"Agent '{agentName}' not found on the remote server.",
-                    HttpStatusCode.Unauthorized => "Authentication failed. Please run 'az login' first.",
-                    HttpStatusCode.Forbidden => "Access denied. Check your permissions.",
-                    _ => $"Failed to retrieve agent configuration. Status: {response.StatusCode}"
-                };
+                return (false, "", "Server returned HTML instead of JSON. Check the API URL/auth.");
+            }
+            if (!LooksLikeJson(content))
+            {
+                return (false, "", "Unexpected response format for agents list");
+            }
 
-                return (false, "", errorMessage);
+            // Parse possible shapes: { data: [...] }, { agents: [...] }, or bare array
+            try
+            {
+                var jsonDoc = JsonDocument.Parse(content);
+                JsonElement agentsArray;
+                if (jsonDoc.RootElement.TryGetProperty("data", out var dataEl) && dataEl.ValueKind == JsonValueKind.Array)
+                {
+                    agentsArray = dataEl;
+                }
+                else if (jsonDoc.RootElement.TryGetProperty("agents", out var agentsEl) && agentsEl.ValueKind == JsonValueKind.Array)
+                {
+                    agentsArray = agentsEl;
+                }
+                else if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
+                {
+                    agentsArray = jsonDoc.RootElement;
+                }
+                else
+                {
+                    return (false, "", "No agents array found in response");
+                }
+
+                foreach (var agent in agentsArray.EnumerateArray())
+                {
+                    if (agent.ValueKind != JsonValueKind.Object) continue;
+                    if (!agent.TryGetProperty("name", out var nameEl)) continue;
+                    var name = nameEl.GetString();
+                    if (!string.Equals(name, agentName, StringComparison.OrdinalIgnoreCase)) continue;
+
+                    // Convert the agent JsonElement into plain objects (no cycles), then YAML
+                    var plainAgent = ConvertJsonElementToPlainObject(agent);
+                    var wrapper = new AgentConfigurationWrapper
+                    {
+                        Spec = new AgentSpec { Agent = plainAgent! }
+                    };
+                    var serializer = new YamlDotNet.Serialization.SerializerBuilder()
+                        .WithNamingConvention(YamlDotNet.Serialization.NamingConventions.UnderscoredNamingConvention.Instance)
+                        .DisableAliases()
+                        .Build();
+                    var yaml = serializer.Serialize(wrapper);
+                    return (true, yaml, "");
+                }
+
+                return (false, "", $"Agent '{agentName}' not found on server");
+            }
+            catch (Exception ex)
+            {
+                return (false, "", $"Failed to parse agents list: {ex.Message}");
             }
         }
         catch (Exception ex)
@@ -2225,11 +2498,9 @@ public class ApiService : IDisposable
             {
                 return (false, "", "Configuration not found. Please run 'srectl init' first.");
             }
-
-            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/Tools/{Uri.EscapeDataString(toolName)}/yaml";
-            var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
-
-            // Add auth header if not localhost
+            // Only collection API exists: fetch collection, find by name, convert JSON->YAML
+            var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/tools";
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
             if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
             {
                 var token = await GetAccessTokenAsync();
@@ -2240,23 +2511,79 @@ public class ApiService : IDisposable
                 request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
             }
 
-            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
-
-            if (response.IsSuccessStatusCode)
+            var (response, content, _) = await MakeHttpRequestAsync(request);
+            if (!response.IsSuccessStatusCode)
             {
-                return (true, content, "");
+                return (false, "", $"Failed to list tools: {response.StatusCode}");
             }
-            else
+            var mediaType = response.Content.Headers.ContentType?.MediaType?.ToLowerInvariant();
+            if (!string.IsNullOrWhiteSpace(mediaType) && mediaType.Contains("html"))
             {
-                var errorMessage = response.StatusCode switch
-                {
-                    HttpStatusCode.NotFound => $"Tool '{toolName}' not found on the remote server.",
-                    HttpStatusCode.Unauthorized => "Authentication failed. Please run 'az login' first.",
-                    HttpStatusCode.Forbidden => "Access denied. Check your permissions.",
-                    _ => $"Failed to retrieve tool configuration. Status: {response.StatusCode}"
-                };
+                return (false, "", "Server returned HTML instead of JSON. Check the API URL/auth.");
+            }
+            if (!LooksLikeJson(content))
+            {
+                return (false, "", "Unexpected response format for tools list");
+            }
 
-                return (false, "", errorMessage);
+            // Parse possible shapes: { data: [...] } or bare array
+            try
+            {
+                var jsonDoc = JsonDocument.Parse(content);
+                JsonElement toolsArray;
+                if (jsonDoc.RootElement.TryGetProperty("data", out var dataEl))
+                {
+                    toolsArray = dataEl;
+                }
+                else if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
+                {
+                    toolsArray = jsonDoc.RootElement;
+                }
+                else
+                {
+                    return (false, "", "No tools array found in response");
+                }
+
+                foreach (var tool in toolsArray.EnumerateArray())
+                {
+                    if (tool.ValueKind != JsonValueKind.Object) continue;
+                    // Tool name can be at top-level name or inside nested 'tool' object depending on API
+                    string? name = null;
+                    JsonElement? toolPayload = null;
+                    if (tool.TryGetProperty("name", out var nameEl))
+                    {
+                        name = nameEl.GetString();
+                        toolPayload = tool;
+                    }
+                    else if (tool.TryGetProperty("tool", out var toolObj) && toolObj.ValueKind == JsonValueKind.Object && toolObj.TryGetProperty("name", out var innerNameEl))
+                    {
+                        name = innerNameEl.GetString();
+                        toolPayload = toolObj;
+                    }
+
+                    if (!string.Equals(name, toolName, StringComparison.OrdinalIgnoreCase)) continue;
+
+                    // Convert the tool object to a plain tool YAML (no ToolList wrapper)
+                    // We expect the payload to represent a single tool definition that includes fields like 'type', 'name', etc.
+                    var payload = toolPayload ?? tool;
+                    var plainTool = ConvertJsonElementToPlainObject(payload);
+
+                    // Prune empty nodes for cleaner tool YAML; do not use agent-only visitors
+                    var pruned = Agent.Cli.Helpers.YamlHelper.PruneEmptyNodes(plainTool) ?? plainTool;
+                    var serializer = new YamlDotNet.Serialization.SerializerBuilder()
+                        .WithNamingConvention(YamlDotNet.Serialization.NamingConventions.UnderscoredNamingConvention.Instance)
+                        .ConfigureDefaultValuesHandling(YamlDotNet.Serialization.DefaultValuesHandling.OmitNull)
+                        .DisableAliases()
+                        .Build();
+                    var yaml = serializer.Serialize(pruned);
+                    return (true, yaml, "");
+                }
+
+                return (false, "", $"Tool '{toolName}' not found on server");
+            }
+            catch (Exception ex)
+            {
+                return (false, "", $"Failed to parse tools list: {ex.Message}");
             }
         }
         catch (Exception ex)
@@ -2272,6 +2599,86 @@ public class ApiService : IDisposable
     public HttpClient GetHttpClient()
     {
         return _httpClient;
+    }
+
+    private static bool LooksLikeHtml(string content)
+    {
+        if (string.IsNullOrWhiteSpace(content)) return false;
+        var trimmed = content.TrimStart();
+        return trimmed.StartsWith("<html", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("<!doctype html", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("<!DOCTYPE html", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool LooksLikeJson(string content)
+    {
+        if (string.IsNullOrWhiteSpace(content)) return false;
+        var t = content.TrimStart();
+        return t.StartsWith("{") || t.StartsWith("[");
+    }
+
+    private static object? ConvertJsonElementToPlainObject(JsonElement element)
+    {
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Object:
+                var dict = new Dictionary<string, object?>();
+                foreach (var prop in element.EnumerateObject())
+                {
+                    dict[prop.Name] = ConvertJsonElementToPlainObject(prop.Value);
+                }
+                return dict;
+            case JsonValueKind.Array:
+                var list = new List<object?>();
+                foreach (var item in element.EnumerateArray())
+                {
+                    list.Add(ConvertJsonElementToPlainObject(item));
+                }
+                return list;
+            case JsonValueKind.String:
+                return element.GetString();
+            case JsonValueKind.Number:
+                if (element.TryGetInt64(out var l)) return l;
+                if (element.TryGetDouble(out var d)) return d;
+                return element.ToString();
+            case JsonValueKind.True:
+                return true;
+            case JsonValueKind.False:
+                return false;
+            case JsonValueKind.Null:
+            case JsonValueKind.Undefined:
+                return null;
+            default:
+                return element.ToString();
+        }
+    }
+
+    private static string ConvertAgentJsonToYaml(string json)
+    {
+        var node = JsonNode.Parse(json);
+        var wrapper = new AgentConfigurationWrapper
+        {
+            Spec = new AgentSpec { Agent = node! }
+        };
+
+        var serializer = new SerializerBuilder()
+            .WithNamingConvention(UnderscoredNamingConvention.Instance)
+            .Build();
+        return serializer.Serialize(wrapper);
+    }
+
+    private static string ConvertToolJsonToYaml(string json)
+    {
+        var node = JsonNode.Parse(json);
+        var wrapper = new ToolListWrapper
+        {
+            Spec = new ToolSpec { Tools = new List<object> { node! } }
+        };
+
+        var serializer = new SerializerBuilder()
+            .WithNamingConvention(UnderscoredNamingConvention.Instance)
+            .Build();
+        return serializer.Serialize(wrapper);
     }
 
     /// <summary>
@@ -2993,7 +3400,7 @@ public class ApiService : IDisposable
 // Simple wrapper models for YAML structure
 public class AgentConfigurationWrapper
 {
-    public string ApiVersion { get; set; } = "agent.platform.ai/v1";
+    public string ApiVersion { get; set; } = "azuresre.ai/v1";
     public string Kind { get; set; } = "AgentConfiguration";
     public YamlMetadata Metadata { get; set; } = new YamlMetadata();
     public AgentSpec Spec { get; set; } = new AgentSpec();
@@ -3001,7 +3408,7 @@ public class AgentConfigurationWrapper
 
 public class ToolListWrapper
 {
-    public string ApiVersion { get; set; } = "agent.platform.ai/v1";
+    public string ApiVersion { get; set; } = "azuresre.ai/v1";
     public string Kind { get; set; } = "ToolList";
     public YamlMetadata Metadata { get; set; } = new YamlMetadata();
     public ToolSpec Spec { get; set; } = new ToolSpec();
@@ -3029,7 +3436,7 @@ public class ToolSpec
 // New wrapper for combined agent and tools
 public class CombinedAgentWrapper
 {
-    public string ApiVersion { get; set; } = "agent.platform.ai/v1";
+    public string ApiVersion { get; set; } = "azuresre.ai/v1";
     public string Kind { get; set; } = "AgentConfiguration";
     public YamlMetadata Metadata { get; set; } = new YamlMetadata();
     public CombinedAgentSpec Spec { get; set; } = new CombinedAgentSpec();

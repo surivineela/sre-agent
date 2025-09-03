@@ -1,4 +1,5 @@
 using System.CommandLine;
+using System.Text.RegularExpressions;
 
 namespace Agent.Cli.Helpers;
 
@@ -30,13 +31,13 @@ public static class StandardHelpFormatter
 
         ConsoleUI.WithColor(ConsoleColor.Cyan, () => {
             Console.WriteLine($"{ConsoleUI.Chars.TL}{horizontalLine}{ConsoleUI.Chars.TR}");
-            
+
             foreach (var line in bannerLines)
             {
                 var paddedLine = line.PadRight(totalWidth - 4);
                 Console.WriteLine($"{ConsoleUI.Chars.V} {paddedLine} {ConsoleUI.Chars.V}");
             }
-            
+
             Console.WriteLine($"{ConsoleUI.Chars.BL}{horizontalLine}{ConsoleUI.Chars.BR}");
         });
         Console.WriteLine();
@@ -47,36 +48,47 @@ public static class StandardHelpFormatter
     /// </summary>
     public static void ShowCommandGroups(Command parentCommand, Dictionary<string, string[]>? commandGroups = null, Dictionary<string, string>? groupDescriptions = null)
     {
-        var commands = ExtractCommandInfo(parentCommand);
-        
+        var all = parentCommand.Subcommands.ToArray();
+
         if (commandGroups != null)
         {
             // Show commands organized by specified groups
             foreach (var (groupName, commandNames) in commandGroups)
             {
-                var groupCommands = commands
-                    .Where(c => commandNames.Contains(c.name))
+                var groupCommands = all
+                    .Where(c => commandNames.Contains(c.Name))
                     .ToArray();
-                    
+
                 if (groupCommands.Any())
                 {
-                    // Show group description if provided
-                    if (groupDescriptions?.ContainsKey(groupName) == true)
+                    // Header first
+                    ConsoleUI.WriteSection(groupName);
+                    // Show group description beneath header (plain gray text, not bullet)
+                    if (groupDescriptions?.TryGetValue(groupName, out var desc) == true && !string.IsNullOrWhiteSpace(desc))
                     {
-                        ConsoleUI.WriteInfo($"{groupName}: {groupDescriptions[groupName]}", ConsoleColor.Gray);
+                        ConsoleUI.Write(desc.Trim(), ConsoleColor.Gray);
                         Console.WriteLine();
                     }
-                    
-                    ConsoleUI.WriteCommandGroup(groupName, groupCommands);
+                    foreach (var cmd in groupCommands)
+                    {
+                        var (shortDesc, examples) = ParseDescriptionAndExamples(cmd.Description ?? string.Empty);
+                        // Show each subcommand row with optional examples
+                        ConsoleUI.WriteSubcommand(cmd.Name, shortDesc, examples.Length > 0 ? examples : null);
+                    }
                 }
             }
         }
         else
         {
             // Show all commands in a single group
-            if (commands.Any())
+            if (all.Any())
             {
-                ConsoleUI.WriteCommandGroup("Available Commands", commands);
+                ConsoleUI.WriteSection("Available Commands");
+                foreach (var cmd in all)
+                {
+                    var (shortDesc, examples) = ParseDescriptionAndExamples(cmd.Description ?? string.Empty);
+                    ConsoleUI.WriteSubcommand(cmd.Name, shortDesc, examples.Length > 0 ? examples : null);
+                }
             }
         }
     }
@@ -92,36 +104,71 @@ public static class StandardHelpFormatter
         Console.WriteLine();
     }
 
-    /// <summary>
-    /// Extract command information from a Command object
-    /// </summary>
-    private static (string name, string description)[] ExtractCommandInfo(Command parentCommand)
+    // Parse the command description into a short one-liner and structured examples
+    private static (string shortDescription, (string Comment, string Command)[] examples) ParseDescriptionAndExamples(string description)
     {
-        return parentCommand.Subcommands
-            .Select(cmd => (cmd.Name, cmd.Description ?? "No description available"))
-            .ToArray();
+        if (string.IsNullOrWhiteSpace(description))
+            return ("No description available", Array.Empty<(string, string)>());
+
+        // Split into two parts: text before "Examples:" and after
+        var idx = description.IndexOf("Examples:", StringComparison.OrdinalIgnoreCase);
+        string header = idx >= 0 ? description[..idx] : description;
+        string examplesBlock = idx >= 0 ? description[(idx + "Examples:".Length)..] : string.Empty;
+
+        // Short description = first non-empty line of header
+        var shortDesc = header
+            .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+            .FirstOrDefault()?.Trim() ?? header.Trim();
+
+        var examples = new List<(string Comment, string Command)>();
+        if (!string.IsNullOrWhiteSpace(examplesBlock))
+        {
+            string? pendingComment = null;
+            foreach (var raw in examplesBlock.Split(new[] { '\r', '\n' }, StringSplitOptions.None))
+            {
+                var line = raw.Trim();
+                if (string.IsNullOrWhiteSpace(line))
+                    continue;
+
+                if (line.StartsWith("# "))
+                {
+                    // comment line
+                    pendingComment = line[2..].Trim();
+                    continue;
+                }
+
+                // Accept lines that look like commands (start with srectl)
+                if (line.StartsWith("srectl ", StringComparison.OrdinalIgnoreCase))
+                {
+                    examples.Add((pendingComment ?? string.Empty, line));
+                    pendingComment = null;
+                }
+            }
+        }
+
+        return (shortDesc, examples.ToArray());
     }
 
     /// <summary>
     /// Show formatted help for a command group with consistent layout
     /// </summary>
     public static void ShowCommandGroupHelp(
-        string groupDisplayName, 
-        string groupDescription, 
-        ConsoleColor panelColor, 
+        string groupDisplayName,
+        string groupDescription,
+        ConsoleColor panelColor,
         Command parentCommand,
         Dictionary<string, string[]>? commandGroups = null,
         Dictionary<string, string>? groupDescriptions = null,
         string[]? examples = null)
     {
         ShowSrectlHeader();
-        
+
         ConsoleUI.DrawPanel(groupDisplayName, groupDescription, panelColor);
         Console.WriteLine();
-        
+
         ShowCommandGroups(parentCommand, commandGroups, groupDescriptions);
-        
-        // Examples are now included within command descriptions, not as separate section
+
+    // Group-level examples are now included within each subcommand via WriteSubcommand
     }
 
     /// <summary>
@@ -143,13 +190,13 @@ public static class StandardHelpFormatter
 
         ConsoleUI.WithColor(bannerColor, () => {
             Console.WriteLine($"{ConsoleUI.Chars.TL}{horizontalLine}{ConsoleUI.Chars.TR}");
-            
+
             foreach (var line in bannerLines)
             {
                 var paddedLine = line.PadRight(totalWidth - 4);
                 Console.WriteLine($"{ConsoleUI.Chars.V} {paddedLine} {ConsoleUI.Chars.V}");
             }
-            
+
             Console.WriteLine($"{ConsoleUI.Chars.BL}{horizontalLine}{ConsoleUI.Chars.BR}");
         });
         Console.WriteLine();

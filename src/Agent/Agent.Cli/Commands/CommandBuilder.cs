@@ -68,6 +68,7 @@ public static class CommandBuilder
         profile.SetAction((ParseResult pr) => ShowFormattedProfileHelp(profile));
 
         var initCommand = CreateInitCommand();
+        var syncCommand = CreateSyncCommand();
         var listCommand = CreateListCommand();
 
         // Add default action for list command to show formatted help
@@ -80,7 +81,6 @@ public static class CommandBuilder
         var chatCommand = CreateChatCommand();
         var welcomeCommand = CreateWelcomeCommand();
         var helpCommand = CreateEnhancedHelpCommand();
-        var suggestCommand = CreateSuggestCommand();
         var statusCommand = CreateStatusCommand();
         var interactiveCommand = CreateInteractiveCommand();
         var versionCommand = CreateVersionCommand();
@@ -91,10 +91,12 @@ public static class CommandBuilder
         incidentHandler.SetAction((ParseResult pr) => ShowFormattedIncidentHandlerHelp(incidentHandler));
 
         // ----- Root
-        var root = new RootCommand("SRE Agent CLI - Your intelligent assistant for managing SRE agents and automating incident response")
+        var root = new RootCommand(
+            "SRE Agent CLI - Your intelligent assistant for managing SRE agents and automating incident response\n\n" +
+            "Incident Handler Commands: create, map-agent, list (run 'srectl incidenthandler --help' for details)")
         {
-            welcomeCommand, helpCommand, suggestCommand, statusCommand, interactiveCommand, versionCommand,
-            initCommand, listCommand, applyYamlCommand, threadCommand, chatCommand,
+            welcomeCommand, helpCommand, statusCommand, interactiveCommand, versionCommand,
+            initCommand, syncCommand, listCommand, applyYamlCommand, threadCommand, chatCommand,
             agent, tool, doc, profile, incidentHandler
         };
 
@@ -105,6 +107,33 @@ public static class CommandBuilder
         root.AddGlobalOptionsCompat(GlobalOptions.Debug, GlobalOptions.Quiet);
 
         return root;
+    }
+
+    private static Command CreateSyncCommand()
+    {
+        var cmd = new Command("sync", "Sync agents and tools YAML from the remote server into the local workspace (agents/, tools/)");
+
+        cmd.SetAction((ParseResult pr) =>
+        {
+            // Show a nice formatted help if user asked for it (for consistency with others)
+            if (IsHelpRequested(pr))
+            {
+                return ShowFormattedSubcommandHelp(
+                    "Sync",
+                    "Download all remote agent and tool YAMLs and populate the local 'agents/' and 'tools/' folders",
+                    cmd,
+                    new[]
+                    {
+                        "srectl sync",
+                        "# Requires prior 'srectl init --resource-url <url>'",
+                    }
+                );
+            }
+
+            return GeneralCommandHandlers.HandleSyncCommand(pr);
+        });
+
+        return cmd;
     }
 
     private static Command CreateAgentCreateCommand()
@@ -241,7 +270,7 @@ public static class CommandBuilder
 
     private static Command CreateAgentDiffCommand()
     {
-        var cmd = new Command("diff", "Compare local and remote agent configurations")
+        var cmd = new Command("diff", CommandExamples.Agent.DiffDescription)
         {
             AgentCommandOptions.DiffNameOption,
             AgentCommandOptions.DiffToolOption,
@@ -271,6 +300,8 @@ public static class CommandBuilder
         };
         cmd.SetAction((ParseResult pr) =>
         {
+            // Initialize context early to surface debug logs in this path
+            Agent.Cli.Helpers.CommandExecutionContext.Initialize(pr);
             if (IsHelpRequested(pr))
                 return ShowFormattedSubcommandHelp("Agent List", "List remote extended agents from the server", cmd,
                     new[] { "srectl agent list", "srectl agent list --all", "srectl agent list --debug" });
@@ -331,7 +362,7 @@ public static class CommandBuilder
 
     private static Command CreateToolDiffCommand()
     {
-        var cmd = new Command("diff", "Compare local and remote tool configurations")
+        var cmd = new Command("diff", CommandExamples.Tool.DiffDescription)
         {
             ToolCommandOptions.DiffNameOption,
             ToolCommandOptions.DiffToolOption,
@@ -705,15 +736,7 @@ public static class CommandBuilder
         return cmd;
     }
 
-    private static Command CreateSuggestCommand()
-    {
-        var cmd = new Command("suggest", "Get intelligent command suggestions based on your workspace");
-        cmd.SetAction(async (ParseResult _) =>
-        {
-            await CommandSuggestionService.ShowSmartSuggestions();
-        });
-        return cmd;
-    }
+    // Removed the 'suggest' command as it's no longer needed
 
     private static Command CreateStatusCommand()
     {
@@ -754,7 +777,6 @@ public static class CommandBuilder
         ConsoleUI.WriteSection("Quick commands");
         ConsoleUI.WriteCommand("Interactive conversation", "srectl chat");
         ConsoleUI.WriteCommand("Comprehensive help", "srectl help");
-        ConsoleUI.WriteCommand("Smart suggestions", "srectl suggest");
         ConsoleUI.WriteCommand("Workspace status", "srectl status");
         Console.WriteLine();
     }
@@ -1131,22 +1153,19 @@ public static class CommandBuilder
             ConsoleUI.WriteSection("Options");
             foreach (var option in command.Options)
             {
-                var aliases = string.Join(", ", option.Aliases);
+                // Always display canonical long form to avoid duplicated dashes from alias lists
+                var canonical = $"--{option.Name}";
                 var required = option.Required ? " (REQUIRED)" : "";
-                ConsoleUI.WriteKeyValue(aliases + required, option.Description ?? "No description", 20, ConsoleColor.Yellow);
+                ConsoleUI.WriteKeyValue(canonical + required, option.Description ?? "No description", 20, ConsoleColor.Yellow);
             }
             Console.WriteLine();
         }
 
-        // Show examples
+        // Show examples using the new ConsoleUI renderer
         if (examples?.Any() == true)
         {
-            ConsoleUI.WriteSection("Examples");
-            foreach (var example in examples)
-            {
-                ConsoleUI.WriteBullet(example, ConsoleColor.Green);
-            }
-            Console.WriteLine();
+            var tuples = examples.Select(e => ("", e)).ToArray();
+            ConsoleUI.WriteExamples(tuples);
         }
 
         return Task.CompletedTask;
