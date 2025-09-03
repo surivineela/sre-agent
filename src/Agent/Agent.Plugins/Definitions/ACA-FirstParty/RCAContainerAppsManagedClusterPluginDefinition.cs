@@ -309,6 +309,30 @@ Output: CSV (tab-separated) with columns:
 
         [Description(@"""
         Purpose:
+        Retrieves AKS Resource Provider requests that failed or encountered errors for a specific managed cluster.
+
+        Scenario:
+        Use this tool to investigate AKS control plane issues, failed operations, or errors in resource provider requests that might be affecting the managed cluster's functionality.
+        """
+        )]
+        public Task<string> GetAksRpRequests(
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("managedSubscription: subscription of the managed cluster")] string managedSubId,
+            [Description("Name of the managed cluster.")] string managedClusterName)
+        {
+            return _kustoPlugin.ExecuteLocalFunctionOnClusterAsync("GetAksRpRequests", "akshuba.centralus", "AKSprod",
+                new Dictionary<string, string> {
+                { "fromDate", fromDate.ToString() },
+                { "toDate", toDate.ToString() },
+                { "subscriptionId", managedSubId },
+                { "resourceGroupName", managedClusterName + "-rg" },
+                { "managedClusterName", managedClusterName }
+                });
+        }
+
+        [Description(@"""
+        Purpose:
         Retrieves all pods scheduled in the same workload profile node given a pod name. If left empty, returns all pods in all workload profiles.
 
         Scenario:

@@ -1,0 +1,31 @@
+let querySubscriptionId = "##subscriptionId##";
+let queryResourceGroup = "##resourceGroupName##";
+let queryClusterName = "##managedClusterName##";
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let asyncEvents = AsyncQoSEvents
+| where PreciseTimeStamp between (queryFrom.. queryTo)
+| where
+subscriptionID =~ querySubscriptionId and
+(isempty(queryResourceGroup) or resourceGroupName =~ queryResourceGroup) and
+(isempty(queryClusterName) or resourceName =~ queryClusterName)
+| extend resultCode = result;
+asyncEvents | as Async
+| union withsource=Table FrontEndQoSEvents
+| where PreciseTimeStamp between (queryFrom.. queryTo)
+| where
+subscriptionID =~ querySubscriptionId and
+(isempty(queryResourceGroup) or resourceGroupName =~ queryResourceGroup) and
+(isempty(queryClusterName) or resourceName =~ queryClusterName) 
+| where resultCode != "Success" and (httpMethod != "GET" and operationName !startswith "List")
+| extend Table = case(Table == 'FrontEndQoSEvents', 'FrontEnd', Table)
+| extend fuzzyStart = datetime_add("hour", -12, PreciseTimeStamp)
+| extend fuzzyEnd = datetime_add("day", 1, PreciseTimeStamp)
+| project PreciseTimeStamp, Table,
+region = RPTenant, subscriptionID, resourceGroupName, resourceName, 
+clientRequestID, operationID, correlationID, 
+operationName, suboperationName, resultCode, httpStatus, httpMethod, 
+userAgent, errorDetails, targetURI, apiVersion,
+Host, hostMachine, hostName, UnderlayName, msg, fuzzyStart, fuzzyEnd, agentPoolName
+| summarize take_any(*) by operationID, Table
+| order by PreciseTimeStamp desc

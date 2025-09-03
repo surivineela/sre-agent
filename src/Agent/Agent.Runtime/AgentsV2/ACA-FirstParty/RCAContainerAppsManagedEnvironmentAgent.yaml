@@ -230,6 +230,7 @@ tools:
   - GetAksClusterCcpNamespace
   - GetAKSNodeAlerts
   - GetAKSPodRestarts
+  - GetAksRpRequests
   - GetPodsInWorkloadProfile
   - GetAKSActivityLogEvents
   - SearchDesignDocs
