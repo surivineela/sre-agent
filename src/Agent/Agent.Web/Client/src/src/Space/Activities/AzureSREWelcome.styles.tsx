@@ -1,4 +1,4 @@
-import { makeStyles, shorthands, tokens } from '@fluentui/react-components';
+import { makeStyles, tokens } from '@fluentui/react-components';
 
 export const useWelcomeStyles = makeStyles({
     container: {
@@ -10,15 +10,15 @@ export const useWelcomeStyles = makeStyles({
     headerCard: {
         marginBottom: tokens.spacingVerticalM,
         backgroundColor: tokens.colorNeutralBackground2,
-        ...shorthands.borderRadius('15px'), // Updated to match graph styles
-        ...shorthands.padding(tokens.spacingVerticalL),
+        borderRadius: '15px', // Updated to match graph styles
+        padding: tokens.spacingVerticalL,
         border: `1px solid ${tokens.colorNeutralStroke2}`, // Added border to match graph styles
     },
     sectionCard: {
         marginBottom: tokens.spacingVerticalL,
         backgroundColor: tokens.colorNeutralBackground2, // Matches graph card style
-        ...shorthands.borderRadius('15px'), // Updated to match graph styles
-        ...shorthands.padding(tokens.spacingVerticalS),
+        borderRadius: '15px', // Updated to match graph styles
+        padding: tokens.spacingVerticalS,
         border: `1px solid ${tokens.colorNeutralStroke2}`, // Added border to match graph styles
     },
     section: {
@@ -62,13 +62,13 @@ export const useWelcomeStyles = makeStyles({
         marginTop: tokens.spacingVerticalL,
     },
     featureItem: {
-        ...shorthands.padding(tokens.spacingVerticalM, tokens.spacingHorizontalL),
+        padding: `${tokens.spacingVerticalM} ${tokens.spacingHorizontalL}`,
         backgroundColor: tokens.colorNeutralBackground3,
         borderRadius: tokens.borderRadiusMedium,
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke2),
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
         cursor: 'pointer',
         transition: 'all 0.2s ease',
         ':hover': {
@@ -104,7 +104,7 @@ export const useWelcomeStyles = makeStyles({
         padding: tokens.spacingVerticalS,
         backgroundColor: tokens.colorNeutralBackground1,
         borderRadius: tokens.borderRadiusMedium,
-        ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke1),
+        border: `1px solid ${tokens.colorNeutralStroke1}`,
     },
     progressContainer: {
         marginBottom: tokens.spacingVerticalM,
@@ -121,7 +121,7 @@ export const useWelcomeStyles = makeStyles({
         marginBottom: tokens.spacingVerticalM,
     },
     statCard: {
-        ...shorthands.padding(tokens.spacingVerticalL),
+        padding: tokens.spacingVerticalL,
         borderRadius: tokens.borderRadiusMedium,
         display: 'flex',
         flexDirection: 'column',
@@ -141,9 +141,9 @@ export const useWelcomeStyles = makeStyles({
     integrationCard: {
         backgroundColor: tokens.colorNeutralBackground1,
         borderRadius: tokens.borderRadiusMedium,
-        ...shorthands.padding(tokens.spacingVerticalM),
+        padding: tokens.spacingVerticalM,
         position: 'relative',
-        ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke2),
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
         marginBottom: tokens.spacingVerticalM,
     },
     integrationHeader: {
@@ -162,7 +162,7 @@ export const useWelcomeStyles = makeStyles({
     activeBadge: {
         backgroundColor: tokens.colorPaletteGreenBackground1,
         color: tokens.colorPaletteGreenForeground1,
-        ...shorthands.padding('2px', '8px'),
+        padding: '2px 8px',
         borderRadius: '12px',
         fontSize: tokens.fontSizeBase100,
         fontWeight: tokens.fontWeightSemibold,
@@ -170,7 +170,7 @@ export const useWelcomeStyles = makeStyles({
     inactiveBadge: {
         backgroundColor: tokens.colorNeutralBackground4,
         color: tokens.colorNeutralForeground3,
-        ...shorthands.padding('2px', '8px'),
+        padding: '2px 8px',
         borderRadius: '12px',
         fontSize: tokens.fontSizeBase100,
         fontWeight: tokens.fontWeightSemibold,
@@ -186,8 +186,8 @@ export const useWelcomeStyles = makeStyles({
     applicationCard: {
         backgroundColor: tokens.colorNeutralBackground1,
         borderRadius: tokens.borderRadiusMedium,
-        ...shorthands.padding(tokens.spacingVerticalM),
-        ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke2),
+        padding: tokens.spacingVerticalM,
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -254,7 +254,7 @@ export const useWelcomeStyles = makeStyles({
     reposRemainingTag: {
         backgroundColor: tokens.colorNeutralBackground4,
         color: tokens.colorNeutralForeground2,
-        ...shorthands.padding('2px', '10px'),
+        padding: '2px 10px',
         borderRadius: '12px',
         fontSize: tokens.fontSizeBase200,
         fontWeight: tokens.fontWeightSemibold,
@@ -298,7 +298,7 @@ export const useWelcomeStyles = makeStyles({
     reAuthRequired: {
         backgroundColor: tokens.colorPaletteYellowBackground1,
         color: tokens.colorPaletteYellowForeground1,
-        ...shorthands.padding('2px', '8px'),
+        padding: '2px 8px',
         borderRadius: '12px',
         fontSize: tokens.fontSizeBase100,
         fontWeight: tokens.fontWeightSemibold,

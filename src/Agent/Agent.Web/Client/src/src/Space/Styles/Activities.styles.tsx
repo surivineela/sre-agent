@@ -243,7 +243,7 @@ export const getChatBoxV2Styles = (agentTaskVisible?: boolean, overrides?: ChatB
             lineHeight: '20px',
             '.fai-CopilotMessage__content': {
                 width: '90%',
-                gap: `${tokens.spacingVerticalL}`,
+                gap: `${tokens.spacingVerticalS}`,
             },
             ...overrides?.agentMessage,
         },

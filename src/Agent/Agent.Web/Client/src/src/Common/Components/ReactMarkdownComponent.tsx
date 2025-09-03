@@ -14,7 +14,7 @@ import {
     mergeClasses,
     tokens,
 } from '@fluentui/react-components';
-import { memo, useMemo } from 'react';
+import { memo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
@@ -57,6 +57,12 @@ const useStyles = makeStyles({
         marginBottom: '10px',
         fontStyle: 'italic',
     },
+    ol: {
+        lineHeight: '26px',
+    },
+    ul: {
+        lineHeight: '26px',
+    },
 });
 
 interface ReactMarkdownComponentProps {
@@ -69,58 +75,7 @@ interface ReactMarkdownComponentProps {
 
 const ReactMarkdownComponent = ({ content, className, variant = 'default', isUserMessage }: ReactMarkdownComponentProps) => {
     const styles = useStyles();
-
-    // Variant-specific renderers
-    const headingRenderers = useMemo(() => {
-        if (variant === 'panel') {
-            return {
-                h1: ({ children }: any) => (
-                    <Title3 as={'h1'} block>
-                        {children}
-                    </Title3>
-                ),
-                h2: ({ children }: any) => (
-                    <Subtitle1 as={'h2'} block>
-                        {children}
-                    </Subtitle1>
-                ),
-                h3: ({ children }: any) => (
-                    <Subtitle2 as={'h3'} block>
-                        {children}
-                    </Subtitle2>
-                ),
-                h4: ({ children }: any) => (
-                    <Subtitle2 as={'h4'} block>
-                        {children}
-                    </Subtitle2>
-                ),
-                h5: ({ children }: any) => (
-                    <Subtitle2 as={'h5'} block>
-                        {children}
-                    </Subtitle2>
-                ),
-                h6: ({ children }: any) => (
-                    <Subtitle2 as={'h6'} block>
-                        {children}
-                    </Subtitle2>
-                ),
-                p: ({ children }: any) => <Text as="p">{children}</Text>,
-            };
-        }
-
-        // Chat & default headings (may merge in the future)
-        return {
-            h1: ({ children }: any) => <h1 className={styles.h1}>{children}</h1>,
-            h2: ({ children }: any) => <h2 className={styles.h2}>{children}</h2>,
-            h3: ({ children }: any) => <h3 className={styles.h3}>{children}</h3>,
-        };
-    }, [styles, variant]);
-
-    const rootClass = mergeClasses(
-        variant === 'chat' ? 'markdown-content' : undefined, // Don't know if this actually does anything...
-        className,
-        variant === 'chat' && !isUserMessage ? styles.chatRoot : undefined
-    );
+    const rootClass = mergeClasses(className, variant === 'chat' && !isUserMessage ? styles.chatRoot : undefined);
 
     return (
         <div className={rootClass}>
@@ -128,6 +83,41 @@ const ReactMarkdownComponent = ({ content, className, variant = 'default', isUse
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeRaw]}
                 components={{
+                    h1: ({ children }: any) => (
+                        <Title3 as="h1" block className={variant === 'chat' ? styles.h1 : undefined}>
+                            {children}
+                        </Title3>
+                    ),
+                    h2: ({ children }: any) => (
+                        <Subtitle1 as="h2" block className={variant === 'chat' ? styles.h2 : undefined}>
+                            {children}
+                        </Subtitle1>
+                    ),
+                    h3: ({ children }: any) => (
+                        <Subtitle2 as="h3" block className={variant === 'chat' ? styles.h3 : undefined}>
+                            {children}
+                        </Subtitle2>
+                    ),
+                    h4: ({ children }: any) => (
+                        <Subtitle2 as="h4" block>
+                            {children}
+                        </Subtitle2>
+                    ),
+                    h5: ({ children }: any) => (
+                        <Subtitle2 as="h5" block>
+                            {children}
+                        </Subtitle2>
+                    ),
+                    h6: ({ children }: any) => (
+                        <Subtitle2 as="h6" block>
+                            {children}
+                        </Subtitle2>
+                    ),
+                    p: ({ children }: any) => (
+                        <Text as="p" block>
+                            {children}
+                        </Text>
+                    ),
                     strong: ({ children }: any) => (
                         <Text as="strong" weight="semibold">
                             {children}
@@ -138,6 +128,10 @@ const ReactMarkdownComponent = ({ content, className, variant = 'default', isUse
                             {children}
                         </Text>
                     ),
+                    del: ({ children }: any) => <Text strikethrough>{children}</Text>,
+                    // Currently, ReactMarkdown only parses Markdown underlines as <strong>.
+                    // It's likely not entirely sound to just replaceAll('__') either...
+                    u: ({ children }: any) => <Text underline>{children}</Text>,
                     blockquote: ({ children }: any) => <blockquote className={styles.blockquote}>{children}</blockquote>,
                     a: ({ children, href }: any) => (
                         <Link href={href} target="_blank" rel="noopener noreferrer">
@@ -163,8 +157,10 @@ const ReactMarkdownComponent = ({ content, className, variant = 'default', isUse
                             <Text weight="semibold">{props.children}</Text>
                         </TableHeaderCell>
                     ),
+                    ul: (props: any) => <ul className={styles.ul}>{props.children}</ul>,
+                    ol: (props: any) => <ol className={styles.ol}>{props.children}</ol>,
+                    li: (props: any) => <li>{props.children}</li>,
                     td: (props: any) => <TableCell>{props.children ?? '-'}</TableCell>,
-                    ...headingRenderers,
                 }}
             >
                 {content}
