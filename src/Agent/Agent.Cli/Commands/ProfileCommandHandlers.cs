@@ -16,10 +16,6 @@ public static class ProfileCommandHandlers
     /// </summary>
     public static Task HandleListCommand(ParseResult parseResult)
     {
-        // Set debug mode first
-        var debug = parseResult.GetValue(ProfileCommandOptions.DebugOption);
-        DebugLogger.SetDebugMode(debug);
-
         DebugLogger.Debug("Command", "Starting profile list command");
 
         try
@@ -119,10 +115,6 @@ public static class ProfileCommandHandlers
     /// </summary>
     public static async Task HandleCreateCommand(ParseResult parseResult)
     {
-        // Set debug mode first
-        var debug = parseResult.GetValue(ProfileCommandOptions.DebugOption);
-        DebugLogger.SetDebugMode(debug);
-
         DebugLogger.Debug("Command", "Starting profile create command");
 
         try
@@ -163,7 +155,7 @@ public static class ProfileCommandHandlers
             if (existingProfile != null)
             {
                 DebugLogger.Debug("Validation", $"Profile already exists: {profileName}");
-                
+
                 // Test connection to verify the existing profile is still valid
                 ConsoleUI.WriteInfo("Profile exists, testing connection...", ConsoleColor.Cyan);
                 using var existingApiService = new ApiService();

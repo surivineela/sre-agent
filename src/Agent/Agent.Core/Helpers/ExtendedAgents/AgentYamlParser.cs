@@ -28,23 +28,39 @@ public static class AgentYamlParser
                 .IgnoreUnmatchedProperties()
                 .Build();
 
-            var yamlObject = deserializer.Deserialize(new StringReader(yaml));
+            var yamlDict = deserializer.Deserialize<Dictionary<string, object>>(yaml);
             
-            if (yamlObject == null)
+            if (yamlDict == null)
             {
                 throw new InvalidOperationException("YAML content is empty or invalid");
             }
-
-            // Convert to dictionary to access properties
-            var yamlDict = yamlObject as Dictionary<string, object> ?? 
-                          throw new InvalidOperationException("YAML must be a valid object structure");
 
             // Check for kind field to determine format
             if (yamlDict.TryGetValue("kind", out var kindObj) && kindObj?.ToString() == "AgentConfiguration")
             {
                 // Handle Kubernetes-style format (matches server logic)
-                if (yamlDict.TryGetValue("spec", out var specObj) && specObj is Dictionary<string, object> spec)
+                if (yamlDict.TryGetValue("spec", out var specObj))
                 {
+                    Dictionary<string, object> spec;
+                    
+                    if (specObj is Dictionary<string, object> stringKeyDict)
+                    {
+                        spec = stringKeyDict;
+                    }
+                    else if (specObj is Dictionary<object, object> objectKeyDict)
+                    {
+                        // Convert Dictionary<object, object> to Dictionary<string, object>
+                        spec = objectKeyDict.ToDictionary(
+                            kvp => kvp.Key?.ToString() ?? string.Empty,
+                            kvp => kvp.Value
+                        );
+                    }
+                    else
+                    {
+                        var specType = specObj?.GetType()?.FullName ?? "null";
+                        throw new InvalidOperationException($"AgentConfiguration spec must be an object. Got type: {specType}");
+                    }
+                    
                     // Extract the spec directly as it contains the agent properties
                     var serializer = new SerializerBuilder()
                         .WithNamingConvention(UnderscoredNamingConvention.Instance)

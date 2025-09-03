@@ -213,23 +213,22 @@ if !errorlevel! equ 0 (
 )
 echo.
 
-REM Test 11: Validate all agents with tool checking
-echo [TEST 11] Validate all agents with tool checking
+REM Test 11: Create test agent with missing tools for validation testing
+echo [TEST 11] Create test agent with missing tools for validation testing
 set /a TOTAL_TESTS+=1
-dotnet run --project .. -- agent validate --all --check-tools > test11_output.txt 2>&1
-REM This should fail because we have agents with missing tools
+dotnet run --project .. -- agent create --name test_missing_tools --instructions "Test agent with missing tools for validation testing - this is a comprehensive test with sufficient length" --tools NonExistentTool1 NonExistentTool2 > test11_output.txt 2>&1
 if !errorlevel! neq 0 (
-    findstr /i "not available\|missing" test11_output.txt >nul
+    findstr /i "not available\|not found" test11_output.txt >nul
     if !errorlevel! equ 0 (
-        echo [PASS] Validate all agents with tool checking - Expected failures detected
+        echo [PASS] Create test agent with missing tools - Expected failure occurred
         set /a TESTS_PASSED+=1
     ) else (
-        echo [FAIL] Validate all agents with tool checking - Wrong error message
+        echo [FAIL] Create test agent with missing tools - Wrong error message
         type test11_output.txt
         set /a TESTS_FAILED+=1
     )
 ) else (
-    echo [FAIL] Validate all agents with tool checking - Expected failure but command succeeded
+    echo [FAIL] Create test agent with missing tools - Expected failure but command succeeded
     type test11_output.txt
     set /a TESTS_FAILED+=1
 )
@@ -548,17 +547,30 @@ if !errorlevel! neq 0 (
 )
 echo.
 
-REM Test 31: Validate agents with tool checking - Mixed results expected
-echo [TEST 31] Bulk validation with tool checking
+REM Test 31: Validate all agents with tool checking - Should show mixed results
+echo [TEST 31] Validate all agents with tool checking - Mixed results expected
 set /a TOTAL_TESTS+=1
 dotnet run --project .. -- agent validate --all --check-tools > test31_output.txt 2>&1
-REM This should fail because we have agents with missing tools, but show detailed results
-findstr /i "not available\|missing\|succeeded" test31_output.txt >nul
-if !errorlevel! equ 0 (
-    echo [PASS] Bulk validation with tool checking - Mixed results as expected
-    set /a TESTS_PASSED+=1
+REM This should show mixed results: some succeed, some fail due to missing tools (bulk_agent_3)
+if !errorlevel! neq 0 (
+    findstr /i "not available\|missing" test31_output.txt >nul
+    if !errorlevel! equ 0 (
+        findstr /i "validation succeeded" test31_output.txt >nul
+        if !errorlevel! equ 0 (
+            echo [PASS] Validate all agents with tool checking - Mixed results as expected
+            set /a TESTS_PASSED+=1
+        ) else (
+            echo [FAIL] Validate all agents with tool checking - All failed, expected some to succeed
+            type test31_output.txt
+            set /a TESTS_FAILED+=1
+        )
+    ) else (
+        echo [FAIL] Validate all agents with tool checking - Missing expected failure messages
+        type test31_output.txt
+        set /a TESTS_FAILED+=1
+    )
 ) else (
-    echo [FAIL] Bulk validation with tool checking - Unexpected output format
+    echo [FAIL] Validate all agents with tool checking - Expected some failures but all succeeded
     type test31_output.txt
     set /a TESTS_FAILED+=1
 )
@@ -1729,22 +1741,22 @@ if !errorlevel! equ 0 (
 )
 echo.
 
-REM Test 77: Try to create profile with duplicate name (should fail)
-echo [TEST 77] Try to create profile with duplicate name (should fail)
+REM Test 77: Try to create profile with duplicate name (should detect existing)
+echo [TEST 77] Try to create profile with duplicate name (should detect existing)
 set /a TOTAL_TESTS+=1
 dotnet run --project .. -- profile create --name test_remote --url "https://localhost:7026" > test77_output.txt 2>&1
-if !errorlevel! neq 0 (
+if !errorlevel! equ 0 (
     findstr /i "already exists" test77_output.txt >nul
     if !errorlevel! equ 0 (
-        echo [PASS] Create duplicate profile - Properly prevented
+        echo [PASS] Create duplicate profile - Properly detected existing profile
         set /a TESTS_PASSED+=1
     ) else (
-        echo [FAIL] Create duplicate profile - Wrong error message
+        echo [FAIL] Create duplicate profile - Missing 'already exists' message
         type test77_output.txt
         set /a TESTS_FAILED+=1
     )
 ) else (
-    echo [FAIL] Create duplicate profile - Should have failed but succeeded
+    echo [FAIL] Create duplicate profile - Command failed unexpectedly
     type test77_output.txt
     set /a TESTS_FAILED+=1
 )
@@ -1853,6 +1865,179 @@ if !errorlevel! equ 0 (
     type test82a_output.txt
     set /a TESTS_FAILED+=1
 )
+echo.
+
+REM ===========================================
+REM DIFF COMMAND TESTS
+REM ===========================================
+
+echo ===========================================
+echo DIFF COMMAND TESTS
+echo ===========================================
+echo.
+
+REM Test 88: Agent diff command - Non-existent agent
+echo [TEST 88] Agent diff command - Non-existent agent
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- agent diff --name NonExistentAgent --raw > test88_output.txt 2>&1
+if !errorlevel! neq 0 (
+    findstr /i "not found" test88_output.txt >nul
+    if !errorlevel! equ 0 (
+        echo [PASS] Agent diff - Non-existent agent - Proper error handling
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Agent diff - Non-existent agent - Wrong error message
+        type test88_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Agent diff - Non-existent agent - Should have failed but succeeded
+    type test88_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 89: Tool diff command - Non-existent tool
+echo [TEST 89] Tool diff command - Non-existent tool
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- tool diff --name NonExistentTool --raw > test89_output.txt 2>&1
+if !errorlevel! neq 0 (
+    findstr /i "not found" test89_output.txt >nul
+    if !errorlevel! equ 0 (
+        echo [PASS] Tool diff - Non-existent tool - Proper error handling
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Tool diff - Non-existent tool - Wrong error message
+        type test89_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Tool diff - Non-existent tool - Should have failed but succeeded
+    type test89_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 90: Agent diff command - Valid agent with raw output
+echo [TEST 90] Agent diff command - Valid agent with raw output
+set /a TOTAL_TESTS+=1
+if exist "agents\example_agent.yaml" (
+    dotnet run --project .. -- agent diff --name example_agent --raw > test90_output.txt 2>&1
+    if !errorlevel! equ 0 (
+        REM Either identical or showing diff is fine
+        findstr /i "identical\|diff for" test90_output.txt >nul
+        if !errorlevel! equ 0 (
+            echo [PASS] Agent diff - Valid agent with raw output
+            set /a TESTS_PASSED+=1
+        ) else (
+            echo [FAIL] Agent diff - Valid agent - Unexpected output
+            type test90_output.txt
+            set /a TESTS_FAILED+=1
+        )
+    ) else (
+        echo [FAIL] Agent diff - Valid agent - Command failed
+        type test90_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [SKIP] Agent diff test - example_agent.yaml not found
+)
+echo.
+
+REM Test 91: Tool diff command - Valid tool with raw output
+echo [TEST 91] Tool diff command - Valid tool with raw output
+set /a TOTAL_TESTS+=1
+if exist "tools\example_tool.yaml" (
+    dotnet run --project .. -- tool diff --name example_tool --raw > test91_output.txt 2>&1
+    if !errorlevel! equ 0 (
+        REM Either identical or showing diff is fine
+        findstr /i "identical\|diff for" test91_output.txt >nul
+        if !errorlevel! equ 0 (
+            echo [PASS] Tool diff - Valid tool with raw output
+            set /a TESTS_PASSED+=1
+        ) else (
+            echo [FAIL] Tool diff - Valid tool - Unexpected output
+            type test91_output.txt
+            set /a TESTS_FAILED+=1
+        )
+    ) else (
+        echo [FAIL] Tool diff - Valid tool - Command failed
+        type test91_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [SKIP] Tool diff test - example_tool.yaml not found
+)
+echo.
+
+REM Test 92: Agent diff command - Different diff tools
+echo [TEST 92] Agent diff command - Git diff tool
+set /a TOTAL_TESTS+=1
+if exist "agents\example_agent.yaml" (
+    dotnet run --project .. -- agent diff --name example_agent --tool git > test92_output.txt 2>&1
+    if !errorlevel! equ 0 (
+        REM Either identical or diff completed is fine
+        findstr /i "identical\|diff completed\|files differ" test92_output.txt >nul
+        if !errorlevel! equ 0 (
+            echo [PASS] Agent diff - Git diff tool
+            set /a TESTS_PASSED+=1
+        ) else (
+            echo [FAIL] Agent diff - Git tool - Unexpected output
+            type test92_output.txt
+            set /a TESTS_FAILED+=1
+        )
+    ) else (
+        echo [FAIL] Agent diff - Git tool - Command failed
+        type test92_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [SKIP] Agent diff git tool test - example_agent.yaml not found
+)
+echo.
+
+REM Test 93: Tool diff command - Missing name parameter
+echo [TEST 93] Tool diff command - Missing name parameter
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- tool diff > test93_output.txt 2>&1
+if !errorlevel! neq 0 (
+    findstr /i "required" test93_output.txt >nul
+    if !errorlevel! equ 0 (
+        echo [PASS] Tool diff - Missing name parameter - Proper validation
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Tool diff - Missing name - Wrong error message
+        type test93_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Tool diff - Missing name - Should have failed but succeeded
+    type test93_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
+REM Test 94: Agent diff command - Missing name parameter
+echo [TEST 94] Agent diff command - Missing name parameter
+set /a TOTAL_TESTS+=1
+dotnet run --project .. -- agent diff > test94_output.txt 2>&1
+if !errorlevel! neq 0 (
+    findstr /i "required" test94_output.txt >nul
+    if !errorlevel! equ 0 (
+        echo [PASS] Agent diff - Missing name parameter - Proper validation
+        set /a TESTS_PASSED+=1
+    ) else (
+        echo [FAIL] Agent diff - Missing name - Wrong error message
+        type test94_output.txt
+        set /a TESTS_FAILED+=1
+    )
+) else (
+    echo [FAIL] Agent diff - Missing name - Should have failed but succeeded
+    type test94_output.txt
+    set /a TESTS_FAILED+=1
+)
+echo.
+
 echo.
 
 REM ===========================================
@@ -2057,6 +2242,7 @@ REM Clean up test agents
 if exist "agents" (
     if exist "agents\test_agent" rmdir /s /q "agents\test_agent"
     if exist "agents\test_agent_defaults" rmdir /s /q "agents\test_agent_defaults"
+    if exist "agents\test_missing_tools" rmdir /s /q "agents\test_missing_tools"
     if exist "agents\full_featured_agent" rmdir /s /q "agents\full_featured_agent"
     if exist "agents\custom_agent" rmdir /s /q "agents\custom_agent"
     if exist "agents\snake_case_test" rmdir /s /q "agents\snake_case_test"

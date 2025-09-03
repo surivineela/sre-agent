@@ -5,7 +5,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using Agent.Core.Validation;
+using Agent.Core.Helpers.ExtendedAgents;
 using Agent.Framework;
+using Agent.Framework.Reasoning.Models;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models.ExtendedAgents;
 using Agent.Runtime.Services;
@@ -123,13 +125,39 @@ public class ExtendedAgentController : ControllerBase
                 }
             }
 
-            var resource = YamlResourceRouter.DeserializeResource(generic.Kind!, yaml);
-
             var result = new ExtendedAgentApply();
-            switch (resource)
+            
+            // Handle different resource types
+            switch (generic.Kind)
             {
-                case AgentDeploymentModel agent:
-                    await _resourceDeploymentService.ApplyAsync(agent);
+                case "AgentConfiguration":
+                    // Use AgentYamlParser to properly handle structured YAML
+                    var agentDescriptor = AgentYamlParser.ParseAgentYaml(yaml);
+                    if (agentDescriptor == null)
+                    {
+                        return BadRequest(new ExtendedAgentErrorResponse
+                        {
+                            ErrorCode = "PARSE_FAILED",
+                            Message = "Failed to parse agent configuration"
+                        });
+                    }
+
+                    // Convert to dictionary to access properties for metadata
+                    var yamlDict = yamlObject as Dictionary<string, object>;
+                    
+                    // Create AgentDeploymentModel using the parsed descriptor
+                    var agentDeployment = new AgentDeploymentModel
+                    {
+                        ApiVersion = yamlDict?.TryGetValue("api_version", out var apiVersionObj) == true ? 
+                            apiVersionObj?.ToString() ?? "azuresre.ai/v1" : "azuresre.ai/v1",
+                        Kind = "AgentConfiguration",
+                        Metadata = yamlDict?.TryGetValue("metadata", out var metadataObj) == true && metadataObj != null ?
+                            JsonSerializer.Deserialize<YamlMetadata>(JsonSerializer.Serialize(metadataObj)) ?? new YamlMetadata() :
+                            new YamlMetadata(),
+                        Spec = (YamlAgentDescriptor)agentDescriptor
+                    };
+
+                    await _resourceDeploymentService.ApplyAsync(agentDeployment);
                     result = new ExtendedAgentApply
                     {
                         Status = ExtendedAgentApplyStatus.Accepted,
@@ -138,25 +166,35 @@ public class ExtendedAgentController : ControllerBase
                         Timestamp = DateTime.UtcNow,
                         Details = new ExtendedAgentApplyDetails
                         {
-                            AgentName = agent.Spec.Name,
-                            ToolsCount = agent.Spec.Tools?.Count ?? 0,
+                            AgentName = agentDeployment.Spec.Name,
+                            ToolsCount = agentDeployment.Spec.Tools?.Count ?? 0,
                         }
                     };
                     break;
 
-                case ToolsDeploymentModel tool:
-                    await _resourceDeploymentService.ApplyAsync(tool);
+                case "ToolList":
+                case "ConnectorList":
+                case "PluginConfiguration":
+                    // For non-agent resources, use the original approach
+                    var resource = YamlResourceRouter.DeserializeResource(generic.Kind!, yaml);
+                    switch (resource)
+                    {
+                        case ToolsDeploymentModel tool:
+                            await _resourceDeploymentService.ApplyAsync(tool);
+                            break;
 
+                        case ConnectorsDeploymentModel connector:
+                            await _resourceDeploymentService.ApplyAsync(connector);
+                            break;
+                            
+                        case PluginConfigDeploymentModel pluginConfig:
+                            await _resourceDeploymentService.ApplyAsync(pluginConfig);
+                            break;
+
+                        default:
+                            return BadRequest($"Unsupported resource type for kind: {generic.Kind}");
+                    }
                     break;
-
-                case ConnectorsDeploymentModel connector:
-                    await _resourceDeploymentService.ApplyAsync(connector);
-                    break;
-                case PluginConfigDeploymentModel pluginConfig:
-                    await _resourceDeploymentService.ApplyAsync(pluginConfig);
-                    break;
-
-
 
                 default:
                     return BadRequest($"Unsupported kind: {generic.Kind}");

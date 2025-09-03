@@ -20,10 +20,6 @@ public static class ToolCommandHandlers
     /// </summary>
     public static async Task HandleCreateCommand(ParseResult parseResult)
     {
-        // Set debug mode first
-        var debug = parseResult.GetValue(ToolCommandOptions.DebugOption);
-        DebugLogger.SetDebugMode(debug);
-
         DebugLogger.Debug("Command", "Starting tool create command");
 
         try
@@ -115,10 +111,6 @@ public static class ToolCommandHandlers
     /// </summary>
     public static void HandleValidateCommand(ParseResult parseResult)
     {
-        // Set debug mode first
-        var debug = parseResult.GetValue(ToolCommandOptions.DebugOption);
-        DebugLogger.SetDebugMode(debug);
-
         DebugLogger.Debug("Command", "Starting tool validate command");
 
         var validateAll = parseResult.GetValue(ToolCommandOptions.AllOption);
@@ -148,10 +140,6 @@ public static class ToolCommandHandlers
     /// </summary>
     public static async Task HandleApplyCommand(ParseResult parseResult)
     {
-        // Set debug mode first
-        var debug = parseResult.GetValue(ToolCommandOptions.DebugOption);
-        DebugLogger.SetDebugMode(debug);
-
         DebugLogger.Debug("Command", "Starting tool apply command");
 
         var name = parseResult.GetValue(ToolCommandOptions.ApplyNameOption);
@@ -246,10 +234,6 @@ public static class ToolCommandHandlers
     /// </summary>
     public static async Task HandleListCommand(ParseResult parseResult)
     {
-        // Set debug mode first
-        var debug = parseResult.GetValue(ToolCommandOptions.DebugOption);
-        DebugLogger.SetDebugMode(debug);
-
         DebugLogger.Debug("Command", "Starting tool list command");
 
         var listAll = parseResult.GetValue(ToolCommandOptions.ListAllOption);
@@ -691,10 +675,6 @@ public static class ToolCommandHandlers
     /// </summary>
     public static async Task HandleDeleteCommand(ParseResult parseResult)
     {
-        // Set debug mode first
-        var debug = parseResult.GetValue(ToolCommandOptions.DebugOption);
-        DebugLogger.SetDebugMode(debug);
-
         DebugLogger.Debug("Command", "Starting tool delete command");
 
         var toolName = parseResult.GetValue(ToolCommandOptions.DeleteNameOption);
@@ -748,10 +728,6 @@ public static class ToolCommandHandlers
     /// </summary>
     public static async Task HandleDiffCommand(ParseResult parseResult)
     {
-        // Set debug mode first
-        var debug = parseResult.GetValue(ToolCommandOptions.DebugOption);
-        DebugLogger.SetDebugMode(debug);
-
         DebugLogger.Debug("Command", "Starting tool diff command");
 
         var toolName = parseResult.GetValue(ToolCommandOptions.DiffNameOption);
@@ -774,7 +750,7 @@ public static class ToolCommandHandlers
             if (localPath == null)
             {
                 ConsoleUI.WriteStatus(false, $"Local tool file not found for '{toolName}'");
-                ConsoleUI.WriteBullet($"Searched in tools directory and subdirectories for '{toolName}.yaml'", ConsoleColor.Yellow);
+                ConsoleUI.WriteBullet($"Expected: tools/{toolName}.yaml or tools/{toolName}/{toolName}.yaml", ConsoleColor.Yellow);
                 Environment.Exit(1);
                 return;
             }
@@ -1228,20 +1204,23 @@ public static class ToolCommandHandlers
 
             if (process != null)
             {
-                await process.WaitForExitAsync();
+                using (process)
+                {
+                    await process.WaitForExitAsync();
 
-                if (process.ExitCode == 0)
-                {
-                    ConsoleUI.WriteStatus(true, "Diff completed successfully");
-                }
-                else if (process.ExitCode == 1 && tool == "git")
-                {
-                    // Git diff returns 1 when files differ, which is expected
-                    ConsoleUI.WriteStatus(true, "Files differ (see diff output above)");
-                }
-                else
-                {
-                    ConsoleUI.WriteStatus(false, $"Diff tool exited with code {process.ExitCode}");
+                    if (process.ExitCode == 0)
+                    {
+                        ConsoleUI.WriteStatus(true, "Diff completed successfully");
+                    }
+                    else if (process.ExitCode == 1 && tool == "git")
+                    {
+                        // Git diff returns 1 when files differ, which is expected
+                        ConsoleUI.WriteStatus(true, "Files differ (see diff output above)");
+                    }
+                    else
+                    {
+                        ConsoleUI.WriteStatus(false, $"Diff tool exited with code {process.ExitCode}");
+                    }
                 }
             }
         }
@@ -1264,10 +1243,14 @@ public static class ToolCommandHandlers
     {
         try
         {
+            // Detect if terminal supports color
+            var isWindows = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows);
+            var colorArg = isWindows ? "--color=auto" : "--color=always";
+
             var startInfo = new System.Diagnostics.ProcessStartInfo
             {
                 FileName = "git",
-                Arguments = $"diff --no-index --color=always \"{localFile}\" \"{remoteFile}\"",
+                Arguments = $"diff --no-index {colorArg} \"{localFile}\" \"{remoteFile}\"",
                 UseShellExecute = false,
                 RedirectStandardOutput = false,
                 RedirectStandardError = false
@@ -1292,14 +1275,43 @@ public static class ToolCommandHandlers
     {
         try
         {
-            var vimCommand = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows) ? "vim" : "vimdiff";
+            // On Windows, try vimdiff first, then vim with -d flag
+            // On Unix-like systems, use vimdiff
+            var isWindows = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows);
+
+            var vimCommand = isWindows ? "vimdiff" : "vimdiff";
+            var arguments = $"\"{localFile}\" \"{remoteFile}\"";
+
+            // If on Windows and vimdiff not found, try vim with -d flag
+            if (isWindows)
+            {
+                try
+                {
+                    var testProcess = new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = "vimdiff",
+                        Arguments = "--help",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true
+                    };
+
+                    using var test = System.Diagnostics.Process.Start(testProcess);
+                    // vimdiff exists, use it
+                }
+                catch
+                {
+                    // vimdiff not found, fall back to vim with -d
+                    vimCommand = "vim";
+                    arguments = $"-d \"{localFile}\" \"{remoteFile}\"";
+                }
+            }
 
             var startInfo = new System.Diagnostics.ProcessStartInfo
             {
                 FileName = vimCommand,
-                Arguments = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows)
-                    ? $"-d \"{localFile}\" \"{remoteFile}\""
-                    : $"\"{localFile}\" \"{remoteFile}\"",
+                Arguments = arguments,
                 UseShellExecute = false
             };
 

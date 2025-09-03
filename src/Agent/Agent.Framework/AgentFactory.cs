@@ -483,12 +483,8 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
     {
         try
         {
-            var deserializer = new DeserializerBuilder()
-                .WithNamingConvention(UnderscoredNamingConvention.Instance)
-                .Build();
-
-            var agentDescriptor = deserializer.Deserialize<YamlAgentDescriptor>(yamlContent);
-            return agentDescriptor;
+            // Use the updated FromYaml method that handles both structured and flat formats
+            return YamlAgentDescriptor.FromYaml(yamlContent);
         }
         catch (Exception ex)
         {

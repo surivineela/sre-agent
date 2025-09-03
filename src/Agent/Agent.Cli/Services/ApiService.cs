@@ -384,6 +384,8 @@ public class ApiService : IDisposable
                         var toolData = deserializer.Deserialize<object>(toolYamlContent);
                         toolsData.Add(toolData);
                         DebugLogger.Debug("Tools", $"📦 Loaded tool: {toolName}");
+                        // Always show loaded tools message for user feedback
+                        ConsoleUI.WriteBullet($"Loaded tool: {toolName}", ConsoleColor.Green);
                     }
                 }
                 else if (remoteTools.Contains(toolName))
@@ -408,35 +410,11 @@ public class ApiService : IDisposable
                 return (false, $"❌ Cannot apply agent '{agentName}': Referenced tools not found: {missingToolsList}. Please create the missing tools first or ensure they exist on the server.");
             }
 
-            DebugLogger.Debug("Wrapper", "Creating combined agent wrapper");
+            DebugLogger.Debug("YAML", "Using agent YAML content directly (structured format)");
 
-            // Create the combined wrapper with agent and tools
-            var combinedWrapper = new CombinedAgentWrapper
-            {
-                ApiVersion = config.ApiVersion ?? "agent.platform.ai/v1",
-                Kind = "AgentConfiguration",
-                Metadata = new YamlMetadata
-                {
-                    Owner = config.Owner ?? "your-team@example.com",
-                    Version = config.Version ?? "1.0.0",
-                    Tags = config.Tags?.Any() == true ? config.Tags : new List<string> { "example", "demo", "generic" },
-                    CreatedAt = config.CreatedAt != default(DateTime) ? config.CreatedAt.ToString("yyyy-MM-dd") : DateTime.UtcNow.ToString("yyyy-MM-dd"),
-                    UpdatedAt = DateTime.UtcNow.ToString("yyyy-MM-dd")
-                },
-                Spec = new CombinedAgentSpec
-                {
-                    Agent = agentData,
-                    Tools = toolsData
-                }
-            };
-
-            DebugLogger.Debug("YAML", "Serializing combined wrapper to YAML");
-
-            // Serialize to YAML
-            var serializer = new SerializerBuilder()
-                .WithNamingConvention(UnderscoredNamingConvention.Instance)
-                .Build();
-            var wrappedYamlContent = serializer.Serialize(combinedWrapper);
+            // The agent file is already in the correct structured format (api_version, kind, metadata, spec)
+            // Send it directly without additional wrapping
+            var wrappedYamlContent = agentYamlContent;
 
             DebugLogger.Debug("YAML", $"Generated YAML content size: {wrappedYamlContent.Length} characters");
 

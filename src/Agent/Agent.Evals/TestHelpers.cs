@@ -156,6 +156,7 @@ public static class TestHelpers
 
         builder.Services.AddSingleton<IContainerAppIcMPlugin, ContainerAppIcMPlugin>();
         builder.Services.AddSingleton<ICMWorkflowClient>();
+        builder.Services.AddSingleton(Mock.Of<IICMAPIClient>());
         builder.Services
             .AddTransient<RCAContainerAppsIngressPluginDefinition>()
             .AddTransient<RCAContainerAppAspirePluginDefinition>()

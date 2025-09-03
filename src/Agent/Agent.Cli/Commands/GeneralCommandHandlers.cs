@@ -87,13 +87,10 @@ public static class GeneralCommandHandlers
     /// </summary>
     public static async Task HandleListAgentsCommand(ParseResult parseResult)
     {
-        // Set debug mode first
-        var debug = parseResult.GetValue(AgentCommandOptions.DebugOption);
         var showAll = parseResult.GetValue(AgentCommandOptions.AllOption);
-        DebugLogger.SetDebugMode(debug);
 
         DebugLogger.Debug("Command", "Starting agent list command");
-        DebugLogger.Debug("Parameters", $"Debug: {debug}, ShowAll: {showAll}");
+        DebugLogger.Debug("Parameters", $"ShowAll: {showAll}");
 
         using var apiService = new ApiService();
 
@@ -106,7 +103,7 @@ public static class GeneralCommandHandlers
             {
                 ConsoleUI.WriteSection("All Available Agents");
 
-                if (debug)
+                if (DebugLogger.IsDebugEnabled)
                 {
                     DebugLogger.Debug("API Response", "Successfully retrieved complete agent list from server");
                 }
@@ -115,7 +112,7 @@ public static class GeneralCommandHandlers
             }
             else
             {
-                if (debug)
+                if (DebugLogger.IsDebugEnabled)
                 {
                     DebugLogger.Debug("API Error", "Failed to retrieve agent list from server");
                     DebugLogger.Debug("Error Response", response);
@@ -133,7 +130,7 @@ public static class GeneralCommandHandlers
             {
                 ConsoleUI.WriteSection("Remote Extended Agents");
 
-                if (debug)
+                if (DebugLogger.IsDebugEnabled)
                 {
                     DebugLogger.Debug("API Response", "Successfully retrieved agent list from server");
                 }
@@ -177,7 +174,7 @@ public static class GeneralCommandHandlers
                 }
                 catch (Exception ex)
                 {
-                    if (debug)
+                    if (DebugLogger.IsDebugEnabled)
                     {
                         DebugLogger.Debug("Parser Error", $"Failed to parse agent names: {ex.Message}");
                     }
@@ -187,7 +184,7 @@ public static class GeneralCommandHandlers
             }
             else
             {
-                if (debug)
+                if (DebugLogger.IsDebugEnabled)
                 {
                     DebugLogger.Debug("API Error", "Failed to retrieve agent list from server");
                     DebugLogger.Debug("Error Response", response);
@@ -201,10 +198,6 @@ public static class GeneralCommandHandlers
     /// </summary>
     public static async Task HandleListToolsCommand(ParseResult parseResult)
     {
-        // Set debug mode first
-        var debug = parseResult.GetValue(ToolCommandOptions.DebugOption);
-        DebugLogger.SetDebugMode(debug);
-
         DebugLogger.Debug("Command", "Starting tool list command");
 
         using var apiService = new ApiService();
@@ -214,7 +207,7 @@ public static class GeneralCommandHandlers
         {
             ConsoleUI.WriteSection("Available Tools");
 
-            if (debug)
+            if (DebugLogger.IsDebugEnabled)
             {
                 DebugLogger.Debug("API Response", "Successfully retrieved tool list from server");
             }
@@ -223,7 +216,7 @@ public static class GeneralCommandHandlers
         }
         else
         {
-            if (debug)
+            if (DebugLogger.IsDebugEnabled)
             {
                 DebugLogger.Debug("API Error", "Failed to retrieve tool list from server");
                 DebugLogger.Debug("Error Response", response);
@@ -238,10 +231,6 @@ public static class GeneralCommandHandlers
     /// </summary>
     public static async Task HandleListExtendedToolsCommand(ParseResult parseResult)
     {
-        // Set debug mode first
-        var debug = parseResult.GetValue(ToolCommandOptions.DebugOption);
-        DebugLogger.SetDebugMode(debug);
-
         DebugLogger.Debug("Command", "Starting extended tools list command");
 
         using var apiService = new ApiService();
@@ -251,7 +240,7 @@ public static class GeneralCommandHandlers
         {
             ConsoleUI.WriteSection("Extended Tools");
 
-            if (debug)
+            if (DebugLogger.IsDebugEnabled)
             {
                 DebugLogger.Debug("API Response", "Successfully retrieved extended tools list from server");
             }
@@ -260,7 +249,7 @@ public static class GeneralCommandHandlers
         }
         else
         {
-            if (debug)
+            if (DebugLogger.IsDebugEnabled)
             {
                 DebugLogger.Debug("API Error", "Failed to retrieve extended tools list from server");
                 DebugLogger.Debug("Error Response", response);
@@ -275,10 +264,6 @@ public static class GeneralCommandHandlers
     /// </summary>
     public static async Task HandleListDataConnectorsCommand(ParseResult parseResult)
     {
-        // Set debug mode first
-        var debug = parseResult.GetValue(ToolCommandOptions.DebugOption);
-        DebugLogger.SetDebugMode(debug);
-
         DebugLogger.Debug("Command", "Starting data connectors list command");
 
         using var apiService = new ApiService();
@@ -288,7 +273,7 @@ public static class GeneralCommandHandlers
         {
             ConsoleUI.WriteSection("Data Connectors");
 
-            if (debug)
+            if (DebugLogger.IsDebugEnabled)
             {
                 DebugLogger.Debug("API Response", "Successfully retrieved data connectors list from server");
             }
@@ -297,7 +282,7 @@ public static class GeneralCommandHandlers
         }
         else
         {
-            if (debug)
+            if (DebugLogger.IsDebugEnabled)
             {
                 DebugLogger.Debug("API Error", "Failed to retrieve data connectors list from server");
                 DebugLogger.Debug("Error Response", response);
@@ -830,10 +815,6 @@ public static class GeneralCommandHandlers
     /// </summary>
     public static async Task HandleStatusCommand(ParseResult parseResult)
     {
-        // Set debug mode first
-        var debug = parseResult.GetValue(GlobalOptions.Debug);
-        DebugLogger.SetDebugMode(debug);
-
         DebugLogger.Debug("Command", "Starting status command");
 
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();

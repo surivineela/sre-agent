@@ -16,10 +16,6 @@ public static class DocumentCommandHandlers
     /// <param name="parseResult">Command line parse result</param>
     public static async Task HandleUploadCommand(ParseResult parseResult)
     {
-        // Set debug mode first
-        var debug = parseResult.GetValue(DocumentCommandOptions.DebugOption);
-        DebugLogger.SetDebugMode(debug);
-
         DebugLogger.Debug("Command", "Starting document upload command");
 
         try
@@ -238,10 +234,6 @@ public static class DocumentCommandHandlers
     /// <param name="parseResult">Command line parse result</param>
     public static async Task HandleSearchCommand(ParseResult parseResult)
     {
-        // Set debug mode first
-        var debug = parseResult.GetValue(DocumentCommandOptions.DebugOption);
-        DebugLogger.SetDebugMode(debug);
-
         DebugLogger.Debug("Command", "Starting document search command");
 
         try
@@ -293,10 +285,6 @@ public static class DocumentCommandHandlers
     /// <param name="parseResult">Command line parse result</param>
     public static async Task HandleReindexCommand(ParseResult parseResult)
     {
-        // Set debug mode first
-        var debug = parseResult.GetValue(DocumentCommandOptions.DebugOption);
-        DebugLogger.SetDebugMode(debug);
-
         DebugLogger.Debug("Command", "Starting document reindex command");
 
         try

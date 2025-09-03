@@ -2,7 +2,11 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System;
 using System.Linq;
+using System.CommandLine;
+using System.CommandLine.Parsing;
+using System.Threading.Tasks;
 using Agent.Cli.Commands;
 using Agent.Cli.Services;
 using Agent.Cli.Helpers;
@@ -18,32 +22,45 @@ public static class Program
             {
                 var configService = new CliConfigurationService();
                 var hasConfig = await configService.HasValidConfigurationAsync();
-                ShowCustomHelp(isFirstTime: !hasConfig);
+                ShowCustomHelp(isFirstTime: !hasConfig, includeHeader: true);
                 return 0;
             }
 
             var root = CommandBuilder.BuildCommands();
             var parseResult = root.Parse(args);
 
-            // Check for parsing errors (like unrecognized commands) and show custom help instead
+            // Initialize debug mode globally before any command execution
+            CommandExecutionContext.Initialize(parseResult);
+
+            // Parse errors (unrecognized, missing subcommand, missing required options, etc.)
             if (parseResult.Errors.Count > 0)
             {
-                // Check if it's an unrecognized command error
-                var hasUnrecognizedCommand = parseResult.Errors.Any(error =>
-                    error.Message.Contains("Unrecognized command or argument") ||
-                    error.Message.Contains("Required command was not provided"));
+                var unmatched = parseResult.UnmatchedTokens;
 
-                // Generic handling for common command mistakes - when user provides positional args instead of named options
-                if (args.Length >= 3 && hasUnrecognizedCommand)
+                bool hasRequiredMissingSubcommand = parseResult.Errors.Any(e =>
+                    e.Message.Contains("Required command was not provided", StringComparison.OrdinalIgnoreCase));
+
+                bool hasUnrecognized = parseResult.Errors.Any(e =>
+                    e.Message.Contains("Unrecognized command or argument", StringComparison.OrdinalIgnoreCase) ||
+                    e.Message.Contains("Required command was not provided", StringComparison.OrdinalIgnoreCase));
+
+                bool hasMissingOrInvalidOptions = parseResult.Errors.Any(e =>
+                    e.Message.Contains("required", StringComparison.OrdinalIgnoreCase) ||
+                    e.Message.Contains("requires", StringComparison.OrdinalIgnoreCase) ||
+                    e.Message.Contains("expects", StringComparison.OrdinalIgnoreCase) ||
+                    e.Message.Contains("Option", StringComparison.OrdinalIgnoreCase) && e.Message.Contains("missing", StringComparison.OrdinalIgnoreCase) ||
+                    e.Message.Contains("argument", StringComparison.OrdinalIgnoreCase) && e.Message.Contains("missing", StringComparison.OrdinalIgnoreCase));
+
+                // Help the common "positional instead of named" mistake
+                if (args.Length >= 3 && hasUnrecognized)
                 {
                     var commandGroup = args[0]; // e.g., "profile", "agent", "tool"
-                    var subCommand = args[1];   // e.g., "set", "create", "delete", "list"
-                    var possibleValue = args[2]; // e.g., "local", "myagent", "mytool"
+                    var subCommand = args[1];  // e.g., "set", "create", "delete", "list"
+                    var possibleVal = args[2];  // e.g., "local", "myagent", "mytool"
 
-                    // Don't show this for commands that start with dashes (already proper options)
-                    if (!possibleValue.StartsWith("-"))
+                    if (!possibleVal.StartsWith("-", StringComparison.Ordinal))
                     {
-                        var suggestion = GetCommonCommandSuggestion(commandGroup, subCommand, possibleValue);
+                        var suggestion = GetCommonCommandSuggestion(commandGroup, subCommand, possibleVal);
                         if (!string.IsNullOrEmpty(suggestion))
                         {
                             StandardHelpFormatter.ShowSrectlHeader();
@@ -58,20 +75,82 @@ public static class Program
                     }
                 }
 
-                if (hasUnrecognizedCommand)
+                // Unrecognized tokens: show which ones, offer a close match, then scoped suggestions if possible
+                if (unmatched is { Count: > 0 })
                 {
-                    // Show our custom help instead of the default error
-                    var configService = new CliConfigurationService();
-                    var hasConfig = await configService.HasValidConfigurationAsync();
+                    StandardHelpFormatter.ShowSrectlHeader();
+                    var joined = string.Join(", ", unmatched.Select(t => $"'{t}'"));
+                    ConsoleUI.WriteStatus(false, $"Unrecognized command or argument{(unmatched.Count > 1 ? "s" : "")}: {joined}");
+                    Console.WriteLine();
 
-                    // Show error message first
-                    if (args.Length > 0)
+                    // Try single-token “plural” correction (e.g., 'agents' -> 'agent')
+                    if (unmatched.Count == 1)
                     {
-                        ConsoleUI.WriteStatus(false, $"Unrecognized command or argument '{args[0]}'");
-                        Console.WriteLine();
+                        var maybe = TrySingularize(unmatched[0]);
+                        var close = SuggestClosestTopLevel(root, unmatched[0]) ?? SuggestClosestTopLevel(root, maybe);
+                        if (!string.IsNullOrWhiteSpace(close))
+                        {
+                            ConsoleUI.WriteBullet($"Did you mean: srectl {close} … ?");
+                            Console.WriteLine();
+                        }
                     }
 
-                    ShowCustomHelp(isFirstTime: !hasConfig);
+                    var deepest = GetDeepestMatchedCommandResult(parseResult);
+                    if (deepest?.Command is Command matched && matched is not RootCommand)
+                    {
+                        ShowScopedSuggestions(matched);
+                        Console.WriteLine();
+                        ConsoleUI.WriteBullet($"Use 'srectl {GetCommandPath(deepest)} --help' for details");
+                        Console.WriteLine();
+                        return 1;
+                    }
+
+                    // Fall back to top-level help without re-printing header twice
+                    var configService = new CliConfigurationService();
+                    var hasConfig = await configService.HasValidConfigurationAsync();
+                    ShowCustomHelp(isFirstTime: !hasConfig, includeHeader: false);
+                    return 1;
+                }
+
+                // Subcommand required but missing (e.g., `srectl agent`)
+                if (hasRequiredMissingSubcommand)
+                {
+                    var deepest = GetDeepestMatchedCommandResult(parseResult);
+                    if (deepest?.Command is Command needSub && needSub.Subcommands.Any())
+                    {
+                        StandardHelpFormatter.ShowSrectlHeader();
+                        ConsoleUI.WriteStatus(false, $"'{GetCommandPath(deepest)}' expects a subcommand.");
+                        Console.WriteLine();
+                        ShowScopedSuggestions(needSub);
+                        Console.WriteLine();
+                        ConsoleUI.WriteBullet($"Use 'srectl {GetCommandPath(deepest)} --help' for details");
+                        Console.WriteLine();
+                        return 1;
+                    }
+                }
+
+                // We matched a specific command but options are missing/invalid (e.g., `srectl agent test`)
+                if (hasMissingOrInvalidOptions)
+                {
+                    var deepest = GetDeepestMatchedCommandResult(parseResult);
+                    if (deepest?.Command is Command cmd && cmd is not RootCommand)
+                    {
+                        StandardHelpFormatter.ShowSrectlHeader();
+                        ConsoleUI.WriteStatus(false, $"Missing or invalid options for '{GetCommandPath(deepest)}'.");
+                        Console.WriteLine();
+                        ShowScopedSuggestions(cmd);
+                        Console.WriteLine();
+                        ConsoleUI.WriteBullet($"Use 'srectl {GetCommandPath(deepest)} --help' to see all options and examples");
+                        Console.WriteLine();
+                        return 1;
+                    }
+                }
+
+                // Generic fallback (rare)
+                {
+                    var configService = new CliConfigurationService();
+                    var hasConfig = await configService.HasValidConfigurationAsync();
+                    ShowCustomHelp(isFirstTime: !hasConfig, includeHeader: true);
                     return 1;
                 }
             }
@@ -93,11 +172,11 @@ public static class Program
         }
     }
 
-    private static void ShowCustomHelp(bool isFirstTime = false)
+    private static void ShowCustomHelp(bool isFirstTime = false, bool includeHeader = true)
     {
-        StandardHelpFormatter.ShowSrectlHeader();
+        if (includeHeader) StandardHelpFormatter.ShowSrectlHeader();
 
-        ConsoleUI.WriteSection("Usage");
+        ConsoleUI.WriteSection("Usage", bottomMargin: true);
         Console.WriteLine("  srectl [command] [options]");
         Console.WriteLine();
 
@@ -158,39 +237,125 @@ public static class Program
         Console.WriteLine();
     }
 
-    /// <summary>
-    /// Provides intelligent suggestions for common command syntax mistakes
-    /// </summary>
+    /// <summary>Provides intelligent suggestions for common command syntax mistakes</summary>
     private static string GetCommonCommandSuggestion(string commandGroup, string subCommand, string possibleValue)
     {
         return (commandGroup.ToLower(), subCommand.ToLower()) switch
         {
-            // Profile commands
+            // Profile
             ("profile", "set") => $"srectl profile set --name {possibleValue}",
             ("profile", "create") => $"srectl profile create --name {possibleValue} --url <server-url>",
             ("profile", "delete") => $"srectl profile delete --name {possibleValue}",
             ("profile", "get") => $"srectl profile get --name {possibleValue}",
 
-            // Agent commands
+            // Agent
             ("agent", "create") => $"srectl agent create --name {possibleValue}",
             ("agent", "apply") => $"srectl agent apply --name {possibleValue}",
             ("agent", "delete") => $"srectl agent delete --name {possibleValue}",
-            ("agent", "test") => $"srectl agent test --name {possibleValue}",
+            ("agent", "test") => $"srectl agent test --name {possibleValue} --message \"…\"",
 
-            // Tool commands
+            // Tool
             ("tool", "create") => $"srectl tool create --name {possibleValue}",
             ("tool", "apply") => $"srectl tool apply --name {possibleValue}",
             ("tool", "delete") => $"srectl tool delete --name {possibleValue}",
 
-            // Doc commands
+            // Doc
             ("doc", "upload") => $"srectl doc upload --file {possibleValue}",
 
-            // Thread commands
+            // Thread
             ("thread", "track") => $"srectl thread track --id {possibleValue}",
 
-            // Default - return empty string for no suggestion
             _ => ""
         };
     }
 
+    // ---- helpers for better error messages / scoped help ----
+
+    private static CommandResult GetDeepestMatchedCommandResult(ParseResult result)
+    {
+        CommandResult current = result.CommandResult;
+        while (true)
+        {
+            var next = current.Children.OfType<CommandResult>().LastOrDefault();
+            if (next is null) return current;
+            current = next;
+        }
+    }
+
+    private static string GetCommandPath(SymbolResult result)
+    {
+        var parts = new System.Collections.Generic.Stack<string>();
+        for (var r = result; r is not null; r = r.Parent)
+        {
+            if (r is CommandResult cr && cr.Command is not RootCommand)
+                parts.Push(cr.Command.Name);
+        }
+        return string.Join(' ', parts);
+    }
+
+    private static void ShowScopedSuggestions(Command cmd)
+    {
+        if (cmd.Subcommands.Any())
+        {
+            ConsoleUI.WriteSection($"Valid subcommands for '{cmd.Name}'");
+            foreach (var sc in cmd.Subcommands)
+                ConsoleUI.WriteKeyValue($"srectl {cmd.Name} {sc.Name}", sc.Description ?? string.Empty, 28, ConsoleColor.Green);
+            Console.WriteLine();
+        }
+
+        if (cmd.Options.Any())
+        {
+            ConsoleUI.WriteSection("Options");
+            foreach (var opt in cmd.Options)
+            {
+                var aliases = string.Join(", ", opt.Aliases);
+                ConsoleUI.WriteKeyValue(aliases, opt.Description ?? string.Empty, 28, ConsoleColor.Green);
+            }
+        }
+    }
+
+    private static string? SuggestClosestTopLevel(RootCommand root, string? token)
+    {
+        if (string.IsNullOrWhiteSpace(token)) return null;
+        var cmds = root.Subcommands.Select(c => c.Name).ToArray();
+        // Simple heuristic: prefer exact singularization, else starts-with, else shortest Levenshtein within threshold.
+        if (cmds.Contains(token, StringComparer.OrdinalIgnoreCase)) return token;
+
+        var singular = TrySingularize(token);
+        var exact = cmds.FirstOrDefault(c => c.Equals(singular, StringComparison.OrdinalIgnoreCase));
+        if (!string.IsNullOrEmpty(exact)) return exact;
+
+        var starts = cmds.FirstOrDefault(c => token.StartsWith(c, StringComparison.OrdinalIgnoreCase));
+        if (!string.IsNullOrEmpty(starts)) return starts;
+
+        // Tiny Levenshtein to keep things lightweight
+        int Threshold = 2;
+        string? best = null; int bestDist = int.MaxValue;
+        foreach (var c in cmds)
+        {
+            int d = Lev(token, c);
+            if (d < bestDist) { bestDist = d; best = c; }
+        }
+        return bestDist <= Threshold ? best : null;
+
+        static int Lev(string a, string b)
+        {
+            var dp = new int[a.Length + 1, b.Length + 1];
+            for (int i = 0; i <= a.Length; i++) dp[i, 0] = i;
+            for (int j = 0; j <= b.Length; j++) dp[0, j] = j;
+            for (int i = 1; i <= a.Length; i++)
+                for (int j = 1; j <= b.Length; j++)
+                {
+                    int cost = a[i - 1] == b[j - 1] ? 0 : 1;
+                    dp[i, j] = Math.Min(Math.Min(
+                        dp[i - 1, j] + 1,
+                        dp[i, j - 1] + 1),
+                        dp[i - 1, j - 1] + cost);
+                }
+            return dp[a.Length, b.Length];
+        }
+    }
+
+    private static string? TrySingularize(string token)
+        => token.EndsWith("s", StringComparison.OrdinalIgnoreCase) ? token[..^1] : token;
 }
