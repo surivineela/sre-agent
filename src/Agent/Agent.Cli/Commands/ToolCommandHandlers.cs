@@ -67,6 +67,20 @@ public static class ToolCommandHandlers
             // Create tool using template based on actual definitions
             var toolYaml = CreateToolFromTemplate(name!, type!, extra);
 
+            // For KustoTool, prepend a helpful header with modification + permissions guidance
+            if (!string.IsNullOrWhiteSpace(type) && type.Equals("KustoTool", StringComparison.OrdinalIgnoreCase))
+            {
+                var header = string.Join('\n', new[]
+                {
+                    "# NOTE: This is a Kusto tool template. Update it before applying.",
+                    "# - Set a meaningful description, database, and query.",
+                    "# - Ensure the 'connector' points to a configured Kusto connector.",
+                    "# - Verify the connector principal has required ADX permissions (see http://aka.ms/1psreagent).",
+                    ""
+                });
+                toolYaml = header + toolYaml;
+            }
+
             // Write tool to file
             var toolsDir = "tools";
             string yamlPath;
@@ -97,6 +111,16 @@ public static class ToolCommandHandlers
             ConsoleUI.WriteCommand("Update connector", "Set the correct connector reference");
             ConsoleUI.WriteCommand("Validate tool", $"srectl tool validate --name {name}");
             ConsoleUI.WriteCommand("Apply tool", $"srectl tool apply --name {name}");
+
+            // Kusto-specific post-create reminders
+            if (!string.IsNullOrWhiteSpace(type) && type.Equals("KustoTool", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine();
+                ConsoleUI.WriteSection("Kusto prerequisites");
+                ConsoleUI.WriteBullet("Edit YAML to set database, cluster, data connection and query.", ConsoleColor.Yellow);
+                ConsoleUI.WriteBullet("Ensure the connector principal has the required ADX permissions.", ConsoleColor.Yellow);
+                ConsoleUI.WriteCommand("Docs", "http://aka.ms/1psreagent");
+            }
         }
         catch (Exception ex)
         {
@@ -191,12 +215,44 @@ public static class ToolCommandHandlers
     /// <summary>
     /// Handles the tool show-connectors command to display available connector types.
     /// </summary>
-    public static void HandleShowConnectorsCommand(ParseResult parseResult)
+    public static async Task HandleShowConnectorsCommand(ParseResult parseResult)
     {
         try
         {
             var verbose = parseResult.GetValue(ToolCommandOptions.VerboseOption);
 
+            // First, try to show configured data connectors from the server (these are the actual names to use in YAML)
+            ConsoleUI.WriteSection("Configured Data Connectors (use these names in YAML)");
+            bool printedConfigured = false;
+            using (var api = new ApiService())
+            {
+                try
+                {
+                    var (success, response) = await api.ListDataConnectorsAsync();
+                    if (success)
+                    {
+                        Console.WriteLine(response);
+                        printedConfigured = true;
+                        Console.WriteLine();
+                        ConsoleUI.WriteInfo("YAML: connector: <name>", ConsoleColor.Gray);
+                    }
+                    else
+                    {
+                        ConsoleUI.WriteInfo("Could not fetch connectors from server.", ConsoleColor.Yellow);
+                        ConsoleUI.WriteInfo("Tip: run 'srectl init' and 'srectl list data-connectors' when connected.", ConsoleColor.Gray);
+                    }
+                }
+                catch
+                {
+                    ConsoleUI.WriteInfo("Unable to connect to server to list configured connectors.", ConsoleColor.Yellow);
+                }
+            }
+
+            // Then, show available connector types from local SDK discovery (helpful reference)
+            if (printedConfigured)
+            {
+                Console.WriteLine();
+            }
             ConsoleUI.WriteSection("Available Connector Types");
 
             var connectorTypes = ToolDefinitionService.GetAvailableConnectorTypes();

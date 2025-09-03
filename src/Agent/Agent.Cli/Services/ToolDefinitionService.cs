@@ -35,19 +35,19 @@ public static class ToolDefinitionService
     private static List<Assembly> DiscoverRelevantAssemblies()
     {
         var assemblies = new List<Assembly>();
-        
+
         try
         {
             // Get all loaded assemblies
             var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies();
-            
+
             foreach (var assembly in loadedAssemblies)
             {
                 try
                 {
                     // Skip system assemblies and other non-relevant assemblies
                     var assemblyName = assembly.GetName().Name ?? string.Empty;
-                    if (assemblyName.StartsWith("System.") || 
+                    if (assemblyName.StartsWith("System.") ||
                         assemblyName.StartsWith("Microsoft.") && !assemblyName.Contains("Agent") ||
                         assemblyName.StartsWith("netstandard") ||
                         assemblyName.StartsWith("mscorlib"))
@@ -57,7 +57,7 @@ public static class ToolDefinitionService
                     var types = assembly.GetTypes();
                     var hasToolTypes = types.Any(t => t.GetCustomAttribute<ToolTypeAttribute>() != null);
                     var hasConnectorTypes = types.Any(t => t.IsSubclassOf(typeof(DataConnectorDefinitionBase)) && !t.IsAbstract);
-                    
+
                     if (hasToolTypes || hasConnectorTypes)
                     {
                         assemblies.Add(assembly);
@@ -94,7 +94,7 @@ public static class ToolDefinitionService
     private static List<ToolTypeInfo> DiscoverToolTypes()
     {
         var toolTypes = new List<ToolTypeInfo>();
-        
+
         foreach (var assembly in _relevantAssemblies.Value)
         {
             try
@@ -134,7 +134,7 @@ public static class ToolDefinitionService
     public static ToolTypeDetails? GetToolTypeDetails(string toolTypeName)
     {
         var toolTypes = GetAvailableToolTypes();
-        var toolType = toolTypes.FirstOrDefault(t => 
+        var toolType = toolTypes.FirstOrDefault(t =>
             t.Name.Equals(toolTypeName, StringComparison.OrdinalIgnoreCase));
 
         if (toolType == null)
@@ -319,17 +319,17 @@ public static class ToolDefinitionService
                 return GenerateFallbackYaml(toolTypeName);
 
             var yaml = new StringBuilder();
-            
+
             // Generate YAML based on the tool's properties
             yaml.AppendLine($"name: My{toolTypeName}");
             yaml.AppendLine($"type: {toolTypeName}");
-            
+
             // Add connector if the tool has one
             if (HasProperty(type, "Connector"))
             {
                 yaml.AppendLine("connector: my-connector");
             }
-            
+
             yaml.AppendLine($"description: Sample {toolTypeName} description");
 
             // Get all YAML-serializable properties and add sample values
@@ -375,6 +375,7 @@ type: KustoTool
 connector: analytics-cluster
 mode: query
 description: |
+  !!!!!!!!IMPORTANT!!!!! THIS IS A PLACEHOLDER TEMPLATE: <PLACE YOUR TOOL DESCRIPTION HERE AND CHANGE THE VALUES ABOVE>
   Purpose:
   Comprehensive check for resource impact scenarios affecting a subscription or tenant
 
@@ -399,7 +400,7 @@ query: |
   | extend parsed = parse_json(ImpactData)
   | mv-expand scenario = bag_keys(parsed)
   | extend scenarioData = parsed[tostring(scenario)]
-  | mv-expand row = scenarioData 
+  | mv-expand row = scenarioData
   | evaluate bag_unpack(row)
   | extend Scenario = scenario
   | distinct tostring(Scenario), Tenant, Subscription, Region, ResourceGroup, ResourceName, ResourceType, ImpactLevel
@@ -443,7 +444,7 @@ parameters:
     private static PropertyInfo[] GetYamlProperties(Type type)
     {
         return type.GetProperties()
-            .Where(p => p.GetCustomAttribute<YamlMemberAttribute>() != null || 
+            .Where(p => p.GetCustomAttribute<YamlMemberAttribute>() != null ||
                        p.GetCustomAttribute<YamlDotNet.Serialization.YamlMemberAttribute>() != null ||
                        ShouldIncludeProperty(p))
             .ToArray();
@@ -455,7 +456,7 @@ parameters:
     private static bool ShouldIncludeProperty(PropertyInfo prop)
     {
         // Include common properties that are typically serialized
-        var commonProps = new[] { "Name", "Type", "Connector", "Description", "Parameters", 
+        var commonProps = new[] { "Name", "Type", "Connector", "Description", "Parameters",
                                  "Mode", "Database", "Query", "ClusterHint" };
         return commonProps.Contains(prop.Name, StringComparer.OrdinalIgnoreCase);
     }
@@ -505,7 +506,7 @@ parameters:
     private static string GenerateSampleValue(PropertyInfo prop)
     {
         var propType = prop.PropertyType;
-        
+
         // Handle nullable types
         if (propType.IsGenericType && propType.GetGenericTypeDefinition() == typeof(Nullable<>))
         {
@@ -561,12 +562,12 @@ parameters:
     private static List<string> GetDynamicSupportedProperties(Type type)
     {
         var properties = new List<string>();
-        
+
         try
         {
             // Get all public properties
             var allProperties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-            
+
             foreach (var prop in allProperties)
             {
                 // Check if property should be included
@@ -575,7 +576,7 @@ parameters:
                     var yamlName = GetYamlPropertyName(prop);
                     var typeInfo = GetPropertyTypeInfo(prop);
                     var requiredInfo = IsPropertyRequired(prop) ? " (required)" : " (optional)";
-                    
+
                     properties.Add($"{yamlName} ({typeInfo}){requiredInfo}");
                 }
             }
@@ -614,7 +615,7 @@ parameters:
     private static string GetPropertyTypeInfo(PropertyInfo prop)
     {
         var propType = prop.PropertyType;
-        
+
         // Handle nullable types
         if (propType.IsGenericType && propType.GetGenericTypeDefinition() == typeof(Nullable<>))
         {
@@ -700,7 +701,7 @@ parameters:
             "KustoToolDefinition" => new List<string>
             {
                 "name (string) (required)",
-                "type (string) (required)", 
+                "type (string) (required)",
                 "connector (string) (required)",
                 "description (string) (optional)",
                 "mode (string) (optional)",

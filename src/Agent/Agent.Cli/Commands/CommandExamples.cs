@@ -165,7 +165,7 @@ Examples:
   # Show specific type with verbose details
   srectl tool show-types --type AzureTool --verbose";
 
-        public const string ShowConnectorsDescription = @"Display available connector types
+  public const string ShowConnectorsDescription = @"Display configured data connectors (names to use in YAML) and available connector types
 
 Examples:
   # List all available connectors
