@@ -483,7 +483,7 @@ export const useThreadListWithFavoriteList = (
 
             requestAnimationFrame(() => {
                 dom.style.transform = '';
-                dom.style.transition = 'transform 800ms ease';
+                dom.style.transition = 'transform 450ms ease';
             });
         });
 
