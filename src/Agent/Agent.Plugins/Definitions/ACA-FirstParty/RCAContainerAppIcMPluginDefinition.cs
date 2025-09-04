@@ -137,11 +137,11 @@ namespace Agent.Plugins.Definitions
         Use this tool to post a summary or message to the incident's discussion log.
 
         Output:
-        Returns a boolean value indicating if the operation was successful:
-        - Success: true if the entry was added, false otherwise
+        Returns a string indicating the result of the operation:
+        - result: A message indicating if the entry was added or any other relevant information
         """
         )]
-        public async Task<bool> AddDiscussionEntryRCAContainerApp(
+        public async Task<string> AddDiscussionEntryRCAContainerApp(
             [Description("Unique identifier for the ICM incident.")] string incidentId,
             [Description("HTML-formatted discussion entry text to add.")] string text)
         {
@@ -156,18 +156,18 @@ namespace Agent.Plugins.Definitions
         Use this tool to post a web portal link to the incident's discussion log for easy access to the investigation thread.
 
         Output:
-        Returns a boolean value indicating if the operation was successful:
-        - Success: true if the entry was added (or the entry already exists), false otherwise
+        Returns a string indicating the result of the operation:
+        - result: A message indicating if the entry was added or any other relevant information
         """
         )]
-        public async Task<bool> AddWebPortalLinkToIncidentRCAContainerApp(
+        public async Task<string> AddWebPortalLinkToIncidentRCAContainerApp(
             [Description("Unique identifier for the ICM incident.")] string incidentId,
             [Description("Date and time of the ICM creation.")] DateTime icmCreateTime)
         {
             var templateUrl = _generalSettings.PortalThreadIdLink;
             if (_env.IsDevelopment())
             {
-                return true; // Do not add web portal link to ICM in development environment
+                return "Success"; // Do not add web portal link to ICM in development environment
             }
             var currentThreadId = ToolStatic.AsyncLocalThreadId.Value;
             var threadLink = string.Format(templateUrl, currentThreadId);
@@ -179,7 +179,7 @@ namespace Agent.Plugins.Definitions
                 existingDiscussionEntries.Any(entry => entry.Text != null && entry.Text.Contains(currentThreadId.ToString()));
             if (webPortalLinkExists)
             {
-                return true; // Web portal link already exists, no need to add again
+                return "Success"; // Web portal link already exists, no need to add again
             }
                 return await _plugin.AddDiscussionEntry(incidentId, webPortalLink);
         }
@@ -192,11 +192,11 @@ namespace Agent.Plugins.Definitions
         Use this tool to mark an incident that is related to quota as resolved after confirmation.
 
         Output:
-        Returns a boolean value indicating if the operation was successful:
-        - Success: true if the incident was resolved, false otherwise
+        Returns a string indicating the result of the operation:
+        - result: A message indicating if the entry was added or any other relevant information
         """
         )]
-        public async Task<bool> ResolveIncidentRCAContainerApp(
+        public async Task<string> ResolveIncidentRCAContainerApp(
             [Description("Unique identifier for the ICM incident.")] string incidentId,
             [Description("Reason or comment for resolving the incident.")] string reason)
         {

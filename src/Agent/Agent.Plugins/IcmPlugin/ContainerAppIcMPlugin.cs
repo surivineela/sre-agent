@@ -151,27 +151,27 @@ public class ContainerAppIcMPlugin : IContainerAppIcMPlugin
             [Description("Incident ID")] string incidentId,
             [Description("Tag to add")] string tag)
     {
-        return await _icmApiClient.AddTagToIncident(incidentId, tag) == "Success";
+        return await _icmApiClient.AddTagToIncident(incidentId, tag) == "Tags added successfully.";
     }
 
-    public async Task<bool> MitigateIncident(
+    public async Task<string> MitigateIncident(
         [Description("Id of the incident")] string incidentId,
         [Description("The comment for mitigation action")] string reason)
     {
-        return await _icmApiClient.MitigateIncidentAsync(incidentId, reason) == "Success";
+        return await _icmApiClient.MitigateIncidentAsync(incidentId, reason);
     }
 
-    public async Task<bool> ResolveIncident(
+    public async Task<string> ResolveIncident(
             [Description("Id of the incident")] string incidentId,
             [Description("comment/reason for resolution action")] string reason)
     {
-        return await _icmApiClient.ResolveIncidentAsync(incidentId, reason) == "Success";
+        return await _icmApiClient.ResolveIncidentAsync(incidentId, reason);
     }
 
-    public async Task<bool> AddDiscussionEntry(
+    public async Task<string> AddDiscussionEntry(
             [Description("Incident ID")] string incidentId,
             [Description("Discussion entry text")] string text)
     {
-        return await _icmApiClient.PostDiscussionEntryAsync(incidentId, text) == "Success";
+        return await _icmApiClient.PostDiscussionEntryAsync(incidentId, text);
     }
 }
