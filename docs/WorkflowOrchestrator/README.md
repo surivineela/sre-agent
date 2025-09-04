@@ -150,10 +150,79 @@ Notes:
 To make the ICM scanner pick up incidents, you must create and enable an Incident Filter that includes your target OwningTeamId. This is done via the IncidentPlaygroundController.
 
 - Create or update a filter using the IncidentFilterDocumentPayload (note the `OwningTeamId`):
-
-```powershell
 - Filtering by `OwnerName` (or OwningTeam) limits which incidents kick off the workflow.
 - If `ReadOnly` is true, the scanner avoids mutating ICM and posts status to the agent thread instead.
+
+### Local enablement (HTTP profile + incident filter)
+
+If you also want to run with the plain `http` launch profile (instead of `https`) and still enable the workflow orchestrator, add the same environment variable to the `http` profile inside `src/Agent/Agent.Web/Properties/launchSettings.json`:
+
+```jsonc
+"profiles": {
+  "http": {
+    "commandName": "Project",
+    "commandLineArgs": "--session --legacy",
+    "launchBrowser": true,
+    "launchUrl": "static/",
+    "applicationUrl": "http://localhost:5073",
+    "environmentVariables": {
+      "ASPNETCORE_ENVIRONMENT": "Development",
+      "AGENT_ENDPOINT": "http://localhost:5073/",
+      "AGENT_TYPE_NAME": "RCARouterAgent"
+    }
+  }
+}
+```
+
+### Create an incident filter (OwningTeam scoped)
+
+Register (or update) an incident filter so the ICM scanner auto‑starts RCA for matching incidents. Use an arbitrary unique filter id (here `filter-005`). Send this payload over **HTTP** (not HTTPS) because the dev certificate may be rejected by simple clients.
+
+Endpoint:
+
+```
+POST http://localhost:5073/api/v1/IncidentPlayground/filters/filter-005
+```
+
+Body:
+
+```json
+{
+  "id": "filter-005",
+  "name": "BlobTrigger CRI RCA Filter",
+  "incidentType": "CustomerReported",
+  "isEnabled": true,
+  "agentMode": "",
+  "owningTeamId": "84433"
+}
+```
+
+After enabling this filter, any new Active incident with `OwningTeamId` = `84433` will automatically trigger the workflow RCA (subject to `AutomatedRCA.Enabled`).
+
+Optional PowerShell helper:
+
+```powershell
+$payload = @{
+  id = "filter-005"
+  name = "BlobTrigger CRI RCA Filter"
+  incidentType = "CustomerReported"
+  isEnabled = $true
+  agentMode = ""
+  owningTeamId = "84433"
+} | ConvertTo-Json
+
+Invoke-RestMethod -Uri "http://localhost:5073/api/v1/IncidentPlayground/filters/filter-005" `
+  -Method Post `
+  -ContentType "application/json" `
+  -Body $payload
+```
+
+Once created you can still call the enable endpoint if needed:
+
+```
+POST http://localhost:5073/api/v1/IncidentPlayground/filters/filter-005/enable
+```
+
 
 Scanner behavior (code pointers):
 
