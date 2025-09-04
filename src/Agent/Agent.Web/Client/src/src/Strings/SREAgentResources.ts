@@ -44,6 +44,10 @@ export const SreAgentResources = defineMessages({
         id: 'Zidpq7',
         defaultMessage: 'Copy link to thread',
     },
+    custom: {
+        id: 'Sjo1P4',
+        defaultMessage: 'Custom',
+    },
     deny: {
         id: 'htvX+Z',
         defaultMessage: 'Deny',
@@ -269,6 +273,22 @@ export const SreAgentResources = defineMessages({
     error: { defaultMessage: 'Error', id: 'KN7zKn' },
     oboTokenUsed: { defaultMessage: 'An on-behalf-of token will be used with the following scope', id: 'x3aQrV' },
     gotIt: { defaultMessage: 'Got it', id: 'NYTGIb' },
+    timeRange: { defaultMessage: 'Time range', id: '74vgSJ' },
+    start: { defaultMessage: 'Start', id: 'mOFG3K' },
+    startDateAriaLabel: { defaultMessage: 'Start date', id: 'n5QvJy' },
+    startDatePickerAriaLabel: { defaultMessage: 'Start date picker', id: 'YBiTCc' },
+    startTimeAriaLabel: { defaultMessage: 'Start time', id: '/zFP1/' },
+    end: { defaultMessage: 'End', id: '3JVa6k' },
+    endDateAriaLabel: { defaultMessage: 'End date', id: 'Humfno' },
+    endDatePickerAriaLabel: { defaultMessage: 'End date picker', id: 'Dy3cy0' },
+    endTimeAriaLabel: { defaultMessage: 'End time', id: 'yc/tuy' },
+    noResults: { defaultMessage: 'No results', id: 'jHJmjf' },
+    pillFilterAriaLabel: {
+        defaultMessage: 'Editor to filter the results by column value. {columnName}: {filterValue}',
+        id: 'mTsdF8',
+    },
+    pillFilterRemoveAriaLabel: { defaultMessage: 'Remove {columnName} filter', id: '/ytgXm' },
+    optionsListAriaLabel: { defaultMessage: '{fieldName} options', id: 'dDk23i' },
 });
 
 export const SreAgentTabResources = defineMessages({
@@ -873,7 +893,11 @@ export const IncidentManagementResources = defineMessages({
     baseIncident: { defaultMessage: 'Base incident', id: 'UjETJe' },
     last30Days: { defaultMessage: 'Last 30 days', id: 'Rfvi9/' },
     last7Days: { defaultMessage: 'Last 7 days', id: 'irFBKn' },
+    last3Days: { defaultMessage: 'Last 3 days', id: 'gUQeKV' },
     last24Hours: { defaultMessage: 'Last 24 hours', id: '8O9cAb' },
+    last12Hours: { defaultMessage: 'Last 12 hours', id: 'S1gYH9' },
+    last6Hours: { defaultMessage: 'Last 6 hours', id: 'ZVyc4+' },
+    lastHour: { defaultMessage: 'Last hour', id: 's8HBot' },
     notSet: { defaultMessage: 'Not set', id: 'p5LNtB' },
     turnOff: { defaultMessage: 'Turn off', id: 'XZ+Fx6' },
     turnOn: { defaultMessage: 'Turn on', id: 'npvxpr' },
@@ -977,6 +1001,8 @@ export const IncidentManagementResources = defineMessages({
         defaultMessage: 'Find incident threads and incident response plans together on the Incident Management tab.',
         id: 'z8ZYoc',
     },
+    processedTime: { defaultMessage: 'Processed time', id: 'CU0qUc' },
+    selectedOutOfTotal: { defaultMessage: '{selectedCount} of {totalCount}', id: '01sZoP' },
 });
 
 export const IncidentManagementPlatformResources = defineMessages({

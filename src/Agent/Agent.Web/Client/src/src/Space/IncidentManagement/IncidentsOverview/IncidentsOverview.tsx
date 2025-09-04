@@ -4,10 +4,8 @@ import {
     DrawerBody,
     DrawerHeader,
     DrawerHeaderTitle,
-    Dropdown,
     InputOnChangeData,
     Link,
-    Option,
     SearchBox,
     SearchBoxChangeEvent,
     Spinner,
@@ -29,10 +27,13 @@ import {
 import { CheckboxVisibility, ConstrainMode, DetailsListLayoutMode, IColumn, SelectionMode } from '@fluentui/react/lib/DetailsList';
 import { ShimmeredDetailsList } from '@fluentui/react/lib/ShimmeredDetailsList';
 import { debounce } from 'lodash';
-import { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import { FC, useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { ComboboxPillFilter, LabelKeyPair } from '../../../Common/Components/PillFilter/ComboboxPillFilter';
+import { TimeRangeKeyLabelPair, TimeRangePillFilter, TimeRangeValue } from '../../../Common/Components/PillFilter/TimeRangePillFilter';
 import { IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
 import { Thread } from '../../../Common/Contracts/DataPlane/Thread';
+import { TimespanKeys } from '../../../Common/Helpers/Date';
 import Url from '../../../Common/Helpers/Url';
 import { IncidentManagementResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import { useIncidentManagementStyles } from '../../Styles/IncidentManagement.styles';
@@ -47,6 +48,7 @@ type ISortedDetailsListColumn<T> = IColumn & {
 enum IncidentsListColumnKey {
     incidentId = 'incidentId',
     title = 'title',
+    createdTimestamp = 'createdTimestamp',
     priority = 'priority',
     status = 'incidentStatus',
     investigation = 'investigation',
@@ -65,10 +67,6 @@ enum InvestigationStatus {
     InProgress = 'InvestigationInProgress',
 }
 
-const all = 'all';
-
-type LabelValuePair = { label: string; value: string };
-
 interface SelectedThreadInfo {
     thread: Thread;
     fullScreen: boolean;
@@ -80,11 +78,10 @@ const IncidentsOverview: FC = () => {
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
     const [searchText, setSearchText] = useState<string>('');
-    const [priority, setPriority] = useState<string>(all);
+    const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRangeValue>({ key: TimespanKeys.SevenDays });
+    const [selectedPriorities, setSelectedPriorities] = useState<string[]>([]);
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
-    const [action, setAction] = useState<string>(all);
-    const [priorityOptions, setIncidentPriorities] = useState<LabelValuePair[]>([]);
-    const [actionOptions, setActionOptions] = useState<LabelValuePair[]>([]);
+    const [selectedActions, setSelectedActions] = useState<string[]>([]);
     const [sortColumnKey, setSortColumnKey] = useState<IncidentsListColumnKey | undefined>();
     const [isSortedDescending, setIsSortedDescending] = useState<boolean>(true);
     const [refreshCounter, setRefreshCounter] = useState<number>(0);
@@ -116,6 +113,7 @@ const IncidentsOverview: FC = () => {
         undefined,
         searchText,
         selectedStatuses,
+        selectedTimeRange,
         sortColumnKey as SortColumn | undefined,
         isSortedDescending,
         !selectedThreadInfo?.fullScreen,
@@ -135,38 +133,84 @@ const IncidentsOverview: FC = () => {
         return incidentThreadsLoading;
     }, [incidentThreadsLoading]);
 
-    const isIncidentFilterEmpty = useMemo(() => {
-        return priority === all && selectedStatuses.length === 0 && action === all && searchText.trim() === '';
-    }, [priority, selectedStatuses, action, searchText]);
-
-    // Priorities Filter
-    useEffect(() => {
-        if (!isIncidentFilterEmpty) return;
-
-        // TODO (andimarc): get priorities from API
-        setIncidentPriorities([
-            { value: all, label: intl.formatMessage(IncidentManagementResources.allPriorities) },
-            { value: Priorities.P1, label: intl.formatMessage(IncidentManagementResources.p1) },
-            { value: Priorities.P1, label: intl.formatMessage(IncidentManagementResources.p2) },
-        ]);
-    }, [isIncidentFilterEmpty, intl]);
-
-    const getPriorityOptionLabel = (option: string): string => {
-        switch (option) {
-            case all:
-                return intl.formatMessage(IncidentManagementResources.allPriorities);
-            default:
-                return option;
-        }
-    };
-
-    const onPriorityChange = useCallback(
-        (priority: string) => {
-            setPriority(priority);
-        },
-        [setPriority]
+    // Time Range
+    const timeRangeOptions: TimeRangeKeyLabelPair[] = useMemo(
+        () => [
+            {
+                key: TimespanKeys.OneHour,
+                label: intl.formatMessage(IncidentManagementResources.lastHour),
+            },
+            {
+                key: TimespanKeys.SixHours,
+                label: intl.formatMessage(IncidentManagementResources.last6Hours),
+            },
+            {
+                key: TimespanKeys.TwelveHours,
+                label: intl.formatMessage(IncidentManagementResources.last12Hours),
+            },
+            {
+                key: TimespanKeys.TwentyFourHours,
+                label: intl.formatMessage(IncidentManagementResources.last24Hours),
+            },
+            {
+                key: TimespanKeys.ThreeDays,
+                label: intl.formatMessage(IncidentManagementResources.last3Days),
+            },
+            {
+                key: TimespanKeys.SevenDays,
+                label: intl.formatMessage(IncidentManagementResources.last7Days),
+            },
+        ],
+        [intl]
     );
-    // End: Priorities Filter
+    // End: Time Range
+
+    // Priority
+    const priorityOptions: LabelKeyPair[] = useMemo(
+        () => [
+            {
+                key: Priorities.P1,
+                label: intl.formatMessage(IncidentManagementResources.p1),
+            },
+            {
+                key: Priorities.P2,
+                label: intl.formatMessage(IncidentManagementResources.p2),
+            },
+        ],
+        [intl]
+    );
+    // End: Priority
+
+    // Status
+    const statusOptions: LabelKeyPair[] = useMemo(
+        () => [
+            {
+                key: IncidentStatus.triggered,
+                label: intl.formatMessage(SreAgentResources.triggered),
+            },
+            {
+                key: IncidentStatus.active,
+                label: intl.formatMessage(SreAgentResources.active),
+            },
+            {
+                key: IncidentStatus.acknowledged,
+                label: intl.formatMessage(SreAgentResources.acknowledged),
+            },
+            {
+                key: IncidentStatus.mitigated,
+                label: intl.formatMessage(SreAgentResources.mitigated),
+            },
+            {
+                key: IncidentStatus.closed,
+                label: intl.formatMessage(SreAgentResources.closed),
+            },
+            {
+                key: IncidentStatus.resolved,
+                label: intl.formatMessage(SreAgentResources.resolved),
+            },
+        ],
+        [intl]
+    );
 
     const getStatusText = useCallback(
         (status?: string): string => {
@@ -188,91 +232,9 @@ const IncidentsOverview: FC = () => {
         },
         [intl]
     );
+    // End: Status
 
-    // Statuses Filter
-    const statusOptions: LabelValuePair[] = useMemo(
-        () => [
-            {
-                value: all,
-                label: intl.formatMessage(IncidentManagementResources.allStatuses),
-            },
-            {
-                value: IncidentStatus.triggered,
-                label: intl.formatMessage(SreAgentResources.triggered),
-            },
-            {
-                value: IncidentStatus.active,
-                label: intl.formatMessage(SreAgentResources.active),
-            },
-            {
-                value: IncidentStatus.acknowledged,
-                label: intl.formatMessage(SreAgentResources.acknowledged),
-            },
-            {
-                value: IncidentStatus.mitigated,
-                label: intl.formatMessage(SreAgentResources.mitigated),
-            },
-            {
-                value: IncidentStatus.closed,
-                label: intl.formatMessage(SreAgentResources.closed),
-            },
-            {
-                value: IncidentStatus.resolved,
-                label: intl.formatMessage(SreAgentResources.resolved),
-            },
-        ],
-        [isIncidentFilterEmpty, incidentThreads, intl]
-    );
-
-    const getStatusLabel = useCallback(
-        (values: string[]): string => {
-            if (values.length === 0 || values.length === statusOptions.length) {
-                return intl.formatMessage(IncidentManagementResources.allStatuses);
-            }
-            return values.map(value => getStatusText(value)).join(', ');
-        },
-        [intl, statusOptions.length]
-    );
-
-    const onStatusChange = useCallback(
-        (values: string[]) => {
-            setSelectedStatuses(currentValues => {
-                if (values.length === 0) {
-                    //return [];
-                    return statusOptions.map(option => option.value);
-                }
-
-                const wasAllOptionPreviouslySelected = currentValues.some(currentValue => currentValue === all);
-
-                if (values.some(value => value === all)) {
-                    // The "All" option is selected.
-
-                    if (wasAllOptionPreviouslySelected) {
-                        // The "All" was already selected. This means something else changed (was deselected), so we should also deselect the "All" option.
-                        return values.filter(value => value !== all);
-                    }
-
-                    // The "All" option was not already selected, and now it is. This means we should select everything.
-                    return statusOptions.map(option => option.value);
-                }
-
-                // The "All" option is not selected.
-
-                if (wasAllOptionPreviouslySelected) {
-                    // The "All" option was selected, but now it isn't. This means we should deselect everything.
-                    return [];
-                }
-
-                // The "All" option was not already selected, and still isn't selected.
-                // If everything but the "All" option is selected, we should select everything.
-                // Otherwise, we should use the selected values as they are.
-                return values.length === statusOptions.length - 1 ? statusOptions.map(option => option.value) : values;
-            });
-        },
-        [setSelectedStatuses, statusOptions]
-    );
-    // End: Statuses Filter
-
+    // Actions
     const getInvestigationProps = useCallback(
         (investigationStatus?: InvestigationStatus) => {
             switch (investigationStatus) {
@@ -302,34 +264,13 @@ const IncidentsOverview: FC = () => {
         [styles, intl]
     );
 
-    // Actions Filter
-    useEffect(() => {
-        if (!isIncidentFilterEmpty) return;
-
-        // TODO (andimarc): get options from API
-        const uniqueActions = Object.values(InvestigationStatus);
-        const actionOptions = uniqueActions.map(action => ({
-            value: action ?? '',
-            label: getInvestigationProps(action as InvestigationStatus).text ?? '',
-        }));
-
-        setActionOptions([{ value: all, label: intl.formatMessage(IncidentManagementResources.allActions) }, ...actionOptions]);
-    }, [isIncidentFilterEmpty, incidentThreads, intl]);
-
-    const getActionLabel = (value: string): string => {
-        switch (value) {
-            case all:
-                return intl.formatMessage(IncidentManagementResources.allActions);
-            default:
-                return getInvestigationProps(value as InvestigationStatus).text ?? '';
-        }
-    };
-
-    const onActionChange = useCallback(
-        (action: string) => {
-            setAction(action);
-        },
-        [setAction]
+    const actionOptions: LabelKeyPair[] = useMemo(
+        () =>
+            Object.values(InvestigationStatus).map(action => ({
+                key: action ?? '',
+                label: getInvestigationProps(action as InvestigationStatus).text ?? '',
+            })),
+        [getInvestigationProps]
     );
     // End: Actions Filter
 
@@ -394,7 +335,7 @@ const IncidentsOverview: FC = () => {
                 </div>
             ) : null;
         },
-        [disableAllControls, styles.greenCheckIcon, styles.setUp, styles.spinnerIcon, styles.warningIcon]
+        [disableAllControls, getInvestigationProps, styles.setUp]
     );
 
     const columns = useMemo<ISortedDetailsListColumn<Thread>[]>(() => {
@@ -408,9 +349,8 @@ const IncidentsOverview: FC = () => {
                 maxWidth: 150,
                 isMultiline: true,
                 onRender: (item: Thread) => item.status?.incidentStatus?.incidentId,
-                isSorted: sortColumnKey === (IncidentsListColumnKey.incidentId as IncidentsListColumnKey),
-                isSortedDescending:
-                    sortColumnKey === (IncidentsListColumnKey.incidentId as IncidentsListColumnKey) ? isSortedDescending : undefined,
+                isSorted: sortColumnKey === IncidentsListColumnKey.incidentId,
+                isSortedDescending: isSortedDescending,
                 onColumnClick: (_, col) => handleColumnClick(col),
             },
             {
@@ -422,9 +362,21 @@ const IncidentsOverview: FC = () => {
                 maxWidth: 800,
                 isMultiline: true,
                 onRender: onRenderTitle,
-                isSorted: sortColumnKey === (IncidentsListColumnKey.title as IncidentsListColumnKey),
-                isSortedDescending:
-                    sortColumnKey === (IncidentsListColumnKey.title as IncidentsListColumnKey) ? isSortedDescending : undefined,
+                isSorted: sortColumnKey === IncidentsListColumnKey.title,
+                isSortedDescending: isSortedDescending,
+                onColumnClick: (_, col) => handleColumnClick(col),
+            },
+            {
+                key: IncidentsListColumnKey.createdTimestamp,
+                name: intl.formatMessage(IncidentManagementResources.processedTime),
+                fieldName: IncidentsListColumnKey.createdTimestamp,
+                isResizable: true,
+                minWidth: 100,
+                maxWidth: 250,
+                isMultiline: true,
+                onRender: (item: Thread) => item.createdTimestamp,
+                isSorted: sortColumnKey === IncidentsListColumnKey.createdTimestamp,
+                isSortedDescending: isSortedDescending,
                 onColumnClick: (_, col) => handleColumnClick(col),
             },
         ];
@@ -439,9 +391,8 @@ const IncidentsOverview: FC = () => {
                 minWidth: 75,
                 maxWidth: 75,
                 onRender: onRenderPriority,
-                isSorted: sortColumnKey === (IncidentsListColumnKey.priority as IncidentsListColumnKey),
-                isSortedDescending:
-                    sortColumnKey === (IncidentsListColumnKey.priority as IncidentsListColumnKey) ? isSortedDescending : undefined,
+                isSorted: sortColumnKey === IncidentsListColumnKey.priority,
+                isSortedDescending: isSortedDescending,
                 onColumnClick: (_, col) => handleColumnClick(col),
             });
         }
@@ -454,9 +405,8 @@ const IncidentsOverview: FC = () => {
             minWidth: 100,
             maxWidth: 250,
             onRender: item => getStatusText(item.status?.incidentStatus?.status || IncidentStatus.active),
-            isSorted: sortColumnKey === (IncidentsListColumnKey.status as IncidentsListColumnKey),
-            isSortedDescending:
-                sortColumnKey === (IncidentsListColumnKey.status as IncidentsListColumnKey) ? isSortedDescending : undefined,
+            isSorted: sortColumnKey === IncidentsListColumnKey.status,
+            isSortedDescending: isSortedDescending,
             onColumnClick: (_, col) => handleColumnClick(col),
         });
 
@@ -471,10 +421,9 @@ const IncidentsOverview: FC = () => {
                     minWidth: 150,
                     maxWidth: 250,
                     onRender: onRenderInvestigation,
-                    isSorted: sortColumnKey === (IncidentsListColumnKey.investigation as IncidentsListColumnKey),
+                    isSorted: sortColumnKey === IncidentsListColumnKey.investigation,
+                    isSortedDescending: isSortedDescending,
                     onColumnClick: (_, col) => handleColumnClick(col),
-                    isSortedDescending:
-                        sortColumnKey === (IncidentsListColumnKey.investigation as IncidentsListColumnKey) ? isSortedDescending : undefined,
                 },
                 {
                     key: IncidentsListColumnKey.handler,
@@ -484,6 +433,9 @@ const IncidentsOverview: FC = () => {
                     minWidth: 150,
                     maxWidth: 250,
                     onRender: () => '<Handler name>',
+                    isSorted: sortColumnKey === IncidentsListColumnKey.investigation,
+                    isSortedDescending: isSortedDescending,
+                    onColumnClick: (_, col) => handleColumnClick(col),
                 }
             );
         }
@@ -493,6 +445,7 @@ const IncidentsOverview: FC = () => {
         intl,
         sortColumnKey,
         isSortedDescending,
+        getStatusText,
         onRenderPriority,
         onRenderInvestigation,
         onRenderTitle,
@@ -558,76 +511,65 @@ const IncidentsOverview: FC = () => {
                 <div className={styles.navPanelContent}>
                     <div className={styles.navPanelPadding}>
                         <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
-                            <div>
-                                <div className={styles.incidentFiltersContainer}>
-                                    <SearchBox
-                                        className={styles.searchBox}
-                                        placeholder={intl.formatMessage(SreAgentResources.search)}
-                                        value={searchText}
-                                        onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) =>
-                                            setSearchText(data.value ?? '')
-                                        )}
-                                    />
-                                    <Dropdown
-                                        onOptionSelect={(_e, data) => onStatusChange(data.selectedOptions)}
-                                        value={getStatusLabel(selectedStatuses)}
-                                        selectedOptions={selectedStatuses}
-                                        button={
-                                            <span style={{ whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
-                                                {getStatusLabel(selectedStatuses)}
-                                            </span>
-                                        }
-                                        className={styles.searchBox}
-                                        disabled={disableAllControls}
-                                        multiselect={true}
-                                    >
-                                        {statusOptions.map(option => (
-                                            <Option key={option.value} value={option.value} text={option.label}>
-                                                {option.label}
-                                            </Option>
-                                        ))}
-                                    </Dropdown>
-                                    {showMockedComponents && (
-                                        <>
-                                            <Dropdown
-                                                onOptionSelect={(_e, data) => onPriorityChange((data.optionValue as string) ?? all)}
-                                                value={priority}
-                                                selectedOptions={[priority]}
-                                                button={<span>{getPriorityOptionLabel(priority)}</span>}
-                                                className={styles.searchBox}
-                                                disabled={disableAllControls}
-                                            >
-                                                {priorityOptions.map(option => (
-                                                    <Option value={option.value} text={option.label}>
-                                                        {option.label}
-                                                    </Option>
-                                                ))}
-                                            </Dropdown>
-                                            <Dropdown
-                                                onOptionSelect={(_e, data) => onActionChange(data.optionValue ?? all)}
-                                                value={action}
-                                                selectedOptions={[action]}
-                                                button={<span>{getActionLabel(action)}</span>}
-                                                className={styles.searchBox}
-                                                disabled={disableAllControls}
-                                            >
-                                                {actionOptions.map(option => (
-                                                    <Option value={option.value} text={option.label}>
-                                                        {option.label}
-                                                    </Option>
-                                                ))}
-                                            </Dropdown>
-                                        </>
+                            <div className={styles.incidentFiltersContainer}>
+                                <SearchBox
+                                    className={styles.searchBox}
+                                    placeholder={intl.formatMessage(SreAgentResources.search)}
+                                    value={searchText}
+                                    onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) =>
+                                        setSearchText(data.value ?? '')
                                     )}
-                                    <Button
-                                        icon={<ArrowClockwise16Regular />}
-                                        appearance="transparent"
-                                        className={styles.button}
-                                        onClick={() => setRefreshCounter(prev => prev + 1)}
-                                    >
-                                        {intl.formatMessage(IncidentManagementResources.refresh)}
-                                    </Button>
-                                </div>
+                                    disabled={disableAllControls || !!selectedThreadInfo}
+                                />
+                                <TimeRangePillFilter
+                                    label={intl.formatMessage(SreAgentResources.timeRange)}
+                                    options={timeRangeOptions}
+                                    customTimeRangeProps={{
+                                        addCustomOption: true,
+                                    }}
+                                    onApply={value => setSelectedTimeRange(value)}
+                                    selectedValue={selectedTimeRange}
+                                    disabled={disableAllControls || !!selectedThreadInfo}
+                                />
+                                <ComboboxPillFilter
+                                    label={intl.formatMessage(IncidentManagementResources.status)}
+                                    options={statusOptions}
+                                    onApply={values => setSelectedStatuses(values)}
+                                    selectedKeys={selectedStatuses}
+                                    multiSelect={true}
+                                    addAllOption={true}
+                                    disabled={disableAllControls || !!selectedThreadInfo}
+                                />
+                                {showMockedComponents && (
+                                    <>
+                                        <ComboboxPillFilter
+                                            label={intl.formatMessage(IncidentManagementResources.priority)}
+                                            options={priorityOptions}
+                                            onApply={values => setSelectedPriorities(values)}
+                                            selectedKeys={selectedPriorities}
+                                            multiSelect={true}
+                                            addAllOption={true}
+                                            disabled={disableAllControls || !!selectedThreadInfo}
+                                        />
+                                        <ComboboxPillFilter
+                                            label={intl.formatMessage(IncidentManagementResources.investigation)}
+                                            options={actionOptions}
+                                            onApply={values => setSelectedActions(values)}
+                                            selectedKeys={selectedActions}
+                                            multiSelect={true}
+                                            addAllOption={true}
+                                            disabled={disableAllControls || !!selectedThreadInfo}
+                                        />
+                                    </>
+                                )}
+                                <Button
+                                    icon={<ArrowClockwise16Regular />}
+                                    appearance="transparent"
+                                    className={styles.button}
+                                    onClick={() => setRefreshCounter(prev => prev + 1)}
+                                >
+                                    {intl.formatMessage(IncidentManagementResources.refresh)}
+                                </Button>
                             </div>
                             {showMockedComponents && (
                                 <div style={{ display: 'flex', flexDirection: 'row', gap: '20px', margin: '20px 0px 20px -3px' }}>
@@ -694,7 +636,14 @@ const IncidentsOverview: FC = () => {
                                             userSelect: 'text',
                                         },
                                     }}
-                                    detailsListStyles={{ root: { overflowX: 'visible', overflowY: 'visible' } }}
+                                    detailsListStyles={{
+                                        root: { overflowX: 'visible', overflowY: 'visible' },
+                                        headerWrapper: {
+                                            '& > div': {
+                                                paddingTop: '0px !important',
+                                            },
+                                        },
+                                    }}
                                     selectionMode={SelectionMode.none}
                                     setKey="incidentFilterList"
                                     getKey={(item, index) => (item && item.id ? item.id : `shimmer-${index}`)}

@@ -133,6 +133,26 @@
       "value": "Connection Error."
     }
   ],
+  "/ytgXm": [
+    {
+      "type": 0,
+      "value": "Remove "
+    },
+    {
+      "type": 1,
+      "value": "columnName"
+    },
+    {
+      "type": 0,
+      "value": " filter"
+    }
+  ],
+  "/zFP1/": [
+    {
+      "type": 0,
+      "value": "Start time"
+    }
+  ],
   "/zQv2D": [
     {
       "type": 0,
@@ -143,6 +163,20 @@
     {
       "type": 0,
       "value": "Lets you read, enable and disable logic app."
+    }
+  ],
+  "01sZoP": [
+    {
+      "type": 1,
+      "value": "selectedCount"
+    },
+    {
+      "type": 0,
+      "value": " of "
+    },
+    {
+      "type": 1,
+      "value": "totalCount"
     }
   ],
   "066KEg": [
@@ -453,6 +487,12 @@
     {
       "type": 0,
       "value": "Enter resource name"
+    }
+  ],
+  "3JVa6k": [
+    {
+      "type": 0,
+      "value": "End"
     }
   ],
   "3PgCIp": [
@@ -867,6 +907,12 @@
       "value": "Custom handler"
     }
   ],
+  "74vgSJ": [
+    {
+      "type": 0,
+      "value": "Time range"
+    }
+  ],
   "7C0xai": [
     {
       "type": 0,
@@ -1269,6 +1315,12 @@
       "value": "Write access to Language service resources."
     }
   ],
+  "CU0qUc": [
+    {
+      "type": 0,
+      "value": "Processed time"
+    }
+  ],
   "CZ6s9k": [
     {
       "type": 0,
@@ -1435,6 +1487,12 @@
     {
       "type": 0,
       "value": "Let's you read and test a KB only."
+    }
+  ],
+  "Dy3cy0": [
+    {
+      "type": 0,
+      "value": "End date picker"
     }
   ],
   "Dz+Iv9": [
@@ -1695,6 +1753,12 @@
     {
       "type": 0,
       "value": "Add instructions"
+    }
+  ],
+  "Humfno": [
+    {
+      "type": 0,
+      "value": "End date"
     }
   ],
   "I03XmI": [
@@ -2557,6 +2621,12 @@
       "value": "Failed to link Grafana dashboard"
     }
   ],
+  "S1gYH9": [
+    {
+      "type": 0,
+      "value": "Last 12 hours"
+    }
+  ],
   "S6FECK": [
     {
       "type": 0,
@@ -2627,6 +2697,12 @@
     {
       "type": 0,
       "value": "Autonomy level"
+    }
+  ],
+  "Sjo1P4": [
+    {
+      "type": 0,
+      "value": "Custom"
     }
   ],
   "Sr4IbA": [
@@ -3087,6 +3163,12 @@
       "value": "Failed to validate the access key. Please try again."
     }
   ],
+  "YBiTCc": [
+    {
+      "type": 0,
+      "value": "Start date picker"
+    }
+  ],
   "YE+vjH": [
     {
       "type": 0,
@@ -3163,6 +3245,12 @@
     {
       "type": 0,
       "value": "Failed to create logic app"
+    }
+  ],
+  "ZVyc4+": [
+    {
+      "type": 0,
+      "value": "Last 6 hours"
     }
   ],
   "ZbUTXC": [
@@ -3479,6 +3567,16 @@
       "value": "IoT Hub Data Reader"
     }
   ],
+  "dDk23i": [
+    {
+      "type": 1,
+      "value": "fieldName"
+    },
+    {
+      "type": 0,
+      "value": " options"
+    }
+  ],
   "dQ5/dh": [
     {
       "type": 0,
@@ -3709,6 +3807,12 @@
     {
       "type": 0,
       "value": "Connects to"
+    }
+  ],
+  "gUQeKV": [
+    {
+      "type": 0,
+      "value": "Last 3 days"
     }
   ],
   "gZ5fZs": [
@@ -4155,6 +4259,30 @@
       "value": "Edit QnA Maker knowledge bases."
     }
   ],
+  "mOFG3K": [
+    {
+      "type": 0,
+      "value": "Start"
+    }
+  ],
+  "mTsdF8": [
+    {
+      "type": 0,
+      "value": "Editor to filter the results by column value. "
+    },
+    {
+      "type": 1,
+      "value": "columnName"
+    },
+    {
+      "type": 0,
+      "value": ": "
+    },
+    {
+      "type": 1,
+      "value": "filterValue"
+    }
+  ],
   "mZ0R9v": [
     {
       "type": 0,
@@ -4213,6 +4341,12 @@
     {
       "type": 0,
       "value": "This will permanently delete the connection to ServiceNow. The agent will no longer be able to manage tickets. Are you sure you want to disconnect?"
+    }
+  ],
+  "n5QvJy": [
+    {
+      "type": 0,
+      "value": "Start date"
     }
   ],
   "nBPow3": [
@@ -4593,6 +4727,12 @@
     {
       "type": 0,
       "value": "Agent endpoint"
+    }
+  ],
+  "s8HBot": [
+    {
+      "type": 0,
+      "value": "Last hour"
     }
   ],
   "sH0O5v": [
@@ -5121,6 +5261,12 @@
     {
       "type": 0,
       "value": "Manage tools"
+    }
+  ],
+  "yc/tuy": [
+    {
+      "type": 0,
+      "value": "End time"
     }
   ],
   "yd187T": [

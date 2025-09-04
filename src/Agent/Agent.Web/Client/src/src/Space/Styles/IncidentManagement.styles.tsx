@@ -176,7 +176,8 @@ export const useIncidentManagementStyles = makeStyles({
         display: 'flex',
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: '5px',
+        gap: '10px',
+        marginBottom: '16px',
     },
     searchBox: {
         width: '330px',

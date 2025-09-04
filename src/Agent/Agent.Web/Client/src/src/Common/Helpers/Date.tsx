@@ -271,3 +271,125 @@ export const formatDateTimeWithShortYear = (dateTime: Date): string => {
     };
     return dateTime.toLocaleDateString(undefined, options);
 };
+
+export enum TimespanKeys {
+    OneHour = 'OneHour',
+    SixHours = 'SixHours',
+    TwelveHours = 'TwelveHours',
+    TwentyFourHours = 'TwentyFourHours',
+    ThreeDays = 'ThreeDays',
+    SevenDays = 'SevenDays',
+    Custom = 'Custom',
+}
+
+/**
+ * Calculates the duration in milliseconds for predefined timespan options.
+ * @param timeRangeKey - The timespan key (excluding 'Custom')
+ * @returns The number of milliseconds for the specified timespan
+ */
+export const getTimespanInMilliseconds = (timeRangeKey: Omit<TimespanKeys, 'Custom'>): number => {
+    const millisecondsInHour = 60 * 60 * 1000;
+    const millisecondsInDay = 24 * millisecondsInHour;
+
+    switch (timeRangeKey) {
+        case TimespanKeys.OneHour:
+            return millisecondsInHour;
+        case TimespanKeys.SixHours:
+            return 6 * millisecondsInHour;
+        case TimespanKeys.TwelveHours:
+            return 12 * millisecondsInHour;
+        case TimespanKeys.TwentyFourHours:
+            return millisecondsInDay;
+        case TimespanKeys.ThreeDays:
+            return 3 * millisecondsInDay;
+        case TimespanKeys.SevenDays:
+        default:
+            return 7 * millisecondsInDay;
+    }
+};
+
+/**
+ * Formats a Date object to YYYY-MM-DD string format using local time components.
+ * @param date - The date to format (optional)
+ * @returns A string in YYYY-MM-DD format based on local time, or empty string if date is undefined
+ */
+export const formatDateToYYYYMMDD = (date?: Date): string => {
+    if (!date) return '';
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
+/**
+ * Extracts only the date portion (year, month, day) from a DateTime object using local time.
+ * Time components are set to midnight in the local timezone.
+ * @param date - The datetime to extract date from (optional)
+ * @returns A new Date object with only local date components at local midnight, or undefined
+ */
+export const extractDateFromDateTime = (date: Date | undefined): Date | undefined => {
+    if (!date) return undefined;
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+};
+
+/**
+ * Combines separate date and time objects into a single DateTime object using local time components.
+ * Takes the local date components from the first parameter and local time components from the second.
+ * @param date - The date object containing local year, month, day (optional)
+ * @param time - The time object containing local hours, minutes, seconds, milliseconds (optional)
+ * @returns A new Date object combining both local date and time components, or undefined if either is missing
+ */
+export const getCombineDateAndTime = (date: Date | undefined, time: Date | undefined): Date | undefined => {
+    if (!date || !time) return undefined;
+    return new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate(),
+        time.getHours(),
+        time.getMinutes(),
+        time.getSeconds(),
+        time.getMilliseconds()
+    );
+};
+
+/**
+ * Converts a UTC date to local timezone by interpreting UTC components as local time.
+ * This effectively shifts the displayed time without changing the actual moment in time.
+ * Input is treated as UTC, output represents the same numeric values as local time.
+ * @param date - The UTC date to convert (optional)
+ * @returns A new Date object with UTC components interpreted as local time, or undefined
+ */
+export const changeToLocalTimezone = (date: Date | undefined): Date | undefined => {
+    if (!date) return undefined;
+    return new Date(
+        date.getUTCFullYear(),
+        date.getUTCMonth(),
+        date.getUTCDate(),
+        date.getUTCHours(),
+        date.getUTCMinutes(),
+        date.getUTCSeconds(),
+        date.getUTCMilliseconds()
+    );
+};
+
+/**
+ * Converts a local date to UTC timezone by interpreting local components as UTC time.
+ * This effectively shifts the time to UTC without changing the displayed components.
+ * Input is treated as local time, output represents the same numeric values as UTC.
+ * @param date - The local date to convert (optional)
+ * @returns A new Date object with local components interpreted as UTC time, or undefined
+ */
+export const changeToUtcTimezone = (date: Date | undefined): Date | undefined => {
+    if (!date) return undefined;
+    return new Date(
+        Date.UTC(
+            date.getFullYear(),
+            date.getMonth(),
+            date.getDate(),
+            date.getHours(),
+            date.getMinutes(),
+            date.getSeconds(),
+            date.getMilliseconds()
+        )
+    );
+};

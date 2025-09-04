@@ -112,6 +112,7 @@ const ConnectionFailureMessageBar: FC<ConnectionMessageBarProps> = ({ platform }
                 style={{
                     width: '100%',
                     maxWidth: '100%',
+                    marginBottom: '16px',
                 }}
             >
                 <MessageBar

@@ -2,13 +2,14 @@ import debounce from 'lodash/debounce';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ThreadClient } from '../../../Common/Clients/ThreadClient';
+import { TimeRangeValue } from '../../../Common/Components/PillFilter/TimeRangePillFilter';
 import { Thread, ThreadSource } from '../../../Common/Contracts/DataPlane/Thread';
-import { getSafeDateTime } from '../../../Common/Helpers/Date';
+import { getSafeDateTime, getTimespanInMilliseconds, TimespanKeys } from '../../../Common/Helpers/Date';
 import { KnowledgeGraphBuildStatusContext } from '../../../Common/Providers/KnowledgeGraphBuildStatusProvider';
 import { getIntervalBetweenLoading, getUpdatedUnreadThreadIds } from '../../Activities/Utility';
 import { ThreadLoadingCounts } from '../../Contracts/Activities';
 
-export type SortColumn = 'incidentId' | 'title' | 'incidentStatus';
+export type SortColumn = 'incidentId' | 'title' | 'incidentStatus' | 'createdTimestamp';
 
 const getColumnDetails = (column: SortColumn | 'modifiedTimestamp') => {
     switch (column) {
@@ -20,6 +21,8 @@ const getColumnDetails = (column: SortColumn | 'modifiedTimestamp') => {
             return { isDistinct: false, type: 'string' };
         case 'modifiedTimestamp':
             return { isDistinct: true, type: 'date' };
+        case 'createdTimestamp':
+            return { isDistinct: true, type: 'date' };
         default:
             return { isDistinct: undefined, type: undefined };
     }
@@ -29,14 +32,10 @@ const getColumnValue = (thread: Thread, column: SortColumn | 'modifiedTimestamp'
     switch (column) {
         case 'incidentId':
             return thread.status?.incidentStatus?.incidentId;
-        case 'title':
-            return thread.title;
         case 'incidentStatus':
             return thread.status?.incidentStatus?.status;
-        case 'modifiedTimestamp':
-            return thread.modifiedTimestamp;
         default:
-            return undefined;
+            return thread[column];
     }
 };
 
@@ -126,7 +125,8 @@ export const useIncidentThreadList = (
     initialThreads?: Thread[],
     searchText?: string,
     statusFilters?: string[],
-    sortColumn?: 'incidentId' | 'title' | 'incidentStatus',
+    createdTimeFilter?: TimeRangeValue,
+    sortColumn?: SortColumn,
     sortDescending?: boolean,
     visible?: boolean,
     refresh?: number
@@ -153,9 +153,10 @@ export const useIncidentThreadList = (
         async (
             searchText: string | undefined,
             status: string[] | undefined,
+            createdTimeRange: TimeRangeValue | undefined,
             threadCount: number | undefined,
             trailingThread: Thread | undefined,
-            sortColumn: 'incidentId' | 'title' | 'incidentStatus' | undefined,
+            sortColumn: SortColumn | undefined,
             sortDescending: boolean | undefined = true
         ) => {
             let skip: number | undefined;
@@ -208,6 +209,17 @@ export const useIncidentThreadList = (
                 filterStrings.push(statusFilterString);
             }
 
+            if (createdTimeRange) {
+                if (createdTimeRange.key === TimespanKeys.Custom) {
+                    const { start, end } = createdTimeRange;
+                    filterStrings.push(`createdTimestamp ge ${start?.toISOString()} and createdTimestamp le ${end?.toISOString()}`);
+                } else {
+                    const spanInMilliseconds = getTimespanInMilliseconds(createdTimeRange.key);
+                    const start = new Date(Date.now() - spanInMilliseconds);
+                    filterStrings.push(`createdTimestamp ge ${start.toISOString()}`);
+                }
+            }
+
             return await threadClient.getIncidentThreads({
                 skip: skip ?? 0,
                 top: ThreadLoadingCounts.default,
@@ -222,10 +234,11 @@ export const useIncidentThreadList = (
         async (
             searchText: string | undefined,
             status: string[] | undefined,
-            sortColumn: 'incidentId' | 'title' | 'incidentStatus' | undefined,
+            createdTimeRange: TimeRangeValue | undefined,
+            sortColumn: SortColumn | undefined,
             sortDescending: boolean | undefined
         ) => {
-            return await getThreads(searchText, status, 0, undefined, sortColumn, sortDescending);
+            return await getThreads(searchText, status, createdTimeRange, 0, undefined, sortColumn, sortDescending);
         },
         [getThreads]
     );
@@ -238,9 +251,10 @@ export const useIncidentThreadList = (
             const oldThreadsResponse = await getThreads(
                 searchText,
                 statusFilters,
+                createdTimeFilter,
                 threadCount.current,
                 oldestThread.current,
-                sortColumn as 'incidentId' | 'title' | 'incidentStatus' | undefined,
+                sortColumn,
                 sortDescending
             );
 
@@ -268,7 +282,7 @@ export const useIncidentThreadList = (
                 return undefined;
             }
         }
-    }, [getThreads, searchText, statusFilters, sortColumn, sortDescending, isLoadingInitialThreads]);
+    }, [getThreads, searchText, statusFilters, createdTimeFilter, sortColumn, sortDescending, isLoadingInitialThreads]);
 
     const handleScroll = debounce(() => {
         loadThreads();
@@ -352,7 +366,8 @@ export const useIncidentThreadList = (
                 const initialThreadsResponse = await getInitialThreads(
                     searchText,
                     statusFilters,
-                    sortColumn as 'incidentId' | 'title' | 'incidentStatus' | undefined,
+                    createdTimeFilter,
+                    sortColumn,
                     sortDescending
                 );
 
@@ -379,7 +394,7 @@ export const useIncidentThreadList = (
         return () => {
             isSubscribed = false;
         };
-    }, [searchText, statusFilters, sortColumn, sortDescending, hasChatPermissions, getInitialThreads, refresh]);
+    }, [searchText, statusFilters, createdTimeFilter, sortColumn, sortDescending, hasChatPermissions, getInitialThreads, refresh]);
 
     return {
         threads,
