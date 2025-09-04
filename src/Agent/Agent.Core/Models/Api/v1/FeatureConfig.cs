@@ -14,7 +14,7 @@ public sealed record FeatureConfig(
     bool? DocumentRetrievalEnabled,
     bool? UserMemoryRetrievalEnabled,
     bool? HandoffReasoningEnabled,
-    bool? GPT5Enabled)
+    bool? Gpt5Enabled)
 {
     public FeatureConfigModel ToModel()
     {
@@ -26,7 +26,7 @@ public sealed record FeatureConfig(
             HandoffReasoningEnabled: HandoffReasoningEnabled ?? FeatureConfigModel.Default.HandoffReasoningEnabled,
             DocumentRetrievalEnabled: DocumentRetrievalEnabled ?? FeatureConfigModel.Default.DocumentRetrievalEnabled,
             UserMemoryRetrievalEnabled: UserMemoryRetrievalEnabled ?? FeatureConfigModel.Default.UserMemoryRetrievalEnabled,
-            GPT5Enabled: GPT5Enabled ?? FeatureConfigModel.Default.GPT5Enabled);
+            Gpt5Enabled: Gpt5Enabled ?? FeatureConfigModel.Default.Gpt5Enabled);
     }
 }
 
@@ -40,7 +40,7 @@ public sealed record FeatureConfigModel(
     bool DocumentRetrievalEnabled,
     bool UserMemoryRetrievalEnabled,
     bool HandoffReasoningEnabled,
-    bool GPT5Enabled)
+    bool Gpt5Enabled)
 {
     public static FeatureConfigModel Default { get; } = new(
         AutoHandoffEnabled: false,
@@ -50,7 +50,7 @@ public sealed record FeatureConfigModel(
         HandoffReasoningEnabled: false,
         DocumentRetrievalEnabled: false,
         UserMemoryRetrievalEnabled: false,
-        GPT5Enabled: false);
+        Gpt5Enabled: false);
 
     public FeatureConfig ToDocument()
     {
@@ -62,6 +62,6 @@ public sealed record FeatureConfigModel(
             HandoffReasoningEnabled: HandoffReasoningEnabled,
             DocumentRetrievalEnabled: DocumentRetrievalEnabled,
             UserMemoryRetrievalEnabled: UserMemoryRetrievalEnabled,
-            GPT5Enabled: GPT5Enabled);
+            Gpt5Enabled: Gpt5Enabled);
     }
 }

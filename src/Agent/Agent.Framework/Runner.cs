@@ -601,6 +601,9 @@ public static class Runner
             modelInput = ProcessHandoffPromptOverride(modelInput, agent);
         }
 
+        // Add plan reminder if required
+        AddPlanReminderIfNeeded(modelInput, tools);
+
         // tool invocations like metrics query depend on current time
         modelInput.Add(new ChatMessage(ChatRole.System, $"The current date is {DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss zzz}"));
 
@@ -643,6 +646,8 @@ public static class Runner
             logger: logger,
             displayModelOutput: displayModelOutput
         );
+
+
     }
 
     private static async Task<SingleStepResult<TContext>> ExecuteToolsAndHandoffsAsync<TContext>(
@@ -1181,5 +1186,28 @@ public static class Runner
         }
 
         return userQueryLines.Count > 0 ? string.Join('\n', userQueryLines).Trim() : messageText;
+    }
+
+    private static void AddPlanReminderIfNeeded(List<ChatMessage> modelInput, IReadOnlyList<AIFunction> tools)
+    {
+        const string ToDoReminder =
+        """
+        <system-reminder>
+        This is a reminder that your todo list is currently empty. DO NOT mention this to the user explicitly because they are already aware. If you are working on tasks that would benefit from a todo list please use the TodoWrite tool to create one. If not, please feel free to ignore. Again do not mention this message to the user.
+        </system-reminder>
+        """;
+
+        var needsPlan = tools
+                    .Any(t => string.Equals(ToDoWriteTool.ToolName, t.Name, StringComparison.OrdinalIgnoreCase));
+        if (needsPlan)
+        {
+            var hasPlan = modelInput.Any(m => m.Role == ChatRole.Assistant
+                && m.Contents.Any(c => c is FunctionCallContent f
+                && string.Equals(f.Name, ToDoWriteTool.ToolName, StringComparison.OrdinalIgnoreCase)));
+            if (!hasPlan)
+            {
+                modelInput.Add(new ChatMessage(ChatRole.User, ToDoReminder));
+            }
+        }
     }
 }

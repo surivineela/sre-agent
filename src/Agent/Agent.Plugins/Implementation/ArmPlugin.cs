@@ -2,9 +2,9 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Collections.Immutable;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
@@ -486,8 +486,10 @@ namespace Agent.Plugins.Implementation
                 if (!string.IsNullOrEmpty(grepPattern))
                 {
                     var lines = helpOutput.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-                    var filteredLines = lines.Where(line =>
-                        line.Contains(grepPattern, StringComparison.InvariantCultureIgnoreCase))
+                    var grepRegex = new Regex(grepPattern, RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.NonBacktracking);
+
+                    var filteredLines = lines
+                        .Where(line => grepRegex.IsMatch(line))
                         .ToList();
 
                     if (filteredLines.Any())

@@ -106,7 +106,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             HandoffReasoningEnabled: enableHandoffReasoning,
             DocumentRetrievalEnabled: coreSettings.AgentMemory.DocumentRetrievalEnabled,
             UserMemoryRetrievalEnabled: coreSettings.AgentMemory.UserMemoryRetrievalEnabled,
-            GPT5Enabled: coreSettings.AgentModel?.GPT5Enabled ?? false);
+            Gpt5Enabled: coreSettings.AgentModel?.GPT5Enabled ?? false);
     }
 
     public async Task<ReasoningLoop> Create(AgentContext context)

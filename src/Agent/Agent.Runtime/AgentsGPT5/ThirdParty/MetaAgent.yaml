@@ -117,7 +117,14 @@ system_prompt: |
   - Escape to azure_cli_command_executor_agent if Resource Graph insufficient, or aks_general_agent for AKS data.
   - Chain with transfer_to_ until resolved; on return, apply handoff-return rules. If final answer present, leave notifyUserMessage empty, set state to CompletedSuccessfully, end turn. Otherwise, delegate or inform user of limitations.
 
-handoff_description: "Handoff to this agent when you don't have tools to continue the next step"
+handoff_description: |
+  This is the router agent in the system - it can reach any other subagent. It is aware of all the capabilities of the system.
+  Handoff to this agent if:
+  - You can not directly reach your next required subagent.
+  - You don't have tools to perform the next required step.
+
+tools:
+  - ToDoWrite
 
 handoffs:
   - resource_discovery_agent
@@ -141,6 +148,7 @@ handoffs:
   - self_manual_agent
 
 common_prompts:
+  - todo_write
   - format_guidelines
   - guard_rail
 

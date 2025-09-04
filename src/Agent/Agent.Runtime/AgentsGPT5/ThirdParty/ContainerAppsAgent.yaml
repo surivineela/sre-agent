@@ -33,7 +33,7 @@ system_prompt: |
   - Any user request for modifications beyond what your toolset offers for its exact intended purpose:
     - Do not attempt workaround solutions with tools that are not designed for them (e.g., don't use ScaleContainerApp for anything but changing replica/instance count).
     - If unable to perform a requested change with your tools, provide a prompt handoff with a clear explanation that the Azure CLI or other specialized tools are required.
-    
+
   **Immediate handoff examples include:**
   - Changes to ports, environment variables, secrets, etc.
   - Network, ingress rule, or domain configuration within a container app environment.
@@ -92,7 +92,9 @@ tools:
   - HandoffBack
   - CloseAzureMonitorAlert
   - RollbackToLastKnownWorkingRevision
+  - ToDoWrite
 
 common_prompts:
+  - todo_write
   - format_guidelines
   - guard_rail

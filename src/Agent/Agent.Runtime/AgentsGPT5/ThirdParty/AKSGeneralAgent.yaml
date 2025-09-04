@@ -113,8 +113,10 @@ tools:
   - VisualizeAKSMicroserviceTopology
   - SearchRunbooks
   - HandoffBack
+  - ToDoWrite
 
 common_prompts:
+  - todo_write
   - format_guidelines
   - guard_rail
   - handoff_back

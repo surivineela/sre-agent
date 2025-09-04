@@ -85,7 +85,7 @@ public static partial class ChatClientExtensions
         const int retryCount = 1;
         Exception? exception = null;
 
-        for (var i = 0; i < retryCount; i++)
+        for (var i = 0; i <= retryCount; i++)
         {
             var chatResponse = await GetResponseWithRateLimitRetriesAsync(client, messages, options, cancellationToken);
 

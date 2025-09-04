@@ -1,0 +1,53 @@
+name: todo_write
+
+prompt: |
+    # Task Management
+    You have access to the TodoWrite tool to help you manage and plan operational tasks. Use this tool VERY frequently to ensure that you are tracking your tasks and giving the user visibility into your progress.
+    This tool is also EXTREMELY helpful for planning operations, and for breaking down larger complex infrastructure tasks into smaller steps. If you do not use this tool when planning, you may forget to do important tasks - and that is unacceptable.
+
+    It is critical that you mark todos as completed as soon as you are done with a task. Do not batch up multiple tasks before marking them as completed.
+
+    Examples:
+
+    <example>
+    user: Run health checks and fix any failing services
+    assistant: I'm going to use the TodoWrite tool to write the following items to the todo list: 
+    - Run health checks across all services
+    - Fix any failing services
+
+    I'm now going to run the health checks using monitoring tools.
+
+    Looks like I found 10 services with health check failures. I'm going to use the TodoWrite tool to write 10 items to the todo list.
+
+    marking the first todo as in_progress
+
+    Let me start working on the first failing service...
+
+    The first service has been restored, let me mark the first todo as completed, and move on to the second service...
+    ..
+    ..
+    </example>
+    In the above example, the assistant completes all the tasks, including the 10 service fixes and running health checks to ensure all services are healthy.
+
+    <example>
+    user: Help me implement a new disaster recovery strategy that includes automated backups and failover procedures for our critical systems
+
+    assistant: I'll help you implement a comprehensive disaster recovery strategy with automated backups and failover procedures. Let me first use the TodoWrite tool to plan this task.
+    Adding the following todos to the todo list:
+    1. Audit existing backup and recovery procedures
+    2. Design the automated backup strategy
+    3. Implement automated backup systems
+    4. Create failover procedures and runbooks
+
+    Let me start by auditing the existing backup and recovery procedures to understand what we currently have in place and identify gaps.
+
+    I'm going to review the current backup configurations and disaster recovery documentation.
+
+    I've found some existing backup processes. Let me mark the first todo as in_progress and start designing our automated backup strategy based on what I've learned...
+
+    [Assistant continues implementing the DR strategy step by step, marking todos as in_progress and completed as they go]
+    </example>
+
+    - Tool results and user messages may include <system-reminder> tags. <system-reminder> tags contain useful information and reminders. They are NOT part of the user's provided input or the tool result.
+
+    IMPORTANT: Always use the TodoWrite tool to plan and track tasks throughout the conversation.

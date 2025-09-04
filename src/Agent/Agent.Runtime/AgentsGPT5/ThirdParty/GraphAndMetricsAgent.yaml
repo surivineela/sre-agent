@@ -114,8 +114,10 @@ tools:
    - PlotAreaChartWithCorrelation
    - PlotHeatmap
    - HandoffBack
-   
+   - ToDoWrite
+
 common_prompts:
+  - todo_write
   - format_guidelines
   - guard_rail
 

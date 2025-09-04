@@ -3,10 +3,8 @@
 // ------------------------------------------------------------
 
 using System.Reflection;
-using Agent.Core.Attributes;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
-using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
@@ -23,147 +21,6 @@ using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
 namespace Agent.Runtime.Reasoning;
-
-/// <summary>
-/// A unified class that creates a tool from either reflection (a MethodInfo)
-/// or a configuration object (a YamlToolDefinition).
-/// </summary>
-public sealed class DeferredToolFunction<TContext> : IDeferredToolFunction where TContext : class
-{
-    // Common fields
-    private readonly IServiceProvider _sp;
-
-    private MethodInfo? _methodInfo;
-    private Type _pluginType;
-    private string? _reflectionBasedName;
-
-    /// <summary>
-    /// Private constructor to enforce creation via static factory methods.
-    /// </summary>
-    public DeferredToolFunction(IServiceProvider sp, Type pluginType, MethodInfo methodInfo, string name)
-    {
-        _sp = sp;
-        _pluginType = pluginType;
-        _methodInfo = methodInfo;
-        _reflectionBasedName = name;
-    }
-
-    public string GetPluginCategory()
-    {
-        var attribute = _pluginType.GetCustomAttribute<AgentToolPluginAttribute>();
-        if (attribute != null && !string.IsNullOrWhiteSpace(attribute.Category))
-        {
-            return attribute.Category;
-        }
-        return string.Empty;
-    }
-
-    public string GetPluginResourceType()
-    {
-        var attribute = _pluginType.GetCustomAttribute<AgentToolPluginAttribute>();
-        if (attribute != null && !string.IsNullOrWhiteSpace(attribute.ResourceType))
-        {
-            return attribute.ResourceType;
-        }
-        return string.Empty;
-    }
-
-    public string GetPluginName()
-    {
-        return _pluginType.Name;
-    }
-
-    public MethodInfo? MethodInfo => _methodInfo;
-
-    /// <summary>
-    /// Creates the AIFunction based on the source information (Reflection or YAML).
-    /// </summary>
-    public AIFunction GetToolFunction(Guid? threadId = null)
-    {
-        return GetToolFunction(threadId, null);
-    }
-
-    /// <summary>
-    /// Creates the AIFunction based on the source information (Reflection or YAML) with agent mode support.
-    /// </summary>
-    public AIFunction GetToolFunction(Guid? threadId, string? agentMode)
-    {
-        // Case 1: The tool was defined by reflecting over source code.
-        if (_methodInfo is not null)
-        {
-            return CreateFromReflection(threadId, agentMode);
-        }
-
-        throw new InvalidOperationException("DeferredToolFunction was not properly initialized. Both reflection and YAML sources are null.");
-    }
-
-    private AIFunction CreateFromReflection(Guid? threadId, string? agentMode)
-    {
-        var instance = _sp.GetRequiredService(_pluginType!);
-
-        // Check if this is a write operation in read-only mode
-        var writeActionAttr = _methodInfo!.GetCustomAttribute<WriteActionAttribute>();
-        var isReadOnlyMode = IsReadOnlyMode(agentMode);
-
-        if (writeActionAttr != null && isReadOnlyMode && !writeActionAttr.RunInReadOnlyMode)
-        {
-            // Create a wrapper that returns mock responses instead of executing
-            return CreateReadOnlyMockFunction(instance, threadId, writeActionAttr.ReadOnlyMessage);
-        }
-
-        // Standard tool creation logic (existing code continues here...)
-        if (threadId is not null)
-        {
-            // Check for public ThreadId property first
-            var threadIdPropertyPublic = _pluginType!.GetProperty("ThreadId", BindingFlags.Instance | BindingFlags.Public);
-            if (threadIdPropertyPublic is not null && threadIdPropertyPublic.PropertyType == typeof(Guid?))
-            {
-                threadIdPropertyPublic.SetValue(instance, threadId);
-            }
-
-            // Check all private fields and if they have ThreadId, set it on those objects
-            var privateFields = _pluginType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
-            foreach (var field in privateFields)
-            {
-                var fieldValue = field.GetValue(instance);
-                if (fieldValue != null)
-                {
-                    var fieldType = fieldValue.GetType();
-
-                    var threadIdProperty = fieldType.GetProperty("ThreadId", BindingFlags.Instance | BindingFlags.Public);
-                    if (threadIdProperty != null && threadIdProperty.PropertyType == typeof(Guid?) && threadIdProperty.CanWrite)
-                    {
-                        threadIdProperty.SetValue(fieldValue, threadId);
-                    }
-
-                    var threadIdField = fieldType.GetField("ThreadId", BindingFlags.Instance | BindingFlags.NonPublic);
-                    if (threadIdField != null && threadIdField.FieldType == typeof(Guid?))
-                    {
-                        threadIdField.SetValue(fieldValue, threadId);
-                    }
-                }
-            }
-        }
-
-        if (instance is ContextToolTarget<TContext> contextToolTarget)
-        {
-            return ContextAIFunction<TContext>.Create(_methodInfo!, contextToolTarget, name: _reflectionBasedName!);
-        }
-
-        return AIFunctionFactory.Create(_methodInfo!, instance, name: _reflectionBasedName!);
-    }
-
-    private bool IsReadOnlyMode(string? agentMode)
-    {
-        return string.Equals(agentMode, ActionMode.ReadOnly.ToString(), StringComparison.OrdinalIgnoreCase);
-    }
-
-    private AIFunction CreateReadOnlyMockFunction(object instance, Guid? threadId, string? customMessage)
-    {
-        var logger = _sp.GetService<ILogger<DeferredToolFunction<TContext>>>();
-        return new ReadOnlyMockFunction(_methodInfo!, instance, _reflectionBasedName!, logger, customMessage);
-    }
-}
 
 /// <summary>
 /// A default implementation of IToolFactory that automatically scans for tools in provided assemblies
@@ -419,6 +276,9 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
                 RegisterFromYamlFile(file);
             }
         }
+
+        // Register the ToDo Write tool
+        RegisterTool(ToDoWriteTool.ToolName, ToDoWriteTool.Instance, onNameConflict);
     }
 
     public AIFunction GetTool(string name)

@@ -35,7 +35,7 @@ namespace Agent.Core
             </core_mission>
 
             <communication_rules>
-            **ReasoningScratchPad**: Hidden from user - use for detailed reasoning and agent references
+            **reasoningScratchPad**: Hidden from user - use for detailed reasoning and agent references
             **notifyUserMessage**: Visible to user - NEVER mention agents, handoffs, or duplicate existing information
 
             Response Guidelines:
@@ -118,8 +118,11 @@ namespace Agent.Core
             MANDATORY: After completing your part, call transfer_to_<agent> or HandoffBack.
             ONLY exception: User query is completely answered.
             
-            ReasoningScratchPad: Hidden - use for reasoning and agent mentions
+            reasoningScratchPad: Hidden - use for reasoning and agent mentions
             notifyUserMessage: Visible - NO agent names, handoffs, or duplicate information
+
+            Tool results and user messages may include <system-reminder> tags. <system-reminder> tags contain useful information and reminders.
+            They are NOT part of the user's provided input or the tool result.
             """;
 
         public const string SREAgentFinalInstructions =

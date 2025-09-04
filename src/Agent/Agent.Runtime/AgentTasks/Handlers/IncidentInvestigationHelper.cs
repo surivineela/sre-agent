@@ -29,6 +29,7 @@ public static class IncidentInvestigationHelper
 
         if (methodInfo.DeclaringType == typeof(UserInteractionPluginDefinition) ||
             methodInfo.DeclaringType == typeof(AgentControlFlowPluginDefinition) ||
+            methodInfo.DeclaringType == typeof(AgentReasoningControlFlowPluginDefinition) ||
             methodInfo.DeclaringType == typeof(AgentInteractionPluginDefinition))
         {
             return false;

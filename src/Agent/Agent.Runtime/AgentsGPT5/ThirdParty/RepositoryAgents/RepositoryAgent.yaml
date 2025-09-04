@@ -85,6 +85,7 @@ tools:
   - ConnectRepositoryToResourceForAzureDevOps
   - DisconnectRepositoryFromResourceForAzureDevOps
   - HandoffBack
+  - ToDoWrite
 
 handoffs:
   - resource_discovery_agent
@@ -94,6 +95,7 @@ handoffs:
   - meta_agent
 
 common_prompts:
+  - todo_write
   - format_guidelines
   - guard_rail
   - handoff_back

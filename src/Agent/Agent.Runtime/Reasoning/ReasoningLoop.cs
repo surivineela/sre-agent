@@ -1159,6 +1159,7 @@ public class ReasoningLoop : IDisposable
                 _currentGenerationSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
                 _currentGenerationSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.ModelGeneration);
                 _currentGenerationSpan.SetAttribute(TraceAttribute.ModelInput, FormatChatMessages(messages));
+                _currentGenerationSpan.SetAttribute(TraceAttribute.ModelTools, FormatTools(chatOptions.Tools));
 
                 return Task.CompletedTask;
             },
@@ -2018,6 +2019,17 @@ public class ReasoningLoop : IDisposable
             return $"Error formatting messages: {ex.Message}\n" +
                    string.Join("\n", messages.Select(m => $"{m.Role}: {m.Text?[..50]}..."));
         }
+    }
+
+    private static string FormatTools(IEnumerable<AITool>? tools)
+    {
+        if (tools is null
+            || !tools.Any())
+        {
+            return string.Empty;
+        }
+
+        return JsonSerializer.Serialize(tools.Select(t => ((AIFunction)t).JsonSchema), AIJsonUtilities.DefaultOptions);
     }
 
     private void RefreshUserCancellationTokenSource()
