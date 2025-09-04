@@ -59,7 +59,7 @@ namespace Agent.Core.Services
         private readonly LoggingHttpMessageHandler _loggingHandler;
         private readonly IAuthenticationService _authService;
 
-        private readonly string API2PathPrefix = "api2/user/incidentapi";
+        private readonly string API2PathPrefix = "/api2/user/incidentapi";
         private readonly string APIPathPrefix = "/api/user";
 
         public ICMAPIClient(IHostEnvironment environment, IOptionsMonitor<IncidentManagementSettings> monitor, ILogger<ICMAPIClient> logger, ActionSettings actionSettings, LoggingHttpMessageHandler loggingHandler, IAuthenticationService authService)
