@@ -39,6 +39,25 @@ public class ServiceNowIncidentHandlingService : IncidentHandlingServiceBase<Ser
         _serviceNowIncidentManagementService = serviceNowIncidentManagementService;
     }
 
+    /// <summary>
+    /// Override priority matching to use ServiceNow-specific normalization logic
+    /// </summary>
+    protected override bool IsPriorityMatch(string filterPriority, string incidentPriority)
+    {
+        // Use the existing NormalizePriorityForFiltering method from ServiceNowIncidentManagementService
+        if (_serviceNowIncidentManagementService is ServiceNowIncidentManagementService serviceNowService)
+        {
+            var normalizedFilterPriorities = serviceNowService.NormalizePriorityForFiltering(filterPriority);
+            var normalizedIncidentPriorities = serviceNowService.NormalizePriorityForFiltering(incidentPriority);
+            
+            // Check if any normalized value from filter matches any normalized value from incident
+            return normalizedFilterPriorities.Any(fp => normalizedIncidentPriorities.Contains(fp));
+        }
+        
+        // Fallback to base implementation if cast fails
+        return base.IsPriorityMatch(filterPriority, incidentPriority);
+    }
+
     protected override async Task<ServiceNowIncidentDocument> GetIncidentAsync(string incidentId)
     {
         _logger.LogInternalInformation("[ServiceNowIncidentHandlingService] GetIncidentAsync: Invoked for IncidentId: {IncidentId}", incidentId);

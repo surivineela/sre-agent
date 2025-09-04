@@ -417,7 +417,7 @@ public abstract class IncidentManagementServiceBase<TIncidentDocument, TIncident
         return status.Select(s => s.ToLower()).ToArray();
     }
 
-    protected virtual string[] NormalizePriorityForFiltering(string priority)
+    public virtual string[] NormalizePriorityForFiltering(string priority)
     {
         return new[] { priority.ToLower() };
     }

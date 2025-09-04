@@ -317,7 +317,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
             return response;
         }
     }
-
+ 
     /// <summary>
     /// Creates a meta agent thread for handling incidents without a specific handler
     /// </summary>
@@ -411,7 +411,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
             .Where(filter =>
                 ((string.IsNullOrWhiteSpace(filter.ImpactedService)) || (filter.ImpactedService == incidentDetails.ImpactedServiceId || filter.ImpactedService == incidentDetails.ImpactedServiceName))
                 &&
-                ((string.IsNullOrWhiteSpace(filter.Priority)) || (filter.Priority == incidentDetails.Priority))
+                ((string.IsNullOrWhiteSpace(filter.Priority)) || IsPriorityMatch(filter.Priority, incidentDetails.Priority))
                 &&
                 ((string.IsNullOrWhiteSpace(filter.IncidentType)) || (filter.IncidentType == incidentDetails.IncidentType))
                 &&
@@ -610,6 +610,21 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
                 throw;
             }
         }
+    }
+
+    /// <summary>
+    /// Checks if the filter priority matches the incident priority.
+    /// Uses simple string comparison as the default implementation.
+    /// Override in derived classes to implement custom priority matching logic.
+    /// </summary>
+    /// <param name="filterPriority">The priority from the filter</param>
+    /// <param name="incidentPriority">The priority from the incident</param>
+    /// <returns>True if priorities match, false otherwise</returns>
+    protected virtual bool IsPriorityMatch(string filterPriority, string incidentPriority)
+    {
+        // Default implementation: simple string comparison
+        // Override in specific implementations (e.g., ServiceNow) for custom logic
+        return string.Equals(filterPriority, incidentPriority, StringComparison.OrdinalIgnoreCase);
     }
 }
 

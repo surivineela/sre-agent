@@ -405,7 +405,7 @@ public class ServiceNowIncidentManagementService : IncidentManagementServiceBase
         return normalizedStatuses.Distinct().ToArray();
     }
 
-    protected override string[] NormalizePriorityForFiltering(string priority)
+    public override string[] NormalizePriorityForFiltering(string priority)
     {
         var normalizedPriorities = new List<string>();
         var lowerPriority = priority.ToLower();
