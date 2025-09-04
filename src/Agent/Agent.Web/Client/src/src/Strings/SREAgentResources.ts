@@ -323,6 +323,7 @@ export const PromptResources = defineMessages({
     bestPracticesPrompt: { defaultMessage: 'Can you audit best practices for my resource?', id: '4OUjTL' },
     notWorkingPrompt: { defaultMessage: "Why isn't my application working?", id: 'DlSXUR' },
     availabilityPrompt: { defaultMessage: "Can you analyze my resource's availability over the last 24 hours?", id: 'EI4WZI' },
+    promptExamples: { defaultMessage: 'Prompt examples', id: 'LRJHcs' },
 });
 
 export const AgentTaskResources = defineMessages({

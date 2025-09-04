@@ -1,7 +1,9 @@
-import { Button, Image, makeStyles, Text, tokens } from '@fluentui/react-components';
-import { useCallback, useContext, useMemo, useState } from 'react';
+import { Button, Image, makeStyles, mergeClasses, Text, tokens } from '@fluentui/react-components';
+import { Sparkle16Filled } from '@fluentui/react-icons';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import { resolveResourceIcon } from '../../Common/Helpers/Resources';
 import { KnowledgeGraphBuildStatusContext } from '../../Common/Providers/KnowledgeGraphBuildStatusProvider';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
 
@@ -9,7 +11,7 @@ const useChatSuggestionStyles = makeStyles({
     root: {
         display: 'flex',
         flexDirection: 'column',
-        gap: '40px',
+        gap: '20px',
         justifyContent: 'center',
         alignItems: 'center',
         flex: '1',
@@ -33,7 +35,14 @@ const useChatSuggestionStyles = makeStyles({
         display: 'flex',
         flexDirection: 'column',
         gap: '8px',
-        maxWidth: '600px',
+        maxWidth: '100%',
+        width: '100%',
+        alignItems: 'flex-start',
+    },
+    questionContainerGrouped: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
         width: '100%',
         alignItems: 'flex-start',
     },
@@ -78,29 +87,80 @@ const useChatSuggestionStyles = makeStyles({
         backgroundColor: 'transparent',
         minHeight: '40px',
     },
+    leftRoot: {
+        alignItems: 'flex-start',
+        justifyContent: 'flex-start',
+        width: '100%',
+    },
+    leftBrandContainer: {
+        justifyContent: 'flex-start',
+    },
+    leftCardContainer: {
+        justifyContent: 'flex-start',
+        alignItems: 'flex-start',
+        width: '100%',
+    },
 });
 
 interface ChatSuggestionsProps {
-    sendMessage: (message: string) => void;
+    sendMessage: (message: string) => void | Promise<void>;
+    categories?: string[];
+    getQuestionsForCategory?: (category: string) => string[];
+    showSreAgentLogo?: boolean;
+    alignLeft?: boolean;
+    getCategorySubcategories?: (category: string) => Record<string, string[]> | null;
+    initialExpandedCategory?: string;
 }
 
 export const ChatSuggestions = (props: ChatSuggestionsProps) => {
-    const { sendMessage } = props;
-
-    if (sendMessage === undefined) {
+    const {
+        sendMessage,
+        categories: categoriesProp,
+        getQuestionsForCategory: externalGetQuestions,
+        showSreAgentLogo = true,
+        alignLeft = false,
+        getCategorySubcategories,
+        initialExpandedCategory,
+    } = props;
+    if (!sendMessage) {
         throw new Error('sendMessage prop is required');
     }
 
     const intl = useIntl();
     const chatSuggestionsStyles = useChatSuggestionStyles();
-    const [clickedKey, setClickedKey] = useState<string>('');
+    const [clickedKey, setClickedKey] = useState<string>(initialExpandedCategory ?? '');
 
     const { hasChatPermissions } = useContext(KnowledgeGraphBuildStatusContext);
     const { logAmplitudeControlEvent } = useAzPortalContext();
 
-    const chatSuggestionCategories = useMemo<string[]>(() => ['About me', 'App Services', 'Container Apps', 'AKS', 'APIM'], []);
+    const defaultCategories = useMemo(() => ['About me', 'App Services', 'Container Apps', 'AKS', 'APIM'], []);
 
-    const AboutMeQuestions = useMemo<string[]>(
+    const chatSuggestionCategories = useMemo(() => categoriesProp ?? defaultCategories, [categoriesProp, defaultCategories]);
+
+    useEffect(() => {
+        if (clickedKey && !chatSuggestionCategories.includes(clickedKey)) {
+            setClickedKey('');
+        }
+    }, [chatSuggestionCategories, clickedKey]);
+
+    // Map each category to an icon (Sparkle for About/Get started; resource icons for others)
+    const iconMap: Record<string, JSX.Element> = useMemo(() => {
+        const resourceImg = (azureType: string) => <img src={resolveResourceIcon(azureType)} alt="" style={{ width: 16, height: 16 }} />;
+        return {
+            'Get started': <Sparkle16Filled />,
+            'About me': <Sparkle16Filled />,
+            'App Services': resourceImg('microsoft.web/sites'),
+            'Azure App Service': resourceImg('microsoft.web/sites'),
+            'Container Apps': resourceImg('microsoft.app/containerapps'),
+            'Azure Container App': resourceImg('microsoft.app/containerapps'),
+            AKS: resourceImg('microsoft.containerservice/managedclusters'),
+            'Azure Kubernetes Service': resourceImg('microsoft.containerservice/managedclusters'),
+            APIM: resourceImg('microsoft.apimanagement/service'),
+            'Azure API Management': resourceImg('microsoft.apimanagement/service'),
+        };
+    }, []);
+
+    const AboutMeQuestions = useMemo(
         () => [
             'How do I get started with SRE Agent?',
             'What can you help me with as an SRE Agent?',
@@ -108,13 +168,13 @@ export const ChatSuggestions = (props: ChatSuggestionsProps) => {
             'What are your key capabilities?',
             'Can you explain how you help with incident management?',
             'How do I connect to an Incident Platform?',
-            "How does SRE Agent's billing work?",
+            'How does SRE Agent’s billing work?',
             'Which Azure services do you support?',
         ],
         []
     );
 
-    const AppServicesQuestions = useMemo<string[]>(
+    const AppServicesQuestions = useMemo(
         () => [
             'List all my web apps',
             'What services or resources is my web app connected to?',
@@ -129,13 +189,13 @@ export const ChatSuggestions = (props: ChatSuggestionsProps) => {
         []
     );
 
-    const ContainerAppsQuestions = useMemo<string[]>(
+    const ContainerAppsQuestions = useMemo(
         () => [
             'List all my container apps',
             'What is the ingress configuration for my container app?',
             'Which revision of my container app is currently active?',
-            'What changed for my app container app in the last week?',
-            'Show me visualization of memory usage % for my container app for last week',
+            'What changed in my container app in the last week?',
+            'Show me visualization of memory utilization % for my container app for last week',
             'My container app is stuck in activation failed state',
             'Why is my container app timed out?',
             'Why is my container app throwing 500s?',
@@ -143,7 +203,7 @@ export const ChatSuggestions = (props: ChatSuggestionsProps) => {
         []
     );
 
-    const AKSQuestions = useMemo<string[]>(
+    const AKSQuestions = useMemo(
         () => [
             'Which node pools are configured for my AKS cluster?',
             'Which workloads are in a crash loop or failed state?',
@@ -157,7 +217,7 @@ export const ChatSuggestions = (props: ChatSuggestionsProps) => {
         []
     );
 
-    const APIMQuestions = useMemo<string[]>(
+    const APIMQuestions = useMemo(
         () => [
             'Can you show me my API Management instances?',
             'I need details about my specific API Management instance',
@@ -172,7 +232,7 @@ export const ChatSuggestions = (props: ChatSuggestionsProps) => {
         []
     );
 
-    const getQuestionsForCategory = useCallback(
+    const defaultGetQuestions = useCallback(
         (category: string): string[] => {
             switch (category) {
                 case 'About me':
@@ -189,17 +249,18 @@ export const ChatSuggestions = (props: ChatSuggestionsProps) => {
                     return [];
             }
         },
-        [AKSQuestions, APIMQuestions, AboutMeQuestions, AppServicesQuestions, ContainerAppsQuestions]
+        [AboutMeQuestions, AppServicesQuestions, ContainerAppsQuestions, AKSQuestions, APIMQuestions]
     );
 
+    const getQuestionsForCategory = externalGetQuestions ?? defaultGetQuestions;
+
     const handleCategoryClick = (category: string) => {
-        setClickedKey(clickedKey === category ? '' : category);
+        setClickedKey(prev => (prev === category ? '' : category));
     };
 
     const handleQuestionClick = (question: string) => {
-        sendMessage(question);
+        void sendMessage(question);
         setClickedKey('');
-
         logAmplitudeControlEvent({
             targetType: 'button',
             targetAction: 'clicked',
@@ -211,15 +272,16 @@ export const ChatSuggestions = (props: ChatSuggestionsProps) => {
     };
 
     return (
-        <div className={chatSuggestionsStyles.root}>
-            <div className={chatSuggestionsStyles.brandContainer}>
-                <Image src="./SreAgent.svg" width={32} height={32} alt={intl.formatMessage(SreAgentResources.sreAgent)} />
-                <Text size={500} weight="semibold">
-                    {intl.formatMessage(SreAgentResources.sreAgent)}
-                </Text>
-            </div>
-
-            <div className={chatSuggestionsStyles.cardContainer}>
+        <div className={mergeClasses(chatSuggestionsStyles.root, alignLeft && chatSuggestionsStyles.leftRoot)}>
+            {showSreAgentLogo && (
+                <div className={mergeClasses(chatSuggestionsStyles.brandContainer, alignLeft && chatSuggestionsStyles.leftBrandContainer)}>
+                    <Image src="./SreAgent.svg" width={32} height={32} alt={intl.formatMessage(SreAgentResources.sreAgent)} />
+                    <Text size={500} weight="semibold">
+                        {intl.formatMessage(SreAgentResources.sreAgent)}
+                    </Text>
+                </div>
+            )}
+            <div className={mergeClasses(chatSuggestionsStyles.cardContainer, alignLeft && chatSuggestionsStyles.leftCardContainer)}>
                 {hasChatPermissions &&
                     chatSuggestionCategories.map(suggestion => (
                         <Button
@@ -229,6 +291,7 @@ export const ChatSuggestions = (props: ChatSuggestionsProps) => {
                             className={
                                 clickedKey === suggestion ? chatSuggestionsStyles.buttonClicked : chatSuggestionsStyles.buttonUnclicked
                             }
+                            icon={iconMap[suggestion]}
                         >
                             <Text size={200} weight={'medium'}>
                                 {suggestion}
@@ -236,23 +299,59 @@ export const ChatSuggestions = (props: ChatSuggestionsProps) => {
                         </Button>
                     ))}
             </div>
-
-            {hasChatPermissions && clickedKey && (
-                <div className={chatSuggestionsStyles.questionContainer}>
-                    {getQuestionsForCategory(clickedKey).map(question => (
-                        <Button
-                            key={question}
-                            onClick={() => handleQuestionClick(question)}
-                            appearance={'subtle'}
-                            className={chatSuggestionsStyles.questionButton}
-                        >
-                            <Text size={200} style={{ textAlign: 'left', width: '100%' }}>
-                                {question}
-                            </Text>
-                        </Button>
-                    ))}
-                </div>
-            )}
+            {hasChatPermissions &&
+                clickedKey &&
+                (() => {
+                    const rawGrouped = getCategorySubcategories?.(clickedKey);
+                    const hasNonEmptySubcat = !!rawGrouped && Object.keys(rawGrouped).some(k => k.trim().length > 0);
+                    const grouped = hasNonEmptySubcat ? rawGrouped : null;
+                    const isGrouped = !!grouped && Object.keys(grouped).length > 0;
+                    const containerClass = isGrouped
+                        ? chatSuggestionsStyles.questionContainerGrouped
+                        : chatSuggestionsStyles.questionContainer;
+                    return (
+                        <div className={containerClass}>
+                            {isGrouped
+                                ? Object.entries(grouped as Record<string, string[]>)
+                                      .filter(([subcat]) => subcat.trim().length > 0)
+                                      .map(([subcat, questions]) => (
+                                          <div key={subcat} style={{ width: '100%', paddingBottom: '15px' }}>
+                                              <Text
+                                                  size={200}
+                                                  weight="semibold"
+                                                  style={{ color: tokens.colorNeutralForeground3, paddingLeft: '16px' }}
+                                              >
+                                                  {subcat}
+                                              </Text>
+                                              {questions.map(question => (
+                                                  <Button
+                                                      key={question}
+                                                      onClick={() => handleQuestionClick(question)}
+                                                      appearance={'subtle'}
+                                                      className={chatSuggestionsStyles.questionButton}
+                                                  >
+                                                      <Text size={200} style={{ textAlign: 'left', width: '100%' }}>
+                                                          {question}
+                                                      </Text>
+                                                  </Button>
+                                              ))}
+                                          </div>
+                                      ))
+                                : getQuestionsForCategory(clickedKey).map(question => (
+                                      <Button
+                                          key={question}
+                                          onClick={() => handleQuestionClick(question)}
+                                          appearance={'subtle'}
+                                          className={chatSuggestionsStyles.questionButton}
+                                      >
+                                          <Text size={200} style={{ textAlign: 'left', width: '100%' }}>
+                                              {question}
+                                          </Text>
+                                      </Button>
+                                  ))}
+                        </div>
+                    );
+                })()}
         </div>
     );
 };

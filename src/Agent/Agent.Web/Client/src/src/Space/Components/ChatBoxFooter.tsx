@@ -1,11 +1,15 @@
 import { ScrollDownButton } from '@fluentui-copilot/react-copilot-chat';
 import {
     Button,
+    Dialog,
+    DialogBody,
+    DialogContent,
+    DialogSurface,
+    DialogTitle,
+    DialogTrigger,
+    Input,
     makeStyles,
     Menu,
-    MenuDivider,
-    MenuGroup,
-    MenuGroupHeader,
     MenuItem,
     MenuList,
     MenuPopover,
@@ -27,6 +31,7 @@ import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitud
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
 import { ActivitiesResources, AgentTaskResources, PromptResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { ChatSuggestions } from '../Activities/ChatSuggestions';
 import { IChatBoxFooterProps } from '../Contracts/Activities';
 import { StreamingContext } from '../Contracts/Context';
 import { chatInputTextStyles, sendButtonStyles, useChatInputStyles } from '../Styles/Activities.styles';
@@ -333,9 +338,10 @@ const PromptLibraryButton = memo(
         asOverflowItem,
         isTyping,
         disableInputInteraction,
-        messagePromptsUsed,
+        // Keep these in the signature for compatibility but alias to avoid unused warnings
+        messagePromptsUsed: _messagePromptsUsed,
         sendMessage,
-        prompts,
+        prompts: _prompts,
     }: {
         asOverflowItem: boolean;
         isTyping: boolean;
@@ -344,70 +350,227 @@ const PromptLibraryButton = memo(
         sendMessage: (message: string) => Promise<void>;
         prompts: string[];
     }) => {
-        const { sectionHeader, promptMenuPopover, promptItem, lightbulbIcon } = useChatInputStyles();
-
-        const intl = useIntl();
         const { logAmplitudeControlEvent } = useAzPortalContext();
-
         const isVisible = useIsOverflowItemVisible(ChatBoxButtonIds.PromptLibrary);
+        const [open, setOpen] = useState(false);
+        const [query, setQuery] = useState('');
+        const intl = useIntl();
 
-        const handlePromptClick = useCallback(
-            (prompt: string, isUserPrompt: boolean) => {
-                if (!disableInputInteraction && !isTyping) {
-                    sendMessage(prompt);
+        const categories = useMemo<string[]>(
+            () => ['Get started', 'Azure App Service', 'Azure Container App', 'Azure Kubernetes Service', 'Azure API Management'],
+            []
+        );
 
-                    logAmplitudeControlEvent({
-                        targetType: 'button',
-                        targetAction: 'clicked',
-                        targetName: 'promptLibrary',
-                        targetFriendlyName: 'Prompt library',
-                        valueObjectName: !isUserPrompt ? prompt : SpecialControlValue.CustomerSuppliedData,
-                        valueObjectFriendlyName: !isUserPrompt ? prompt : SpecialControlValue.CustomerSuppliedData,
-                    });
+        const aboutMeQs = useMemo<string[]>(
+            () => [
+                'How do I get started with SRE Agent?',
+                'What can you help me with as an SRE Agent?',
+                'What are some common use cases you support?',
+                'What are your key capabilities?',
+                'Can you explain how you help with incident management?',
+                'How do I connect to an Incident Platform?',
+                'How does SRE Agent’s billing work?',
+                'Which Azure services do you support?',
+            ],
+            []
+        );
+
+        const appServicesQs = useMemo<string[]>(
+            () => [
+                'List all my web apps',
+                'What services or resources is my web app connected to?',
+                'Which resource group is my app part of?',
+                'Which apps are hosted on Linux vs Windows in my environment?',
+                'Are any of my web apps still running on deprecated or unsupported runtime versions?',
+                'Show me visualization of memory usage % for my web app for last week',
+                'Can you list all environment variables or app settings for this app?',
+                'What App Service Plan is this app running on, and who else shares it?',
+                'Are there any staging slots configured for this web app?',
+                'Which apps are using custom domains?',
+                'Do any apps in my subscription have ARR affinity enabled?',
+                'Which apps have health checks enabled, and what are their probe paths?',
+                'Can you list the auto scale rules configured across all of my App Services?',
+                'Which apps have diagnostic logging turned on?',
+                'Show me all web apps using .NET 6 runtime',
+                'What changed in my web app last week?',
+                'What are some best practices I can apply to my web app?',
+                'Can you analyze my app’s availability over the last 24 hours?',
+                'Give me slow endpoints for my APIs',
+                'Why is my web app timed out?',
+                'Why is my web app throwing 500s?',
+                'My web app is down. Can you analyze it?',
+                'My web is stuck and is not loading – please investigate',
+            ],
+            []
+        );
+
+        const containerAppsQs = useMemo<string[]>(
+            () => [
+                'List all my container apps',
+                'What is the ingress configuration for my container app?',
+                'Which revision of my container app is currently active?',
+                'What changed in my container app in the last week?',
+                'Show me visualization of memory utilization % for my container app for last week',
+                'Show me visualization of CPU utilization % for my container app for last week',
+                'What container images are used in each of my container apps?',
+                'Which apps have Dapr enabled?',
+                'What secrets or environment variables are defined for my app?',
+                'Can you list the CPU and memory allocation for each container app?',
+                'Which apps are connected to other services via Dapr pub/sub?',
+                'Are any of my apps configured to run on a virtual network?',
+                'Which of my container apps has auto scaling enabled?',
+                'Show me all apps with public ingress enabled',
+                'Which of my container apps use managed identities?',
+                'Which apps use multiple revisions at once?',
+                'What are some best practices I can apply to my container app?',
+                'My container app is stuck in an activation failed state. Please investigate.',
+                'Why is my container app timed out?',
+                'Why is my web app throwing 500s?',
+                'My container app is down. Can you analyze it?',
+                'My web is stuck and is not loading – please investigate.',
+            ],
+            []
+        );
+
+        const aksQs = useMemo<string[]>(
+            () => [
+                'Which node pools are configured for my AKS cluster?',
+                'Which workloads are in a crash loop or failed state?',
+                'Do I have any pending or unscheduled pods?',
+                'Can you change settings on the cluster?',
+                'Scale out deployment inside my AKS cluster',
+                'What version of Kubernetes is my cluster running?',
+                'How many pods are currently running in my cluster?',
+                'What are the configured auto scale rules for my deployments?',
+                'What resource limits and requests are configured for my app containers?',
+                'Can you list all services exposed via LoadBalancer in my cluster?',
+                'Which deployments use persistent volumes?',
+                'Are there any cluster-wide policies enforced like PodSecurity or NetworkPolicies?',
+                'Can you give me all the runtime languages of my AKS clusters?',
+                'Can you give me environment variables for my AKS clusters?',
+                'Show me visualization of requests and 500 errors (area chart) for my app in AKS cluster for the past week. Please include all data points.',
+                'What are some best practices I can apply to my AKS cluster?',
+                'Is there an OOM in my deployment?',
+                'Analyze requests and limits in my namespace',
+                'Why is my deployment down?',
+            ],
+            []
+        );
+
+        const apimQs = useMemo<string[]>(
+            () => [
+                'Can you show me my API Management instances?',
+                'I need details about my specific API Management instance',
+                'What backends does my API Management instance have?',
+                'Does my API Management instance have any unhealthy backend apps?',
+                'What API policies does my API Management instance have?',
+                'What Operation policies does my {api-name} API have?',
+                'What NSG rules does my API Management instance have?',
+                'Why am I getting 500 errors in my API Management?',
+                'Can you help me figure out why requests to our API are failing?',
+                'Show me recent changes to our API Management instance',
+                'Why is my API Management slow?',
+                'Can you help me scale my API Management instance',
+                'Can you show me the recent failure logs for my API Management?',
+                "What's the failure rate for my API operations in my API Management?",
+                'Is there anything wrong with my API Managements VNet configuration?',
+                'Can you help me inspect the global policy for my API Management?',
+                'Is my {name-here} API in my API Management causing any errors?',
+                'Can you help me change/delete my {nsg-name} NSG rule on my API Management instance?',
+            ],
+            []
+        );
+
+        const groupedQuestions = useMemo(() => {
+            return {
+                'Get started': {
+                    '': aboutMeQs,
+                },
+                'Azure App Service': {
+                    'Resource discovery': appServicesQs.slice(0, 16),
+                    'Diagnostics + troubleshooting': appServicesQs.slice(16),
+                },
+                'Azure Container App': {
+                    'Resource discovery': containerAppsQs.slice(0, 17),
+                    'Diagnostics + troubleshooting': containerAppsQs.slice(17),
+                },
+                'Azure Kubernetes Service': {
+                    'Resource discovery': aksQs.slice(0, 16),
+                    'Diagnostics + troubleshooting': aksQs.slice(16),
+                },
+                'Azure API Management': {
+                    'Resource discovery': apimQs.slice(0, 8),
+                    'Diagnostics + troubleshooting': apimQs.slice(8),
+                },
+            } as Record<string, Record<string, string[]>>;
+        }, [aboutMeQs, appServicesQs, containerAppsQs, aksQs, apimQs]);
+
+        const getCategorySubcategories = useCallback((category: string) => groupedQuestions[category] ?? null, [groupedQuestions]);
+
+        const getQuestionsForCategoryFlat = useCallback(
+            (category: string): string[] => {
+                // For search fallback (flatten subcategories)
+                const subcats = groupedQuestions[category];
+                if (subcats) {
+                    return Object.values(subcats).flat();
                 }
+                return [];
             },
-            [sendMessage, disableInputInteraction, isTyping, logAmplitudeControlEvent]
+            [groupedQuestions]
         );
 
-        const PromptSection = ({
-            title,
-            prompts,
-            isUserRecentPrompts,
-        }: {
-            title: string;
-            prompts: string[];
-            isUserRecentPrompts: boolean;
-        }) => (
-            <MenuGroup>
-                <MenuGroupHeader className={sectionHeader}>{title}</MenuGroupHeader>
-                {prompts.map((prompt, i) => (
-                    <div key={i} className={promptItem} onClick={() => handlePromptClick(prompt, isUserRecentPrompts)}>
-                        <Lightbulb16Regular className={lightbulbIcon} />
-                        {prompt}
-                    </div>
-                ))}
-            </MenuGroup>
-        );
-
-        const ButtonComponent = () => {
-            return (
-                <Button
-                    style={{ fontSize: '13px', padding: '2px 8px 2px 4px', whiteSpace: 'nowrap' }}
-                    icon={<Lightbulb16Regular />}
-                    disabled={disableInputInteraction || isTyping}
-                >
-                    <FormattedMessage {...PromptResources.promptLibrary} />
-                </Button>
+        // Filtering logic updated to use flattened questions
+        const normalizedQuery = query.trim().toLowerCase();
+        const filteredCategories = useMemo(() => {
+            if (!normalizedQuery) return categories;
+            return categories.filter(cat =>
+                getQuestionsForCategoryFlat(cat).some((q: string) => q.toLowerCase().includes(normalizedQuery))
             );
-        };
+        }, [categories, getQuestionsForCategoryFlat, normalizedQuery]);
+
+        const filteredGetQuestionsForCategory = useCallback(
+            (category: string) => {
+                const all = getQuestionsForCategoryFlat(category);
+                if (!normalizedQuery) return all;
+                return all.filter((q: string) => q.toLowerCase().includes(normalizedQuery));
+            },
+            [getQuestionsForCategoryFlat, normalizedQuery]
+        );
+
+        // Wrap sendMessage to close the dialog after selection
+        const sendAndClose = useCallback(
+            async (message: string) => {
+                await sendMessage(message);
+                setOpen(false);
+                logAmplitudeControlEvent({
+                    targetType: 'button',
+                    targetAction: 'clicked',
+                    targetName: 'promptLibrary',
+                    targetFriendlyName: 'Prompt library',
+                    valueObjectName: message,
+                    valueObjectFriendlyName: message,
+                });
+            },
+            [sendMessage, logAmplitudeControlEvent]
+        );
 
         if (!asOverflowItem && isVisible) {
             return null;
         }
 
+        const ButtonComponent = () => (
+            <Button
+                style={{ fontSize: '13px', padding: '2px 8px 2px 4px', whiteSpace: 'nowrap' }}
+                icon={<Lightbulb16Regular />}
+                disabled={disableInputInteraction || isTyping}
+            >
+                <FormattedMessage {...PromptResources.promptLibrary} />
+            </Button>
+        );
+
         return (
-            <Menu positioning={'after-top'}>
-                <MenuTrigger>
+            <Dialog open={open} onOpenChange={(_, data) => setOpen(!!data.open)}>
+                <DialogTrigger disableButtonEnhancement>
                     {asOverflowItem ? (
                         <OverflowItem id={ChatBoxButtonIds.PromptLibrary}>
                             <div>
@@ -419,25 +582,41 @@ const PromptLibraryButton = memo(
                             <FormattedMessage {...PromptResources.promptLibrary} />
                         </MenuItem>
                     )}
-                </MenuTrigger>
-                <MenuPopover className={promptMenuPopover}>
-                    <MenuList>
-                        {messagePromptsUsed.length > 0 && (
-                            <PromptSection
-                                title={intl.formatMessage(PromptResources.myRecentPrompts)}
-                                prompts={messagePromptsUsed}
-                                isUserRecentPrompts
-                            />
-                        )}
-                        {messagePromptsUsed.length > 0 && <MenuDivider />}
-                        <PromptSection
-                            title={intl.formatMessage(PromptResources.suggestedPrompts)}
-                            prompts={prompts}
-                            isUserRecentPrompts={false}
-                        />
-                    </MenuList>
-                </MenuPopover>
-            </Menu>
+                </DialogTrigger>
+                <DialogSurface style={{ width: '950px', maxWidth: '950px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                    <DialogBody style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                        <DialogTitle>
+                            <FormattedMessage {...PromptResources.promptExamples} />
+                        </DialogTitle>
+                        <DialogContent>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxWidth: '100%' }}>
+                                <Input
+                                    placeholder={intl.formatMessage(SreAgentResources.search)}
+                                    value={query}
+                                    onChange={(_, data) => setQuery(data.value)}
+                                    disabled={disableInputInteraction || isTyping}
+                                    style={{ maxWidth: '470px' }}
+                                />
+                                {filteredCategories.length > 0 ? (
+                                    <ChatSuggestions
+                                        sendMessage={sendAndClose}
+                                        categories={filteredCategories}
+                                        getQuestionsForCategory={filteredGetQuestionsForCategory}
+                                        showSreAgentLogo={false}
+                                        alignLeft={true}
+                                        getCategorySubcategories={getCategorySubcategories}
+                                        initialExpandedCategory={'Get started'}
+                                    />
+                                ) : (
+                                    <Text size={200} style={{ opacity: 0.7 }}>
+                                        No matches
+                                    </Text>
+                                )}
+                            </div>
+                        </DialogContent>
+                    </DialogBody>
+                </DialogSurface>
+            </Dialog>
         );
     }
 );
