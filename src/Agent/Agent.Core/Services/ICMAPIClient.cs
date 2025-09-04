@@ -59,6 +59,9 @@ namespace Agent.Core.Services
         private readonly LoggingHttpMessageHandler _loggingHandler;
         private readonly IAuthenticationService _authService;
 
+        private readonly string API2PathPrefix = "api2/user/incidentapi";
+        private readonly string APIPathPrefix = "/api/user";
+
         public ICMAPIClient(IHostEnvironment environment, IOptionsMonitor<IncidentManagementSettings> monitor, ILogger<ICMAPIClient> logger, ActionSettings actionSettings, LoggingHttpMessageHandler loggingHandler, IAuthenticationService authService)
         {
             _logger = logger;
@@ -86,7 +89,7 @@ namespace Agent.Core.Services
             if (!string.IsNullOrEmpty(_identity))
             {
                 _authType = AuthType.ManagedIdentity;
-                IcmAPIPathPrefix = "/api/user";
+                IcmAPIPathPrefix = API2PathPrefix;
             }
             else if (!string.IsNullOrWhiteSpace(_icmApiSettings.CertificateSubjectName) ||
                      (!string.IsNullOrWhiteSpace(_icmApiSettings.CertificateKeyVaultUri) && !string.IsNullOrWhiteSpace(_icmApiSettings.CertificateKeyVaultSecretName)))
@@ -97,7 +100,7 @@ namespace Agent.Core.Services
             else if (!string.IsNullOrWhiteSpace(_icmApiSettings.UserToken))
             {
                 _authType = AuthType.UserToken;
-                IcmAPIPathPrefix = "/api/user";
+                IcmAPIPathPrefix = API2PathPrefix;
             }
             else
             {
@@ -352,8 +355,7 @@ namespace Agent.Core.Services
 
         private async Task<List<Incident>> GetIncidentsAsyncInternal(Dictionary<string, string?> queryParams)
         {
-            var apiPathPrefix = IcmAPIPathPrefix.StartsWith("/api/user") ? IcmAPIPathPrefix.Replace("/api/user", "/api2/user/incidentapi") : IcmAPIPathPrefix;
-            var apiPath = QueryHelpers.AddQueryString($"{apiPathPrefix}/incidents", queryParams);
+            var apiPath = QueryHelpers.AddQueryString($"{IcmAPIPathPrefix}/incidents", queryParams);
             var response = await SendICMGetRequestAsync(apiPath);
             if (response.IsSuccessStatusCode)
             {
@@ -397,8 +399,7 @@ namespace Agent.Core.Services
 
         public async Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId)
         {
-            var apiPathPrefix = IcmAPIPathPrefix.StartsWith("/api/user") ? IcmAPIPathPrefix.Replace("/api/user", "/api2/user/incidentapi") : IcmAPIPathPrefix;
-            var response = await SendICMGetRequestAsync($"{apiPathPrefix}/incidents({incidentId})/DescriptionEntries?/$inlinecount=allpages");
+            var response = await SendICMGetRequestAsync($"{IcmAPIPathPrefix}/incidents({incidentId})/DescriptionEntries?/$inlinecount=allpages");
             if (response.IsSuccessStatusCode)
             {
                 var responseString = await response.Content.ReadAsStringAsync();
@@ -774,7 +775,8 @@ namespace Agent.Core.Services
         #region ParentIncident CRD
         public async Task<string> GetParentIncidentInfoAsync(long incidentId)
         {
-            var response = await SendICMGetRequestAsync($"{IcmAPIPathPrefix}/incidents({incidentId})/ParentIncident");
+            var apiPathPrefix = IcmAPIPathPrefix.StartsWith(API2PathPrefix) ? IcmAPIPathPrefix.Replace(API2PathPrefix, APIPathPrefix) : IcmAPIPathPrefix;
+            var response = await SendICMGetRequestAsync($"{apiPathPrefix}/incidents({incidentId})/ParentIncident");
             var responseContent = await response.Content.ReadAsStringAsync();
 
             if (response.IsSuccessStatusCode)
@@ -804,13 +806,13 @@ namespace Agent.Core.Services
                 _logger.LogInternalInformation($"AddParentIncidentLink called for incident {incidentId} with parent {parentIncidentId} in read-only mode");
                 return "Success. ICM API is in read-only mode.";
             }
-
+            var apiPathPrefix = IcmAPIPathPrefix.StartsWith(API2PathPrefix) ? IcmAPIPathPrefix.Replace(API2PathPrefix, APIPathPrefix) : IcmAPIPathPrefix;
             var content = new
             {
-                url = $"{_icmApiSettings.APIEndpoint}{IcmAPIPathPrefix}/incidents({parentIncidentId}L)" // Note the "L" character in request body. This suffix is mandatory and is not a typo.
+                url = $"{_icmApiSettings.APIEndpoint}{apiPathPrefix}/incidents({parentIncidentId}L)" // Note the "L" character in request body. This suffix is mandatory and is not a typo.
             };
 
-            var response = await SendICMPostRequestAsync($"{IcmAPIPathPrefix}/incidents({incidentId})/\\$links/ParentIncident", content);
+            var response = await SendICMPostRequestAsync($"{apiPathPrefix}/incidents({incidentId})/\\$links/ParentIncident", content);
             var responseContent = await response.Content.ReadAsStringAsync();
 
             if (response.IsSuccessStatusCode)
@@ -832,8 +834,8 @@ namespace Agent.Core.Services
                 _logger.LogInternalInformation($"RemoveParentIncidentLink called for incident {incidentId} in read-only mode");
                 return "Success. ICM API is in read-only mode.";
             }
-
-            var response = await SendICMDeleteRequestAsync($"{IcmAPIPathPrefix}/incidents({incidentId})/\\$links/ParentIncident");
+            var apiPathPrefix = IcmAPIPathPrefix.StartsWith(API2PathPrefix) ? IcmAPIPathPrefix.Replace(API2PathPrefix, APIPathPrefix) : IcmAPIPathPrefix;
+            var response = await SendICMDeleteRequestAsync($"{apiPathPrefix}/incidents({incidentId})/\\$links/ParentIncident");
             var responseContent = await response.Content.ReadAsStringAsync();
 
             if (response.IsSuccessStatusCode)
@@ -851,7 +853,8 @@ namespace Agent.Core.Services
 
         public async Task<List<string>> GetChildIncidentsInfoAsync(long incidentId)
         {
-            var response = await SendICMGetRequestAsync($"{IcmAPIPathPrefix}/incidents({incidentId})/ChildIncidents");
+            var apiPathPrefix = IcmAPIPathPrefix.StartsWith(API2PathPrefix) ? IcmAPIPathPrefix.Replace(API2PathPrefix, APIPathPrefix) : IcmAPIPathPrefix;
+            var response = await SendICMGetRequestAsync($"{apiPathPrefix}/incidents({incidentId})/ChildIncidents");
             var responseContent = await response.Content.ReadAsStringAsync();
 
             if (response.IsSuccessStatusCode)
