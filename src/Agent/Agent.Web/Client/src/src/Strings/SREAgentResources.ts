@@ -1570,6 +1570,7 @@ export const DataConnectorsResources = defineMessages({
     keyVaultUriPlaceholder: { defaultMessage: 'Enter Key Vault URI', id: '69sjgc' },
     identityPlaceholder: { defaultMessage: 'Select identity', id: '8RdOD0' },
     duplicateNameError: { defaultMessage: 'A data connector with this name already exists', id: 'pG9xP9' },
+    dataSourceKustoFormatError: { defaultMessage: 'The data source must be in the format: {format}', id: 'wNIiXX' },
     deletingDataConnector: { defaultMessage: 'Deleting data connector', id: 'aA1SYF' },
     deletingDataConnectorDescription: { defaultMessage: 'Deleting data connector "{name}"', id: 'S6FECK' },
     dataConnectorDeleted: { defaultMessage: 'Data connector "{name}" has been deleted successfully', id: 'CbKRyU' },

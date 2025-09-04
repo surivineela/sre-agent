@@ -28,6 +28,7 @@ export const SecretValue = (props: SecretValueProps) => {
                 icon={hidden ? <EyeRegular /> : <EyeOffRegular />}
                 appearance="transparent"
                 size="small"
+                style={{ padding: 0 }}
             >
                 {hidden ? intl.formatMessage(SreAgentResources.clickToShowValue) : value}
             </Button>

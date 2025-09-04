@@ -30,6 +30,7 @@ export default tseslint.config(
                     idInterpolationPattern: '[sha512:contenthash:base64:6]',
                 },
             ],
+            // This doesn't actually work unless we define the messages inline :(
             'formatjs/enforce-placeholders': [
                 'error',
                 {

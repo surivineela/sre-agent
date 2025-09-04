@@ -27,6 +27,7 @@ import { IdentityKeys, IdentityType } from '../Contracts/Identity';
 import { IdentityStatus } from './Identity.ReactView';
 
 const connectorTypeOptions = [{ id: 'Kusto' }, { id: 'TsgCrawler' }, { id: 'KustoDataIndexer' }];
+const kustoDataSourceExample = 'https://cluster-url/database-name';
 
 interface CreateDataConnectorProps {
     isDialogOpen: boolean;
@@ -136,9 +137,19 @@ const CreateOrUpdateDataConnectorForm = ({
     const intl = useIntl();
     const azPortalContext = useContext(AzPortalContext);
     const { resourceId } = useContext(EnvironmentContext);
-    const [nameError, setNameError] = useState<string | undefined>();
 
-    const { values, setFieldValue, submitForm, resetForm } = useFormikContext<DataConnectorFormProps>();
+    const [nameError, setNameError] = useState<string | undefined>();
+    const [dataSourceError, setDataSourceError] = useState<string | undefined>();
+
+    const { initialValues, values, setFieldValue, submitForm, resetForm } = useFormikContext<DataConnectorFormProps>();
+
+    const dataSourcePlaceholder = useMemo(() => {
+        if (values.dataConnectorType === 'Kusto') {
+            return kustoDataSourceExample;
+        }
+
+        return intl.formatMessage(DataConnectorsResources.dataSourcePlaceholder);
+    }, [intl, values.dataConnectorType]);
 
     const isSystemAssignedIdentityEnabled = useMemo(() => {
         return agentIdentity?.type.toLowerCase().includes(IdentityType.systemAssigned.toLowerCase());
@@ -180,14 +191,39 @@ const CreateOrUpdateDataConnectorForm = ({
     }, [azPortalContext, resourceId, refreshAgent]);
 
     useEffect(() => {
-        if (!values.name || isEditMode) {
+        if (!values.name) {
             setNameError(undefined);
             return;
         }
 
-        const isDuplicate = existingDataConnectors?.some(connector => connector.name.toLowerCase() === values.name.toLowerCase());
+        const isDuplicate = existingDataConnectors?.some(
+            connector =>
+                connector.name.toLowerCase() === values.name.toLowerCase() &&
+                (!isEditMode || connector.name.toLowerCase() !== initialValues.name.toLowerCase())
+        );
         setNameError(isDuplicate ? intl.formatMessage(DataConnectorsResources.duplicateNameError) : undefined);
-    }, [values.name, existingDataConnectors, isEditMode, intl]);
+    }, [values.name, initialValues.name, existingDataConnectors, isEditMode, intl]);
+
+    useEffect(() => {
+        if (!values.dataSource || values.dataConnectorType !== 'Kusto') {
+            setDataSourceError(undefined);
+            return;
+        }
+
+        let isValidUri = false;
+        try {
+            const url = new URL(values.dataSource);
+            isValidUri = url.protocol === 'https:' && !!url.host.trim() && !!url.pathname && url.pathname.trim() !== '/';
+        } catch {
+            isValidUri = false;
+        }
+
+        setDataSourceError(
+            !isValidUri
+                ? intl.formatMessage(DataConnectorsResources.dataSourceKustoFormatError, { format: kustoDataSourceExample })
+                : undefined
+        );
+    }, [values.dataConnectorType, values.dataSource, intl]);
 
     useEffect(() => {
         // Auto-select the first identity if there's only one option and no current selection
@@ -205,8 +241,16 @@ const CreateOrUpdateDataConnectorForm = ({
     }, [isSystemAssignedIdentityEnabled, userAssignedIdentityOptions, values.identity, setFieldValue]);
 
     const isSaveDisabled = useMemo((): boolean => {
-        return !values.name || !values.dataConnectorType || !values.dataSource || !values.identity || isOperationInProgress || !!nameError;
-    }, [values.name, values.dataConnectorType, values.dataSource, values.identity, isOperationInProgress, nameError]);
+        return (
+            !values.name ||
+            !values.dataConnectorType ||
+            !values.dataSource ||
+            !values.identity ||
+            isOperationInProgress ||
+            !!nameError ||
+            !!dataSourceError
+        );
+    }, [values.name, values.dataConnectorType, values.dataSource, values.identity, isOperationInProgress, nameError, dataSourceError]);
 
     return (
         <Dialog open={isDialogOpen} onOpenChange={(_, data) => setIsDialogOpen(data.open)}>
@@ -257,12 +301,17 @@ const CreateOrUpdateDataConnectorForm = ({
                                 </Dropdown>
                             </Field>
 
-                            <Field label={intl.formatMessage(DataConnectorsResources.dataSource)} required>
+                            <Field
+                                label={intl.formatMessage(DataConnectorsResources.dataSource)}
+                                validationState={dataSourceError ? 'error' : 'none'}
+                                validationMessage={dataSourceError}
+                                required
+                            >
                                 <Input
                                     name="dataSource"
                                     value={values.dataSource}
                                     onChange={(_, data) => setFieldValue('dataSource', data.value)}
-                                    placeholder={intl.formatMessage(DataConnectorsResources.dataSourcePlaceholder)}
+                                    placeholder={dataSourcePlaceholder}
                                     disabled={isOperationInProgress}
                                 />
                             </Field>

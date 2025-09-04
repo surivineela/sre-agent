@@ -4883,6 +4883,16 @@
       "value": "Actions"
     }
   ],
+  "wNIiXX": [
+    {
+      "type": 0,
+      "value": "The data source must be in the format: "
+    },
+    {
+      "type": 1,
+      "value": "format"
+    }
+  ],
   "wSZR47": [
     {
       "type": 0,
