@@ -10,7 +10,7 @@ ENV AppSettings__Core__External__IncidentManagement__Type=Icm
 ENV AppSettings__Core__External__IncidentManagement__ICMAPI__ReadOnly=false
 ENV AppSettings__Core__External__IncidentManagement__AutomatedRCA__Enabled=true
 # TODO: This URL requires SAW access. Once we got cross-tenant access, revisit this.
-ENV AppSettings__Core__External__IncidentManagement__AutomatedRCA__WebBaseUrl=https://aka.ms/sreagent-prefixonly#view/Microsoft_Azure_PaasServerless/AgentFrameBlade.ReactView/id/%2Fsubscriptions%2Fe0f7938e-3cde-4ac2-ad1e-dfa382e19181%2FresourceGroups%2Fsre-agent-rca-rg%2Fproviders%2FMicrosoft.App%2Fagents%2Ffunctionsrca
+ENV AppSettings__Core__External__IncidentManagement__AutomatedRCA__WebBaseUrl=https://aka.ms/sreagent-prefixonly#view/Microsoft_Azure_PaasServerless/FirstPartyAgentFrameBlade.ReactView/agentDisplayName/FunctionsRCA%20agent/agentUrl/https%3A%2F%2Ffunctionsrca-001--06ae8b31.3d3f9aed.eastus2.azuresre.ai
 ENV AGENT_TYPE_NAME=RCARouterAgent
 
 # Expose the port the app runs on

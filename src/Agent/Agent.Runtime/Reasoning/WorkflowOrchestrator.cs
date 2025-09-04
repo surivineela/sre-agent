@@ -217,6 +217,7 @@ public class WorkflowOrchestrator : IDisposable
         try
         {
             _logger.LogInternalInformation("Starting workflow execution");
+            _logger.LogInternalInformation(GetWorkflowConfigurationStatus());
 
             // Get the current agent
             var currentAgentName = _context.AgentHandoffChain.LastOrDefault() ?? _context.CurrentAgent;
@@ -413,6 +414,18 @@ public class WorkflowOrchestrator : IDisposable
             // Return context state to Idle (single place handles all early returns)
             await ChangeAgentContextStateAsync(ContextStateEnum.Idle);
         }
+    }
+
+    private string GetWorkflowConfigurationStatus()
+    {
+        StringBuilder builder = new StringBuilder();
+        builder.Append("WorkflowConfiguration: ");
+        builder.Append($"AGENT_TYPE_NAME: {Environment.GetEnvironmentVariable("AGENT_TYPE_NAME")},");
+        builder.Append($"SREAGENT_ALLOW_NON_SCANNER_RCA_POST: {Environment.GetEnvironmentVariable("SREAGENT_ALLOW_NON_SCANNER_RCA_POST")},");
+        builder.Append($"IncidentManagement.ICMAPI.ReadOnly: {_incidentManagementSettings?.ICMAPI?.ReadOnly},");
+        builder.Append($"IncidentManagement.AutomatedRCA.Enabled: {_incidentManagementSettings?.AutomatedRCA?.Enabled},");
+        builder.Append($"IncidentManagement.AutomatedRCA.WebBaseUrl: {_incidentManagementSettings?.AutomatedRCA?.WebBaseUrl}");
+        return builder.ToString();
     }
 
     /// <summary>
@@ -818,7 +831,7 @@ Please consolidate the findings, identify key insights, and provide actionable r
 
             var threadPath = isLocal
                 ? $"/static/#/views/activities/threads/{_context.ThreadId}"
-                : $"/sreLink/views%2Factivities%2Fthreads%2F{_context.ThreadId}";
+                : $"/sreDeepLink/views%2Factivities%2Fthreads%2F{_context.ThreadId}";
 
             var threadLink = isLocal || string.IsNullOrWhiteSpace(baseUrl)
                 ? threadPath
@@ -844,12 +857,17 @@ Please consolidate the findings, identify key insights, and provide actionable r
             var summaryText = !string.IsNullOrWhiteSpace(finalSummaryFromToolFlow)
                 ? finalSummaryFromToolFlow!
                 : (TryGetAssistantText(response) ?? "Unable to generate summary");
-
+            
             // Add thread link for detailed view + conditional access note
             string accessNote = string.Empty;
             if (!isLocal)
             {
-                accessNote = "\n\n> Note: You currently need to open this link using your AME account on a Secure Access Workstation (SAW). This is temporary; direct access with your microsoft.com account will be enabled soon.";
+                accessNote = "\n\n> Note: One-time setup required before you can open the link:" +
+                             "\n> 1. Join the [SREAgent-Functions security group](https://idweb.microsoft.com/IdentityManagement/aspx/groups/MyGroups.aspx?popupFromClipboard=https%3A%2F%2Fidweb.microsoft.com%2Fidentitymanagement%2Faspx%2FGroups%2FEditGroup.aspx%3Fid%3De881e4a1-26b0-4e74-9bda-7e0fb6e4009c%26UOCInitialTabName%3DGroupingBasicInfo)." +
+                             "\n> 2. Go to https://aka.ms/sreagent-portal and add an External agent:" +
+                             "\n>    - Agent: Functions RCA" +
+                             "\n>    - URI: https://functionsrca-001--06ae8b31.3d3f9aed.eastus2.azuresre.ai" +
+                             "\n> After completing these steps once, you can access the link directly.";
             }
             var finalMessage = $"{summaryText}\n\n**Thread Details:** [View detailed conversation]({threadLink}){accessNote}";
 

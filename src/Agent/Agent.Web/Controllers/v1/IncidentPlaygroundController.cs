@@ -471,6 +471,8 @@ public class IncidentPlaygroundController : ControllerBase
         }
     }
 
+    // DEPRECATED: This method is scheduled for removal in a future release.
+    // Do not use in production environments.
     [HttpPost("restLastScanTimeIcm")]
     [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementWriteActionId)]
     public async Task<IActionResult> ResetLastScanTime()

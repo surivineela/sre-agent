@@ -174,7 +174,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
     /// <param name="incidentId">The incident ID</param>
     /// <param name="threadId">The thread ID where RCA is running</param>
     /// <param name="threadUrl">The URL to the RCA thread</param>
-    private async Task MonitorRCACompletionAsync(string incidentId, Guid threadId, string threadUrl)
+    private async Task MonitorRCACompletionAsync(string incidentId, Guid threadId, string threadUrl, string owningTeamId)
     {
         try
         {
@@ -190,7 +190,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 {
                     // Prefer tag-based completion check
                     var incident = await icmApiClient.GetIncidentAsync(incidentId);
-                    var teamCompletedTag = !string.IsNullOrWhiteSpace(incident?.OwningTeam) ? $"{incident.OwningTeam}:Completed" : null;
+                    var teamCompletedTag = !string.IsNullOrWhiteSpace(owningTeamId) ? $"{owningTeamId}:Completed" : null;
                     if (!string.IsNullOrWhiteSpace(teamCompletedTag) &&
                         incident?.Tags?.Any(t => string.Equals(t, teamCompletedTag, StringComparison.OrdinalIgnoreCase)) == true)
                     {
@@ -537,27 +537,20 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 logger.LogInternalWarning("[IcmScanner] Could not retrieve incident details for {incidentId}", incidentDocument.Id);
                 return;
             }
-
+            string owningTeamId = filterDocument.OwningTeamId;
             // New: Skip if team-specific Completed tag exists
-            var teamCompletedTag = !string.IsNullOrWhiteSpace(incident.OwningTeam) ? $"{incident.OwningTeam}:Completed" : null;
+            var teamCompletedTag = !string.IsNullOrWhiteSpace(owningTeamId) ? $"{owningTeamId}:Completed" : null;
             if (!string.IsNullOrWhiteSpace(teamCompletedTag) && incident.Tags?.Any(t => string.Equals(t, teamCompletedTag, StringComparison.OrdinalIgnoreCase)) == true)
             {
                 logger.LogInternalInformation("[IcmScanner] Incident {incidentId} already completed for owning team (tag: {tag})", incidentDocument.Id, teamCompletedTag);
                 return;
             }
 
-            // Check if OwningTeam matches (double-check even though ICM API already filtered)
-            if (!string.Equals(incident.OwningTeam, filterDocument.OwningTeamId, StringComparison.OrdinalIgnoreCase))
-            {
-                logger.LogInternalInformation("[IcmScanner] Incident {incidentId} owning team '{owningTeamId}' does not match filter team '{filterTeamId}'", 
-                    incidentDocument.Id, incident.OwningTeam, filterDocument.OwningTeamId);
-                return;
-            }
 
             logger.LogInternalInformation("[IcmScanner] Incident {incidentId} qualifies for automated RCA execution via team filter", incidentDocument.Id);
             
             // Execute Automated RCA
-            await ExecuteAutomatedRCAAsync(incidentDocument);
+            await ExecuteAutomatedRCAAsync(incidentDocument, owningTeamId);
         }
         catch (Exception ex)
         {
@@ -569,7 +562,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
     /// Executes automated RCA for the given incident
     /// </summary>
     /// <param name="incidentDocument">The incident document to process</param>
-    private async Task ExecuteAutomatedRCAAsync(IcmIncidentDocument incidentDocument)
+    private async Task ExecuteAutomatedRCAAsync(IcmIncidentDocument incidentDocument, string owningTeamId)
     {
         try
         {
@@ -607,7 +600,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                     incidentDocument.Id, thread.Id, threadUrl);
 
                 // Start background monitoring for RCA completion
-                _ = Task.Run(() => MonitorRCACompletionAsync(incidentDocument.Id, thread.Id, threadUrl));
+                _ = Task.Run(() => MonitorRCACompletionAsync(incidentDocument.Id, thread.Id, threadUrl, owningTeamId));
             }
         }
         catch (Exception ex)
