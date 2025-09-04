@@ -223,7 +223,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             }
             else
             {
-                query = query.Where(t => t.Favorite.IsDefined() == false || t.Favorite == false) as IOrderedQueryable<ThreadDocument>;
+                query = query.Where(t => t.Favorite.IsDefined() == false || t.Favorite == null || t.Favorite == false) as IOrderedQueryable<ThreadDocument>;
             }
         }
 
