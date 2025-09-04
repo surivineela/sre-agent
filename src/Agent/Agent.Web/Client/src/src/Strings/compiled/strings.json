@@ -2997,12 +2997,6 @@
       "value": "Monitored Resource"
     }
   ],
-  "X1m3hH": [
-    {
-      "type": 0,
-      "value": "Remove from favorites"
-    }
-  ],
   "X4Y2nv": [
     {
       "type": 0,
@@ -3079,12 +3073,6 @@
     {
       "type": 0,
       "value": "Monitoring metrics publisher"
-    }
-  ],
-  "Y5mX2J": [
-    {
-      "type": 0,
-      "value": "Add to favorites"
     }
   ],
   "Y7Lbpf": [
@@ -3555,6 +3543,12 @@
     {
       "type": 0,
       "value": "Create Grafana dashboard"
+    }
+  ],
+  "eG1C0k": [
+    {
+      "type": 0,
+      "value": "Remove from favorites"
     }
   ],
   "eKEL/g": [
@@ -4713,6 +4707,12 @@
     {
       "type": 0,
       "value": "Identity"
+    }
+  ],
+  "tWX1j9": [
+    {
+      "type": 0,
+      "value": "Add to favorites"
     }
   ],
   "tshYzs": [

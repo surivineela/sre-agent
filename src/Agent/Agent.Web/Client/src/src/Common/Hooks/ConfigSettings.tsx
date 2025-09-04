@@ -6,7 +6,6 @@ export enum SettingNames {
     ShowAgentModeForThread = 'showAgentModeForThread',
     ConsolidatedCreate = 'consolidatedCreate',
     DataConnectors = 'dataConnectors',
-    ShowAgentTask = 'showAgentTask',
     ShowDailyReportsTab = 'showDailyReportsTab',
     /** Only used by unit tests */
     ForUnitTests = 'forUnitTests',
@@ -23,7 +22,6 @@ const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
     localhost: {
         [SettingNames.ShowAgentModeForThread]: true,
         [SettingNames.DataConnectors]: true,
-        [SettingNames.ShowAgentTask]: true,
         [SettingNames.ShowDailyReportsTab]: true,
         [SettingNames.ForUnitTests]: true,
     },

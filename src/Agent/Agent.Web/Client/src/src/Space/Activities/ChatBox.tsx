@@ -2,7 +2,6 @@ import { CopilotChat, CopilotProvider } from '@fluentui-copilot/react-copilot';
 import { mergeClasses } from '@fluentui/react-components';
 import { memo, useMemo } from 'react';
 import { ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
-import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
 import ChatBoxFooter from '../Components/ChatBoxFooter';
 import ChatLoading from '../Components/ChatLoading';
@@ -64,8 +63,6 @@ export const ChatBox = ({
         collapseResizables,
         isLoading
     );
-
-    const showAgentTask = useConfigSetting(SettingNames.ShowAgentTask);
 
     const threadAgentModeData = useThreadAgentMode(threadId, threadSource);
 
@@ -172,14 +169,14 @@ export const ChatBox = ({
                                 isTyping={!!isAgentTyping}
                                 isCancellingStreaming={isCancellingStreaming}
                                 threadId={currentThreadId}
-                                showDeepInvestigationButton={showAgentTask && isAgentTaskEnabled}
+                                showDeepInvestigationButton={isAgentTaskEnabled}
                                 isDeepInvestigationButtonEnabled={isDeepInvestigationButtonEnabled}
                                 isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
                                 onClickDeepInvestigationButton={onClickDeepInvestigationButton}
                             />
                         </CopilotProvider>
                     </div>
-                    {showAgentTask && isAgentTaskEnabled && (
+                    {isAgentTaskEnabled && (
                         <AgentTask
                             {...rest}
                             collapsed={isAgentTaskCollapsed}
