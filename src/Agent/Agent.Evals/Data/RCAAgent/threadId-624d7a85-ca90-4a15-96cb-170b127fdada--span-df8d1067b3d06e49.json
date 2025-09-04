@@ -287,7 +287,7 @@
           "value": {
             "$type": "functionCall",
             "callId": "call_K5rbyrq0XfpzSEiKCIopnDJF",
-            "name": "transfer_to_rca_containerapp_revision_agent | -",
+            "name": "transfer_to_rca_containerapp_revision_agent | SearchDesignDocs",
             "arguments": {}
           }
         }

@@ -1,6 +1,5 @@
 using System.Text.Json;
 using Agent.Core.Models.Api.v1;
-using Agent.Core.Clients.Chat;
 using Agent.Framework;
 using Microsoft.Extensions.AI;
 

@@ -47,7 +47,7 @@
           "value": {
             "$type": "functionCall",
             "callId": "call_y0EIux7lKECMZro0xBnWEBp5",
-            "name": "transfer_to_rca_containerapp_icm_agent",
+            "name": "transfer_to_rca_containerapp_icm_agent | SearchDesignDocs",
             "arguments": {}
           }
         }

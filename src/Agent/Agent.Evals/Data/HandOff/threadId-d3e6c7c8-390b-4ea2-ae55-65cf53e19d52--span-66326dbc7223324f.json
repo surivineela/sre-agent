@@ -328,7 +328,7 @@
           "value": {
             "$type": "functionCall",
             "callId": "call_HnPFbKj6IgdYmDvKQY0NqzzJ",
-            "name": "transfer_to_kubectl_command_executor_agent | transfer_to_aks_remediation_agent",
+            "name": "KubectlGet | transfer_to_kubectl_command_executor_agent | transfer_to_aks_remediation_agent",
             "arguments": {}
           }
         }

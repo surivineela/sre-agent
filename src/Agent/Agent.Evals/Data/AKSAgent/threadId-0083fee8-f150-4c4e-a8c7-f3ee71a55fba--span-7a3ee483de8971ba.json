@@ -115,7 +115,7 @@
           "value": {
             "$type": "functionCall",
             "callId": "call_XbZWikFMQEc55st7sc5vk2r7",
-            "name": "HandoffBack | RunKubectlWriteCommand",
+            "name": "HandoffBack | RunKubectlWriteCommand | RunKubectlReadCommand",
             "arguments": {}
           }
         }

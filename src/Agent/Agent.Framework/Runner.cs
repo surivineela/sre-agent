@@ -1198,7 +1198,7 @@ public static class Runner
         """;
 
         var needsPlan = tools
-                    .Any(t => string.Equals(ToDoWriteTool.ToolName, t.Name, StringComparison.OrdinalIgnoreCase));
+            .Any(t => string.Equals(ToDoWriteTool.ToolName, t.Name, StringComparison.OrdinalIgnoreCase));
         if (needsPlan)
         {
             var hasPlan = modelInput.Any(m => m.Role == ChatRole.Assistant

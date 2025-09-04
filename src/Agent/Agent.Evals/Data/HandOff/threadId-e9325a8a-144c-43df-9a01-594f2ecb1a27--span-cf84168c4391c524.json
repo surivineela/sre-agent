@@ -447,7 +447,7 @@
           "value": {
             "$type": "functionCall",
             "callId": "call_uWDWgU0WmU9RLDbqncHqGM7v",
-            "name": "RunKubectlWriteCommand",
+            "name": "RunKubectlReadCommand | RunKubectlWriteCommand",
             "arguments": {
               "AKSClusterResourceId": "/subscriptions/5b6786e7-4668-46b2-89e6-001c8ac90967/resourcegroups/aks-agent-demo/providers/microsoft.containerservice/managedclusters/demo-aks",
               "command": "kubectl rollout undo deployment product-catalog --to-revision=4 -n default",
