@@ -945,7 +945,7 @@ public class AzMonitorAlertScanner
                     }
 
                     // Match based on alert rule id
-                    if (string.IsNullOrEmpty(alertDocument.AlertRuleResourceId) && alertDocument.AlertRuleResourceId == alertRuleResourceId)
+                    if (!string.IsNullOrEmpty(alertDocument.AlertRuleResourceId) && alertDocument.AlertRuleResourceId == alertRuleResourceId)
                     {
                         _logger.LogInternalInformation($"Found existing active thread {thread.Id} for alert rule {alertRuleResourceId} and target resource {targetResource}");
                         return thread;

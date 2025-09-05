@@ -5,7 +5,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Agent.Core.Interfaces;
-using Agent.Logging;
 using Azure.ResourceManager.AlertsManagement.Models;
 using Microsoft.Extensions.Logging;
 
