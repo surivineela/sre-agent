@@ -12,6 +12,7 @@ import DataConnectors from './DataConnectors.ReactView';
 import Identity from './Identity.ReactView';
 import ManagedResources from './ManagedResources.ReactView';
 import { navStyles, useSettingsStyles } from './Styles/Settings.styles';
+import SubAgents from './SubAgents.ReactView';
 
 export enum SettingsKeys {
     AccessControl = 'accessControl',
@@ -20,6 +21,7 @@ export enum SettingsKeys {
     managedResources = 'managedResourcesGroups',
     DataConnectors = 'dataConnectors',
     Identity = 'identity',
+    SubAgents = 'subAgents',
 }
 
 const Settings: FC = () => {
@@ -29,6 +31,7 @@ const Settings: FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const showDataConnectors = useConfigSetting(SettingNames.DataConnectors);
+    const showSubAgents = useConfigSetting(SettingNames.ShowSubAgentsItemInSettings);
 
     const { logAmplitudeNavigationEvent } = useAzPortalContext();
 
@@ -78,6 +81,15 @@ const Settings: FC = () => {
                         url: '',
                         key: SettingsKeys.Identity,
                     },
+                    ...(showSubAgents
+                        ? [
+                              {
+                                  name: intl.formatMessage(SettingsTabResources.subAgents),
+                                  url: '',
+                                  key: SettingsKeys.SubAgents,
+                              },
+                          ]
+                        : []),
                 ],
             },
         ],
@@ -116,6 +128,7 @@ const Settings: FC = () => {
                     {selectedKey === SettingsKeys.DataConnectors && showDataConnectors && <DataConnectors />}
                     {selectedKey === SettingsKeys.AccessControl && <AccessControl />}
                     {selectedKey === SettingsKeys.Identity && <Identity />}
+                    {selectedKey === SettingsKeys.SubAgents && showSubAgents && <SubAgents />}
                 </div>
             </div>
         )

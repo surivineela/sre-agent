@@ -1253,6 +1253,7 @@ export const SettingsTabResources = defineMessages({
     managedResources: { defaultMessage: 'Managed resource groups', id: 'yilQrD' },
     dataConnectors: { defaultMessage: 'Data connectors', id: 'L5ZL+u' },
     identity: { defaultMessage: 'Identity', id: 'tShbyC' },
+    subAgents: { defaultMessage: 'Sub-agents', id: 'VIn2J0' },
 });
 
 export const GrafanaDashboardResources = defineMessages({
@@ -1619,4 +1620,17 @@ export const DataConnectorsResources = defineMessages({
 
 export const DailyReportsTabResources = defineMessages({
     selectADate: { defaultMessage: 'Select a date', id: '7qOQpv' },
+});
+
+export const SubAgentsResources = defineMessages({
+    noSubAgents: { defaultMessage: 'No sub-agents configured', id: 'VIgoaE' },
+    runHistory: { defaultMessage: 'Run History', id: 'LnglaU' },
+    duplicateNameError: { defaultMessage: 'A sub-agent with this name already exists', id: 'ffkuNo' },
+    createSubAgent: { defaultMessage: 'Create Sub-Agent', id: 'yJSwfQ' },
+    namePlaceholder: { defaultMessage: 'Enter sub-agent name', id: 'jVHoU8' },
+    creatingSubAgent: { defaultMessage: 'Creating Sub-Agent', id: 'IYK6q+' },
+    creatingSubAgentDescription: { defaultMessage: 'Creating sub-agent "{name}"', id: 'PiNeyx' },
+    subAgentCreated: { defaultMessage: 'Sub-Agent "{name}" has been created successfully', id: 'tfuXMw' },
+    createSubAgentFailed: { defaultMessage: 'Failed to create sub-agent', id: 'YP06jq' },
+    createSubAgentWithMessageFailed: { defaultMessage: 'Failed to create sub-agent with error: {error}', id: '6v8Uj+' },
 });

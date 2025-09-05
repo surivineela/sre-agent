@@ -895,6 +895,16 @@
       "value": "New Azure Monitor Alert Detected"
     }
   ],
+  "6v8Uj+": [
+    {
+      "type": 0,
+      "value": "Failed to create sub-agent with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "6zUWZ/": [
     {
       "type": 0,
@@ -1815,6 +1825,12 @@
       "value": "New thread"
     }
   ],
+  "IYK6q+": [
+    {
+      "type": 0,
+      "value": "Creating Sub-Agent"
+    }
+  ],
   "IiNwpr": [
     {
       "type": 0,
@@ -2057,6 +2073,12 @@
     {
       "type": 0,
       "value": "View all resources, but does not allow you to make any changes."
+    }
+  ],
+  "LnglaU": [
+    {
+      "type": 0,
+      "value": "Run History"
     }
   ],
   "LyHqqV": [
@@ -2401,6 +2423,20 @@
     {
       "type": 0,
       "value": "Edit Healthcare APIs agent configurations."
+    }
+  ],
+  "PiNeyx": [
+    {
+      "type": 0,
+      "value": "Creating sub-agent \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
     }
   ],
   "PipPB3": [
@@ -2927,6 +2963,18 @@
       "value": "User assigned"
     }
   ],
+  "VIgoaE": [
+    {
+      "type": 0,
+      "value": "No sub-agents configured"
+    }
+  ],
+  "VIn2J0": [
+    {
+      "type": 0,
+      "value": "Sub-agents"
+    }
+  ],
   "VKbBsK": [
     {
       "type": 0,
@@ -3191,6 +3239,12 @@
     {
       "type": 0,
       "value": "Keep working"
+    }
+  ],
+  "YP06jq": [
+    {
+      "type": 0,
+      "value": "Failed to create sub-agent"
     }
   ],
   "YZIFAO": [
@@ -3763,6 +3817,12 @@
       "value": "Impacted service"
     }
   ],
+  "ffkuNo": [
+    {
+      "type": 0,
+      "value": "A sub-agent with this name already exists"
+    }
+  ],
   "foUmLR": [
     {
       "type": 0,
@@ -4151,6 +4211,12 @@
     {
       "type": 0,
       "value": "Grafana resource must be unique within the resource group."
+    }
+  ],
+  "jVHoU8": [
+    {
+      "type": 0,
+      "value": "Enter sub-agent name"
     }
   ],
   "jabB4C": [
@@ -4873,6 +4939,20 @@
       "value": "Add to favorites"
     }
   ],
+  "tfuXMw": [
+    {
+      "type": 0,
+      "value": "Sub-Agent \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been created successfully"
+    }
+  ],
   "tshYzs": [
     {
       "type": 0,
@@ -5243,6 +5323,12 @@
     {
       "type": 0,
       "value": "These previous incidents match the selected incident type. The agent can learn from a maximum of 5 incidents."
+    }
+  ],
+  "yJSwfQ": [
+    {
+      "type": 0,
+      "value": "Create Sub-Agent"
     }
   ],
   "yVc78v": [

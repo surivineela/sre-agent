@@ -10,6 +10,7 @@ export enum SettingNames {
     ShowWatchtower = 'showWatchtower',
     /** Only used by unit tests */
     ForUnitTests = 'forUnitTests',
+    ShowSubAgentsItemInSettings = 'showSubAgentsItemInSettings',
 }
 
 const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
@@ -26,6 +27,7 @@ const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
         [SettingNames.ShowDailyReportsTab]: true,
         [SettingNames.ShowWatchtower]: true,
         [SettingNames.ForUnitTests]: true,
+        [SettingNames.ShowSubAgentsItemInSettings]: true,
     },
 };
 
