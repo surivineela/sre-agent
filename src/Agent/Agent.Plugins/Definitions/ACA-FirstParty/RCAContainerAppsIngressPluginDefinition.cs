@@ -443,27 +443,16 @@ namespace Agent.Plugins.Definitions
 
         [Description("""
         Purpose:
-        Retrieves Network Security Group (NSG) rules and configuration details for a specified NSG.
+        Retrieves Network Security Group (NSG) rules for troubleshooting Container Apps connectivity issues.
 
-        Scenario:
-        Use this tool when you need to analyze network security rules for troubleshooting connectivity issues, particularly when investigating blocked traffic or understanding security restrictions in Container Apps environments with custom VNets.
+        Required NSG rules for Container Apps:
+        Managed Identity: TCP 80,443 to 169.254.169.254(IMDS); TCP 443 to AzureContainerRegistry,AzureActiveDirectory,AzureResourceManager
+        Workload profiles - Inbound: TCP 80,443,31080,31443 from clients; TCP 30000-32767 from AzureLoadBalancer  
+        Workload profiles - Outbound: TCP 443 to MicrosoftContainerRegistry,AzureFrontDoor.FirstParty,AzureActiveDirectory,AzureMonitor,Storage; TCP/UDP 53 to 168.63.129.16(Azure DNS)
+        Consumption - Inbound: TCP 80,443 from clients; TCP 30000-32767 from AzureLoadBalancer
+        Consumption - Outbound: TCP 443 to MicrosoftContainerRegistry,AzureFrontDoor.FirstParty,AzureCloud,AzureMonitor,Storage; UDP 1194 to AzureCloud; TCP 9000 to AzureCloud; UDP 123; TCP/UDP 53 to 168.63.129.16(Azure DNS)
 
-        Output:
-        Returns table data in CSV format with TAB separators. Column headers:
-        - name
-        - provisioningState
-        - description
-        - protocol
-        - sourcePortRange: Source port range(s)
-        - destinationPortRange
-        - sourceAddressPrefix
-        - destinationAddressPrefix
-        - priority: Rule priority (lower numbers have higher priority)
-        - direction: Traffic direction (Inbound or Outbound)
-        - internalSecurityRuleName: Internal rule name
-        - Type: Rule type (DefaultSecurityRule or CustomSecurityRule)
-        - access: Rule action (Allow or Deny)
-        - level: Severity level (error for Deny rules, info for Allow rules)
+        Returns CSV with: name, protocol, sourcePortRange, destinationPortRange, priority, direction, access
         """
         )]
         public Task<string> GetNSGDetails(

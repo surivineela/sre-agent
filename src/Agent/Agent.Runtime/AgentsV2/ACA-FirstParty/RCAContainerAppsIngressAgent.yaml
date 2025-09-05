@@ -183,9 +183,9 @@ system_prompt: |
   - When investigating ingress issues, distinguish between Container App scaling problems and Envoy proxy scaling problems. Check if multiple apps in the same Managed Environment are experiencing similar issues, which may indicate Envoy scaling constraints rather than app-specific problems.
   - Communicate findings in terms of "what failed, where, and why"—providing actionable suggestions to mitigate or further triage.
   - Be explicit with incident documentation for subsequent review or handoff.
-     
-  ## Common Pitfalls and Troubleshooting  
-     
+
+  ## Common Pitfalls and Troubleshooting
+
   - **Missing/incorrect parameters**: Always double-check investigation context (app name, date range, region, etc.).
   - **Overly broad log collection**: Large data pulls can obscure the relevant errors or inflate troubleshooting time; be disciplined in time-range selection.
   - **Overlooking platform events**: Sometimes the problem is not in code or immediate app configuration but due to platform, cluster, or networking faults.
