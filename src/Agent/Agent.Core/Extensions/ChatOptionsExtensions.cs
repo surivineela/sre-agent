@@ -28,11 +28,19 @@ public static class ChatOptionsExtensions
     public const string VerbosityKey = "verbosity";
     public const string DefaultVerbosityLevel = "low";
 
+    // Reference: https://github.com/dotnet/extensions/blob/06ad44909b435bf2c686ecdab908497db05325b8/src/Libraries/Microsoft.Extensions.AI.OpenAI/OpenAIClientExtensions.cs#L27C5-L28C57
+    public const string StrictJsonKey = "strictJsonSchema";
+
     // Reference: https://github.com/dotnet/extensions/blob/afccabd16e08f388f37f1119a127f166f9b03ad3/src/Libraries/Microsoft.Extensions.AI.OpenAI/OpenAIChatClient.cs#L504C13-L570C1
     public static ChatOptions WithRawRepresentationFactory(
         this ChatOptions options,
         IChatClient chatClient)
     {
+        options.AdditionalProperties ??= new AdditionalPropertiesDictionary();
+
+        // set strict json deserialization which will be enforced by openai
+        options.AdditionalProperties.TryAdd(StrictJsonKey, true);
+
         // handle properties for reasoning models
         // update options to reflect in logging
         var clientMetadata = chatClient.GetService<ChatClientMetadata>();
@@ -40,8 +48,6 @@ public static class ChatOptionsExtensions
             && clientMetadata.DefaultModelId.StartsWith("gpt-5", StringComparison.OrdinalIgnoreCase)
             && !clientMetadata.DefaultModelId.StartsWith("gpt-5-chat", StringComparison.OrdinalIgnoreCase))
         {
-            options.AdditionalProperties ??= new AdditionalPropertiesDictionary();
-
             // temperature not supported in reasoning models
             options.Temperature = 1;
 
@@ -109,7 +115,7 @@ public static class ChatOptionsExtensions
                 if (additionalProperties.TryGetValue(VerbosityKey, out string? verbosity)
                     && !string.IsNullOrEmpty(verbosity))
                 {
-                    completionOptions.AugmentVerbosityData(verbosity);
+                    completionOptions = AugmentVerbosityData(completionOptions, verbosity);
                 }
 
                 // log probabilities for each output token
@@ -147,7 +153,7 @@ public static class ChatOptionsExtensions
     // workaround until SDK adds the verbosity property
     // reference: https://github.com/openai/openai-dotnet/issues/593#issuecomment-3169547444
     private static ChatCompletionOptions AugmentVerbosityData(
-        this ChatCompletionOptions options,
+        ChatCompletionOptions options,
         string verbosity)
     {
         // ChatCompletionOptions IJsonModel does not implement create correctly
@@ -173,7 +179,7 @@ public static class ChatOptionsExtensions
 
         // Recreate with IJsonModel
         var baseOptions = (IJsonModel<ChatCompletionOptions>)options;
-        options = baseOptions.Create(augmentedJson, ModelReaderWriterOptions.Json);
+        options = baseOptions.Create(augmentedJson, ModelReaderWriterOptions.Json) ?? options;
 
         return options;
     }

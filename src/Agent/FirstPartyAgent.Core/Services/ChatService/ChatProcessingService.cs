@@ -2,15 +2,12 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Text.Json.Serialization;
 using Agent.Core;
 using Agent.Core.Models;
 using FirstPartyAgent.Core.Extensions;
-using FirstPartyAgent.Core.Helpers;
 using FirstPartyAgent.Core.Models;
 using FirstPartyAgent.Models;
 using Markdig;
-using Microsoft.Bot.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
@@ -97,8 +94,8 @@ public class ChatProcessingService : IChatService
         //TODO: Dump the old chat history object into JSON file for audit purposes
 
         using var _ = await _lock.AcquireWriterAsync();
-            var chatHistory = new ChatHistory();
-            chatHistory.AddSystemMessage(systemMessage);
+        var chatHistory = new ChatHistory();
+        chatHistory.AddSystemMessage(systemMessage);
         _sessionCollection[sessionId].ChatHistory = chatHistory;
         return;
     }
@@ -145,7 +142,9 @@ public class ChatProcessingService : IChatService
         var modelName = chatCompletionService.Attributes["DeploymentName"]?.ToString();
         if (modelName != null && modelName.StartsWith("o"))
         {
+#pragma warning disable OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             promptExecutionSettings.ReasoningEffort = OpenAI.Chat.ChatReasoningEffortLevel.Medium;
+#pragma warning restore OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         }
 
         ChatMessageContent? chatCompletionResult = null;
@@ -213,7 +212,9 @@ public class ChatProcessingService : IChatService
         var modelName = chatCompletionService.Attributes["DeploymentName"]?.ToString();
         if (modelName != null && modelName.StartsWith("o"))
         {
+#pragma warning disable OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             promptExecutionSettings.ReasoningEffort = OpenAI.Chat.ChatReasoningEffortLevel.High;
+#pragma warning restore OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         }
 
         try
@@ -227,7 +228,7 @@ public class ChatProcessingService : IChatService
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error running the chat service: {ex.Message}. sessionId: {sessionInfo.SessionId}");
-            if ((ex.Message?.Contains("context_length_exceeded")==true) || (ex.InnerException?.Message?.Contains("context_length_exceeded") == true))
+            if ((ex.Message?.Contains("context_length_exceeded") == true) || (ex.InnerException?.Message?.Contains("context_length_exceeded") == true))
             {
                 return new ChatMessageContent()
                 {

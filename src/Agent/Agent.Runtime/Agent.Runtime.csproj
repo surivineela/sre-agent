@@ -35,14 +35,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="AgentsV2\*.yaml">
+    <None Update="AgentsV2\**\*.y*ml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="AgentsV2\*.yml">
+    <None Update="AgentsGPT5\**\*.y*ml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-
-    <None Update="AgentsGPT5\**\*">
+    <None Update="AgentsRAG\**\*.y*ml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="CommonPrompts\*.y*ml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="CommonTools\*.y*ml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
 
@@ -50,104 +55,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
 
-    <None Update="AgentsV2\DiagnosticsAgents\*.yaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AgentsV2\DiagnosticsAgents\*.yml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AgentsRAG\**\*.yaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AgentsRAG\**\*.yml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AgentsV2\AzureDevOpsWorkItemAgent.yaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AgentsV2\AzureFunctionsFlexConsumptionCRI\FunctionsFlexConsumptionCRIAgent.yaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AgentsV2\ChangePropagationAgent.yaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-
-    <None Update="AgentsV2\ACA-FirstParty\*.yaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-
-    <None Update="AgentsV2\ACA-FirstParty\*.yml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-
-    <None Update="AgentsV2\RCA\*.yaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AgentsV2\RCA\ScaleControllerPreflight\*.yaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AgentsV2\RCA\BlobTriggerPreflight\*.yaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AgentsV2\DiagnosticsAgents\DiagnosticBinariesAndScripts\dotnet-cpu-analyzer-aca.sh">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AgentsV2\DiagnosticsAgents\DiagnosticBinariesAndScripts\dotnet-cpu.sh">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AgentsV2\DiagnosticsAgents\DiagnosticBinariesAndScripts\dotnet-detect.sh">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AgentsV2\DiagnosticsAgents\DiagnosticBinariesAndScripts\DotnetAnalyzer_lin64">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AgentsV2\DiagnosticsAgents\DiagnosticBinariesAndScripts\DotnetAnalyzer_win32.exe">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AgentsV2\DiagnosticsAgents\DiagnosticBinariesAndScripts\DotnetAnalyzer_win64.exe">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-
-
-    <None Update="AgentsV2\RepositoryAgents\AzureDevOpsWorkItemAgent.yaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AgentsV2\RepositoryAgents\GithubIssueAgent.yaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AgentsV2\RepositoryAgents\RepositoryAgent.yaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="CommonPrompts\Autonomous.yaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="CommonPrompts\FormatGuidelines.yaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="CommonPrompts\GuardRail.yaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="CommonPrompts\HandoffBack.yaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="CommonPrompts\NotifyUser.yaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="CommonPrompts\RCAArchitecture.yaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="CommonPrompts\RCAGuidelines.yaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="CommonPrompts\RCATerminology.yaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="CommonPrompts\ReadOnly.yaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="CommonTools\RCAAgentTools.yaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="SubAgents\ContainerAppsAgent\dotnet-detect.sh">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -172,9 +79,9 @@
     <None Update="SubAgents\KubernetesAgent\analyze_memory_aks.sh">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-	<None Update="SubAgents\DailySummaryAgent\Dashboards\Main-Dashboard.json">
-	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	</None>
+	  <None Update="SubAgents\DailySummaryAgent\Dashboards\Main-Dashboard.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
 	  <None Update="SubAgents\DailySummaryAgent\DailySummaryPlan.txt">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
