@@ -10,12 +10,13 @@ resource kv 'Microsoft.KeyVault/vaults@2021-06-01-preview' existing = {
   name: '${namePrefix}${consts.kvNameSuffix}'
 }
 
-resource cosmosdbAccount 'Microsoft.DocumentDB/databaseAccounts@2021-04-15' = {
+resource cosmosdbAccount 'Microsoft.DocumentDB/databaseAccounts@2024-11-15' = {
   name: '${namePrefix}${consts.cosmosAccountNameSuffix}'
   location: resourceGroup().location
   kind: 'GlobalDocumentDB'
   properties: {
     databaseAccountOfferType: 'Standard'
+    disableLocalAuth: false
     locations: [
       {
         locationName: resourceGroup().location

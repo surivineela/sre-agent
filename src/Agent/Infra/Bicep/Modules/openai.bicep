@@ -30,6 +30,7 @@ resource openai 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
   properties: {
     publicNetworkAccess: 'Enabled'
     customSubDomainName: customSubDomainName
+    disableLocalAuth: false
     // restore: true
   }
 }
