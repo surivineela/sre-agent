@@ -28,6 +28,7 @@ public record IncidentFilterDocumentPayload
     public string HandlingAgent { get; set; } = string.Empty;
     public string OwningTeamId { get; set; } = string.Empty;
     public int MaxAutomatedInvestigationAttempts { get; set; } = 3;
+    public bool DeepInvestigationEnabled { get; set; } = false;
 
     public IncidentFilterDocumentPayload()
     {

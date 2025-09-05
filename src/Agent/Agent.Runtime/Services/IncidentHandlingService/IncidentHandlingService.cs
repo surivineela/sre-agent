@@ -380,6 +380,17 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
             var agentMessage = $"**Acknowledging the incident**. I'm starting to investigate and see how I can help.";
             await _repository.AddMessageAsync(thread.Id, new Message(Guid.NewGuid(), DateTime.UtcNow, new Core.Models.Api.v1.Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"), agentMessage));
 
+            // Determine conversation modifier based on filter
+            ConversationModifierEnum? conversationModifier = null;
+            if (incidentFilterDocument.DeepInvestigationEnabled)
+            {
+                conversationModifier = ConversationModifierEnum.DeepInvestigation;
+                _logger.LogInternalInformation(
+                    "Deep Investigation enabled for incident {IncidentId} via filter {FilterId}", 
+                    request.IncidentId, 
+                    incidentFilterDocument.Id);
+            }
+
             await _inboundCommunicationService.ProcessAlertMessageAsync(new ThreadMessage(
                 ThreadId: thread.Id,
                 AgentContextId: agentContext.Id,
@@ -387,7 +398,8 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
                 Message: messageBuilder.ToString(),
                 UserId: "incident-system",
                 DisplayName: request.Source ?? "Incident System",
-                Timestamp: DateTime.UtcNow
+                Timestamp: DateTime.UtcNow,
+                ConversationModifier: conversationModifier
             ), defaultHandler: true);
 
             return thread;
@@ -592,6 +604,17 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
                 var agentMessage = $"**Acknowledging the incident**. I'm starting to investigate and see how I can help.";
                 await _repository.AddMessageAsync(thread.Id, new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"), agentMessage));
 
+                // Determine conversation modifier based on filter
+                ConversationModifierEnum? conversationModifier = null;
+                if (incidentFilterDocument.DeepInvestigationEnabled)
+                {
+                    conversationModifier = ConversationModifierEnum.DeepInvestigation;
+                    _logger.LogInternalInformation(
+                        "Deep Investigation enabled for incident {IncidentId} via filter {FilterId}", 
+                        incidentDetails.Id, 
+                        incidentFilterDocument.Id);
+                }
+
                 await _inboundCommunicationService.ProcessAlertMessageAsync(new ThreadMessage(
                     ThreadId: thread.Id,
                     AgentContextId: agentContext.Id,
@@ -599,7 +622,8 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
                     Message: "Process the incident as per custom instructions provided",
                     UserId: "incident-system",
                     DisplayName: "Incident System",
-                    Timestamp: DateTime.UtcNow
+                    Timestamp: DateTime.UtcNow,
+                    ConversationModifier: conversationModifier
                 ), defaultHandler: _experimentalSettings.UseYamlForIncidentHandling);
 
                 return thread;

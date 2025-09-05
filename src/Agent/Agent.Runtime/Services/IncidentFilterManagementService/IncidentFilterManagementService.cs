@@ -66,6 +66,12 @@ namespace Agent.Runtime.Services
         /// <returns></returns>
         public virtual async Task<List<IncidentFilterFieldOption>> ListIncidentFilterFieldOptions()
         {
+            var deepInvestigationOptions = new List<KeyValuePair<string, string>>
+            {
+                new("false", "Disabled"),
+                new("true", "Enabled")
+            };
+
             var fieldOptions = new List<IncidentFilterFieldOption>()
             {
                 new IncidentFilterFieldOption
@@ -77,6 +83,13 @@ namespace Agent.Runtime.Services
                         new KeyValuePair<string, string>(AgentModes.Review, AgentModes.Review),
                         new KeyValuePair<string, string>(AgentModes.Autonomous, AgentModes.Autonomous),
                     }
+                },
+                new IncidentFilterFieldOption
+                {
+                    FieldName = nameof(IncidentFilterDocumentPayload.DeepInvestigationEnabled),
+                    DisplayName = "Enable Deep Investigation",
+                    FieldInputType = IncidentFilterInputType.Dropdown,
+                    Options = deepInvestigationOptions
                 }
             };
 

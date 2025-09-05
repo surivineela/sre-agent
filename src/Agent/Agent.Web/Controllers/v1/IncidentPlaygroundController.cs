@@ -259,7 +259,8 @@ public class IncidentPlaygroundController : ControllerBase
             AgentMode = payload["AgentMode"]?.ToString() ?? string.Empty,
             OwningTeamId = payload["OwningTeamId"]?.ToString() ?? string.Empty,
             HandlingAgent = payload["HandlingAgent"]?.ToString() ?? string.Empty,
-            MaxAutomatedInvestigationAttempts = payload?["MaxAutomatedInvestigationAttempts"]?.GetValue<int>() ?? 3
+            MaxAutomatedInvestigationAttempts = payload?["MaxAutomatedInvestigationAttempts"]?.GetValue<int>() ?? 3,
+            DeepInvestigationEnabled = payload?["DeepInvestigationEnabled"]?.GetValue<bool>() ?? false
         };
 
         string agentMode = payload?["AgentMode"]?.ToString() ?? string.Empty;
