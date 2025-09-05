@@ -1,13 +1,18 @@
 import { initializeIcons, MessageBar, MessageBarType } from '@fluentui/react';
 import { Button, NavDrawer, NavDrawerBody, NavDrawerHeader, NavItem, Spinner } from '@fluentui/react-components';
 import {
+    ChartMultiple24Filled,
     ChartMultiple24Regular,
+    ClipboardTaskList16Filled,
     ClipboardTaskList16Regular,
+    ClipboardTaskListLtr24Filled,
     ClipboardTaskListLtr24Regular,
+    LinkSettings24Filled,
     LinkSettings24Regular,
     PanelLeftContractRegular,
     PanelLeftExpandRegular,
     Warning24Filled,
+    Warning24Regular,
 } from '@fluentui/react-icons';
 import { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -58,13 +63,11 @@ const IncidentManagement: FC = () => {
             {
                 key: IncidentManagementMenuKeys.IncidentOverview,
                 label: intl.formatMessage(IncidentManagementResources.incidentsOverview),
-                icon: <Warning24Filled className={navigationStyles.itemIcon} />,
                 disabled: disableOverviewAndHandlers,
             },
             {
                 key: IncidentManagementMenuKeys.HandlerConfiguration,
                 label: intl.formatMessage(IncidentManagementResources.handlerConfiguration),
-                icon: <ClipboardTaskList16Regular className={navigationStyles.itemIcon} />,
                 disabled: disableOverviewAndHandlers,
             },
         ];
@@ -74,13 +77,11 @@ const IncidentManagement: FC = () => {
                 {
                     key: IncidentManagementMenuKeys.Analysis,
                     label: intl.formatMessage(IncidentManagementResources.analysis),
-                    icon: <ChartMultiple24Regular className={navigationStyles.itemIcon} />,
                     disabled: disableOverviewAndHandlers,
                 },
                 {
                     key: IncidentManagementMenuKeys.ResponsePlan,
                     label: intl.formatMessage(IncidentManagementResources.responsePlan),
-                    icon: <ClipboardTaskListLtr24Regular className={navigationStyles.itemIcon} />,
                     disabled: disableOverviewAndHandlers,
                 }
             );
@@ -89,12 +90,52 @@ const IncidentManagement: FC = () => {
         items.push({
             key: IncidentManagementMenuKeys.IncidentPlatform,
             label: intl.formatMessage(IncidentManagementResources.incidentPlatform),
-            icon: <LinkSettings24Regular className={navigationStyles.itemIcon} />,
             disabled: false,
         });
 
         return items;
-    }, [intl, disableOverviewAndHandlers, navigationStyles.itemIcon, showWatchtower]);
+    }, [intl, disableOverviewAndHandlers, showWatchtower]);
+
+    const renderNavIcon = useCallback(
+        (key: IncidentManagementMenuKeys) => {
+            const isSelected = key === selectedKey;
+            switch (key) {
+                case IncidentManagementMenuKeys.IncidentOverview:
+                    return isSelected ? (
+                        <Warning24Filled className={navigationStyles.itemIcon} />
+                    ) : (
+                        <Warning24Regular className={navigationStyles.itemIcon} />
+                    );
+                case IncidentManagementMenuKeys.HandlerConfiguration:
+                    return isSelected ? (
+                        <ClipboardTaskList16Filled className={navigationStyles.itemIcon} />
+                    ) : (
+                        <ClipboardTaskList16Regular className={navigationStyles.itemIcon} />
+                    );
+                case IncidentManagementMenuKeys.Analysis:
+                    return isSelected ? (
+                        <ChartMultiple24Filled className={navigationStyles.itemIcon} />
+                    ) : (
+                        <ChartMultiple24Regular className={navigationStyles.itemIcon} />
+                    );
+                case IncidentManagementMenuKeys.ResponsePlan:
+                    return isSelected ? (
+                        <ClipboardTaskListLtr24Filled className={navigationStyles.itemIcon} />
+                    ) : (
+                        <ClipboardTaskListLtr24Regular className={navigationStyles.itemIcon} />
+                    );
+                case IncidentManagementMenuKeys.IncidentPlatform:
+                    return isSelected ? (
+                        <LinkSettings24Filled className={navigationStyles.itemIcon} />
+                    ) : (
+                        <LinkSettings24Regular className={navigationStyles.itemIcon} />
+                    );
+                default:
+                    return null;
+            }
+        },
+        [selectedKey, navigationStyles.itemIcon]
+    );
 
     const onNavigationClick = useCallback(
         (navKey: string) => {
@@ -176,7 +217,7 @@ const IncidentManagement: FC = () => {
                             <NavDrawerBody className={navigationStyles.drawerBody}>
                                 {navItems.map(navItem => (
                                     <NavItem
-                                        icon={navItem.icon}
+                                        icon={renderNavIcon(navItem.key)}
                                         aria-label={navItem.label}
                                         key={navItem.key}
                                         value={navItem.key}
