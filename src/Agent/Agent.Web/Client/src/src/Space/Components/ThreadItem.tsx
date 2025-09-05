@@ -33,7 +33,7 @@ const ThreadItem = forwardRef<HTMLDivElement, IThreadItemProps>(
         const intl = useIntl();
         const { resourceId, sreAgentEndpoint } = useContext(EnvironmentContext);
         const { logAmplitudeControlEvent } = useAzPortalContext();
-        const threadDeepLink = useThreadDeepLink(resourceId, thread.id, sreAgentEndpoint);
+        const threadDeepLink = useThreadDeepLink(thread.id, resourceId, sreAgentEndpoint);
 
         const [isHovered, setIsHovered] = useState(false);
         const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
