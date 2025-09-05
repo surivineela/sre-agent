@@ -8,6 +8,7 @@ export enum SettingNames {
     DataConnectors = 'dataConnectors',
     ShowDailyReportsTab = 'showDailyReportsTab',
     ShowWatchtower = 'showWatchtower',
+    KnowledgeBase = 'knowledgeBase',
     /** Only used by unit tests */
     ForUnitTests = 'forUnitTests',
     ShowSubAgentsItemInSettings = 'showSubAgentsItemInSettings',
@@ -20,6 +21,7 @@ const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
     'portal.azure.com': {},
     'ms.portal.azure.com': {
         [SettingNames.DataConnectors]: true,
+        [SettingNames.KnowledgeBase]: true,
     },
     localhost: {
         [SettingNames.ShowAgentModeForThread]: true,
@@ -27,6 +29,7 @@ const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
         [SettingNames.ShowDailyReportsTab]: true,
         [SettingNames.ShowWatchtower]: true,
         [SettingNames.ForUnitTests]: true,
+        [SettingNames.KnowledgeBase]: true,
         [SettingNames.ShowSubAgentsItemInSettings]: true,
     },
 };
@@ -65,6 +68,7 @@ const getFeatureFlag = (settingName: SettingNames, location: Location<any>) => {
 
 export const useConfigSetting = (settingName: SettingNames) => {
     const location = useLocation();
+
     const configSetting = useMemo(() => {
         const featureFlag = getFeatureFlag(settingName, location);
 

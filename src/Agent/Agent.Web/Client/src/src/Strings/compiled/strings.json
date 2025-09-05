@@ -315,6 +315,12 @@
       "value": "Azure Monitor added"
     }
   ],
+  "1HLt0U": [
+    {
+      "type": 0,
+      "value": "No documents uploaded yet"
+    }
+  ],
   "1O47t6": [
     {
       "type": 0,
@@ -537,6 +543,12 @@
       "value": "Active"
     }
   ],
+  "3jPMQI": [
+    {
+      "type": 0,
+      "value": "Add More"
+    }
+  ],
   "3nhWFW": [
     {
       "type": 0,
@@ -627,6 +639,12 @@
       "value": "Copy"
     }
   ],
+  "4upwsn": [
+    {
+      "type": 0,
+      "value": "Selected Files"
+    }
+  ],
   "5+bQr/": [
     {
       "type": 0,
@@ -643,6 +661,16 @@
     {
       "type": 0,
       "value": "Azure Monitor is not connected."
+    }
+  ],
+  "59z+Aj": [
+    {
+      "type": 0,
+      "value": "Bulk delete failed: "
+    },
+    {
+      "type": 1,
+      "value": "error"
     }
   ],
   "5GUtRJ": [
@@ -1257,6 +1285,12 @@
       "value": "Edit custom handler"
     }
   ],
+  "BEck3n": [
+    {
+      "type": 0,
+      "value": "Please wait while your files are being deleted..."
+    }
+  ],
   "BKMqtr": [
     {
       "type": 0,
@@ -1667,6 +1701,12 @@
       "value": "Closed"
     }
   ],
+  "G/yZLu": [
+    {
+      "type": 0,
+      "value": "Remove"
+    }
+  ],
   "G2GBW0": [
     {
       "type": 0,
@@ -1919,6 +1959,18 @@
       "value": "name"
     }
   ],
+  "JEsxDw": [
+    {
+      "type": 0,
+      "value": "Uploading..."
+    }
+  ],
+  "JHqOn0": [
+    {
+      "type": 0,
+      "value": "Upload one-off architecture docs, troubleshooting guides, and other documentation to enhance the agent's knowledge base. For ongoing document management and automated updates, consider using Data Connectors instead."
+    }
+  ],
   "JIBt4U": [
     {
       "type": 0,
@@ -1959,6 +2011,12 @@
     {
       "type": 0,
       "value": "Remove managed resource group"
+    }
+  ],
+  "JlJ8dZ": [
+    {
+      "type": 0,
+      "value": "Search for files..."
     }
   ],
   "Jm+zxF": [
@@ -2025,6 +2083,20 @@
       "value": "If you click 'Authorize', this operation will be executed on your behalf using your credentials."
     }
   ],
+  "KoJ1C+": [
+    {
+      "type": 0,
+      "value": "Delete Selected ("
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": ")"
+    }
+  ],
   "KyDsjH": [
     {
       "type": 0,
@@ -2087,6 +2159,12 @@
       "value": "Standard input"
     }
   ],
+  "M88YzU": [
+    {
+      "type": 0,
+      "value": "Browse Files"
+    }
+  ],
   "MACADd": [
     {
       "type": 0,
@@ -2127,6 +2205,16 @@
     {
       "type": 0,
       "value": "No historical data available"
+    }
+  ],
+  "Mvqep7": [
+    {
+      "type": 0,
+      "value": "Delete failed: "
+    },
+    {
+      "type": 1,
+      "value": "error"
     }
   ],
   "N+sJfO": [
@@ -2583,6 +2671,16 @@
       "value": "Full access to IoT Hub data."
     }
   ],
+  "R1i9Gl": [
+    {
+      "type": 0,
+      "value": "Upload failed: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "R5Y4rC": [
     {
       "type": 0,
@@ -2733,6 +2831,24 @@
     {
       "type": 0,
       "value": "Export"
+    }
+  ],
+  "SXEeds": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " document(s) rejected ("
+    },
+    {
+      "type": 1,
+      "value": "fileNames"
+    },
+    {
+      "type": 0,
+      "value": "). Only .md and .txt files are allowed."
     }
   ],
   "Sdc+Dp": [
@@ -3199,6 +3315,12 @@
       "value": "Linked to"
     }
   ],
+  "XaSHE5": [
+    {
+      "type": 0,
+      "value": "Uploading Files"
+    }
+  ],
   "XdHOL0": [
     {
       "type": 0,
@@ -3417,6 +3539,12 @@
       "value": "Add annotation"
     }
   ],
+  "aOVqnW": [
+    {
+      "type": 0,
+      "value": "Remove All"
+    }
+  ],
   "aQPexO": [
     {
       "type": 0,
@@ -3445,6 +3573,12 @@
     {
       "type": 0,
       "value": "Continue"
+    }
+  ],
+  "ag1Rum": [
+    {
+      "type": 0,
+      "value": "Files uploaded successfully"
     }
   ],
   "aj2txf": [
@@ -3587,6 +3721,12 @@
     {
       "type": 0,
       "value": "Suggested prompts"
+    }
+  ],
+  "crWYMh": [
+    {
+      "type": 0,
+      "value": "Please wait while your files are being uploaded..."
     }
   ],
   "csu0rb": [
@@ -3867,6 +4007,12 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "gHCL4X": [
+    {
+      "type": 0,
+      "value": "Add More Files"
     }
   ],
   "gIVE1F": [
@@ -4159,6 +4305,12 @@
       "value": "Action summary"
     }
   ],
+  "j3bwJQ": [
+    {
+      "type": 0,
+      "value": "Drag and drop files here or"
+    }
+  ],
   "j5QthH": [
     {
       "type": 0,
@@ -4249,6 +4401,16 @@
       "value": "Provisioning of your Grafana dashboard is in progress."
     }
   ],
+  "kbDtEK": [
+    {
+      "type": 0,
+      "value": "Some documents failed to delete: "
+    },
+    {
+      "type": 1,
+      "value": "failedFiles"
+    }
+  ],
   "ko0rr4": [
     {
       "type": 0,
@@ -4259,6 +4421,24 @@
     {
       "type": 0,
       "value": "Add custom response guidance (optional)"
+    }
+  ],
+  "kqurtu": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " document"
+    },
+    {
+      "type": 1,
+      "value": "plural"
+    },
+    {
+      "type": 0,
+      "value": " selected"
     }
   ],
   "ku+mDU": [
@@ -4465,6 +4645,12 @@
     {
       "type": 0,
       "value": "Discard"
+    }
+  ],
+  "noZdV2": [
+    {
+      "type": 0,
+      "value": "Deleting..."
     }
   ],
   "npvxpr": [
@@ -4723,6 +4909,12 @@
       "value": "Active threads"
     }
   ],
+  "rXYf9o": [
+    {
+      "type": 0,
+      "value": "Deleting Files"
+    }
+  ],
   "rZaqtB": [
     {
       "type": 0,
@@ -4831,10 +5023,22 @@
       "value": "Timestamps"
     }
   ],
+  "sQkhYk": [
+    {
+      "type": 0,
+      "value": "Accepted file types: .md, .txt"
+    }
+  ],
   "sRb5P9": [
     {
       "type": 0,
       "value": "Manage cost analysis and budgets."
+    }
+  ],
+  "sVDrdr": [
+    {
+      "type": 0,
+      "value": "Files deleted successfully"
     }
   ],
   "sVbKA0": [
@@ -4907,6 +5111,12 @@
     {
       "type": 0,
       "value": "\" has been created successfully"
+    }
+  ],
+  "tLYOnZ": [
+    {
+      "type": 0,
+      "value": "Knowledge base"
     }
   ],
   "tLaLqo": [
@@ -5055,6 +5265,12 @@
       "value": "Authorized by"
     }
   ],
+  "vR27zt": [
+    {
+      "type": 0,
+      "value": "Document Name"
+    }
+  ],
   "vTlFW1": [
     {
       "type": 0,
@@ -5171,6 +5387,12 @@
     {
       "type": 0,
       "value": "Authorize repository access"
+    }
+  ],
+  "wwNLHo": [
+    {
+      "type": 0,
+      "value": "Upload Files"
     }
   ],
   "wxlJSs": [

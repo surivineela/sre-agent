@@ -2,7 +2,7 @@ import { Button } from '@fluentui/react-components';
 import { Add16Regular, ArrowClockwise16Regular } from '@fluentui/react-icons';
 import { FC } from 'react';
 import { useIntl } from 'react-intl';
-import { SubAgentsResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { SreAgentResources, SubAgentsResources } from '../../Strings/SREAgentResources';
 import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
 
 export type SubAgentsToolbarProps = {

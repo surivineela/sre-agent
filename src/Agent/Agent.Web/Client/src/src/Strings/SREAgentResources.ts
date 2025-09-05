@@ -1253,6 +1253,7 @@ export const SettingsTabResources = defineMessages({
     managedResources: { defaultMessage: 'Managed resource groups', id: 'yilQrD' },
     dataConnectors: { defaultMessage: 'Data connectors', id: 'L5ZL+u' },
     identity: { defaultMessage: 'Identity', id: 'tShbyC' },
+    knowledgeBase: { defaultMessage: 'Knowledge base', id: 'tLYOnZ' },
     subAgents: { defaultMessage: 'Sub-agents', id: 'VIn2J0' },
 });
 
@@ -1616,6 +1617,134 @@ export const DataConnectorsResources = defineMessages({
     dataConnectorUpdated: { defaultMessage: 'Data connector "{name}" has been updated successfully', id: 'R5Y4rC' },
     updateDataConnectorFailed: { defaultMessage: 'Failed to update data connector', id: 'EYRPA4' },
     updateDataConnectorWithMessageFailed: { defaultMessage: 'Failed to update data connector with error: {error}', id: 'aqnJe8' },
+});
+
+export const KnowledgeBaseResources = defineMessages({
+    fileUploadDescription: {
+        defaultMessage:
+            "Upload one-off architecture docs, troubleshooting guides, and other documentation to enhance the agent's knowledge base. For ongoing document management and automated updates, consider using Data Connectors instead.",
+        id: 'JHqOn0',
+    },
+    // File upload errors and messages
+    filesRejected: {
+        defaultMessage: '{count} document(s) rejected ({fileNames}). Only .md and .txt files are allowed.',
+        id: 'SXEeds',
+    },
+    uploadFailed: {
+        defaultMessage: 'Upload failed: {error}',
+        id: 'R1i9Gl',
+    },
+    deleteFailed: {
+        defaultMessage: 'Delete failed: {error}',
+        id: 'Mvqep7',
+    },
+    bulkDeleteFailed: {
+        defaultMessage: 'Bulk delete failed: {error}',
+        id: '59z+Aj',
+    },
+    someFilesFailedToDelete: {
+        defaultMessage: 'Some documents failed to delete: {failedFiles}',
+        id: 'kbDtEK',
+    },
+    // File upload UI text
+    addMore: {
+        defaultMessage: 'Add More',
+        id: '3jPMQI',
+    },
+    uploadFiles: {
+        defaultMessage: 'Upload Files',
+        id: 'wwNLHo',
+    },
+    // Uploaded files list
+    fileName: {
+        defaultMessage: 'Document Name',
+        id: 'vR27zt',
+    },
+    delete: {
+        defaultMessage: 'Delete',
+        id: 'K3r6DQ',
+    },
+    deleting: {
+        defaultMessage: 'Deleting...',
+        id: 'noZdV2',
+    },
+    deleteSelected: {
+        defaultMessage: 'Delete Selected ({count})',
+        id: 'KoJ1C+',
+    },
+    filesSelected: {
+        defaultMessage: '{count} document{plural} selected',
+        id: 'kqurtu',
+    },
+    noFilesUploaded: {
+        defaultMessage: 'No documents uploaded yet',
+        id: '1HLt0U',
+    },
+    // Dialog and UI strings
+    searchForFiles: {
+        defaultMessage: 'Search for files...',
+        id: 'JlJ8dZ',
+    },
+    acceptedFileTypes: {
+        defaultMessage: 'Accepted file types: .md, .txt',
+        id: 'sQkhYk',
+    },
+    dragAndDropFiles: {
+        defaultMessage: 'Drag and drop files here or',
+        id: 'j3bwJQ',
+    },
+    browseFiles: {
+        defaultMessage: 'Browse Files',
+        id: 'M88YzU',
+    },
+    selectedFiles: {
+        defaultMessage: 'Selected Files',
+        id: '4upwsn',
+    },
+    removeAll: {
+        defaultMessage: 'Remove All',
+        id: 'aOVqnW',
+    },
+    remove: {
+        defaultMessage: 'Remove',
+        id: 'G/yZLu',
+    },
+    addMoreFiles: {
+        defaultMessage: 'Add More Files',
+        id: 'gHCL4X',
+    },
+    uploading: {
+        defaultMessage: 'Uploading...',
+        id: 'JEsxDw',
+    },
+    uploadingFiles: {
+        defaultMessage: 'Uploading Files',
+        id: 'XaSHE5',
+    },
+    uploadingFilesMessage: {
+        defaultMessage: 'Please wait while your files are being uploaded...',
+        id: 'crWYMh',
+    },
+    filesUploadedSuccessfully: {
+        defaultMessage: 'Files uploaded successfully',
+        id: 'ag1Rum',
+    },
+    deletingFiles: {
+        defaultMessage: 'Deleting Files',
+        id: 'rXYf9o',
+    },
+    deletingFilesMessage: {
+        defaultMessage: 'Please wait while your files are being deleted...',
+        id: 'BEck3n',
+    },
+    filesDeletedSuccessfully: {
+        defaultMessage: 'Files deleted successfully',
+        id: 'sVDrdr',
+    },
+    refresh: {
+        defaultMessage: 'Refresh',
+        id: 'rELDbB',
+    },
 });
 
 export const DailyReportsTabResources = defineMessages({

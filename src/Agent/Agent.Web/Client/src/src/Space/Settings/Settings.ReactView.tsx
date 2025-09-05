@@ -10,6 +10,7 @@ import AccessControl from './AccessControl.ReactView';
 import Basics from './Basics.ReactView';
 import DataConnectors from './DataConnectors.ReactView';
 import Identity from './Identity.ReactView';
+import KnowledgeBase from './KnowledgeBase.ReactView';
 import ManagedResources from './ManagedResources.ReactView';
 import { navStyles, useSettingsStyles } from './Styles/Settings.styles';
 import SubAgents from './SubAgents.ReactView';
@@ -21,6 +22,7 @@ export enum SettingsKeys {
     managedResources = 'managedResourcesGroups',
     DataConnectors = 'dataConnectors',
     Identity = 'identity',
+    KnowledgeBase = 'knowledgeBase',
     SubAgents = 'subAgents',
 }
 
@@ -31,6 +33,7 @@ const Settings: FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const showDataConnectors = useConfigSetting(SettingNames.DataConnectors);
+    const showKnowledgeBase = useConfigSetting(SettingNames.KnowledgeBase);
     const showSubAgents = useConfigSetting(SettingNames.ShowSubAgentsItemInSettings);
 
     const { logAmplitudeNavigationEvent } = useAzPortalContext();
@@ -71,6 +74,15 @@ const Settings: FC = () => {
                               },
                           ]
                         : []),
+                    ...(showKnowledgeBase
+                        ? [
+                              {
+                                  name: intl.formatMessage(SettingsTabResources.knowledgeBase),
+                                  url: '',
+                                  key: SettingsKeys.KnowledgeBase,
+                              },
+                          ]
+                        : []),
                     {
                         name: intl.formatMessage(SettingsTabResources.accessControl),
                         url: '',
@@ -93,7 +105,7 @@ const Settings: FC = () => {
                 ],
             },
         ],
-        [intl, showDataConnectors]
+        [intl, showDataConnectors, showKnowledgeBase]
     );
 
     const onNavLinkClick = useCallback(
@@ -126,6 +138,7 @@ const Settings: FC = () => {
                     {selectedKey === SettingsKeys.managedResources && <ManagedResources />}
                     {selectedKey === SettingsKeys.GrafanaDashboard && <GrafanaDashboard />}
                     {selectedKey === SettingsKeys.DataConnectors && showDataConnectors && <DataConnectors />}
+                    {selectedKey === SettingsKeys.KnowledgeBase && showKnowledgeBase && <KnowledgeBase />}
                     {selectedKey === SettingsKeys.AccessControl && <AccessControl />}
                     {selectedKey === SettingsKeys.Identity && <Identity />}
                     {selectedKey === SettingsKeys.SubAgents && showSubAgents && <SubAgents />}
