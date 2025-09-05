@@ -3,18 +3,13 @@
 // ------------------------------------------------------------
 
 using Agent.Data.DataModels;
-using Agent.Framework;
 using Agent.Data.Tools;
-using Agent.Plugins.Tools;
-using Agent.Framework.Reasoning.Models;
+using Agent.Framework;
 
-namespace Agent.Web.Services;
+namespace Agent.Data;
 
 public static class DocumentToRuntimeMapper
 {
-    
-
- 
     public static YamlAgentDescriptor ToRuntimeAgent(AgentDocumentModel api) => new YamlAgentDescriptor
     {
         AgentsAsTools = api.AgentsAsTools,
@@ -33,10 +28,10 @@ public static class DocumentToRuntimeMapper
         CommonTools = api.CommonTools,
         Temperature = api.Temperature,
         OutputType = api.OutputType,
-      DisableDocumentRetrieval = api.DisableDocumentRetrieval,
-      EnableHandoffPromptOverride = api.EnableHandoffPromptOverride,
-      UserPromptOverride = api.UserPromptOverride,
-      
+        DisableDocumentRetrieval = api.DisableDocumentRetrieval,
+        EnableHandoffPromptOverride = api.EnableHandoffPromptOverride,
+        UserPromptOverride = api.UserPromptOverride,
+
         Metadata = api.Metadata,
         // Workflow agent properties
         AgentType = api.AgentType,
@@ -44,11 +39,11 @@ public static class DocumentToRuntimeMapper
         OrchestrationStartAgents = api.OrchestrationStartAgents,
         ResultSummarizationPrompt = api.ResultSummarizationPrompt,
         NextAgentMappings = api.NextAgentMappings
-      //  UserPromptOverride = api.UserPromptOverride,
+        //  UserPromptOverride = api.UserPromptOverride,
         //Hooks = api.Hooks,
-       // FactoryTools = api.FactoryTools
-
+        // FactoryTools = api.FactoryTools
     };
+
     public static YamlToolDefinitionBase ToRuntimeTool(ToolDocumentModel tool) => tool switch
     {
         KustoToolDocumentModel k => new KustoToolDefinition
@@ -66,32 +61,19 @@ public static class DocumentToRuntimeMapper
             File = k.File,
             Database = k.Database,
             ClusterHint = k.ClusterHint,
-         
         },
         _ => throw new NotSupportedException($"Unknown tool document type: {tool.Type}")
     };
 
-    public static DataConnectorDefinitionBase ToRuntimeConnector(ConnectorDocumentModel tool) => tool switch
+    public static YamlPromptDescriptor ToRuntimePrompt(CommonPromptDocumentModel promptDocumentModel) => new YamlPromptDescriptor
     {
-        KustoConnectorDocumentModel k => new KustoConnector
-        {
-            Name = k.Name,
-            Type = k.Type,
-            ClusterUrl = k.ClusterUrl,
-            Database = k.Database,
-            ClusterHint = k.ClusterHint,
-            RegionalClusterGroups = k.RegionalClusterGroups,
-            Description = k.Description,
-            Auth= k.Auth,
-            Metadata = k.Metadata,
-            Enabled = k.Enabled,
-
-
-        },
-        _ => throw new NotSupportedException($"Unknown tool document type: {tool.Type}")
+        Name = promptDocumentModel.Name,
+        Prompt = promptDocumentModel.Prompt
     };
 
-    
-
-
+    public static YamlCommonToolsDescriptor ToRuntimeToolsList(CommonToolsListDocumentModel toolsListDocumentModel) => new YamlCommonToolsDescriptor
+    {
+        Name = toolsListDocumentModel.Name,
+        Tools = toolsListDocumentModel.CommonToolsList,
+    };
 }

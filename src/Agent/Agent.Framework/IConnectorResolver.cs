@@ -8,7 +8,7 @@ namespace Agent.Framework;
 
 public interface IConnectorResolver
 {
-    T GetConnectorFromSettings<T>(string connectorName) where T : DataConnectorDefinitionBase, new();
+    T GetConnectorFromSettings<T>(string connectorName, string connectorType, string dataSource) where T : DataConnectorDefinitionBase, new();
     
     List<DataConnectorBasicInfo> GetAllDataConnectors();
 }

@@ -11,7 +11,7 @@ namespace Agent.Evals;
 [TestClass]
 public class CliExecutionHelperEvals
 {
-    private static TestHost TestHost { get; } = TestHelpers.InitializeTestHost();
+    private static async Task<TestHost> GetTestHostAsync() => await TestHelpers.InitializeTestHost();
 
     public static IEnumerable<object[]> TestCases => new[]
     {
@@ -34,7 +34,7 @@ public class CliExecutionHelperEvals
     public async Task CliExecutionHelper_ShouldCorrectlyClassifyCommandOutputs(string testName, string output, CliErrorType expectedErrorType, string description)
     {
         // Arrange
-        var chatClient = TestHost.RunConfig.ChatClient;
+        var chatClient = (await GetTestHostAsync()).RunConfig.ChatClient;
         
         // Act
         var result = await CliExecutionHelper.ParseCliExecutionResult(chatClient, output);
@@ -50,7 +50,7 @@ public class CliExecutionHelperEvals
     public async Task CliExecutionHelper_ShouldHandleRealWorldComplexOutputs()
     {
         // Arrange
-        var chatClient = TestHost.RunConfig.ChatClient;
+        var chatClient = (await GetTestHostAsync()).RunConfig.ChatClient;
         var complexOutputs = new[]
         {
             GetKubectlDescribePodCrashedOutput(),
@@ -74,7 +74,7 @@ public class CliExecutionHelperEvals
     public async Task CliExecutionHelper_ShouldHandleKubectlDescribePodWithCrashedContainer()
     {
         // Arrange
-        var chatClient = TestHost.RunConfig.ChatClient;
+        var chatClient = (await GetTestHostAsync()).RunConfig.ChatClient;
         var realWorldOutput = GetKubectlDescribePodCrashedOutput();
 
         // Act
@@ -90,7 +90,7 @@ public class CliExecutionHelperEvals
     public async Task CliExecutionHelper_ShouldHandleKubectlGetDeploymentNotReady()
     {
         // Arrange
-        var chatClient = TestHost.RunConfig.ChatClient;
+        var chatClient = (await GetTestHostAsync()).RunConfig.ChatClient;
         var realWorldOutput = GetKubectlGetDeploymentNotReadyOutput();
 
         // Act
@@ -106,7 +106,7 @@ public class CliExecutionHelperEvals
     public async Task CliExecutionHelper_ShouldDistinguishBetweenCommandErrorsAndResourceStatus()
     {
         // Arrange
-        var chatClient = TestHost.RunConfig.ChatClient;
+        var chatClient = (await GetTestHostAsync()).RunConfig.ChatClient;
         
         // Test successful command with unhealthy resource state
         var healthyResourceOutput = GetKubectlDescribePodCrashedOutput();

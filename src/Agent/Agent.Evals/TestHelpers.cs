@@ -13,6 +13,7 @@ using Agent.Data.AgentMemory;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.Repositories;
 using Agent.Framework;
+using Agent.Framework.Interfaces;
 using Agent.Graph.Crawler.Metrics;
 using Agent.Logging;
 using Agent.Plugins;
@@ -190,7 +191,7 @@ public static class TestHelpers
         return builder;
     }
 
-    public static HostApplicationBuilder RegisterServicesForAgentFrameworkEval(this HostApplicationBuilder builder, JsonSerializerOptions? toolReplaySerializerOptions = null)
+    public static async Task<HostApplicationBuilder> RegisterServicesForAgentFrameworkEval(this HostApplicationBuilder builder, JsonSerializerOptions? toolReplaySerializerOptions = null)
     {
         // Add HTTP client factory - required by various services
         builder.Services.AddHttpClient();
@@ -320,31 +321,34 @@ public static class TestHelpers
                 assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
                     .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
                     .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true),
-                extendedAgentRepository: sp.GetRequiredService<IExtendedAgentRepository>());
+                extensibilityLoader: sp.GetRequiredService<IExtensibilityLoader>());
 
             var replay = new ReplayToolFactory<AgentContext>(inner, toolReplaySerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web));
             return replay;
         });
-
-        builder.Services.AddSingleton<IAgentFactory<AgentContext>, AgentFactory<AgentContext>>(sp =>
-        {
-            var modeConfigurator = sp.GetRequiredService<IAgentModeConfigurator<AgentContext>>();
-
-            return new AgentFactory<AgentContext>(
-                logger: sp.GetRequiredService<ILogger<AgentFactory<AgentContext>>>(),
-                toolFactory: sp.GetRequiredService<IToolFactory<AgentContext>>(),
+        builder.Services.AddSingleton<IExtensibilityLoader, ExtensibilityLoader>();
+        using var bootstrapServiceProvider = builder.Services.BuildServiceProvider();
+        var modeConfigurator = bootstrapServiceProvider.GetRequiredService<IAgentModeConfigurator<AgentContext>>();
+        var extensionLoader = bootstrapServiceProvider.GetRequiredService<IExtensibilityLoader>();
+        var factory = await AgentFactory<AgentContext>.CreateAsync(
+                logger: bootstrapServiceProvider.GetRequiredService<ILogger<AgentFactory<AgentContext>>>(),
+                toolFactory: bootstrapServiceProvider.GetRequiredService<IToolFactory<AgentContext>>(),
                 assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
                     .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
                     .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true),
+
                 modeConfigurator: modeConfigurator,
                 agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "AgentsV2"),
                 commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonPrompts"),
                 commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonTools"),
                 promptStarters: [Core.Constants.SREAgentPromptStarter],
                 promptEnders: [Core.Constants.SREAgentFinalInstructions],
-                defaultOutputType: typeof(DefaultAgentOutput)
+                defaultOutputType: typeof(DefaultAgentOutput),
+                extensibiltyLoader: extensionLoader
             );
-        });
+
+        builder.Services.AddSingleton<IAgentFactory<AgentContext>>(factory);
+       
 
         // should be removed later - currently required because ThreadManagementService has code for handling UseAgentFramework=false
         builder.Services.AddSingleton<IAgentsFactory>(sp =>
@@ -432,11 +436,11 @@ public static class TestHelpers
         }
     }
 
-    public static TestHost InitializeTestHost()
+    public static async Task<TestHost> InitializeTestHost()
     {
         var builder = BuildTestApp(out var _);
         builder.RegisterDefaultServices();
-        builder.RegisterServicesForAgentFrameworkEval();
+        await builder.RegisterServicesForAgentFrameworkEval();
         var host = builder.Build();
         return TestHost.Create(host);
     }

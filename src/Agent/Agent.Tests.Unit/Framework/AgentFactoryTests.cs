@@ -8,6 +8,7 @@ using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
+using Agent.Framework.Interfaces;
 using Agent.Framework.Models;
 using Agent.Plugins;
 using Agent.Runtime.Reasoning;
@@ -26,7 +27,7 @@ public class AgentFactoryTests
     private readonly Mock<ILogger<AgentFactory<AgentContext>>> _mockLogger;
     private readonly Mock<ILogger<ToolFactory<AgentContext>>> _mockToolFactoryLogger;
     private readonly Mock<IAgentModeConfigurator<AgentContext>> _mockAgentModeConfigurator;
-    private readonly Mock<IExtendedAgentRepository> _mockExtendedAgentRepository;
+    private readonly Mock<IExtensibilityLoader> _mockExtendedAgentRepository;
     private readonly IServiceProvider _serviceProvider;
     private readonly ServiceCollection _services;
 
@@ -35,7 +36,7 @@ public class AgentFactoryTests
         _mockLogger = new Mock<ILogger<AgentFactory<AgentContext>>>();
         _mockToolFactoryLogger = new Mock<ILogger<ToolFactory<AgentContext>>>();
         _mockAgentModeConfigurator = new Mock<IAgentModeConfigurator<AgentContext>>();
-        _mockExtendedAgentRepository = new Mock<IExtendedAgentRepository>();
+        _mockExtendedAgentRepository = new Mock<IExtensibilityLoader>();
         _services = new ServiceCollection();
         _services.AddSingleton(_mockLogger.Object);
         _services.AddSingleton(_mockToolFactoryLogger.Object);
@@ -72,15 +73,15 @@ public class AgentFactoryTests
     }
 
     [Fact]
-    public void LoadsAgentsFromAssembly()
+    public async Task LoadsAgentsFromAssembly()
     {
-        var agentFactory = new AgentFactory<AgentContext>(
+        var agentFactory = await AgentFactory<AgentContext>.CreateAsync(
             logger: _mockLogger.Object,
             toolFactory: new ToolFactory<AgentContext>(
                 logger: _mockToolFactoryLogger.Object,
                 serviceProvider: _serviceProvider,
                 assembliesToScan: [Assembly.GetExecutingAssembly()],
-                extendedAgentRepository: _mockExtendedAgentRepository.Object
+                extensibilityLoader: _mockExtendedAgentRepository.Object
             ),
             modeConfigurator: _mockAgentModeConfigurator.Object,
             assembliesToScan: [Assembly.GetExecutingAssembly()],
@@ -100,15 +101,15 @@ public class AgentFactoryTests
     }
 
     [Fact]
-    public void LoadsAgentsFromYaml()
+    public async Task LoadsAgentsFromYaml()
     {
-        var agentFactory = new AgentFactory<AgentContext>(
+        var agentFactory = await AgentFactory<AgentContext>.CreateAsync(
             logger: _mockLogger.Object,
             toolFactory: new ToolFactory<AgentContext>(
                 logger: _mockToolFactoryLogger.Object,
                 serviceProvider: _serviceProvider,
                 assembliesToScan: [Assembly.GetExecutingAssembly()],
-                extendedAgentRepository: _mockExtendedAgentRepository.Object
+                extensibilityLoader: _mockExtendedAgentRepository.Object
             ),
             assembliesToScan: [],
             modeConfigurator: _mockAgentModeConfigurator.Object,
@@ -141,7 +142,7 @@ public class AgentFactoryTests
     }
 
     [Fact]
-    public void AutomaticallyAddsReadOnlyPromptWhenAgentModeIsReadOnly()
+    public async Task AutomaticallyAddsReadOnlyPromptWhenAgentModeIsReadOnly()
     {
         // Arrange
         // Set up the mock configurator to add the read-only prompt
@@ -163,12 +164,12 @@ public class AgentFactoryTests
             logger: _mockToolFactoryLogger.Object,
             serviceProvider: _serviceProvider,
             assembliesToScan: [Assembly.GetExecutingAssembly()],
-            extendedAgentRepository: _mockExtendedAgentRepository.Object
+            extensibilityLoader: _mockExtendedAgentRepository.Object
         );
 
         // Act
         // Pass the mockAgentModeConfigurator.Object to the AgentFactory constructor
-        var agentFactory = new AgentFactory<AgentContext>(
+        var agentFactory = await AgentFactory<AgentContext>.CreateAsync(
             logger: _mockLogger.Object,
             toolFactory: toolFactory,
             assembliesToScan: [Assembly.GetExecutingAssembly()],
@@ -186,7 +187,7 @@ public class AgentFactoryTests
     }
 
     [Fact]
-    public void DoesNotAddReadOnlyPromptWhenAgentModeIsNotReadOnly()
+    public async Task DoesNotAddReadOnlyPromptWhenAgentModeIsNotReadOnly()
     {
         _mockAgentModeConfigurator
             .Setup(c => c.ConfigureAgent(
@@ -200,13 +201,13 @@ public class AgentFactoryTests
 
                 });
 
-        var agentFactory = new AgentFactory<AgentContext>(
+        var agentFactory =  await AgentFactory<AgentContext>.CreateAsync(
             logger: _mockLogger.Object,
             toolFactory: new ToolFactory<AgentContext>(
                 logger: _mockToolFactoryLogger.Object,
                 serviceProvider: _serviceProvider,
                 assembliesToScan: [Assembly.GetExecutingAssembly()],
-                extendedAgentRepository: _mockExtendedAgentRepository.Object
+                extensibilityLoader: _mockExtendedAgentRepository.Object
             ),
             assembliesToScan: [Assembly.GetExecutingAssembly()],
             modeConfigurator: _mockAgentModeConfigurator.Object,

@@ -7,7 +7,7 @@ namespace Agent.Evals;
 [TestClass]
 public class HandOffEvals
 {
-    private static TestHost TestHost { get; } = TestHelpers.InitializeTestHost();
+    private static async Task<TestHost> GetTestHostAsync() => await TestHelpers.InitializeTestHost();
 
     public static IEnumerable<object[]> HandOffTestCases => LoadTestCasesFromFiles().Select(i => new object[] { i });
 
@@ -23,8 +23,8 @@ public class HandOffEvals
     [DynamicData(nameof(HandOffTestCases))]
     public async Task HandOffTests(HandOffTestCase handOffTest)
     {
-        var startAgent = TestHost.AgentFactory.GetAgent(handOffTest.StartAgent);
-
+        var startAgent = (await GetTestHostAsync()).AgentFactory.GetAgent(handOffTest.StartAgent);
+        var testHost = await GetTestHostAsync();
         // Handle pipe-separated multiple acceptable target agents
         string expectedHandoffPattern;
         if (handOffTest.TargetAgent.Contains('|'))
@@ -32,13 +32,13 @@ public class HandOffEvals
             // For multiple options, create a pipe-separated list of expected function names
             var acceptableTargets = handOffTest.TargetAgent.Split('|', StringSplitOptions.RemoveEmptyEntries)
                 .Select(target => target.Trim())
-                .Select(target => Handoff<AgentContext>.DefaultToolName(TestHost.AgentFactory.GetAgent(target)))
+                .Select(target => Handoff<AgentContext>.DefaultToolName(testHost.AgentFactory.GetAgent(target)))
                 .ToList();
             expectedHandoffPattern = string.Join("|", acceptableTargets);
         }
         else
         {
-            var targetAgent = TestHost.AgentFactory.GetAgent(handOffTest.TargetAgent);
+            var targetAgent = (await GetTestHostAsync()).AgentFactory.GetAgent(handOffTest.TargetAgent);
             expectedHandoffPattern = Handoff<AgentContext>.DefaultToolName(targetAgent);
         }
 
@@ -47,8 +47,8 @@ public class HandOffEvals
             .. handOffTest.ChatHistory,
         ];
 
-        var chatClient = startAgent.GetChatClient(TestHost.RunConfig);
-        var chatOptions = startAgent.GetChatOptions(TestHost);
+        var chatClient = startAgent.GetChatClient((await GetTestHostAsync()).RunConfig);
+        var chatOptions = startAgent.GetChatOptions(await GetTestHostAsync());
 
         ChatResponse response;
         if (startAgent.HasStructuredOutput)

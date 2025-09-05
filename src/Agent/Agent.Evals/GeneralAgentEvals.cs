@@ -8,7 +8,7 @@ namespace Agent.Evals;
 [TestClass]
 public class GeneralAgentEvals
 {
-    private static TestHost TestHost { get; } = TestHelpers.InitializeTestHost();
+    private static async Task<TestHost> GetTestHostAsync() => await TestHelpers.InitializeTestHost();
 
     public TestContext TestContext { get; set; } = null!;
 
@@ -134,7 +134,7 @@ public class GeneralAgentEvals
     [DynamicData(nameof(GeneralTestCases))]
     public async Task GeneralAgentTests(GeneralTestCase testCase)
     {
-        var agent = TestHost.AgentFactory.GetAgent(testCase.AgentName);
+        var agent = (await GetTestHostAsync()).AgentFactory.GetAgent(testCase.AgentName);
         Assert.IsNotNull(agent, $"Agent '{testCase.AgentName}' not found");
 
         List<ChatMessage> modelInput = [
@@ -142,8 +142,8 @@ public class GeneralAgentEvals
             .. testCase.ModelInput,
         ];
 
-        var chatClient = agent.GetChatClient(TestHost.RunConfig);
-        var chatOptions = agent.GetChatOptions(TestHost);
+        var chatClient = agent.GetChatClient((await GetTestHostAsync()).RunConfig);
+        var chatOptions = agent.GetChatOptions(await GetTestHostAsync());
         // Enforce temperature override for GPT-5 family models
         var clientMetadata = chatClient.GetService<ChatClientMetadata>();
         if (clientMetadata?.DefaultModelId?.StartsWith("gpt-5", StringComparison.OrdinalIgnoreCase) == true)
@@ -194,7 +194,7 @@ public class GeneralAgentEvals
         TestContext.WriteLine($"Test Case: {testCase.TestCaseName}");
         TestContext.WriteLine($"============================");
 
-        var agent = TestHost.AgentFactory.GetAgent(testCase.AgentName);
+        var agent = (await GetTestHostAsync()).AgentFactory.GetAgent(testCase.AgentName);
         Assert.IsNotNull(agent, $"Agent '{testCase.AgentName}' not found");
 
         TestContext.WriteLine($"Testing agent: {agent.Name}");
@@ -202,8 +202,8 @@ public class GeneralAgentEvals
         TestContext.WriteLine($"Agent instructions: {(instructionsText != null ? instructionsText.Substring(0, Math.Min(200, instructionsText.Length)) + "..." : "null")}");
 
         // Get chat client and options similar to RunSingleTurnAsync
-        var chatClient = agent.GetChatClient(TestHost.RunConfig);
-        var chatOptions = agent.GetChatOptions(TestHost);
+        var chatClient = agent.GetChatClient((await GetTestHostAsync()).RunConfig);
+        var chatOptions = agent.GetChatOptions(await GetTestHostAsync());
         var clientMetadata = chatClient.GetService<ChatClientMetadata>();
 
         // Enforce temperature override for GPT-5 family models

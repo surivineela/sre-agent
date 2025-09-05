@@ -337,7 +337,7 @@ public class DeclarativeEvalRunner
     {
         var builder = TestHelpers.BuildTestApp(out _llmDeploymentName);
         builder.RegisterDefaultServices();
-        builder.RegisterServicesForAgentFrameworkEval();
+        await builder.RegisterServicesForAgentFrameworkEval();
 
         // Configure database based on YAML config
         if (!string.IsNullOrEmpty(config.TestSuite.Configuration.Database))

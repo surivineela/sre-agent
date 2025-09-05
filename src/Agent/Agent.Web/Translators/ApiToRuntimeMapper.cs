@@ -119,6 +119,31 @@ public static class ApiToRuntimeMapper
         _ => throw new NotSupportedException($"Unknown tool type for document model: {tool.Type}")
     };
 
+    public static CommonPromptDocumentModel ToCommonPromptTool(ExtendedAgentCommonPromptApiModel prompt, string operationId)
+    {
+        {
+            return new CommonPromptDocumentModel(
+                  Id: $"commonprompt_{prompt.Name}",
+                  Name: prompt.Name,
+                  Prompt: prompt.Prompt,
+                  Metadata: prompt.Metadata,
+                  OperationId: operationId);
+        }
+        ;
+    }
+    public static CommonToolsListDocumentModel ToCommonToolsList(ExtendedAgentCommonToolsListApiModel commonToolsList, string operationId)
+    {
+        {
+            return new CommonToolsListDocumentModel(
+                  Id: $"commontoolslist_{commonToolsList.Name}",
+                  Name: commonToolsList.Name,
+                  CommonToolsList: commonToolsList.Tools,
+                  Metadata: commonToolsList.Metadata,
+                  OperationId: operationId);
+        }
+        ;
+    }
+
     public static ConnectorDocumentModel ToDocumentConnector(ExtendedAgentConnectorApiModel connector, string operationId) => connector switch
     {
         KustoConnectorApiModel k => new KustoConnectorDocumentModel(

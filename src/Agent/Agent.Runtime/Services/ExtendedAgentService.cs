@@ -4,10 +4,9 @@
 
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Data;
 using Agent.Framework;
-using Agent.Framework.Reasoning.Models;
 using Agent.Runtime.Interfaces;
-using Agent.Web.Services;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.Services;
@@ -46,25 +45,6 @@ public class ExtendedAgentService : IExtendedAgentService
         return PaginatedList<YamlAgentDescriptor>.Create(mapped, pageIndex, limit);
     }
 
-    public async Task<PaginatedList<DataConnectorDefinitionBase>> GetConnectorsAsync(int pageIndex, int limit, string? search)
-    {
-        try
-        {
-            var all = await _extendedAgentRepository.GetConnectorsAsync(); // remove limit from repository call
-            var filtered = all
-                .Where(c => string.IsNullOrEmpty(search) || c.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
-            var mapped = filtered
-                .Select(c => DocumentToRuntimeMapper.ToRuntimeConnector(c));
-
-            return PaginatedList<DataConnectorDefinitionBase>.Create(mapped, pageIndex, limit);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError(ex, "Failed to retrieve connectors with search '{Search}' and limit {Limit}", search ?? "none", limit);
-            throw;
-        }
-    }
-
     public async Task<PaginatedList<YamlToolDefinitionBase>> GetToolsAsync(int pageIndex, int limit, string? search)
     {
         try
@@ -90,6 +70,63 @@ public class ExtendedAgentService : IExtendedAgentService
 
         try
         {
+            _logger.LogInternalInformation("Loading extended tools from Cosmos DB on demand...");
+
+            // Load all extended tools
+            var extendedTools = await _extendedAgentRepository.GetToolsAsync(limit: 1000);
+
+            // Load new ones
+            foreach (var extendedTool in extendedTools)
+            {
+                try
+                {
+                    var concretetool = DocumentToRuntimeMapper.ToRuntimeTool(extendedTool);
+
+                    _toolFactory.RegisterTool(concretetool, BehaviorOnNameConflict.Overwrite);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError(ex, "Failed to load extended tool {ToolName} from Cosmos DB on demand", extendedTool.Name);
+                    // Continue loading other tools even if one fails
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to load extended tools from Cosmos DB on demand");
+            throw;
+        }
+
+        try
+        {
+            var commonToolsLists = await _extendedAgentRepository.GetCommonToolsListsAsync(limit: 1000);
+            foreach (var toolsList in commonToolsLists)
+            {
+                try
+                {
+                    var concreteToolsList = DocumentToRuntimeMapper.ToRuntimeToolsList(toolsList);
+                    _agentFactory.LoadCommonToolsListFromDescriptor(concreteToolsList);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError(ex, "Failed to load common tools list from Cosmos: {ToolsListName}", toolsList.Name);
+                }
+            }
+
+            var commonPrompts = await _extendedAgentRepository.GetCommonPromptsAsync(limit: 1000);
+            foreach (var prompt in commonPrompts)
+            {
+                try
+                {
+                    var concretePrompt = DocumentToRuntimeMapper.ToRuntimePrompt(prompt);
+                    _agentFactory.LoadCommonPromptFromDescriptor(concretePrompt);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError(ex, "Failed to load common prompt from Cosmos: {PromptName}", prompt.Name);
+                }
+            }
+
             var extendedAgents = await _extendedAgentRepository.GetAgentsAsync(limit: 1000);
             foreach (var extendedAgent in extendedAgents)
             {
@@ -105,7 +142,6 @@ public class ExtendedAgentService : IExtendedAgentService
             }
             _agentFactory.UpdateHandoffs();
             // load tools stored in Cosmos
-            await _toolFactory.LoadExtendedToolsFromCosmosOnDemandAsync();
         }
         catch (Exception ex)
         {
@@ -119,14 +155,14 @@ public class ExtendedAgentService : IExtendedAgentService
         try
         {
             _logger.LogInternalInformation("Deleting agent {AgentName}", agentName);
-            
+
             var deleted = await _extendedAgentRepository.DeleteAgentAsync(agentName);
-            
+
             if (deleted)
             {
                 _logger.LogInternalInformation("Successfully deleted agent {AgentName} from repository", agentName);
-                
-                // Note: AgentFactory doesn't have a deregister method, so the agent will remain 
+
+                // Note: AgentFactory doesn't have a deregister method, so the agent will remain
                 // in memory until the service is restarted or agents are refreshed
                 _logger.LogInternalWarning("Agent {AgentName} removed from storage but may remain in memory until service restart", agentName);
             }
@@ -134,7 +170,7 @@ public class ExtendedAgentService : IExtendedAgentService
             {
                 _logger.LogInternalWarning("Agent {AgentName} not found for deletion", agentName);
             }
-            
+
             return deleted;
         }
         catch (Exception ex)
@@ -149,28 +185,28 @@ public class ExtendedAgentService : IExtendedAgentService
         try
         {
             _logger.LogInternalInformation("Deleting tool {ToolName}", toolName);
-            
+
             // Check if any agents depend on this tool
             var allAgents = await _extendedAgentRepository.GetAgentsAsync(limit: 1000);
             var dependentAgents = allAgents
                 .Where(agent => agent.Tools.Contains(toolName))
                 .Select(agent => agent.Name)
                 .ToList();
-            
+
             if (dependentAgents.Any())
             {
-                _logger.LogInternalWarning("Cannot delete tool {ToolName} because it is used by agents: {DependentAgents}", 
+                _logger.LogInternalWarning("Cannot delete tool {ToolName} because it is used by agents: {DependentAgents}",
                     toolName, string.Join(", ", dependentAgents));
                 return (false, dependentAgents);
             }
-            
+
             var deleted = await _extendedAgentRepository.DeleteToolAsync(toolName);
-            
+
             if (deleted)
             {
                 _logger.LogInternalInformation("Successfully deleted tool {ToolName} from repository", toolName);
-                
-                // Note: ToolFactory doesn't have a deregister method, so the tool will remain 
+
+                // Note: ToolFactory doesn't have a deregister method, so the tool will remain
                 // in memory until the service is restarted or tools are refreshed
                 _logger.LogInternalWarning("Tool {ToolName} removed from storage but may remain in memory until service restart", toolName);
             }
@@ -178,13 +214,96 @@ public class ExtendedAgentService : IExtendedAgentService
             {
                 _logger.LogInternalWarning("Tool {ToolName} not found for deletion", toolName);
             }
-            
+
             return (deleted, []);
         }
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Failed to delete tool {ToolName}", toolName);
             throw;
+        }
+    }
+
+    public async Task LoadExtendedCommonToolsListsAsync(CancellationToken cancellationToken = default)
+    {
+        _logger.LogInternalInformation("Starting custom agent files download...");
+
+        try
+        {
+            var commonToolsLists = await _extendedAgentRepository.GetCommonToolsListsAsync(limit: 1000);
+            foreach (var toolsList in commonToolsLists)
+            {
+                try
+                {
+                    var concreteToolsList = DocumentToRuntimeMapper.ToRuntimeToolsList(toolsList);
+                    _agentFactory.LoadCommonToolsListFromDescriptor(concreteToolsList);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError(ex, "Failed to load common tools list from Cosmos: {ToolsListName}", toolsList.Name);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "failed to load extended agents and tools");
+            return;
+        }
+    }
+
+    public async Task LoadExtendedCommonPromptsAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var commonPrompts = await _extendedAgentRepository.GetCommonPromptsAsync(limit: 1000);
+            foreach (var prompt in commonPrompts)
+            {
+                try
+                {
+                    var concretePrompt = DocumentToRuntimeMapper.ToRuntimePrompt(prompt);
+                    _agentFactory.LoadCommonPromptFromDescriptor(concretePrompt);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError(ex, "Failed to load common prompt from Cosmos: {PromptName}", prompt.Name);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "failed to load extended agents and tools");
+            return;
+        }
+    }
+
+   
+
+    public async Task LoadExtendedAgentsAsync(CancellationToken cancellationToken = default)
+    {
+        _logger.LogInternalInformation("Starting custom agent files download...");
+
+        try
+        {
+            var extendedAgents = await _extendedAgentRepository.GetAgentsAsync(limit: 1000);
+            foreach (var extendedAgent in extendedAgents)
+            {
+                try
+                {
+                    var concreteAgent = DocumentToRuntimeMapper.ToRuntimeAgent(extendedAgent);
+                    _agentFactory.LoadAgentFromDescriptor(concreteAgent, true);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError(ex, "Failed to load extended agent from Cosmos: {AgentName}", extendedAgent.Name);
+                }
+            }
+            
+            // load tools stored in Cosmos
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "failed to load extended agents and tools");
+            return;
         }
     }
 }

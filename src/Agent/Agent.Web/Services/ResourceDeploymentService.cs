@@ -178,6 +178,66 @@ public class ResourceDeploymentService : IResourceDeploymentService
         return new OkObjectResult(result);
     }
 
+    public async Task<IActionResult> ApplyAsync(CommonToolsListDeploymentModel spec)
+    {
+        var operationId = Guid.NewGuid().ToString();
+
+        // Map tools
+        var commonTools = spec.Spec.CommonToolsLists.Select(t =>
+             ApiToRuntimeMapper.ToCommonToolsList(t, operationId));
+
+        if (commonTools == null || !commonTools.Any())
+        {
+            return new BadRequestObjectResult("No prompt provided in the deployment model.");
+        }
+        foreach (var toolList in commonTools)
+            await _repository.UpdateCommonToolsListAsync(toolList, operationId);
+
+        await _extendedAgentService.RefreshAgentAndToolsRegisterationsAsync();
+        var result = new ExtendedAgentApply
+        {
+            Status = ExtendedAgentApplyStatus.Accepted,
+            Message = "Common tools list deployment initiated",
+            OperationId = "",
+            Timestamp = DateTime.UtcNow,
+            Details = new ExtendedAgentApplyDetails
+            {
+                ToolsCount = spec.Spec.CommonToolsLists.Count,
+            }
+        };
+        return new OkObjectResult(result);
+    }
+
+    public async Task<IActionResult> ApplyAsync(CommonPromptDeploymentModel spec)
+    {
+        var operationId = Guid.NewGuid().ToString();
+
+        // Map tools
+        var commonPrompt = spec.Spec.CommonPrompts.Select(t =>
+             ApiToRuntimeMapper.ToCommonPromptTool(t, operationId));
+
+        if (commonPrompt == null || !commonPrompt.Any())
+        {
+            return new BadRequestObjectResult("No prompt provided in the deployment model.");
+        }
+        foreach (var prompt in commonPrompt)
+            await _repository.UpdateCommonPromptAsync(prompt, operationId);
+
+        await _extendedAgentService.RefreshAgentAndToolsRegisterationsAsync();
+        var result = new ExtendedAgentApply
+        {
+            Status = ExtendedAgentApplyStatus.Accepted,
+            Message = "Common prompt deployment initiated",
+            OperationId = "",
+            Timestamp = DateTime.UtcNow,
+            Details = new ExtendedAgentApplyDetails
+            {
+                ToolsCount = spec.Spec.CommonPrompts.Count,
+            }
+        };
+        return new OkObjectResult(result);
+    }
+
     public async Task<IActionResult> ApplyAsync(PluginConfigDeploymentModel pluginConfig)
     {
         var operationId = Guid.NewGuid().ToString();

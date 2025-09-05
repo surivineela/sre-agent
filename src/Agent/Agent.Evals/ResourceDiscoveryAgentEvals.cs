@@ -9,7 +9,7 @@ namespace Agent.Evals;
 [TestClass]
 public class ResourceDiscoveryAgentEvals
 {
-    private static TestHost TestHost { get; } = TestHelpers.InitializeTestHost();
+    private static async Task<TestHost> GetTestHostAsync() => await TestHelpers.InitializeTestHost();
 
     private static JsonSerializerOptions jsonOptions = new JsonSerializerOptions
     {
@@ -29,7 +29,7 @@ public class ResourceDiscoveryAgentEvals
     [DynamicData(nameof(TestCases))]
     public async Task ResourceDiscoveryTests(ModelGenerationContent testData)
     {
-        var startAgent = TestHost.AgentFactory.GetAgent(testData.AgentName);
+        var startAgent = (await GetTestHostAsync()).AgentFactory.GetAgent(testData.AgentName);
         var output = testData.ModelOutput.Single();
         var expectedText = output.Contents.OfType<TextContent>().SingleOrDefault();
         var expectStructuredOutput = expectedText?.Text is not null
@@ -43,8 +43,8 @@ public class ResourceDiscoveryAgentEvals
             .. testData.ModelInput[1..],
         ];
 
-        var chatClient = startAgent.GetChatClient(TestHost.RunConfig);
-        var chatOptions = startAgent.GetChatOptions(TestHost);
+        var chatClient = startAgent.GetChatClient((await GetTestHostAsync()).RunConfig);
+        var chatOptions = startAgent.GetChatOptions(await GetTestHostAsync());
 
         ChatResponse response;
         if (startAgent.HasStructuredOutput)

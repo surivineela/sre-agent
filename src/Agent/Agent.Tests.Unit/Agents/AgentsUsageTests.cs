@@ -17,7 +17,8 @@ public class AgentsUsageTests
     {
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "test");
 
-        _app = Web.Program.CreateWebApplicationBuilder([]).Build();
+        _app = (Web.Program.CreateWebApplicationBuilder([]).GetAwaiter().GetResult().Build());
+
     }
 
     [Fact]

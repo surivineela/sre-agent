@@ -32,12 +32,10 @@ namespace Agent.Plugins.Kusto.Tools
             _definition = (KustoToolDefinition)definition;
         }
 
-        // TODO: Remove region parameter from tool
-        // Instead allow cluster uri override and make tool code region agnostic
-        public async Task<string> Run(AzureRegion region, Dictionary<string, string> args)
+        
+        public async Task<string> Run(string kustoCluster, Dictionary<string, string> args)
         {
-            string groupName = "ContainerApps";
-            SamplingOptions? samplingOptions = null;
+         
 
             if (_definition == null)
             {
@@ -49,13 +47,15 @@ namespace Agent.Plugins.Kusto.Tools
                 throw new InvalidOperationException("Connector is not set in the tool definition.");
             }
 
-            var connector = _connectorResolver.GetConnectorFromSettings<KustoConnector>(_definition.Connector);
+            
+            var connector = _connectorResolver.GetConnectorFromSettings<KustoConnector>(_definition.Connector, _definition.Connector, kustoCluster);
+            
             var kustoChat = _kustoFactory.Create(connector);
-
+            
             switch (_definition.Mode)
             {
                 case KustoExecutionMode.Function:
-                    return await kustoChat.ExecuteLocalFunctionAsync(_definition.Function!, region, args, groupName, samplingOptions);
+                    return await kustoChat.ExecuteLocalFunctionOnClusterAsync(_definition.Function!, connector.ClusterUrl, _definition.Database, args);
 
                 case KustoExecutionMode.Query:
                     // Region parameter is not used in Query mode, as the cluster is defined in the connector

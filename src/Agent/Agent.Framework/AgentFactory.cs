@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Reflection;
+using Agent.Framework.Interfaces;
 using Microsoft.Extensions.Logging;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -30,6 +31,10 @@ public interface IAgentFactory<TContext>
 
     public void LoadExtendedAgentsFromFolder(string folderPath, bool isCustomAgent);
 
+    public void LoadCommonPromptFromDescriptor(YamlPromptDescriptor prompt);
+
+    public void LoadCommonToolsListFromDescriptor(YamlCommonToolsDescriptor toolsList);
+
     void UpdateHandoffs();
 }
 
@@ -53,20 +58,30 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
     private readonly Type? _defaultOutputType;
     private readonly IAgentModeConfigurator<TContext> _modeConfigurator;
     private readonly bool _enableHandoffReasoning;
+    private readonly IExtensibilityLoader? _extensibiltyLoader;
+    private readonly bool _gpt5Enabled;
+    private readonly bool _agentMemoryRetrievalEnabled;
+    private readonly bool _isFirstPartyAgent = false;
 
     // Update constructor to include the optional repository parameter
-    public AgentFactory(
+    private AgentFactory(
         ILogger<AgentFactory<TContext>> logger,
         IToolFactory<TContext> toolFactory,
         IEnumerable<Assembly> assembliesToScan,
         IAgentModeConfigurator<TContext> modeConfigurator,
+
         string? agentsYamlDirectory = null,
         string? commonPromptsYamlDirectory = null,
         string? commonToolsYamlDirectory = null,
         IEnumerable<string>? promptStarters = null,
         IEnumerable<string>? promptEnders = null,
         Type? defaultOutputType = null,
-        bool enableHandoffReasoning = false
+        bool enableHandoffReasoning = false,
+        IExtensibilityLoader? extensibiltyLoader = null,
+        bool gpt5Enabled = false,
+        bool agentMemoryRetrievalEnabled = false,
+        bool firstPartyAgent = false
+
     )
     {
         _toolFactory = toolFactory;
@@ -80,7 +95,37 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         _modeConfigurator = modeConfigurator;
         _defaultOutputType = defaultOutputType;
         _enableHandoffReasoning = enableHandoffReasoning;
-        InitializeAgents();
+        _extensibiltyLoader = extensibiltyLoader;
+        _gpt5Enabled = gpt5Enabled;
+        _agentMemoryRetrievalEnabled = agentMemoryRetrievalEnabled;
+        _isFirstPartyAgent = firstPartyAgent;
+    }
+
+    public static async Task<IAgentFactory<TContext>> CreateAsync(
+        ILogger<AgentFactory<TContext>> logger,
+        IToolFactory<TContext> toolFactory,
+        IEnumerable<Assembly> assembliesToScan,
+        IAgentModeConfigurator<TContext> modeConfigurator,
+        string? agentsYamlDirectory = null,
+        string? commonPromptsYamlDirectory = null,
+        string? commonToolsYamlDirectory = null,
+        IEnumerable<string>? promptStarters = null,
+        IEnumerable<string>? promptEnders = null,
+        Type? defaultOutputType = null,
+        bool enableHandoffReasoning = false,
+        IExtensibilityLoader? extensibiltyLoader = null,
+        bool gpt5Enabled = false,
+        bool agentMemoryRetrievalEnabled = false,
+        bool firstPartyAgent = false
+        )
+    {
+        var factory = new AgentFactory<TContext>(
+            logger, toolFactory, assembliesToScan, modeConfigurator,
+            agentsYamlDirectory, commonPromptsYamlDirectory, commonToolsYamlDirectory,
+            promptStarters, promptEnders, defaultOutputType, enableHandoffReasoning, extensibiltyLoader, gpt5Enabled, agentMemoryRetrievalEnabled, firstPartyAgent);
+
+        await factory.InitializeAgents();
+        return factory;
     }
 
     public void ValidateAgentDescriptor(IAgentDescriptor? agentDescriptor, bool isCustomAgent, bool overwrite = false)
@@ -255,17 +300,17 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             {
                 if (!_agents.ContainsKey(handoff))
                 {
-                    var error = $"Agent descriptor {agentDescriptor.Name} has a handoff to {handoff} but it does not exist.";
-                    _logger.LogError(error);
-                    throw new KeyNotFoundException(error);
+                    var warning = $"Agent descriptor {agentDescriptor.Name} has a handoff to {handoff} but it does not exist.";
+                    _logger.LogWarning(warning);
                 }
             }
-
+            // Populate handoffs with existing agents only to avoid startup issues
             agent.Handoffs = agentDescriptor.Handoffs
-                .Select(h => Handoff<TContext>.Create(
-                    agent: _agents[h],
-                    enableHandoffReasoning: _enableHandoffReasoning))
-                .ToList();
+      .Where(h => _agents.ContainsKey(h))
+      .Select(h => Handoff<TContext>.Create(
+          agent: _agents[h],
+          enableHandoffReasoning: _enableHandoffReasoning))
+      .ToList();
         }
     }
 
@@ -309,14 +354,67 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         }
     }
 
-    private void InitializeAgents()
+    private async Task InitializeAgents()
     {
+        // Order is important here, as tools need to be loaded before agents
+        // TODO create a Dependency graph and load in order
         LoadCommonPromptsFromAssembly();
         LoadCommonPromptsFromYaml();
+        if (_extensibiltyLoader != null)
+        {
+            var commonPrompts = await _extensibiltyLoader.LoadExtendedCommonPromptsAsync();
+            foreach (var prompt in commonPrompts)
+            {
+                _promptDescriptors[prompt.Name] = prompt;
+            }
+        }
         LoadCommonToolsFromYaml();
+        if (_extensibiltyLoader != null)
+        {
+            var commonTools = await _extensibiltyLoader.LoadExtendedCommonToolsListsAsync();
+            foreach (var tool in commonTools)
+            {
+                _commonToolsDescriptors[tool.Name] = tool.Tools;
+            }
+        }
+        
         LoadAgentFromAssembly();
         LoadAgentFromYaml();
+        if (_extensibiltyLoader != null)
+        {
+            var extendedAgents = await _extensibiltyLoader.LoadExtendedAgentsAsync();
+            foreach (var agent in extendedAgents)
+            {
+                LoadAgentFromDescriptor(agent, true);
+            }
+        }
+
+        if (_gpt5Enabled)
+        {
+            var path = _isFirstPartyAgent ? Path.Combine(AppContext.BaseDirectory, "AgentsGPT5", "FirstParty") : Path.Combine(AppContext.BaseDirectory, "AgentsGPT5", "ThirdParty");
+            LoadYamlAgentsFromFolder(path, overwriteExistingAgents: true, recursive: true);
+        }
+
+        if (_agentMemoryRetrievalEnabled)
+        {
+            if (!_isFirstPartyAgent)
+            {
+                var path = _gpt5Enabled
+                    ? Path.Combine(AppContext.BaseDirectory, "AgentsRag", "ThirdParty", "GPT5")
+                    : Path.Combine(AppContext.BaseDirectory, "AgentsRag", "ThirdParty");
+                LoadYamlAgentsFromFolder(path, overwriteExistingAgents: true, recursive: false);
+            }
+            else
+            {
+                var path = _gpt5Enabled
+                    ? Path.Combine(AppContext.BaseDirectory, "AgentsRag", "FirstParty", "GPT5")
+                    : Path.Combine(AppContext.BaseDirectory, "AgentsRag", "FirstParty");
+                LoadYamlAgentsFromFolder(path, overwriteExistingAgents: true, recursive: false);
+            }
+        }
+
         UpdateHandoffs();
+
         UpdateAgentTools();
     }
 
@@ -336,7 +434,6 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
 
             _agentDescriptors["meta_agent"] = metaAgentDescriptor;
         }
-        UpdateHandoffs();
     }
 
     private void LoadAgentFromAssembly()
@@ -441,9 +538,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             }
         }
         _logger.LogInformation("Loaded {count} agents from folder {folderPath}.", _agents.Count, folderPath);
-        UpdateHandoffs();
     }
-
 
     // TODO: Replace to load extended agents from cosmos DB directly
     public void LoadExtendedAgentsFromFolder(string folderPath, bool isCustomAgent)
@@ -551,6 +646,16 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             _logger.LogError(ex, "Failed to load common prompt from file {filePath}.", filePath);
             throw;
         }
+    }
+
+    public void LoadCommonPromptFromDescriptor(YamlPromptDescriptor prompt)
+    {
+        _promptDescriptors[prompt.Name] = prompt;
+    }
+
+    public void LoadCommonToolsListFromDescriptor(YamlCommonToolsDescriptor toolsList)
+    {
+        _commonToolsDescriptors[toolsList.Name] = toolsList.Tools;
     }
 
     private static YamlPromptDescriptor LoadCommonPromptFromYaml(string yamlContent)
@@ -665,7 +770,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         try
         {
             var agent = AddAgentDescriptor(agentDescriptor, isCustomAgent);
-            if (isCustomAgent)
+            if (isCustomAgent && agentDescriptor.Name != "meta_agent")
             {
                 AddAgentToMetaAgentHandoffs(agent.Name);
             }
@@ -673,7 +778,8 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         }
         catch (Exception ex)
         {
-            throw new InvalidOperationException("Failed to load agent from descriptor", ex);
+            _logger.LogError(ex, "Failed to load agent from descriptor {descriptorName}.", agentDescriptor.Name);
+            return null!;
         }
     }
 

@@ -53,7 +53,7 @@ public interface IToolFactory<TContext> where TContext : class
     void FindAndRegisterAllTools(BehaviorOnNameConflict onNameConflict);
     public List<ToolInfo> FetchAvailableToolInfo(Func<MethodInfo, bool>? filter = null);
 
-    public Task LoadExtendedToolsFromCosmosOnDemandAsync();
+   
 
     public void RegisterExtendedToolFromModel(string extendedToolName, string extendedToolYaml);
     bool RegisterTool(YamlToolDefinitionBase tool, BehaviorOnNameConflict onNameConflict);

@@ -4,12 +4,13 @@
 
 using System.Reflection;
 using Agent.Core.Configuration;
+using Agent.Core.Models.Api.v1;
 using Agent.Core.Interfaces;
 using Agent.Framework;
+using Agent.Framework.Interfaces;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Tools;
-using Agent.Web.Services;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -33,27 +34,28 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
     private readonly IHostEnvironment _hostEnvironment;
     private readonly IEnumerable<Assembly> _assemblies;
     private readonly Dictionary<string, IDeferredToolFunction> _tools = new();
-    private readonly IExtendedAgentRepository? _extendedAgentRepository;
+    
     private readonly bool _handoffReasoningEnabled;
-
+    private readonly IExtensibilityLoader? _extensibilityLoader;
     public ToolFactory(
         ILogger<ToolFactory<TContext>> logger,
         IServiceProvider serviceProvider,
         IEnumerable<Assembly> assembliesToScan,
-        IExtendedAgentRepository? extendedAgentRepository = null
+        IExtensibilityLoader? extensibilityLoader = null
     )
     {
         _logger = logger;
         _serviceProvider = serviceProvider;
         _assemblies = assembliesToScan;
         _hostEnvironment = _serviceProvider.GetRequiredService<IHostEnvironment>();
+        _extensibilityLoader = extensibilityLoader;
 
         // enable handoff reasoning for dev envs
         var experimentalSettings = _serviceProvider.GetRequiredService<ExperimentalSettings>();
         _handoffReasoningEnabled = experimentalSettings?.EnableHandoffReasoning ?? _hostEnvironment.IsDevelopment();
 
-        _extendedAgentRepository = extendedAgentRepository;
-        FindAndRegisterAllTools(BehaviorOnNameConflict.ThrowException);
+        
+        FindAndRegisterAllTools(BehaviorOnNameConflict.Overwrite);
     }
 
     public void RegisterFromYamlFile(string filePath, BehaviorOnNameConflict onNameConflict = BehaviorOnNameConflict.ThrowException)
@@ -196,7 +198,7 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
         })];
     }
 
-    public void FindAndRegisterAllTools(BehaviorOnNameConflict onNameConflict)
+    public async void FindAndRegisterAllTools(BehaviorOnNameConflict onNameConflict)
     {
         var plugins = _assemblies
             .SelectMany(assembly => assembly.GetTypes())
@@ -276,9 +278,19 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
                 RegisterFromYamlFile(file);
             }
         }
+        if (_extensibilityLoader != null)
+        {
+            var extendedTools = await _extensibilityLoader.LoadExtendedToolsAsync();
+            foreach (var tool in extendedTools)
+            {
+                RegisterTool(tool, onNameConflict);
+            }
+
+        }
 
         // Register the ToDo Write tool
         RegisterTool(ToDoWriteTool.ToolName, ToDoWriteTool.Instance, onNameConflict);
+
     }
 
     public AIFunction GetTool(string name)
@@ -369,92 +381,7 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
         return false;
     }
 
-    /// <summary>
-    /// Loads extended tools from Cosmos DB during initialization
-    /// </summary>
-    private void LoadExtendedToolsFromCosmos()
-    {
-        //if (_extendedAgentRepository == null)
-        //{
-        //    _logger.LogInternalDebug("ExtendedAgentRepository is not available. Skipping extended tools from Cosmos DB.");
-        //    return;
-        //}
-
-        try
-        {
-            _logger.LogInternalInformation("Loading extended tools from Cosmos DB...");
-
-            // Load all extended tools synchronously during initialization
-            //var extendedTools = _extendedAgentRepository.GetToolsAsync(limit: 1000).GetAwaiter().GetResult();
-
-            //foreach (var extendedTool in extendedTools)
-            //{
-            //    try
-            //    {
-            //       // RegisterExtendedToolFromModel(extendedTool.Name, extendedTool.ToYaml());
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        _logger.LogInternalError(ex, "Failed to load extended tool {ToolName} from Cosmos DB during initialization", extendedTool.Name);
-            //        // Continue loading other tools even if one fails
-            //    }
-            //}
-
-            //_logger.LogInternalInformation("Successfully loaded {Count} extended tools from Cosmos DB", extendedTools.Count);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalWarning(ex, "Failed to load extended tools from Cosmos DB during initialization. Continuing without them.");
-        }
-    }
-
-    // In LoadExtendedToolsFromCosmosOnDemandAsync, fix possible null reference for connectorDocument
-    public async Task LoadExtendedToolsFromCosmosOnDemandAsync()
-    {
-        if (_extendedAgentRepository == null)
-        {
-            _logger.LogInternalWarning("ExtendedAgentRepository is not available. Cannot load extended tools on demand.");
-            return;
-        }
-
-        try
-        {
-            _logger.LogInternalInformation("Loading extended tools from Cosmos DB on demand...");
-
-            // Load all extended tools
-            var extendedTools = await _extendedAgentRepository.GetToolsAsync(limit: 1000);
-
-            // Load new ones
-            foreach (var extendedTool in extendedTools)
-            {
-                try
-                {
-                    var concretetool = DocumentToRuntimeMapper.ToRuntimeTool(extendedTool);
-                    if (concretetool.Connector != null)
-                    {
-                        var connectorDocument = await _extendedAgentRepository.GetConnectorByNameAsync(concretetool.Connector);
-                        if (connectorDocument != null)
-                        {
-                            concretetool.ConnectorData = DocumentToRuntimeMapper.ToRuntimeConnector(connectorDocument);
-                        }
-                    }
-                    RegisterTool(concretetool, BehaviorOnNameConflict.Overwrite);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogInternalError(ex, "Failed to load extended tool {ToolName} from Cosmos DB on demand", extendedTool.Name);
-                    // Continue loading other tools even if one fails
-                }
-            }
-
-            _logger.LogInternalInformation("Successfully loaded {Count} extended tools from Cosmos DB on demand", extendedTools.Count);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError(ex, "Failed to load extended tools from Cosmos DB on demand");
-            throw;
-        }
-    }
+   
 
     public void RegisterExtendedToolFromModel(string extendedToolName, string extendedToolYaml)
     {

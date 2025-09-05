@@ -163,7 +163,7 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
         {
             // Use the factory to create a flattened dictionary
 
-            var container = _cosmosClient.GetContainer(_databaseName, ExtendedAgentToolDocument.ContainerName);
+            var container = _cosmosClient.GetContainer(_databaseName, ToolDocumentModel.ContainerName);
 
             var response = await container.CreateItemAsync(tool, new PartitionKey(tool.Name));
 
@@ -183,15 +183,32 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
     public async Task<ToolDocumentModel> UpdateToolAsync(ToolDocumentModel tool, string operationId)
     {
 
-        var container = _cosmosClient.GetContainer(_databaseName, ExtendedAgentToolDocument.ContainerName);
+        var container = _cosmosClient.GetContainer(_databaseName, ToolDocumentModel.ContainerName);
         var response = await container.UpsertItemAsync(tool, new PartitionKey(tool.Name));
         _logger.LogInternalInformation("Successfully updated tool document {ToolName}", tool.Name);
         return response.Resource;
     }
 
+    public async Task<CommonPromptDocumentModel> UpdateCommonPromptAsync(CommonPromptDocumentModel prompt, string operationId)
+    {
+
+        var container = _cosmosClient.GetContainer(_databaseName, CommonPromptDocumentModel.ContainerName);
+        var response = await container.UpsertItemAsync(prompt, new PartitionKey(prompt.Name));
+        _logger.LogInternalInformation("Successfully updated common prompt document {PromptName}", prompt.Name);
+        return response.Resource;
+    }
+
+    public async Task<CommonToolsListDocumentModel> UpdateCommonToolsListAsync(CommonToolsListDocumentModel toolsList, string operationId)
+    {
+
+        var container = _cosmosClient.GetContainer(_databaseName, CommonToolsListDocumentModel.ContainerName);
+        var response = await container.UpsertItemAsync(toolsList, new PartitionKey(toolsList.Name));
+        _logger.LogInternalInformation("Successfully updated common tools list document {ToolsListName}", toolsList.Name);
+        return response.Resource;
+    }
     public async Task<PlugInConfigDocumentModel> UpdatePluginConfigAsync(PlugInConfigDocumentModel config)
     {
-        var container = _cosmosClient.GetContainer(_databaseName, ExtendedAgentToolDocument.ContainerName);
+        var container = _cosmosClient.GetContainer(_databaseName, ToolDocumentModel.ContainerName);
         var response = await container.UpsertItemAsync(config, new PartitionKey(config.Name));
         _logger.LogInternalInformation("Successfully updated tool document {ToolName}", config.Name);
         return response.Resource;
@@ -201,7 +218,7 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
     {
         try
         {
-            var container = _cosmosClient.GetContainer(_databaseName, ExtendedAgentToolDocument.ContainerName);
+            var container = _cosmosClient.GetContainer(_databaseName, ToolDocumentModel.ContainerName);
             // Read as a dictionary
             var response = await container.ReadItemAsync<Dictionary<string, object>>(
                 $"tool_{name}",
@@ -219,7 +236,7 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
 
     public async Task<PaginatedList<ToolDocumentModel>> GetToolsAsync(int limit = 50, string? search = null)
     {
-        var container = _cosmosClient.GetContainer(_databaseName, ExtendedAgentToolDocument.ContainerName);
+        var container = _cosmosClient.GetContainer(_databaseName, ToolDocumentModel.ContainerName);
         // Query for dictionaries
         var query = container.GetItemLinqQueryable<Dictionary<string, object>>()
             .Where(d => (string)d["documentType"] == "ExtendedAgentTool");
@@ -243,6 +260,87 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
 
 
         return new PaginatedList<ToolDocumentModel>(results, limit, 0, 50);
+    }
+
+
+    public async Task<PaginatedList<CommonToolsListDocumentModel>> GetCommonToolsListsAsync(int limit = 50, string? search = null)
+    {
+        var container = _cosmosClient.GetContainer(_databaseName, CommonToolsListDocumentModel.ContainerName);
+        // Query for dictionaries
+        var query = container.GetItemLinqQueryable<Dictionary<string, object>>()
+            .Where(d => (string)d["documentType"] == "CommonToolsList");
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query = query.Where(d =>
+                ((string)d["name"]).Contains(search) ||
+                ((string)d["description"]).Contains(search));
+        }
+
+        using var iterator = query.Take(limit).ToFeedIterator();
+        var results = new List<CommonToolsListDocumentModel>();
+
+        while (iterator.HasMoreResults)
+        {
+            var response = await iterator.ReadNextAsync();
+            // Convert each dictionary in the response to the domain model
+            results.AddRange(response.Select(doc => ConvertCommonToolsListToModel(doc)));
+        }
+
+
+        return new PaginatedList<CommonToolsListDocumentModel>(results, limit, 0, 50);
+    }
+
+    private CommonToolsListDocumentModel ConvertCommonToolsListToModel(Dictionary<string, object> doc)
+    {
+        if (doc == null)
+        {
+            #pragma warning disable CS8603 // Possible null reference return.
+            return null;
+        }
+        var jObject = JObject.FromObject(doc);
+        return jObject.ToObject<CommonToolsListDocumentModel>(s_serializer);
+#pragma warning restore CS8603 // Possible null reference return.
+    }
+
+    public async Task<PaginatedList<CommonPromptDocumentModel>> GetCommonPromptsAsync(int limit = 50, string? search = null)
+    {
+        var container = _cosmosClient.GetContainer(_databaseName, CommonPromptDocumentModel.ContainerName);
+        // Query for dictionaries
+        var query = container.GetItemLinqQueryable<Dictionary<string, object>>()
+            .Where(d => (string)d["documentType"] == "CommonPrompt");
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query = query.Where(d =>
+                ((string)d["name"]).Contains(search) ||
+                ((string)d["description"]).Contains(search));
+        }
+
+        using var iterator = query.Take(limit).ToFeedIterator();
+        var results = new List<CommonPromptDocumentModel>();
+
+        while (iterator.HasMoreResults)
+        {
+            var response = await iterator.ReadNextAsync();
+            // Convert each dictionary in the response to the domain model
+            results.AddRange(response.Select(doc => ConvertCommonPromptToModel(doc)));
+        }
+
+
+        return new PaginatedList<CommonPromptDocumentModel>(results, limit, 0, 50);
+    }
+
+    private CommonPromptDocumentModel ConvertCommonPromptToModel(Dictionary<string, object> doc)
+    {
+        if (doc == null)
+        {
+#pragma warning disable CS8603 // Possible null reference return.
+            return null;
+        }
+        var jObject = JObject.FromObject(doc);
+        return jObject.ToObject<CommonPromptDocumentModel>(s_serializer);
+#pragma warning restore CS8603 // Possible null reference return.
     }
 
     public async Task<bool> DeleteToolAsync(string name)
@@ -336,7 +434,7 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
         try
         {
 
-            var container = _cosmosClient.GetContainer(_databaseName, ExtendedAgentConnectorDocument.ContainerName);
+            var container = _cosmosClient.GetContainer(_databaseName, ConnectorDocumentModel.ContainerName);
             var response = await container.CreateItemAsync(connector, new PartitionKey(connector.PartitionKey));
             _logger.LogInternalInformation("Successfully created extended agent connector document {ConnectorName} for operation {OperationId}",
                 connector.Name, operationId);
@@ -360,7 +458,7 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
         try
         {
 
-            var container = _cosmosClient.GetContainer(_databaseName, ExtendedAgentConnectorDocument.ContainerName);
+            var container = _cosmosClient.GetContainer(_databaseName, ConnectorDocumentModel.ContainerName);
             var response = await container.UpsertItemAsync(connector, new PartitionKey(connector.PartitionKey));
             _logger.LogInternalInformation("Successfully updated extended agent connector document {ConnectorName} for operation {OperationId}",
                 connector.Name, operationId);
@@ -378,7 +476,7 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
     {
         try
         {
-            var container = _cosmosClient.GetContainer(_databaseName, ExtendedAgentConnectorDocument.ContainerName);
+            var container = _cosmosClient.GetContainer(_databaseName, ConnectorDocumentModel.ContainerName);
             var response = await container.ReadItemAsync<Dictionary<string, object>>(
                 $"connector_{name}",
                 new PartitionKey(name));
@@ -400,7 +498,7 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
     {
         try
         {
-            var container = _cosmosClient.GetContainer(_databaseName, ExtendedAgentConnectorDocument.ContainerName);
+            var container = _cosmosClient.GetContainer(_databaseName, ConnectorDocumentModel.ContainerName);
             var query = container.GetItemLinqQueryable<Dictionary<string, object>>()
                 .Where(d => (string)d["DocumentType"] == "ConnectorDocument");
             if (!string.IsNullOrWhiteSpace(search))
@@ -433,7 +531,7 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
     {
         try
         {
-            var container = _cosmosClient.GetContainer(_databaseName, ExtendedAgentConnectorDocument.ContainerName);
+            var container = _cosmosClient.GetContainer(_databaseName, ConnectorDocumentModel.ContainerName);
             await container.DeleteItemAsync<ConnectorDocumentModel>(
                 $"connector_{name}",
                 new PartitionKey(name));

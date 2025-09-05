@@ -17,6 +17,7 @@ using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Framework;
+using Agent.Framework.Interfaces;
 using Agent.Framework.Reasoning.Models;
 using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
@@ -58,8 +59,8 @@ using Agent.Runtime.SubAgents.Core;
 using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.DailyReportSummary;
 using Agent.Runtime.SubAgents.FeedbackRCAAgent;
-using Agent.Runtime.SubAgents.LocalAuthAgent;
 using Agent.Runtime.SubAgents.IcmScanner;
+using Agent.Runtime.SubAgents.LocalAuthAgent;
 using Agent.Runtime.SubAgents.PagerDutyAgent;
 using Agent.Runtime.SubAgents.ServiceNowScanner;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
@@ -74,6 +75,7 @@ using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Connector.Authentication;
 using Microsoft.Extensions.AI;
+using Microsoft.FeatureManagement;
 using Microsoft.SemanticKernel;
 using OpenTelemetry;
 using OpenTelemetry.Logs;
@@ -81,7 +83,6 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
-using Microsoft.FeatureManagement;
 
 namespace Agent.Web;
 
@@ -89,7 +90,7 @@ public class Program
 {
     public static async Task Main(string[] args)
     {
-        WebApplication app = CreateWebApplicationBuilder(args).Build();
+        WebApplication app = (await CreateWebApplicationBuilder(args)).Build();
 
         var metricsService = app.Services.GetRequiredService<IGremlinMetricsService>();
 
@@ -169,12 +170,12 @@ public class Program
         await app.RunAsync();
     }
 
-    public static WebApplicationBuilder CreateWebApplicationBuilder(string[] args)
+    public async static Task<WebApplicationBuilder> CreateWebApplicationBuilder(string[] args)
     {
-        return CreatePreliminaryWebApplicationBuilder(args);
+        return await CreatePreliminaryWebApplicationBuilder(args);
     }
 
-    public static WebApplicationBuilder CreatePreliminaryWebApplicationBuilder(string[] args)
+    public async static Task<WebApplicationBuilder> CreatePreliminaryWebApplicationBuilder(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
@@ -335,8 +336,6 @@ public class Program
             .AddSingleton<IRoleAssignmentPlugin, RoleAssignmentPlugin>()
             .AddSingleton<IAppLogsQueryService, AppLogsQueryService>()
 
-
-
             .AddTransient<IFunctionAppConfigurationChecksPlugin, FunctionAppConfigurationChecksPlugin>()
 
             .AddTransient<IFunctionAppDeploymentChecksPlugin, FunctionAppDeploymentChecksPlugin>()
@@ -482,8 +481,7 @@ public class Program
             .AddSingleton<IGitHubService, GitHubService>()
             .AddSingleton<ISessionPoolService, SessionPoolService>()
             .AddSingleton<IRagEvaluator, RagEvaluator>()
-
-
+            .AddSingleton<IExtensibilityLoader, ExtensibilityLoader>()
             .AddSingleton(sp =>
             {
                 return new ToolFactory<AgentContext>(
@@ -492,75 +490,52 @@ public class Program
                     assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
                         .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
                         .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true),
-                    extendedAgentRepository: sp.GetService<IExtendedAgentRepository>()
+                     extensibilityLoader: sp.GetRequiredService<IExtensibilityLoader>()
                     );
             })
             .AddSingleton<IToolFactory<AgentContext>, ToolFactory<AgentContext>>(sp =>
             {
                 return sp.GetRequiredService<ToolFactory<AgentContext>>();
-            })
+            }).AddSingleton<IAuthenticationService, AuthenticationService>().AddCosmosClient();
 
-            .AddSingleton<IAgentFactory<AgentContext>, AgentFactory<AgentContext>>(sp =>
-            {
-                var hostEnvironment = sp.GetRequiredService<IHostEnvironment>();
-                var experimentalSettings = sp.GetRequiredService<ExperimentalSettings>();
-                var modeConfigurator = sp.GetRequiredService<IAgentModeConfigurator<AgentContext>>();
+         using var bootstrapServiceProvider = builder.Services.BuildServiceProvider();
 
-                // Use ACA-FirstParty subfolder for first party agents, otherwise use full AgentsV2 directory
-                var agentsDirectory = isFirstPartyAgent
-                    ? Path.Combine(AppContext.BaseDirectory, "AgentsV2", "ACA-FirstParty")
-                    : Path.Combine(AppContext.BaseDirectory, "AgentsV2");
+        var logger = bootstrapServiceProvider.GetRequiredService<ILogger<AgentFactory<AgentContext>>>();
+        var toolFactory = bootstrapServiceProvider.GetRequiredService<IToolFactory<AgentContext>>();
+        var hostEnvironment = bootstrapServiceProvider.GetRequiredService<IHostEnvironment>();
+        var experimentalSettings = bootstrapServiceProvider.GetRequiredService<ExperimentalSettings>();
+        var modeConfigurator = bootstrapServiceProvider.GetRequiredService<IAgentModeConfigurator<AgentContext>>();
+        var extensibilityLoader = bootstrapServiceProvider.GetRequiredService<IExtensibilityLoader>();
+        bool isGPT5Enabled = GPT5Enabled(builder);
+        bool agentMemoryRetrievalEnabled = AgentMemoryRetrievalEnabled(builder);
 
-                // enable handoff reasoning for developer envs
-                var enableHandoffReasoning = experimentalSettings?.EnableHandoffReasoning
-                    ?? hostEnvironment.IsDevelopment();
 
-                var factory = new AgentFactory<AgentContext>(
-                    logger: sp.GetRequiredService<ILogger<AgentFactory<AgentContext>>>(),
-                    toolFactory: sp.GetRequiredService<IToolFactory<AgentContext>>(),
-                    assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
-                        .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
-                        .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.Runtime") == true),
-                    modeConfigurator: modeConfigurator,
-                    agentsYamlDirectory: agentsDirectory,
-                    commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonPrompts"),
-                    commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonTools"),
-                    promptStarters: [Core.Constants.SREAgentPromptStarter],
-                    promptEnders: [Core.Constants.SREAgentFinalInstructions],
-                    defaultOutputType: typeof(DefaultAgentOutput),
-                    enableHandoffReasoning: enableHandoffReasoning
-                );
-                bool isGPT5Enabled = GPT5Enabled(builder);
+        // Now, perform the async creation. The application will safely wait here.
+        var agentFactoryInstance = await AgentFactory<AgentContext>.CreateAsync(
+            logger: logger,
+            toolFactory: toolFactory,
+            assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
+                .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
+                .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.Runtime") == true),
+            modeConfigurator: modeConfigurator,
+            agentsYamlDirectory: isFirstPartyAgent
+                ? Path.Combine(AppContext.BaseDirectory, "AgentsV2", "ACA-FirstParty")
+                : Path.Combine(AppContext.BaseDirectory, "AgentsV2"),
+            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonPrompts"),
+            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonTools"),
+            promptStarters: [Core.Constants.SREAgentPromptStarter],
+            promptEnders: [Core.Constants.SREAgentFinalInstructions],
+            defaultOutputType: typeof(DefaultAgentOutput),
+            enableHandoffReasoning: experimentalSettings?.EnableHandoffReasoning ?? hostEnvironment.IsDevelopment(),
+            extensibiltyLoader: extensibilityLoader,
+            gpt5Enabled: isGPT5Enabled,
+            agentMemoryRetrievalEnabled: agentMemoryRetrievalEnabled,
+            firstPartyAgent:isFirstPartyAgent
+        ).ConfigureAwait(false);
 
-                if (isGPT5Enabled)
-                {
-                    var path = isFirstPartyAgent ? Path.Combine(AppContext.BaseDirectory, "AgentsGPT5", "FirstParty") : Path.Combine(AppContext.BaseDirectory, "AgentsGPT5", "ThirdParty");
-                    factory.LoadYamlAgentsFromFolder(path, overwriteExistingAgents: true, recursive: true);
-                }
-
-                if (AgentMemoryRetrievalEnabled(builder))
-                {
-                    if (!isFirstPartyAgent)
-                    {
-                        var path = isGPT5Enabled
-                            ? Path.Combine(AppContext.BaseDirectory, "AgentsRag", "ThirdParty", "GPT5")
-                            : Path.Combine(AppContext.BaseDirectory, "AgentsRag", "ThirdParty");
-                        factory.LoadYamlAgentsFromFolder(path, overwriteExistingAgents: true, recursive: false);
-                    }
-                    else
-                    {
-                        var path = isGPT5Enabled
-                            ? Path.Combine(AppContext.BaseDirectory, "AgentsRag", "FirstParty", "GPT5")
-                            : Path.Combine(AppContext.BaseDirectory, "AgentsRag", "FirstParty");
-                        factory.LoadYamlAgentsFromFolder(path, overwriteExistingAgents: true, recursive: false);
-                    }
-                }
-
-                return factory;
-            })
+        builder.Services.AddSingleton<IAgentFactory<AgentContext>>(agentFactoryInstance)
             .AddSingleton<IDiagnosticsPlugin, DiagnosticsPlugin>()
             .AddSingleton<ISearchPlugin, SearchPlugin>()
-
 
             .AddSingleton<Octokit.IGitHubClient>(provider =>
             {
@@ -642,7 +617,6 @@ public class Program
         builder.Services.AddSingleton<CustomAgentFileService>();
         builder.Services.AddSingleton<ICustomAgentFileService>(
             sp => sp.GetRequiredService<CustomAgentFileService>());
-        builder.Services.AddHostedService<ExtendedAgentBackgroundService>();
 
         //Overwrite KustoClient from ValidateAndRegisterFirstPartyTypes if is not Container FirstParty Agent
         if (!isFirstPartyAgent)
@@ -681,7 +655,6 @@ public class Program
         builder.Services.AddKeyedSingleton<IKubernetesService, CrawlerKubernetesService>("Crawler");
         builder.Services.AddKeyedSingleton<IWatchEventService, ActivityLogService>("ActivityLog");
         builder.Services.AddKeyedSingleton<IWatchEventService, KubernetesWatchService>("Kubernetes");
-
 
         builder.Services.AddIncidentRelatedServices();
 
@@ -748,8 +721,7 @@ public class Program
                         .AddSingleton<IBotPollingMessage, TeamsBot>();
         // Add the new polling service
         builder.Services.AddHostedService<TeamsMessagePollingService>();
-
-        builder.Services.AddCosmosClient();
+         builder.Services.AddCosmosClient();
         ConfigureAgentMemory(builder);
 
         ConfigureLogger(builder);
@@ -1286,7 +1258,6 @@ public class Program
                         },
                         "ExternalLogProcessor");
                 });
-
         });
 
         builder.RegisterDataConnectors();

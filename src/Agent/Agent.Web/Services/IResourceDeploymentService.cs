@@ -14,4 +14,6 @@ public interface IResourceDeploymentService
     Task<IActionResult> ApplyAsync(ConnectorsDeploymentModel spec);
     Task<IActionResult> ApplyAsync(ToolsDeploymentModel spec);
     Task<IActionResult> ApplyAsync(PluginConfigDeploymentModel pluginConfig);
+    Task<IActionResult> ApplyAsync(CommonToolsListDeploymentModel spec);
+    Task<IActionResult> ApplyAsync(CommonPromptDeploymentModel spec);
 }

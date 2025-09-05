@@ -17,7 +17,7 @@ namespace Agent.Evals;
 [TestClass]
 public class HandOffEvaluation
 {
-    private static TestHost TestHost { get; } = TestHelpers.InitializeTestHost();
+    private static async Task<TestHost> GetTestHostAsync() => await TestHelpers.InitializeTestHost();
 
     public TestContext TestContext { get; set; } = null!;
 
@@ -66,9 +66,9 @@ public class HandOffEvaluation
     public async Task HandOffEvaluationTests(HandOffEvaluationTestCase testCase)
     {
         // Create proper mocks for the ThreadEvaluator dependencies
-        var mockLogger = TestHost.Host.Services.GetRequiredService<ILogger<ThreadEvaluator>>();
-        var mockChatClient = TestHost.Host.Services.GetRequiredService<IChatClient>();
-        var mockTracer = TestHost.Host.Services.GetRequiredService<Tracer>();
+        var mockLogger = (await GetTestHostAsync()).Host.Services.GetRequiredService<ILogger<ThreadEvaluator>>();
+        var mockChatClient = (await GetTestHostAsync()).Host.Services.GetRequiredService<IChatClient>();
+        var mockTracer = (await GetTestHostAsync()).Host.Services.GetRequiredService<Tracer>();
 
         // Create a mock IThreadRepository
         var mockThreadRepository = new Mock<IThreadRepository>();

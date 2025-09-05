@@ -90,12 +90,12 @@ public class ExtendedAgentController : ControllerBase
                 {
                     var validationService = new AgentValidationService();
                     var validationResult = await validationService.ValidateYamlAsync(yaml, false);
-                    
+
                     if (!validationResult.IsValid)
                     {
-                        var errorDetails = validationResult.Errors.Select(error => 
+                        var errorDetails = validationResult.Errors.Select(error =>
                             new ExtendedAgentErrorField("yaml", error)).ToList();
-                        
+
                         return BadRequest(new ExtendedAgentErrorResponse
                         {
                             ErrorCode = "VALIDATION_FAILED",
@@ -107,7 +107,7 @@ public class ExtendedAgentController : ControllerBase
                     // Log warnings but don't fail the request
                     if (validationResult.Warnings.Count > 0)
                     {
-                        _logger.LogInternalWarning("Agent validation warnings: {Warnings}", 
+                        _logger.LogInternalWarning("Agent validation warnings: {Warnings}",
                             string.Join("; ", validationResult.Warnings));
                     }
                 }
@@ -126,7 +126,7 @@ public class ExtendedAgentController : ControllerBase
             }
 
             var result = new ExtendedAgentApply();
-            
+
             // Handle different resource types
             switch (generic.Kind)
             {
@@ -144,11 +144,11 @@ public class ExtendedAgentController : ControllerBase
 
                     // Convert to dictionary to access properties for metadata
                     var yamlDict = yamlObject as Dictionary<string, object>;
-                    
+
                     // Create AgentDeploymentModel using the parsed descriptor
                     var agentDeployment = new AgentDeploymentModel
                     {
-                        ApiVersion = yamlDict?.TryGetValue("api_version", out var apiVersionObj) == true ? 
+                        ApiVersion = yamlDict?.TryGetValue("api_version", out var apiVersionObj) == true ?
                             apiVersionObj?.ToString() ?? "azuresre.ai/v1" : "azuresre.ai/v1",
                         Kind = "AgentConfiguration",
                         Metadata = yamlDict?.TryGetValue("metadata", out var metadataObj) == true && metadataObj != null ?
@@ -175,6 +175,9 @@ public class ExtendedAgentController : ControllerBase
                 case "ToolList":
                 case "ConnectorList":
                 case "PluginConfiguration":
+                case "CommonToolsList":
+                case "CommonPrompt":
+
                     // For non-agent resources, use the original approach
                     var resource = YamlResourceRouter.DeserializeResource(generic.Kind!, yaml);
                     switch (resource)
@@ -186,9 +189,17 @@ public class ExtendedAgentController : ControllerBase
                         case ConnectorsDeploymentModel connector:
                             await _resourceDeploymentService.ApplyAsync(connector);
                             break;
-                            
+
                         case PluginConfigDeploymentModel pluginConfig:
                             await _resourceDeploymentService.ApplyAsync(pluginConfig);
+                            break;
+
+                        case CommonToolsListDeploymentModel commonToolsList:
+                            await _resourceDeploymentService.ApplyAsync(commonToolsList);
+                            break;
+
+                        case CommonPromptDeploymentModel commonPrompt:
+                            await _resourceDeploymentService.ApplyAsync(commonPrompt);
                             break;
 
                         default:

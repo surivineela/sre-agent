@@ -8,7 +8,7 @@ namespace Agent.Evals;
 [TestClass]
 public class TrajectoryEvals
 {
-    private static TestHost TestHost { get; } = TestHelpers.InitializeTestHost();
+    private static async Task<TestHost> GetTestHostAsync() => await TestHelpers.InitializeTestHost();
 
     private static readonly JsonSerializerOptions _jsonOptions = AIJsonUtilities.DefaultOptions;
 
@@ -86,7 +86,7 @@ public class TrajectoryEvals
 
         // 3. Extract the trajectory
         (var extractedTrajectory, var _) = await TrajectoryExtractor.GenerateTrajectoryAsync_v3(
-            TestHost.RunConfig.ChatClient,
+            (await GetTestHostAsync()).RunConfig.ChatClient,
             conversationMessages,
             startAgent,
             autoHandOff);
@@ -126,7 +126,7 @@ public class TrajectoryEvals
 
         // 3. Extract the trajectory
         (var extractedTrajectory, var _) = await TrajectoryExtractor.GenerateTrajectoryAsync_v3(
-            TestHost.RunConfig.ChatClient,
+            (await GetTestHostAsync()).RunConfig.ChatClient,
             conversationMessages);
 
         // should not be marked as investigation.
@@ -160,7 +160,7 @@ public class TrajectoryEvals
 
         // 3. Extract the trajectory
         (var extractedTrajectory, var _) = await TrajectoryExtractor.GenerateTrajectoryAsync_v3(
-            TestHost.RunConfig.ChatClient,
+            (await GetTestHostAsync()).RunConfig.ChatClient,
             conversationMessages);
 
         // should be marked as investigation.

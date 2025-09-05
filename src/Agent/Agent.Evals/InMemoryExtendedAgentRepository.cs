@@ -10,6 +10,9 @@ internal class InMemoryExtendedAgentRepository : IExtendedAgentRepository
     List<ToolDocumentModel> tools = new();
 
     List<ConnectorDocumentModel> connectors = new();
+
+    List<CommonPromptDocumentModel> commonPrompts = new();
+    List<CommonToolsListDocumentModel> commonToolsLists = new();
     public Task<AgentDocumentModel> CreateAgentAsync(AgentDocumentModel agent, string operationId)
     {
         agents.Add(agent);
@@ -67,6 +70,36 @@ internal class InMemoryExtendedAgentRepository : IExtendedAgentRepository
         return Task.FromResult(new PaginatedList<AgentDocumentModel>(items, totalCount,0, limit));
     }
 
+    public Task<PaginatedList<CommonPromptDocumentModel>> GetCommonPromptsAsync(int limit = 50, string? search = null)
+    {
+        var filteredPrompts = commonPrompts.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            filteredPrompts = filteredPrompts.Where(p => p.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
+        }
+
+        var totalCount = filteredPrompts.Count();
+        var items = filteredPrompts.Take(limit).ToList();
+
+        return Task.FromResult(new PaginatedList<CommonPromptDocumentModel>(items, totalCount, 0, limit));
+    }
+
+    public Task<PaginatedList<CommonToolsListDocumentModel>> GetCommonToolsListsAsync(int limit = 50, string? search = null)
+    {
+        var filteredToolsLists = commonToolsLists.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            filteredToolsLists = filteredToolsLists.Where(t => t.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
+        }
+
+        var totalCount = filteredToolsLists.Count();
+        var items = filteredToolsLists.Take(limit).ToList();
+
+        return Task.FromResult(new PaginatedList<CommonToolsListDocumentModel>(items, totalCount, 0, limit));
+    }
+
     public Task<ConnectorDocumentModel?> GetConnectorByNameAsync(string name)
     {
         var connector = connectors.FirstOrDefault(c => c.Name == name);
@@ -75,22 +108,58 @@ internal class InMemoryExtendedAgentRepository : IExtendedAgentRepository
 
     public Task<PaginatedList<ConnectorDocumentModel>> GetConnectorsAsync(int limit = 50, string? search = null)
     {
-        throw new NotImplementedException();
+        var filteredConnectors = connectors.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            filteredConnectors = filteredConnectors.Where(c => c.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
+        }
+
+        var totalCount = filteredConnectors.Count();
+        var items = filteredConnectors.Take(limit).ToList();
+
+        return Task.FromResult(new PaginatedList<ConnectorDocumentModel>(items, totalCount, 0, limit));
     }
 
     public Task<ToolDocumentModel?> GetToolByNameAsync(string name)
     {
-        throw new NotImplementedException();
+        return Task.FromResult(tools.FirstOrDefault(t => t.Name == name));
     }
 
     public Task<PaginatedList<ToolDocumentModel>> GetToolsAsync(int limit = 50, string? search = null)
     {
-        throw new NotImplementedException();
+        var filteredTools = tools.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            filteredTools = filteredTools.Where(t => t.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
+        }
+
+        var totalCount = filteredTools.Count();
+        var items = filteredTools.Take(limit).ToList();
+
+        return Task.FromResult(new PaginatedList<ToolDocumentModel>(items, totalCount, 0, limit));
     }
 
     public Task<AgentDocumentModel> UpdateAgentAsync(AgentDocumentModel agent, string operationId)
     {
-        throw new NotImplementedException();
+        agents.RemoveAll(a => a.Name == agent.Name);
+        agents.Add(agent);
+        return Task.FromResult(agent);
+    }
+
+    public Task<CommonPromptDocumentModel> UpdateCommonPromptAsync(CommonPromptDocumentModel prompt, string operationId)
+    {
+        commonPrompts.RemoveAll(p => p.Name == prompt.Name);
+        commonPrompts.Add(prompt);
+        return Task.FromResult(prompt);
+    }
+
+    public Task<CommonToolsListDocumentModel> UpdateCommonToolsListAsync(CommonToolsListDocumentModel toolsList, string operationId)
+    {
+        commonToolsLists.RemoveAll(t => t.Name == toolsList.Name);
+        commonToolsLists.Add(toolsList);
+        return Task.FromResult(toolsList);
     }
 
     public Task<ConnectorDocumentModel> UpdateConnectorAsync(ConnectorDocumentModel connector, string operationId)

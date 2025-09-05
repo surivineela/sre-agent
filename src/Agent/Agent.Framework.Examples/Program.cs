@@ -15,6 +15,7 @@ using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DataModels;
+using Agent.Framework.Interfaces;
 using Agent.Graph.Crawler.Metrics;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
@@ -226,7 +227,7 @@ class Program
                 assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
                     .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
                     .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true),
-                extendedAgentRepository: sp.GetRequiredService<IExtendedAgentRepository>());
+                extensibilityLoader: sp.GetRequiredService<IExtensibilityLoader>());
         });
 
         builder.Services.AddSingleton<BotFrameworkAuthentication, ConfigurationBotFrameworkAuthentication>();
@@ -299,7 +300,7 @@ class Program
         var toolsRepository = host.Services.GetRequiredService<IToolFactory<CustomContext>>();
         var modeConfigurator = host.Services.GetRequiredService<IAgentModeConfigurator<CustomContext>>();
 
-        var agentFactory = new AgentFactory<CustomContext>(
+        var agentFactory = await AgentFactory<CustomContext>.CreateAsync(
             logger: host.Services.GetRequiredService<ILogger<AgentFactory<CustomContext>>>(),
             toolFactory: toolsRepository,
             assembliesToScan: [],

@@ -36,6 +36,8 @@ public class YamlResourceRouter
             "AgentConfiguration" => yamlDeserializer.Deserialize<AgentDeploymentModel>(yaml),
             "ToolList" => yamlDeserializer.Deserialize<ToolsDeploymentModel>(yaml),
             "ConnectorList" => yamlDeserializer.Deserialize<ConnectorsDeploymentModel>(yaml),
+            "CommonToolsList" => yamlDeserializer.Deserialize<CommonToolsListDeploymentModel>(yaml),
+            "CommonPrompt" => yamlDeserializer.Deserialize<CommonPromptDeploymentModel>(yaml),
             "PluginConfiguration" => yamlDeserializer.Deserialize<PluginConfigDeploymentModel>(yaml),
             _ => throw new NotSupportedException($"Unsupported kind: {kind}")
         };
