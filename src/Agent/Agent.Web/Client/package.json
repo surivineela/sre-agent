@@ -27,6 +27,7 @@
         "@fluentui/azure-themes": "^8.6.128",
         "@fluentui/react": "^8.123.4",
         "@fluentui/react-charting": "^5.24.23",
+        "@fluentui/react-charts": "^9.2.3",
         "@fluentui/react-components": "^9.68.3",
         "@fluentui/react-icons": "^2.0.307",
         "@fluentui/react-search": "^9.3.3",

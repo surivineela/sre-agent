@@ -7,6 +7,7 @@ export enum SettingNames {
     ConsolidatedCreate = 'consolidatedCreate',
     DataConnectors = 'dataConnectors',
     ShowDailyReportsTab = 'showDailyReportsTab',
+    ShowWatchtower = 'showWatchtower',
     /** Only used by unit tests */
     ForUnitTests = 'forUnitTests',
 }
@@ -23,6 +24,7 @@ const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
         [SettingNames.ShowAgentModeForThread]: true,
         [SettingNames.DataConnectors]: true,
         [SettingNames.ShowDailyReportsTab]: true,
+        [SettingNames.ShowWatchtower]: true,
         [SettingNames.ForUnitTests]: true,
     },
 };

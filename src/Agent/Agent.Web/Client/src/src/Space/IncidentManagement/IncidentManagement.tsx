@@ -1,7 +1,9 @@
 import { initializeIcons, MessageBar, MessageBarType } from '@fluentui/react';
 import { Button, NavDrawer, NavDrawerBody, NavDrawerHeader, NavItem, Spinner } from '@fluentui/react-components';
 import {
+    ChartMultiple24Regular,
     ClipboardTaskList16Regular,
+    ClipboardTaskListLtr24Regular,
     LinkSettings24Regular,
     PanelLeftContractRegular,
     PanelLeftExpandRegular,
@@ -11,34 +13,37 @@ import { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react
 import { useIntl } from 'react-intl';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
 import { IncidentManagementResources } from '../../Strings/SREAgentResources';
 import { SreAgentContext } from '../Contracts/Context';
 import { IncidentManagementPlatform } from '../Contracts/IncidentManagement';
 import { getIncidentManagementPlatform } from '../Settings/Hooks/useIncidentManagementSettings';
 import IncidentManagementSettings from '../Settings/IncidentManagementSettings';
 import { useIncidentManagementStyles, useNavStyles } from '../Styles/IncidentManagement.styles';
+import Analysis from './Analysis';
 import { IncidentManagementMenuKeys } from './CreateIncidentHandler/Contracts';
 import HandlersOverview from './HandlersOverview';
 import IncidentsOverview from './IncidentsOverview/IncidentsOverview';
+import ResponsePlan from './ResponsePlan';
 
 const IncidentManagement: FC = () => {
-    const intl = useIntl();
-    const { agentObj, agentLoading, agentLoadFailure } = useContext(SreAgentContext);
-    const [disableOverviewAndHandlers, setDisableOverviewAndHandlers] = useState(false);
-
-    const { logAmplitudeNavigationEvent } = useAzPortalContext();
-
-    const [iconsInitialized, setIconsInitialized] = useState(false);
-
-    const styles = useIncidentManagementStyles();
-
-    const [navigationHidden, setNavigationHidden] = useState<boolean>(false);
-    const [navigationCollapsed, setNavigationCollapsed] = useState<boolean>(false);
-    const navigationStyles = useNavStyles();
-
     const { menuItem } = useParams();
     const location = useLocation();
     const navigate = useNavigate();
+    const intl = useIntl();
+
+    const { agentObj, agentLoading, agentLoadFailure } = useContext(SreAgentContext);
+    const { logAmplitudeNavigationEvent } = useAzPortalContext();
+
+    const styles = useIncidentManagementStyles();
+    const navigationStyles = useNavStyles();
+
+    const showWatchtower = useConfigSetting(SettingNames.ShowWatchtower);
+
+    const [disableOverviewAndHandlers, setDisableOverviewAndHandlers] = useState(false);
+    const [iconsInitialized, setIconsInitialized] = useState(false);
+    const [navigationHidden, setNavigationHidden] = useState<boolean>(false);
+    const [navigationCollapsed, setNavigationCollapsed] = useState<boolean>(false);
 
     const selectedKey = useMemo(() => {
         return (
@@ -48,8 +53,8 @@ const IncidentManagement: FC = () => {
         );
     }, [menuItem]);
 
-    const navItems = useMemo(
-        () => [
+    const navItems = useMemo(() => {
+        const items = [
             {
                 key: IncidentManagementMenuKeys.IncidentOverview,
                 label: intl.formatMessage(IncidentManagementResources.incidentsOverview),
@@ -62,15 +67,34 @@ const IncidentManagement: FC = () => {
                 icon: <ClipboardTaskList16Regular className={navigationStyles.itemIcon} />,
                 disabled: disableOverviewAndHandlers,
             },
-            {
-                key: IncidentManagementMenuKeys.IncidentPlatform,
-                label: intl.formatMessage(IncidentManagementResources.incidentPlatform),
-                icon: <LinkSettings24Regular className={navigationStyles.itemIcon} />,
-                disabled: false,
-            },
-        ],
-        [intl, disableOverviewAndHandlers]
-    );
+        ];
+
+        if (showWatchtower) {
+            items.push(
+                {
+                    key: IncidentManagementMenuKeys.Analysis,
+                    label: intl.formatMessage(IncidentManagementResources.analysis),
+                    icon: <ChartMultiple24Regular className={navigationStyles.itemIcon} />,
+                    disabled: disableOverviewAndHandlers,
+                },
+                {
+                    key: IncidentManagementMenuKeys.ResponsePlan,
+                    label: intl.formatMessage(IncidentManagementResources.responsePlan),
+                    icon: <ClipboardTaskListLtr24Regular className={navigationStyles.itemIcon} />,
+                    disabled: disableOverviewAndHandlers,
+                }
+            );
+        }
+
+        items.push({
+            key: IncidentManagementMenuKeys.IncidentPlatform,
+            label: intl.formatMessage(IncidentManagementResources.incidentPlatform),
+            icon: <LinkSettings24Regular className={navigationStyles.itemIcon} />,
+            disabled: false,
+        });
+
+        return items;
+    }, [intl, disableOverviewAndHandlers, navigationStyles.itemIcon, showWatchtower]);
 
     const onNavigationClick = useCallback(
         (navKey: string) => {
@@ -170,6 +194,8 @@ const IncidentManagement: FC = () => {
                         {selectedKey === IncidentManagementMenuKeys.HandlerConfiguration && (
                             <HandlersOverview setNavigationHidden={setNavigationHidden} useConsolidatedCreate={true} />
                         )}
+                        {showWatchtower && selectedKey === IncidentManagementMenuKeys.Analysis && <Analysis />}
+                        {showWatchtower && selectedKey === IncidentManagementMenuKeys.ResponsePlan && <ResponsePlan />}
                         {selectedKey === IncidentManagementMenuKeys.IncidentPlatform && <IncidentManagementSettings />}
                     </>
                 )}

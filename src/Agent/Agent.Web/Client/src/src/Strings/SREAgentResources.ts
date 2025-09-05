@@ -1003,6 +1003,8 @@ export const IncidentManagementResources = defineMessages({
     },
     processedTime: { defaultMessage: 'Processed time', id: 'CU0qUc' },
     selectedOutOfTotal: { defaultMessage: '{selectedCount} of {totalCount}', id: '01sZoP' },
+    analysis: { defaultMessage: 'Analysis', id: 'VMIM8/' },
+    responsePlan: { defaultMessage: 'Response plan', id: '1rAiXS' },
 });
 
 export const IncidentManagementPlatformResources = defineMessages({
