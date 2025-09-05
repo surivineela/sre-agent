@@ -155,7 +155,7 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
                                         />
                                     </DialogTrigger>
                                     <ThreadSearchDialog
-                                        threadListsState={threadListsState}
+                                        threads={threadListsState.regularThreadListState.threads}
                                         selectThread={selectThread}
                                         activeThreadId={activeThreadId}
                                         excludedSources={excludedSources}

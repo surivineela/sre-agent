@@ -160,7 +160,7 @@ const getIndexToInsertThread = (threads: Thread[], threadToInsert: Thread): numb
     return start;
 };
 
-const insertThreadToThreadList = (threads: Thread[], thread: Thread): Thread[] => {
+export const insertThreadToThreadList = (threads: Thread[], thread: Thread): Thread[] => {
     const indexToInsert = getIndexToInsertThread(threads, thread);
     const updatedThreads = [...threads];
     updatedThreads.splice(indexToInsert, 0, thread);
@@ -188,7 +188,8 @@ export const addThreadToThreadsThatHaveModifiedTimestampUpdated = (
             // If the thread is duplicated and the one is being added is newer than the existing one, replace the existing one
             if (threadsThatHaveModifiedTimestampUpdated[i].modifiedTimestamp < thread.modifiedTimestamp) {
                 const updatedThreadsThatHaveModifiedTimestampUpdated = [...threadsThatHaveModifiedTimestampUpdated];
-                updatedThreadsThatHaveModifiedTimestampUpdated[i] = { ...thread };
+                updatedThreadsThatHaveModifiedTimestampUpdated.splice(i, 1);
+                updatedThreadsThatHaveModifiedTimestampUpdated.unshift(thread);
                 return {
                     threadListsState: {
                         ...threadListsState,
@@ -210,7 +211,7 @@ export const addThreadToThreadsThatHaveModifiedTimestampUpdated = (
     return {
         threadListsState: {
             ...threadListsState,
-            threadsThatHaveModifiedTimestampUpdated: [...threadsThatHaveModifiedTimestampUpdated, thread],
+            threadsThatHaveModifiedTimestampUpdated: [thread, ...threadsThatHaveModifiedTimestampUpdated],
         },
         addedThreads: [thread],
     };

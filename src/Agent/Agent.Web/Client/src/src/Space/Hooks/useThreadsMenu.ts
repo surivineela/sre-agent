@@ -31,7 +31,6 @@ export const useThreadsMenu = (ref: Ref<ThreadMenuHandle>, excludedSources?: Thr
     const { removeThread, removeUnreadThreadId, onThreadModifiedTimestampUpdated, ...rest } = useThreadListWithFavoriteList(
         isFavoriteThreadListHidden,
         isRegularThreadListHidden,
-        undefined,
         filter,
         'modifiedTimestamp'
     );

@@ -24,9 +24,9 @@ export interface InputForThreadListWithFavoriteList {
     searchText?: string;
 }
 
-const getDefaultThreadListState = (initialThreads?: Thread[]): ThreadListState => {
+const getDefaultThreadListState = (): ThreadListState => {
     return {
-        threads: initialThreads || [],
+        threads: [],
         threadsThatHaveFavoritePropertyChanged: [],
         moreThreadsToLoad: true,
     };
@@ -192,17 +192,12 @@ const useThreadItemsLoading = (
 export const useThreadListWithFavoriteList = (
     isFavoriteThreadListHidden: boolean,
     isRegularThreadListHidden: boolean,
-    initialThreadListsState: ThreadListsState | undefined,
     filterInput: InputForThreadListWithFavoriteList,
     orderBy: 'modifiedTimestamp' | 'createdTimestamp'
 ) => {
     const [threadListsState, setThreadListsState] = useState<ThreadListsState>({
-        favoriteThreadListState:
-            initialThreadListsState?.favoriteThreadListState ||
-            getDefaultThreadListState(initialThreadListsState?.favoriteThreadListState?.threads),
-        regularThreadListState:
-            initialThreadListsState?.regularThreadListState ||
-            getDefaultThreadListState(initialThreadListsState?.regularThreadListState?.threads),
+        favoriteThreadListState: getDefaultThreadListState(),
+        regularThreadListState: getDefaultThreadListState(),
         isLoadingInitialThreads: true,
         threadsThatHaveModifiedTimestampUpdated: [],
     });

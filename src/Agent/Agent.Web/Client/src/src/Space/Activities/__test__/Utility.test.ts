@@ -3,11 +3,19 @@ import { ThreadSeverity } from '../../../Common/Clients/ThreadClient';
 import { Thread, ThreadSource } from '../../../Common/Contracts/DataPlane/Thread';
 import { getSafeDateTime } from '../../../Common/Helpers/Date';
 import { Guid } from '../../../Common/Helpers/Guid';
+import { ThreadListsState, ThreadListState } from '../../Contracts/Activities';
 import {
+    addOldThreads,
+    addThreadToThreadsThatHaveModifiedTimestampUpdated,
     getFilteredThreads,
     getUpdatedUnreadThreadIds,
+    insertThreadThatHasFavoritePropertyChangedToThreadListState,
+    insertThreadToThreadList,
     isThreadUnread,
     processThreads,
+    pushAllThreadsThatHaveFavoritePropertyChangedToThreadLists,
+    pushAllThreadsThatHaveModifiedTimestampUpdatedToThreadLists,
+    removeThreadFromThreadListsState,
     removeThreadIdsFromUnreadThreads,
 } from '../Utility';
 
@@ -554,5 +562,799 @@ describe('removeThreadIdsFromUnreadThreads', () => {
 
         const result = removeThreadIdsFromUnreadThreads(unreadThreads, '05');
         expect(areThreadIdSetSame(result, unreadThreads)).toBe(true);
+    });
+});
+
+describe('addOldThreads', () => {
+    it('Duplicated with both threads and threadsThatHaveFavoritePropertiesChanged', () => {
+        const threads = [
+            getDefaultThread('2023-10-03T00:00:00Z', '06'),
+            getDefaultThread('2023-10-02T00:00:00Z', '05'),
+            getDefaultThread('2023-10-01T00:00:00Z', '03'),
+        ];
+
+        const threadsThatHaveFavoritePropertiesChanged = [
+            getDefaultThread('2023-09-20T00:00:00Z', '02'),
+            getDefaultThread('2023-09-19T00:00:00Z', '01'),
+            getDefaultThread('2023-09-18T00:00:00Z', '00'),
+        ];
+
+        const threadListState: ThreadListState = {
+            threads: threads,
+            threadsThatHaveFavoritePropertyChanged: threadsThatHaveFavoritePropertiesChanged,
+            moreThreadsToLoad: false,
+        };
+
+        const oldThreads = [
+            getDefaultThread('2023-10-02T00:00:00Z', '05'),
+            getDefaultThread('2023-10-01T00:00:00Z', '03'),
+            getDefaultThread('2023-09-21T00:00:00Z', '023'),
+            getDefaultThread('2023-09-18T00:00:00Z', '00'),
+        ];
+
+        const result = addOldThreads(threadListState, oldThreads, true);
+
+        const newThreadListState = result.threadListState;
+        const expectedThreadListState: ThreadListState = {
+            threads: [...threads, ...oldThreads.slice(2)],
+            threadsThatHaveFavoritePropertyChanged: threadsThatHaveFavoritePropertiesChanged.slice(0, 2),
+            moreThreadsToLoad: true,
+        };
+
+        expect(areThreadsSame(newThreadListState.threads, expectedThreadListState.threads)).toBe(true);
+        expect(
+            areThreadsSame(
+                newThreadListState.threadsThatHaveFavoritePropertyChanged,
+                expectedThreadListState.threadsThatHaveFavoritePropertyChanged
+            )
+        ).toBe(true);
+        expect(newThreadListState.moreThreadsToLoad).toBe(true);
+    });
+
+    it('No duplication', () => {
+        const threads = [
+            getDefaultThread('2023-10-03T00:00:00Z', '06'),
+            getDefaultThread('2023-10-02T00:00:00Z', '05'),
+            getDefaultThread('2023-10-01T00:00:00Z', '03'),
+        ];
+
+        const threadsThatHaveFavoritePropertiesChanged = [
+            getDefaultThread('2023-09-20T00:00:00Z', '02'),
+            getDefaultThread('2023-09-19T00:00:00Z', '01'),
+            getDefaultThread('2023-09-18T00:00:00Z', '00'),
+        ];
+
+        const threadListState: ThreadListState = {
+            threads: threads,
+            threadsThatHaveFavoritePropertyChanged: threadsThatHaveFavoritePropertiesChanged,
+            moreThreadsToLoad: false,
+        };
+
+        const oldThreads = [
+            getDefaultThread('2023-10-01T00:00:00Z', '11'),
+            getDefaultThread('2023-09-22T00:00:00Z', '12'),
+            getDefaultThread('2023-09-21T00:00:00Z', '13'),
+        ];
+
+        const result = addOldThreads(threadListState, oldThreads, false);
+
+        const newThreadListState = result.threadListState;
+        const expectedThreadListState: ThreadListState = {
+            threads: [...threads, ...oldThreads],
+            threadsThatHaveFavoritePropertyChanged: threadsThatHaveFavoritePropertiesChanged,
+            moreThreadsToLoad: false,
+        };
+
+        expect(areThreadsSame(newThreadListState.threads, expectedThreadListState.threads)).toBe(true);
+        expect(
+            areThreadsSame(
+                newThreadListState.threadsThatHaveFavoritePropertyChanged,
+                expectedThreadListState.threadsThatHaveFavoritePropertyChanged
+            )
+        ).toBe(true);
+        expect(newThreadListState.moreThreadsToLoad).toBe(false);
+    });
+});
+
+describe('insertThreadToThreadList', () => {
+    it('Odd number of threads with newest thread', () => {
+        const threads = [
+            getDefaultThread('2023-10-03T00:00:00Z', '06'),
+            getDefaultThread('2023-10-02T00:00:00Z', '05'),
+            getDefaultThread('2023-10-01T00:00:00Z', '03'),
+        ];
+
+        const threadToInsert = getDefaultThread('2023-10-04T00:00:00Z', '07');
+
+        const result = insertThreadToThreadList(threads, threadToInsert);
+
+        expect(areThreadsSame(result, [threadToInsert, ...threads])).toBe(true);
+    });
+
+    it('Odd number of threads with oldest thread', () => {
+        const threads = [
+            getDefaultThread('2023-10-03T00:00:00Z', '06'),
+            getDefaultThread('2023-10-02T00:00:00Z', '05'),
+            getDefaultThread('2023-10-01T00:00:00Z', '03'),
+        ];
+
+        const threadToInsert = getDefaultThread('2023-09-30T00:00:00Z', '07');
+
+        const result = insertThreadToThreadList(threads, threadToInsert);
+
+        expect(areThreadsSame(result, [...threads, threadToInsert])).toBe(true);
+    });
+
+    it('Odd number of threads with thread that has duplicated modifiedTimestamp', () => {
+        const threads = [
+            getDefaultThread('2023-10-03T00:00:00Z', '06'),
+            getDefaultThread('2023-10-02T00:00:00Z', '05'),
+            getDefaultThread('2023-10-01T00:00:00Z', '03'),
+        ];
+
+        const threadToInsert = getDefaultThread('2023-10-02T00:00:00Z', '07');
+
+        const result = insertThreadToThreadList(threads, threadToInsert);
+        threads.splice(1, 0, threadToInsert); // Insert before the thread with same modifiedTimestamp
+
+        expect(areThreadsSame(result, threads)).toBe(true);
+    });
+
+    it('Odd number of threads with thread that will be inserted in the middle', () => {
+        const threads = [
+            getDefaultThread('2023-10-05T00:00:00Z', '06'),
+            getDefaultThread('2023-10-02T00:00:00Z', '05'),
+            getDefaultThread('2023-10-01T00:00:00Z', '03'),
+        ];
+
+        const threadToInsert = getDefaultThread('2023-10-03T00:00:00Z', '07');
+
+        const result = insertThreadToThreadList(threads, threadToInsert);
+        threads.splice(1, 0, threadToInsert); // Insert before the thread with same modifiedTimestamp
+
+        expect(areThreadsSame(result, threads)).toBe(true);
+    });
+
+    it('Even number of threads with newest thread', () => {
+        const threads = [
+            getDefaultThread('2023-10-03T00:00:00Z', '06'),
+            getDefaultThread('2023-10-02T00:00:00Z', '05'),
+            getDefaultThread('2023-10-01T00:00:00Z', '03'),
+            getDefaultThread('2023-09-30T00:00:00Z', '03'),
+        ];
+
+        const threadToInsert = getDefaultThread('2023-10-04T00:00:00Z', '07');
+
+        const result = insertThreadToThreadList(threads, threadToInsert);
+
+        expect(areThreadsSame(result, [threadToInsert, ...threads])).toBe(true);
+    });
+
+    it('Even number of threads with oldest thread', () => {
+        const threads = [
+            getDefaultThread('2023-10-03T00:00:00Z', '06'),
+            getDefaultThread('2023-10-02T00:00:00Z', '05'),
+            getDefaultThread('2023-10-01T00:00:00Z', '03'),
+            getDefaultThread('2023-09-30T00:00:00Z', '03'),
+        ];
+
+        const threadToInsert = getDefaultThread('2023-09-29T00:00:00Z', '07');
+
+        const result = insertThreadToThreadList(threads, threadToInsert);
+
+        expect(areThreadsSame(result, [...threads, threadToInsert])).toBe(true);
+    });
+
+    it('Even number of threads with thread that has duplicated modifiedTimestamp', () => {
+        const threads = [
+            getDefaultThread('2023-10-03T00:00:00Z', '06'),
+            getDefaultThread('2023-10-02T00:00:00Z', '05'),
+            getDefaultThread('2023-10-01T00:00:00Z', '03'),
+            getDefaultThread('2023-09-30T00:00:00Z', '03'),
+        ];
+
+        const threadToInsert = getDefaultThread('2023-10-01T00:00:00Z', '07');
+
+        const result = insertThreadToThreadList(threads, threadToInsert);
+        threads.splice(2, 0, threadToInsert); // Insert before the thread with same modifiedTimestamp
+
+        expect(areThreadsSame(result, threads)).toBe(true);
+    });
+
+    it('Even number of threads with thread that will be inserted in the middle', () => {
+        const threads = [
+            getDefaultThread('2023-10-05T00:00:00Z', '06'),
+            getDefaultThread('2023-10-02T00:00:00Z', '05'),
+            getDefaultThread('2023-10-01T00:00:00Z', '03'),
+            getDefaultThread('2023-09-30T00:00:00Z', '03'),
+        ];
+
+        const threadToInsert = getDefaultThread('2023-10-03T00:00:00Z', '07');
+
+        const result = insertThreadToThreadList(threads, threadToInsert);
+        threads.splice(1, 0, threadToInsert); // Insert before the thread with same modifiedTimestamp
+
+        expect(areThreadsSame(result, threads)).toBe(true);
+    });
+});
+
+describe('addThreadToThreadsThatHaveModifiedTimestampUpdated', () => {
+    it('Add a thread that has older modifiedTimestamp', () => {
+        const threads = [
+            getDefaultThread('2023-10-03T00:00:00Z', '06'),
+            getDefaultThread('2023-10-02T00:00:00Z', '05'),
+            getDefaultThread('2023-10-01T00:00:00Z', '03'),
+        ];
+
+        const threadListsState: ThreadListsState = {
+            favoriteThreadListState: {
+                threads: [],
+                threadsThatHaveFavoritePropertyChanged: [],
+                moreThreadsToLoad: false,
+            },
+            regularThreadListState: {
+                threads: [],
+                threadsThatHaveFavoritePropertyChanged: [],
+                moreThreadsToLoad: false,
+            },
+            isLoadingInitialThreads: true,
+            threadsThatHaveModifiedTimestampUpdated: threads,
+        };
+
+        const threadToInsert = getDefaultThread('2023-09-30T00:00:00Z', '06');
+
+        const result = addThreadToThreadsThatHaveModifiedTimestampUpdated(threadListsState, threadToInsert);
+
+        expect(
+            areThreadsSame(
+                result.threadListsState.threadsThatHaveModifiedTimestampUpdated,
+                threadListsState.threadsThatHaveModifiedTimestampUpdated
+            )
+        ).toBe(true);
+    });
+
+    it('Add a thread that has newer modifiedTimestamp', () => {
+        const threads = [
+            getDefaultThread('2023-10-03T00:00:00Z', '06'),
+            getDefaultThread('2023-10-02T00:00:00Z', '05'),
+            getDefaultThread('2023-10-01T00:00:00Z', '03'),
+        ];
+
+        const threadListsState: ThreadListsState = {
+            favoriteThreadListState: {
+                threads: [],
+                threadsThatHaveFavoritePropertyChanged: [],
+                moreThreadsToLoad: false,
+            },
+            regularThreadListState: {
+                threads: [],
+                threadsThatHaveFavoritePropertyChanged: [],
+                moreThreadsToLoad: false,
+            },
+            isLoadingInitialThreads: true,
+            threadsThatHaveModifiedTimestampUpdated: threads,
+        };
+
+        const threadToInsert = getDefaultThread('2023-10-05T10:00:00Z', '05');
+
+        const result = addThreadToThreadsThatHaveModifiedTimestampUpdated(threadListsState, threadToInsert);
+
+        expect(
+            areThreadsSame(result.threadListsState.threadsThatHaveModifiedTimestampUpdated, [
+                getDefaultThread('2023-10-05T10:00:00Z', '05'),
+                getDefaultThread('2023-10-03T00:00:00Z', '06'),
+                getDefaultThread('2023-10-01T00:00:00Z', '03'),
+            ])
+        ).toBe(true);
+    });
+
+    it('Add an unique thread', () => {
+        const threads = [
+            getDefaultThread('2023-10-03T00:00:00Z', '06'),
+            getDefaultThread('2023-10-02T00:00:00Z', '05'),
+            getDefaultThread('2023-10-01T00:00:00Z', '03'),
+        ];
+
+        const threadListsState: ThreadListsState = {
+            favoriteThreadListState: {
+                threads: [],
+                threadsThatHaveFavoritePropertyChanged: [],
+                moreThreadsToLoad: false,
+            },
+            regularThreadListState: {
+                threads: [],
+                threadsThatHaveFavoritePropertyChanged: [],
+                moreThreadsToLoad: false,
+            },
+            isLoadingInitialThreads: true,
+            threadsThatHaveModifiedTimestampUpdated: threads,
+        };
+
+        const threadToInsert = getDefaultThread('2023-10-05T10:00:00Z', '07');
+
+        const result = addThreadToThreadsThatHaveModifiedTimestampUpdated(threadListsState, threadToInsert);
+
+        expect(areThreadsSame(result.threadListsState.threadsThatHaveModifiedTimestampUpdated, [threadToInsert, ...threads])).toBe(true);
+    });
+});
+
+describe('removeThreadFromThreadListsState', () => {
+    it('Remove a thread that does not exist', () => {
+        const threadListsState: ThreadListsState = {
+            favoriteThreadListState: {
+                threads: [getDefaultThread('2023-10-03T00:00:00Z', '06')],
+                threadsThatHaveFavoritePropertyChanged: [getDefaultThread('2023-09-20T00:00:00Z', '02')],
+                moreThreadsToLoad: false,
+            },
+            regularThreadListState: {
+                threads: [getDefaultThread('2023-10-02T00:00:00Z', '05')],
+                threadsThatHaveFavoritePropertyChanged: [getDefaultThread('2023-09-19T00:00:00Z', '01')],
+                moreThreadsToLoad: false,
+            },
+            isLoadingInitialThreads: true,
+            threadsThatHaveModifiedTimestampUpdated: [getDefaultThread('2023-10-01T00:00:00Z', '03')],
+        };
+
+        const result = removeThreadFromThreadListsState(threadListsState, '07');
+
+        expect(areThreadsSame(result.favoriteThreadListState.threads, threadListsState.favoriteThreadListState.threads)).toBe(true);
+        expect(
+            areThreadsSame(
+                result.favoriteThreadListState.threadsThatHaveFavoritePropertyChanged,
+                threadListsState.favoriteThreadListState.threadsThatHaveFavoritePropertyChanged
+            )
+        ).toBe(true);
+        expect(areThreadsSame(result.regularThreadListState.threads, threadListsState.regularThreadListState.threads)).toBe(true);
+        expect(
+            areThreadsSame(
+                result.regularThreadListState.threadsThatHaveFavoritePropertyChanged,
+                threadListsState.regularThreadListState.threadsThatHaveFavoritePropertyChanged
+            )
+        ).toBe(true);
+        expect(
+            areThreadsSame(result.threadsThatHaveModifiedTimestampUpdated, threadListsState.threadsThatHaveModifiedTimestampUpdated)
+        ).toBe(true);
+    });
+
+    it('Remove a thread that exists in all lists', () => {
+        const threadToRemove = getDefaultThread('2023-10-03T00:00:00Z', '06');
+
+        const threadListsState: ThreadListsState = {
+            favoriteThreadListState: {
+                threads: [threadToRemove],
+                threadsThatHaveFavoritePropertyChanged: [getDefaultThread('2023-09-20T00:00:00Z', '02'), threadToRemove],
+                moreThreadsToLoad: false,
+            },
+            regularThreadListState: {
+                threads: [getDefaultThread('2023-10-02T00:00:00Z', '05'), threadToRemove],
+                threadsThatHaveFavoritePropertyChanged: [getDefaultThread('2023-09-19T00:00:00Z', '01'), threadToRemove],
+                moreThreadsToLoad: false,
+            },
+            isLoadingInitialThreads: true,
+            threadsThatHaveModifiedTimestampUpdated: [getDefaultThread('2023-10-01T00:00:00Z', '03'), threadToRemove],
+        };
+
+        const result = removeThreadFromThreadListsState(threadListsState, threadToRemove.id);
+
+        expect(areThreadsSame(result.favoriteThreadListState.threads, [])).toBe(true);
+        expect(
+            areThreadsSame(result.favoriteThreadListState.threadsThatHaveFavoritePropertyChanged, [
+                getDefaultThread('2023-09-20T00:00:00Z', '02'),
+            ])
+        ).toBe(true);
+        expect(areThreadsSame(result.regularThreadListState.threads, [getDefaultThread('2023-10-02T00:00:00Z', '05')])).toBe(true);
+        expect(
+            areThreadsSame(result.regularThreadListState.threadsThatHaveFavoritePropertyChanged, [
+                getDefaultThread('2023-09-19T00:00:00Z', '01'),
+            ])
+        ).toBe(true);
+        expect(areThreadsSame(result.threadsThatHaveModifiedTimestampUpdated, [getDefaultThread('2023-10-01T00:00:00Z', '03')])).toBe(true);
+    });
+});
+
+describe('insertThreadThatHasFavoritePropertyChangedToThreadListState', () => {
+    it('Insert that thread that exists in the thread list', () => {
+        const threadListState: ThreadListState = {
+            threads: [
+                getDefaultThread('2023-10-03T00:00:00Z', '06'),
+                getDefaultThread('2023-10-02T00:00:00Z', '05'),
+                getDefaultThread('2023-10-01T00:00:00Z', '03'),
+            ],
+            threadsThatHaveFavoritePropertyChanged: [getDefaultThread('2023-09-20T00:00:00Z', '02')],
+            moreThreadsToLoad: false,
+        };
+
+        const threadToInsert = getDefaultThread('2023-10-02T00:00:00Z', '05');
+
+        const result = insertThreadThatHasFavoritePropertyChangedToThreadListState(threadListState, threadToInsert);
+
+        expect(areThreadsSame(threadListState.threads, result.threads)).toBe(true);
+        expect(areThreadsSame(threadListState.threadsThatHaveFavoritePropertyChanged, result.threadsThatHaveFavoritePropertyChanged)).toBe(
+            true
+        );
+        expect(result.moreThreadsToLoad).toBe(threadListState.moreThreadsToLoad);
+    });
+
+    it('Insert that thread that does not exist in the thread list and newer than the oldest thread in the list', () => {
+        const threadListState: ThreadListState = {
+            threads: [
+                getDefaultThread('2023-10-05T00:00:00Z', '08'),
+                getDefaultThread('2023-10-02T00:00:00Z', '05'),
+                getDefaultThread('2023-10-01T00:00:00Z', '03'),
+            ],
+            threadsThatHaveFavoritePropertyChanged: [getDefaultThread('2023-10-04T00:00:00Z', '07')],
+            moreThreadsToLoad: false,
+        };
+
+        const threadToInsert = getDefaultThread('2023-10-04T00:00:00Z', '07');
+
+        const result = insertThreadThatHasFavoritePropertyChangedToThreadListState(threadListState, threadToInsert);
+
+        expect(
+            areThreadsSame(
+                [
+                    getDefaultThread('2023-10-05T00:00:00Z', '08'),
+                    getDefaultThread('2023-10-04T00:00:00Z', '07'),
+                    getDefaultThread('2023-10-02T00:00:00Z', '05'),
+                    getDefaultThread('2023-10-01T00:00:00Z', '03'),
+                ],
+                result.threads
+            )
+        ).toBe(true);
+        expect(areThreadsSame([], result.threadsThatHaveFavoritePropertyChanged)).toBe(true);
+        expect(result.moreThreadsToLoad).toBe(threadListState.moreThreadsToLoad);
+    });
+
+    it('Insert that thread that does not exist in the thread list, older than the oldest thread in the list and moreThreadsToLoad is true', () => {
+        const threadListState: ThreadListState = {
+            threads: [
+                getDefaultThread('2023-10-05T00:00:00Z', '08'),
+                getDefaultThread('2023-10-02T00:00:00Z', '05'),
+                getDefaultThread('2023-10-01T00:00:00Z', '03'),
+            ],
+            threadsThatHaveFavoritePropertyChanged: [getDefaultThread('2023-10-04T00:00:00Z', '07')],
+            moreThreadsToLoad: true,
+        };
+
+        const threadToInsert = getDefaultThread('2023-09-20T00:00:00Z', '01');
+
+        const result = insertThreadThatHasFavoritePropertyChangedToThreadListState(threadListState, threadToInsert);
+
+        expect(areThreadsSame(threadListState.threads, result.threads)).toBe(true);
+        expect(
+            areThreadsSame(
+                [getDefaultThread('2023-10-04T00:00:00Z', '07'), getDefaultThread('2023-09-20T00:00:00Z', '01')],
+                result.threadsThatHaveFavoritePropertyChanged
+            )
+        ).toBe(true);
+        expect(result.moreThreadsToLoad).toBe(threadListState.moreThreadsToLoad);
+    });
+
+    it('Insert that thread that does not exist in the thread list, older than the oldest thread in the list and moreThreadsToLoad is false', () => {
+        const threadListState: ThreadListState = {
+            threads: [
+                getDefaultThread('2023-10-05T00:00:00Z', '08'),
+                getDefaultThread('2023-10-02T00:00:00Z', '05'),
+                getDefaultThread('2023-10-01T00:00:00Z', '03'),
+            ],
+            threadsThatHaveFavoritePropertyChanged: [getDefaultThread('2023-09-20T00:00:00Z', '07')],
+            moreThreadsToLoad: false,
+        };
+
+        const threadToInsert = getDefaultThread('2023-09-30T00:00:00Z', '02');
+
+        const result = insertThreadThatHasFavoritePropertyChangedToThreadListState(threadListState, threadToInsert);
+
+        expect(
+            areThreadsSame(
+                [
+                    getDefaultThread('2023-10-05T00:00:00Z', '08'),
+                    getDefaultThread('2023-10-02T00:00:00Z', '05'),
+                    getDefaultThread('2023-10-01T00:00:00Z', '03'),
+                    getDefaultThread('2023-09-30T00:00:00Z', '02'),
+                ],
+                result.threads
+            )
+        ).toBe(true);
+        expect(areThreadsSame(threadListState.threadsThatHaveFavoritePropertyChanged, result.threadsThatHaveFavoritePropertyChanged)).toBe(
+            true
+        );
+        expect(result.moreThreadsToLoad).toBe(threadListState.moreThreadsToLoad);
+    });
+
+    it('Insert that thread that exists in the threadsThatHaveFavoritePropertyChanged list, older than the oldest thread in the list and moreThreadsToLoad is true ', () => {
+        const threadListState: ThreadListState = {
+            threads: [
+                getDefaultThread('2023-10-05T00:00:00Z', '08'),
+                getDefaultThread('2023-10-02T00:00:00Z', '05'),
+                getDefaultThread('2023-10-01T00:00:00Z', '03'),
+            ],
+            threadsThatHaveFavoritePropertyChanged: [getDefaultThread('2023-09-20T00:00:00Z', '07')],
+            moreThreadsToLoad: true,
+        };
+
+        const threadToInsert = getDefaultThread('2023-09-30T00:00:00Z', '07');
+
+        const result = insertThreadThatHasFavoritePropertyChangedToThreadListState(threadListState, threadToInsert);
+
+        expect(areThreadsSame(threadListState.threads, result.threads)).toBe(true);
+        expect(areThreadsSame(threadListState.threadsThatHaveFavoritePropertyChanged, result.threadsThatHaveFavoritePropertyChanged)).toBe(
+            true
+        );
+        expect(result.moreThreadsToLoad).toBe(threadListState.moreThreadsToLoad);
+    });
+});
+
+describe('pushAllThreadsThatHaveFavoritePropertyChangedToThreadLists', () => {
+    it('threadsThatHaveFavoritePropertyChange is empty', () => {
+        const threadListsState: ThreadListsState = {
+            favoriteThreadListState: {
+                threads: [getDefaultThread('2023-10-03T00:00:00Z', '06')],
+                threadsThatHaveFavoritePropertyChanged: [],
+                moreThreadsToLoad: false,
+            },
+            regularThreadListState: {
+                threads: [getDefaultThread('2023-10-02T00:00:00Z', '05')],
+                threadsThatHaveFavoritePropertyChanged: [],
+                moreThreadsToLoad: false,
+            },
+            isLoadingInitialThreads: true,
+            threadsThatHaveModifiedTimestampUpdated: [getDefaultThread('2023-10-01T00:00:00Z', '03')],
+        };
+
+        const result = pushAllThreadsThatHaveFavoritePropertyChangedToThreadLists(threadListsState);
+
+        expect(areThreadsSame(threadListsState.favoriteThreadListState.threads, result.favoriteThreadListState.threads)).toBe(true);
+        expect(
+            areThreadsSame(
+                threadListsState.favoriteThreadListState.threadsThatHaveFavoritePropertyChanged,
+                result.favoriteThreadListState.threadsThatHaveFavoritePropertyChanged
+            )
+        ).toBe(true);
+        expect(result.favoriteThreadListState.moreThreadsToLoad).toBe(threadListsState.favoriteThreadListState.moreThreadsToLoad);
+        expect(areThreadsSame(threadListsState.regularThreadListState.threads, result.regularThreadListState.threads)).toBe(true);
+        expect(
+            areThreadsSame(
+                threadListsState.regularThreadListState.threadsThatHaveFavoritePropertyChanged,
+                result.regularThreadListState.threadsThatHaveFavoritePropertyChanged
+            )
+        ).toBe(true);
+        expect(result.regularThreadListState.moreThreadsToLoad).toBe(threadListsState.regularThreadListState.moreThreadsToLoad);
+        expect(
+            areThreadsSame(threadListsState.threadsThatHaveModifiedTimestampUpdated, result.threadsThatHaveModifiedTimestampUpdated)
+        ).toBe(true);
+        expect(result.isLoadingInitialThreads).toBe(threadListsState.isLoadingInitialThreads);
+    });
+
+    it('threadsThatHaveFavoritePropertyChange has threads', () => {
+        const threadListsState: ThreadListsState = {
+            favoriteThreadListState: {
+                threads: [getDefaultThread('2023-10-05T00:00:00Z', '06')],
+                threadsThatHaveFavoritePropertyChanged: [getDefaultThread('2023-10-04T00:00:00Z', '07')],
+                moreThreadsToLoad: false,
+            },
+            regularThreadListState: {
+                threads: [getDefaultThread('2023-10-02T00:00:00Z', '05')],
+                threadsThatHaveFavoritePropertyChanged: [getDefaultThread('2023-09-30T00:00:00Z', '04')],
+                moreThreadsToLoad: false,
+            },
+            isLoadingInitialThreads: true,
+            threadsThatHaveModifiedTimestampUpdated: [getDefaultThread('2023-10-01T00:00:00Z', '03')],
+        };
+
+        const result = pushAllThreadsThatHaveFavoritePropertyChangedToThreadLists(threadListsState);
+
+        expect(
+            areThreadsSame(result.favoriteThreadListState.threads, [
+                getDefaultThread('2023-10-05T00:00:00Z', '06'),
+                getDefaultThread('2023-10-04T00:00:00Z', '07'),
+            ])
+        ).toBe(true);
+        expect(areThreadsSame(result.favoriteThreadListState.threadsThatHaveFavoritePropertyChanged, [])).toBe(true);
+        expect(result.favoriteThreadListState.moreThreadsToLoad).toBe(threadListsState.favoriteThreadListState.moreThreadsToLoad);
+        expect(
+            areThreadsSame(result.regularThreadListState.threads, [
+                getDefaultThread('2023-10-02T00:00:00Z', '05'),
+                getDefaultThread('2023-09-30T00:00:00Z', '04'),
+            ])
+        ).toBe(true);
+        expect(areThreadsSame(result.regularThreadListState.threadsThatHaveFavoritePropertyChanged, [])).toBe(true);
+        expect(result.regularThreadListState.moreThreadsToLoad).toBe(threadListsState.regularThreadListState.moreThreadsToLoad);
+        expect(
+            areThreadsSame(threadListsState.threadsThatHaveModifiedTimestampUpdated, result.threadsThatHaveModifiedTimestampUpdated)
+        ).toBe(true);
+        expect(result.isLoadingInitialThreads).toBe(threadListsState.isLoadingInitialThreads);
+    });
+});
+
+describe('pushAllThreadsThatHaveModifiedTimestampUpdatedToThreadLists', () => {
+    it('No duplications and all new threads are newer than the current newest threads', () => {
+        const threadListsState: ThreadListsState = {
+            favoriteThreadListState: {
+                threads: [getDefaultThread('2023-10-04T00:00:00Z', '07'), getDefaultThread('2023-10-03T00:00:00Z', '06')],
+                threadsThatHaveFavoritePropertyChanged: [
+                    getDefaultThread('2023-09-20T00:00:00Z', '02'),
+                    getDefaultThread('2023-09-19T00:00:00Z', '01'),
+                ],
+                moreThreadsToLoad: false,
+            },
+            regularThreadListState: {
+                threads: [getDefaultThread('2023-10-02T00:00:00Z', '05'), getDefaultThread('2023-10-01T00:00:00Z', '03')],
+                threadsThatHaveFavoritePropertyChanged: [
+                    getDefaultThread('2023-09-18T00:00:00Z', '00'),
+                    getDefaultThread('2023-09-17T00:00:00Z', 'ab'),
+                ],
+                moreThreadsToLoad: false,
+            },
+            isLoadingInitialThreads: true,
+            threadsThatHaveModifiedTimestampUpdated: [],
+        };
+
+        const newThreads: Thread[] = [getDefaultThread('2023-10-07T00:00:00Z', '09'), getDefaultThread('2023-10-06T00:00:00Z', '08')];
+
+        const { threadListsState: updatedThreadListsState } = pushAllThreadsThatHaveModifiedTimestampUpdatedToThreadLists(
+            threadListsState,
+            newThreads
+        );
+
+        expect(
+            areThreadsSame(updatedThreadListsState.favoriteThreadListState.threads, threadListsState.favoriteThreadListState.threads)
+        ).toBe(true);
+        expect(
+            areThreadsSame(
+                updatedThreadListsState.favoriteThreadListState.threadsThatHaveFavoritePropertyChanged,
+                threadListsState.favoriteThreadListState.threadsThatHaveFavoritePropertyChanged
+            )
+        ).toBe(true);
+        expect(updatedThreadListsState.favoriteThreadListState.moreThreadsToLoad).toBe(
+            threadListsState.favoriteThreadListState.moreThreadsToLoad
+        );
+        expect(
+            areThreadsSame(updatedThreadListsState.regularThreadListState.threads, [
+                getDefaultThread('2023-10-07T00:00:00Z', '09'),
+                getDefaultThread('2023-10-06T00:00:00Z', '08'),
+                getDefaultThread('2023-10-02T00:00:00Z', '05'),
+                getDefaultThread('2023-10-01T00:00:00Z', '03'),
+            ])
+        ).toBe(true);
+        expect(
+            areThreadsSame(
+                updatedThreadListsState.regularThreadListState.threadsThatHaveFavoritePropertyChanged,
+                threadListsState.regularThreadListState.threadsThatHaveFavoritePropertyChanged
+            )
+        ).toBe(true);
+        expect(updatedThreadListsState.regularThreadListState.moreThreadsToLoad).toBe(
+            threadListsState.regularThreadListState.moreThreadsToLoad
+        );
+        expect(areThreadsSame(updatedThreadListsState.threadsThatHaveModifiedTimestampUpdated, [])).toBe(true);
+        expect(updatedThreadListsState.isLoadingInitialThreads).toBe(true);
+    });
+
+    it('Duplications on both lists but new threads are outdated', () => {
+        const threadListsState: ThreadListsState = {
+            favoriteThreadListState: {
+                threads: [getDefaultThread('2023-10-04T00:00:00Z', '07'), getDefaultThread('2023-10-03T00:00:00Z', '06')],
+                threadsThatHaveFavoritePropertyChanged: [
+                    getDefaultThread('2023-09-20T00:00:00Z', '02'),
+                    getDefaultThread('2023-09-19T00:00:00Z', '01'),
+                ],
+                moreThreadsToLoad: false,
+            },
+            regularThreadListState: {
+                threads: [getDefaultThread('2023-10-02T00:00:00Z', '05'), getDefaultThread('2023-10-01T00:00:00Z', '03')],
+                threadsThatHaveFavoritePropertyChanged: [
+                    getDefaultThread('2023-09-18T00:00:00Z', '00'),
+                    getDefaultThread('2023-09-17T00:00:00Z', 'ab'),
+                ],
+                moreThreadsToLoad: false,
+            },
+            isLoadingInitialThreads: false,
+            threadsThatHaveModifiedTimestampUpdated: [],
+        };
+
+        const newThreads: Thread[] = [
+            getDefaultThread('2023-09-01T00:00:00Z', '07'),
+            getDefaultThread('2023-08-31T00:00:00Z', '01'),
+            getDefaultThread('2023-08-30T00:00:00Z', '03'),
+            getDefaultThread('2023-08-29T00:00:00Z', '00'),
+        ];
+
+        const { threadListsState: updatedThreadListsState } = pushAllThreadsThatHaveModifiedTimestampUpdatedToThreadLists(
+            threadListsState,
+            newThreads
+        );
+
+        expect(
+            areThreadsSame(updatedThreadListsState.favoriteThreadListState.threads, threadListsState.favoriteThreadListState.threads)
+        ).toBe(true);
+        expect(
+            areThreadsSame(
+                updatedThreadListsState.favoriteThreadListState.threadsThatHaveFavoritePropertyChanged,
+                threadListsState.favoriteThreadListState.threadsThatHaveFavoritePropertyChanged
+            )
+        ).toBe(true);
+        expect(updatedThreadListsState.favoriteThreadListState.moreThreadsToLoad).toBe(
+            threadListsState.favoriteThreadListState.moreThreadsToLoad
+        );
+        expect(
+            areThreadsSame(updatedThreadListsState.regularThreadListState.threads, threadListsState.regularThreadListState.threads)
+        ).toBe(true);
+        expect(
+            areThreadsSame(
+                updatedThreadListsState.regularThreadListState.threadsThatHaveFavoritePropertyChanged,
+                threadListsState.regularThreadListState.threadsThatHaveFavoritePropertyChanged
+            )
+        ).toBe(true);
+        expect(updatedThreadListsState.regularThreadListState.moreThreadsToLoad).toBe(
+            threadListsState.regularThreadListState.moreThreadsToLoad
+        );
+        expect(areThreadsSame(updatedThreadListsState.threadsThatHaveModifiedTimestampUpdated, [])).toBe(true);
+        expect(updatedThreadListsState.isLoadingInitialThreads).toBe(false);
+    });
+
+    it('Duplications on both lists and new threads are all updated', () => {
+        const threadListsState: ThreadListsState = {
+            favoriteThreadListState: {
+                threads: [getDefaultThread('2023-10-04T00:00:00Z', '07'), getDefaultThread('2023-10-03T00:00:00Z', '06')],
+                threadsThatHaveFavoritePropertyChanged: [
+                    getDefaultThread('2023-09-20T00:00:00Z', '02'),
+                    getDefaultThread('2023-09-19T00:00:00Z', '01'),
+                ],
+                moreThreadsToLoad: false,
+            },
+            regularThreadListState: {
+                threads: [getDefaultThread('2023-10-02T00:00:00Z', '05'), getDefaultThread('2023-10-01T00:00:00Z', '03')],
+                threadsThatHaveFavoritePropertyChanged: [
+                    getDefaultThread('2023-09-18T00:00:00Z', '00'),
+                    getDefaultThread('2023-09-17T00:00:00Z', 'ab'),
+                ],
+                moreThreadsToLoad: false,
+            },
+            isLoadingInitialThreads: false,
+            threadsThatHaveModifiedTimestampUpdated: [],
+        };
+
+        const newThreads: Thread[] = [
+            getDefaultThread('2023-11-30T00:00:00Z', '07'),
+            getDefaultThread('2023-11-29T00:00:00Z', '06'),
+            getDefaultThread('2023-11-28T00:00:00Z', '02'),
+            getDefaultThread('2023-11-27T00:00:00Z', '01'),
+            getDefaultThread('2023-11-26T00:00:00Z', '05'),
+            getDefaultThread('2023-11-25T00:00:00Z', '03'),
+            getDefaultThread('2023-11-18T00:00:00Z', '00'),
+            getDefaultThread('2023-11-17T00:00:00Z', 'ab'),
+        ];
+
+        const { threadListsState: updatedThreadListsState } = pushAllThreadsThatHaveModifiedTimestampUpdatedToThreadLists(
+            threadListsState,
+            newThreads
+        );
+
+        expect(
+            areThreadsSame(updatedThreadListsState.favoriteThreadListState.threads, [
+                getDefaultThread('2023-11-30T00:00:00Z', '07'),
+                getDefaultThread('2023-11-29T00:00:00Z', '06'),
+                getDefaultThread('2023-11-28T00:00:00Z', '02'),
+                getDefaultThread('2023-11-27T00:00:00Z', '01'),
+            ])
+        ).toBe(true);
+        expect(areThreadsSame(updatedThreadListsState.favoriteThreadListState.threadsThatHaveFavoritePropertyChanged, [])).toBe(true);
+        expect(updatedThreadListsState.favoriteThreadListState.moreThreadsToLoad).toBe(
+            threadListsState.favoriteThreadListState.moreThreadsToLoad
+        );
+        expect(
+            areThreadsSame(updatedThreadListsState.regularThreadListState.threads, [
+                getDefaultThread('2023-11-26T00:00:00Z', '05'),
+                getDefaultThread('2023-11-25T00:00:00Z', '03'),
+                getDefaultThread('2023-11-18T00:00:00Z', '00'),
+                getDefaultThread('2023-11-17T00:00:00Z', 'ab'),
+            ])
+        ).toBe(true);
+        expect(areThreadsSame(updatedThreadListsState.regularThreadListState.threadsThatHaveFavoritePropertyChanged, [])).toBe(true);
+        expect(updatedThreadListsState.regularThreadListState.moreThreadsToLoad).toBe(
+            threadListsState.regularThreadListState.moreThreadsToLoad
+        );
+        expect(areThreadsSame(updatedThreadListsState.threadsThatHaveModifiedTimestampUpdated, [])).toBe(true);
+        expect(updatedThreadListsState.isLoadingInitialThreads).toBe(false);
     });
 });
