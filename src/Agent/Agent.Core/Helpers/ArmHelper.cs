@@ -60,6 +60,7 @@ public class OperationDetail
 public class ArmHelper
 {
     private readonly ILogger<ArmHelper> _logger;
+    private readonly CustomerLogger _customerLogger;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IArmClientFactory _armClientFactory;
     private readonly IAuthenticationService _authService;
@@ -159,6 +160,7 @@ public class ArmHelper
     // Crawler MI is used for production environment as current solution
     public ArmHelper(
         ILogger<ArmHelper> logger,
+        CustomerLogger customerLogger,
         IHttpClientFactory httpClientFactory,
         IArmClientFactory armClientFactory,
         IAuthenticationService authService,
@@ -169,6 +171,7 @@ public class ArmHelper
         IChatClient chatClient)
     {
         _logger = logger;
+        _customerLogger = customerLogger;
         _httpClientFactory = httpClientFactory;
         _armClientFactory = armClientFactory;
         _authService = authService;
@@ -3022,6 +3025,13 @@ public class ArmHelper
     public async Task<CliExecutionResult> RunAzCliCommandsAsync(string command)
     {
         _logger.LogInternalInformation($"[RunAzCliCommandsAsync] command: {command}");
+        
+        _customerLogger.LogMessage($"Agent executing AzCLI command: {command}");
+        _customerLogger.LogCustomEvent("AgentAzCliExecution", new Dictionary<string, string>
+        {
+            { "Command", command }
+        });
+        
         // Trim any leading/trailing whitespace
         command = command.Trim();
 

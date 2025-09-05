@@ -5,6 +5,7 @@ using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
+using Agent.Logging;
 using Agent.Plugins.Interface;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.Reasoning;
@@ -21,6 +22,7 @@ namespace Agent.Web.Controllers.v1
         private readonly IThreadRepository _threadRepository;
         private readonly IKubePlugin _kubePlugin;
         private readonly ILogger<KubectlExecutionController> _logger;
+        private readonly CustomerLogger _customerLogger;
         private readonly IReasoningLoopManager _reasoningLoopManager;
         private readonly CoreSettings _coreSettings;
         private readonly IWebHostEnvironment _hostEnvironment;
@@ -32,6 +34,7 @@ namespace Agent.Web.Controllers.v1
             IReasoningLoopManager reasoningLoopManager,
             CoreSettings coreSettings,
             ILogger<KubectlExecutionController> logger,
+            CustomerLogger customerLogger,
             IWebHostEnvironment hostEnvironment,
             IAgentOutboundCommunicationService agentOutboundCommunicationService)
         {
@@ -39,6 +42,7 @@ namespace Agent.Web.Controllers.v1
             _threadRepository = threadRepository;
             _kubePlugin = kubePlugin;
             _logger = logger;
+            _customerLogger = customerLogger;
             _coreSettings = coreSettings;
             _hostEnvironment = hostEnvironment;
             _agentOutboundCommunicationService = agentOutboundCommunicationService;
@@ -64,6 +68,15 @@ namespace Agent.Web.Controllers.v1
             var execution = await _threadRepository.GetKubectlExecutionAsync(threadGuid, executionGuid);
             if (execution == null)
             {
+                _customerLogger.LogMessage($"[ChatThreadId {threadId}] Kubectl attempted execution not found: {executionId}");
+                _customerLogger.LogCustomEvent("KubectlExecution", new Dictionary<string, string>
+                {
+                    { "ChatThreadId", threadId },
+                    { "ExecutionId", executionId },
+                    { "Action", request.Action },
+                    { "User", request.User ?? string.Empty },
+                    { "Error", "Attempted execution not found" }
+                });
                 return NotFound(new { error = "Execution not found" });
             }            // Validate current status
             if (execution.Status != KubectlExecutionStatus.Pending && execution.Status != KubectlExecutionStatus.PendingAuthorization)

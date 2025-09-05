@@ -4,6 +4,7 @@
 
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Logging;
 using Agent.Runtime.Services;
 using Microsoft.AspNetCore.Mvc;
 using ArmOperations = Agent.Core.Constants.ArmOperations;
@@ -16,16 +17,19 @@ namespace Agent.Web.Controllers.v1
     {
         private readonly IApprovalService _approvalService;
         private readonly ILogger<ApprovalsController> _logger;
+        private readonly CustomerLogger _customerLogger;
         private readonly IThreadRepository _threadRepository;
 
         public ApprovalsController(
             IApprovalService approvalService,
             IThreadRepository threadRepository,
-            ILogger<ApprovalsController> logger)
+            ILogger<ApprovalsController> logger,
+            CustomerLogger customerLogger)
         {
             _approvalService = approvalService;
             _threadRepository = threadRepository;
             _logger = logger;
+            _customerLogger = customerLogger;
         }
 
         /// <summary>
@@ -76,6 +80,15 @@ namespace Agent.Web.Controllers.v1
         {
             _logger.LogInternalInformation("Submitting approval decision for thread {ThreadId} with ID: {Id}, Status: {Status}",
                 threadId, id, request.Status);
+
+            _customerLogger.LogMessage($"[ChatThreadId {threadId}] Approval decision submitted: {request.Status}");
+            _customerLogger.LogCustomEvent("ApprovalDecision", new Dictionary<string, string>
+            {
+                { "ChatThreadId", threadId },
+                { "ApprovalId", id },
+                { "Decision", request.Status },
+                { "User", request.User ?? string.Empty }
+            });
 
             if (!Enum.TryParse<ApprovalDecision>(request.Status, true, out var approvalStatus))
             {

@@ -13,6 +13,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Services;
 using Agent.Core.Configuration;
+using Agent.Logging;
 
 namespace Agent.Tests.Integration;
 public class FunctionsGraphTests
@@ -47,6 +48,7 @@ public class FunctionsGraphTests
         var mockArmLogger = new Mock<ILogger<ArmHelper>>();
         var mockHttpClientFactory = new Mock<IHttpClientFactory>();
         var mockArmClientFactory = new Mock<IArmClientFactory>();
+        var mockCustomerLogger = new Mock<CustomerLogger>();
         var mockAuthService = new Mock<IAuthenticationService>();
         var mockHostEnvironment = new Mock<IHostEnvironment>();
         var mockChatClient = new Mock<IChatClient>();
@@ -56,6 +58,7 @@ public class FunctionsGraphTests
 
         var armHelper = new ArmHelper(
             mockArmLogger.Object,
+            mockCustomerLogger.Object,
             mockHttpClientFactory.Object,
             mockArmClientFactory.Object,
             mockAuthService.Object,

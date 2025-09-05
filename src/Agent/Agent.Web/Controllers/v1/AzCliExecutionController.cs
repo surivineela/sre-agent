@@ -10,6 +10,7 @@ using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
+using Agent.Logging;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.Reasoning;
 using Microsoft.AspNetCore.Mvc;
@@ -25,6 +26,7 @@ namespace Agent.Web.Controllers.v1
         private readonly IThreadRepository _threadRepository;
         private readonly ArmHelper _armHelper;
         private readonly ILogger<AzCliExecutionController> _logger;
+        private readonly CustomerLogger _customerLogger;
         private readonly IReasoningLoopManager _reasoningLoopManager;
         private readonly CoreSettings _coreSettings;
         private readonly IHostEnvironment _hostEnvironment;
@@ -36,6 +38,7 @@ namespace Agent.Web.Controllers.v1
             IReasoningLoopManager reasoningLoopManager,
             CoreSettings coreSettings,
             ILogger<AzCliExecutionController> logger,
+            CustomerLogger customerLogger,
             IHostEnvironment hostEnvironment,
             IAgentOutboundCommunicationService agentOutboundCommunicationService
         )
@@ -44,6 +47,7 @@ namespace Agent.Web.Controllers.v1
             _threadRepository = threadRepository;
             _armHelper = armHelper;
             _logger = logger;
+            _customerLogger = customerLogger;
             _coreSettings = coreSettings;
             _hostEnvironment = hostEnvironment;
             _agentOutboundCommunicationService = agentOutboundCommunicationService;
@@ -69,8 +73,28 @@ namespace Agent.Web.Controllers.v1
             var execution = await _threadRepository.GetAzCliExecutionAsync(threadGuid, executionGuid);
             if (execution == null)
             {
+                _customerLogger.LogMessage($"[ChatThreadId {threadId}] AzCLI attempted execution not found: {executionId}");
+                _customerLogger.LogCustomEvent("AzCliExecution", new Dictionary<string, string>
+                {
+                    { "ChatThreadId", threadId },
+                    { "ExecutionId", executionId },
+                    { "Action", request.Action },
+                    { "User", request.User ?? string.Empty },
+                    { "Error", "Attempted execution not found" }
+                });
                 return NotFound(new { error = "Execution not found" });
             }
+
+            _customerLogger.LogMessage($"[ChatThreadId {threadId}] AzCLI execution action: {request.Action}");
+            _customerLogger.LogCustomEvent("AzCliExecution", new Dictionary<string, string>
+            {
+                { "ChatThreadId", threadId },
+                { "ExecutionId", executionId },
+                { "Action", request.Action },
+                { "User", request.User ?? string.Empty },
+                { "Command", execution.Command ?? string.Empty },
+                { "Status", execution.Status.ToString() }
+            });
             if (execution.Status != AzCliExecutionStatus.Pending && execution.Status != AzCliExecutionStatus.PendingAuthorization)
             {
                 return Conflict(new
@@ -162,7 +186,7 @@ namespace Agent.Web.Controllers.v1
 
                                 _logger.LogInternalInformation($"[{threadGuid}]Executing {executionGuid} with agent identity");
                                 // this is an approval (not authorization) action, use agent identitiy
-                                result = await _armHelper.RunAzCliCommandsAsync(execution.Command);
+                                result = await _armHelper.RunAzCliCommandsAsync(execution.Command ?? string.Empty);
                                 if (result.ErrorOccurred && (result.ErrorType == CliErrorType.AuthorizationError || result.ErrorType == CliErrorType.NotFoundError))
                                 {
                                     // trigger obo flow
@@ -231,7 +255,7 @@ namespace Agent.Web.Controllers.v1
                                 ToolStatic.AsyncLocalApprovalContext.Value = approvalContext;
 
                                 _logger.LogInternalInformation($"[{threadGuid}]Executing {executionGuid} with obo token");
-                                result = await _armHelper.RunAzCliCommandsAsync(execution.Command);
+                                result = await _armHelper.RunAzCliCommandsAsync(execution.Command ?? string.Empty);
                             }
 
                             execution = execution with

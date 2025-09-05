@@ -10,6 +10,7 @@ using Agent.Core.Exceptions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Services;
+using Agent.Logging;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -31,12 +32,14 @@ namespace Agent.Tests.Unit.Helpers
         private readonly Mock<IChatClient> _mockChatClient;
         private readonly Mock<ICrawlerTriggerService> _mockCrawlerTriggerService;
         private readonly Mock<ISessionPoolService> _mockSessionPoolService;
+        private readonly Mock<CustomerLogger> _mockCustomerLogger;
         private readonly HttpClient _httpClient;
 
         public ArmHelperGetDeploymentSlotsTests()
         {
             // Create all required mocks
             _mockLogger = new Mock<ILogger<ArmHelper>>();
+            _mockCustomerLogger = new Mock<CustomerLogger>();
             _mockHttpClientFactory = new Mock<IHttpClientFactory>();
             _mockHttpMessageHandler = new Mock<HttpMessageHandler>();
             _mockArmClientFactory = new Mock<IArmClientFactory>();
@@ -54,6 +57,7 @@ namespace Agent.Tests.Unit.Helpers
             // Create ArmHelper instance with mocked dependencies
             _armHelper = new ArmHelper(
                 _mockLogger.Object,
+                _mockCustomerLogger.Object,
                 _mockHttpClientFactory.Object,
                 _mockArmClientFactory.Object,
                 _mockAuthService.Object,

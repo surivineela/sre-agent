@@ -12,6 +12,7 @@ using Newtonsoft.Json.Linq;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Services;
+using Agent.Logging;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Hosting;
 using Moq.Protected;
@@ -62,6 +63,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             _mockChatClient = new Mock<IChatClient>();
             _mockCrawlerTriggerService = new Mock<ICrawlerTriggerService>();
             _mockSessionPoolService = new Mock<ISessionPoolService>();
+            var mockCustomerLogger = new Mock<CustomerLogger>();
             var mockAzureSettings = new AzureSettings();
 
             // Create HttpClient with mocked message handler
@@ -71,6 +73,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Create ArmHelper instance with mocked dependencies
             _armHelper = new ArmHelper(
                 mockArmHelperLogger.Object,
+                mockCustomerLogger.Object,
                 _mockHttpClientFactory.Object,
                 _mockArmClientFactory.Object,
                 _mockAuthService.Object,

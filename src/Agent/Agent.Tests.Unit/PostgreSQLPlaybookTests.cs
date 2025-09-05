@@ -4,6 +4,7 @@ using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Configuration;
 using Agent.Core.Services;
+using Agent.Logging;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -37,6 +38,7 @@ namespace Agent.Tests.Unit
             var mockArmClientFactory = new Mock<IArmClientFactory>();
             var mockAuthService = new Mock<IAuthenticationService>();
             var mockAzureSettings = new AzureSettings();
+            var mockCustomerLogger = new Mock<CustomerLogger>();
             var mockHostEnvironment = new Mock<IHostEnvironment>();
             var mockCrawlerTriggerService = new Mock<ICrawlerTriggerService>();
             var mockSessionPoolService = new Mock<ISessionPoolService>();
@@ -44,6 +46,7 @@ namespace Agent.Tests.Unit
 
             var armHelper = new ArmHelper(
                 mockArmLogger.Object,
+                mockCustomerLogger.Object,
                 mockHttpClientFactory.Object,
                 mockArmClientFactory.Object,
                 mockAuthService.Object,

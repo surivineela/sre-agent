@@ -7,6 +7,7 @@ using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Services;
+using Agent.Logging;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -26,6 +27,7 @@ namespace Agent.Tests.Unit.Plugins.AzCLI
         private readonly Mock<IChatClient> _mockChatClient;
         private readonly Mock<ICrawlerTriggerService> _mockCrawlerTriggerService;
         private readonly Mock<ISessionPoolService> _mockSessionPoolService;
+        private readonly Mock<CustomerLogger> _mockCustomerLogger;
 
         public AzCliTests()
         {
@@ -38,11 +40,13 @@ namespace Agent.Tests.Unit.Plugins.AzCLI
             _mockChatClient = new Mock<IChatClient>();
             _mockCrawlerTriggerService = new Mock<ICrawlerTriggerService>();
             _mockSessionPoolService = new Mock<ISessionPoolService>();
+            _mockCustomerLogger = new Mock<CustomerLogger>();
             var mockAzureSettings = new AzureSettings();
 
             // Create ArmHelper instance with mocked dependencies
             _armHelper = new ArmHelper(
                 _mockLogger.Object,
+                _mockCustomerLogger.Object,
                 _mockHttpClientFactory.Object,
                 _mockArmClientFactory.Object,
                 _mockAuthService.Object,

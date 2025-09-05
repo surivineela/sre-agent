@@ -8,6 +8,7 @@ using Agent.Core;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
+using Agent.Logging;
 using Agent.Plugins.Interface;
 using Agent.Runtime.Helpers;
 using Microsoft.Bot.Schema;
@@ -21,6 +22,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
 {
     private readonly IThreadOrchestrationManager _mappingManager;
     private readonly ILogger<OutboundCommunicationService> _logger;
+    private readonly CustomerLogger _customerLogger;
     private readonly IPostToTeamsPlugin _postToTeamsService;
     private readonly SinkService _sinkService;
     private readonly IStreamingService _streamingService;
@@ -42,12 +44,14 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
     public OutboundCommunicationService(
         IThreadOrchestrationManager mappingManager,
         ILogger<OutboundCommunicationService> logger,
+        CustomerLogger customerLogger,
         IPostToTeamsPlugin postToTeamsService,
         SinkService sinkService,
         IStreamingService streamingService)
     {
         _mappingManager = mappingManager;
         _logger = logger;
+        _customerLogger = customerLogger;
         _postToTeamsService = postToTeamsService;
         _sinkService = sinkService;
         _streamingService = streamingService;
@@ -63,6 +67,14 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         }
         _logger.LogExternalInformation("orchestrationInstanceId {orchestrationInstanceId} message to thread {ThreadId}: {Message}",
             orchestrationInstanceId, threadId, message.Text);
+        
+        _customerLogger.LogMessage($"[ChatThreadId {threadId}] Agent responding: {message.Text}");
+        _customerLogger.LogCustomEvent("AgentResponse", new Dictionary<string, string>
+        {
+            { "ChatThreadId", threadId?.ToString() ?? string.Empty },
+            { "Message", message.Text ?? string.Empty }
+        });
+        
         Guid resolvedMessageId = messageId ?? Guid.NewGuid();
         DateTime recordedDateTime = DateTime.UtcNow;
         
