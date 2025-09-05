@@ -52,7 +52,50 @@ namespace Agent.Runtime.Services
         }
 
         public abstract Task<bool> CheckConnectivity();
-        public abstract Task<List<IncidentFilterFieldOption>> ListIncidentFilterFieldOptions();
+
+        /// <summary>
+        /// Add extra filter field options specific to the incident type.
+        /// </summary>
+        /// <returns></returns>
+        protected abstract Task<List<IncidentFilterFieldOption>> GetExtraFilterFieldOptions();
+
+        /// <summary>
+        /// List all possible filter field options.
+        /// If needed, you can override this method completely in the derived class.
+        /// </summary>
+        /// <returns></returns>
+        public virtual async Task<List<IncidentFilterFieldOption>> ListIncidentFilterFieldOptions()
+        {
+            var fieldOptions = new List<IncidentFilterFieldOption>()
+            {
+                new IncidentFilterFieldOption
+                {
+                    FieldName = nameof(IncidentFilterDocumentPayload.AgentMode),
+                    DisplayName = "Agent Mode",
+                    Options = new List<KeyValuePair<string, string>>
+                    {
+                        new KeyValuePair<string, string>(AgentModes.Review, AgentModes.Review),
+                        new KeyValuePair<string, string>(AgentModes.Autonomous, AgentModes.Autonomous),
+                    }
+                }
+            };
+
+            var set = new HashSet<string>(fieldOptions.Select(r => r.FieldName));
+
+            var extraFieldOptions = await GetExtraFilterFieldOptions();
+
+            //When duplication for same fieldName, overwrite with new value if any
+            foreach (var item in extraFieldOptions)
+            {
+                if (set.Contains(item.FieldName))
+                {
+                    fieldOptions.RemoveAll(r => r.FieldName == item.FieldName);
+                }
+                fieldOptions.Add(item);
+                set.Add(item.FieldName);
+            }
+            return fieldOptions;
+        }
 
         public async Task<List<TIncidentFilterDocument>> ListIncidentFilters()
         {

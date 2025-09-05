@@ -3,7 +3,6 @@ using Agent.Core.Models.ICM;
 using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DataModels;
-using Agent.Runtime.Reasoning;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 
@@ -41,27 +40,26 @@ public class IcmIncidentFilterManagementService : IncidentFilterManagementServic
         }
     }
 
-    public override Task<List<IncidentFilterFieldOption>> ListIncidentFilterFieldOptions()
+    protected override Task<List<IncidentFilterFieldOption>> GetExtraFilterFieldOptions()
     {
+        _logger.LogInternalInformation("ListIcmIncidentFilterFieldOptions: Invoked.");
+
+        var result = new List<IncidentFilterFieldOption>();
+
+        var incidentTypeOptions = new List<KeyValuePair<string, string>>();
+        foreach (IncidentType incidentType in Enum.GetValues(typeof(IncidentType)))
         {
-            _logger.LogInternalInformation("ListIcmIncidentFilterFieldOptions: Invoked.");
+            incidentTypeOptions.Add(new KeyValuePair<string, string>(incidentType.ToString(), incidentType.ToString()));
+        }
 
-            var result = new List<IncidentFilterFieldOption>();
+        result.Add(new IncidentFilterFieldOption
+        {
+            FieldName = nameof(IcmIncidentDocument.IncidentType),
+            DisplayName = "Incident Type",
+            Options = incidentTypeOptions
+        });
 
-            var incidentTypeOptions = new List<KeyValuePair<string, string>>();
-            foreach (IncidentType incidentType in Enum.GetValues(typeof(IncidentType)))
-            {
-                incidentTypeOptions.Add(new KeyValuePair<string, string>(incidentType.ToString(), incidentType.ToString()));
-            }
-
-            result.Add(new IncidentFilterFieldOption
-            {
-                FieldName = nameof(IcmIncidentDocument.IncidentType),
-                DisplayName = "Incident Type",
-                Options = incidentTypeOptions
-            });
-
-            var priorityOptions = new List<KeyValuePair<string, string>>
+        var priorityOptions = new List<KeyValuePair<string, string>>
                 {
                     new KeyValuePair<string, string>("1", "1"),
                     new KeyValuePair<string, string>("2", "2"),
@@ -69,56 +67,42 @@ public class IcmIncidentFilterManagementService : IncidentFilterManagementServic
                     new KeyValuePair<string, string>("3", "3"),
                     new KeyValuePair<string, string>("4", "4")
                 };
-            result.Add(new IncidentFilterFieldOption
-            {
-                FieldName = nameof(IcmIncidentDocument.Priority),
-                DisplayName = "Severity",
-                Options = priorityOptions
-            });
+        result.Add(new IncidentFilterFieldOption
+        {
+            FieldName = nameof(IcmIncidentDocument.Priority),
+            DisplayName = "Severity",
+            Options = priorityOptions
+        });
 
-            result.Add(new IncidentFilterFieldOption
-            {
-                FieldName = nameof(IcmIncidentDocument.OwningServiceId),
-                DisplayName = "Owning Service Id",
-                FieldInputType = IncidentFilterInputType.TextField
-            });
+        result.Add(new IncidentFilterFieldOption
+        {
+            FieldName = nameof(IcmIncidentDocument.OwningServiceId),
+            DisplayName = "Owning Service Id",
+            FieldInputType = IncidentFilterInputType.TextField
+        });
 
-            result.Add(new IncidentFilterFieldOption
-            {
-                FieldName = nameof(IcmIncidentDocument.OwningTeam),
-                DisplayName = "Owning Team Id",
-                FieldInputType = IncidentFilterInputType.TextField
-            });
+        result.Add(new IncidentFilterFieldOption
+        {
+            FieldName = nameof(IcmIncidentDocument.OwningTeam),
+            DisplayName = "Owning Team Id",
+            FieldInputType = IncidentFilterInputType.TextField
+        });
 
-            result.Add(new IncidentFilterFieldOption
-            {
-                FieldName = nameof(IcmIncidentDocument.CreatedBy),
-                DisplayName = "Created By",
-                FieldInputType = IncidentFilterInputType.TextField
-            });
+        result.Add(new IncidentFilterFieldOption
+        {
+            FieldName = nameof(IcmIncidentDocument.CreatedBy),
+            DisplayName = "Created By",
+            FieldInputType = IncidentFilterInputType.TextField
+        });
 
-            result.Add(new IncidentFilterFieldOption
-            {
-                FieldName = nameof(IcmIncidentDocument.MonitorId),
-                DisplayName = "Monitor Id",
-                FieldInputType = IncidentFilterInputType.TextField
-            });
+        result.Add(new IncidentFilterFieldOption
+        {
+            FieldName = nameof(IcmIncidentDocument.MonitorId),
+            DisplayName = "Monitor Id",
+            FieldInputType = IncidentFilterInputType.TextField
+        });
 
-            var agentModeOptions = new List<KeyValuePair<string, string>>
-                {
-                    new KeyValuePair<string, string>(AgentModes.Review, AgentModes.Review),
-                    new KeyValuePair<string, string>(AgentModes.Autonomous, AgentModes.Autonomous),
-                };
-
-            result.Add(new IncidentFilterFieldOption
-            {
-                FieldName = "AgentMode",
-                DisplayName = "Agent Mode",
-                Options = agentModeOptions
-            });
-
-            _logger.LogInternalInformation("ListIcmIncidentFilterFieldOptions: Returning {OptionCount} field options.", result.Count);
-            return Task.FromResult(result);
-        }
+        _logger.LogInternalInformation("ListIcmIncidentFilterFieldOptions: Returning {OptionCount} field options.", result.Count);
+        return Task.FromResult(result);
     }
 }

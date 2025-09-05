@@ -37,7 +37,8 @@ public class ServiceNowIncidentFilterManagementService : IncidentFilterManagemen
             return false;
         }
     }
-    public override Task<List<IncidentFilterFieldOption>> ListIncidentFilterFieldOptions()
+
+    protected override Task<List<IncidentFilterFieldOption>> GetExtraFilterFieldOptions()
     {
         _logger.LogInternalInformation("ListServiceNowIncidentFilterFieldOptions: Invoked.");
 
@@ -51,7 +52,7 @@ public class ServiceNowIncidentFilterManagementService : IncidentFilterManagemen
 
         result.Add(new IncidentFilterFieldOption
         {
-            FieldName = "IncidentType",
+            FieldName = nameof(ServiceNowIncidentFilterDocumentPayload.IncidentType),
             DisplayName = "Incident Type",
             Options = incidentTypeOptions
         });
@@ -67,7 +68,7 @@ public class ServiceNowIncidentFilterManagementService : IncidentFilterManagemen
 
         result.Add(new IncidentFilterFieldOption
         {
-            FieldName = "Priority",
+            FieldName = nameof(ServiceNowIncidentFilterDocumentPayload.Priority),
             DisplayName = "Priority",
             Options = priorityOptions
         });
@@ -75,7 +76,7 @@ public class ServiceNowIncidentFilterManagementService : IncidentFilterManagemen
         // In a real implementation, you would fetch service list from ServiceNow
         result.Add(new IncidentFilterFieldOption
         {
-            FieldName = "ImpactedService",
+            FieldName = nameof(ServiceNowIncidentFilterDocumentPayload.ImpactedService),
             DisplayName = "Impacted Service",
             Options = new List<KeyValuePair<string, string>>()
         });
