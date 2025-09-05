@@ -11,16 +11,18 @@ import { IncidentHandlerCreateFormValues } from '../IncidentHandlerCreateFormVal
 export const FilterStep: FC = () => {
     const intl = useIntl();
 
-    const { filterMode, exitToHome, setCurrentStep, incidentTypeOptions, impactedServiceOptions, priorityOptions } = useContext(
-        IncidentHandlerConsolidatedCreateContext
-    );
+    const { filterMode, exitToHome, setCurrentStep, incidentTypeOptions, impactedServiceOptions, priorityOptions, incidentPlatform } =
+        useContext(IncidentHandlerConsolidatedCreateContext);
     const { values, setFieldValue, setFieldTouched, dirty } = useFormikContext<IncidentHandlerCreateFormValues>();
 
     const incidentTypeOptionsExtended = useMemo(() => {
-        const options = [{ key: 'ALL', display: intl.formatMessage(IncidentManagementResources.allIncidentTypes) }];
+        const options = [];
+        if (incidentPlatform !== 'Icm') {
+            options.push({ key: 'ALL', display: intl.formatMessage(IncidentManagementResources.allIncidentTypes) });
+        }
         incidentTypeOptions.forEach(option => options.push({ key: option, display: option }));
         return options;
-    }, [incidentTypeOptions, intl]);
+    }, [incidentTypeOptions, intl, incidentPlatform]);
 
     const selectedIncidentTypeDisplay = useMemo(() => {
         const key = values.incidentType || (filterMode === 'edit' ? 'ALL' : '');
@@ -53,8 +55,24 @@ export const FilterStep: FC = () => {
     }, [priorityOptionsExtended, values.priority, filterMode]);
 
     const isNextDisabled = useMemo((): boolean => {
-        return filterMode === 'create' && (!values.filterName || !values.impactedService || !values.priority || !values.incidentType);
-    }, [filterMode, values.filterName, values.impactedService, values.priority, values.incidentType]);
+        if (filterMode === 'create' && (!values.filterName || !values.impactedService || !values.priority || !values.incidentType)) {
+            return true;
+        }
+
+        if (incidentPlatform === 'Icm' && (!values.owningTeamId || !values.incidentType)) {
+            return true;
+        }
+
+        return false;
+    }, [
+        filterMode,
+        incidentPlatform,
+        values.filterName,
+        values.owningTeamId,
+        values.impactedService,
+        values.priority,
+        values.incidentType,
+    ]);
 
     return (
         <>
@@ -92,6 +110,37 @@ export const FilterStep: FC = () => {
                         {intl.formatMessage(IncidentHandlerCreateResources.filterParametersTitle)}
                     </Text>
                     <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.filterParametersDescription)}</Text>
+
+                    {incidentPlatform === 'Icm' && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                            <Field label={intl.formatMessage(IncidentManagementResources.owningTeamId)} required>
+                                <Input
+                                    name={'owningTeamId'}
+                                    value={values.owningTeamId}
+                                    onChange={(_, data) => setFieldValue('owningTeamId', data.value)}
+                                    placeholder={intl.formatMessage(IncidentManagementResources.owningTeamIdPlaceholder)}
+                                />
+                            </Field>
+
+                            <Field label={intl.formatMessage(IncidentManagementResources.monitorId)}>
+                                <Input
+                                    name={'monitorId'}
+                                    value={values.monitorId}
+                                    onChange={(_, data) => setFieldValue('monitorId', data.value)}
+                                    placeholder={intl.formatMessage(IncidentManagementResources.monitorIdPlaceholder)}
+                                />
+                            </Field>
+
+                            <Field label={intl.formatMessage(IncidentManagementResources.createdBy)}>
+                                <Input
+                                    name={'createdBy'}
+                                    value={values.createdBy}
+                                    onChange={(_, data) => setFieldValue('createdBy', data.value)}
+                                    placeholder={intl.formatMessage(IncidentManagementResources.createdByPlaceholder)}
+                                />
+                            </Field>
+                        </div>
+                    )}
 
                     <Field label={intl.formatMessage(IncidentManagementResources.incidentType)} required>
                         <Dropdown

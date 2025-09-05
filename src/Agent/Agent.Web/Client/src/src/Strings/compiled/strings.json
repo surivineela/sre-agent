@@ -85,6 +85,12 @@
       "value": "Resource group"
     }
   ],
+  "//ter/": [
+    {
+      "type": 0,
+      "value": "Enter created by alias"
+    }
+  ],
   "/2OpVO": [
     {
       "type": 0,
@@ -689,6 +695,12 @@
     {
       "type": 0,
       "value": "Start Time"
+    }
+  ],
+  "5S1JBf": [
+    {
+      "type": 0,
+      "value": "Enter owning team ID"
     }
   ],
   "5Sc5rT": [
@@ -1811,6 +1823,12 @@
       "value": "Add instructions"
     }
   ],
+  "Hv7pA2": [
+    {
+      "type": 0,
+      "value": "Monitor ID"
+    }
+  ],
   "Humfno": [
     {
       "type": 0,
@@ -2857,6 +2875,12 @@
       "value": "Autonomy level"
     }
   ],
+  "SezWLK": [
+    {
+      "type": 0,
+      "value": "Owning team ID"
+    }
+  ],
   "Sjo1P4": [
     {
       "type": 0,
@@ -3107,6 +3131,12 @@
     {
       "type": 0,
       "value": "Degraded"
+    }
+  ],
+  "VYjDXQ": [
+    {
+      "type": 0,
+      "value": "Enter monitor ID"
     }
   ],
   "Vb+qQ4": [
@@ -4757,6 +4787,12 @@
     {
       "type": 0,
       "value": "Your agent is in review mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations with your approval based on your requests."
+    }
+  ],
+  "p4mBmL": [
+    {
+      "type": 0,
+      "value": "Created by"
     }
   ],
   "p556q3": [

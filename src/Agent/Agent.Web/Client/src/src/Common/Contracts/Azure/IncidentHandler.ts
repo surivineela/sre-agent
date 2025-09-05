@@ -38,6 +38,9 @@ export interface IncidentFilterDocumentPayload {
     alertId?: string;
     titleContains?: string;
     agentMode?: AgentMode;
+    owningTeamId?: string; // only for IcM
+    createdBy?: string; // only for IcM
+    monitorId?: string; // only for IcM
 }
 
 export type IncidentDocumentType = 'ServiceNowIncident' | 'PagerDutyIncident' | 'IcmIncident' | 'AzureMonitorIncident';
@@ -89,6 +92,9 @@ export interface IncidentFilter {
     titleContains: string;
     /** If no value, will be empty string */
     agentMode?: AgentMode;
+    owningTeamId?: string; // only for IcM
+    createdBy?: string; // only for IcM
+    monitorId?: string; // only for IcM
 }
 
 export interface IncidentFilterPayload {
@@ -99,6 +105,9 @@ export interface IncidentFilterPayload {
     AlertId?: string;
     TitleContains?: string;
     AgentMode?: AgentMode;
+    OwningTeamId?: string; // only for IcM
+    CreatedBy?: string; // only for IcM
+    MonitorId?: string; // only for IcM
 }
 
 export interface TestHandlerPayload {

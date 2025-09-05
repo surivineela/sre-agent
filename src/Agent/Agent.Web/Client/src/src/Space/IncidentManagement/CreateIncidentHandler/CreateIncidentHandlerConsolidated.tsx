@@ -31,6 +31,9 @@ const CreateIncidentHandlerConsolidated: FC<CreateIncidentHandlerProps> = props 
         priority: handlerCreateOrEditInfo?.filter?.priority || undefined,
         titleContains: handlerCreateOrEditInfo?.filter?.titleContains || undefined,
         agentMode: handlerCreateOrEditInfo?.filter?.agentMode || AgentMode.review,
+        owningTeamId: handlerCreateOrEditInfo?.filter?.owningTeamId || undefined,
+        createdBy: handlerCreateOrEditInfo?.filter?.createdBy || undefined,
+        monitorId: handlerCreateOrEditInfo?.filter?.monitorId || undefined,
 
         incidentIds: undefined,
         customInstructions: undefined,

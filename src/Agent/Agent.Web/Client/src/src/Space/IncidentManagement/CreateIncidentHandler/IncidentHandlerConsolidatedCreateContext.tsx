@@ -1,5 +1,6 @@
 import React from 'react';
 import { IncidentDocument, ToolInfo } from '../../../Common/Contracts/Azure/IncidentHandler';
+import { IncidentManagementPlatform } from '../../Contracts/IncidentManagement';
 import { FilterMode, HandlerMode, TimeDuration } from './Contracts';
 
 export enum IncidentHandlerCreateSteps {
@@ -22,6 +23,7 @@ export interface IncidentHandlerTestMetadata {
 }
 
 export interface IncidentHandlerConsolidatedCreateMetadata {
+    incidentPlatform: IncidentManagementPlatform | undefined;
     exitToHome: () => void;
     goToFullEditMode: () => void;
     currentStep: IncidentHandlerCreateSteps;
@@ -59,6 +61,7 @@ export interface IncidentHandlerConsolidatedCreateMetadata {
 }
 
 export const IncidentHandlerConsolidatedCreateContext = React.createContext<IncidentHandlerConsolidatedCreateMetadata>({
+    incidentPlatform: undefined,
     exitToHome: () => {},
     goToFullEditMode: () => {}, // only used in quick edit mode
     currentStep: IncidentHandlerCreateSteps.FilterStep,

@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { getDataPlaneErrorMessage } from '../../../Common/Clients/DataPlaneClient';
@@ -6,6 +6,9 @@ import { IncidentHandlerClient } from '../../../Common/Clients/IncidentHandlerCl
 import { IncidentDocument, IncidentQueryRequest } from '../../../Common/Contracts/Azure/IncidentHandler';
 import { AgentMode, IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../../Common/Helpers/Guid';
+import { SreAgentContext } from '../../Contracts/Context';
+import { IncidentManagementPlatform } from '../../Contracts/IncidentManagement';
+import { getIncidentManagementPlatform } from '../../Settings/Hooks/useIncidentManagementSettings';
 import { HandlerCreateOrEditInfo, TimeDuration } from './Contracts';
 import { IncidentHandlerCreateFormValues } from './IncidentHandlerCreateFormValues';
 
@@ -19,6 +22,9 @@ export const useTestHandler = (
 ) => {
     const intl = useIntl();
     const azPortalContext = useContext(AzPortalContext);
+    const sreAgentContext = useContext(SreAgentContext);
+
+    const incidentPlatform = useMemo(() => getIncidentManagementPlatform(sreAgentContext.agentObj), [sreAgentContext.agentObj]);
 
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [incidents, setIncidents] = useState<IncidentDocument[]>();
@@ -42,6 +48,9 @@ export const useTestHandler = (
                 priority: values.priority === 'ALL' ? undefined : values.priority,
                 incidentType: values.incidentType === 'ALL' ? undefined : values.incidentType,
                 titleContains: values.titleContains,
+                owningTeamId: incidentPlatform === IncidentManagementPlatform.Icm ? values.owningTeamId || '' : undefined,
+                createdBy: incidentPlatform === IncidentManagementPlatform.Icm ? values.createdBy || '' : undefined,
+                monitorId: incidentPlatform === IncidentManagementPlatform.Icm ? values.monitorId || '' : undefined,
             },
             durationInDays: TimeDuration.Last90Days,
             pageSize: pageSize,
@@ -68,7 +77,17 @@ export const useTestHandler = (
         return () => {
             subscribed = false;
         };
-    }, [incidentHandlerClient, values.impactedService, values.priority, values.incidentType, values.titleContains, searchTerm]);
+    }, [
+        incidentHandlerClient,
+        values.impactedService,
+        values.priority,
+        values.incidentType,
+        values.titleContains,
+        values.owningTeamId,
+        values.createdBy,
+        values.monitorId,
+        searchTerm,
+    ]);
 
     const createTestThread = useCallback(async () => {
         azPortalContext.log({
@@ -101,6 +120,9 @@ export const useTestHandler = (
                 priority: values.priority === 'ALL' ? undefined : values.priority,
                 titleContains: values.titleContains || '',
                 agentMode: values.agentMode || AgentMode.review,
+                owningTeamId: incidentPlatform === IncidentManagementPlatform.Icm ? values.owningTeamId || '' : undefined,
+                createdBy: incidentPlatform === IncidentManagementPlatform.Icm ? values.createdBy || '' : undefined,
+                monitorId: incidentPlatform === IncidentManagementPlatform.Icm ? values.monitorId || '' : undefined,
             },
         });
 
@@ -140,6 +162,9 @@ export const useTestHandler = (
         values.priority,
         values.titleContains,
         values.agentMode,
+        values.owningTeamId,
+        values.createdBy,
+        values.monitorId,
     ]);
 
     return {

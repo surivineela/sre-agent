@@ -7,6 +7,9 @@ export interface IncidentHandlerCreateFormValues {
     priority?: string;
     titleContains?: string;
     agentMode?: AgentMode;
+    owningTeamId?: string;
+    createdBy?: string;
+    monitorId?: string;
 
     incidentIds?: string[];
     customInstructions?: string;

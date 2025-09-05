@@ -102,6 +102,9 @@ public class IcmIncidentManagementService : IncidentManagementServiceBase<IcmInc
                     owningServiceId: filter.ImpactedService,
                     titleContains: filter.TitleContains,
                     owningTeamId: filter.OwningTeamId,
+                    incidentType: filter.IncidentType,
+                    createdBy: filter.CreatedBy,
+                    monitorId: filter.MonitorId,
                     status: statusFilter
                 );
             }
@@ -116,6 +119,9 @@ public class IcmIncidentManagementService : IncidentManagementServiceBase<IcmInc
                     owningServiceId: request?.Filter?.ImpactedService,
                     titleContains: request?.Filter?.TitleContains ?? keyword,
                     owningTeamId: request?.Filter?.OwningTeamId,
+                    incidentType: request?.Filter?.IncidentType,
+                    createdBy: request?.Filter?.CreatedBy,
+                    monitorId: request?.Filter?.MonitorId,
                     status: statusFilter
                 );
             }
