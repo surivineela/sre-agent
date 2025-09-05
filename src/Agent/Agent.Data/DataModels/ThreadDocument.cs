@@ -87,4 +87,37 @@ public record ThreadDocument(
             },
             Favorite = Favorite
         };
+
+    // Lightweight conversion when message documents are not required by the caller.
+    // Returns a Thread domain model with StartMessage and LastMessage set to null
+    // and preserves metadata (timestamps, feature config, incident info, favorite, etc.).
+    public Thread ToDomainModel()
+        => new Thread(
+            Id: Guid.Parse(Id),
+            Title: Title,
+            StartMessage: null,
+            LastMessage: null,
+            CreatedTimestamp: CreatedTimestamp,
+            ModifiedTimestamp: ModifiedTimestamp,
+            FeatureConfig: FeatureConfig?.ToModel() ?? FeatureConfigModel.Default,
+            Source: Source,
+            IncidentSource: IncidentSource,
+            Type: ThreadType,
+            AgentTasks: AgentTasks
+        )
+        {
+            LastReadTime = LastReadTime,
+            EvaluatedTimestamp = EvaluatedTimestamp,
+            TrajectoryGeneratedTimestamp = TrajectoryGeneratedTimestamp,
+            AgentMode = AgentMode,
+            Status = new Status()
+            {
+                IncidentStatus = new IncidentStatus
+                {
+                    IncidentId = IncidentId,
+                    Status = IncidentStatus
+                }
+            },
+            Favorite = Favorite
+        };
 }

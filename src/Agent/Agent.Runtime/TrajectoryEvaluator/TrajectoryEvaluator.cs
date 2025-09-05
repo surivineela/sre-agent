@@ -126,10 +126,12 @@ public class TrajectoryEvaluator
     {
         try
         {
-            var allThreads = await _threadRepository.GetThreadsAsync();            // Calculate time boundaries for filtering
+            // Query repository for only threads modified within the evaluation window to reduce memory and DB pressure
             var now = DateTime.UtcNow;
             var earliestTime = now - _evaluationHistoryRange; // 24 hours ago (configurable)
             var latestTime = now - _coolDownPeriod;           // 30 minutes ago (configurable)
+
+            var allThreads = await _threadRepository.GetThreadsModifiedBetweenAsync(earliestTime, latestTime);
 
             // Filter threads that were modified in the specified time window and need evaluation
             var threads = new List<ThreadModel>();

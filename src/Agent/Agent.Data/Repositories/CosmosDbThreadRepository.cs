@@ -305,6 +305,62 @@ public class CosmosDbThreadRepository : IThreadRepository
         return threads;
     }
 
+    public async Task<IEnumerable<Thread>> GetThreadsModifiedBetweenAsync(DateTime earliestInclusive, DateTime latestInclusive, ThreadType? threadType = ThreadType.Prod, bool? favorite = null)
+    {
+        var threads = new List<Thread>();
+
+        // Query for thread documents and push modified timestamp filtering to Cosmos DB
+        IQueryable<ThreadDocument> query = _client.GetContainer<ThreadDocument>(_databaseName).GetItemLinqQueryable<ThreadDocument>()
+            .Where(t => t.DocumentType == "Thread" && t.ModifiedTimestamp >= earliestInclusive && t.ModifiedTimestamp <= latestInclusive)
+            .OrderBy(t => t.CreatedTimestamp);
+
+        if (threadType is not null)
+        {
+            if (threadType == ThreadType.Prod)
+            {
+                query = query.Where(t => t.ThreadType.IsDefined() == false || t.ThreadType == null || t.ThreadType == threadType);
+            }
+            else
+            {
+                query = query.Where(t => t.ThreadType == threadType);
+            }
+        }
+
+        if (favorite is not null)
+        {
+            if (favorite == true)
+            {
+                query = query.Where(t => t.Favorite == true);
+            }
+            else
+            {
+                query = query.Where(t => t.Favorite.IsDefined() == false || t.Favorite == false);
+            }
+        }
+
+        using var iterator = query.ToFeedIterator();
+
+        // Only fetch thread documents and map to lightweight Thread domain models.
+        // Avoid per-thread reads for start/last messages and avoid per-thread GetThreadStatus calls
+        // to minimize Cosmos DB requests. Callers who need full message data should use GetThreadsAsync or GetThreadAsync.
+        while (iterator.HasMoreResults)
+        {
+            foreach (var threadDoc in await iterator.ReadNextAsync())
+            {
+                // Map to a lightweight Thread domain model without fetching messages.
+                var thread = threadDoc.ToDomainModel();
+
+                // If incident info exists on the document, ensure IncidentStatus is preserved (ToDomainModel already sets it),
+                // but keep Status null so callers can choose to populate it if needed.
+                // We do not call GetThreadStatus here to avoid extra reads.
+
+                threads.Add(thread);
+            }
+        }
+
+        return threads;
+    }
+
     public async Task<Thread> CreateThreadAsync(Thread thread)
     {
         // Ensure IDs are set

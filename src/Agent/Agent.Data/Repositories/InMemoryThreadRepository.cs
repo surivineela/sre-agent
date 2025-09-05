@@ -152,6 +152,45 @@ namespace Agent.Data.Repositories
             return Task.FromResult(threads.AsEnumerable());
         }
 
+        public Task<IEnumerable<Thread>> GetThreadsModifiedBetweenAsync(DateTime earliestInclusive, DateTime latestInclusive, ThreadType? threadType = ThreadType.Prod, bool? favorite = null)
+        {
+            IQueryable<Thread> threads = _threads.Values.AsQueryable().OrderBy(t => t.CreatedTimestamp);
+
+            // Filter by modified timestamp window
+            threads = threads.Where(t => t.ModifiedTimestamp >= earliestInclusive && t.ModifiedTimestamp <= latestInclusive);
+
+            if (threadType is not null)
+            {
+                if (threadType == ThreadType.Prod)
+                {
+                    threads = threads.Where(t => t.Type == null || t.Type == threadType);
+                }
+                else
+                {
+                    threads = threads.Where(t => t.Type == threadType);
+                }
+            }
+
+            if (favorite is not null)
+            {
+                if (favorite == true)
+                {
+                    threads = threads.Where(t => t.Favorite == true);
+                }
+                else
+                {
+                    threads = threads.Where(t => t.Favorite == null || t.Favorite == false);
+                }
+            }
+
+            foreach (var thread in threads)
+            {
+                thread.Status = GetThreadStatusAsync(thread).Result;
+            }
+
+            return Task.FromResult(threads.AsEnumerable());
+        }
+
         public Task<Thread> CreateThreadAsync(Thread thread)
         {
             // Ensure IDs are set
@@ -942,8 +981,8 @@ namespace Agent.Data.Repositories
             }
 
             // Create updated message with new text and agent task info
-            var updatedMessage = existingMessage with 
-            { 
+            var updatedMessage = existingMessage with
+            {
                 Text = newText,
                 AgentTaskInfo = agentTaskInfo,
                 TimeStamp = DateTime.UtcNow // Update timestamp to reflect the change
@@ -958,7 +997,7 @@ namespace Agent.Data.Repositories
                 _threads[threadId] = thread with { ModifiedTimestamp = DateTime.UtcNow };
             }
 
-            _logger.LogInternalInformation("Successfully updated message {MessageId} in thread {ThreadId} with new text and agent task info", 
+            _logger.LogInternalInformation("Successfully updated message {MessageId} in thread {ThreadId} with new text and agent task info",
                 messageId, threadId);
 
             return Task.FromResult<Message?>(updatedMessage);
