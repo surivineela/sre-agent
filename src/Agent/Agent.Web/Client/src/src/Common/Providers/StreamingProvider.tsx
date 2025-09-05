@@ -160,6 +160,7 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
                 .withUrl(`${endpoint}/agentHub`, {
                     accessTokenFactory: () => AzPortalProxy.envInfo.sreAgentToken || '',
                     logMessageContent: isLocalHost,
+                    transport: signalR.HttpTransportType.WebSockets | signalR.HttpTransportType.LongPolling, // ⬅ skip SSE
                 })
                 .configureLogging({
                     log: (logLevel, message) => {
