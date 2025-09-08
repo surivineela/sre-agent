@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Agent.Core.Attributes;
+using Agent.Core.Extensions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
@@ -15,6 +16,7 @@ using Agent.Data.Repositories;
 using Agent.Framework;
 using Agent.Logging;
 using Agent.Runtime.AgentTasks.Agents;
+using Agent.Runtime.Communication;
 using Agent.Runtime.Reasoning;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -404,9 +406,27 @@ public sealed class IncidentInvestigationTaskHandler(
 
             state = await SaveStateAndStreamUpdateAsync(newStatus: AgentTaskStatus.Complete, cancellationToken: cancellationToken);
 
+
             // Stream conclusion completion
             tracingHelper.EndAgentTaskStepSpan();
             logger.LogInternalInformation("Incident investigation task {TaskId} completed successfully.", agentTask.Id);
+
+            // Post the conclusion to the thread
+            string conclusion = state.Conclusion.Title + "\n\n" + state.Conclusion.Summary;
+
+            var assistantMessage = new ChatMessage(ChatRole.Assistant, conclusion);
+            var agentChatHistory = await threadRepository.GetAgentChatHistoryAsync(context.Id);
+            if (agentChatHistory == null)
+            {
+                logger.LogInternalError("[{threadId}] AgentChatHistory is null", context.ThreadId);
+                throw new InvalidOperationException("AgentChatHistory is null");
+            }
+            var reasoningMessage = assistantMessage.GetReasoningMessage(context.Id);
+            await threadRepository.CreateReasoningMessageAsync(reasoningMessage);
+            await threadRepository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, reasoningMessage);
+            await outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                context,
+                assistantMessage);
         }
         catch (Exception e)
         {
