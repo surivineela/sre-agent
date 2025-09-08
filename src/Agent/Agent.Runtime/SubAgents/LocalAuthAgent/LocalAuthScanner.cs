@@ -92,7 +92,7 @@ public class LocalAuthScanner(
             $"{agentName} for {resourceProviderName} found issues",
             "",
             AgentTypeEnum.Meta,
-            ThreadSource.Conversation
+            ThreadSource.BestPractices
         );
 
         _logger.LogInternalInformation($"Using Agent Framework to process resources for {agentName}");

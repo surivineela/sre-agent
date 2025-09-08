@@ -205,7 +205,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 $"Daily Resources Report - {dateFormatted}\n\n",
                 report,
                 agentTypeEnum: AgentTypeEnum.Meta,
-                ThreadSource.Agent,
+                source: ThreadSource.DailyReport,
                 isDailyReport: true);
 
             _logger.LogInternalInformation("Created thread for daily report: {ThreadId}", thread.Id);

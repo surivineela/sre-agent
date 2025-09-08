@@ -68,7 +68,8 @@ namespace Agent.Runtime.SubAgents.TlsBestPracticesAgent
 
                     Preparing details...
                     """,
-                    agentTypeEnum: AgentTypeEnum.DTS);
+                    agentTypeEnum: AgentTypeEnum.DTS,
+                    ThreadSource.BestPractices);
 
 
                 var input = new TlsBestPracticesInput()

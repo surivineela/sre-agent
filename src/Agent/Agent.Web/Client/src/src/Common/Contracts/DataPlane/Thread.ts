@@ -35,4 +35,5 @@ export enum ThreadSource {
     agent = 'Agent',
     portal = 'Portal', // legacy
     dailyReport = 'DailyReport',
+    bestPractices = 'BestPractices',
 }
