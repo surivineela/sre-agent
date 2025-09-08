@@ -296,6 +296,7 @@ export const SreAgentTabResources = defineMessages({
     settings: { defaultMessage: 'Settings', id: 'D3idYv' },
     resourceMapping: { defaultMessage: 'Resource mapping', id: 'TdeXH0' },
     incidentHandlers: { defaultMessage: 'Incident handlers', id: '5/4URn' },
+    dailyReports: { defaultMessage: 'Daily reports', id: 'Z6rVz/' },
     logs: { defaultMessage: 'Logs', id: 'SNuQo7' },
     feedback: { defaultMessage: 'Give us feedback', id: 'aQPexO' },
     incidentManagement: { defaultMessage: 'Incident management', id: 'T7WpWs' },

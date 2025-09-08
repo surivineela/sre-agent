@@ -22,7 +22,6 @@ import { EnvironmentContext } from '../Common/AzPortalProxy/Providers/StartupInf
 import { AppInsightsClient } from '../Common/Clients/AppInsightsClient';
 import { AgentAccessLevel, IncidentManagementType } from '../Common/Contracts/Azure/SreAgent';
 import { ArmResourceDescriptor } from '../Common/Helpers/ResourceDescriptors';
-import { SettingNames, useConfigSetting } from '../Common/Hooks/ConfigSettings';
 import { LocalStorageFlags, useLocalStorage } from '../Common/Hooks/useLocalStorage';
 import { IncidentManagementResources, SreAgentResources, SreAgentTabResources } from '../Strings/SREAgentResources';
 import Activities from './Activities/Activities.ReactView';
@@ -146,8 +145,6 @@ const TabsListWrapper: FC = () => {
         return isIncidentManagementTeachingPopoverDismissed !== 'true';
     }, [isIncidentManagementTeachingPopoverDismissed]);
 
-    const showDailyReportsTab = useConfigSetting(SettingNames.ShowDailyReportsTab);
-
     const { controlPlaneTabsVisible, incidentManagementTabDisabled, logsTabDisabled, onLogsClick } = useControlPlaneDependentTabs({
         inStandaloneMode,
         isCrossTenantPortalMode,
@@ -264,11 +261,9 @@ const TabsListWrapper: FC = () => {
                     <Tab id="Knowledge" value={TabValues.Graph}>
                         {intl.formatMessage(SreAgentTabResources.resourceMapping)}
                     </Tab>
-                    {showDailyReportsTab && (
-                        <Tab id="DailyReports" value={TabValues.DailyReports}>
-                            {'Daily Reports'}
-                        </Tab>
-                    )}
+                    <Tab id="DailyReports" value={TabValues.DailyReports}>
+                        {intl.formatMessage(SreAgentTabResources.dailyReports)}
+                    </Tab>
                     {controlPlaneTabsVisible && (
                         <>
                             <Tab id="Settings" value={TabValues.Settings}>
