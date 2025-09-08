@@ -36,6 +36,7 @@ import { Thread } from '../../../Common/Contracts/DataPlane/Thread';
 import { TimespanKeys } from '../../../Common/Helpers/Date';
 import Url from '../../../Common/Helpers/Url';
 import { IncidentManagementResources, SreAgentResources } from '../../../Strings/SREAgentResources';
+import ThreadActionsMenu from '../../Activities/ThreadActionsMenu';
 import { useIncidentManagementStyles } from '../../Styles/IncidentManagement.styles';
 import IncidentChat from '../IncidentChat';
 import { SortColumn, useIncidentThreadList } from './useIncidentThreadList';
@@ -501,6 +502,14 @@ const IncidentsOverview: FC = () => {
                         }
                     >
                         {selectedThreadInfo?.thread.title}
+                        {selectedThreadInfo?.thread && (
+                            <ThreadActionsMenu
+                                thread={selectedThreadInfo.thread}
+                                handleThreadDelete={() => {}}
+                                hideCopyDeeplink={true}
+                                hideDelete={true}
+                            />
+                        )}
                     </DrawerHeaderTitle>
                 </DrawerHeader>
                 <DrawerBody style={{ padding: '0px 16px 0px 0px' }}>

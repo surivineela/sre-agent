@@ -9,6 +9,7 @@ import {
     DialogTrigger,
     makeStyles,
     tokens,
+    useRestoreFocusSource,
 } from '@fluentui/react-components';
 import { useContext } from 'react';
 import { useIntl } from 'react-intl';
@@ -35,9 +36,17 @@ interface DeleteThreadDialogProps {
     onOpenChange: (open: boolean) => void;
     onConfirmDelete: () => void;
     source: 'ThreadItem' | 'ThreadActionsMenu';
+    restoreFocusSourceAttributes: ReturnType<typeof useRestoreFocusSource>;
 }
 
-const DeleteThreadDialog = ({ thread, isOpen, onOpenChange, onConfirmDelete, source }: DeleteThreadDialogProps) => {
+const DeleteThreadDialog = ({
+    thread,
+    isOpen,
+    onOpenChange,
+    onConfirmDelete,
+    source,
+    restoreFocusSourceAttributes,
+}: DeleteThreadDialogProps) => {
     const { dangerButton } = useStyles();
     const intl = useIntl();
     const azPortalContext = useContext(AzPortalContext);
@@ -57,7 +66,7 @@ const DeleteThreadDialog = ({ thread, isOpen, onOpenChange, onConfirmDelete, sou
     };
 
     return (
-        <Dialog modalType="alert" open={isOpen} onOpenChange={(_, data) => onOpenChange(data.open)}>
+        <Dialog modalType="alert" open={isOpen} onOpenChange={(_, data) => onOpenChange(data.open)} {...restoreFocusSourceAttributes}>
             <DialogSurface>
                 <DialogBody>
                     <DialogTitle>{intl.formatMessage(ActivitiesThreadHeaderResources.deleteThreadDialogTitle)}</DialogTitle>

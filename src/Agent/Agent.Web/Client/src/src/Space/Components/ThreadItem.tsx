@@ -1,4 +1,13 @@
-import { Menu, MenuButton, MenuItem, MenuList, MenuPopover, MenuTrigger } from '@fluentui/react-components';
+import {
+    Menu,
+    MenuButton,
+    MenuItem,
+    MenuList,
+    MenuPopover,
+    MenuTrigger,
+    useRestoreFocusSource,
+    useRestoreFocusTarget,
+} from '@fluentui/react-components';
 import { CopyRegular, Delete20Regular, MoreHorizontal20Regular, StarOffRegular, StarRegular } from '@fluentui/react-icons';
 import { Text } from '@fluentui/react-text';
 import { mergeStyles } from '@fluentui/react/lib/Styling';
@@ -40,6 +49,9 @@ const ThreadItem = forwardRef<HTMLDivElement, IThreadItemProps>(
         const [isHovered, setIsHovered] = useState(false);
         const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
         const [isFavoriteSwitchButtonDisabled, setIsFavoriteSwitchButtonDisabled] = useState(false);
+
+        const restoreFocusSourceAttributes = useRestoreFocusSource();
+        const restoreFocusTargetAttributes = useRestoreFocusTarget();
 
         const makeTextBold = useMemo(() => {
             return isThreadUnread && !isActive;
@@ -155,6 +167,7 @@ const ThreadItem = forwardRef<HTMLDivElement, IThreadItemProps>(
                                     onClick={e => {
                                         e.stopPropagation();
                                     }}
+                                    {...restoreFocusTargetAttributes}
                                 />
                             </MenuTrigger>
                             <MenuPopover>
@@ -203,6 +216,7 @@ const ThreadItem = forwardRef<HTMLDivElement, IThreadItemProps>(
                 </Fade>
 
                 <DeleteThreadDialog
+                    restoreFocusSourceAttributes={restoreFocusSourceAttributes}
                     thread={thread}
                     isOpen={isDeleteDialogOpen}
                     onOpenChange={setIsDeleteDialogOpen}

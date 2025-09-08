@@ -13,6 +13,8 @@ import {
     MenuPopover,
     MenuTrigger,
     tokens,
+    useRestoreFocusSource,
+    useRestoreFocusTarget,
 } from '@fluentui/react-components';
 import { CopyRegular, DeleteRegular, InfoRegular, MoreHorizontal20Regular } from '@fluentui/react-icons';
 import { memo, useContext, useMemo, useState } from 'react';
@@ -62,9 +64,11 @@ const useStyles = makeStyles({
 interface ThreadActionsMenuProps {
     thread: Thread;
     handleThreadDelete: () => void;
+    hideCopyDeeplink?: boolean;
+    hideDelete?: boolean;
 }
 
-const ThreadActionsMenu = ({ thread, handleThreadDelete }: ThreadActionsMenuProps) => {
+const ThreadActionsMenu = ({ thread, handleThreadDelete, hideCopyDeeplink, hideDelete }: ThreadActionsMenuProps) => {
     const { infoContent, threadIdHighlight, section, sectionTitle } = useStyles();
     const intl = useIntl();
     const { resourceId, isCrossTenantPortalMode, sreAgentEndpoint } = useContext(EnvironmentContext);
@@ -117,6 +121,9 @@ Thread ID: ${thread.id}`;
         </div>
     );
 
+    const restoreFocusSourceAttributes = useRestoreFocusSource();
+    const restoreFocusTargetAttributes = useRestoreFocusTarget();
+
     return (
         <>
             <Menu>
@@ -126,6 +133,7 @@ Thread ID: ${thread.id}`;
                         appearance="transparent"
                         icon={<MoreHorizontal20Regular />}
                         aria-label={intl.formatMessage(SreAgentResources.moreOptions)}
+                        {...restoreFocusTargetAttributes}
                     />
                 </MenuTrigger>
                 <MenuPopover>
@@ -133,20 +141,22 @@ Thread ID: ${thread.id}`;
                         <MenuItem icon={<InfoRegular />} onClick={() => setIsInfoDialogOpen(true)}>
                             {intl.formatMessage(SreAgentResources.info)}
                         </MenuItem>
-                        {!isCrossTenantPortalMode && (
+                        {!isCrossTenantPortalMode && !hideCopyDeeplink && (
                             <MenuItem icon={<CopyRegular />} onClick={() => copyToClipboard(threadDeepLink)}>
                                 {intl.formatMessage(SreAgentResources.copyLinkToThread)}
                             </MenuItem>
                         )}
-                        <MenuItem icon={<DeleteRegular />} onClick={() => setIsDeleteDialogOpen(true)}>
-                            {intl.formatMessage(SreAgentResources.delete)}
-                        </MenuItem>
+                        {!hideDelete && (
+                            <MenuItem icon={<DeleteRegular />} onClick={() => setIsDeleteDialogOpen(true)}>
+                                {intl.formatMessage(SreAgentResources.delete)}
+                            </MenuItem>
+                        )}
                     </MenuList>
                 </MenuPopover>
             </Menu>
 
             {/* Thread info Dialog */}
-            <Dialog open={isInfoDialogOpen} onOpenChange={(_, data) => setIsInfoDialogOpen(data.open)}>
+            <Dialog open={isInfoDialogOpen} onOpenChange={(_, data) => setIsInfoDialogOpen(data.open)} {...restoreFocusSourceAttributes}>
                 <DialogSurface>
                     <DialogBody>
                         <DialogTitle>{intl.formatMessage(SreAgentResources.threadInfo)}</DialogTitle>
@@ -164,6 +174,7 @@ Thread ID: ${thread.id}`;
             </Dialog>
 
             <DeleteThreadDialog
+                restoreFocusSourceAttributes={restoreFocusSourceAttributes}
                 thread={thread}
                 isOpen={isDeleteDialogOpen}
                 onOpenChange={setIsDeleteDialogOpen}

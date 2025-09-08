@@ -1,6 +1,7 @@
 import { FC } from 'react';
 import { Thread } from '../../Common/Contracts/DataPlane/Thread';
 import { ChatBox } from '../Activities/ChatBox';
+import ThreadActionsMenu from '../Activities/ThreadActionsMenu';
 import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
 import TitleBarNavigation from './Common/TitleBarNavigation';
 
@@ -14,7 +15,13 @@ const IncidentChat: FC<IncidentChatProps> = ({ selectedThread, exitToHome, isExp
     const styles = useIncidentManagementStyles();
 
     return isExpandedView ? (
-        <TitleBarNavigation title={selectedThread.title} onBackClick={exitToHome}>
+        <TitleBarNavigation
+            title={selectedThread.title}
+            onBackClick={exitToHome}
+            titleChildren={
+                <ThreadActionsMenu thread={selectedThread} handleThreadDelete={() => {}} hideCopyDeeplink={true} hideDelete={true} />
+            }
+        >
             <div className={styles.navPanelContent}>
                 <div className={styles.incidentChatWrapper}>
                     <IncidentChatInner selectedThread={selectedThread} isAgentTaskEnabled={true} />
