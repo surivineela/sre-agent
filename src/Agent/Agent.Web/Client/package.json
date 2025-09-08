@@ -37,6 +37,7 @@
         "@xyflow/react": "^12.8.2",
         "axios": "^1.11.0",
         "elkjs": "^0.10.0",
+        "emoji-regex-xs": "^2.0.1",
         "formik": "2.4.6",
         "html-to-image": "^1.11.13",
         "lodash": "^4.17.21",
@@ -53,6 +54,7 @@
         "recharts": "^3.1.2",
         "rehype-raw": "^7.0.0",
         "remark-gfm": "^4.0.1",
+        "remove-markdown": "^0.6.2",
         "rxjs": "^7.8.2"
     },
     "devDependencies": {

@@ -2,8 +2,10 @@ import { Menu, MenuButton, MenuItem, MenuList, MenuPopover, MenuTrigger } from '
 import { CopyRegular, Delete20Regular, MoreHorizontal20Regular, StarOffRegular, StarRegular } from '@fluentui/react-icons';
 import { Text } from '@fluentui/react-text';
 import { mergeStyles } from '@fluentui/react/lib/Styling';
+import emojiRegex from 'emoji-regex-xs';
 import { forwardRef, memo, useCallback, useContext, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
+import removeMd from 'remove-markdown';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import DeleteThreadDialog from '../../Common/Components/DeleteThreadDialog';
@@ -89,6 +91,17 @@ const ThreadItem = forwardRef<HTMLDivElement, IThreadItemProps>(
             });
         }, [logAmplitudeControlEvent, thread, deleteThread]);
 
+        const cleanSubTitle = useMemo(() => {
+            const subTitle = thread.lastMessage?.text.substring(0, 128) || '';
+            const cleanString = removeMd(subTitle);
+
+            // Using emoji-regex-xs package which is a smaller version of emoji-regex to remove emojis from the string.
+            // It doesn't encompass all emojis but it is sufficient for our use case and has a smaller bundle size.
+            // If we need a more comprehensive solution in the future, we can consider using the full emoji-regex package
+            const eRegex = emojiRegex();
+            return cleanString.replace(eRegex, '');
+        }, [thread.lastMessage]);
+
         return (
             <div
                 ref={ref}
@@ -122,12 +135,12 @@ const ThreadItem = forwardRef<HTMLDivElement, IThreadItemProps>(
                         <div className={styles.subtitleContainer}>
                             <span className={styles.statusPill}>{getIncidentStatus(thread)}</span>
                             <Text className={styles.title} size={200} wrap={false} block weight={makeTextBold ? 'bold' : 'regular'}>
-                                {thread.lastMessage?.text}
+                                {cleanSubTitle}
                             </Text>
                         </div>
                     ) : (
                         <Text className={styles.title} size={200} wrap={false} block weight={makeTextBold ? 'bold' : 'regular'}>
-                            {thread.lastMessage?.text}
+                            {cleanSubTitle}
                         </Text>
                     )}
                 </div>
