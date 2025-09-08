@@ -117,12 +117,18 @@ const ThreadItem = forwardRef<HTMLDivElement, IThreadItemProps>(
         return (
             <div
                 ref={ref}
-                onClick={() => {
-                    onSelectThread();
+                onClick={e => {
+                    // Ensure that the event is only triggered when clicking on the container itself, not on its children
+                    if (e.target === e.currentTarget) {
+                        onSelectThread();
+                    }
                 }}
                 onKeyDown={e => {
                     if (e.key.toLowerCase() === 'enter') {
-                        onSelectThread();
+                        // Ensure that the event is only triggered when pressing Enter on the container itself, not on its children
+                        if (e.target === e.currentTarget) {
+                            onSelectThread();
+                        }
                         e.stopPropagation();
                     }
                 }}
