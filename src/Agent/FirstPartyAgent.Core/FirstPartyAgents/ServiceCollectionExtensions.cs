@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
+using Agent.Framework.Reasoning.Models;
 using Agent.Plugins.Kusto;
 using Agent.Plugins.Tools;
 using Agent.Runtime.MetaAgent;
@@ -75,7 +76,15 @@ public static class ServiceCollectionExtensions
         builder.Services.AddSingleton(sp =>
         {
             var kustoSettings = sp.GetRequiredService<IOptions<KustoConnector>>();
-            return kustoSettings.Value;
+            var kustoConnector = kustoSettings.Value;
+
+            // Override authentication type for development
+            if (builder.Environment.IsDevelopment())
+            {
+                kustoConnector.Auth.AuthenticationType = ConnectorAuthType.User;
+            }
+
+            return kustoConnector;
         });
     }
 
