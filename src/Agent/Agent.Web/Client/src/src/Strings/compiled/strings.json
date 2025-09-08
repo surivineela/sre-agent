@@ -1823,16 +1823,16 @@
       "value": "Add instructions"
     }
   ],
-  "Hv7pA2": [
-    {
-      "type": 0,
-      "value": "Monitor ID"
-    }
-  ],
   "Humfno": [
     {
       "type": 0,
       "value": "End date"
+    }
+  ],
+  "Hv7pA2": [
+    {
+      "type": 0,
+      "value": "Monitor ID"
     }
   ],
   "I03XmI": [
