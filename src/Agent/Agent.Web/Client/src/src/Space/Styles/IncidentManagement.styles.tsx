@@ -46,6 +46,14 @@ export const useNavStyles = makeStyles({
         '&:hover': {
             backgroundColor: tokens.colorNeutralBackground3Hover,
         },
+        '&:disabled': {
+            backgroundColor: 'transparent',
+            color: tokens.colorNeutralForegroundDisabled,
+            cursor: 'not-allowed',
+        },
+        '&:disabled:hover': {
+            backgroundColor: 'transparent',
+        },
         '::after': {
             marginInlineStart: '-8px',
         },
