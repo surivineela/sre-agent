@@ -18,6 +18,7 @@ namespace Agent.Runtime.Services
         public string DisplayName { get; set; } = string.Empty;
         public List<KeyValuePair<string, string>> Options { get; set; } = new List<KeyValuePair<string, string>>();
         public IncidentFilterInputType FieldInputType { get; set; } = IncidentFilterInputType.Dropdown;
+        public bool IsRequired { get; set; } = false;
     }
 
     public interface IIncidentFilterManagementService<TIncidentFilterDocument, TIncidentFilterPayload>

@@ -85,7 +85,8 @@ public class IcmIncidentFilterManagementService : IncidentFilterManagementServic
         {
             FieldName = nameof(IcmIncidentDocument.OwningTeam),
             DisplayName = "Owning Team Id",
-            FieldInputType = IncidentFilterInputType.TextField
+            FieldInputType = IncidentFilterInputType.TextField,
+            IsRequired = true
         });
 
         result.Add(new IncidentFilterFieldOption

@@ -105,7 +105,8 @@ public class IcmIncidentManagementService : IncidentManagementServiceBase<IcmInc
                     incidentType: filter.IncidentType,
                     createdBy: filter.CreatedBy,
                     monitorId: filter.MonitorId,
-                    status: statusFilter
+                    severity: filter.Priority,
+                    statuses: statusFilter
                 );
             }
             else
@@ -122,7 +123,8 @@ public class IcmIncidentManagementService : IncidentManagementServiceBase<IcmInc
                     incidentType: request?.Filter?.IncidentType,
                     createdBy: request?.Filter?.CreatedBy,
                     monitorId: request?.Filter?.MonitorId,
-                    status: statusFilter
+                    severity: request?.Filter?.Priority,
+                    statuses: statusFilter
                 );
             }
             _logger.LogInternalInformation(

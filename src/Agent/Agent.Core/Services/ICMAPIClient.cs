@@ -21,7 +21,7 @@ namespace Agent.Core.Services
     {
         //bool IsEnabled();
         Task<Incident> GetIncidentAsync(string incidentId);
-        Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains, string? owningTeamId = null, string? incidentType = null, string? createdBy = null, string? monitorId = null, IEnumerable<string>? status = null);
+        Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains, string? owningTeamId = null, string? incidentType = null, string? createdBy = null, string? monitorId = null, string? severity = null,IEnumerable<string>? statuses = null);
         Task<List<CustomField>> GetCustomFieldsAsync(string incidentId);
         Task<List<SearchItem>> SearchIncidentsAsync(string searchString);
         Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId);
@@ -313,7 +313,7 @@ namespace Agent.Core.Services
             }
         }
 
-        public async Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains, string? owningTeamId = null, string? incidentType = null, string? createdBy = null, string? monitorId = null, IEnumerable<string>? status = null)
+        public async Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains, string? owningTeamId = null, string? incidentType = null, string? createdBy = null, string? monitorId = null, string? severity = null,IEnumerable<string>? statuses = null)
         {
             var modifiedDate = lastModifiedDate.HasValue ? lastModifiedDate.Value : DateTime.UtcNow.AddDays(-30); // Default to 30 days ago if no date is provided
 
@@ -335,11 +335,12 @@ namespace Agent.Core.Services
             var incidentTypeFilter = !string.IsNullOrWhiteSpace(incidentType) ? $" and Type eq '{incidentType}'" : string.Empty;
             var createdByFilter = !string.IsNullOrWhiteSpace(createdBy) ? $" and CreatedBy eq '{createdBy}'" : string.Empty;
             var monitorIdFilter = !string.IsNullOrWhiteSpace(monitorId) ? $" and MonitorId eq '{monitorId}'" : string.Empty;
+            var severityFilter = !string.IsNullOrWhiteSpace(severity) ? $"and Severity eq {severity}" : string.Empty;
 
             string stateFilter = string.Empty;
-            if (status != null && status.Count() > 0)
+            if (statuses != null && statuses.Count() > 0)
             {
-                var stateConditions = status.Select(s => $"State eq '{s}'");
+                var stateConditions = statuses.Select(s => $"State eq '{s}'");
                 stateFilter = " and (" + string.Join(" or ", stateConditions) + ")";
             }
 
@@ -974,7 +975,7 @@ namespace Agent.Core.Services
             throw new NotImplementedException();
         }
 
-        public Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains, string? owningTeamId = null, string? incidentType = null, string? createdBy = null, string? monitorId = null, IEnumerable<string>? status = null)
+        public Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains, string? owningTeamId = null, string? incidentType = null, string? createdBy = null, string? monitorId = null, string? severity = null,IEnumerable<string>? statuses = null)
         {
             throw new NotImplementedException();
         }

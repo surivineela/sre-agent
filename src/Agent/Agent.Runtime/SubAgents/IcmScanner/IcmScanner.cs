@@ -129,7 +129,8 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                     string.IsNullOrWhiteSpace(filterDocument.OwningTeamId) ? null : filterDocument.OwningTeamId,
                     string.IsNullOrWhiteSpace(filterDocument.IncidentType) ? null : filterDocument.IncidentType,
                     string.IsNullOrWhiteSpace(filterDocument.CreatedBy) ? null : filterDocument.CreatedBy,
-                    string.IsNullOrWhiteSpace(filterDocument.MonitorId) ? null : filterDocument.MonitorId
+                    string.IsNullOrWhiteSpace(filterDocument.MonitorId) ? null : filterDocument.MonitorId,
+                    string.IsNullOrWhiteSpace(filterDocument.Priority) ? null : filterDocument.Priority
                 );
                 
                 if (incidents is null || incidents.Count == 0)
