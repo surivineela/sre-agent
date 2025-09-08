@@ -232,6 +232,8 @@ namespace Agent.Web.SignalR
                     }
                     };
 
+
+
                     await caller.MessageUpdate(userMessage);
 
                     switch (agentContext.AgentType)
@@ -249,6 +251,19 @@ namespace Agent.Web.SignalR
                                 ConversationModifier: request.ConversationModifier
                             ), defaultHandler: false);
                             _logger.LogInternalInformation($"Processed alert message for thread {threadId}");
+                            // Record agent action for accepted user message (incident)
+                            _logger.LogAgentAction(
+                                action: AgentActionEvents.CreateUserMessage,
+                                parameter: string.Empty,
+                                status: AgentActionStatus.Success,
+                                duration: 0,
+                                threadId: threadId.ToString(),
+                                subAgentName: string.Empty,
+                                inputToken: 0,
+                                outputToken: 0,
+                                threadSource: thread?.Source.ToString() ?? string.Empty,
+                                featureConfig: string.Empty
+                            );
                             break;
                         default:
                             _logger.LogInternalWarning($"Agent type {agentContext.AgentType} for thread {threadId}");
@@ -280,6 +295,22 @@ namespace Agent.Web.SignalR
                                 };
 
                                 await caller.Error(errorMessage);
+                            }
+                            else
+                            {
+                                // Record agent action for accepted user message (normal)
+                                _logger.LogAgentAction(
+                                    action: AgentActionEvents.CreateUserMessage,
+                                    parameter: string.Empty,
+                                    status: AgentActionStatus.Success,
+                                    duration: 0,
+                                    threadId: threadId.ToString(),
+                                    subAgentName: string.Empty,
+                                    inputToken: 0,
+                                    outputToken: 0,
+                                    threadSource: thread?.Source.ToString() ?? string.Empty,
+                                    featureConfig: string.Empty
+                                );
                             }
                             break;
                     }

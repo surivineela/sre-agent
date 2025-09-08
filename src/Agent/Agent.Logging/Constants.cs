@@ -19,5 +19,11 @@ namespace Agent.Logging
         public const string InvokeAgent = "InvokeAgent";
         public const string InvokeTool = "InvokeTool";
         public const string CriticEvaluation = "CriticEvaluation";
+        public const string CreateUserMessage = "CreateUserMessage";
+    }
+
+    public static class AgentActionStatus
+    {
+        public const string Success = "Success";
     }
 }

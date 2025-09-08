@@ -21,6 +21,7 @@ using Agent.Plugins.Interface;
 using Agent.Runtime.Reasoning;
 using Agent.Plugins.Services.Interfaces;
 using Agent.Core;
+using Agent.Logging;
 using ArmOperations = Agent.Core.Constants.ArmOperations;
 
 namespace Agent.Web.Controllers.v1
@@ -157,6 +158,20 @@ namespace Agent.Web.Controllers.v1
                 return UnprocessableEntity(new { Message = "The agent is currently busy processing your request. Please try again later." });
             }
 
+
+            logger.LogAgentAction(
+                action: AgentActionEvents.CreateUserMessage,
+                parameter: string.Empty,
+                status: AgentActionStatus.Success,
+                duration: 0,
+                threadId: threadId.ToString(),
+                subAgentName: string.Empty,
+                inputToken: 0,
+                outputToken: 0,
+                threadSource: string.Empty,
+                featureConfig: string.Empty
+            );
+
             return CreatedAtAction(
                 nameof(GetMessage),
                 new { threadId, messageId = response.MessageId },
@@ -164,7 +179,7 @@ namespace Agent.Web.Controllers.v1
                     Id: response.MessageId,
                     TimeStamp: DateTime.UtcNow,
                     Author: new Author(Role.User, request.UserId, request.DisplayName),
-                    Text: request.Text)
+                    Text: request.Text ?? string.Empty)
             );
         }
 
