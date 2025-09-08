@@ -1,4 +1,4 @@
-AllRegions('SystemLogs') 
+SystemLogs
 | where PreciseTimeStamp > ago(3h)
 | where CallerMemberName == "LogGpuRoleStatistics"
 | where Message in ("GPU VM total GPU.", "GPU VM free GPU.", "GPU VM used GPU.")
@@ -30,7 +30,7 @@ AllRegions('SystemLogs')
     T4VMUsedPercentage = round(iff(T4VMSSPoolCount > 0, (T4VMSSUsedCount * 100.0) / T4VMSSPoolCount, 0.0),2)
 | where A100VMSSPoolCount > 0 or T4VMSSPoolCount > 0
 | project Region, A100VMSSUsed, A100VMSSPoolCount, A100VMUsedPercentage, T4VMSSUsedCount, T4VMSSPoolCount, T4VMUsedPercentage
-| join kind=inner ( AllRegions('SystemLogs')
+| join kind=inner ( SystemLogs
     | where PreciseTimeStamp > ago(3h)
     | where LegionComponent == "StampControlPlane"
     | where name == "Microsoft.Legion.StampControlPlane.ComputeQuotaReportService"
