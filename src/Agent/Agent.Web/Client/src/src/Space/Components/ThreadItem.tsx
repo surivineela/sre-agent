@@ -128,6 +128,8 @@ const ThreadItem = forwardRef<HTMLDivElement, IThreadItemProps>(
                 }}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
+                onFocus={() => setIsHovered(true)}
+                onBlur={() => setIsHovered(false)}
                 id={thread.id}
                 data-testid={thread.id}
                 tabIndex={0}
