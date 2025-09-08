@@ -193,6 +193,7 @@ export const ListWithSearch: FC<ListWithFilterProps> = ({
                                 <Checkmark16Filled
                                     className="custom-checkmark"
                                     style={{ opacity: allOptionSelected && !disabled ? 1 : 0 }}
+                                    data-testid={ALL_OPTION}
                                 />
                                 <span className={styles.allItemLabel}>{allLabel}</span>
                             </ListItem>
@@ -212,6 +213,7 @@ export const ListWithSearch: FC<ListWithFilterProps> = ({
                                 <Checkmark16Filled
                                     className="custom-checkmark"
                                     style={{ opacity: selectedKeys.includes(option.key) && !disabled ? 1 : 0 }}
+                                    data-testid={option.key}
                                 />
                                 <span className={styles.itemLabel}>{option.label}</span>
                             </ListItem>

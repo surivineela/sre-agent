@@ -144,8 +144,8 @@ export const TimeRangePillFilter: FC<TimeRangePillProps> = ({
         });
         onApply({
             key: pendingSelectedKey || '',
-            start: changeToUtcTimezone(pendingStartTime),
-            end: changeToUtcTimezone(pendingEndTime),
+            start: pendingSelectedKey === TimespanKeys.Custom ? changeToUtcTimezone(pendingStartTime) : undefined,
+            end: pendingSelectedKey === TimespanKeys.Custom ? changeToUtcTimezone(pendingEndTime) : undefined,
         });
     }, [pendingSelectedKey, pendingStartTime, pendingEndTime, onApply]);
 
@@ -164,9 +164,7 @@ export const TimeRangePillFilter: FC<TimeRangePillProps> = ({
     const initializeLocalState = useCallback(() => {
         const end = selectedValue?.end ? changeToLocalTimezone(selectedValue.end) : changeToLocalTimezone(new Date());
 
-        const start = selectedValue?.start
-            ? changeToLocalTimezone(selectedValue.start)
-            : changeToLocalTimezone(new Date(end!.getTime() - 60 * 60 * 1000)); // Default to 1 hour before end time
+        const start = selectedValue?.start ? changeToLocalTimezone(selectedValue.start) : new Date(end!.getTime() - 60 * 60 * 1000); // Default to 1 hour before end time
 
         setCurrentSelectedValue({
             key: selectedValue?.key || '',
