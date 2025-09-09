@@ -2641,6 +2641,12 @@
       "value": "No incidents selected"
     }
   ],
+  "QfEnqG": [
+    {
+      "type": 0,
+      "value": "Deep investigation is turned off"
+    }
+  ],
   "Qfec1M": [
     {
       "type": 0,
@@ -3441,6 +3447,12 @@
       "value": "Monitoring Data Reader Role"
     }
   ],
+  "Z6rVz/": [
+    {
+      "type": 0,
+      "value": "Daily reports"
+    }
+  ],
   "Z7Aj91": [
     {
       "type": 0,
@@ -3721,6 +3733,12 @@
     {
       "type": 0,
       "value": "Roles"
+    }
+  ],
+  "cDjhgm": [
+    {
+      "type": 0,
+      "value": "Deep investigation is turned on"
     }
   ],
   "cRTR/A": [
@@ -4079,12 +4097,6 @@
     {
       "type": 0,
       "value": "Loading..."
-    }
-  ],
-  "gkX6rT": [
-    {
-      "type": 0,
-      "value": "Daily reports"
     }
   ],
   "gn/nvJ": [

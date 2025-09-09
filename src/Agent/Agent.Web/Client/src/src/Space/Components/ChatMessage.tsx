@@ -21,6 +21,7 @@ import AgentMessage from './AgentMessage';
 import AgentMessageLoadingComponent from './AgentMessageLoadingComponent';
 import ChatMessageFooter from './ChatMessageFooter';
 import ConnectionErrorComponent from './ConnectionErrorComponent';
+import DeepInvestigationStatusMessage from './DeepInvestigationStatusMessage';
 
 const chatMessageStyles = mergeStyleSets({
     regularMessageContent: {
@@ -147,6 +148,10 @@ const ChatMessage = ({
             )
         );
     };
+
+    if (message.contents[0]?.deepInvestigationStatus) {
+        return <DeepInvestigationStatusMessage isDeepInvestigationTurnedOn={message.contents[0].deepInvestigationStatus.enabled} />;
+    }
 
     switch (message.author.role) {
         case 'SREAgent':

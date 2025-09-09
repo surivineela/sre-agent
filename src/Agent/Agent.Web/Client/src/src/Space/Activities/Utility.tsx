@@ -680,9 +680,27 @@ export const shouldGroupWithPreviousMessage = (currentChatMessage?: ChatMessage,
     return (
         !!previousMessage &&
         !!currentChatMessage &&
+        !previousMessage.contents[0]?.deepInvestigationStatus &&
+        !currentChatMessage.contents[0]?.deepInvestigationStatus &&
         currentChatMessage.author.userId === previousMessage.author.userId &&
         getSafeDateTime(currentChatMessage.timeStamp).getTime() - getSafeDateTime(previousMessage.timeStamp).getTime() <= 5 * 60 * 1000
     );
+};
+
+export const getDefaultDeepInvestigationStatusChatMessage = (isDeepInvestigationTurnedOn: boolean): ChatMessage => {
+    return {
+        id: Guid.newGuid(),
+        timeStamp: new Date().toISOString(),
+        author: getDefaultSREAgentAuthor(),
+        contents: [
+            {
+                text: '',
+                deepInvestigationStatus: {
+                    enabled: isDeepInvestigationTurnedOn,
+                },
+            },
+        ],
+    };
 };
 
 export const getFilteredThreads = (

@@ -14,6 +14,7 @@ import {
     composeDefaultAgentMessage,
     composeUserMessage,
     constructUserMessageFromStreamingMessage,
+    getDefaultDeepInvestigationStatusChatMessage,
     getSpecialMessageContentFromStreamingMessage,
     getStreamingMessageText,
     getToolCallText,
@@ -83,7 +84,6 @@ export const useChatBox = (
     const isCancellingStreamingRef = useRef<boolean>(false);
     const addThreadRef = useRef(addThread);
     const responseEndLoggedRef = useRef<boolean>(false);
-
     const isDeepInvestigationTurnedOnRef = useRef<boolean>(isDeepInvestigationTurnedOn);
 
     const { chatHistory, isLoadingInitialChatHistory, loadOlderMessagesRef, newestMessageTimestampInOldMessages } = useChatHistory(
@@ -133,10 +133,15 @@ export const useChatBox = (
     };
 
     const onClickDeepInvestigationButton = useCallback(() => {
-        setIsDeepInvestigationTurnedOn(prev => {
-            const isTurnedOn = !prev;
-            isDeepInvestigationTurnedOnRef.current = isTurnedOn;
-            return isTurnedOn;
+        const currentValue = isDeepInvestigationTurnedOnRef.current;
+        isDeepInvestigationTurnedOnRef.current = !currentValue;
+        setIsDeepInvestigationTurnedOn(!currentValue);
+
+        pushCurrentStreamingMessageToNewMessages();
+        setNewMessages(prev => [...prev, getDefaultDeepInvestigationStatusChatMessage(!currentValue)]);
+
+        requestAnimationFrame(() => {
+            scrollToBottom(false);
         });
     }, []);
 
@@ -193,14 +198,18 @@ export const useChatBox = (
         [allMessages]
     );
 
+    const pushCurrentStreamingMessageToNewMessages = () => {
+        const currentStreamingMessage = streamingMessageRef.current;
+        setStreamingMessage(null);
+
+        if (currentStreamingMessage && !isChatMessageEmpty(currentStreamingMessage)) {
+            setNewMessages(prev => [...prev, cloneDeep(currentStreamingMessage)]);
+        }
+    };
+
     const sendMessageHandler = useCallback(
         async (message: string) => {
-            const currentStreamingMessage = streamingMessageRef.current;
-            setStreamingMessage(null);
-
-            if (currentStreamingMessage && !isChatMessageEmpty(currentStreamingMessage)) {
-                setNewMessages(prev => [...prev, cloneDeep(currentStreamingMessage)]);
-            }
+            pushCurrentStreamingMessageToNewMessages();
 
             setTemporaryUserMessage(composeUserMessage(userId, displayName, message));
             setStreamingMessage(composeDefaultAgentMessage());
@@ -557,8 +566,8 @@ export const useChatBox = (
     }, [isLoadingInitialChatHistory]);
 
     useEffect(() => {
-        setIsDeepInvestigationButtonEnabled(!isLoadingInitialChatHistory);
-    }, [isLoadingInitialChatHistory]);
+        setIsDeepInvestigationButtonEnabled(!isLoadingInitialChatHistory && !isAgentTyping);
+    }, [isLoadingInitialChatHistory, isAgentTyping]);
 
     // When old messages are added at the top of the chat history, useLayoutEffect will calculate the new scroll top
     // to make sure the chat does not scroll to top before the next paint

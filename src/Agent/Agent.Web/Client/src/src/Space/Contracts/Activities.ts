@@ -92,6 +92,9 @@ export interface IChatMessageProps {
 
 export interface ChatMessageContent extends MessageContent {
     isImage?: boolean;
+    deepInvestigationStatus?: {
+        enabled: boolean;
+    };
     error?: ChatMessageError;
 }
 
