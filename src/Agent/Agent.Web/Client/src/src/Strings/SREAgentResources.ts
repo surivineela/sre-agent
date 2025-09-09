@@ -19,6 +19,7 @@ export const SreAgentResources = defineMessages({
     add: { defaultMessage: 'Add', id: '2/2yg+' },
     new: { defaultMessage: 'New', id: 'bW7B87' },
     resources: { defaultMessage: 'Resources', id: 'c/KktL' },
+    notApplicable: { defaultMessage: 'Not applicable', id: '61zy45' },
     NA: { defaultMessage: 'N/A', id: 'PW+sL4' },
     feedbackDialogTitle: {
         id: 'Nrc9ba',
@@ -191,6 +192,9 @@ export const SreAgentResources = defineMessages({
     systemAssigned: { defaultMessage: 'System assigned', id: 'yh4G7g' },
     coreApplicationGroups: { defaultMessage: 'Core application groups', id: 'I8iKnF' },
     coreApplicationGroup: { defaultMessage: 'Core application group', id: 'pf5nil' },
+    primaryResourceName: { defaultMessage: 'Primary resource name equals', id: 'G+JlQs' },
+    primaryResourceType: { defaultMessage: 'Primary resource type equals', id: 'Wn+PVy' },
+    subscriptionEquals: { defaultMessage: 'Subscription equals', id: 'kHIJzq' },
     subscriptionId: { defaultMessage: 'Subscription ID', id: 'FUQvS0' },
     totalThreads: { defaultMessage: 'Total threads', id: 'zN87hN' },
     tasks: { defaultMessage: 'Tasks', id: 'yhU1et' },
@@ -1382,7 +1386,7 @@ export const GraphResources = defineMessages({
     },
     visualView: { defaultMessage: 'Visual view', id: 'Ua0Vpv' },
     gridView: { defaultMessage: 'Grid view', id: 'N+sJfO' },
-    tableHeaderName: { defaultMessage: 'Name', id: 'HAlOn1' },
+    tableHeaderName: { defaultMessage: 'Resource name', id: 'eqYdSS' },
     tableHeaderResourceType: { defaultMessage: 'Resource type', id: 'WHleoJ' },
     tableHeaderRepositoryConnection: { defaultMessage: 'Repository connection', id: 'FLm/x4' },
 });

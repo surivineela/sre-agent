@@ -237,3 +237,30 @@ export const getFriendlyEdgeLabel = (nodeRelations: string) => {
             return undefined;
     }
 };
+
+export const getAppGroupEffectiveType = (appGroup: ResourceExtended): string => {
+    if (!appGroup) return '';
+    const typeLower = (appGroup.type || '').toLowerCase();
+
+    // Prefer properties.kind, then root-level kind, then properties.resourceKind
+    const rawKindVal = (appGroup as any)?.properties?.kind ?? (appGroup as any)?.kind ?? (appGroup as any)?.properties?.resourceKind ?? '';
+    let kindLower = '';
+    if (Array.isArray(rawKindVal)) {
+        kindLower = rawKindVal.map(k => String(k).toLowerCase()).join(',');
+    } else if (typeof rawKindVal === 'string') {
+        kindLower = rawKindVal.toLowerCase();
+    } else if (rawKindVal && typeof rawKindVal === 'object') {
+        try {
+            kindLower = JSON.stringify(rawKindVal).toLowerCase();
+        } catch {
+            kindLower = '';
+        }
+    } else if (rawKindVal !== undefined && rawKindVal !== null) {
+        kindLower = String(rawKindVal).toLowerCase();
+    }
+
+    if (typeLower === 'microsoft.web/sites' && kindLower.includes('functionapp')) {
+        return 'functionapp';
+    }
+    return appGroup.type;
+};

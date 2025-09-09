@@ -17,6 +17,7 @@ export interface ComboboxPillFilterProps {
     allOptionLabel?: string;
     disabled?: boolean;
     onRemove?: () => void;
+    showColon?: boolean;
 }
 
 export const ComboboxPillFilter: FC<ComboboxPillFilterProps> = ({
@@ -30,6 +31,7 @@ export const ComboboxPillFilter: FC<ComboboxPillFilterProps> = ({
     allOptionLabel,
     disabled,
     onRemove,
+    showColon = true,
 }) => {
     const intl = useIntl();
     const [currentSelectedKeys, setCurrentSelectedKeys] = useState<string[]>(selectedKeys || []);
@@ -92,6 +94,7 @@ export const ComboboxPillFilter: FC<ComboboxPillFilterProps> = ({
             removeButtonAriaLabel={intl.formatMessage(SreAgentResources.pillFilterRemoveAriaLabel, { columnName: label })}
             onRemove={onRemove}
             disabled={disabled}
+            showColon={showColon}
         >
             <ListWithSearch
                 options={options}

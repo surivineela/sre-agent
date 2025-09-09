@@ -821,6 +821,12 @@
       "value": "What didn't you like about the agent's response? Your feedback helps us make the agent even better."
     }
   ],
+  "61zy45": [
+    {
+      "type": 0,
+      "value": "Not applicable"
+    }
+  ],
   "64zSh3": [
     {
       "type": 0,
@@ -1711,6 +1717,12 @@
     {
       "type": 0,
       "value": "Closed"
+    }
+  ],
+  "G+JlQs": [
+    {
+      "type": 0,
+      "value": "Primary resource name equals"
     }
   ],
   "G/yZLu": [
@@ -3261,6 +3273,12 @@
       "value": "Agent details"
     }
   ],
+  "Wn+PVy": [
+    {
+      "type": 0,
+      "value": "Primary resource type equals"
+    }
+  ],
   "WnIWxR": [
     {
       "type": 0,
@@ -3945,6 +3963,12 @@
       "value": "Manage Azure Search services."
     }
   ],
+  "eqYdSS": [
+    {
+      "type": 0,
+      "value": "Resource name"
+    }
+  ],
   "et+X02": [
     {
       "type": 0,
@@ -4447,6 +4471,12 @@
     {
       "type": 0,
       "value": "Alert ID"
+    }
+  ],
+  "kHIJzq": [
+    {
+      "type": 0,
+      "value": "Subscription equals"
     }
   ],
   "kWs94j": [

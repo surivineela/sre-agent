@@ -70,6 +70,7 @@ export const useIntegratedSelectorStyles = makeStyles({
         padding: '16px',
         width: '100%',
         boxSizing: 'border-box',
+        alignItems: 'center',
     },
     field: {
         width: '100%',
@@ -105,7 +106,7 @@ export const useGraphNodeStyles = makeStyles({
         gap: '8px',
     },
     appGroupCard: {
-        backgroundColor: tokens.colorBrandBackground2Hover,
+        backgroundColor: tokens.colorBrandBackground2,
         '&:hover': {
             backgroundColor: tokens.colorBrandBackground2Hover,
         },
@@ -124,7 +125,7 @@ export const useGraphNodeStyles = makeStyles({
     },
     cardSelected: {
         boxShadow: tokens.shadow4,
-        border: `2px solid ${tokens.colorBrandStroke1}`,
+        border: `1px solid ${tokens.colorBrandStroke2}`,
     },
     header: {
         width: `calc(${NodeSize.width}px - 24px)`,

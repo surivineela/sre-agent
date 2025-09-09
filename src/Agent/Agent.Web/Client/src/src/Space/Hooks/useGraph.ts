@@ -10,7 +10,7 @@ import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { KnowledgeGraphBuildStatusContext } from '../../Common/Providers/KnowledgeGraphBuildStatusProvider';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
 import { GraphEdge, GraphNode, Resource, ResourceExtended, Subscription } from '../Contracts/Graph';
-import { getNewNodesAndEdges, getSubscriptionIdFromNodeId } from '../Graph/Utility';
+import { getAppGroupEffectiveType, getNewNodesAndEdges, getSubscriptionIdFromNodeId } from '../Graph/Utility';
 import { useGraphLayout } from './useGraphLayout';
 
 export const useGraph = () => {
@@ -65,9 +65,11 @@ export const useGraph = () => {
         const options = [{ key: allKey, text: intl.formatMessage(SreAgentResources.all) }];
 
         if (!isAppGroupLoading && appGroups.length > 0) {
-            const uniqueTypes = new Set(appGroups.map(appGroup => appGroup.type));
+            const uniqueTypes = new Set(appGroups.map(appGroup => getAppGroupEffectiveType(appGroup)));
             uniqueTypes.forEach(type => {
-                options.push({ key: type, text: type });
+                if (type) {
+                    options.push({ key: type, text: type });
+                }
             });
         }
 
@@ -212,7 +214,7 @@ export const useGraph = () => {
         if (defaultedRscType === allKey) {
             setFilteredAppGroups(appGroups);
         } else {
-            const filteredAppGroups = appGroups.filter(appGroup => appGroup.type === defaultedRscType);
+            const filteredAppGroups = appGroups.filter(appGroup => getAppGroupEffectiveType(appGroup) === defaultedRscType);
             setFilteredAppGroups(filteredAppGroups);
 
             // Only set selection if current one is not in filtered results
@@ -337,7 +339,7 @@ export const useGraph = () => {
         if (selectedRscType === allKey) {
             setFilteredAppGroups([...appGroups]);
         } else {
-            const filteredAppGroups = appGroups.filter(appGroup => appGroup.type === selectedRscType);
+            const filteredAppGroups = appGroups.filter(appGroup => getAppGroupEffectiveType(appGroup) === selectedRscType);
             setFilteredAppGroups(filteredAppGroups);
         }
     }, [appGroups, selectedRscType, allKey]);

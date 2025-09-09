@@ -10,7 +10,7 @@ import {
     TableRow,
 } from '@fluentui/react-components';
 import { ChevronDownRegular, ChevronRightRegular } from '@fluentui/react-icons';
-import * as React from 'react';
+import { FC, useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { getResourceTypeFriendlyName } from '../../Common/Helpers/Resources';
 import { ComponentResources, GraphResources } from '../../Strings/SREAgentResources';
@@ -33,10 +33,11 @@ type ResourcesTableProps = {
     resources: Resource[];
     onLoadAppGroupResources?: (appGroupId: string) => Promise<void>;
     appGroups?: ResourceExtended[];
+    expandFirstByDefault?: boolean;
 };
 
-export const ResourcesTable: React.FC<ResourcesTableProps> = ({ resources, onLoadAppGroupResources, appGroups = [] }) => {
-    const [expanded, setExpanded] = React.useState<Record<string, boolean>>({});
+export const ResourcesTable: FC<ResourcesTableProps> = ({ resources, onLoadAppGroupResources, appGroups = [], expandFirstByDefault }) => {
+    const [expanded, setExpanded] = useState<Record<string, boolean>>({});
     const intl = useIntl();
 
     const toggleExpand = async (name: string) => {
@@ -51,6 +52,23 @@ export const ResourcesTable: React.FC<ResourcesTableProps> = ({ resources, onLoa
 
         setExpanded(prev => ({ ...prev, [name]: !prev[name] }));
     };
+
+    useEffect(() => {
+        if (expandFirstByDefault && resources.length > 0) {
+            const firstName = resources[0].name;
+            if (!expanded[firstName]) {
+                (async () => {
+                    if (onLoadAppGroupResources) {
+                        const appGroup = appGroups.find(ag => ag.name === firstName);
+                        if (appGroup) {
+                            await onLoadAppGroupResources(appGroup.id);
+                        }
+                    }
+                    setExpanded(prev => ({ ...prev, [firstName]: true }));
+                })();
+            }
+        }
+    }, [expandFirstByDefault, resources, onLoadAppGroupResources, appGroups]);
 
     return (
         <Table>

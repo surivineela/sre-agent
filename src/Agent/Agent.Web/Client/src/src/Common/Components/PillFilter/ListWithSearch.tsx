@@ -7,6 +7,7 @@ import { SreAgentResources } from '../../../Strings/SREAgentResources';
 export interface LabelKeyPair {
     label: string;
     key: string;
+    iconSrc?: string;
 }
 
 export const ALL_OPTION = 'all';
@@ -150,7 +151,7 @@ export const ListWithSearch: FC<ListWithFilterProps> = ({
                 setSelectedKeys(values);
             }
         },
-        [multiSelect, addAllOption, allOptionSelected, filteredOptions]
+        [multiSelect, addAllOption, allOptionSelected, filteredOptions, setSelectedKeys]
     );
 
     useEffect(() => {
@@ -215,6 +216,7 @@ export const ListWithSearch: FC<ListWithFilterProps> = ({
                                     style={{ opacity: selectedKeys.includes(option.key) && !disabled ? 1 : 0 }}
                                     data-testid={option.key}
                                 />
+                                {option.iconSrc && <img src={option.iconSrc} alt="" style={{ width: 16, height: 16 }} />}
                                 <span className={styles.itemLabel}>{option.label}</span>
                             </ListItem>
                         ))}

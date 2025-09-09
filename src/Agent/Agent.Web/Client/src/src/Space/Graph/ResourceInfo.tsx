@@ -27,7 +27,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
-import { isPaasResourceType } from '../../Common/Helpers/Resources';
+import { isPaasResourceType, resolveResourceIcon } from '../../Common/Helpers/Resources';
 import { ResourceInfoResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { StreamingContext } from '../Contracts/Context';
 import { GraphContext, GraphNode, ResourceExtended } from '../Contracts/Graph';
@@ -43,21 +43,37 @@ const isNullOrUndefined = (input?: unknown): boolean => {
 
 const useStyles = makeStyles({
     root: {
-        maxWidth: '300px',
+        maxWidth: '350px',
         minWidth: '150px',
         padding: '20px',
         height: 'calc(100% - 8px)',
-        backgroundColor: tokens.colorNeutralBackground3,
         flex: '1 1 auto',
         overflowY: 'auto',
         position: 'relative',
+        borderLeft: `1px solid ${tokens.colorNeutralBackground3}`,
     },
     infoContent: {
         width: '100%',
         height: '100%',
     },
     title: {
-        lineHeight: '20px',
+        lineHeight: '24px',
+        display: 'block',
+    },
+    titleRow: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: tokens.spacingHorizontalS,
+        lineHeight: 'inherit',
+    },
+    titleIcon: {
+        width: '24px',
+        height: '24px',
+        flexShrink: 0,
+        display: 'inline-block',
+        verticalAlign: 'middle',
+        position: 'relative',
+        top: '0',
     },
     content: {
         margin: '20px 0px',
@@ -122,17 +138,21 @@ const ResourceInfo = () => {
 
 const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode }) => {
     const { isLoading, isUpdating, initialRemarks, resource, onSubmit, toasterId } = useResourceInfo(selectedNode);
-    const { infoContent, title, spinner, content, dashboard, repoButton } = useStyles();
+    const { infoContent, title, spinner, content, dashboard, repoButton, titleRow, titleIcon } = useStyles();
     const intl = useIntl();
 
     const properties = resource?.properties;
 
     const isPaasResource = useMemo<boolean>(() => isPaasResourceType(resource?.type), [resource]);
+    const iconType = resource?.type || getPropertyValue(properties?.resourceKind) || getPropertyValue(properties?.resourceType);
 
     return selectedNode ? (
         <div className={infoContent}>
             <Text as="h2" size={600} weight="semibold" className={title}>
-                {selectedNode?.name ?? ''}
+                <div className={titleRow}>
+                    <img className={titleIcon} src={resolveResourceIcon(iconType)} alt={iconType || 'resource'} />
+                    <span>{selectedNode?.name ?? ''}</span>
+                </div>
             </Text>
 
             <div>

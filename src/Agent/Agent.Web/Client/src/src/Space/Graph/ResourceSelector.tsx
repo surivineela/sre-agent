@@ -1,19 +1,19 @@
 import {
-    Caption1,
-    Dropdown,
+    InfoLabel,
     MessageBar,
     MessageBarBody,
-    Option,
     OptionOnSelectData,
     SelectionEvents,
     Skeleton,
     SkeletonItem,
-    Text,
 } from '@fluentui/react-components';
 import { memo, useContext } from 'react';
 import { useIntl } from 'react-intl';
+import { ComboboxPillFilter } from '../../Common/Components/PillFilter/ComboboxPillFilter';
+import { ResourceTypeToDisplayNameMap } from '../../Common/Contracts/Azure/Permission';
+import { resolveResourceIcon } from '../../Common/Helpers/Resources';
 import { KnowledgeGraphBuildStatusContext } from '../../Common/Providers/KnowledgeGraphBuildStatusProvider';
-import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { ActivitiesResources, GraphResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { ResourceExtended, Subscription } from '../Contracts/Graph';
 import { useIntegratedSelectorStyles } from '../Styles/Graph.styles';
 
@@ -49,7 +49,7 @@ const ResourceSelector = ({
     const { hasChatPermissions, isKnowledgeGraphBuildCompleted, progressPercent } = useContext(KnowledgeGraphBuildStatusContext);
     const intl = useIntl();
 
-    const { selectorPanel, option, optionText, optionSubtext } = useIntegratedSelectorStyles();
+    const { selectorPanel } = useIntegratedSelectorStyles();
 
     const Shimmer = () => (
         <Skeleton style={{ width: '300px' }}>
@@ -62,58 +62,64 @@ const ResourceSelector = ({
             {isSubscriptionLoading ? (
                 <Shimmer />
             ) : (
-                <Dropdown
-                    value={selectedSubscription?.name}
-                    selectedOptions={selectedSubscription ? [selectedSubscription.id] : []}
-                    onOptionSelect={onSelectSubscription}
+                <ComboboxPillFilter
+                    label={intl.formatMessage(SreAgentResources.subscriptionEquals)}
+                    options={subscriptions.map(s => ({ key: s.id, label: s.name, iconSrc: resolveResourceIcon('Subscription') }))}
+                    selectedKeys={selectedSubscription ? [selectedSubscription.id] : []}
+                    onApply={keys => {
+                        const key = keys[0];
+                        if (key !== selectedSubscription?.id) {
+                            onSelectSubscription(undefined as unknown as SelectionEvents, { optionValue: key } as OptionOnSelectData);
+                        }
+                    }}
                     disabled={!hasChatPermissions}
-                >
-                    {subscriptions.map(subscription => {
-                        return (
-                            <Option key={subscription.id} value={subscription.id}>
-                                {subscription.name}
-                            </Option>
-                        );
-                    })}
-                </Dropdown>
+                    showColon={false}
+                />
             )}
 
-            <Dropdown
-                value={selectedRscType === allKey ? intl.formatMessage(SreAgentResources.all) : selectedRscType}
-                selectedOptions={selectedRscType ? [selectedRscType] : []}
-                onOptionSelect={onSelectRscType}
+            <ComboboxPillFilter
+                label={intl.formatMessage(SreAgentResources.primaryResourceType)}
+                options={(() => {
+                    const rest = resourceTypeFilterOptions.map(o => ({
+                        key: o.key,
+                        label: ResourceTypeToDisplayNameMap[o.key.toLowerCase()] || o.text,
+                        iconSrc: resolveResourceIcon(o.key),
+                    }));
+                    return [...rest];
+                })()}
+                selectedKeys={selectedRscType ? [selectedRscType] : []}
+                onApply={keys => {
+                    const key = keys[0] || allKey;
+                    if (key !== selectedRscType) {
+                        onSelectRscType(undefined as unknown as SelectionEvents, { optionValue: key } as OptionOnSelectData);
+                    }
+                }}
                 disabled={!hasChatPermissions}
-            >
-                {resourceTypeFilterOptions.map(rscTypeOption => {
-                    return (
-                        <Option key={rscTypeOption.key} value={rscTypeOption.key} text={rscTypeOption.text}>
-                            <Text className={optionText}>{rscTypeOption.text}</Text>
-                        </Option>
-                    );
-                })}
-            </Dropdown>
+                showColon={false}
+            />
 
             {isAppGroupLoading ? (
                 <Shimmer />
             ) : (
-                <Dropdown
-                    value={selectedAppGroup?.name}
-                    selectedOptions={selectedAppGroup ? [selectedAppGroup.id] : []}
-                    onOptionSelect={onSelectAppGroupDropdown}
+                <ComboboxPillFilter
+                    label={intl.formatMessage(SreAgentResources.primaryResourceName)}
+                    options={filteredAppGroups.map(ag => ({ key: ag.id, label: ag.name, iconSrc: resolveResourceIcon(ag.type) }))}
+                    selectedKeys={selectedAppGroup ? [selectedAppGroup.id] : []}
+                    onApply={keys => {
+                        const key = keys[0];
+                        if (key !== selectedAppGroup?.id) {
+                            onSelectAppGroupDropdown(undefined as unknown as SelectionEvents, { optionValue: key } as OptionOnSelectData);
+                        }
+                    }}
                     disabled={!hasChatPermissions}
-                >
-                    {filteredAppGroups.map(appGroup => {
-                        return (
-                            <Option key={appGroup.id} value={appGroup.id} text={appGroup.name}>
-                                <div className={option}>
-                                    <Text className={optionText}>{appGroup.name}</Text>
-                                    <Caption1 className={optionSubtext}>{appGroup?.type ?? 'subscription'}</Caption1>
-                                </div>
-                            </Option>
-                        );
-                    })}
-                </Dropdown>
+                    showColon={false}
+                />
             )}
+
+            <InfoLabel
+                info={intl.formatMessage(GraphResources.resourceSelectorDescription)}
+                style={{ alignSelf: 'center', paddingTop: 0 }}
+            />
 
             {!isKnowledgeGraphBuildCompleted && progressPercent !== 100 && (
                 <MessageBar layout={'multiline'}>

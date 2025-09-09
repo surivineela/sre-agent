@@ -1,9 +1,10 @@
-import { Link, SearchBox, tokens } from '@fluentui/react-components';
+import { Link, SearchBox } from '@fluentui/react-components';
 import * as React from 'react';
 import { useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { isPaasResourceType, resolveResourceIcon } from '../../Common/Helpers/Resources';
-import { ComponentResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { ComboboxPillFilter } from '../../Common/Components/PillFilter/ComboboxPillFilter';
+import { getResourceTypeFriendlyName, isPaasResourceType, resolveResourceIcon } from '../../Common/Helpers/Resources';
+import { ComponentResources, GraphResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { Resource, ResourceExtended } from '../Contracts/Graph';
 import { ConnectRepositoryLink, getRepoIcon } from './RepositoryConnectionDialog';
 import { ResourcesTable } from './ResourceTable';
@@ -46,7 +47,7 @@ const getRepositoryConnection = (resource?: Resource, appGroup?: ResourceExtende
         return <ConnectRepositoryLink resourceId={resource?.resourceId} />;
     }
 
-    return intl?.formatMessage(SreAgentResources.NA) || 'N/A';
+    return intl?.formatMessage(SreAgentResources.notApplicable) || 'N/A';
 };
 
 const createResourceTableRow = (resource: Resource, appGroup?: ResourceExtended, intl?: any) => ({
@@ -157,16 +158,14 @@ export const GraphGridView: React.FC<GraphGridViewProps> = ({
     resources = [],
     selectedAppGroup,
     appGroups = [],
-    resourceGroups = [],
     onLoadAppGroupResources,
 }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [loadingAppGroups, setLoadingAppGroups] = useState<Set<string>>(new Set());
     const [loadedAppGroupData, setLoadedAppGroupData] = useState<Map<string, { resources: Resource[] }>>(new Map());
+    const ALL_RESOURCE_TYPE_KEY = 'all';
+    const [selectedPrimaryResourceType, setSelectedPrimaryResourceType] = useState<string>(ALL_RESOURCE_TYPE_KEY);
     const intl = useIntl();
-
-    const resourceGroupsCount = resourceGroups.length;
-    const logicalAppGroupsCount = appGroups.length;
 
     const allTableResources = transformResourcesToTableFormat(
         resources,
@@ -176,6 +175,16 @@ export const GraphGridView: React.FC<GraphGridViewProps> = ({
         loadedAppGroupData,
         intl
     );
+
+    const resourceTypeFilterOptions = useMemo(() => {
+        const typeSet = new Set<string>();
+        resources.forEach(r => r.type && typeSet.add(r.type));
+        loadedAppGroupData.forEach(data => data.resources.forEach(r => r.type && typeSet.add(r.type)));
+        const typeOptions = Array.from(typeSet)
+            .sort((a, b) => getResourceTypeFriendlyName(a).localeCompare(getResourceTypeFriendlyName(b)))
+            .map(t => ({ key: t, label: getResourceTypeFriendlyName(t), iconSrc: resolveResourceIcon(t) }));
+        return [{ key: ALL_RESOURCE_TYPE_KEY, label: intl.formatMessage(SreAgentResources.all) }, ...typeOptions];
+    }, [resources, loadedAppGroupData, intl]);
 
     const handleLoadAppGroupResources = async (appGroupId: string) => {
         if (!onLoadAppGroupResources || loadingAppGroups.has(appGroupId) || loadedAppGroupData.has(appGroupId)) {
@@ -199,57 +208,54 @@ export const GraphGridView: React.FC<GraphGridViewProps> = ({
     };
 
     const filteredTableResources = useMemo(() => {
+        const typeFiltered = allTableResources.map((resource: any) => {
+            if (selectedPrimaryResourceType === ALL_RESOURCE_TYPE_KEY || resource.isLoading) {
+                return resource;
+            }
+            const filteredChildren = resource.childResources.filter((child: any) => child.resourceType === selectedPrimaryResourceType);
+            return { ...resource, childResources: filteredChildren };
+        });
+
         if (!searchQuery.trim()) {
-            return allTableResources;
+            return typeFiltered;
         }
 
         const query = searchQuery.toLowerCase();
-        return allTableResources.filter((resource: any) => {
+        return typeFiltered.filter((resource: any) => {
             if (resource.name.toLowerCase().includes(query)) {
                 return true;
             }
-
             return resource.childResources.some(
                 (child: any) => child.name.toLowerCase().includes(query) || child.resourceType.toLowerCase().includes(query)
             );
         });
-    }, [allTableResources, searchQuery]);
+    }, [allTableResources, searchQuery, selectedPrimaryResourceType]);
 
     return (
         <div style={{ padding: '20px' }}>
-            <div
-                style={{
-                    display: 'flex',
-                    gap: '80px',
-                    marginBottom: '24px',
-                }}
-            >
-                <div>
-                    <div style={{ fontSize: '14px', color: tokens.colorNeutralForeground2, marginBottom: '4px' }}>
-                        {intl.formatMessage(SreAgentResources.resourceGroups)}
-                    </div>
-                    <div style={{ fontSize: '24px', fontWeight: 'bold' }}>{resourceGroupsCount}</div>
-                </div>
-                <div>
-                    <div style={{ fontSize: '14px', color: tokens.colorNeutralForeground2, marginBottom: '4px' }}>
-                        {intl.formatMessage(SreAgentResources.coreApplicationGroups)}
-                    </div>
-                    <div style={{ fontSize: '24px', fontWeight: 'bold' }}>{logicalAppGroupsCount}</div>
-                </div>
+            <div style={{ fontSize: '14px', marginBottom: '12px', lineHeight: 1.4 }}>
+                {intl.formatMessage(GraphResources.resourceSelectorDescription)}
             </div>
-
-            <div style={{ marginBottom: '16px' }}>
+            <div style={{ marginBottom: '16px', display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
                 <SearchBox
                     placeholder={`${intl.formatMessage(SreAgentResources.search)}...`}
                     value={searchQuery}
                     onChange={(_, data) => setSearchQuery(data.value)}
                     style={{ minWidth: '330px' }}
                 />
+                <ComboboxPillFilter
+                    label={intl.formatMessage(SreAgentResources.primaryResourceType)}
+                    options={resourceTypeFilterOptions}
+                    selectedKeys={[selectedPrimaryResourceType]}
+                    onApply={keys => setSelectedPrimaryResourceType(keys[0] || ALL_RESOURCE_TYPE_KEY)}
+                    showColon={false}
+                />
             </div>
             <ResourcesTable
                 resources={filteredTableResources}
                 onLoadAppGroupResources={handleLoadAppGroupResources}
                 appGroups={appGroups}
+                expandFirstByDefault
             />
         </div>
     );

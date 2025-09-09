@@ -102,6 +102,7 @@ export interface PillProps {
     onCancelOrDismiss?: () => void;
     removeButtonAriaLabel?: string;
     onRemove?: () => void;
+    showColon?: boolean;
 }
 
 export const Pill: FC<PropsWithChildren<PillProps>> = ({
@@ -117,6 +118,7 @@ export const Pill: FC<PropsWithChildren<PillProps>> = ({
     removeButtonAriaLabel,
     onRemove,
     children,
+    showColon = true,
 }) => {
     const intl = useIntl();
     const styles = usePillStyles();
@@ -136,7 +138,10 @@ export const Pill: FC<PropsWithChildren<PillProps>> = ({
                     disabled={disabled}
                     aria-label={ariaLabel}
                 >
-                    <div className={styles.fieldLabel}>{label}:&nbsp;</div>
+                    <div className={styles.fieldLabel}>
+                        {label}
+                        {showColon ? ':' : ''}&nbsp;
+                    </div>
                     <div className={styles.fieldValue}>{value}</div>
                 </Button>
                 {onRemove && (
