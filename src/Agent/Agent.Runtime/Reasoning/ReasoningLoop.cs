@@ -510,6 +510,20 @@ public class ReasoningLoop : IDisposable
                                 _rootSpan.SetAttribute(TraceAttribute.TriggeredMessage, functionCallContent.Name);
                                 _msgSpan.SetAttribute(TraceAttribute.ToolName, functionCallContent.Name);
                                 _msgSpan.SetAttribute(TraceAttribute.ToolInput, System.Text.Json.JsonSerializer.Serialize(functionCallContent.Arguments, _toolArgumentsJsonOptions));
+
+                                // Emit agent action log for manual tool execution when receiving a function call message
+                                try
+                                {
+                                    var resolvedTool = ResolveTool(functionCallContent.Name);
+                                    if (resolvedTool != null)
+                                    {
+                                        LogToolExecution(resolvedTool);
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    _logger.LogInternalWarning(ex, "Failed to emit LogToolExecution for function call: {ToolName}", functionCallContent.Name);
+                                }
                             }
 
                             if (functionResultContent != null)
@@ -727,7 +741,6 @@ public class ReasoningLoop : IDisposable
 
                                 var azCliExecution = await _threadRepository.ListPendingAzCliExecutionAsync(_context.ThreadId);
                                 var kubectlExecution = await _threadRepository.ListPendingKubectlExecutionAsync(_context.ThreadId);
-
                                 if (azCliExecution == null && kubectlExecution == null)
                                 {
                                     toolResults.Add(new ManualToolCallResult()
@@ -735,6 +748,11 @@ public class ReasoningLoop : IDisposable
                                         FunctionCall = toolCall.FunctionCall,
                                         Output = functionResult
                                     });
+                                    var tool = toolCall.Tool;
+                                    if (tool != null)
+                                    {
+                                        LogToolExecution(tool);
+                                    }
                                 }
                                 else if (azCliExecution != null)
                                 {
@@ -1148,6 +1166,9 @@ public class ReasoningLoop : IDisposable
                         ToolStatic.AsyncLocalFunctionCallId.Value = null;
                         ToolStatic.AsyncLocalToolCallMessageId.Value = null;
                     }
+
+                    LogToolExecution((AIFunction)tool);
+
                 }
             },
 
@@ -1265,6 +1286,50 @@ public class ReasoningLoop : IDisposable
         return message;
     }
 
+    // Unified helper to log tool executions
+    private void LogToolExecution(AIFunction aiTool)
+    {
+        if (aiTool == null)
+        {
+            return;
+        }
+
+        // Some tools require approval even if they don't have the RequiresApproval attribute
+        var requiresApprovalByName = string.Equals(aiTool.Name, "RunKubectlWriteCommand", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(aiTool.Name, "RunAzCliWriteCommands", StringComparison.OrdinalIgnoreCase);
+
+        var requireApproval = requiresApprovalByName || (aiTool.UnderlyingMethod?.GetCustomAttribute<RequiresApprovalAttribute>() != null);
+
+        var statusObj = new
+        {
+            RequireApproval = requireApproval,
+            AgentMode = _agentRuntimeModifier.GetThreadAgentMode(_context),
+            ToolMode = aiTool.GetToolMode().ToString()
+        };
+
+        var statusJson = JsonSerializer.Serialize(statusObj);
+
+        try
+        {
+            _logger.LogAgentAction(
+                action: AgentActionEvents.ToolExecution,
+                parameter: aiTool.Name,
+                status: statusJson,
+                duration: 0,
+                threadId: _context.ThreadId.ToString(),
+                subAgentName: _currentAgent?.Name ?? string.Empty,
+                inputToken: 0,
+                outputToken: 0,
+                threadSource: string.Empty,
+                featureConfig: WebJsonSerializer.Serialize(_featureConfig)
+            );
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, "Failed to emit LogAgentAction for ToolExecution");
+        }
+    }
+
     private async Task ExecuteToolAsync(
         AgentChatHistory agentChatHistory,
         AIFunction aiTool,
@@ -1290,7 +1355,7 @@ public class ReasoningLoop : IDisposable
             var functionResult = await aiTool.InvokeAsync(new AIFunctionArguments(functionCall.Arguments), cancellationToken);
             var result = new FunctionResultContent(functionCall.CallId, functionResult);
             var functionCallMessage = new ChatMessage(ChatRole.Tool, [result]);
-
+            LogToolExecution(aiTool);
             // Set the tool output in the span
             toolSpan.SetAttribute(TraceAttribute.ToolOutput, functionResult?.ToString() ?? string.Empty);
 

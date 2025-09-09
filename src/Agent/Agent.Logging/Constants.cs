@@ -18,6 +18,7 @@ namespace Agent.Logging
         public const string GenerateModelResponse = "GenerateModelResponse";
         public const string InvokeAgent = "InvokeAgent";
         public const string InvokeTool = "InvokeTool";
+        public const string ToolExecution = "ToolExecution";
         public const string CriticEvaluation = "CriticEvaluation";
         public const string CreateUserMessage = "CreateUserMessage";
     }
