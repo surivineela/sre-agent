@@ -15,7 +15,7 @@ public enum RepositoryType
 public class RepositoryPluginDefintion
 {
     [Description("Based on a URL of a repository, this tool checks if a repository is a GitHub repository or an Azure DevOps repository. It returns the type of the repository as either 'GitHub' or 'AzureDevOps'. Use this tool to determine the type of a repository based on its URL.")]
-    public Task<RepositoryType> GetRepositoryType([Description("The repository URL to check, for example: ")] string repositoryUrl)
+    public Task<RepositoryType> GetRepositoryType([Description("The repository URL to check, for example: https://github.com/owner/repo or https://dev.azure.com/organization/project/_git/repository")] string repositoryUrl)
     {
         if (Regex.IsMatch(repositoryUrl, GraphService.GithubRepoRegexPattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
         {

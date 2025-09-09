@@ -52,8 +52,19 @@ handoff_description:
   - Ensure all repository actions are routed to the correct downstream agent (GitHub or Azure DevOps) based on repository type."
 
 tools:
-- GetRepositoryType
 - HandoffBack
+- GetRepositoryType
+# GitHub
+- CreateGithubIssue
+- FindConnectedGitHubRepo
+- GetIaCForGitHub
+- DisconnectRepositoryFromResourceForGitHub
+# AzDo
+- CreateAzureDevOpsWorkItem 
+- GetIaCForAzureDevOps
+- FindConnectedRepositoryForAzureDevOps
+- ConnectRepositoryToResourceForAzureDevOps
+- DisconnectRepositoryFromResourceForAzureDevOps
 
 handoffs:
   - resource_discovery_agent
