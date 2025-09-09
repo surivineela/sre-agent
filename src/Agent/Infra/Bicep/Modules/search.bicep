@@ -47,7 +47,7 @@ resource searchService 'Microsoft.Search/searchServices@2025-02-01-preview' = {
 
 // Settings
 resource searchEndpointSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
-  name: 'AppSettings:Core:Azure:Indexing:SearchEndpoint'
+  name: 'AppSettings:Core:Azure:Indexing:SearchEndpointUrl'
   parent: appConfig
   properties: {
     value: 'https://${searchService.name}.search.windows.net'

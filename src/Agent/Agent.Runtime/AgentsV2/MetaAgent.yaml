@@ -151,6 +151,7 @@ handoffs:
   - servicenow_incident_management_agent
   - source_code_analysis_agent
   - self_manual_agent
+  - kql_agent
 
 common_prompts:
   - format_guidelines
