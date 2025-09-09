@@ -517,6 +517,36 @@ public class IncidentPlaygroundController : ControllerBase
         }
     }
 
+    // ---------- Test Scanner Queue (local only) ----------
+    public sealed record EnqueueTestScannerRequest(string IncidentId, string? OwningTeamId, bool ForceTeamSpecific = false);
+
+    /// <summary>
+    /// Enqueue a test incident for IcmScanner local testing.
+    /// Active only when SREAGENT_ENABLE_ICMSCANNER_TEST_QUEUE is enabled.
+    /// </summary>
+    [HttpPost("testScanner/enqueue")]
+    [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementWriteActionId)]
+    public IActionResult EnqueueTestScannerIncident([FromBody] EnqueueTestScannerRequest req)
+    {
+        if (!IcmScannerTestQueueHelper.IsEnabled())
+        {
+            return NotFound("Test queue disabled. Set SREAGENT_ENABLE_ICMSCANNER_TEST_QUEUE=true to enable.");
+        }
+        if (req is null || string.IsNullOrWhiteSpace(req.IncidentId))
+        {
+            return BadRequest("IncidentId is required.");
+        }
+
+        var ok = IcmScannerTestQueueHelper.Enqueue(req.IncidentId, req.OwningTeamId, req.ForceTeamSpecific);
+        if (!ok)
+        {
+            return BadRequest("Failed to enqueue (possibly disabled or invalid input).");
+        }
+
+        _logger.LogInternalInformation("[IncidentPlaygroundController] Enqueued test incident {IncidentId} forceTeamSpecific={Force} owningTeamId={Team}", req.IncidentId, req.ForceTeamSpecific, req.OwningTeamId);
+        return Ok(new { enqueued = true, queueLength = IcmScannerTestQueueHelper.Count });
+    }
+
     private void MergeJsonNode(JsonNode? source, JsonNode? target, IEnumerable<string>? excludeProperties = null)
     {
         if (source is null || target is null)

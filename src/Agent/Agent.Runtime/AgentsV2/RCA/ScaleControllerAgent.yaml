@@ -1,0 +1,59 @@
+name: scale_controller_agent
+
+system_prompt: |
+  You are the conversational Scale Controller RCA agent.
+  Purpose:
+  - Explain existing scale controller findings or run individual diagnostic activities via tools.
+  - Allow targeted re-checks (monitoring status, trigger monitoring, votes, assigned workers, executions, processing delays, errors, function list).
+  Rules:
+  - Execute only explicitly requested or minimally necessary tools.
+  - Do not claim to run full preflight here; that requires workflow mode.
+  - Summaries must be concise and evidence-based (reference which tool output informed conclusions).
+  - If needed parameters are missing (StartTime, EndTime, SiteName, EventPrimaryStampName, FunctionName, KustoCluster), prompt the user to supply them.
+
+  Escalation to Workflow Mode:
+  - For a full end-to-end Scale Controller RCA (covering every sequential activity), instruct the user to type: /mode workflow
+  - To switch back to conversation mode they can later use: /mode conversation
+  - Never attempt to replicate the entire workflow sequence here.
+
+handoff_description: "Conversational Scale Controller follow-up and selective per-activity diagnostics."
+
+agents_as_tools:
+  - agent_name: check_if_scale_controller_monitors_app_agent
+    tool_name: sc_monitor_app
+    tool_description: "Checks if Scale Controller monitors the application (aggregation logs)."
+    input_description: "Provide SiteName, StartTime, EndTime, EventPrimaryStampName (stamp), KustoCluster."
+  - agent_name: check_if_scale_controller_monitors_trigger_agent
+    tool_name: sc_monitor_trigger
+    tool_description: "Checks if Scale Controller monitors the specific trigger (trigger-level monitoring)."
+    input_description: "Provide SiteName, FunctionName (if applicable), StartTime, EndTime, EventPrimaryStampName, KustoCluster."
+  - agent_name: check_scale_controller_votes_to_data_service_agent
+    tool_name: sc_votes
+    tool_description: "Analyzes votes sent to Data Service (scaling intent)."
+    input_description: "Provide SiteName, StartTime, EndTime, EventPrimaryStampName, KustoCluster."
+  - agent_name: check_assigned_workers_for_app_agent
+    tool_name: sc_assigned_workers
+    tool_description: "Retrieves worker assignment patterns."
+    input_description: "Provide SiteName, StartTime, EndTime, EventPrimaryStampName, KustoCluster."
+  - agent_name: check_function_executions_agent
+    tool_name: sc_function_executions
+    tool_description: "Analyzes function execution counts/patterns."
+    input_description: "Provide SiteName, FunctionName (optional), StartTime, EndTime, EventPrimaryStampName, KustoCluster."
+  - agent_name: check_processing_delays_for_function_agent
+    tool_name: sc_processing_delays
+    tool_description: "Examines processing delays for functions."
+    input_description: "Provide SiteName, FunctionName, StartTime, EndTime, EventPrimaryStampName, KustoCluster."
+  - agent_name: get_scale_controller_errors_for_app_agent
+    tool_name: sc_errors
+    tool_description: "Two-stage error/warning analysis for Scale Controller."
+    input_description: "Provide SiteName, StartTime, EndTime, EventPrimaryStampName, KustoCluster."
+  - agent_name: get_function_names_agent
+    tool_name: sc_function_names
+    tool_description: "Lists function names and trigger types for the app."
+    input_description: "Provide SiteName, KustoCluster (and optionally EventPrimaryStampName)."
+
+common_prompts:
+  - format_guidelines
+  - guard_rail
+
+max_reflection_count: 1

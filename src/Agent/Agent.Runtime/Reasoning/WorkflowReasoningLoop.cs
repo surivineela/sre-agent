@@ -48,7 +48,9 @@ public class WorkflowReasoningLoop : ReasoningLoop
         ISearchIndexService searchIndexService,
         FeatureConfigModel featureConfig,
         IAgentRuntimeModifier<AgentContext> agentRuntimeModifier,
-        IncidentManagementSettings incidentManagementSettings)
+    IncidentManagementSettings incidentManagementSettings,
+    CoreSettings coreSettings,
+    bool modeSwitchEnabled)
         : base(
             loggerFactory: loggerFactory,
             chatClient: chatClient,
@@ -68,7 +70,8 @@ public class WorkflowReasoningLoop : ReasoningLoop
             agentMemoryClient: agentMemoryClient,
             searchIndexService: searchIndexService,
             featureConfig: featureConfig,
-            agentRuntimeModifier: agentRuntimeModifier)
+            agentRuntimeModifier: agentRuntimeModifier,
+            modeSwitchEnabled: modeSwitchEnabled)
     {
         _workflowOrchestrator = new WorkflowOrchestrator(
             loggerFactory: loggerFactory,
@@ -79,7 +82,8 @@ public class WorkflowReasoningLoop : ReasoningLoop
             agentFactory: agentFactory,
             toolFactory: toolFactory,
             tracer: tracer,
-            incidentManagementSettings: incidentManagementSettings);
+            incidentManagementSettings: incidentManagementSettings,
+            coreSettings: coreSettings);
 
         _logger = loggerFactory.CreateLogger<WorkflowReasoningLoop>();
     }

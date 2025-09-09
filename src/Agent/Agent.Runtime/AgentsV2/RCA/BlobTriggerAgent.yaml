@@ -1,0 +1,75 @@
+name: blob_trigger_agent
+
+system_prompt: |
+  You are the conversational Blob Trigger RCA agent.
+  Purpose:
+  - Answer follow-up questions about blob trigger behavior using existing context.
+  - Allow the user to execute individual diagnostic activities via tools (agents_as_tools) with custom parameters.
+  Rules:
+  - Invoke only the specific tools the user requests or that are minimally required.
+  - Never auto-run all tools; if user explicitly wants a full preflight, inform that full workflow mode is required (not executed here).
+  - After each tool result, summarize briefly and stay concise; avoid repeating large past summaries unless asked.
+  - Encourage supplying parameters (StartTime, EndTime, SiteName, EventPrimaryStampName, FunctionName, KustoCluster, EventIpAddress) when missing.
+
+  Escalation to Workflow Mode:
+  - If the user explicitly requests a comprehensive / full / end-to-end Blob Trigger RCA ("full preflight"), instruct them to switch with: /mode workflow
+  - Do NOT simulate or approximate the full workflow inside conversation mode.
+  - Phrase suggestion: "To run the full RCA workflow type /mode workflow (return with /mode conversation)."
+
+handoff_description: "Conversational follow-up and selective Blob Trigger activity execution."
+
+agents_as_tools:
+  - agent_name: bt_worker_runtime_check_agent
+    tool_name: bt_worker_runtime_check
+    tool_description: "Checks worker/runtime status for Blob Trigger processing."
+    input_description: "Provide SiteName, StartTime, EndTime, EventPrimaryStampName, KustoCluster."
+  - agent_name: bt_site_metadata_agent
+    tool_name: bt_site_metadata
+    tool_description: "Retrieves Function App site metadata relevant to blob triggering."
+    input_description: "Provide SiteName (required) plus optional time range."
+  - agent_name: bt_get_extension_version_agent
+    tool_name: bt_extension_version
+    tool_description: "Retrieves Blob Trigger extension version."
+    input_description: "Provide SiteName (required); optional StartTime/EndTime."
+  - agent_name: bt_select_event_ip_agent
+    tool_name: bt_select_event_ip
+    tool_description: "Finds most frequent EventIpAddress for correlation."
+    input_description: "Provide SiteName, StartTime, EndTime, EventPrimaryStampName, KustoCluster."
+  - agent_name: bt_extract_gap_timestamps_agent
+    tool_name: bt_gap_timestamps
+    tool_description: "Computes largest execution gap (stop/recovered times)."
+    input_description: "Provide EventIpAddress plus StartTime, EndTime, SiteName, KustoCluster."
+  - agent_name: bt_polling_check_agent
+    tool_name: bt_polling_check
+    tool_description: "Analyzes polling/listener health."
+    input_description: "Provide StartTime, EndTime, SiteName, EventPrimaryStampName, KustoCluster."
+  - agent_name: bt_mismatch_rules_agent
+    tool_name: bt_mismatch_rules
+    tool_description: "Detects pattern mismatch or rule anomalies."
+    input_description: "Provide StartTime, EndTime, SiteName, EventPrimaryStampName, KustoCluster."
+  - agent_name: bt_blob_pattern_agent
+    tool_name: bt_blob_pattern
+    tool_description: "Identifies representative container/blobPattern mismatches."
+    input_description: "Provide StartTime, EndTime, SiteName, EventPrimaryStampName, FunctionName, KustoCluster."
+  - agent_name: bt_blob_enqueued_agent
+    tool_name: bt_blob_enqueued
+    tool_description: "Analyzes blob enqueue events timeline."
+    input_description: "Provide StartTime, EndTime, SiteName, EventPrimaryStampName, FunctionName, KustoCluster."
+  - agent_name: bt_queue_dequeue_agent
+    tool_name: bt_queue_dequeue
+    tool_description: "Compares enqueue vs dequeue consistency."
+    input_description: "Provide StartTime, EndTime, SiteName, EventPrimaryStampName, FunctionName, KustoCluster."
+  - agent_name: bt_listener_started_agent
+    tool_name: bt_listener_started
+    tool_description: "Determines listener start events/status."
+    input_description: "Provide StartTime, EndTime, SiteName, EventPrimaryStampName, KustoCluster."
+  - agent_name: bt_determine_function_has_been_triggered_agent
+    tool_name: bt_function_triggered
+    tool_description: "Correlates FunctionStarted/Completed to confirm execution."
+    input_description: "Provide StartTime, EndTime, SiteName, EventPrimaryStampName, FunctionName, KustoCluster."
+
+common_prompts:
+  - format_guidelines
+  - guard_rail
+
+max_reflection_count: 1

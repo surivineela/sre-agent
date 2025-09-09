@@ -44,6 +44,8 @@ public class ReasoningLoop : IDisposable
     private readonly ISearchEndpointService _searchEndpointService;
     private readonly SearchHelper _searchHelper;
     private readonly FeatureConfigModel _featureConfig;
+    private readonly bool _modeSwitchEnabled;
+    private readonly ModeSwitchHandler? _modeSwitchHandler; // encapsulates /mode conversation|workflow switching (feature-flag gated)
 
     // feature properties
     private readonly bool _enableDocumentRetrieval;
@@ -112,7 +114,8 @@ public class ReasoningLoop : IDisposable
         IAgentMemoryClient agentMemoryClient,
         ISearchIndexService searchIndexService,
         FeatureConfigModel featureConfig,
-        IAgentRuntimeModifier<AgentContext> agentRuntimeModifier)
+    IAgentRuntimeModifier<AgentContext> agentRuntimeModifier,
+    bool modeSwitchEnabled = false)
     {
         _loggerFactory = loggerFactory;
         _logger = _loggerFactory.CreateLogger<ReasoningLoop>();
@@ -142,6 +145,12 @@ public class ReasoningLoop : IDisposable
         _enableDocumentRetrieval = featureConfig.RegionalSearchEnabled;
         _agentMemoryEnabled = featureConfig.AgentMemoryEnabled;
         _agentRuntimeModifier = agentRuntimeModifier;
+        _modeSwitchEnabled = modeSwitchEnabled;
+        if (_modeSwitchEnabled)
+        {
+            // Initialize handler only when feature flag enabled to keep overhead minimal for other agents
+            _modeSwitchHandler = new ModeSwitchHandler(_threadRepository, _outboundCommunicationService, enabled: true);
+        }
 
         var globalDefaultMode = actionSettings.Mode.ToString() ?? AgentModes.Review;
         if (!string.IsNullOrEmpty(context.AgentMode) && !string.Equals(context.AgentMode, globalDefaultMode, StringComparison.OrdinalIgnoreCase))
@@ -245,6 +254,38 @@ public class ReasoningLoop : IDisposable
         else
         {
             throw new InvalidOperationException("Channel is closed.");
+        }
+    }
+
+    /// <summary>
+    /// Early completion for /mode switch path: set Idle + signal processing complete so UI stops spinner.
+    /// Safe to call multiple times.
+    /// </summary>
+    private async Task CompleteEarlyModeSwitchAsync(CancellationToken ct)
+    {
+        try
+        {
+            if (_context.ContextState != ContextStateEnum.Idle)
+            {
+                await ChangeAgentContextStateAsync(ContextStateEnum.Idle);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, "[{threadId}]Failed to set Idle after mode switch.", _context.ThreadId);
+        }
+
+        try
+        {
+            await _outboundCommunicationService.SignalProcessingComplete(_context.ThreadId, cancellationToken: ct);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInternalInformation("[{threadId}]SignalProcessingComplete canceled after mode switch.", _context.ThreadId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, "[{threadId}]Failed to signal completion after mode switch.", _context.ThreadId);
         }
     }
 
@@ -366,6 +407,18 @@ public class ReasoningLoop : IDisposable
                                 return;
                             }
 
+                            // Unified /mode handling (RCA router only). Minimal surface area: single call; early-return if handled.
+                            if (_modeSwitchEnabled && _modeSwitchHandler != null)
+                            {
+                                var (handled, updatedCtx) = await _modeSwitchHandler.HandleAsync(_context, chatMessage.Message.Text, cancellationToken);
+                                if (handled)
+                                {
+                                    _context = updatedCtx;
+                                    await CompleteEarlyModeSwitchAsync(cancellationToken);
+                                    return; // Mode switch processed; stop normal loop work this turn
+                                }
+                            }
+
                             bool shouldStop = await HandleUnprocessedToolCallsAsync(agentChatHistory, cancellationToken);
                             if (shouldStop)
                             {
@@ -378,7 +431,7 @@ public class ReasoningLoop : IDisposable
                                 await HandleRememberCommandAsync(agentChatHistory, chatMessage.Message.Text, cancellationToken);
                                 return;
                             }
-
+                            
                             // process #retrieve command
                             if (chatMessage.Message.Text.Contains(RetrieveMarker, StringComparison.OrdinalIgnoreCase) && _agentMemoryEnabled)
                             {

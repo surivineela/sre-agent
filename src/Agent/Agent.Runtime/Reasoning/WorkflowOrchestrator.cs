@@ -4,6 +4,7 @@
 
 using System.Text;
 using System.Text.Json;
+using System.Linq;
 using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
@@ -35,6 +36,8 @@ public class WorkflowOrchestrator : IDisposable
     private readonly IToolFactory<AgentContext> _toolFactory;
     private readonly Tracer _tracer;
     private readonly IncidentManagementSettings _incidentManagementSettings;
+    private readonly CoreSettings _coreSettings;
+    private readonly ModeSwitchHandler _modeSwitchHandler;
 
     // Telemetry spans for workflow tracing
     private TelemetrySpan? _rootSpan;
@@ -49,6 +52,12 @@ public class WorkflowOrchestrator : IDisposable
     private readonly List<ChatMessage> _chatHistory = new();
     private bool _disposed = false;
 
+    // Post-run persistence fields
+    private string? _canonicalExtractedParametersJson; // canonical JSON snapshot of extracted parameters (after parameter extraction only)
+    private bool _parametersPersisted; // guard to avoid duplicate post-run parameter message
+    private bool _digestPersisted; // guard to avoid duplicate digest message
+    private Guid? _lastUserReasoningMessageId; // track last user reasoning message for lazy AgentChatHistory creation
+
     public WorkflowOrchestrator(
         ILoggerFactory loggerFactory,
         IChatClient chatClient,
@@ -57,8 +66,9 @@ public class WorkflowOrchestrator : IDisposable
         AgentContext context,
         IAgentFactory<AgentContext> agentFactory,
         IToolFactory<AgentContext> toolFactory,
-        Tracer tracer,
-        IncidentManagementSettings incidentManagementSettings)
+    Tracer tracer,
+    IncidentManagementSettings incidentManagementSettings,
+    CoreSettings coreSettings)
     {
         _loggerFactory = loggerFactory;
         _logger = _loggerFactory.CreateLogger<WorkflowOrchestrator>();
@@ -70,6 +80,13 @@ public class WorkflowOrchestrator : IDisposable
         _toolFactory = toolFactory;
         _tracer = tracer;
         _incidentManagementSettings = incidentManagementSettings;
+        _coreSettings = coreSettings;
+
+        // Initialize mode switch handler (kept minimal; only active if feature flag enabled)
+        _modeSwitchHandler = new ModeSwitchHandler(
+            threadRepository: _threadRepository,
+            outboundCommunicationService: _outboundCommunicationService,
+            enabled: ModeSwitchHelper.ModeSwitchEnabled(_coreSettings));
 
         // Initialize root span for workflow execution
         _rootSpan = _tracer.StartSpan($"workflow.orchestrator.{_context.ThreadId}");
@@ -104,7 +121,16 @@ public class WorkflowOrchestrator : IDisposable
     /// </summary>
     public async Task AppendNewUserMessageAsync(ChatMessage msg, CancellationToken cancellationToken = default)
     {
-        _logger.LogInternalInformation("New user message received, starting workflow execution");
+        _logger.LogInternalInformation($"New user message received, starting workflow execution Message: {msg.Text}");
+
+        // Unified /mode handler (returns early if a mode switch or already-in-mode message was processed)
+        var (handled, updatedCtx) = await _modeSwitchHandler.HandleAsync(_context, msg.Text, cancellationToken);
+        if (handled)
+        {
+            _context = updatedCtx;
+            await CompleteEarlyModeSwitchAsync(cancellationToken);
+            return;
+        }
 
         // Add message to chat history
         _chatHistory.Add(msg);
@@ -116,14 +142,26 @@ public class WorkflowOrchestrator : IDisposable
             Id: messageId,
             AgentContextId: _context.Id,
             Role: ReasoningMessageRoleEnum.User,
-            SerializedChatMessage: JsonSerializer.Serialize(msg) + $"Debug Id: {_context.Id} MessageId: {messageId} ThreadId: {_context.ThreadId} ");
+            SerializedChatMessage: JsonSerializer.Serialize(msg));
+        //    SerializedChatMessage: JsonSerializer.Serialize(msg) + $"Debug Id: {_context.Id} MessageId: {messageId} ThreadId: {_context.ThreadId} ");
+
 
         await _threadRepository.CreateReasoningMessageAsync(reasoningMessage);
+        _lastUserReasoningMessageId = reasoningMessage.Id;
 
         var agentChatHistory = await _threadRepository.GetAgentChatHistoryAsync(_context.Id);
         if (agentChatHistory != null)
         {
             await _threadRepository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, reasoningMessage);
+        }
+        else
+        {
+            // Lazy create AgentChatHistory if it does not exist yet (ensures later persistence of parameters/digest/summary)
+            var newHistory = new AgentChatHistory(_context.Id, new List<Guid> { reasoningMessage.Id })
+            {
+                LatestUserMessageId = reasoningMessage.Id
+            };
+            await _threadRepository.CreateAgentChatHistoryAsync(newHistory);
         }
 
         // Start workflow execution
@@ -235,7 +273,7 @@ public class WorkflowOrchestrator : IDisposable
             }
 
             // Check if this is a router agent (like rca_router_meta_agent)
-            if (currentAgentName == "rca_router_meta_agent" || currentAgent.AgentType == Framework.Models.AgentType.Autonomous)
+            if (currentAgentName == RcaRoutingConstants.WorkflowRootAgent || currentAgent.AgentType == Framework.Models.AgentType.Autonomous)
             {
                 _logger.LogInternalInformation($"Detected router agent: {currentAgentName}");
                 var handoffTarget = await ExecuteRouterAgentAsync(currentAgent, cancellationToken);
@@ -316,6 +354,21 @@ public class WorkflowOrchestrator : IDisposable
                     if (parameterResult.ParsedParameters.TryGetValue("IncidentId", out var extractedIncidentId) && !string.IsNullOrWhiteSpace(extractedIncidentId))
                     {
                         baseExecutionContext.IncidentId = extractedIncidentId;
+                    }
+
+                    // Capture canonical parameter snapshot (sorted by key, stable JSON) once after extraction
+                    if (_canonicalExtractedParametersJson == null)
+                    {
+                        try
+                        {
+                            // Preserve original insertion order (avoid alphabetical sort so related fields like startTime/endTime stay adjacent)
+                            var dict = baseExecutionContext.AccumulatedParameters.ToDictionary();
+                            _canonicalExtractedParametersJson = JsonSerializer.Serialize(dict, new JsonSerializerOptions { WriteIndented = false });
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogInternalWarning(ex, "Failed to build canonical parameter snapshot");
+                        }
                     }
                 }
             }
@@ -413,6 +466,37 @@ public class WorkflowOrchestrator : IDisposable
 
             // Return context state to Idle (single place handles all early returns)
             await ChangeAgentContextStateAsync(ContextStateEnum.Idle);
+        }
+    }
+
+    /// <summary>
+    /// Ensures UI spinner/processing state is cleared when /mode causes an early return.
+    /// Mirrors ExecuteWorkflowAsync finally responsibilities (Idle + SignalProcessingComplete) for that path.
+    /// </summary>
+    private async Task CompleteEarlyModeSwitchAsync(CancellationToken ct)
+    {
+        try
+        {
+            if (_context.ContextState != ContextStateEnum.Idle)
+            {
+                await ChangeAgentContextStateAsync(ContextStateEnum.Idle);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, "Failed to set Idle state after mode switch (workflow)");
+        }
+        try
+        {
+            await _outboundCommunicationService.SignalProcessingComplete(_context.ThreadId, cancellationToken: ct);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInternalInformation("SignalProcessingComplete canceled after mode switch (workflow) {ThreadId}", _context.ThreadId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, "Failed to SignalProcessingComplete after mode switch (workflow) {ThreadId}", _context.ThreadId);
         }
     }
 
@@ -682,6 +766,68 @@ public class WorkflowOrchestrator : IDisposable
     /// </summary>
     private async Task SummarizeAndPostResults(Agent<AgentContext> orchestratorAgent, CancellationToken cancellationToken)
     {
+        // Ensure AgentChatHistory exists (lazy create) so we can append reasoning messages
+        var existingHistory = await _threadRepository.GetAgentChatHistoryAsync(_context.Id);
+        if (existingHistory == null)
+        {
+            var seedIds = _lastUserReasoningMessageId.HasValue ? new List<Guid> { _lastUserReasoningMessageId.Value } : new List<Guid>();
+            existingHistory = await _threadRepository.CreateAgentChatHistoryAsync(new AgentChatHistory(_context.Id, seedIds)
+            {
+                LatestUserMessageId = _lastUserReasoningMessageId ?? Guid.Empty
+            });
+        }
+
+        // Persist extracted parameters reasoning message (once) BEFORE summary so user sees parameters first
+        if (!_parametersPersisted && !string.IsNullOrWhiteSpace(_canonicalExtractedParametersJson))
+        {
+            try
+            {
+                var paramChat = new ChatMessage(ChatRole.Assistant, $"Extracted parameters (canonical): {_canonicalExtractedParametersJson}");
+                var reasoning = new ReasoningMessage(
+                    Id: Guid.NewGuid(),
+                    AgentContextId: _context.Id,
+                    Role: ReasoningMessageRoleEnum.Assistant,
+                    SerializedChatMessage: JsonSerializer.Serialize(paramChat));
+                await _threadRepository.CreateReasoningMessageAsync(reasoning);
+                if (existingHistory != null)
+                {
+                    await _threadRepository.AddReasoningMessagesToChatHistoryAsync(existingHistory, reasoning);
+                }
+                _parametersPersisted = true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalWarning(ex, "Failed to persist extracted parameters reasoning message");
+            }
+        }
+
+        // Build and persist execution digest reasoning message once
+        if (!_digestPersisted)
+        {
+            try
+            {
+                var digest = BuildExecutionDigest();
+                if (!string.IsNullOrWhiteSpace(digest))
+                {
+                    var digestChat = new ChatMessage(ChatRole.Assistant, $"Agent Execution Digest:\n{digest}");
+                    var digestReasoning = new ReasoningMessage(
+                        Id: Guid.NewGuid(),
+                        AgentContextId: _context.Id,
+                        Role: ReasoningMessageRoleEnum.Assistant,
+                        SerializedChatMessage: JsonSerializer.Serialize(digestChat));
+                    await _threadRepository.CreateReasoningMessageAsync(digestReasoning);
+                    if (existingHistory != null)
+                    {
+                        await _threadRepository.AddReasoningMessagesToChatHistoryAsync(existingHistory, digestReasoning);
+                    }
+                    _digestPersisted = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalWarning(ex, "Failed to persist execution digest reasoning message");
+            }
+        }
 
         try
         {
@@ -904,6 +1050,76 @@ Please consolidate the findings, identify key insights, and provide actionable r
         {
             _logger.LogInternalError(ex, "Error summarizing workflow results");
             throw;
+        }
+    }
+
+    /// <summary>
+    /// Build a concise execution digest summarizing each agent's key outputs.
+    /// </summary>
+    private string BuildExecutionDigest()
+    {
+        if (_executionResults.Count == 0)
+        {
+            return string.Empty;
+        }
+
+    // Preserve execution (insertion) order so parameter-dependent sequence remains visible.
+    var sb = new StringBuilder();
+    foreach (var result in _executionResults.Values)
+        {
+            try
+            {
+                var agent = result.AgentName ?? "(unknown)";
+                // Parameters: parse JSON or show raw, but compress
+                // TODO Trimming the Parameters and result.
+                var paramSnippet = CompressJson(result.Parameters, 160);
+                var analysisSnippet = FirstSentenceOrTrim(result.Analysis, 200);
+                var state = string.IsNullOrWhiteSpace(result.State) ? "" : $" state={result.State}";
+                // Check if ExecutionContext always has IncidentId. Only when we use IcmScanner to set it.
+                var incident = result.ExecutionContext?.IncidentId;
+                var incidentFragment = string.IsNullOrWhiteSpace(incident) ? "" : $" incident={incident}";
+                // TODO debug and double check it it satisfies the requirement.
+                sb.AppendLine($"- {agent}:{state}{incidentFragment} params={paramSnippet} analysis={analysisSnippet}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalWarning(ex, "Failed to add agent to execution digest");
+            }
+        }
+        return sb.ToString().TrimEnd();
+    }
+
+    private static string FirstSentenceOrTrim(string? text, int maxLen)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return string.Empty;
+        var span = text.AsSpan();
+        var periodIndex = text.IndexOf('.') >= 0 ? text.IndexOf('.') : -1;
+        var candidate = periodIndex >= 0 ? text.Substring(0, periodIndex + 1) : text;
+        candidate = candidate.Trim();
+        if (candidate.Length > maxLen)
+        {
+            candidate = candidate.Substring(0, Math.Min(candidate.Length, maxLen));
+        }
+        return candidate.Replace('\n', ' ').Replace("  ", " ").Trim();
+    }
+
+    private static string CompressJson(string? json, int maxLen)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return "{}";
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            var compact = JsonSerializer.Serialize(doc.RootElement, new JsonSerializerOptions { WriteIndented = false });
+            if (compact.Length > maxLen)
+            {
+                return compact.Substring(0, maxLen) + "…";
+            }
+            return compact;
+        }
+        catch
+        {
+            var trimmed = json.Trim();
+            return trimmed.Length > maxLen ? trimmed.Substring(0, maxLen) + "…" : trimmed;
         }
     }
 

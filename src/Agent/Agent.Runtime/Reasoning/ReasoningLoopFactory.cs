@@ -122,9 +122,10 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         {
             defaultStartingAgentName = "rca_meta_agent";
         }
-        else if (agentType == "RCARouterAgent")
+    else if (agentType == RcaRoutingConstants.AgentType)
         {
-            defaultStartingAgentName = "rca_router_meta_agent";
+            // Use helper to select workflow vs conversation root agent.
+            defaultStartingAgentName = ModeSwitchHelper.GetRcaRootAgent(context, _coreSettings);
         }
         else if (agentType == "FunctionsFlexConsumptionCRIAgent")
         {
@@ -161,7 +162,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
 
         // Special handling for RCARouterAgent workflow orchestration
         // Check if we're dealing with a dispatched agent that's an Orchestrator type
-        if (agentType == "RCARouterAgent" && !string.IsNullOrEmpty(currentStartingAgentName))
+    if (ModeSwitchHelper.UseWorkflowOrchestrator(agentType, context, _coreSettings) && !string.IsNullOrEmpty(currentStartingAgentName))
         {
             try
             {
@@ -178,7 +179,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
                     agentFactory: _agentFactory,
                     toolFactory: _toolFactory,
                     tracer: _tracer,
-                    incidentManagementSettings: _incidentManagementSettings);
+                    incidentManagementSettings: _incidentManagementSettings,
+                    coreSettings: _coreSettings);
 
                 await workflowOrchestrator.LoadChatHistoryAsync();
 
@@ -204,7 +206,9 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
                     searchIndexService: _searchIndexService,
                     featureConfig: _featureConfig,
                     agentRuntimeModifier: _agentRuntimeModifier,
-                    incidentManagementSettings: _incidentManagementSettings);
+                    incidentManagementSettings: _incidentManagementSettings,
+                    coreSettings: _coreSettings,
+                    modeSwitchEnabled: ModeSwitchHelper.ModeSwitchEnabled(_coreSettings));
 
             }
             catch (Exception ex)
@@ -233,7 +237,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             agentMemoryClient: _agentMemoryClient,
             searchIndexService: _searchIndexService,
             featureConfig: _featureConfig,
-            agentRuntimeModifier: _agentRuntimeModifier);
+            agentRuntimeModifier: _agentRuntimeModifier,
+            modeSwitchEnabled: ModeSwitchHelper.ModeSwitchEnabled(_coreSettings));
 
         await loop.LoadChatHistoryAsync();
         return loop;

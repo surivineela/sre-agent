@@ -30,7 +30,8 @@ system_prompt: |
   - Provide clear handoff context to the target agent
 
   ## Routing Logic:
-  Based on the OwningTeamName extracted from the incident, route as follows:
+  1. If a prior RCA preflight analysis summary (e.g., "Blob Trigger RCA Preflight Summary" or "Scale Controller RCA Preflight Summary") appears in conversation history and the user's new message is a generic continuation (no explicit new domain or different team), immediately route to that same domain without additional clarification.
+  2. Otherwise, route based on the OwningTeamName extracted from the incident as follows:
 
   **Function App & Scale Controller Issues:**
   - OwningTeamName: `APPSERVICEWEBAPPS\AntaresFunctionsScalingLoop`

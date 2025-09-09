@@ -48,6 +48,18 @@ public class IcmScanner(ILogger<IcmScanner> logger,
         lastScanTime = lastScanTimeDoc != null ? lastScanTimeDoc.LastScanTime : DateTime.UtcNow.AddDays(-30); // Default to 30 days ago if not found
         while (!cancellationToken.IsCancellationRequested)
         {
+            // Drain test queue (local dev) before normal scanning if enabled.
+            if (IcmScannerTestQueueHelper.IsEnabled())
+            {
+                try
+                {
+                    await ProcessTestQueueAsync(cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogInternalError(ex, "[IcmScanner] Error processing test queue batch");
+                }
+            }
             var filters = await incidentFilterManagementService.ListIncidentFilters();
             var scanStartTime = DateTime.UtcNow;
             if (filters is null || filters.Count == 0)
@@ -508,13 +520,21 @@ public class IcmScanner(ILogger<IcmScanner> logger,
     /// </summary>
     /// <param name="incidentDocument">Incident document</param>
     /// <param name="filterDocument">Filter document</param>
-    private async Task ProcessTeamSpecificIncident(IcmIncidentDocument incidentDocument, IcmIncidentFilterDocumentPayload filterDocument)
+    private async Task ProcessTeamSpecificIncident(IcmIncidentDocument incidentDocument, IcmIncidentFilterDocumentPayload filterDocument, bool forceRun = false)
     {
         try
         {
             if (incidentDocument is null)
             {
                 logger.LogInternalWarning("[IcmScanner] Incident document is null, skipping team-specific processing.");
+                return;
+            }
+
+            // by-pass the checkinf for testing.
+            if (forceRun)
+            {
+                logger.LogInternalWarning($"[IcmScanner] Rceive testing queue for IncidentId: {incidentDocument.Id} forceRun it.");
+                await ExecuteAutomatedRCAAsync(incidentDocument, filterDocument.OwningTeamId);
                 return;
             }
 
@@ -678,6 +698,52 @@ public class IcmScanner(ILogger<IcmScanner> logger,
         }
         return false;
     }   
+
+    // ------------------------------------------------------------
+    // Local test queue processing
+    // ------------------------------------------------------------
+    private async Task ProcessTestQueueAsync(CancellationToken cancellationToken)
+    {
+        var batch = IcmScannerTestQueueHelper.Drain();
+        if (batch.Count == 0) return;
+        logger.LogInternalInformation("[IcmScanner] Processing {count} test queue incident(s).", batch.Count);
+        foreach (var item in batch)
+        {
+            if (cancellationToken.IsCancellationRequested) return;
+            try
+            {
+                var icmIncident = await icmApiClient.GetIncidentAsync(item.IncidentId);
+                if (icmIncident == null)
+                {
+                    logger.LogInternalWarning("[IcmScanner] Test queue incident {incidentId} not found via ICM API.", item.IncidentId);
+                    continue;
+                }
+                var incidentDoc = await GetDocumentAsync<IcmIncidentDocument>(item.IncidentId, item.IncidentId);
+                incidentDoc = await UpsertIncidentDocumentIfNeededAsync(incidentDoc, icmIncident, cancellationToken);
+
+                // Use automated RCA path only when feature enabled; otherwise fall back to standard notification.
+                if (IsAutomatedRCAEnabled && item.ForceTeamSpecific && !string.IsNullOrWhiteSpace(item.OwningTeamId))
+                {
+                    // Minimal synthetic filter payload for team-specific processing.
+                    var payload = new IcmIncidentFilterDocumentPayload
+                    {
+                        OwningTeamId = item.OwningTeamId,
+                        TitleContains = string.Empty,
+                        IncidentType = string.Empty
+                    };
+                    await ProcessTeamSpecificIncident(incidentDoc, payload, forceRun: true);
+                }
+                else
+                {
+                    await NotifyUserAsync(incidentDoc, new List<string>());
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalError(ex, "[IcmScanner] Error handling test queue incident {incidentId}", item.IncidentId);
+            }
+        }
+    }
 }
 
 public class NullableIncidentScanner : IIncidentScanner

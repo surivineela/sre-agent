@@ -164,6 +164,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             { "ChatThreadId", threadMessage.ThreadId.ToString() },
             { "Message", threadMessage.Message }
         });
+        // TODO Remove this line
+        defaultHandler = true; // route to the path we want.
         if (_useAgentFramework && defaultHandler)
         {
             return await ProcessMessageWithAgentFrameworkAsync(threadMessage);
