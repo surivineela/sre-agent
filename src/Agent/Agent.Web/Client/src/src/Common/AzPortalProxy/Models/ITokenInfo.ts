@@ -1,4 +1,6 @@
+export type TokenTypes = 'arm' | 'sreagent' | 'applicationinsightsapi';
+
 export interface ITokenInfo {
     token: string;
-    type: 'arm' | 'sreagent';
+    type: TokenTypes;
 }

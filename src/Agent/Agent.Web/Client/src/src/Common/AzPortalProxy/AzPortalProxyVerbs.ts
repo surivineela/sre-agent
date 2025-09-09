@@ -8,6 +8,7 @@ export class AgentSiteToAzPortalVerbs {
     public static readonly logAmplitudeControlEvent = 'log-amplitude-control-event';
     public static readonly updateNotification = 'update-notification';
     public static readonly openBlade = 'open-blade';
+    public static readonly requestToken = 'request-token';
 }
 
 export class AzPortalToAgentSiteVerbs {

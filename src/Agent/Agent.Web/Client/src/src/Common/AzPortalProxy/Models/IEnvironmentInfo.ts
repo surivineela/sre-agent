@@ -1,4 +1,5 @@
 import { ITheme } from './ITheme';
+import { TokenTypes } from './ITokenInfo';
 import { IUserInfo } from './IUserInfo';
 
 export interface IEnvironmentInfo {
@@ -10,6 +11,7 @@ export interface IEnvironmentInfo {
     sreAgentEndpoint: string;
     armToken?: string;
     sreAgentToken?: string;
+    additionalTokens?: Map<TokenTypes, string>;
     theme?: ITheme;
     userInfo?: IUserInfo;
     /**

@@ -7,7 +7,7 @@ import { IEvent } from './Models/IEvent';
 import { INotificationInfo, INotificationState } from './Models/INotificationInfo';
 import { IBladeClosed, IBladeClosedResult, IOpenBlade, IOpenBladeRequest } from './Models/IOpenBlade';
 import { ILogBladeErrorInfo, ITelemetryInfo } from './Models/ITelemetryInfo';
-import { ITokenInfo } from './Models/ITokenInfo';
+import { ITokenInfo, TokenTypes } from './Models/ITokenInfo';
 
 export const defaultSreAgentEndpoint = '..';
 
@@ -84,6 +84,14 @@ export default class AzPortalProxy {
         }
 
         this.postMessage(AgentSiteToAzPortalVerbs.logAmplitudeNavigationEvent, amplitudeEvent);
+    };
+
+    public requestAuthToken = (tokenType: TokenTypes) => {
+        if (AzPortalProxy.inStandaloneMode) {
+            return;
+        }
+
+        this.postMessage(AgentSiteToAzPortalVerbs.requestToken, tokenType);
     };
 
     public startNotification = (title: string, description: string) => {
@@ -237,9 +245,15 @@ export default class AzPortalProxy {
                 ...AzPortalProxy.envInfo,
                 sreAgentToken: tokenInfo.token,
             };
-        } else {
-            throw Error('Unrecognized token type: ' + tokenInfo.type);
         }
+
+        // Add armToken and sreAgentToken to additionalTokens too for ease of use
+        const newTokens = new Map<TokenTypes, string>(AzPortalProxy.envInfo.additionalTokens);
+        newTokens.set(tokenInfo.type, tokenInfo.token);
+        AzPortalProxy.envInfo = {
+            ...AzPortalProxy.envInfo,
+            additionalTokens: newTokens,
+        };
 
         this.setEnvironmentInfo(AzPortalProxy.envInfo);
     };
