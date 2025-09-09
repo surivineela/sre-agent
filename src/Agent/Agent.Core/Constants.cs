@@ -145,15 +145,20 @@ namespace Agent.Core
             public const string AgentUserActionId = "Microsoft.App/agents/write";
             public const string AgentThreadReadActionId = "Microsoft.App/agents/threads/read";
             public const string AgentThreadWriteActionId = "Microsoft.App/agents/threads/write";
+            public const string AgentThreadDeleteActionId = "Microsoft.App/agents/threads/delete";
             public const string AgentThreadApproveActionId = "Microsoft.App/agents/threads/approve/action";
             public const string AgentGraphReadActionId = "Microsoft.App/agents/graph/read";
             public const string AgentGraphWriteActionId = "Microsoft.App/agents/graph/write";
+            public const string AgentGraphDeleteActionId = "Microsoft.App/agents/graph/delete";
             public const string AgentMemoryReadActionId = "Microsoft.App/agents/memory/read";
             public const string AgentMemoryWriteActionId = "Microsoft.App/agents/memory/write";
+            public const string AgentMemoryDeleteActionId = "Microsoft.App/agents/memory/delete";
             public const string AgentIncidentManagementReadActionId = "Microsoft.App/agents/incidentmanagement/read";
             public const string AgentIncidentManagementWriteActionId = "Microsoft.App/agents/incidentmanagement/write";
+            public const string AgentIncidentManagementDeleteActionId = "Microsoft.App/agents/incidentmanagement/delete";
             public const string AgentExtendedAgentReadActionId = "Microsoft.App/agents/extended/read";
             public const string AgentExtendedAgentWriteActionId = "Microsoft.App/agents/extended/write";
+            public const string AgentExtendedAgentDeleteActionId = "Microsoft.App/agents/extended/delete";
         }
     }
 }

@@ -11,97 +11,68 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.FeatureManagement;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Options;
 
-namespace Agent.Web
+namespace Agent.Web.Authorization;
+
+/// <summary>
+/// Attribute to declare a single required ARM-like operation for an API action.
+/// </summary>
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
+public sealed class AuthorizeArmOperationAttribute : AuthorizeAttribute
 {
-    /// <summary>
-    /// Attribute to declare a single required ARM-like operation for an API action.
-    /// Authorization succeeds only if all declared operations (from multiple attributes)
-    /// are present in the incoming request header 'x-allowed-actions' (comma-separated list).
-    /// Note: Multiple operations in a single attribute (comma-separated) are NOT allowed
-    /// and will cause authorization to fail.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
-    public sealed class AuthorizeArmOperationAttribute : Attribute, IAsyncAuthorizationFilter
+    public const string PolicyPrefix = "ArmOp:";
+    public string Action { get; }
+
+    public AuthorizeArmOperationAttribute(string action)
     {
-        private const string HeaderName = "x-allowed-actions";
-        private const string FeatureFlagName = "PdpAuthZv2";
+        Action = action.Trim();
+        Policy = $"{PolicyPrefix}{Action}";
+    }
+}
 
-        /// <summary>
-        /// Single required action represented by this attribute instance.
-        /// </summary>
-        public string Action { get; }
+public sealed class ArmOperationRequirement : IAuthorizationRequirement
+{
+    public string Action { get; }
+    public ArmOperationRequirement(string action)
+    {
+        Action = action;
+    }
+}
 
-        public AuthorizeArmOperationAttribute(string action)
+public sealed class ArmOperationPolicyProvider : IAuthorizationPolicyProvider
+{
+    private readonly AuthorizationOptions _options;
+
+    public ArmOperationPolicyProvider(IOptions<AuthorizationOptions> options)
+    {
+        _options = options.Value;
+    }
+
+    public Task<AuthorizationPolicy?> GetPolicyAsync(string policyName)
+    {
+        var policy = _options.GetPolicy(policyName);
+        if (policy == null)
         {
-            Action = action?.Trim() ?? string.Empty;
+            var actionName = policyName.Substring(AuthorizeArmOperationAttribute.PolicyPrefix.Length);
+            policy = new AuthorizationPolicyBuilder()
+                .AddRequirements(new ArmOperationRequirement(actionName))
+                .Build();
+
+            _options.AddPolicy(policyName, policy);
         }
 
-        public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
-        {
-            if (context?.HttpContext is null)
-            {
-                context!.Result = new StatusCodeResult(StatusCodes.Status403Forbidden);
-                return;
-            }
+        return Task.FromResult<AuthorizationPolicy?>(policy);
+    }
 
-            var hostEnvironment = context.HttpContext.RequestServices.GetRequiredService<IHostEnvironment>();
-            if (hostEnvironment.IsDevelopment())
-            {
-                return;
-            }
+    public Task<AuthorizationPolicy> GetDefaultPolicyAsync()
+    {
+        return Task.FromResult(new AuthorizationPolicyBuilder().Build());
+    }
 
-            var featureManager = context.HttpContext.RequestServices.GetService(typeof(IFeatureManager)) as IFeatureManager;
-            if (featureManager == null)
-            {
-                return;
-            }
-
-            bool enabled;
-            try
-            {
-                enabled = await featureManager.IsEnabledAsync(FeatureFlagName);
-            }
-            catch
-            {
-                enabled = true;
-            }
-
-            if (!enabled)
-            {
-                return;
-            }
-
-            if (!context.HttpContext.Request.Headers.TryGetValue(HeaderName, out var headerValues))
-            {
-                context.Result = new StatusCodeResult(StatusCodes.Status403Forbidden);
-                return;
-            }
-
-            var allowed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var value in headerValues)
-            {
-                if (string.IsNullOrEmpty(value))
-                {
-                    continue;
-                }
-                foreach (var token in value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-                {
-                    if (!string.IsNullOrWhiteSpace(token))
-                    {
-                        allowed.Add(token);
-                    }
-                }
-            }
-
-            // Ensure all required actions are present
-            if (!allowed.Contains(Action))
-            {
-                context.Result = new StatusCodeResult(StatusCodes.Status403Forbidden);
-                return;
-            }
-
-            return;
-        }
+    public Task<AuthorizationPolicy?> GetFallbackPolicyAsync()
+    {
+        return Task.FromResult<AuthorizationPolicy?>(null);
     }
 }

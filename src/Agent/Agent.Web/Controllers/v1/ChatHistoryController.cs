@@ -9,6 +9,7 @@ using Agent.Logging;
 using Agent.Runtime.Reasoning;
 using Agent.Runtime.TeamsChatServices;
 using Microsoft.AspNetCore.Mvc;
+using Agent.Web.Authorization;
 
 namespace Agent.Web.Controllers.v1
 {

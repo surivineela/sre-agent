@@ -17,6 +17,7 @@ using Agent.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
+using Agent.Web.Authorization;
 using ArmOperations = Agent.Core.Constants.ArmOperations;
 
 namespace Agent.Web.Controllers.v1;

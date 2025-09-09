@@ -10,6 +10,7 @@ using Agent.Data.DataModels;
 using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents.AzMonitorAlertAgent;
 using Microsoft.AspNetCore.Mvc;
+using Agent.Web.Authorization;
 using Newtonsoft.Json;
 
 namespace Agent.Web.Controllers.v1;

@@ -7,6 +7,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Logging;
 using Agent.Runtime.Services;
 using Microsoft.AspNetCore.Mvc;
+using Agent.Web.Authorization;
 using ArmOperations = Agent.Core.Constants.ArmOperations;
 
 namespace Agent.Web.Controllers.v1

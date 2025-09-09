@@ -8,6 +8,7 @@ using Agent.Graph.Crawler.ARM;
 using Agent.Logging;
 using Agent.Plugins.Services;
 using Microsoft.AspNetCore.Mvc;
+using Agent.Web.Authorization;
 using ArmOperations = Agent.Core.Constants.ArmOperations;
 
 namespace Agent.Web.Controllers.v1;

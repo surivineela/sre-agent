@@ -11,6 +11,7 @@ using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents.IcmScanner;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Cosmos;
+using Agent.Web.Authorization;
 using ArmOperations = Agent.Core.Constants.ArmOperations;
 
 namespace Agent.Web.Controllers.v1;

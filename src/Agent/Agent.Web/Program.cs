@@ -69,8 +69,10 @@ using Agent.Runtime.SubAgents.WebAppDownAgent;
 using Agent.Runtime.TeamsChatServices;
 using Agent.Runtime.ThreadEvaluator;
 using Agent.Runtime.TrajectoryEvaluator;
+using Agent.Web.Authorization;
 using Agent.Web.Services;
 using FirstPartyAgent.Core.FirstPartyAgents;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Connector.Authentication;
@@ -83,6 +85,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
+using YamlDotNet.Serialization;
 
 namespace Agent.Web;
 
@@ -115,6 +118,9 @@ public class Program
         app.UseDefaultFiles();
         app.UseStaticFiles();
         app.UseRouting();
+
+        app.UseAuthentication();
+        app.UseAuthorization();
 
         app.MapControllers();
         app.MapBlazorHub();
@@ -293,6 +299,17 @@ public class Program
         // Register the AgentModeManager for runtime mode switching
         builder.Services.AddSingleton<IAgentModeManager<AgentContext>, AgentModeManager<AgentContext>>();
         builder.Services.AddSingleton<IAgentRuntimeModifier<AgentContext>, AgentRuntimeModifier>();
+
+        // configure the allowed action header authentication as default scheme
+        builder.Services.AddAuthentication(AllowedActionsAuthenticationConstants.SchemeName)
+            .AddScheme<AllowedActionsAuthenticationSchemeOptions, AllowedActionsAuthenticationHandler>(
+                AllowedActionsAuthenticationConstants.SchemeName,
+                options =>
+                {
+                    options.ActionHeaderName = AllowedActionsAuthenticationConstants.ActionHeaderName;
+                });
+        builder.Services.AddScoped<IAuthorizationHandler, AuthorizeArmOperationHandler>();
+        builder.Services.AddSingleton<IAuthorizationPolicyProvider, ArmOperationPolicyProvider>();
 
         // Register a default ConversationReference that can be injected into PostToTeamsPlugin
         // builder.Services.AddSingleton<Microsoft.Bot.Schema.ConversationReference>(new Microsoft.Bot.Schema.ConversationReference());
@@ -498,7 +515,7 @@ public class Program
                 return sp.GetRequiredService<ToolFactory<AgentContext>>();
             }).AddSingleton<IAuthenticationService, AuthenticationService>().AddCosmosClient();
 
-         using var bootstrapServiceProvider = builder.Services.BuildServiceProvider();
+        using var bootstrapServiceProvider = builder.Services.BuildServiceProvider();
 
         var logger = bootstrapServiceProvider.GetRequiredService<ILogger<AgentFactory<AgentContext>>>();
         var toolFactory = bootstrapServiceProvider.GetRequiredService<IToolFactory<AgentContext>>();
@@ -530,7 +547,7 @@ public class Program
             extensibiltyLoader: extensibilityLoader,
             gpt5Enabled: isGPT5Enabled,
             agentMemoryRetrievalEnabled: agentMemoryRetrievalEnabled,
-            firstPartyAgent:isFirstPartyAgent
+            firstPartyAgent: isFirstPartyAgent
         ).ConfigureAwait(false);
 
         builder.Services.AddSingleton<IAgentFactory<AgentContext>>(agentFactoryInstance)
@@ -721,7 +738,7 @@ public class Program
                         .AddSingleton<IBotPollingMessage, TeamsBot>();
         // Add the new polling service
         builder.Services.AddHostedService<TeamsMessagePollingService>();
-         builder.Services.AddCosmosClient();
+        builder.Services.AddCosmosClient();
         ConfigureAgentMemory(builder);
 
         ConfigureLogger(builder);

@@ -11,6 +11,7 @@ using Agent.Runtime.Helpers;
 using Agent.Runtime.Reasoning;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.AI;
+using Agent.Web.Authorization;
 using ArmOperations = Agent.Core.Constants.ArmOperations;
 
 namespace Agent.Web.Controllers.v1

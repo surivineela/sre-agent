@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Agent.Core.Interfaces;
 using Agent.Runtime.Services;
 using System.Text.Json.Serialization;
+using Agent.Web.Authorization;
 using ArmOperations = Agent.Core.Constants.ArmOperations;
 
 namespace Agent.Web.Controllers.v1

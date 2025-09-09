@@ -13,6 +13,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Logging;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.Reasoning;
+using Agent.Web.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.AI;
 using ArmOperations = Agent.Core.Constants.ArmOperations;

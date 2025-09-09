@@ -5,6 +5,7 @@ using Agent.Plugins.Services.Interfaces;
 using Gremlin.Net.Driver;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
+using Agent.Web.Authorization;
 using ArmOperations = Agent.Core.Constants.ArmOperations;
 
 namespace Agent.Web.Controllers.v1

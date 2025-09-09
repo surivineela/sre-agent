@@ -14,6 +14,8 @@ using Agent.Runtime.Services;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.Reasoning;
 using Agent.Web.Services;
+using Agent.Web.Authorization;
+using ArmOperations = Agent.Core.Constants.ArmOperations;
 
 namespace Agent.Web.SignalR
 {
@@ -76,6 +78,7 @@ namespace Agent.Web.SignalR
             }
         }
 
+        [AuthorizeArmOperation(ArmOperations.AgentThreadWriteActionId)]
         public Task CreateThread(Guid userDefinedThreadId, CreateThreadRequest request, bool textOnly = false)
         {
             // Capture context before async operation
@@ -156,6 +159,7 @@ namespace Agent.Web.SignalR
             return Task.CompletedTask;
         }
 
+        [AuthorizeArmOperation(ArmOperations.AgentThreadWriteActionId)]
         public Task CreateMessage(Guid threadId, CreateMessageRequest request, bool textOnly = false)
         {
             // Capture context before async operation
@@ -377,6 +381,7 @@ namespace Agent.Web.SignalR
         }
 
         // Cancellation methods
+        [AuthorizeArmOperation(ArmOperations.AgentThreadWriteActionId)]
         public async Task CancelThread(Guid threadId)
         {
             try

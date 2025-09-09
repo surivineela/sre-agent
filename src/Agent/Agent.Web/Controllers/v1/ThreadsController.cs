@@ -21,6 +21,7 @@ using Agent.Plugins.Interface;
 using Agent.Runtime.Reasoning;
 using Agent.Plugins.Services.Interfaces;
 using Agent.Core;
+using Agent.Web.Authorization;
 using Agent.Logging;
 using ArmOperations = Agent.Core.Constants.ArmOperations;
 

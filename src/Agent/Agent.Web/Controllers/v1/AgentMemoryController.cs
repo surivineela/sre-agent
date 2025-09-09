@@ -8,6 +8,7 @@ using Agent.Data.AgentMemory;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.AI;
 using System.Collections.Concurrent;
+using Agent.Web.Authorization;
 using ArmOperations = Agent.Core.Constants.ArmOperations;
 
 namespace Agent.Web.Controllers.v1
