@@ -150,6 +150,16 @@ public static class ChatOptionsExtensions
         return options;
     }
 
+    public static ChatOptions WithTools(this ChatOptions options,
+        IChatClient chatClient,
+        List<AITool>? selectedTools)
+    {
+        options.WithRawRepresentationFactory(chatClient); // if model is gpt-5, this will set the temperature to 1 and ReasoningEffortKey to DefaultReasoningEffort
+        options.Tools = selectedTools;
+        options.ToolMode = ChatToolMode.Auto;
+        return options;
+    }
+
     // workaround until SDK adds the verbosity property
     // reference: https://github.com/openai/openai-dotnet/issues/593#issuecomment-3169547444
     private static ChatCompletionOptions AugmentVerbosityData(

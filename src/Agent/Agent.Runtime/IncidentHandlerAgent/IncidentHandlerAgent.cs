@@ -118,19 +118,12 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
 
         List<ChatResponseUpdate> bufferedResponses = new();
 
+        var options = new ChatOptions { Temperature = 0.7f };
+
         // exceptions should be handled by caller due to yield return
         var streamResponses = _chatClient.GetStreamingResponseAsync(
             chatHistory,
-            new ChatOptions
-            {
-                Tools = _aiTools,
-                ToolMode = ChatToolMode.Auto,
-                AdditionalProperties = new AdditionalPropertiesDictionary
-                {
-                    //["AllowParallelToolCalls"] = false,
-                },
-                Temperature = 0.7f,
-            });
+            options.WithTools(_chatClient, _aiTools));
 
         StringBuilder agentResponse = new StringBuilder();
         bool hasRecordedResposne = false;
@@ -365,18 +358,10 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
         AgentContext agentContext,
         TelemetrySpan? parentSpan = null)
     {
+        var options = new ChatOptions { Temperature = 0.7f };
         var streamingResponse = _chatClient.GetStreamingResponseAsync(
             chatHistory,
-            new ChatOptions
-            {
-                Tools = selectedTools,
-                ToolMode = ChatToolMode.Auto,
-                AdditionalProperties = new AdditionalPropertiesDictionary
-                {
-                    //["AllowParallelToolCalls"] = false,
-                },
-                Temperature = 0.7f,
-            });
+            options.WithTools(_chatClient, selectedTools));
 
         var orchestrationInstanceId = await _threadService.GetOrchestrationInstanceId(agentContext.ThreadId);
         var responseMessages = new List<ChatMessage>();
