@@ -358,6 +358,10 @@ export const AgentTaskResources = defineMessages({
         defaultMessage: 'Deep investigation is turned off',
         id: 'QfEnqG',
     },
+    deepInvestigationTooltip: {
+        defaultMessage: 'View decision tree of potential root causes.',
+        id: 'UpTFVv',
+    },
 });
 
 export const PermissionsResources = defineMessages({

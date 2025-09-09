@@ -19,6 +19,7 @@ import {
     OverflowItem,
     Text,
     tokens,
+    Tooltip,
     useIsOverflowItemVisible,
     useOverflowMenu,
 } from '@fluentui/react-components';
@@ -268,35 +269,46 @@ const DeepInvestigationButton = memo(
             return null;
         }
 
-        const ButtonComponent = () => {
-            return (
-                <Button
-                    style={{ fontSize: '13px', padding: '2px 8px 2px 4px', whiteSpace: 'nowrap' }}
-                    icon={
-                        <SearchSparkle16Filled
-                            style={{ color: isDeepInvestigationButtonEnabled ? undefined : tokens.colorNeutralForegroundDisabled }}
-                        />
-                    }
-                    appearance={isDeepInvestigationTurnedOn ? 'primary' : 'secondary'}
-                    onClick={onClickDeepInvestigationButton}
-                    disabled={!isDeepInvestigationButtonEnabled}
-                >
-                    <FormattedMessage {...AgentTaskResources.deepInvestigation} />
-                </Button>
-            );
-        };
-
         return (
-            showDeepInvestigationButton &&
-            (asOverflowItem ? (
-                <OverflowItem id={ChatBoxButtonIds.DeepInvestigation}>
-                    <div>
-                        <ButtonComponent />
-                    </div>
-                </OverflowItem>
-            ) : (
-                <ButtonComponent />
-            ))
+            showDeepInvestigationButton && (
+                <Tooltip content={<FormattedMessage {...AgentTaskResources.deepInvestigationTooltip} />} relationship="label">
+                    {asOverflowItem ? (
+                        <OverflowItem id={ChatBoxButtonIds.DeepInvestigation}>
+                            <div>
+                                <Button
+                                    style={{ fontSize: '13px', padding: '2px 8px 2px 4px', whiteSpace: 'nowrap' }}
+                                    icon={
+                                        <SearchSparkle16Filled
+                                            style={{
+                                                color: isDeepInvestigationButtonEnabled ? undefined : tokens.colorNeutralForegroundDisabled,
+                                            }}
+                                        />
+                                    }
+                                    appearance={isDeepInvestigationTurnedOn ? 'primary' : undefined}
+                                    onClick={onClickDeepInvestigationButton}
+                                    disabled={!isDeepInvestigationButtonEnabled}
+                                >
+                                    <FormattedMessage {...AgentTaskResources.deepInvestigation} />
+                                </Button>
+                            </div>
+                        </OverflowItem>
+                    ) : (
+                        <MenuItem
+                            icon={<SearchSparkle16Filled />}
+                            style={{
+                                color:
+                                    isDeepInvestigationTurnedOn && isDeepInvestigationButtonEnabled
+                                        ? tokens.colorBrandBackground
+                                        : undefined,
+                            }}
+                            onClick={onClickDeepInvestigationButton}
+                            disabled={!isDeepInvestigationButtonEnabled}
+                        >
+                            <FormattedMessage {...AgentTaskResources.deepInvestigation} />
+                        </MenuItem>
+                    )}
+                </Tooltip>
+            )
         );
     }
 );
