@@ -117,12 +117,7 @@ const ThreadItem = forwardRef<HTMLDivElement, IThreadItemProps>(
         return (
             <div
                 ref={ref}
-                onClick={e => {
-                    // Ensure that the event is only triggered when clicking on the container itself, not on its children
-                    if (e.target === e.currentTarget) {
-                        onSelectThread();
-                    }
-                }}
+                onClick={() => onSelectThread()}
                 onKeyDown={e => {
                     if (e.key.toLowerCase() === 'enter') {
                         // Ensure that the event is only triggered when pressing Enter on the container itself, not on its children
@@ -222,15 +217,16 @@ const ThreadItem = forwardRef<HTMLDivElement, IThreadItemProps>(
                         </Menu>
                     </div>
                 </Fade>
-
-                <DeleteThreadDialog
-                    restoreFocusSourceAttributes={restoreFocusSourceAttributes}
-                    thread={thread}
-                    isOpen={isDeleteDialogOpen}
-                    onOpenChange={setIsDeleteDialogOpen}
-                    onConfirmDelete={() => onConfirmDeleteThread()}
-                    source="ThreadItem"
-                />
+                <div onClick={e => e.stopPropagation()}>
+                    <DeleteThreadDialog
+                        restoreFocusSourceAttributes={restoreFocusSourceAttributes}
+                        thread={thread}
+                        isOpen={isDeleteDialogOpen}
+                        onOpenChange={setIsDeleteDialogOpen}
+                        onConfirmDelete={() => onConfirmDeleteThread()}
+                        source="ThreadItem"
+                    />
+                </div>
             </div>
         );
     }
