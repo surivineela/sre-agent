@@ -51,5 +51,18 @@ namespace Agent.Plugins.Definitions
         {
             return await _functionAppPlugin.GetFunctionAppDeploymentSlotsAsync(resourceId);
         }
+
+        [Description("Triggers a TimerTrigger Azure Function manually. " +
+            "Only supports functions that use TimerTrigger bindings (scheduled functions). " +
+            "Automatically retrieves the master key from Azure ARM API and validates that the specified function is indeed a TimerTrigger. " +
+            "Returns detailed execution results including success status, response content, and duration. " +
+            "Use this to manually invoke scheduled functions outside their normal schedule or test TimerTrigger functions.")]
+        [AgentTool(ToolMode.Auto)]
+        public async Task<FunctionTriggerResponse> TriggerTimerFunctionAsync(
+            [Description("The full Azure resource ID of the Function App containing the TimerTrigger function to trigger.")] string functionAppResourceId,
+            [Description("The name of the TimerTrigger function to trigger (case-sensitive).")] string functionName)
+        {
+            return await _functionAppPlugin.TriggerTimerFunctionAsync(functionAppResourceId, functionName);
+        }
     }
 }

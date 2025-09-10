@@ -68,7 +68,7 @@ public class FunctionsGraphTests
             mockSessionPoolService.Object,
             mockChatClient.Object);
 
-        var plugin = new FunctionAppsPlugin(_graphClient, loggerFactory.CreateLogger<FunctionAppsPlugin>(), armHelper);
+        var plugin = new FunctionAppsPlugin(_graphClient, loggerFactory.CreateLogger<FunctionAppsPlugin>(), armHelper, mockHttpClientFactory.Object);
         var definition = new FunctionAppsPluginDefinition(plugin);
 
         var apps = await definition.ListFunctionAppsAsync(new Guid("29e3378b-0aaf-45da-b3c6-6fd0eea164e4"));
