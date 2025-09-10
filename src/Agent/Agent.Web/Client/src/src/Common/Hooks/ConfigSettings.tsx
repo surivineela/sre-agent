@@ -28,7 +28,6 @@ const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
         [SettingNames.ShowWatchtower]: true,
         [SettingNames.ForUnitTests]: true,
         [SettingNames.KnowledgeBase]: true,
-        [SettingNames.ShowSubAgentsItemInSettings]: true,
     },
 };
 
