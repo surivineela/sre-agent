@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Logging;
 using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
@@ -541,6 +542,24 @@ public class AzMonitorAlertScanner
             incidentId: alertIdResource.Name, // Alert GUID (unique every time a new alert is fired)
             incidentSource: new IncidentSource(IncidentType.AzMonitor, alertRule)
         );
+
+        // Emit agent action telemetry for thread creation with incident source AzMonitor
+        try
+        {
+            var param = System.Text.Json.JsonSerializer.Serialize(new { IncidentSource = "AzMonitor" });
+            _logger.LogAgentAction(
+                action: AgentActionEvents.CreateThread,
+                parameter: param,
+                status: AgentActionStatus.Success,
+                duration: 0,
+                threadId: thread.Id.ToString(),
+                subAgentName: "",
+                threadSource: thread.Source.ToString());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, "[AzMonitorAlertScanner] CreateIncidentThread: Failed to emit LogAgentAction for CreateThread");
+        }
 
         try
         {

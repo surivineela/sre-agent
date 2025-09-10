@@ -104,16 +104,16 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
     /// <param name="incident">The incident document</param>
     /// <returns>The formatted system prompt</returns>
     protected virtual string BuildSystemPromptFromHandler(
-        IncidentHandlerDocument handler, 
+        IncidentHandlerDocument handler,
         TIncidentDocument incident)
     {
         var promptBuilder = new StringBuilder();
-        
+
         // Base instruction
         promptBuilder.AppendLine($"You are an incident handler agent for {handler.Name}.");
         promptBuilder.AppendLine($"You are handling incident: {incident.Title}");
         promptBuilder.AppendLine();
-        
+
         // Add instructions for status updates using the tool
         promptBuilder.AppendLine("IMPORTANT: Use the 'NotifyUser' tool to provide status updates as you work through the incident. Do not provide repetitive updates. Only send updates about new steps that are being taken.");
         promptBuilder.AppendLine("Send status updates for major steps like:");
@@ -122,7 +122,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
         promptBuilder.AppendLine("- Identifying root cause");
         promptBuilder.AppendLine("- Applying remediation");
         promptBuilder.AppendLine();
-        
+
         // Add processing guide as instructions
         if (handler.IncidentProcessingGuide?.Count > 0)
         {
@@ -133,17 +133,17 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
             }
             promptBuilder.AppendLine();
         }
-        
+
         // Add custom instructions
         if (!string.IsNullOrEmpty(handler.CustomInstructions))
         {
             promptBuilder.AppendLine("Additional Instructions:");
             promptBuilder.AppendLine(handler.CustomInstructions);
         }
-        
+
         return promptBuilder.ToString();
     }
-    
+
     /// <summary>
     /// Registers a dynamic YAML agent with the agent factory
     /// </summary>
@@ -156,13 +156,13 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
         {
             descriptor.Tools.Insert(0, "NotifyUser");
         }
-        
+
         // Register with agent factory
         _agentFactory.LoadAgentFromDescriptor(descriptor, isCustomAgent: true);
-        
+
         // Update handoffs to include this agent in meta_agent if needed
         _agentFactory.UpdateHandoffs();
-        
+
         return Task.CompletedTask;
     }
 
@@ -248,9 +248,9 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
             }
 
             _logger.LogInternalInformation("[IncidentHandlingService] HandleIncidentAsync: Matched Handler. Creating IncidentHandlerAgent thread for IncidentId: {IncidentId}, FilterId: {FilterId} and HandlerId: {HandlerId}", incidentId, matchingFilter.Id, matchingHandler.Id);
-            
+
             Core.Models.Api.v1.Thread thread;
-            
+
             // Check if YAML-based incident handling is enabled
             if (_experimentalSettings.UseYamlForIncidentHandling)
             {
@@ -262,7 +262,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
                 _logger.LogInternalInformation("[IncidentHandlingService] Using legacy incident handling for IncidentId: {IncidentId}", incidentId);
                 thread = await CreateIncidentHandlerAgentThreadAsync(incidentDetails, matchingHandler, matchingFilter, request);
             }
-            
+
             _logger.LogInternalInformation("[IncidentHandlingService] HandleIncidentAsync: Created IncidentHandlerAgent thread with ThreadId: {ThreadId} for IncidentId: {IncidentId} and HandlerId: {HandlerId}", thread.Id, incidentId, matchingHandler.Id);
 
             try
@@ -317,7 +317,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
             return response;
         }
     }
- 
+
     /// <summary>
     /// Creates a meta agent thread for handling incidents without a specific handler
     /// </summary>
@@ -377,6 +377,24 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
 
             _logger.LogInternalInformation("[BaseIncidentService] CreateIncidentMetaAgentThread: Created thread with ThreadId: {ThreadId} for IncidentId: {IncidentId} with CurrentAgent: {CurrentAgent}", thread.Id, request.IncidentId, currentAgent);
 
+            // Emit agent action telemetry for meta thread creation with incident source
+            try
+            {
+                var param = System.Text.Json.JsonSerializer.Serialize(new { IncidentSource = request.Source ?? string.Empty });
+                _logger.LogAgentAction(
+                    action: AgentActionEvents.CreateThread,
+                    parameter: param,
+                    status: AgentActionStatus.Success,
+                    duration: 0,
+                    threadId: thread.Id.ToString(),
+                    subAgentName: "",
+                    threadSource: thread.Source.ToString());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalWarning(ex, "[BaseIncidentService] CreateIncidentMetaAgentThread: Failed to emit LogAgentAction for CreateThread");
+            }
+
             var agentMessage = $"**Acknowledging the incident**. I'm starting to investigate and see how I can help.";
             await _repository.AddMessageAsync(thread.Id, new Message(Guid.NewGuid(), DateTime.UtcNow, new Core.Models.Api.v1.Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"), agentMessage));
 
@@ -386,8 +404,8 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
             {
                 conversationModifier = ConversationModifierEnum.DeepInvestigation;
                 _logger.LogInternalInformation(
-                    "Deep Investigation enabled for incident {IncidentId} via filter {FilterId}", 
-                    request.IncidentId, 
+                    "Deep Investigation enabled for incident {IncidentId} via filter {FilterId}",
+                    request.IncidentId,
                     incidentFilterDocument.Id);
             }
 
@@ -601,6 +619,24 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
 
                 _logger.LogInternalInformation($"{logPrefix} CreateIncidentHandlerAgentThreadInternalAsync: Created thread with ThreadId: {{ThreadId}} for IncidentId: {{IncidentId}} HandlerId: {{HandlerId}}", thread.Id, incidentDetails.Id, incidentHandler.Id);
 
+                // Emit agent action telemetry for thread creation with incident source
+                try
+                {
+                    var param = System.Text.Json.JsonSerializer.Serialize(new { IncidentSource = sourceSystem ?? string.Empty });
+                    _logger.LogAgentAction(
+                        action: AgentActionEvents.CreateThread,
+                        parameter: param,
+                        status: AgentActionStatus.Success,
+                        duration: 0,
+                        threadId: thread.Id.ToString(),
+                        subAgentName: "",
+                        threadSource: thread.Source.ToString());
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalWarning(ex, "CreateIncidentHandlerAgentThreadInternalAsync: Failed to emit LogAgentAction for CreateThread");
+                }
+
                 var agentMessage = $"**Acknowledging the incident**. I'm starting to investigate and see how I can help.";
                 await _repository.AddMessageAsync(thread.Id, new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"), agentMessage));
 
@@ -610,8 +646,8 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
                 {
                     conversationModifier = ConversationModifierEnum.DeepInvestigation;
                     _logger.LogInternalInformation(
-                        "Deep Investigation enabled for incident {IncidentId} via filter {FilterId}", 
-                        incidentDetails.Id, 
+                        "Deep Investigation enabled for incident {IncidentId} via filter {FilterId}",
+                        incidentDetails.Id,
                         incidentFilterDocument.Id);
                 }
 
