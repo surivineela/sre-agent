@@ -4,8 +4,6 @@
 
 using System.Reflection;
 using Agent.Core.Configuration;
-using Agent.Core.Models.Api.v1;
-using Agent.Core.Interfaces;
 using Agent.Framework;
 using Agent.Framework.Interfaces;
 using Agent.Plugins;
@@ -34,7 +32,7 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
     private readonly IHostEnvironment _hostEnvironment;
     private readonly IEnumerable<Assembly> _assemblies;
     private readonly Dictionary<string, IDeferredToolFunction> _tools = new();
-    
+
     private readonly bool _handoffReasoningEnabled;
     private readonly IExtensibilityLoader? _extensibilityLoader;
     public ToolFactory(
@@ -54,7 +52,6 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
         var experimentalSettings = _serviceProvider.GetRequiredService<ExperimentalSettings>();
         _handoffReasoningEnabled = experimentalSettings?.EnableHandoffReasoning ?? _hostEnvironment.IsDevelopment();
 
-        
         FindAndRegisterAllTools(BehaviorOnNameConflict.Overwrite);
     }
 
@@ -381,7 +378,7 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
         return false;
     }
 
-   
+
 
     public void RegisterExtendedToolFromModel(string extendedToolName, string extendedToolYaml)
     {

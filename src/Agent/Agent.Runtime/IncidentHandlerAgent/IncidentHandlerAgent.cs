@@ -12,7 +12,6 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Agent.Logging;
-using Agent.Runtime.IncidentHandlerAgent;
 using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.Services;
 using Microsoft.Extensions.AI;
@@ -21,7 +20,7 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
 
 
-namespace Agent.Runtime.MetaAgent;
+namespace Agent.Runtime.IncidentHandlerAgent;
 
 public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
 {
@@ -228,7 +227,8 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
             _logger.LogInternalInformation(
                 "[IncidentHandlerAgent] ProcessIncidentAsync: Appended last user message to chat history for ThreadId: {ThreadId}",
                 threadGuid);
-        }        try
+        }
+        try
         {
             _logger.LogInternalInformation(
                 "[IncidentHandlerAgent] ProcessIncidentAsync: Calling GetModelResponse for AgentContextId: {AgentContextId}, ThreadId: {ThreadId}",

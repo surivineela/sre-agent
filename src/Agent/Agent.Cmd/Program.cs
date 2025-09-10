@@ -2,18 +2,19 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Clients.Chat;
 using Agent.Core.Configuration;
 using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.Repositories;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Interfaces;
 using Agent.Graph.Services;
 using Agent.Runtime;
 using Azure.AI.OpenAI;
-using Agent.Core.Models.Api.v1;
-using Agent.Data.Repositories;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.CommandLineUtils;
 using Microsoft.Extensions.DependencyInjection;
@@ -65,7 +66,11 @@ namespace Agent.Cmd
             }
 
             builder.Services.ConfigureAzureOpenAIClient();
-            builder.Services.AddKeyedChatClient("function-invocation-enabled", serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().GetChatClient(llmDeploymentName).AsIChatClient(), ServiceLifetime.Singleton)
+
+            builder.Services.AddKeyedChatClient("function-invocation-enabled",
+                serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().GetChatClient(llmDeploymentName).AsIChatClient(),
+                ServiceLifetime.Singleton)
+                .Use(next => new ReasoningChatClient(next))
                 .UseFunctionInvocation();
 
             var host = builder.Build();

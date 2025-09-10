@@ -102,6 +102,7 @@ public static class TestHelpers
             var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
 
             return new ChatClientBuilder(client.GetChatClient(llmDeploymentName).AsIChatClient())
+                .Use(next => new ReasoningChatClient(next))
                 .UseLogging(loggerFactory)
                 .UseFunctionInvocation(loggerFactory, x =>
                 {
@@ -348,7 +349,7 @@ public static class TestHelpers
             );
 
         builder.Services.AddSingleton<IAgentFactory<AgentContext>>(factory);
-       
+
 
         // should be removed later - currently required because ThreadManagementService has code for handling UseAgentFramework=false
         builder.Services.AddSingleton<IAgentsFactory>(sp =>
