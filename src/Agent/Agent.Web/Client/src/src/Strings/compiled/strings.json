@@ -3483,6 +3483,12 @@
       "value": "Manage Azure Monitor workbooks."
     }
   ],
+  "Z7pfsl": [
+    {
+      "type": 0,
+      "value": "Agent ID"
+    }
+  ],
   "ZNMCbm": [
     {
       "type": 0,
@@ -3523,6 +3529,12 @@
     {
       "type": 0,
       "value": "Copy link to thread"
+    }
+  ],
+  "Zkjd9I": [
+    {
+      "type": 0,
+      "value": "Critical actions present"
     }
   ],
   "Zqa4dQ": [
@@ -3597,6 +3609,12 @@
     {
       "type": 0,
       "value": "Has access to Read and Test functions under LUIS."
+    }
+  ],
+  "aH4De2": [
+    {
+      "type": 0,
+      "value": "Source"
     }
   ],
   "aORQjS": [
@@ -4115,6 +4133,12 @@
     {
       "type": 0,
       "value": "Manage IoT Hub device twins."
+    }
+  ],
+  "ggVnjB": [
+    {
+      "type": 0,
+      "value": "Thread ID"
     }
   ],
   "gj6Qc6": [
@@ -5221,6 +5245,12 @@
       "value": "Investigation"
     }
   ],
+  "tOxzip": [
+    {
+      "type": 0,
+      "value": "Modified"
+    }
+  ],
   "tSKi9q": [
     {
       "type": 0,
@@ -5371,6 +5401,12 @@
     {
       "type": 0,
       "value": "Failed"
+    }
+  ],
+  "vYmpTr": [
+    {
+      "type": 0,
+      "value": "Warning actions present"
     }
   ],
   "vao/Lv": [

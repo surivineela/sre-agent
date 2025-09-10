@@ -78,16 +78,20 @@ const ThreadActionsMenu = ({ thread, handleThreadDelete, hideCopyDeeplink, hideD
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
     const formattedThreadInfoText = useMemo(() => {
-        const created = new Date(thread.createdTimestamp).toLocaleDateString();
-        const modified = new Date(thread.modifiedTimestamp).toLocaleDateString();
+        const createdDate = new Date(thread.createdTimestamp).toLocaleDateString();
+        const modifiedDate = new Date(thread.modifiedTimestamp).toLocaleDateString();
+        const sourceValue = thread.source || intl.formatMessage(SreAgentResources.NA);
 
-        return `${thread.title}
-Created: ${created}
-Modified: ${modified}
-Source: ${thread.source || 'N/A'}
-
-Thread ID: ${thread.id}`;
-    }, [thread]);
+        return [
+            thread.title,
+            `${intl.formatMessage(SreAgentResources.created)}: ${createdDate}`,
+            `${intl.formatMessage(SreAgentResources.modified)}: ${modifiedDate}`,
+            `${intl.formatMessage(SreAgentResources.source)}: ${sourceValue}`,
+            `${intl.formatMessage(SreAgentResources.agentId)}: ${resourceId ?? ''}`,
+            '',
+            `${intl.formatMessage(SreAgentResources.threadId)}: ${thread.id}`,
+        ].join('\n');
+    }, [intl, resourceId, thread.createdTimestamp, thread.modifiedTimestamp, thread.source, thread.title, thread.id]);
 
     const renderInfoContent = () => (
         <div>
@@ -98,24 +102,47 @@ Thread ID: ${thread.id}`;
 
             <div className={section}>
                 <div className={sectionTitle}>{thread.title}</div>
-                <div>Created {new Date(thread.createdTimestamp).toLocaleDateString()}</div>
-                <div>Modified {new Date(thread.modifiedTimestamp).toLocaleDateString()}</div>
-                {thread.source && <div>Source: {thread.source}</div>}
+                <div>
+                    {intl.formatMessage(SreAgentResources.created)} {new Date(thread.createdTimestamp).toLocaleDateString()}
+                </div>
+                <div>
+                    {intl.formatMessage(SreAgentResources.modified)} {new Date(thread.modifiedTimestamp).toLocaleDateString()}
+                </div>
+                {thread.source && (
+                    <div>
+                        {intl.formatMessage(SreAgentResources.source)}: {thread.source}
+                    </div>
+                )}
+                {resourceId && (
+                    <div>
+                        {intl.formatMessage(SreAgentResources.agentId)}: {resourceId}
+                    </div>
+                )}
             </div>
 
             {(thread.status?.actionsStatus?.hasCriticalActions || thread.status?.actionsStatus?.hasWarningActions) && (
                 <div className={section}>
-                    <div className={sectionTitle}>Actions</div>
-                    {thread.status?.actionsStatus?.hasCriticalActions && <div>🔴 Critical actions present</div>}
-                    {thread.status?.actionsStatus?.hasWarningActions && <div>🟡 Warning actions present</div>}
+                    <div className={sectionTitle}>{intl.formatMessage(SreAgentResources.actions)}</div>
+                    {thread.status?.actionsStatus?.hasCriticalActions && (
+                        <div>🔴 {intl.formatMessage(SreAgentResources.criticalActionsPresent)}</div>
+                    )}
+                    {thread.status?.actionsStatus?.hasWarningActions && (
+                        <div>🟡 {intl.formatMessage(SreAgentResources.warningActionsPresent)}</div>
+                    )}
                 </div>
             )}
 
             {thread.status?.incidentStatus?.incidentId && (
                 <div className={section}>
-                    <div className={sectionTitle}>Incident</div>
-                    <div>ID: {thread.status.incidentStatus.incidentId}</div>
-                    {thread.status.incidentStatus.status && <div>Status: {thread.status.incidentStatus.status}</div>}
+                    <div className={sectionTitle}>{intl.formatMessage(SreAgentResources.incident)}</div>
+                    <div>
+                        {intl.formatMessage(SreAgentResources.idLabel)}: {thread.status.incidentStatus.incidentId}
+                    </div>
+                    {thread.status.incidentStatus.status && (
+                        <div>
+                            {intl.formatMessage(SreAgentResources.status)}: {thread.status.incidentStatus.status}
+                        </div>
+                    )}
                 </div>
             )}
         </div>
