@@ -35,6 +35,14 @@ export interface DeleteResponse {
     failed?: string[];
 }
 
+export interface AgentMemoryStatus {
+    enabled: boolean;
+    documentRetrievalEnabled: boolean;
+    trajectoryRetrievalEnabled: boolean;
+    userMemoryRetrievalEnabled: boolean;
+    message: string;
+}
+
 export class AgentMemoryClient extends DataPlaneClient {
     private static _instance: AgentMemoryClient;
 
@@ -120,6 +128,25 @@ export class AgentMemoryClient extends DataPlaneClient {
             const { data } = await axios.delete(this.getRequestUrl('/api/v1/agentmemory/documents'), {
                 headers: getAgentHeaders(),
                 data: fileNames,
+            });
+
+            return {
+                isSuccessful: true,
+                content: data,
+            };
+        } catch (e) {
+            return {
+                isSuccessful: false,
+                error: e,
+                content: axios.isAxiosError(e) ? e.response?.data : undefined,
+            };
+        }
+    };
+
+    public getStatus = async (): Promise<Response<AgentMemoryStatus>> => {
+        try {
+            const { data } = await axios.get(this.getRequestUrl('/api/v1/agentmemory/status'), {
+                headers: getAgentHeaders(),
             });
 
             return {

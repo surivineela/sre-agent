@@ -4,6 +4,7 @@ import { useIntl } from 'react-intl';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
+import { useKnowledgeBaseConfig } from '../../Common/Hooks/UseKnowledgeBaseConfig';
 import GrafanaDashboard from '../../GrafanaDashboard/GrafanaDashboard.ReactView';
 import { SettingsTabResources } from '../../Strings/SREAgentResources';
 import AccessControl from './AccessControl.ReactView';
@@ -33,7 +34,7 @@ const Settings: FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const showDataConnectors = useConfigSetting(SettingNames.DataConnectors);
-    const showKnowledgeBase = useConfigSetting(SettingNames.KnowledgeBase);
+    const showKnowledgeBase = useKnowledgeBaseConfig();
     const showSubAgents = useConfigSetting(SettingNames.ShowSubAgentsItemInSettings);
 
     const { logAmplitudeNavigationEvent } = useAzPortalContext();
