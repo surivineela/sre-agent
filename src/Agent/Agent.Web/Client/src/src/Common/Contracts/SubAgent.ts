@@ -1,7 +1,10 @@
 export interface SubAgent {
-    agentCardUrl: string;
     agentName: string;
-    authType: string;
-    logicAppWorkflowDefinition: Record<string, unknown>;
     logicAppWorkflowId: string;
+    workflowConfiguration: {
+        connections: Record<string, any>;
+        workflowDefinition: Record<string, any>;
+    };
+    agentCardUrl: string;
+    authType: string;
 }

@@ -69,17 +69,54 @@ export class SubAgentClient extends DataPlaneClient {
                     definition: {
                         $schema:
                             'https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#',
-                        actions: {},
                         contentVersion: '1.0.0.0',
+                        actions: {
+                            Agent: {
+                                type: 'Agent',
+                                inputs: {
+                                    parameters: {
+                                        deploymentId: 'gpt-4',
+                                        messages: [
+                                            {
+                                                role: 'system',
+                                                content: 'test agent',
+                                            },
+                                        ],
+                                        agentModelType: 'AzureOpenAI',
+                                        agentModelSettings: {
+                                            agentHistoryReductionSettings: {
+                                                agentHistoryReductionType: 'maximumTokenCountReduction',
+                                                maximumTokenCount: 128000,
+                                            },
+                                            deploymentModelProperties: {
+                                                name: 'gpt-4.1',
+                                                format: 'OpenAI',
+                                                version: '2025-04-14',
+                                            },
+                                        },
+                                    },
+                                    modelConfigurations: {
+                                        model1: {
+                                            referenceName: 'agent-3',
+                                        },
+                                    },
+                                },
+                                tools: {},
+                                runAfter: {
+                                    When_a_new_chat_session_starts: ['Succeeded'],
+                                },
+                            },
+                        },
                         outputs: {},
-                        triggers: {},
+                        triggers: {
+                            When_a_new_chat_session_starts: {
+                                type: 'Request',
+                                kind: 'Agent',
+                            },
+                        },
                     },
                     kind: 'Agent',
                 },
-                connections: {
-                    managedApiConnections: {},
-                },
-                appsettings: {},
             },
             authType: 'API-Key', //Can be “API-Key” or “Easy-auth”
             authConfig: {}, //TBD: this will be needed for easy auth for details like clientId etc

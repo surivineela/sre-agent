@@ -55,10 +55,11 @@ const SubAgents: FC = () => {
                 detailBlade: 'SreAgentDesignerEditor.ReactView',
                 detailBladeInputs: {
                     id: subAgentInfo.logicAppWorkflowId,
+                    sreAgentId: resourceId,
                 },
             });
         },
-        [portalContext]
+        [portalContext, resourceId]
     );
 
     const handleNewSubAgent = useCallback(() => {
@@ -80,6 +81,7 @@ const SubAgents: FC = () => {
             const response = await SubAgentClient.getInstance(agentEndpoint).createSubAgent({ name });
             if (response.isSuccessful) {
                 handleRefresh();
+                setIsDialogOpen(false);
                 portalContext.stopNotification(notificationId, true, intl.formatMessage(SubAgentsResources.subAgentCreated, { name }));
             } else {
                 portalContext.log({
