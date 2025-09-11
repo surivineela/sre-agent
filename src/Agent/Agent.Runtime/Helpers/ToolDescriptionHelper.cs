@@ -403,6 +403,9 @@ public static class ToolDescriptionHelper
 
             nameof(RepositoryPluginDefintion.GetRepositoryType) => "Getting the Repository Type...",
 
+            nameof(SourceCodeAnalysisAgentPluginDefinition.QuerySourceBySemanticSearch) => "Querying source code by semantic search...",
+            nameof(SourceCodeAnalysisAgentPluginDefinition.CorrelateErrorsWithSourceCode) => "Correlating errors with source code...",
+
             // Default case
             _ => DefaultSafeDescription
         };

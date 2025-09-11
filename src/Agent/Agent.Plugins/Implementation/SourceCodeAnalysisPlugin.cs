@@ -1,8 +1,11 @@
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Text.Json;
 using Agent.Plugins.Helpers;
 using Agent.Plugins.Interface;
+using Agent.Plugins.Services;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Octokit;
 
@@ -12,9 +15,104 @@ public class SourceCodeAnalysisPlugin : ISourceCodeAnalysisPlugin
 {
     private readonly GitHubClient _gitHubClient;
     private readonly IGithubIssuePlugin _githubIssuePlugin;
+    private readonly IAzureDevOpsSourceCodeSearch _azureDevOpsSourceCodeSearch;
+    private readonly IAzureDevOpsWorkItemPlugin _azureDevOpsWorkItemPlugin;
     private readonly ILogger<SourceCodeAnalysisPlugin> _logger;
+    private readonly IChatClient _chatClient;
     private static readonly HttpClient _httpClient = new();
-    
+
+    private const string SYSTEM_PROMPT = @"""
+SYSTEM ROLE:
+You are an expert AI that converts natural language developer queries into precise Azure DevOps (AzDo) source code search strings.
+
+---
+
+TASK:
+Transform a semantic query into an AzDo-compatible lexical query for source code search only in a language agnostic way.
+---
+
+RULES:
+
+1. 🔍 Target = Source Code Only
+   - Ignore work items, pipelines, wikis, tests, or any non-code entities.
+
+2. 🧠 Input = Natural language query
+   - May include function names, behavior descriptions, technologies, file types, or language hints.
+
+3. 🎯 Output = AzDo Source Code Search Query
+   - Format: either a single query string, or a JSON array of strings (C#-friendly).
+   - Use only lexical syntax supported by AzDo source code search:
+     - `file:` – file extensions or filenames (e.g. `file:.cs`, `file:dockerfile`)
+     - `path:` – directories or folder paths (e.g. `path:/services/`)
+     - `repo:` – repository name (if clearly implied)
+     - Quoted string literals allowed for precision (e.g. `""SELECT ""`)
+
+4. 🧾 Output Format:
+   - Simple queries → return raw string only:
+     Example:
+     ```
+     resetPasswordHandler file:.cs
+     ```
+
+   - Complex queries → return JSON array (no explanations, no code blocks):
+     Example:
+     ```
+     [
+       ""\""SELECT \"" file:.js"",
+       ""\""SELECT \"" file:.ts""
+     ]
+     ```
+
+5. ⚙️ Parsing Compatibility:
+   - Output must be valid for C# `System.Text.Json` or `Newtonsoft.Json`.
+   - Always use double quotes for strings in arrays.
+   - Never use Markdown/code fences.
+
+6. 🚫 Don't:
+   - Don't include natural language explanations.
+   - Don't assume repo structure unless implied.
+   - Don't guess variable names unless standard or obvious.
+
+---
+
+LANGUAGE ADAPTATION:
+Use language cues from the query:
+- C#: `HttpClient`, `async Task`, `file:.cs`
+- JavaScript: `function`, `fetch`, `file:.js`
+- Python: `def`, `file:.py`, `requests`, etc.
+- ...
+
+---
+
+EXAMPLES:
+
+Input:
+> ""Where do we create the JWT in the auth service?""
+
+Output:
+createJWT path:/auth/
+
+
+Input:
+> ""Find JavaScript or TypeScript files that run SQL queries""
+
+Output:
+[
+""""SELECT "" file:.js"",
+""""SELECT "" file:.ts""
+]
+
+Input:
+> ""Look for usages of HttpClient and RestClient in the payment module""
+
+Output:
+[
+""HttpClient path:/payment/"",
+""RestClient path:/payment/""
+]
+""";
+
+
     private static readonly HashSet<string> SensitiveHeaders = new(StringComparer.OrdinalIgnoreCase)
     {
         "Authorization",
@@ -23,38 +121,37 @@ public class SourceCodeAnalysisPlugin : ISourceCodeAnalysisPlugin
         "Set-Cookie"
     };
 
-    public SourceCodeAnalysisPlugin(Models.GitHubClient gitHubClient, ILogger<SourceCodeAnalysisPlugin> logger, IGithubIssuePlugin githubIssuePlugin)
+    public SourceCodeAnalysisPlugin(Models.GitHubClient gitHubClient,
+                                    ILogger<SourceCodeAnalysisPlugin> logger,
+                                    IGithubIssuePlugin githubIssuePlugin,
+                                    IAzureDevOpsSourceCodeSearch azureDevOpsSourceCodeSearch,
+                                    IAzureDevOpsWorkItemPlugin azureDevOpsWorkItemPlugin,
+                                    IChatClient chatClient)
     {
         _gitHubClient = gitHubClient.Client;
         _githubIssuePlugin = githubIssuePlugin;
+        _azureDevOpsWorkItemPlugin = azureDevOpsWorkItemPlugin;
+        _azureDevOpsSourceCodeSearch = azureDevOpsSourceCodeSearch;
         _logger = logger;
+        _chatClient = chatClient;
     }
 
     public async Task<string> QueryRepositoryBasedOnError(string resourceId, string errorDescription)
     {
         try
         {
-            var searchResults = await GetSemanticSearchResult(resourceId, errorDescription);
+            string connectedRepositoryUrl = await _azureDevOpsWorkItemPlugin.FindConnectedRepository(resourceId);
 
-            if (searchResults is null || !searchResults.Any())
+            // If Azure DevOps repo is connected, use ADO search.
+            if (!string.IsNullOrEmpty(connectedRepositoryUrl) && Regex.IsMatch(connectedRepositoryUrl, GraphService.AzDoRepoRegexPattern))
             {
-                return "No search results found.";
+                return await PerformAzureDevOpsSearch(connectedRepositoryUrl, errorDescription);
             }
 
-            var top5Results = searchResults.Take(5);
-            var resultStrings = top5Results.Select(result =>
-            {
-                var filePath = result?.Location?.Path ?? "Unknown";
-                var score = result?.Distance ?? 0.0;
-                var content = result?.Chunk?.Text ?? "No content";
-                var start = result?.Chunk?.Range?.Start.ToString() ?? "N/A";
-                var end = result?.Chunk?.Range?.End.ToString() ?? "N/A";
-
-                return $"File: {filePath}\nScore: {score:F2}\nContent: {content} at {start} to {end}\n";
-            });
-
-            return string.Join("\n---\n", resultStrings);
+            // Otherwise, default to GitHub search and let the errors be automatically handled.
+            return await PerformGitHubSearch(resourceId, errorDescription, limitResults: true);
         }
+
         catch (Exception ex)
         {
             return $"Error occurred while querying repository: {ex.Message}";
@@ -289,6 +386,7 @@ public class SourceCodeAnalysisPlugin : ISourceCodeAnalysisPlugin
 
             return responseStatus;
         }
+
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Error forcing repository indexing", repoUrl);
@@ -311,29 +409,131 @@ public class SourceCodeAnalysisPlugin : ISourceCodeAnalysisPlugin
 
         try
         {
-            var searchResults = await GetSemanticSearchResult(resourceId, query);
+            string azureDevOpsParsedUrl = await _azureDevOpsWorkItemPlugin.FindConnectedRepository(resourceId);
 
-            if (searchResults is null || !searchResults.Any())
+            // If Azure DevOps repo is connected, use ADO search.
+            if (!string.IsNullOrEmpty(azureDevOpsParsedUrl) && Regex.IsMatch(azureDevOpsParsedUrl, GraphService.AzDoRepoRegexPattern))
             {
-                return "No search results found.";
+                return await PerformAzureDevOpsSearch(azureDevOpsParsedUrl, query);
             }
 
-            var resultStrings = searchResults.Select(result =>
-            {
-                var filePath = result?.Location?.Path ?? "Unknown";
-                var score = result?.Distance ?? 0.0;
-                var content = result?.Chunk?.Text ?? "No content";
-                var start = result?.Chunk?.Range?.Start.ToString() ?? "N/A";
-                var end = result?.Chunk?.Range?.End.ToString() ?? "N/A";
-
-                return $"File: {filePath}\nScore: {score:F2}\nContent: {content} at {start} to {end}\n";
-            });
-
-            return string.Join("\n---\n", resultStrings);
+            return await PerformGitHubSearch(resourceId, query);
         }
+
         catch (Exception ex)
         {
             return $"Error occurred while querying repository: {ex.Message}";
         }
     }
-}
+
+    /// <summary>
+    /// Performs Azure DevOps source code search using AI-powered query transformation and semantic search.
+    /// </summary>
+    /// <param name="azureDevOpsParsedUrl">The Azure DevOps repository URL</param>
+    /// <param name="query">The natural language query to search for</param>
+    /// <returns>A formatted string containing the search results</returns>
+    private async Task<string> PerformAzureDevOpsSearch(string azureDevOpsParsedUrl, string query)
+    {
+        (string organization, string project, string repo) = AzureDevOpsWorkItemPlugin.ParseRepositoryUrl(azureDevOpsParsedUrl);
+
+        List<ChatMessage> messages = [
+            new ChatMessage(ChatRole.System, SYSTEM_PROMPT), 
+            new ChatMessage(ChatRole.User, query)
+        ];
+
+        var chatResponse = await _chatClient.GetResponseAsync(messages);
+        var searchQueries = chatResponse.Messages[0].Text?.Trim();
+
+        var allResults = new List<string>();
+
+        if (!string.IsNullOrEmpty(searchQueries))
+        {
+            List<string> queries;
+            
+            // Try to parse as JSON array first, otherwise treat as single query
+            if (searchQueries.StartsWith("[") && searchQueries.EndsWith("]"))
+            {
+                try
+                {
+                    queries = JsonSerializer.Deserialize<List<string>>(searchQueries) ?? [searchQueries];
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogInternalWarning(ex, "Failed to parse search queries as JSON array, treating as single query");
+                    queries = [searchQueries];
+                }
+            }
+            else
+            {
+                queries = [searchQueries];
+            }
+
+            var processedFiles = new HashSet<string>();
+            
+            foreach (var searchQuery in queries)
+            {
+                var searchResult = await _azureDevOpsSourceCodeSearch.SearchAsync(repoUrl: azureDevOpsParsedUrl, searchTerm: searchQuery);
+                if (searchResult != null && searchResult.IsSuccess && searchResult.Results != null && searchResult.Results.Count > 0)
+                {
+                    // Get the files for each of the search results.
+                    foreach (var result in searchResult.Results)
+                    {
+                        // Skip if we've already processed this file
+                        if (processedFiles.Contains(result.FileName))
+                        {
+                            continue;
+                        }
+                        
+                        if (result.Matches != null && result.Matches.Count > 0)
+                        {
+                            foreach (var match in result.Matches)
+                            {
+                                var fileContent = await _azureDevOpsSourceCodeSearch.GetFileContentAsync(organization, project, repo, result.FileName);
+                                allResults.Add($"File: {result.FileName}\nMatch: {match}\nContent:\n{fileContent}\n");
+                                processedFiles.Add(result.FileName);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (allResults.Count == 0)
+        {
+            return "No search results found in Azure DevOps repository.";
+        }
+
+        return string.Join("\n---\n", allResults);
+    }
+
+    /// <summary>
+    /// Performs GitHub semantic search including repository indexing and result formatting.
+    /// </summary>
+    /// <param name="resourceId">The resource ID to find the connected GitHub repository</param>
+    /// <param name="query">The query to search for</param>
+    /// <param name="limitResults">Whether to limit results to top 5 (default: false)</param>
+    /// <returns>A formatted string containing the search results</returns>
+    private async Task<string> PerformGitHubSearch(string resourceId, string query, bool limitResults = false)
+    {
+        var searchResults = await GetSemanticSearchResult(resourceId, query);
+
+        if (searchResults is null || !searchResults.Any())
+        {
+            return "No search results found.";
+        }
+
+        var resultsToProcess = limitResults ? searchResults.Take(5) : searchResults;
+        var resultStrings = resultsToProcess.Select(result =>
+        {
+            var filePath = result?.Location?.Path ?? "Unknown";
+            var score = result?.Distance ?? 0.0;
+            var content = result?.Chunk?.Text ?? "No content";
+            var start = result?.Chunk?.Range?.Start.ToString() ?? "N/A";
+            var end = result?.Chunk?.Range?.End.ToString() ?? "N/A";
+
+            return $"File: {filePath}\nScore: {score:F2}\nContent: {content} at {start} to {end}\n";
+        });
+
+        return string.Join("\n---\n", resultStrings);
+    }
+} 

@@ -324,6 +324,7 @@ public class Program
             .AddSingleton<AppInsightsPluginDefinition>()
             .AddSingleton<Agent.Plugins.Models.GitHubClient>()
             .AddSingleton<IAzureDevOpsWorkItemPlugin, AzureDevOpsWorkItemPlugin>()
+            .AddSingleton<IAzureDevOpsSourceCodeSearch, AzureDevOpsSourceCodeSearch>()
             .AddTransient<IGithubIssuePlugin, GitHubIssuePlugin>()
             .AddTransient<IWebAppRestartPlugin, WebAppRestartPlugin>()
             .AddTransient<WebAppRestartPluginDefinition>()

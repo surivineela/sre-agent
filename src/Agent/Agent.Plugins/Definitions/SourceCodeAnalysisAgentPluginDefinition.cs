@@ -16,7 +16,7 @@ public class SourceCodeAnalysisAgentPluginDefinition
     public async Task<string> QuerySourceBySemanticSearch(
         [Description("The exact Azure resource ID in format '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}' for which the question is pertinent to.")]
         string resourceId,
-        [Description("The query to search the codebase for. Should contain all relevant context. Should ideally be text that might appear in the codebase, such as function names, variable names, or comments (e.g., 'How do I debug a NullReferenceException?', 'What are common causes of SQL timeouts?', 'How can I identify the root cause of an OutOfMemoryException?', 'Give me thorough details about startup')")]
+        [Description("The query to search the codebase for. Should contain all relevant context. Should ideally be text that might appear in the codebase, such as function names, variable names, or comments (e.g., 'How do I debug a NullReferenceException?', 'What are common causes of SQL timeouts?', 'How can I identify the root cause of an OutOfMemoryException?', 'Give me thorough details about startup').")] 
         string query)
     {
         return await _sourceCodeAnalysisPlugin.QueryRepository(resourceId, query);
