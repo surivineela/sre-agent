@@ -498,7 +498,14 @@ public sealed class IncidentInvestigationTaskHandler(
             // Generate a specific message ID for this notification
             var notificationMessageId = Guid.NewGuid();
 
-            ChatMessage message = new ChatMessage(ChatRole.User, "");
+            // Serialize AgentTaskCardInfo to JSON string for the message text
+            // add enum convertor so AgentTaskStatus is serialized as string
+            var options = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+            {
+                Converters = { new JsonStringEnumConverter() }
+            };
+            var agentTaskInfoJson = JsonSerializer.Serialize(agentTaskInfo, options);
+            ChatMessage message = new ChatMessage(ChatRole.User, agentTaskInfoJson);
 
             await outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
                 threadId,
@@ -603,7 +610,15 @@ public sealed class IncidentInvestigationTaskHandler(
             {
                 var updatedAgentTaskInfo = new AgentTaskInfo(_currentAgentTask.Id, _currentAgentTask.Title, _currentAgentTask.Status, _currentAgentTask.LastModified);
 
-                await threadRepository.UpdateMessageAsync(_currentAgentTask.ThreadId, (Guid)_deepInvestigationNotificationMessageId, "", updatedAgentTaskInfo);
+                // Serialize AgentTaskCardInfo to JSON string for the message text
+                // add enum convertor so AgentTaskStatus is serialized as string
+                var options = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+                {
+                    Converters = { new JsonStringEnumConverter() }
+                };
+                var updatedAgentTaskInfoJson = JsonSerializer.Serialize(updatedAgentTaskInfo, options);                
+
+                await threadRepository.UpdateMessageAsync(_currentAgentTask.ThreadId, (Guid)_deepInvestigationNotificationMessageId, updatedAgentTaskInfoJson, updatedAgentTaskInfo);
             }
 
             await StreamTaskUpdateAsync(_currentAgentTask.ThreadId, _currentAgentTask, cancellationToken);
