@@ -279,6 +279,12 @@
       "value": "The tool list is generated from the custom response guidance. If you modify the guidance, select Regenerate to update the tool list. Once regenerated, the previous list cannot be restored. To add or remove tools, select Manage tools."
     }
   ],
+  "0oLj/t": [
+    {
+      "type": 0,
+      "value": "Expand"
+    }
+  ],
   "0q6E9l": [
     {
       "type": 0,
@@ -3197,6 +3203,12 @@
     {
       "type": 0,
       "value": "Create"
+    }
+  ],
+  "W/V6+Y": [
+    {
+      "type": 0,
+      "value": "Collapse"
     }
   ],
   "W2JBdp": [

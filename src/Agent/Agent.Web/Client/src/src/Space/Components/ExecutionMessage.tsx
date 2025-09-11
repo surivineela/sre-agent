@@ -10,10 +10,17 @@ import {
     Divider,
     Spinner,
     Text,
+    Tooltip,
     makeStyles,
     tokens,
 } from '@fluentui/react-components';
-import { CheckmarkCircle16Filled, Dismiss16Regular, DismissCircle16Filled } from '@fluentui/react-icons';
+import {
+    CheckmarkCircle16Filled,
+    ChevronDownUp16Regular,
+    ChevronUpDown16Regular,
+    Dismiss16Regular,
+    DismissCircle16Filled,
+} from '@fluentui/react-icons';
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
@@ -78,8 +85,8 @@ const useStyles = makeStyles({
     },
     copyButton: {
         position: 'absolute',
-        top: '8px',
-        right: '8px',
+        top: '6px',
+        right: '6px',
     },
     headerRow: {
         display: 'flex',
@@ -118,6 +125,9 @@ const ExecutionMessage = ({ execution, threadId, type, updateSpecialMessageInStr
     const [currentExecution, setCurrentExecution] = useState<ExecutionLike>(execution);
     const [isActionLoading, setIsActionLoading] = useState(false);
     const [loadingAction, setLoadingAction] = useState<'run' | 'cancel' | null>(null);
+    const [isCollapsed, setIsCollapsed] = useState(
+        execution.status !== ExecutionStatus.Pending && execution.status !== ExecutionStatus.PendingAuthorization
+    );
 
     const { userIdAndDisplayName } = useAuthenticatedUserInfo();
 
@@ -145,6 +155,10 @@ const ExecutionMessage = ({ execution, threadId, type, updateSpecialMessageInStr
                 };
         }
     }, [type]);
+
+    const isCurrentExecutionPending = useMemo(() => {
+        return currentExecution.status === ExecutionStatus.Pending || currentExecution.status === ExecutionStatus.PendingAuthorization;
+    }, [currentExecution.status]);
 
     const statusTag = useMemo(() => {
         switch (currentExecution.status) {
@@ -362,10 +376,29 @@ const ExecutionMessage = ({ execution, threadId, type, updateSpecialMessageInStr
                         {riskLevel}
                     </Badge>
                 </div>
+
+                {!isCurrentExecutionPending && (
+                    <Tooltip
+                        relationship="label"
+                        content={
+                            isCollapsed ? (
+                                <FormattedMessage {...SreAgentResources.expand} />
+                            ) : (
+                                <FormattedMessage {...SreAgentResources.collapse} />
+                            )
+                        }
+                    >
+                        <Button
+                            icon={isCollapsed ? <ChevronUpDown16Regular /> : <ChevronDownUp16Regular />}
+                            onClick={() => setIsCollapsed(!isCollapsed)}
+                            size="small"
+                        />
+                    </Tooltip>
+                )}
             </div>
 
             <div className={classes.codeBlock} style={{ marginTop: 8 }}>
-                <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>{executionTypeLabel}</Caption1>
+                {!isCollapsed && <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>{executionTypeLabel}</Caption1>}
                 <div className={classes.copyButton}>
                     <CopyButton textToCopy={currentExecution.command} />
                 </div>
@@ -392,7 +425,7 @@ const ExecutionMessage = ({ execution, threadId, type, updateSpecialMessageInStr
 
             <Divider style={{ marginTop: 8 }} />
 
-            {(currentExecution.status === ExecutionStatus.Pending || currentExecution.status === ExecutionStatus.PendingAuthorization) && (
+            {isCurrentExecutionPending && (
                 <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
                     <Button
                         appearance="primary"
@@ -417,7 +450,7 @@ const ExecutionMessage = ({ execution, threadId, type, updateSpecialMessageInStr
                 </div>
             )}
 
-            {(currentExecution.status === ExecutionStatus.Pending || currentExecution.status === ExecutionStatus.PendingAuthorization) && (
+            {isCurrentExecutionPending && (
                 <div style={{ marginTop: 8 }}>
                     <Text>
                         {currentExecution.status === ExecutionStatus.Pending ? (
@@ -429,9 +462,9 @@ const ExecutionMessage = ({ execution, threadId, type, updateSpecialMessageInStr
                 </div>
             )}
 
-            {currentExecution.status !== ExecutionStatus.Pending && currentExecution.status !== ExecutionStatus.PendingAuthorization && (
+            {!isCurrentExecutionPending && (
                 <div className={classes.infoLine} style={{ marginTop: 12 }}>
-                    {statusTag}
+                    <div style={{ overflowWrap: 'normal' }}>{statusTag}</div>
 
                     {currentExecution.status === ExecutionStatus.Cancelled ? (
                         <Text>
@@ -469,10 +502,10 @@ const ExecutionMessage = ({ execution, threadId, type, updateSpecialMessageInStr
                 </div>
             )}
 
-            <Accordion multiple collapsible style={{ marginTop: 12 }}>
+            <Accordion multiple collapsible style={{ marginTop: 12, display: isCollapsed ? 'none' : undefined }}>
                 {showOutputAccordion && (currentExecution.output || currentExecution.error) && (
                     <AccordionItem value="output">
-                        <AccordionHeader>
+                        <AccordionHeader style={{ color: tokens.colorNeutralForeground3 }}>
                             <FormattedMessage {...SreAgentResources.outputLogs} />
                         </AccordionHeader>
                         <AccordionPanel>
@@ -495,7 +528,7 @@ const ExecutionMessage = ({ execution, threadId, type, updateSpecialMessageInStr
                     </AccordionItem>
                 )}
                 <AccordionItem value="timestamps">
-                    <AccordionHeader>
+                    <AccordionHeader style={{ color: tokens.colorNeutralForeground3 }}>
                         <FormattedMessage {...SreAgentResources.timestamps} />
                     </AccordionHeader>
                     <AccordionPanel>

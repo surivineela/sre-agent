@@ -6,6 +6,7 @@ export const SreAgentResources = defineMessages({
     azureSreAgent: { defaultMessage: 'Azure SRE Agent', id: 'Erci0g' },
     agentPermissionsLevel: { defaultMessage: 'Agent permissions level', id: '+bJIWo' },
     agentEndpoint: { defaultMessage: 'Agent endpoint', id: 's7DlV0' },
+    collapse: { defaultMessage: 'Collapse', id: 'W/V6+Y' },
     deleteAgentTitle: { defaultMessage: 'Delete SRE Agent', id: 'ThSX0k' },
     deleteAgentDescription: {
         defaultMessage: 'Are you sure you want to delete this SRE Agent? This action cannot be undone.',
@@ -15,6 +16,7 @@ export const SreAgentResources = defineMessages({
     deleteAgentNotificationDescription: { defaultMessage: 'Deleting SRE Agent {name} in progress', id: 'L0KVkI' },
     deleteAgentNotificationSuccess: { defaultMessage: 'SRE Agent {name} deleted successfully', id: '1O47t6' },
     deleteAgentNotificationError: { defaultMessage: 'Failed to delete SRE Agent {name}', id: 'JCjxSH' },
+    expand: { defaultMessage: 'Expand', id: '0oLj/t' },
     sreAgent: { defaultMessage: 'Azure SRE Agent', id: 'Erci0g' },
     add: { defaultMessage: 'Add', id: '2/2yg+' },
     new: { defaultMessage: 'New', id: 'bW7B87' },
