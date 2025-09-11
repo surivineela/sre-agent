@@ -13,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.FeatureManagement;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
+using System.Collections.Concurrent;
 
 namespace Agent.Web.Authorization;
 
@@ -45,6 +46,10 @@ public sealed class ArmOperationPolicyProvider : IAuthorizationPolicyProvider
 {
     private readonly AuthorizationOptions _options;
 
+    // AuthorizationOptions does not use ConcurrentDictionary to store policies
+    // We may see System.IndexOutOfRangeException in race conditions
+    private readonly ConcurrentDictionary<string, AuthorizationPolicy> _policies = new();
+
     public ArmOperationPolicyProvider(IOptions<AuthorizationOptions> options)
     {
         _options = options.Value;
@@ -53,15 +58,22 @@ public sealed class ArmOperationPolicyProvider : IAuthorizationPolicyProvider
     public Task<AuthorizationPolicy?> GetPolicyAsync(string policyName)
     {
         var policy = _options.GetPolicy(policyName);
-        if (policy == null)
+        if (policy != null)
         {
-            var actionName = policyName.Substring(AuthorizeArmOperationAttribute.PolicyPrefix.Length);
-            policy = new AuthorizationPolicyBuilder()
-                .AddRequirements(new ArmOperationRequirement(actionName))
-                .Build();
-
-            _options.AddPolicy(policyName, policy);
+            return Task.FromResult<AuthorizationPolicy?>(policy);
         }
+
+        if (_policies.TryGetValue(policyName, out policy))
+        {
+            return Task.FromResult<AuthorizationPolicy?>(policy);
+        }
+
+        var actionName = policyName.Substring(AuthorizeArmOperationAttribute.PolicyPrefix.Length);
+        policy = new AuthorizationPolicyBuilder()
+            .AddRequirements(new ArmOperationRequirement(actionName))
+            .Build();
+
+        _policies.TryAdd(policyName, policy);
 
         return Task.FromResult<AuthorizationPolicy?>(policy);
     }
