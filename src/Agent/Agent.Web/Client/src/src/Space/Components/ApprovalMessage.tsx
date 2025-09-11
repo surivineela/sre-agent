@@ -126,10 +126,14 @@ const ApprovalMessage = ({
         azPortalProxy.logAmplitudeControlEvent({
             targetType: 'button',
             targetAction: 'clicked',
-            targetName: `${approved ? 'approved' : 'denied'}Execution`,
-            targetFriendlyName: `${approved ? 'Approved' : 'Denied'} execution`,
+            targetName: `${approved ? 'approved' : 'denied'}Action`,
+            targetFriendlyName: `${approved ? 'Approved' : 'Denied'} action`,
             valueObjectName: approval?.description,
             valueObjectFriendlyName: approval?.description,
+            metadata: {
+                permissions: approval.status === ApprovalDecision.Pending ? 'agent' : 'obo',
+                threadId,
+            },
         });
 
         let decision: ApprovalDecision;

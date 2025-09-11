@@ -302,6 +302,11 @@ export function useIncidentManagement(close: (() => void) | undefined) {
             setSaving(true);
             setSaveFailure(undefined);
 
+            const additionalInfo = {
+                platform: formValues.platform,
+                previousPlatform: initialValues.platform,
+            };
+
             const amplitudeTargetName =
                 formValues.platform === IncidentManagementPlatform.Disconnected
                     ? 'disconnectIncidentPlatform'
@@ -315,12 +320,10 @@ export function useIncidentManagement(close: (() => void) | undefined) {
                 targetAction: 'start',
                 targetName: amplitudeTargetName,
                 targetFriendlyName: amplitudeTargetFriendlyName,
+                metadata: {
+                    ...additionalInfo,
+                },
             });
-
-            const additionalInfo = {
-                platform: formValues.platform,
-                previousPlatform: initialValues.platform,
-            };
 
             azPortalContext.log({
                 action: 'save-incidentManagement',
@@ -342,6 +345,9 @@ export function useIncidentManagement(close: (() => void) | undefined) {
                     targetAction: isSuccessful ? 'success' : 'failed',
                     targetName: amplitudeTargetName,
                     targetFriendlyName: amplitudeTargetFriendlyName,
+                    metadata: {
+                        ...additionalInfo,
+                    },
                 });
 
                 if (!isSuccessful) {

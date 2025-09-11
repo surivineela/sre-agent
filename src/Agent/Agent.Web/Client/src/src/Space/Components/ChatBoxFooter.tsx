@@ -78,6 +78,7 @@ const ChatBoxFooter = ({
     isTyping,
     isCancellingStreaming,
     threadId,
+    threadSource,
     showDeepInvestigationButton,
     isDeepInvestigationButtonEnabled,
     isDeepInvestigationTurnedOn,
@@ -121,9 +122,13 @@ const ChatBoxFooter = ({
                 targetFriendlyName: 'Send message',
                 valueObjectName: SpecialControlValue.CustomerSuppliedData,
                 valueObjectFriendlyName: SpecialControlValue.CustomerSuppliedData,
+                metadata: {
+                    threadId,
+                    threadType: threadSource,
+                },
             });
         }
-    }, [input, sendMessage, disableInputInteraction, isTyping, logAmplitudeControlEvent]);
+    }, [input, sendMessage, disableInputInteraction, isTyping, logAmplitudeControlEvent, threadId, threadSource]);
 
     return (
         <div className={root}>
@@ -354,6 +359,8 @@ const PromptLibraryButton = memo(
         messagePromptsUsed: _messagePromptsUsed,
         sendMessage,
         prompts: _prompts,
+        threadId,
+        threadSource,
     }: {
         asOverflowItem: boolean;
         isTyping: boolean;
@@ -361,6 +368,8 @@ const PromptLibraryButton = memo(
         messagePromptsUsed: string[];
         sendMessage: (message: string) => Promise<void>;
         prompts: string[];
+        threadId?: string | null;
+        threadSource?: string;
     }) => {
         const { logAmplitudeControlEvent } = useAzPortalContext();
         const isVisible = useIsOverflowItemVisible(ChatBoxButtonIds.PromptLibrary);
@@ -561,9 +570,13 @@ const PromptLibraryButton = memo(
                     targetFriendlyName: 'Prompt library',
                     valueObjectName: message,
                     valueObjectFriendlyName: message,
+                    metadata: {
+                        threadId,
+                        threadType: threadSource,
+                    },
                 });
             },
-            [sendMessage, logAmplitudeControlEvent]
+            [sendMessage, logAmplitudeControlEvent, threadId, threadSource]
         );
 
         if (!asOverflowItem && isVisible) {
@@ -693,6 +706,7 @@ const OverflowMenu = memo(
                             messagePromptsUsed={messagePromptsUsed}
                             sendMessage={sendMessage}
                             prompts={prompts}
+                            threadId={threadId}
                         />
                     </MenuList>
                 </MenuPopover>

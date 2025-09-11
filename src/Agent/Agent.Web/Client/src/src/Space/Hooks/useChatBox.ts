@@ -167,10 +167,14 @@ export const useChatBox = (
                 targetAction: 'cancel',
                 targetName: 'agentResponse',
                 targetFriendlyName: 'Agent response',
+                metadata: {
+                    threadId: currentThreadIdRef.current,
+                    threadType: threadSource,
+                },
             });
             responseEndLoggedRef.current = true;
         }
-    }, [proxy]);
+    }, [proxy, threadSource]);
 
     useEffect(() => {
         if (isCancellingStreaming && currentThreadId) {
@@ -386,6 +390,10 @@ export const useChatBox = (
                         targetAction: isCancellingStreamingRef.current ? 'cancel' : 'success',
                         targetName: 'agentResponse',
                         targetFriendlyName: 'Agent response',
+                        metadata: {
+                            threadId: currentThreadIdRef.current,
+                            threadType: threadSource,
+                        },
                     });
                     responseEndLoggedRef.current = true;
                 }

@@ -131,6 +131,7 @@ export const ChatBox = ({
                                             key={temporaryUserMessage.id}
                                             message={temporaryUserMessage}
                                             threadId={currentThreadId || ''}
+                                            threadSource={threadSource}
                                             previousMessage={
                                                 newMessages[newMessages.length - 1] ||
                                                 chatHistory?.[chatHistory.length - 1]?.[chatHistory?.[chatHistory.length - 1]?.length - 1]
@@ -145,6 +146,7 @@ export const ChatBox = ({
                                             isStreamingMessage={true}
                                             isTyping={isAgentTyping}
                                             threadId={currentThreadId || ''}
+                                            threadSource={threadSource}
                                             toolCallText={toolCallText}
                                             isWaitingForStreamingMessages={isWaitingForStreamingMessages}
                                             updateSpecialMessageInStreamingMessage={updateSpecialMessageInStreamingMessage}
@@ -169,6 +171,7 @@ export const ChatBox = ({
                                 isTyping={!!isAgentTyping}
                                 isCancellingStreaming={isCancellingStreaming}
                                 threadId={currentThreadId}
+                                threadSource={threadSource}
                                 showDeepInvestigationButton={isAgentTaskEnabled}
                                 isDeepInvestigationButtonEnabled={isDeepInvestigationButtonEnabled}
                                 isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}

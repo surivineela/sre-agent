@@ -62,7 +62,9 @@ export default class AzPortalProxy {
         this.postMessage(AgentSiteToAzPortalVerbs.log, info);
     };
 
-    public logAmplitudeOperationEvent = (amplitudeEvent: AmplitudeOperationEvent & { errorInfo?: ILogBladeErrorInfo }) => {
+    public logAmplitudeOperationEvent = (
+        amplitudeEvent: AmplitudeOperationEvent & { errorInfo?: ILogBladeErrorInfo } & { metadata?: Record<string, unknown> }
+    ) => {
         if (this._getDontLogAmplitudeTelemetry()) {
             return;
         }
@@ -70,7 +72,7 @@ export default class AzPortalProxy {
         this.postMessage(AgentSiteToAzPortalVerbs.logAmplitudeOperationEvent, amplitudeEvent);
     };
 
-    public logAmplitudeControlEvent = (amplitudeEvent: AmplitudeControlEvent) => {
+    public logAmplitudeControlEvent = (amplitudeEvent: AmplitudeControlEvent & { metadata?: Record<string, unknown> }) => {
         if (this._getDontLogAmplitudeTelemetry()) {
             return;
         }
@@ -78,7 +80,7 @@ export default class AzPortalProxy {
         this.postMessage(AgentSiteToAzPortalVerbs.logAmplitudeControlEvent, amplitudeEvent);
     };
 
-    public logAmplitudeNavigationEvent = (amplitudeEvent: AmplitudeNavigationEvent) => {
+    public logAmplitudeNavigationEvent = (amplitudeEvent: AmplitudeNavigationEvent & { metadata?: Record<string, unknown> }) => {
         if (this._getDontLogAmplitudeTelemetry()) {
             return;
         }

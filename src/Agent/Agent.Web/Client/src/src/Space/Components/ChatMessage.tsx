@@ -74,6 +74,7 @@ const ChatMessage = ({
     nextMessage,
     isTyping,
     threadId,
+    threadSource,
     isStreamingMessage,
     toolCallText,
     isWaitingForStreamingMessages,
@@ -190,6 +191,7 @@ const ChatMessage = ({
                             key={`${message.id}-message-footer`}
                             message={message}
                             threadId={threadId}
+                            threadSource={threadSource}
                             nextMessage={nextMessage}
                             isTyping={isTyping}
                             isStreamingMessage={isStreamingMessage}

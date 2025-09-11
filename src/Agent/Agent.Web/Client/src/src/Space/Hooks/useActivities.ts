@@ -153,6 +153,10 @@ export const useActivities = () => {
                             targetAction: 'loaded',
                             targetName: 'autoLoadWelcomeThread',
                             targetFriendlyName: 'Auto-load welcome thread',
+                            metadata: {
+                                threadId: welcomeThread.id,
+                                threadType: ThreadSource.welcomeMessage,
+                            },
                         });
                     }
                 }

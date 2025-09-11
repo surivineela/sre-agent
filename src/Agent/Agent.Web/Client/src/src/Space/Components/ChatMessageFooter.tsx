@@ -1,6 +1,8 @@
 import { FeedbackButtons } from '@fluentui-copilot/react-copilot';
 import axios from 'axios';
 import { memo, useContext, useMemo, useState } from 'react';
+import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
+import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import CopyButton from '../../Common/Components/CopyButton';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
@@ -11,12 +13,14 @@ import { FeedbackDialog } from './FeedbackDialog';
 
 const MessageFooter = ({
     threadId,
+    threadSource,
     message,
     nextMessage,
     isTyping,
     isStreamingMessage,
 }: {
     threadId: string;
+    threadSource?: string;
     message: ChatMessage;
     nextMessage?: ChatMessage;
     isTyping?: boolean;
@@ -28,6 +32,7 @@ const MessageFooter = ({
 
     const { getGroupedChatMessages } = useContext(ChatBoxContext);
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
+    const { logAmplitudeControlEvent } = useAzPortalContext();
 
     // Do not use useEffect to calculate groupedMessages, canShowFooter, hasFooterContentToShow, and messagesToCopy because it will
     // compute after the render which might cause incorrect predefined scroll position handled by useLayoutEffect in ChatBox when the footer is shown after the render.
@@ -63,6 +68,19 @@ const MessageFooter = ({
 
     const handleFeedbackClick = async (isPositive: boolean) => {
         setSelectedFeedback(isPositive ? 'positive' : 'negative');
+
+        logAmplitudeControlEvent({
+            targetType: 'button',
+            targetAction: 'clicked',
+            targetName: `thumbs${isPositive ? 'Up' : 'Down'}`,
+            targetFriendlyName: `Thumbs ${isPositive ? 'up' : 'down'}`,
+            valueObjectName: SpecialControlValue.DoAction,
+            valueObjectFriendlyName: SpecialControlValue.DoAction,
+            metadata: {
+                threadId,
+                threadType: threadSource,
+            },
+        });
 
         if (isPositive) {
             try {

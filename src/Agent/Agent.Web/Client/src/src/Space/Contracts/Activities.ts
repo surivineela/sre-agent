@@ -80,6 +80,7 @@ export interface IChatMessageProps {
     nextMessage?: ChatMessage;
     isTyping?: boolean;
     threadId: string;
+    threadSource?: string;
     isStreamingMessage?: boolean;
     toolCallText?: string | null;
     isWaitingForStreamingMessages?: boolean;
@@ -144,6 +145,7 @@ export interface IChatBoxFooterProps {
     isTyping: boolean;
     isCancellingStreaming: boolean;
     threadId?: string | null;
+    threadSource?: string;
     showDeepInvestigationButton: boolean;
     isDeepInvestigationButtonEnabled: boolean;
     isDeepInvestigationTurnedOn: boolean;

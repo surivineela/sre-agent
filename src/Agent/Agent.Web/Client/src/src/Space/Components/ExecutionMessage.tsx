@@ -298,10 +298,15 @@ const ExecutionMessage = ({ execution, threadId, type, updateSpecialMessageInStr
         azPortalProxy.logAmplitudeControlEvent({
             targetType: 'button',
             targetAction: 'clicked',
-            targetName: `${action}Action`,
-            targetFriendlyName: `${action} action`,
+            targetName: `${action}Execution`,
+            targetFriendlyName: `${action} execution`,
             valueObjectName: execution.description,
             valueObjectFriendlyName: execution.description,
+            metadata: {
+                permissions: execution.status === ExecutionStatus.Pending ? 'agent' : 'obo',
+                type,
+                threadId,
+            },
         });
 
         const maxRetries = 3;
