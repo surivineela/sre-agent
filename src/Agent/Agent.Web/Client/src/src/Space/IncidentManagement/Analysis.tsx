@@ -6,6 +6,7 @@ import { DateRange } from '../../Common/Components/DateRange';
 import { AppInsightsQueryResult } from '../../Common/Contracts/Azure/AppInsights';
 import { useAuthToken } from '../../Common/Hooks/useAuthToken';
 import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
+import { getHandlersIncidentIntakeTrendQuery, watchtowerTempAppInsightsAppId } from './Watchtower/Queries';
 
 const sparklineDummyData = {
     chartTitle: '10.21',
@@ -51,19 +52,6 @@ const sparklineDummyData = {
     ],
 };
 
-const tempAppInsightsAppId = 'bc8d1232-d691-428e-a29f-7e785bf2d016';
-
-const getHandlersIncidentIntakeTrendQuery = `let formattedStartTime = ago(30d);
-let formattedEndTime = now();
-let timeGrain = 1d;
-customEvents
-| where name == 'IncidentActivitySnapshot'
-| extend IncidentHandledAt= todatetime(customDimensions.IncidentHandledAt), IncidentId = tostring(customDimensions.IncidentId), UpdatedOn = todatetime(customDimensions.IncidentUpdatedOn)
-| where IncidentHandledAt between (formattedStartTime .. formattedEndTime)
-| project IncidentId, IncidentHandledAt , UpdatedOn
-| summarize arg_max(UpdatedOn, IncidentHandledAt ) by IncidentId
-| summarize DistinctIncidentIds = dcount(IncidentId) by bin(IncidentHandledAt , timeGrain)   `;
-
 const Analysis = () => {
     const styles = useIncidentManagementStyles();
     const appInsightsToken = useAuthToken('applicationinsightapi');
@@ -89,8 +77,8 @@ const Analysis = () => {
     const fetchQueryResults = useCallback(async () => {
         if (!appInsightsToken) return;
 
-        const response = await AppInsightsClient.getLogQueryResults(tempAppInsightsAppId, appInsightsToken, {
-            query: getHandlersIncidentIntakeTrendQuery,
+        const response = await AppInsightsClient.getLogQueryResults(watchtowerTempAppInsightsAppId, appInsightsToken, {
+            query: getHandlersIncidentIntakeTrendQuery(),
         });
 
         console.log('Response: ', response);
