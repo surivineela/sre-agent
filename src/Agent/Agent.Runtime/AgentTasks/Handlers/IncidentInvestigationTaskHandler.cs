@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Agent.Core.Attributes;
 using Agent.Core.Extensions;
+using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
@@ -34,7 +35,8 @@ public sealed class IncidentInvestigationTaskHandler(
     IAgentOutboundCommunicationService outboundCommunicationService,
     AgentTaskLocalStore rcaAgentsStore,
     SearchHelper searchHelper,
-    Tracer tracer
+    Tracer tracer,
+    OpenAISettings openAISettings
 ) : IAgentTaskHandler
 {
     private readonly SemaphoreSlim _stateLock = new(1, 1);
@@ -42,8 +44,9 @@ public sealed class IncidentInvestigationTaskHandler(
     private readonly ConcurrentDictionary<string, object?> _toolCache = new();
     private readonly List<ChatMessage> _aggregatedToolHistory = new();
     private List<string>? toolSubset = null;
-    private readonly bool is1PAgent = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") == "ACAAgent";
+    private readonly bool _is1PAgent = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") == "ACAAgent";
     private Guid? _deepInvestigationNotificationMessageId;
+    private readonly string _llmDeploymentName = openAISettings.LLMDeploymentName;
 
     public async Task ExecuteAsync(AgentTask agentTask, CancellationToken cancellationToken)
     {
@@ -79,7 +82,7 @@ public sealed class IncidentInvestigationTaskHandler(
             await threadRepository.UpdateTaskOnThreadAsync(agentTask.ThreadId, agentTask.ToShortForm());
             logger.LogInternalInformation("Agent task {TaskId} saved to thread {ThreadId}", agentTask.Id, agentTask.ThreadId);
 
-            if (is1PAgent)
+            if (_is1PAgent)
             {
                 var allAgents = YamlHelper.LoadAgentsFromYamlDirectories(
                     new List<string> { Path.Combine("AgentsV2", "ACA-FirstParty") },
@@ -137,8 +140,7 @@ public sealed class IncidentInvestigationTaskHandler(
                         </desc>
                         """;
 
-                    var toolSelectionAgent = IncidentInvestigationAgents.CreateToolSelectionAgent(
-                        IncidentInvestigationHelper.GatheringContext.GetToolSelectionInstructions(toolFactory, is1PAgent, toolSubset));
+                    var toolSelectionAgent = IncidentInvestigationAgents.CreateGatheringContextToolSelectionAgent(toolFactory, _is1PAgent, toolSubset, _llmDeploymentName);
 
                     var toolNames = await CallAgentAsync<List<string>>(
                         toolSelectionAgent,
@@ -158,7 +160,7 @@ public sealed class IncidentInvestigationTaskHandler(
                         string.Join(", ", toolNames)
                     );
 
-                    if (is1PAgent)
+                    if (_is1PAgent)
                     {
                         state.InitialInvestigation.ToolNames = toolNames;
                     }
@@ -167,7 +169,7 @@ public sealed class IncidentInvestigationTaskHandler(
                     state = await SaveStateAndStreamUpdateAsync(cancellationToken: cancellationToken);
 
                     logger.LogInternalInformation("Starting initial investigation agent.");
-                    var initialInvestigationAgent = IncidentInvestigationAgents.CreateInitialInvestigationAgent(toolNames);
+                    var initialInvestigationAgent = IncidentInvestigationAgents.CreateInitialInvestigationAgent(toolNames, _is1PAgent, _llmDeploymentName);
 
                     var initialInvestigationResult = await CallAgentAsync<InitialInvestigationResult>(
                         initialInvestigationAgent,
@@ -451,7 +453,7 @@ public sealed class IncidentInvestigationTaskHandler(
             logger.LogInternalInformation("Sending deep investigation notification for thread {ThreadId}, task {TaskId}", threadId, agentTaskId);
 
             // Create AgentTaskInfo with proper data from the current agent task
-            var agentTaskInfo = _currentAgentTask != null 
+            var agentTaskInfo = _currentAgentTask != null
                 ? new AgentTaskInfo(_currentAgentTask.Id, _currentAgentTask.Title, _currentAgentTask.Status, _currentAgentTask.LastModified)
                 : new AgentTaskInfo(agentTaskId, "Deep Investigation", AgentTaskStatus.InProgress, DateTime.UtcNow);
 
@@ -482,7 +484,7 @@ public sealed class IncidentInvestigationTaskHandler(
 
     private void ValidateAndAddRequiredTools(List<string> toolNames)
     {
-        if (is1PAgent)
+        if (_is1PAgent)
         {
             toolNames.AddRange(
             [
@@ -726,7 +728,7 @@ public sealed class IncidentInvestigationTaskHandler(
                     }
 
                     // If the agent is a 1P agent, retrieve the prompts of subagents from the local store
-                    if (is1PAgent)
+                    if (_is1PAgent)
                     {
                         var docsFromLocal = await RetrieveDocumentsFromLocalStore(query);
                         searchSpan?.SetAttribute("search.results.count", docsFromLocal.Count.ToString());
@@ -914,21 +916,24 @@ public sealed class IncidentInvestigationTaskHandler(
         CancellationToken cancellationToken)
     {
         logger.LogInternalInformation("Generating hypotheses for incident description.");
-        var hypothesisGenerationAgent = IncidentInvestigationAgents.CreateHypothesisGenerationAgent();
+        var hypothesisGenerationAgent = IncidentInvestigationAgents.CreateHypothesisGenerationAgent(_llmDeploymentName);
         string message = $"""
-            The incident description is as follows:
+            <incident_description>
             {incidentDescription}
+            </incident_description>
 
-            The summary of the current investigation is:
+            <initial_investigation_summary>
             {investigationSummary}
+            </initial_investigation_summary>
             """;
 
         if (!string.IsNullOrEmpty(validatedHypothesis))
         {
             message += $"""
 
-                The following hypothesis was validated:
+                <previous_validated_hypothesis>
                 - {validatedHypothesis}
+                </previous_validated_hypothesis>
 
                 Please dig deeper into the hypothesis above and make more detailed hypotheses in the scope of it. Don't make any assumptions out of the scope.
                 """;
@@ -970,8 +975,7 @@ public sealed class IncidentInvestigationTaskHandler(
     {
         logger.LogInternalInformation("Validating hypothesis: {Hypothesis}", currentHypothesis);
 
-        var toolSelectionAgent = IncidentInvestigationAgents.CreateToolSelectionAgent(
-            IncidentInvestigationHelper.HypothesisValidation.GetToolSelectionInstructions(toolFactory, incidentDescription, investigationSummary, toolSubset));
+        var toolSelectionAgent = IncidentInvestigationAgents.CreateHypothesisValidationToolSelectionAgent(toolFactory, incidentDescription, investigationSummary, toolSubset, _llmDeploymentName);
 
         var toolNames = await CallAgentAsync<List<string>>(
                     toolSelectionAgent,
@@ -1012,7 +1016,8 @@ public sealed class IncidentInvestigationTaskHandler(
             (toolFactory as ToolFactory<AgentContext>)!.FetchToolInfoForToolNames(toolNames),
             incidentDescription,
             investigationSummary,
-            validatedHypothesis);
+            validatedHypothesis,
+            _llmDeploymentName);
 
         var plan = await CallAgentAsync<HypothesisValidationPlanOutput>(
             planningAgent,
@@ -1059,7 +1064,9 @@ public sealed class IncidentInvestigationTaskHandler(
                 validatedHypothesis,
                 currentHypothesis,
                 plan,
-                completedSteps);
+                completedSteps,
+                _is1PAgent,
+                _llmDeploymentName);
 
             var stepInputMessage = $"""
                 Execute the following step of the provided plan:
@@ -1103,7 +1110,8 @@ public sealed class IncidentInvestigationTaskHandler(
             investigationSummary,
             validatedHypothesis,
             currentHypothesis,
-            completedSteps);
+            completedSteps,
+            _llmDeploymentName);
 
         var result = await CallAgentAsync<HypothesisResultSummaryOutput>(
             summarizationAgent,
@@ -1143,7 +1151,7 @@ public sealed class IncidentInvestigationTaskHandler(
         CancellationToken cancellationToken)
     {
         logger.LogInternalInformation("Generating conclusion for single valid hypothesis: {HypothesisTitle}", validHypothesis.Title);
-        var conclusionAgent = IncidentInvestigationAgents.CreateConclusionAgent();
+        var conclusionAgent = IncidentInvestigationAgents.CreateConclusionAgent(_llmDeploymentName);
 
         var state = GetCurrentState();
 
@@ -1193,7 +1201,7 @@ public sealed class IncidentInvestigationTaskHandler(
         CancellationToken cancellationToken)
     {
         logger.LogInternalInformation("Generating conclusion for multiple valid hypotheses: {HypothesisCount}", validHypotheses.Count);
-        var conclusionAgent = IncidentInvestigationAgents.CreateConclusionAgent();
+        var conclusionAgent = IncidentInvestigationAgents.CreateConclusionAgent(_llmDeploymentName);
 
         var state = GetCurrentState();
 
@@ -1244,7 +1252,7 @@ public sealed class IncidentInvestigationTaskHandler(
         CancellationToken cancellationToken)
     {
         logger.LogInternalInformation("Generating conclusion for inconclusive investigation.");
-        var conclusionAgent = IncidentInvestigationAgents.CreateConclusionAgent();
+        var conclusionAgent = IncidentInvestigationAgents.CreateConclusionAgent(_llmDeploymentName);
 
         var state = GetCurrentState();
 

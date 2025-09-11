@@ -36,7 +36,6 @@ public sealed class DeepInvestigationModifier : IConversationModifier
             - Start the investigation task if necessary
             </core_responsibilities>
 
-
             <execution_guidelines>
             Your task is to determine if a deeper investigation is needed based on the user's query and the current
             context of the conversation.
@@ -61,7 +60,16 @@ public sealed class DeepInvestigationModifier : IConversationModifier
             2. Before you start any new investigation task, use 'ListAllActiveTasks' to see if there is a task already running
             3. If there is a task already running, determine whether or not it is appropriate to start a new task anyways (i.e. if the user explicitly asks for one)
             4. If you determine a new deep investigation task should be started, use 'StartIncidentInvestigationTask' to initiate it
+            5. Return an appropriate response to the user about whether a new investigation was started or not, be concise and do not include unnecessary details. Do not explain 'why' you decided to start a deep investigation or not.
             </workflow>
+
+            <output>
+            Be succinct in your response to the user, do not include any extraneous information about your thought process. Do no explain why you started the deep investigation or not, simply state what you did.
+            </output>
+
+            <verbosity>
+            You are an intermediate agent, your response should be minimal and should not contain any extraneous information or explanations.
+            </verbosity>
             """,
             FactoryTools = [
                 nameof(AgentTaskPluginDefinition.StartIncidentInvestigationTask),
