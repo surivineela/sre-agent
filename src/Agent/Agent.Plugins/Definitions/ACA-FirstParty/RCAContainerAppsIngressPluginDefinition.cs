@@ -15,36 +15,6 @@ namespace Agent.Plugins.Definitions
             _kustoPlugin = kustoPlugin;
         }
 
-        [Description(@"""
-        Purpose:
-        Retrieves container app replica count changes over time for a given time frame and application.
-
-        Scenario:
-        Use this tool to directly confirm if and when the container app scaled out or in, especially during suspected autoscaling issues. The output will display different time periods with corresponding replica counts.
-
-        Output: Returns tab-separated table data in CSV format. Column headers:
-        - StartTime: Start time of the period.
-        - EndTime: End time of the period.
-        - ReplicaCount: Number of replicas during the period.
-        """
-)]
-        public Task<string> GetContainerAppReplicaCountChanges(
-            [Description("Azure region.")] AzureRegion region,
-            [Description("Start time of the query.")] DateTime fromDate,
-            [Description("End time of the query.")] DateTime toDate,
-            [Description("App name.")] string appName)
-        {
-            return _kustoPlugin.ExecuteLocalFunctionAsync("GetContainerAppReplicaCountChanges", region,
-                new Dictionary<string, string>
-                {
-                    { "fromDate", fromDate.ToString() },
-                    { "toDate", toDate.ToString() },
-                    { "appName", appName },
-                    { "region", region.ToNormalizedString() }
-                });
-        }
-
-        
 
         [Description("""
         Purpose:

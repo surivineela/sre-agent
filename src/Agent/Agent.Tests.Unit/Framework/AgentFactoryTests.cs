@@ -37,6 +37,17 @@ public class AgentFactoryTests
         _mockToolFactoryLogger = new Mock<ILogger<ToolFactory<AgentContext>>>();
         _mockAgentModeConfigurator = new Mock<IAgentModeConfigurator<AgentContext>>();
         _mockExtendedAgentRepository = new Mock<IExtensibilityLoader>();
+        
+        // Setup mock extensibility loader to return empty lists
+        _mockExtendedAgentRepository.Setup(x => x.LoadExtendedToolsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<YamlToolDefinitionBase>());
+        _mockExtendedAgentRepository.Setup(x => x.LoadExtendedAgentsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<YamlAgentDescriptor>());
+        _mockExtendedAgentRepository.Setup(x => x.LoadExtendedCommonPromptsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<YamlPromptDescriptor>());
+        _mockExtendedAgentRepository.Setup(x => x.LoadExtendedCommonToolsListsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<YamlCommonToolsDescriptor>());
+        
         _services = new ServiceCollection();
         _services.AddSingleton(_mockLogger.Object);
         _services.AddSingleton(_mockToolFactoryLogger.Object);
@@ -75,14 +86,12 @@ public class AgentFactoryTests
     [Fact]
     public async Task LoadsAgentsFromAssembly()
     {
+        // Arrange
+        var toolFactory = await CreateInitializedToolFactoryAsync();
+
         var agentFactory = await AgentFactory<AgentContext>.CreateAsync(
             logger: _mockLogger.Object,
-            toolFactory: new ToolFactory<AgentContext>(
-                logger: _mockToolFactoryLogger.Object,
-                serviceProvider: _serviceProvider,
-                assembliesToScan: [Assembly.GetExecutingAssembly()],
-                extensibilityLoader: _mockExtendedAgentRepository.Object
-            ),
+            toolFactory: toolFactory,
             modeConfigurator: _mockAgentModeConfigurator.Object,
             assembliesToScan: [Assembly.GetExecutingAssembly()],
             commonToolsYamlDirectory: null
@@ -103,14 +112,12 @@ public class AgentFactoryTests
     [Fact]
     public async Task LoadsAgentsFromYaml()
     {
+        // Arrange
+        var toolFactory = await CreateInitializedToolFactoryAsync();
+
         var agentFactory = await AgentFactory<AgentContext>.CreateAsync(
             logger: _mockLogger.Object,
-            toolFactory: new ToolFactory<AgentContext>(
-                logger: _mockToolFactoryLogger.Object,
-                serviceProvider: _serviceProvider,
-                assembliesToScan: [Assembly.GetExecutingAssembly()],
-                extensibilityLoader: _mockExtendedAgentRepository.Object
-            ),
+            toolFactory: toolFactory,
             assembliesToScan: [],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
@@ -160,12 +167,7 @@ public class AgentFactoryTests
                     agent.Instructions += "\nYou CANNOT make any changes.";
                 });
 
-        var toolFactory = new ToolFactory<AgentContext>(
-            logger: _mockToolFactoryLogger.Object,
-            serviceProvider: _serviceProvider,
-            assembliesToScan: [Assembly.GetExecutingAssembly()],
-            extensibilityLoader: _mockExtendedAgentRepository.Object
-        );
+        var toolFactory = await CreateInitializedToolFactoryAsync();
 
         // Act
         // Pass the mockAgentModeConfigurator.Object to the AgentFactory constructor
@@ -201,14 +203,11 @@ public class AgentFactoryTests
 
                 });
 
+        var toolFactory = await CreateInitializedToolFactoryAsync();
+
         var agentFactory =  await AgentFactory<AgentContext>.CreateAsync(
             logger: _mockLogger.Object,
-            toolFactory: new ToolFactory<AgentContext>(
-                logger: _mockToolFactoryLogger.Object,
-                serviceProvider: _serviceProvider,
-                assembliesToScan: [Assembly.GetExecutingAssembly()],
-                extensibilityLoader: _mockExtendedAgentRepository.Object
-            ),
+            toolFactory: toolFactory,
             assembliesToScan: [Assembly.GetExecutingAssembly()],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             commonToolsYamlDirectory: null
@@ -220,6 +219,18 @@ public class AgentFactoryTests
         // Should NOT contain the readonly prompt instructions
         Assert.DoesNotContain("READ-ONLY MODE", agent.Instructions);
         Assert.DoesNotContain("You can only perform READ operations", agent.Instructions);
+    }
+
+    private async Task<ToolFactory<AgentContext>> CreateInitializedToolFactoryAsync()
+    {
+        var toolFactory = new ToolFactory<AgentContext>(
+            logger: _mockToolFactoryLogger.Object,
+            serviceProvider: _serviceProvider,
+            assembliesToScan: [Assembly.GetExecutingAssembly()],
+            extensibilityLoader: _mockExtendedAgentRepository.Object
+        );
+        await toolFactory.FindAndRegisterAllToolsAsync(BehaviorOnNameConflict.ThrowException);
+        return toolFactory;
     }
 }
 
@@ -269,7 +280,7 @@ public class TestAgent2Descriptor : IAgentDescriptor
     public float? Temperature { get; set; } = null;
     public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
     public string? OutputType { get; set; } = null;
-    List<string> IAgentDescriptor { get; set; } = [];
+    List<string> IAgentDescriptor.Tools { get; set; } = [];
     public string? UserPromptOverride { get; set; } = null;
     public bool DisableDocumentRetrieval { get; set; } = false;
     public bool EnableHandoffPromptOverride { get; set; } = false;
@@ -307,6 +318,7 @@ internal class TestTools
         return "Test auto tool";
     }
 
+    [AgentTool(ToolMode.Manual)]
     [Description("Test Manual Tool")]
     public string TestManualTool()
     {

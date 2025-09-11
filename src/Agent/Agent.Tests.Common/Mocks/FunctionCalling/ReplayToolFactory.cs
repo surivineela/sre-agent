@@ -156,9 +156,9 @@ public class ReplayToolFactory<TContext> : IToolFactory<TContext> where TContext
         return _innerFactory.FetchAvailableToolInfo(filter);
     }
 
-    public void FindAndRegisterAllTools(BehaviorOnNameConflict onNameConflict)
+    public Task FindAndRegisterAllToolsAsync(BehaviorOnNameConflict onNameConflict)
     {
-        _innerFactory.FindAndRegisterAllTools(onNameConflict);
+        return _innerFactory.FindAndRegisterAllToolsAsync(onNameConflict);
     }
 
     public void RegisterExtendedToolFromModel(string extendedToolName, string extendedToolYaml)

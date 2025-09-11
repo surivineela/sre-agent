@@ -85,7 +85,6 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
-using YamlDotNet.Serialization;
 
 namespace Agent.Web;
 
@@ -413,7 +412,7 @@ public class Program
             .AddTransient<SearchPluginDefinition>()
             .AddTransient<ScaleControllerRCAPreflightPluginDefinition>()
             .AddTransient<BlobTriggerRCAPreflightPluginDefinition>()
-            .AddTransient<ServiceBusTriggerRCAPreflightPluginDefinition>()            
+            .AddTransient<ServiceBusTriggerRCAPreflightPluginDefinition>()
             .AddTransient<RCAPreflightICMPluginDefinition>()
             .AddTransient<ColdStartPluginDefinition>()
             .AddTransient<LogsPluginDefinition>()
@@ -527,8 +526,16 @@ public class Program
         bool isGPT5Enabled = GPT5Enabled(builder);
         bool agentMemoryRetrievalEnabled = AgentMemoryRetrievalEnabled(builder);
 
-
         // Now, perform the async creation. The application will safely wait here.
+        await using (var scope = bootstrapServiceProvider.CreateAsyncScope())
+        {
+            var toolFactoryForInit = scope.ServiceProvider.GetRequiredService<IToolFactory<AgentContext>>();
+            if (toolFactoryForInit is ToolFactory<AgentContext> factory)
+            {
+                await factory.FindAndRegisterAllToolsAsync(BehaviorOnNameConflict.ThrowException);
+            }
+        }
+
         var agentFactoryInstance = await AgentFactory<AgentContext>.CreateAsync(
             logger: logger,
             toolFactory: toolFactory,

@@ -51,8 +51,6 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
         // enable handoff reasoning for dev envs
         var experimentalSettings = _serviceProvider.GetRequiredService<ExperimentalSettings>();
         _handoffReasoningEnabled = experimentalSettings?.EnableHandoffReasoning ?? _hostEnvironment.IsDevelopment();
-
-        FindAndRegisterAllTools(BehaviorOnNameConflict.Overwrite);
     }
 
     public void RegisterFromYamlFile(string filePath, BehaviorOnNameConflict onNameConflict = BehaviorOnNameConflict.ThrowException)
@@ -195,7 +193,7 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
         })];
     }
 
-    public async void FindAndRegisterAllTools(BehaviorOnNameConflict onNameConflict)
+    public async Task FindAndRegisterAllToolsAsync(BehaviorOnNameConflict onNameConflict)
     {
         var plugins = _assemblies
             .SelectMany(assembly => assembly.GetTypes())
