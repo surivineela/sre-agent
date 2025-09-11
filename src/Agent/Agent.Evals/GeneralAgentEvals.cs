@@ -8,7 +8,13 @@ namespace Agent.Evals;
 [TestClass]
 public class GeneralAgentEvals
 {
-    private static async Task<TestHost> GetTestHostAsync() => await TestHelpers.InitializeTestHost();
+    private static TestHost? _testHost;
+
+    private static async ValueTask<TestHost> GetTestHostAsync()
+    {
+        _testHost ??= await TestHelpers.InitializeTestHost();
+        return _testHost;
+    }
 
     public TestContext TestContext { get; set; } = null!;
 

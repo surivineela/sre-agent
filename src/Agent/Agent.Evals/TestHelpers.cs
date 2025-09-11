@@ -26,10 +26,12 @@ using Agent.Prometheus.Services;
 using Agent.Runtime;
 using Agent.Runtime.Communication;
 using Agent.Runtime.IncidentHandlerAgent;
+using Agent.Runtime.Interfaces;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
+using Agent.Runtime.SubAgents;
 using Agent.Tests.Common.Mocks;
 using Agent.Tests.Common.Mocks.FunctionCalling;
 using Azure.AI.OpenAI;
@@ -91,7 +93,8 @@ public static class TestHelpers
             builder.AddConsole();
         });
 
-        builder.Services.AddChatClient(sp => sp.GetRequiredService<AzureOpenAIClient>().GetChatClient(llmDeploymentName).AsIChatClient()).Use(next => new ReasoningChatClient(next));
+        builder.Services.AddChatClient(sp => sp.GetRequiredService<AzureOpenAIClient>().GetChatClient(llmDeploymentName).AsIChatClient())
+            .Use(next => new ReasoningChatClient(next));
 
         builder.Services.ConfigureIEmbeddingGenerator();
 
@@ -176,13 +179,13 @@ public static class TestHelpers
                 return mock.Object;
             });
 
-            
-            
+
+
 
         return builder;
     }
 
-    public static async Task<HostApplicationBuilder> RegisterServicesForAgentFrameworkEval(this HostApplicationBuilder builder, JsonSerializerOptions? toolReplaySerializerOptions = null)
+    public static HostApplicationBuilder RegisterServicesForAgentFrameworkEval(this HostApplicationBuilder builder, JsonSerializerOptions? toolReplaySerializerOptions = null)
     {
         // Add HTTP client factory - required by various services
         builder.Services.AddHttpClient();
@@ -292,6 +295,9 @@ public static class TestHelpers
         builder.Services.AddSingleton(Mock.Of<CustomerLogger>());
         builder.Services.AddSingleton(Mock.Of<CustomerAuditLogger>());
 
+        builder.Services.AddSingleton<IMcpConnectable, McpToolsRepository>();
+        builder.Services.AddSingleton<IExtensibilityLoader, ExtensibilityLoader>();
+
         var agentModeString = builder.Configuration.GetSection("AppSettings:Core:Azure:Action:Mode").Get<string>();
 
         // This block is correct for conditionally registering the configurator
@@ -317,17 +323,19 @@ public static class TestHelpers
             var replay = new ReplayToolFactory<AgentContext>(inner, toolReplaySerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web));
             return replay;
         });
-        builder.Services.AddSingleton<IExtensibilityLoader, ExtensibilityLoader>();
-        using var bootstrapServiceProvider = builder.Services.BuildServiceProvider();
-        var modeConfigurator = bootstrapServiceProvider.GetRequiredService<IAgentModeConfigurator<AgentContext>>();
-        var extensionLoader = bootstrapServiceProvider.GetRequiredService<IExtensibilityLoader>();
-        var factory = await AgentFactory<AgentContext>.CreateAsync(
-                logger: bootstrapServiceProvider.GetRequiredService<ILogger<AgentFactory<AgentContext>>>(),
-                toolFactory: bootstrapServiceProvider.GetRequiredService<IToolFactory<AgentContext>>(),
+
+        builder.Services.AddSingleton<IAgentFactory<AgentContext>>(sp =>
+        {
+            var logger = sp.GetRequiredService<ILogger<AgentFactory<AgentContext>>>();
+            var modeConfigurator = sp.GetRequiredService<IAgentModeConfigurator<AgentContext>>();
+            var extensionLoader = sp.GetRequiredService<IExtensibilityLoader>();
+            var toolFactory = sp.GetRequiredService<IToolFactory<AgentContext>>();
+            return new AgentFactory<AgentContext>(
+                logger: logger,
+                toolFactory: toolFactory,
                 assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
                     .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
                     .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true),
-
                 modeConfigurator: modeConfigurator,
                 agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "AgentsV2"),
                 commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonPrompts"),
@@ -335,11 +343,10 @@ public static class TestHelpers
                 promptStarters: [Core.Constants.SREAgentPromptStarter],
                 promptEnders: [Core.Constants.SREAgentFinalInstructions],
                 defaultOutputType: typeof(DefaultAgentOutput),
-                extensibiltyLoader: extensionLoader
-            );
+                extensibiltyLoader: extensionLoader);
+        });
 
-        builder.Services.AddSingleton<IAgentFactory<AgentContext>>(factory);
-
+        builder.Services.ConfigureAsyncInitializers();
 
         // should be removed later - currently required because ThreadManagementService has code for handling UseAgentFramework=false
         builder.Services.AddSingleton<IAgentsFactory>(sp =>
@@ -431,8 +438,9 @@ public static class TestHelpers
     {
         var builder = BuildTestApp(out var _);
         builder.RegisterDefaultServices();
-        await builder.RegisterServicesForAgentFrameworkEval();
+        builder.RegisterServicesForAgentFrameworkEval();
         var host = builder.Build();
+        await host.StartAsync();
         return TestHost.Create(host);
     }
 

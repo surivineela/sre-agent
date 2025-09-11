@@ -27,6 +27,8 @@ namespace Agent.Runtime.Reasoning;
 /// </summary>
 public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : class
 {
+    private readonly Lazy<Task> _initializationTask;
+
     private readonly ILogger<ToolFactory<TContext>> _logger;
     private readonly IServiceProvider _serviceProvider;
     private readonly IHostEnvironment _hostEnvironment;
@@ -39,7 +41,8 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
         ILogger<ToolFactory<TContext>> logger,
         IServiceProvider serviceProvider,
         IEnumerable<Assembly> assembliesToScan,
-        IExtensibilityLoader? extensibilityLoader = null
+        IExtensibilityLoader? extensibilityLoader = null,
+        bool initializeOnConstruction = true
     )
     {
         _logger = logger;
@@ -51,6 +54,20 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
         // enable handoff reasoning for dev envs
         var experimentalSettings = _serviceProvider.GetRequiredService<ExperimentalSettings>();
         _handoffReasoningEnabled = experimentalSettings?.EnableHandoffReasoning ?? _hostEnvironment.IsDevelopment();
+
+
+        _initializationTask = new(() => FindAndRegisterAllToolsAsync(BehaviorOnNameConflict.ThrowException));
+
+        if (initializeOnConstruction)
+        {
+            var _ = _initializationTask.Value;
+        }
+    }
+
+    // Return cached task
+    Task IAsyncInitializer.InitializeAsync()
+    {
+        return _initializationTask.Value;
     }
 
     public void RegisterFromYamlFile(string filePath, BehaviorOnNameConflict onNameConflict = BehaviorOnNameConflict.ThrowException)
@@ -285,7 +302,6 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
 
         // Register the ToDo Write tool
         RegisterTool(ToDoWriteTool.ToolName, ToDoWriteTool.Instance, onNameConflict);
-
     }
 
     public AIFunction GetTool(string name)

@@ -5,7 +5,6 @@
 using System.ComponentModel;
 using System.Reflection;
 using Agent.Core.Configuration;
-using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Agent.Framework.Interfaces;
@@ -37,7 +36,7 @@ public class AgentFactoryTests
         _mockToolFactoryLogger = new Mock<ILogger<ToolFactory<AgentContext>>>();
         _mockAgentModeConfigurator = new Mock<IAgentModeConfigurator<AgentContext>>();
         _mockExtendedAgentRepository = new Mock<IExtensibilityLoader>();
-        
+
         // Setup mock extensibility loader to return empty lists
         _mockExtendedAgentRepository.Setup(x => x.LoadExtendedToolsAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<YamlToolDefinitionBase>());
@@ -47,7 +46,7 @@ public class AgentFactoryTests
             .ReturnsAsync(new List<YamlPromptDescriptor>());
         _mockExtendedAgentRepository.Setup(x => x.LoadExtendedCommonToolsListsAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<YamlCommonToolsDescriptor>());
-        
+
         _services = new ServiceCollection();
         _services.AddSingleton(_mockLogger.Object);
         _services.AddSingleton(_mockToolFactoryLogger.Object);
@@ -87,15 +86,16 @@ public class AgentFactoryTests
     public async Task LoadsAgentsFromAssembly()
     {
         // Arrange
-        var toolFactory = await CreateInitializedToolFactoryAsync();
+        var toolFactory = CreateToolFactory();
 
-        var agentFactory = await AgentFactory<AgentContext>.CreateAsync(
+        var agentFactory = new AgentFactory<AgentContext>(
             logger: _mockLogger.Object,
             toolFactory: toolFactory,
             modeConfigurator: _mockAgentModeConfigurator.Object,
             assembliesToScan: [Assembly.GetExecutingAssembly()],
             commonToolsYamlDirectory: null
         );
+        await agentFactory.InitializeAsync();
 
         var agent1 = agentFactory.GetAgent("TestAgent1");
         Assert.NotNull(agent1);
@@ -113,9 +113,9 @@ public class AgentFactoryTests
     public async Task LoadsAgentsFromYaml()
     {
         // Arrange
-        var toolFactory = await CreateInitializedToolFactoryAsync();
+        var toolFactory = CreateToolFactory();
 
-        var agentFactory = await AgentFactory<AgentContext>.CreateAsync(
+        var agentFactory = new AgentFactory<AgentContext>(
             logger: _mockLogger.Object,
             toolFactory: toolFactory,
             assembliesToScan: [],
@@ -124,6 +124,7 @@ public class AgentFactoryTests
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
             commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools")
         );
+        await agentFactory.InitializeAsync();
 
         var agent1 = agentFactory.GetAgent("agent1");
         Assert.NotNull(agent1);
@@ -167,17 +168,18 @@ public class AgentFactoryTests
                     agent.Instructions += "\nYou CANNOT make any changes.";
                 });
 
-        var toolFactory = await CreateInitializedToolFactoryAsync();
+        var toolFactory = CreateToolFactory();
 
         // Act
         // Pass the mockAgentModeConfigurator.Object to the AgentFactory constructor
-        var agentFactory = await AgentFactory<AgentContext>.CreateAsync(
+        var agentFactory = new AgentFactory<AgentContext>(
             logger: _mockLogger.Object,
             toolFactory: toolFactory,
             assembliesToScan: [Assembly.GetExecutingAssembly()],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             commonToolsYamlDirectory: null
         );
+        await agentFactory.InitializeAsync();
 
         var agent = agentFactory.GetAgent("TestAgent1");
         Assert.NotNull(agent);
@@ -203,15 +205,16 @@ public class AgentFactoryTests
 
                 });
 
-        var toolFactory = await CreateInitializedToolFactoryAsync();
+        var toolFactory = CreateToolFactory();
 
-        var agentFactory =  await AgentFactory<AgentContext>.CreateAsync(
+        var agentFactory = new AgentFactory<AgentContext>(
             logger: _mockLogger.Object,
             toolFactory: toolFactory,
             assembliesToScan: [Assembly.GetExecutingAssembly()],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             commonToolsYamlDirectory: null
         );
+        await agentFactory.InitializeAsync();
 
         var agent = agentFactory.GetAgent("TestAgent1");
         Assert.NotNull(agent);
@@ -221,7 +224,7 @@ public class AgentFactoryTests
         Assert.DoesNotContain("You can only perform READ operations", agent.Instructions);
     }
 
-    private async Task<ToolFactory<AgentContext>> CreateInitializedToolFactoryAsync()
+    private ToolFactory<AgentContext> CreateToolFactory()
     {
         var toolFactory = new ToolFactory<AgentContext>(
             logger: _mockToolFactoryLogger.Object,
@@ -229,7 +232,7 @@ public class AgentFactoryTests
             assembliesToScan: [Assembly.GetExecutingAssembly()],
             extensibilityLoader: _mockExtendedAgentRepository.Object
         );
-        await toolFactory.FindAndRegisterAllToolsAsync(BehaviorOnNameConflict.ThrowException);
+
         return toolFactory;
     }
 }

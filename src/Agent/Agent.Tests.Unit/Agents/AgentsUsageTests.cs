@@ -17,16 +17,18 @@ public class AgentsUsageTests
     {
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "test");
 
-        _app = (Web.Program.CreateWebApplicationBuilder([]).GetAwaiter().GetResult().Build());
+        _app = Web.Program.CreateWebApplicationBuilder([]).Build();
 
     }
 
     [Fact]
-    public void ValidateNotifyUserUsage()
+    public async Task ValidateNotifyUserUsage()
     {
         var agentFactory = _app.Services.GetRequiredService<IAgentFactory<AgentContext>>() as AgentFactory<AgentContext>;
 
         Assert.NotNull(agentFactory);
+
+        await agentFactory.InitializeAsync();
 
         var agentDescriptors = agentFactory.GetAllAgentDescriptors();
 
@@ -43,11 +45,13 @@ public class AgentsUsageTests
     }
 
     [Fact]
-    public void ValidateGuardRailUsage()
+    public async Task ValidateGuardRailUsage()
     {
         var agentFactory = _app.Services.GetRequiredService<IAgentFactory<AgentContext>>() as AgentFactory<AgentContext>;
 
         Assert.NotNull(agentFactory);
+
+        await agentFactory.InitializeAsync();
 
         var agentDescriptors = agentFactory.GetAllAgentDescriptors();
 
@@ -61,11 +65,13 @@ public class AgentsUsageTests
     }
 
     [Fact]
-    public void ValidateFormatGuidelinesUsage()
+    public async Task ValidateFormatGuidelinesUsage()
     {
         var agentFactory = _app.Services.GetRequiredService<IAgentFactory<AgentContext>>() as AgentFactory<AgentContext>;
 
         Assert.NotNull(agentFactory);
+
+        await agentFactory.InitializeAsync();
 
         var agentDescriptors = agentFactory.GetAllAgentDescriptors();
 

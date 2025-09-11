@@ -29,6 +29,12 @@ public class ReplayToolFactory<TContext> : IToolFactory<TContext> where TContext
         _replayCore = new ReplayToolCore(serializerOptions ?? throw new ArgumentNullException(nameof(serializerOptions)));
     }
 
+    // Return cached task
+    Task IAsyncInitializer.InitializeAsync()
+    {
+        return _innerFactory.InitializeAsync();
+    }
+
     /// <summary>
     /// Loads replay data from a log string.
     /// </summary>

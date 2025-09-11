@@ -2,19 +2,20 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.ClientModel.Primitives;
 using Agent.Core.Clients.Chat;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
+using Agent.Framework;
+using Agent.Logging;
+using Agent.Runtime.Services;
 using Azure.AI.OpenAI;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Azure.Core;
-using Azure.Core.Pipeline;
-using System.ClientModel.Primitives;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
-using Agent.Logging;
 
 namespace Agent.Runtime
 {
@@ -87,7 +88,7 @@ namespace Agent.Runtime
         }
 
         // Pipeline policy that logs 429 responses using the project's structured logging helper
-    internal class AzureOpenAILoggingPolicy : System.ClientModel.Primitives.PipelinePolicy
+        internal class AzureOpenAILoggingPolicy : System.ClientModel.Primitives.PipelinePolicy
         {
             private readonly ILogger _logger;
 
@@ -213,6 +214,14 @@ namespace Agent.Runtime
 
                     return client.GetEmbeddingClient(openAISettings.EmbeddingGeneratorDeploymentName).AsIEmbeddingGenerator();
                 });
+        }
+
+        public static IServiceCollection ConfigureAsyncInitializers(this IServiceCollection services)
+        {
+            return services
+                .AddSingleton<IAsyncInitializer>(sp => sp.GetRequiredService<IToolFactory<AgentContext>>())
+                .AddSingleton<IAsyncInitializer>(sp => sp.GetRequiredService<IAgentFactory<AgentContext>>())
+                .AddHostedService<AsyncInitializerService>();
         }
     }
 }

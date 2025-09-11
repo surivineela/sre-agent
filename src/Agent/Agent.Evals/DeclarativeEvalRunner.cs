@@ -112,6 +112,7 @@ public class DeclarativeEvalRunner
 
     [TestMethod]
     [DynamicData(nameof(DeclarativeTestData), DynamicDataSourceType.Method)]
+    [Ignore("Test depends on `run-gremlin-emulator.sh` to interact with graphdb")]
     public async Task DeclarativeTest(string testDisplayName, string userMessage, string relativeYamlPath, string testCaseName)
     {
         await RunDeclarativeEvalCore(relativeYamlPath, testDisplayName, userMessage, testCaseName);
@@ -337,7 +338,7 @@ public class DeclarativeEvalRunner
     {
         var builder = TestHelpers.BuildTestApp(out _llmDeploymentName);
         builder.RegisterDefaultServices();
-        await builder.RegisterServicesForAgentFrameworkEval();
+        builder.RegisterServicesForAgentFrameworkEval();
 
         // Configure database based on YAML config
         if (!string.IsNullOrEmpty(config.TestSuite.Configuration.Database))

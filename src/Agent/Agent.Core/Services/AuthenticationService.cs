@@ -1,6 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Framework.Reasoning.Models;
@@ -10,7 +9,6 @@ using Azure.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.OperationalAgent.Core.Extensions;
 
 namespace Agent.Core.Services;
 

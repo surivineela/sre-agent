@@ -2,9 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Collections.Generic;
 using Agent.Core.Interfaces;
-using Agent.Core.Models.Api.v1;
 using Agent.Data;
 using Agent.Framework;
 using Agent.Framework.Interfaces;
@@ -20,13 +18,10 @@ public class ExtensibilityLoader : IExtensibilityLoader
 
     public ExtensibilityLoader(
         ILogger<ExtensibilityLoader> logger,
-
         IExtendedAgentRepository extendedAgentRepository
-
         )
     {
         _logger = logger;
-
         _extendedAgentRepository = extendedAgentRepository;
     }
 

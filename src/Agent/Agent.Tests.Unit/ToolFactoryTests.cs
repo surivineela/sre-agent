@@ -292,7 +292,11 @@ namespace Agent.Tests.Unit
             // Arrange
             _services.AddTransient<IgnoredPlugin>();
             var serviceProvider = _services.BuildServiceProvider();
-            var toolFactory = new ToolFactory<object>(_mockLogger.Object, serviceProvider, [Assembly.GetExecutingAssembly()]);
+            var toolFactory = new ToolFactory<object>(
+                logger: _mockLogger.Object,
+                serviceProvider: serviceProvider,
+                assembliesToScan: [Assembly.GetExecutingAssembly()],
+                initializeOnConstruction: false);
             await toolFactory.FindAndRegisterAllToolsAsync(BehaviorOnNameConflict.ThrowException);
 
             // Act & Assert
@@ -354,7 +358,11 @@ namespace Agent.Tests.Unit
         [Fact]
         public async Task PluginWithContext()
         {
-            var toolFactory = new ToolFactory<string>(new Mock<ILogger<ToolFactory<string>>>().Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
+            var toolFactory = new ToolFactory<string>(
+                logger: new Mock<ILogger<ToolFactory<string>>>().Object,
+                serviceProvider: _serviceProvider,
+                assembliesToScan: [Assembly.GetExecutingAssembly()],
+                initializeOnConstruction: false);
             await toolFactory.FindAndRegisterAllToolsAsync(BehaviorOnNameConflict.ThrowException);
 
             var tool = toolFactory.GetTool("GetContextInfo") as ContextAIFunction<string>;
@@ -372,7 +380,7 @@ namespace Agent.Tests.Unit
         private async Task<ToolFactory<object>> CreateInitializedToolFactoryAsync()
         {
             var toolFactory = new ToolFactory<object>(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
-            await toolFactory.FindAndRegisterAllToolsAsync(BehaviorOnNameConflict.ThrowException);
+            await ((IAsyncInitializer)toolFactory).InitializeAsync();
             return toolFactory;
         }
 

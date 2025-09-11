@@ -236,6 +236,19 @@ class Program
         //                 .AddSingleton<IBotPollingMessage, TeamsBot>();
         // Add the new polling service
 
+        builder.Services.AddSingleton<IAgentFactory<CustomContext>>(sp =>
+        {
+            var toolsRepository = sp.GetRequiredService<IToolFactory<CustomContext>>();
+            var modeConfigurator = sp.GetRequiredService<IAgentModeConfigurator<CustomContext>>();
+            return new AgentFactory<CustomContext>(
+                logger: sp.GetRequiredService<ILogger<AgentFactory<CustomContext>>>(),
+                toolFactory: toolsRepository,
+                assembliesToScan: [],
+                modeConfigurator: modeConfigurator,
+                agentsYamlDirectory: Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "agents"),
+                commonToolsYamlDirectory: null);
+        });
+
         // builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
         // Configure chat services
         builder.Services.ConfigureIChatCompletionService()
@@ -288,6 +301,7 @@ class Program
     static async Task RunAgentFactoryExampleAsync(HostApplicationBuilder builder)
     {
         var host = builder.Build();
+        await host.StartAsync();
         var graphDBPlugin = host.Services.GetRequiredService<IGraphDBPlugin>();
         // var graphDBDefinition = new GraphDBPluginDefinition(graphDBPlugin);
         var containerAppPlugin = host.Services.GetRequiredService<IContainerAppPlugin>();
@@ -297,17 +311,7 @@ class Program
 
         var chatClient = host.Services.GetRequiredService<IChatClient>();
 
-        var toolsRepository = host.Services.GetRequiredService<IToolFactory<CustomContext>>();
-        var modeConfigurator = host.Services.GetRequiredService<IAgentModeConfigurator<CustomContext>>();
-
-        var agentFactory = await AgentFactory<CustomContext>.CreateAsync(
-            logger: host.Services.GetRequiredService<ILogger<AgentFactory<CustomContext>>>(),
-            toolFactory: toolsRepository,
-            assembliesToScan: [],
-            modeConfigurator: modeConfigurator,
-            agentsYamlDirectory: Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "agents"),
-            commonToolsYamlDirectory: null
-        );
+        var agentFactory = host.Services.GetRequiredService<IAgentFactory<CustomContext>>();
 
         var chatHistory = new List<ChatMessage>();
         var lastAgent = agentFactory.GetAgent("meta_agent");

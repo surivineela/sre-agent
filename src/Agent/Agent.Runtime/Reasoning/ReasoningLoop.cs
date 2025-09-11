@@ -114,8 +114,8 @@ public class ReasoningLoop : IDisposable
         IAgentMemoryClient agentMemoryClient,
         ISearchIndexService searchIndexService,
         FeatureConfigModel featureConfig,
-    IAgentRuntimeModifier<AgentContext> agentRuntimeModifier,
-    bool modeSwitchEnabled = false)
+        IAgentRuntimeModifier<AgentContext> agentRuntimeModifier,
+        bool modeSwitchEnabled = false)
     {
         _loggerFactory = loggerFactory;
         _logger = _loggerFactory.CreateLogger<ReasoningLoop>();
@@ -431,7 +431,7 @@ public class ReasoningLoop : IDisposable
                                 await HandleRememberCommandAsync(agentChatHistory, chatMessage.Message.Text, cancellationToken);
                                 return;
                             }
-                            
+
                             // process #retrieve command
                             if (chatMessage.Message.Text.Contains(RetrieveMarker, StringComparison.OrdinalIgnoreCase) && _agentMemoryEnabled)
                             {

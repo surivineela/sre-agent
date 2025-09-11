@@ -25,7 +25,8 @@ public enum BehaviorOnNameConflict
     Overwrite
 }
 
-public interface IToolFactory<TContext> where TContext : class
+public interface IToolFactory<TContext> : IAsyncInitializer
+    where TContext : class
 {
     /// <summary>
     /// Find an AI function by its name.
