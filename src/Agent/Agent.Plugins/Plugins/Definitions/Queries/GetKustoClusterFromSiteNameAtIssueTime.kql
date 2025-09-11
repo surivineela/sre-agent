@@ -1,0 +1,38 @@
+let _startTime = datetime("##startTime##");
+let _endTime = datetime("##endTime##");
+let _siteName = "##siteName##";
+let _eventPrimary01 = All("AntaresIISLogFrontEndTable")
+| where PreciseTimeStamp between (_startTime .. _endTime)
+| where S_sitename == _siteName
+| project EventPrimaryStampName
+| take 1;
+let _eventPrimary02 = All("ScaleControllerEvents")
+| where PreciseTimeStamp between (_startTime .. _endTime)
+| where SiteName == _siteName
+| project EventPrimaryStampName
+| take 1;
+let rowId = All("AntaresReadOnlyViews")
+| where ColumnValue == _siteName
+| where SqlCommand == "SELECT * FROM  [runtime].[view_Sites]"
+| take 1
+| project RowId;
+let _eventPrimary03 = All("AntaresReadOnlyViews")
+| where RowId in (rowId)
+| where ColumnName == "HomeStamp"
+| project ColumnName, ColumnValue
+| take 1
+| project EventPrimaryStampName = ColumnValue;
+let _antaresStamp = union _eventPrimary01, _eventPrimary02, _eventPrimary03
+| take 1
+| project EventPrimaryStampName;
+let _parsed = _antaresStamp
+| parse EventPrimaryStampName with "waws-prod-" abbreviation "-" *
+| project abbreviation, EventPrimaryStampName;
+let _abbrebviation = _parsed
+| project abbreviation;
+let _region = GetRegions()
+| where AntaresAbbreviation in (_abbrebviation)
+| take 1;
+_parsed
+| join kind=inner (_region) on $left.abbreviation == $right.AntaresAbbreviation
+| project EventPrimaryStampName, KustoCluster

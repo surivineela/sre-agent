@@ -1,0 +1,17 @@
+let _startTime = datetime("##startTime##");
+let _endTime = datetime("##endTime##");
+let _siteName = "##siteName##";
+let _eventPrimaryStampName = "##eventPrimaryStampName##";
+// Find SiteMetadata. Modify _selectedColumnNames is the list of columns you might need.
+let rowId = AntaresReadOnlyViews
+| where PreciseTimeStamp >= _startTime - 3h and PreciseTimeStamp <= _endTime + 10m
+| where EventPrimaryStampName == _eventPrimaryStampName
+| where ColumnValue contains _siteName 
+| where SqlCommand == 'SELECT * FROM  [runtime].[view_Sites]'
+| take 1
+| project RowId;
+AntaresReadOnlyViews
+| where PreciseTimeStamp >= _startTime - 3h and PreciseTimeStamp <= _endTime + 10m
+| where EventPrimaryStampName == _eventPrimaryStampName
+| where RowId in (rowId) 
+| project ColumnName, ColumnValue, EventPrimaryStampName

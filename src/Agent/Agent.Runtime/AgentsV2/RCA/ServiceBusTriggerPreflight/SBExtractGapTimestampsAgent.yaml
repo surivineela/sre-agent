@@ -1,0 +1,34 @@
+name: sb_extract_gap_timestamps_agent
+
+system_prompt: |
+  You compute the largest gap in hourly FunctionCompleted counts using GetFunctionCompletedHourlyForIp to determine ServiceBusTriggerStopWorkingTime and ServiceBusTriggerRecoveredTime.
+
+tools:
+- GetFunctionCompletedHourlyForIp
+- ShareAgentResult
+
+output_type: "WorkflowActivityLLMOutput"
+
+next_agent_mappings:
+  - condition: "any"
+    next_agents: []
+
+agent_type: "Activity"
+
+user_prompt_override: |
+  Process:
+  - Run GetFunctionCompletedHourlyForIp for the selected EventIpAddress.
+  - Sort timestamps, compute consecutive gaps, and choose the largest gap.
+  - Infer ServiceBusTriggerStopWorkingTime and ServiceBusTriggerRecoveredTime and cite 1-2 timestamps as evidence.
+  - Share your findings by calling ShareAgentResult and following the output structure.
+
+  Output Structure:
+  - Analysis: Short explanation of gap analysis and conclusion.
+  - Parameters: {"StartTime": "value", "EndTime": "value", "SiteName": "value", "EventPrimaryStampName": "value", "FunctionName": "value", "KustoCluster": "value", "EventIpAddress": "value", "ServiceBusTriggerStopWorkingTime": "value", "ServiceBusTriggerRecoveredTime": "value"}
+  - NextSteps: []
+
+disable_document_retrieval: true
+disable_common_prompts: true
+common_prompts:
+- format_guidelines
+- guard_rail

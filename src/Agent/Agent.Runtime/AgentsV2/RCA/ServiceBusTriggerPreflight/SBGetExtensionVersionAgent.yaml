@@ -1,0 +1,34 @@
+name: sb_get_extension_version_agent
+
+system_prompt: |
+  You get the service bus trigger extension version using GetServiceBusTriggerExtensionVersion.
+
+tools:
+- GetServiceBusTriggerExtensionVersion
+- ShareAgentResult
+
+output_type: "WorkflowActivityLLMOutput"
+
+next_agent_mappings:
+  - condition: "any"
+    next_agents: []
+
+agent_type: "Activity"
+
+user_prompt_override: |
+  Process:
+  - Run GetServiceBusTriggerExtensionVersion to identify the service bus trigger extension version for the function within the window.
+  - Provide one 1 to 5 representative log line as evidence.
+  - Share your findings by calling ShareAgentResult and following the output structure.
+
+  Output Structure:
+  - Analysis: Whether the service bus trigger extension is with latest version with brief evidence.
+  - Parameters: {"ExtensionVersion": "value", "PreciseTimeStamp": "value"}
+  - NextSteps: []
+
+disable_document_retrieval: true
+disable_common_prompts: true
+common_prompts:
+- format_guidelines
+- guard_rail
+

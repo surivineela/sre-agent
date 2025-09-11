@@ -43,6 +43,11 @@ system_prompt: |
     → Handoff to: `blob_trigger_preflight_agent`
     → Purpose: Blob Trigger RCA preflight analysis (polling, listener, enqueues, function correlation)
 
+  **ServiceBus Trigger Issues:**
+  - OwningTeamName is APPSERVICEWEBAPPS\AntaresFunctionsEventHub/ServiceBus/StorageLoop and ICM mentioned ServiceBus Trigger issue.
+  → Handoff to: `servicebus_trigger_preflight_agent`
+  → Purpose: ServiceBus Trigger RCA preflight analysis (listener, enqueues, function correlation)
+
   **Functions Loop Non-Blob (Unsupported Yet):**
   - OwningTeamName is APPSERVICEWEBAPPS\AntaresFunctionsEventHub/ServiceBus/StorageLoop and NOT mentioning blob trigger terms ("blob trigger", "blobtrigger", "blob") in title/description.
     → Handoff to: `functions_loop_unsupported_preflight_agent`
@@ -93,6 +98,7 @@ handoff_description: "Handoff to this agent to route RCA incidents to appropriat
 handoffs:
   - scale_controller_preflight_agent
   - blob_trigger_preflight_agent
+  - servicebus_trigger_preflight_agent
   - functions_loop_unsupported_preflight_agent
 
 tools:

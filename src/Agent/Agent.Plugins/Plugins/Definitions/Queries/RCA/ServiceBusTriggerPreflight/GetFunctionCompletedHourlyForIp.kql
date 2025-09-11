@@ -1,0 +1,16 @@
+let _startTime = datetime("##startTime##");
+let _endTime = datetime("##endTime##");
+let _siteName = "##siteName##";
+let _eventPrimaryStampName = "##eventPrimaryStampName##";
+let _functionName = "##functionName##";
+let _eventIpAddress = "##eventIpAddress##";
+FunctionsLogs
+| where PreciseTimeStamp between (_startTime .. _endTime)
+| where AppName =~ _siteName
+| where EventPrimaryStampName == _eventPrimaryStampName
+| where FunctionName == _functionName
+| where EventName == "FunctionCompleted"
+| where EventIpAddress == _eventIpAddress
+| where not(Summary startswith "Ping Status" or Summary startswith "[HostMonitor" or Summary startswith "[channel]")
+| summarize Count = count() by bin(PreciseTimeStamp, 1h)
+| order by PreciseTimeStamp asc

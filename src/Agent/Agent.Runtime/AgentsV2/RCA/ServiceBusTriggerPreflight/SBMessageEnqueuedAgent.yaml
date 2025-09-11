@@ -1,0 +1,33 @@
+name: sb_message_enqueued_agent
+
+system_prompt: |
+  You validate service bus message detection/enqueue via CheckServiceBusMessageEnqueuedForFunction and extract MessageId/QueueName.
+
+tools:
+- CheckServiceBusMessageEnqueuedForFunction
+- ShareAgentResult
+
+output_type: "WorkflowActivityLLMOutput"
+
+next_agent_mappings:
+  - condition: "any"
+    next_agents: []
+
+agent_type: "Activity"
+
+user_prompt_override: |
+  Process:
+  - Run CheckServiceBusMessageEnqueuedForFunction to verify service bus message detection and queue enqueue.
+  - Share 1-2 representative records and extract QueueName and MessageId.
+  - Share your findings by calling ShareAgentResult and following the output structure.
+
+  Output Structure:
+  - Analysis: Whether service bus messages are being enqueued for processing, with brief evidence.
+  - Parameters: {"StartTime": "value", "EndTime": "value", "SiteName": "value", "EventPrimaryStampName": "value", "FunctionName": "value", "KustoCluster": "value", "QueueName": "value", "MessageId": "value"}
+  - NextSteps: []
+
+disable_document_retrieval: true
+disable_common_prompts: true
+common_prompts:
+- format_guidelines
+- guard_rail

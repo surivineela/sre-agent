@@ -1,0 +1,59 @@
+name: sb_worker_runtime_check_agent
+
+system_prompt: |
+  You check worker/runtime by executing CheckFunctionRuntimeAndWorkers and analyzing hourly FunctionCompleted counts.
+  If records exist, proceed to select EventIpAddress and function correlation checks.
+
+tools:
+- CheckFunctionRuntimeAndWorkers
+- ShareAgentResult
+
+output_type: "WorkflowActivityLLMOutput"
+
+next_agent_mappings:
+  - condition: "records_found"
+    next_agents: ["sb_get_extension_version_agent","sb_select_event_ip_agent","sb_determine_function_has_been_triggered_agent"]
+  - condition: "no_records"
+    next_agents: []
+
+agent_type: "Activity"
+
+user_prompt_override: |
+  Process (deterministic routing):
+  - Run CheckFunctionRuntimeAndWorkers to verify host availability and fetch hourly FunctionCompleted counts.
+  - Decide hasRecords strictly by presence of any FunctionCompleted record in the inspected window:
+      hasRecords = (total FunctionCompleted events in the window >= 1).
+      Do not use perceived health or gaps to override this flag; presence of any record => hasRecords = true.
+  - If hasRecords = true:
+       nextSteps MUST be exactly ["sb_get_extension_version_agent","sb_select_event_ip_agent","sb_determine_function_has_been_triggered_agent"].
+    Else (no records):
+      nextSteps MUST be [].
+  - In analysis, reference 1-2 concrete timestamps as evidence.
+  - Call ShareAgentResult and follow the output structure and exact key casing.
+
+  Output Structure (keys are strict):
+  - analysis: Short narrative on worker/runtime health, referencing 1-2 timestamps.
+  - parameters: {"StartTime": "value", "EndTime": "value", "SiteName": "value", "EventPrimaryStampName": "value", "FunctionName": "value", "KustoCluster": "value"}
+  - nextSteps: ["sb_get_extension_version_agent","sb_select_event_ip_agent","sb_determine_function_has_been_triggered_agent"] if hasRecords = true; otherwise []
+
+  Validation rules:
+  - If any FunctionCompleted record exists in the window, nextSteps MUST NOT be [].
+  - Use exactly the three IDs above in nextSteps when hasRecords = true.
+  - Do not output extra fields besides analysis, parameters, nextSteps.
+
+  Examples:
+  - Example (records exist):
+    analysis: "Found FunctionCompleted activity at 2025-08-03T04:00:00Z; host signals present during the window."
+    parameters: {"StartTime": "...", "EndTime": "...", "SiteName": "...", "EventPrimaryStampName": "...", "FunctionName": "...", "KustoCluster": "..."}
+    nextSteps: ["sb_get_extension_version_agent","sb_select_event_ip_agent","sb_determine_function_has_been_triggered_agent"]
+
+  - Example (no records):
+    analysis: "No FunctionCompleted activity observed in the window; host shows no executions."
+    parameters: {"StartTime": "...", "EndTime": "...", "SiteName": "...", "EventPrimaryStampName": "...", "FunctionName": "...", "KustoCluster": "..."}
+    nextSteps: []
+
+disable_document_retrieval: true
+disable_common_prompts: true
+common_prompts:
+- format_guidelines
+- guard_rail

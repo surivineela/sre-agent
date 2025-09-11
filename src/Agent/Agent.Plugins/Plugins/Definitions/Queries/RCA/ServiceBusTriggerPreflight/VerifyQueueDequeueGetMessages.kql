@@ -1,0 +1,19 @@
+let _startTime = datetime("##startTime##");
+let _endTime = datetime("##endTime##");
+let _siteName = "##siteName##";
+let _eventPrimaryStampName = "##eventPrimaryStampName##";
+let _queueName = "##queueName##";
+let _filteredEvents = dynamic(["GetMessages"]);
+FunctionsLogs
+| where PreciseTimeStamp between (_startTime .. _endTime)
+| where AppName =~ _siteName
+| where EventStampName == _eventPrimaryStampName
+| where EventName in (_filteredEvents)
+| where Summary contains _queueName
+| project PreciseTimeStamp, Level, HostVersion, RuntimeSiteName, Pid, EventIpAddress, EventName, Summary, RoleInstance, AppName, FunctionName, ActivityId, ExceptionMessage, InnerExceptionMessage, Details, FunctionInvocationId, Source, Message, EventMessage, Tenant, SubscriptionId, EventStampName, InnerExceptionType
+| order by PreciseTimeStamp asc
+| parse Summary with "Poll for function '" FunctionName "' on queue '" QueueName "' with ClientRequestId '" ClientRequestId "' found " MessageCount:int " messages in " Duration:int " ms."
+| extend FunctionName, QueueName, ClientRequestId, MessageCount, Duration
+| project PreciseTimeStamp, FunctionName, QueueName, MessageCount, Duration, ClientRequestId
+| where MessageCount != 0
+| take 10

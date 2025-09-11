@@ -413,6 +413,7 @@ public class Program
             .AddTransient<SearchPluginDefinition>()
             .AddTransient<ScaleControllerRCAPreflightPluginDefinition>()
             .AddTransient<BlobTriggerRCAPreflightPluginDefinition>()
+            .AddTransient<ServiceBusTriggerRCAPreflightPluginDefinition>()            
             .AddTransient<RCAPreflightICMPluginDefinition>()
             .AddTransient<ColdStartPluginDefinition>()
             .AddTransient<LogsPluginDefinition>()
