@@ -53,7 +53,6 @@ namespace Agent.Plugins.Definitions
         }
 
         [Description("Triggers a TimerTrigger Azure Function manually. " +
-            "Only supports functions that use TimerTrigger bindings (scheduled functions). " +
             "Automatically retrieves the master key from Azure ARM API and validates that the specified function is indeed a TimerTrigger. " +
             "Returns detailed execution results including success status, response content, and duration. " +
             "Use this to manually invoke scheduled functions outside their normal schedule or test TimerTrigger functions.")]
