@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Agent.Core;
 using Agent.Core.Attributes;
 using Agent.Core.Extensions;
 using Agent.Core.Configuration;
@@ -18,6 +19,7 @@ using Agent.Framework;
 using Agent.Logging;
 using Agent.Runtime.AgentTasks.Agents;
 using Agent.Runtime.Communication;
+using Agent.Runtime.Helpers;
 using Agent.Runtime.Reasoning;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -36,7 +38,8 @@ public sealed class IncidentInvestigationTaskHandler(
     AgentTaskLocalStore rcaAgentsStore,
     SearchHelper searchHelper,
     Tracer tracer,
-    OpenAISettings openAISettings
+    OpenAISettings openAISettings,
+    AgentTaskToolResultHelper agentTaskToolResultHelper
 ) : IAgentTaskHandler
 {
     private readonly SemaphoreSlim _stateLock = new(1, 1);
@@ -119,6 +122,10 @@ public sealed class IncidentInvestigationTaskHandler(
             // 1. Initial Investigation
             logger.LogInternalInformation("Starting initial investigation for task: {TaskId}", agentTask.Id);
             var currentStepSpan = tracingHelper.StartAgentTaskStepSpan("InitialInvestigation");
+            
+            // Set investigation step context for tool result routing
+            Core.ToolStatic.AsyncLocalInvestigationStepContext.Value = new InvestigationStepContext(
+                "InitialInvestigation");
 
             if (state.InitialInvestigation.Status != InitialInvestigationStatus.Complete)
             {
@@ -182,15 +189,34 @@ public sealed class IncidentInvestigationTaskHandler(
                         cancellationToken);
 
                     state.InitialInvestigation.GatheringContext.Status = InitialInvestigationStatus.Complete;
-                    state.InitialInvestigation.GatheringContext.Steps = [.. initialInvestigationResult.ContextGatheringSteps.Select(s =>
+
+                    // Create steps from LLM result
+                    // merge with existing tool execution step that were saved during initial investigation
+                    var steps = initialInvestigationResult.ContextGatheringSteps.Select(s => new InitialInvestigationStep
                     {
-                        return new InitialInvestigationStep
+                        Title = s.Title,
+                        Summary = s.Summary,
+                        Status = InitialInvestigationStatus.Complete,
+                        ToolExecutions = []
+                    }).ToList();
+
+                    // Fetch current agent task from database to get any existing tool results step
+                    var currentAgentTask = await agentTaskRepository.GetAgentTaskAsync(_currentAgentTask.ThreadId, _currentAgentTask.Id);
+                    if (currentAgentTask?.Properties is IncidentInvestigationTaskProperties currentProperties)
+                    {
+                        var toolResultsStepTitle = "Context Gathering Operation Results";
+                        var existingToolResultsStep = currentProperties.InitialInvestigation.GatheringContext.Steps
+                            .FirstOrDefault(s => s.Title.Equals(toolResultsStepTitle, StringComparison.OrdinalIgnoreCase));
+                        
+                        if (existingToolResultsStep != null && existingToolResultsStep.ToolExecutions.Any())
                         {
-                            Title = s.Title,
-                            Summary = s.Summary,
-                            Status = InitialInvestigationStatus.Complete
-                        };
-                    })];
+                            // Add the tool results to the end of the steps
+                            existingToolResultsStep.Status = InitialInvestigationStatus.Complete;
+                            steps.Add(existingToolResultsStep);
+                        }
+                    }
+
+                    state.InitialInvestigation.GatheringContext.Steps = steps;
 
                     logger.LogInternalInformation("Initial investigation agent completed with summary: {Summary}", initialInvestigationResult.Summary);
 
@@ -215,6 +241,10 @@ public sealed class IncidentInvestigationTaskHandler(
             // 2. Forming Hypothesis
             logger.LogInternalInformation("Starting forming hypothesis for task: {TaskId}", agentTask.Id);
             currentStepSpan = tracingHelper.StartAgentTaskStepSpan("FormingHypothesis");
+            
+            // Set investigation step context for tool result routing
+            Core.ToolStatic.AsyncLocalInvestigationStepContext.Value = new InvestigationStepContext(
+                "FormingHypothesis");
 
             var finalValidatedHypotheses = new List<HypothesisTreeItem>();
             var allInvestigatedHypotheses = new List<HypothesisTreeItem>();
@@ -263,6 +293,7 @@ public sealed class IncidentInvestigationTaskHandler(
                         state.InitialInvestigation.Summary,
                         validatedHypothesis,
                         current.Description,
+                        current.Id, // Pass the hypothesis ID for tool result routing
                         context,
                         runHooks,
                         currentStepSpan,
@@ -437,6 +468,13 @@ public sealed class IncidentInvestigationTaskHandler(
 
             logger.LogInternalError(e, "Error while executing investigation");
             throw;
+        }
+        finally
+        {
+            // Clear investigation step context
+            Core.ToolStatic.AsyncLocalInvestigationStepContext.Value = null;
+            // Clear agent task context
+            Core.ToolStatic.AsyncLocalAgentTaskId.Value = null;
         }
     }
 
@@ -878,6 +916,12 @@ public sealed class IncidentInvestigationTaskHandler(
                 return cachedResult;
             }
 
+            // Set agent task context for tool result routing
+            Core.ToolStatic.AsyncLocalAgentTaskId.Value = _currentAgentTask?.Id;
+            
+            logger.LogInternalInformation("Set AsyncLocalAgentTaskId to {AgentTaskId} for tool {ToolName}", 
+                _currentAgentTask?.Id, toolCall.Tool.Name);
+            
             Core.ToolStatic.AsyncLocalThreadId.Value = context.ThreadId;
             Core.ToolStatic.AsyncLocalCancellationToken.Value = cancellationToken;
             var result = await toolCall.Tool.InvokeAsync(new AIFunctionArguments(toolCall.FunctionCall.Arguments), cancellationToken);
@@ -891,6 +935,13 @@ public sealed class IncidentInvestigationTaskHandler(
         {
             logger.LogInternalError(ex, "Error while calling tool {ToolName}", toolCall.Tool!.Name);
             return GetErrorMessage(toolCall.FunctionCall, ex);
+        }
+        finally
+        {
+            // Clear the context after tool execution
+            logger.LogInternalInformation("Clearing AsyncLocalAgentTaskId after tool {ToolName} execution", toolCall.Tool.Name);
+            Core.ToolStatic.AsyncLocalAgentTaskId.Value = null;
+            Core.ToolStatic.AsyncLocalInvestigationStepContext.Value = null;
         }
     }
 
@@ -967,6 +1018,7 @@ public sealed class IncidentInvestigationTaskHandler(
         string investigationSummary,
         string validatedHypothesis,
         string currentHypothesis,
+        Guid currentHypothesisId,
         AgentContext context,
         RunHooks<AgentContext> runHooks,
         TelemetrySpan currentStepSpan,
@@ -1056,6 +1108,13 @@ public sealed class IncidentInvestigationTaskHandler(
 
         foreach (var step in plan.Steps)
         {
+            // Set hypothesis validation step context for tool result routing
+            Core.ToolStatic.AsyncLocalInvestigationStepContext.Value = new InvestigationStepContext(
+                "HypothesisValidation",
+                step.Title,
+                currentHypothesisId 
+            );
+            
             // todo: test selecting tool names per-step instead of once at the beginning
             var stepExecutionAgent = IncidentInvestigationAgents.CreateHypothesisValidationPlanExecutionAgent(
                 toolNames,
@@ -1090,11 +1149,24 @@ public sealed class IncidentInvestigationTaskHandler(
                 currentStepSpan,
                 cancellationToken);
 
+            // get databse item for the step to get tool executions
+            HypothesisStep? databaseStep = null;
+            if (_currentAgentTask != null)
+            { 
+                databaseStep = await agentTaskToolResultHelper.FindExistingHypothesisStepAsync(
+                    _currentAgentTask.Id,
+                    _currentAgentTask.ThreadId,
+                    currentHypothesisId,
+                    step.Title);
+            }
+
             var item = new HypothesisStep
             {
                 Summary = step.Title,
-                Details = stepExecutionResult.Summary
+                Details = stepExecutionResult.Summary,
+                ToolExecutions = databaseStep?.ToolExecutions ?? []
             };
+
             completedSteps.Add(item);
             await saveAndUpdateCallback.Invoke(item);
 

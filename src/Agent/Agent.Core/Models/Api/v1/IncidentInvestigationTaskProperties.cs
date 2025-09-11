@@ -118,6 +118,11 @@ public sealed record InitialInvestigationStep
     [NJ.JsonConverter(typeof(NJC.StringEnumConverter))]
     [SJ.JsonConverter(typeof(SJ.JsonStringEnumConverter))]
     public required InitialInvestigationStatus Status { get; set; }
+    
+    /// <summary>
+    /// Tool executions performed during this investigation step
+    /// </summary>
+    public List<ToolExecutionResult> ToolExecutions { get; set; } = [];
 }
 
 #endregion
@@ -204,6 +209,9 @@ public sealed record HypothesisTreeItem
 
         foreach (var child in Children)
         {
+            // Add the child itself
+            result.Add(child);
+            // Add all of the child's descendants recursively
             result.AddRange(child.GetAllDescendentHypotheses());
         }
 
@@ -239,6 +247,11 @@ public sealed record HypothesisStep
 
     [Description("The detailed content of the step taken to investigate the hypothesis. This should be a more detailed description of the step, including the reasoning behind the step. This should be in markdown format.")]
     public required string Details { get; set; } // details of the step taken to investigate the hypothesis, in markdown format
+    
+    /// <summary>
+    /// Tool executions performed during this hypothesis validation step
+    /// </summary>
+    public List<ToolExecutionResult> ToolExecutions { get; set; } = [];
 }
 
 #endregion
@@ -249,6 +262,37 @@ public sealed record ConclusionProperties
 {
     public required string Title { get; set; }
     public required string Summary { get; set; }
+}
+
+#endregion
+
+#region Tool Execution Results
+
+/// <summary>
+/// Represents the result of a tool execution during investigation
+/// </summary>
+public sealed record ToolExecutionResult
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    
+    [NJ.JsonConverter(typeof(NJC.StringEnumConverter))]
+    [SJ.JsonConverter(typeof(SJ.JsonStringEnumConverter))]
+    public ToolExecutionType Type { get; set; }
+    
+    public string KustoQueryResults { get; set; } = string.Empty; // Full markdown string for Kusto results
+    public DateTime ExecutedTimestamp { get; set; }
+    
+    // Structured data for specific tool types (avoids re-parsing JSON)
+    public AzCliExecution? AzCliExecution { get; set; }
+}
+
+/// <summary>
+/// Types of tools that can be executed during investigation
+/// </summary>
+public enum ToolExecutionType
+{
+    Kusto,
+    AzCli,
 }
 
 #endregion

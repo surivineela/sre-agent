@@ -5,6 +5,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using Agent.Core;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
@@ -296,10 +297,25 @@ namespace Agent.Plugins.Implementation
 
             await _threadRepository.CreateAzCliExecutionAsync(ThreadId!.Value, execution);
 
-            var message = CreateAzCliExecutionMessage(execution);
-            await _threadRepository.AddMessageAsync(ThreadId.Value, message);
+            // Check if we're in a deep investigation context
+            var agentTaskId = Agent.Core.ToolStatic.AsyncLocalAgentTaskId.Value;
+            Guid messageId;
+            
+            if (agentTaskId.HasValue)
+            {
+                // In deep investigation - don't create chat message, use a placeholder message ID
+                messageId = Guid.NewGuid();
+                _logger.LogInternalInformation("Deep investigation context detected - skipping chat message creation for AzCli execution {ExecutionId}", executionId);
+            }
+            else
+            {
+                // Normal flow - create chat message
+                var message = CreateAzCliExecutionMessage(execution);
+                await _threadRepository.AddMessageAsync(ThreadId.Value, message);
+                messageId = message.Id;
+            }
 
-            await NotifyAzCliExecutionCreated(execution, message.Id);
+            await NotifyAzCliExecutionCreated(execution, messageId);
 
             return execution;
         }
@@ -444,21 +460,45 @@ namespace Agent.Plugins.Implementation
 
         private async Task NotifyAzCliExecutionCreated(AzCliExecution execution, Guid messageId)
         {
-            var options = GetJsonSerializerOptions();
-            await _outboundCommunicationService.AppendAgentStreamMessage(
-                ThreadId!.Value,
-                JsonSerializer.Serialize(execution, options),
-                StreamMessageType.AzCli,
-                messageId);
+            // Check if we're in agent task context and route accordingly
+            var agentTaskId = Agent.Core.ToolStatic.AsyncLocalAgentTaskId.Value;
+            
+            if (agentTaskId.HasValue)
+            {
+                // Agent task context - use dedicated handler
+                await _outboundCommunicationService.HandleAgentTaskAzCliResult(ThreadId!.Value, execution);
+            }
+            else
+            {
+                // Normal chat flow - use streaming
+                var options = GetJsonSerializerOptions();
+                await _outboundCommunicationService.AppendAgentStreamMessage(
+                    ThreadId!.Value,
+                    JsonSerializer.Serialize(execution, options),
+                    StreamMessageType.AzCli,
+                    messageId);
+            }
         }
 
         private async Task NotifyAzCliExecutionUpdated(AzCliExecution execution)
         {
-            var options = GetJsonSerializerOptions();
-            await _outboundCommunicationService.AppendAgentStreamMessage(
-                ThreadId!.Value,
-                JsonSerializer.Serialize(execution, options),
-                StreamMessageType.AzCli);
+            // Check if we're in agent task context and route accordingly
+            var agentTaskId = Agent.Core.ToolStatic.AsyncLocalAgentTaskId.Value;
+            
+            if (agentTaskId.HasValue)
+            {
+                // Agent task context - use dedicated handler
+                await _outboundCommunicationService.HandleAgentTaskAzCliResult(ThreadId!.Value, execution);
+            }
+            else
+            {
+                // Normal chat flow - use streaming
+                var options = GetJsonSerializerOptions();
+                await _outboundCommunicationService.AppendAgentStreamMessage(
+                    ThreadId!.Value,
+                    JsonSerializer.Serialize(execution, options),
+                    StreamMessageType.AzCli);
+            }
         }
 
         private static JsonSerializerOptions GetJsonSerializerOptions()

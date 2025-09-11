@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Core.Models.Api.v1;
@@ -17,6 +18,7 @@ public record AzCliExecution(
     Guid? AgentContextId
 );
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum AzCliExecutionStatus
 {
     Pending,

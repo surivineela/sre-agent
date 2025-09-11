@@ -507,7 +507,7 @@ namespace Agent.Plugins.Kusto
                 msg = new ChatMessage(ChatRole.Tool, $"`{functionName}`{Environment.NewLine + Environment.NewLine}{queryResult.Message?.Text}");
             }
 
-            await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(ToolStatic.AsyncLocalThreadId.Value, string.Empty, msg);
+            await HandleKustoResult(msg);
 
             return queryResult.Result;
         }
@@ -534,9 +534,34 @@ namespace Agent.Plugins.Kusto
             }
 
             var msg = new ChatMessage(ChatRole.Tool, $"`{functionName}`{Environment.NewLine + Environment.NewLine}{queryResult.Message?.Text}");
-            await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(ToolStatic.AsyncLocalThreadId.Value, string.Empty, msg);
+            await HandleKustoResult(msg);
 
             return queryResult.Result;
+        }
+
+        /// <summary>
+        /// Handles Kusto result output routing based on context.
+        /// Routes to agent task storage if in agent task context, otherwise to normal chat flow.
+        /// </summary>
+        private async Task HandleKustoResult(ChatMessage msg)
+        {
+            // Check if we're in agent task context and route accordingly
+            var agentTaskId = Agent.Core.ToolStatic.AsyncLocalAgentTaskId.Value;
+            var threadId = ToolStatic.AsyncLocalThreadId.Value;
+            
+            if (agentTaskId.HasValue)
+            {
+                // Agent task context - use dedicated handler with same content as chat message
+                await _agentOutboundCommunicationService.HandleAgentTaskKustoResult(
+                    threadId, 
+                    msg.Text ?? string.Empty);
+            }
+            else
+            {
+                // Normal chat flow - use existing method
+                await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                    threadId, string.Empty, msg);
+            }
         }
     }
 }

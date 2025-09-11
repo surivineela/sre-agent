@@ -65,7 +65,8 @@ public enum AgentTaskStatus
     InProgress,
     Complete,
     Failed,
-    Cancelled
+    Cancelled,
+    PendingUserApproval
 }
 
 public sealed record AgentTaskStep

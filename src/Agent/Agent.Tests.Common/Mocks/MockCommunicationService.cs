@@ -158,6 +158,20 @@ namespace Agent.Tests.Common.Mocks
             return Task.CompletedTask;
         }
 
+        public Task HandleAgentTaskAzCliResult(Guid threadId, AzCliExecution execution)
+        {
+            _logger?.LogInternalInformation($"Mock: Handling agent task AzCli result for thread {threadId}, Command: {execution.Command}, Status: {execution.Status}");
+            Messages.Add($"AgentTask_AzCli:{execution.Command}");
+            return Task.CompletedTask;
+        }
+
+        public Task HandleAgentTaskKustoResult(Guid threadId, string chatMessageContent)
+        {
+            _logger?.LogInternalInformation($"Mock: Handling agent task Kusto result for thread {threadId}, Content: {chatMessageContent}");
+            Messages.Add($"AgentTask_Kusto:{chatMessageContent}");
+            return Task.CompletedTask;
+        }
+
         public Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message, Guid? messageId = null, StreamMessageType? type = null)
         {
             _logger?.LogInternalInformation($"ThreadId: {threadId}, OrchestrationInstanceId: {orchestrationInstanceId}, Message: {message.Text}");

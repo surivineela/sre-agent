@@ -13,7 +13,7 @@ namespace Agent.Runtime.AgentTasks.Agents;
 public record InitialInvestigationResult
 {
     [Description("Steps taken during the investigation")]
-    public required IList<InitialInvestigationStep> ContextGatheringSteps { get; set; }
+    public required IList<InitialInvestigationStepResult> ContextGatheringSteps { get; set; }
 
     [Description("Detailed summary of the initial investigation and the relevant context that has been gathered, in markdown format")]
     public required string Summary { get; set; }

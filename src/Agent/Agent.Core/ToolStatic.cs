@@ -31,4 +31,25 @@ public static class ToolStatic
     public static readonly AsyncLocal<CancellationToken> AsyncLocalCancellationToken = new();
 
     public static readonly AsyncLocal<TelemetrySpan?> AsyncLocalToolTraceSpan = new();
+
+    /// <summary>
+    /// Holds the current agent task ID when executing within deep investigation context.
+    /// Set by IncidentInvestigationTaskHandler during tool execution.
+    /// </summary>
+    public static readonly AsyncLocal<Guid?> AsyncLocalAgentTaskId = new();
+
+    /// <summary>
+    /// Holds the current investigation step context during agent task execution.
+    /// Set by IncidentInvestigationTaskHandler to track which investigation phase is executing.
+    /// </summary>
+    public static readonly AsyncLocal<InvestigationStepContext?> AsyncLocalInvestigationStepContext = new();
 }
+
+/// <summary>
+/// Context information about the current investigation step being executed.
+/// </summary>
+public record InvestigationStepContext(
+    string StepPhase, // "InitialInvestigation", "HypothesisValidation"
+    string? StepName = null,
+    Guid? HypothesisId = null
+);

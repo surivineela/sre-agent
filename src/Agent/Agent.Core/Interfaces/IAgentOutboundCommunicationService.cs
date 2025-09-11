@@ -101,4 +101,16 @@ public interface IAgentOutboundCommunicationService
     /// Sends ChatFinishReason.Stop command back to the user
     /// </summary>
     Task SignalProcessingComplete(Guid threadId, Guid? messageId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Handles AzCli tool results specifically for agent tasks/deep investigation.
+    /// Saves results to agent task object step and sends task updates instead of streaming to chat.
+    /// </summary>
+    Task HandleAgentTaskAzCliResult(Guid threadId, AzCliExecution execution);
+
+    /// <summary>
+    /// Handles Kusto tool results specifically for agent tasks/deep investigation.
+    /// Saves results to agent task object step instead of streaming to chat.
+    /// </summary>
+    Task HandleAgentTaskKustoResult(Guid threadId, string chatMessageContent);
 }

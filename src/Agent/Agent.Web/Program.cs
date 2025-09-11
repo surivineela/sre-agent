@@ -43,6 +43,7 @@ using Agent.Prometheus.Services;
 using Agent.Runtime;
 using Agent.Runtime.AgentTasks;
 using Agent.Runtime.Communication;
+using Agent.Runtime.Helpers;
 using Agent.Runtime.HelperAgents;
 using Agent.Runtime.IncidentHandlerAgent;
 using Agent.Runtime.Interfaces;
@@ -470,6 +471,7 @@ public class Program
             .AddSingleton<ThreadManagementService>()
             .AddSingleton<IAgentInboundCommunicationService, InboundCommunicationService>()
             .AddSingleton<IStreamingService, SignalRStreamingService>()
+            .AddSingleton<AgentTaskToolResultHelper>()
             .AddSingleton<IAgentOutboundCommunicationService, OutboundCommunicationService>()
             .AddSingleton<IApprovalService, ApprovalService>()
             .AddSingleton<IRemoteWriteService, RemoteWriteService>()

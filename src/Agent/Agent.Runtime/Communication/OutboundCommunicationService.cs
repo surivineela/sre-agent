@@ -5,8 +5,10 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Agent.Core;
+using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Data.Repositories;
 using Agent.Framework;
 using Agent.Logging;
 using Agent.Plugins.Interface;
@@ -26,6 +28,9 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
     private readonly IPostToTeamsPlugin _postToTeamsService;
     private readonly SinkService _sinkService;
     private readonly IStreamingService _streamingService;
+    private readonly IAgentTasksRepository _agentTaskRepository;
+    private readonly IThreadRepository _threadRepository;
+    private readonly AgentTaskToolResultHelper _agentTaskHelper;
     private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -47,7 +52,10 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         CustomerLogger customerLogger,
         IPostToTeamsPlugin postToTeamsService,
         SinkService sinkService,
-        IStreamingService streamingService)
+        IStreamingService streamingService,
+        IAgentTasksRepository agentTaskRepository,
+        IThreadRepository threadRepository,
+        AgentTaskToolResultHelper agentTaskHelper)
     {
         _mappingManager = mappingManager;
         _logger = logger;
@@ -55,6 +63,9 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         _postToTeamsService = postToTeamsService;
         _sinkService = sinkService;
         _streamingService = streamingService;
+        _agentTaskRepository = agentTaskRepository;
+        _threadRepository = threadRepository;
+        _agentTaskHelper = agentTaskHelper;
         _azCliKubectlSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     }
 
@@ -776,4 +787,91 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             _logger.LogInternalError(ex, "Failed to signal processing complete for thread {ThreadId}", threadId);
         }
     }
+
+    /// <summary>
+    /// Handles AzCli tool results specifically for agent tasks/deep investigation.
+    /// Saves results to agent task storage and sends task updates instead of streaming to chat.
+    /// </summary>
+    public async Task HandleAgentTaskAzCliResult(Guid threadId, AzCliExecution execution)
+    {
+        var agentTaskId = ToolStatic.AsyncLocalAgentTaskId.Value;
+        var stepContext = ToolStatic.AsyncLocalInvestigationStepContext.Value;
+        
+        _logger.LogInternalInformation("HandleAgentTaskAzCliResult called - Command: {Command}, Status: {Status}, AgentTaskId: {AgentTaskId}", 
+            execution.Command, execution.Status, agentTaskId);
+        
+        if (!agentTaskId.HasValue)
+        {
+            _logger.LogInternalWarning("HandleAgentTaskAzCliResult called without agent task context - this should not happen");
+            return;
+        }
+
+        try
+        {
+            // Handle based on execution status
+            switch (execution.Status)
+            {
+                case AzCliExecutionStatus.Pending:
+                case AzCliExecutionStatus.PendingAuthorization:
+                    await _agentTaskHelper.HandlePendingAzCliAsync(threadId, execution, agentTaskId.Value, stepContext);
+                    break;
+                    
+                case AzCliExecutionStatus.Running:
+                    await _agentTaskHelper.HandleRunningAzCliAsync(threadId, execution, agentTaskId.Value, stepContext);
+                    break;
+                    
+                case AzCliExecutionStatus.Completed:
+                case AzCliExecutionStatus.Failed:
+                case AzCliExecutionStatus.Cancelled:
+                    await _agentTaskHelper.HandleCompletedAzCliAsync(threadId, execution, agentTaskId.Value, stepContext);
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to handle agent task AzCli result for task {AgentTaskId}", agentTaskId.Value);
+        }
+    }
+
+    /// <summary>
+    /// Handles Kusto tool results specifically for agent tasks/deep investigation.
+    /// Saves results to agent task storage instead of streaming to chat.
+    /// </summary>
+    public async Task HandleAgentTaskKustoResult(Guid threadId, string chatMessageContent)
+    {
+        var agentTaskId = ToolStatic.AsyncLocalAgentTaskId.Value;
+        var stepContext = ToolStatic.AsyncLocalInvestigationStepContext.Value;
+        
+        _logger.LogInternalInformation("HandleAgentTaskKustoResult called - AgentTaskId: {AgentTaskId}", agentTaskId);
+        
+        if (!agentTaskId.HasValue)
+        {
+            _logger.LogInternalWarning("HandleAgentTaskKustoResult called without agent task context - this should not happen");
+            return;
+        }
+
+        try
+        {
+            // Save to agent task with exact same content as chat message
+            var toolResult = new ToolExecutionResult
+            {
+                Type = ToolExecutionType.Kusto,
+                KustoQueryResults = chatMessageContent,
+                ExecutedTimestamp = DateTime.UtcNow
+            };
+            
+            await _agentTaskHelper.SaveToolResultAsync(agentTaskId.Value, stepContext, toolResult, threadId);
+            
+            // Add reasoning message for agent context using the same content
+            var kustoMessage = new ChatMessage(ChatRole.Tool, chatMessageContent);
+            await _agentTaskHelper.AddToolResultToAgentChatHistoryAsync(threadId, kustoMessage);
+            
+            _logger.LogInternalInformation("Kusto tool result saved to agent task {AgentTaskId}", agentTaskId.Value);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to handle agent task Kusto result for task {AgentTaskId}", agentTaskId.Value);
+        }
+    }
+
 }
