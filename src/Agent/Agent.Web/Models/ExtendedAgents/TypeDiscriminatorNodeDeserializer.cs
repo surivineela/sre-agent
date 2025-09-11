@@ -14,6 +14,7 @@ internal static class Registries
         {
             //  discriminator      concrete C# type
             ["KustoTool"] = typeof(KustoToolDefinition),
+            ["LinkTool"] = typeof(LinkToolDefinition),
 
             // … add more
         };
@@ -28,10 +29,7 @@ internal static class Registries
         };
 }
 
-
-
-
- sealed class TypeDiscriminatorNodeDeserializer<TBase> : INodeDeserializer
+internal sealed class TypeDiscriminatorNodeDeserializer<TBase> : INodeDeserializer
 {
     private readonly string _discKey;
     private readonly IReadOnlyDictionary<string, Type> _typeMap;
@@ -90,7 +88,6 @@ internal static class Registries
         if (!_typeMap.TryGetValue(disc, out var concrete))
         { value = null; return false; }
 
-
         //throw new InvalidOperationException(
         //        $"Unknown {typeof(TBase).Name} subtype '{disc}'.");
 
@@ -104,9 +101,7 @@ internal static class Registries
     }
 }
 
-
-
- static class YamlBuilderExtensions
+internal static class YamlBuilderExtensions
 {
     public static DeserializerBuilder WithPolymorphic<TBase>(
         this DeserializerBuilder b,
@@ -116,7 +111,8 @@ internal static class Registries
                new TypeDiscriminatorNodeDeserializer<TBase>(discriminatorKey, map),
                s => s.OnTop());
 }
- sealed class ReplayParser : IParser
+
+internal sealed class ReplayParser : IParser
 {
     private readonly IEnumerator<ParsingEvent> _events;
 
@@ -138,5 +134,3 @@ internal static class Registries
         return false;
     }
 }
-
-

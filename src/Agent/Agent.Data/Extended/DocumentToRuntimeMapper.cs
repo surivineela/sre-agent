@@ -62,6 +62,17 @@ public static class DocumentToRuntimeMapper
             Database = k.Database,
             ClusterHint = k.ClusterHint,
         },
+        LinkToolDocumentModel linkToolDocumentModel => new LinkToolDefinition
+        {
+            Name = linkToolDocumentModel.Name,
+            Type = linkToolDocumentModel.Type,
+            Connector = linkToolDocumentModel.Connector,
+            Description = linkToolDocumentModel.Description,
+            Parameters = linkToolDocumentModel.Parameters,
+            Attributes = linkToolDocumentModel.Attributes,
+            Metadata = linkToolDocumentModel.Metadata,
+            Template = linkToolDocumentModel.Template
+        },
         _ => throw new NotSupportedException($"Unknown tool document type: {tool.Type}")
     };
 

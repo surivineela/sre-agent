@@ -7,7 +7,6 @@ using FirstPartyAgent.Common.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using UpgradePluginDefinition = Agent.Plugins.Definitions.RCAContainerAppPlatformUpgradesPluginDefinition;
 
 #pragma warning disable IDE0130 // extensios should be in the same namespace as the containing type
 namespace Microsoft.Extensions.DependencyInjection;
@@ -28,7 +27,7 @@ public static class CappsFirstPartyRegistrationExtensions
         builder.Services.AddSingleton<TeamsClientSettings>();
         builder.Services.AddSingleton<IContainerAppIcMPlugin, ContainerAppIcMPlugin>();
         builder.Services.AddSingleton<ICMWorkflowClient>();
-        builder.Services.AddSingleton<UpgradePluginDefinition>();
+        
 
         builder.Services.AddOptionsWithValidateOnStart<FirstPartyAgent.Common.Configuration.ICMWorkflowSettings>()
             .BindConfiguration("AppSettings:Core:External:ICMWorkflows")

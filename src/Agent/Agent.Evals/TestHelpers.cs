@@ -6,7 +6,6 @@ using Agent.Core.Extensions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
-using Agent.Core.Plugins.Definitions;
 using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.AgentMemory;
@@ -163,19 +162,11 @@ public static class TestHelpers
         builder.Services.AddSingleton<ICMWorkflowClient>();
         builder.Services.AddSingleton(Mock.Of<IICMAPIClient>());
         builder.Services
-            .AddTransient<RCAContainerAppsIngressPluginDefinition>()
-            .AddTransient<RCAContainerAppAspirePluginDefinition>()
-            .AddTransient<RCAContainerAppCorednsPluginDefinition>()
-            .AddTransient<RCAContainerAppOutboundConnectionPluginDefinition>()
-            .AddTransient<RCAContainerAppsManagedEnvironmentPluginDefinition>()
-            .AddTransient<RCAContainerAppsManagedClusterPluginDefinition>()
-            .AddTransient<RCAContainerAppsJobsPluginDefinition>()
-            .AddTransient<RCAContainerAppsSessionsPluginDefinition>()
-            .AddTransient<RCAContainerAppCustomerLogsPluginDefinition>()
+
             .AddTransient<RCAContainerAppIcMPluginDefinition>()
-            .AddTransient<RCAContainerAppCustomerMetricsPluginDefinition>()
+
             .AddTransient<RCAContainerAppQuotaPluginDefinition>()
-            .AddTransient<RCAContainerAppRevisionPluginDefinition>()
+
             .AddSingleton(Mock.Of<IKustoDashboardPlugin>())
             .AddTransient(sp => Mock.Of<IAzureDocSearchPlugin>())
             .AddTransient(sp => Mock.Of<IAzureSearchClient>())
@@ -183,11 +174,10 @@ public static class TestHelpers
             {
                 var mock = new Mock<AzureDocSearchPlugin>(Mock.Of<ILogger<AzureDocSearchPlugin>>(), Mock.Of<IAzureSearchClient>());
                 return mock.Object;
-            })
-            .AddTransient<RCAContainerAppResourceCheckPluginDefinition>()
-            .AddTransient<RCAContainerAppResourceSearchPluginDefinition>()
-            .AddTransient<RCAContainerAppsSwiftNetworkContainerPluginDefinition>()
-            .AddTransient<RCAContainerAppPlatformUpgradesPluginDefinition>();
+            });
+
+            
+            
 
         return builder;
     }

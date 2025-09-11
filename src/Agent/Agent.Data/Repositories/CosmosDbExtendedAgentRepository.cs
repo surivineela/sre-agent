@@ -56,6 +56,7 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
     public static Dictionary<string, Type> GetToolDocumentTypeMappings() => new Dictionary<string, Type>
     {
         ["KustoTool"] = typeof(KustoToolDocumentModel),
+        ["LinkTool"] = typeof(LinkToolDocumentModel),
 
     };
 

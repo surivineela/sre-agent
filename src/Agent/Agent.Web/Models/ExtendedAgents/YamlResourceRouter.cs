@@ -15,6 +15,7 @@ public class YamlResourceRouter
         var toolTypeMappings = new Dictionary<string, Type>
         {
             ["KustoTool"] = typeof(KustoToolApiModel),
+            ["LinkTool"]= typeof(LinkToolApiModel),
 
         };
 

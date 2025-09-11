@@ -53,7 +53,7 @@ namespace Agent.Core.Configuration
         /// An arbitrary connection string that can be used to connect to a data source. This can be a URI, connection string, etc.
         /// </summary>
         [Required]
-        public string DataSource { get; init; } = string.Empty;
+        public string DataSource { get; set; } = string.Empty;
 
         /// <summary>
         /// The resource ID of the managed identity to use for authentication.

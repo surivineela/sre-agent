@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using System.Diagnostics;
-using System.Text.Json.Serialization;
 using Agent.Core.Clients.Search;
 using Agent.Core.Clients.Storage;
 using Agent.Core.Configuration;
@@ -12,7 +11,6 @@ using Agent.Core.Extensions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
-using Agent.Core.Plugins.Definitions;
 using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
@@ -37,6 +35,7 @@ using Agent.Plugins.Implementation.DiagnosticsPlugin;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Kusto;
 using Agent.Plugins.Kusto.Tools;
+using Agent.Plugins.Link.Tools;
 using Agent.Plugins.Services;
 using Agent.Plugins.Services.Interfaces;
 using Agent.Plugins.Tools;
@@ -55,14 +54,10 @@ using Agent.Runtime.Services.AzMonitorAlertInvestigation;
 using Agent.Runtime.Services.AzMonitorAlertInvestigationService;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.AzMonitorAlertAgent;
-using Agent.Runtime.SubAgents.Core;
 using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.DailyReportSummary;
 using Agent.Runtime.SubAgents.FeedbackRCAAgent;
-using Agent.Runtime.SubAgents.IcmScanner;
 using Agent.Runtime.SubAgents.LocalAuthAgent;
-using Agent.Runtime.SubAgents.PagerDutyAgent;
-using Agent.Runtime.SubAgents.ServiceNowScanner;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
 using Agent.Runtime.SubAgents.WebAppDownAgent;
@@ -407,6 +402,7 @@ public class Program
             .AddTransient<KustoPlugin>()
             .AddSingleton<DynamicKqlToolsPlugin>()
             .AddTransient<KustoToolType>()
+            .AddTransient<LinkToolType>()
             .AddTransient<IAzureSearchClient, AzureSearchClient>()
             .AddTransient<AzureDocSearchPlugin>()
             .AddTransient<SearchPluginDefinition>()
@@ -597,25 +593,15 @@ public class Program
         {
             // Register ACA First Party tools
             builder.Services
-                .AddTransient<RCAContainerAppsIngressPluginDefinition>()
-                .AddTransient<RCAContainerAppAspirePluginDefinition>()
-                .AddTransient<RCAContainerAppCorednsPluginDefinition>()
-                .AddTransient<RCAContainerAppOutboundConnectionPluginDefinition>()
-                .AddTransient<RCAContainerAppsManagedEnvironmentPluginDefinition>()
-                .AddTransient<RCAContainerAppsManagedClusterPluginDefinition>()
-                .AddTransient<RCAContainerAppsJobsPluginDefinition>()
-                .AddTransient<RCAContainerAppsSessionsPluginDefinition>()
-                .AddTransient<RCAContainerAppCustomerLogsPluginDefinition>()
+
+
                 .AddTransient<RCAContainerAppIcMPluginDefinition>()
-                .AddTransient<RCAContainerAppCustomerMetricsPluginDefinition>()
+
                 .AddTransient<RCAContainerAppQuotaPluginDefinition>()
-                .AddTransient<RCAContainerAppRevisionPluginDefinition>()
-                .AddSingleton<IKustoDashboardPlugin, KustoDashboardPlugin>()
-                .AddTransient<RCAContainerAppResourceCheckPluginDefinition>()
-                .AddTransient<RCAContainerAppResourceSearchPluginDefinition>()
-                .AddTransient<RCAContainerAppsSwiftNetworkContainerPluginDefinition>()
-                .AddTransient<RCAContainerAppBillingPluginDefinition>()
-                .AddTransient<RCAContainerAppPlatformUpgradesPluginDefinition>();
+
+                .AddSingleton<IKustoDashboardPlugin, KustoDashboardPlugin>();
+                
+                
 
             builder.Services.AddSingleton<IAgentsFactory, FirstPartyAgentsFactory>();
             builder.Services.AddSingleton<IToolsRepository, FirstPartyToolsRepository>();

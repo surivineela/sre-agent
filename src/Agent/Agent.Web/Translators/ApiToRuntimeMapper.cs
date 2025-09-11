@@ -31,6 +31,16 @@ public static class ApiToRuntimeMapper
             Database = k.Database,
             ClusterHint = k.ClusterHint
         },
+        LinkToolApiModel link => new LinkToolDefinition
+        {
+            Name = link.Name,
+            Type = link.Type,
+            Description = link.Description,
+            Parameters = link.Parameters,
+            Attributes = link.Attributes,
+            Metadata = link.Metadata,
+            Template = link.Template,
+        },
         _ => throw new NotSupportedException($"Unknown tool type: {tool.Type}")
     };
 
@@ -116,6 +126,20 @@ public static class ApiToRuntimeMapper
             ClusterHint = k.ClusterHint,
             RegionalClusterGroups = k.RegionalClusterGroups
         },
+        LinkToolApiModel link => new LinkToolDocumentModel(
+            id: $"tool_{link.Name}",
+            name: link.Name,
+            type: link.Type,
+            connector: link.Connector,
+            description: link.Description,
+            parameters: link.Parameters,
+            attributes: link.Attributes,
+            metadata: link.Metadata,
+
+            operationId: operationId)
+        {
+            Template = link.Template,
+        },
         _ => throw new NotSupportedException($"Unknown tool type for document model: {tool.Type}")
     };
 
@@ -131,6 +155,7 @@ public static class ApiToRuntimeMapper
         }
         ;
     }
+
     public static CommonToolsListDocumentModel ToCommonToolsList(ExtendedAgentCommonToolsListApiModel commonToolsList, string operationId)
     {
         {
@@ -224,6 +249,16 @@ public static class ApiToRuntimeMapper
             Database = k.Database,
             ClusterHint = k.ClusterHint
         },
+        LinkToolDocumentModel linkToolDefinition => new LinkToolApiModel
+        {
+            Name = linkToolDefinition.Name,
+            Type = linkToolDefinition.Type,
+            Description = linkToolDefinition.Description,
+            Parameters = linkToolDefinition.Parameters,
+            Attributes = linkToolDefinition.Attributes,
+            Metadata = linkToolDefinition.Metadata,
+            Template = linkToolDefinition.Template,
+        },
         _ => throw new NotSupportedException($"Unknown tool document type: {tool.Type}")
     };
 
@@ -244,6 +279,16 @@ public static class ApiToRuntimeMapper
             File = k.File,
             Database = k.Database,
             ClusterHint = k.ClusterHint
+        },
+        LinkToolDefinition linkToolDefinition => new LinkToolApiModel
+        {
+            Name = linkToolDefinition.Name,
+            Type = linkToolDefinition.Type,
+            Description = linkToolDefinition.Description,
+            Parameters = linkToolDefinition.Parameters,
+            Attributes = linkToolDefinition.Attributes,
+            Metadata = linkToolDefinition.Metadata,
+            Template = linkToolDefinition.Template,
         },
         _ => throw new NotSupportedException($"Unknown tool document type: {tool.Type}")
     };

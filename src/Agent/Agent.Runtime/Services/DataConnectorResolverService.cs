@@ -17,6 +17,7 @@ public class DataConnectorResolverService : IConnectorResolver
     private readonly IOptionsMonitor<List<DataConnectorInstanceSettings>> _connectorSettings;
     private readonly ILogger<DataConnectorResolverService> _logger;
     private readonly IHostEnvironment _env;
+
     public DataConnectorResolverService(
         IOptionsMonitor<List<DataConnectorInstanceSettings>> connectorSettings,
         ILogger<DataConnectorResolverService> logger, IHostEnvironment env)
@@ -29,26 +30,26 @@ public class DataConnectorResolverService : IConnectorResolver
     /// <summary>
     /// Retrieves a connector definition instance from configuration settings based on the provided
     /// <paramref name="connectorName"/>, <paramref name="connectorType"/>, and <paramref name="dataSource"/>.
-    /// 
+    ///
     /// This method is designed to support agents, tools, and connectors where each tool references
     /// a connector in its <c>Connector</c> property. Since tools may be authored in different contexts,
     /// this resolution mechanism supports three scenarios:
-    /// 
+    ///
     /// 1. <b>By Name</b> (backward compatibility):
     ///    If <paramref name="connectorName"/> is specified, the method looks up a connector instance
     ///    with a matching name in the current configuration.
-    /// 
+    ///
     /// 2. <b>By Type</b> (design-time abstraction):
     ///    If <paramref name="connectorName"/> is not provided but <paramref name="connectorType"/> is,
-    ///    the method retrieves the first available connector of the requested type.  
+    ///    the method retrieves the first available connector of the requested type.
     ///    This allows tool authors who do not know the concrete cluster URL at design time
     ///    to still bind to a connector based on its type (e.g., "Kusto").
-    /// 
+    ///
     /// 3. <b>By Runtime DataSource</b> (runtime explicit override):
     ///    If the agent or tool provides a specific <paramref name="dataSource"/> (e.g., a Kusto cluster URL),
     ///    the method selects the connector instance whose configured <c>DataSource</c> matches that host.
     ///    This enables runtime flexibility when the exact target cluster or server is known only at execution.
-    /// 
+    ///
     /// Once a matching connector instance is found, this method:
     /// - Creates a strongly-typed connector object (<typeparamref name="T"/>) derived from <see cref="DataConnectorDefinitionBase"/>.
     /// - Populates its core properties (Name, Type, Enabled).
@@ -57,16 +58,16 @@ public class DataConnectorResolverService : IConnectorResolver
     /// - If the connector is of type <see cref="KustoConnector"/>, parses the configured <c>DataSource</c>
     ///   to extract the <c>ClusterUrl</c> and <c>Database</c>.
     /// - Validates the connector before returning it.
-    /// 
+    ///
     /// Exceptions are thrown when:
     /// - No connectors are configured.
     /// - No matching connector is found by name, type, or data source.
     /// - The connector cannot be created or validated.
-    /// 
+    ///
     /// All failures are logged with internal warnings before rethrowing.
     /// </summary>
     /// <typeparam name="T">
-    /// The expected connector type, derived from <see cref="DataConnectorDefinitionBase"/>.  
+    /// The expected connector type, derived from <see cref="DataConnectorDefinitionBase"/>.
     /// For example, <see cref="KustoConnector"/>.
     /// </typeparam>
     /// <param name="connectorName">
@@ -76,7 +77,7 @@ public class DataConnectorResolverService : IConnectorResolver
     /// Connector type identifier (e.g., "Kusto"). Used when name is not provided or not found.
     /// </param>
     /// <param name="dataSource">
-    /// Optional runtime data source (e.g., a cluster host prefix).  
+    /// Optional runtime data source (e.g., a cluster host prefix).
     /// If provided, it refines type-based lookup to select the connector with a matching data source.
     /// </param>
     /// <returns>
@@ -103,8 +104,6 @@ public class DataConnectorResolverService : IConnectorResolver
             {
                 settings = connectorSettings.FirstOrDefault(c =>
                     string.Equals(c.Name, connectorName, StringComparison.OrdinalIgnoreCase));
-
-                
             }
 
             // 2. Resolve by Type (if not found by name)
@@ -124,9 +123,16 @@ public class DataConnectorResolverService : IConnectorResolver
                         Uri.TryCreate(ds.DataSource, UriKind.Absolute, out var uri) &&
                         uri.Host.StartsWith(dataSource, StringComparison.OrdinalIgnoreCase));
 
-                    if (settings == null)
+                    if (settings == null && _env.IsDevelopment())
+                    {
+                        settings = candidates.First();
+                        settings.DataSource = $"https://{dataSource}.kusto.windows.net/capps"; // Override with runtime data source
+                    }
+                    else
+                    {
                         throw new InvalidOperationException(
                             $"Connector of type '{connectorType}' with DataSource '{dataSource}' not found.");
+                    }
                 }
                 else
                 {

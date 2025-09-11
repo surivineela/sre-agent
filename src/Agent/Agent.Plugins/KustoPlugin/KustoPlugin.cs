@@ -91,7 +91,6 @@ namespace Agent.Plugins.Kusto
             _agentOutboundCommunicationService = agentOutboundCommunicationService;
         }
 
-
         [KernelFunction("execute_kusto_query_on_cluster")]
         [Description("Executes a fully qualified Kusto query on a specific cluster and database, returning the result in JSON format.")]
         public async Task<string> ExecuteClusterKustoQuery(
@@ -101,7 +100,6 @@ namespace Agent.Plugins.Kusto
             )
         {
             return (await ExecuteClusterKustoQueryInternal(cluster, database, fullQuery)).Result;
-
         }
 
         [KernelFunction("execute_kusto_query")]
@@ -153,7 +151,6 @@ namespace Agent.Plugins.Kusto
                 return CreateErrorResult(query, ex.Message, region.ToNormalizedString(), cluster?.Database, null, groupName);
             }
         }
-
 
         internal static string GetKqlFilePath(string functionName, string baseDirectory)
         {
@@ -218,7 +215,6 @@ namespace Agent.Plugins.Kusto
             return (await ExecuteFunctionInternalAsync(functionName, region, args, groupName)).Result;
         }
 
-
         public async Task<KustoQueryResult> ExecuteFunctionInternalAsync(
             string functionName,
             AzureRegion region,
@@ -258,28 +254,8 @@ namespace Agent.Plugins.Kusto
         {
             string adxUri = regionOrClusterUri;
             string resultDatabase = database ?? string.Empty;
-            
-            if (regionOrClusterUri.IndexOf(".kusto.", StringComparison.OrdinalIgnoreCase) < 0)
-            {
-                // Supplied parameter is a region, lookup cluster URI for the region
-                var region = regionOrClusterUri;
-                KustoCluster? cluster = null;
-                try
-                {
-                    cluster = GetCluster(region, groupName ?? string.Empty);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogInternalError($"An error occurred while getting Kusto cluster for region {region}: {ex.Message}");
-                }
 
-                if (cluster != null)
-                {
-                    adxUri = cluster.ClusterUri ?? string.Empty;
-                    resultDatabase = cluster.Database ?? string.Empty;
-                }
-            }
-            else
+            if (!string.IsNullOrWhiteSpace(regionOrClusterUri))
             {
                 // Supplied parameter is a cluster URI
                 adxUri = regionOrClusterUri;
@@ -304,7 +280,7 @@ namespace Agent.Plugins.Kusto
         {
             var prefix = isError ? "Error " : "";
             var verb = isError ? "executing" : "Executed";
-            
+
             if (!string.IsNullOrWhiteSpace(functionName))
             {
                 // For function execution
@@ -389,7 +365,7 @@ namespace Agent.Plugins.Kusto
                 {
                     var (fullAdxUri, resultDatabase) = BuildAdxUriWithDatabase(query, regionOrCluster, database, groupName);
                     var displayText = BuildDisplayText(fullAdxUri, query, regionOrCluster, resultDatabase, functionName, errorMessage, isError: true);
-                    
+
                     message = new ChatMessage(ChatRole.Tool, new List<AIContent>
                     {
                         new UriContent(fullAdxUri, "text/html"),
@@ -482,7 +458,6 @@ namespace Agent.Plugins.Kusto
                     if (result.RowCount == 0 && !result.Result.StartsWith("An error occurred while executing Kusto Query"))
                     {
                         result.Result = "ZERO_ROWS_RETURNED";
-
                     }
                 }
                 else
@@ -500,8 +475,8 @@ namespace Agent.Plugins.Kusto
             }
         }
 
-    // Single method: optional displayOptions keeps existing behavior when null
-    public async Task<string> ExecuteLocalFunctionOnClusterAsync(string functionName, string clusterName, string databaseName, Dictionary<string, string> args, KustoDisplayOptions? displayOptions = null)
+        // Single method: optional displayOptions keeps existing behavior when null
+        public async Task<string> ExecuteLocalFunctionOnClusterAsync(string functionName, string clusterName, string databaseName, Dictionary<string, string> args, KustoDisplayOptions? displayOptions = null)
         {
             var fileName = GetKqlFilePath(functionName);
             KustoQueryResult queryResult;
