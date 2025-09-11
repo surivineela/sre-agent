@@ -56,7 +56,7 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
         _handoffReasoningEnabled = experimentalSettings?.EnableHandoffReasoning ?? _hostEnvironment.IsDevelopment();
 
 
-        _initializationTask = new(() => FindAndRegisterAllToolsAsync(BehaviorOnNameConflict.ThrowException));
+        _initializationTask = new(() => FindAndRegisterAllToolsAsync(BehaviorOnNameConflict.Overwrite));
 
         if (initializeOnConstruction)
         {
@@ -70,7 +70,7 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
         return _initializationTask.Value;
     }
 
-    public void RegisterFromYamlFile(string filePath, BehaviorOnNameConflict onNameConflict = BehaviorOnNameConflict.ThrowException)
+    public void RegisterFromYamlFile(string filePath, BehaviorOnNameConflict onNameConflict = BehaviorOnNameConflict.Overwrite)
     {
         if (!File.Exists(filePath))
         {
@@ -83,7 +83,7 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
         RegisterFromYaml(yamlContent, onNameConflict);
     }
 
-    public void RegisterFromYaml(string yamlContent, BehaviorOnNameConflict onNameConflict = BehaviorOnNameConflict.ThrowException)
+    public void RegisterFromYaml(string yamlContent, BehaviorOnNameConflict onNameConflict = BehaviorOnNameConflict.Overwrite)
     {
         try
         {
