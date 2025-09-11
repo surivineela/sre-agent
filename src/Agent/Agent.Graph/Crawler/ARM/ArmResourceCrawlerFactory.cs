@@ -261,6 +261,10 @@ public class ArmResourceCrawlerFactory
         {
             return new APICenterNode(id.ResourceType, id.ToString(), id.SubscriptionId, id.ResourceGroupName, id.Name);
         }
+        if (Constants.ApiConnectionType.Equals(id.ResourceType, StringComparison.OrdinalIgnoreCase))
+        {
+            return new ConnectionNode(id.ResourceType, id.ToString(), id.SubscriptionId, id.ResourceGroupName, id.Name);
+        }
 
         return new ArmResourceNode(id.ResourceType, id.ToString(), id.SubscriptionId, id.ResourceGroupName, id.Name);
     }

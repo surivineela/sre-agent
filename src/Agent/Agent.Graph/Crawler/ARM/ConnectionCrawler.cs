@@ -36,13 +36,17 @@ public class ConnectionCrawler : GenericArmResourceCrawler
             yield return n;
         }
 
-        if (node is ArmResourceNode connectionNode)
+        if (node is ConnectionNode connectionNode)
         {
             var id = new ResourceIdentifier(connectionNode.ResourceId);
             try
             {
                 var response = await _armClient.GetGenericResource(id).GetAsync();
                 var properties = response.Value.Data.Properties.ToObjectFromJson<ApiConnectionPropertiesDefinition>();
+
+                connectionNode.ConnectorId = properties?.Api?.Id;
+                await _graphDbClient.AddOrUpdateNodeAsync(connectionNode);
+
                 var connectedResource = await FindConnectedResourceFromProperties(properties, node.GetSubscriptionId());
                 if (connectedResource != null)
                 {

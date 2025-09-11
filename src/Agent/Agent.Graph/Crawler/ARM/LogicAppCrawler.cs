@@ -330,7 +330,7 @@ public class LogicAppCrawler : AppServiceCrawler
                     if (!string.IsNullOrEmpty(connectionId))
                     {
                         var resourceId = new ResourceIdentifier(connectionId);
-                        var managedApiConnectionNode = new ArmResourceNode(
+                        var managedApiConnectionNode = new ConnectionNode(
                             resourceType: Constants.ApiConnectionType,
                             resourceId: connectionId,
                             subscriptionId: resourceId.SubscriptionId!,
