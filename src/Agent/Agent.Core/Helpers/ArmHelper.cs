@@ -942,7 +942,7 @@ public class ArmHelper
     {
         try
         {
-            var requestUrl = new Uri(new Uri("https://management.azure.com"), 
+            var requestUrl = new Uri(new Uri("https://management.azure.com"),
                 $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/trafficManagerProfiles/{profileName}/{endpointType}/{endpointName}?api-version=2022-04-01");
 
             var requestBody = new
@@ -1008,6 +1008,78 @@ public class ArmHelper
         string endpointType)
     {
         return await UpdateTrafficManagerEndpointStatus(subscriptionId, resourceGroupName, profileName, endpointName, endpointType, "Disabled");
+    }
+
+
+    public async Task<string> GetAllTrafficManagerEndpointsStatus(
+        string subscriptionId,
+        string resourceGroupName,
+        string profileName)
+    {
+        try
+        {
+            var requestUrl = new Uri(new Uri("https://management.azure.com"),
+                $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/trafficManagerProfiles/{profileName}?api-version=2022-04-01");
+
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+
+            var cred = await _authService.GetArmOperationCredential();
+            var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+
+            var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+            HttpResponseMessage response = await httpClient.SendAsync(request);
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                if (CheckForUnauthorizedAccess(response))
+                {
+                    throw new ToolExecutionUnauthorizedException($"Unauthorized access");
+                }
+                return $"Error: {response.StatusCode}, {responseBody}";
+            }
+
+            using JsonDocument jsonDocument = JsonDocument.Parse(responseBody);
+            var root = jsonDocument.RootElement;
+            var properties = root.GetProperty("properties");
+
+            var endpoints = new List<object>();
+
+            if (properties.TryGetProperty("endpoints", out var endpointsArray) && endpointsArray.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var endpoint in endpointsArray.EnumerateArray())
+                {
+                    var endpointProps = endpoint.GetProperty("properties");
+                    var name = endpoint.GetProperty("name").GetString();
+                    var type = endpoint.GetProperty("type").GetString();
+
+                    endpoints.Add(new
+                    {
+                        Name = name,
+                        Type = type,
+                        EndpointStatus = endpointProps.GetProperty("endpointStatus").GetString(),
+                        MonitorStatus = endpointProps.GetProperty("endpointMonitorStatus").GetString(),
+                        Target = endpointProps.TryGetProperty("target", out var target) ? target.GetString() : null
+                    });
+                }
+            }
+
+            var result = new
+            {
+                ProfileName = profileName,
+                ProfileStatus = properties.GetProperty("profileStatus").GetString(),
+                Endpoints = endpoints
+            };
+
+            return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to get all Traffic Manager endpoints status");
+            return $"Error: {ex.Message}";
+        }
     }
 
     // Use the generic method for all specific cases:
@@ -2876,7 +2948,7 @@ public class ArmHelper
     public async Task<bool> UploadFileToKudu(string hostName, string filePath, string workingDirectory)
     {
         string? zipOutputPath = null;
-        
+
         try
         {
             // Precondition Checks.
@@ -2929,7 +3001,7 @@ public class ArmHelper
             }
 
             _logger.LogInternalInformation($"[UploadFileToKudu] File uploaded successfully to {normalizedWorkingDirectory}");
-            return true; 
+            return true;
         }
         catch (HttpRequestException ex)
         {
@@ -3025,13 +3097,13 @@ public class ArmHelper
     public async Task<CliExecutionResult> RunAzCliCommandsAsync(string command)
     {
         _logger.LogInternalInformation($"[RunAzCliCommandsAsync] command: {command}");
-        
+
         _customerLogger.LogMessage($"Agent executing AzCLI command: {command}");
         _customerLogger.LogCustomEvent("AgentAzCliExecution", new Dictionary<string, string>
         {
             { "Command", command }
         });
-        
+
         // Trim any leading/trailing whitespace
         command = command.Trim();
 
@@ -3616,16 +3688,16 @@ public class ArmHelper
 
                 string errorContent = await response.Content.ReadAsStringAsync();
                 _logger.LogInternalError($"Failed to get deployment slots for resource {resourceId}: {errorContent}");
-                
+
                 // Return empty list for failed requests
                 return new List<string>();
             }
 
             string jsonResponse = await response.Content.ReadAsStringAsync();
             var jsonDocument = JsonDocument.Parse(jsonResponse);
-            
+
             var slotResourceIds = new List<string>();
-            
+
             if (jsonDocument.RootElement.TryGetProperty("value", out var valueArray))
             {
                 foreach (var slot in valueArray.EnumerateArray())

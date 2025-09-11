@@ -35,6 +35,7 @@ namespace Agent.Plugins.Interface
         Task<string> GetResourceIdFromStorageServiceUri(string storageServiceUri, string subscriptionId);
         Task<(bool, string)> EnableTrafficManagerEndpoint(string subscriptionId, string resourceGroupName, string profileName, string endpointName, string endpointType);
         Task<(bool, string)> DisableTrafficManagerEndpoint(string subscriptionId, string resourceGroupName, string profileName, string endpointName, string endpointType);
+        Task<string> GetAllTrafficManagerEndpointsStatus(string subscriptionId, string resourceGroupName, string profileName);
     }
 }
 

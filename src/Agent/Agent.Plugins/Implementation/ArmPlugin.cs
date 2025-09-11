@@ -577,6 +577,10 @@ namespace Agent.Plugins.Implementation
             return await _armHelper.DisableTrafficManagerEndpoint(subscriptionId, resourceGroupName, profileName, endpointName, endpointType);
         }
 
+        public async Task<string> GetAllTrafficManagerEndpointsStatus(string subscriptionId, string resourceGroupName, string profileName)
+        {
+            return await _armHelper.GetAllTrafficManagerEndpointsStatus(subscriptionId, resourceGroupName, profileName);
+        }
 
     }
 }

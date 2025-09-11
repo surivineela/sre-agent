@@ -217,5 +217,10 @@ namespace Agent.Plugins.Mocks
         {
             return Task.FromResult((true, $"Mock: Traffic Manager endpoint {endpointName} disabled successfully"));
         }
+
+        public Task<string> GetAllTrafficManagerEndpointsStatus(string subscriptionId, string resourceGroupName, string profileName)
+        {
+            return Task.FromResult("Mock: All Traffic Manager endpoints are healthy");
+        }
     }
 }

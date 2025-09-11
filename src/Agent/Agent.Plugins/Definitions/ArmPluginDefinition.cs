@@ -271,5 +271,15 @@ NOTE: This is an internal tool for command validation, not for generating user d
             var result = await _armPlugin.DisableTrafficManagerEndpoint(subscriptionId, resourceGroupName, profileName, endpointName, endpointType);
             return result.Item1 ? result.Item2 : $"Failed to disable endpoint: {result.Item2}";
         }
+
+        [Description("Gets the status of all endpoints in a Traffic Manager profile with health summary")]
+        [AgentTool(ToolMode.Auto)]
+        public async Task<string> GetAllTrafficManagerEndpointsStatus(
+            [Description("The subscription ID containing the Traffic Manager profile")] string subscriptionId,
+            [Description("The name of the resource group containing the Traffic Manager profile")] string resourceGroupName,
+            [Description("The name of the Traffic Manager profile")] string profileName)
+        {
+            return await _armPlugin.GetAllTrafficManagerEndpointsStatus(subscriptionId, resourceGroupName, profileName);
+        }
     }
 }
