@@ -1,7 +1,13 @@
-import { DataVizPalette, getColorFromToken, Sparkline } from '@fluentui/react-charting';
+import { DataVizPalette, getColorFromToken, IChartProps, LineChart, Sparkline } from '@fluentui/react-charting';
+import { Button } from '@fluentui/react-components';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { AppInsightsClient } from '../../Common/Clients/AppInsightsClient';
+import { DateRange } from '../../Common/Components/DateRange';
+import { AppInsightsQueryResult } from '../../Common/Contracts/Azure/AppInsights';
+import { useAuthToken } from '../../Common/Hooks/useAuthToken';
 import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
 
-const sl1 = {
+const sparklineDummyData = {
     chartTitle: '10.21',
     lineChartData: [
         {
@@ -45,16 +51,79 @@ const sl1 = {
     ],
 };
 
+const tempAppInsightsAppId = 'bc8d1232-d691-428e-a29f-7e785bf2d016';
+
+const getHandlersIncidentIntakeTrendQuery = `let formattedStartTime = ago(30d);
+let formattedEndTime = now();
+let timeGrain = 1d;
+customEvents
+| where name == 'IncidentActivitySnapshot'
+| extend IncidentHandledAt= todatetime(customDimensions.IncidentHandledAt), IncidentId = tostring(customDimensions.IncidentId), UpdatedOn = todatetime(customDimensions.IncidentUpdatedOn)
+| where IncidentHandledAt between (formattedStartTime .. formattedEndTime)
+| project IncidentId, IncidentHandledAt , UpdatedOn
+| summarize arg_max(UpdatedOn, IncidentHandledAt ) by IncidentId
+| summarize DistinctIncidentIds = dcount(IncidentId) by bin(IncidentHandledAt , timeGrain)   `;
+
 const Analysis = () => {
     const styles = useIncidentManagementStyles();
+    const appInsightsToken = useAuthToken('applicationinsightapi');
+
+    const [response, setResponse] = useState<AppInsightsQueryResult>();
+
+    const lineChartDummyData = useMemo(() => {
+        console.log(response);
+        const data: IChartProps = {
+            chartTitle: 'Incident Intake Trend',
+            lineChartData: [
+                {
+                    legend: 'Incidents',
+                    color: getColorFromToken(DataVizPalette.color1),
+                    data: response?.tables[0]?.rows.map(row => ({ x: new Date(row[0]), y: row[1] as number })) ?? [],
+                },
+            ],
+        };
+
+        return data;
+    }, [response]);
+
+    const fetchQueryResults = useCallback(async () => {
+        if (!appInsightsToken) return;
+
+        const response = await AppInsightsClient.getLogQueryResults(tempAppInsightsAppId, appInsightsToken, {
+            query: getHandlersIncidentIntakeTrendQuery,
+        });
+
+        console.log('Response: ', response);
+        if (response.isSuccessful) {
+            setResponse(response.content);
+        } else {
+            // TODO: logs
+        }
+    }, [appInsightsToken]);
+
+    useEffect(() => {
+        fetchQueryResults();
+    }, [fetchQueryResults]);
 
     return (
         <div className={styles.navPanelWrapper}>
             <div className={styles.navPanelContent}>
                 <div className={styles.navPanelPadding}>
-                    <div>Analysis for stuff and things</div>
+                    <DateRange />
 
-                    <Sparkline data={sl1} showLegend />
+                    <div style={{ marginTop: 20 }}>
+                        <Sparkline data={sparklineDummyData} showLegend />
+                    </div>
+
+                    <Button onClick={fetchQueryResults} style={{ marginTop: 20 }}>
+                        Refresh
+                    </Button>
+
+                    <div>{JSON.stringify(response)}</div>
+
+                    <div style={{ height: 500, width: 800, marginTop: 20 }}>
+                        <LineChart data={lineChartDummyData} />
+                    </div>
                 </div>
             </div>
         </div>

@@ -31,6 +31,12 @@
       "value": "Delete thread?"
     }
   ],
+  "+7PjfV": [
+    {
+      "type": 0,
+      "value": "1 day"
+    }
+  ],
   "+7dYeU": [
     {
       "type": 0,
@@ -1381,6 +1387,12 @@
     {
       "type": 0,
       "value": "Failed to fetch agent mode"
+    }
+  ],
+  "CL+NTm": [
+    {
+      "type": 0,
+      "value": "1 wk"
     }
   ],
   "CMaDRa": [
@@ -5035,6 +5047,12 @@
       "value": "Active threads"
     }
   ],
+  "rNvlCF": [
+    {
+      "type": 0,
+      "value": "Date range:"
+    }
+  ],
   "rXYf9o": [
     {
       "type": 0,
@@ -5809,6 +5827,12 @@
     {
       "type": 0,
       "value": "Choose resource groups"
+    }
+  ],
+  "zfM/75": [
+    {
+      "type": 0,
+      "value": "1 mo"
     }
   ],
   "zfMgIf": [

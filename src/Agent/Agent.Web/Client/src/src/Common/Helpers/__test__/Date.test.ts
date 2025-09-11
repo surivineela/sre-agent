@@ -5,6 +5,7 @@ import {
     extractDateFromDateTime,
     formatDate,
     formatDateToYYYYMMDD,
+    formatShortDate,
     formatTimeStringTo12HoursFormat,
     formatTimeStringTo24HoursFormat,
     getCombineDateAndTime,
@@ -412,6 +413,24 @@ describe('TimerangePillFilter date utility functions', () => {
             expect(local!.getMinutes()).toBe(original.getMinutes());
             expect(local!.getSeconds()).toBe(original.getSeconds());
             expect(local!.getMilliseconds()).toBe(original.getMilliseconds());
+        });
+    });
+
+    describe('formatShortDate', () => {
+        it('matches toLocaleDateString default locale formatting (numeric month/day and 2-digit year)', () => {
+            const d = new Date(2025, 7, 4); // August 4 2025
+            const expected = '8/4/25';
+            expect(formatShortDate(d)).toBe(expected);
+        });
+
+        it('matches toLocaleDateString default locale formatting (numeric month/day and 2-digit year)', () => {
+            const d = new Date(2025, 0, 17); // January 17 2025
+            const expected = '1/17/25';
+            expect(formatShortDate(d)).toBe(expected);
+        });
+
+        it('returns empty string for undefined', () => {
+            expect(formatShortDate(undefined)).toBe('');
         });
     });
 });

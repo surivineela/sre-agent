@@ -8,7 +8,7 @@ const getAppInsightsQueryUrl = (appInsightsAppId: string): string => {
 };
 
 const getAppInsightsHeaders = (appInsightsToken: string): { [key: string]: any } => {
-    return { Authorization: appInsightsToken, 'Content-Type': 'application/json' };
+    return { Authorization: `Bearer ${appInsightsToken}`, 'Content-Type': 'application/json' };
 };
 
 export class AppInsightsClient {

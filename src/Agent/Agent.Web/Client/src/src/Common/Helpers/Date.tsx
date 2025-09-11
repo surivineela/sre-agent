@@ -393,3 +393,13 @@ export const changeToUtcTimezone = (date: Date | undefined): Date | undefined =>
         )
     );
 };
+
+/**
+ * @returns A locale formatted short date string or empty string when undefined
+ *
+ * Example (en-US): 8/4/25  |  Example (de-DE): 4.8.25
+ */
+export const formatShortDate = (date?: Date): string => {
+    if (!date) return '';
+    return date.toLocaleDateString(undefined, { month: 'numeric', day: 'numeric', year: '2-digit' });
+};

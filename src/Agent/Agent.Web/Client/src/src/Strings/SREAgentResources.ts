@@ -303,6 +303,10 @@ export const SreAgentResources = defineMessages({
     },
     pillFilterRemoveAriaLabel: { defaultMessage: 'Remove {columnName} filter', id: '/ytgXm' },
     optionsListAriaLabel: { defaultMessage: '{fieldName} options', id: 'dDk23i' },
+    dateRange: { defaultMessage: 'Date range:', id: 'rNvlCF' },
+    dateRange1Day: { defaultMessage: '1 day', id: '+7PjfV' },
+    dateRange1Week: { defaultMessage: '1 wk', id: 'CL+NTm' },
+    dateRange1Month: { defaultMessage: '1 mo', id: 'zfM/75' },
 });
 
 export const SreAgentTabResources = defineMessages({
