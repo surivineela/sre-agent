@@ -160,7 +160,11 @@ const useThreadItemsLoading = (
         let isSubscribed = true;
         let timeoutId: NodeJS.Timeout | undefined = undefined;
 
-        if (isThreadListIntersecting && threadListsState.favoriteThreadListState.moreThreadsToLoad) {
+        const moreThreadsToLoad =
+            (isFavorite && threadListsState.favoriteThreadListState.moreThreadsToLoad) ||
+            (!isFavorite && threadListsState.regularThreadListState.moreThreadsToLoad);
+
+        if (isThreadListIntersecting && moreThreadsToLoad) {
             let exponentialBackoffDepth = -1;
 
             const loadOldThreads = async () => {
@@ -180,7 +184,12 @@ const useThreadItemsLoading = (
             isSubscribed = false;
             clearTimeout(timeoutId);
         };
-    }, [isThreadListIntersecting, loadThreads, threadListsState.favoriteThreadListState.moreThreadsToLoad]);
+    }, [
+        isThreadListIntersecting,
+        loadThreads,
+        isFavorite && threadListsState.favoriteThreadListState.moreThreadsToLoad,
+        !isFavorite && threadListsState.regularThreadListState.moreThreadsToLoad,
+    ]);
 
     return {
         intersectionObserverRef,
