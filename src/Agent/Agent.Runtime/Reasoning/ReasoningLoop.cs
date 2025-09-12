@@ -1353,11 +1353,27 @@ public class ReasoningLoop : IDisposable
 
         var requireApproval = requiresApprovalByName || (aiTool.UnderlyingMethod?.GetCustomAttribute<RequiresApprovalAttribute>() != null);
 
+        // Determine if the tool is marked as a write action
+        bool isWriteAction = false;
+        try
+        {
+            var writeAttr = aiTool.UnderlyingMethod?.GetCustomAttribute<Agent.Core.Attributes.WriteActionAttribute>();
+            if (writeAttr != null)
+            {
+                isWriteAction = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, "Failed to inspect WriteAction attribute for tool {ToolName}", aiTool.Name);
+        }
+
         var statusObj = new
         {
             RequireApproval = requireApproval,
             AgentMode = _agentRuntimeModifier.GetThreadAgentMode(_context),
-            ToolMode = aiTool.GetToolMode().ToString()
+            ToolMode = aiTool.GetToolMode().ToString(),
+            WriteAction = isWriteAction
         };
 
         var statusJson = JsonSerializer.Serialize(statusObj);
