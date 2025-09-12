@@ -45,8 +45,8 @@ public static class ChatOptionsExtensions
         // update options to reflect in logging
         var clientMetadata = chatClient.GetService<ChatClientMetadata>();
         if (clientMetadata?.DefaultModelId is not null
-            && clientMetadata.DefaultModelId.StartsWith("gpt-5", StringComparison.OrdinalIgnoreCase)
-            && !clientMetadata.DefaultModelId.StartsWith("gpt-5-chat", StringComparison.OrdinalIgnoreCase))
+            && clientMetadata.DefaultModelId.Contains("gpt-5", StringComparison.OrdinalIgnoreCase)
+            && !clientMetadata.DefaultModelId.Contains("gpt-5-chat", StringComparison.OrdinalIgnoreCase))
         {
             // temperature not supported in reasoning models
             options.Temperature = 1;

@@ -25,6 +25,7 @@ public class AgentFactoryTests
 {
     private readonly Mock<ILogger<AgentFactory<AgentContext>>> _mockLogger;
     private readonly Mock<ILogger<ToolFactory<AgentContext>>> _mockToolFactoryLogger;
+    private readonly Mock<ChatClientProvider> _mockChatClientProvider;
     private readonly Mock<IAgentModeConfigurator<AgentContext>> _mockAgentModeConfigurator;
     private readonly Mock<IExtensibilityLoader> _mockExtendedAgentRepository;
     private readonly IServiceProvider _serviceProvider;
@@ -34,6 +35,7 @@ public class AgentFactoryTests
     {
         _mockLogger = new Mock<ILogger<AgentFactory<AgentContext>>>();
         _mockToolFactoryLogger = new Mock<ILogger<ToolFactory<AgentContext>>>();
+        _mockChatClientProvider = new Mock<ChatClientProvider>(_serviceProvider);
         _mockAgentModeConfigurator = new Mock<IAgentModeConfigurator<AgentContext>>();
         _mockExtendedAgentRepository = new Mock<IExtensibilityLoader>();
 
@@ -91,6 +93,7 @@ public class AgentFactoryTests
         var agentFactory = new AgentFactory<AgentContext>(
             logger: _mockLogger.Object,
             toolFactory: toolFactory,
+            chatClientProvider: _mockChatClientProvider.Object,
             modeConfigurator: _mockAgentModeConfigurator.Object,
             assembliesToScan: [Assembly.GetExecutingAssembly()],
             commonToolsYamlDirectory: null
@@ -118,6 +121,7 @@ public class AgentFactoryTests
         var agentFactory = new AgentFactory<AgentContext>(
             logger: _mockLogger.Object,
             toolFactory: toolFactory,
+            chatClientProvider: _mockChatClientProvider.Object,
             assembliesToScan: [],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
@@ -175,6 +179,7 @@ public class AgentFactoryTests
         var agentFactory = new AgentFactory<AgentContext>(
             logger: _mockLogger.Object,
             toolFactory: toolFactory,
+            chatClientProvider: _mockChatClientProvider.Object,
             assembliesToScan: [Assembly.GetExecutingAssembly()],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             commonToolsYamlDirectory: null
@@ -210,6 +215,7 @@ public class AgentFactoryTests
         var agentFactory = new AgentFactory<AgentContext>(
             logger: _mockLogger.Object,
             toolFactory: toolFactory,
+            chatClientProvider: _mockChatClientProvider.Object,
             assembliesToScan: [Assembly.GetExecutingAssembly()],
             modeConfigurator: _mockAgentModeConfigurator.Object,
             commonToolsYamlDirectory: null
@@ -252,6 +258,7 @@ public class TestAgent1Descriptor : IAgentDescriptor
     public string CriticPromptPath { get; set; } = string.Empty;
     public bool CriticOnHandOff { get; set; } = false;
     public float? Temperature { get; set; } = null;
+    public string? LlmModelName { get; set; } = null;
     public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
     public string? OutputType { get; set; } = null;
     List<string> IAgentDescriptor.Tools { get; set; } = [];
@@ -281,6 +288,7 @@ public class TestAgent2Descriptor : IAgentDescriptor
     public string CriticPromptPath { get; set; } = string.Empty;
     public bool CriticOnHandOff { get; set; } = false;
     public float? Temperature { get; set; } = null;
+    public string? LlmModelName { get; set; } = null;
     public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
     public string? OutputType { get; set; } = null;
     List<string> IAgentDescriptor.Tools { get; set; } = [];

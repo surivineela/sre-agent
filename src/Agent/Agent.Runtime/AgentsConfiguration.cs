@@ -138,29 +138,40 @@ namespace Agent.Runtime
 
         public static IServiceCollection ConfigureIChatClient(this IServiceCollection services)
         {
-            return services
-                .AddSingleton(sp =>
+            // register default IChatClient
+            services.AddSingleton(sp =>
+            {
+                var client = sp.GetRequiredService<AzureOpenAIClient>();
+                var openAISettings = sp.GetRequiredService<OpenAISettings>();
+                var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+
+                return sp.CreateChatClientBuilder().Build();
+            });
+
+            // register per model chat clients
+            foreach (var kvp in LlmModels.LlmClients)
+            {
+                // key name is client in LlmClients dictionary
+                services.AddKeyedSingleton(kvp.Value, (sp, _) =>
                 {
                     var client = sp.GetRequiredService<AzureOpenAIClient>();
-                    var openAISettings = sp.GetRequiredService<OpenAISettings>();
                     var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
 
-                    return new ChatClientBuilder(client.GetChatClient(openAISettings.LLMDeploymentName).AsIChatClient())
-                        .Use(next => new ReasoningChatClient(next))
-                        .UseTokenLogging(loggerFactory)
-                        .UseLogging(loggerFactory)
+                    return sp
+                        .CreateChatClientBuilder(openAiDeploymentName: kvp.Key)
                         .Build();
-                })
+                });
+            }
+
+            // register special case chat clients
+            services
                 .AddKeyedSingleton("function-invocation-enabled", (sp, _) =>
                 {
                     var client = sp.GetRequiredService<AzureOpenAIClient>();
                     var openAISettings = sp.GetRequiredService<OpenAISettings>();
                     var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
 
-                    return new ChatClientBuilder(client.GetChatClient(openAISettings.LLMDeploymentName).AsIChatClient())
-                        .Use(next => new ReasoningChatClient(next))
-                        .UseTokenLogging(loggerFactory)
-                        .UseLogging(loggerFactory)
+                    return sp.CreateChatClientBuilder()
                         .UseFunctionInvocation(loggerFactory, x =>
                         {
                             x.IncludeDetailedErrors = true;
@@ -173,10 +184,7 @@ namespace Agent.Runtime
                     var openAISettings = sp.GetRequiredService<OpenAISettings>();
                     var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
 
-                    return new ChatClientBuilder(client.GetChatClient(openAISettings.LLMDeploymentName).AsIChatClient())
-                        .Use(next => new ReasoningChatClient(next))
-                        .UseTokenLogging(loggerFactory)
-                        .UseLogging(loggerFactory)
+                    return sp.CreateChatClientBuilder()
                         .UseFunctionInvocation(loggerFactory, x =>
                         {
                             x.IncludeDetailedErrors = true;
@@ -191,10 +199,7 @@ namespace Agent.Runtime
                     var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
                     var settings = sp.GetRequiredService<InstanceManagementSettings>();
 
-                    return new ChatClientBuilder(client.GetChatClient(openAISettings.LLMDeploymentName).AsIChatClient())
-                        .Use(next => new ReasoningChatClient(next))
-                        .UseTokenLogging(loggerFactory)
-                        .UseLogging(loggerFactory)
+                    return sp.CreateChatClientBuilder()
                         .UseFunctionInvocation(loggerFactory, x =>
                         {
                             x.IncludeDetailedErrors = true;
@@ -202,6 +207,25 @@ namespace Agent.Runtime
                         })
                         .Build();
                 });
+
+            // register chat client provider
+            services.AddSingleton<ChatClientProvider>();
+
+            return services;
+        }
+
+        private static ChatClientBuilder CreateChatClientBuilder(this IServiceProvider serviceProvider, string? openAiDeploymentName = null)
+        {
+            // default to openai settings deployment if not provided
+            openAiDeploymentName ??= serviceProvider.GetRequiredService<OpenAISettings>().LLMDeploymentName;
+
+            var client = serviceProvider.GetRequiredService<AzureOpenAIClient>();
+            var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
+
+            return new ChatClientBuilder(client.GetChatClient(openAiDeploymentName).AsIChatClient())
+                .Use(next => new ReasoningChatClient(next))
+                .UseTokenLogging(loggerFactory)
+                .UseLogging(loggerFactory);
         }
 
         public static IServiceCollection ConfigureIEmbeddingGenerator(this IServiceCollection services)

@@ -67,7 +67,7 @@ public class Agent<TContext>(string name) where TContext : class
     public virtual float Temperature { get; set; } = 0.3f;
 
     // === Workflow Agent Properties ===
-    
+
     /// <summary>
     /// Specifies the execution type of this agent.
     /// </summary>
@@ -97,12 +97,10 @@ public class Agent<TContext>(string name) where TContext : class
     /// </summary>
     public List<Models.NextAgentMapping> NextAgentMappings { get; set; } = [];
 
+    public IChatClient? ChatClient { get; set; } = default;
+
     public virtual IChatClient GetChatClient(RunConfig config)
     {
-        return config.ChatClient;
+        return ChatClient ?? config.ChatClient;
     }
-}
-
-public class Agent(string name) : Agent<object>(name)
-{
 }

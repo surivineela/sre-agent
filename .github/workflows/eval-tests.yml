@@ -180,7 +180,7 @@ jobs:
         sudo apt-get update -qq
         sudo apt-get install -y libxml2-utils
 
-    - name: 🧪 Run UNSTABLE evaluation tests (non-blocking)
+    - name: 🧪 Run UNSTABLE evaluation tests
       if: ${{ needs.changes.outputs.evals == 'true' }}
       id: unstable_tests
       run: |
@@ -213,19 +213,29 @@ jobs:
             passed=0
           else
             echo "✅ Found .trx files: $(basename $trx_files)"
-            
+
             # Use xmllint with proper namespace handling
+            xmllint --xpath "count(//*[local-name()='UnitTestResult'])" $trx_files
             total=$(xmllint --xpath "count(//*[local-name()='UnitTestResult'])" $trx_files 2>/dev/null || echo 0)
+            echo "XmlLint Total tests: $total"
+            xmllint --xpath "count(//*[local-name()='UnitTestResult'][@outcome='Failed'])" $trx_files
             failed=$(xmllint --xpath "count(//*[local-name()='UnitTestResult'][@outcome='Failed'])" $trx_files 2>/dev/null || echo 0)
-            
+            echo "XmlLint Failed tests: $failed"
+
             # Fallback to grep if xmllint failed
             if [ "$total" = "0" ] && grep -q "UnitTestResult" $trx_files 2>/dev/null; then
               echo "⚠️ xmllint failed, falling back to grep..."
               total=$(grep -h "<UnitTestResult" $trx_files | wc -l 2>/dev/null || echo 0)
               failed=$(grep -h 'outcome="Failed"' $trx_files | wc -l 2>/dev/null || echo 0)
             fi
-            
+
+            echo "DEBUG: About to calculate passed = total - failed"
+            echo "DEBUG: total='$total' (length: ${#total})"
+            echo "DEBUG: failed='$failed' (length: ${#failed})"
+            echo "DEBUG: total type: $(echo "$total" | od -c)"
+            echo "DEBUG: failed type: $(echo "$failed" | od -c)"
             passed=$((total - failed))
+            echo "DEBUG: Arithmetic completed, passed='$passed'"
           fi
 
           echo "Total tests: $total"

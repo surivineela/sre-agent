@@ -152,12 +152,17 @@ class Program
 {
     static void Main(string[] args)
     {
-        var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { EnvironmentName = Environments.Development });
+        var builder = Host.CreateApplicationBuilder(
+            new HostApplicationBuilderSettings
+            {
+                EnvironmentName = Environments.Development
+            });
 
         builder.Services.AddLogging(loggingBuilder =>
         {
             loggingBuilder.ClearProviders();
             loggingBuilder.AddConsole();
+            loggingBuilder.AddDebug();
         });
 
         var agentModeString = builder.Configuration.GetSection("AppSettings:Core:Azure:Action:Mode").Get<string>();
@@ -184,7 +189,6 @@ class Program
             .AddSingleton<IThreadOrchestrationManager, CosmosThreadOrchestrationManager>()
             .AddSingleton<SinkService>()
             .AddSingleton<ThreadService>()
-            // .AddSingleton<ThreadManagementService>()
             .AddSingleton<IStreamingService>(sp =>
             {
                 var logger = sp.GetRequiredService<ILoggerFactory>()
@@ -208,11 +212,6 @@ class Program
         builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
         builder.Services.AddArmHelperHttpClient();
         builder.Services
-            .AddLogging(loggingBuilder =>
-            {
-                loggingBuilder.AddConsole();
-                loggingBuilder.AddDebug();
-            })
             .AddHttpClient()
             .AddCosmosClient();
 
@@ -231,30 +230,29 @@ class Program
         });
 
         builder.Services.AddSingleton<BotFrameworkAuthentication, ConfigurationBotFrameworkAuthentication>();
-        // builder.Services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
-        // builder.Services.AddSingleton<IBot, TeamsBot>()
-        //                 .AddSingleton<IBotPollingMessage, TeamsBot>();
-        // Add the new polling service
 
         builder.Services.AddSingleton<IAgentFactory<CustomContext>>(sp =>
         {
+            var logger = sp.GetRequiredService<ILogger<AgentFactory<CustomContext>>>();
             var toolsRepository = sp.GetRequiredService<IToolFactory<CustomContext>>();
+            var chatClientProvider = sp.GetRequiredService<ChatClientProvider>();
             var modeConfigurator = sp.GetRequiredService<IAgentModeConfigurator<CustomContext>>();
             return new AgentFactory<CustomContext>(
-                logger: sp.GetRequiredService<ILogger<AgentFactory<CustomContext>>>(),
+                logger: logger,
                 toolFactory: toolsRepository,
+                chatClientProvider: chatClientProvider,
                 assembliesToScan: [],
                 modeConfigurator: modeConfigurator,
                 agentsYamlDirectory: Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "agents"),
                 commonToolsYamlDirectory: null);
         });
 
-        // builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
         // Configure chat services
-        builder.Services.ConfigureIChatCompletionService()
-                    .ConfigureAzureOpenAIClient()
-                    .ConfigureIChatClient()
-                    .ConfigureIEmbeddingGenerator();
+        builder.Services
+            .ConfigureIChatCompletionService()
+            .ConfigureAzureOpenAIClient()
+            .ConfigureIChatClient()
+            .ConfigureIEmbeddingGenerator();
 
         var commandLineApplication = new CommandLineApplication(throwOnUnexpectedArg: true);
         commandLineApplication.HelpOption("-?|-h|--help");
@@ -310,7 +308,6 @@ class Program
         // var kubePluginDefinition = new KubePluginDefinition(kubePlugin);
 
         var chatClient = host.Services.GetRequiredService<IChatClient>();
-
         var agentFactory = host.Services.GetRequiredService<IAgentFactory<CustomContext>>();
 
         var chatHistory = new List<ChatMessage>();

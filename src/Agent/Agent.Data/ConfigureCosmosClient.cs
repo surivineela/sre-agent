@@ -4,7 +4,6 @@
 
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
-using Agent.Data.JsonConverters;
 using Agent.Data.Repositories;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;

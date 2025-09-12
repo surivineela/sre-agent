@@ -43,8 +43,8 @@ using Agent.Prometheus.Services;
 using Agent.Runtime;
 using Agent.Runtime.AgentTasks;
 using Agent.Runtime.Communication;
-using Agent.Runtime.Helpers;
 using Agent.Runtime.HelperAgents;
+using Agent.Runtime.Helpers;
 using Agent.Runtime.IncidentHandlerAgent;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.MetaAgent;
@@ -180,7 +180,7 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        bool isFirstPartyAgent = IsFirstParty(args);
+        bool isAcaFirstPartyAgent = IsAcaFirstParty(args);
 
         var agentType = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") ?? string.Empty;
 
@@ -306,9 +306,6 @@ public class Program
         builder.Services.AddScoped<IAuthorizationHandler, AuthorizeArmOperationHandler>();
         builder.Services.AddSingleton<IAuthorizationPolicyProvider, ArmOperationPolicyProvider>();
 
-        // Register a default ConversationReference that can be injected into PostToTeamsPlugin
-        // builder.Services.AddSingleton<Microsoft.Bot.Schema.ConversationReference>(new Microsoft.Bot.Schema.ConversationReference());
-
         // Register plugins and their dependencies
         builder.Services
             .AddSingleton<Agent.Runtime.MetaAgent.IAgent, MetaAgent>()
@@ -415,7 +412,6 @@ public class Program
             .AddTransient<ColdStartPluginDefinition>()
             .AddTransient<LogsPluginDefinition>()
             .AddTransient<IKubePlugin, KubePlugin>()
-            //.AddTransient<IMetaAgentAppServiceRemediationPlugin, AppServiceRemediationPlugin>()
             .AddTransient<IChartPlugin, ChartPluginV2>()
             .AddTransient<ChartPluginV2>()
             .AddTransient<IGraphDBPlugin, GraphDBPlugin>()
@@ -512,13 +508,15 @@ public class Program
             .AddSingleton<IToolFactory<AgentContext>, ToolFactory<AgentContext>>(sp =>
             {
                 return sp.GetRequiredService<ToolFactory<AgentContext>>();
-            }).AddSingleton<IAuthenticationService, AuthenticationService>().AddCosmosClient();
-
+            })
+            .AddSingleton<IAuthenticationService, AuthenticationService>()
+            .AddCosmosClient();
 
         builder.Services.AddSingleton<IAgentFactory<AgentContext>>(sp =>
         {
             var logger = sp.GetRequiredService<ILogger<AgentFactory<AgentContext>>>();
             var toolFactory = sp.GetRequiredService<IToolFactory<AgentContext>>();
+            var chatClientProvider = sp.GetRequiredService<ChatClientProvider>();
             var hostEnvironment = sp.GetRequiredService<IHostEnvironment>();
             var experimentalSettings = sp.GetRequiredService<ExperimentalSettings>();
             var modeConfigurator = sp.GetRequiredService<IAgentModeConfigurator<AgentContext>>();
@@ -529,11 +527,12 @@ public class Program
             return new AgentFactory<AgentContext>(
                 logger: logger,
                 toolFactory: toolFactory,
+                chatClientProvider: chatClientProvider,
                 assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
                     .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
                     .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.Runtime") == true),
                 modeConfigurator: modeConfigurator,
-                agentsYamlDirectory: isFirstPartyAgent
+                agentsYamlDirectory: isAcaFirstPartyAgent
                     ? Path.Combine(AppContext.BaseDirectory, "AgentsV2", "ACA-FirstParty")
                     : Path.Combine(AppContext.BaseDirectory, "AgentsV2"),
                 commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonPrompts"),
@@ -545,7 +544,7 @@ public class Program
                 extensibiltyLoader: extensibilityLoader,
                 gpt5Enabled: isGPT5Enabled,
                 agentMemoryRetrievalEnabled: agentMemoryRetrievalEnabled,
-                firstPartyAgent: isFirstPartyAgent);
+                firstPartyAgent: isAcaFirstPartyAgent);
         });
 
         builder.Services.ConfigureAsyncInitializers();
@@ -582,28 +581,21 @@ public class Program
 
             // scanner agents
             .AddTransient<CVEAgent>()
-            .AddTransient<SourceCodeAgent>()
-            ;
+            .AddTransient<SourceCodeAgent>();
 
-        if (isFirstPartyAgent)
+        if (isAcaFirstPartyAgent)
         {
             // Register ACA First Party tools
             builder.Services
-
-
                 .AddTransient<RCAContainerAppIcMPluginDefinition>()
-
                 .AddTransient<RCAContainerAppQuotaPluginDefinition>()
-
                 .AddSingleton<IKustoDashboardPlugin, KustoDashboardPlugin>();
-
-
 
             builder.Services.AddSingleton<IAgentsFactory, FirstPartyAgentsFactory>();
             builder.Services.AddSingleton<IToolsRepository, FirstPartyToolsRepository>();
             builder.Services.AddSingleton<ITitleGenerationService, FirstPartyTitleGenerationService>();
             builder.RegisterFirstPartySubAgentsDependencies();
-            builder.RegisterFirstPartyAppSettings();
+            builder.RegisterAcaFirstPartyAppSettings();
         }
         else
         {
@@ -611,10 +603,10 @@ public class Program
             builder.Services.AddSingleton<IToolsRepository, ToolsRepository>();
             builder.Services.AddSingleton<ITitleGenerationService, TitleGenerationService>();
         }
-        builder.ValidateAndRegisterFirstPartyTypes();
+
+        builder.ValidateAndRegisterAcaFirstPartyTypes();
         builder.RegisterFunctionsFirstPartyTypes();
         builder.Services.AddScoped<IExtendedAgentService, ExtendedAgentService>();
-        //builder.Services.AddScoped<IExtendedAgentService, ExtendedAgentService>();
         builder.Services.AddSingleton<IConnectorResolver, DataConnectorResolverService>();
 
         builder.Services.AddScoped<IResourceDeploymentService, ResourceDeploymentService>();
@@ -626,7 +618,7 @@ public class Program
             sp => sp.GetRequiredService<CustomAgentFileService>());
 
         //Overwrite KustoClient from ValidateAndRegisterFirstPartyTypes if is not Container FirstParty Agent
-        if (!isFirstPartyAgent)
+        if (!isAcaFirstPartyAgent)
         {
             builder.Services.AddSingleton<KustoConnector>(sp =>
             {
@@ -677,10 +669,11 @@ public class Program
         builder.Services.AddSingleton<ILogAnalysisService, LogAnalysisService>();
 
         // Configure chat services
-        builder.Services.ConfigureIChatCompletionService()
-                       .ConfigureAzureOpenAIClient()
-                       .ConfigureIChatClient()
-                       .ConfigureIEmbeddingGenerator();
+        builder.Services
+            .ConfigureIChatCompletionService()
+            .ConfigureAzureOpenAIClient()
+            .ConfigureIChatClient()
+            .ConfigureIEmbeddingGenerator();
 
         var searchSettings = GetAzureSearchSettings(builder.Configuration);
         if (searchSettings.Enabled)
@@ -1274,7 +1267,7 @@ public class Program
         return builder;
     }
 
-    private static bool IsFirstParty(string[] args)
+    private static bool IsAcaFirstParty(string[] args)
     {
         if (Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") == "IcmAgent")
         {

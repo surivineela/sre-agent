@@ -12,7 +12,8 @@ namespace Agent.Tests.Common.Mocks.FunctionCalling;
 /// Falls back to the inner factory when no replay data is available.
 /// </summary>
 /// <typeparam name="TContext">The context type for the tool factory</typeparam>
-public class ReplayToolFactory<TContext> : IToolFactory<TContext> where TContext : class
+public sealed class ReplayToolFactory<TContext> : AsyncInitializerBase, IToolFactory<TContext>
+    where TContext : class
 {
     private readonly IToolFactory<TContext> _innerFactory;
     private readonly ReplayToolCore _replayCore;
@@ -23,14 +24,15 @@ public class ReplayToolFactory<TContext> : IToolFactory<TContext> where TContext
     public HashSet<string> FunctionNamesSkippedForReplay => _replayCore.FunctionNamesSkippedForReplay;
     public List<ReplayEntry> FunctionCallsWithReplayFailure => _replayCore.FunctionCallsWithReplayFailure;
 
-    public ReplayToolFactory(IToolFactory<TContext> innerFactory, JsonSerializerOptions serializerOptions)
+    public ReplayToolFactory(
+        IToolFactory<TContext> innerFactory,
+        JsonSerializerOptions serializerOptions)
     {
         _innerFactory = innerFactory ?? throw new ArgumentNullException(nameof(innerFactory));
         _replayCore = new ReplayToolCore(serializerOptions ?? throw new ArgumentNullException(nameof(serializerOptions)));
     }
 
-    // Return cached task
-    Task IAsyncInitializer.InitializeAsync()
+    protected override Task InitializeAsyncCore()
     {
         return _innerFactory.InitializeAsync();
     }

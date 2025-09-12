@@ -19,7 +19,6 @@ namespace Agent.Core.Configuration
 
     public class IncidentManagementSettings
     {
-
         [Required]
         public IncidentManagementType? Type { get; set; }
 

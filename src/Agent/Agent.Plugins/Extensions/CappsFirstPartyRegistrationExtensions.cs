@@ -14,11 +14,10 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class CappsFirstPartyRegistrationExtensions
 {
-    public static void ValidateAndRegisterFirstPartyTypes(this IHostApplicationBuilder builder)
+    public static void ValidateAndRegisterAcaFirstPartyTypes(this IHostApplicationBuilder builder)
     {
         var secretResolvedEnvConfig = new { };
         builder.Configuration.AddJsonStream(new MemoryStream(JsonSerializer.SerializeToUtf8Bytes(secretResolvedEnvConfig)));
-
 
         builder.Services.AddSingleton<IKustoPlugin, KustoPlugin>();
         builder.Services.AddSingleton<ITeamsClient, TeamsClient>();
@@ -27,17 +26,14 @@ public static class CappsFirstPartyRegistrationExtensions
         builder.Services.AddSingleton<TeamsClientSettings>();
         builder.Services.AddSingleton<IContainerAppIcMPlugin, ContainerAppIcMPlugin>();
         builder.Services.AddSingleton<ICMWorkflowClient>();
-        
 
         builder.Services.AddOptionsWithValidateOnStart<FirstPartyAgent.Common.Configuration.ICMWorkflowSettings>()
             .BindConfiguration("AppSettings:Core:External:ICMWorkflows")
             .ValidateDataAnnotations();
 
-
-
         builder.Services.AddOptionsWithValidateOnStart<FirstPartyAgent.Common.Configuration.GeneralSettings>()
-        .BindConfiguration("AppSettings:Core:External:GeneralSettings")
-        .ValidateDataAnnotations();
+            .BindConfiguration("AppSettings:Core:External:GeneralSettings")
+            .ValidateDataAnnotations();
 
         // keep multiple lines for better debugging
         builder.Services.AddSingleton(sp =>
@@ -53,7 +49,7 @@ public static class CappsFirstPartyRegistrationExtensions
         });
     }
 
-    public static void RegisterFirstPartyAppSettings(this IHostApplicationBuilder builder)
+    public static void RegisterAcaFirstPartyAppSettings(this IHostApplicationBuilder builder)
     {
         // Load static appsettings which are applicable for ACA 1P RCA Agent.
         builder.Configuration.AddJsonFile("appsettings-aca.json", optional: false, reloadOnChange: true); //load base settings

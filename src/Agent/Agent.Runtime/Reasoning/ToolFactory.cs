@@ -25,49 +25,38 @@ namespace Agent.Runtime.Reasoning;
 /// A default implementation of IToolFactory that automatically scans for tools in provided assemblies
 /// and can also register tools from external YAML definitions.
 /// </summary>
-public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : class
+public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<TContext>
+    where TContext : class
 {
-    private readonly Lazy<Task> _initializationTask;
-
     private readonly ILogger<ToolFactory<TContext>> _logger;
     private readonly IServiceProvider _serviceProvider;
-    private readonly IHostEnvironment _hostEnvironment;
     private readonly IEnumerable<Assembly> _assemblies;
     private readonly Dictionary<string, IDeferredToolFunction> _tools = new();
-
     private readonly bool _handoffReasoningEnabled;
+
     private readonly IExtensibilityLoader? _extensibilityLoader;
+
     public ToolFactory(
         ILogger<ToolFactory<TContext>> logger,
         IServiceProvider serviceProvider,
         IEnumerable<Assembly> assembliesToScan,
-        IExtensibilityLoader? extensibilityLoader = null,
-        bool initializeOnConstruction = true
+        IExtensibilityLoader? extensibilityLoader
     )
     {
         _logger = logger;
         _serviceProvider = serviceProvider;
         _assemblies = assembliesToScan;
-        _hostEnvironment = _serviceProvider.GetRequiredService<IHostEnvironment>();
         _extensibilityLoader = extensibilityLoader;
 
         // enable handoff reasoning for dev envs
+        var hostEnvironment = _serviceProvider.GetRequiredService<IHostEnvironment>();
         var experimentalSettings = _serviceProvider.GetRequiredService<ExperimentalSettings>();
-        _handoffReasoningEnabled = experimentalSettings?.EnableHandoffReasoning ?? _hostEnvironment.IsDevelopment();
-
-
-        _initializationTask = new(() => FindAndRegisterAllToolsAsync(BehaviorOnNameConflict.Overwrite));
-
-        if (initializeOnConstruction)
-        {
-            var _ = _initializationTask.Value;
-        }
+        _handoffReasoningEnabled = experimentalSettings?.EnableHandoffReasoning ?? hostEnvironment.IsDevelopment();
     }
 
-    // Return cached task
-    Task IAsyncInitializer.InitializeAsync()
+    protected override Task InitializeAsyncCore()
     {
-        return _initializationTask.Value;
+        return FindAndRegisterAllToolsAsync(BehaviorOnNameConflict.Overwrite);
     }
 
     public void RegisterFromYamlFile(string filePath, BehaviorOnNameConflict onNameConflict = BehaviorOnNameConflict.Overwrite)
@@ -290,9 +279,9 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
                 RegisterFromYamlFile(file);
             }
         }
+
         if (_extensibilityLoader != null)
         {
-
             var extendedTools = await _extensibilityLoader.LoadExtendedToolsAsync();
             foreach (var tool in extendedTools)
             {

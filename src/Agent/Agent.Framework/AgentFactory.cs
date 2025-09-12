@@ -24,8 +24,6 @@ public interface IAgentFactory<TContext> : IAsyncInitializer
     // Overwrite existing agent agents, useful for loading agents with different prompts when some feature flags are enabled, e.g agent memory RAG
     public void LoadYamlAgentsFromFolder(string folderPath, bool overwriteExistingAgents, bool recursive);
 
-    public void LoadExtendedAgentsFromFolder(string folderPath, bool isCustomAgent);
-
     public void LoadCommonPromptFromDescriptor(YamlPromptDescriptor prompt);
 
     public void LoadCommonToolsListFromDescriptor(YamlCommonToolsDescriptor toolsList);
@@ -33,11 +31,9 @@ public interface IAgentFactory<TContext> : IAsyncInitializer
     void UpdateHandoffs();
 }
 
-public class AgentFactory<TContext> : IAgentFactory<TContext>
+public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory<TContext>
     where TContext : class
 {
-    private readonly Task _initializationTask;
-
     // A map from Agent name -> Agent descriptor
     private readonly Dictionary<string, Agent<TContext>> _agents = [];
 
@@ -46,6 +42,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
     private readonly Dictionary<string, List<string>> _commonToolsDescriptors = [];
     private readonly ILogger<AgentFactory<TContext>> _logger;
     private readonly IToolFactory<TContext> _toolFactory;
+    private readonly ChatClientProvider _chatClientProvider;
     private readonly IEnumerable<Assembly> _assembliesToScan;
     private readonly string? _agentsYamlDirectory;
     private readonly string? _commonPromptsYamlDirectory;
@@ -63,6 +60,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
     public AgentFactory(
         ILogger<AgentFactory<TContext>> logger,
         IToolFactory<TContext> toolFactory,
+        ChatClientProvider chatClientProvider,
         IEnumerable<Assembly> assembliesToScan,
         IAgentModeConfigurator<TContext> modeConfigurator,
         string? agentsYamlDirectory = null,
@@ -79,6 +77,7 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
     )
     {
         _toolFactory = toolFactory;
+        _chatClientProvider = chatClientProvider;
         _logger = logger;
         _assembliesToScan = assembliesToScan;
         _agentsYamlDirectory = agentsYamlDirectory;
@@ -93,23 +92,15 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         _gpt5Enabled = gpt5Enabled;
         _agentMemoryRetrievalEnabled = agentMemoryRetrievalEnabled;
         _isFirstPartyAgent = firstPartyAgent;
-
-        _initializationTask = InitializeAgentsAsync();
     }
 
-    // return cached task
-    public Task InitializeAsync()
-    {
-        return _initializationTask;
-    }
-
-    private async Task InitializeAgentsAsync()
+    protected override async Task InitializeAsyncCore()
     {
         await _toolFactory.InitializeAsync();
         await InitializeAgents();
     }
 
-    public void ValidateAgentDescriptor(IAgentDescriptor? agentDescriptor, bool isCustomAgent, bool overwrite = false)
+    private void ValidateAgentDescriptor(IAgentDescriptor? agentDescriptor, bool isCustomAgent, bool overwrite = false)
     {
         if (agentDescriptor is null)
         {
@@ -135,6 +126,13 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         {
             var missingTools = agentDescriptor.Tools.Where(tool => !_toolFactory.HasTool(tool)).ToList();
             throw new Exception($"Agent descriptor {agentDescriptor.Name} has tools that do not exist in the tool factory: {string.Join(", ", missingTools)}");
+        }
+
+        if (!string.IsNullOrEmpty(agentDescriptor.LlmModelName)
+            && !LlmModels.LlmClients.ContainsKey(agentDescriptor.LlmModelName))
+        {
+            throw new Exception($"Agent descriptor {agentDescriptor.Name} refers unsupported model deployment: {agentDescriptor.LlmModelName}." +
+                $"Supported LLM Model Names are: {string.Join(", ", LlmModels.LlmClients.Keys)}");
         }
     }
 
@@ -184,6 +182,8 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
         {
             agent.Temperature = agentDescriptor.Temperature.Value;
         }
+
+        agent.ChatClient = _chatClientProvider.GetChatClient(agentDescriptor.LlmModelName);
 
         agent.Instructions
             .WithHandoffInstructions();
@@ -519,40 +519,6 @@ public class AgentFactory<TContext> : IAgentFactory<TContext>
             }
         }
         _logger.LogInformation("Loaded {count} agents from folder {folderPath}.", _agents.Count, folderPath);
-    }
-
-    // TODO: Replace to load extended agents from cosmos DB directly
-    public void LoadExtendedAgentsFromFolder(string folderPath, bool isCustomAgent)
-    {
-        if (string.IsNullOrEmpty(folderPath) || !Directory.Exists(folderPath))
-        {
-            _logger.LogError("Folder path {folderPath} is invalid or does not exist.", folderPath);
-            throw new DirectoryNotFoundException($"Folder path {folderPath} does not exist.");
-        }
-        var yamlFiles = Directory.GetFiles(folderPath, "*.yaml", SearchOption.AllDirectories)
-            .Concat(Directory.GetFiles(folderPath, "*.yml", SearchOption.AllDirectories));
-        foreach (var yamlFile in yamlFiles)
-        {
-            // if yaml file path contains "/tools/" ignore them
-            if (yamlFile.Contains(@"\tools\", StringComparison.InvariantCultureIgnoreCase))
-            {
-                continue;
-            }
-            try
-            {
-                var agent = LoadAgentFromYamlContent(File.ReadAllText(yamlFile), isCustomAgent);
-
-                _logger.LogInformation(
-                    "Successfully loaded extended agent descriptor '{agentName}' from YAML file '{yamlFile}'.",
-                    agent.Name,
-                    yamlFile);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to load agent from file {yamlFile}.", yamlFile);
-                throw;
-            }
-        }
     }
 
     public static YamlAgentDescriptor LoadAgentFromYaml(string yamlContent)

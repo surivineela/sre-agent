@@ -296,7 +296,7 @@ namespace Agent.Tests.Unit
                 logger: _mockLogger.Object,
                 serviceProvider: serviceProvider,
                 assembliesToScan: [Assembly.GetExecutingAssembly()],
-                initializeOnConstruction: false);
+                extensibilityLoader: null);
             await toolFactory.FindAndRegisterAllToolsAsync(BehaviorOnNameConflict.ThrowException);
 
             // Act & Assert
@@ -362,7 +362,7 @@ namespace Agent.Tests.Unit
                 logger: new Mock<ILogger<ToolFactory<string>>>().Object,
                 serviceProvider: _serviceProvider,
                 assembliesToScan: [Assembly.GetExecutingAssembly()],
-                initializeOnConstruction: false);
+                extensibilityLoader: null);
             await toolFactory.FindAndRegisterAllToolsAsync(BehaviorOnNameConflict.ThrowException);
 
             var tool = toolFactory.GetTool("GetContextInfo") as ContextAIFunction<string>;
@@ -379,8 +379,12 @@ namespace Agent.Tests.Unit
 
         private async Task<ToolFactory<object>> CreateInitializedToolFactoryAsync()
         {
-            var toolFactory = new ToolFactory<object>(_mockLogger.Object, _serviceProvider, [Assembly.GetExecutingAssembly()]);
-            await ((IAsyncInitializer)toolFactory).InitializeAsync();
+            var toolFactory = new ToolFactory<object>(
+                logger: _mockLogger.Object,
+                serviceProvider: _serviceProvider,
+                assembliesToScan: [Assembly.GetExecutingAssembly()],
+                extensibilityLoader: null);
+            await toolFactory.InitializeAsync();
             return toolFactory;
         }
 

@@ -1,6 +1,4 @@
-using System.ClientModel;
 using System.Text.Json;
-using Agent.Core.Clients.Chat;
 using Agent.Core.Configuration;
 using Agent.Core.Extensions;
 using Agent.Core.Helpers;
@@ -34,7 +32,6 @@ using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents;
 using Agent.Tests.Common.Mocks;
 using Agent.Tests.Common.Mocks.FunctionCalling;
-using Azure.AI.OpenAI;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
@@ -50,15 +47,22 @@ public static class TestHelpers
 {
     public static HostApplicationBuilder BuildTestApp(out string? outLLMDeploymentName)
     {
-        var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { EnvironmentName = Environments.Development });
+        var builder = Host.CreateApplicationBuilder(
+            new HostApplicationBuilderSettings
+            {
+                EnvironmentName = Environments.Development
+            });
+
         builder.LoadAppSettings(isDevelopment: true);
         builder.RegisterAppSettingsNoValidation<AppSettings>();
 
         var llmDeploymentName = builder.Configuration["AppSettings:Core:Azure:OpenAI:LLMDeploymentName"];
 
+        // true for github actions workflow
+        // open ai settings are injected via env vars there
         if (string.IsNullOrEmpty(llmDeploymentName))
         {
-            Console.WriteLine("Eval pipeline doesn't use appsettings. Using OpenAI API key and model from TestRunParameters.");
+            Console.WriteLine("Eval pipeline is not using appsettings. Using OpenAI API key and model from TestRunParameters.");
 
             var apiKey = builder.Configuration["OpenAIKey"];
             if (string.IsNullOrEmpty(apiKey))
@@ -78,53 +82,29 @@ public static class TestHelpers
                 throw new InvalidOperationException("OpenAI API endpoint is missing. Pass it as a TestRunParameter.");
             }
 
-            builder.Services.AddSingleton(new AzureOpenAIClient(new Uri(aiEndpoint), new ApiKeyCredential(apiKey)));
-
+            // instantiate openAiSettings from the env vars
+            builder.Services.AddSingleton(
+                new OpenAISettings
+                {
+                    Endpoint = aiEndpoint,
+                    LLMDeploymentName = llmDeploymentName,
+                    ApiKey = apiKey,
+                });
         }
         else
         {
             Console.WriteLine("Eval pipeline is using appsettings. Please make sure you have proper values in appsettings.json.");
-            builder.Services.ConfigureAzureOpenAIClient();
         }
 
-        builder.Services.ConfigureIEmbeddingGenerator();
+        builder.Services
+            .ConfigureAzureOpenAIClient()
+            .ConfigureIChatCompletionService()
+            .ConfigureIChatClient()
+            .ConfigureIEmbeddingGenerator();
+
         builder.Services.AddLogging(builder =>
         {
             builder.AddConsole();
-        });
-
-        builder.Services.AddChatClient(sp => sp.GetRequiredService<AzureOpenAIClient>().GetChatClient(llmDeploymentName).AsIChatClient())
-            .Use(next => new ReasoningChatClient(next));
-
-        builder.Services.ConfigureIEmbeddingGenerator();
-
-        builder.Services.AddKeyedSingleton("function-invocation-enabled", (sp, _) =>
-        {
-            var client = sp.GetRequiredService<AzureOpenAIClient>();
-            var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
-
-            return new ChatClientBuilder(client.GetChatClient(llmDeploymentName).AsIChatClient())
-                .Use(next => new ReasoningChatClient(next))
-                .UseLogging(loggerFactory)
-                .UseFunctionInvocation(loggerFactory, x =>
-                {
-                    x.IncludeDetailedErrors = true;
-                })
-                .Build();
-        });
-
-        builder.Services.AddKeyedSingleton("helper-agent-reasoning", (sp, _) =>
-        {
-            var client = sp.GetRequiredService<AzureOpenAIClient>();
-            var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
-
-            return new ChatClientBuilder(client.GetChatClient(llmDeploymentName).AsIChatClient())
-                .UseLogging(loggerFactory)
-                .UseFunctionInvocation(loggerFactory, x =>
-                {
-                    x.IncludeDetailedErrors = true;
-                })
-                .Build();
         });
 
         outLLMDeploymentName = llmDeploymentName;
@@ -179,9 +159,6 @@ public static class TestHelpers
                 return mock.Object;
             });
 
-
-
-
         return builder;
     }
 
@@ -213,7 +190,7 @@ public static class TestHelpers
         builder.Services.AddSingleton(Mock.Of<IArmClientFactory>());
 
         // Add CrawlerSettings configuration
-        builder.Services.AddSingleton<CrawlerSettings>(sp =>
+        builder.Services.AddSingleton(sp =>
         {
             return new CrawlerSettings
             {
@@ -237,7 +214,7 @@ public static class TestHelpers
         builder.Services.AddSingleton<ArmHelper>();
 
         // Add ActionSettings configuration
-        builder.Services.AddSingleton<ActionSettings>(sp =>
+        builder.Services.AddSingleton(sp =>
         {
             return new ActionSettings
             {
@@ -247,7 +224,7 @@ public static class TestHelpers
         });
 
         // Add AzureSettings configuration
-        builder.Services.AddSingleton<AzureSettings>(sp =>
+        builder.Services.AddSingleton(sp =>
         {
             return new AzureSettings(); // Default empty settings for tests
         });
@@ -329,10 +306,12 @@ public static class TestHelpers
             var logger = sp.GetRequiredService<ILogger<AgentFactory<AgentContext>>>();
             var modeConfigurator = sp.GetRequiredService<IAgentModeConfigurator<AgentContext>>();
             var extensionLoader = sp.GetRequiredService<IExtensibilityLoader>();
+            var chatClientProvider = sp.GetRequiredService<ChatClientProvider>();
             var toolFactory = sp.GetRequiredService<IToolFactory<AgentContext>>();
             return new AgentFactory<AgentContext>(
                 logger: logger,
                 toolFactory: toolFactory,
+                chatClientProvider: chatClientProvider,
                 assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
                     .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
                     .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true),
@@ -352,8 +331,7 @@ public static class TestHelpers
         builder.Services.AddSingleton<IAgentsFactory>(sp =>
         {
             return MetaAgentMock.GetMockedThirdPartAgentsFactory(
-                graphDBPlugin: sp.GetRequiredService<GraphDBPlugin>()
-                );
+                graphDBPlugin: sp.GetRequiredService<GraphDBPlugin>());
         });
 
         builder.Services.AddSingleton<ISearchEndpointService, SearchEndpointService>();
@@ -442,7 +420,7 @@ public static class TestHelpers
         // Ensure repositories required by runtime services are available for tests.
         // Some services validate the full service graph at Host build time and expect IAgentTasksRepository.
         // Provide a minimal mock to satisfy DI during test host initialization.
-        builder.Services.AddSingleton<IAgentTasksRepository>(sp => Mock.Of<IAgentTasksRepository>());
+        builder.Services.AddSingleton(sp => Mock.Of<IAgentTasksRepository>());
         // Register AgentTaskToolResultHelper used by runtime services
         builder.Services.AddSingleton<Agent.Runtime.Helpers.AgentTaskToolResultHelper>();
         var host = builder.Build();

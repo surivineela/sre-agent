@@ -552,7 +552,6 @@ public static class Runner
         Func<string, Task>? displayModelOutput = null
     ) where TContext : class
     {
-
         logger.LogInformation("Running agent {AgentName} with runtime modifier {HasRuntimeModifier}", agent.Name, runtimeModifier != null);
         // Apply runtime modifications at the beginning of each turn
         if (runtimeModifier != null)
@@ -646,8 +645,6 @@ public static class Runner
             logger: logger,
             displayModelOutput: displayModelOutput
         );
-
-
     }
 
     private static async Task<SingleStepResult<TContext>> ExecuteToolsAndHandoffsAsync<TContext>(

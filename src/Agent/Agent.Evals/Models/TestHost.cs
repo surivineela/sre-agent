@@ -8,10 +8,10 @@ using Microsoft.Extensions.Logging;
 namespace Agent.Evals;
 
 public sealed record TestHost(
-        IHost Host,
-        IAgentFactory<AgentContext> AgentFactory,
-        IToolFactory<AgentContext> ToolFactory,
-        RunConfig RunConfig)
+    IHost Host,
+    IAgentFactory<AgentContext> AgentFactory,
+    IToolFactory<AgentContext> ToolFactory,
+    RunConfig RunConfig)
 {
     public static TestHost Create(IHost host)
     {

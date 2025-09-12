@@ -9,8 +9,6 @@ namespace Agent.Web.Models.ExtendedAgents;
 [AiExclude("ExtendedAgentApiModel")]
 public class ExtendedAgentApiModel : YamlAgentDescriptor
 {
-
-
     public static ExtendedAgentApiModel FromRuntime(YamlAgentDescriptor runtimeModel)
     {
         return new ExtendedAgentApiModel
@@ -29,6 +27,7 @@ public class ExtendedAgentApiModel : YamlAgentDescriptor
             CustomReflectionNote = runtimeModel.CustomReflectionNote,
             CommonPrompts = runtimeModel.CommonPrompts,
             Temperature = runtimeModel.Temperature,
+            LlmModelName = runtimeModel.LlmModelName,
             OutputType = runtimeModel.OutputType,
             // Workflow agent properties
             AgentType = runtimeModel.AgentType,
@@ -50,7 +49,7 @@ public class ExtendedAgentApiModel : YamlAgentDescriptor
             HandoffDescription = HandoffDescription,
             Handoffs = Handoffs,
             Tools = Tools,
-            Connectors = Connectors,    
+            Connectors = Connectors,
             AllowParallelToolCalls = AllowParallelToolCalls,
             AgentsAsTools = AgentsAsTools,
             MaxReflectionCount = MaxReflectionCount,
@@ -59,6 +58,7 @@ public class ExtendedAgentApiModel : YamlAgentDescriptor
             CustomReflectionNote = CustomReflectionNote,
             CommonPrompts = CommonPrompts,
             Temperature = Temperature,
+            LlmModelName = LlmModelName,
             OutputType = OutputType,
             // Workflow agent properties
             AgentType = AgentType,
