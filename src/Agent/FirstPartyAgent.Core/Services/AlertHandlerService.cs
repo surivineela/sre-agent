@@ -103,6 +103,23 @@ public class AlertHandlerService
             }
         }
 
+
+        // If not found in local folder, check in storage
+        if (_storageService.IsEnabled)
+        {
+            try
+            {
+                _logger.LogInformation($"AzureAlertingPlugin: Fetching Alert Details from Storage. azureAlertingId: {azureAlertingId}");
+                var fileContent = await _storageService.ReadFileFromStorage("alertdetails", $"{azureAlertingId}.json");
+                var alertDetails = JsonConvert.DeserializeObject<AlertDetailsBase>(fileContent);
+                return alertDetails;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error reading alert details from storage: {ex.Message} for azureAlertingId: {azureAlertingId}. Will attempt to read from Azure Alerting.");
+            }
+        }
+
         if (_cosmosDbService.IsEnabled)
         {
             _logger.LogInformation($"AzureAlertingPlugin: Fetching Alert Details from CosmosDB. azureAlertingId: {azureAlertingId}");
@@ -119,22 +136,6 @@ public class AlertHandlerService
             catch (Exception ex)
             {
                 _logger.LogError($"Error reading alert details from CosmosDB: {ex.Message}");
-            }
-        }
-
-        // If not found in local folder, check in storage
-        if (_storageService.IsEnabled)
-        {
-            try
-            {
-                _logger.LogInformation($"AzureAlertingPlugin: Fetching Alert Details from Storage. azureAlertingId: {azureAlertingId}");
-                var fileContent = await _storageService.ReadFileFromStorage("alertdetails", $"{azureAlertingId}.json");
-                var alertDetails = JsonConvert.DeserializeObject<AlertDetailsBase>(fileContent);
-                return alertDetails;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error reading alert details from storage: {ex.Message} for azureAlertingId: {azureAlertingId}. Will attempt to read from Azure Alerting.");
             }
         }
 
