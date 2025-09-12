@@ -134,8 +134,9 @@ namespace Agent.Core.Services
 
                     string keyVaultUri = _icmApiSettings.CertificateKeyVaultUri;
                     string certKvSecretName = _icmApiSettings.CertificateKeyVaultSecretName;
+                    string managedIdentityClientId = _icmApiSettings.ManagedIdentityClientId;
 
-                    certificate = CertLoader.LoadCertFromKeyVault(_authService, keyVaultUri, certKvSecretName, string.Empty, null, _logger);
+                    certificate = CertLoader.LoadCertFromKeyVault(_authService, keyVaultUri, certKvSecretName, managedIdentityClientId, null, _logger);
                     _logger.LogInternalInformation("Successfully loaded certificate from KeyVault for ICMAPIClient.");
                 }
                 // Fallback to local certificate store

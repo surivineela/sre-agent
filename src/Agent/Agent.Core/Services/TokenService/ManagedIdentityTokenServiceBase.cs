@@ -1,3 +1,4 @@
+using Agent.Core.Interfaces;
 using Azure.Core;
 using Azure.Identity;
 using Microsoft.Extensions.Logging;
@@ -36,6 +37,8 @@ namespace Agent.Core.Services.TokenService
         /// </summary>
         protected abstract string TokenServiceName { get; set; }
 
+        protected abstract IAuthenticationService authenticationService { get; set; }
+
         protected abstract TokenCredential? TokenCredential { get; set; }
         protected abstract TokenRequestContext TokenRequestContext { get; set; }
 
@@ -53,6 +56,8 @@ namespace Agent.Core.Services.TokenService
             {
                 return;
             }
+
+            SetTokenCredentials();
 
             while (true)
             {
@@ -83,6 +88,12 @@ namespace Agent.Core.Services.TokenService
             }
         }
 
+        private void SetTokenCredentials()
+        {
+            TokenCredential = authenticationService.GetIcmApiCredential();
+            TokenRequestContext = new TokenRequestContext(scopes: new string[] { Resource });
+        }
+
         /// <summary>
         /// Gets AAD issued auth token.
         /// </summary>
@@ -91,6 +102,11 @@ namespace Agent.Core.Services.TokenService
             if (!ManagedIdentityEnabled)
             {
                 return string.Empty;
+            }
+
+            if (TokenCredential == null)
+            {
+                SetTokenCredentials();
             }
 
             if (!tokenAcquiredAtleastOnce)

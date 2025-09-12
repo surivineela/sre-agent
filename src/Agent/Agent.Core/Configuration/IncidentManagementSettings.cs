@@ -57,6 +57,7 @@ namespace Agent.Core.Configuration
         public string CertificateSubjectName { get; set; } = string.Empty;
         public string CertificateKeyVaultUri { get; set; } = string.Empty;
         public string CertificateKeyVaultSecretName { get; set; } = string.Empty;
+        public string ManagedIdentityClientId { get; set; } = string.Empty;
         public string IcmMSIResource { get; set; } = "api://icmapi-prod";
         public string UserToken { get; set; } = string.Empty;
         public string OwningServiceId { get; set; } = string.Empty;

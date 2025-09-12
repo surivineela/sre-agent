@@ -15,6 +15,7 @@ public class ICMAPITokenService : ManagedIdentityTokenServiceBase
     protected override string ClientId { get; set; } = string.Empty;
     protected override string? ResourceId { get; set; }
     protected override string TokenServiceName { get; set; } = string.Empty;
+    protected override IAuthenticationService authenticationService { get; set; } = null!; // will set in Initialize
     protected override TokenCredential? TokenCredential { get; set; }
     protected override TokenRequestContext TokenRequestContext { get; set; }
 
@@ -24,8 +25,7 @@ public class ICMAPITokenService : ManagedIdentityTokenServiceBase
         Resource = icmApiSettings.IcmMSIResource;
         ResourceId = actionSettings.Identity;
         TokenServiceName = "ICMAPITokenService";
-        TokenCredential = authService.GetIcmApiCredential();
-        TokenRequestContext = new TokenRequestContext(scopes: new string[] { Resource });
+        authenticationService = authService;
         _ = StartTokenRefresh(logger);
     }
 }
