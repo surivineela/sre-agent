@@ -207,16 +207,17 @@ namespace Agent.Core.Helpers
                 obj["IncidentType"] = obj["Type"];
             }
 
-            if (obj["OccuringLocation"]?["Slice"] != null)
+            var occuringLocation = obj["OccuringLocation"] as JObject;
+
+            if (occuringLocation?["Slice"] != null)
             {
-                obj["Stamp"] = obj["OccuringLocation"]?["Slice"]?.ToString();
+                obj["Stamp"] = occuringLocation["Slice"]?.ToString();
             }
 
-            if (obj["OccuringLocation"]?["Datacenter"] != null)
+            if (occuringLocation?["Datacenter"] != null)
             {
-                obj["Datacenter"] = obj["OccuringLocation"]?["Datacenter"]?.ToString();
+                obj["Datacenter"] = occuringLocation["Datacenter"]?.ToString();
             }
-
 
             // Additional mappings can be added here if needed.  
             return obj;
