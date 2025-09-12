@@ -97,6 +97,7 @@ public class ToolsRepository : IToolsRepository
         RegisterPlugin<PostgreSQLPluginDefinition>();
         RegisterPlugin<PagerDutyIncidentPluginDefinition>();
         RegisterPlugin<AzureAlertingPluginDefinition>();
+        RegisterPlugin<AppInsightsPluginDefinition>();
 
         // Not all tools were registered, so registering individually
         Register200<GitHubIssuePluginDefinition>(x => x.FetchGithubSecurityDependabotAlerts);

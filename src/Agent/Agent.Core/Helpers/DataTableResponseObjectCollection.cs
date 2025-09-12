@@ -1,38 +1,31 @@
-using System;
-using System.Collections.Generic;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Data;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Agent.Core.Helpers;
 
 public class DataTableResponseObjectCollection
 {
-    public required IEnumerable<DataTableResponseObject> Tables { get; set; }
+    public required DataTableResponseObject[] Tables { get; set; }
 }
 
 public class DataTableResponseObject
 {
-    public required string TableName { get; set; }
+    public required string Name { get; set; }
 
-    public required IEnumerable<DataTableResponseColumn> Columns { get; set; }
+    public required DataTableResponseColumn[] Columns { get; set; }
 
     public required string[][] Rows { get; set; }
 }
 
 public class DataTableResponseColumn
 {
-    public required string ColumnName { get; set; }
-    public required string DataType { get; set; }
-    public required string ColumnType { get; set; }
+    public required string Name { get; set; }
 
-    public DataTableResponseColumn(string name, string dataType)
-    {
-        ColumnName = name;
-        DataType = dataType;
-    }
+    public required string Type { get; set; }
 }
 
 public static class DataTableExtensions
@@ -44,9 +37,9 @@ public static class DataTableExtensions
             throw new ArgumentNullException("dataTableResponse");
         }
 
-        var dataTable = new DataTable(dataTableResponse.TableName);
+        var dataTable = new DataTable(dataTableResponse.Name);
 
-        dataTable.Columns.AddRange(dataTableResponse.Columns.Select(column => new DataColumn(column.ColumnName, GetColumnType(column.DataType))).ToArray());
+        dataTable.Columns.AddRange(dataTableResponse.Columns.Select(column => new DataColumn(column.Name, GetColumnType(column.Type))).ToArray());
 
         foreach (var row in dataTableResponse.Rows)
         {

@@ -96,7 +96,7 @@ namespace Agent.Plugins.Implementation
                     dataset
                     | summarize FailedCount=sumif(itemCount, success == false) by name, bin(timestamp, timeGrain)";
 
-            var failedRequestsJson = await _appInsightsPlugin.ExecuteAppInsightsQuery(resourceId, failedRequestsQuery);
+            var failedRequestsJson = await _appInsightsPlugin.QueryAppInsightsByWebAppSettings(resourceId, failedRequestsQuery);
 
             var failedRequestsData = new List<FailedRequestsTimeSeriesData>();
 
@@ -189,7 +189,7 @@ namespace Agent.Plugins.Implementation
                         | sort by _count desc
                         | top 3 by _count";
 
-            var top3Exceptions = await _appInsightsPlugin.ExecuteAppInsightsQuery(resourceId, top3ExceptionsQuery);
+            var top3Exceptions = await _appInsightsPlugin.QueryAppInsightsByWebAppSettings(resourceId, top3ExceptionsQuery);
             return top3Exceptions;
         }
 

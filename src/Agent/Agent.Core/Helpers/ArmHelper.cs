@@ -2007,7 +2007,7 @@ public class ArmHelper
         }
     }
 
-    public async Task<string> ExecuteLogAnalyticsQuery(string resourceId, string queryString, string timeSpan)
+    public async Task<string> QueryLogAnalyticsByWebAppDiagnosticSettings(string resourceId, string queryString, string? timeSpan, bool formatAsTsv = false)
     {
         try
         {
@@ -2049,9 +2049,7 @@ public class ArmHelper
                                 category == "AppServicePlatformLogs" ||
                                 category == "GatewayLogs")
                             {
-                                var endpoint = "https://api.loganalytics.io/v1" + workSpaceId.GetString()! + "/query?timespan=" + timeSpan;
-
-                                return await ExecuteAppInsightsQueryInternal(endpoint, queryString);
+                                return await QueryLogAnalyticsByResourceIdInternal(workSpaceId.GetString()!, queryString, timeSpan, wrapException: false, formatAsTsv);
                             }
                         }
                     }
@@ -2066,13 +2064,32 @@ public class ArmHelper
         }
     }
 
-    public async Task<string> ExecuteAppInsightsQuery(string appInsightsAppId, string queryString)
+    public async Task<string> QueryLogAnalyticsByResourceId(string resourceId, string queryString, string? timeSpan = null, bool formatAsTsv = false)
+    {
+        return await QueryLogAnalyticsByResourceIdInternal(resourceId, queryString, timeSpan, wrapException: false, formatAsTsv: formatAsTsv);
+    }
+
+    public async Task<string> QueryLogAnalyticsByWorkspaceId(string workspaceId, string queryString, string? timeSpan = null, bool formatAsTsv = false)
+    {
+        try
+        {
+            var endpoint = "https://api.loganalytics.io/v1/workspaces/" + workspaceId + "/query";
+
+            return await ExecuteAppInsightsQueryInternal(endpoint, queryString, timeSpan, formatAsTsv);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("An error occurred while querying Log Analytics.", ex);
+        }
+    }
+
+    public async Task<string> QueryAppInsightsByAppId(string appInsightsAppId, string queryString, string? timeSpan = null, bool formatAsTsv = false)
     {
         try
         {
             var endpoint = "https://api.applicationinsights.io/v1/apps/" + appInsightsAppId + "/query";
 
-            return await ExecuteAppInsightsQueryInternal(endpoint, queryString);
+            return await ExecuteAppInsightsQueryInternal(endpoint, queryString, timeSpan, formatAsTsv);
         }
         catch (Exception ex)
         {
@@ -2080,7 +2097,21 @@ public class ArmHelper
         }
     }
 
-    private async Task<string> ExecuteAppInsightsQueryInternal(string url, string queryString)
+    private async Task<string> QueryLogAnalyticsByResourceIdInternal(string resourceId, string queryString, string? timeSpan, bool wrapException, bool formatAsTsv)
+    {
+        try
+        {
+            var endpoint = "https://api.loganalytics.io/v1" + resourceId + "/query";
+
+            return await ExecuteAppInsightsQueryInternal(endpoint, queryString, timeSpan, formatAsTsv);
+        }
+        catch (Exception ex) when (wrapException)
+        {
+            throw new InvalidOperationException("An error occurred while querying Log Analytics.", ex);
+        }
+    }
+
+    private async Task<string> ExecuteAppInsightsQueryInternal(string url, string queryString, string? timeSpan, bool formatAsTsv)
     {
         try
         {
@@ -2091,13 +2122,24 @@ public class ArmHelper
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
 
             // Send the query
-            var response = await httpClient.PostAsJsonAsync(url, new { query = queryString });
+            var requestBody = string.IsNullOrWhiteSpace(timeSpan)
+                ? (object)new { query = queryString }
+                : new { query = queryString, timespan = timeSpan };
+            var response = await httpClient.PostAsJsonAsync(url, requestBody);
 
             // Read and display the result
             if (response.IsSuccessStatusCode)
             {
-                var content = await response.Content.ReadAsStringAsync();
-                return content;
+                if (formatAsTsv)
+                {
+                    var stream = await response.Content.ReadAsStreamAsync();
+                    return TableFormatter.DataTableResponseStreamToTsv(stream);
+                }
+                else
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    return content;
+                }
             }
             else
             {

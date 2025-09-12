@@ -491,7 +491,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Arrange
             var mockAppInsightsResponse = CreateMockAppInsightsResponse();
             _mockAppInsightsPlugin
-                .Setup(x => x.ExecuteAppInsightsQuery(It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(x => x.QueryAppInsightsByWebAppSettings(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(mockAppInsightsResponse);
 
             // Act
@@ -524,7 +524,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Arrange
             var mockAppInsightsResponse = CreateMockAppInsightsResponse();
             _mockAppInsightsPlugin
-                .Setup(x => x.ExecuteAppInsightsQuery(It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(x => x.QueryAppInsightsByWebAppSettings(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(mockAppInsightsResponse);
 
             // Act
@@ -535,7 +535,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             
             // Verify that the query was called with the resource ID and a query that includes the expected time range
             _mockAppInsightsPlugin.Verify(
-                x => x.ExecuteAppInsightsQuery(
+                x => x.QueryAppInsightsByWebAppSettings(
                     TestResourceId,
                     It.Is<string>(query => query.Contains("let timeGrain=5m") && query.Contains(TestResourceName))),
                 Times.Once);
@@ -547,7 +547,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Arrange
             var mockAppInsightsResponse = CreateMockAppInsightsResponse();
             _mockAppInsightsPlugin
-                .Setup(x => x.ExecuteAppInsightsQuery(It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(x => x.QueryAppInsightsByWebAppSettings(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(mockAppInsightsResponse);
 
             // Act - Use 25 hours to trigger the daily grain
@@ -558,7 +558,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             
             // Verify that the query uses 1d time grain for long time ranges
             _mockAppInsightsPlugin.Verify(
-                x => x.ExecuteAppInsightsQuery(
+                x => x.QueryAppInsightsByWebAppSettings(
                     TestResourceId,
                     It.Is<string>(query => query.Contains("let timeGrain=1d"))),
                 Times.Once);
@@ -570,7 +570,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Arrange
             var mockAppInsightsResponse = CreateMockAppInsightsResponse();
             _mockAppInsightsPlugin
-                .Setup(x => x.ExecuteAppInsightsQuery(It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(x => x.QueryAppInsightsByWebAppSettings(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(mockAppInsightsResponse);
 
             // Act - Use 12 hours to trigger the 10m grain
@@ -581,7 +581,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             
             // Verify that the query uses 10m time grain for medium time ranges
             _mockAppInsightsPlugin.Verify(
-                x => x.ExecuteAppInsightsQuery(
+                x => x.QueryAppInsightsByWebAppSettings(
                     TestResourceId,
                     It.Is<string>(query => query.Contains("let timeGrain=10m"))),
                 Times.Once);
@@ -593,7 +593,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Arrange
             var mockAppInsightsResponse = CreateMockAppInsightsResponse();
             _mockAppInsightsPlugin
-                .Setup(x => x.ExecuteAppInsightsQuery(It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(x => x.QueryAppInsightsByWebAppSettings(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(mockAppInsightsResponse);
 
             // Act
@@ -604,7 +604,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             
             // Verify that the query uses the extracted resource name (last part after the slash)
             _mockAppInsightsPlugin.Verify(
-                x => x.ExecuteAppInsightsQuery(
+                x => x.QueryAppInsightsByWebAppSettings(
                     TestResourceId,
                     It.Is<string>(query => query.Contains($"cloud_RoleName =~ \"{TestResourceName}\""))),
                 Times.Once);
@@ -617,7 +617,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             const string simpleResourceName = "simple-function-app";
             var mockAppInsightsResponse = CreateMockAppInsightsResponse();
             _mockAppInsightsPlugin
-                .Setup(x => x.ExecuteAppInsightsQuery(It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(x => x.QueryAppInsightsByWebAppSettings(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(mockAppInsightsResponse);
 
             // Act
@@ -628,7 +628,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             
             // Verify that the query uses the simple resource name
             _mockAppInsightsPlugin.Verify(
-                x => x.ExecuteAppInsightsQuery(
+                x => x.QueryAppInsightsByWebAppSettings(
                     simpleResourceName,
                     It.Is<string>(query => query.Contains($"cloud_RoleName =~ \"{simpleResourceName}\""))),
                 Times.Once);
@@ -640,7 +640,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Arrange
             var emptyResponse = CreateEmptyAppInsightsResponse();
             _mockAppInsightsPlugin
-                .Setup(x => x.ExecuteAppInsightsQuery(It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(x => x.QueryAppInsightsByWebAppSettings(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(emptyResponse);
 
             // Act
@@ -657,7 +657,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Arrange
             const string invalidJson = "invalid json response";
             _mockAppInsightsPlugin
-                .Setup(x => x.ExecuteAppInsightsQuery(It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(x => x.QueryAppInsightsByWebAppSettings(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(invalidJson);
 
             // Act
@@ -684,7 +684,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Arrange
             var responseWithMissingColumns = CreateAppInsightsResponseWithMissingColumns();
             _mockAppInsightsPlugin
-                .Setup(x => x.ExecuteAppInsightsQuery(It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(x => x.QueryAppInsightsByWebAppSettings(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(responseWithMissingColumns);
 
             // Act
@@ -701,7 +701,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Arrange
             var responseWithNullValues = CreateAppInsightsResponseWithNullValues();
             _mockAppInsightsPlugin
-                .Setup(x => x.ExecuteAppInsightsQuery(It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(x => x.QueryAppInsightsByWebAppSettings(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(responseWithNullValues);
 
             // Act
@@ -720,7 +720,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Arrange
             var mockAppInsightsResponse = CreateMockAppInsightsResponse();
             _mockAppInsightsPlugin
-                .Setup(x => x.ExecuteAppInsightsQuery(It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(x => x.QueryAppInsightsByWebAppSettings(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(mockAppInsightsResponse);
 
             // Act
@@ -728,7 +728,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Assert - Verify the query contains all expected elements
             _mockAppInsightsPlugin.Verify(
-                x => x.ExecuteAppInsightsQuery(
+                x => x.QueryAppInsightsByWebAppSettings(
                     TestResourceId,
                     It.Is<string>(query => 
                         query.Contains("requests") &&
@@ -1093,7 +1093,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Arrange
             var mockResponse = CreateMockTop3ExceptionsResponse();
             _mockAppInsightsPlugin
-                .Setup(x => x.ExecuteAppInsightsQuery(It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(x => x.QueryAppInsightsByWebAppSettings(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(mockResponse);
 
             // Act
@@ -1104,7 +1104,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Verify the plugin was called with correct parameters
             _mockAppInsightsPlugin.Verify(
-                x => x.ExecuteAppInsightsQuery(
+                x => x.QueryAppInsightsByWebAppSettings(
                     TestResourceId,
                     It.Is<string>(query => 
                         query.Contains("exceptions") &&
@@ -1124,7 +1124,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             var mockResponse = CreateMockTop3ExceptionsResponse();
             
             _mockAppInsightsPlugin
-                .Setup(x => x.ExecuteAppInsightsQuery(It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(x => x.QueryAppInsightsByWebAppSettings(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(mockResponse);
 
             // Act
@@ -1135,7 +1135,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Verify the query contains the custom time range
             _mockAppInsightsPlugin.Verify(
-                x => x.ExecuteAppInsightsQuery(
+                x => x.QueryAppInsightsByWebAppSettings(
                     TestResourceId,
                     It.Is<string>(query => 
                         query.Contains($"start=datetime({startTime:O})") &&
@@ -1150,7 +1150,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Arrange
             var mockResponse = CreateMockTop3ExceptionsResponse();
             _mockAppInsightsPlugin
-                .Setup(x => x.ExecuteAppInsightsQuery(It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(x => x.QueryAppInsightsByWebAppSettings(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(mockResponse);
 
             // Act
@@ -1158,7 +1158,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Assert - Verify default time range logic (1 hour back, ending 15 minutes ago)
             _mockAppInsightsPlugin.Verify(
-                x => x.ExecuteAppInsightsQuery(
+                x => x.QueryAppInsightsByWebAppSettings(
                     TestResourceId,
                     It.Is<string>(query => 
                         query.Contains("exceptions") &&
@@ -1185,7 +1185,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             var mockResponse = CreateMockTop3ExceptionsResponse();
             
             _mockAppInsightsPlugin
-                .Setup(x => x.ExecuteAppInsightsQuery(It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(x => x.QueryAppInsightsByWebAppSettings(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(mockResponse);
 
             // Act
@@ -1193,7 +1193,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Assert - Verify 2 day range uses daily grain
             _mockAppInsightsPlugin.Verify(
-                x => x.ExecuteAppInsightsQuery(
+                x => x.QueryAppInsightsByWebAppSettings(
                     TestResourceId,
                     It.Is<string>(query => query.Contains("let timeGrain=1d"))),
                 Times.Once);
@@ -1205,7 +1205,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Arrange
             var mockResponse = CreateMockTop3ExceptionsResponse();
             _mockAppInsightsPlugin
-                .Setup(x => x.ExecuteAppInsightsQuery(It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(x => x.QueryAppInsightsByWebAppSettings(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(mockResponse);
 
             // Act
@@ -1213,7 +1213,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Assert - Verify resource name extraction
             _mockAppInsightsPlugin.Verify(
-                x => x.ExecuteAppInsightsQuery(
+                x => x.QueryAppInsightsByWebAppSettings(
                     TestResourceId,
                     It.Is<string>(query => query.Contains($"cloud_RoleName =~ \"{TestResourceName}\""))),
                 Times.Once);
@@ -1225,7 +1225,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Arrange
             var mockResponse = CreateMockTop3ExceptionsResponse();
             _mockAppInsightsPlugin
-                .Setup(x => x.ExecuteAppInsightsQuery(It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(x => x.QueryAppInsightsByWebAppSettings(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(mockResponse);
 
             // Act
@@ -1233,7 +1233,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Assert - Verify the query contains all expected elements
             _mockAppInsightsPlugin.Verify(
-                x => x.ExecuteAppInsightsQuery(
+                x => x.QueryAppInsightsByWebAppSettings(
                     TestResourceId,
                     It.Is<string>(query => 
                         query.Contains("exceptions") &&
@@ -1255,7 +1255,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Arrange
             var mockResponse = CreateMockTop3ExceptionsWithStackTracesResponse();
             _mockAppInsightsPlugin
-                .Setup(x => x.ExecuteAppInsightsQuery(It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(x => x.QueryAppInsightsByWebAppSettings(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(mockResponse);
 
             // Act
@@ -1266,7 +1266,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Verify the plugin was called with correct parameters
             _mockAppInsightsPlugin.Verify(
-                x => x.ExecuteAppInsightsQuery(
+                x => x.QueryAppInsightsByWebAppSettings(
                     TestResourceId,
                     It.Is<string>(query => 
                         query.Contains("exceptions") &&
@@ -1289,7 +1289,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             var mockResponse = CreateMockTop3ExceptionsWithStackTracesResponse();
             
             _mockAppInsightsPlugin
-                .Setup(x => x.ExecuteAppInsightsQuery(It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(x => x.QueryAppInsightsByWebAppSettings(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(mockResponse);
 
             // Act
@@ -1300,7 +1300,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Verify the query contains the custom time range (12 hours should use 10m grain)
             _mockAppInsightsPlugin.Verify(
-                x => x.ExecuteAppInsightsQuery(
+                x => x.QueryAppInsightsByWebAppSettings(
                     TestResourceId,
                     It.Is<string>(query => 
                         query.Contains($"start=datetime({startTime:O})") &&
@@ -1315,7 +1315,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Arrange
             var mockResponse = CreateMockTop3ExceptionsWithStackTracesResponse();
             _mockAppInsightsPlugin
-                .Setup(x => x.ExecuteAppInsightsQuery(It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(x => x.QueryAppInsightsByWebAppSettings(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(mockResponse);
 
             // Act
@@ -1323,7 +1323,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Assert - Verify default time range logic
             _mockAppInsightsPlugin.Verify(
-                x => x.ExecuteAppInsightsQuery(
+                x => x.QueryAppInsightsByWebAppSettings(
                     TestResourceId,
                     It.Is<string>(query => 
                         query.Contains("exceptions") &&
@@ -1347,7 +1347,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Arrange
             var mockResponse = CreateMockTop3ExceptionsWithStackTracesResponse();
             _mockAppInsightsPlugin
-                .Setup(x => x.ExecuteAppInsightsQuery(It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(x => x.QueryAppInsightsByWebAppSettings(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(mockResponse);
 
             // Act
@@ -1355,7 +1355,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Assert - Verify resource name extraction
             _mockAppInsightsPlugin.Verify(
-                x => x.ExecuteAppInsightsQuery(
+                x => x.QueryAppInsightsByWebAppSettings(
                     TestResourceId,
                     It.Is<string>(query => query.Contains($"cloud_RoleName =~ \"{TestResourceName}\""))),
                 Times.Once);
@@ -1367,7 +1367,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Arrange
             var mockResponse = CreateMockTop3ExceptionsWithStackTracesResponse();
             _mockAppInsightsPlugin
-                .Setup(x => x.ExecuteAppInsightsQuery(It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(x => x.QueryAppInsightsByWebAppSettings(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(mockResponse);
 
             // Act
@@ -1375,7 +1375,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Assert - Verify the query contains all expected elements
             _mockAppInsightsPlugin.Verify(
-                x => x.ExecuteAppInsightsQuery(
+                x => x.QueryAppInsightsByWebAppSettings(
                     TestResourceId,
                     It.Is<string>(query => 
                         query.Contains("exceptions") &&
@@ -1396,7 +1396,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             var mockResponse = CreateMockTop3ExceptionsWithStackTracesResponse();
             
             _mockAppInsightsPlugin
-                .Setup(x => x.ExecuteAppInsightsQuery(It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(x => x.QueryAppInsightsByWebAppSettings(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(mockResponse);
 
             // Act
@@ -1404,7 +1404,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Assert - Verify 3 day range uses daily grain
             _mockAppInsightsPlugin.Verify(
-                x => x.ExecuteAppInsightsQuery(
+                x => x.QueryAppInsightsByWebAppSettings(
                     TestResourceId,
                     It.Is<string>(query => query.Contains("let timeGrain=1d"))),
                 Times.Once);
@@ -1417,7 +1417,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             const string simpleResourceName = "simple-function-app";
             var mockResponse = CreateMockTop3ExceptionsWithStackTracesResponse();
             _mockAppInsightsPlugin
-                .Setup(x => x.ExecuteAppInsightsQuery(It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(x => x.QueryAppInsightsByWebAppSettings(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(mockResponse);
 
             // Act
@@ -1425,7 +1425,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Assert - Verify simple resource name is used directly
             _mockAppInsightsPlugin.Verify(
-                x => x.ExecuteAppInsightsQuery(
+                x => x.QueryAppInsightsByWebAppSettings(
                     simpleResourceName,
                     It.Is<string>(query => query.Contains($"cloud_RoleName =~ \"{simpleResourceName}\""))),
                 Times.Once);

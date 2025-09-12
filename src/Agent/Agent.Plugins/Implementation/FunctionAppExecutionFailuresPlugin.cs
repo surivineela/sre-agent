@@ -190,7 +190,7 @@ namespace Agent.Plugins.Implementation
                     dataset
                     | summarize FailedCount=sumif(itemCount, success == false) by name, bin(timestamp, timeGrain)";
 
-            var failedRequestsPerFunctionJson = await _appInsightsPlugin.ExecuteAppInsightsQuery(resourceId, failedRequestsPerFunctionQuery);
+            var failedRequestsPerFunctionJson = await _appInsightsPlugin.QueryAppInsightsByWebAppSettings(resourceId, failedRequestsPerFunctionQuery);
 
             var failedRequestsData = new List<FailedRequestsTimeSeriesData>();
 
@@ -297,7 +297,7 @@ namespace Agent.Plugins.Implementation
                         | top 3 by _count
                         | project ExceptionType = ExceptionOrType, ExceptionMessage, StackTrace, Count = _count";
 
-            var top3ExceptionsPerFunction = await _appInsightsPlugin.ExecuteAppInsightsQuery(resourceId, top3ExceptionsPerFunctionQuery);
+            var top3ExceptionsPerFunction = await _appInsightsPlugin.QueryAppInsightsByWebAppSettings(resourceId, top3ExceptionsPerFunctionQuery);
             return top3ExceptionsPerFunction;
         }
 
@@ -344,7 +344,7 @@ namespace Agent.Plugins.Implementation
                         | top 3 by _count
                         | project ExceptionType = ExceptionOrType, ExceptionMessages, StackTraces, FunctionNames, Count = _count";
 
-            var top3ExceptionsWithStackTraces = await _appInsightsPlugin.ExecuteAppInsightsQuery(resourceId, top3ExceptionsWithStackTracesQuery);
+            var top3ExceptionsWithStackTraces = await _appInsightsPlugin.QueryAppInsightsByWebAppSettings(resourceId, top3ExceptionsWithStackTracesQuery);
             return top3ExceptionsWithStackTraces;
         }
 

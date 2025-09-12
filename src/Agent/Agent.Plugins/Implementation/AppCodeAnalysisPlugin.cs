@@ -46,7 +46,7 @@ public class AppCodeAnalysisPlugin : IAppCodeAnalysisPlugin
         | project timestamp, type, method, outerMethod, details, customDimensions, operation_Name
         | top 10 by timestamp desc";
 
-        var stackTrace = await _appInsightsPlugin.ExecuteAppInsightsQuery(resourceId, stackTraceQuery);
+        var stackTrace = await _appInsightsPlugin.QueryAppInsightsByWebAppSettings(resourceId, stackTraceQuery);
         return stackTrace;
     }
 
@@ -92,7 +92,7 @@ public class AppCodeAnalysisPlugin : IAppCodeAnalysisPlugin
         | extend Exception = strcat(type,"": "" ,outerMessage)
         | summarize count() by Exception";
 
-        var results = await _appInsightsPlugin.ExecuteAppInsightsQuery(resourceId, query);
+        var results = await _appInsightsPlugin.QueryAppInsightsByWebAppSettings(resourceId, query);
         return results;
     }
 
@@ -122,7 +122,7 @@ public class AppCodeAnalysisPlugin : IAppCodeAnalysisPlugin
         | project ExceptionMessage, ExceptionType, FullStackTraceString";
 
 
-        var results = await _appInsightsPlugin.ExecuteAppInsightsQuery(resourceId, query);
+        var results = await _appInsightsPlugin.QueryAppInsightsByWebAppSettings(resourceId, query);
 
         return results;
     }
@@ -154,7 +154,7 @@ public class AppCodeAnalysisPlugin : IAppCodeAnalysisPlugin
         | project ExceptionMessage, ExceptionType, FullStackTraceString ";
 
 
-        var results = await _appInsightsPlugin.ExecuteAppInsightsQuery(resourceId, query);
+        var results = await _appInsightsPlugin.QueryAppInsightsByWebAppSettings(resourceId, query);
 
         return results;
     }
@@ -186,7 +186,7 @@ public class AppCodeAnalysisPlugin : IAppCodeAnalysisPlugin
         | extend FullStackTraceString = strcat_array(FullStackTrace, ""\n"")  
         | project ExceptionMessage, ExceptionType, FullStackTraceString";
 
-        var results = await _appInsightsPlugin.ExecuteAppInsightsQuery(resourceId, query);
+        var results = await _appInsightsPlugin.QueryAppInsightsByWebAppSettings(resourceId, query);
 
         return results;
     }
@@ -225,7 +225,7 @@ public class AppCodeAnalysisPlugin : IAppCodeAnalysisPlugin
             | project TimeGenerated, Level, Message = ResultDescription)
         | order by TimeGenerated asc";
 
-        var consoleLogs = await _appInsightsPlugin.ExecuteLogAnalyticsQuery(resourceId, consoleLogsQuery, "P1D");
+        var consoleLogs = await _appInsightsPlugin.QueryLogAnalyticsByWebAppDiagnosticSettings(resourceId, consoleLogsQuery, "P1D");
         return consoleLogs;
     }
 

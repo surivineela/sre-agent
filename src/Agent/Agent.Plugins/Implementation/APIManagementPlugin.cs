@@ -155,7 +155,7 @@ namespace Agent.Plugins.Implementation
                 ");
 
 
-            return await _armHelper.ExecuteLogAnalyticsQuery(apimInstanceResourceId, queryString.ToString(), timeSpan);
+            return await _armHelper.QueryLogAnalyticsByWebAppDiagnosticSettings(apimInstanceResourceId, queryString.ToString(), timeSpan);
         }
 
         #region Azure Activity Log Methods
@@ -260,7 +260,7 @@ namespace Agent.Plugins.Implementation
                 ";
 
                 // Send the query to Log Analytics and return the result
-                string queryResult = await _armHelper.ExecuteLogAnalyticsQuery(apiManagementResourceId, queryString, timeSpan);
+                string queryResult = await _armHelper.QueryLogAnalyticsByWebAppDiagnosticSettings(apiManagementResourceId, queryString, timeSpan);
                 return queryResult;
             }
             catch (Exception ex)
@@ -312,7 +312,7 @@ namespace Agent.Plugins.Implementation
                 ";
 
                 // Execute the query and return the JSON result
-                string queryResult = await _armHelper.ExecuteLogAnalyticsQuery(apiManagementResourceId, queryString, timeSpan);
+                string queryResult = await _armHelper.QueryLogAnalyticsByWebAppDiagnosticSettings(apiManagementResourceId, queryString, timeSpan);
                 return queryResult;
             }
             catch (Exception ex)
