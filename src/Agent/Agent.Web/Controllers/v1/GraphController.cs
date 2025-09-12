@@ -140,7 +140,7 @@ namespace Agent.Web.Controllers.v1
         /// <param name="resourceId">Azure resource id.</param>
         /// <returns></returns>
         [HttpDelete("resource/{resourceId}/remarks")]
-        [AuthorizeArmOperation(ArmOperations.AgentGraphWriteActionId)]
+        [AuthorizeArmOperation(ArmOperations.AgentGraphDeleteActionId)]
         public async Task<ActionResult> DeleteResourceRemark(string resourceId)
         {
             var properties = new Dictionary<string, string> { { "remarks", "" } }; // Just mark the remark as empty for deletion.

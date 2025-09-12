@@ -327,7 +327,7 @@ public class ExtendedAgentController : ControllerBase
     /// <param name="agentName">The name of the agent to delete</param>
     /// <returns>Delete operation result</returns>
     [HttpDelete("agents/{agentName}")]
-    [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentWriteActionId)]
+    [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentDeleteActionId)]
     [ProducesResponseType(typeof(ExtendedAgentDeleteResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status401Unauthorized)]
@@ -372,7 +372,7 @@ public class ExtendedAgentController : ControllerBase
     /// <param name="toolName">The name of the tool to delete</param>
     /// <returns>Delete operation result</returns>
     [HttpDelete("tools/{toolName}")]
-    [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentWriteActionId)]
+    [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentDeleteActionId)]
     [ProducesResponseType(typeof(ExtendedAgentDeleteResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ExtendedAgentConflictResponse), StatusCodes.Status409Conflict)]

@@ -135,7 +135,7 @@ namespace Agent.Web.Controllers.v1
 
         // Delete a single document
         [HttpDelete("document/{fileName}")]
-        [AuthorizeArmOperation(ArmOperations.AgentMemoryWriteActionId)]
+        [AuthorizeArmOperation(ArmOperations.AgentMemoryDeleteActionId)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -188,7 +188,7 @@ namespace Agent.Web.Controllers.v1
 
         // Delete multiple documents at once
         [HttpDelete("documents")]
-        [AuthorizeArmOperation(ArmOperations.AgentMemoryWriteActionId)]
+        [AuthorizeArmOperation(ArmOperations.AgentMemoryDeleteActionId)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]

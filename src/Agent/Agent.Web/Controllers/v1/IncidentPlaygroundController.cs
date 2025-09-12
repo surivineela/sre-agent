@@ -188,7 +188,7 @@ public class IncidentPlaygroundController : ControllerBase
     }
 
     [HttpDelete("handlers/{handlerId}")]
-    [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementWriteActionId)]
+    [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementDeleteActionId)]
     public async Task<IActionResult> DeleteIncidentHandler(string handlerId)
     {
         _logger.LogInternalInformation("DeleteIncidentHandler: Invoked for HandlerId: {HandlerId}", handlerId);
@@ -398,7 +398,7 @@ public class IncidentPlaygroundController : ControllerBase
 
     // Delete an incident filter
     [HttpDelete("filters/{filterId}")]
-    [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementWriteActionId)]
+    [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementDeleteActionId)]
     public async Task<IActionResult> DeleteIncidentFilter(string filterId)
     {
         _logger.LogInternalInformation("DeleteIncidentFilter: Invoked for FilterId: {FilterId}", filterId);

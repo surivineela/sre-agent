@@ -156,9 +156,9 @@ namespace Agent.Core
             public const string AgentIncidentManagementReadActionId = "Microsoft.App/agents/incidentmanagement/read";
             public const string AgentIncidentManagementWriteActionId = "Microsoft.App/agents/incidentmanagement/write";
             public const string AgentIncidentManagementDeleteActionId = "Microsoft.App/agents/incidentmanagement/delete";
-            public const string AgentExtendedAgentReadActionId = "Microsoft.App/agents/extended/read";
-            public const string AgentExtendedAgentWriteActionId = "Microsoft.App/agents/extended/write";
-            public const string AgentExtendedAgentDeleteActionId = "Microsoft.App/agents/extended/delete";
+            public const string AgentExtendedAgentReadActionId = "Microsoft.App/agents/extendedagents/read";
+            public const string AgentExtendedAgentWriteActionId = "Microsoft.App/agents/extendedagents/write";
+            public const string AgentExtendedAgentDeleteActionId = "Microsoft.App/agents/extendedagents/delete";
         }
     }
 }

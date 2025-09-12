@@ -335,7 +335,7 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpDelete("{threadId}")]
-        [AuthorizeArmOperation(ArmOperations.AgentThreadWriteActionId)]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadDeleteActionId)]
         public async Task<IActionResult> DeleteThread(Guid threadId)
         {
             var thread = await repository.GetThreadAsync(threadId);
@@ -873,7 +873,7 @@ namespace Agent.Web.Controllers.v1
         /// <param name="evaluationId">The evaluation ID to delete</param>
         /// <returns>Success status</returns>
         [HttpDelete("evaluations/{evaluationId}")]
-        [AuthorizeArmOperation(ArmOperations.AgentThreadWriteActionId)]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadDeleteActionId)]
         public async Task<IActionResult> DeleteThreadEvaluation(Guid evaluationId)
         {
             try
