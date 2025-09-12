@@ -22,6 +22,7 @@ configuration:
       - GitOps/AdvancedSecurity
       - build-dotnet
       - build-npm
+      - Run Evaluation Tests
     - branchNamePattern: "release/*"
       requiredApprovingReviewsCount: 2
       restrictsPushes: true
@@ -35,8 +36,10 @@ configuration:
       - k4appscore
       - srea-devs
       requiredStatusChecks:
+      - GitOps/AdvancedSecurity
       - build-dotnet
       - build-npm
+      - Run Evaluation Tests
     - branchNamePattern: "rcaagent-port-new-framework"
       requiredApprovingReviewsCount: 2
       restrictsPushes: true
