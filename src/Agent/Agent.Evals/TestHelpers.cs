@@ -439,6 +439,12 @@ public static class TestHelpers
         var builder = BuildTestApp(out var _);
         builder.RegisterDefaultServices();
         builder.RegisterServicesForAgentFrameworkEval();
+        // Ensure repositories required by runtime services are available for tests.
+        // Some services validate the full service graph at Host build time and expect IAgentTasksRepository.
+        // Provide a minimal mock to satisfy DI during test host initialization.
+        builder.Services.AddSingleton<IAgentTasksRepository>(sp => Mock.Of<IAgentTasksRepository>());
+        // Register AgentTaskToolResultHelper used by runtime services
+        builder.Services.AddSingleton<Agent.Runtime.Helpers.AgentTaskToolResultHelper>();
         var host = builder.Build();
         await host.StartAsync();
         return TestHost.Create(host);

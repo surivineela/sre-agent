@@ -2506,10 +2506,35 @@ namespace Agent.Plugins
             }
 
             // Extract subscription and resource group from the identity
-            var identityParts = identityResourceId.Split('/');
-            var subscription = identityParts[2];
-            var resourceGroup = identityParts[4];
-            var identityName = identityParts[8];
+            var identityParts = identityResourceId?.Split('/', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
+
+            // identityResourceId is expected to be in the form:
+            // /subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}
+            // but it may sometimes be missing or in a different format. Guard against that.
+            string subscription = string.Empty;
+            string resourceGroup = string.Empty;
+            string identityName = identityResourceId ?? string.Empty; // fallback to full string for display if specific parts missing
+
+            try
+            {
+                if (identityParts.Length >= 3)
+                {
+                    subscription = identityParts[2];
+                }
+                if (identityParts.Length >= 5)
+                {
+                    resourceGroup = identityParts[4];
+                }
+                if (identityParts.Length >= 9)
+                {
+                    identityName = identityParts[8];
+                }
+            }
+            catch (Exception ex)
+            {
+                // Shouldn't happen because of guards above, but log defensively and keep the fallbacks
+                _logger?.LogWarning(ex, "Unexpected format for agent identity resource id: {IdentityResourceId}", identityResourceId);
+            }
 
             // Extract AKS cluster details from resourceId
             var aksParts = resourceId.Split('/');
