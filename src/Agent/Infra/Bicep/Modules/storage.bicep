@@ -82,6 +82,15 @@ resource blobEndpointSetting 'Microsoft.AppConfiguration/configurationStores/key
   }
 }
 
+// DataConnector Settings
+resource dataConnectorStorageNameSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
+  name: 'AppSettings:Core:DataConnectorSettings:Storage:BlobStorageContainerName'
+  parent: appConfig
+  properties: {
+    value: dataConnectorContainer.name
+  }
+}
+
 // AgentMemory Settings
 resource agentMemoryStorageAccountNameSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
   name: 'AppSettings:Core:AgentMemory:StorageAccountName'

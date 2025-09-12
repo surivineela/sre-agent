@@ -43,7 +43,7 @@ resource searchService 'Microsoft.Search/searchServices@2025-02-01-preview' = {
     }
     semanticSearch: 'free'
   }
-}
+    }
 
 // Settings
 resource searchEndpointSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
@@ -59,6 +59,39 @@ resource identitySetting 'Microsoft.AppConfiguration/configurationStores/keyValu
   parent: appConfig
   properties: {
     value: identity.id
+  }
+}
+
+// DataConnector Settings
+resource dataConnectorSearchIndexNameSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
+  name: 'AppSettings:Core:DataConnectorSettings:Search:IndexName'
+  parent: appConfig
+  properties: {
+    value: '${namePrefix}-dataconnector-index'
+  }
+}
+
+resource dataConnectorSearchSkillsetNameSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
+  name: 'AppSettings:Core:DataConnectorSettings:Search:SkillsetName'
+  parent: appConfig
+  properties: {
+    value: '${namePrefix}-dataconnector-skillsets'
+  }
+}
+
+resource dataConnectorSearchIndexerNameSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
+  name: 'AppSettings:Core:DataConnectorSettings:Search:IndexerName'
+  parent: appConfig
+  properties: {
+    value: '${namePrefix}-dataconnector-indexer'
+  }
+}
+
+resource dataConnectorSearchDataSourceNameSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
+  name: 'AppSettings:Core:DataConnectorSettings:Search:DataSourceName'
+  parent: appConfig
+  properties: {
+    value: '${namePrefix}-dataconnector-datasource'
   }
 }
 
