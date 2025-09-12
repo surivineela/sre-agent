@@ -96,10 +96,17 @@ namespace Agent.Plugins.Kusto
         public async Task<string> ExecuteClusterKustoQuery(
             [Description("The short name of the target Kusto cluster (without URL schema or suffix).")] string cluster,
             [Description("The name of the target Kusto database.")] string database,
-            [Description("The full Kusto query to execute.")] string fullQuery
+            [Description("The full Kusto query to execute.")] string fullQuery,
+            [Description("Whether to print the result.")] bool? printQuery = true
             )
         {
-            return (await ExecuteClusterKustoQueryInternal(cluster, database, fullQuery)).Result;
+            var queryResult = await ExecuteClusterKustoQueryInternal(cluster, database, fullQuery);
+            if (printQuery == true && queryResult.Message != null)
+            {
+                await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(ToolStatic.AsyncLocalThreadId.Value, string.Empty, queryResult.Message);
+            }
+
+            return queryResult.Result;
         }
 
         [KernelFunction("execute_kusto_query")]

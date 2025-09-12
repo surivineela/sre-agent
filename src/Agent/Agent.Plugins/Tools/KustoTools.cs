@@ -60,7 +60,7 @@ namespace Agent.Plugins.Kusto.Tools
                 case KustoExecutionMode.Query:
                     // Region parameter is not used in Query mode, as the cluster is defined in the connector
                     var formatedQuery = KustoPlugin.FormatQuery(_definition.Query!, args);
-                    return await kustoChat.ExecuteClusterKustoQuery(connector.ClusterUrl, connector.Database, formatedQuery);
+                    return await kustoChat.ExecuteClusterKustoQuery(connector.ClusterUrl, connector.Database, formatedQuery, _definition.PrintQuery);
 
                 default:
                     return string.Empty;
