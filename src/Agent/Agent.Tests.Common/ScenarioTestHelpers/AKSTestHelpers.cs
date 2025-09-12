@@ -1,9 +1,8 @@
-using Agent.Plugins.Definitions;
 using Agent.Plugins;
-using Agent.Runtime.HelperAgents;
+using Agent.Plugins.Definitions;
+using Agent.Plugins.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Agent.Plugins.Interface;
 
 namespace Agent.Tests.Common.ScenarioTestHelpers;
 public static class AKSTestHelpers
@@ -17,8 +16,6 @@ public static class AKSTestHelpers
         services.AddSingleton<ChartPluginDefinition>();
         services.AddSingleton<GraphDBPluginDefinition>();
         services.AddSingleton<TimePluginDefinition>();
-        services.AddSingleton<HelperAgentsPluginDefinition>();
-        services.AddSingleton<DiagnosisAgent>();
 
         services.AddSingleton<MIConfigurationCheckPluginDefinition>()
                 .AddSingleton(sp => new Mock<IMIConfigurationCheckPlugin>().Object)

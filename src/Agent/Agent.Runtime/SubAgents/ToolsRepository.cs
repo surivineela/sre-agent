@@ -7,10 +7,8 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
-using Agent.Runtime.HelperAgents;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.Models;
-using Agent.Runtime.SubAgents.Core;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Runtime.SubAgents;
@@ -108,8 +106,6 @@ public class ToolsRepository : IToolsRepository
         RegisterPlugin<SourceCodeAnalysisAgentPluginDefinition>();
 
         RegisterPlugin<AzureSupportCenterPluginDefinition>();
-
-        RegisterPlugin<HelperAgentsPluginDefinition>();
     }
 
     /// <summary>
@@ -162,7 +158,7 @@ public class ToolsRepository : IToolsRepository
 
     public string Register202<T>(
         Expression<Func<T, Delegate>> submitFunctionSelector,
-        Expression<Func<T, Delegate>> executeFunctionSelector) where T: notnull
+        Expression<Func<T, Delegate>> executeFunctionSelector) where T : notnull
     {
         var submitMethodInfo = ToolHelper.GetMethodFromExpression(submitFunctionSelector);
         var executeMethodInfo = ToolHelper.GetMethodFromExpression(executeFunctionSelector);
@@ -170,20 +166,20 @@ public class ToolsRepository : IToolsRepository
         return Register202<T>(submitMethodInfo, executeMethodInfo);
     }
 
-    public string Register202<T>(MethodInfo submitMethodInfo, MethodInfo executeMethodInfo) where T: notnull
+    public string Register202<T>(MethodInfo submitMethodInfo, MethodInfo executeMethodInfo) where T : notnull
     {
         var sig = GetSignature(submitMethodInfo);
         _aiFunctions.Add(sig, new DeferredToolFunction202<T>(_serviceProvider, submitMethodInfo, executeMethodInfo));
         return sig;
     }
 
-    public string Register200<T>(Expression<Func<T, Delegate>> executeFunctionSelector) where T: notnull
+    public string Register200<T>(Expression<Func<T, Delegate>> executeFunctionSelector) where T : notnull
     {
         var methodInfo = ToolHelper.GetMethodFromExpression(executeFunctionSelector);
         return Register200<T>(methodInfo);
     }
 
-    public string Register200<T>(MethodInfo methodInfo) where T: notnull
+    public string Register200<T>(MethodInfo methodInfo) where T : notnull
     {
         var sig = GetSignature(methodInfo);
         _aiFunctions.Add(sig, new DeferredToolFunction200<T>(_serviceProvider, methodInfo));

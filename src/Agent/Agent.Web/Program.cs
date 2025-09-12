@@ -43,7 +43,6 @@ using Agent.Prometheus.Services;
 using Agent.Runtime;
 using Agent.Runtime.AgentTasks;
 using Agent.Runtime.Communication;
-using Agent.Runtime.HelperAgents;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.IncidentHandlerAgent;
 using Agent.Runtime.Interfaces;
@@ -574,10 +573,6 @@ public class Program
             .AddSingleton<IResourceMetricsCollector, RedisMetricsCollector>()
             .AddSingleton<IResourceMetricsCollector, AKSMetricsCollector>()
             .AddSingleton<IResourceMetricsCollector, APIManagementMetricsCollector>()
-
-            // helper agents
-            .AddTransient<HelperAgentsPluginDefinition>()
-            .AddTransient<DiagnosisAgent>()
 
             // scanner agents
             .AddTransient<CVEAgent>()

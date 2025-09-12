@@ -178,20 +178,6 @@ namespace Agent.Runtime
                         })
                         .Build();
                 })
-                .AddKeyedSingleton("helper-agent-reasoning", (sp, _) =>
-                {
-                    var client = sp.GetRequiredService<AzureOpenAIClient>();
-                    var openAISettings = sp.GetRequiredService<OpenAISettings>();
-                    var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
-
-                    return sp.CreateChatClientBuilder()
-                        .UseFunctionInvocation(loggerFactory, x =>
-                        {
-                            x.IncludeDetailedErrors = true;
-                            x.MaximumIterationsPerRequest = 20;
-                        })
-                        .Build();
-                })
                 .AddKeyedSingleton("subagentv2-reasoning", (sp, _) =>
                 {
                     var client = sp.GetRequiredService<AzureOpenAIClient>();

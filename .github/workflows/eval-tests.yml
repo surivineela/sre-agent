@@ -204,38 +204,28 @@ jobs:
 
           # Find .trx files and parse results with improved error handling
           # Parse test results with xmllint (preferred) or grep fallback
-          trx_files=$(find ./TestResultsUnstable -name "*.trx" 2>/dev/null || echo "")
-          if [ -z "$trx_files" ]; then
+          latest_trx_file=$(find ./TestResultsUnstable -name "*.trx" -type f 2>/dev/null | xargs ls -t 2>/dev/null | head -1 || echo "")
+          if [ -z "$latest_trx_file" ]; then
             echo "❌ No .trx files found in ./TestResultsUnstable/"
             echo "🔍 Directory contents: $(ls -1 ./TestResultsUnstable/ 2>/dev/null | head -5 || echo 'empty or missing')"
             total=0
             failed=0
             passed=0
           else
-            echo "✅ Found .trx files: $(basename $trx_files)"
+            echo "✅ Found .trx file: $(basename $latest_trx_file)"
 
             # Use xmllint with proper namespace handling
-            xmllint --xpath "count(//*[local-name()='UnitTestResult'])" $trx_files
-            total=$(xmllint --xpath "count(//*[local-name()='UnitTestResult'])" $trx_files 2>/dev/null || echo 0)
-            echo "XmlLint Total tests: $total"
-            xmllint --xpath "count(//*[local-name()='UnitTestResult'][@outcome='Failed'])" $trx_files
-            failed=$(xmllint --xpath "count(//*[local-name()='UnitTestResult'][@outcome='Failed'])" $trx_files 2>/dev/null || echo 0)
-            echo "XmlLint Failed tests: $failed"
+            total=$(xmllint --xpath "count(//*[local-name()='UnitTestResult'])" $latest_trx_file 2>/dev/null || echo 0)
+            failed=$(xmllint --xpath "count(//*[local-name()='UnitTestResult'][@outcome='Failed'])" $latest_trx_file 2>/dev/null || echo 0)
 
             # Fallback to grep if xmllint failed
-            if [ "$total" = "0" ] && grep -q "UnitTestResult" $trx_files 2>/dev/null; then
+            if [ "$total" = "0" ] && grep -q "UnitTestResult" $latest_trx_file 2>/dev/null; then
               echo "⚠️ xmllint failed, falling back to grep..."
-              total=$(grep -h "<UnitTestResult" $trx_files | wc -l 2>/dev/null || echo 0)
-              failed=$(grep -h 'outcome="Failed"' $trx_files | wc -l 2>/dev/null || echo 0)
+              total=$(grep -h "<UnitTestResult" $latest_trx_file | wc -l 2>/dev/null || echo 0)
+              failed=$(grep -h 'outcome="Failed"' $latest_trx_file | wc -l 2>/dev/null || echo 0)
             fi
 
-            echo "DEBUG: About to calculate passed = total - failed"
-            echo "DEBUG: total='$total' (length: ${#total})"
-            echo "DEBUG: failed='$failed' (length: ${#failed})"
-            echo "DEBUG: total type: $(echo "$total" | od -c)"
-            echo "DEBUG: failed type: $(echo "$failed" | od -c)"
             passed=$((total - failed))
-            echo "DEBUG: Arithmetic completed, passed='$passed'"
           fi
 
           echo "Total tests: $total"
