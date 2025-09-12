@@ -62,6 +62,7 @@ public class ReasoningLoop : IDisposable
     private TelemetrySpan? _currentAgentSpan;
     private TelemetrySpan? _currentToolSpan;
     private TelemetrySpan? _currentGenerationSpan;
+    private Exception? _currentException;
     private TelemetrySpan? _currentSummarizerSpan;
     private TelemetrySpan? _currentCriticSpan;
     private readonly IAgentRuntimeModifier<AgentContext> _agentRuntimeModifier;
@@ -1029,6 +1030,7 @@ public class ReasoningLoop : IDisposable
                 || (ex.Message?.Contains("TooManyRequests", StringComparison.OrdinalIgnoreCase) ?? false)
                 || (ex.Message?.Contains("rate limit", StringComparison.OrdinalIgnoreCase) ?? false))
         {
+            _currentException = ex;
             var parentSpan = _currentAgentSpan ?? _rootSpan;
             var errorSpan = _tracer.StartActiveSpan("error", SpanKind.Internal, parentSpan);
             errorSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
@@ -1047,6 +1049,7 @@ public class ReasoningLoop : IDisposable
         }
         catch (Exception ex)
         {
+            _currentException = ex;
             var parentSpan = _currentAgentSpan ?? _rootSpan;
             var errorSpan = _tracer.StartActiveSpan("error", SpanKind.Internal, parentSpan);
             errorSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
@@ -1064,6 +1067,29 @@ public class ReasoningLoop : IDisposable
         }
         finally
         {
+            // Ensure _currentGenerationSpan is always closed with appropriate error context
+            if (_currentGenerationSpan != null)
+            {
+                if (_currentException != null)
+                {
+                    // We're in an exception context - add specific error details
+                    _currentGenerationSpan.SetAttribute("error.message", $"{_currentException.GetType()}: {_currentException.Message}");
+                    _currentGenerationSpan.SetAttribute("error.type", "exception");
+                    _currentGenerationSpan.SetAttribute("completion.status", "failed");
+                }
+                else
+                {
+                    // Normal completion but span wasn't closed - likely interrupted
+                    _currentGenerationSpan.SetAttribute("completion.status", "interrupted");
+                }
+                
+                _currentGenerationSpan.End();
+                _currentGenerationSpan = null;
+            }
+            
+            // Reset exception state for next iteration
+            _currentException = null;
+            
             _currentAgentSpan?.End();
             _currentAgentSpan = null;
         }
