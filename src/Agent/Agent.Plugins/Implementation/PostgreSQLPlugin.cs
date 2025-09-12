@@ -1,19 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
-using Agent.Logging;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
 using Agent.Plugins.Services;
 using Azure.Core;
-using Azure.ResourceManager;
+using Azure.Monitor.Query;
+using Azure.ResourceManager.Monitor;
+using Azure.ResourceManager.OperationalInsights;
 using Azure.ResourceManager.PostgreSql.FlexibleServers;
 using Azure.ResourceManager.Resources;
-using Azure.ResourceManager.Monitor;
-using Azure.Monitor.Query.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Plugins.Implementation;
@@ -28,6 +23,7 @@ public class PostgreSQLPlugin : IPostgreSQLPlugin
     private readonly IPlaybookService _playbookService;
     private readonly IArmClientFactory _armClientFactory;
     private readonly AzureMonitorMetricsHelper _azureMonitorMetricsHelper;
+    private readonly IAuthenticationService _authenticationService;
 
     /// <summary>
     /// Gets or sets the thread ID
@@ -42,18 +38,21 @@ public class PostgreSQLPlugin : IPostgreSQLPlugin
     /// <param name="playbookService">Service for loading playbook content</param>
     /// <param name="armClientFactory">Factory for creating ARM clients</param>
     /// <param name="azureMonitorMetricsHelper">Helper for Azure Monitor metrics queries</param>
+    /// <param name="authenticationService">Service for authentication</param>
     public PostgreSQLPlugin(
         ILogger<PostgreSQLPlugin> logger,
         ArmHelper armHelper,
         IPlaybookService playbookService,
         IArmClientFactory armClientFactory,
-        AzureMonitorMetricsHelper azureMonitorMetricsHelper)
+        AzureMonitorMetricsHelper azureMonitorMetricsHelper,
+        IAuthenticationService authenticationService)
     {
         _logger = logger;
         _armHelper = armHelper;
         _playbookService = playbookService;
         _armClientFactory = armClientFactory;
         _azureMonitorMetricsHelper = azureMonitorMetricsHelper;
+        _authenticationService = authenticationService;
     }
 
     /// <summary>
@@ -220,31 +219,42 @@ public class PostgreSQLPlugin : IPostgreSQLPlugin
                 );
             }
 
-            // Mock slow query data
-            var slowQueries = new List<SlowQuery>
+            // Get workspace ARM resource ID for Log Analytics queries
+            var workspaceArmId = configStatus.LogAnalyticsWorkspace;
+            if (string.IsNullOrEmpty(workspaceArmId))
             {
-                new SlowQuery(
-                    QueryText: "SELECT * FROM user_activity WHERE event_date >= '2025-06-01'",
-                    ExecutionCount: 1247,
-                    AverageDuration: 2100.0,
-                    MaxDuration: 5200.0,
-                    ExecutionPlan: "Sequential Scan on user_activity (cost=0.00..1,250,000.00 rows=50000 width=100)",
-                    Issues: new List<string> { "Missing index on event_date column", "Full table scan" }
-                )
-            };
+                _logger.LogInternalWarning($"[postgresql_query_analysis] No Log Analytics workspace found for {resourceId}");
+                return new SlowQueryAnalysis(
+                    ResourceId: resourceId,
+                    SlowQueries: new List<SlowQuery>(),
+                    Recommendations: new List<string> { "Configure diagnostic settings to send PostgreSQL logs to Log Analytics workspace" },
+                    Summary: "No Log Analytics workspace configured - cannot analyze query performance from logs."
+                );
+            }
 
-            var recommendations = new List<string>
+            // Get the actual workspace customerId needed for querying
+            var workspaceCustomerId = await GetLogAnalyticsWorkspaceCustomerIdAsync(workspaceArmId);
+            if (string.IsNullOrEmpty(workspaceCustomerId))
             {
-                "CREATE INDEX CONCURRENTLY idx_user_activity_event_date ON user_activity(event_date);",
-                "Consider partitioning large tables by date",
-                "Review query patterns for similar missing indexes"
-            };
+                _logger.LogInternalWarning($"[postgresql_query_analysis] Could not retrieve workspace customerId from {workspaceArmId}");
+                return new SlowQueryAnalysis(
+                    ResourceId: resourceId,
+                    SlowQueries: new List<SlowQuery>(),
+                    Recommendations: new List<string> { "Unable to access Log Analytics workspace - check workspace permissions" },
+                    Summary: "Could not access Log Analytics workspace for query performance analysis."
+                );
+            }
+
+            // Query slow queries from Log Analytics
+            var slowQueries = await GetSlowQueriesFromLogAnalyticsAsync(workspaceCustomerId, window);
+            var recommendations = GenerateSlowQueryRecommendations(slowQueries);
+            var summary = GenerateSlowQuerySummary(slowQueries);
 
             var result = new SlowQueryAnalysis(
                 ResourceId: resourceId,
                 SlowQueries: slowQueries,
                 Recommendations: recommendations,
-                Summary: "Found 1 slow query with missing index causing sequential scans. Recommended index creation should improve performance by 95%."
+                Summary: summary
             );
 
             _logger.LogInternalInformation($"[postgresql_query_analysis] Found {slowQueries.Count} slow queries for {resourceId}");
@@ -354,7 +364,9 @@ public class PostgreSQLPlugin : IPostgreSQLPlugin
             _logger.LogInternalError(ex, $"[postgresql_playbook] Error getting playbook: {playbookName}");
             throw;
         }
-    }    /// <summary>
+    }
+
+    /// <summary>
     /// Validates PostgreSQL diagnostic configuration and identifies missing setup steps
     /// </summary>
     /// <param name="resourceId">The full Azure resource ID of the PostgreSQL server</param>
@@ -728,7 +740,8 @@ public class PostgreSQLPlugin : IPostgreSQLPlugin
     /// </summary>
     /// <param name="resourceId">The full Azure resource ID of the PostgreSQL server</param>
     /// <returns>True if diagnostic settings are configured</returns>
-    private async Task<bool> CheckDiagnosticSettingsAsync(string resourceId)    {
+    private async Task<bool> CheckDiagnosticSettingsAsync(string resourceId)
+    {
         try
         {
             // Validate and ensure we have a proper Azure resource ID
@@ -864,7 +877,7 @@ public class PostgreSQLPlugin : IPostgreSQLPlugin
             // TODO: Implement actual PostgreSQL connection and query execution
             // For now, return realistic mock data that demonstrates bloat analysis
             await Task.Delay(200); // Simulate async database query
-            
+
             var bloatedTables = new List<BloatedTable>
             {
                 new BloatedTable(
@@ -958,7 +971,7 @@ public class PostgreSQLPlugin : IPostgreSQLPlugin
             // TODO: Implement actual PostgreSQL connection and query execution
             // For now, return realistic mock data that demonstrates autovacuum analysis
             await Task.Delay(150); // Simulate async database query
-            
+
             var tableSettings = new List<TableAutovacuumSettings>
             {
                 new TableAutovacuumSettings(
@@ -1059,7 +1072,7 @@ public class PostgreSQLPlugin : IPostgreSQLPlugin
             // TODO: Implement actual PostgreSQL connection and query execution
             // For now, return realistic mock data that demonstrates table activity analysis
             await Task.Delay(120); // Simulate async database query
-            
+
             var baseDate = DateTime.UtcNow;
             var tableActivities = new List<TableActivity>
             {
@@ -1190,7 +1203,7 @@ public class PostgreSQLPlugin : IPostgreSQLPlugin
             // TODO: Implement actual PostgreSQL connection and query execution
             // For now, return realistic mock data that demonstrates database overview
             await Task.Delay(100); // Simulate async database query
-            
+
             var summary = "Database shows signs of maintenance needs. " +
                          "High dead tuple count (1.6M) indicates autovacuum issues. " +
                          "Total database size has grown to 4.8 GB with significant bloat potential. " +
@@ -1368,7 +1381,7 @@ public class PostgreSQLPlugin : IPostgreSQLPlugin
 
             // Check configuration for enhanced metrics
             var enhancedConfig = await CheckEnhancedMetricsConfigurationAsync(resourceId);
-            
+
             // Collect optional metrics based on groups and configuration
             PostgreSQLEnhancedMetrics? enhanced = null;
             if (groups.Contains(PostgreSQLMetricGroup.Enhanced))
@@ -1438,7 +1451,7 @@ public class PostgreSQLPlugin : IPostgreSQLPlugin
         {
             var duration = (DateTime.UtcNow - startTime).TotalSeconds;
             _logger.LogInternalError(ex, $"[postgresql_metrics_groups] Error collecting metrics for {resourceId}");
-            
+
             // Return minimal result with error info
             return new PostgreSQLMetricsWithGroups(
                 ResourceId: resourceId,
@@ -1545,9 +1558,9 @@ public class PostgreSQLPlugin : IPostgreSQLPlugin
         {
             // Use existing Azure Monitor metrics approach but return structured core metrics
             var existingMetrics = await GetAzureMonitorMetricsAsync(resourceId, window);
-            
-            var connectionPercent = existingMetrics.MaxConnections > 0 
-                ? (double)existingMetrics.ActiveConnections / existingMetrics.MaxConnections * 100.0 
+
+            var connectionPercent = existingMetrics.MaxConnections > 0
+                ? (double)existingMetrics.ActiveConnections / existingMetrics.MaxConnections * 100.0
                 : 0.0;
 
             return new PostgreSQLCoreMetrics(
@@ -1714,27 +1727,27 @@ public class PostgreSQLPlugin : IPostgreSQLPlugin
         List<string> limitations, double durationSeconds)
     {
         var summary = new List<string>();
-        
+
         summary.Add($"🔍 **PostgreSQL Metrics Collection** ({durationSeconds:F1}s)");
         summary.Add($"📊 **Core**: CPU {core.CpuPercent:F1}%, Memory {core.MemoryPercent:F1}%, Connections {core.ActiveConnections}/{core.MaxConnections}");
-        
+
         if (enhanced != null)
         {
             summary.Add($"🔄 **Enhanced**: {enhanced.ActiveQueries} active queries, {enhanced.IdleConnections} idle connections");
         }
-        
+
         if (database != null)
         {
             var dbCount = database.DatabaseStats.Count;
             var totalBackends = database.DatabaseStats.Values.Sum(d => d.Backends);
             summary.Add($"🗃️ **Database**: {dbCount} databases, {totalBackends} total backends");
         }
-        
+
         if (saturation != null)
         {
             summary.Add($"⚡ **Saturation**: Disk {saturation.DiskIOPSPercent:F1}% IOPS, {saturation.DiskBandwidthPercent:F1}% bandwidth");
         }
-        
+
         if (activity != null)
         {
             summary.Add($"📈 **Activity**: {activity.QueriesPerSecond} queries/sec, {activity.TransactionsPerSecond} txn/sec");
@@ -1755,15 +1768,15 @@ public class PostgreSQLPlugin : IPostgreSQLPlugin
         Dictionary<string, string> missing)
     {
         var summary = new List<string>();
-        
+
         summary.Add("🔧 **PostgreSQL Enhanced Metrics Configuration**");
         summary.Add($"✅ **Available Groups**: {string.Join(", ", available)}");
-        
+
         if (unavailable.Any())
         {
             summary.Add($"❌ **Unavailable Groups**: {string.Join(", ", unavailable)}");
         }
-        
+
         if (missing.Any())
         {
             summary.Add("📝 **Missing Configuration**:");
@@ -1778,6 +1791,330 @@ public class PostgreSQLPlugin : IPostgreSQLPlugin
         }
 
         return string.Join("\n", summary);
+    }
+
+    /// <summary>
+    /// Gets the Log Analytics workspace customerId from the ARM resource ID
+    /// </summary>
+    /// <param name="workspaceArmId">ARM resource ID of the Log Analytics workspace</param>
+    /// <returns>The workspace customerId needed for querying, or null if not found</returns>
+    private async Task<string?> GetLogAnalyticsWorkspaceCustomerIdAsync(string workspaceArmId)
+    {
+        try
+        {
+            var armClient = await _armClientFactory.GetArmOperationClient();
+            var workspaceResourceId = new ResourceIdentifier(workspaceArmId);
+
+            // Get the Log Analytics workspace resource
+            var workspaceResource = armClient.GetOperationalInsightsWorkspaceResource(workspaceResourceId);
+            var workspace = await workspaceResource.GetAsync();
+
+            if (workspace?.Value?.Data?.CustomerId != null)
+            {
+                var customerId = workspace.Value.Data.CustomerId.ToString();
+                _logger.LogInternalInformation($"[postgresql_query_analysis] Retrieved customerId {customerId} for workspace {workspaceArmId}");
+                return customerId;
+            }
+
+            _logger.LogInternalWarning($"[postgresql_query_analysis] No customerId found in workspace {workspaceArmId}");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"[postgresql_query_analysis] Error getting workspace customerId for {workspaceArmId}");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Queries Log Analytics for slow queries using PostgreSQL Query Store data
+    /// </summary>
+    /// <param name="workspaceCustomerId">Log Analytics workspace customerId</param>
+    /// <param name="window">Time window for query analysis</param>
+    /// <returns>List of slow queries found</returns>
+    private async Task<List<SlowQuery>> GetSlowQueriesFromLogAnalyticsAsync(string workspaceCustomerId, TimeSpan window)
+    {
+        try
+        {
+            var endTime = DateTimeOffset.UtcNow;
+            var startTime = endTime.Subtract(window);
+
+            // KQL query to get slow queries from PostgreSQL Query Store runtime statistics
+            // This queries the AzureDiagnostics table where PostgreSQL diagnostic data is stored
+            var query = $"""
+                let graphgrain = 30m; // original logic resolved to 30m because 30m < 15m is false
+                // Base dataset: normalize fields from AzureDiagnostics + PGSQLQueryStoreRuntime
+                let TimeStart = datetime({startTime:yyyy-MM-dd HH:mm:ss});
+                let TimeEnd = datetime({endTime:yyyy-MM-dd HH:mm:ss});
+                let Source =
+                	AzureDiagnostics
+                	| where TimeGenerated between (TimeStart .. TimeEnd)
+                	| where Category == 'PostgreSQLFlexQueryStoreRuntime'
+                	| project
+                		TimeGenerated,
+                		RuntimeStatsEntryId = tolong(iff(isnotempty(AdditionalFields.Runtime_stats_entry_id), AdditionalFields.Runtime_stats_entry_id,
+                							  column_ifexists('Runtime_stats_entry_id_d', column_ifexists('Runtime_stats_entry_id', column_ifexists('Runtime_stats_entry_id_s', ""))))),
+                		UserId              = toint(iff(isnotempty(AdditionalFields.Userid), AdditionalFields.Userid,
+                							  column_ifexists('Userid_d', column_ifexists('Userid', column_ifexists('Userid_s', ""))))),
+                		DatabaseId          = toint(iff(isnotempty(AdditionalFields.Dbid), AdditionalFields.Dbid,
+                							  column_ifexists('Dbid_d', column_ifexists('Dbid', column_ifexists('Dbid_s', ""))))),
+                		QueryId             = iff(isnotempty(AdditionalFields.Queryid_str), tostring(AdditionalFields.Queryid_str),
+                							  iff(isnotempty(AdditionalFields.Queryid), tostring(AdditionalFields.Queryid),
+                							  iff(isnotempty(column_ifexists('Queryid_str_s', "")), tostring(column_ifexists('Queryid_str_s', "")),
+                							  iff(isnotempty(column_ifexists('Queryid_d', "")), tostring(column_ifexists('Queryid_d', "")),
+                							  iff(isnotempty(column_ifexists('Queryid', "")), tostring(column_ifexists('Queryid', "")), tostring(column_ifexists('Queryid_s', ""))))))),
+                		PlanId              = tolong(iff(isnotempty(AdditionalFields.Plan_id), AdditionalFields.Plan_id,
+                							  column_ifexists('Plan_id_d', column_ifexists('Plan_id_s', column_ifexists('Plan_id', ""))))),
+                		StartTime           = todatetime(iff(isnotempty(AdditionalFields.Start_time), AdditionalFields.Start_time,
+                							  column_ifexists('Start_time_t', column_ifexists('Start_time', column_ifexists('Start_time_s', ""))))),
+                		EndTime             = todatetime(iff(isnotempty(AdditionalFields.End_time), AdditionalFields.End_time,
+                							  column_ifexists('End_time_t', column_ifexists('End_time', column_ifexists('End_time_s', ""))))),
+                		Calls               = tolong(iff(isnotempty(AdditionalFields.Calls), AdditionalFields.Calls,
+                							  column_ifexists('Calls_d', column_ifexists('Calls', column_ifexists('Calls_s', ""))))),
+                		TotalExecDurationMs = todouble(iff(isnotempty(AdditionalFields.Total_time), AdditionalFields.Total_time,
+                							  column_ifexists('Total_time_d', column_ifexists('Total_time', column_ifexists('Total_time_s', ""))))),
+                		MinExecDurationMs   = todouble(iff(isnotempty(AdditionalFields.Min_time), AdditionalFields.Min_time,
+                							  column_ifexists('Min_time_d', column_ifexists('Min_time', column_ifexists('Min_time_s', ""))))),
+                		MaxExecDurationMs   = todouble(iff(isnotempty(AdditionalFields.Max_time), AdditionalFields.Max_time,
+                							  column_ifexists('Max_time_d', column_ifexists('Max_time', column_ifexists('Max_time_s', ""))))),
+                		MeanExecDurationMs  = todouble(iff(isnotempty(AdditionalFields.Mean_time), AdditionalFields.Mean_time,
+                							  column_ifexists('Mean_time_d', column_ifexists('Mean_time', column_ifexists('Mean_time_s', ""))))),
+                		StdDevExecDurationMs= todouble(iff(isnotempty(AdditionalFields.Stddev_time), AdditionalFields.Stddev_time,
+                							  column_ifexists('Stddev_time_d', column_ifexists('Stddev_time', column_ifexists('Stddev_time_s', ""))))),
+                		Rows                = tolong(iff(isnotempty(AdditionalFields.Rows), AdditionalFields.Rows,
+                							  column_ifexists('Rows_d', column_ifexists('Rows', column_ifexists('Rows_s', ""))))),
+                		SharedBlksHit       = tolong(iff(isnotempty(AdditionalFields.Shared_blks_hit), AdditionalFields.Shared_blks_hit,
+                							  column_ifexists('Shared_blks_hit_d', column_ifexists('Shared_blks_hit', column_ifexists('Shared_blks_hit_s', ""))))),
+                		SharedBlksRead      = tolong(iff(isnotempty(AdditionalFields.Shared_blks_read), AdditionalFields.Shared_blks_read,
+                							  column_ifexists('Shared_blks_read_d', column_ifexists('Shared_blks_read', column_ifexists('Shared_blks_read_s', ""))))),
+                		SharedBlksDirtied   = tolong(iff(isnotempty(AdditionalFields.Shared_blks_dirtied), AdditionalFields.Shared_blks_dirtied,
+                							  column_ifexists('Shared_blks_dirtied_d', column_ifexists('Shared_blks_dirtied', column_ifexists('Shared_blks_dirtied_s', ""))))),
+                		SharedBlksWritten   = tolong(iff(isnotempty(AdditionalFields.Shared_blks_written), AdditionalFields.Shared_blks_written,
+                							  column_ifexists('Shared_blks_written_d', column_ifexists('Shared_blks_written', column_ifexists('Shared_blks_written_s', ""))))),
+                		LocalBlksHit        = tolong(iff(isnotempty(AdditionalFields.Local_blks_hit), AdditionalFields.Local_blks_hit,
+                							  column_ifexists('Local_blks_hit_d', column_ifexists('Local_blks_hit', column_ifexists('Local_blks_hit_s', ""))))),
+                		LocalBlksRead       = tolong(iff(isnotempty(AdditionalFields.Local_blks_read), AdditionalFields.Local_blks_read,
+                							  column_ifexists('Local_blks_read_d', column_ifexists('Local_blks_read', column_ifexists('Local_blks_read_s', ""))))),
+                		LocalBlksDirtied    = tolong(iff(isnotempty(AdditionalFields.Local_blks_dirtied), AdditionalFields.Local_blks_dirtied,
+                							  column_ifexists('Local_blks_dirtied_d', column_ifexists('Local_blks_dirtied', column_ifexists('Local_blks_dirtied_s', ""))))),
+                		LocalBlksWritten    = tolong(iff(isnotempty(AdditionalFields.Local_blks_written), AdditionalFields.Local_blks_written,
+                							  column_ifexists('Local_blks_written_d', column_ifexists('Local_blks_written', column_ifexists('Local_blks_written_s', ""))))),
+                		TempBlksRead        = tolong(iff(isnotempty(AdditionalFields.Temp_blks_read), AdditionalFields.Temp_blks_read,
+                							  column_ifexists('Temp_blks_read_d', column_ifexists('Temp_blks_read', column_ifexists('Temp_blks_read_s', ""))))),
+                		TempBlksWritten     = tolong(iff(isnotempty(AdditionalFields.Temp_blks_written), AdditionalFields.Temp_blks_written,
+                							  column_ifexists('Temp_blks_written_d', column_ifexists('Temp_blks_written', column_ifexists('Temp_blks_written_s', ""))))),
+                		BlkReadTime         = todouble(iff(isnotempty(AdditionalFields.Blk_read_time), AdditionalFields.Blk_read_time,
+                							  column_ifexists('Blk_read_time_d', column_ifexists('Blk_read_time', column_ifexists('Blk_read_time_s', ""))))),
+                		BlkWriteTime        = todouble(iff(isnotempty(AdditionalFields.Blk_write_time), AdditionalFields.Blk_write_time,
+                							  column_ifexists('Blk_write_time_d', column_ifexists('Blk_write_time', column_ifexists('Blk_write_time_s', ""))))),
+                		IsSystemQuery       = tobool(iff(isnotempty(AdditionalFields.Is_system_query), AdditionalFields.Is_system_query,
+                							  column_ifexists('Is_system_query_b', column_ifexists('Is_system_query', column_ifexists('Is_system_query_s', false))))),
+                		QueryType           = tostring(iff(isnotempty(AdditionalFields.Query_type), AdditionalFields.Query_type,
+                							  column_ifexists('Query_type_s', column_ifexists('Query_type', "")))),
+                		SearchPath          = tostring(iff(isnotempty(AdditionalFields.Search_path), AdditionalFields.Search_path,
+                							  column_ifexists('Search_path_s', column_ifexists('Search_path', "")))),
+                		SearchPathCaptureStatus = tostring(iff(isnotempty(AdditionalFields.Search_path_capture_status), AdditionalFields.Search_path_capture_status,
+                							  column_ifexists('Search_path_capture_status_s', column_ifexists('Search_path_capture_status', "")))),
+                		ParametersCaptureStatus = tostring(iff(isnotempty(AdditionalFields.Parameters_capture_status), AdditionalFields.Parameters_capture_status,
+                							  column_ifexists('Parameters_capture_status_s', column_ifexists('Parameters_capture_status', ""))))
+                	| union isfuzzy=true PGSQLQueryStoreRuntime
+                	| where EndTime between (TimeStart .. TimeEnd)
+                	| where UserId != 10  // exclude azure super user
+                ;
+                // Top 5 queries by max mean execution duration (over the period)
+                let TopQueryIDs =
+                	Source
+                	| summarize MaxMeanExecDurationMs = max(MeanExecDurationMs) by QueryId
+                	| top 5 by MaxMeanExecDurationMs desc
+                	| project QueryId;
+                // Time series for those top queries
+                Source
+                | where QueryId in (TopQueryIDs)
+                | project EndTime, MeanExecDurationMs, QueryId, Calls
+                | distinct EndTime, MeanExecDurationMs, QueryId, Calls
+                | extend EVENT_TIME_GRAPHGRAIN = bin(EndTime, 1m)
+                // Alternative (original commented): | extend EVENT_TIME_GRAPHGRAIN = bin(todatetime(End_time_t), graphgrain)
+                | make-series
+                    maxiotime = max(MeanExecDurationMs) default=0,
+                    callcount = sum(Calls) default=0
+                	on EVENT_TIME_GRAPHGRAIN from TimeStart to TimeEnd step graphgrain
+                	by QueryId = strcat('', QueryId)
+                // End of query
+                """;
+
+            var credentials = _authenticationService.GetLogAnalyticsCredential();
+            var client = new LogsQueryClient(credentials);
+
+            var response = await client.QueryWorkspaceAsync(
+                workspaceCustomerId,
+                query,
+                new QueryTimeRange(startTime, endTime));
+
+            var slowQueries = new List<SlowQuery>();
+            if (response?.Value != null)
+            {
+                var table = response.Value.Table;
+                if (table?.Rows?.Any() == true)
+                {
+                    // Map column names to indices
+                    var columnMap = new Dictionary<string, int>();
+                    for (int i = 0; i < table.Columns.Count; i++)
+                    {
+                        columnMap[table.Columns[i].Name] = i;
+                    }
+
+                    foreach (var row in table.Rows)
+                    {
+                        try
+                        {
+                            var queryId = columnMap.ContainsKey("QueryId") && row.Count > columnMap["QueryId"]
+                                ? row[columnMap["QueryId"]]?.ToString() ?? string.Empty
+                                : string.Empty;
+
+                            var timeSeriesData = columnMap.ContainsKey("maxiotime") && row.Count > columnMap["maxiotime"]
+                                ? row[columnMap["maxiotime"]]?.ToString() ?? string.Empty
+                                : string.Empty;
+
+                            var callCountData = columnMap.ContainsKey("callcount") && row.Count > columnMap["callcount"]
+                                ? row[columnMap["callcount"]]?.ToString() ?? string.Empty
+                                : string.Empty;
+
+                            if (!string.IsNullOrEmpty(queryId) && !string.IsNullOrEmpty(timeSeriesData))
+                            {
+                                // Parse time series arrays: maxiotime [0.0,0.0,632.804,0.0,...] and callcount [0,0,5,0,...]
+                                var maxDuration = 0.0;
+                                var totalDuration = 0.0;
+                                var nonZeroCount = 0;
+                                var totalExecutionCount = 0;
+
+                                if (timeSeriesData.StartsWith("[") && timeSeriesData.EndsWith("]"))
+                                {
+                                    var values = timeSeriesData.Trim('[', ']').Split(',');
+                                    foreach (var value in values)
+                                    {
+                                        if (double.TryParse(value.Trim(), out var duration) && duration > 0)
+                                        {
+                                            maxDuration = Math.Max(maxDuration, duration);
+                                            totalDuration += duration;
+                                            nonZeroCount++;
+                                        }
+                                    }
+                                }
+
+                                // Parse call count array to get total executions
+                                if (!string.IsNullOrEmpty(callCountData) && callCountData.StartsWith("[") && callCountData.EndsWith("]"))
+                                {
+                                    var callValues = callCountData.Trim('[', ']').Split(',');
+                                    foreach (var value in callValues)
+                                    {
+                                        if (int.TryParse(value.Trim(), out var count))
+                                        {
+                                            totalExecutionCount += count;
+                                        }
+                                    }
+                                }
+
+                                var avgDuration = nonZeroCount > 0 ? totalDuration / nonZeroCount : 0.0;
+
+                                if (maxDuration > 0)
+                                {
+                                    var queryText = $"Query ID: {queryId}\n\nTo get the actual query text, run:\nSELECT query_sql_text FROM query_store.query_texts_view WHERE query_text_id={queryId}";
+
+                                    var issues = new List<string>
+                                    {
+                                        "High execution duration detected",
+                                        $"Query ID {queryId} - Avg: {avgDuration:F0}ms, Peak: {maxDuration:F0}ms"
+                                    };
+
+                                    var executionPlan = $"To get execution plan, run: EXPLAIN (ANALYZE, BUFFERS) followed by the query text from query_text_id {queryId}";
+
+                                    slowQueries.Add(new SlowQuery(
+                                        QueryText: queryText,
+                                        ExecutionCount: totalExecutionCount, // Actual number of query executions from callcount array
+                                        AverageDuration: avgDuration,
+                                        MaxDuration: maxDuration,
+                                        ExecutionPlan: executionPlan,
+                                        Issues: issues
+                                    ));
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogInternalWarning($"[postgresql_query_analysis] Error parsing query row: {ex.Message}");
+                        }
+                    }
+                }
+            }
+
+            return slowQueries;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "[postgresql_query_analysis] Error querying Log Analytics for slow queries");
+            return new List<SlowQuery>();
+        }
+    }
+
+    /// <summary>
+    /// Generates recommendations based on identified slow queries
+    /// </summary>
+    /// <param name="slowQueries">List of slow queries found</param>
+    /// <returns>List of optimization recommendations</returns>
+    private List<string> GenerateSlowQueryRecommendations(List<SlowQuery> slowQueries)
+    {
+        var recommendations = new List<string>();
+
+        if (!slowQueries.Any())
+        {
+            recommendations.Add("No slow queries detected in the analyzed time window");
+            recommendations.Add("Consider extending the analysis time window if performance issues persist");
+            return recommendations;
+        }
+
+        // General recommendations based on performance data
+        recommendations.Add("Use the provided SQL commands to get actual query text and analyze with EXPLAIN");
+        recommendations.Add("Consider query rewriting or table partitioning for slow queries");
+
+        // Add specific recommendations for each slow query
+        foreach (var query in slowQueries.OrderByDescending(q => q.AverageDuration).Take(3))
+        {
+            var queryIdMatch = System.Text.RegularExpressions.Regex.Match(query.QueryText, @"Query ID: (\d+)");
+            if (queryIdMatch.Success)
+            {
+                var queryId = queryIdMatch.Groups[1].Value;
+                recommendations.Add($"Query ID {queryId}: Average {query.AverageDuration:F0}ms - Get query text and run EXPLAIN ANALYZE for optimization");
+            }
+        }
+
+        recommendations.Add("Monitor Query Store statistics regularly for performance trends");
+        recommendations.Add("Consider implementing query caching for frequently executed queries");
+        recommendations.Add("Use pg_stat_statements for additional query performance insights");
+
+        return recommendations;
+    }
+
+    /// <summary>
+    /// Generates a summary of the slow query analysis
+    /// </summary>
+    /// <param name="slowQueries">List of slow queries found</param>
+    /// <returns>Analysis summary</returns>
+    private string GenerateSlowQuerySummary(List<SlowQuery> slowQueries)
+    {
+        if (!slowQueries.Any())
+            return "✅ No slow queries detected in the analyzed time window. Query performance appears normal.";
+
+        var totalQueries = slowQueries.Count;
+        var avgDuration = slowQueries.Average(q => q.AverageDuration);
+        var maxDuration = slowQueries.Max(q => q.MaxDuration);
+        var totalExecutions = slowQueries.Sum(q => q.ExecutionCount);
+        var slowestQuery = slowQueries.OrderByDescending(q => q.AverageDuration).First();
+
+        return $"⚠️ Found {totalQueries} queries requiring analysis. " +
+               $"Average duration: {avgDuration:F0}ms, Maximum: {maxDuration:F0}ms. " +
+               $"Total executions: {totalExecutions:N0}. " +
+               $"Slowest query averages {slowestQuery.AverageDuration:F0}ms. " +
+               $"Use provided SQL commands to get query text for optimization.";
     }
 
     /// <summary>
@@ -1796,4 +2133,5 @@ public class PostgreSQLPlugin : IPostgreSQLPlugin
         return resourceId.StartsWith("/subscriptions/", StringComparison.OrdinalIgnoreCase) ||
                resourceId.StartsWith("/providers/", StringComparison.OrdinalIgnoreCase);
     }
+
 }

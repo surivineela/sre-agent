@@ -58,12 +58,12 @@ namespace Agent.Tests.Unit
 
             // Create mock AzureMonitorMetricsHelper with all required constructor parameters
             var mockAzureMonitorMetricsHelper = new Mock<AzureMonitorMetricsHelper>(
-                mockHttpClientFactory.Object, 
-                mockArmClientFactory.Object, 
-                mockAuthService.Object, 
+                mockHttpClientFactory.Object,
+                mockArmClientFactory.Object,
+                mockAuthService.Object,
                 mockAzureSettings);
 
-            _postgreSQLPlugin = new PostgreSQLPlugin(_mockLogger.Object, armHelper, _playbookService, mockArmClientFactory.Object, mockAzureMonitorMetricsHelper.Object);
+            _postgreSQLPlugin = new PostgreSQLPlugin(_mockLogger.Object, armHelper, _playbookService, mockArmClientFactory.Object, mockAzureMonitorMetricsHelper.Object, mockAuthService.Object);
         }
 
         [Fact]

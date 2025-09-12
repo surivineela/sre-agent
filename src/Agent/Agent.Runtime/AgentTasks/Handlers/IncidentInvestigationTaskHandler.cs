@@ -122,7 +122,7 @@ public sealed class IncidentInvestigationTaskHandler(
             // 1. Initial Investigation
             logger.LogInternalInformation("Starting initial investigation for task: {TaskId}", agentTask.Id);
             var currentStepSpan = tracingHelper.StartAgentTaskStepSpan("InitialInvestigation");
-            
+
             // Set investigation step context for tool result routing
             Core.ToolStatic.AsyncLocalInvestigationStepContext.Value = new InvestigationStepContext(
                 "InitialInvestigation");
@@ -207,7 +207,7 @@ public sealed class IncidentInvestigationTaskHandler(
                         var toolResultsStepTitle = "Context Gathering Operation Results";
                         var existingToolResultsStep = currentProperties.InitialInvestigation.GatheringContext.Steps
                             .FirstOrDefault(s => s.Title.Equals(toolResultsStepTitle, StringComparison.OrdinalIgnoreCase));
-                        
+
                         if (existingToolResultsStep != null && existingToolResultsStep.ToolExecutions.Any())
                         {
                             // Add the tool results to the end of the steps
@@ -241,7 +241,7 @@ public sealed class IncidentInvestigationTaskHandler(
             // 2. Forming Hypothesis
             logger.LogInternalInformation("Starting forming hypothesis for task: {TaskId}", agentTask.Id);
             currentStepSpan = tracingHelper.StartAgentTaskStepSpan("FormingHypothesis");
-            
+
             // Set investigation step context for tool result routing
             Core.ToolStatic.AsyncLocalInvestigationStepContext.Value = new InvestigationStepContext(
                 "FormingHypothesis");
@@ -555,7 +555,6 @@ public sealed class IncidentInvestigationTaskHandler(
             ]);
         }
 
-
         toolNames.RemoveAll(name => !toolFactory.HasTool(name));
 
         // Remove duplicates
@@ -616,7 +615,7 @@ public sealed class IncidentInvestigationTaskHandler(
                 {
                     Converters = { new JsonStringEnumConverter() }
                 };
-                var updatedAgentTaskInfoJson = JsonSerializer.Serialize(updatedAgentTaskInfo, options);                
+                var updatedAgentTaskInfoJson = JsonSerializer.Serialize(updatedAgentTaskInfo, options);
 
                 await threadRepository.UpdateMessageAsync(_currentAgentTask.ThreadId, (Guid)_deepInvestigationNotificationMessageId, updatedAgentTaskInfoJson, updatedAgentTaskInfo);
             }
@@ -933,10 +932,10 @@ public sealed class IncidentInvestigationTaskHandler(
 
             // Set agent task context for tool result routing
             Core.ToolStatic.AsyncLocalAgentTaskId.Value = _currentAgentTask?.Id;
-            
-            logger.LogInternalInformation("Set AsyncLocalAgentTaskId to {AgentTaskId} for tool {ToolName}", 
+
+            logger.LogInternalInformation("Set AsyncLocalAgentTaskId to {AgentTaskId} for tool {ToolName}",
                 _currentAgentTask?.Id, toolCall.Tool.Name);
-            
+
             Core.ToolStatic.AsyncLocalThreadId.Value = context.ThreadId;
             Core.ToolStatic.AsyncLocalCancellationToken.Value = cancellationToken;
             var result = await toolCall.Tool.InvokeAsync(new AIFunctionArguments(toolCall.FunctionCall.Arguments), cancellationToken);
@@ -1127,9 +1126,9 @@ public sealed class IncidentInvestigationTaskHandler(
             Core.ToolStatic.AsyncLocalInvestigationStepContext.Value = new InvestigationStepContext(
                 "HypothesisValidation",
                 step.Title,
-                currentHypothesisId 
+                currentHypothesisId
             );
-            
+
             // todo: test selecting tool names per-step instead of once at the beginning
             var stepExecutionAgent = IncidentInvestigationAgents.CreateHypothesisValidationPlanExecutionAgent(
                 toolNames,
@@ -1167,7 +1166,7 @@ public sealed class IncidentInvestigationTaskHandler(
             // get databse item for the step to get tool executions
             HypothesisStep? databaseStep = null;
             if (_currentAgentTask != null)
-            { 
+            {
                 databaseStep = await agentTaskToolResultHelper.FindExistingHypothesisStepAsync(
                     _currentAgentTask.Id,
                     _currentAgentTask.ThreadId,

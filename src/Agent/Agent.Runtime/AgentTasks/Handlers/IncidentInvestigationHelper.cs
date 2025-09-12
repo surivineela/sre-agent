@@ -13,6 +13,18 @@ namespace Agent.Runtime.AgentTasks.Handlers;
 
 public static class IncidentInvestigationHelper
 {
+    private static readonly string[] _filterOutTools = [
+        "CheckPostgreSQLConnectivity",
+        "GetResourceHealth",
+        "AnalyzeTableBloat",
+        "AnalyzeAutovacuumConfiguration",
+        "AnalyzeTableActivity",
+        "GetDatabaseOverview",
+        "ValidateEnhancedMetricsConfiguration",
+        "AnalyzePostgreSQLHealth",
+        "GetPostgreSQLMetricsWithGroups" // depends on validate enhanced metrics
+    ];
+
     public static bool FilterTools(MethodInfo methodInfo)
     {
         if (methodInfo.GetCustomAttribute<WriteActionAttribute>() is not null)
@@ -29,6 +41,11 @@ public static class IncidentInvestigationHelper
             methodInfo.DeclaringType == typeof(AgentControlFlowPluginDefinition) ||
             methodInfo.DeclaringType == typeof(AgentReasoningControlFlowPluginDefinition) ||
             methodInfo.DeclaringType == typeof(AgentInteractionPluginDefinition))
+        {
+            return false;
+        }
+
+        if (_filterOutTools.Contains(methodInfo.Name))
         {
             return false;
         }
