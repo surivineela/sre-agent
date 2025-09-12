@@ -58,7 +58,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: changes
     timeout-minutes: 60
-    
+
     steps:
     - name: 🔍 Skip if no eval changes
       if: ${{ needs.changes.outputs.evals != 'true' }}
@@ -121,16 +121,17 @@ jobs:
 
     - name: 🧪 Run evaluation tests (GPT-4.1 model)
       if: ${{ needs.changes.outputs.evals == 'true' }}
+      id: stable_tests
       run: |
         for attempt in 1 2; do
           echo "Attempt $attempt: Running handoff evaluation tests with GPT-4.1 model"
-          
+
           # Clean up previous test results before each attempt
           if [ -d "./TestResults" ]; then
             echo "🧹 Cleaning up previous test results..."
             rm -rf ./TestResults/*
           fi
-          
+
           if dotnet test --no-restore \
             --filter "Name=GeneralAgentTests_DetailedComparison|Name=HandOffEvaluationTests" \
             --logger "console;verbosity=normal" \
@@ -139,9 +140,11 @@ jobs:
             --settings evals.runsettings \
             --verbosity quiet; then
             echo "✅ Tests passed on attempt $attempt"
+            echo "stable_outcome=success" >> $GITHUB_OUTPUT
             break
           elif [ $attempt -eq 2 ]; then
             echo "❌ Tests failed after 2 attempts"
+            echo "stable_outcome=failure" >> $GITHUB_OUTPUT
             exit 1
           else
             echo "⚠️ Test attempt $attempt failed, retrying in 3 seconds..."
@@ -156,38 +159,105 @@ jobs:
         OpenAIModel: sre3ppipe-gpt-41
         IterationCount: ${{ github.event_name == 'pull_request' && '1' || '5' }}
         SkipReactBuild: 'true'
+      continue-on-error: true
+
+    - name: 📢 Publish evaluation test results
+      uses: serverless-paas-balam/actions-test-reporter@main
+      if: ${{ always() && needs.changes.outputs.evals == 'true' }}
+      with:
+        name: Evaluation Tests
+        path: './src/Agent/Agent.Evals/TestResults/*.trx'
+        reporter: dotnet-trx
+        use-actions-summary: 'true'
+        post-pr-comment: 'true'
+        report-title: 'Stable Evaluation Test Results'
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fail-on-error: true
+
+    - name: 📦 Install XML parsing tools
+      if: ${{ needs.changes.outputs.evals == 'true' }}
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -y libxml2-utils
 
     - name: 🧪 Run UNSTABLE evaluation tests (non-blocking)
       if: ${{ needs.changes.outputs.evals == 'true' }}
       id: unstable_tests
       run: |
         echo "Running non-blocking UNSTABLE evaluation tests with TEST_FOLDER=Data/Unstable"
-        
+
         # Prepare separate results directory
         if [ -d "./TestResultsUnstable" ]; then
           rm -rf ./TestResultsUnstable/*
         fi
-        
+
         # Optional retry once to reduce flakiness
         for attempt in 1 2; do
           echo "Attempt $attempt: Unstable evals"
-          if dotnet test --no-restore \
+          dotnet test --no-restore \
             --filter "Name=GeneralAgentTests_DetailedComparison" \
             --logger "console;verbosity=normal" \
             --logger trx \
             --results-directory ./TestResultsUnstable/ \
             --settings evals.runsettings \
-            --verbosity quiet; then
-            echo "✅ Unstable evals passed on attempt $attempt"
-            break
-          elif [ $attempt -eq 2 ]; then
-            echo "❌ Unstable evals failed after 2 attempts"
-            exit 1
+            --verbosity quiet || true
+
+          # Find .trx files and parse results with improved error handling
+          # Parse test results with xmllint (preferred) or grep fallback
+          trx_files=$(find ./TestResultsUnstable -name "*.trx" 2>/dev/null || echo "")
+          if [ -z "$trx_files" ]; then
+            echo "❌ No .trx files found in ./TestResultsUnstable/"
+            echo "🔍 Directory contents: $(ls -1 ./TestResultsUnstable/ 2>/dev/null | head -5 || echo 'empty or missing')"
+            total=0
+            failed=0
+            passed=0
           else
-            echo "⚠️ Unstable eval attempt $attempt failed, retrying in 3 seconds..."
+            echo "✅ Found .trx files: $(basename $trx_files)"
+            
+            # Use xmllint with proper namespace handling
+            total=$(xmllint --xpath "count(//*[local-name()='UnitTestResult'])" $trx_files 2>/dev/null || echo 0)
+            failed=$(xmllint --xpath "count(//*[local-name()='UnitTestResult'][@outcome='Failed'])" $trx_files 2>/dev/null || echo 0)
+            
+            # Fallback to grep if xmllint failed
+            if [ "$total" = "0" ] && grep -q "UnitTestResult" $trx_files 2>/dev/null; then
+              echo "⚠️ xmllint failed, falling back to grep..."
+              total=$(grep -h "<UnitTestResult" $trx_files | wc -l 2>/dev/null || echo 0)
+              failed=$(grep -h 'outcome="Failed"' $trx_files | wc -l 2>/dev/null || echo 0)
+            fi
+            
+            passed=$((total - failed))
+          fi
+
+          echo "Total tests: $total"
+          echo "Passed tests: $passed"
+          echo "Failed tests: $failed"
+
+          if [ "$total" -gt 0 ] && [ "$failed" -eq 0 ]; then
+            echo "✅ All unstable evals passed on attempt $attempt"
+            all_passed=true
+            break
+          elif [ "$passed" -gt 0 ]; then
+            any_passed=true
+          fi
+
+          if [ $attempt -eq 1 ]; then
+            echo "⚠️ Not all unstable tests passed, retrying in 3 seconds..."
             sleep 3
           fi
         done
+
+        # Final decision
+        if [ "$all_passed" = true ]; then
+          echo "✅ Unstable evals fully passed"
+          echo "unstable_outcome=success" >> $GITHUB_OUTPUT
+        elif [ "$any_passed" = true ]; then
+          echo "⚠️ Some unstable evals passed, tolerating failures"
+          echo "unstable_outcome=partial_success" >> $GITHUB_OUTPUT
+        else
+          echo "❌ All unstable evals failed after 2 attempts"
+          echo "unstable_outcome=all_failed" >> $GITHUB_OUTPUT
+          exit 1
+        fi
       working-directory: ./src/Agent/Agent.Evals
       timeout-minutes: 30
       env:
@@ -199,22 +269,6 @@ jobs:
         TEST_FOLDER: Data/Unstable,Data/UnstableRCAAgent
       continue-on-error: true
 
-    - name: ⚠️ Warn if UNSTABLE evals failed
-      if: ${{ needs.changes.outputs.evals == 'true' && steps.unstable_tests.outcome == 'failure' }}
-      run: echo "::warning::Unstable evals (TEST_FOLDER=Data/Unstable,Data/Unstable/UnstableRCAAgent) failed but were tolerated by continue-on-error. See uploaded artifacts for details."
-
-    - name: 📢 Publish evaluation test results
-      uses: serverless-paas-balam/actions-test-reporter@main
-      if: ${{ always() && needs.changes.outputs.evals == 'true' }}
-      with:
-        name: Evaluation Tests
-        path: './src/Agent/Agent.Evals/TestResults/*.trx'
-        reporter: dotnet-trx
-        use-actions-summary: 'true'
-        post-pr-comment: 'true'
-        token: ${{ secrets.GITHUB_TOKEN }}
-        fail-on-error: true
-
     - name: 📢 Publish UNSTABLE evaluation test results
       uses: serverless-paas-balam/actions-test-reporter@main
       if: ${{ always() && needs.changes.outputs.evals == 'true' }}
@@ -224,6 +278,7 @@ jobs:
         reporter: dotnet-trx
         use-actions-summary: 'true'
         post-pr-comment: 'true'
+        report-title: 'Unstable Evaluation Test Results'
         token: ${{ secrets.GITHUB_TOKEN }}
         fail-on-error: false
 
@@ -242,3 +297,18 @@ jobs:
         name: unstable-eval-test-results
         path: ./src/Agent/Agent.Evals/TestResultsUnstable/
         retention-days: 14
+
+    - name: 🚨 Fail if ALL tests failed
+      if: ${{ needs.changes.outputs.evals == 'true' }}
+      run: |
+        if [ "${{ steps.stable_tests.outputs.stable_outcome }}" != "success" ]; then
+          echo "❌ Stable tests failed - blocking PR"
+          exit 1
+        fi
+
+        if [ "${{ steps.unstable_tests.outputs.unstable_outcome }}" = "all_failed" ]; then
+          echo "❌ All unstable tests failed - blocking PR"
+          exit 1
+        fi
+
+

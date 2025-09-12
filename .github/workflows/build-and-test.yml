@@ -157,6 +157,7 @@ jobs:
         reporter: dotnet-trx
         use-actions-summary: 'true'
         post-pr-comment: 'true'
+        report-title: 'Unit & Integration Test Results'
         token: ${{ secrets.GITHUB_TOKEN }}
         fail-on-error: false
 

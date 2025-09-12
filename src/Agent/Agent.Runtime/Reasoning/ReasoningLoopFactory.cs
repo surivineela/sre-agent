@@ -117,12 +117,12 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
 
         var agentType = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") ?? string.Empty;
         var agentName = AgentNameHelper.GetCustomerAgentName(_hostEnvironment.IsProduction());
-       
+
         if (agentType == "ACAAgent")
         {
             defaultStartingAgentName = "rca_meta_agent";
         }
-    else if (agentType == RcaRoutingConstants.AgentType)
+        else if (agentType == RcaRoutingConstants.AgentType)
         {
             // Use helper to select workflow vs conversation root agent.
             defaultStartingAgentName = ModeSwitchHelper.GetRcaRootAgent(context, _coreSettings);
@@ -162,7 +162,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
 
         // Special handling for RCARouterAgent workflow orchestration
         // Check if we're dealing with a dispatched agent that's an Orchestrator type
-    if (ModeSwitchHelper.UseWorkflowOrchestrator(agentType, context, _coreSettings) && !string.IsNullOrEmpty(currentStartingAgentName))
+        if (ModeSwitchHelper.UseWorkflowOrchestrator(agentType, context, _coreSettings) && !string.IsNullOrEmpty(currentStartingAgentName))
         {
             try
             {

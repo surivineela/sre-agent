@@ -292,12 +292,12 @@ public class ToolFactory<TContext> : IToolFactory<TContext> where TContext : cla
         }
         if (_extensibilityLoader != null)
         {
+
             var extendedTools = await _extensibilityLoader.LoadExtendedToolsAsync();
             foreach (var tool in extendedTools)
             {
                 RegisterTool(tool, onNameConflict);
             }
-
         }
 
         // Register the ToDo Write tool

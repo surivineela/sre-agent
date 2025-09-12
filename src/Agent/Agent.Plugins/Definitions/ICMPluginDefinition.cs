@@ -1,6 +1,4 @@
 using System.ComponentModel;
-using Agent.Core;
-using Agent.Core.Attributes;
 using Agent.Core.Models;
 using Agent.Core.Models.ICM;
 using Agent.Plugins.Interface;
@@ -8,7 +6,7 @@ using Agent.Plugins.Interface;
 namespace Agent.Plugins.Definitions;
 
 [AgentToolPlugin(
-    IsFirstPartyOnly = true, 
+    IsFirstPartyOnly = true,
     Category = ToolCategories.IncidentManagement,
     IsIncidentHandlerPlugin = true,
     IncidentPlatform = Core.Configuration.IncidentManagementType.Icm)]
