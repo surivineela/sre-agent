@@ -4,6 +4,7 @@
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
 using Agent.Core;
 using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
@@ -102,6 +103,14 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         }
         _logger.LogExternalInformation("orchestrationInstanceId {orchestrationInstanceId} message to thread {ThreadId}: {Message}",
             orchestrationInstanceId, threadId, message.Text);
+
+        _customerLogger.LogMessage($"[ChatThreadId {threadId}] Agent responding: {message.Text}");
+        _customerLogger.LogCustomEvent("AgentResponse", new Dictionary<string, string>
+        {
+            { "ChatThreadId", threadId?.ToString() ?? string.Empty },
+            { "Message", message.Text ?? string.Empty }
+        });
+
         Guid resolvedMessageId = messageId ?? Guid.NewGuid();
         DateTime recordedDateTime = DateTime.UtcNow;
 
@@ -114,6 +123,13 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
     {
         _logger.LogExternalInformation("Agent context {AgentContextId} of type {AgentType} message to thread {ThreadId}: {message}",
             context.Id, context.AgentType.ToString(), context.ThreadId, message.Text);
+
+        _customerLogger.LogMessage($"[ChatThreadId {context.ThreadId}] Agent responding: {message.Text}");
+        _customerLogger.LogCustomEvent("AgentResponse", new Dictionary<string, string>
+        {
+            { "ChatThreadId", context.ThreadId.ToString() ?? string.Empty },
+            { "Message", message.Text ?? string.Empty }
+        });
 
         Guid agentMessageId = messageId ?? Guid.NewGuid();
         DateTime recordedDateTime = DateTime.UtcNow;
