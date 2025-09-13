@@ -288,24 +288,31 @@ export const useThreadListWithFavoriteList = (
     }, []);
 
     // Deal with the thread that was newly created or recently updated
-    const updateThreadListsStateBasedOnThreadThatHasModifiedTimestampUpdated = useCallback((thread: Thread) => {
-        setThreadListsState(prev => {
-            if (!prev.isLoadingInitialThreads) {
-                recordCurrentPositionsOfThreadsToBeUpdated([thread.id]);
+    const updateThreadListsStateBasedOnThreadThatHasModifiedTimestampUpdated = useCallback(
+        (thread: Thread) => {
+            if (thread.source && filterInput.excludedSources?.includes(thread.source)) {
+                return;
             }
 
-            // If the thread list is in the initial loading mode due to initial render or filter change,
-            // put the thread in the temporary list until the initial loading is done.
-            // Otherwise add it to the top of the list
-            const { threadListsState: updatedThreadListsState, addedThreads } = prev.isLoadingInitialThreads
-                ? addThreadToThreadsThatHaveModifiedTimestampUpdated(prev, thread)
-                : pushAllThreadsThatHaveModifiedTimestampUpdatedToThreadLists(prev, [thread]);
+            setThreadListsState(prev => {
+                if (!prev.isLoadingInitialThreads) {
+                    recordCurrentPositionsOfThreadsToBeUpdated([thread.id]);
+                }
 
-            setUnreadThreadIds(prevUnreadThreadIds => getUpdatedUnreadThreadIds(prevUnreadThreadIds, addedThreads));
+                // If the thread list is in the initial loading mode due to initial render or filter change,
+                // put the thread in the temporary list until the initial loading is done.
+                // Otherwise add it to the top of the list
+                const { threadListsState: updatedThreadListsState, addedThreads } = prev.isLoadingInitialThreads
+                    ? addThreadToThreadsThatHaveModifiedTimestampUpdated(prev, thread)
+                    : pushAllThreadsThatHaveModifiedTimestampUpdatedToThreadLists(prev, [thread]);
 
-            return updatedThreadListsState;
-        });
-    }, []);
+                setUnreadThreadIds(prevUnreadThreadIds => getUpdatedUnreadThreadIds(prevUnreadThreadIds, addedThreads));
+
+                return updatedThreadListsState;
+            });
+        },
+        [filterInput.excludedSources]
+    );
 
     const initializeThreadListsState = (
         initialFavoriteThreads: Thread[],

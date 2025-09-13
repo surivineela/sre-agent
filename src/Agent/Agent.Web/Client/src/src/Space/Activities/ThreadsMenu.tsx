@@ -41,7 +41,7 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
     (props: IThreadsMenuProps, ref: ForwardedRef<ThreadMenuHandle>) => {
         const { selectThread, deleteThread, collapsed, setCollapsed } = props;
 
-        const excludedSources: ThreadSource[] = useMemo(() => [ThreadSource.incident], []);
+        const excludedSources: ThreadSource[] = useMemo(() => [ThreadSource.incident, ThreadSource.dailyReport], []);
 
         const {
             threadListDivRef,
