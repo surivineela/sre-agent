@@ -10,6 +10,7 @@ using Agent.Runtime.Communication;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Agent.Plugins.Interface;
+using Microsoft.SemanticKernel;
 
 namespace Agent.Runtime.SubAgents.CVEAgent
 {
@@ -23,6 +24,7 @@ namespace Agent.Runtime.SubAgents.CVEAgent
         private readonly IGithubIssuePlugin _githubIssuePlugin;
         private readonly SinkService _sinkService;
         private readonly IThreadRepository _threadRepository;
+        private readonly Kernel _kernel;
 
         public CVEScanner(
             ILogger<CVEScanner> logger,
@@ -32,7 +34,8 @@ namespace Agent.Runtime.SubAgents.CVEAgent
             IGraphDBPlugin graphDBPlugin,
             IGithubIssuePlugin githubIssuePlugin,
             SinkService sinkService,
-            IThreadRepository threadRepository)
+            IThreadRepository threadRepository,
+            Kernel kernel)
         {
             _logger = logger;
             _agentInboundCommunicationService = agentInboundCommunicationService;
@@ -42,6 +45,7 @@ namespace Agent.Runtime.SubAgents.CVEAgent
             _githubIssuePlugin = githubIssuePlugin;
             _sinkService = sinkService;
             _threadRepository = threadRepository;
+            _kernel = kernel;
         }
 
         public async Task Scan(CancellationToken cancellationToken)
@@ -88,6 +92,7 @@ namespace Agent.Runtime.SubAgents.CVEAgent
                     _githubIssuePlugin,
                     _sinkService,
                     _threadRepository,
+                    _kernel,
                     reposToScan: repos.Select(r => new RepoUrlStatus(r)).ToList());
                 await cveAgent.PrepareAgentForUserInput(agentContext: agentContext);
             }

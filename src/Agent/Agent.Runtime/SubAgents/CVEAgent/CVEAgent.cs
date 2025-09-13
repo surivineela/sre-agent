@@ -10,6 +10,7 @@ using Agent.Plugins;
 using Agent.Plugins.Interface;
 using Agent.Runtime.Communication;
 using Microsoft.Extensions.AI;
+using Microsoft.SemanticKernel;
 using AIChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
 namespace Agent.Runtime.SubAgents.CVEAgent
@@ -19,6 +20,7 @@ namespace Agent.Runtime.SubAgents.CVEAgent
         private readonly IGraphDBPlugin _graphDBPlugin;
         private readonly IGithubIssuePlugin _githubIssuePlugin;
         private readonly List<RepoUrlStatus>? _reposToScan;
+        private readonly Kernel _kernel;
 
         public CVEAgent(
             IChatClient chatClient,
@@ -26,12 +28,14 @@ namespace Agent.Runtime.SubAgents.CVEAgent
             IGithubIssuePlugin gitHubIssuePlugin,
             SinkService sinkService,
             IThreadRepository repository,
+            Kernel kernel,
             List<RepoUrlStatus>? reposToScan = null)
             : base("CVE Agent", chatClient, sinkService, repository, isConcludingThreadAfterOpeningMessages: true)
         {
             _githubIssuePlugin = gitHubIssuePlugin;
             _graphDBPlugin = graphDBPlugin;
             _reposToScan = reposToScan;
+            _kernel = kernel;
         }
 
         public override string SystemPrompt { get; protected set; } = $@"
@@ -61,7 +65,7 @@ You are **CVE Agent**. Always address yourself as ""CVE Agent"". For greeting me
         public override IList<AITool> Tools()
         {
             var graphDbPluginDefinition = new GraphDBPluginDefinition(_graphDBPlugin);
-            var githubIssuePluginDefinition = new GitHubIssuePluginDefinition(_githubIssuePlugin);
+            var githubIssuePluginDefinition = new GitHubIssuePluginDefinition(_githubIssuePlugin, _kernel);
 
             return [
                 AIFunctionFactory.Create(graphDbPluginDefinition.UpdateRepoNodeWithLastScanTime),

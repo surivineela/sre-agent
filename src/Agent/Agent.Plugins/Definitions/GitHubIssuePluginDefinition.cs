@@ -18,10 +18,12 @@ Note that if there is any auth issue when using any of these methods, call the G
 public class GitHubIssuePluginDefinition
 {
     private readonly IGithubIssuePlugin _gitHubIssuePlugin;
+    private readonly Kernel _kernel;
 
-    public GitHubIssuePluginDefinition(IGithubIssuePlugin githubIssuePlugin)
+    public GitHubIssuePluginDefinition(IGithubIssuePlugin githubIssuePlugin, Kernel kernel)
     {
         _gitHubIssuePlugin = githubIssuePlugin;
+        _kernel = kernel;
     }
 
     [KernelFunction("create_github_issue")]
@@ -108,11 +110,10 @@ resolved
     [KernelFunction("fetch_github_issue")]
     [Description("Fetch a specific github issue. If the returned object is empty and is not an exception, let the user know there were none found.")]
     public async Task<GithubIssuePluginIssue> FetchGithubIssue(
-            [Description("Github issue URL, e.g. https://github.com/owner/repo-name/issues/issueNumber")] string issueUrl,
-            Kernel kernel
+            [Description("Github issue URL, e.g. https://github.com/owner/repo-name/issues/issueNumber")] string issueUrl
         )
     {
-        return await _gitHubIssuePlugin.FetchGithubIssue(issueUrl, kernel);
+        return await _gitHubIssuePlugin.FetchGithubIssue(issueUrl, _kernel);
     }
 
     [KernelFunction("fetch_github_security_dependabot_alert")]
@@ -129,11 +130,10 @@ resolved
     [Description(@"Fetch comments for a specific github issue.")]
     public async Task<IReadOnlyList<GithubIssuePluginIssueComment>> FetchGithubIssueComments(
         [Description($"GitHub repository URL, e.g. {GitHubHelper.ExampleUrl}")] string repoUrl,
-        int issueNumber,
-        Kernel kernel
+        int issueNumber
     )
     {
-        return await _gitHubIssuePlugin.FetchGithubIssueComments(repoUrl, issueNumber, kernel);
+        return await _gitHubIssuePlugin.FetchGithubIssueComments(repoUrl, issueNumber, _kernel);
     }
 
     [KernelFunction("delete_github_issue_comment")]
