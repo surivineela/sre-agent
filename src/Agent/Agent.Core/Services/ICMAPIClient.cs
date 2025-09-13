@@ -571,11 +571,25 @@ namespace Agent.Core.Services
             {
                 return ("Success. ICM API is in read-only mode.");
             }
-            var content = new
-            {
-                Description = discussionEntry
-            };
-            var response = await SendICMPatchRequestAsync($"{IcmAPIPathPrefix}/incidents({incidentId})", content);
+
+            // ICM cert API requires different payload than user API
+            // Use cert API if cert auth is used, otherwise use user API
+
+            var response = await SendICMPatchRequestAsync($"{IcmAPIPathPrefix}/incidents({incidentId})",
+                _authType == AuthType.Certificate ? new
+                {
+                    // following the API guide here https://eng.ms/docs/products/icm/developers/editincident
+                    NewDescriptionEntry = new
+                    {
+                        Text = discussionEntry,
+                        RenderType = htmlRendering ? "Html" : "Plaintext",
+                    },
+                } : new
+                {
+                    Description = discussionEntry
+                }
+                );
+
             if (response.IsSuccessStatusCode)
             {
                 return "Discussion entry posted successfully.";
