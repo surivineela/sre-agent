@@ -20,6 +20,8 @@ namespace Agent.Logging
         public const string InvokeTool = "InvokeTool";
         public const string ToolExecution = "ToolExecution";
         public const string CriticEvaluation = "CriticEvaluation";
+    public const string CreateAgentMessage = "CreateAgentMessage";
+    public const string MarkThreadAsRead = "MarkThreadAsRead";
     public const string CreateUserMessage = "CreateUserMessage";
     public const string CreateThread = "CreateThread";
     }

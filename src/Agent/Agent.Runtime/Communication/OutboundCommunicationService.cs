@@ -78,17 +78,17 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         }
         _logger.LogExternalInformation("orchestrationInstanceId {orchestrationInstanceId} message to thread {ThreadId}: {Message}",
             orchestrationInstanceId, threadId, message.Text);
-        
+
         _customerLogger.LogMessage($"[ChatThreadId {threadId}] Agent responding: {message.Text}");
         _customerLogger.LogCustomEvent("AgentResponse", new Dictionary<string, string>
         {
             { "ChatThreadId", threadId?.ToString() ?? string.Empty },
             { "Message", message.Text ?? string.Empty }
         });
-        
+
         Guid resolvedMessageId = messageId ?? Guid.NewGuid();
         DateTime recordedDateTime = DateTime.UtcNow;
-        
+
         await AppendAgentStreamMessage(threadId ?? Guid.Empty, message.Text ?? string.Empty, type, resolvedMessageId, recordedDateTime);
         await _sinkService.SinkAgentMessageAsync(threadId ?? Guid.Empty, message.Text ?? string.Empty, agentResponseMessageId: resolvedMessageId, recordedDateTime: recordedDateTime);
     }
@@ -104,7 +104,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             orchestrationInstanceId, threadId, message.Text);
         Guid resolvedMessageId = messageId ?? Guid.NewGuid();
         DateTime recordedDateTime = DateTime.UtcNow;
-        
+
         await AppendAgentStreamMessage(threadId ?? Guid.Empty, message.Text ?? string.Empty, type, resolvedMessageId, recordedDateTime);
         await _sinkService.SinkAgentMessageAsync(threadId ?? Guid.Empty, message.Text ?? string.Empty, agentResponseMessageId: resolvedMessageId, recordedDateTime: recordedDateTime, agentTaskInfo: agentTaskInfo);
     }
@@ -312,6 +312,24 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
 
             // Check for cancellation before streaming
             cancellationToken.ThrowIfCancellationRequested();
+
+            // Emit structured agent action telemetry for plain agent messages (type == null)
+            try
+            {
+                if (type == null)
+                {
+                    Guid resolvedMessageIdForLog = messageId ?? Guid.Empty;
+                    string action = AgentActionEvents.CreateAgentMessage;
+                    string parameter = resolvedMessageIdForLog.ToString();
+                    string status = AgentActionStatus.Success;
+                    long durationMs = 0;
+                    _logger.LogAgentAction(action, parameter, status, durationMs, threadId.ToString());
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalInformation(ex, "Failed to emit LogAgentAction in AppendAgentStreamMessage for thread {ThreadId}", threadId);
+            }
 
             // Use the streaming service abstraction to send the message
             await _streamingService.StreamMessageAsync(threadId, message, type, messageId, recordedDateTime: recordedDateTime, cancellationToken: cancellationToken);
@@ -796,10 +814,10 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
     {
         var agentTaskId = ToolStatic.AsyncLocalAgentTaskId.Value;
         var stepContext = ToolStatic.AsyncLocalInvestigationStepContext.Value;
-        
-        _logger.LogInternalInformation("HandleAgentTaskAzCliResult called - Command: {Command}, Status: {Status}, AgentTaskId: {AgentTaskId}", 
+
+        _logger.LogInternalInformation("HandleAgentTaskAzCliResult called - Command: {Command}, Status: {Status}, AgentTaskId: {AgentTaskId}",
             execution.Command, execution.Status, agentTaskId);
-        
+
         if (!agentTaskId.HasValue)
         {
             _logger.LogInternalWarning("HandleAgentTaskAzCliResult called without agent task context - this should not happen");
@@ -815,11 +833,11 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
                 case AzCliExecutionStatus.PendingAuthorization:
                     await _agentTaskHelper.HandlePendingAzCliAsync(threadId, execution, agentTaskId.Value, stepContext);
                     break;
-                    
+
                 case AzCliExecutionStatus.Running:
                     await _agentTaskHelper.HandleRunningAzCliAsync(threadId, execution, agentTaskId.Value, stepContext);
                     break;
-                    
+
                 case AzCliExecutionStatus.Completed:
                 case AzCliExecutionStatus.Failed:
                 case AzCliExecutionStatus.Cancelled:
@@ -841,9 +859,9 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
     {
         var agentTaskId = ToolStatic.AsyncLocalAgentTaskId.Value;
         var stepContext = ToolStatic.AsyncLocalInvestigationStepContext.Value;
-        
+
         _logger.LogInternalInformation("HandleAgentTaskKustoResult called - AgentTaskId: {AgentTaskId}", agentTaskId);
-        
+
         if (!agentTaskId.HasValue)
         {
             _logger.LogInternalWarning("HandleAgentTaskKustoResult called without agent task context - this should not happen");
@@ -859,13 +877,13 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
                 KustoQueryResults = chatMessageContent,
                 ExecutedTimestamp = DateTime.UtcNow
             };
-            
+
             await _agentTaskHelper.SaveToolResultAsync(agentTaskId.Value, stepContext, toolResult, threadId);
-            
+
             // Add reasoning message for agent context using the same content
             var kustoMessage = new ChatMessage(ChatRole.Tool, chatMessageContent);
             await _agentTaskHelper.AddToolResultToAgentChatHistoryAsync(threadId, kustoMessage);
-            
+
             _logger.LogInternalInformation("Kusto tool result saved to agent task {AgentTaskId}", agentTaskId.Value);
         }
         catch (Exception ex)

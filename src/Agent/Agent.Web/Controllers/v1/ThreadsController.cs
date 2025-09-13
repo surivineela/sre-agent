@@ -485,6 +485,21 @@ namespace Agent.Web.Controllers.v1
             // Update thread in repository
             var updatedThread = await repository.UpdateThreadReadMarkAsync(threadId, DateTime.UtcNow);
 
+            // Emit agent action telemetry for marking thread as read
+            try
+            {
+                logger.LogAgentAction(
+                    action: AgentActionEvents.MarkThreadAsRead,
+                    parameter: threadId.ToString(),
+                    status: AgentActionStatus.Success,
+                    duration: 0,
+                    threadId: threadId.ToString());
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalWarning(ex, "Failed to emit LogAgentAction for MarkThreadAsRead for thread {ThreadId}", threadId);
+            }
+
             return Ok(updatedThread);
         }
 
