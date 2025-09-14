@@ -4,6 +4,27 @@ using System.Text.Json.Serialization;
 
 namespace Agent.Core.Models.ServiceNow
 {
+    public enum ServiceNowIncidentStatus
+    {
+        New = 1,
+        InProgress = 2,
+        AwaitingProblem = 3,
+        OnHold = 4,
+        AwaitingEvidence = 5,
+        Resolved = 6,
+        Closed = 7,
+        Cancelled = 8
+    }
+
+    public enum ServiceNowIncidentPriority
+    {
+        Critical = 1,
+        High = 2,
+        Moderate = 3,
+        Low = 4,
+        Planning = 5
+    }
+
     public class ServiceNowResponse<T>
     {
         [JsonPropertyName("result")]

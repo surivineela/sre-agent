@@ -105,7 +105,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Assert
             _mockServiceNowApiClient.Verify(
-                c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>()),
+                c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
                 Times.Never);
         }
 
@@ -154,7 +154,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Assert
             _mockServiceNowApiClient.Verify(
-                c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>()),
+                c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
                 Times.Never);
         }
 
@@ -180,7 +180,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             _mockIncidentFilterManagementService.Setup(s => s.ListIncidentFilters()).ReturnsAsync(filters);
 
             var incident = new ServiceNowIncident { IncidentId = "sys1", Number = "INC001", Title = "New Incident" };
-            _mockServiceNowApiClient.Setup(c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>()))
+            _mockServiceNowApiClient.Setup(c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(new List<ServiceNowIncident> { incident });
 
             var mockItemResponse = new Mock<ItemResponse<ServiceNowIncidentDocument>>();
@@ -252,7 +252,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             _mockIncidentFilterManagementService.Setup(s => s.ListIncidentFilters()).ReturnsAsync(filters);
 
             var incident = new ServiceNowIncident { IncidentId = "sys1", Number = "INC001", Title = "Existing Incident" };
-            _mockServiceNowApiClient.Setup(c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>()))
+            _mockServiceNowApiClient.Setup(c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(new List<ServiceNowIncident> { incident });
 
             var lastScanTimeDocResponse = new Mock<ItemResponse<LastScanTimeDoc>>();

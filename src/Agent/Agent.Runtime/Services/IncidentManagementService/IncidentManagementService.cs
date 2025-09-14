@@ -433,6 +433,7 @@ public class IncidentQueryRequest<TIncidentFilterDocumentPayload> where TInciden
     public int DurationInDays { get; set; } = 60; // Default to 60 days for incident history
 
     public string[] Statuses { get; set; } = [];
+    public string[] Priorities { get; set; } = [];
 
     // 1-based index, in later .net version can use "field" to replace _pageNumber
     private int _pageNumber = 1;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -70,6 +71,31 @@ namespace Agent.Core.Services
             }
         }
 
+        private string? GetServiceNowPriorityNumber(string? priority)
+        {
+            if (string.IsNullOrEmpty(priority))
+                return null;
+
+            var lowerPriority = priority.ToLower();
+            
+            // If it's already a number, validate and return it
+            if (int.TryParse(lowerPriority, out int numValue) && numValue >= 1 && numValue <= 5)
+                return lowerPriority;
+
+            // Convert using enum-based approach for consistency
+            var serviceNowPriority = lowerPriority switch
+            {
+                "critical" or "1 - critical" => ServiceNowIncidentPriority.Critical,
+                "high" or "2 - high" => ServiceNowIncidentPriority.High,
+                "moderate" or "medium" or "3 - moderate" => ServiceNowIncidentPriority.Moderate,
+                "low" or "4 - low" => ServiceNowIncidentPriority.Low,
+                "planning" or "5 - planning" => ServiceNowIncidentPriority.Planning,
+                _ => (ServiceNowIncidentPriority?)null
+            };
+
+            return serviceNowPriority?.ToString("D"); // Returns numeric value (1, 2, 3, 4, 5)
+        }
+
         public async Task<ServiceNowIncident> GetIncidentAsync(string incidentSystemId)
         {
             CheckEnabled();
@@ -98,7 +124,7 @@ namespace Agent.Core.Services
             }
         }
 
-        public async Task<List<ServiceNowIncident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? serviceId, string? titleContains)
+        public async Task<List<ServiceNowIncident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? serviceId, string? titleContains, string? priority = null)
         {
             CheckEnabled();
             var queryParams = new Dictionary<string, string>
@@ -124,6 +150,15 @@ namespace Agent.Core.Services
             if (!string.IsNullOrEmpty(titleContains))
             {
                 sysParamQueryParts.Add($"short_descriptionLIKE{titleContains}");
+            }
+
+            if (!string.IsNullOrEmpty(priority))
+            {
+                var numericPriority = GetServiceNowPriorityNumber(priority);
+                if (!string.IsNullOrEmpty(numericPriority))
+                {
+                    sysParamQueryParts.Add($"priority={numericPriority}");
+                }
             }
 
             if (sysParamQueryParts.Count > 0)
@@ -300,7 +335,7 @@ namespace Agent.Core.Services
         public Task<ServiceNowIncident> GetIncidentAsync(string incidentId) => 
             Task.FromResult(new ServiceNowIncident());
 
-        public Task<List<ServiceNowIncident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? serviceId, string? titleContains) => 
+        public Task<List<ServiceNowIncident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? serviceId, string? titleContains, string? priority = null) => 
             Task.FromResult(new List<ServiceNowIncident>());
 
         public Task<List<ServiceNowDiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId) => 
