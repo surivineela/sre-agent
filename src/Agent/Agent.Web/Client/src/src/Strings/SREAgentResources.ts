@@ -1292,6 +1292,15 @@ export const SettingsTabResources = defineMessages({
     identity: { defaultMessage: 'Identity', id: 'tShbyC' },
     knowledgeBase: { defaultMessage: 'Knowledge base', id: 'tLYOnZ' },
     subAgents: { defaultMessage: 'Sub-agents', id: 'VIn2J0' },
+    upgradeChannel: { defaultMessage: 'Preview Upgrade Channel', id: 'W6NO8g' },
+    upgradeChannelDescription: { defaultMessage: 'Choose the channel for receiving agent updates', id: 'hfqoIO' },
+    upgradeChannelStable: { defaultMessage: 'Stable - Receives updates once a month', id: 'bect+9' },
+    upgradeChannelPreview: { defaultMessage: 'Preview - Receives updates twice a week', id: 'nOrKIK' },
+    upgradeChannelCurrentStatus: { defaultMessage: 'Current status', id: 'pFm27r' },
+    upgradeChannelUpdatingTitle: { defaultMessage: 'Updating upgrade channel', id: 'ppARxn' },
+    upgradeChannelUpdatingDescription: { defaultMessage: 'Updating upgrade channel to {channel}', id: 'ZCA/Ga' },
+    upgradeChannelUpdateSuccess: { defaultMessage: 'Upgrade channel updated to {channel} successfully', id: 'VpsD7s' },
+    upgradeChannelUpdateFailed: { defaultMessage: 'Failed to update upgrade channel', id: 'aRUGFu' },
 });
 
 export const GrafanaDashboardResources = defineMessages({

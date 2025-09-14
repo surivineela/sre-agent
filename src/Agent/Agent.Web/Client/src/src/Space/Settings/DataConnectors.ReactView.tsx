@@ -1,4 +1,4 @@
-import { Link } from '@fluentui/react-components';
+import { Link, tokens } from '@fluentui/react-components';
 import { ConstrainMode, DetailsListLayoutMode, IColumn } from '@fluentui/react/lib/DetailsList';
 import { FC, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -301,7 +301,7 @@ const DataConnectors: FC = () => {
                         onUpdateSelection={onUpdateSelection}
                     />
                     {!isDataConnectorsLoading && dataConnectors.length === 0 && (
-                        <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
+                        <div style={{ padding: '20px', textAlign: 'center', color: tokens.colorNeutralForeground3 }}>
                             {intl.formatMessage(DataConnectorsResources.noDataConnectors)}
                         </div>
                     )}

@@ -1,4 +1,4 @@
-import { Link } from '@fluentui/react-components';
+import { Link, tokens } from '@fluentui/react-components';
 import { CheckboxVisibility, ConstrainMode, DetailsListLayoutMode, IColumn, SelectionMode } from '@fluentui/react/lib/DetailsList';
 import { ShimmeredDetailsList } from '@fluentui/react/lib/ShimmeredDetailsList';
 import { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
@@ -153,7 +153,7 @@ const SubAgents: FC = () => {
                         checkboxVisibility={CheckboxVisibility.hidden}
                     />
                     {!subAgentsLoading && subAgents?.length === 0 && (
-                        <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
+                        <div style={{ padding: '20px', textAlign: 'center', color: tokens.colorNeutralForeground3 }}>
                             {intl.formatMessage(SubAgentsResources.noSubAgents)}
                         </div>
                     )}

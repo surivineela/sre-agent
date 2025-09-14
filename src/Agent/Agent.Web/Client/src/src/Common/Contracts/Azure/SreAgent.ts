@@ -20,6 +20,7 @@ export interface Agent {
     incidentManagementConfiguration?: IncidentManagementConfiguration | null;
     dashboardConfiguration: DashboardConfiguration;
     dataConnectors?: DataConnector[];
+    upgradeChannel?: UpgradeChannel;
 }
 
 export enum ProvisioningState {
@@ -96,6 +97,11 @@ export enum IncidentManagementType {
     AzMonitor = 'AzMonitor',
     Icm = 'Icm',
     ServiceNow = 'ServiceNow',
+}
+
+export enum UpgradeChannel {
+    Stable = 'Stable',
+    Preview = 'Preview',
 }
 
 export enum IncidentStatus {

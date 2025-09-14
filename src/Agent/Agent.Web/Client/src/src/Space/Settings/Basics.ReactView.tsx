@@ -9,8 +9,10 @@ import {
     DialogTitle,
     DialogTrigger,
     Link,
+    Switch,
+    Tooltip,
 } from '@fluentui/react-components';
-import { Delete16Regular } from '@fluentui/react-icons';
+import { Delete16Regular, Info16Regular } from '@fluentui/react-icons';
 import { Label } from '@fluentui/react/lib/Label';
 import { FC, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -18,6 +20,7 @@ import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitud
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import SreAgentClient from '../../Common/Clients/SreAgentClient';
+import { UpgradeChannel } from '../../Common/Contracts/Azure/SreAgent';
 import { getAgentAccessLevelDisplayName } from '../../Common/Helpers/AgentMode';
 import { ArmResourceDescriptor } from '../../Common/Helpers/ResourceDescriptors';
 import { SettingsTabResources, SreAgentResources } from '../../Strings/SREAgentResources';
@@ -30,10 +33,11 @@ const Basics: FC = () => {
     const styles = useSettingsStyles();
     const { resourceId } = useContext(EnvironmentContext);
     const az = useContext(AzPortalContext);
-    const { agent, agentLoading } = useSreAgent(resourceId);
+    const { agent, agentLoading, refresh } = useSreAgent(resourceId);
     const region = useMemo(() => agent?.location, [agent?.location]);
 
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [isUpdatingUpgradeChannel, setIsUpdatingUpgradeChannel] = useState(false);
 
     const {
         resourceGroup,
@@ -54,6 +58,11 @@ const Basics: FC = () => {
         () => getAgentAccessLevelDisplayName(agent?.properties?.actionConfiguration?.accessLevel, intl),
         [agent?.properties?.actionConfiguration?.accessLevel, intl]
     );
+
+    const isPreviewChannel = useMemo(() => {
+        const channel = agent?.properties?.upgradeChannel ?? UpgradeChannel.Stable;
+        return channel === UpgradeChannel.Preview;
+    }, [agent?.properties?.upgradeChannel]);
 
     const openSubscription = useCallback(() => {
         az.openBlade({
@@ -78,6 +87,70 @@ const Basics: FC = () => {
             extension: 'HubsExtension',
         });
     }, [az, identityId]);
+
+    const onUpgradeChannelToggle = useCallback(async () => {
+        if (isUpdatingUpgradeChannel) return;
+
+        setIsUpdatingUpgradeChannel(true);
+        const newUpgradeChannel = isPreviewChannel ? UpgradeChannel.Stable : UpgradeChannel.Preview;
+
+        const notificationId = az.startNotification(
+            intl.formatMessage(SettingsTabResources.upgradeChannelUpdatingTitle),
+            intl.formatMessage(SettingsTabResources.upgradeChannelUpdatingDescription, { channel: newUpgradeChannel })
+        );
+
+        try {
+            const updatePayload = {
+                properties: {
+                    upgradeChannel: newUpgradeChannel,
+                },
+            };
+
+            const response = await SreAgentClient.patchAgent(resourceId, updatePayload);
+
+            if (response.metadata.success) {
+                az.stopNotification(
+                    notificationId,
+                    true,
+                    intl.formatMessage(SettingsTabResources.upgradeChannelUpdateSuccess, { channel: newUpgradeChannel })
+                );
+                az.log({
+                    action: 'updateUpgradeChannel',
+                    actionModifier: 'succeeded',
+                    resourceId,
+                    logLevel: 'info',
+                    data: {
+                        upgradeChannel: newUpgradeChannel,
+                    },
+                });
+                refresh();
+            } else {
+                az.stopNotification(notificationId, false, intl.formatMessage(SettingsTabResources.upgradeChannelUpdateFailed));
+                az.log({
+                    action: 'updateUpgradeChannel',
+                    actionModifier: 'failed',
+                    resourceId,
+                    logLevel: 'error',
+                    data: {
+                        error: response.metadata.error,
+                    },
+                });
+            }
+        } catch (error) {
+            az.stopNotification(notificationId, false, intl.formatMessage(SettingsTabResources.upgradeChannelUpdateFailed));
+            az.log({
+                action: 'updateUpgradeChannel',
+                actionModifier: 'failed',
+                resourceId,
+                logLevel: 'error',
+                data: {
+                    error: error,
+                },
+            });
+        } finally {
+            setIsUpdatingUpgradeChannel(false);
+        }
+    }, [isUpdatingUpgradeChannel, isPreviewChannel, az, intl, resourceId, refresh]);
 
     const onDeleteAgent = useCallback(async () => {
         setDeleteDialogOpen(false);
@@ -171,6 +244,45 @@ const Basics: FC = () => {
                 </Shimmer>
                 <Label>{intl.formatMessage(SreAgentResources.agentPermissionsLevel)}</Label>
                 <Shimmer isDataLoaded={!agentLoading || !!agentAccessLevelValue}>{agentAccessLevelValue}</Shimmer>
+                <Label style={{ display: 'flex', alignItems: 'center', gap: 6, margin: 0, whiteSpace: 'nowrap' }}>
+                    {intl.formatMessage(SettingsTabResources.upgradeChannel)}
+                    <Tooltip
+                        content={
+                            intl.formatMessage(SettingsTabResources.upgradeChannelCurrentStatus) +
+                            ': ' +
+                            (isPreviewChannel
+                                ? intl.formatMessage(SettingsTabResources.upgradeChannelPreview)
+                                : intl.formatMessage(SettingsTabResources.upgradeChannelStable))
+                        }
+                        relationship="description"
+                    >
+                        <button
+                            type="button"
+                            aria-label={intl.formatMessage(SettingsTabResources.upgradeChannelCurrentStatus)}
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                padding: 0,
+                                lineHeight: 0,
+                                cursor: 'pointer',
+                                color: '#616161',
+                                display: 'flex',
+                                alignItems: 'center',
+                            }}
+                        >
+                            <Info16Regular />
+                        </button>
+                    </Tooltip>
+                </Label>
+                <div style={{ display: 'flex', alignItems: 'center', marginLeft: '-5px' }}>
+                    <Shimmer isDataLoaded={!agentLoading}>
+                        <Switch
+                            checked={isPreviewChannel}
+                            onChange={onUpgradeChannelToggle}
+                            disabled={agentLoading || isUpdatingUpgradeChannel}
+                        />
+                    </Shimmer>
+                </div>
             </div>
             <Dialog open={deleteDialogOpen}>
                 <DialogTrigger disableButtonEnhancement>

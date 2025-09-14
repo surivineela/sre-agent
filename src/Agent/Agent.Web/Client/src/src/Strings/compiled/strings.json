@@ -657,6 +657,12 @@
       "value": "Copy"
     }
   ],
+  "4nFchm": [
+    {
+      "type": 0,
+      "value": "Updating upgrade channel"
+    }
+  ],
   "4upwsn": [
     {
       "type": 0,
@@ -2073,6 +2079,16 @@
       "value": "Disconnect ServiceNow?"
     }
   ],
+  "JmZ3gF": [
+    {
+      "type": 0,
+      "value": "Updating upgrade channel to "
+    },
+    {
+      "type": 1,
+      "value": "channel"
+    }
+  ],
   "JwHSD6": [
     {
       "type": 0,
@@ -2347,6 +2363,12 @@
     {
       "type": 0,
       "value": "Create data connector"
+    }
+  ],
+  "O2umhN": [
+    {
+      "type": 0,
+      "value": "Failed to update upgrade channel"
     }
   ],
   "O79Wpv": [
@@ -3229,6 +3251,12 @@
       "value": "Impact"
     }
   ],
+  "W6NO8g": [
+    {
+      "type": 0,
+      "value": "Preview Upgrade Channel"
+    }
+  ],
   "W6nSYE": [
     {
       "type": 0,
@@ -3753,6 +3781,12 @@
       "value": "New"
     }
   ],
+  "bect+9": [
+    {
+      "type": 0,
+      "value": "Stable - Receives updates once a month"
+    }
+  ],
   "blSyDZ": [
     {
       "type": 0,
@@ -3895,6 +3929,20 @@
     {
       "type": 0,
       "value": " options"
+    }
+  ],
+  "dPoAxA": [
+    {
+      "type": 0,
+      "value": "Upgrade channel updated to "
+    },
+    {
+      "type": 1,
+      "value": "channel"
+    },
+    {
+      "type": 0,
+      "value": " successfully"
     }
   ],
   "dQ5/dh": [
@@ -4297,6 +4345,12 @@
     {
       "type": 0,
       "value": "SQL DB Contributor"
+    }
+  ],
+  "hfqoIO": [
+    {
+      "type": 0,
+      "value": "Choose the channel for receiving agent updates"
     }
   ],
   "hlmkcL": [
@@ -4767,6 +4821,12 @@
       "value": "Review + edit"
     }
   ],
+  "nOrKIK": [
+    {
+      "type": 0,
+      "value": "Preview - Receives updates twice a week"
+    }
+  ],
   "nQpONp": [
     {
       "type": 0,
@@ -4931,6 +4991,12 @@
     {
       "type": 0,
       "value": "App Configuration Reader"
+    }
+  ],
+  "pFm27r": [
+    {
+      "type": 0,
+      "value": "Current status"
     }
   ],
   "pG9xP9": [
