@@ -1,1 +1,5928 @@
-{}
+{
+  "+/nU/s": [
+    {
+      "type": 0,
+      "value": "Gives you read access to management and content operations, but does not allow making changes."
+    }
+  ],
+  "+2NFJn": [
+    {
+      "type": 0,
+      "value": "Enter connector name"
+    }
+  ],
+  "+4NN8Z": [
+    {
+      "type": 0,
+      "value": "Updating data connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
+  "+5BJJL": [
+    {
+      "type": 0,
+      "value": "スレッドを削除しますか?"
+    }
+  ],
+  "+7PjfV": [
+    {
+      "type": 0,
+      "value": "1 day"
+    }
+  ],
+  "+7dYeU": [
+    {
+      "type": 0,
+      "value": "IcM is not connected."
+    }
+  ],
+  "+DBMRK": [
+    {
+      "type": 0,
+      "value": "CPU usage"
+    }
+  ],
+  "+FoBRs": [
+    {
+      "type": 0,
+      "value": "Microsoft にフィードバックを送信する"
+    }
+  ],
+  "+U6ozc": [
+    {
+      "type": 0,
+      "value": "種類"
+    }
+  ],
+  "+bJIWo": [
+    {
+      "type": 0,
+      "value": "Agent permissions level"
+    }
+  ],
+  "+hJd45": [
+    {
+      "type": 0,
+      "value": "Edit data connector"
+    }
+  ],
+  "+k5t/y": [
+    {
+      "type": 0,
+      "value": "Contributor"
+    }
+  ],
+  "+l+XEu": [
+    {
+      "type": 0,
+      "value": "Can read workbooks."
+    }
+  ],
+  "+uAdUZ": [
+    {
+      "type": 0,
+      "value": "リソース グループ"
+    }
+  ],
+  "//ter/": [
+    {
+      "type": 0,
+      "value": "Enter created by alias"
+    }
+  ],
+  "/2OpVO": [
+    {
+      "type": 0,
+      "value": "プラットフォームの選択"
+    }
+  ],
+  "/4tOwT": [
+    {
+      "type": 0,
+      "value": "Skip"
+    }
+  ],
+  "/8MshI": [
+    {
+      "type": 0,
+      "value": "Manage SQL Managed Instances."
+    }
+  ],
+  "/Br0/Z": [
+    {
+      "type": 0,
+      "value": "Priorities"
+    }
+  ],
+  "/WrP/v": [
+    {
+      "type": 0,
+      "value": "Container Apps オペレーター"
+    }
+  ],
+  "/dxZCE": [
+    {
+      "type": 0,
+      "value": "Your agent is in autonomous mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations autonomously based on your requests."
+    }
+  ],
+  "/gCtdO": [
+    {
+      "type": 0,
+      "value": "Manage Custom Vision projects."
+    }
+  ],
+  "/wdD42": [
+    {
+      "type": 0,
+      "value": "Connection Error."
+    }
+  ],
+  "/ytgXm": [
+    {
+      "type": 0,
+      "value": "Remove "
+    },
+    {
+      "type": 1,
+      "value": "columnName"
+    },
+    {
+      "type": 0,
+      "value": " filter"
+    }
+  ],
+  "/zFP1/": [
+    {
+      "type": 0,
+      "value": "Start time"
+    }
+  ],
+  "/zQv2D": [
+    {
+      "type": 0,
+      "value": "Resource groups"
+    }
+  ],
+  "01lT1B": [
+    {
+      "type": 0,
+      "value": "Lets you read, enable and disable logic app."
+    }
+  ],
+  "01sZoP": [
+    {
+      "type": 1,
+      "value": "selectedCount"
+    },
+    {
+      "type": 0,
+      "value": " of "
+    },
+    {
+      "type": 1,
+      "value": "totalCount"
+    }
+  ],
+  "066KEg": [
+    {
+      "type": 0,
+      "value": "Disabling incident handler"
+    }
+  ],
+  "0AwXvo": [
+    {
+      "type": 0,
+      "value": "Incident handler"
+    }
+  ],
+  "0D+7fr": [
+    {
+      "type": 0,
+      "value": "Microsoft IcM"
+    }
+  ],
+  "0Dhe75": [
+    {
+      "type": 0,
+      "value": "Manage SQL servers and their security policies."
+    }
+  ],
+  "0G14fL": [
+    {
+      "type": 0,
+      "value": "This map shows how your application's resources are connected across multiple resource groups, regions, and subscriptions. The agent analyzes these resources and organizes them into a core application group based on the primary resource."
+    }
+  ],
+  "0KB3lG": [
+    {
+      "type": 0,
+      "value": "I analyzed your application's resources across multiple resource groups, regions, and subscriptions. I then generated a resource map of the connections I identified based on the primary resource. Based on what I learned, I also put together some suggested prompts that focus on your resources."
+    }
+  ],
+  "0Pt22l": [
+    {
+      "type": 0,
+      "value": "Failed to add the custom incident handler. Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
+  "0R+Pet": [
+    {
+      "type": 0,
+      "value": "Connection to PagerDuty failed. Please check your access key and try again."
+    }
+  ],
+  "0TkVxX": [
+    {
+      "type": 0,
+      "value": "Failed to load incident management configuration. Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
+  "0UwFzs": [
+    {
+      "type": 1,
+      "value": "number"
+    },
+    {
+      "type": 0,
+      "value": " 個の管理対象リソース グループを追加しています"
+    }
+  ],
+  "0VuGey": [
+    {
+      "type": 0,
+      "value": "This will overwrite your tool selections. Are you sure you want to continue?"
+    }
+  ],
+  "0aN6iW": [
+    {
+      "type": 0,
+      "value": "To get optimal agent performance for diagnostics, metrics, knowledge, and more during preview, use resource groups that include one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, or Web Apps."
+    }
+  ],
+  "0mx8D9": [
+    {
+      "type": 0,
+      "value": "The tool list is generated from the custom response guidance. If you modify the guidance, select Regenerate to update the tool list. Once regenerated, the previous list cannot be restored. To add or remove tools, select Manage tools."
+    }
+  ],
+  "0oLj/t": [
+    {
+      "type": 0,
+      "value": "Expand"
+    }
+  ],
+  "0q6E9l": [
+    {
+      "type": 0,
+      "value": "Change credentials"
+    }
+  ],
+  "0sIUhe": [
+    {
+      "type": 0,
+      "value": "アラート詳細の表示"
+    }
+  ],
+  "0te2Ra": [
+    {
+      "type": 0,
+      "value": "Manage Azure Data Factory instances."
+    }
+  ],
+  "0w0iFy": [
+    {
+      "type": 0,
+      "value": "Apply to all current and future active incidents"
+    }
+  ],
+  "0wJ7N+": [
+    {
+      "type": 0,
+      "value": "タスク"
+    }
+  ],
+  "12rpNY": [
+    {
+      "type": 0,
+      "value": "In-progress"
+    }
+  ],
+  "14xQ4i": [
+    {
+      "type": 0,
+      "value": "Azure Monitor が追加されました"
+    }
+  ],
+  "1HLt0U": [
+    {
+      "type": 0,
+      "value": "No documents uploaded yet"
+    }
+  ],
+  "1O47t6": [
+    {
+      "type": 0,
+      "value": "SRE エージェント "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " は正常に削除されました"
+    }
+  ],
+  "1PVhxx": [
+    {
+      "type": 0,
+      "value": "選択した管理対象リソース グループが正常に削除されました"
+    }
+  ],
+  "1TlUPy": [
+    {
+      "type": 0,
+      "value": "New incident handler"
+    }
+  ],
+  "1YN49J": [
+    {
+      "type": 0,
+      "value": "Invalid username or password. Please check your credentials."
+    }
+  ],
+  "1YPTmM": [
+    {
+      "type": 0,
+      "value": "Web Plan Contributor"
+    }
+  ],
+  "1ZgrhW": [
+    {
+      "type": 0,
+      "value": "ロール"
+    }
+  ],
+  "1dOMiz": [
+    {
+      "type": 0,
+      "value": "Grafana ダッシュボードの URL"
+    }
+  ],
+  "1fNFGt": [
+    {
+      "type": 0,
+      "value": "Connect repository"
+    }
+  ],
+  "1rAiXS": [
+    {
+      "type": 0,
+      "value": "Response plan"
+    }
+  ],
+  "2/2yg+": [
+    {
+      "type": 0,
+      "value": "追加"
+    }
+  ],
+  "23nct0": [
+    {
+      "type": 0,
+      "value": "PagerDuty is connected."
+    }
+  ],
+  "28HRcH": [
+    {
+      "type": 0,
+      "value": "The action is in progress using temporary permissions granted by "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "29xePt": [
+    {
+      "type": 0,
+      "value": "Change agent mode for this thread"
+    }
+  ],
+  "2LQx4N": [
+    {
+      "type": 0,
+      "value": "Manage App Configuration stores."
+    }
+  ],
+  "2OQ6yB": [
+    {
+      "type": 0,
+      "value": "選択したリソース グループを設定しています"
+    }
+  ],
+  "2PnnDB": [
+    {
+      "type": 0,
+      "value": "Manage IoT Hub device registry."
+    }
+  ],
+  "2Rfala": [
+    {
+      "type": 0,
+      "value": "Building knowledge about your resources... "
+    },
+    {
+      "type": 1,
+      "value": "percent"
+    },
+    {
+      "type": 0,
+      "value": "% done. You can chat about other topics in the meantime."
+    }
+  ],
+  "2a+ttj": [
+    {
+      "type": 0,
+      "value": "Deep investigation"
+    }
+  ],
+  "2hB9SP": [
+    {
+      "type": 0,
+      "value": "Azure Monitor Workspace resource name"
+    }
+  ],
+  "2pzTGC": [
+    {
+      "type": 0,
+      "value": "Critical"
+    }
+  ],
+  "2tOWr2": [
+    {
+      "type": 0,
+      "value": "含む"
+    }
+  ],
+  "2zi2Yj": [
+    {
+      "type": 0,
+      "value": "Grafana dashboard"
+    }
+  ],
+  "312q4w": [
+    {
+      "type": 0,
+      "value": "No incidents found"
+    }
+  ],
+  "3651Wt": [
+    {
+      "type": 0,
+      "value": "Handler"
+    }
+  ],
+  "3BubSI": [
+    {
+      "type": 0,
+      "value": "これにより、リソース グループはエージェントの管理対象リソース グループから完全に削除されます。削除しますか?"
+    }
+  ],
+  "3DzXFS": [
+    {
+      "type": 0,
+      "value": "Enter resource name"
+    }
+  ],
+  "3JVa6k": [
+    {
+      "type": 0,
+      "value": "End"
+    }
+  ],
+  "3PgCIp": [
+    {
+      "type": 0,
+      "value": "選択した管理対象リソース グループの削除中です"
+    }
+  ],
+  "3PxUNi": [
+    {
+      "type": 0,
+      "value": "Review + test"
+    }
+  ],
+  "3Rh7XU": [
+    {
+      "type": 0,
+      "value": "選択した管理対象リソース グループを削除しています"
+    }
+  ],
+  "3RvKcp": [
+    {
+      "type": 0,
+      "value": "Suggested prompts for your resources"
+    }
+  ],
+  "3UAGOy": [
+    {
+      "type": 0,
+      "value": "Incident overview"
+    }
+  ],
+  "3a5wL8": [
+    {
+      "type": 0,
+      "value": "アクティブ"
+    }
+  ],
+  "3jPMQI": [
+    {
+      "type": 0,
+      "value": "Add More"
+    }
+  ],
+  "3nhWFW": [
+    {
+      "type": 0,
+      "value": "閲覧者"
+    }
+  ],
+  "3t/IhV": [
+    {
+      "type": 0,
+      "value": "Can view cost data and configuration (e.g. budgets, exports)."
+    }
+  ],
+  "3wVEAO": [
+    {
+      "type": 0,
+      "value": "Expand navigation"
+    }
+  ],
+  "3zLsNR": [
+    {
+      "type": 0,
+      "value": "Manage websites, but not web plans. Does not allow you to assign roles."
+    }
+  ],
+  "40YXE1": [
+    {
+      "type": 0,
+      "value": "Grafana ダッシュボードの SRE エージェントへのリンクが進行中です"
+    }
+  ],
+  "41zpq3": [
+    {
+      "type": 0,
+      "value": "Discard changes?"
+    }
+  ],
+  "477I0g": [
+    {
+      "type": 0,
+      "value": "Low"
+    }
+  ],
+  "47FYwb": [
+    {
+      "type": 0,
+      "value": "キャンセル"
+    }
+  ],
+  "4Ez7HI": [
+    {
+      "type": 0,
+      "value": "拒否者"
+    }
+  ],
+  "4MeTpL": [
+    {
+      "type": 0,
+      "value": "Workbook Contributor"
+    }
+  ],
+  "4OUjTL": [
+    {
+      "type": 0,
+      "value": "Can you audit best practices for my resource?"
+    }
+  ],
+  "4TnjxL": [
+    {
+      "type": 0,
+      "value": "API Management Service Reader Role"
+    }
+  ],
+  "4ii5zj": [
+    {
+      "type": 0,
+      "value": "Allows for read access to Azure Storage blob containers and data."
+    }
+  ],
+  "4kCXiz": [
+    {
+      "type": 0,
+      "value": "List cluster admin credential action."
+    }
+  ],
+  "4l6vz1": [
+    {
+      "type": 0,
+      "value": "Copy"
+    }
+  ],
+  "4nFchm": [
+    {
+      "type": 0,
+      "value": "Updating upgrade channel"
+    }
+  ],
+  "4upwsn": [
+    {
+      "type": 0,
+      "value": "Selected Files"
+    }
+  ],
+  "5+bQr/": [
+    {
+      "type": 0,
+      "value": "承認者"
+    }
+  ],
+  "5/4URn": [
+    {
+      "type": 0,
+      "value": "Incident handlers"
+    }
+  ],
+  "52hqVX": [
+    {
+      "type": 0,
+      "value": "Azure Monitor is not connected."
+    }
+  ],
+  "59z+Aj": [
+    {
+      "type": 0,
+      "value": "Bulk delete failed: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "5GUtRJ": [
+    {
+      "type": 0,
+      "value": "レポートを送信しています..."
+    }
+  ],
+  "5K0php": [
+    {
+      "type": 0,
+      "value": "Optimize how the agent investigates and responds to incidents by adding incident handlers and custom handlers to support a broad range of scenarios."
+    }
+  ],
+  "5QYdPU": [
+    {
+      "type": 0,
+      "value": "開始時刻"
+    }
+  ],
+  "5S1JBf": [
+    {
+      "type": 0,
+      "value": "Enter owning team ID"
+    }
+  ],
+  "5Sc5rT": [
+    {
+      "type": 0,
+      "value": "IoT Hub Twin Contributor"
+    }
+  ],
+  "5UfRjw": [
+    {
+      "type": 0,
+      "value": "Device Provisioning Service Data Contributor"
+    }
+  ],
+  "5V+Txp": [
+    {
+      "type": 0,
+      "value": "Azure Kubernetes Service Cluster User Role"
+    }
+  ],
+  "5WK7jL": [
+    {
+      "type": 0,
+      "value": "Create new"
+    }
+  ],
+  "5X0whH": [
+    {
+      "type": 0,
+      "value": "Failed to run the test. Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
+  "5dcGlG": [
+    {
+      "type": 0,
+      "value": "Failed to delete data connector with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "5jeq8P": [
+    {
+      "type": 0,
+      "value": "Unknown"
+    }
+  ],
+  "5kp1Ie": [
+    {
+      "type": 0,
+      "value": "拒否済み"
+    }
+  ],
+  "5l3nDr": [
+    {
+      "type": 0,
+      "value": "Last 15 days"
+    }
+  ],
+  "5pQrWI": [
+    {
+      "type": 1,
+      "value": "numOfResults"
+    },
+    {
+      "type": 0,
+      "value": " 件の "
+    },
+    {
+      "type": 1,
+      "value": "results"
+    }
+  ],
+  "5q8lCX": [
+    {
+      "type": 0,
+      "value": "Incident handler name"
+    }
+  ],
+  "5sg7KC": [
+    {
+      "type": 0,
+      "value": "Password"
+    }
+  ],
+  "5wGcN7": [
+    {
+      "type": 0,
+      "value": "Cost Management Reader"
+    }
+  ],
+  "5y2qWO": [
+    {
+      "type": 0,
+      "value": "接続中..."
+    }
+  ],
+  "5yG7b2": [
+    {
+      "type": 0,
+      "value": "管理対象リソース グループは正常に追加されました"
+    }
+  ],
+  "6/PJpA": [
+    {
+      "type": 0,
+      "value": "This will permanently delete the incident handler, which might affect how incidents are processed and also any custom handlers. Are you sure you want to delete?"
+    }
+  ],
+  "61e5yQ": [
+    {
+      "type": 0,
+      "value": "What didn't you like about the agent's response? Your feedback helps us make the agent even better."
+    }
+  ],
+  "61zy45": [
+    {
+      "type": 0,
+      "value": "Not applicable"
+    }
+  ],
+  "64zSh3": [
+    {
+      "type": 0,
+      "value": "Cognitive Services LUIS Writer"
+    }
+  ],
+  "69FfbB": [
+    {
+      "type": 0,
+      "value": "Preview incidents"
+    }
+  ],
+  "69sjgc": [
+    {
+      "type": 0,
+      "value": "Enter Key Vault URI"
+    }
+  ],
+  "6ENgmY": [
+    {
+      "type": 0,
+      "value": "マネージド接続を作成できませんでした"
+    }
+  ],
+  "6IIC+D": [
+    {
+      "type": 0,
+      "value": "同じリソース グループに Grafana ダッシュボードを作成する"
+    }
+  ],
+  "6LZ2qn": [
+    {
+      "type": 0,
+      "value": "These incidents match your filter criteria. If an incident is missing, go back to the previous step and modify the filter parameters."
+    }
+  ],
+  "6LnpNj": [
+    {
+      "type": 0,
+      "value": "Deleting custom incident handler"
+    }
+  ],
+  "6OBtew": [
+    {
+      "type": 0,
+      "value": "SRE エージェントを削除しています"
+    }
+  ],
+  "6PgVSe": [
+    {
+      "type": 0,
+      "value": "Regenerate"
+    }
+  ],
+  "6S2zmX": [
+    {
+      "type": 0,
+      "value": "User-assigned Managed Identity"
+    }
+  ],
+  "6UyZlH": [
+    {
+      "type": 0,
+      "value": "PagerDuty"
+    }
+  ],
+  "6XFO/C": [
+    {
+      "type": 0,
+      "value": "承認済み"
+    }
+  ],
+  "6YXj/s": [
+    {
+      "type": 0,
+      "value": "Contribute to Speech service resources."
+    }
+  ],
+  "6aWd+W": [
+    {
+      "type": 0,
+      "value": "Delete incident handler"
+    }
+  ],
+  "6dWeUs": [
+    {
+      "type": 0,
+      "value": "デプロイされたリソースとコストを管理するサブスクリプションを選択します。フォルダーなどのリソース グループを使用して、すべてのリソースを整理および管理します。"
+    }
+  ],
+  "6feu1e": [
+    {
+      "type": 0,
+      "value": "Resource Report"
+    }
+  ],
+  "6m5Ba0": [
+    {
+      "type": 0,
+      "value": "データ収集ルール"
+    }
+  ],
+  "6tlKgy": [
+    {
+      "type": 0,
+      "value": "エージェントが管理するリソース グループを最大 20 個まで選択できます。"
+    }
+  ],
+  "6u8zJX": [
+    {
+      "type": 0,
+      "value": "新しい Azure Monitor アラートが検出されました"
+    }
+  ],
+  "6v8Uj+": [
+    {
+      "type": 0,
+      "value": "Failed to create sub-agent with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "6zUWZ/": [
+    {
+      "type": 0,
+      "value": "Read all monitoring data and edit monitoring settings."
+    }
+  ],
+  "7+b0J0": [
+    {
+      "type": 0,
+      "value": "Cognitive Services Custom Vision Contributor"
+    }
+  ],
+  "71/osV": [
+    {
+      "type": 0,
+      "value": "Custom handler"
+    }
+  ],
+  "74vgSJ": [
+    {
+      "type": 0,
+      "value": "Time range"
+    }
+  ],
+  "7C0xai": [
+    {
+      "type": 0,
+      "value": "Data source"
+    }
+  ],
+  "7Cy5xk": [
+    {
+      "type": 0,
+      "value": "Go to Incident management"
+    }
+  ],
+  "7Eq7I8": [
+    {
+      "type": 0,
+      "value": "Review mode"
+    }
+  ],
+  "7N87nD": [
+    {
+      "type": 0,
+      "value": "Manage Device Provisioning Service data."
+    }
+  ],
+  "7Nz2Ev": [
+    {
+      "type": 0,
+      "value": "Azure Monitor"
+    }
+  ],
+  "7cS956": [
+    {
+      "type": 0,
+      "value": "Teams に接続されました"
+    }
+  ],
+  "7fDYaV": [
+    {
+      "type": 0,
+      "value": "Go to incident thread"
+    }
+  ],
+  "7gMEKc": [
+    {
+      "type": 0,
+      "value": "プロジェクトの詳細"
+    }
+  ],
+  "7p54Vc": [
+    {
+      "type": 0,
+      "value": "Quickstart handler"
+    }
+  ],
+  "7qOQpv": [
+    {
+      "type": 0,
+      "value": "Select a date"
+    }
+  ],
+  "7qt3qA": [
+    {
+      "type": 0,
+      "value": "Azure Managed Grafana is a fully managed service for analytics and monitoring. To add the service and a Grafana dashboard, you need to create an Azure Managed Grafana resource. The necessary permissions will be automatically assigned so that the dashboard can display monitoring data. Azure Managed Grafana will incur costs in your subscription."
+    }
+  ],
+  "7w4v59": [
+    {
+      "type": 0,
+      "value": "アクセスの制御 (IAM)"
+    }
+  ],
+  "7wHL/l": [
+    {
+      "type": 0,
+      "value": "Backed by"
+    }
+  ],
+  "8/TArm": [
+    {
+      "type": 0,
+      "value": "Go to Identity"
+    }
+  ],
+  "84MFOR": [
+    {
+      "type": 0,
+      "value": "PagerDuty connected. Your next step is to set up incident handlers."
+    }
+  ],
+  "87v+WY": [
+    {
+      "type": 0,
+      "value": "Full access to Azure Digital Twins data."
+    }
+  ],
+  "8Hjku9": [
+    {
+      "type": 0,
+      "value": "Creating data connector"
+    }
+  ],
+  "8NHZQV": [
+    {
+      "type": 0,
+      "value": "Cognitive Services Language Reader"
+    }
+  ],
+  "8O9cAb": [
+    {
+      "type": 0,
+      "value": "Last 24 hours"
+    }
+  ],
+  "8QX1EO": [
+    {
+      "type": 0,
+      "value": "I'm currently gathering information about your app and analyzing your resources, which might take a few minutes."
+    }
+  ],
+  "8RdOD0": [
+    {
+      "type": 0,
+      "value": "Select identity"
+    }
+  ],
+  "8Wiwkg": [
+    {
+      "type": 0,
+      "value": "ナレッジ グラフを構築しています"
+    }
+  ],
+  "8aHHLj": [
+    {
+      "type": 0,
+      "value": "Read-only access to service and APIs."
+    }
+  ],
+  "8hR178": [
+    {
+      "type": 0,
+      "value": "Successfully created default incident handler"
+    }
+  ],
+  "8lCjAM": [
+    {
+      "type": 0,
+      "value": "Priority"
+    }
+  ],
+  "8nBFW4": [
+    {
+      "type": 0,
+      "value": "Redis Cache Contributor"
+    }
+  ],
+  "8oXUdb": [
+    {
+      "type": 0,
+      "value": "Add a default incident handler for the agent to use for Sev3 LiveSite incidents."
+    }
+  ],
+  "8quEg9": [
+    {
+      "type": 0,
+      "value": "結果"
+    }
+  ],
+  "8yyU6n": [
+    {
+      "type": 0,
+      "value": "すべてのサブスクリプション"
+    }
+  ],
+  "9+Ddtu": [
+    {
+      "type": 0,
+      "value": "次へ"
+    }
+  ],
+  "9/ucRx": [
+    {
+      "type": 0,
+      "value": "Agent can only view and analyze information without taking any actions"
+    }
+  ],
+  "94Fg25": [
+    {
+      "type": 0,
+      "value": "すべて選択"
+    }
+  ],
+  "95stPq": [
+    {
+      "type": 0,
+      "value": "完了済み"
+    }
+  ],
+  "9VUlhV": [
+    {
+      "type": 0,
+      "value": "Add a description about this resource to help the agent with groupings and insights."
+    }
+  ],
+  "9ZIBMx": [
+    {
+      "type": 0,
+      "value": "要求日時"
+    }
+  ],
+  "9a9+ww": [
+    {
+      "type": 0,
+      "value": "Title"
+    }
+  ],
+  "9uOFF3": [
+    {
+      "type": 0,
+      "value": "概要"
+    }
+  ],
+  "A/xTHO": [
+    {
+      "type": 0,
+      "value": "ロールの割り当て"
+    }
+  ],
+  "A2BJnD": [
+    {
+      "type": 0,
+      "value": "注釈が正常に更新されました"
+    }
+  ],
+  "AA/tRJ": [
+    {
+      "type": 0,
+      "value": "リポジトリ URL"
+    }
+  ],
+  "ABAQyo": [
+    {
+      "type": 0,
+      "value": "Chats"
+    }
+  ],
+  "ABo5XY": [
+    {
+      "type": 0,
+      "value": "DocumentDB Account Contributor"
+    }
+  ],
+  "AC5nsM": [
+    {
+      "type": 0,
+      "value": "Agent autonomy level"
+    }
+  ],
+  "ACfSSZ": [
+    {
+      "type": 0,
+      "value": "Grafana ダッシュボードを作成できませんでした。エラー: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
+  "ALkPTF": [
+    {
+      "type": 0,
+      "value": "No data connectors configured"
+    }
+  ],
+  "ATYp8z": [
+    {
+      "type": 0,
+      "value": "Show only recommended resource groups"
+    }
+  ],
+  "AbpmRv": [
+    {
+      "type": 0,
+      "value": "Enter instructions"
+    }
+  ],
+  "AeWmvh": [
+    {
+      "type": 0,
+      "value": "Lets you manage virtual machines, but not access to them, and not the virtual network or storage account they are connected to."
+    }
+  ],
+  "AfbqHj": [
+    {
+      "type": 0,
+      "value": "閲覧者ロールの監視"
+    }
+  ],
+  "Aio6ud": [
+    {
+      "type": 0,
+      "value": "Turn off incident handler"
+    }
+  ],
+  "ArsZkp": [
+    {
+      "type": 0,
+      "value": "Updating data connector"
+    }
+  ],
+  "AuFOi8": [
+    {
+      "type": 0,
+      "value": "REST API アクセス キー"
+    }
+  ],
+  "AxMhQr": [
+    {
+      "type": 0,
+      "value": "High"
+    }
+  ],
+  "B9k+PB": [
+    {
+      "type": 0,
+      "value": "Edit custom handler"
+    }
+  ],
+  "BEck3n": [
+    {
+      "type": 0,
+      "value": "Please wait while your files are being deleted..."
+    }
+  ],
+  "BKMqtr": [
+    {
+      "type": 0,
+      "value": "AI によって生成されたコンテンツは正しくない可能性があるため、使用する前に慎重に確認してください。チャットに個人情報や機密情報は含めないでください。"
+    }
+  ],
+  "BKSv0l": [
+    {
+      "type": 0,
+      "value": "Azure Center for SAP solutions reader"
+    }
+  ],
+  "BV3Mir": [
+    {
+      "type": 0,
+      "value": "Link repository to resource"
+    }
+  ],
+  "BWpuKl": [
+    {
+      "type": 0,
+      "value": "Update"
+    }
+  ],
+  "Bcgdb7": [
+    {
+      "type": 1,
+      "value": "number"
+    },
+    {
+      "type": 0,
+      "value": " 個の管理対象リソース グループを追加しています"
+    }
+  ],
+  "Bcx/Gz": [
+    {
+      "type": 0,
+      "value": "List cluster user credential action."
+    }
+  ],
+  "C3PGqj": [
+    {
+      "type": 0,
+      "value": "Logic App Contributor"
+    }
+  ],
+  "C3qF2+": [
+    {
+      "type": 0,
+      "value": "Create incident handler"
+    }
+  ],
+  "CFJ1OD": [
+    {
+      "type": 0,
+      "value": "Read-only role for Digital Twins data-plane properties."
+    }
+  ],
+  "CJEYfo": [
+    {
+      "type": 0,
+      "value": "Failed to fetch agent mode"
+    }
+  ],
+  "CL+NTm": [
+    {
+      "type": 0,
+      "value": "1 wk"
+    }
+  ],
+  "CMaDRa": [
+    {
+      "type": 0,
+      "value": "Write access to Language service resources."
+    }
+  ],
+  "CU0qUc": [
+    {
+      "type": 0,
+      "value": "Processed time"
+    }
+  ],
+  "CZ6s9k": [
+    {
+      "type": 0,
+      "value": "Degraded core application groups"
+    }
+  ],
+  "CbKRyU": [
+    {
+      "type": 0,
+      "value": "Data connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been deleted successfully"
+    }
+  ],
+  "CfGC/2": [
+    {
+      "type": 0,
+      "value": "監視するリソース グループの選択"
+    }
+  ],
+  "CimbUb": [
+    {
+      "type": 0,
+      "value": "Make sure you have Contributor or Owner access to the resource group where the agent is hosted. If you still have access issues, assign the role directly to your account instead of relying on group-based role assignments."
+    }
+  ],
+  "CnouOe": [
+    {
+      "type": 0,
+      "value": "To change the incident platform, you need to disconnect from PagerDuty. The agent will no longer manage tickets. Are you sure you want to disconnect?"
+    }
+  ],
+  "CvWvf+": [
+    {
+      "type": 0,
+      "value": "actions"
+    }
+  ],
+  "Cwgo05": [
+    {
+      "type": 0,
+      "value": "Connection to ServiceNow failed. Please check your configuration and try again."
+    }
+  ],
+  "D/TfIH": [
+    {
+      "type": 0,
+      "value": "Add an incident platform so that the agent can help respond to incidents in real time. To change to a different platform, you'll need to delete the connection to the current one."
+    }
+  ],
+  "D2I5kb": [
+    {
+      "type": 0,
+      "value": "ServiceNow connection added successfully"
+    }
+  ],
+  "D3idYv": [
+    {
+      "type": 0,
+      "value": "設定"
+    }
+  ],
+  "D473QI": [
+    {
+      "type": 0,
+      "value": "Choose a maximum of "
+    },
+    {
+      "type": 1,
+      "value": "max"
+    },
+    {
+      "type": 0,
+      "value": " resource groups you have permissions on. "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " resource groups selected."
+    }
+  ],
+  "D4T2Px": [
+    {
+      "type": 0,
+      "value": "Mitigated by agent"
+    }
+  ],
+  "DHc2gc": [
+    {
+      "type": 0,
+      "value": "New custom handler"
+    }
+  ],
+  "DMd1Ql": [
+    {
+      "type": 0,
+      "value": "次に含まれる"
+    }
+  ],
+  "DPnEXy": [
+    {
+      "type": 0,
+      "value": "平均待機時間"
+    }
+  ],
+  "DVVbGP": [
+    {
+      "type": 0,
+      "value": "Regenerate will overwrite any edits made within the generated section of code."
+    }
+  ],
+  "DWon+H": [
+    {
+      "type": 0,
+      "value": "Add custom incident handler"
+    }
+  ],
+  "DX7w9O": [
+    {
+      "type": 0,
+      "value": "Selected incidents"
+    }
+  ],
+  "DasCIQ": [
+    {
+      "type": 0,
+      "value": "This resource group is recommended for optimal agent performance. It includes one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, Web Apps, Redis, Postgres SQL, CosmosDB, Virtual machines, or Storage accounts."
+    }
+  ],
+  "Dff3ms": [
+    {
+      "type": 0,
+      "value": "Cognitive Services Contributor"
+    }
+  ],
+  "DlSXUR": [
+    {
+      "type": 0,
+      "value": "Why isn't my application working?"
+    }
+  ],
+  "DmtYK4": [
+    {
+      "type": 0,
+      "value": "Choose impacted service"
+    }
+  ],
+  "DpMYPV": [
+    {
+      "type": 0,
+      "value": "ロジック アプリを削除できませんでした"
+    }
+  ],
+  "Dx3Xj3": [
+    {
+      "type": 0,
+      "value": "Let's you read and test a KB only."
+    }
+  ],
+  "Dy3cy0": [
+    {
+      "type": 0,
+      "value": "End date picker"
+    }
+  ],
+  "Dz+Iv9": [
+    {
+      "type": 0,
+      "value": "IcM connected. Your next step is to set up incident handlers."
+    }
+  ],
+  "E396gv": [
+    {
+      "type": 0,
+      "value": "フィードバックについて連絡しても構わない。"
+    }
+  ],
+  "E60v6W": [
+    {
+      "type": 0,
+      "value": "選択したリソース グループの一部に、必要な roleAssignments/write アクセス許可と Microsoft.ManagedIdentity/userAssignedIdentities/write アクセス許可がありません。"
+    }
+  ],
+  "ED/jWk": [
+    {
+      "type": 0,
+      "value": "過去 30 分間のトランザクション"
+    }
+  ],
+  "EI4WZI": [
+    {
+      "type": 0,
+      "value": "Can you analyze my resource's availability over the last 24 hours?"
+    }
+  ],
+  "EKfWmx": [
+    {
+      "type": 0,
+      "value": "サブスクリプションを読み込めませんでした。"
+    }
+  ],
+  "ENnkRe": [
+    {
+      "type": 0,
+      "value": "Grants permission for read operations for App Configuration resources."
+    }
+  ],
+  "ERQMQ9": [
+    {
+      "type": 0,
+      "value": "Updating custom incident handler"
+    }
+  ],
+  "ESChST": [
+    {
+      "type": 0,
+      "value": "Enter filter name"
+    }
+  ],
+  "EWw/tK": [
+    {
+      "type": 0,
+      "value": "適用"
+    }
+  ],
+  "EYRPA4": [
+    {
+      "type": 0,
+      "value": "Failed to update data connector"
+    }
+  ],
+  "EZBG/A": [
+    {
+      "type": 0,
+      "value": "インシデント プラットフォーム"
+    }
+  ],
+  "EdEthU": [
+    {
+      "type": 0,
+      "value": "API Management Workspace Contributor"
+    }
+  ],
+  "EiiZbj": [
+    {
+      "type": 0,
+      "value": "Successfully disabled incident handler"
+    }
+  ],
+  "ElI1gd": [
+    {
+      "type": 0,
+      "value": "リソース グループを検索してください"
+    }
+  ],
+  "Ep74wA": [
+    {
+      "type": 0,
+      "value": "ServiceNow is connected."
+    }
+  ],
+  "Erci0g": [
+    {
+      "type": 0,
+      "value": "Azure SRE Agent"
+    }
+  ],
+  "EwRIOm": [
+    {
+      "type": 0,
+      "value": "ユーザー"
+    }
+  ],
+  "F9LrJA": [
+    {
+      "type": 0,
+      "value": "項目のフィルター処理"
+    }
+  ],
+  "FDJdmL": [
+    {
+      "type": 0,
+      "value": "Grafana ダッシュボードが正常にリンクされました"
+    }
+  ],
+  "FGAk9M": [
+    {
+      "type": 0,
+      "value": "管理対象リソース グループが正常に追加されました"
+    }
+  ],
+  "FLm/x4": [
+    {
+      "type": 0,
+      "value": "Repository connection"
+    }
+  ],
+  "FUQvS0": [
+    {
+      "type": 0,
+      "value": "サブスクリプション ID"
+    }
+  ],
+  "FitglU": [
+    {
+      "type": 0,
+      "value": "ServiceNow endpoint is required."
+    }
+  ],
+  "FnKIAW": [
+    {
+      "type": 0,
+      "value": "確認済み"
+    }
+  ],
+  "Fv1ZSz": [
+    {
+      "type": 0,
+      "value": "クローズ済み"
+    }
+  ],
+  "G+JlQs": [
+    {
+      "type": 0,
+      "value": "Primary resource name equals"
+    }
+  ],
+  "G/yZLu": [
+    {
+      "type": 0,
+      "value": "Remove"
+    }
+  ],
+  "G2GBW0": [
+    {
+      "type": 0,
+      "value": "Creating data connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
+  "G6vaGg": [
+    {
+      "type": 0,
+      "value": "アクセス キーを使用して PagerDuty に接続します。詳細については、pagerduty.com に移動して、「API アクセス キー」のセクションを参照してください。"
+    }
+  ],
+  "G8H3+s": [
+    {
+      "type": 0,
+      "value": "All incident types"
+    }
+  ],
+  "GBnvl1": [
+    {
+      "type": 0,
+      "value": "エージェント"
+    }
+  ],
+  "GCVHNV": [
+    {
+      "type": 0,
+      "value": "- 処理中"
+    }
+  ],
+  "GUx4Ld": [
+    {
+      "type": 0,
+      "value": "Unable to connect to ServiceNow endpoint. Please verify the endpoint URL."
+    }
+  ],
+  "GgiTLF": [
+    {
+      "type": 0,
+      "value": "Successfully enabled incident handler"
+    }
+  ],
+  "GoSIa4": [
+    {
+      "type": 0,
+      "value": "Minimal permission to view Cognitive Services usages."
+    }
+  ],
+  "GroBmn": [
+    {
+      "type": 0,
+      "value": "repository alerts found"
+    }
+  ],
+  "GuBSUa": [
+    {
+      "type": 0,
+      "value": "Go to handler"
+    }
+  ],
+  "H3ooTI": [
+    {
+      "type": 0,
+      "value": "Azure Service Bus Data Owner"
+    }
+  ],
+  "HAlOn1": [
+    {
+      "type": 0,
+      "value": "名前"
+    }
+  ],
+  "HQhDfV": [
+    {
+      "type": 0,
+      "value": "Cognitive Services OpenAI Contributor"
+    }
+  ],
+  "HWMrXF": [
+    {
+      "type": 0,
+      "value": "リソース グループの追加"
+    }
+  ],
+  "HbTFJf": [
+    {
+      "type": 0,
+      "value": "保留中の承認"
+    }
+  ],
+  "HjTHxo": [
+    {
+      "type": 0,
+      "value": "Add instructions"
+    }
+  ],
+  "Humfno": [
+    {
+      "type": 0,
+      "value": "End date"
+    }
+  ],
+  "Hv7pA2": [
+    {
+      "type": 0,
+      "value": "Monitor ID"
+    }
+  ],
+  "I03XmI": [
+    {
+      "type": 0,
+      "value": "- 完了済み"
+    }
+  ],
+  "I80vfn": [
+    {
+      "type": 0,
+      "value": "Approve action"
+    }
+  ],
+  "I8iKnF": [
+    {
+      "type": 0,
+      "value": "Core application groups"
+    }
+  ],
+  "IAwPyV": [
+    {
+      "type": 0,
+      "value": "注釈の更新"
+    }
+  ],
+  "IEFW3Y": [
+    {
+      "type": 0,
+      "value": "App Configuration Contributor"
+    }
+  ],
+  "IF3r+X": [
+    {
+      "type": 0,
+      "value": "Azure Managed Grafana"
+    }
+  ],
+  "IQaKwH": [
+    {
+      "type": 0,
+      "value": "Lets you read Cognitive Services data."
+    }
+  ],
+  "ITYqY7": [
+    {
+      "type": 0,
+      "value": "新しいスレッド"
+    }
+  ],
+  "IYK6q+": [
+    {
+      "type": 0,
+      "value": "Creating Sub-Agent"
+    }
+  ],
+  "IiNwpr": [
+    {
+      "type": 0,
+      "value": "The action was canceled by "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "IoApza": [
+    {
+      "type": 0,
+      "value": "Collapse navigation"
+    }
+  ],
+  "IuFETn": [
+    {
+      "type": 0,
+      "value": "Duration"
+    }
+  ],
+  "IvjoDS": [
+    {
+      "type": 0,
+      "value": "Connected"
+    }
+  ],
+  "IzCVhG": [
+    {
+      "type": 0,
+      "value": "More options"
+    }
+  ],
+  "J//t5k": [
+    {
+      "type": 0,
+      "value": "Creating default incident handler"
+    }
+  ],
+  "J/uqp9": [
+    {
+      "type": 0,
+      "value": "Click to show value"
+    }
+  ],
+  "J3Y8Sm": [
+    {
+      "type": 0,
+      "value": "Failed to validate ServiceNow settings. Please try again."
+    }
+  ],
+  "J6XCfl": [
+    {
+      "type": 0,
+      "value": "リソース "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " の注釈を更新しています"
+    }
+  ],
+  "JAtEuU": [
+    {
+      "type": 0,
+      "value": "Azure Managed Grafana resource name"
+    }
+  ],
+  "JCIgkj": [
+    {
+      "type": 0,
+      "value": "Username"
+    }
+  ],
+  "JCjxSH": [
+    {
+      "type": 0,
+      "value": "SRE エージェント "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " を削除できませんでした"
+    }
+  ],
+  "JEsxDw": [
+    {
+      "type": 0,
+      "value": "Uploading..."
+    }
+  ],
+  "JHqOn0": [
+    {
+      "type": 0,
+      "value": "Upload one-off architecture docs, troubleshooting guides, and other documentation to enhance the agent's knowledge base. For ongoing document management and automated updates, consider using Data Connectors instead."
+    }
+  ],
+  "JIBt4U": [
+    {
+      "type": 0,
+      "value": "Connection to IcM failed. Please check your configuration and try again."
+    }
+  ],
+  "JJNc3c": [
+    {
+      "type": 0,
+      "value": "Previous"
+    }
+  ],
+  "JVZyFs": [
+    {
+      "type": 0,
+      "value": "API キーの生成"
+    }
+  ],
+  "JWM0w5": [
+    {
+      "type": 0,
+      "value": "平均 CPU 使用率"
+    }
+  ],
+  "JX0502": [
+    {
+      "type": 0,
+      "value": "クライアント"
+    }
+  ],
+  "JgQ1gX": [
+    {
+      "type": 0,
+      "value": "Get all incidents"
+    }
+  ],
+  "JjKcCj": [
+    {
+      "type": 0,
+      "value": "管理対象リソース グループの削除"
+    }
+  ],
+  "JlJ8dZ": [
+    {
+      "type": 0,
+      "value": "Search for files..."
+    }
+  ],
+  "Jm+zxF": [
+    {
+      "type": 0,
+      "value": "Disconnect ServiceNow?"
+    }
+  ],
+  "JmZ3gF": [
+    {
+      "type": 0,
+      "value": "Updating upgrade channel to "
+    },
+    {
+      "type": 1,
+      "value": "channel"
+    }
+  ],
+  "JwHSD6": [
+    {
+      "type": 0,
+      "value": "Choose filter parameters"
+    }
+  ],
+  "JxjlUE": [
+    {
+      "type": 0,
+      "value": "Resource Metrics"
+    }
+  ],
+  "K3r6DQ": [
+    {
+      "type": 0,
+      "value": "削除"
+    }
+  ],
+  "KAYpG9": [
+    {
+      "type": 0,
+      "value": "Allows for full read access to IoT Hub data-plane properties."
+    }
+  ],
+  "KLYuRX": [
+    {
+      "type": 0,
+      "value": "Last 60 days"
+    }
+  ],
+  "KN7zKn": [
+    {
+      "type": 0,
+      "value": "Error"
+    }
+  ],
+  "KVPNxV": [
+    {
+      "type": 0,
+      "value": "Failed to update the custom incident handler. Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
+  "KXyWfi": [
+    {
+      "type": 0,
+      "value": "Urgency"
+    }
+  ],
+  "KbCGsK": [
+    {
+      "type": 0,
+      "value": "If you click 'Authorize', this operation will be executed on your behalf using your credentials."
+    }
+  ],
+  "KoJ1C+": [
+    {
+      "type": 0,
+      "value": "Delete Selected ("
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": ")"
+    }
+  ],
+  "KyDsjH": [
+    {
+      "type": 0,
+      "value": "Date modified"
+    }
+  ],
+  "KzMCPo": [
+    {
+      "type": 0,
+      "value": "Grants full access to manage all resources, but does not allow you to assign roles in Azure RBAC, manage assignments in Azure Blueprints, or share image galleries."
+    }
+  ],
+  "L0KVkI": [
+    {
+      "type": 0,
+      "value": "SRE エージェント "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " の削除中です"
+    }
+  ],
+  "L5ZL+u": [
+    {
+      "type": 0,
+      "value": "Data connectors"
+    }
+  ],
+  "LPprqA": [
+    {
+      "type": 0,
+      "value": "リソース グループのレビュー"
+    }
+  ],
+  "LRJHcs": [
+    {
+      "type": 0,
+      "value": "Prompt examples"
+    }
+  ],
+  "LSaaxU": [
+    {
+      "type": 0,
+      "value": "View all resources, but does not allow you to make any changes."
+    }
+  ],
+  "LnglaU": [
+    {
+      "type": 0,
+      "value": "Run History"
+    }
+  ],
+  "LyHqqV": [
+    {
+      "type": 0,
+      "value": "Standard input"
+    }
+  ],
+  "M88YzU": [
+    {
+      "type": 0,
+      "value": "Browse Files"
+    }
+  ],
+  "MACADd": [
+    {
+      "type": 0,
+      "value": "スレッド アクションを非表示にする"
+    }
+  ],
+  "MB9ceM": [
+    {
+      "type": 0,
+      "value": "Incident ID"
+    }
+  ],
+  "MCSjdU": [
+    {
+      "type": 0,
+      "value": "Deleting incident handler"
+    }
+  ],
+  "MhTfXm": [
+    {
+      "type": 0,
+      "value": "Select an incident and run the test to see the results here."
+    }
+  ],
+  "MlX0aZ": [
+    {
+      "type": 0,
+      "value": "All impacted services"
+    }
+  ],
+  "Mnvpbx": [
+    {
+      "type": 0,
+      "value": "Full management of Container Apps, including creation, deletion, and updates."
+    }
+  ],
+  "Mof2Rv": [
+    {
+      "type": 0,
+      "value": "No historical data available"
+    }
+  ],
+  "Mvqep7": [
+    {
+      "type": 0,
+      "value": "Delete failed: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "N+sJfO": [
+    {
+      "type": 0,
+      "value": "Grid view"
+    }
+  ],
+  "NAAdaF": [
+    {
+      "type": 0,
+      "value": "This role provides read access to all capabilities of Azure Center for SAP solutions."
+    }
+  ],
+  "NAepnj": [
+    {
+      "type": 0,
+      "value": "Authorized"
+    }
+  ],
+  "ND2EUR": [
+    {
+      "type": 0,
+      "value": "Storage Blob Data Contributor"
+    }
+  ],
+  "NMJ8PI": [
+    {
+      "type": 0,
+      "value": "Failed to update incident handler"
+    }
+  ],
+  "NOMbLF": [
+    {
+      "type": 0,
+      "value": "Get started with incident management"
+    }
+  ],
+  "NV14yw": [
+    {
+      "type": 0,
+      "value": "アラート ルール"
+    }
+  ],
+  "NYTGIb": [
+    {
+      "type": 0,
+      "value": "Got it"
+    }
+  ],
+  "NcxGiD": [
+    {
+      "type": 0,
+      "value": "HDInsight on AKS Cluster Admin"
+    }
+  ],
+  "Nfo3YG": [
+    {
+      "type": 0,
+      "value": "Connect to ServiceNow with your instance endpoint and credentials. This allows the agent to manage incidents and tickets in your ServiceNow environment."
+    }
+  ],
+  "NkirQc": [
+    {
+      "type": 0,
+      "value": "Delete custom incident handler"
+    }
+  ],
+  "NrGEOo": [
+    {
+      "type": 0,
+      "value": "インシデント管理の構成が正常に保存されました"
+    }
+  ],
+  "Nrc9ba": [
+    {
+      "type": 0,
+      "value": "フィードバックをお送りいただきありがとうございました。"
+    }
+  ],
+  "Nup8Xl": [
+    {
+      "type": 0,
+      "value": "Create data connector"
+    }
+  ],
+  "O2umhN": [
+    {
+      "type": 0,
+      "value": "Failed to update upgrade channel"
+    }
+  ],
+  "O79Wpv": [
+    {
+      "type": 0,
+      "value": "新しいメッセージ"
+    }
+  ],
+  "O8zbbB": [
+    {
+      "type": 0,
+      "value": "この SRE エージェントを削除しますか?この操作は元に戻すことができません。"
+    }
+  ],
+  "OJ2u8k": [
+    {
+      "type": 0,
+      "value": "名前の入力"
+    }
+  ],
+  "OLJJDc": [
+    {
+      "type": 0,
+      "value": "Learn more about prompts"
+    }
+  ],
+  "OMp9VI": [
+    {
+      "type": 0,
+      "value": "Deleting thread '"
+    },
+    {
+      "type": 1,
+      "value": "title"
+    },
+    {
+      "type": 0,
+      "value": "'"
+    }
+  ],
+  "ONVN5F": [
+    {
+      "type": 0,
+      "value": "割り当て先"
+    }
+  ],
+  "ORGv1Q": [
+    {
+      "type": 0,
+      "value": "Created"
+    }
+  ],
+  "OSMnsR": [
+    {
+      "type": 0,
+      "value": "Any unsaved changes will be lost."
+    }
+  ],
+  "OTGHHm": [
+    {
+      "type": 0,
+      "value": "The resources you picked have permissions for these roles."
+    }
+  ],
+  "OV0MpG": [
+    {
+      "type": 0,
+      "value": "データ使用量、お客様の権利、およびプライバシーに関する声明 (必要な場合)。カバーしました。"
+    }
+  ],
+  "OVAsQ8": [
+    {
+      "type": 0,
+      "value": "Roles and permissions"
+    }
+  ],
+  "OVRWH9": [
+    {
+      "type": 0,
+      "value": "Update custom incident handler"
+    }
+  ],
+  "OWBgF9": [
+    {
+      "type": 0,
+      "value": "スレッド メニューを非表示にする"
+    }
+  ],
+  "OYG48f": [
+    {
+      "type": 0,
+      "value": "Failed to enable incident handler"
+    }
+  ],
+  "OlIql8": [
+    {
+      "type": 0,
+      "value": "Moderate"
+    }
+  ],
+  "Oom2N7": [
+    {
+      "type": 0,
+      "value": "View and search all monitoring data as well as view monitoring settings, including viewing the configuration of Azure diagnostics on all Azure resources."
+    }
+  ],
+  "OuEM6V": [
+    {
+      "type": 0,
+      "value": "Choose how to set up this incident handler"
+    }
+  ],
+  "OvzONl": [
+    {
+      "type": 0,
+      "value": "Off"
+    }
+  ],
+  "OxtrmO": [
+    {
+      "type": 0,
+      "value": "ServiceNow endpoint"
+    }
+  ],
+  "P/1qUI": [
+    {
+      "type": 0,
+      "value": "The custom incident handler was successfully updated"
+    }
+  ],
+  "P3Xgmf": [
+    {
+      "type": 0,
+      "value": "IcM connection added successfully"
+    }
+  ],
+  "P3qxV2": [
+    {
+      "type": 0,
+      "value": "Search Service Contributor"
+    }
+  ],
+  "P7MNl8": [
+    {
+      "type": 0,
+      "value": "Provide agent feedback"
+    }
+  ],
+  "P9odAr": [
+    {
+      "type": 0,
+      "value": "Your agent is in read-only mode. The following permissions are required for the agent to build knowledge about your resources. The contributor roles for specific services will not be used to perform any write operations."
+    }
+  ],
+  "PCrXDG": [
+    {
+      "type": 0,
+      "value": "My recent prompts"
+    }
+  ],
+  "PEHogk": [
+    {
+      "type": 0,
+      "value": "Successfully updated incident handler"
+    }
+  ],
+  "PFtMy9": [
+    {
+      "type": 0,
+      "value": "Canceled"
+    }
+  ],
+  "PJ2FQv": [
+    {
+      "type": 0,
+      "value": "Filter incidents"
+    }
+  ],
+  "PW+sL4": [
+    {
+      "type": 0,
+      "value": "N/A"
+    }
+  ],
+  "PWmGlA": [
+    {
+      "type": 0,
+      "value": "Resource analysis"
+    }
+  ],
+  "PXg8+x": [
+    {
+      "type": 0,
+      "value": "Virtual Machine Contributor"
+    }
+  ],
+  "Pc+tM3": [
+    {
+      "type": 0,
+      "value": "Generate"
+    }
+  ],
+  "Pcf4MK": [
+    {
+      "type": 0,
+      "value": "Full page"
+    }
+  ],
+  "Phji5P": [
+    {
+      "type": 0,
+      "value": "Edit Healthcare APIs agent configurations."
+    }
+  ],
+  "PiNeyx": [
+    {
+      "type": 0,
+      "value": "Creating sub-agent \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
+  "PipPB3": [
+    {
+      "type": 0,
+      "value": "スレッド アクションを表示する"
+    }
+  ],
+  "PrFU82": [
+    {
+      "type": 0,
+      "value": "Can read all monitoring data and update monitoring settings."
+    }
+  ],
+  "PuU15u": [
+    {
+      "type": 0,
+      "value": "Not connected"
+    }
+  ],
+  "Pwen/L": [
+    {
+      "type": 0,
+      "value": "Cognitive Services LUIS Reader"
+    }
+  ],
+  "PwqiFa": [
+    {
+      "type": 0,
+      "value": "P2"
+    }
+  ],
+  "PxLzzW": [
+    {
+      "type": 0,
+      "value": "実行内容..."
+    }
+  ],
+  "PzGaVI": [
+    {
+      "type": 0,
+      "value": "Grafana ダッシュボードをプロビジョニング しています"
+    }
+  ],
+  "Q/agzh": [
+    {
+      "type": 0,
+      "value": "判定時刻"
+    }
+  ],
+  "Q3p3sz": [
+    {
+      "type": 0,
+      "value": "Storage Blob Data Reader"
+    }
+  ],
+  "Q8Qw5B": [
+    {
+      "type": 0,
+      "value": "説明"
+    }
+  ],
+  "QAVYIG": [
+    {
+      "type": 0,
+      "value": "Enter a description"
+    }
+  ],
+  "QBeCBS": [
+    {
+      "type": 0,
+      "value": "P1"
+    }
+  ],
+  "QEhO+z": [
+    {
+      "type": 0,
+      "value": "アクセス キーが必要です。"
+    }
+  ],
+  "QGVI63": [
+    {
+      "type": 0,
+      "value": "エージェント"
+    }
+  ],
+  "QIY3dQ": [
+    {
+      "type": 0,
+      "value": "Azure Digital Twins Data Owner"
+    }
+  ],
+  "QQX4Pv": [
+    {
+      "type": 0,
+      "value": "No incidents selected"
+    }
+  ],
+  "QfEnqG": [
+    {
+      "type": 0,
+      "value": "Deep investigation is turned off"
+    }
+  ],
+  "Qfec1M": [
+    {
+      "type": 0,
+      "value": "Edit annotation"
+    }
+  ],
+  "QlsDcr": [
+    {
+      "type": 0,
+      "value": "アクション"
+    }
+  ],
+  "Qly58H": [
+    {
+      "type": 0,
+      "value": "To view the roles and permissions the agent will have, choose resource groups for the agent to manage."
+    }
+  ],
+  "QtNVS/": [
+    {
+      "type": 0,
+      "value": "Custom handler name"
+    }
+  ],
+  "QwnGVY": [
+    {
+      "type": 0,
+      "value": "Authorize"
+    }
+  ],
+  "R+J5ox": [
+    {
+      "type": 0,
+      "value": "Review"
+    }
+  ],
+  "R/6nsx": [
+    {
+      "type": 0,
+      "value": "サブスクリプション"
+    }
+  ],
+  "R1RX2a": [
+    {
+      "type": 0,
+      "value": "Full access to IoT Hub data."
+    }
+  ],
+  "R1i9Gl": [
+    {
+      "type": 0,
+      "value": "Upload failed: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "R5Y4rC": [
+    {
+      "type": 0,
+      "value": "Data connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been updated successfully"
+    }
+  ],
+  "R7DP3y": [
+    {
+      "type": 0,
+      "value": "Resolved by agent"
+    }
+  ],
+  "R7g7UT": [
+    {
+      "type": 0,
+      "value": "Incident threads have moved"
+    }
+  ],
+  "RAjqKb": [
+    {
+      "type": 0,
+      "value": "Close panel"
+    }
+  ],
+  "RH8rNM": [
+    {
+      "type": 0,
+      "value": "Only alphanumeric characters and dashes are allowed, and the value must be 3-44 characters long."
+    }
+  ],
+  "RSDnlS": [
+    {
+      "type": 0,
+      "value": "スレッド メニューを表示する"
+    }
+  ],
+  "RStTJp": [
+    {
+      "type": 0,
+      "value": "Azure Kubernetes Service Cluster Admin"
+    }
+  ],
+  "RVf7gC": [
+    {
+      "type": 0,
+      "value": "TODO"
+    }
+  ],
+  "Rfvi9/": [
+    {
+      "type": 0,
+      "value": "Last 30 days"
+    }
+  ],
+  "RrCui3": [
+    {
+      "type": 0,
+      "value": "要約"
+    }
+  ],
+  "RrsyUh": [
+    {
+      "type": 0,
+      "value": "Azure Kubernetes Service RBAC リーダー"
+    }
+  ],
+  "S1VBUm": [
+    {
+      "type": 0,
+      "value": "Grafana ダッシュボードをリンクできませんでした"
+    }
+  ],
+  "S1gYH9": [
+    {
+      "type": 0,
+      "value": "Last 12 hours"
+    }
+  ],
+  "S6FECK": [
+    {
+      "type": 0,
+      "value": "Deleting data connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
+  "SAINuE": [
+    {
+      "type": 0,
+      "value": "Azure Managed Grafana に移動"
+    }
+  ],
+  "SCjiXP": [
+    {
+      "type": 0,
+      "value": "Cognitive Services Data Reader"
+    }
+  ],
+  "SL7+hl": [
+    {
+      "type": 0,
+      "value": "注釈を更新できませんでした。エラー: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
+  "SMrXWc": [
+    {
+      "type": 0,
+      "value": "Favorites"
+    }
+  ],
+  "SNuQo7": [
+    {
+      "type": 0,
+      "value": "ログ"
+    }
+  ],
+  "SPdP4q": [
+    {
+      "type": 0,
+      "value": "Core application group health + performance"
+    }
+  ],
+  "SRf69j": [
+    {
+      "type": 0,
+      "value": "この操作は、承認者の資格情報を使用して実行されています。"
+    }
+  ],
+  "SVwJTM": [
+    {
+      "type": 0,
+      "value": "Export"
+    }
+  ],
+  "SXEeds": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " document(s) rejected ("
+    },
+    {
+      "type": 1,
+      "value": "fileNames"
+    },
+    {
+      "type": 0,
+      "value": "). Only .md and .txt files are allowed."
+    }
+  ],
+  "Sdc+Dp": [
+    {
+      "type": 0,
+      "value": "Autonomy level"
+    }
+  ],
+  "SezWLK": [
+    {
+      "type": 0,
+      "value": "Owning team ID"
+    }
+  ],
+  "Sjo1P4": [
+    {
+      "type": 0,
+      "value": "Custom"
+    }
+  ],
+  "Sr4IbA": [
+    {
+      "type": 0,
+      "value": "閲覧者を監視しています"
+    }
+  ],
+  "Sr5R7d": [
+    {
+      "type": 0,
+      "value": "Autonomous"
+    }
+  ],
+  "SuVToZ": [
+    {
+      "type": 0,
+      "value": "SQL Managed Instance Contributor"
+    }
+  ],
+  "T5+AEf": [
+    {
+      "type": 0,
+      "value": "Logic App Operator"
+    }
+  ],
+  "T7WpWs": [
+    {
+      "type": 0,
+      "value": "インシデント管理"
+    }
+  ],
+  "T8mrCM": [
+    {
+      "type": 0,
+      "value": "Filters define which incidents the incident handler applies to. These apply to the list of incidents previewed in the next step."
+    }
+  ],
+  "TAm7bB": [
+    {
+      "type": 0,
+      "value": "Monitoring Contributor"
+    }
+  ],
+  "TB6bkn": [
+    {
+      "type": 0,
+      "value": "詳細情報の表示"
+    }
+  ],
+  "TDUfVk": [
+    {
+      "type": 0,
+      "value": "Started"
+    }
+  ],
+  "TDoBlx": [
+    {
+      "type": 0,
+      "value": "Privileged"
+    }
+  ],
+  "TFQBcG": [
+    {
+      "type": 0,
+      "value": "Agent permissions were used, but the action failed to run."
+    }
+  ],
+  "TIDNOO": [
+    {
+      "type": 0,
+      "value": "正常"
+    }
+  ],
+  "TKmub+": [
+    {
+      "type": 0,
+      "value": "このフィールドは必須項目です"
+    }
+  ],
+  "TMZ2Rq": [
+    {
+      "type": 0,
+      "value": "Grafana 管理者"
+    }
+  ],
+  "TdTXXf": [
+    {
+      "type": 0,
+      "value": "Learn more"
+    }
+  ],
+  "TdeXH0": [
+    {
+      "type": 0,
+      "value": "リソース マッピング"
+    }
+  ],
+  "TgpM0x": [
+    {
+      "type": 0,
+      "value": "Failed to create default incident handler"
+    }
+  ],
+  "ThSX0k": [
+    {
+      "type": 0,
+      "value": "SRE エージェントの削除"
+    }
+  ],
+  "TkWiD5": [
+    {
+      "type": 0,
+      "value": "新しいチャット スレッド"
+    }
+  ],
+  "Tp+Kgu": [
+    {
+      "type": 0,
+      "value": "You can now view incidents, and create additional incident handlers and custom handlers."
+    }
+  ],
+  "TyvDrC": [
+    {
+      "type": 0,
+      "value": "インシデント管理の構成を保存しています"
+    }
+  ],
+  "U4e+Yf": [
+    {
+      "type": 0,
+      "value": "The agent uses these available tools to generate incident handler instructions, based on patterns it learned from the past incidents. You can remove any tools you don't want the agent to use."
+    }
+  ],
+  "U73T9e": [
+    {
+      "type": 0,
+      "value": "Autonomous mode"
+    }
+  ],
+  "UKUKGA": [
+    {
+      "type": 0,
+      "value": "Failed to delete data connector"
+    }
+  ],
+  "UPybTw": [
+    {
+      "type": 0,
+      "value": "Go to map"
+    }
+  ],
+  "UV4Dx5": [
+    {
+      "type": 0,
+      "value": "Web サイトの共同作成者/オペレーター"
+    }
+  ],
+  "UZMdQH": [
+    {
+      "type": 0,
+      "value": "Managed Identity"
+    }
+  ],
+  "UZS12+": [
+    {
+      "type": 0,
+      "value": "Has read-only access to entities in the workspace. This role should be assigned on the workspace scope."
+    }
+  ],
+  "Ua0Vpv": [
+    {
+      "type": 0,
+      "value": "Visual view"
+    }
+  ],
+  "Udeffr": [
+    {
+      "type": 0,
+      "value": "Incident type"
+    }
+  ],
+  "UjETJe": [
+    {
+      "type": 0,
+      "value": "Base incident"
+    }
+  ],
+  "UmEsZF": [
+    {
+      "type": 0,
+      "value": "アクティビティ"
+    }
+  ],
+  "UpTFVv": [
+    {
+      "type": 0,
+      "value": "View decision tree of potential root causes."
+    }
+  ],
+  "UqCC2s": [
+    {
+      "type": 0,
+      "value": "Successfully created incident handler"
+    }
+  ],
+  "UrGI9K": [
+    {
+      "type": 0,
+      "value": "エージェントの作成"
+    }
+  ],
+  "UxeJFE": [
+    {
+      "type": 0,
+      "value": "Repository"
+    }
+  ],
+  "VB97cf": [
+    {
+      "type": 0,
+      "value": "User assigned"
+    }
+  ],
+  "VIgoaE": [
+    {
+      "type": 0,
+      "value": "No sub-agents configured"
+    }
+  ],
+  "VIn2J0": [
+    {
+      "type": 0,
+      "value": "Sub-agents"
+    }
+  ],
+  "VKbBsK": [
+    {
+      "type": 0,
+      "value": "Connected APIs"
+    }
+  ],
+  "VMIM8/": [
+    {
+      "type": 0,
+      "value": "Analysis"
+    }
+  ],
+  "VQDmmK": [
+    {
+      "type": 0,
+      "value": "低下"
+    }
+  ],
+  "VYjDXQ": [
+    {
+      "type": 0,
+      "value": "Enter monitor ID"
+    }
+  ],
+  "Vb+qQ4": [
+    {
+      "type": 0,
+      "value": "Uses"
+    }
+  ],
+  "Ve40iX": [
+    {
+      "type": 0,
+      "value": "Review (Default)"
+    }
+  ],
+  "VlBNux": [
+    {
+      "type": 0,
+      "value": "Application Insights Component Contributor"
+    }
+  ],
+  "VtBCjG": [
+    {
+      "type": 0,
+      "value": "Agent mode"
+    }
+  ],
+  "VwHnVH": [
+    {
+      "type": 0,
+      "value": "This will permanently delete the connection to IcM. The agent will no longer be able to manage incidents. Are you sure you want to delete this connection?"
+    }
+  ],
+  "VzzYJk": [
+    {
+      "type": 0,
+      "value": "作成"
+    }
+  ],
+  "W/V6+Y": [
+    {
+      "type": 0,
+      "value": "Collapse"
+    }
+  ],
+  "W2JBdp": [
+    {
+      "type": 0,
+      "value": "Impact"
+    }
+  ],
+  "W6NO8g": [
+    {
+      "type": 0,
+      "value": "Preview Upgrade Channel"
+    }
+  ],
+  "W6nSYE": [
+    {
+      "type": 0,
+      "value": "解決済み"
+    }
+  ],
+  "WCaf5C": [
+    {
+      "type": 0,
+      "value": "承認"
+    }
+  ],
+  "WHleoJ": [
+    {
+      "type": 0,
+      "value": "Resource type"
+    }
+  ],
+  "WIm1Zh": [
+    {
+      "type": 0,
+      "value": "前回のデータ キャプチャ時間"
+    }
+  ],
+  "WLw9E7": [
+    {
+      "type": 0,
+      "value": "PostgreSQL Flexible Server Long Term Retention Backup Role"
+    }
+  ],
+  "WTrOy3": [
+    {
+      "type": 0,
+      "value": "チャット"
+    }
+  ],
+  "WVTzuw": [
+    {
+      "type": 0,
+      "value": "The action was completed using temporary permissions granted by "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "WY8nWe": [
+    {
+      "type": 0,
+      "value": "Grafana ダッシュボードが正常に作成されました"
+    }
+  ],
+  "Wc5b/J": [
+    {
+      "type": 0,
+      "value": "AzureML Compute Operator"
+    }
+  ],
+  "Wf6bDe": [
+    {
+      "type": 0,
+      "value": "エージェントの詳細"
+    }
+  ],
+  "Wn+PVy": [
+    {
+      "type": 0,
+      "value": "Primary resource type equals"
+    }
+  ],
+  "WnIWxR": [
+    {
+      "type": 0,
+      "value": "Failed to create incident handler"
+    }
+  ],
+  "Wr7RY0": [
+    {
+      "type": 0,
+      "value": "PagerDuty connection added successfully"
+    }
+  ],
+  "Wtf3vL": [
+    {
+      "type": 0,
+      "value": "Data Factory Contributor"
+    }
+  ],
+  "WuZcUT": [
+    {
+      "type": 0,
+      "value": "The name must begin with a letter, end with a letter or number, and contain only letters, numbers, and hyphens. It must be 2 to 23 characters long."
+    }
+  ],
+  "WygVDv": [
+    {
+      "type": 0,
+      "value": "Administer HDInsight cluster pools."
+    }
+  ],
+  "X192re": [
+    {
+      "type": 0,
+      "value": "監視対象のリソース"
+    }
+  ],
+  "X4Y2nv": [
+    {
+      "type": 0,
+      "value": "リビジョン"
+    }
+  ],
+  "X8SzJ6": [
+    {
+      "type": 0,
+      "value": "To change the incident platform, you need to disconnect from IcM. The agent will no longer manage incidents. Are you sure you want to disconnect?"
+    }
+  ],
+  "X8lXsV": [
+    {
+      "type": 0,
+      "value": "The action was canceled."
+    }
+  ],
+  "XEso9C": [
+    {
+      "type": 0,
+      "value": "Grafana ダッシュボードをリンクしています"
+    }
+  ],
+  "XJ+Lww": [
+    {
+      "type": 0,
+      "value": "Lets you read and modify HDInsight cluster configurations."
+    }
+  ],
+  "XKhlZF": [
+    {
+      "type": 0,
+      "value": "The fully autonomous mode. With the required permissions, the agent analyzes incidents and independently performs mitigation or resource modifications."
+    }
+  ],
+  "XRdOZL": [
+    {
+      "type": 0,
+      "value": "Select or search for an incident"
+    }
+  ],
+  "XYSJsS": [
+    {
+      "type": 0,
+      "value": "API Management Workspace Reader"
+    }
+  ],
+  "XZ+Fx6": [
+    {
+      "type": 0,
+      "value": "Turn off"
+    }
+  ],
+  "Xa3AHo": [
+    {
+      "type": 0,
+      "value": "リンク先"
+    }
+  ],
+  "XaSHE5": [
+    {
+      "type": 0,
+      "value": "Uploading Files"
+    }
+  ],
+  "XdHOL0": [
+    {
+      "type": 0,
+      "value": "Updating incident handler"
+    }
+  ],
+  "XtnlO8": [
+    {
+      "type": 0,
+      "value": "Manage long-term retention backups for PostgreSQL Flexible Server."
+    }
+  ],
+  "XvrDTb": [
+    {
+      "type": 0,
+      "value": "監視メトリック発行者"
+    }
+  ],
+  "Y7Lbpf": [
+    {
+      "type": 0,
+      "value": "アクセス キーの検証に失敗しました。もう一度お試しください。"
+    }
+  ],
+  "YBiTCc": [
+    {
+      "type": 0,
+      "value": "Start date picker"
+    }
+  ],
+  "YE+vjH": [
+    {
+      "type": 0,
+      "value": "異常なノードの報告"
+    }
+  ],
+  "YJG5oU": [
+    {
+      "type": 0,
+      "value": "Keep working"
+    }
+  ],
+  "YP06jq": [
+    {
+      "type": 0,
+      "value": "Failed to create sub-agent"
+    }
+  ],
+  "YZIFAO": [
+    {
+      "type": 0,
+      "value": "Azure Kubernetes Service RBAC Cluster Admin"
+    }
+  ],
+  "YdXbbC": [
+    {
+      "type": 0,
+      "value": "異常"
+    }
+  ],
+  "Yjk5Ow": [
+    {
+      "type": 0,
+      "value": "Date created"
+    }
+  ],
+  "Yk6Co7": [
+    {
+      "type": 0,
+      "value": "Cognitive Services QnA Maker Reader"
+    }
+  ],
+  "Yp7NCi": [
+    {
+      "type": 0,
+      "value": "Azure Center for SAP solutions administrator"
+    }
+  ],
+  "Ys9AIu": [
+    {
+      "type": 0,
+      "value": "マネージド ID"
+    }
+  ],
+  "Z1VHv1": [
+    {
+      "type": 0,
+      "value": "データ閲覧者ロールを監視しています"
+    }
+  ],
+  "Z6rVz/": [
+    {
+      "type": 0,
+      "value": "Daily reports"
+    }
+  ],
+  "Z7Aj91": [
+    {
+      "type": 0,
+      "value": "Manage Azure Monitor workbooks."
+    }
+  ],
+  "Z7pfsl": [
+    {
+      "type": 0,
+      "value": "Agent ID"
+    }
+  ],
+  "ZNMCbm": [
+    {
+      "type": 0,
+      "value": "Manage Logic Apps."
+    }
+  ],
+  "ZNPvsJ": [
+    {
+      "type": 0,
+      "value": "Attention needed"
+    }
+  ],
+  "ZUXvHE": [
+    {
+      "type": 0,
+      "value": "ロジック アプリを作成できませんでした"
+    }
+  ],
+  "ZVyc4+": [
+    {
+      "type": 0,
+      "value": "Last 6 hours"
+    }
+  ],
+  "ZbUTXC": [
+    {
+      "type": 0,
+      "value": "リソース グループ"
+    }
+  ],
+  "Zh+5A6": [
+    {
+      "type": 0,
+      "value": "On"
+    }
+  ],
+  "Zidpq7": [
+    {
+      "type": 0,
+      "value": "Copy link to thread"
+    }
+  ],
+  "Zkjd9I": [
+    {
+      "type": 0,
+      "value": "Critical actions present"
+    }
+  ],
+  "Zqa4dQ": [
+    {
+      "type": 0,
+      "value": "トリガー済み"
+    }
+  ],
+  "ZsLOg3": [
+    {
+      "type": 0,
+      "value": "Manage Azure OpenAI resources."
+    }
+  ],
+  "ZukeYV": [
+    {
+      "type": 0,
+      "value": "SRE エージェントに "
+    },
+    {
+      "type": 1,
+      "value": "number"
+    },
+    {
+      "type": 0,
+      "value": " 個の管理対象リソース グループを追加できませんでした"
+    }
+  ],
+  "a5msuh": [
+    {
+      "type": 0,
+      "value": "はい"
+    }
+  ],
+  "a6ZyBy": [
+    {
+      "type": 0,
+      "value": "Your permissions will be used temporarily to complete this action."
+    }
+  ],
+  "a8l/yJ": [
+    {
+      "type": 0,
+      "value": "The action was completed using agent permissions."
+    }
+  ],
+  "aA1SYF": [
+    {
+      "type": 0,
+      "value": "Deleting data connector"
+    }
+  ],
+  "aAADUG": [
+    {
+      "type": 0,
+      "value": "Username is required."
+    }
+  ],
+  "aB1tjk": [
+    {
+      "type": 0,
+      "value": "Resource map"
+    }
+  ],
+  "aCdAsI": [
+    {
+      "type": 0,
+      "value": "Copy to clipboard"
+    }
+  ],
+  "aGL+Qo": [
+    {
+      "type": 0,
+      "value": "Has access to Read and Test functions under LUIS."
+    }
+  ],
+  "aH4De2": [
+    {
+      "type": 0,
+      "value": "Source"
+    }
+  ],
+  "aORQjS": [
+    {
+      "type": 0,
+      "value": "Add annotation"
+    }
+  ],
+  "aOVqnW": [
+    {
+      "type": 0,
+      "value": "Remove All"
+    }
+  ],
+  "aQPexO": [
+    {
+      "type": 0,
+      "value": "フィードバック"
+    }
+  ],
+  "aXGUvh": [
+    {
+      "type": 0,
+      "value": "I'm your Azure SRE Agent and here to help you monitor your resources, investigate incidents, automate responses, and ensure your systems follow best practices for reliability, performance, and security."
+    }
+  ],
+  "aaAabe": [
+    {
+      "type": 0,
+      "value": "(new)"
+    }
+  ],
+  "abzUj6": [
+    {
+      "type": 0,
+      "value": "Filter name"
+    }
+  ],
+  "acrOoz": [
+    {
+      "type": 0,
+      "value": "Continue"
+    }
+  ],
+  "ag1Rum": [
+    {
+      "type": 0,
+      "value": "Files uploaded successfully"
+    }
+  ],
+  "aj2txf": [
+    {
+      "type": 0,
+      "value": "Choose incidents"
+    }
+  ],
+  "anSi7M": [
+    {
+      "type": 0,
+      "value": "リソース グループを読み込めませんでした。"
+    }
+  ],
+  "aqNZbD": [
+    {
+      "type": 0,
+      "value": "Cognitive Services Language Writer"
+    }
+  ],
+  "aqnJe8": [
+    {
+      "type": 0,
+      "value": "Failed to update data connector with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "auFFJa": [
+    {
+      "type": 0,
+      "value": "Key Vault URI"
+    }
+  ],
+  "ayDbML": [
+    {
+      "type": 0,
+      "value": "Output logs"
+    }
+  ],
+  "b7D4Lh": [
+    {
+      "type": 0,
+      "value": "Manage the identities associated with your agent which may be used to communicate with other services"
+    }
+  ],
+  "bKgVBL": [
+    {
+      "type": 0,
+      "value": "If you click 'Continue', this operation will be executed using agent identity credentials."
+    }
+  ],
+  "bN0x+w": [
+    {
+      "type": 0,
+      "value": "Device Provisioning Service Data Reader"
+    }
+  ],
+  "bW7B87": [
+    {
+      "type": 0,
+      "value": "新規"
+    }
+  ],
+  "bect+9": [
+    {
+      "type": 0,
+      "value": "Stable - Receives updates once a month"
+    }
+  ],
+  "blSyDZ": [
+    {
+      "type": 0,
+      "value": "Azure Monitor の接続を解除しますか?"
+    }
+  ],
+  "boVrya": [
+    {
+      "type": 0,
+      "value": "Canceled by"
+    }
+  ],
+  "boWXYt": [
+    {
+      "type": 0,
+      "value": "所有者"
+    }
+  ],
+  "brxlTt": [
+    {
+      "type": 0,
+      "value": "Title contains"
+    }
+  ],
+  "bxnWhY": [
+    {
+      "type": 0,
+      "value": "結果"
+    }
+  ],
+  "c/KktL": [
+    {
+      "type": 0,
+      "value": "Resources"
+    }
+  ],
+  "c1EiBR": [
+    {
+      "type": 0,
+      "value": "Cognitive Services Usages Reader"
+    }
+  ],
+  "c35gM5": [
+    {
+      "type": 0,
+      "value": "Roles"
+    }
+  ],
+  "cDjhgm": [
+    {
+      "type": 0,
+      "value": "Deep investigation is turned on"
+    }
+  ],
+  "cRTR/A": [
+    {
+      "type": 0,
+      "value": "Write access to LUIS applications."
+    }
+  ],
+  "cTY8WU": [
+    {
+      "type": 0,
+      "value": "PagerDuty の接続を解除しますか?"
+    }
+  ],
+  "cTzjJg": [
+    {
+      "type": 0,
+      "value": "Storage Account Contributor"
+    }
+  ],
+  "ciB+oy": [
+    {
+      "type": 0,
+      "value": "Operate Azure Machine Learning compute resources."
+    }
+  ],
+  "cn2YEB": [
+    {
+      "type": 0,
+      "value": "Suggested prompts"
+    }
+  ],
+  "crWYMh": [
+    {
+      "type": 0,
+      "value": "Please wait while your files are being uploaded..."
+    }
+  ],
+  "csu0rb": [
+    {
+      "type": 0,
+      "value": "できるだけ詳しく記入してください。ただし、個人情報は含めないでください。"
+    }
+  ],
+  "cubQfQ": [
+    {
+      "type": 0,
+      "value": "Temporary permissions were granted by "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", but the action failed to run."
+    }
+  ],
+  "cyR7Kh": [
+    {
+      "type": 0,
+      "value": "戻る"
+    }
+  ],
+  "d2GmfJ": [
+    {
+      "type": 0,
+      "value": "Manage API Management workspaces."
+    }
+  ],
+  "d6hQf3": [
+    {
+      "type": 0,
+      "value": "Regenerate tools list"
+    }
+  ],
+  "d8dECB": [
+    {
+      "type": 0,
+      "value": "IoT Hub Data Reader"
+    }
+  ],
+  "dDk23i": [
+    {
+      "type": 1,
+      "value": "fieldName"
+    },
+    {
+      "type": 0,
+      "value": " options"
+    }
+  ],
+  "dPoAxA": [
+    {
+      "type": 0,
+      "value": "Upgrade channel updated to "
+    },
+    {
+      "type": 1,
+      "value": "channel"
+    },
+    {
+      "type": 0,
+      "value": " successfully"
+    }
+  ],
+  "dQ5/dh": [
+    {
+      "type": 0,
+      "value": "Allows for full read access to Device Provisioning Service data-plane properties."
+    }
+  ],
+  "dQtJBl": [
+    {
+      "type": 0,
+      "value": "注釈"
+    }
+  ],
+  "dR8VUW": [
+    {
+      "type": 0,
+      "value": "Manage API Management services."
+    }
+  ],
+  "dVx3yz": [
+    {
+      "type": 0,
+      "value": "Memory"
+    }
+  ],
+  "dYwe9B": [
+    {
+      "type": 0,
+      "value": "Repository URL must be like the following for GitHub: https://github.com/owner/repo-name or for Azure DevOps: https://dev.azure.com/organization/project/_git/repository-name or https://organization.visualstudio.com/project/_git/repository-name"
+    }
+  ],
+  "dhqlRa": [
+    {
+      "type": 0,
+      "value": "The semiautonomous mode. The agent diagnoses incidents, then mitigates or modifies resources only after its proposed actions are reviewed and approved."
+    }
+  ],
+  "dnXgff": [
+    {
+      "type": 0,
+      "value": "軽減済み"
+    }
+  ],
+  "e0a3XV": [
+    {
+      "type": 0,
+      "value": "Log Analytics Contributor"
+    }
+  ],
+  "e3itcX": [
+    {
+      "type": 0,
+      "value": "Device Update Administrator"
+    }
+  ],
+  "eBvTo6": [
+    {
+      "type": 0,
+      "value": "Read-only actions in the project. Readers can't create or update the project."
+    }
+  ],
+  "eEu4cm": [
+    {
+      "type": 0,
+      "value": "Instruction generation guidance"
+    }
+  ],
+  "eFKqV0": [
+    {
+      "type": 0,
+      "value": "Grafana ダッシュボードの作成"
+    }
+  ],
+  "eG1C0k": [
+    {
+      "type": 0,
+      "value": "Remove from favorites"
+    }
+  ],
+  "eKEL/g": [
+    {
+      "type": 0,
+      "value": "保留中"
+    }
+  ],
+  "eLvBmG": [
+    {
+      "type": 0,
+      "value": "Read-only mode"
+    }
+  ],
+  "eZMksq": [
+    {
+      "type": 0,
+      "value": "Add guidance"
+    }
+  ],
+  "eackGq": [
+    {
+      "type": 0,
+      "value": "This is the prompt the agent will use. It includes your custom response guidance. Review and edit if needed."
+    }
+  ],
+  "ecG+OD": [
+    {
+      "type": 0,
+      "value": "Manage Azure Search services."
+    }
+  ],
+  "eqYdSS": [
+    {
+      "type": 0,
+      "value": "Resource name"
+    }
+  ],
+  "et+X02": [
+    {
+      "type": 0,
+      "value": "Custom response guidance"
+    }
+  ],
+  "ezP+aQ": [
+    {
+      "type": 0,
+      "value": "With incident handlers, the agent chooses the tools it needs to manage common types of incidents. Custom handlers replace this capability by giving the agent specific instructions that you provide."
+    }
+  ],
+  "f+cHle": [
+    {
+      "type": 0,
+      "value": "Enter connection string or endpoint"
+    }
+  ],
+  "f0Luxo": [
+    {
+      "type": 0,
+      "value": "ServiceNow is not connected."
+    }
+  ],
+  "f0Y4Zr": [
+    {
+      "type": 0,
+      "value": "ロジック アプリ名"
+    }
+  ],
+  "f53mvl": [
+    {
+      "type": 0,
+      "value": "Generate custom handler"
+    }
+  ],
+  "fFyuVF": [
+    {
+      "type": 0,
+      "value": "Cognitive Services Speech Contributor"
+    }
+  ],
+  "fLkL3F": [
+    {
+      "type": 0,
+      "value": "Deleting thread"
+    }
+  ],
+  "fUgypu": [
+    {
+      "type": 0,
+      "value": "Go to Access control"
+    }
+  ],
+  "fblXmJ": [
+    {
+      "type": 0,
+      "value": "Instance name"
+    }
+  ],
+  "fdCjVS": [
+    {
+      "type": 0,
+      "value": "Impacted service"
+    }
+  ],
+  "ffkuNo": [
+    {
+      "type": 0,
+      "value": "A sub-agent with this name already exists"
+    }
+  ],
+  "foUmLR": [
+    {
+      "type": 0,
+      "value": "Creating incident handler"
+    }
+  ],
+  "ftDEuE": [
+    {
+      "type": 0,
+      "value": "Select connector type"
+    }
+  ],
+  "ftfFhS": [
+    {
+      "type": 0,
+      "value": "リソース グループの選択"
+    }
+  ],
+  "ftzwIR": [
+    {
+      "type": 0,
+      "value": "最初に、Grafana リソースを作成する必要があります。"
+    }
+  ],
+  "fvK8Qi": [
+    {
+      "type": 0,
+      "value": "すべての状態"
+    }
+  ],
+  "gC4xMY": [
+    {
+      "type": 0,
+      "value": "Allows read-only access to see most objects in a namespace. It does not allow viewing roles or role bindings. This role does not allow viewing Secrets, since reading the contents of Secrets enables access to ServiceAccount credentials in the namespace, which would allow API access as any ServiceAccount in the namespace (a form of privilege escalation). Applying this role at cluster scope will give access across all namespaces."
+    }
+  ],
+  "gE3lH/": [
+    {
+      "type": 0,
+      "value": "Failed to delete the custom incident handler. Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
+  "gHCL4X": [
+    {
+      "type": 0,
+      "value": "Add More Files"
+    }
+  ],
+  "gIVE1F": [
+    {
+      "type": 0,
+      "value": "Set up incident handlers and custom handlers so that the agent can start receiving incidents."
+    }
+  ],
+  "gO/IxZ": [
+    {
+      "type": 0,
+      "value": "接続先"
+    }
+  ],
+  "gUQeKV": [
+    {
+      "type": 0,
+      "value": "Last 3 days"
+    }
+  ],
+  "gZ5fZs": [
+    {
+      "type": 0,
+      "value": "Manage IoT Hub device twins."
+    }
+  ],
+  "ggVnjB": [
+    {
+      "type": 0,
+      "value": "Thread ID"
+    }
+  ],
+  "gj6Qc6": [
+    {
+      "type": 0,
+      "value": "Azure Monitor ワークスペース"
+    }
+  ],
+  "gjBiyj": [
+    {
+      "type": 0,
+      "value": "読み込んでいます..."
+    }
+  ],
+  "gn/nvJ": [
+    {
+      "type": 0,
+      "value": "Read, logstream and exec into Container Apps."
+    }
+  ],
+  "gnC7c5": [
+    {
+      "type": 0,
+      "value": "You need permissions to set up a Grafana dashboard."
+    }
+  ],
+  "gzx/k1": [
+    {
+      "type": 0,
+      "value": "PostgreSQL Contributor"
+    }
+  ],
+  "h+YOYh": [
+    {
+      "type": 0,
+      "value": "To change the incident platform, you need to disconnect from ServiceNow. The agent will no longer manage tickets. Are you sure you want to disconnect?"
+    }
+  ],
+  "h07fER": [
+    {
+      "type": 0,
+      "value": "Adding custom incident handler"
+    }
+  ],
+  "h6183G": [
+    {
+      "type": 0,
+      "value": "Tool"
+    }
+  ],
+  "h6EziO": [
+    {
+      "type": 0,
+      "value": "Failed to disable incident handler"
+    }
+  ],
+  "hEXUFk": [
+    {
+      "type": 0,
+      "value": "Incident with ID \""
+    },
+    {
+      "type": 1,
+      "value": "incidentId"
+    },
+    {
+      "type": 0,
+      "value": "\" was not found"
+    }
+  ],
+  "hF5T80": [
+    {
+      "type": 0,
+      "value": "Administer Device Update accounts."
+    }
+  ],
+  "hHz/bk": [
+    {
+      "type": 0,
+      "value": "PagerDuty is not connected."
+    }
+  ],
+  "hK4HcH": [
+    {
+      "type": 0,
+      "value": "選択した管理対象リソース グループを削除できませんでした"
+    }
+  ],
+  "hO1Iog": [
+    {
+      "type": 0,
+      "value": "Manage without access."
+    }
+  ],
+  "hOxIeP": [
+    {
+      "type": 0,
+      "value": "可用性"
+    }
+  ],
+  "hPj49L": [
+    {
+      "type": 0,
+      "value": "Workbook Reader"
+    }
+  ],
+  "hX5PAb": [
+    {
+      "type": 0,
+      "value": "結果が見つかりませんでした"
+    }
+  ],
+  "hX7X4n": [
+    {
+      "type": 0,
+      "value": "インシデント管理の構成を保存できませんでした"
+    }
+  ],
+  "hXdAxd": [
+    {
+      "type": 0,
+      "value": "Successfully deleted incident handler"
+    }
+  ],
+  "hfACn+": [
+    {
+      "type": 0,
+      "value": "Unhealthy core application groups"
+    }
+  ],
+  "hfIdUs": [
+    {
+      "type": 0,
+      "value": "SQL DB Contributor"
+    }
+  ],
+  "hfqoIO": [
+    {
+      "type": 0,
+      "value": "Choose the channel for receiving agent updates"
+    }
+  ],
+  "hlmkcL": [
+    {
+      "type": 0,
+      "value": "正常性"
+    }
+  ],
+  "hmrm7i": [
+    {
+      "type": 0,
+      "value": "Grafana リソース"
+    }
+  ],
+  "hrdmcd": [
+    {
+      "type": 0,
+      "value": "Azure Digital Twins Data Reader"
+    }
+  ],
+  "htXZ8o": [
+    {
+      "type": 0,
+      "value": "ServiceNow connected. Your next step is to set up incident handlers."
+    }
+  ],
+  "htvX+Z": [
+    {
+      "type": 0,
+      "value": "拒否"
+    }
+  ],
+  "hzSNj4": [
+    {
+      "type": 0,
+      "value": "ダッシュボード"
+    }
+  ],
+  "i5OUQE": [
+    {
+      "type": 0,
+      "value": "Container Apps Contributor"
+    }
+  ],
+  "i6cLLM": [
+    {
+      "type": 0,
+      "value": "Perform data science tasks in Azure Machine Learning."
+    }
+  ],
+  "i7oO8e": [
+    {
+      "type": 0,
+      "value": "Investigation in progress"
+    }
+  ],
+  "iDSWYk": [
+    {
+      "type": 0,
+      "value": "Connect to Azure Monitor so that the agent can automatically monitor notifications from the resource groups it manages, without additional provisioning."
+    }
+  ],
+  "iFDVT4": [
+    {
+      "type": 0,
+      "value": "Deploy incident handler"
+    }
+  ],
+  "iTTSax": [
+    {
+      "type": 0,
+      "value": "Changes to this incident handler might affect how incidents are processed and also any custom handlers."
+    }
+  ],
+  "ia2Cai": [
+    {
+      "type": 0,
+      "value": "Turning off this incident handler might affect how incidents are processed and also any custom handlers. Are you sure you want to turn it off?"
+    }
+  ],
+  "ibf4+R": [
+    {
+      "type": 0,
+      "value": "Core application group resource name"
+    }
+  ],
+  "icWG3R": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete the custom handler?"
+    }
+  ],
+  "ielB5f": [
+    {
+      "type": 0,
+      "value": "発生場所"
+    }
+  ],
+  "irFBKn": [
+    {
+      "type": 0,
+      "value": "Last 7 days"
+    }
+  ],
+  "itC9lG": [
+    {
+      "type": 0,
+      "value": "基本情報"
+    }
+  ],
+  "iukUKz": [
+    {
+      "type": 0,
+      "value": "Available tools"
+    }
+  ],
+  "iv1ryQ": [
+    {
+      "type": 0,
+      "value": "SRE エージェント空間"
+    }
+  ],
+  "ixb1SP": [
+    {
+      "type": 0,
+      "value": "Administer HDInsight clusters on AKS."
+    }
+  ],
+  "iyTlSa": [
+    {
+      "type": 0,
+      "value": "Action summary"
+    }
+  ],
+  "j3bwJQ": [
+    {
+      "type": 0,
+      "value": "Drag and drop files here or"
+    }
+  ],
+  "j5QthH": [
+    {
+      "type": 0,
+      "value": "Healthy core application groups"
+    }
+  ],
+  "j5Yfyr": [
+    {
+      "type": 0,
+      "value": "Search Index Data Reader"
+    }
+  ],
+  "jA2jt7": [
+    {
+      "type": 0,
+      "value": "Choose priority"
+    }
+  ],
+  "jET8aI": [
+    {
+      "type": 0,
+      "value": "Failed to delete incident handler"
+    }
+  ],
+  "jHJmjf": [
+    {
+      "type": 0,
+      "value": "結果はありません"
+    }
+  ],
+  "jJE3xY": [
+    {
+      "type": 0,
+      "value": "Lets you manage the web plans for websites, but not access to them."
+    }
+  ],
+  "jK9a9x": [
+    {
+      "type": 0,
+      "value": "All actions"
+    }
+  ],
+  "jOkfJV": [
+    {
+      "type": 0,
+      "value": "Setup complete"
+    }
+  ],
+  "jTQZpk": [
+    {
+      "type": 0,
+      "value": "Grafana リソースは、リソース グループ内で一意である必要があります。"
+    }
+  ],
+  "jVHoU8": [
+    {
+      "type": 0,
+      "value": "Enter sub-agent name"
+    }
+  ],
+  "jabB4C": [
+    {
+      "type": 0,
+      "value": "Unread"
+    }
+  ],
+  "juQ8mz": [
+    {
+      "type": 0,
+      "value": "Investigations"
+    }
+  ],
+  "jvo0vs": [
+    {
+      "type": 0,
+      "value": "保存"
+    }
+  ],
+  "k8ZNgH": [
+    {
+      "type": 0,
+      "value": "アラート ID"
+    }
+  ],
+  "kHIJzq": [
+    {
+      "type": 0,
+      "value": "Subscription equals"
+    }
+  ],
+  "kWs94j": [
+    {
+      "type": 0,
+      "value": "Grafana ダッシュボードのプロビジョニングが進行中です。"
+    }
+  ],
+  "kbDtEK": [
+    {
+      "type": 0,
+      "value": "Some documents failed to delete: "
+    },
+    {
+      "type": 1,
+      "value": "failedFiles"
+    }
+  ],
+  "ko0rr4": [
+    {
+      "type": 0,
+      "value": "Update the data connector configuration."
+    }
+  ],
+  "koWZK8": [
+    {
+      "type": 0,
+      "value": "Add custom response guidance (optional)"
+    }
+  ],
+  "kqurtu": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " document"
+    },
+    {
+      "type": 1,
+      "value": "plural"
+    },
+    {
+      "type": 0,
+      "value": " selected"
+    }
+  ],
+  "ku+mDU": [
+    {
+      "type": 0,
+      "value": "State"
+    }
+  ],
+  "l0TtPi": [
+    {
+      "type": 0,
+      "value": "Choose a maximum of "
+    },
+    {
+      "type": 1,
+      "value": "max"
+    },
+    {
+      "type": 0,
+      "value": " resource groups you have permissions on. "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " resource group selected."
+    }
+  ],
+  "l5sNim": [
+    {
+      "type": 0,
+      "value": "AzureML Data Scientist"
+    }
+  ],
+  "levHvg": [
+    {
+      "type": 0,
+      "value": "平均メモリ使用量"
+    }
+  ],
+  "ljmS5P": [
+    {
+      "type": 0,
+      "value": "エンドポイント"
+    }
+  ],
+  "lnaWo/": [
+    {
+      "type": 0,
+      "value": "リージョン"
+    }
+  ],
+  "lvNWLS": [
+    {
+      "type": 0,
+      "value": "IoT Hub Registry Contributor"
+    }
+  ],
+  "lyc2l+": [
+    {
+      "type": 0,
+      "value": "Apply only to incidents triggered after the handler is created"
+    }
+  ],
+  "m57OnF": [
+    {
+      "type": 0,
+      "value": "Choose incident type"
+    }
+  ],
+  "mAyw3x": [
+    {
+      "type": 0,
+      "value": "Edit QnA Maker knowledge bases."
+    }
+  ],
+  "mOFG3K": [
+    {
+      "type": 0,
+      "value": "Start"
+    }
+  ],
+  "mTsdF8": [
+    {
+      "type": 0,
+      "value": "Editor to filter the results by column value. "
+    },
+    {
+      "type": 1,
+      "value": "columnName"
+    },
+    {
+      "type": 0,
+      "value": ": "
+    },
+    {
+      "type": 1,
+      "value": "filterValue"
+    }
+  ],
+  "mZ0R9v": [
+    {
+      "type": 0,
+      "value": "Run test"
+    }
+  ],
+  "mgYBYo": [
+    {
+      "type": 0,
+      "value": "Last 90 days"
+    }
+  ],
+  "mkhNnB": [
+    {
+      "type": 0,
+      "value": "Read and write Azure Monitor monitoring settings and data."
+    }
+  ],
+  "mq/sud": [
+    {
+      "type": 0,
+      "value": "ローカル認証"
+    }
+  ],
+  "msMJVt": [
+    {
+      "type": 0,
+      "value": "After the platform is connected, create incident handlers and custom handlers so that the agent can respond to incidents."
+    }
+  ],
+  "mtC1dz": [
+    {
+      "type": 0,
+      "value": "An incident handler defines which incidents the agent should handle by applying your filter criteria, ensuring responses to the required set of incidents."
+    }
+  ],
+  "mtUOcI": [
+    {
+      "type": 0,
+      "value": "Edit incident handler"
+    }
+  ],
+  "mtr3R4": [
+    {
+      "type": 0,
+      "value": "インシデント"
+    }
+  ],
+  "mzRg+7": [
+    {
+      "type": 0,
+      "value": "Grafana ロゴ"
+    }
+  ],
+  "n0JssX": [
+    {
+      "type": 0,
+      "value": "This will permanently delete the connection to ServiceNow. The agent will no longer be able to manage tickets. Are you sure you want to disconnect?"
+    }
+  ],
+  "n5QvJy": [
+    {
+      "type": 0,
+      "value": "Start date"
+    }
+  ],
+  "nBPow3": [
+    {
+      "type": 0,
+      "value": "Lets you manage all resources in the cluster."
+    }
+  ],
+  "nCbZ6p": [
+    {
+      "type": 0,
+      "value": "Failed to assign roles to managed resource groups with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "nDyaq/": [
+    {
+      "type": 0,
+      "value": "Running"
+    }
+  ],
+  "nFOo9o": [
+    {
+      "type": 0,
+      "value": "Review + edit"
+    }
+  ],
+  "nOrKIK": [
+    {
+      "type": 0,
+      "value": "Preview - Receives updates twice a week"
+    }
+  ],
+  "nQpONp": [
+    {
+      "type": 0,
+      "value": "Primary resource type"
+    }
+  ],
+  "nmpevl": [
+    {
+      "type": 0,
+      "value": "破棄"
+    }
+  ],
+  "noZdV2": [
+    {
+      "type": 0,
+      "value": "Deleting..."
+    }
+  ],
+  "npvxpr": [
+    {
+      "type": 0,
+      "value": "Turn on"
+    }
+  ],
+  "nrAnZy": [
+    {
+      "type": 0,
+      "value": "Full access to Azure Service Bus data."
+    }
+  ],
+  "ns7TyW": [
+    {
+      "type": 0,
+      "value": "Thread was deleted successfully"
+    }
+  ],
+  "nso3Mj": [
+    {
+      "type": 0,
+      "value": "スコープ"
+    }
+  ],
+  "o7TUwc": [
+    {
+      "type": 0,
+      "value": "Connect to ICM so that the Agent can automatically listen and respond to your Incidents."
+    }
+  ],
+  "oH9YKC": [
+    {
+      "type": 0,
+      "value": "To help monitor and respond to activities and incidents in your Azure resources, the agent needs access to the specific subscriptions, resources groups, and services that you allow."
+    }
+  ],
+  "oQ/TUW": [
+    {
+      "type": 0,
+      "value": "Cost Management Contributor"
+    }
+  ],
+  "oTNrPz": [
+    {
+      "type": 0,
+      "value": "Allowlist below Managed Identity on your ICM Service Team."
+    }
+  ],
+  "oUWADl": [
+    {
+      "type": 0,
+      "value": "いいえ"
+    }
+  ],
+  "oUbzA/": [
+    {
+      "type": 0,
+      "value": "ライター/オペレーター"
+    }
+  ],
+  "oY4j0R": [
+    {
+      "type": 0,
+      "value": "Repository insights"
+    }
+  ],
+  "ob9EPi": [
+    {
+      "type": 0,
+      "value": "ロールを割り当てるアクセス許可"
+    }
+  ],
+  "obRqDQ": [
+    {
+      "type": 0,
+      "value": "To change the incident platform, you need to disconnect from Azure Monitor. The agent will no longer receive Azure Monitor notifications. Are you sure you want to disconnect?"
+    }
+  ],
+  "ocQXDt": [
+    {
+      "type": 0,
+      "value": "Failed to delete thread with error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
+  "omHElC": [
+    {
+      "type": 0,
+      "value": "Provide response feedback"
+    }
+  ],
+  "ovJ26C": [
+    {
+      "type": 0,
+      "value": "Medium"
+    }
+  ],
+  "p/xAmY": [
+    {
+      "type": 0,
+      "value": "Your agent is in review mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations with your approval based on your requests."
+    }
+  ],
+  "p4mBmL": [
+    {
+      "type": 0,
+      "value": "Created by"
+    }
+  ],
+  "p556q3": [
+    {
+      "type": 0,
+      "value": "Copied"
+    }
+  ],
+  "p5LNtB": [
+    {
+      "type": 0,
+      "value": "Not set"
+    }
+  ],
+  "p5T+zv": [
+    {
+      "type": 0,
+      "value": "Manage without access. Can't manage security policies or parent SQL servers."
+    }
+  ],
+  "pAFuFx": [
+    {
+      "type": 0,
+      "value": "HDInsight on AKS Cluster Pool Admin"
+    }
+  ],
+  "pCPZnU": [
+    {
+      "type": 0,
+      "value": "管理対象リソース"
+    }
+  ],
+  "pDUFq5": [
+    {
+      "type": 0,
+      "value": "App Configuration Reader"
+    }
+  ],
+  "pFm27r": [
+    {
+      "type": 0,
+      "value": "Current status"
+    }
+  ],
+  "pG9xP9": [
+    {
+      "type": 0,
+      "value": "A data connector with this name already exists"
+    }
+  ],
+  "pRvgsc": [
+    {
+      "type": 0,
+      "value": "Password is required."
+    }
+  ],
+  "pSGxDG": [
+    {
+      "type": 0,
+      "value": "Agent permissions will be used to complete this action."
+    }
+  ],
+  "pSfQh6": [
+    {
+      "type": 0,
+      "value": "Grants read access to Azure Cognitive Search index data."
+    }
+  ],
+  "pT3qMe": [
+    {
+      "type": 0,
+      "value": "キーの変更"
+    }
+  ],
+  "pf5nil": [
+    {
+      "type": 0,
+      "value": "Core application group"
+    }
+  ],
+  "piCpTn": [
+    {
+      "type": 0,
+      "value": "Grafana ダッシュボードがプロビジョニングされてリンクされると、リソースがダッシュボードに完全に事前設定されるまでに時間がかかる場合があります。"
+    }
+  ],
+  "pqgzm0": [
+    {
+      "type": 0,
+      "value": "Manage Application Insights components."
+    }
+  ],
+  "q/uwLT": [
+    {
+      "type": 0,
+      "value": "停止"
+    }
+  ],
+  "q1WWIr": [
+    {
+      "type": 0,
+      "value": "進行中"
+    }
+  ],
+  "qeUtXk": [
+    {
+      "type": 0,
+      "value": "過去 7 日間のコスト"
+    }
+  ],
+  "qj1uhz": [
+    {
+      "type": 0,
+      "value": "切断"
+    }
+  ],
+  "qlcuNQ": [
+    {
+      "type": 0,
+      "value": "ID"
+    }
+  ],
+  "qqolQu": [
+    {
+      "type": 0,
+      "value": "Backend Endpoint"
+    }
+  ],
+  "r2x5ZI": [
+    {
+      "type": 0,
+      "value": "This will permanently delete the connection to PagerDuty. The agent will no longer be able to manage tickets. Are you sure you want to disconnect?"
+    }
+  ],
+  "r6+QFy": [
+    {
+      "type": 0,
+      "value": "Add a default incident handler for the agent to use for P1 base incidents."
+    }
+  ],
+  "rBPlLc": [
+    {
+      "type": 0,
+      "value": "resources available in this period"
+    }
+  ],
+  "rELDbB": [
+    {
+      "type": 0,
+      "value": "最新の情報に更新"
+    }
+  ],
+  "rFlkvY": [
+    {
+      "type": 0,
+      "value": "アクティブなスレッド"
+    }
+  ],
+  "rNvlCF": [
+    {
+      "type": 0,
+      "value": "Date range:"
+    }
+  ],
+  "rXYf9o": [
+    {
+      "type": 0,
+      "value": "Deleting Files"
+    }
+  ],
+  "rZaqtB": [
+    {
+      "type": 0,
+      "value": "API Management Service Contributor"
+    }
+  ],
+  "rbrahO": [
+    {
+      "type": 0,
+      "value": "Close"
+    }
+  ],
+  "rd6YZk": [
+    {
+      "type": 0,
+      "value": "Agent can propose actions but requires approval before execution"
+    }
+  ],
+  "riEsC7": [
+    {
+      "type": 0,
+      "value": "Azure Monitor Workspace resource must be unique within the resource group."
+    }
+  ],
+  "rjDAQw": [
+    {
+      "type": 0,
+      "value": "Agent can execute actions automatically without approval"
+    }
+  ],
+  "rja0QH": [
+    {
+      "type": 0,
+      "value": "Add incident filter"
+    }
+  ],
+  "rjgOC5": [
+    {
+      "type": 0,
+      "value": "Cognitive Services QnA Maker Editor"
+    }
+  ],
+  "rk4tYE": [
+    {
+      "type": 0,
+      "value": "監視元"
+    }
+  ],
+  "rpG/Bn": [
+    {
+      "type": 0,
+      "value": "アクセスの制御"
+    }
+  ],
+  "rpx6XY": [
+    {
+      "type": 0,
+      "value": "ホスト先"
+    }
+  ],
+  "rrGMSx": [
+    {
+      "type": 0,
+      "value": "Set up"
+    }
+  ],
+  "rvirM2": [
+    {
+      "type": 0,
+      "value": "場所"
+    }
+  ],
+  "rwwXv0": [
+    {
+      "type": 0,
+      "value": "Test incident response"
+    }
+  ],
+  "s7DlV0": [
+    {
+      "type": 0,
+      "value": "Agent endpoint"
+    }
+  ],
+  "s8HBot": [
+    {
+      "type": 0,
+      "value": "Last hour"
+    }
+  ],
+  "sH0O5v": [
+    {
+      "type": 0,
+      "value": "Enter title keywords"
+    }
+  ],
+  "sI+CCC": [
+    {
+      "type": 0,
+      "value": "Log Analytics 閲覧者"
+    }
+  ],
+  "sNutPl": [
+    {
+      "type": 0,
+      "value": "Timestamps"
+    }
+  ],
+  "sQkhYk": [
+    {
+      "type": 0,
+      "value": "Accepted file types: .md, .txt"
+    }
+  ],
+  "sRb5P9": [
+    {
+      "type": 0,
+      "value": "Manage cost analysis and budgets."
+    }
+  ],
+  "sVDrdr": [
+    {
+      "type": 0,
+      "value": "Files deleted successfully"
+    }
+  ],
+  "sVbKA0": [
+    {
+      "type": 0,
+      "value": "The custom incident handler was successfully added"
+    }
+  ],
+  "sd1Vy+": [
+    {
+      "type": 0,
+      "value": "Reconnecting to the agent..."
+    }
+  ],
+  "slxYbm": [
+    {
+      "type": 0,
+      "value": "インシデント管理の構成を保存できませんでした。エラー: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
+  "snEUKZ": [
+    {
+      "type": 0,
+      "value": "サービスの監視"
+    }
+  ],
+  "srG8e2": [
+    {
+      "type": 0,
+      "value": "Thread info"
+    }
+  ],
+  "ss/NWY": [
+    {
+      "type": 0,
+      "value": "SQL Server Contributor"
+    }
+  ],
+  "swRudj": [
+    {
+      "type": 0,
+      "value": "ホスト"
+    }
+  ],
+  "t3D4PH": [
+    {
+      "type": 0,
+      "value": "Device Update Reader"
+    }
+  ],
+  "t9I1dY": [
+    {
+      "type": 0,
+      "value": "Healthcare Agent Editor"
+    }
+  ],
+  "tH6Myj": [
+    {
+      "type": 0,
+      "value": "Data connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been created successfully"
+    }
+  ],
+  "tLYOnZ": [
+    {
+      "type": 0,
+      "value": "Knowledge base"
+    }
+  ],
+  "tLaLqo": [
+    {
+      "type": 0,
+      "value": "Here is your deep investigation:"
+    }
+  ],
+  "tNseQe": [
+    {
+      "type": 0,
+      "value": "Investigation"
+    }
+  ],
+  "tOxzip": [
+    {
+      "type": 0,
+      "value": "Modified"
+    }
+  ],
+  "tSKi9q": [
+    {
+      "type": 0,
+      "value": "選択したリソース グループを設定しています"
+    }
+  ],
+  "tShbyC": [
+    {
+      "type": 0,
+      "value": "Identity"
+    }
+  ],
+  "tWX1j9": [
+    {
+      "type": 0,
+      "value": "Add to favorites"
+    }
+  ],
+  "tfuXMw": [
+    {
+      "type": 0,
+      "value": "Sub-Agent \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been created successfully"
+    }
+  ],
+  "tshYzs": [
+    {
+      "type": 0,
+      "value": "リージョンの選択"
+    }
+  ],
+  "tyJNW5": [
+    {
+      "type": 0,
+      "value": "IcM is connected."
+    }
+  ],
+  "tzMNF3": [
+    {
+      "type": 0,
+      "value": "状態"
+    }
+  ],
+  "u0xiAh": [
+    {
+      "type": 0,
+      "value": "Cognitive Services Custom Vision Reader"
+    }
+  ],
+  "u4WKBH": [
+    {
+      "type": 0,
+      "value": "Grant permissions"
+    }
+  ],
+  "u4hSyh": [
+    {
+      "type": 0,
+      "value": "アクセス キーが無効です。もう一度お試しください。"
+    }
+  ],
+  "u5uL6R": [
+    {
+      "type": 0,
+      "value": "This will permanently delete the chat and all actions in this thread. Are you sure you want to delete?"
+    }
+  ],
+  "u64mw7": [
+    {
+      "type": 0,
+      "value": "最初の 1,000 件の結果を表示しています。一覧を絞り込むにはフィルターを適用します。"
+    }
+  ],
+  "uCkn4+": [
+    {
+      "type": 0,
+      "value": "All priorities"
+    }
+  ],
+  "uRMqBi": [
+    {
+      "type": 0,
+      "value": "Read, write, and delete Azure Storage containers and blobs."
+    }
+  ],
+  "ubMRDT": [
+    {
+      "type": 0,
+      "value": "The custom incident handler was successfully deleted"
+    }
+  ],
+  "ug01Mk": [
+    {
+      "type": 0,
+      "value": "時間"
+    }
+  ],
+  "unxs9C": [
+    {
+      "type": 0,
+      "value": "Tools selected for incident response"
+    }
+  ],
+  "v8lolG": [
+    {
+      "type": 0,
+      "value": "Start chat"
+    }
+  ],
+  "vAWzLN": [
+    {
+      "type": 0,
+      "value": "Disconnect IcM?"
+    }
+  ],
+  "vCAhII": [
+    {
+      "type": 0,
+      "value": "Severity"
+    }
+  ],
+  "vDbj1h": [
+    {
+      "type": 0,
+      "value": "Authorized by"
+    }
+  ],
+  "vR27zt": [
+    {
+      "type": 0,
+      "value": "Document Name"
+    }
+  ],
+  "vTlFW1": [
+    {
+      "type": 0,
+      "value": "Enabling incident handler"
+    }
+  ],
+  "vXCeIi": [
+    {
+      "type": 0,
+      "value": "失敗"
+    }
+  ],
+  "vYmpTr": [
+    {
+      "type": 0,
+      "value": "Warning actions present"
+    }
+  ],
+  "vao/Lv": [
+    {
+      "type": 0,
+      "value": "This guidance helps generate the tools list and the final prompt the agent uses during incident handling."
+    }
+  ],
+  "vbdOl/": [
+    {
+      "type": 0,
+      "value": "Has access to Read and Test functions under Language portal."
+    }
+  ],
+  "vfndow": [
+    {
+      "type": 0,
+      "value": "Can read Azure Cosmos DB account data."
+    }
+  ],
+  "w+XRP2": [
+    {
+      "type": 0,
+      "value": "すべてのリージョン"
+    }
+  ],
+  "w/UZrq": [
+    {
+      "type": 0,
+      "value": "これにより、Azure Monitor への接続が完全に削除されます。エージェントは、Azure Monitor の通知と統合されなくなります。この接続を削除しますか?"
+    }
+  ],
+  "w9b/qS": [
+    {
+      "type": 0,
+      "value": "Failed to connect to the incident management platform"
+    }
+  ],
+  "w9tk1A": [
+    {
+      "type": 0,
+      "value": "Unknown agent mode"
+    }
+  ],
+  "wElgyk": [
+    {
+      "type": 0,
+      "value": "コスト計算は保留中です"
+    }
+  ],
+  "wL7VAE": [
+    {
+      "type": 0,
+      "value": "アクション"
+    }
+  ],
+  "wNIiXX": [
+    {
+      "type": 0,
+      "value": "The data source must be in the format: "
+    },
+    {
+      "type": 1,
+      "value": "format"
+    }
+  ],
+  "wSZR47": [
+    {
+      "type": 0,
+      "value": "送信"
+    }
+  ],
+  "wVpXzO": [
+    {
+      "type": 0,
+      "value": "Failed to update the agent mode."
+    }
+  ],
+  "wXKSRT": [
+    {
+      "type": 0,
+      "value": "The action is in progress with agent permissions."
+    }
+  ],
+  "wbigtI": [
+    {
+      "type": 0,
+      "value": "Administer SAP workloads on Azure."
+    }
+  ],
+  "we4Lby": [
+    {
+      "type": 0,
+      "value": "Info"
+    }
+  ],
+  "wkLkeE": [
+    {
+      "type": 0,
+      "value": "Total resources"
+    }
+  ],
+  "wru3Di": [
+    {
+      "type": 0,
+      "value": "Authorize repository access"
+    }
+  ],
+  "wwNLHo": [
+    {
+      "type": 0,
+      "value": "Upload Files"
+    }
+  ],
+  "wxlJSs": [
+    {
+      "type": 0,
+      "value": "Manage Cognitive Services accounts."
+    }
+  ],
+  "x++GsY": [
+    {
+      "type": 0,
+      "value": "A handler can use a maximum of "
+    },
+    {
+      "type": 1,
+      "value": "maxTools"
+    },
+    {
+      "type": 0,
+      "value": " tools."
+    }
+  ],
+  "x3aQrV": [
+    {
+      "type": 0,
+      "value": "An on-behalf-of token will be used with the following scope"
+    }
+  ],
+  "x65I0c": [
+    {
+      "type": 0,
+      "value": "Add a default incident handler for the agent to use for High priority incidents."
+    }
+  ],
+  "xDYr9m": [
+    {
+      "type": 0,
+      "value": "incidents reported"
+    }
+  ],
+  "xGPsyJ": [
+    {
+      "type": 0,
+      "value": "HDInsight Cluster Operator"
+    }
+  ],
+  "xUgb9H": [
+    {
+      "type": 1,
+      "value": "searchString"
+    },
+    {
+      "type": 0,
+      "value": " の結果が見つかりませんでした"
+    }
+  ],
+  "xUuESs": [
+    {
+      "type": 0,
+      "value": "Add identity"
+    }
+  ],
+  "xVPoso": [
+    {
+      "type": 0,
+      "value": "リソース グループ名"
+    }
+  ],
+  "xXhn+h": [
+    {
+      "type": 0,
+      "value": "Lets you manage storage accounts, including accessing storage account keys which provide full access to storage account data."
+    }
+  ],
+  "xbKhzp": [
+    {
+      "type": 1,
+      "value": "searchString"
+    },
+    {
+      "type": 0,
+      "value": " の "
+    },
+    {
+      "type": 1,
+      "value": "numOfResults"
+    },
+    {
+      "type": 0,
+      "value": " 件の "
+    },
+    {
+      "type": 1,
+      "value": "results"
+    }
+  ],
+  "xdMkcg": [
+    {
+      "type": 0,
+      "value": "Can read all monitoring data."
+    }
+  ],
+  "xePyxp": [
+    {
+      "type": 0,
+      "value": "Insufficient data points for chart"
+    }
+  ],
+  "xgNcC+": [
+    {
+      "type": 0,
+      "value": "Failed to create data connector with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "xmcVZ0": [
+    {
+      "type": 0,
+      "value": "検索"
+    }
+  ],
+  "xmsrBu": [
+    {
+      "type": 0,
+      "value": "Operate API Management services."
+    }
+  ],
+  "xqwf/7": [
+    {
+      "type": 0,
+      "value": "IoT Hub Data Contributor"
+    }
+  ],
+  "xrKHS6": [
+    {
+      "type": 0,
+      "value": "成功"
+    }
+  ],
+  "xtkizV": [
+    {
+      "type": 0,
+      "value": "Website Contributor"
+    }
+  ],
+  "yDh8i7": [
+    {
+      "type": 0,
+      "value": "These previous incidents match the selected incident type. The agent can learn from a maximum of 5 incidents."
+    }
+  ],
+  "yJSwfQ": [
+    {
+      "type": 0,
+      "value": "Create Sub-Agent"
+    }
+  ],
+  "yVc78v": [
+    {
+      "type": 0,
+      "value": "This operation is being executed using the agent identity credentials."
+    }
+  ],
+  "yXTw0C": [
+    {
+      "type": 0,
+      "value": "Handler configuration"
+    }
+  ],
+  "yYK6LR": [
+    {
+      "type": 0,
+      "value": "スレッド数"
+    }
+  ],
+  "yalJ8o": [
+    {
+      "type": 0,
+      "value": "Enter a handler name"
+    }
+  ],
+  "ybIDiK": [
+    {
+      "type": 0,
+      "value": "Manage tools"
+    }
+  ],
+  "yc/tuy": [
+    {
+      "type": 0,
+      "value": "End time"
+    }
+  ],
+  "yd187T": [
+    {
+      "type": 0,
+      "value": "Failed to create data connector"
+    }
+  ],
+  "yh4G7g": [
+    {
+      "type": 0,
+      "value": "System assigned"
+    }
+  ],
+  "yhU1et": [
+    {
+      "type": 0,
+      "value": "タスク"
+    }
+  ],
+  "yiAEBc": [
+    {
+      "type": 0,
+      "value": "Guidance might include resolution steps, specific instructions, or other relevant context."
+    }
+  ],
+  "yilQrD": [
+    {
+      "type": 0,
+      "value": "管理対象リソース グループ"
+    }
+  ],
+  "yo67XU": [
+    {
+      "type": 0,
+      "value": "API Management Service Operator Role"
+    }
+  ],
+  "yoK+he": [
+    {
+      "type": 0,
+      "value": "Core application group type"
+    }
+  ],
+  "z8ZYoc": [
+    {
+      "type": 0,
+      "value": "Find incident threads and incident response plans together on the Incident Management tab."
+    }
+  ],
+  "zGhyFV": [
+    {
+      "type": 0,
+      "value": "All severity"
+    }
+  ],
+  "zN87hN": [
+    {
+      "type": 0,
+      "value": "スレッドの合計"
+    }
+  ],
+  "zORAuY": [
+    {
+      "type": 0,
+      "value": "Optimize how the agent responds to incidents"
+    }
+  ],
+  "zQvVDJ": [
+    {
+      "type": 0,
+      "value": "All"
+    }
+  ],
+  "zaYxwd": [
+    {
+      "type": 0,
+      "value": "Incident"
+    }
+  ],
+  "zcyAwy": [
+    {
+      "type": 0,
+      "value": "リソース グループの選択"
+    }
+  ],
+  "zfM/75": [
+    {
+      "type": 0,
+      "value": "1 mo"
+    }
+  ],
+  "zfMgIf": [
+    {
+      "type": 0,
+      "value": "Azure Resource Id"
+    }
+  ],
+  "zg0rpo": [
+    {
+      "type": 0,
+      "value": "ServiceNow"
+    }
+  ],
+  "zpkKsD": [
+    {
+      "type": 0,
+      "value": "Incidents summary"
+    }
+  ],
+  "zvLfRe": [
+    {
+      "type": 0,
+      "value": "Prompt library"
+    }
+  ]
+}

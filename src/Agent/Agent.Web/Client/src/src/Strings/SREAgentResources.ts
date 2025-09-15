@@ -1042,6 +1042,21 @@ export const IncidentManagementResources = defineMessages({
     selectedOutOfTotal: { defaultMessage: '{selectedCount} of {totalCount}', id: '01sZoP' },
     analysis: { defaultMessage: 'Analysis', id: 'VMIM8/' },
     responsePlan: { defaultMessage: 'Response plan', id: '1rAiXS' },
+    totalIncidents: { defaultMessage: 'Total incidents', id: '2FLZrG' },
+    incidentsReviewed: { defaultMessage: 'Incidents reviewed', id: 'KJuQJ3' },
+    incidentsNotHandledByResponsePlanCriteria: { defaultMessage: 'Incidents not handled by response plan criteria', id: 'MIxpkh' },
+    pendingUserAction: { defaultMessage: 'Pending user action', id: 'rM7Pbj' },
+    incidentCoverage: { defaultMessage: 'Incident coverage', id: '53O1/Z' },
+    incidentSummary: { defaultMessage: 'Incident summary', id: '2Smahe' },
+    incidentsThatRequireAttention: { defaultMessage: 'Incidents that require attention', id: '5gEh2M' },
+    mitigatedByUser: { defaultMessage: 'Mitigated by user', id: '5cRddy' },
+    acrossAllIncidentsInPeriod: { defaultMessage: 'Across all incidents in {platform}', id: 'TKp3Ld' },
+    incidentsMitigatedByAgent: { defaultMessage: 'Incidents mitigated by agent', id: 'd+XOMl' },
+    incidentsMitigatedByUser: { defaultMessage: 'Incidents mitigated by user', id: 'makWrV' },
+    responsePlanName: { defaultMessage: 'Response plan name', id: 'BT9p8f' },
+    incidentResponsePlan: { defaultMessage: 'Incident response plan', id: 'mky0K0' },
+    noResponsePlansFound: { defaultMessage: 'No response plans found', id: 'W/siYq' },
+    customPlan: { defaultMessage: 'Custom plan', id: 'NW3Qi+' },
 });
 
 export const IncidentManagementPlatformResources = defineMessages({

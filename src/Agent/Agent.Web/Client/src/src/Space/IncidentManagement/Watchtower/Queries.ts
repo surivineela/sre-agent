@@ -7,7 +7,7 @@ customEvents
 | where name == 'IncidentActivitySnapshot'
 | extend IncidentHandledAt= todatetime(customDimensions.IncidentHandledAt), IncidentId = tostring(customDimensions.IncidentId), UpdatedOn = todatetime(customDimensions.IncidentUpdatedOn)
 | where IncidentHandledAt between (formattedStartTime .. formattedEndTime)
-| project IncidentId, IncidentHandledAt , UpdatedOn
+| project IncidentId, IncidentHandledAt, UpdatedOn
 | summarize arg_max(UpdatedOn, IncidentHandledAt ) by IncidentId
 | summarize DistinctIncidentIds = dcount(IncidentId) by bin(IncidentHandledAt , timeGrain)`;
 

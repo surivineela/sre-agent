@@ -27,7 +27,7 @@ export const ChartCard = ({ title, data }: ChartCardProps) => {
     }, [data]);
 
     return (
-        <Card style={{ width: 650, height: 310 }}>
+        <Card style={{ flexGrow: 1, minWidth: 650, height: 310 }}>
             <div>
                 <Subtitle2>{title}</Subtitle2>
             </div>

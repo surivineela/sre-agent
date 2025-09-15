@@ -17,8 +17,10 @@ import { debounce } from 'lodash';
 import { useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { ISortedDetailsListColumn } from '../../../../Common/Components/DetailsList/Constants';
-import { SreAgentResources } from '../../../../Strings/SREAgentResources';
+import { IncidentManagementResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
 import { useIncidentManagementStyles } from '../../../Styles/IncidentManagement.styles';
+
+// TODO: Remaining localization
 
 const sparklineDummyData = {
     chartTitle: '10.21',
@@ -61,8 +63,8 @@ enum IncidentResponsePlanGridColumnKey {
     autonomyLevel = 'autonomyLevel',
     customPlan = 'customPlan',
     incidentsReviewed = 'incidentsReviewed',
-    placeholderByAgent = 'placeholderByAgent',
-    placeholderByUser = 'placeholderByUser',
+    mitigatedByAgent = 'mitigatedByAgent',
+    mitigatedByUser = 'mitigatedByUser',
     pendingUserAction = 'pendingUserAction',
 }
 
@@ -112,8 +114,8 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
     const customPlanFilterOptions = useMemo<{ label: string; value: string }[]>(() => {
         return [
             { label: intl.formatMessage(SreAgentResources.all), value: all },
-            { label: 'Yes', value: 'Yes' },
-            { label: 'No', value: 'No' },
+            { label: intl.formatMessage(SreAgentResources.yes), value: 'Yes' },
+            { label: intl.formatMessage(SreAgentResources.no), value: 'No' },
         ];
     }, [intl]);
 
@@ -154,11 +156,11 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
         return <Sparkline data={sparklineDummyData} />;
     }, []);
 
-    const onRenderPlaceholderByAgent = useCallback((_item: ResponsePlanItem) => {
+    const onRenderMitigatedByAgent = useCallback((_item: ResponsePlanItem) => {
         return <Sparkline data={sparklineDummyData} />;
     }, []);
 
-    const onRenderPlaceholderByUser = useCallback((_item: ResponsePlanItem) => {
+    const onRenderMitigatedByUser = useCallback((_item: ResponsePlanItem) => {
         return <Sparkline data={sparklineDummyData} />;
     }, []);
 
@@ -170,7 +172,7 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
         const columns: ISortedDetailsListColumn[] = [
             {
                 key: IncidentResponsePlanGridColumnKey.name,
-                name: 'Response plan name',
+                name: intl.formatMessage(IncidentManagementResources.responsePlanName),
                 isResizable: true,
                 minWidth: 150,
                 maxWidth: 250,
@@ -183,7 +185,7 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
             },
             {
                 key: IncidentResponsePlanGridColumnKey.autonomyLevel,
-                name: 'Autonomy level',
+                name: intl.formatMessage(IncidentManagementResources.autonomyLevel),
                 isResizable: true,
                 isMultiline: true,
                 minWidth: 150,
@@ -198,7 +200,7 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
             },
             {
                 key: IncidentResponsePlanGridColumnKey.customPlan,
-                name: 'Custom plan',
+                name: intl.formatMessage(IncidentManagementResources.customPlan),
                 isResizable: true,
                 isMultiline: true,
                 minWidth: 130,
@@ -213,7 +215,7 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
             },
             {
                 key: IncidentResponsePlanGridColumnKey.incidentsReviewed,
-                name: 'Incidents reviewed',
+                name: intl.formatMessage(IncidentManagementResources.incidentsReviewed),
                 isResizable: true,
                 isMultiline: true,
                 minWidth: 150,
@@ -227,37 +229,37 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
                 onColumnClick: (_, col) => handleColumnClick(col),
             },
             {
-                key: IncidentResponsePlanGridColumnKey.placeholderByAgent,
-                name: '[Placeholder] by agent',
+                key: IncidentResponsePlanGridColumnKey.mitigatedByAgent,
+                name: intl.formatMessage(IncidentManagementResources.mitigatedByAgent),
                 isResizable: true,
                 isMultiline: true,
                 minWidth: 150,
                 maxWidth: 250,
-                onRender: onRenderPlaceholderByAgent,
-                isSorted: sortColumnKey === (IncidentResponsePlanGridColumnKey.placeholderByAgent as keyof ResponsePlanItem),
+                onRender: onRenderMitigatedByAgent,
+                isSorted: sortColumnKey === (IncidentResponsePlanGridColumnKey.mitigatedByAgent as keyof ResponsePlanItem),
                 onColumnClick: (_, col) => handleColumnClick(col),
                 isSortedDescending:
-                    sortColumnKey === (IncidentResponsePlanGridColumnKey.placeholderByAgent as keyof ResponsePlanItem)
+                    sortColumnKey === (IncidentResponsePlanGridColumnKey.mitigatedByAgent as keyof ResponsePlanItem)
                         ? isSortedDescending
                         : undefined,
             },
             {
-                key: IncidentResponsePlanGridColumnKey.placeholderByUser,
-                name: '[Placeholder] by user',
+                key: IncidentResponsePlanGridColumnKey.mitigatedByUser,
+                name: intl.formatMessage(IncidentManagementResources.mitigatedByUser),
                 isResizable: true,
                 minWidth: 150,
                 maxWidth: 250,
-                onRender: onRenderPlaceholderByUser,
-                isSorted: sortColumnKey === (IncidentResponsePlanGridColumnKey.placeholderByUser as keyof ResponsePlanItem),
+                onRender: onRenderMitigatedByUser,
+                isSorted: sortColumnKey === (IncidentResponsePlanGridColumnKey.mitigatedByUser as keyof ResponsePlanItem),
                 onColumnClick: (_, col) => handleColumnClick(col),
                 isSortedDescending:
-                    sortColumnKey === (IncidentResponsePlanGridColumnKey.placeholderByUser as keyof ResponsePlanItem)
+                    sortColumnKey === (IncidentResponsePlanGridColumnKey.mitigatedByUser as keyof ResponsePlanItem)
                         ? isSortedDescending
                         : undefined,
             },
             {
                 key: IncidentResponsePlanGridColumnKey.pendingUserAction,
-                name: 'Pending user action',
+                name: intl.formatMessage(IncidentManagementResources.pendingUserAction),
                 isResizable: true,
                 minWidth: 150,
                 maxWidth: 150,
@@ -273,12 +275,13 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
 
         return columns;
     }, [
+        intl,
         onRenderResponsePlanName,
         onRenderAutonomyLevel,
         onRenderCustomPlan,
         onRenderIncidentsReviewed,
-        onRenderPlaceholderByAgent,
-        onRenderPlaceholderByUser,
+        onRenderMitigatedByAgent,
+        onRenderMitigatedByUser,
         onRenderPendingUserAction,
         sortColumnKey,
         isSortedDescending,
@@ -317,7 +320,7 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
 
     return (
         <Card style={{ width: '100%', height: '100%' }}>
-            <Subtitle2>Incident response plan</Subtitle2>
+            <Subtitle2>{intl.formatMessage(IncidentManagementResources.incidentResponsePlan)}</Subtitle2>
 
             <div style={{ width: '100%' }}>
                 <div className={styles.incidentFiltersContainer}>
@@ -377,7 +380,7 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
 
                     {responsePlans.length === 0 && !isLoading && (
                         <Text align="center" block>
-                            No response plans found
+                            {intl.formatMessage(IncidentManagementResources.noResponsePlansFound)}
                         </Text>
                     )}
                 </div>

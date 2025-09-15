@@ -41,7 +41,7 @@ interface StatCardProps {
 
 export const StatCard = ({ title, subtitle }: StatCardProps) => {
     return (
-        <Card style={{ width: 315, height: 120 }}>
+        <Card style={{ flexGrow: 1, minWidth: 315, height: 120 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                 <div>
                     <Body1Strong block>{title}</Body1Strong>

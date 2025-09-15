@@ -433,6 +433,12 @@
       "value": "Change agent mode for this thread"
     }
   ],
+  "2FLZrG": [
+    {
+      "type": 0,
+      "value": "Total incidents"
+    }
+  ],
   "2LQx4N": [
     {
       "type": 0,
@@ -463,6 +469,12 @@
     {
       "type": 0,
       "value": "% done. You can chat about other topics in the meantime."
+    }
+  ],
+  "2Smahe": [
+    {
+      "type": 0,
+      "value": "Incident summary"
     }
   ],
   "2a+ttj": [
@@ -681,6 +693,12 @@
       "value": "Azure Monitor is not connected."
     }
   ],
+  "53O1/Z": [
+    {
+      "type": 0,
+      "value": "Incident coverage"
+    }
+  ],
   "59z+Aj": [
     {
       "type": 0,
@@ -749,6 +767,12 @@
       "value": "errorMessage"
     }
   ],
+  "5cRddy": [
+    {
+      "type": 0,
+      "value": "Mitigated by user"
+    }
+  ],
   "5dcGlG": [
     {
       "type": 0,
@@ -757,6 +781,12 @@
     {
       "type": 1,
       "value": "error"
+    }
+  ],
+  "5gEh2M": [
+    {
+      "type": 0,
+      "value": "Incidents that require attention"
     }
   ],
   "5jeq8P": [
@@ -1331,6 +1361,12 @@
     {
       "type": 0,
       "value": "Azure Center for SAP solutions reader"
+    }
+  ],
+  "BT9p8f": [
+    {
+      "type": 0,
+      "value": "Response plan name"
     }
   ],
   "BV3Mir": [
@@ -2097,6 +2133,12 @@
       "value": "Allows for full read access to IoT Hub data-plane properties."
     }
   ],
+  "KJuQJ3": [
+    {
+      "type": 0,
+      "value": "Incidents reviewed"
+    }
+  ],
   "KLYuRX": [
     {
       "type": 0,
@@ -2231,6 +2273,12 @@
       "value": "Deleting incident handler"
     }
   ],
+  "MIxpkh": [
+    {
+      "type": 0,
+      "value": "Incidents not handled by response plan criteria"
+    }
+  ],
   "MhTfXm": [
     {
       "type": 0,
@@ -2305,6 +2353,12 @@
     {
       "type": 0,
       "value": "Alert Rule"
+    }
+  ],
+  "NW3Qi+": [
+    {
+      "type": 0,
+      "value": "Custom plan"
     }
   ],
   "NYTGIb": [
@@ -3001,6 +3055,16 @@
       "value": "This field is required"
     }
   ],
+  "TKp3Ld": [
+    {
+      "type": 0,
+      "value": "Across all incidents in "
+    },
+    {
+      "type": 1,
+      "value": "platform"
+    }
+  ],
   "TMZ2Rq": [
     {
       "type": 0,
@@ -3235,6 +3299,12 @@
     {
       "type": 0,
       "value": "Collapse"
+    }
+  ],
+  "W/siYq": [
+    {
+      "type": 0,
+      "value": "No response plans found"
     }
   ],
   "W2JBdp": [
@@ -3909,6 +3979,12 @@
     {
       "type": 0,
       "value": "Back"
+    }
+  ],
+  "d+XOMl": [
+    {
+      "type": 0,
+      "value": "Incidents mitigated by agent"
     }
   ],
   "d2GmfJ": [
@@ -4727,6 +4803,12 @@
       "value": "Run test"
     }
   ],
+  "makWrV": [
+    {
+      "type": 0,
+      "value": "Incidents mitigated by user"
+    }
+  ],
   "mgYBYo": [
     {
       "type": 0,
@@ -4737,6 +4819,12 @@
     {
       "type": 0,
       "value": "Read and write Azure Monitor monitoring settings and data."
+    }
+  ],
+  "mky0K0": [
+    {
+      "type": 0,
+      "value": "Incident response plan"
     }
   ],
   "mq/sud": [
@@ -5111,6 +5199,12 @@
     {
       "type": 0,
       "value": "Active threads"
+    }
+  ],
+  "rM7Pbj": [
+    {
+      "type": 0,
+      "value": "Pending user action"
     }
   ],
   "rNvlCF": [

@@ -1,1 +1,5924 @@
-{}
+{
+  "+/nU/s": [
+    {
+      "type": 0,
+      "value": "Gives you read access to management and content operations, but does not allow making changes."
+    }
+  ],
+  "+2NFJn": [
+    {
+      "type": 0,
+      "value": "Enter connector name"
+    }
+  ],
+  "+4NN8Z": [
+    {
+      "type": 0,
+      "value": "Updating data connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
+  "+5BJJL": [
+    {
+      "type": 0,
+      "value": "Eliminar tópico?"
+    }
+  ],
+  "+7PjfV": [
+    {
+      "type": 0,
+      "value": "1 day"
+    }
+  ],
+  "+7dYeU": [
+    {
+      "type": 0,
+      "value": "IcM is not connected."
+    }
+  ],
+  "+DBMRK": [
+    {
+      "type": 0,
+      "value": "CPU usage"
+    }
+  ],
+  "+FoBRs": [
+    {
+      "type": 0,
+      "value": "Submeter feedback à Microsoft"
+    }
+  ],
+  "+U6ozc": [
+    {
+      "type": 0,
+      "value": "Tipo"
+    }
+  ],
+  "+bJIWo": [
+    {
+      "type": 0,
+      "value": "Agent permissions level"
+    }
+  ],
+  "+hJd45": [
+    {
+      "type": 0,
+      "value": "Edit data connector"
+    }
+  ],
+  "+k5t/y": [
+    {
+      "type": 0,
+      "value": "Contributor"
+    }
+  ],
+  "+l+XEu": [
+    {
+      "type": 0,
+      "value": "Can read workbooks."
+    }
+  ],
+  "+uAdUZ": [
+    {
+      "type": 0,
+      "value": "Grupo de recursos"
+    }
+  ],
+  "//ter/": [
+    {
+      "type": 0,
+      "value": "Enter created by alias"
+    }
+  ],
+  "/2OpVO": [
+    {
+      "type": 0,
+      "value": "Escolher uma plataforma"
+    }
+  ],
+  "/4tOwT": [
+    {
+      "type": 0,
+      "value": "Skip"
+    }
+  ],
+  "/8MshI": [
+    {
+      "type": 0,
+      "value": "Manage SQL Managed Instances."
+    }
+  ],
+  "/Br0/Z": [
+    {
+      "type": 0,
+      "value": "Priorities"
+    }
+  ],
+  "/WrP/v": [
+    {
+      "type": 0,
+      "value": "Operador do Container Apps"
+    }
+  ],
+  "/dxZCE": [
+    {
+      "type": 0,
+      "value": "Your agent is in autonomous mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations autonomously based on your requests."
+    }
+  ],
+  "/gCtdO": [
+    {
+      "type": 0,
+      "value": "Manage Custom Vision projects."
+    }
+  ],
+  "/wdD42": [
+    {
+      "type": 0,
+      "value": "Connection Error."
+    }
+  ],
+  "/ytgXm": [
+    {
+      "type": 0,
+      "value": "Remove "
+    },
+    {
+      "type": 1,
+      "value": "columnName"
+    },
+    {
+      "type": 0,
+      "value": " filter"
+    }
+  ],
+  "/zFP1/": [
+    {
+      "type": 0,
+      "value": "Start time"
+    }
+  ],
+  "/zQv2D": [
+    {
+      "type": 0,
+      "value": "Resource groups"
+    }
+  ],
+  "01lT1B": [
+    {
+      "type": 0,
+      "value": "Lets you read, enable and disable logic app."
+    }
+  ],
+  "01sZoP": [
+    {
+      "type": 1,
+      "value": "selectedCount"
+    },
+    {
+      "type": 0,
+      "value": " of "
+    },
+    {
+      "type": 1,
+      "value": "totalCount"
+    }
+  ],
+  "066KEg": [
+    {
+      "type": 0,
+      "value": "Disabling incident handler"
+    }
+  ],
+  "0AwXvo": [
+    {
+      "type": 0,
+      "value": "Incident handler"
+    }
+  ],
+  "0D+7fr": [
+    {
+      "type": 0,
+      "value": "Microsoft IcM"
+    }
+  ],
+  "0Dhe75": [
+    {
+      "type": 0,
+      "value": "Manage SQL servers and their security policies."
+    }
+  ],
+  "0G14fL": [
+    {
+      "type": 0,
+      "value": "This map shows how your application's resources are connected across multiple resource groups, regions, and subscriptions. The agent analyzes these resources and organizes them into a core application group based on the primary resource."
+    }
+  ],
+  "0KB3lG": [
+    {
+      "type": 0,
+      "value": "I analyzed your application's resources across multiple resource groups, regions, and subscriptions. I then generated a resource map of the connections I identified based on the primary resource. Based on what I learned, I also put together some suggested prompts that focus on your resources."
+    }
+  ],
+  "0Pt22l": [
+    {
+      "type": 0,
+      "value": "Failed to add the custom incident handler. Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
+  "0R+Pet": [
+    {
+      "type": 0,
+      "value": "Connection to PagerDuty failed. Please check your access key and try again."
+    }
+  ],
+  "0TkVxX": [
+    {
+      "type": 0,
+      "value": "Failed to load incident management configuration. Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
+  "0UwFzs": [
+    {
+      "type": 0,
+      "value": "Adição de "
+    },
+    {
+      "type": 1,
+      "value": "number"
+    },
+    {
+      "type": 0,
+      "value": " grupos de recursos geridos"
+    }
+  ],
+  "0VuGey": [
+    {
+      "type": 0,
+      "value": "This will overwrite your tool selections. Are you sure you want to continue?"
+    }
+  ],
+  "0aN6iW": [
+    {
+      "type": 0,
+      "value": "To get optimal agent performance for diagnostics, metrics, knowledge, and more during preview, use resource groups that include one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, or Web Apps."
+    }
+  ],
+  "0mx8D9": [
+    {
+      "type": 0,
+      "value": "The tool list is generated from the custom response guidance. If you modify the guidance, select Regenerate to update the tool list. Once regenerated, the previous list cannot be restored. To add or remove tools, select Manage tools."
+    }
+  ],
+  "0oLj/t": [
+    {
+      "type": 0,
+      "value": "Expand"
+    }
+  ],
+  "0q6E9l": [
+    {
+      "type": 0,
+      "value": "Change credentials"
+    }
+  ],
+  "0sIUhe": [
+    {
+      "type": 0,
+      "value": "Ver Detalhes do Alerta"
+    }
+  ],
+  "0te2Ra": [
+    {
+      "type": 0,
+      "value": "Manage Azure Data Factory instances."
+    }
+  ],
+  "0w0iFy": [
+    {
+      "type": 0,
+      "value": "Apply to all current and future active incidents"
+    }
+  ],
+  "0wJ7N+": [
+    {
+      "type": 0,
+      "value": "Tarefa"
+    }
+  ],
+  "12rpNY": [
+    {
+      "type": 0,
+      "value": "In-progress"
+    }
+  ],
+  "14xQ4i": [
+    {
+      "type": 0,
+      "value": "Azure Monitor adicionado"
+    }
+  ],
+  "1HLt0U": [
+    {
+      "type": 0,
+      "value": "No documents uploaded yet"
+    }
+  ],
+  "1O47t6": [
+    {
+      "type": 0,
+      "value": "Agente SRE "
+    },
+    {
+      "type": 1,
+      "value": "nome"
+    },
+    {
+      "type": 0,
+      "value": " eliminado com êxito"
+    }
+  ],
+  "1PVhxx": [
+    {
+      "type": 0,
+      "value": "Os grupos de recursos geridos selecionados foram eliminados com êxito"
+    }
+  ],
+  "1TlUPy": [
+    {
+      "type": 0,
+      "value": "New incident handler"
+    }
+  ],
+  "1YN49J": [
+    {
+      "type": 0,
+      "value": "Invalid username or password. Please check your credentials."
+    }
+  ],
+  "1YPTmM": [
+    {
+      "type": 0,
+      "value": "Web Plan Contributor"
+    }
+  ],
+  "1ZgrhW": [
+    {
+      "type": 0,
+      "value": "Função"
+    }
+  ],
+  "1dOMiz": [
+    {
+      "type": 0,
+      "value": "URL do dashboard do Grafana"
+    }
+  ],
+  "1fNFGt": [
+    {
+      "type": 0,
+      "value": "Connect repository"
+    }
+  ],
+  "1rAiXS": [
+    {
+      "type": 0,
+      "value": "Response plan"
+    }
+  ],
+  "2/2yg+": [
+    {
+      "type": 0,
+      "value": "Adicionar"
+    }
+  ],
+  "23nct0": [
+    {
+      "type": 0,
+      "value": "PagerDuty is connected."
+    }
+  ],
+  "28HRcH": [
+    {
+      "type": 0,
+      "value": "The action is in progress using temporary permissions granted by "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "29xePt": [
+    {
+      "type": 0,
+      "value": "Change agent mode for this thread"
+    }
+  ],
+  "2LQx4N": [
+    {
+      "type": 0,
+      "value": "Manage App Configuration stores."
+    }
+  ],
+  "2OQ6yB": [
+    {
+      "type": 0,
+      "value": "Os grupos de recursos selecionados estão a ser preparados"
+    }
+  ],
+  "2PnnDB": [
+    {
+      "type": 0,
+      "value": "Manage IoT Hub device registry."
+    }
+  ],
+  "2Rfala": [
+    {
+      "type": 0,
+      "value": "Building knowledge about your resources... "
+    },
+    {
+      "type": 1,
+      "value": "percent"
+    },
+    {
+      "type": 0,
+      "value": "% done. You can chat about other topics in the meantime."
+    }
+  ],
+  "2a+ttj": [
+    {
+      "type": 0,
+      "value": "Deep investigation"
+    }
+  ],
+  "2hB9SP": [
+    {
+      "type": 0,
+      "value": "Azure Monitor Workspace resource name"
+    }
+  ],
+  "2pzTGC": [
+    {
+      "type": 0,
+      "value": "Critical"
+    }
+  ],
+  "2tOWr2": [
+    {
+      "type": 0,
+      "value": "Contém"
+    }
+  ],
+  "2zi2Yj": [
+    {
+      "type": 0,
+      "value": "Grafana dashboard"
+    }
+  ],
+  "312q4w": [
+    {
+      "type": 0,
+      "value": "No incidents found"
+    }
+  ],
+  "3651Wt": [
+    {
+      "type": 0,
+      "value": "Handler"
+    }
+  ],
+  "3BubSI": [
+    {
+      "type": 0,
+      "value": "Isto irá remover permanentemente um grupo de recursos dos grupos de recursos geridos do agente. Quer mesmo remover?"
+    }
+  ],
+  "3DzXFS": [
+    {
+      "type": 0,
+      "value": "Enter resource name"
+    }
+  ],
+  "3JVa6k": [
+    {
+      "type": 0,
+      "value": "End"
+    }
+  ],
+  "3PgCIp": [
+    {
+      "type": 0,
+      "value": "Eliminação de grupos de recursos geridos selecionados em curso"
+    }
+  ],
+  "3PxUNi": [
+    {
+      "type": 0,
+      "value": "Review + test"
+    }
+  ],
+  "3Rh7XU": [
+    {
+      "type": 0,
+      "value": "Eliminação de grupos de recursos geridos selecionados"
+    }
+  ],
+  "3RvKcp": [
+    {
+      "type": 0,
+      "value": "Suggested prompts for your resources"
+    }
+  ],
+  "3UAGOy": [
+    {
+      "type": 0,
+      "value": "Incident overview"
+    }
+  ],
+  "3a5wL8": [
+    {
+      "type": 0,
+      "value": "Ativo"
+    }
+  ],
+  "3jPMQI": [
+    {
+      "type": 0,
+      "value": "Add More"
+    }
+  ],
+  "3nhWFW": [
+    {
+      "type": 0,
+      "value": "Leitor"
+    }
+  ],
+  "3t/IhV": [
+    {
+      "type": 0,
+      "value": "Can view cost data and configuration (e.g. budgets, exports)."
+    }
+  ],
+  "3wVEAO": [
+    {
+      "type": 0,
+      "value": "Expand navigation"
+    }
+  ],
+  "3zLsNR": [
+    {
+      "type": 0,
+      "value": "Manage websites, but not web plans. Does not allow you to assign roles."
+    }
+  ],
+  "40YXE1": [
+    {
+      "type": 0,
+      "value": "A associação do dashboard do Grafana ao Agente SRE está em curso"
+    }
+  ],
+  "41zpq3": [
+    {
+      "type": 0,
+      "value": "Discard changes?"
+    }
+  ],
+  "477I0g": [
+    {
+      "type": 0,
+      "value": "Low"
+    }
+  ],
+  "47FYwb": [
+    {
+      "type": 0,
+      "value": "Cancelar"
+    }
+  ],
+  "4Ez7HI": [
+    {
+      "type": 0,
+      "value": "Negado por"
+    }
+  ],
+  "4MeTpL": [
+    {
+      "type": 0,
+      "value": "Workbook Contributor"
+    }
+  ],
+  "4OUjTL": [
+    {
+      "type": 0,
+      "value": "Can you audit best practices for my resource?"
+    }
+  ],
+  "4TnjxL": [
+    {
+      "type": 0,
+      "value": "API Management Service Reader Role"
+    }
+  ],
+  "4ii5zj": [
+    {
+      "type": 0,
+      "value": "Allows for read access to Azure Storage blob containers and data."
+    }
+  ],
+  "4kCXiz": [
+    {
+      "type": 0,
+      "value": "List cluster admin credential action."
+    }
+  ],
+  "4l6vz1": [
+    {
+      "type": 0,
+      "value": "Copy"
+    }
+  ],
+  "4nFchm": [
+    {
+      "type": 0,
+      "value": "Updating upgrade channel"
+    }
+  ],
+  "4upwsn": [
+    {
+      "type": 0,
+      "value": "Selected Files"
+    }
+  ],
+  "5+bQr/": [
+    {
+      "type": 0,
+      "value": "Aprovado por"
+    }
+  ],
+  "5/4URn": [
+    {
+      "type": 0,
+      "value": "Incident handlers"
+    }
+  ],
+  "52hqVX": [
+    {
+      "type": 0,
+      "value": "Azure Monitor is not connected."
+    }
+  ],
+  "59z+Aj": [
+    {
+      "type": 0,
+      "value": "Bulk delete failed: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "5GUtRJ": [
+    {
+      "type": 0,
+      "value": "Enviar um relatório..."
+    }
+  ],
+  "5K0php": [
+    {
+      "type": 0,
+      "value": "Optimize how the agent investigates and responds to incidents by adding incident handlers and custom handlers to support a broad range of scenarios."
+    }
+  ],
+  "5QYdPU": [
+    {
+      "type": 0,
+      "value": "Hora de Início"
+    }
+  ],
+  "5S1JBf": [
+    {
+      "type": 0,
+      "value": "Enter owning team ID"
+    }
+  ],
+  "5Sc5rT": [
+    {
+      "type": 0,
+      "value": "IoT Hub Twin Contributor"
+    }
+  ],
+  "5UfRjw": [
+    {
+      "type": 0,
+      "value": "Device Provisioning Service Data Contributor"
+    }
+  ],
+  "5V+Txp": [
+    {
+      "type": 0,
+      "value": "Azure Kubernetes Service Cluster User Role"
+    }
+  ],
+  "5WK7jL": [
+    {
+      "type": 0,
+      "value": "Create new"
+    }
+  ],
+  "5X0whH": [
+    {
+      "type": 0,
+      "value": "Failed to run the test. Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
+  "5dcGlG": [
+    {
+      "type": 0,
+      "value": "Failed to delete data connector with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "5jeq8P": [
+    {
+      "type": 0,
+      "value": "Unknown"
+    }
+  ],
+  "5kp1Ie": [
+    {
+      "type": 0,
+      "value": "Negado"
+    }
+  ],
+  "5l3nDr": [
+    {
+      "type": 0,
+      "value": "Last 15 days"
+    }
+  ],
+  "5pQrWI": [
+    {
+      "type": 1,
+      "value": "numOfResults"
+    },
+    {
+      "type": 0,
+      "value": " "
+    },
+    {
+      "type": 1,
+      "value": "results"
+    }
+  ],
+  "5q8lCX": [
+    {
+      "type": 0,
+      "value": "Incident handler name"
+    }
+  ],
+  "5sg7KC": [
+    {
+      "type": 0,
+      "value": "Password"
+    }
+  ],
+  "5wGcN7": [
+    {
+      "type": 0,
+      "value": "Cost Management Reader"
+    }
+  ],
+  "5y2qWO": [
+    {
+      "type": 0,
+      "value": "A ligar..."
+    }
+  ],
+  "5yG7b2": [
+    {
+      "type": 0,
+      "value": "Grupo de recursos geridos adicionado com êxito"
+    }
+  ],
+  "6/PJpA": [
+    {
+      "type": 0,
+      "value": "This will permanently delete the incident handler, which might affect how incidents are processed and also any custom handlers. Are you sure you want to delete?"
+    }
+  ],
+  "61e5yQ": [
+    {
+      "type": 0,
+      "value": "What didn't you like about the agent's response? Your feedback helps us make the agent even better."
+    }
+  ],
+  "61zy45": [
+    {
+      "type": 0,
+      "value": "Not applicable"
+    }
+  ],
+  "64zSh3": [
+    {
+      "type": 0,
+      "value": "Cognitive Services LUIS Writer"
+    }
+  ],
+  "69FfbB": [
+    {
+      "type": 0,
+      "value": "Preview incidents"
+    }
+  ],
+  "69sjgc": [
+    {
+      "type": 0,
+      "value": "Enter Key Vault URI"
+    }
+  ],
+  "6ENgmY": [
+    {
+      "type": 0,
+      "value": "Falha ao criar a ligação gerida"
+    }
+  ],
+  "6IIC+D": [
+    {
+      "type": 0,
+      "value": "Criar o dashboard do Grafana no mesmo grupo de recursos"
+    }
+  ],
+  "6LZ2qn": [
+    {
+      "type": 0,
+      "value": "These incidents match your filter criteria. If an incident is missing, go back to the previous step and modify the filter parameters."
+    }
+  ],
+  "6LnpNj": [
+    {
+      "type": 0,
+      "value": "Deleting custom incident handler"
+    }
+  ],
+  "6OBtew": [
+    {
+      "type": 0,
+      "value": "Eliminação do agente SRE"
+    }
+  ],
+  "6PgVSe": [
+    {
+      "type": 0,
+      "value": "Regenerate"
+    }
+  ],
+  "6S2zmX": [
+    {
+      "type": 0,
+      "value": "User-assigned Managed Identity"
+    }
+  ],
+  "6UyZlH": [
+    {
+      "type": 0,
+      "value": "PagerDuty"
+    }
+  ],
+  "6XFO/C": [
+    {
+      "type": 0,
+      "value": "Aprovado"
+    }
+  ],
+  "6YXj/s": [
+    {
+      "type": 0,
+      "value": "Contribute to Speech service resources."
+    }
+  ],
+  "6aWd+W": [
+    {
+      "type": 0,
+      "value": "Delete incident handler"
+    }
+  ],
+  "6dWeUs": [
+    {
+      "type": 0,
+      "value": "Selecione a subscrição para gerir os recursos implementados e os custos. Utilize grupos de recursos como pastas para organizar e gerir todos os seus recursos."
+    }
+  ],
+  "6feu1e": [
+    {
+      "type": 0,
+      "value": "Resource Report"
+    }
+  ],
+  "6m5Ba0": [
+    {
+      "type": 0,
+      "value": "Regra de Recolha de Dados"
+    }
+  ],
+  "6tlKgy": [
+    {
+      "type": 0,
+      "value": "Pode escolher um máximo de 20 grupos de recursos que o agente irá gerir."
+    }
+  ],
+  "6u8zJX": [
+    {
+      "type": 0,
+      "value": "Novo Alerta do Azure Monitor Detetado"
+    }
+  ],
+  "6v8Uj+": [
+    {
+      "type": 0,
+      "value": "Failed to create sub-agent with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "6zUWZ/": [
+    {
+      "type": 0,
+      "value": "Read all monitoring data and edit monitoring settings."
+    }
+  ],
+  "7+b0J0": [
+    {
+      "type": 0,
+      "value": "Cognitive Services Custom Vision Contributor"
+    }
+  ],
+  "71/osV": [
+    {
+      "type": 0,
+      "value": "Custom handler"
+    }
+  ],
+  "74vgSJ": [
+    {
+      "type": 0,
+      "value": "Time range"
+    }
+  ],
+  "7C0xai": [
+    {
+      "type": 0,
+      "value": "Data source"
+    }
+  ],
+  "7Cy5xk": [
+    {
+      "type": 0,
+      "value": "Go to Incident management"
+    }
+  ],
+  "7Eq7I8": [
+    {
+      "type": 0,
+      "value": "Review mode"
+    }
+  ],
+  "7N87nD": [
+    {
+      "type": 0,
+      "value": "Manage Device Provisioning Service data."
+    }
+  ],
+  "7Nz2Ev": [
+    {
+      "type": 0,
+      "value": "Azure Monitor"
+    }
+  ],
+  "7cS956": [
+    {
+      "type": 0,
+      "value": "Ligado ao Teams"
+    }
+  ],
+  "7fDYaV": [
+    {
+      "type": 0,
+      "value": "Go to incident thread"
+    }
+  ],
+  "7gMEKc": [
+    {
+      "type": 0,
+      "value": "Detalhes do projeto"
+    }
+  ],
+  "7p54Vc": [
+    {
+      "type": 0,
+      "value": "Quickstart handler"
+    }
+  ],
+  "7qOQpv": [
+    {
+      "type": 0,
+      "value": "Select a date"
+    }
+  ],
+  "7qt3qA": [
+    {
+      "type": 0,
+      "value": "Azure Managed Grafana is a fully managed service for analytics and monitoring. To add the service and a Grafana dashboard, you need to create an Azure Managed Grafana resource. The necessary permissions will be automatically assigned so that the dashboard can display monitoring data. Azure Managed Grafana will incur costs in your subscription."
+    }
+  ],
+  "7w4v59": [
+    {
+      "type": 0,
+      "value": "Controlo de acesso (IAM)"
+    }
+  ],
+  "7wHL/l": [
+    {
+      "type": 0,
+      "value": "Backed by"
+    }
+  ],
+  "8/TArm": [
+    {
+      "type": 0,
+      "value": "Go to Identity"
+    }
+  ],
+  "84MFOR": [
+    {
+      "type": 0,
+      "value": "PagerDuty connected. Your next step is to set up incident handlers."
+    }
+  ],
+  "87v+WY": [
+    {
+      "type": 0,
+      "value": "Full access to Azure Digital Twins data."
+    }
+  ],
+  "8Hjku9": [
+    {
+      "type": 0,
+      "value": "Creating data connector"
+    }
+  ],
+  "8NHZQV": [
+    {
+      "type": 0,
+      "value": "Cognitive Services Language Reader"
+    }
+  ],
+  "8O9cAb": [
+    {
+      "type": 0,
+      "value": "Last 24 hours"
+    }
+  ],
+  "8QX1EO": [
+    {
+      "type": 0,
+      "value": "I'm currently gathering information about your app and analyzing your resources, which might take a few minutes."
+    }
+  ],
+  "8RdOD0": [
+    {
+      "type": 0,
+      "value": "Select identity"
+    }
+  ],
+  "8Wiwkg": [
+    {
+      "type": 0,
+      "value": "A construir gráfico de conhecimento"
+    }
+  ],
+  "8aHHLj": [
+    {
+      "type": 0,
+      "value": "Read-only access to service and APIs."
+    }
+  ],
+  "8hR178": [
+    {
+      "type": 0,
+      "value": "Successfully created default incident handler"
+    }
+  ],
+  "8lCjAM": [
+    {
+      "type": 0,
+      "value": "Priority"
+    }
+  ],
+  "8nBFW4": [
+    {
+      "type": 0,
+      "value": "Redis Cache Contributor"
+    }
+  ],
+  "8oXUdb": [
+    {
+      "type": 0,
+      "value": "Add a default incident handler for the agent to use for Sev3 LiveSite incidents."
+    }
+  ],
+  "8quEg9": [
+    {
+      "type": 0,
+      "value": "resultados"
+    }
+  ],
+  "8yyU6n": [
+    {
+      "type": 0,
+      "value": "Todas as subscrições"
+    }
+  ],
+  "9+Ddtu": [
+    {
+      "type": 0,
+      "value": "Seguinte"
+    }
+  ],
+  "9/ucRx": [
+    {
+      "type": 0,
+      "value": "Agent can only view and analyze information without taking any actions"
+    }
+  ],
+  "94Fg25": [
+    {
+      "type": 0,
+      "value": "Selecionar todos"
+    }
+  ],
+  "95stPq": [
+    {
+      "type": 0,
+      "value": "Concluído"
+    }
+  ],
+  "9VUlhV": [
+    {
+      "type": 0,
+      "value": "Add a description about this resource to help the agent with groupings and insights."
+    }
+  ],
+  "9ZIBMx": [
+    {
+      "type": 0,
+      "value": "Pedido às"
+    }
+  ],
+  "9a9+ww": [
+    {
+      "type": 0,
+      "value": "Title"
+    }
+  ],
+  "9uOFF3": [
+    {
+      "type": 0,
+      "value": "Descrição geral"
+    }
+  ],
+  "A/xTHO": [
+    {
+      "type": 0,
+      "value": "Atribuições de funções"
+    }
+  ],
+  "A2BJnD": [
+    {
+      "type": 0,
+      "value": "A sua anotação foi atualizada com sucesso"
+    }
+  ],
+  "AA/tRJ": [
+    {
+      "type": 0,
+      "value": "URL do repositório"
+    }
+  ],
+  "ABAQyo": [
+    {
+      "type": 0,
+      "value": "Chats"
+    }
+  ],
+  "ABo5XY": [
+    {
+      "type": 0,
+      "value": "DocumentDB Account Contributor"
+    }
+  ],
+  "AC5nsM": [
+    {
+      "type": 0,
+      "value": "Agent autonomy level"
+    }
+  ],
+  "ACfSSZ": [
+    {
+      "type": 0,
+      "value": "Falha ao criar o dashboard do Grafana com o erro: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
+  "ALkPTF": [
+    {
+      "type": 0,
+      "value": "No data connectors configured"
+    }
+  ],
+  "ATYp8z": [
+    {
+      "type": 0,
+      "value": "Show only recommended resource groups"
+    }
+  ],
+  "AbpmRv": [
+    {
+      "type": 0,
+      "value": "Enter instructions"
+    }
+  ],
+  "AeWmvh": [
+    {
+      "type": 0,
+      "value": "Lets you manage virtual machines, but not access to them, and not the virtual network or storage account they are connected to."
+    }
+  ],
+  "AfbqHj": [
+    {
+      "type": 0,
+      "value": "Função de Leitor de Monitorização"
+    }
+  ],
+  "Aio6ud": [
+    {
+      "type": 0,
+      "value": "Turn off incident handler"
+    }
+  ],
+  "ArsZkp": [
+    {
+      "type": 0,
+      "value": "Updating data connector"
+    }
+  ],
+  "AuFOi8": [
+    {
+      "type": 0,
+      "value": "Chave de acesso à API REST"
+    }
+  ],
+  "AxMhQr": [
+    {
+      "type": 0,
+      "value": "High"
+    }
+  ],
+  "B9k+PB": [
+    {
+      "type": 0,
+      "value": "Edit custom handler"
+    }
+  ],
+  "BEck3n": [
+    {
+      "type": 0,
+      "value": "Please wait while your files are being deleted..."
+    }
+  ],
+  "BKMqtr": [
+    {
+      "type": 0,
+      "value": "O conteúdo gerado por IA pode estar incorreto, por isso reveja cuidadosamente antes de utilizar. Não inclua informações pessoais ou confidenciais na conversa."
+    }
+  ],
+  "BKSv0l": [
+    {
+      "type": 0,
+      "value": "Azure Center for SAP solutions reader"
+    }
+  ],
+  "BV3Mir": [
+    {
+      "type": 0,
+      "value": "Link repository to resource"
+    }
+  ],
+  "BWpuKl": [
+    {
+      "type": 0,
+      "value": "Update"
+    }
+  ],
+  "Bcgdb7": [
+    {
+      "type": 0,
+      "value": "Adição do grupo de recursos geridos "
+    },
+    {
+      "type": 1,
+      "value": "número"
+    }
+  ],
+  "Bcx/Gz": [
+    {
+      "type": 0,
+      "value": "List cluster user credential action."
+    }
+  ],
+  "C3PGqj": [
+    {
+      "type": 0,
+      "value": "Logic App Contributor"
+    }
+  ],
+  "C3qF2+": [
+    {
+      "type": 0,
+      "value": "Create incident handler"
+    }
+  ],
+  "CFJ1OD": [
+    {
+      "type": 0,
+      "value": "Read-only role for Digital Twins data-plane properties."
+    }
+  ],
+  "CJEYfo": [
+    {
+      "type": 0,
+      "value": "Failed to fetch agent mode"
+    }
+  ],
+  "CL+NTm": [
+    {
+      "type": 0,
+      "value": "1 wk"
+    }
+  ],
+  "CMaDRa": [
+    {
+      "type": 0,
+      "value": "Write access to Language service resources."
+    }
+  ],
+  "CU0qUc": [
+    {
+      "type": 0,
+      "value": "Processed time"
+    }
+  ],
+  "CZ6s9k": [
+    {
+      "type": 0,
+      "value": "Degraded core application groups"
+    }
+  ],
+  "CbKRyU": [
+    {
+      "type": 0,
+      "value": "Data connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been deleted successfully"
+    }
+  ],
+  "CfGC/2": [
+    {
+      "type": 0,
+      "value": "Selecionar grupos de recursos a monitorizar"
+    }
+  ],
+  "CimbUb": [
+    {
+      "type": 0,
+      "value": "Make sure you have Contributor or Owner access to the resource group where the agent is hosted. If you still have access issues, assign the role directly to your account instead of relying on group-based role assignments."
+    }
+  ],
+  "CnouOe": [
+    {
+      "type": 0,
+      "value": "To change the incident platform, you need to disconnect from PagerDuty. The agent will no longer manage tickets. Are you sure you want to disconnect?"
+    }
+  ],
+  "CvWvf+": [
+    {
+      "type": 0,
+      "value": "actions"
+    }
+  ],
+  "Cwgo05": [
+    {
+      "type": 0,
+      "value": "Connection to ServiceNow failed. Please check your configuration and try again."
+    }
+  ],
+  "D/TfIH": [
+    {
+      "type": 0,
+      "value": "Add an incident platform so that the agent can help respond to incidents in real time. To change to a different platform, you'll need to delete the connection to the current one."
+    }
+  ],
+  "D2I5kb": [
+    {
+      "type": 0,
+      "value": "ServiceNow connection added successfully"
+    }
+  ],
+  "D3idYv": [
+    {
+      "type": 0,
+      "value": "Definições"
+    }
+  ],
+  "D473QI": [
+    {
+      "type": 0,
+      "value": "Choose a maximum of "
+    },
+    {
+      "type": 1,
+      "value": "max"
+    },
+    {
+      "type": 0,
+      "value": " resource groups you have permissions on. "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " resource groups selected."
+    }
+  ],
+  "D4T2Px": [
+    {
+      "type": 0,
+      "value": "Mitigated by agent"
+    }
+  ],
+  "DHc2gc": [
+    {
+      "type": 0,
+      "value": "New custom handler"
+    }
+  ],
+  "DMd1Ql": [
+    {
+      "type": 0,
+      "value": "Faz parte do"
+    }
+  ],
+  "DPnEXy": [
+    {
+      "type": 0,
+      "value": "Latência média"
+    }
+  ],
+  "DVVbGP": [
+    {
+      "type": 0,
+      "value": "Regenerate will overwrite any edits made within the generated section of code."
+    }
+  ],
+  "DWon+H": [
+    {
+      "type": 0,
+      "value": "Add custom incident handler"
+    }
+  ],
+  "DX7w9O": [
+    {
+      "type": 0,
+      "value": "Selected incidents"
+    }
+  ],
+  "DasCIQ": [
+    {
+      "type": 0,
+      "value": "This resource group is recommended for optimal agent performance. It includes one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, Web Apps, Redis, Postgres SQL, CosmosDB, Virtual machines, or Storage accounts."
+    }
+  ],
+  "Dff3ms": [
+    {
+      "type": 0,
+      "value": "Cognitive Services Contributor"
+    }
+  ],
+  "DlSXUR": [
+    {
+      "type": 0,
+      "value": "Why isn't my application working?"
+    }
+  ],
+  "DmtYK4": [
+    {
+      "type": 0,
+      "value": "Choose impacted service"
+    }
+  ],
+  "DpMYPV": [
+    {
+      "type": 0,
+      "value": "Falha ao eliminar a aplicação lógica"
+    }
+  ],
+  "Dx3Xj3": [
+    {
+      "type": 0,
+      "value": "Let's you read and test a KB only."
+    }
+  ],
+  "Dy3cy0": [
+    {
+      "type": 0,
+      "value": "End date picker"
+    }
+  ],
+  "Dz+Iv9": [
+    {
+      "type": 0,
+      "value": "IcM connected. Your next step is to set up incident handlers."
+    }
+  ],
+  "E396gv": [
+    {
+      "type": 0,
+      "value": "Podem entrar em contacto comigo acerca dos meus comentários."
+    }
+  ],
+  "E60v6W": [
+    {
+      "type": 0,
+      "value": "Alguns dos grupos de recursos selecionados não têm as permissões roleAssignments/write e Microsoft.ManagedIdentity/userAssignedIdentities/write necessárias."
+    }
+  ],
+  "ED/jWk": [
+    {
+      "type": 0,
+      "value": "Transações dos últimos 30 minutos"
+    }
+  ],
+  "EI4WZI": [
+    {
+      "type": 0,
+      "value": "Can you analyze my resource's availability over the last 24 hours?"
+    }
+  ],
+  "EKfWmx": [
+    {
+      "type": 0,
+      "value": "Falha ao carregar as subscrições."
+    }
+  ],
+  "ENnkRe": [
+    {
+      "type": 0,
+      "value": "Grants permission for read operations for App Configuration resources."
+    }
+  ],
+  "ERQMQ9": [
+    {
+      "type": 0,
+      "value": "Updating custom incident handler"
+    }
+  ],
+  "ESChST": [
+    {
+      "type": 0,
+      "value": "Enter filter name"
+    }
+  ],
+  "EWw/tK": [
+    {
+      "type": 0,
+      "value": "Aplicar"
+    }
+  ],
+  "EYRPA4": [
+    {
+      "type": 0,
+      "value": "Failed to update data connector"
+    }
+  ],
+  "EZBG/A": [
+    {
+      "type": 0,
+      "value": "Plataforma de incidentes"
+    }
+  ],
+  "EdEthU": [
+    {
+      "type": 0,
+      "value": "API Management Workspace Contributor"
+    }
+  ],
+  "EiiZbj": [
+    {
+      "type": 0,
+      "value": "Successfully disabled incident handler"
+    }
+  ],
+  "ElI1gd": [
+    {
+      "type": 0,
+      "value": "Procurar grupos de recursos"
+    }
+  ],
+  "Ep74wA": [
+    {
+      "type": 0,
+      "value": "ServiceNow is connected."
+    }
+  ],
+  "Erci0g": [
+    {
+      "type": 0,
+      "value": "Azure SRE Agent"
+    }
+  ],
+  "EwRIOm": [
+    {
+      "type": 0,
+      "value": "Utilizador"
+    }
+  ],
+  "F9LrJA": [
+    {
+      "type": 0,
+      "value": "Filtrar itens"
+    }
+  ],
+  "FDJdmL": [
+    {
+      "type": 0,
+      "value": "Dashboard do Grafana associado com êxito"
+    }
+  ],
+  "FGAk9M": [
+    {
+      "type": 0,
+      "value": "Grupos de recursos geridos adicionados com êxito"
+    }
+  ],
+  "FLm/x4": [
+    {
+      "type": 0,
+      "value": "Repository connection"
+    }
+  ],
+  "FUQvS0": [
+    {
+      "type": 0,
+      "value": "ID da Subscrição"
+    }
+  ],
+  "FitglU": [
+    {
+      "type": 0,
+      "value": "ServiceNow endpoint is required."
+    }
+  ],
+  "FnKIAW": [
+    {
+      "type": 0,
+      "value": "Confirmado"
+    }
+  ],
+  "Fv1ZSz": [
+    {
+      "type": 0,
+      "value": "Fechado"
+    }
+  ],
+  "G+JlQs": [
+    {
+      "type": 0,
+      "value": "Primary resource name equals"
+    }
+  ],
+  "G/yZLu": [
+    {
+      "type": 0,
+      "value": "Remove"
+    }
+  ],
+  "G2GBW0": [
+    {
+      "type": 0,
+      "value": "Creating data connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
+  "G6vaGg": [
+    {
+      "type": 0,
+      "value": "Ligue-se ao PagerDuty com uma chave de acesso. Para obter mais informações, vá a pagerduty.com e depois à secção Chaves de acesso à API."
+    }
+  ],
+  "G8H3+s": [
+    {
+      "type": 0,
+      "value": "All incident types"
+    }
+  ],
+  "GBnvl1": [
+    {
+      "type": 0,
+      "value": "Agentes"
+    }
+  ],
+  "GCVHNV": [
+    {
+      "type": 0,
+      "value": "- em curso"
+    }
+  ],
+  "GUx4Ld": [
+    {
+      "type": 0,
+      "value": "Unable to connect to ServiceNow endpoint. Please verify the endpoint URL."
+    }
+  ],
+  "GgiTLF": [
+    {
+      "type": 0,
+      "value": "Successfully enabled incident handler"
+    }
+  ],
+  "GoSIa4": [
+    {
+      "type": 0,
+      "value": "Minimal permission to view Cognitive Services usages."
+    }
+  ],
+  "GroBmn": [
+    {
+      "type": 0,
+      "value": "repository alerts found"
+    }
+  ],
+  "GuBSUa": [
+    {
+      "type": 0,
+      "value": "Go to handler"
+    }
+  ],
+  "H3ooTI": [
+    {
+      "type": 0,
+      "value": "Azure Service Bus Data Owner"
+    }
+  ],
+  "HAlOn1": [
+    {
+      "type": 0,
+      "value": "Nome"
+    }
+  ],
+  "HQhDfV": [
+    {
+      "type": 0,
+      "value": "Cognitive Services OpenAI Contributor"
+    }
+  ],
+  "HWMrXF": [
+    {
+      "type": 0,
+      "value": "Adicionar grupo de recursos"
+    }
+  ],
+  "HbTFJf": [
+    {
+      "type": 0,
+      "value": "Aprovações pendentes"
+    }
+  ],
+  "HjTHxo": [
+    {
+      "type": 0,
+      "value": "Add instructions"
+    }
+  ],
+  "Humfno": [
+    {
+      "type": 0,
+      "value": "End date"
+    }
+  ],
+  "Hv7pA2": [
+    {
+      "type": 0,
+      "value": "Monitor ID"
+    }
+  ],
+  "I03XmI": [
+    {
+      "type": 0,
+      "value": "- concluído"
+    }
+  ],
+  "I80vfn": [
+    {
+      "type": 0,
+      "value": "Approve action"
+    }
+  ],
+  "I8iKnF": [
+    {
+      "type": 0,
+      "value": "Core application groups"
+    }
+  ],
+  "IAwPyV": [
+    {
+      "type": 0,
+      "value": "Atualizar anotação"
+    }
+  ],
+  "IEFW3Y": [
+    {
+      "type": 0,
+      "value": "App Configuration Contributor"
+    }
+  ],
+  "IF3r+X": [
+    {
+      "type": 0,
+      "value": "Azure Managed Grafana"
+    }
+  ],
+  "IQaKwH": [
+    {
+      "type": 0,
+      "value": "Lets you read Cognitive Services data."
+    }
+  ],
+  "ITYqY7": [
+    {
+      "type": 0,
+      "value": "Novo tópico"
+    }
+  ],
+  "IYK6q+": [
+    {
+      "type": 0,
+      "value": "Creating Sub-Agent"
+    }
+  ],
+  "IiNwpr": [
+    {
+      "type": 0,
+      "value": "The action was canceled by "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "IoApza": [
+    {
+      "type": 0,
+      "value": "Collapse navigation"
+    }
+  ],
+  "IuFETn": [
+    {
+      "type": 0,
+      "value": "Duration"
+    }
+  ],
+  "IvjoDS": [
+    {
+      "type": 0,
+      "value": "Connected"
+    }
+  ],
+  "IzCVhG": [
+    {
+      "type": 0,
+      "value": "More options"
+    }
+  ],
+  "J//t5k": [
+    {
+      "type": 0,
+      "value": "Creating default incident handler"
+    }
+  ],
+  "J/uqp9": [
+    {
+      "type": 0,
+      "value": "Click to show value"
+    }
+  ],
+  "J3Y8Sm": [
+    {
+      "type": 0,
+      "value": "Failed to validate ServiceNow settings. Please try again."
+    }
+  ],
+  "J6XCfl": [
+    {
+      "type": 0,
+      "value": "Estamos a atualizar a anotação do seu recurso "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
+  "JAtEuU": [
+    {
+      "type": 0,
+      "value": "Azure Managed Grafana resource name"
+    }
+  ],
+  "JCIgkj": [
+    {
+      "type": 0,
+      "value": "Username"
+    }
+  ],
+  "JCjxSH": [
+    {
+      "type": 0,
+      "value": "Falha ao eliminar o agente SRE "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
+  "JEsxDw": [
+    {
+      "type": 0,
+      "value": "Uploading..."
+    }
+  ],
+  "JHqOn0": [
+    {
+      "type": 0,
+      "value": "Upload one-off architecture docs, troubleshooting guides, and other documentation to enhance the agent's knowledge base. For ongoing document management and automated updates, consider using Data Connectors instead."
+    }
+  ],
+  "JIBt4U": [
+    {
+      "type": 0,
+      "value": "Connection to IcM failed. Please check your configuration and try again."
+    }
+  ],
+  "JJNc3c": [
+    {
+      "type": 0,
+      "value": "Previous"
+    }
+  ],
+  "JVZyFs": [
+    {
+      "type": 0,
+      "value": "Gerar chave de API"
+    }
+  ],
+  "JWM0w5": [
+    {
+      "type": 0,
+      "value": "Utilização média da CPU"
+    }
+  ],
+  "JX0502": [
+    {
+      "type": 0,
+      "value": "Cliente"
+    }
+  ],
+  "JgQ1gX": [
+    {
+      "type": 0,
+      "value": "Get all incidents"
+    }
+  ],
+  "JjKcCj": [
+    {
+      "type": 0,
+      "value": "Remover grupo de recursos geridos"
+    }
+  ],
+  "JlJ8dZ": [
+    {
+      "type": 0,
+      "value": "Search for files..."
+    }
+  ],
+  "Jm+zxF": [
+    {
+      "type": 0,
+      "value": "Disconnect ServiceNow?"
+    }
+  ],
+  "JmZ3gF": [
+    {
+      "type": 0,
+      "value": "Updating upgrade channel to "
+    },
+    {
+      "type": 1,
+      "value": "channel"
+    }
+  ],
+  "JwHSD6": [
+    {
+      "type": 0,
+      "value": "Choose filter parameters"
+    }
+  ],
+  "JxjlUE": [
+    {
+      "type": 0,
+      "value": "Resource Metrics"
+    }
+  ],
+  "K3r6DQ": [
+    {
+      "type": 0,
+      "value": "Eliminar"
+    }
+  ],
+  "KAYpG9": [
+    {
+      "type": 0,
+      "value": "Allows for full read access to IoT Hub data-plane properties."
+    }
+  ],
+  "KLYuRX": [
+    {
+      "type": 0,
+      "value": "Last 60 days"
+    }
+  ],
+  "KN7zKn": [
+    {
+      "type": 0,
+      "value": "Error"
+    }
+  ],
+  "KVPNxV": [
+    {
+      "type": 0,
+      "value": "Failed to update the custom incident handler. Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
+  "KXyWfi": [
+    {
+      "type": 0,
+      "value": "Urgency"
+    }
+  ],
+  "KbCGsK": [
+    {
+      "type": 0,
+      "value": "If you click 'Authorize', this operation will be executed on your behalf using your credentials."
+    }
+  ],
+  "KoJ1C+": [
+    {
+      "type": 0,
+      "value": "Delete Selected ("
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": ")"
+    }
+  ],
+  "KyDsjH": [
+    {
+      "type": 0,
+      "value": "Date modified"
+    }
+  ],
+  "KzMCPo": [
+    {
+      "type": 0,
+      "value": "Grants full access to manage all resources, but does not allow you to assign roles in Azure RBAC, manage assignments in Azure Blueprints, or share image galleries."
+    }
+  ],
+  "L0KVkI": [
+    {
+      "type": 0,
+      "value": "Eliminação do agente SRE "
+    },
+    {
+      "type": 1,
+      "value": "nome"
+    },
+    {
+      "type": 0,
+      "value": " em curso"
+    }
+  ],
+  "L5ZL+u": [
+    {
+      "type": 0,
+      "value": "Data connectors"
+    }
+  ],
+  "LPprqA": [
+    {
+      "type": 0,
+      "value": "Rever grupos de recursos"
+    }
+  ],
+  "LRJHcs": [
+    {
+      "type": 0,
+      "value": "Prompt examples"
+    }
+  ],
+  "LSaaxU": [
+    {
+      "type": 0,
+      "value": "View all resources, but does not allow you to make any changes."
+    }
+  ],
+  "LnglaU": [
+    {
+      "type": 0,
+      "value": "Run History"
+    }
+  ],
+  "LyHqqV": [
+    {
+      "type": 0,
+      "value": "Standard input"
+    }
+  ],
+  "M88YzU": [
+    {
+      "type": 0,
+      "value": "Browse Files"
+    }
+  ],
+  "MACADd": [
+    {
+      "type": 0,
+      "value": "Ocultar ações do tópico"
+    }
+  ],
+  "MB9ceM": [
+    {
+      "type": 0,
+      "value": "Incident ID"
+    }
+  ],
+  "MCSjdU": [
+    {
+      "type": 0,
+      "value": "Deleting incident handler"
+    }
+  ],
+  "MhTfXm": [
+    {
+      "type": 0,
+      "value": "Select an incident and run the test to see the results here."
+    }
+  ],
+  "MlX0aZ": [
+    {
+      "type": 0,
+      "value": "All impacted services"
+    }
+  ],
+  "Mnvpbx": [
+    {
+      "type": 0,
+      "value": "Full management of Container Apps, including creation, deletion, and updates."
+    }
+  ],
+  "Mof2Rv": [
+    {
+      "type": 0,
+      "value": "No historical data available"
+    }
+  ],
+  "Mvqep7": [
+    {
+      "type": 0,
+      "value": "Delete failed: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "N+sJfO": [
+    {
+      "type": 0,
+      "value": "Grid view"
+    }
+  ],
+  "NAAdaF": [
+    {
+      "type": 0,
+      "value": "This role provides read access to all capabilities of Azure Center for SAP solutions."
+    }
+  ],
+  "NAepnj": [
+    {
+      "type": 0,
+      "value": "Authorized"
+    }
+  ],
+  "ND2EUR": [
+    {
+      "type": 0,
+      "value": "Storage Blob Data Contributor"
+    }
+  ],
+  "NMJ8PI": [
+    {
+      "type": 0,
+      "value": "Failed to update incident handler"
+    }
+  ],
+  "NOMbLF": [
+    {
+      "type": 0,
+      "value": "Get started with incident management"
+    }
+  ],
+  "NV14yw": [
+    {
+      "type": 0,
+      "value": "Regra de Alerta"
+    }
+  ],
+  "NYTGIb": [
+    {
+      "type": 0,
+      "value": "Got it"
+    }
+  ],
+  "NcxGiD": [
+    {
+      "type": 0,
+      "value": "HDInsight on AKS Cluster Admin"
+    }
+  ],
+  "Nfo3YG": [
+    {
+      "type": 0,
+      "value": "Connect to ServiceNow with your instance endpoint and credentials. This allows the agent to manage incidents and tickets in your ServiceNow environment."
+    }
+  ],
+  "NkirQc": [
+    {
+      "type": 0,
+      "value": "Delete custom incident handler"
+    }
+  ],
+  "NrGEOo": [
+    {
+      "type": 0,
+      "value": "Configuração da gestão de incidentes guardada com êxito"
+    }
+  ],
+  "Nrc9ba": [
+    {
+      "type": 0,
+      "value": "Obrigado pelos seus comentários!"
+    }
+  ],
+  "Nup8Xl": [
+    {
+      "type": 0,
+      "value": "Create data connector"
+    }
+  ],
+  "O2umhN": [
+    {
+      "type": 0,
+      "value": "Failed to update upgrade channel"
+    }
+  ],
+  "O79Wpv": [
+    {
+      "type": 0,
+      "value": "Novas mensagens"
+    }
+  ],
+  "O8zbbB": [
+    {
+      "type": 0,
+      "value": "Tem a certeza de que pretende eliminar este agente SRE? Esta ação não pode ser anulada."
+    }
+  ],
+  "OJ2u8k": [
+    {
+      "type": 0,
+      "value": "Introduzir nome"
+    }
+  ],
+  "OLJJDc": [
+    {
+      "type": 0,
+      "value": "Learn more about prompts"
+    }
+  ],
+  "OMp9VI": [
+    {
+      "type": 0,
+      "value": "Deleting thread '"
+    },
+    {
+      "type": 1,
+      "value": "title"
+    },
+    {
+      "type": 0,
+      "value": "'"
+    }
+  ],
+  "ONVN5F": [
+    {
+      "type": 0,
+      "value": "Atribuído a"
+    }
+  ],
+  "ORGv1Q": [
+    {
+      "type": 0,
+      "value": "Created"
+    }
+  ],
+  "OSMnsR": [
+    {
+      "type": 0,
+      "value": "Any unsaved changes will be lost."
+    }
+  ],
+  "OTGHHm": [
+    {
+      "type": 0,
+      "value": "The resources you picked have permissions for these roles."
+    }
+  ],
+  "OV0MpG": [
+    {
+      "type": 0,
+      "value": "Utilização de dados, direitos dos clientes e declaração de privacidade, se necessário. Nós tratamos de tudo."
+    }
+  ],
+  "OVAsQ8": [
+    {
+      "type": 0,
+      "value": "Roles and permissions"
+    }
+  ],
+  "OVRWH9": [
+    {
+      "type": 0,
+      "value": "Update custom incident handler"
+    }
+  ],
+  "OWBgF9": [
+    {
+      "type": 0,
+      "value": "Ocultar menu de tópicos"
+    }
+  ],
+  "OYG48f": [
+    {
+      "type": 0,
+      "value": "Failed to enable incident handler"
+    }
+  ],
+  "OlIql8": [
+    {
+      "type": 0,
+      "value": "Moderate"
+    }
+  ],
+  "Oom2N7": [
+    {
+      "type": 0,
+      "value": "View and search all monitoring data as well as view monitoring settings, including viewing the configuration of Azure diagnostics on all Azure resources."
+    }
+  ],
+  "OuEM6V": [
+    {
+      "type": 0,
+      "value": "Choose how to set up this incident handler"
+    }
+  ],
+  "OvzONl": [
+    {
+      "type": 0,
+      "value": "Off"
+    }
+  ],
+  "OxtrmO": [
+    {
+      "type": 0,
+      "value": "ServiceNow endpoint"
+    }
+  ],
+  "P/1qUI": [
+    {
+      "type": 0,
+      "value": "The custom incident handler was successfully updated"
+    }
+  ],
+  "P3Xgmf": [
+    {
+      "type": 0,
+      "value": "IcM connection added successfully"
+    }
+  ],
+  "P3qxV2": [
+    {
+      "type": 0,
+      "value": "Search Service Contributor"
+    }
+  ],
+  "P7MNl8": [
+    {
+      "type": 0,
+      "value": "Provide agent feedback"
+    }
+  ],
+  "P9odAr": [
+    {
+      "type": 0,
+      "value": "Your agent is in read-only mode. The following permissions are required for the agent to build knowledge about your resources. The contributor roles for specific services will not be used to perform any write operations."
+    }
+  ],
+  "PCrXDG": [
+    {
+      "type": 0,
+      "value": "My recent prompts"
+    }
+  ],
+  "PEHogk": [
+    {
+      "type": 0,
+      "value": "Successfully updated incident handler"
+    }
+  ],
+  "PFtMy9": [
+    {
+      "type": 0,
+      "value": "Canceled"
+    }
+  ],
+  "PJ2FQv": [
+    {
+      "type": 0,
+      "value": "Filter incidents"
+    }
+  ],
+  "PW+sL4": [
+    {
+      "type": 0,
+      "value": "N/A"
+    }
+  ],
+  "PWmGlA": [
+    {
+      "type": 0,
+      "value": "Resource analysis"
+    }
+  ],
+  "PXg8+x": [
+    {
+      "type": 0,
+      "value": "Virtual Machine Contributor"
+    }
+  ],
+  "Pc+tM3": [
+    {
+      "type": 0,
+      "value": "Generate"
+    }
+  ],
+  "Pcf4MK": [
+    {
+      "type": 0,
+      "value": "Full page"
+    }
+  ],
+  "Phji5P": [
+    {
+      "type": 0,
+      "value": "Edit Healthcare APIs agent configurations."
+    }
+  ],
+  "PiNeyx": [
+    {
+      "type": 0,
+      "value": "Creating sub-agent \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
+  "PipPB3": [
+    {
+      "type": 0,
+      "value": "Mostrar ações do tópico"
+    }
+  ],
+  "PrFU82": [
+    {
+      "type": 0,
+      "value": "Can read all monitoring data and update monitoring settings."
+    }
+  ],
+  "PuU15u": [
+    {
+      "type": 0,
+      "value": "Not connected"
+    }
+  ],
+  "Pwen/L": [
+    {
+      "type": 0,
+      "value": "Cognitive Services LUIS Reader"
+    }
+  ],
+  "PwqiFa": [
+    {
+      "type": 0,
+      "value": "P2"
+    }
+  ],
+  "PxLzzW": [
+    {
+      "type": 0,
+      "value": "Quero..."
+    }
+  ],
+  "PzGaVI": [
+    {
+      "type": 0,
+      "value": "A aprovisionar o dashboard do Grafana"
+    }
+  ],
+  "Q/agzh": [
+    {
+      "type": 0,
+      "value": "Tempo de Decisão"
+    }
+  ],
+  "Q3p3sz": [
+    {
+      "type": 0,
+      "value": "Storage Blob Data Reader"
+    }
+  ],
+  "Q8Qw5B": [
+    {
+      "type": 0,
+      "value": "Descrição"
+    }
+  ],
+  "QAVYIG": [
+    {
+      "type": 0,
+      "value": "Enter a description"
+    }
+  ],
+  "QBeCBS": [
+    {
+      "type": 0,
+      "value": "P1"
+    }
+  ],
+  "QEhO+z": [
+    {
+      "type": 0,
+      "value": "É necessária uma chave de acesso."
+    }
+  ],
+  "QGVI63": [
+    {
+      "type": 0,
+      "value": "Agente"
+    }
+  ],
+  "QIY3dQ": [
+    {
+      "type": 0,
+      "value": "Azure Digital Twins Data Owner"
+    }
+  ],
+  "QQX4Pv": [
+    {
+      "type": 0,
+      "value": "No incidents selected"
+    }
+  ],
+  "QfEnqG": [
+    {
+      "type": 0,
+      "value": "Deep investigation is turned off"
+    }
+  ],
+  "Qfec1M": [
+    {
+      "type": 0,
+      "value": "Edit annotation"
+    }
+  ],
+  "QlsDcr": [
+    {
+      "type": 0,
+      "value": "Ação"
+    }
+  ],
+  "Qly58H": [
+    {
+      "type": 0,
+      "value": "To view the roles and permissions the agent will have, choose resource groups for the agent to manage."
+    }
+  ],
+  "QtNVS/": [
+    {
+      "type": 0,
+      "value": "Custom handler name"
+    }
+  ],
+  "QwnGVY": [
+    {
+      "type": 0,
+      "value": "Authorize"
+    }
+  ],
+  "R+J5ox": [
+    {
+      "type": 0,
+      "value": "Review"
+    }
+  ],
+  "R/6nsx": [
+    {
+      "type": 0,
+      "value": "Subscrição"
+    }
+  ],
+  "R1RX2a": [
+    {
+      "type": 0,
+      "value": "Full access to IoT Hub data."
+    }
+  ],
+  "R1i9Gl": [
+    {
+      "type": 0,
+      "value": "Upload failed: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "R5Y4rC": [
+    {
+      "type": 0,
+      "value": "Data connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been updated successfully"
+    }
+  ],
+  "R7DP3y": [
+    {
+      "type": 0,
+      "value": "Resolved by agent"
+    }
+  ],
+  "R7g7UT": [
+    {
+      "type": 0,
+      "value": "Incident threads have moved"
+    }
+  ],
+  "RAjqKb": [
+    {
+      "type": 0,
+      "value": "Close panel"
+    }
+  ],
+  "RH8rNM": [
+    {
+      "type": 0,
+      "value": "Only alphanumeric characters and dashes are allowed, and the value must be 3-44 characters long."
+    }
+  ],
+  "RSDnlS": [
+    {
+      "type": 0,
+      "value": "Mostrar menu de tópicos"
+    }
+  ],
+  "RStTJp": [
+    {
+      "type": 0,
+      "value": "Azure Kubernetes Service Cluster Admin"
+    }
+  ],
+  "RVf7gC": [
+    {
+      "type": 0,
+      "value": "TODO"
+    }
+  ],
+  "Rfvi9/": [
+    {
+      "type": 0,
+      "value": "Last 30 days"
+    }
+  ],
+  "RrCui3": [
+    {
+      "type": 0,
+      "value": "Resumo"
+    }
+  ],
+  "RrsyUh": [
+    {
+      "type": 0,
+      "value": "Leitor RBAC do Azure Kubernetes Service"
+    }
+  ],
+  "S1VBUm": [
+    {
+      "type": 0,
+      "value": "Falha ao associar o dashboard do Grafana"
+    }
+  ],
+  "S1gYH9": [
+    {
+      "type": 0,
+      "value": "Last 12 hours"
+    }
+  ],
+  "S6FECK": [
+    {
+      "type": 0,
+      "value": "Deleting data connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
+  "SAINuE": [
+    {
+      "type": 0,
+      "value": "Ir para o Azure Managed Grafana"
+    }
+  ],
+  "SCjiXP": [
+    {
+      "type": 0,
+      "value": "Cognitive Services Data Reader"
+    }
+  ],
+  "SL7+hl": [
+    {
+      "type": 0,
+      "value": "Falha ao atualizar a anotação com o erro: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
+  "SMrXWc": [
+    {
+      "type": 0,
+      "value": "Favorites"
+    }
+  ],
+  "SNuQo7": [
+    {
+      "type": 0,
+      "value": "Registos"
+    }
+  ],
+  "SPdP4q": [
+    {
+      "type": 0,
+      "value": "Core application group health + performance"
+    }
+  ],
+  "SRf69j": [
+    {
+      "type": 0,
+      "value": "Esta operação está a ser executada com as credenciais do aprovador."
+    }
+  ],
+  "SVwJTM": [
+    {
+      "type": 0,
+      "value": "Export"
+    }
+  ],
+  "SXEeds": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " document(s) rejected ("
+    },
+    {
+      "type": 1,
+      "value": "fileNames"
+    },
+    {
+      "type": 0,
+      "value": "). Only .md and .txt files are allowed."
+    }
+  ],
+  "Sdc+Dp": [
+    {
+      "type": 0,
+      "value": "Autonomy level"
+    }
+  ],
+  "SezWLK": [
+    {
+      "type": 0,
+      "value": "Owning team ID"
+    }
+  ],
+  "Sjo1P4": [
+    {
+      "type": 0,
+      "value": "Custom"
+    }
+  ],
+  "Sr4IbA": [
+    {
+      "type": 0,
+      "value": "Leitor de Monitorização"
+    }
+  ],
+  "Sr5R7d": [
+    {
+      "type": 0,
+      "value": "Autonomous"
+    }
+  ],
+  "SuVToZ": [
+    {
+      "type": 0,
+      "value": "SQL Managed Instance Contributor"
+    }
+  ],
+  "T5+AEf": [
+    {
+      "type": 0,
+      "value": "Logic App Operator"
+    }
+  ],
+  "T7WpWs": [
+    {
+      "type": 0,
+      "value": "Gestão de incidentes"
+    }
+  ],
+  "T8mrCM": [
+    {
+      "type": 0,
+      "value": "Filters define which incidents the incident handler applies to. These apply to the list of incidents previewed in the next step."
+    }
+  ],
+  "TAm7bB": [
+    {
+      "type": 0,
+      "value": "Monitoring Contributor"
+    }
+  ],
+  "TB6bkn": [
+    {
+      "type": 0,
+      "value": "Obter mais informações"
+    }
+  ],
+  "TDUfVk": [
+    {
+      "type": 0,
+      "value": "Started"
+    }
+  ],
+  "TDoBlx": [
+    {
+      "type": 0,
+      "value": "Privileged"
+    }
+  ],
+  "TFQBcG": [
+    {
+      "type": 0,
+      "value": "Agent permissions were used, but the action failed to run."
+    }
+  ],
+  "TIDNOO": [
+    {
+      "type": 0,
+      "value": "Em bom estado de funcionamento"
+    }
+  ],
+  "TKmub+": [
+    {
+      "type": 0,
+      "value": "Este campo é obrigatório"
+    }
+  ],
+  "TMZ2Rq": [
+    {
+      "type": 0,
+      "value": "Administrador do Grafana"
+    }
+  ],
+  "TdTXXf": [
+    {
+      "type": 0,
+      "value": "Learn more"
+    }
+  ],
+  "TdeXH0": [
+    {
+      "type": 0,
+      "value": "Mapeamento de recursos"
+    }
+  ],
+  "TgpM0x": [
+    {
+      "type": 0,
+      "value": "Failed to create default incident handler"
+    }
+  ],
+  "ThSX0k": [
+    {
+      "type": 0,
+      "value": "Eliminar o agente SRE"
+    }
+  ],
+  "TkWiD5": [
+    {
+      "type": 0,
+      "value": "Novo tópico de chat"
+    }
+  ],
+  "Tp+Kgu": [
+    {
+      "type": 0,
+      "value": "You can now view incidents, and create additional incident handlers and custom handlers."
+    }
+  ],
+  "TyvDrC": [
+    {
+      "type": 0,
+      "value": "A guardar a configuração da gestão de incidentes"
+    }
+  ],
+  "U4e+Yf": [
+    {
+      "type": 0,
+      "value": "The agent uses these available tools to generate incident handler instructions, based on patterns it learned from the past incidents. You can remove any tools you don't want the agent to use."
+    }
+  ],
+  "U73T9e": [
+    {
+      "type": 0,
+      "value": "Autonomous mode"
+    }
+  ],
+  "UKUKGA": [
+    {
+      "type": 0,
+      "value": "Failed to delete data connector"
+    }
+  ],
+  "UPybTw": [
+    {
+      "type": 0,
+      "value": "Go to map"
+    }
+  ],
+  "UV4Dx5": [
+    {
+      "type": 0,
+      "value": "Contribuidor/Operador de Sites"
+    }
+  ],
+  "UZMdQH": [
+    {
+      "type": 0,
+      "value": "Managed Identity"
+    }
+  ],
+  "UZS12+": [
+    {
+      "type": 0,
+      "value": "Has read-only access to entities in the workspace. This role should be assigned on the workspace scope."
+    }
+  ],
+  "Ua0Vpv": [
+    {
+      "type": 0,
+      "value": "Visual view"
+    }
+  ],
+  "Udeffr": [
+    {
+      "type": 0,
+      "value": "Incident type"
+    }
+  ],
+  "UjETJe": [
+    {
+      "type": 0,
+      "value": "Base incident"
+    }
+  ],
+  "UmEsZF": [
+    {
+      "type": 0,
+      "value": "Atividades"
+    }
+  ],
+  "UpTFVv": [
+    {
+      "type": 0,
+      "value": "View decision tree of potential root causes."
+    }
+  ],
+  "UqCC2s": [
+    {
+      "type": 0,
+      "value": "Successfully created incident handler"
+    }
+  ],
+  "UrGI9K": [
+    {
+      "type": 0,
+      "value": "Criar agente"
+    }
+  ],
+  "UxeJFE": [
+    {
+      "type": 0,
+      "value": "Repository"
+    }
+  ],
+  "VB97cf": [
+    {
+      "type": 0,
+      "value": "User assigned"
+    }
+  ],
+  "VIgoaE": [
+    {
+      "type": 0,
+      "value": "No sub-agents configured"
+    }
+  ],
+  "VIn2J0": [
+    {
+      "type": 0,
+      "value": "Sub-agents"
+    }
+  ],
+  "VKbBsK": [
+    {
+      "type": 0,
+      "value": "Connected APIs"
+    }
+  ],
+  "VMIM8/": [
+    {
+      "type": 0,
+      "value": "Analysis"
+    }
+  ],
+  "VQDmmK": [
+    {
+      "type": 0,
+      "value": "Degradado"
+    }
+  ],
+  "VYjDXQ": [
+    {
+      "type": 0,
+      "value": "Enter monitor ID"
+    }
+  ],
+  "Vb+qQ4": [
+    {
+      "type": 0,
+      "value": "Uses"
+    }
+  ],
+  "Ve40iX": [
+    {
+      "type": 0,
+      "value": "Review (Default)"
+    }
+  ],
+  "VlBNux": [
+    {
+      "type": 0,
+      "value": "Application Insights Component Contributor"
+    }
+  ],
+  "VtBCjG": [
+    {
+      "type": 0,
+      "value": "Agent mode"
+    }
+  ],
+  "VwHnVH": [
+    {
+      "type": 0,
+      "value": "This will permanently delete the connection to IcM. The agent will no longer be able to manage incidents. Are you sure you want to delete this connection?"
+    }
+  ],
+  "VzzYJk": [
+    {
+      "type": 0,
+      "value": "Criar"
+    }
+  ],
+  "W/V6+Y": [
+    {
+      "type": 0,
+      "value": "Collapse"
+    }
+  ],
+  "W2JBdp": [
+    {
+      "type": 0,
+      "value": "Impact"
+    }
+  ],
+  "W6NO8g": [
+    {
+      "type": 0,
+      "value": "Preview Upgrade Channel"
+    }
+  ],
+  "W6nSYE": [
+    {
+      "type": 0,
+      "value": "Resolvido"
+    }
+  ],
+  "WCaf5C": [
+    {
+      "type": 0,
+      "value": "Aprovar"
+    }
+  ],
+  "WHleoJ": [
+    {
+      "type": 0,
+      "value": "Resource type"
+    }
+  ],
+  "WIm1Zh": [
+    {
+      "type": 0,
+      "value": "Última hora de captura de dados"
+    }
+  ],
+  "WLw9E7": [
+    {
+      "type": 0,
+      "value": "PostgreSQL Flexible Server Long Term Retention Backup Role"
+    }
+  ],
+  "WTrOy3": [
+    {
+      "type": 0,
+      "value": "Chat"
+    }
+  ],
+  "WVTzuw": [
+    {
+      "type": 0,
+      "value": "The action was completed using temporary permissions granted by "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "WY8nWe": [
+    {
+      "type": 0,
+      "value": "Dashboard do Grafana criado com êxito"
+    }
+  ],
+  "Wc5b/J": [
+    {
+      "type": 0,
+      "value": "AzureML Compute Operator"
+    }
+  ],
+  "Wf6bDe": [
+    {
+      "type": 0,
+      "value": "Detalhes do agente"
+    }
+  ],
+  "Wn+PVy": [
+    {
+      "type": 0,
+      "value": "Primary resource type equals"
+    }
+  ],
+  "WnIWxR": [
+    {
+      "type": 0,
+      "value": "Failed to create incident handler"
+    }
+  ],
+  "Wr7RY0": [
+    {
+      "type": 0,
+      "value": "PagerDuty connection added successfully"
+    }
+  ],
+  "Wtf3vL": [
+    {
+      "type": 0,
+      "value": "Data Factory Contributor"
+    }
+  ],
+  "WuZcUT": [
+    {
+      "type": 0,
+      "value": "The name must begin with a letter, end with a letter or number, and contain only letters, numbers, and hyphens. It must be 2 to 23 characters long."
+    }
+  ],
+  "WygVDv": [
+    {
+      "type": 0,
+      "value": "Administer HDInsight cluster pools."
+    }
+  ],
+  "X192re": [
+    {
+      "type": 0,
+      "value": "Recurso Monitorizado"
+    }
+  ],
+  "X4Y2nv": [
+    {
+      "type": 0,
+      "value": "Revisão de"
+    }
+  ],
+  "X8SzJ6": [
+    {
+      "type": 0,
+      "value": "To change the incident platform, you need to disconnect from IcM. The agent will no longer manage incidents. Are you sure you want to disconnect?"
+    }
+  ],
+  "X8lXsV": [
+    {
+      "type": 0,
+      "value": "The action was canceled."
+    }
+  ],
+  "XEso9C": [
+    {
+      "type": 0,
+      "value": "Ligar o dashboard do Grafana"
+    }
+  ],
+  "XJ+Lww": [
+    {
+      "type": 0,
+      "value": "Lets you read and modify HDInsight cluster configurations."
+    }
+  ],
+  "XKhlZF": [
+    {
+      "type": 0,
+      "value": "The fully autonomous mode. With the required permissions, the agent analyzes incidents and independently performs mitigation or resource modifications."
+    }
+  ],
+  "XRdOZL": [
+    {
+      "type": 0,
+      "value": "Select or search for an incident"
+    }
+  ],
+  "XYSJsS": [
+    {
+      "type": 0,
+      "value": "API Management Workspace Reader"
+    }
+  ],
+  "XZ+Fx6": [
+    {
+      "type": 0,
+      "value": "Turn off"
+    }
+  ],
+  "Xa3AHo": [
+    {
+      "type": 0,
+      "value": "Ligado a"
+    }
+  ],
+  "XaSHE5": [
+    {
+      "type": 0,
+      "value": "Uploading Files"
+    }
+  ],
+  "XdHOL0": [
+    {
+      "type": 0,
+      "value": "Updating incident handler"
+    }
+  ],
+  "XtnlO8": [
+    {
+      "type": 0,
+      "value": "Manage long-term retention backups for PostgreSQL Flexible Server."
+    }
+  ],
+  "XvrDTb": [
+    {
+      "type": 0,
+      "value": "Publicador de métricas de monitorização"
+    }
+  ],
+  "Y7Lbpf": [
+    {
+      "type": 0,
+      "value": "Falha na validação da chave de acesso. Tente novamente."
+    }
+  ],
+  "YBiTCc": [
+    {
+      "type": 0,
+      "value": "Start date picker"
+    }
+  ],
+  "YE+vjH": [
+    {
+      "type": 0,
+      "value": "Comunicar um nó não saudável"
+    }
+  ],
+  "YJG5oU": [
+    {
+      "type": 0,
+      "value": "Keep working"
+    }
+  ],
+  "YP06jq": [
+    {
+      "type": 0,
+      "value": "Failed to create sub-agent"
+    }
+  ],
+  "YZIFAO": [
+    {
+      "type": 0,
+      "value": "Azure Kubernetes Service RBAC Cluster Admin"
+    }
+  ],
+  "YdXbbC": [
+    {
+      "type": 0,
+      "value": "Em mau estado de funcionamento"
+    }
+  ],
+  "Yjk5Ow": [
+    {
+      "type": 0,
+      "value": "Date created"
+    }
+  ],
+  "Yk6Co7": [
+    {
+      "type": 0,
+      "value": "Cognitive Services QnA Maker Reader"
+    }
+  ],
+  "Yp7NCi": [
+    {
+      "type": 0,
+      "value": "Azure Center for SAP solutions administrator"
+    }
+  ],
+  "Ys9AIu": [
+    {
+      "type": 0,
+      "value": "Identidade gerida"
+    }
+  ],
+  "Z1VHv1": [
+    {
+      "type": 0,
+      "value": "Função Leitor de Dados de Monitorização"
+    }
+  ],
+  "Z6rVz/": [
+    {
+      "type": 0,
+      "value": "Daily reports"
+    }
+  ],
+  "Z7Aj91": [
+    {
+      "type": 0,
+      "value": "Manage Azure Monitor workbooks."
+    }
+  ],
+  "Z7pfsl": [
+    {
+      "type": 0,
+      "value": "Agent ID"
+    }
+  ],
+  "ZNMCbm": [
+    {
+      "type": 0,
+      "value": "Manage Logic Apps."
+    }
+  ],
+  "ZNPvsJ": [
+    {
+      "type": 0,
+      "value": "Attention needed"
+    }
+  ],
+  "ZUXvHE": [
+    {
+      "type": 0,
+      "value": "Falha ao criar a aplicação lógica"
+    }
+  ],
+  "ZVyc4+": [
+    {
+      "type": 0,
+      "value": "Last 6 hours"
+    }
+  ],
+  "ZbUTXC": [
+    {
+      "type": 0,
+      "value": "Grupo de Recursos"
+    }
+  ],
+  "Zh+5A6": [
+    {
+      "type": 0,
+      "value": "On"
+    }
+  ],
+  "Zidpq7": [
+    {
+      "type": 0,
+      "value": "Copy link to thread"
+    }
+  ],
+  "Zkjd9I": [
+    {
+      "type": 0,
+      "value": "Critical actions present"
+    }
+  ],
+  "Zqa4dQ": [
+    {
+      "type": 0,
+      "value": "Acionado"
+    }
+  ],
+  "ZsLOg3": [
+    {
+      "type": 0,
+      "value": "Manage Azure OpenAI resources."
+    }
+  ],
+  "ZukeYV": [
+    {
+      "type": 0,
+      "value": "Falha ao adicionar "
+    },
+    {
+      "type": 1,
+      "value": "número"
+    },
+    {
+      "type": 0,
+      "value": " grupos de recursos geridos ao seu agente SRE"
+    }
+  ],
+  "a5msuh": [
+    {
+      "type": 0,
+      "value": "Sim"
+    }
+  ],
+  "a6ZyBy": [
+    {
+      "type": 0,
+      "value": "Your permissions will be used temporarily to complete this action."
+    }
+  ],
+  "a8l/yJ": [
+    {
+      "type": 0,
+      "value": "The action was completed using agent permissions."
+    }
+  ],
+  "aA1SYF": [
+    {
+      "type": 0,
+      "value": "Deleting data connector"
+    }
+  ],
+  "aAADUG": [
+    {
+      "type": 0,
+      "value": "Username is required."
+    }
+  ],
+  "aB1tjk": [
+    {
+      "type": 0,
+      "value": "Resource map"
+    }
+  ],
+  "aCdAsI": [
+    {
+      "type": 0,
+      "value": "Copy to clipboard"
+    }
+  ],
+  "aGL+Qo": [
+    {
+      "type": 0,
+      "value": "Has access to Read and Test functions under LUIS."
+    }
+  ],
+  "aH4De2": [
+    {
+      "type": 0,
+      "value": "Source"
+    }
+  ],
+  "aORQjS": [
+    {
+      "type": 0,
+      "value": "Add annotation"
+    }
+  ],
+  "aOVqnW": [
+    {
+      "type": 0,
+      "value": "Remove All"
+    }
+  ],
+  "aQPexO": [
+    {
+      "type": 0,
+      "value": "Enviar-nos comentários"
+    }
+  ],
+  "aXGUvh": [
+    {
+      "type": 0,
+      "value": "I'm your Azure SRE Agent and here to help you monitor your resources, investigate incidents, automate responses, and ensure your systems follow best practices for reliability, performance, and security."
+    }
+  ],
+  "aaAabe": [
+    {
+      "type": 0,
+      "value": "(new)"
+    }
+  ],
+  "abzUj6": [
+    {
+      "type": 0,
+      "value": "Filter name"
+    }
+  ],
+  "acrOoz": [
+    {
+      "type": 0,
+      "value": "Continue"
+    }
+  ],
+  "ag1Rum": [
+    {
+      "type": 0,
+      "value": "Files uploaded successfully"
+    }
+  ],
+  "aj2txf": [
+    {
+      "type": 0,
+      "value": "Choose incidents"
+    }
+  ],
+  "anSi7M": [
+    {
+      "type": 0,
+      "value": "Falha ao carregar grupos de recursos."
+    }
+  ],
+  "aqNZbD": [
+    {
+      "type": 0,
+      "value": "Cognitive Services Language Writer"
+    }
+  ],
+  "aqnJe8": [
+    {
+      "type": 0,
+      "value": "Failed to update data connector with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "auFFJa": [
+    {
+      "type": 0,
+      "value": "Key Vault URI"
+    }
+  ],
+  "ayDbML": [
+    {
+      "type": 0,
+      "value": "Output logs"
+    }
+  ],
+  "b7D4Lh": [
+    {
+      "type": 0,
+      "value": "Manage the identities associated with your agent which may be used to communicate with other services"
+    }
+  ],
+  "bKgVBL": [
+    {
+      "type": 0,
+      "value": "If you click 'Continue', this operation will be executed using agent identity credentials."
+    }
+  ],
+  "bN0x+w": [
+    {
+      "type": 0,
+      "value": "Device Provisioning Service Data Reader"
+    }
+  ],
+  "bW7B87": [
+    {
+      "type": 0,
+      "value": "Novo"
+    }
+  ],
+  "bect+9": [
+    {
+      "type": 0,
+      "value": "Stable - Receives updates once a month"
+    }
+  ],
+  "blSyDZ": [
+    {
+      "type": 0,
+      "value": "Desligar o Azure Monitor?"
+    }
+  ],
+  "boVrya": [
+    {
+      "type": 0,
+      "value": "Canceled by"
+    }
+  ],
+  "boWXYt": [
+    {
+      "type": 0,
+      "value": "Propriedade de"
+    }
+  ],
+  "brxlTt": [
+    {
+      "type": 0,
+      "value": "Title contains"
+    }
+  ],
+  "bxnWhY": [
+    {
+      "type": 0,
+      "value": "resultado"
+    }
+  ],
+  "c/KktL": [
+    {
+      "type": 0,
+      "value": "Resources"
+    }
+  ],
+  "c1EiBR": [
+    {
+      "type": 0,
+      "value": "Cognitive Services Usages Reader"
+    }
+  ],
+  "c35gM5": [
+    {
+      "type": 0,
+      "value": "Roles"
+    }
+  ],
+  "cDjhgm": [
+    {
+      "type": 0,
+      "value": "Deep investigation is turned on"
+    }
+  ],
+  "cRTR/A": [
+    {
+      "type": 0,
+      "value": "Write access to LUIS applications."
+    }
+  ],
+  "cTY8WU": [
+    {
+      "type": 0,
+      "value": "Desligar o PagerDuty?"
+    }
+  ],
+  "cTzjJg": [
+    {
+      "type": 0,
+      "value": "Storage Account Contributor"
+    }
+  ],
+  "ciB+oy": [
+    {
+      "type": 0,
+      "value": "Operate Azure Machine Learning compute resources."
+    }
+  ],
+  "cn2YEB": [
+    {
+      "type": 0,
+      "value": "Suggested prompts"
+    }
+  ],
+  "crWYMh": [
+    {
+      "type": 0,
+      "value": "Please wait while your files are being uploaded..."
+    }
+  ],
+  "csu0rb": [
+    {
+      "type": 0,
+      "value": "Forneça o máximo de detalhes possível, mas não inclua informações pessoais."
+    }
+  ],
+  "cubQfQ": [
+    {
+      "type": 0,
+      "value": "Temporary permissions were granted by "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", but the action failed to run."
+    }
+  ],
+  "cyR7Kh": [
+    {
+      "type": 0,
+      "value": "Voltar"
+    }
+  ],
+  "d2GmfJ": [
+    {
+      "type": 0,
+      "value": "Manage API Management workspaces."
+    }
+  ],
+  "d6hQf3": [
+    {
+      "type": 0,
+      "value": "Regenerate tools list"
+    }
+  ],
+  "d8dECB": [
+    {
+      "type": 0,
+      "value": "IoT Hub Data Reader"
+    }
+  ],
+  "dDk23i": [
+    {
+      "type": 1,
+      "value": "fieldName"
+    },
+    {
+      "type": 0,
+      "value": " options"
+    }
+  ],
+  "dPoAxA": [
+    {
+      "type": 0,
+      "value": "Upgrade channel updated to "
+    },
+    {
+      "type": 1,
+      "value": "channel"
+    },
+    {
+      "type": 0,
+      "value": " successfully"
+    }
+  ],
+  "dQ5/dh": [
+    {
+      "type": 0,
+      "value": "Allows for full read access to Device Provisioning Service data-plane properties."
+    }
+  ],
+  "dQtJBl": [
+    {
+      "type": 0,
+      "value": "Anotação"
+    }
+  ],
+  "dR8VUW": [
+    {
+      "type": 0,
+      "value": "Manage API Management services."
+    }
+  ],
+  "dVx3yz": [
+    {
+      "type": 0,
+      "value": "Memory"
+    }
+  ],
+  "dYwe9B": [
+    {
+      "type": 0,
+      "value": "Repository URL must be like the following for GitHub: https://github.com/owner/repo-name or for Azure DevOps: https://dev.azure.com/organization/project/_git/repository-name or https://organization.visualstudio.com/project/_git/repository-name"
+    }
+  ],
+  "dhqlRa": [
+    {
+      "type": 0,
+      "value": "The semiautonomous mode. The agent diagnoses incidents, then mitigates or modifies resources only after its proposed actions are reviewed and approved."
+    }
+  ],
+  "dnXgff": [
+    {
+      "type": 0,
+      "value": "Mitigado"
+    }
+  ],
+  "e0a3XV": [
+    {
+      "type": 0,
+      "value": "Log Analytics Contributor"
+    }
+  ],
+  "e3itcX": [
+    {
+      "type": 0,
+      "value": "Device Update Administrator"
+    }
+  ],
+  "eBvTo6": [
+    {
+      "type": 0,
+      "value": "Read-only actions in the project. Readers can't create or update the project."
+    }
+  ],
+  "eEu4cm": [
+    {
+      "type": 0,
+      "value": "Instruction generation guidance"
+    }
+  ],
+  "eFKqV0": [
+    {
+      "type": 0,
+      "value": "Criar dashboard do Grafana"
+    }
+  ],
+  "eG1C0k": [
+    {
+      "type": 0,
+      "value": "Remove from favorites"
+    }
+  ],
+  "eKEL/g": [
+    {
+      "type": 0,
+      "value": "Pendente"
+    }
+  ],
+  "eLvBmG": [
+    {
+      "type": 0,
+      "value": "Read-only mode"
+    }
+  ],
+  "eZMksq": [
+    {
+      "type": 0,
+      "value": "Add guidance"
+    }
+  ],
+  "eackGq": [
+    {
+      "type": 0,
+      "value": "This is the prompt the agent will use. It includes your custom response guidance. Review and edit if needed."
+    }
+  ],
+  "ecG+OD": [
+    {
+      "type": 0,
+      "value": "Manage Azure Search services."
+    }
+  ],
+  "eqYdSS": [
+    {
+      "type": 0,
+      "value": "Resource name"
+    }
+  ],
+  "et+X02": [
+    {
+      "type": 0,
+      "value": "Custom response guidance"
+    }
+  ],
+  "ezP+aQ": [
+    {
+      "type": 0,
+      "value": "With incident handlers, the agent chooses the tools it needs to manage common types of incidents. Custom handlers replace this capability by giving the agent specific instructions that you provide."
+    }
+  ],
+  "f+cHle": [
+    {
+      "type": 0,
+      "value": "Enter connection string or endpoint"
+    }
+  ],
+  "f0Luxo": [
+    {
+      "type": 0,
+      "value": "ServiceNow is not connected."
+    }
+  ],
+  "f0Y4Zr": [
+    {
+      "type": 0,
+      "value": "Nome da Aplicação Lógica"
+    }
+  ],
+  "f53mvl": [
+    {
+      "type": 0,
+      "value": "Generate custom handler"
+    }
+  ],
+  "fFyuVF": [
+    {
+      "type": 0,
+      "value": "Cognitive Services Speech Contributor"
+    }
+  ],
+  "fLkL3F": [
+    {
+      "type": 0,
+      "value": "Deleting thread"
+    }
+  ],
+  "fUgypu": [
+    {
+      "type": 0,
+      "value": "Go to Access control"
+    }
+  ],
+  "fblXmJ": [
+    {
+      "type": 0,
+      "value": "Instance name"
+    }
+  ],
+  "fdCjVS": [
+    {
+      "type": 0,
+      "value": "Impacted service"
+    }
+  ],
+  "ffkuNo": [
+    {
+      "type": 0,
+      "value": "A sub-agent with this name already exists"
+    }
+  ],
+  "foUmLR": [
+    {
+      "type": 0,
+      "value": "Creating incident handler"
+    }
+  ],
+  "ftDEuE": [
+    {
+      "type": 0,
+      "value": "Select connector type"
+    }
+  ],
+  "ftfFhS": [
+    {
+      "type": 0,
+      "value": "Selecionar grupos de recursos"
+    }
+  ],
+  "ftzwIR": [
+    {
+      "type": 0,
+      "value": "Primeiro, é necessário criar um recurso do Grafana."
+    }
+  ],
+  "fvK8Qi": [
+    {
+      "type": 0,
+      "value": "Todos os estados"
+    }
+  ],
+  "gC4xMY": [
+    {
+      "type": 0,
+      "value": "Allows read-only access to see most objects in a namespace. It does not allow viewing roles or role bindings. This role does not allow viewing Secrets, since reading the contents of Secrets enables access to ServiceAccount credentials in the namespace, which would allow API access as any ServiceAccount in the namespace (a form of privilege escalation). Applying this role at cluster scope will give access across all namespaces."
+    }
+  ],
+  "gE3lH/": [
+    {
+      "type": 0,
+      "value": "Failed to delete the custom incident handler. Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
+  "gHCL4X": [
+    {
+      "type": 0,
+      "value": "Add More Files"
+    }
+  ],
+  "gIVE1F": [
+    {
+      "type": 0,
+      "value": "Set up incident handlers and custom handlers so that the agent can start receiving incidents."
+    }
+  ],
+  "gO/IxZ": [
+    {
+      "type": 0,
+      "value": "Liga-se a"
+    }
+  ],
+  "gUQeKV": [
+    {
+      "type": 0,
+      "value": "Last 3 days"
+    }
+  ],
+  "gZ5fZs": [
+    {
+      "type": 0,
+      "value": "Manage IoT Hub device twins."
+    }
+  ],
+  "ggVnjB": [
+    {
+      "type": 0,
+      "value": "Thread ID"
+    }
+  ],
+  "gj6Qc6": [
+    {
+      "type": 0,
+      "value": "Área de Trabalho do Azure Monitor"
+    }
+  ],
+  "gjBiyj": [
+    {
+      "type": 0,
+      "value": "A carregar..."
+    }
+  ],
+  "gn/nvJ": [
+    {
+      "type": 0,
+      "value": "Read, logstream and exec into Container Apps."
+    }
+  ],
+  "gnC7c5": [
+    {
+      "type": 0,
+      "value": "You need permissions to set up a Grafana dashboard."
+    }
+  ],
+  "gzx/k1": [
+    {
+      "type": 0,
+      "value": "PostgreSQL Contributor"
+    }
+  ],
+  "h+YOYh": [
+    {
+      "type": 0,
+      "value": "To change the incident platform, you need to disconnect from ServiceNow. The agent will no longer manage tickets. Are you sure you want to disconnect?"
+    }
+  ],
+  "h07fER": [
+    {
+      "type": 0,
+      "value": "Adding custom incident handler"
+    }
+  ],
+  "h6183G": [
+    {
+      "type": 0,
+      "value": "Tool"
+    }
+  ],
+  "h6EziO": [
+    {
+      "type": 0,
+      "value": "Failed to disable incident handler"
+    }
+  ],
+  "hEXUFk": [
+    {
+      "type": 0,
+      "value": "Incident with ID \""
+    },
+    {
+      "type": 1,
+      "value": "incidentId"
+    },
+    {
+      "type": 0,
+      "value": "\" was not found"
+    }
+  ],
+  "hF5T80": [
+    {
+      "type": 0,
+      "value": "Administer Device Update accounts."
+    }
+  ],
+  "hHz/bk": [
+    {
+      "type": 0,
+      "value": "PagerDuty is not connected."
+    }
+  ],
+  "hK4HcH": [
+    {
+      "type": 0,
+      "value": "Falha ao eliminar os grupos de recursos geridos selecionados"
+    }
+  ],
+  "hO1Iog": [
+    {
+      "type": 0,
+      "value": "Manage without access."
+    }
+  ],
+  "hOxIeP": [
+    {
+      "type": 0,
+      "value": "Disponibilidade"
+    }
+  ],
+  "hPj49L": [
+    {
+      "type": 0,
+      "value": "Workbook Reader"
+    }
+  ],
+  "hX5PAb": [
+    {
+      "type": 0,
+      "value": "Nenhum resultado encontrado"
+    }
+  ],
+  "hX7X4n": [
+    {
+      "type": 0,
+      "value": "Falha ao guardar a configuração da gestão de incidentes"
+    }
+  ],
+  "hXdAxd": [
+    {
+      "type": 0,
+      "value": "Successfully deleted incident handler"
+    }
+  ],
+  "hfACn+": [
+    {
+      "type": 0,
+      "value": "Unhealthy core application groups"
+    }
+  ],
+  "hfIdUs": [
+    {
+      "type": 0,
+      "value": "SQL DB Contributor"
+    }
+  ],
+  "hfqoIO": [
+    {
+      "type": 0,
+      "value": "Choose the channel for receiving agent updates"
+    }
+  ],
+  "hlmkcL": [
+    {
+      "type": 0,
+      "value": "Saúde"
+    }
+  ],
+  "hmrm7i": [
+    {
+      "type": 0,
+      "value": "Recurso do Grafana"
+    }
+  ],
+  "hrdmcd": [
+    {
+      "type": 0,
+      "value": "Azure Digital Twins Data Reader"
+    }
+  ],
+  "htXZ8o": [
+    {
+      "type": 0,
+      "value": "ServiceNow connected. Your next step is to set up incident handlers."
+    }
+  ],
+  "htvX+Z": [
+    {
+      "type": 0,
+      "value": "Negar"
+    }
+  ],
+  "hzSNj4": [
+    {
+      "type": 0,
+      "value": "Dashboard"
+    }
+  ],
+  "i5OUQE": [
+    {
+      "type": 0,
+      "value": "Container Apps Contributor"
+    }
+  ],
+  "i6cLLM": [
+    {
+      "type": 0,
+      "value": "Perform data science tasks in Azure Machine Learning."
+    }
+  ],
+  "i7oO8e": [
+    {
+      "type": 0,
+      "value": "Investigation in progress"
+    }
+  ],
+  "iDSWYk": [
+    {
+      "type": 0,
+      "value": "Connect to Azure Monitor so that the agent can automatically monitor notifications from the resource groups it manages, without additional provisioning."
+    }
+  ],
+  "iFDVT4": [
+    {
+      "type": 0,
+      "value": "Deploy incident handler"
+    }
+  ],
+  "iTTSax": [
+    {
+      "type": 0,
+      "value": "Changes to this incident handler might affect how incidents are processed and also any custom handlers."
+    }
+  ],
+  "ia2Cai": [
+    {
+      "type": 0,
+      "value": "Turning off this incident handler might affect how incidents are processed and also any custom handlers. Are you sure you want to turn it off?"
+    }
+  ],
+  "ibf4+R": [
+    {
+      "type": 0,
+      "value": "Core application group resource name"
+    }
+  ],
+  "icWG3R": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete the custom handler?"
+    }
+  ],
+  "ielB5f": [
+    {
+      "type": 0,
+      "value": "Acionado Às"
+    }
+  ],
+  "irFBKn": [
+    {
+      "type": 0,
+      "value": "Last 7 days"
+    }
+  ],
+  "itC9lG": [
+    {
+      "type": 0,
+      "value": "Informações básicas"
+    }
+  ],
+  "iukUKz": [
+    {
+      "type": 0,
+      "value": "Available tools"
+    }
+  ],
+  "iv1ryQ": [
+    {
+      "type": 0,
+      "value": "Espaço do Agente SRE"
+    }
+  ],
+  "ixb1SP": [
+    {
+      "type": 0,
+      "value": "Administer HDInsight clusters on AKS."
+    }
+  ],
+  "iyTlSa": [
+    {
+      "type": 0,
+      "value": "Action summary"
+    }
+  ],
+  "j3bwJQ": [
+    {
+      "type": 0,
+      "value": "Drag and drop files here or"
+    }
+  ],
+  "j5QthH": [
+    {
+      "type": 0,
+      "value": "Healthy core application groups"
+    }
+  ],
+  "j5Yfyr": [
+    {
+      "type": 0,
+      "value": "Search Index Data Reader"
+    }
+  ],
+  "jA2jt7": [
+    {
+      "type": 0,
+      "value": "Choose priority"
+    }
+  ],
+  "jET8aI": [
+    {
+      "type": 0,
+      "value": "Failed to delete incident handler"
+    }
+  ],
+  "jHJmjf": [
+    {
+      "type": 0,
+      "value": "Nenhum resultado"
+    }
+  ],
+  "jJE3xY": [
+    {
+      "type": 0,
+      "value": "Lets you manage the web plans for websites, but not access to them."
+    }
+  ],
+  "jK9a9x": [
+    {
+      "type": 0,
+      "value": "All actions"
+    }
+  ],
+  "jOkfJV": [
+    {
+      "type": 0,
+      "value": "Setup complete"
+    }
+  ],
+  "jTQZpk": [
+    {
+      "type": 0,
+      "value": "O recurso do Grafana tem de ser exclusivo no grupo de recursos."
+    }
+  ],
+  "jVHoU8": [
+    {
+      "type": 0,
+      "value": "Enter sub-agent name"
+    }
+  ],
+  "jabB4C": [
+    {
+      "type": 0,
+      "value": "Unread"
+    }
+  ],
+  "juQ8mz": [
+    {
+      "type": 0,
+      "value": "Investigations"
+    }
+  ],
+  "jvo0vs": [
+    {
+      "type": 0,
+      "value": "Guardar"
+    }
+  ],
+  "k8ZNgH": [
+    {
+      "type": 0,
+      "value": "ID do Alerta"
+    }
+  ],
+  "kHIJzq": [
+    {
+      "type": 0,
+      "value": "Subscription equals"
+    }
+  ],
+  "kWs94j": [
+    {
+      "type": 0,
+      "value": "O aprovisionamento do seu dashboard do Grafana está em curso."
+    }
+  ],
+  "kbDtEK": [
+    {
+      "type": 0,
+      "value": "Some documents failed to delete: "
+    },
+    {
+      "type": 1,
+      "value": "failedFiles"
+    }
+  ],
+  "ko0rr4": [
+    {
+      "type": 0,
+      "value": "Update the data connector configuration."
+    }
+  ],
+  "koWZK8": [
+    {
+      "type": 0,
+      "value": "Add custom response guidance (optional)"
+    }
+  ],
+  "kqurtu": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " document"
+    },
+    {
+      "type": 1,
+      "value": "plural"
+    },
+    {
+      "type": 0,
+      "value": " selected"
+    }
+  ],
+  "ku+mDU": [
+    {
+      "type": 0,
+      "value": "State"
+    }
+  ],
+  "l0TtPi": [
+    {
+      "type": 0,
+      "value": "Choose a maximum of "
+    },
+    {
+      "type": 1,
+      "value": "max"
+    },
+    {
+      "type": 0,
+      "value": " resource groups you have permissions on. "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " resource group selected."
+    }
+  ],
+  "l5sNim": [
+    {
+      "type": 0,
+      "value": "AzureML Data Scientist"
+    }
+  ],
+  "levHvg": [
+    {
+      "type": 0,
+      "value": "Utilização média da memória"
+    }
+  ],
+  "ljmS5P": [
+    {
+      "type": 0,
+      "value": "Ponto final"
+    }
+  ],
+  "lnaWo/": [
+    {
+      "type": 0,
+      "value": "Região"
+    }
+  ],
+  "lvNWLS": [
+    {
+      "type": 0,
+      "value": "IoT Hub Registry Contributor"
+    }
+  ],
+  "lyc2l+": [
+    {
+      "type": 0,
+      "value": "Apply only to incidents triggered after the handler is created"
+    }
+  ],
+  "m57OnF": [
+    {
+      "type": 0,
+      "value": "Choose incident type"
+    }
+  ],
+  "mAyw3x": [
+    {
+      "type": 0,
+      "value": "Edit QnA Maker knowledge bases."
+    }
+  ],
+  "mOFG3K": [
+    {
+      "type": 0,
+      "value": "Start"
+    }
+  ],
+  "mTsdF8": [
+    {
+      "type": 0,
+      "value": "Editor to filter the results by column value. "
+    },
+    {
+      "type": 1,
+      "value": "columnName"
+    },
+    {
+      "type": 0,
+      "value": ": "
+    },
+    {
+      "type": 1,
+      "value": "filterValue"
+    }
+  ],
+  "mZ0R9v": [
+    {
+      "type": 0,
+      "value": "Run test"
+    }
+  ],
+  "mgYBYo": [
+    {
+      "type": 0,
+      "value": "Last 90 days"
+    }
+  ],
+  "mkhNnB": [
+    {
+      "type": 0,
+      "value": "Read and write Azure Monitor monitoring settings and data."
+    }
+  ],
+  "mq/sud": [
+    {
+      "type": 0,
+      "value": "Autenticação local"
+    }
+  ],
+  "msMJVt": [
+    {
+      "type": 0,
+      "value": "After the platform is connected, create incident handlers and custom handlers so that the agent can respond to incidents."
+    }
+  ],
+  "mtC1dz": [
+    {
+      "type": 0,
+      "value": "An incident handler defines which incidents the agent should handle by applying your filter criteria, ensuring responses to the required set of incidents."
+    }
+  ],
+  "mtUOcI": [
+    {
+      "type": 0,
+      "value": "Edit incident handler"
+    }
+  ],
+  "mtr3R4": [
+    {
+      "type": 0,
+      "value": "Incidentes"
+    }
+  ],
+  "mzRg+7": [
+    {
+      "type": 0,
+      "value": "Logótipo da Grafana"
+    }
+  ],
+  "n0JssX": [
+    {
+      "type": 0,
+      "value": "This will permanently delete the connection to ServiceNow. The agent will no longer be able to manage tickets. Are you sure you want to disconnect?"
+    }
+  ],
+  "n5QvJy": [
+    {
+      "type": 0,
+      "value": "Start date"
+    }
+  ],
+  "nBPow3": [
+    {
+      "type": 0,
+      "value": "Lets you manage all resources in the cluster."
+    }
+  ],
+  "nCbZ6p": [
+    {
+      "type": 0,
+      "value": "Failed to assign roles to managed resource groups with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "nDyaq/": [
+    {
+      "type": 0,
+      "value": "Running"
+    }
+  ],
+  "nFOo9o": [
+    {
+      "type": 0,
+      "value": "Review + edit"
+    }
+  ],
+  "nOrKIK": [
+    {
+      "type": 0,
+      "value": "Preview - Receives updates twice a week"
+    }
+  ],
+  "nQpONp": [
+    {
+      "type": 0,
+      "value": "Primary resource type"
+    }
+  ],
+  "nmpevl": [
+    {
+      "type": 0,
+      "value": "Eliminar"
+    }
+  ],
+  "noZdV2": [
+    {
+      "type": 0,
+      "value": "Deleting..."
+    }
+  ],
+  "npvxpr": [
+    {
+      "type": 0,
+      "value": "Turn on"
+    }
+  ],
+  "nrAnZy": [
+    {
+      "type": 0,
+      "value": "Full access to Azure Service Bus data."
+    }
+  ],
+  "ns7TyW": [
+    {
+      "type": 0,
+      "value": "Thread was deleted successfully"
+    }
+  ],
+  "nso3Mj": [
+    {
+      "type": 0,
+      "value": "Âmbito"
+    }
+  ],
+  "o7TUwc": [
+    {
+      "type": 0,
+      "value": "Connect to ICM so that the Agent can automatically listen and respond to your Incidents."
+    }
+  ],
+  "oH9YKC": [
+    {
+      "type": 0,
+      "value": "To help monitor and respond to activities and incidents in your Azure resources, the agent needs access to the specific subscriptions, resources groups, and services that you allow."
+    }
+  ],
+  "oQ/TUW": [
+    {
+      "type": 0,
+      "value": "Cost Management Contributor"
+    }
+  ],
+  "oTNrPz": [
+    {
+      "type": 0,
+      "value": "Allowlist below Managed Identity on your ICM Service Team."
+    }
+  ],
+  "oUWADl": [
+    {
+      "type": 0,
+      "value": "Não"
+    }
+  ],
+  "oUbzA/": [
+    {
+      "type": 0,
+      "value": "Escritor/Operador"
+    }
+  ],
+  "oY4j0R": [
+    {
+      "type": 0,
+      "value": "Repository insights"
+    }
+  ],
+  "ob9EPi": [
+    {
+      "type": 0,
+      "value": "Permissões para atribuir funções"
+    }
+  ],
+  "obRqDQ": [
+    {
+      "type": 0,
+      "value": "To change the incident platform, you need to disconnect from Azure Monitor. The agent will no longer receive Azure Monitor notifications. Are you sure you want to disconnect?"
+    }
+  ],
+  "ocQXDt": [
+    {
+      "type": 0,
+      "value": "Failed to delete thread with error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
+  "omHElC": [
+    {
+      "type": 0,
+      "value": "Provide response feedback"
+    }
+  ],
+  "ovJ26C": [
+    {
+      "type": 0,
+      "value": "Medium"
+    }
+  ],
+  "p/xAmY": [
+    {
+      "type": 0,
+      "value": "Your agent is in review mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations with your approval based on your requests."
+    }
+  ],
+  "p4mBmL": [
+    {
+      "type": 0,
+      "value": "Created by"
+    }
+  ],
+  "p556q3": [
+    {
+      "type": 0,
+      "value": "Copied"
+    }
+  ],
+  "p5LNtB": [
+    {
+      "type": 0,
+      "value": "Not set"
+    }
+  ],
+  "p5T+zv": [
+    {
+      "type": 0,
+      "value": "Manage without access. Can't manage security policies or parent SQL servers."
+    }
+  ],
+  "pAFuFx": [
+    {
+      "type": 0,
+      "value": "HDInsight on AKS Cluster Pool Admin"
+    }
+  ],
+  "pCPZnU": [
+    {
+      "type": 0,
+      "value": "Recursos geridos"
+    }
+  ],
+  "pDUFq5": [
+    {
+      "type": 0,
+      "value": "App Configuration Reader"
+    }
+  ],
+  "pFm27r": [
+    {
+      "type": 0,
+      "value": "Current status"
+    }
+  ],
+  "pG9xP9": [
+    {
+      "type": 0,
+      "value": "A data connector with this name already exists"
+    }
+  ],
+  "pRvgsc": [
+    {
+      "type": 0,
+      "value": "Password is required."
+    }
+  ],
+  "pSGxDG": [
+    {
+      "type": 0,
+      "value": "Agent permissions will be used to complete this action."
+    }
+  ],
+  "pSfQh6": [
+    {
+      "type": 0,
+      "value": "Grants read access to Azure Cognitive Search index data."
+    }
+  ],
+  "pT3qMe": [
+    {
+      "type": 0,
+      "value": "Alterar chave"
+    }
+  ],
+  "pf5nil": [
+    {
+      "type": 0,
+      "value": "Core application group"
+    }
+  ],
+  "piCpTn": [
+    {
+      "type": 0,
+      "value": "Após um dashboard do Grafana ser aprovisionado e ligado, os recursos podem demorar algum tempo a preencherem totalmente o dashboard."
+    }
+  ],
+  "pqgzm0": [
+    {
+      "type": 0,
+      "value": "Manage Application Insights components."
+    }
+  ],
+  "q/uwLT": [
+    {
+      "type": 0,
+      "value": "Parar"
+    }
+  ],
+  "q1WWIr": [
+    {
+      "type": 0,
+      "value": "Em curso"
+    }
+  ],
+  "qeUtXk": [
+    {
+      "type": 0,
+      "value": "Custos dos últimos 7 dias"
+    }
+  ],
+  "qj1uhz": [
+    {
+      "type": 0,
+      "value": "Desligar"
+    }
+  ],
+  "qlcuNQ": [
+    {
+      "type": 0,
+      "value": "ID"
+    }
+  ],
+  "qqolQu": [
+    {
+      "type": 0,
+      "value": "Backend Endpoint"
+    }
+  ],
+  "r2x5ZI": [
+    {
+      "type": 0,
+      "value": "This will permanently delete the connection to PagerDuty. The agent will no longer be able to manage tickets. Are you sure you want to disconnect?"
+    }
+  ],
+  "r6+QFy": [
+    {
+      "type": 0,
+      "value": "Add a default incident handler for the agent to use for P1 base incidents."
+    }
+  ],
+  "rBPlLc": [
+    {
+      "type": 0,
+      "value": "resources available in this period"
+    }
+  ],
+  "rELDbB": [
+    {
+      "type": 0,
+      "value": "Atualizar"
+    }
+  ],
+  "rFlkvY": [
+    {
+      "type": 0,
+      "value": "Tópicos ativos"
+    }
+  ],
+  "rNvlCF": [
+    {
+      "type": 0,
+      "value": "Date range:"
+    }
+  ],
+  "rXYf9o": [
+    {
+      "type": 0,
+      "value": "Deleting Files"
+    }
+  ],
+  "rZaqtB": [
+    {
+      "type": 0,
+      "value": "API Management Service Contributor"
+    }
+  ],
+  "rbrahO": [
+    {
+      "type": 0,
+      "value": "Close"
+    }
+  ],
+  "rd6YZk": [
+    {
+      "type": 0,
+      "value": "Agent can propose actions but requires approval before execution"
+    }
+  ],
+  "riEsC7": [
+    {
+      "type": 0,
+      "value": "Azure Monitor Workspace resource must be unique within the resource group."
+    }
+  ],
+  "rjDAQw": [
+    {
+      "type": 0,
+      "value": "Agent can execute actions automatically without approval"
+    }
+  ],
+  "rja0QH": [
+    {
+      "type": 0,
+      "value": "Add incident filter"
+    }
+  ],
+  "rjgOC5": [
+    {
+      "type": 0,
+      "value": "Cognitive Services QnA Maker Editor"
+    }
+  ],
+  "rk4tYE": [
+    {
+      "type": 0,
+      "value": "Monitorizado por"
+    }
+  ],
+  "rpG/Bn": [
+    {
+      "type": 0,
+      "value": "Controlo de acesso"
+    }
+  ],
+  "rpx6XY": [
+    {
+      "type": 0,
+      "value": "Alojado em"
+    }
+  ],
+  "rrGMSx": [
+    {
+      "type": 0,
+      "value": "Set up"
+    }
+  ],
+  "rvirM2": [
+    {
+      "type": 0,
+      "value": "Localização"
+    }
+  ],
+  "rwwXv0": [
+    {
+      "type": 0,
+      "value": "Test incident response"
+    }
+  ],
+  "s7DlV0": [
+    {
+      "type": 0,
+      "value": "Agent endpoint"
+    }
+  ],
+  "s8HBot": [
+    {
+      "type": 0,
+      "value": "Last hour"
+    }
+  ],
+  "sH0O5v": [
+    {
+      "type": 0,
+      "value": "Enter title keywords"
+    }
+  ],
+  "sI+CCC": [
+    {
+      "type": 0,
+      "value": "Leitor do Log Analytics"
+    }
+  ],
+  "sNutPl": [
+    {
+      "type": 0,
+      "value": "Timestamps"
+    }
+  ],
+  "sQkhYk": [
+    {
+      "type": 0,
+      "value": "Accepted file types: .md, .txt"
+    }
+  ],
+  "sRb5P9": [
+    {
+      "type": 0,
+      "value": "Manage cost analysis and budgets."
+    }
+  ],
+  "sVDrdr": [
+    {
+      "type": 0,
+      "value": "Files deleted successfully"
+    }
+  ],
+  "sVbKA0": [
+    {
+      "type": 0,
+      "value": "The custom incident handler was successfully added"
+    }
+  ],
+  "sd1Vy+": [
+    {
+      "type": 0,
+      "value": "Reconnecting to the agent..."
+    }
+  ],
+  "slxYbm": [
+    {
+      "type": 0,
+      "value": "Falha ao guardar a configuração da gestão de incidentes. Erro: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
+  "snEUKZ": [
+    {
+      "type": 0,
+      "value": "Serviço de Monitor"
+    }
+  ],
+  "srG8e2": [
+    {
+      "type": 0,
+      "value": "Thread info"
+    }
+  ],
+  "ss/NWY": [
+    {
+      "type": 0,
+      "value": "SQL Server Contributor"
+    }
+  ],
+  "swRudj": [
+    {
+      "type": 0,
+      "value": "Anfitriões"
+    }
+  ],
+  "t3D4PH": [
+    {
+      "type": 0,
+      "value": "Device Update Reader"
+    }
+  ],
+  "t9I1dY": [
+    {
+      "type": 0,
+      "value": "Healthcare Agent Editor"
+    }
+  ],
+  "tH6Myj": [
+    {
+      "type": 0,
+      "value": "Data connector \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been created successfully"
+    }
+  ],
+  "tLYOnZ": [
+    {
+      "type": 0,
+      "value": "Knowledge base"
+    }
+  ],
+  "tLaLqo": [
+    {
+      "type": 0,
+      "value": "Here is your deep investigation:"
+    }
+  ],
+  "tNseQe": [
+    {
+      "type": 0,
+      "value": "Investigation"
+    }
+  ],
+  "tOxzip": [
+    {
+      "type": 0,
+      "value": "Modified"
+    }
+  ],
+  "tSKi9q": [
+    {
+      "type": 0,
+      "value": "O grupo de recursos selecionado está a ser preparado"
+    }
+  ],
+  "tShbyC": [
+    {
+      "type": 0,
+      "value": "Identity"
+    }
+  ],
+  "tWX1j9": [
+    {
+      "type": 0,
+      "value": "Add to favorites"
+    }
+  ],
+  "tfuXMw": [
+    {
+      "type": 0,
+      "value": "Sub-Agent \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been created successfully"
+    }
+  ],
+  "tshYzs": [
+    {
+      "type": 0,
+      "value": "Selecionar região"
+    }
+  ],
+  "tyJNW5": [
+    {
+      "type": 0,
+      "value": "IcM is connected."
+    }
+  ],
+  "tzMNF3": [
+    {
+      "type": 0,
+      "value": "Estado"
+    }
+  ],
+  "u0xiAh": [
+    {
+      "type": 0,
+      "value": "Cognitive Services Custom Vision Reader"
+    }
+  ],
+  "u4WKBH": [
+    {
+      "type": 0,
+      "value": "Grant permissions"
+    }
+  ],
+  "u4hSyh": [
+    {
+      "type": 0,
+      "value": "A chave de acesso não é válida. Tente novamente."
+    }
+  ],
+  "u5uL6R": [
+    {
+      "type": 0,
+      "value": "This will permanently delete the chat and all actions in this thread. Are you sure you want to delete?"
+    }
+  ],
+  "u64mw7": [
+    {
+      "type": 0,
+      "value": "A mostrar os primeiros 1000 resultados. Filtre para restringir a lista."
+    }
+  ],
+  "uCkn4+": [
+    {
+      "type": 0,
+      "value": "All priorities"
+    }
+  ],
+  "uRMqBi": [
+    {
+      "type": 0,
+      "value": "Read, write, and delete Azure Storage containers and blobs."
+    }
+  ],
+  "ubMRDT": [
+    {
+      "type": 0,
+      "value": "The custom incident handler was successfully deleted"
+    }
+  ],
+  "ug01Mk": [
+    {
+      "type": 0,
+      "value": "Hora"
+    }
+  ],
+  "unxs9C": [
+    {
+      "type": 0,
+      "value": "Tools selected for incident response"
+    }
+  ],
+  "v8lolG": [
+    {
+      "type": 0,
+      "value": "Start chat"
+    }
+  ],
+  "vAWzLN": [
+    {
+      "type": 0,
+      "value": "Disconnect IcM?"
+    }
+  ],
+  "vCAhII": [
+    {
+      "type": 0,
+      "value": "Severity"
+    }
+  ],
+  "vDbj1h": [
+    {
+      "type": 0,
+      "value": "Authorized by"
+    }
+  ],
+  "vR27zt": [
+    {
+      "type": 0,
+      "value": "Document Name"
+    }
+  ],
+  "vTlFW1": [
+    {
+      "type": 0,
+      "value": "Enabling incident handler"
+    }
+  ],
+  "vXCeIi": [
+    {
+      "type": 0,
+      "value": "Falhou"
+    }
+  ],
+  "vYmpTr": [
+    {
+      "type": 0,
+      "value": "Warning actions present"
+    }
+  ],
+  "vao/Lv": [
+    {
+      "type": 0,
+      "value": "This guidance helps generate the tools list and the final prompt the agent uses during incident handling."
+    }
+  ],
+  "vbdOl/": [
+    {
+      "type": 0,
+      "value": "Has access to Read and Test functions under Language portal."
+    }
+  ],
+  "vfndow": [
+    {
+      "type": 0,
+      "value": "Can read Azure Cosmos DB account data."
+    }
+  ],
+  "w+XRP2": [
+    {
+      "type": 0,
+      "value": "Todas as Regiões"
+    }
+  ],
+  "w/UZrq": [
+    {
+      "type": 0,
+      "value": "Isto irá eliminar permanentemente a ligação ao Azure Monitor. O agente já não será integrado nas notificações do Azure Monitor. Tem a certeza de que pretende eliminar esta ligação?"
+    }
+  ],
+  "w9b/qS": [
+    {
+      "type": 0,
+      "value": "Failed to connect to the incident management platform"
+    }
+  ],
+  "w9tk1A": [
+    {
+      "type": 0,
+      "value": "Unknown agent mode"
+    }
+  ],
+  "wElgyk": [
+    {
+      "type": 0,
+      "value": "Cálculo de custos pendente"
+    }
+  ],
+  "wL7VAE": [
+    {
+      "type": 0,
+      "value": "Ações"
+    }
+  ],
+  "wNIiXX": [
+    {
+      "type": 0,
+      "value": "The data source must be in the format: "
+    },
+    {
+      "type": 1,
+      "value": "format"
+    }
+  ],
+  "wSZR47": [
+    {
+      "type": 0,
+      "value": "Submeter"
+    }
+  ],
+  "wVpXzO": [
+    {
+      "type": 0,
+      "value": "Failed to update the agent mode."
+    }
+  ],
+  "wXKSRT": [
+    {
+      "type": 0,
+      "value": "The action is in progress with agent permissions."
+    }
+  ],
+  "wbigtI": [
+    {
+      "type": 0,
+      "value": "Administer SAP workloads on Azure."
+    }
+  ],
+  "we4Lby": [
+    {
+      "type": 0,
+      "value": "Info"
+    }
+  ],
+  "wkLkeE": [
+    {
+      "type": 0,
+      "value": "Total resources"
+    }
+  ],
+  "wru3Di": [
+    {
+      "type": 0,
+      "value": "Authorize repository access"
+    }
+  ],
+  "wwNLHo": [
+    {
+      "type": 0,
+      "value": "Upload Files"
+    }
+  ],
+  "wxlJSs": [
+    {
+      "type": 0,
+      "value": "Manage Cognitive Services accounts."
+    }
+  ],
+  "x++GsY": [
+    {
+      "type": 0,
+      "value": "A handler can use a maximum of "
+    },
+    {
+      "type": 1,
+      "value": "maxTools"
+    },
+    {
+      "type": 0,
+      "value": " tools."
+    }
+  ],
+  "x3aQrV": [
+    {
+      "type": 0,
+      "value": "An on-behalf-of token will be used with the following scope"
+    }
+  ],
+  "x65I0c": [
+    {
+      "type": 0,
+      "value": "Add a default incident handler for the agent to use for High priority incidents."
+    }
+  ],
+  "xDYr9m": [
+    {
+      "type": 0,
+      "value": "incidents reported"
+    }
+  ],
+  "xGPsyJ": [
+    {
+      "type": 0,
+      "value": "HDInsight Cluster Operator"
+    }
+  ],
+  "xUgb9H": [
+    {
+      "type": 0,
+      "value": "Não foram encontrados resultados para "
+    },
+    {
+      "type": 1,
+      "value": "searchString"
+    }
+  ],
+  "xUuESs": [
+    {
+      "type": 0,
+      "value": "Add identity"
+    }
+  ],
+  "xVPoso": [
+    {
+      "type": 0,
+      "value": "Nome do grupo de recursos"
+    }
+  ],
+  "xXhn+h": [
+    {
+      "type": 0,
+      "value": "Lets you manage storage accounts, including accessing storage account keys which provide full access to storage account data."
+    }
+  ],
+  "xbKhzp": [
+    {
+      "type": 1,
+      "value": "numOfResults"
+    },
+    {
+      "type": 0,
+      "value": " "
+    },
+    {
+      "type": 1,
+      "value": "results"
+    },
+    {
+      "type": 0,
+      "value": " para "
+    },
+    {
+      "type": 1,
+      "value": "searchString"
+    }
+  ],
+  "xdMkcg": [
+    {
+      "type": 0,
+      "value": "Can read all monitoring data."
+    }
+  ],
+  "xePyxp": [
+    {
+      "type": 0,
+      "value": "Insufficient data points for chart"
+    }
+  ],
+  "xgNcC+": [
+    {
+      "type": 0,
+      "value": "Failed to create data connector with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "xmcVZ0": [
+    {
+      "type": 0,
+      "value": "Procurar"
+    }
+  ],
+  "xmsrBu": [
+    {
+      "type": 0,
+      "value": "Operate API Management services."
+    }
+  ],
+  "xqwf/7": [
+    {
+      "type": 0,
+      "value": "IoT Hub Data Contributor"
+    }
+  ],
+  "xrKHS6": [
+    {
+      "type": 0,
+      "value": "Êxito"
+    }
+  ],
+  "xtkizV": [
+    {
+      "type": 0,
+      "value": "Website Contributor"
+    }
+  ],
+  "yDh8i7": [
+    {
+      "type": 0,
+      "value": "These previous incidents match the selected incident type. The agent can learn from a maximum of 5 incidents."
+    }
+  ],
+  "yJSwfQ": [
+    {
+      "type": 0,
+      "value": "Create Sub-Agent"
+    }
+  ],
+  "yVc78v": [
+    {
+      "type": 0,
+      "value": "This operation is being executed using the agent identity credentials."
+    }
+  ],
+  "yXTw0C": [
+    {
+      "type": 0,
+      "value": "Handler configuration"
+    }
+  ],
+  "yYK6LR": [
+    {
+      "type": 0,
+      "value": "Número de tópicos"
+    }
+  ],
+  "yalJ8o": [
+    {
+      "type": 0,
+      "value": "Enter a handler name"
+    }
+  ],
+  "ybIDiK": [
+    {
+      "type": 0,
+      "value": "Manage tools"
+    }
+  ],
+  "yc/tuy": [
+    {
+      "type": 0,
+      "value": "End time"
+    }
+  ],
+  "yd187T": [
+    {
+      "type": 0,
+      "value": "Failed to create data connector"
+    }
+  ],
+  "yh4G7g": [
+    {
+      "type": 0,
+      "value": "System assigned"
+    }
+  ],
+  "yhU1et": [
+    {
+      "type": 0,
+      "value": "Tarefas"
+    }
+  ],
+  "yiAEBc": [
+    {
+      "type": 0,
+      "value": "Guidance might include resolution steps, specific instructions, or other relevant context."
+    }
+  ],
+  "yilQrD": [
+    {
+      "type": 0,
+      "value": "Grupos de recursos geridos"
+    }
+  ],
+  "yo67XU": [
+    {
+      "type": 0,
+      "value": "API Management Service Operator Role"
+    }
+  ],
+  "yoK+he": [
+    {
+      "type": 0,
+      "value": "Core application group type"
+    }
+  ],
+  "z8ZYoc": [
+    {
+      "type": 0,
+      "value": "Find incident threads and incident response plans together on the Incident Management tab."
+    }
+  ],
+  "zGhyFV": [
+    {
+      "type": 0,
+      "value": "All severity"
+    }
+  ],
+  "zN87hN": [
+    {
+      "type": 0,
+      "value": "Total de tópicos"
+    }
+  ],
+  "zORAuY": [
+    {
+      "type": 0,
+      "value": "Optimize how the agent responds to incidents"
+    }
+  ],
+  "zQvVDJ": [
+    {
+      "type": 0,
+      "value": "All"
+    }
+  ],
+  "zaYxwd": [
+    {
+      "type": 0,
+      "value": "Incident"
+    }
+  ],
+  "zcyAwy": [
+    {
+      "type": 0,
+      "value": "Escolher grupos de recursos"
+    }
+  ],
+  "zfM/75": [
+    {
+      "type": 0,
+      "value": "1 mo"
+    }
+  ],
+  "zfMgIf": [
+    {
+      "type": 0,
+      "value": "Azure Resource Id"
+    }
+  ],
+  "zg0rpo": [
+    {
+      "type": 0,
+      "value": "ServiceNow"
+    }
+  ],
+  "zpkKsD": [
+    {
+      "type": 0,
+      "value": "Incidents summary"
+    }
+  ],
+  "zvLfRe": [
+    {
+      "type": 0,
+      "value": "Prompt library"
+    }
+  ]
+}
