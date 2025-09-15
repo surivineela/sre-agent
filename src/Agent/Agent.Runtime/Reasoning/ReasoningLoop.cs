@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Diagnostics;
 using System.Threading.Channels;
 using Agent.Core.Attributes;
 using Agent.Core.Configuration;
@@ -62,6 +63,7 @@ public class ReasoningLoop : IDisposable
     private TelemetrySpan? _currentAgentSpan;
     private TelemetrySpan? _currentToolSpan;
     private TelemetrySpan? _currentGenerationSpan;
+    private Stopwatch? _currentGenerationStopwatch;
     private Exception? _currentException;
     private TelemetrySpan? _currentSummarizerSpan;
     private TelemetrySpan? _currentCriticSpan;
@@ -1082,14 +1084,14 @@ public class ReasoningLoop : IDisposable
                     // Normal completion but span wasn't closed - likely interrupted
                     _currentGenerationSpan.SetAttribute("completion.status", "interrupted");
                 }
-                
+
                 _currentGenerationSpan.End();
                 _currentGenerationSpan = null;
             }
-            
+
             // Reset exception state for next iteration
             _currentException = null;
-            
+
             _currentAgentSpan?.End();
             _currentAgentSpan = null;
         }
@@ -1255,6 +1257,16 @@ public class ReasoningLoop : IDisposable
             {
                 _logger.LogInternalInformation("Trace Starting model generation for agent: {AgentName}", agent.Name);
                 _currentGenerationSpan = _tracer.StartActiveSpan($"model_generation", SpanKind.Internal, _currentAgentSpan);
+                // start timing the model generation
+                try
+                {
+                    _currentGenerationStopwatch = Stopwatch.StartNew();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalWarning(ex, "Failed to start generation stopwatch");
+                    _currentGenerationStopwatch = null;
+                }
                 _currentGenerationSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
                 _currentGenerationSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
                 _currentGenerationSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.ModelGeneration);
@@ -1273,14 +1285,65 @@ public class ReasoningLoop : IDisposable
                 _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelTotalTokensCount, response?.Usage?.TotalTokenCount?.ToString() ?? string.Empty);
                 _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelTemperature, agent?.Temperature.ToString() ?? string.Empty);
                 _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelId, response?.ModelId?.ToString() ?? string.Empty);
+                // stop the stopwatch and capture duration (ms)
+                long durationMs = 0;
+                try
+                {
+                    if (_currentGenerationStopwatch != null)
+                    {
+                        _currentGenerationStopwatch.Stop();
+                        durationMs = (long)_currentGenerationStopwatch.Elapsed.TotalMilliseconds;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalWarning(ex, "Failed to stop/read generation stopwatch");
+                    durationMs = 0;
+                }
+
                 _currentGenerationSpan?.End();
                 _currentGenerationSpan = null;
+                _currentGenerationStopwatch = null;
+
+                // Build token usage JSON including cached token count if available
+                long cachedTokenCount = 0;
+                try
+                {
+                    if (response?.Usage?.AdditionalCounts is not null)
+                    {
+                        if (response.Usage.AdditionalCounts.TryGetValue("InputTokenDetails.CachedTokenCount", out var cachedObj))
+                        {
+                            try
+                            {
+                                cachedTokenCount = Convert.ToInt64(cachedObj);
+                            }
+                            catch
+                            {
+                                long.TryParse(cachedObj.ToString(), out cachedTokenCount);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalWarning(ex, "Failed to parse cached token count from AdditionalCounts");
+                }
+
+                var tokenUsageObj = new
+                {
+                    InputTokenCount = response?.Usage?.InputTokenCount ?? 0,
+                    OutputTokenCount = response?.Usage?.OutputTokenCount ?? 0,
+                    CachedTokenCount = cachedTokenCount
+                };
+
+                var tokenUsageJson = JsonSerializer.Serialize(tokenUsageObj);
+
 
                 _logger.LogAgentAction(
                     action: AgentActionEvents.GenerateModelResponse,
-                    parameter: response?.Usage?.TotalTokenCount?.ToString() ?? "0",
-                    status: "Success",
-                    duration: 0,
+                    parameter: response?.ModelId?.ToString() ?? string.Empty,
+                    status: tokenUsageJson,
+                    duration: durationMs,
                     threadId: _context.ThreadId.ToString(),
                     subAgentName: agent?.Name ?? "Unknown",
                     inputToken: response?.Usage?.InputTokenCount ?? 0,
