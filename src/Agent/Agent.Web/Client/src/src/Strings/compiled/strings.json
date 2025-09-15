@@ -657,12 +657,6 @@
       "value": "Copy"
     }
   ],
-  "4nFchm": [
-    {
-      "type": 0,
-      "value": "Updating upgrade channel"
-    }
-  ],
   "4upwsn": [
     {
       "type": 0,
@@ -2079,16 +2073,6 @@
       "value": "Disconnect ServiceNow?"
     }
   ],
-  "JmZ3gF": [
-    {
-      "type": 0,
-      "value": "Updating upgrade channel to "
-    },
-    {
-      "type": 1,
-      "value": "channel"
-    }
-  ],
   "JwHSD6": [
     {
       "type": 0,
@@ -2363,12 +2347,6 @@
     {
       "type": 0,
       "value": "Create data connector"
-    }
-  ],
-  "O2umhN": [
-    {
-      "type": 0,
-      "value": "Failed to update upgrade channel"
     }
   ],
   "O79Wpv": [
@@ -3221,6 +3199,20 @@
       "value": "Application Insights Component Contributor"
     }
   ],
+  "VpsD7s": [
+    {
+      "type": 0,
+      "value": "Upgrade channel updated to "
+    },
+    {
+      "type": 1,
+      "value": "channel"
+    },
+    {
+      "type": 0,
+      "value": " successfully"
+    }
+  ],
   "VtBCjG": [
     {
       "type": 0,
@@ -3541,6 +3533,16 @@
       "value": "Agent ID"
     }
   ],
+  "ZCA/Ga": [
+    {
+      "type": 0,
+      "value": "Updating upgrade channel to "
+    },
+    {
+      "type": 1,
+      "value": "channel"
+    }
+  ],
   "ZNMCbm": [
     {
       "type": 0,
@@ -3685,6 +3687,12 @@
     {
       "type": 0,
       "value": "Give us feedback"
+    }
+  ],
+  "aRUGFu": [
+    {
+      "type": 0,
+      "value": "Failed to update upgrade channel"
     }
   ],
   "aXGUvh": [
@@ -3929,20 +3937,6 @@
     {
       "type": 0,
       "value": " options"
-    }
-  ],
-  "dPoAxA": [
-    {
-      "type": 0,
-      "value": "Upgrade channel updated to "
-    },
-    {
-      "type": 1,
-      "value": "channel"
-    },
-    {
-      "type": 0,
-      "value": " successfully"
     }
   ],
   "dQ5/dh": [
@@ -5039,6 +5033,12 @@
     {
       "type": 0,
       "value": "Once a Grafana dashboard is provisioned and linked, it may take some time for resources to fully populate the dashboard."
+    }
+  ],
+  "ppARxn": [
+    {
+      "type": 0,
+      "value": "Updating upgrade channel"
     }
   ],
   "pqgzm0": [

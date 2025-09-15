@@ -7,6 +7,7 @@ import { Text } from '@fluentui/react-text';
 import { Tooltip } from '@fluentui/react-tooltip';
 import { memo, useMemo } from 'react';
 import { FormattedMessage } from 'react-intl';
+import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
 import { AgentModeResources } from '../../Strings/SREAgentResources';
 import { IAgentModeSelectorProps } from '../Contracts/Activities';
@@ -43,7 +44,7 @@ const AgentModeSelector = (props: IAgentModeSelectorProps) => {
         updateThreadAgentMode,
         updatingAgentModeError,
     } = useAgentModeSelector(props);
-
+    const { logAmplitudeControlEvent } = useAzPortalContext();
     const { menuSurface, currentModeValue, errorMessage } = useAgentModeSelectorStyles();
 
     const checkedValues = useMemo(() => {
@@ -96,6 +97,14 @@ const AgentModeSelector = (props: IAgentModeSelectorProps) => {
                         const selectedMode = data.checkedItems?.[0];
                         if (selectedMode) {
                             updateThreadAgentMode(selectedMode);
+                            logAmplitudeControlEvent({
+                                targetType: 'radioButton',
+                                targetAction: 'clicked',
+                                targetName: 'threadAgentMode',
+                                targetFriendlyName: 'Thread agent mode',
+                                valueObjectName: selectedMode,
+                                valueObjectFriendlyName: selectedMode,
+                            });
                         }
                     }}
                 >

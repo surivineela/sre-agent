@@ -5,7 +5,7 @@ export enum SpecialControlValue {
     SensitiveData = 'sensitiveData',
 }
 
-type ControlTargetTypes = 'checkbox' | 'dropdown' | 'radioButton' | 'textbox' | 'button' | 'link' | 'accordion' | 'combobox';
+type ControlTargetTypes = 'checkbox' | 'dropdown' | 'radioButton' | 'textbox' | 'button' | 'link' | 'accordion' | 'combobox' | 'toggle';
 type NavigationTargetTypes = 'menuItem' | 'tabBlade' | 'tab' | 'button' | 'link' | 'card' | 'image';
 type OperationTargetTypes = 'create' | 'update' | 'delete' | 'refresh' | 'load' | 'connection';
 

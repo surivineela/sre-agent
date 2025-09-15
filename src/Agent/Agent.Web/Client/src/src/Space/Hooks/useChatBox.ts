@@ -2,6 +2,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import debounce from 'lodash/debounce';
 import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { AgentTaskMetaData } from '../../Common/Contracts/DataPlane/AgentTask';
 import { Approval, AzCliExecution, KubectlExecution } from '../../Common/Contracts/DataPlane/Message';
@@ -139,6 +140,15 @@ export const useChatBox = (
 
         pushCurrentStreamingMessageToNewMessages();
         setNewMessages(prev => [...prev, getDefaultDeepInvestigationStatusChatMessage(!currentValue)]);
+
+        proxy.logAmplitudeControlEvent({
+            targetType: 'button',
+            targetAction: 'clicked',
+            targetName: 'deepInvestigationMode',
+            targetFriendlyName: 'Deep investigation mode',
+            valueObjectName: SpecialControlValue.DoAction,
+            valueObjectFriendlyName: SpecialControlValue.DoAction,
+        });
 
         requestAnimationFrame(() => {
             scrollToBottom(false);

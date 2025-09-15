@@ -8,6 +8,7 @@ import { Link } from '@fluentui/react/lib/Link';
 import isEqual from 'lodash/isEqual';
 import { Dispatch, FC, FormEvent, SetStateAction, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { DropdownWithFilter, IDropdownOptionForFilter } from '../../Common/Components/DropdownWithFilterNoFormik';
 import { SearchFilterWithResultAnnouncement } from '../../Common/Components/SearchFilterWithResultAnnouncement';
@@ -64,6 +65,7 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
         subscriptionOptions,
     } = props;
     const styles = useManagedResourcesStyles();
+
     const [filter, setFilter] = useState<string>('');
     const [resourceGroupsWithSelection, setResourceGroupsWithSelection] = useState<ResourceGroupWithSelection[]>();
     const [resourceGroupMaxError, setResourceGroupMaxError] = useState<boolean>(false);
@@ -78,6 +80,19 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
     const { agent } = useContext(SreAgentContext);
     const { accessLevel } = agent;
     const intl = useIntl();
+
+    const setTabKeyWrapper = useCallback(
+        (key: TabKeys) => {
+            setTabKey(key);
+            portalContext.logAmplitudeNavigationEvent({
+                targetType: 'tab',
+                targetAction: 'tabItem',
+                targetName: `rscGrpPickerTab${key}`,
+                targetFriendlyName: `Resource group picker tab ${key}`,
+            });
+        },
+        [portalContext]
+    );
 
     const onUpdateSelection = useCallback(({ selectedKeys }: OnUpdateSelectionArgs<ResourceGroupWithSelection>) => {
         setSelectedKeys(selectedKeys);
@@ -179,6 +194,15 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
                     detailBladeInputs: {
                         id,
                     },
+                });
+
+                portalContext.logAmplitudeControlEvent({
+                    targetType: 'link',
+                    targetAction: 'clicked',
+                    targetName: 'resourceGroupLink',
+                    targetFriendlyName: 'Resource group link',
+                    valueObjectName: SpecialControlValue.CustomerSuppliedData,
+                    valueObjectFriendlyName: SpecialControlValue.CustomerSuppliedData,
                 });
             }
         },
@@ -339,11 +363,14 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
         return <span>{filteredOptions?.map((option: IDropdownOptionForFilter<string>) => option.text).join(', ')}</span>;
     }, [selectedLocationKeys, locationDropdownItems, intl]);
 
-    const onTabLinkClick = useCallback((item?: PivotItem) => {
-        if (item?.props?.itemKey) {
-            setTabKey(item.props.itemKey);
-        }
-    }, []);
+    const onTabLinkClick = useCallback(
+        (item?: PivotItem) => {
+            if (item?.props?.itemKey) {
+                setTabKeyWrapper(item.props.itemKey as TabKeys);
+            }
+        },
+        [setTabKeyWrapper]
+    );
 
     const dialogStyles: Partial<IDialogStyles> = {
         main: {
@@ -378,7 +405,20 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
                             </div>
                             <div style={{ display: 'flex', gap: '6px' }}>
                                 <div>{intl.formatMessage(ResourcePickerTabResources.showRecommended)}</div>
-                                <Toggle checked={showRecommended} onChange={(_e, checked) => setShowRecommended(!!checked)} />
+                                <Toggle
+                                    checked={showRecommended}
+                                    onChange={(_e, checked) => {
+                                        setShowRecommended(!!checked);
+                                        portalContext.logAmplitudeControlEvent({
+                                            targetType: 'toggle',
+                                            targetAction: 'changed',
+                                            targetName: 'showOnlyRecommendedRscGrpsToggle',
+                                            targetFriendlyName: 'Show only recommended resource groups toggle',
+                                            valueObjectName: checked ? 'checked' : 'unchecked',
+                                            valueObjectFriendlyName: checked ? 'Checked' : 'Unchecked',
+                                        });
+                                    }}
+                                />
                             </div>
                         </div>
                         <div className={styles.pickerRow}>
@@ -459,9 +499,9 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
                             className={styles.footerButtonDiv}
                             onClick={() => {
                                 if (tabKey === TabKeys.review) {
-                                    setTabKey(TabKeys.select);
+                                    setTabKeyWrapper(TabKeys.select);
                                 } else if (tabKey === TabKeys.assign) {
-                                    setTabKey(TabKeys.review);
+                                    setTabKeyWrapper(TabKeys.review);
                                 }
                             }}
                             text={intl.formatMessage(ManagedResourcesStringResources.back)}
@@ -472,9 +512,9 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
                             className={styles.footerButtonDiv}
                             onClick={() => {
                                 if (tabKey === TabKeys.review) {
-                                    setTabKey(TabKeys.assign);
+                                    setTabKeyWrapper(TabKeys.assign);
                                 } else if (tabKey === TabKeys.select) {
-                                    setTabKey(TabKeys.review);
+                                    setTabKeyWrapper(TabKeys.review);
                                 }
                             }}
                             text={intl.formatMessage(ManagedResourcesStringResources.next)}

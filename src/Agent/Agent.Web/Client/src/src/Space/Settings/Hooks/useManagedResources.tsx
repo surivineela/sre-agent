@@ -9,6 +9,8 @@ import {
 } from '../../../Common/ArmTemplateBuilder/ArmTemplateTypes';
 import { RoleAssignmentTemplateResource } from '../../../Common/ArmTemplateFragments/RoleAssignmentTemplateResource';
 import AzPortalProxy from '../../../Common/AzPortalProxy/AzPortalProxy';
+import { SpecialControlValue } from '../../../Common/AzPortalProxy/Models/IAmplitude';
+import { useAzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { getErrorMessage } from '../../../Common/Clients/ArmClient';
 import { DeploymentClient } from '../../../Common/Clients/DeploymentClient';
 import { IdentityClient } from '../../../Common/Clients/IdentityClient';
@@ -45,6 +47,7 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
     const { agentLoaded, agent, refresh } = useSreAgent(resourceId);
     const { agent: agentContext } = useContext(SreAgentContext);
     const { accessLevel } = agentContext;
+    const { logAmplitudeControlEvent } = useAzPortalContext();
     const styles = useManagedResourcesStyles();
     const intl = useIntl();
 
@@ -308,6 +311,16 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
             );
             setNotification(notification);
 
+            logAmplitudeControlEvent({
+                targetType: 'button',
+                targetAction: 'clicked',
+                targetName: 'addManagedResourceGroups',
+                targetFriendlyName: 'Add managed resource groups',
+                valueObjectName: SpecialControlValue.DoAction,
+                valueObjectFriendlyName: SpecialControlValue.DoAction,
+                metadata: { selectedResourceGroupsCount: selectedResourceGroups.length },
+            });
+
             const updatedManagedResourceGroupIds = [
                 ...managedResourceGroupIds,
                 ...selectedResourceGroups.map(selectedResourceGroup => selectedResourceGroup.id),
@@ -385,6 +398,16 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
             intl.formatMessage(ManagedResourcesStringResources.deleteNotificationDescription)
         );
 
+        logAmplitudeControlEvent({
+            targetType: 'button',
+            targetAction: 'clicked',
+            targetName: 'deleteManagedResourceGroups',
+            targetFriendlyName: 'Delete managed resource groups',
+            valueObjectName: SpecialControlValue.DoAction,
+            valueObjectFriendlyName: SpecialControlValue.DoAction,
+            metadata: { selectedResourceGroupsCount: selectedResourceGroups.length },
+        });
+
         const updatedManagedResourceGroupIds = managedResourceGroupIds.filter(
             resourceGroup => !selectedResourceGroups.some(selectedResourceGroup => selectedResourceGroup.id === resourceGroup)
         );
@@ -424,7 +447,7 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
             });
         }
         setIsUpdating(false);
-    }, [managedResourceGroupIds, refresh, resourceId, selectedResourceGroups, agent, portalContext, intl]);
+    }, [managedResourceGroupIds, refresh, resourceId, selectedResourceGroups, agent, portalContext, intl, logAmplitudeControlEvent]);
 
     const pollForDeploymentCompletion = useCallback(() => {
         if (isUpdating && deploymentId) {
