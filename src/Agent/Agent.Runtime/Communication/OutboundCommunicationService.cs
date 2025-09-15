@@ -743,6 +743,21 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             // Check for cancellation before streaming
             cancellationToken.ThrowIfCancellationRequested();
 
+            // Emit structured agent action telemetry for user messages
+            try
+            {
+                Guid resolvedMessageIdForLog = messageId != Guid.Empty ? messageId : Guid.Empty;
+                string action = AgentActionEvents.CreateUserMessage;
+                string parameter = resolvedMessageIdForLog.ToString();
+                string status = AgentActionStatus.Success;
+                long durationMs = 0;
+                _logger.LogAgentAction(action, parameter, status, durationMs, threadId.ToString());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalInformation(ex, "Failed to emit LogAgentAction in AppendUserStreamMessage for thread {ThreadId}", threadId);
+            }
+
             var userMessage = new ChatResponseUpdate
             {
                 AuthorName = displayName,
