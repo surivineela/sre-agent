@@ -20,7 +20,7 @@ public class PagerDutyIncidentHandlingService : IncidentHandlingServiceBase<Page
         IThreadRepository repository,
         IIncidentStatusMetricsService incidentStatusMetricsService,
         IAgentOutboundCommunicationService agentOutboundCommunicationService,
-        IIncidentAnalysisService incidentAnalysisService,
+        IIncidentAnalysisService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload> incidentAnalysisService,
         ILogger<PagerDutyIncidentHandlingService> logger,
         Tracer tracer,
         IIncidentManagementService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload> pagerDutyincidentManagementService,

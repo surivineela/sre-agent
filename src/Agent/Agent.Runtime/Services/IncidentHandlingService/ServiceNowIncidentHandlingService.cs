@@ -24,7 +24,7 @@ public class ServiceNowIncidentHandlingService : IncidentHandlingServiceBase<Ser
         IThreadRepository repository,
         IIncidentStatusMetricsService incidentStatusMetricsService,
         IAgentOutboundCommunicationService agentOutboundCommunicationService,
-        IIncidentAnalysisService incidentAnalysisService,
+        IIncidentAnalysisService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload> incidentAnalysisService,
         ILogger<ServiceNowIncidentHandlingService> logger,
         Tracer tracer,
         IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload> serviceNowIncidentManagementService,

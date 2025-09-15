@@ -28,7 +28,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                               IGraphDatabaseClient graphDbClient,
                               IncidentManagementSettings incidentManagementSettings,
                               IIncidentHandlingService<PagerDutyIncidentFilterDocumentPayload> incidentHandlingService,
-                              IIncidentAnalysisService incidentAnalysisService,
+                              IIncidentAnalysisService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload> incidentAnalysisService,
                               IAgentInboundCommunicationService agentInboundCommunicationService):IIncidentScanner
 {
     private readonly Container container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);

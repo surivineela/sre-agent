@@ -21,5 +21,4 @@ public interface IIncidentDocument : ICosmosDocument
     string ExtractedKnowledge { get; set; }
     string RootCause { get; set; } 
     string GeneralSummary { get; set; }
-    DateTime HandledAt { get; set; }
 }

@@ -40,7 +40,6 @@ public record PagerDutyIncidentDocument(
     public string GeneralSummary { get; set; } = string.Empty;
 
     public List<string> Tags = new List<string>();
-    public DateTime HandledAt { get; set;  }
 }
 
 public record PagerDutyAgent(

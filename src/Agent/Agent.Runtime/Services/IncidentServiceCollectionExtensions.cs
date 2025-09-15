@@ -11,6 +11,7 @@ using Agent.Runtime.Interfaces;
 using Agent.Runtime.SubAgents.IcmScanner;
 using Agent.Runtime.SubAgents.PagerDutyAgent;
 using Agent.Runtime.SubAgents.ServiceNowScanner;
+using Microsoft.Azure.Amqp.Framing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 namespace Agent.Runtime.Services;
@@ -42,6 +43,7 @@ public static class IncidentServiceCollectionExtensions
                 services.AddSingleton<IIncidentHandlingService<PagerDutyIncidentFilterDocumentPayload>, PagerDutyIncidentHandlingService>();
                 services.AddSingleton<IIncidentManagementService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload>, PagerDutyIncidentManagementService>();
                 services.AddSingleton<IIncidentFilterManagementService<PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload>, PagerDutyIncidentFilterManagementService>();
+                services.AddSingleton<IIncidentAnalysisService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload>, PagerDutyIncidentAnalysisService>();
                 break;
 
             case IncidentManagementType.Icm:
@@ -57,6 +59,7 @@ public static class IncidentServiceCollectionExtensions
                 services.AddSingleton<IIncidentHandlingService<IcmIncidentFilterDocumentPayload>, IcmIncidentHandlingService>();
                 services.AddSingleton<IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>, IcmIncidentManagementService>();
                 services.AddSingleton<IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload>, IcmIncidentFilterManagementService>();
+                services.AddSingleton<IIncidentAnalysisService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>, IcmIncidentAnalysisService>();
                 break;
 
             case IncidentManagementType.ServiceNow:
@@ -66,6 +69,7 @@ public static class IncidentServiceCollectionExtensions
                 services.AddSingleton<IIncidentHandlingService<ServiceNowIncidentFilterDocumentPayload>, ServiceNowIncidentHandlingService>();
                 services.AddSingleton<IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload>, ServiceNowIncidentManagementService>();
                 services.AddSingleton<IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload>, ServiceNowIncidentFilterManagementService>();
+                services.AddSingleton<IIncidentAnalysisService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload>, ServiceNowIncidentAnalysisService>();
                 break;
 
             default:
@@ -79,8 +83,6 @@ public static class IncidentServiceCollectionExtensions
         services.AddSingleton<IIncidentFilterManagementServiceFactory, IncidentFilterManagementServiceFactory>();
         services.AddSingleton<IIncidentManagementServiceFactory, IncidentManagementServiceFactory>();
         services.AddSingleton<IIncidentHandlingServiceFactory, IncidentHandlingServiceFactory>();
-        services.AddSingleton<IIncidentAnalysisService, IncidentAnalysisService>(); // To Do: allow for the handling of Az Monitor
-
 
         return services;
     }

@@ -20,7 +20,7 @@ public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmInciden
         IThreadRepository repository,
         IIncidentStatusMetricsService incidentStatusMetricsService,
         IAgentOutboundCommunicationService agentOutboundCommunicationService,
-        IIncidentAnalysisService incidentAnalysisService,
+        IIncidentAnalysisService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload> incidentAnalysisService,
         ILogger<IcmIncidentHandlingService> logger,
         Tracer tracer,
         IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload> icmIncidentManagementService,

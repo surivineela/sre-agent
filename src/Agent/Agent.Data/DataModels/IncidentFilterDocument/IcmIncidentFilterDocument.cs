@@ -1,6 +1,7 @@
 using Agent.Core.Configuration;
 
 namespace Agent.Data.DataModels;
+
 public record IcmIncidentFilterDocument : IcmIncidentFilterDocumentPayload, IIncidentFilterDocument
 {
 

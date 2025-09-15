@@ -21,7 +21,7 @@ public class IcmScannerTest
     private readonly Mock<IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload>> _mockIncidentFilterManagementService;
     private readonly Mock<IAgentInboundCommunicationService> _mockAgentInboundCommunicationService;
     private readonly Mock<IAgentOutboundCommunicationService> _mockAgentOutboundCommunicationService;
-    private readonly Mock<IIncidentAnalysisService> _mockIncidentAnalysisService;
+    private readonly Mock<IIncidentAnalysisService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>> _mockIncidentAnalysisService;
     private readonly Mock<IICMPlugin> _mockIcmPlugin;
     private readonly Mock<Container> _mockContainer;
     private readonly IncidentManagementSettings _incidentManagementSettings;
@@ -38,7 +38,7 @@ public class IcmScannerTest
         _mockIncidentFilterManagementService = new Mock<IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload>>();
         _mockAgentInboundCommunicationService = new Mock<IAgentInboundCommunicationService>();
         _mockAgentOutboundCommunicationService = new Mock<IAgentOutboundCommunicationService>();
-        _mockIncidentAnalysisService = new Mock<IIncidentAnalysisService>();
+        _mockIncidentAnalysisService = new Mock<IIncidentAnalysisService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>>();
         _mockIcmPlugin = new Mock<IICMPlugin>();
         _incidentManagementSettings = new IncidentManagementSettings
         {

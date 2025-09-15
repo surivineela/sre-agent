@@ -23,7 +23,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
     IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload> incidentFilterManagementService,
     IAgentInboundCommunicationService agentInboundCommunicationService,
     IncidentManagementSettings incidentManagementSettings,
-    IIncidentAnalysisService incidentAnalysisService) : IIncidentScanner
+    IIncidentAnalysisService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload> incidentAnalysisService) : IIncidentScanner
 {
 
     private readonly Container container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
@@ -320,7 +320,6 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                     GeneralSummary = incidentDocument.GeneralSummary,
                     MitigatedAt = incident.MitigateData?.MitigateTime,
                     ResolvedAt = incident.ResolveData?.ResolveTime,
-                    HandledAt = incidentDocument.HandledAt
                 };
 
                 // Once incident is mitigated or resolved, do AI analysis

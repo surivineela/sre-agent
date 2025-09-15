@@ -47,7 +47,6 @@ namespace Agent.Data.DataModels
         public string RootCause { get; set; } = string.Empty;
         public string GeneralSummary { get; set; } = string.Empty;
         public List<string> Tags { get; set; } = new List<string>();
-        public DateTime HandledAt { get; set; }
         public ServiceNowIncidentDocument() : this(
             string.Empty, 
             string.Empty, 

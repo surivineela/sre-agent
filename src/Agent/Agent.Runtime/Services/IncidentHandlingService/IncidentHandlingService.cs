@@ -56,7 +56,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
     protected readonly IIncidentHandlerManagementService _incidentHandlerManagementService;
     protected readonly IIncidentStatusMetricsService _incidentStatusMetricsService;
     protected readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
-    protected readonly IIncidentAnalysisService _incidentAnalysisService;
+    protected readonly IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocumentPayload> _incidentAnalysisService;
     protected readonly ILogger _logger;
     protected readonly Tracer _tracer;
     protected readonly IAgentFactory<AgentContext> _agentFactory;
@@ -69,7 +69,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
         IIncidentHandlerManagementService incidentHandlerManagementService,
         IIncidentStatusMetricsService incidentStatusMetricsService,
         IAgentOutboundCommunicationService agentOutboundCommunicationService,
-        IIncidentAnalysisService incidentAnalysisService,
+        IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocumentPayload> incidentAnalysisService,
         ILogger logger,
         Tracer tracer,
         IAgentFactory<AgentContext> agentFactory,

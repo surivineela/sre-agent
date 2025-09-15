@@ -24,7 +24,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
     IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload> incidentManagementService,
     IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload> incidentFilterManagementService,
     IAgentInboundCommunicationService agentInboundCommunicationService,
-    IIncidentAnalysisService incidentAnalysisService) : IIncidentScanner
+    IIncidentAnalysisService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload> incidentAnalysisService) : IIncidentScanner
 {
     private readonly Container container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
     private const uint PageSize = 20;
@@ -201,8 +201,6 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
                         }
                     }
                 }
-
-                updatedDoc.HandledAt = incidentDocument.HandledAt;
 
                 if (updatedDoc.UpdatedAt > incidentDocument.UpdatedAt)
                 {

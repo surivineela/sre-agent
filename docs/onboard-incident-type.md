@@ -74,18 +74,32 @@ public class AzMonitorIncidentFilterManagementService : IncidentFilterManagement
 
 ---
 
+### d. **Incident Analysis Service**
+
+**Location:** `src/Agent/Agent.Runtime/Services/IncidentAnalysisService/`
+
+- Create `{YourProvider}IncidentAnalysisService.cs` inheriting from  
+  `IncidentAnalysisServiceBase<{YourProvider}IncidentDocument, {YourProvider}IncidentFilterDocumentPayload>`.
+- Implement methods such as:
+  - `AnalyzeIncident(...)`
+  - `IsMitigatedByAgent(...)`
+  - `IncidentMitigatedAt(...)`
+
+---
+
 ## 3. **Register Services for Dependency Injection**
 
 **Location:**  
 `src/Agent/Agent.Runtime/Services/IncidentHandlingServiceCollectionExtensions.cs`
 
 - In the `AddIncidentRelatedServices` extension method, add your provider to the switch statement:
-  Providers that need to add are `IAzMonitorAPIClient`,`IIncidentScanner`, `IIncidentHandlingService`, `IIncidentManagementService`, `IIncidentFilterManagementService`
+  Providers that need to add are `IAzMonitorAPIClient`,`IIncidentScanner`, `IIncidentHandlingService`, `IIncidentManagementService`, `IIncidentFilterManagementService`, `IIncidentAnalysisService`
   ```csharp
   case IncidentManagementType.AzMonitor:
       services.AddSingleton<IIncidentHandlingService<AzMonitorIncidentFilterDocumentPayload>, AzMonitorIncidentHandlingService>();
       services.AddSingleton<IIncidentManagementService<AzMonitorIncidentDocument>, AzMonitorIncidentManagementService>();
       services.AddSingleton<IIncidentFilterManagementService<AzMonitorIncidentFilterDocument>, AzMonitorIncidentFilterManagementService>();
+      services.AddSingleton<IIncidentAnalysisService<AzMonitorIncidentDocument, AzMonitorIncidentFilterDocumentPayload>>();
       break;
   ```
 
@@ -120,5 +134,6 @@ If your provider interacts with specific APIs (like Azure Monitor REST), impleme
 | Filter Management Service     | `AzMonitorIncidentFilterManagementService`                        |
 | Incident Management Service   | `AzMonitorIncidentManagementService`                              |
 | Incident Handling Service     | `AzMonitorIncidentHandlingService`                                |
+| Incident Analysis Service     | `AzMonitorIncidentAnalysisService`                                |
 | DI Registration               | In `IncidentServiceCollectionExtensions.cs`                       |
 | Factory Switches              | In respective factory classes                                     |
