@@ -93,5 +93,10 @@ namespace Agent.Tests.Common.Mocks
         {
             return Task.FromResult(new BlobProperties());
         }
+
+        public Task<AzureBlobListPage> ListFilesAsync(string containerName, string? prefix = null, int? pageSize = null, bool showFullPath = false, string? continuationToken = null, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

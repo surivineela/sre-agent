@@ -12,6 +12,10 @@ using Microsoft.Extensions.Options;
 
 namespace Agent.Core.Clients.Storage
 {
+    public record AzureBlobListPage(
+        IReadOnlyList<string> Items,
+        string? ContinuationToken);
+
     public class AzureBlobStorageClient : IAzureBlobStorageClient
     {
         private const int HttpResponseSuccessMin = 200;
@@ -134,6 +138,36 @@ namespace Agent.Core.Clients.Storage
             var response = await blobClient.GetPropertiesAsync(cancellationToken: cancellationToken);
             
             return response.Value;
+        }
+
+        public async Task<AzureBlobListPage> ListFilesAsync(string containerName, string? prefix = null, int? pageSize = null, bool showFullPath = false, string? continuationToken = null, CancellationToken cancellationToken = default)
+        {
+            var blobContainerClient = await GetBlobContainerClient(containerName);
+
+            var exists = await blobContainerClient.ExistsAsync(cancellationToken);
+            if (!exists.Value)
+            {
+                return new AzureBlobListPage(Array.Empty<string>(), null);
+            }
+
+            var items = new List<string>();
+            var pageable = blobContainerClient.GetBlobsAsync(prefix: prefix, cancellationToken: cancellationToken);
+            string? nextToken = null;
+
+            await foreach (var page in pageable.AsPages(continuationToken, pageSize))
+            {
+                foreach (var blobItem in page.Values)
+                {
+                    // blobItem.Deleted is already excluded by BlobStates.None
+                    string fileName = showFullPath ? blobItem.Name : Path.GetFileName(blobItem.Name);
+                    items.Add(fileName);
+                }
+
+                nextToken = page.ContinuationToken; // null when no more pages
+                break;
+            }
+
+            return new AzureBlobListPage(items, nextToken);
         }
 
         private async Task<BlobContainerClient> GetBlobContainerClient(string containerName)

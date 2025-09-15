@@ -4,14 +4,16 @@
 
 using System.ComponentModel;
 using System.Text;
-using Agent.Data.AgentMemory;
 using Agent.Core.Configuration;
+using Agent.Core.DataConnectors;
+using Agent.Data.AgentMemory;
+using Agent.Plugins.DataConnectors.Documentation;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Plugins.Definitions;
 
 [AgentToolPlugin]
-public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, AgentMemorySettings agentMemorySettings, ILogger<AgentMemoryPluginDefinition> logger)
+public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, AgentMemorySettings agentMemorySettings, DataConnectorIndex dataConnectorindex, ILogger<AgentMemoryPluginDefinition> logger)
 {
     [Description(@"Retrieves knowledge from past memories to assist with current incident resolution")]
     public async Task<string> SearchMemoryAsync(
@@ -134,19 +136,9 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
             return [];
         }
 
-        var documents = await agentMemoryClient.SearchCustomerDocumentsAsync(new SearchParams(
-            Query: symptoms,
-            K: 5,
-            EnableHybridSearch: true,
-            ExhaustiveKnn: true
-        ));
+        var documents = dataConnectorindex.SearchAsync<UserDocument>(symptoms, string.Empty, 10);
 
-        if (documents.Count == 0)
-        {
-            return [];
-        }
-
-        return documents.Select(d => d.Chunk).ToList();
+        return await documents.Select(d => d.SearchResult.Document.Chunk).ToListAsync();
     }
 
     private async Task<List<string>> SearchUserMemoryAsync(string symptoms)

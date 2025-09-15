@@ -300,12 +300,7 @@ namespace Agent.Plugins.DataConnectors.TSG
 
         internal Task UploadTsgDocumentToBlob(TsgDocumentMetadata data)
         {
-            return UploadJsonToBlob(GetBlobNameForTsgDocument(data), BinaryData.FromObjectAsJson(data));
-        }
-
-        private async Task UploadJsonToBlob(string blobName, BinaryData data)
-        {
-            await _storage.UploadBlobContentsAsync(blobName, data);
+            return _storage.UploadBlobContentsAsync(GetBlobNameForTsgDocument(data), data);
         }
 
         private static string GetBlobNameForTsgDocument(TsgDocumentMetadata metadata)

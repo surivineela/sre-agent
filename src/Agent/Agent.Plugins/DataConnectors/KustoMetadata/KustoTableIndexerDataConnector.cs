@@ -295,12 +295,12 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
 
         private Task UploadKustoMetadataToBlob(KustoTableMetadata data)
         {
-            return UploadJsonToBlob(GetBlobNameForKustoTableMetadata(data.ClusterUri, data.DatabaseName, data.TableName), BinaryData.FromObjectAsJson(data));
+            return UploadJsonToBlob(GetBlobNameForKustoTableMetadata(data.ClusterUri, data.DatabaseName, data.TableName), data);
         }
 
         private Task UploadKustoExampleQueriesToBlob(KustoExampleQueryDocument data)
         {
-            return UploadJsonToBlob(GetBlobNameForKustoExampleQuery(data), BinaryData.FromObjectAsJson(data));
+            return UploadJsonToBlob(GetBlobNameForKustoExampleQuery(data), data);
         }
 
         private static string GetSafeKustoClusterName(Uri clusterUri)
@@ -311,7 +311,7 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
                 .Replace(".", "-");
         }
 
-        private async Task UploadJsonToBlob(string blobName, BinaryData data)
+        private async Task UploadJsonToBlob(string blobName, DataConnectorSourceDocument data)
         {
             await _blobUploadRetryPolicy.ExecuteAsync(async () =>
             {

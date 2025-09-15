@@ -36,12 +36,12 @@ public class DataConnectorStorage<TDataConnector> where TDataConnector : IDataCo
         _logger = logger;
     }
 
-    public Task UploadBlobContentsAsync(string blobName, BinaryData contents)
+    public Task UploadBlobContentsAsync(string blobName, DataConnectorSourceDocument contents)
     {
         string fullPath = GetFullBlobPath(blobName);
         _logger.LogInternalInformation("Uploading blob contents for data connector {DataConnector} to container: {ContainerName}. Path: {BlobName}", _dataConnectorName, _containerName, fullPath);
 
-        return _storageClient.UploadBlobContentsAsync(_containerName, fullPath, contents, null);
+        return _storageClient.UploadBlobContentsAsync(_containerName, fullPath, BinaryData.FromObjectAsJson(contents), null);
     }
 
     public Task<bool> DeleteBlobContentsAsync(string blobName)
@@ -72,6 +72,22 @@ public class DataConnectorStorage<TDataConnector> where TDataConnector : IDataCo
         string fullPath = GetFullBlobPath(blobName);
 
         return _storageClient.GetBlobPropertiesAsync(_containerName, fullPath, cancellationToken);
+    }
+
+    public async Task<AzureBlobListPage> ListFilesAsync(string? prefix = null, int? pageSize = null, bool showFullPath = false, string? continuationToken = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            prefix = _rootPath + (string.IsNullOrWhiteSpace(prefix) ? string.Empty : (prefix.StartsWith("/") ? prefix : "/" + prefix));
+
+            return await _storageClient.ListFilesAsync(_containerName, prefix, pageSize, showFullPath, continuationToken, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Failed to list files for data connector: {ex.Message}");
+
+            return new AzureBlobListPage(Array.Empty<string>(), null);
+        }
     }
 
     private string GetFullBlobPath(string blobName)

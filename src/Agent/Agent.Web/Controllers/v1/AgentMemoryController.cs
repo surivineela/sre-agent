@@ -2,26 +2,36 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Collections.Concurrent;
+using System.Text.RegularExpressions;
 using Agent.Core.Configuration;
+using Agent.Core.DataConnectors;
 using Agent.Core.Models;
 using Agent.Data.AgentMemory;
+using Agent.Plugins.DataConnectors.Documentation;
+using Agent.Web.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.AI;
-using System.Collections.Concurrent;
-using Agent.Web.Authorization;
 using ArmOperations = Agent.Core.Constants.ArmOperations;
 
 namespace Agent.Web.Controllers.v1
 {
     internal record FailedUpload(string FileName, string ErrorMessage);
+
     [ApiController]
     [Route("api/v1/[controller]")]
     public class AgentMemoryController(ILogger<AgentMemoryController> logger,
                                     IAgentMemoryClient agentMemoryClient,
                                     IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator,
                                     ISearchIndexService searchIndexService,
+                                    DataConnectorStorage<UserDocumentDataConnector> dataConnectorStorage,
+                                    DataConnectorIndex dataConnectorIndex,
                                     AgentMemorySettings agentMemorySettings) : ControllerBase
     {
+
+        private static readonly char[] InvalidChars = Path.GetInvalidFileNameChars().Concat(['\\', '/', '?', '#']).ToArray();
+        private static readonly Regex SafeIndexKeyRegex = new Regex(@"[^A-Za-z0-9_\-=]+", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled, TimeSpan.FromSeconds(1));
+
         private HashSet<string> allowedExtensions = [".md", ".txt"];
 
         [HttpPost("upload")]
@@ -74,20 +84,30 @@ namespace Agent.Web.Controllers.v1
                     continue;
                 }
 
+                if (!TryGetSafeIndexId(file.FileName, out string indexIdString))
+                {
+                    failedUploads.Add(new FailedUpload(file.FileName, "Invalid file name or too long"));
+                    continue;
+                }
+
                 try
                 {
                     using var stream = file.OpenReadStream();
-                    var uploadSuccess = await agentMemoryClient.UploadDocumentAsync(safeFileName, stream);
+                    using var reader = new StreamReader(stream);
+                    
+                    string content = await reader.ReadToEndAsync();
+                    
+                    UserDocument doc = new UserDocument()
+                    {
+                        Id = indexIdString,
+                        Title = safeFileName,
+                        Filter = string.Empty,
+                        Contents = content,
+                    };
 
-                    if (!uploadSuccess)
-                    {
-                        logger.LogInternalError($"Failed to upload file: {file.FileName} - Upload returned false");
-                        failedUploads.Add(new FailedUpload(file.FileName, $"Failed to upload file to storage"));
-                    }
-                    else
-                    {
-                        successfulUploads.Add(file.FileName);
-                    }
+                    await dataConnectorStorage.UploadBlobContentsAsync(safeFileName, doc);
+
+                    successfulUploads.Add(file.FileName);
                 }
                 catch (Exception ex)
                 {
@@ -104,7 +124,7 @@ namespace Agent.Web.Controllers.v1
                 try
                 {
                     logger.LogInternalInformation($"Triggering indexer for {successfulUploads.Count} newly uploaded files");
-                    await agentMemoryClient.RunIndexerAsync();
+                    await dataConnectorIndex.RunIndexerAsync();
                     indexingTriggered = true;
                 }
                 catch (Exception ex)
@@ -164,7 +184,7 @@ namespace Agent.Web.Controllers.v1
 
             try
             {
-                var deleteSuccess = await agentMemoryClient.DeleteDocumentAsync(safeFileName);
+                var deleteSuccess = await dataConnectorStorage.DeleteBlobContentsAsync(safeFileName);
 
                 if (!deleteSuccess)
                 {
@@ -174,7 +194,7 @@ namespace Agent.Web.Controllers.v1
 
                 logger.LogInternalInformation($"Successfully deleted document: {fileName}");
 
-                await agentMemoryClient.RunIndexerAsync();
+                await dataConnectorIndex.RunIndexerAsync();
 
                 return Ok(new { message = $"Document '{fileName}' deleted successfully" });
             }
@@ -227,7 +247,7 @@ namespace Agent.Web.Controllers.v1
 
                 try
                 {
-                    var deleteSuccess = await agentMemoryClient.DeleteDocumentAsync(safeFileName);
+                    var deleteSuccess = await dataConnectorStorage.DeleteBlobContentsAsync(safeFileName);
 
                     if (!deleteSuccess)
                     {
@@ -256,7 +276,7 @@ namespace Agent.Web.Controllers.v1
 
             if (successList.Count > 0)
             {
-                await agentMemoryClient.RunIndexerAsync();
+                await dataConnectorIndex.RunIndexerAsync();
             }
 
             return Ok(new
@@ -309,12 +329,32 @@ namespace Agent.Web.Controllers.v1
         {
             // Remove invalid chars, trim, and ensure length is valid for Azure Blob Storage
             // Azure blob names cannot contain: \, /, ?, #, and must be between 1 and 1024 chars
-            var invalidChars = Path.GetInvalidFileNameChars().Concat(new[] { '\\', '/', '?', '#' }).ToArray();
-            var safeName = new string(fileName.Where(ch => !invalidChars.Contains(ch)).ToArray());
+            
+            var safeName = new string(fileName.Where(ch => !InvalidChars.Contains(ch)).ToArray());
             safeName = safeName.Trim().TrimEnd('.');
             if (safeName.Length == 0 || safeName.Length > 1024)
                 return null;
             return safeName;
+        }
+
+        private static bool TryGetSafeIndexId(string fileName, out string result)
+        {
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                result = string.Empty;
+                return false;
+            }
+
+            result = SafeIndexKeyRegex.Replace(fileName, "_");
+            result = Regex.Replace(result, "_{2,}", "_");
+            result = result.Trim('_', '-', '=');
+
+            if (string.IsNullOrWhiteSpace(result))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         [HttpPost("rebuildIndex")]
@@ -325,6 +365,7 @@ namespace Agent.Web.Controllers.v1
         {
             try
             {
+                await dataConnectorIndex.RunIndexerAsync();
                 await agentMemoryClient.RunIndexerAsync();
                 return Ok(new { message = "Indexing triggered successfully." });
             }
@@ -382,13 +423,10 @@ namespace Agent.Web.Controllers.v1
 
             try
             {
-                var results = await agentMemoryClient.SearchCustomerDocumentsAsync(new SearchParams(
-                    Query: query,
-                    K: k,
-                    VectorSimilarityThreshold: vectorSimilarityThreshold,
-                    Filter: filter,
-                    EnableHybridSearch: enableHybridSearch
-                ));
+                IAsyncEnumerable<DataConnectorSearchResult<UserDocument>> searchResults = dataConnectorIndex.SearchAsync<UserDocument>(query, filter ?? string.Empty, 100);
+
+                List<string> results = await searchResults.Select(x => x.OriginalDocument.Contents).ToListAsync();
+
                 return Ok(new { results });
             }
             catch (Exception ex)
@@ -477,7 +515,7 @@ namespace Agent.Web.Controllers.v1
 
             try
             {
-                var page = await agentMemoryClient.ListFilesAsync(
+                var page = await dataConnectorStorage.ListFilesAsync(
                     prefix: prefix,
                     pageSize: pageSize,
                     continuationToken: continuationToken,

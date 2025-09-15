@@ -16,5 +16,6 @@ namespace Agent.Core.Clients.Storage
         Task CopyBlobContentsAsync(Uri sourceBlobUri, string containerName, string blobName);
         Task<bool> CheckBlobExistsAsync(string containerName, string blobName);
         Task<BlobProperties> GetBlobPropertiesAsync(string containerName, string blobName, CancellationToken cancellationToken);
+        Task<AzureBlobListPage> ListFilesAsync(string containerName, string? prefix = null, int? pageSize = null, bool showFullPath = false, string? continuationToken = null, CancellationToken cancellationToken = default);
     }
 }
