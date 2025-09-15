@@ -1196,19 +1196,20 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
 
                 // Create a composite key for each resource considering multiple dimensions
                 // Resources are unique if they differ by any of: subscription, resource group, resource type,
-                // namespace, or cluster (for k8s resources)
+                // kind, namespace, or cluster (for k8s resources)
                 var uniqueResources = result
                     .GroupBy(item =>
                     {
                         string resourceName = item["resourceName"]?.ToString() ?? string.Empty;
                         string subscriptionId = item["subscriptionId"]?.ToString() ?? string.Empty;
                         string resourceGroupName = item["resourceGroupName"]?.ToString() ?? string.Empty;
+                        string resourceType = item["resourceType"]?.ToString() ?? string.Empty;
                         string kind = item["kind"]?.ToString() ?? string.Empty;
                         string namespaceValue = item["namespace"]?.ToString() ?? string.Empty;
                         string clusterResourceId = item["clusterResourceId"]?.ToString() ?? string.Empty;
 
                         // Create a composite key from these properties
-                        return $"{resourceName}|{subscriptionId}|{resourceGroupName}|{kind}|{namespaceValue}|{clusterResourceId}";
+                        return $"{resourceName}|{subscriptionId}|{resourceGroupName}|{resourceType}|{kind}|{namespaceValue}|{clusterResourceId}";
                     })
                     .ToDictionary(
                         group => group.Key,
@@ -1817,8 +1818,8 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                         };
 
                         // Only add caller IP for failed operations or deployments
-                        if (eventData?.HttpRequest != null && 
-                            (eventData.Status?.Value?.Contains("Failed") == true || 
+                        if (eventData?.HttpRequest != null &&
+                            (eventData.Status?.Value?.Contains("Failed") == true ||
                              operationName.Contains("deployment", StringComparison.OrdinalIgnoreCase)))
                         {
                             log["callerIpAddress"] = eventData.HttpRequest.ClientIpAddress;
@@ -1831,8 +1832,8 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                         }
 
                         // Only include essential properties for failed operations or deployments
-                        if (eventData?.Properties != null && 
-                            (eventData.Status?.Value?.Contains("Failed") == true || 
+                        if (eventData?.Properties != null &&
+                            (eventData.Status?.Value?.Contains("Failed") == true ||
                              operationName.Contains("deployment", StringComparison.OrdinalIgnoreCase)))
                         {
                             var filteredProperties = FilterEssentialProperties(eventData.Properties);
@@ -1932,7 +1933,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
             var essentialKeys = new[]
             {
                 "statusCode",
-                "statusMessage", 
+                "statusMessage",
                 "errorCode",
                 "errorMessage",
                 "failureReason",
@@ -2419,7 +2420,7 @@ Respond in a concise, structured format with bullet points and short sentences."
                 var resourceManagementClient = await CreateResourceClientAsync(subscriptionId);
                 // List recent deployments and find one matching the correlation ID
                 var deployments = await resourceManagementClient.Deployments.ListByResourceGroupAsync(resourceGroupName);
-                
+
                 foreach (var deployment in deployments)
                 {
                     if (deployment?.Properties?.CorrelationId == correlationId)
@@ -2431,7 +2432,7 @@ Respond in a concise, structured format with bullet points and short sentences."
                             ["timestamp"] = deployment.Properties?.Timestamp?.ToString("o") ?? string.Empty,
                             ["mode"] = deployment.Properties?.Mode?.ToString() ?? string.Empty,
                             ["templateHash"] = deployment.Properties?.TemplateHash ?? string.Empty,
-                            ["parameters"] = deployment.Properties?.Parameters != null ? 
+                            ["parameters"] = deployment.Properties?.Parameters != null ?
                                 JsonSerializer.Serialize(deployment.Properties.Parameters) : string.Empty,
                             ["outputs"] = deployment.Properties?.Outputs != null ?
                                 JsonSerializer.Serialize(deployment.Properties.Outputs) : string.Empty,
@@ -2616,8 +2617,8 @@ Respond in a concise, structured format with bullet points and short sentences."
         }
 
         private async Task<string> AnalyzeChangeHistoryWithLLM(
-            List<Dictionary<string, object>> changeHistory, 
-            Dictionary<string, object>? deploymentDetails, 
+            List<Dictionary<string, object>> changeHistory,
+            Dictionary<string, object>? deploymentDetails,
             List<Dictionary<string, object>> resourceChanges,
             string correlationId,
             string resourceId)
@@ -2625,7 +2626,7 @@ Respond in a concise, structured format with bullet points and short sentences."
             try
             {
                 var changeHistoryJson = JsonSerializer.Serialize(changeHistory, new JsonSerializerOptions { WriteIndented = true });
-                var deploymentDetailsJson = deploymentDetails != null ? 
+                var deploymentDetailsJson = deploymentDetails != null ?
                     JsonSerializer.Serialize(deploymentDetails, new JsonSerializerOptions { WriteIndented = true }) : "No deployment details available";
                 var resourceChangesJson = JsonSerializer.Serialize(resourceChanges, new JsonSerializerOptions { WriteIndented = true });
 
@@ -2780,14 +2781,14 @@ resourcechanges
                 var result = await _azureResourceGraphClient.Query(new[] { subscriptionId }, query);
 
                 // Convert result to JSON string
-                var jsonOptions = new JsonSerializerOptions 
-                { 
+                var jsonOptions = new JsonSerializerOptions
+                {
                     WriteIndented = true,
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                 };
-                
+
                 var jsonResult = JsonSerializer.Serialize(result.Data, jsonOptions);
-                
+
                 _logger.LogInternalInformation("Successfully retrieved real-time properties for resource: {ResourceId}", resourceId);
                 return jsonResult;
             }
