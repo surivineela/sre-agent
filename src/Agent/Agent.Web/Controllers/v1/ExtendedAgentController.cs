@@ -65,9 +65,9 @@ public class ExtendedAgentController : ControllerBase
                 .IgnoreUnmatchedProperties()
                 .Build();
 
-            var yamlObject = deserializer.Deserialize(new StringReader(yaml));
+            var yamlDict = deserializer.Deserialize<Dictionary<string, object>>(new StringReader(yaml));
 
-            var jsonString = JsonSerializer.Serialize(yamlObject);
+            var jsonString = JsonSerializer.Serialize(yamlDict);
 
             // Now parse it into GenericResourceModel
             var generic = JsonSerializer.Deserialize<Core.Validation.GenericResourceModel>(jsonString);
@@ -142,9 +142,6 @@ public class ExtendedAgentController : ControllerBase
                             Message = "Failed to parse agent configuration"
                         });
                     }
-
-                    // Convert to dictionary to access properties for metadata
-                    var yamlDict = yamlObject as Dictionary<string, object>;
 
                     // Create AgentDeploymentModel using the parsed descriptor
                     var agentDeployment = new AgentDeploymentModel

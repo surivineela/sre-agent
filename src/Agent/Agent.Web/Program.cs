@@ -601,7 +601,7 @@ public class Program
 
         builder.ValidateAndRegisterAcaFirstPartyTypes();
         builder.RegisterFunctionsFirstPartyTypes();
-        builder.Services.AddScoped<IExtendedAgentService, ExtendedAgentService>();
+        builder.Services.AddTransient<IExtendedAgentService, ExtendedAgentService>();
         builder.Services.AddSingleton<IConnectorResolver, DataConnectorResolverService>();
 
         builder.Services.AddScoped<IResourceDeploymentService, ResourceDeploymentService>();

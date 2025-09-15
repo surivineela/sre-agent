@@ -18,8 +18,8 @@ using Agent.Data.Repositories;
 using Agent.Framework;
 using Agent.Logging;
 using Agent.Runtime.AgentTasks.Agents;
-using Agent.Runtime.Communication;
 using Agent.Runtime.Helpers;
+using Agent.Runtime.Interfaces;
 using Agent.Runtime.Reasoning;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -34,6 +34,7 @@ public sealed class IncidentInvestigationTaskHandler(
     IThreadRepository threadRepository,
     IChatClient chatClient,
     IToolFactory<AgentContext> toolFactory,
+    IExtendedAgentService extendedAgentService,
     IAgentOutboundCommunicationService outboundCommunicationService,
     AgentTaskLocalStore rcaAgentsStore,
     SearchHelper searchHelper,
@@ -91,6 +92,23 @@ public sealed class IncidentInvestigationTaskHandler(
                     new List<string> { Path.Combine("AgentsV2", "ACA-FirstParty") },
                     "RCA"
                 );
+
+                // Load agents from the extensibility API
+                for (int i = 0; ; i++)
+                {
+                    var agentsFromExtensibleApi = await extendedAgentService.GetAgentsAsync(i, 100, null);
+                    foreach (var agent in agentsFromExtensibleApi)
+                    {
+                        if (agent.Metadata.Tags?.Contains("rcaagent") == true)
+                        {
+                            allAgents.Add(agent);
+                        }
+                    }
+
+                    if (!agentsFromExtensibleApi.HasNextPage)
+                        break;
+                }
+
                 toolSubset = allAgents.SelectMany(agent => agent.Tools)
                     .Distinct()
                     .ToList();
@@ -886,7 +904,7 @@ public sealed class IncidentInvestigationTaskHandler(
 
     private async Task<ICollection<SearchDocument>> RetrieveDocumentsFromLocalStore(string query)
     {
-        return await rcaAgentsStore.SearchAsync(query, 3).ToListAsync();
+        return await rcaAgentsStore.SearchAsync(query, 3, extendedAgentService).ToListAsync();
     }
 
     private async Task<IEnumerable<SearchDocument>> RetrieveDocumentsFromRegionalStore(string query, string threadId, TelemetrySpan? parentSpan = null)

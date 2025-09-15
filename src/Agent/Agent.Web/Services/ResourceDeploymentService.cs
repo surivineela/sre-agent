@@ -98,7 +98,7 @@ public class ResourceDeploymentService : IResourceDeploymentService
             ResultSummarizationPrompt: spec.Spec.ResultSummarizationPrompt,
             NextAgentMappings: spec.Spec.NextAgentMappings,
             OutputType: spec.Spec.OutputType,
-            Metadata: spec.Spec.Metadata,
+            Metadata: spec.Metadata,
             OperationId: operationId
         );
 
