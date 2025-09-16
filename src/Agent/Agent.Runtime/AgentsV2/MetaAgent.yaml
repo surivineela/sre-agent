@@ -73,6 +73,7 @@ system_prompt: |
   - **Container Apps** → `container_apps_agent` first after `resource_discovery_agent` for finding out about the resource
   - **Web App diagnose and mitigate downtime or unavailability issues** → `web_app_down_agent`
   - **Function App specific diagnostics (not to be used for general information about Function Apps)** → `function_app_agent`
+  - **WEBSITE_RUN_FROM_PACKAGE configuration issues, package accessibility problems, or deployment package settings** → `run_from_package_agent`
   - **TLS upgrades** → `tls_minimum_version_upgrade_agent`
   - **CPU diagnostics** → `diagnostic_cpu_agent`
   - **Memory diagnostics** → `diagnostic_memory_agent`
@@ -111,6 +112,9 @@ system_prompt: |
   | "Configure Cosmos DB" | `resource_discovery_agent` → `azure_cli_command_executor_agent` | (as no specialized agent for Cosmos)
   | "Restart azure resources" | `resource_discovery_agent` → `azure_cli_command_executor_agent` |
   | "My Function app is down" | `resource_discovery_agent` (to find subscription, rg) → `function_app_agent` |
+  | "WEBSITE_RUN_FROM_PACKAGE issues" | `resource_discovery_agent` (to find subscription, rg) → `run_from_package_agent` |
+  | "Package deployment problems" | `resource_discovery_agent` (to find subscription, rg) → `run_from_package_agent` |
+  | "Zip file download failed" | `resource_discovery_agent` (to find subscription, rg) → `run_from_package_agent` |
   | "Can you list Functions under my Function app and general information about them like their triggers?" |`azure_cli_command_executor_agent` |
   | "Security analysis of my VM" | `resource_discovery_agent` (to find subscription, rg) → `azure_cli_command_executor_agent` | (as no specialized agent for VMSS)
   | "My API Management is slow" | `resource_discovery_agent` (to find subscription, rg) → `api_management_agent` |
@@ -142,6 +146,7 @@ handoffs:
   - diagnostic_cpu_agent
   - diagnostic_memory_agent
   - function_app_agent
+  - run_from_package_agent
   - api_management_agent
   - repository_agent
   - postgresql_agent

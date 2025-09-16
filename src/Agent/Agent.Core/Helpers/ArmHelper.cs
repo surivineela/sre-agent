@@ -3427,7 +3427,7 @@ public class ArmHelper
     private static string GetFamilyFromSku(string sku)
     {
         // Map SKU to family, e.g., "P1v2" -> "Pv2"
-        // You can add more mappings as needed
+        // For unknown SKUs, extract family from the SKU name or use the SKU itself
         return sku switch
         {
             "F1" => "F",
@@ -3457,14 +3457,37 @@ public class ArmHelper
             "I4v2" => "Iv2",
             "I5v2" => "Iv2",
             "I6v2" => "Iv2",
-            _ => throw new ArgumentException("Unknown SKU")
+            // Handle unknown SKUs gracefully by extracting family pattern or using the SKU name
+            _ => ExtractFamilyFromUnknownSku(sku)
         };
+    }
+
+    private static string ExtractFamilyFromUnknownSku(string sku)
+    {
+        if (string.IsNullOrEmpty(sku))
+        {
+            return "Unknown";
+        }
+
+        // Try to extract family pattern from unknown SKUs
+        // Examples: "EP1" -> "EP", "Y1" -> "Y", "FC1" -> "FC"
+        if (System.Text.RegularExpressions.Regex.IsMatch(sku, @"^[A-Z]+\d+"))
+        {
+            var match = System.Text.RegularExpressions.Regex.Match(sku, @"^([A-Z]+)\d+");
+            if (match.Success)
+            {
+                return match.Groups[1].Value;
+            }
+        }
+
+        // If no pattern matches, use the SKU name itself truncated to reasonable length
+        return sku.Length > 10 ? sku.Substring(0, 10) : sku;
     }
 
     private static string GetTierFromSku(string sku)
     {
         // Map SKU to tier, e.g., "P1v2" -> "PremiumV2"
-        // You can add more mappings as needed
+        // For unknown SKUs, provide a reasonable default or derive from family
         return sku switch
         {
             "F1" => "Free",
@@ -3494,8 +3517,47 @@ public class ArmHelper
             "I4v2" => "IsolatedV2",
             "I5v2" => "IsolatedV2",
             "I6v2" => "IsolatedV2",
-            _ => throw new ArgumentException("Unknown SKU")
+            // Handle unknown SKUs gracefully
+            _ => DeriveeTierFromUnknownSku(sku)
         };
+    }
+
+    private static string DeriveeTierFromUnknownSku(string sku)
+    {
+        if (string.IsNullOrEmpty(sku))
+        {
+            return "Unknown";
+        }
+
+        // Try to derive tier from unknown SKUs based on common patterns
+        var skuUpper = sku.ToUpperInvariant();
+        
+        // Check for common tier patterns
+        if (skuUpper.StartsWith("F"))
+            return "Free";
+        if (skuUpper.StartsWith("D"))
+            return "Shared";
+        if (skuUpper.StartsWith("B"))
+            return "Basic";
+        if (skuUpper.StartsWith("S"))
+            return "Standard";
+        if (skuUpper.StartsWith("P") && skuUpper.Contains("V3"))
+            return "PremiumV3";
+        if (skuUpper.StartsWith("P") && skuUpper.Contains("V2"))
+            return "PremiumV2";
+        if (skuUpper.StartsWith("P"))
+            return "Premium";
+        if (skuUpper.StartsWith("I"))
+            return "Isolated";
+        if (skuUpper.StartsWith("EP"))
+            return "ElasticPremium";
+        if (skuUpper.StartsWith("Y"))
+            return "Dynamic";
+        if (skuUpper.StartsWith("FC"))
+            return "FlexConsumption";
+
+        // Default to "Custom" for truly unknown SKUs
+        return "Custom";
     }
 
     private async Task<string[]> GetAppServiceInstanceMachineNamesAsync(string appServiceResource)

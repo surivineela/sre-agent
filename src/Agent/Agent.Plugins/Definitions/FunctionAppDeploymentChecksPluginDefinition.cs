@@ -114,18 +114,20 @@ namespace Agent.Plugins.Definitions
             return await _functionAppDeploymentChecksPlugin.ListStorageBlobsAsync(containerUri);
         }
 
+
+
         /// <summary>
-        /// Verifies files in a blob container
+        /// Checks if the Function App has WEBSITE_RUN_FROM_PACKAGE configuration issues
         /// </summary>
-        [Description("Verifies files in an Azure Storage blob container. " +
-                    "Lists all files in the specified container or extracts container information from WEBSITE_RUN_FROM_PACKAGE. " +
-                    "Provides detailed information about each file including name, size, content type, and last modified date. " +
-                    "Returns verification status, container details, and comprehensive file information.")]
-        public async Task<Models.BlobContainerVerificationResult> VerifyFilesInBlobContainerAsync(
-            [Description("The full Azure resource ID of the Function App or Web App to verify.")] string resourceId,
-            [Description("Optional path to the blob container. If not provided, the container will be extracted from the WEBSITE_RUN_FROM_PACKAGE app setting.")] string containerPath = "")
+        [Description("Checks if the Function App has WEBSITE_RUN_FROM_PACKAGE configuration issues that require specialized handling. " +
+                    "Performs quick detection of configuration problems, SKU compatibility issues, package accessibility problems, " +
+                    "or other WEBSITE_RUN_FROM_PACKAGE-related issues that would benefit from specialized diagnosis and repair. " +
+                    "Returns true if issues are detected and handoff to the specialized WEBSITE_RUN_FROM_PACKAGE agent is recommended.")]
+        [AgentTool(ToolMode.Auto)]
+        public async Task<bool> HasRunFromPackageIssueAsync(
+            [Description("The full Azure resource ID of the Function App or Web App to check for WEBSITE_RUN_FROM_PACKAGE issues.")] string resourceId)
         {
-            return await _functionAppDeploymentChecksPlugin.VerifyFilesInBlobContainerAsync(resourceId, containerPath);
+            return await _functionAppDeploymentChecksPlugin.HasRunFromPackageIssueAsync(resourceId);
         }
     }
 }

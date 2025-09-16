@@ -23,6 +23,7 @@ namespace Agent.Plugins.Implementation
         private readonly ArmHelper _armHelper;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IAuthenticationService _authService;
+        private readonly IRunFromPackagePlugin _runFromPackagePlugin;
 
         /// <summary>
         /// Gets or sets the thread ID
@@ -36,16 +37,19 @@ namespace Agent.Plugins.Implementation
         /// <param name="armHelper">ARM helper for interacting with Azure resources</param>
         /// <param name="httpClientFactory">HTTP client factory for making HTTP requests</param>
         /// <param name="authService">Authentication service for Azure resources</param>
+        /// <param name="runFromPackagePlugin">Plugin for WEBSITE_RUN_FROM_PACKAGE operations</param>
         public FunctionAppDeploymentChecksPlugin(
             ILogger<FunctionAppDeploymentChecksPlugin> logger,
             ArmHelper armHelper,
             IHttpClientFactory httpClientFactory,
-            IAuthenticationService authService)
+            IAuthenticationService authService,
+            IRunFromPackagePlugin runFromPackagePlugin)
         {
             _logger = logger;
             _armHelper = armHelper;
             _httpClientFactory = httpClientFactory;
             _authService = authService;
+            _runFromPackagePlugin = runFromPackagePlugin;
         }
 
         /// <summary>
@@ -794,11 +798,12 @@ namespace Agent.Plugins.Implementation
         }
 
         /// <summary>
-        /// Verifies files in a blob container using ListStorageBlobsAsync
+        /// Verifies files in a blob container using ListStorageBlobsAsync. 
+        /// Handles both URL-based WEBSITE_RUN_FROM_PACKAGE (external blob storage) and local package mode (value "1").
         /// </summary>
         /// <param name="resourceId">The Azure resource ID of the Function App or Web App</param>
         /// <param name="containerPath">Optional path to the blob container. If not provided, the WEBSITE_RUN_FROM_PACKAGE app setting will be parsed to extract container information</param>
-        /// <returns>A verification result containing the list of files in the container</returns>
+        /// <returns>A verification result containing the list of files in the container, or confirmation of local package mode if WEBSITE_RUN_FROM_PACKAGE is set to "1"</returns>
         public async Task<BlobContainerVerificationResult> VerifyFilesInBlobContainerAsync(string resourceId, string containerPath = "")
         {
             var result = new BlobContainerVerificationResult();
@@ -842,12 +847,25 @@ namespace Agent.Plugins.Implementation
 
                     string zipFilePath = runFromPackageValue?.ToString() ?? string.Empty;
 
-                    if (string.IsNullOrWhiteSpace(zipFilePath) || zipFilePath == "0" || zipFilePath == "1" || zipFilePath == "true")
+                    // Handle the case where WEBSITE_RUN_FROM_PACKAGE is set to "1" (local package mode)
+                    if (string.IsNullOrWhiteSpace(zipFilePath) || zipFilePath == "0" || zipFilePath == "true")
                     {
                         result.IsSuccessful = false;
-                        result.ErrorMessage = $"WEBSITE_RUN_FROM_PACKAGE has an invalid value: {zipFilePath}. Expected a URL to a zip file.";
+                        result.ErrorMessage = $"WEBSITE_RUN_FROM_PACKAGE has an invalid value: {zipFilePath}. Expected either '1' for local package mode or a URL to a zip file.";
                         result.FilesFound = false;
                         result.TargetFileFound = false;
+                        return result;
+                    }
+
+                    // If WEBSITE_RUN_FROM_PACKAGE is set to "1", it indicates local package mode
+                    // In this case, we cannot verify files in a blob container since files are stored locally
+                    if (zipFilePath == "1")
+                    {
+                        result.IsSuccessful = true;
+                        result.Details = "WEBSITE_RUN_FROM_PACKAGE is set to '1' (local package mode). Files are stored locally in the SitePackages folder and cannot be verified through blob container listing. This is a valid configuration for function apps.";
+                        result.FilesFound = true; // We assume files exist since the app is configured for local package mode
+                        result.TargetFileFound = false; // No specific target file to verify in local mode
+                        result.TargetFilePath = "Local package mode (d:\\home\\data\\SitePackages or /home/data/SitePackages)";
                         return result;
                     }
 
@@ -1083,6 +1101,36 @@ namespace Agent.Plugins.Implementation
             }
 
             return $"{size:0.##} {sizes[order]}";
+        }
+
+        /// <summary>
+        /// Checks if the Function App has WEBSITE_RUN_FROM_PACKAGE configuration issues
+        /// </summary>
+        /// <param name="resourceId">The Azure resource ID of the Function App or Web App</param>
+        /// <returns>True if there are WEBSITE_RUN_FROM_PACKAGE issues that require specialized handling</returns>
+        public async Task<bool> HasRunFromPackageIssueAsync(string resourceId)
+        {
+            try
+            {
+                _logger.LogInternalInformation("Checking for WEBSITE_RUN_FROM_PACKAGE issues for {ResourceId}", resourceId);
+
+                // Set the thread ID for the RunFromPackagePlugin
+                _runFromPackagePlugin.ThreadId = this.ThreadId;
+
+                // Use the specialized plugin to check for issues
+                bool hasIssues = await _runFromPackagePlugin.HasRunFromPackageIssuesAsync(resourceId);
+
+                _logger.LogInternalInformation("WEBSITE_RUN_FROM_PACKAGE issue check result for {ResourceId}: {HasIssues}", resourceId, hasIssues);
+                return hasIssues;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Error checking for WEBSITE_RUN_FROM_PACKAGE issues for {ResourceId}", resourceId);
+                
+                // In case of error, return true to trigger handoff for investigation
+                // This ensures that potential issues are not missed due to unexpected errors
+                return true;
+            }
         }
     }
 }

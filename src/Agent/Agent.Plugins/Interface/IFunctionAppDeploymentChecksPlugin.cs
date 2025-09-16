@@ -64,11 +64,11 @@ public interface IFunctionAppDeploymentChecksPlugin
     /// <returns>A result containing the list of blobs in the container</returns>
     Task<Models.StorageBlobListResult> ListStorageBlobsAsync(string containerUri);
 
+
     /// <summary>
-    /// Verifies files in a Blob container
+    /// Checks if the Function App has WEBSITE_RUN_FROM_PACKAGE configuration issues
     /// </summary>
     /// <param name="resourceId">The Azure resource ID of the Function App or Web App</param>
-    /// <param name="containerPath">Optional path to the container. If not provided, a default container path will be used</param>
-    /// <returns>A verification result indicating if the files exist and details about the verification</returns>
-    Task<BlobContainerVerificationResult> VerifyFilesInBlobContainerAsync(string resourceId, string containerPath = "");
+    /// <returns>True if there are WEBSITE_RUN_FROM_PACKAGE issues that require specialized handling</returns>
+    Task<bool> HasRunFromPackageIssueAsync(string resourceId);
 }

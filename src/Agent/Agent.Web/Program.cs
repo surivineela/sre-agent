@@ -354,6 +354,9 @@ public class Program
 
             .AddTransient<IFunctionAppDeploymentChecksPlugin, FunctionAppDeploymentChecksPlugin>()
 
+            .AddTransient<IRunFromPackagePlugin, RunFromPackagePlugin>()
+            .AddTransient<RunFromPackagePluginDefinition>()
+
             .AddTransient<IPostgreSQLPlugin, PostgreSQLPlugin>()
             .AddTransient<PostgreSQLPluginDefinition>()
             .AddSingleton<IPlaybookService, PlaybookService>()

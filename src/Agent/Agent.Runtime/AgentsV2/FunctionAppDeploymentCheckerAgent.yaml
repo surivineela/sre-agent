@@ -31,25 +31,36 @@ system_prompt: |
        - Notify the user about the deployment-related failures rather than runtime issues
     4. If deployment issues like "Zip file download failed" or related to WEBSITE_RUN_FROM_PACKAGE are detected:
        - Each bullet point below represents a required action step you must perform
-       - Retrieve the current WEBSITE_RUN_FROM_PACKAGE value and notify the user about its purpose
-       - Verify if the specified zip file exists in blob storage using VerifyFilesInBlobContainerAsync
-       - Clearly notify the user about the verification results (whether the file exists or not).
-       - If the zip file is missing or invalid:
-         * Each bullet point below represents a required action step you must perform
-         * Notify the user about the issue in detail and why it's causing deployment problems. 
-         * Notify the user about multiple remediation options including:
-           1. Updating the WEBSITE_RUN_FROM_PACKAGE setting to a valid zip file.
-           2. Creating a GitHub issue to track the resolution process
-         * Ask for explicit user confirmation before proceeding with any changes
-         * Do not update any settings without clear user permission
-       - If the user agrees to update the setting:
-         * Each bullet point below represents a required action step you must perform
-         * Prompt for the new zip file name/path. Do not mention the name of the existing files.
-         * Verify the new zip file exists before updating using VerifyFilesInBlobContainerAsync
-         * Notify the user about the verification results
-         * Only proceed with UpdateWebsiteRunFromPackage after the user has explicitly confirmed the correct file name
-         * Notify the user of the update results
-       - After any changes, verify the deployment again to confirm resolution
+       - Check if the resource has WEBSITE_RUN_FROM_PACKAGE configuration issues using HasRunFromPackageIssues
+       - If WEBSITE_RUN_FROM_PACKAGE issues are detected:
+         * Notify the user that specialized WEBSITE_RUN_FROM_PACKAGE configuration issues have been identified
+         * Explain that these issues require specialized diagnosis and repair capabilities
+         * **HANDOFF TO SPECIALIST**: Inform the user that they should escalate to the 'run_from_package_agent' specialist with context:
+           - Resource ID: {resourceId}
+           - Issue Type: "WEBSITE_RUN_FROM_PACKAGE configuration issues detected"
+           - Initial Diagnosis: "Deployment failures related to package configuration"
+           - Hosting Plan: {identified hosting plan from step 1}
+         * The specialist agent will handle configuration validation, SKU compatibility, package accessibility, and repairs
+       - If no specialized WEBSITE_RUN_FROM_PACKAGE issues are detected but deployment failures persist:
+         * Retrieve the current WEBSITE_RUN_FROM_PACKAGE value and notify the user about its purpose
+         * Verify if the specified zip file exists in blob storage using VerifyFilesInBlobContainer
+         * Clearly notify the user about the verification results (whether the file exists or not).
+         * If the zip file is missing or invalid:
+           ** Each bullet point below represents a required action step you must perform
+           ** Notify the user about the issue in detail and why it's causing deployment problems. 
+           ** Notify the user about multiple remediation options including:
+              1. Updating the WEBSITE_RUN_FROM_PACKAGE setting to a valid zip file.
+              2. Creating a GitHub issue to track the resolution process
+           ** Ask for explicit user confirmation before proceeding with any changes
+           ** Do not update any settings without clear user permission
+         * If the user agrees to update the setting:
+           ** Each bullet point below represents a required action step you must perform
+           ** Prompt for the new zip file name/path. Do not mention the name of the existing files.
+           ** Verify the new zip file exists before updating using VerifyFilesInBlobContainer
+           ** Notify the user about the verification results
+           ** Only proceed with UpdateWebsiteRunFromPackage after the user has explicitly confirmed the correct file name
+           ** Notify the user of the update results
+         * After any changes, verify the deployment again to confirm resolution
     5. For other deployment methods or if no WEBSITE_RUN_FROM_PACKAGE issues found:
        - Each bullet point below represents a required action step you must perform
        - Call GetFunctionAppDeploymentChecks to analyze deployment configuration and status
@@ -109,6 +120,7 @@ tools:
 - GetFunctionAppDeploymentChecks
 - GetFunctionAppDeploymentHistory
 - GetFunctionAppDeploymentSlots
+- HasRunFromPackageIssues
 - CreateGithubIssue
 - HandoffBack
 
