@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.CommandLine;
 using System.CommandLine.NamingConventionBinder;
 using System.CommandLine.Parsing;
@@ -17,6 +21,7 @@ public static class ThreadCommandHandlers
             var displayName = parseResult.GetValue(AgentCommandOptions.ThreadDisplayNameOption) ?? Environment.UserName;
             var wait = parseResult.GetValue(AgentCommandOptions.ThreadWaitOption);
             var noWait = parseResult.GetValue(AgentCommandOptions.ThreadNoWaitOption);
+            var agent = parseResult.GetValue(AgentCommandOptions.ChatAgentNameOption);
 
             // Default behavior is to wait unless --no-wait is specified
             // If --wait was explicitly provided, respect its value, otherwise default to true
@@ -39,7 +44,7 @@ public static class ThreadCommandHandlers
 
             // Step 1: Create a new thread
             Console.WriteLine("Creating new thread...");
-            var (createSuccess, threadId, createResponse) = await apiService.CreateThreadAsync(message, userId, displayName);
+            var (createSuccess, threadId, createResponse) = await apiService.CreateThreadAsync(message, userId, displayName, agent);
 
             if (!createSuccess)
             {
@@ -81,6 +86,56 @@ public static class ThreadCommandHandlers
         catch (Exception ex)
         {
             Console.WriteLine($"Failed to send message: {ex.Message}");
+            Environment.Exit(1);
+        }
+    }
+
+    public static async Task HandleThreadApplyCommand(ParseResult parseResult)
+    {
+        try
+        {
+            var filePath = parseResult.GetValue(AgentCommandOptions.ApplyYamlFileOption);
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                Console.WriteLine("--file is required");
+                Environment.Exit(1);
+                return;
+            }
+            if (!File.Exists(filePath))
+            {
+                Console.WriteLine($"File not found: {filePath}");
+                Environment.Exit(1);
+                return;
+            }
+
+            var yaml = await File.ReadAllTextAsync(filePath);
+            var des = new YamlDotNet.Serialization.DeserializerBuilder()
+                .WithNamingConvention(YamlDotNet.Serialization.NamingConventions.UnderscoredNamingConvention.Instance)
+                .IgnoreUnmatchedProperties()
+                .Build();
+            var manifest = des.Deserialize<Agent.Common.Core.Manifests.ThreadManifest>(yaml);
+            if (manifest == null || manifest.Spec == null || !string.Equals(manifest.Kind, "Thread", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine("YAML kind must be Thread");
+                Environment.Exit(1);
+                return;
+            }
+
+            using var apiService = new ApiService();
+            var userId = manifest.Spec.UserId ?? Environment.UserName;
+            var displayName = manifest.Spec.DisplayName ?? Environment.UserName;
+            var (ok, threadId, resp) = await apiService.CreateThreadAsync(manifest.Spec.Message, userId, displayName, manifest.Spec.Agent);
+            Console.WriteLine(resp);
+            if (ok)
+            {
+                var tm = new ThreadManagerService();
+                await tm.AddThreadAsync(threadId, manifest.Spec.Message);
+            }
+            Environment.Exit(ok ? 0 : 1);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to apply thread YAML: {ex.Message}");
             Environment.Exit(1);
         }
     }

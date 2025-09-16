@@ -2372,6 +2372,304 @@ public class ApiService : IDisposable
         }
     }
 
+    // Scheduled Tasks API methods
+    public async Task<List<JsonNode>?> GetScheduledTasksAsync()
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                DebugLogger.Debug("No configuration found");
+                return null;
+            }
+
+            var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/scheduledtasks";
+            DebugLogger.LogHttpRequest("GET", url);
+
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+            
+            // Add auth header if not localhost
+            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
+            {
+                var token = await GetAccessTokenAsync();
+                if (string.IsNullOrEmpty(token))
+                {
+                    DebugLogger.Debug("No access token available");
+                    return null;
+                }
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var response = await _httpClient.SendAsync(request);
+            var responseContent = await response.Content.ReadAsStringAsync();
+            DebugLogger.LogHttpResponse((int)response.StatusCode, response.ReasonPhrase ?? "", responseContent);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonArray = JsonSerializer.Deserialize<JsonArray>(responseContent);
+                return jsonArray?.Select(item => item?.AsObject()).Where(item => item != null).Cast<JsonNode>().ToList()!;
+            }
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug($"Error getting scheduled tasks: {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task<JsonNode?> GetScheduledTaskAsync(string taskId)
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                DebugLogger.Debug("No configuration found");
+                return null;
+            }
+
+            var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/scheduledtasks/{taskId}";
+            DebugLogger.LogHttpRequest("GET", url);
+
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+            
+            // Add auth header if not localhost
+            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
+            {
+                var token = await GetAccessTokenAsync();
+                if (string.IsNullOrEmpty(token))
+                {
+                    DebugLogger.Debug("No access token available");
+                    return null;
+                }
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var response = await _httpClient.SendAsync(request);
+            var responseContent = await response.Content.ReadAsStringAsync();
+            DebugLogger.LogHttpResponse((int)response.StatusCode, response.ReasonPhrase ?? "", responseContent);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return JsonNode.Parse(responseContent);
+            }
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug($"Error getting scheduled task {taskId}: {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task<(bool success, string message)> CreateScheduledTaskAsync(JsonNode task)
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return (false, "No configuration found");
+            }
+
+            var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/scheduledtasks";
+            var json = task.ToJsonString();
+            DebugLogger.LogHttpRequest("POST", url, "application/json", json);
+
+            var request = new HttpRequestMessage(HttpMethod.Post, url)
+            {
+                Content = new StringContent(json, Encoding.UTF8, "application/json")
+            };
+            
+            // Add auth header if not localhost
+            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
+            {
+                var token = await GetAccessTokenAsync();
+                if (string.IsNullOrEmpty(token))
+                {
+                    return (false, "Failed to get access token. Please run 'az login' first.");
+                }
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var response = await _httpClient.SendAsync(request);
+            var responseContent = await response.Content.ReadAsStringAsync();
+            DebugLogger.LogHttpResponse((int)response.StatusCode, response.ReasonPhrase ?? "", responseContent);
+
+            return response.IsSuccessStatusCode 
+                ? (true, "Scheduled task created successfully") 
+                : (false, responseContent);
+        }
+        catch (Exception ex)
+        {
+            return (false, $"Failed to create scheduled task: {ex.Message}");
+        }
+    }
+
+    public async Task<bool> UpdateScheduledTaskAsync(string taskId, JsonNode updates)
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return false;
+            }
+
+            var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/scheduledtasks/{taskId}";
+            var json = updates.ToJsonString();
+            DebugLogger.LogHttpRequest("PUT", url, "application/json", json);
+
+            var request = new HttpRequestMessage(HttpMethod.Put, url)
+            {
+                Content = new StringContent(json, Encoding.UTF8, "application/json")
+            };
+            
+            // Add auth header if not localhost
+            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
+            {
+                var token = await GetAccessTokenAsync();
+                if (string.IsNullOrEmpty(token))
+                {
+                    return false;
+                }
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var response = await _httpClient.SendAsync(request);
+            var responseContent = await response.Content.ReadAsStringAsync();
+            DebugLogger.LogHttpResponse((int)response.StatusCode, response.ReasonPhrase ?? "", responseContent);
+
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug($"Error updating scheduled task {taskId}: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<bool> DeleteScheduledTaskAsync(string taskId)
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return false;
+            }
+
+            var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/scheduledtasks/{taskId}";
+            DebugLogger.LogHttpRequest("DELETE", url);
+
+            var request = new HttpRequestMessage(HttpMethod.Delete, url);
+            
+            // Add auth header if not localhost
+            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
+            {
+                var token = await GetAccessTokenAsync();
+                if (string.IsNullOrEmpty(token))
+                {
+                    return false;
+                }
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var response = await _httpClient.SendAsync(request);
+            var responseContent = await response.Content.ReadAsStringAsync();
+            DebugLogger.LogHttpResponse((int)response.StatusCode, response.ReasonPhrase ?? "", responseContent);
+
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug($"Error deleting scheduled task {taskId}: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<bool> PauseScheduledTaskAsync(string taskId)
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return false;
+            }
+
+            var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/scheduledtasks/{taskId}/pause";
+            DebugLogger.LogHttpRequest("POST", url);
+
+            var request = new HttpRequestMessage(HttpMethod.Post, url);
+            
+            // Add auth header if not localhost
+            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
+            {
+                var token = await GetAccessTokenAsync();
+                if (string.IsNullOrEmpty(token))
+                {
+                    return false;
+                }
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var response = await _httpClient.SendAsync(request);
+            var responseContent = await response.Content.ReadAsStringAsync();
+            DebugLogger.LogHttpResponse((int)response.StatusCode, response.ReasonPhrase ?? "", responseContent);
+
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug($"Error pausing scheduled task {taskId}: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<bool> ResumeScheduledTaskAsync(string taskId)
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return false;
+            }
+
+            var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/scheduledtasks/{taskId}/resume";
+            DebugLogger.LogHttpRequest("POST", url);
+
+            var request = new HttpRequestMessage(HttpMethod.Post, url);
+            
+            // Add auth header if not localhost
+            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
+            {
+                var token = await GetAccessTokenAsync();
+                if (string.IsNullOrEmpty(token))
+                {
+                    return false;
+                }
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var response = await _httpClient.SendAsync(request);
+            var responseContent = await response.Content.ReadAsStringAsync();
+            DebugLogger.LogHttpResponse((int)response.StatusCode, response.ReasonPhrase ?? "", responseContent);
+
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug($"Error resuming scheduled task {taskId}: {ex.Message}");
+            return false;
+        }
+    }
+
     public void Dispose()
     {
         _httpClient?.Dispose();

@@ -74,7 +74,8 @@ public static class CommandBuilder
         // Add default action for list command to show formatted help
         listCommand.SetAction((ParseResult pr) => ShowFormattedListHelp(listCommand));
         var applyYamlCommand = CreateApplyYamlCommand();
-        var threadCommand = CreateThreadCommand();
+    var threadCommand = CreateThreadCommand();
+    var scheduledTask = BuildScheduledTaskCommand();
 
         // Add default action for thread command to show formatted help
         threadCommand.SetAction((ParseResult pr) => ShowFormattedThreadHelp(threadCommand));
@@ -97,7 +98,7 @@ public static class CommandBuilder
         {
             welcomeCommand, helpCommand, statusCommand, interactiveCommand, versionCommand,
             initCommand, syncCommand, listCommand, applyYamlCommand, threadCommand, chatCommand,
-            agent, tool, doc, profile, incidentHandler
+            agent, tool, doc, profile, incidentHandler, scheduledTask
         };
 
         // Single root action (runs when no verb provided)
@@ -517,6 +518,7 @@ public static class CommandBuilder
             AgentCommandOptions.ThreadMessageOption,
             AgentCommandOptions.ThreadUserIdOption,
             AgentCommandOptions.ThreadDisplayNameOption,
+            AgentCommandOptions.ChatAgentNameOption,
             AgentCommandOptions.ThreadWaitOption,
             AgentCommandOptions.ThreadNoWaitOption
         };
@@ -560,9 +562,16 @@ public static class CommandBuilder
         };
         threadTrack.SetAction((ParseResult pr) => ThreadCommandHandlers.HandleThreadTrackCommand(pr));
 
+        // Thread apply from YAML manifest
+        var threadApply = new Command("apply", "Create a new thread from a YAML manifest (supports starting agent)")
+        {
+            AgentCommandOptions.ApplyYamlFileOption
+        };
+        threadApply.SetAction((ParseResult pr) => ThreadCommandHandlers.HandleThreadApplyCommand(pr));
+
         var thread = new Command("thread", "Thread management commands")
         {
-            threadNew, threadContinue, threadList, threadDelete, threadTrack
+            threadNew, threadContinue, threadList, threadDelete, threadTrack, threadApply
         };
 
         return thread;
@@ -735,8 +744,6 @@ public static class CommandBuilder
         });
         return cmd;
     }
-
-    // Removed the 'suggest' command as it's no longer needed
 
     private static Command CreateStatusCommand()
     {
@@ -1100,6 +1107,181 @@ public static class CommandBuilder
             "Manage incident handlers and filters for automated incident response",
             ConsoleColor.Red,
             incidentHandlerCommand,
+            commandGroups,
+            groupDescriptions,
+            examples);
+
+        return Task.CompletedTask;
+    }
+
+    private static Command BuildScheduledTaskCommand()
+    {
+    var scheduledTaskCommand = new Command("scheduledtask", "Manage scheduled tasks for automated agent operations");
+
+        var createCommand = new Command("create", "Create a new scheduled task")
+        {
+            ScheduledTaskCommandOptions.CreateNameOption,
+            ScheduledTaskCommandOptions.DescriptionOption,
+            ScheduledTaskCommandOptions.CronExpressionOption,
+            ScheduledTaskCommandOptions.AgentPromptOption,
+            ScheduledTaskCommandOptions.AgentOption,
+            ScheduledTaskCommandOptions.StartTimeOption,
+            ScheduledTaskCommandOptions.EndTimeOption,
+            ScheduledTaskCommandOptions.ThreadIdOption,
+            ScheduledTaskCommandOptions.MaxExecutionsOption,
+            ScheduledTaskCommandOptions.NotificationChannelOption
+        };
+        createCommand.SetAction((ParseResult pr) =>
+        {
+            if (IsHelpRequested(pr))
+                return ShowFormattedSubcommandHelp("Scheduled Task Create", "Create a new scheduled task for automated agent operations", createCommand,
+                    new[] {
+                        "srectl scheduledtask create --name \"Daily Health Check\" --cron \"0 9 * * *\" --prompt \"Check system health\"",
+                        "srectl scheduledtask create --name \"Weekly Report\" --cron \"0 9 * * 1\" --prompt \"Generate weekly report\" --max-executions 4",
+                        "srectl scheduledtask create --name \"Agent Task\" --cron \"0 10 * * *\" --prompt \"Run daily checks\" --agent \"ProductionAgent\""
+                    });
+            return ScheduledTaskCommandHandlers.HandleCreateCommand(pr);
+        });
+
+        var listCommand = new Command("list", "List all scheduled tasks")
+        {
+            ScheduledTaskCommandOptions.VerboseOption,
+            ScheduledTaskCommandOptions.FilterThreadIdOption,
+            ScheduledTaskCommandOptions.FilterStatusOption
+        };
+        listCommand.SetAction((ParseResult pr) =>
+        {
+            if (IsHelpRequested(pr))
+                return ShowFormattedSubcommandHelp("Scheduled Task List", "List all scheduled tasks from the remote server", listCommand,
+                    new[] {
+                        "srectl scheduledtask list",
+                        "srectl scheduledtask list --verbose",
+                        "srectl scheduledtask list --status Active"
+                    });
+            return ScheduledTaskCommandHandlers.HandleListCommand(pr);
+        });
+
+        var getCommand = new Command("get", "Get details of a specific scheduled task")
+        {
+            ScheduledTaskCommandOptions.RequiredTaskIdOption
+        };
+        getCommand.SetAction((ParseResult pr) =>
+        {
+            if (IsHelpRequested(pr))
+                return ShowFormattedSubcommandHelp("Scheduled Task Get", "Get detailed information about a specific scheduled task", getCommand,
+                    new[] {
+                        "srectl scheduledtask get --id task-123",
+                        "srectl scheduledtask get --id daily-health-check"
+                    });
+            return ScheduledTaskCommandHandlers.HandleGetCommand(pr);
+        });
+
+        var pauseCommand = new Command("pause", "Pause a scheduled task")
+        {
+            ScheduledTaskCommandOptions.RequiredTaskIdOption
+        };
+        pauseCommand.SetAction((ParseResult pr) =>
+        {
+            if (IsHelpRequested(pr))
+                return ShowFormattedSubcommandHelp("Scheduled Task Pause", "Pause a scheduled task to stop its execution", pauseCommand,
+                    new[] {
+                        "srectl scheduledtask pause --id task-123",
+                        "srectl scheduledtask pause --id daily-health-check"
+                    });
+            return ScheduledTaskCommandHandlers.HandlePauseCommand(pr);
+        });
+
+        var resumeCommand = new Command("resume", "Resume a paused scheduled task")
+        {
+            ScheduledTaskCommandOptions.RequiredTaskIdOption
+        };
+        resumeCommand.SetAction((ParseResult pr) =>
+        {
+            if (IsHelpRequested(pr))
+                return ShowFormattedSubcommandHelp("Scheduled Task Resume", "Resume a paused scheduled task", resumeCommand,
+                    new[] {
+                        "srectl scheduledtask resume --id task-123",
+                        "srectl scheduledtask resume --id daily-health-check"
+                    });
+            return ScheduledTaskCommandHandlers.HandleResumeCommand(pr);
+        });
+
+        var deleteCommand = new Command("delete", "Delete a scheduled task")
+        {
+            ScheduledTaskCommandOptions.RequiredTaskIdOption
+        };
+        deleteCommand.SetAction((ParseResult pr) =>
+        {
+            if (IsHelpRequested(pr))
+                return ShowFormattedSubcommandHelp("Scheduled Task Delete", "Permanently delete a scheduled task", deleteCommand,
+                    new[] {
+                        "srectl scheduledtask delete --id task-123",
+                        "srectl scheduledtask delete --id old-maintenance-task"
+                    });
+            return ScheduledTaskCommandHandlers.HandleDeleteCommand(pr);
+        });
+
+        // Quickstart creates a minimal hello-world manifest interactively and applies it
+        var quickstart = new Command("quickstart", "Interactive hello-world scheduled task wizard")
+        {
+            ScheduledTaskCommandOptions.QuickstartNameOption,
+            ScheduledTaskCommandOptions.QuickstartCronOption,
+            ScheduledTaskCommandOptions.QuickstartDurationHoursOption,
+            ScheduledTaskCommandOptions.QuickstartAgentOption,
+            ScheduledTaskCommandOptions.QuickstartApplyOption
+        };
+        quickstart.SetAction((ParseResult pr) => ScheduledTaskCommandHandlers.HandleQuickstartCommand(pr));
+
+        // Apply a YAML manifest for a scheduled task
+        var apply = new Command("apply", "Apply a ScheduledTask YAML manifest (apiVersion/kind/spec)")
+        {
+            AgentCommandOptions.ApplyYamlFileOption
+        };
+        apply.SetAction((ParseResult pr) => ScheduledTaskCommandHandlers.HandleApplyYamlCommand(pr));
+
+        scheduledTaskCommand.Add(createCommand);
+        scheduledTaskCommand.Add(listCommand);
+        scheduledTaskCommand.Add(getCommand);
+        scheduledTaskCommand.Add(pauseCommand);
+        scheduledTaskCommand.Add(resumeCommand);
+        scheduledTaskCommand.Add(deleteCommand);
+        scheduledTaskCommand.Add(quickstart);
+        scheduledTaskCommand.Add(apply);
+
+        // Add default action for scheduled task command to show formatted help
+        scheduledTaskCommand.SetAction((ParseResult pr) => ShowFormattedScheduledTaskHelp(scheduledTaskCommand));
+
+        return scheduledTaskCommand;
+    }
+
+    private static Task ShowFormattedScheduledTaskHelp(Command scheduledTaskCommand)
+    {
+        var commandGroups = new Dictionary<string, string[]>
+        {
+            ["Task Management"] = new[] { "create", "list", "get" },
+            ["Task Control"] = new[] { "pause", "resume", "delete" }
+        };
+
+        var groupDescriptions = new Dictionary<string, string>
+        {
+            ["Task Management"] = "Create and view scheduled tasks",
+            ["Task Control"] = "Control execution and lifecycle of scheduled tasks"
+        };
+
+        var examples = new[]
+        {
+            "srectl scheduledtask create --name \"Daily Check\" --cron \"0 9 * * *\" --prompt \"Check system status\"",
+            "srectl scheduledtask create --name \"Agent Check\" --cron \"0 10 * * *\" --prompt \"Run checks\" --agent \"MyAgent\"",
+            "srectl scheduledtask list --verbose",
+            "srectl scheduledtask pause --id task-123",
+            "srectl scheduledtask resume --id task-123"
+        };
+
+        StandardHelpFormatter.ShowCommandGroupHelp(
+            "Scheduled Task Commands",
+            "Manage scheduled tasks for automated agent operations and monitoring",
+            ConsoleColor.Blue,
+            scheduledTaskCommand,
             commandGroups,
             groupDescriptions,
             examples);

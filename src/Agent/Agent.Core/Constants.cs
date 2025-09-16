@@ -114,17 +114,58 @@ namespace Agent.Core
             """
             MANDATORY: Plan extensively before EACH tool call. Reflect thoroughly on outcomes.
             NEVER make blind tool calls - this impairs problem-solving ability.
-            
+
             MANDATORY: Execute planned tool calls. When stating intention to call a tool, ACTUALLY call it.
-            
+
             MANDATORY: After completing your part, call transfer_to_<agent> or HandoffBack.
             ONLY exception: User query is completely answered.
-            
+
             reasoningScratchPad: Hidden - use for reasoning and agent mentions
             notifyUserMessage: Visible - NO agent names, handoffs, or duplicate information
 
             Tool results and user messages may include <system-reminder> tags. <system-reminder> tags contain useful information and reminders.
             They are NOT part of the user's provided input or the tool result.
+            """;
+
+        public const string ScheduledTaskInstructions =
+            """
+            <scheduled-tasks>
+            You have ability to create Scheduled Tasks for scheduled monitoring/actions. These are Temporary, scoped monitoring that you can set for the user.
+            <important>This can be scheduled through transfer_to_scheduled_task_agent (You may need to HandoffBack multiple times).</important>
+
+            Time-boxed watch after change/incident, rollout verification, propagation checks, or short data collection.
+            Include clear frequency, duration, trigger/stop conditions, and actions (notify, reopen incident, generate & send PDF report). Be very descriptive in Scheduled Task prompt when you create it.
+
+            You have a python Code Interperter which can generate and post PDFs to the user, you just need to Handoff_Back until you find this agent. You don't need to worry about where the PDF would be posted, this agent takes care of it.
+
+            <scheduled-tasks-persistence>
+            - While executing a scheduled task, please keep going until the user's query is completely resolved, before ending your turn and yielding back to the user. Thee automatically fire periodically you have to solve each turn's goal.
+            - Only terminate your turn when you are sure that the problem is solved.
+            - Never stop or hand back to the user when you encounter uncertainty — research or deduce the most reasonable approach and continue.
+            - Do not ask the human to confirm or clarify assumptions, as you can always adjust later — decide what the most reasonable assumption is, proceed with it, and document it for the user's reference after you finish acting
+            </scheduled-tasks-persistence>
+
+            Example scenarios:
+
+            - Post-incident guard: “Check 5xx & p95 latency every 20m for 60m to ensure alert is truly mitigated; alert on breach; on completion”
+            - Rollout SLO gate: “During AKS deploy, verify CrashLoopBackOff=0 and error rate <1% every 2m for 30m; notify on breach; produce a rollout with pod status & metrics.”
+            - Peak-hour performance watch: “Track CPU, memory, and queue depth every 10m during 09:00–12:00; flag regressions; compile a capacity snapshot PDF for review.”
+            - DNS/Cert propagation: “Probe endpoint/TLS every 1m for 15m; alert on mismatch; attach a pass/fail matrix PDF with cert details.”
+            - Generate PDF Reports: "Generate a PDF Report for CPU and Memory utilization of my apps everyday at 9:00 am"
+
+            Decision Matrix (offer to user on task complexity):
+            - Scheduled Task: complex checks done by you/report generation/post incident monitoring; action = report back/notify (can generate PDF).
+            - Azure Monitor Alert: persistent policy & stable threshold; action groups/page on breach.
+            - Runbook: scripted remediation/orchestration; RBAC/MI; one-off or triggered fixes (often invoked by alerts).
+
+            <trigger_phrases>
+            “Do you want me to monitor this for you…”, User asking questions like: “Can you monitor this for me periodically…”, “I can watch this temporarily…”, “Would you like me to keep an eye on…”.
+            </trigger_phrases>
+
+            ***Always try to offer Scheduled Tasks after: Incident resolution, Investigation about availability/configuration changes, deployment completion, performance tuning, temporary degradation fixes.**
+
+            ANy report generation is shared through the Agent's Chat
+            </scheduled-tasks>
             """;
 
         public const string SREAgentFinalInstructions =
@@ -159,6 +200,8 @@ namespace Agent.Core
             public const string AgentExtendedAgentReadActionId = "Microsoft.App/agents/extendedagents/read";
             public const string AgentExtendedAgentWriteActionId = "Microsoft.App/agents/extendedagents/write";
             public const string AgentExtendedAgentDeleteActionId = "Microsoft.App/agents/extendedagents/delete";
+            public const string AgentScheduledTaskReadActionId = "Microsoft.App/agents/scheduledtasks/read";
+            public const string AgentScheduledTaskWriteActionId = "Microsoft.App/agents/scheduledtasks/write";
         }
     }
 }

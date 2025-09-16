@@ -48,6 +48,7 @@
     <ProjectReference Include="..\Agent.Graph\Agent.Graph.csproj" />
     <ProjectReference Include="..\Agent.Prometheus\Agent.Prometheus.csproj" />
     <ProjectReference Include="..\Agent.Framework\Agent.Framework.csproj" />
+    <ProjectReference Include="..\Agent.ScheduledTasks\Agent.ScheduledTasks.csproj" />
   </ItemGroup>
 
 	<ItemGroup>

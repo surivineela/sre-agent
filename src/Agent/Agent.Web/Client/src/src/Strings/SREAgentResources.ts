@@ -1812,6 +1812,81 @@ export const DailyReportsTabResources = defineMessages({
     selectADate: { defaultMessage: 'Select a date', id: '7qOQpv' },
 });
 
+export const ScheduledTasksResources = defineMessages({
+    scheduledTasks: { defaultMessage: 'Scheduled tasks', id: 'sy7vzf' },
+    scheduledTask: { defaultMessage: 'Scheduled task', id: 'dG8VrM' },
+    createScheduledTask: { defaultMessage: 'Create scheduled task', id: 'dJqE3e' },
+    editScheduledTask: { defaultMessage: 'Edit scheduled task', id: '6ZDt71' },
+    deleteScheduledTask: { defaultMessage: 'Delete scheduled task', id: 'IYLPrk' },
+    name: { defaultMessage: 'Name', id: 'HAlOn1' },
+    description: { defaultMessage: 'Description', id: 'Q8Qw5B' },
+    status: { defaultMessage: 'Status', id: 'tzMNF3' },
+    schedule: { defaultMessage: 'Schedule', id: 'hGQqkW' },
+    cronExpression: { defaultMessage: 'Cron expression', id: 'YmslQP' },
+    agentPrompt: { defaultMessage: 'Agent prompt', id: 'KsuM4D' },
+    lastExecution: { defaultMessage: 'Last execution', id: 'o9bCTX' },
+    nextExecution: { defaultMessage: 'Next execution', id: 'jlOO/9' },
+    executionCount: { defaultMessage: 'Execution count', id: 'KS5JHs' },
+    maxExecutions: { defaultMessage: 'Max executions', id: 'oXd3cw' },
+    startTime: { defaultMessage: 'Start time', id: '/zFP1/' },
+    endTime: { defaultMessage: 'End time', id: 'yc/tuy' },
+    threadId: { defaultMessage: 'Thread ID', id: 'ggVnjB' },
+    createdBy: { defaultMessage: 'Created by', id: 'p4mBmL' },
+    createdAt: { defaultMessage: 'Created at', id: 'AbXVP4' },
+    active: { defaultMessage: 'Active', id: '3a5wL8' },
+    paused: { defaultMessage: 'Paused', id: 'C2iTEH' },
+    completed: { defaultMessage: 'Completed', id: '95stPq' },
+    failed: { defaultMessage: 'Failed', id: 'vXCeIi' },
+    pause: { defaultMessage: 'Pause', id: 'tFFMkF' },
+    resume: { defaultMessage: 'Resume', id: '3y9DGg' },
+    executionHistory: { defaultMessage: 'Execution history', id: 'MPzBut' },
+    noScheduledTasks: { defaultMessage: 'No scheduled tasks found', id: 'trPabo' },
+    scheduledTasksDescription: {
+        defaultMessage: 'Create and manage scheduled tasks to automatically run agent actions at regular intervals.',
+        id: '2HM8tn',
+    },
+    createScheduledTaskDescription: {
+        defaultMessage: 'Create a new scheduled task to monitor or perform actions at regular intervals using cron expressions.',
+        id: 'MSWnaq',
+    },
+    deleteScheduledTaskConfirmation: {
+        defaultMessage: 'Are you sure you want to delete this scheduled task? This action cannot be undone.',
+        id: 'oDb8Xv',
+    },
+    pauseScheduledTaskConfirmation: {
+        defaultMessage: 'Are you sure you want to pause this scheduled task?',
+        id: '1xZjpU',
+    },
+    resumeScheduledTaskConfirmation: {
+        defaultMessage: 'Are you sure you want to resume this scheduled task?',
+        id: '1DDIYv',
+    },
+    invalidCronExpression: {
+        defaultMessage: 'Invalid cron expression. Please use format: minute hour day month day-of-week',
+        id: 'TZWmvi',
+    },
+    taskCreatedSuccessfully: {
+        defaultMessage: 'Scheduled task created successfully',
+        id: 'LFn7Ak',
+    },
+    taskUpdatedSuccessfully: {
+        defaultMessage: 'Scheduled task updated successfully',
+        id: 'v8cTK0',
+    },
+    taskDeletedSuccessfully: {
+        defaultMessage: 'Scheduled task deleted successfully',
+        id: 'X5UCWb',
+    },
+    taskPausedSuccessfully: {
+        defaultMessage: 'Scheduled task paused successfully',
+        id: 'vEHhXK',
+    },
+    taskResumedSuccessfully: {
+        defaultMessage: 'Scheduled task resumed successfully',
+        id: 'ak4FqD',
+    },
+});
+
 export const SubAgentsResources = defineMessages({
     noSubAgents: { defaultMessage: 'No sub-agents configured', id: 'VIgoaE' },
     runHistory: { defaultMessage: 'Run History', id: 'LnglaU' },

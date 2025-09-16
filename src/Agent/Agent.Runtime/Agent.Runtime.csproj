@@ -32,6 +32,7 @@
     <ProjectReference Include="..\Agent.Framework\Agent.Framework.csproj" />
     <ProjectReference Include="..\Agent.Logging\Agent.Logging.csproj" />
     <ProjectReference Include="..\Agent.Plugins\Agent.Plugins.csproj" />
+    <ProjectReference Include="..\Agent.ScheduledTasks\Agent.ScheduledTasks.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,5 +1,5 @@
 import { AzureThemeDark, AzureThemeLight } from '@fluentui/azure-themes';
-import { ThemeProvider } from '@fluentui/react';
+import { initializeIcons, ThemeProvider } from '@fluentui/react';
 import { FluentProvider, webDarkTheme, webLightTheme } from '@fluentui/react-components';
 import { useEffect, useState } from 'react';
 import './App.css';
@@ -21,6 +21,7 @@ const App: React.FC = () => {
 
     useEffect(() => {
         portalProxy.initialize(setEnvironmentInfo);
+        initializeIcons();
     }, [setEnvironmentInfo]);
 
     // When we're running in standalone mode, we won't be getting any environment information

@@ -1,0 +1,125 @@
+import { makeStyles, tokens } from '@fluentui/react-components';
+
+export const useScheduledTasksStyles = makeStyles({
+    root: {
+        display: 'flex',
+        flexDirection: 'column',
+        margin: '16px 20px 5px 20px',
+        borderRadius: tokens.borderRadiusXLarge,
+        boxShadow: tokens.shadow4,
+        backgroundColor: tokens.colorNeutralBackground1,
+        height: 'calc(100vh - 67px)',
+        overflow: 'hidden',
+        position: 'relative',
+        flex: 1,
+    },
+    content: {
+        display: 'flex',
+        flexDirection: 'column',
+        overflowY: 'auto',
+        position: 'relative',
+        flex: 1,
+    },
+    padding: {
+        padding: '16px',
+        height: 'calc(100% - 32px)',
+    },
+    toolbar: {
+        display: 'flex',
+        justifyContent: 'start',
+        gap: '8px',
+        padding: '20px',
+        paddingLeft: '0px',
+    },
+    divider: {
+        width: '1px',
+        height: '24px',
+        backgroundColor: tokens.colorNeutralStroke2,
+        alignSelf: 'center',
+    },
+    button: {
+        fontWeight: 400,
+        padding: 0,
+        minWidth: '20px',
+    },
+    dangerButton: {
+        backgroundColor: tokens.colorStatusDangerBackground3,
+        color: `${tokens.colorNeutralForegroundInverted} !important`,
+        ':hover': {
+            backgroundColor: tokens.colorStatusDangerBackground3Hover,
+        },
+        ':active': {
+            backgroundColor: tokens.colorStatusDangerBackground3Pressed,
+        },
+    },
+    description: {
+        paddingBottom: '16px',
+        color: tokens.colorNeutralForeground2,
+        fontSize: '14px',
+        lineHeight: '20px',
+    },
+    emptyState: {
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '60vh',
+        textAlign: 'center',
+        gap: '24px',
+        marginLeft: '20px',
+        marginRight: '20px',
+    },
+    emptyStateIcon: {
+        width: '80px',
+        height: '80px',
+        borderRadius: '50%',
+        backgroundColor: tokens.colorNeutralBackground3,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '32px',
+        color: tokens.colorNeutralForeground2,
+    },
+    emptyStateTitle: {
+        fontSize: '24px',
+        fontWeight: 600,
+        marginBottom: '8px',
+        color: tokens.colorNeutralForeground1,
+    },
+    emptyStateDescription: {
+        color: tokens.colorNeutralForeground2,
+        marginBottom: '16px',
+        maxWidth: '400px',
+        lineHeight: '20px',
+    },
+    spinner: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '300px',
+        gap: '20px',
+    },
+    spinnerText: {
+        color: tokens.colorNeutralForeground2,
+        fontSize: '16px',
+    },
+    connectionIndicator: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '4px',
+        marginLeft: 'auto',
+        marginRight: '16px',
+        fontSize: '13px',
+        color: tokens.colorNeutralForeground2,
+    },
+    successIcon: {
+        color: tokens.colorPaletteGreenForeground1,
+    },
+    warningIcon: {
+        color: tokens.colorPaletteYellowForeground1,
+    },
+    errorIcon: {
+        color: tokens.colorStatusDangerForeground1,
+    },
+});

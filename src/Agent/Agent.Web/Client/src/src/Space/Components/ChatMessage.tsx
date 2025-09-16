@@ -16,11 +16,14 @@ import { shouldGroupWithPreviousMessage } from '../Activities/Utility';
 import { IChatMessageProps } from '../Contracts/Activities';
 import { ThreadAgentModeContext } from '../Contracts/Context';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
+import { useScheduledTaskMessage } from '../Hooks/useScheduledTaskMessage';
 import { getChatBoxV2Styles, nameAndTimestampContainerStyle, useChatBoxStyles } from '../Styles/Activities.styles';
 import AgentMessage from './AgentMessage';
 import AgentMessageLoadingComponent from './AgentMessageLoadingComponent';
 import ChatMessageFooter from './ChatMessageFooter';
 import ConnectionErrorComponent from './ConnectionErrorComponent';
+import ScheduledTaskCreationCard from './ScheduledTaskCreationCard';
+import ScheduledTaskExecutionCard from './ScheduledTaskExecutionCard';
 import DeepInvestigationStatusMessage from './DeepInvestigationStatusMessage';
 
 const chatMessageStyles = mergeStyleSets({
@@ -114,6 +117,33 @@ const ChatMessage = ({
 
     // Hide message's icon, name and timestamp if the message is grouped with the previous one
     const hideMessageHeader = useMemo(() => shouldGroupWithPreviousMessage(message, previousMessage), [message, previousMessage]);
+
+    // Check if user message contains a scheduled task execution (called at top level to satisfy React hooks rules)
+    const userMessageText = message.contents?.[0]?.text || '';
+    const userScheduledTaskData = useScheduledTaskMessage(userMessageText);
+
+    // If the previous message is an agent scheduled task creation/execution card and this user message only repeats the same
+    // structured marker (e.g., user echo of system JSON), suppress rendering to reduce noise.
+    const suppressEchoedScheduledTask = useMemo(() => {
+        if (!previousMessage) return false;
+        const prevText = previousMessage.contents?.[0]?.text || '';
+        // Only consider suppression if current is user plain text and not parsed into special card.
+        if (userScheduledTaskData.isScheduledTaskMessage || userScheduledTaskData.isScheduledTaskCreationMessage) return false;
+        const hasMarker = /\[(SCHEDULED_TASK_CREATED|SCHEDULED_TASK_EXECUTION)\]/.test(userMessageText);
+        if (!hasMarker) return false;
+        // If previous already had the same marker type, hide this one.
+        const prevMarkerMatch = prevText.match(/\[(SCHEDULED_TASK_CREATED|SCHEDULED_TASK_EXECUTION)\]/);
+        const currMarkerMatch = userMessageText.match(/\[(SCHEDULED_TASK_CREATED|SCHEDULED_TASK_EXECUTION)\]/);
+        if (prevMarkerMatch && currMarkerMatch && prevMarkerMatch[1] === currMarkerMatch[1]) {
+            return true;
+        }
+        return false;
+    }, [
+        previousMessage,
+        userMessageText,
+        userScheduledTaskData.isScheduledTaskMessage,
+        userScheduledTaskData.isScheduledTaskCreationMessage,
+    ]);
 
     const Loading = () => {
         return (
@@ -214,9 +244,35 @@ const ChatMessage = ({
                             </Text>
                         </div>
                     )}
-                    <UserMessage className={chatStyles.userBubble} message={{ className: chatStyles.userBubbleMessage }} key={message.id}>
-                        <ReactMarkdownComponent key={message.id} content={message.contents?.[0]?.text} variant="chat" isUserMessage />
-                    </UserMessage>
+                    {suppressEchoedScheduledTask ? null : userScheduledTaskData.isScheduledTaskCreationMessage &&
+                      userScheduledTaskData.task ? (
+                        <ScheduledTaskCreationCard
+                            data={{
+                                taskId: userScheduledTaskData.task.id,
+                                taskName: userScheduledTaskData.task.name,
+                                description: userScheduledTaskData.task.description,
+                                cronExpression: userScheduledTaskData.task.cronExpression,
+                                agentPrompt: userScheduledTaskData.task.agentPrompt,
+                                status: userScheduledTaskData.task.status,
+                                durationText: 'No limit',
+                                maxExecutionsText: 'No limit',
+                                createdAt: userScheduledTaskData.task.createdAt,
+                            }}
+                        />
+                    ) : suppressEchoedScheduledTask ? null : userScheduledTaskData.isScheduledTaskMessage && userScheduledTaskData.task ? (
+                        <ScheduledTaskExecutionCard
+                            task={userScheduledTaskData.task}
+                            executionTime={userScheduledTaskData.executionTime?.toISOString()}
+                        />
+                    ) : (
+                        <UserMessage
+                            className={chatStyles.userBubble}
+                            message={{ className: chatStyles.userBubbleMessage }}
+                            key={message.id}
+                        >
+                            <ReactMarkdownComponent key={message.id} content={userMessageText} variant="chat" isUserMessage />
+                        </UserMessage>
+                    )}
                 </div>
             );
     }

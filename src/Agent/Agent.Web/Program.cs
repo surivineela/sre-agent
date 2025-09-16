@@ -12,6 +12,7 @@ using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
+using Agent.ScheduledTasks.Services;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Framework;
@@ -209,6 +210,10 @@ public class Program
         builder.Services.Configure<StorageSettings>(
             builder.Configuration.GetSection("AppSettings:Core:Azure:Storage"));
 
+        // Configure Scheduled Task settings
+        builder.Services.Configure<ScheduledTaskSettings>(
+            builder.Configuration.GetSection("AppSettings:Core:Azure:ScheduledTasks"));
+
         // Add AzureSearchSettings registration
         builder.Services.AddSingleton<Agent.Core.Configuration.AzureSearchSettings>(sp =>
         {
@@ -381,6 +386,7 @@ public class Program
             .AddTransient<AzureDevOpsWorkItemPluginDefinition>()
             .AddTransient<SourceCodeAnalysisAgentPluginDefinition>()
             .AddTransient<RoleAssignmentPluginDefinition>()
+            .AddTransient<CodeInterpreterPluginDefinition>()
             .AddTransient<PagerDutyIncidentPluginDefinition>()
             .AddTransient<FunctionAppExecutionFailuresPluginDefinition>()
             .AddTransient<FunctionAppConfigurationChecksPluginDefinition>()
@@ -397,6 +403,7 @@ public class Program
             .AddTransient<WebAppPluginDefinition>()
             .AddTransient<IServiceNowPlugin, ServiceNowPlugin>()
             .AddTransient<ServiceNowPluginDefinition>()
+            .AddTransient<ScheduledTaskPluginDefinition>()
             .AddTransient<KustoPlugin>()
             .AddSingleton<DynamicKqlToolsPlugin>()
             .AddTransient<KustoToolType>()
@@ -420,6 +427,7 @@ public class Program
             .AddTransient<IFunctionAppExecutionFailuresPlugin, FunctionAppExecutionFailuresPlugin>()
             .AddTransient<IAzureMonitorMetricsPlugin, AzureMonitorMetricsPlugin>()
             .AddTransient<IArmPlugin, ArmPlugin>()
+            .AddTransient<ICodeInterpreterPlugin, CodeInterpreterPlugin>()
             .AddTransient<IAPIManagementPlugin, APIManagementPlugin>()
             .AddTransient<IGenevaActionsPlugin, GenevaActionsPlugin>()
             .AddTransient<AgentHelperService>()
@@ -519,6 +527,18 @@ public class Program
             var extensibilityLoader = sp.GetRequiredService<IExtensibilityLoader>();
             bool isGPT5Enabled = GPT5Enabled(builder);
             bool agentMemoryRetrievalEnabled = AgentMemoryRetrievalEnabled(builder);
+            // Get ScheduledTaskSettings to determine if scheduled tasks should be enabled
+            var scheduledTaskSettings = sp.GetRequiredService<IConfiguration>()
+                .GetSection("AppSettings:Core:Azure:ScheduledTasks")
+                .Get<ScheduledTaskSettings>();
+            var isScheduledTaskEnabled = scheduledTaskSettings?.Enabled ?? false;
+
+            // Build promptStarters array conditionally based on scheduled task enablement
+            var promptStarters = new List<string> { Core.Constants.SREAgentPromptStarter };
+            if (isScheduledTaskEnabled)
+            {
+                promptStarters.Add(Core.Constants.ScheduledTaskInstructions);
+            }
 
             return new AgentFactory<AgentContext>(
                 logger: logger,
@@ -533,14 +553,15 @@ public class Program
                     : Path.Combine(AppContext.BaseDirectory, "AgentsV2"),
                 commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonPrompts"),
                 commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonTools"),
-                promptStarters: [Core.Constants.SREAgentPromptStarter],
+                promptStarters: promptStarters.ToArray(),
                 promptEnders: [Core.Constants.SREAgentFinalInstructions],
                 defaultOutputType: typeof(DefaultAgentOutput),
                 enableHandoffReasoning: experimentalSettings?.EnableHandoffReasoning ?? hostEnvironment.IsDevelopment(),
                 extensibiltyLoader: extensibilityLoader,
                 gpt5Enabled: isGPT5Enabled,
                 agentMemoryRetrievalEnabled: agentMemoryRetrievalEnabled,
-                firstPartyAgent: isAcaFirstPartyAgent);
+                firstPartyAgent: isAcaFirstPartyAgent,
+                scheduledTasksEnabled: isScheduledTaskEnabled);
         });
 
         builder.Services.ConfigureAsyncInitializers();
@@ -648,6 +669,7 @@ public class Program
         builder.Services.AddKeyedSingleton<IWatchEventService, KubernetesWatchService>("Kubernetes");
 
         builder.Services.AddIncidentRelatedServices();
+        builder.Services.AddScheduledTaskServices();
 
         // Register HttpClientService and configure HttpClient with proper BaseAddress
         builder.Services.AddSingleton<HttpClientService>();

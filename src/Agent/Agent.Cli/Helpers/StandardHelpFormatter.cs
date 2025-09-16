@@ -31,13 +31,11 @@ public static class StandardHelpFormatter
 
         ConsoleUI.WithColor(ConsoleColor.Cyan, () => {
             Console.WriteLine($"{ConsoleUI.Chars.TL}{horizontalLine}{ConsoleUI.Chars.TR}");
-
             foreach (var line in bannerLines)
             {
                 var paddedLine = line.PadRight(totalWidth - 4);
                 Console.WriteLine($"{ConsoleUI.Chars.V} {paddedLine} {ConsoleUI.Chars.V}");
             }
-
             Console.WriteLine($"{ConsoleUI.Chars.BL}{horizontalLine}{ConsoleUI.Chars.BR}");
         });
         Console.WriteLine();
@@ -167,8 +165,6 @@ public static class StandardHelpFormatter
         Console.WriteLine();
 
         ShowCommandGroups(parentCommand, commandGroups, groupDescriptions);
-
-    // Group-level examples are now included within each subcommand via WriteSubcommand
     }
 
     /// <summary>
@@ -190,13 +186,11 @@ public static class StandardHelpFormatter
 
         ConsoleUI.WithColor(bannerColor, () => {
             Console.WriteLine($"{ConsoleUI.Chars.TL}{horizontalLine}{ConsoleUI.Chars.TR}");
-
             foreach (var line in bannerLines)
             {
                 var paddedLine = line.PadRight(totalWidth - 4);
                 Console.WriteLine($"{ConsoleUI.Chars.V} {paddedLine} {ConsoleUI.Chars.V}");
             }
-
             Console.WriteLine($"{ConsoleUI.Chars.BL}{horizontalLine}{ConsoleUI.Chars.BR}");
         });
         Console.WriteLine();

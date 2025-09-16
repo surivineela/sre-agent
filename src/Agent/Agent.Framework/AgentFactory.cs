@@ -56,6 +56,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
     private readonly bool _gpt5Enabled;
     private readonly bool _agentMemoryRetrievalEnabled;
     private readonly bool _isFirstPartyAgent = false;
+    private readonly bool _scheduledTasksEnabled;
 
     public AgentFactory(
         ILogger<AgentFactory<TContext>> logger,
@@ -73,7 +74,8 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         IExtensibilityLoader? extensibiltyLoader = null,
         bool gpt5Enabled = false,
         bool agentMemoryRetrievalEnabled = false,
-        bool firstPartyAgent = false
+        bool firstPartyAgent = false,
+        bool scheduledTasksEnabled = false
     )
     {
         _toolFactory = toolFactory;
@@ -92,6 +94,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         _gpt5Enabled = gpt5Enabled;
         _agentMemoryRetrievalEnabled = agentMemoryRetrievalEnabled;
         _isFirstPartyAgent = firstPartyAgent;
+        _scheduledTasksEnabled = scheduledTasksEnabled;
     }
 
     protected override async Task InitializeAsyncCore()
@@ -286,8 +289,10 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
                 }
             }
             // Populate handoffs with existing agents only to avoid startup issues
+            // Filter out scheduled_task_agent handoffs when scheduled tasks are disabled
             agent.Handoffs = agentDescriptor.Handoffs
               .Where(h => _agents.ContainsKey(h))
+              .Where(h => _scheduledTasksEnabled || h != "scheduled_task_agent")
               .Select(h => Handoff<TContext>.Create(
                   agent: _agents[h],
                   enableHandoffReasoning: _enableHandoffReasoning))

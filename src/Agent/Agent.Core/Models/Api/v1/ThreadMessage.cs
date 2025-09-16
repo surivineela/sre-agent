@@ -22,4 +22,3 @@ public record InboundServiceResponse(
     string OrchestrationInstanceId,
     bool Busy = false // The thread is processing the message and cannot accept new messages at this time
 );
-

@@ -207,9 +207,6 @@ public static class TestHelpers
         // Add mock Crawler Trigger Service
         builder.Services.AddSingleton(Mock.Of<ICrawlerTriggerService>());
 
-        // Add mock Session Pool Service
-        builder.Services.AddSingleton(Mock.Of<ISessionPoolService>());
-
         // Add ArmHelper for ArmPlugin
         builder.Services.AddSingleton<ArmHelper>();
 
@@ -233,9 +230,6 @@ public static class TestHelpers
         builder.Services.AddSingleton(Mock.Of<IHostEnvironment>());
 
         builder.Services.AddSingleton<IIncidentHandlerAgent, IncidentHandlerAgent>();
-        builder.Services.AddSingleton<IIncidentStatusMetricsService, IncidentStatusMetricsService>();
-        builder.Services.AddSingleton<IExtendedAgentRepository, InMemoryExtendedAgentRepository>();
-        builder.Services.AddSingleton<IIncidentRepository, InMemoryIncidentRepository>();
         builder.Services.AddSingleton<ThreadManagementService>();
         builder.Services.AddSingleton<IAgentInboundCommunicationService, InboundCommunicationService>();
         builder.Services.AddSingleton<IAgentRuntimeModifier<AgentContext>, AgentRuntimeModifier>();
@@ -344,6 +338,8 @@ public static class TestHelpers
         builder.Services.AddTransient<ArmPluginDefinition>();
         builder.Services.AddTransient<IArmPlugin, ArmPlugin>();
 
+        // should be removed later - currently required because ThreadManagementService has code for handling UseAgentFramework=false
+
         // Runtime–modifier for agent-mode switching
         builder.Services.AddSingleton<IAgentRuntimeModifier<AgentContext>, AgentRuntimeModifier>();
 
@@ -356,8 +352,9 @@ public static class TestHelpers
         builder.Services.AddSingleton<IAgentMemoryClient, DummyAgentMemoryClient>();
         builder.Services.AddSingleton(Mock.Of<ISearchIndexService>());
 
-        // FirstParty services
-        builder.RegisterFirstPartyServices();
+        builder.Services.AddSingleton(Mock.Of<ISessionPoolService>());
+        builder.Services.AddSingleton(Mock.Of<IIncidentStatusMetricsService>());
+        builder.Services.AddSingleton<IExtendedAgentRepository, InMemoryExtendedAgentRepository>();
 
         return builder;
     }
@@ -636,8 +633,7 @@ class MockStreamingService : IStreamingService
 
     public Task StreamIncidentUpdateAsync(Guid threadId, string incidentData, Guid? messageId = null, DateTime? recordedDateTime = null, StreamMessageType? messageType = null, CancellationToken cancellationToken = default)
     {
-        _logger.LogInternalInformation("Mock: Incident update for thread {ThreadId} with type {Type}: {Message}",
-            threadId, messageType, incidentData);
+        _logger.LogInternalInformation("Mock: Streaming incident for thread {ThreadId}", threadId);
         return Task.CompletedTask;
     }
 }

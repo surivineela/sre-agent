@@ -211,7 +211,8 @@ public static class Program
             ("tool", "Manage user-authored, reusable tools"),
             ("doc", "Upload and manage documents like TSGs, architecture docs, and runbooks"),
             ("profile", "Switch between SRE Agent instances (multiple local/remote profiles supported)"),
-            ("incidenthandler", "Manage incident handlers and filters")
+            ("incidenthandler", "Manage incident handlers and filters"),
+            ("scheduledtask", "Manage scheduled tasks for automated agent operations")
         });
 
         if (isFirstTime)

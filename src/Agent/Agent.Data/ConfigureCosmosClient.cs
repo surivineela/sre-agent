@@ -147,6 +147,17 @@ public static class AgentDataConfiguration
             return new CosmosDbAgentTasksRepository(cosmosClient, cosmosDatabaseName, logger);
         });
 
+        // Register the ScheduledTask repository
+        serviceCollection.AddSingleton<IScheduledTaskRepository>(serviceProvider =>
+        {
+            var cosmosDbSettings = serviceProvider.GetRequiredService<CosmosDBSettings>();
+            var cosmosDatabaseName = cosmosDbSettings.Docs.Database;
+
+            var cosmosClient = serviceProvider.GetRequiredService<CosmosClient>();
+            var logger = serviceProvider.GetRequiredService<ILogger<CosmosDbScheduledTaskRepository>>();
+            return new CosmosDbScheduledTaskRepository(cosmosClient, cosmosDatabaseName, logger);
+        });
+
         return serviceCollection;
     }
 

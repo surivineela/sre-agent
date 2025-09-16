@@ -432,6 +432,7 @@ public static class InteractiveCommandHandlers
         {
             ConsoleUI.WriteKeyValue("1", "Create a new agent", 3);
             ConsoleUI.WriteKeyValue("2", "Create a new tool (optional)", 3);
+            ConsoleUI.WriteKeyValue("3", "Create a scheduled task (optional)", 3);
 
             // Show contextual quick actions for apply/deploy
             await ShowApplyActions();
@@ -513,13 +514,13 @@ public static class InteractiveCommandHandlers
 
             if (agentDirs.Length > 0 || toolDirs.Length > 0)
             {
-                ConsoleUI.WriteKeyValue("3", "Apply changes (deploy to server)", 3);
+                ConsoleUI.WriteKeyValue("4", "Apply changes (deploy to server)", 3);
 
                 // Show quick deploy options for first few agents
-                var displayCount = Math.Min(3, agentDirs.Length);
+                var displayCount = Math.Min(2, agentDirs.Length);
                 for (int i = 0; i < displayCount; i++)
                 {
-                    ConsoleUI.WriteKeyValue($"{i + 4}", $"Quick deploy '{agentDirs[i]}'", 3);
+                    ConsoleUI.WriteKeyValue($"{i + 5}", $"Quick deploy '{agentDirs[i]}'", 3);
                 }
             }
         }
@@ -620,7 +621,7 @@ public static class InteractiveCommandHandlers
             case "3":
                 if (hasConfig)
                 {
-                    await GuideApplyChanges();
+                    await GuideScheduledTaskCreation();
                 }
                 else
                 {
@@ -628,6 +629,15 @@ public static class InteractiveCommandHandlers
                 }
                 break;
             case "4":
+                if (hasConfig)
+                {
+                    await GuideApplyChanges();
+                }
+                else
+                {
+                    ConsoleUI.WriteStatus(false, "Please initialize workspace first (option 1)");
+                }
+                break;
             case "5":
             case "6":
                 // Handle quick deployment actions
@@ -818,8 +828,8 @@ public static class InteractiveCommandHandlers
                 .Where(name => !string.IsNullOrEmpty(name))
                 .ToArray();
 
-            var index = int.Parse(choice) - 4;
-            if (index >= 0 && index < agentDirs.Length && index < 3)
+            var index = int.Parse(choice) - 5;
+            if (index >= 0 && index < agentDirs.Length && index < 2)
             {
                 var agentName = agentDirs[index];
                 ConsoleUI.WriteInfo($"Quick deploying agent '{agentName}'...");
@@ -866,6 +876,280 @@ public static class InteractiveCommandHandlers
                 "Try 'srectl status' to diagnose issues"
             });
         }
+    }
+
+    private static async Task GuideScheduledTaskCreation()
+    {
+        Console.WriteLine();
+        ConsoleUI.WriteSection("Scheduled Task Creation Guide");
+        ConsoleUI.WriteInfo("Scheduled tasks automate agent operations on a recurring schedule.");
+        Console.WriteLine();
+
+        ConsoleUI.WriteInline("What would you like to name your scheduled task? ");
+        var taskName = Console.ReadLine()?.Trim();
+
+        if (string.IsNullOrEmpty(taskName))
+        {
+            ConsoleUI.WriteStatus(false, "Task name is required.");
+            await GuideScheduledTaskCreation();
+            return;
+        }
+
+        Console.WriteLine();
+        ConsoleUI.WriteInline("What should this task do? (Enter the prompt/instructions): ");
+        var taskPrompt = Console.ReadLine()?.Trim();
+
+        if (string.IsNullOrEmpty(taskPrompt))
+        {
+            ConsoleUI.WriteStatus(false, "Task prompt is required.");
+            await GuideScheduledTaskCreation();
+            return;
+        }
+
+        Console.WriteLine();
+        ConsoleUI.WriteSection("Schedule Configuration");
+        ConsoleUI.WriteInfo("Choose when this task should run:");
+        ConsoleUI.WriteKeyValue("1", "Every 15 minutes", 3);
+        ConsoleUI.WriteKeyValue("2", "Every hour", 3);
+        ConsoleUI.WriteKeyValue("3", "Daily at 9 AM", 3);
+        ConsoleUI.WriteKeyValue("4", "Weekly on Mondays", 3);
+        ConsoleUI.WriteKeyValue("5", "Custom cron expression", 3);
+        Console.WriteLine();
+        ConsoleUI.WriteInline("Select schedule option (1-5): ");
+
+        var scheduleChoice = Console.ReadLine()?.Trim();
+        var cronExpression = scheduleChoice switch
+        {
+            "1" => "*/15 * * * *",
+            "2" => "0 * * * *",
+            "3" => "0 9 * * *",
+            "4" => "0 9 * * 1",
+            "5" => await GetCustomCronExpression(),
+            _ => null
+        };
+
+        if (cronExpression == null)
+        {
+            ConsoleUI.WriteStatus(false, "Please select a valid schedule option (1-5).");
+            await GuideScheduledTaskCreation();
+            return;
+        }
+
+        Console.WriteLine();
+        ConsoleUI.WriteSection("Agent Selection (Optional)");
+        ConsoleUI.WriteInfo("You can connect this task to a specific deployed agent:");
+        
+        var selectedAgent = await SelectDeployedAgent();
+
+        try
+        {
+            ConsoleUI.WriteInfo($"Creating scheduled task '{taskName}'...");
+            Console.WriteLine();
+
+            // Create the task using the ScheduledTaskCommandHandlers approach
+            await CreateScheduledTaskDirectly(taskName, taskPrompt, cronExpression, selectedAgent);
+
+            Console.WriteLine();
+            ConsoleUI.WriteStatus(true, $"Scheduled task '{taskName}' created successfully!");
+            ConsoleUI.WriteKeyValue("Name", taskName);
+            ConsoleUI.WriteKeyValue("Schedule", GetScheduleDescription(cronExpression));
+            if (!string.IsNullOrEmpty(selectedAgent))
+                ConsoleUI.WriteKeyValue("Agent", selectedAgent);
+
+            ConsoleUI.WriteInfo("The task is now scheduled and will execute according to the specified schedule.");
+        }
+        catch (Exception ex)
+        {
+            ProgressService.ShowError($"Scheduled task creation failed: {ex.Message}", new[]
+            {
+                "Check your server connection",
+                "Verify the task parameters",
+                "Try with a simpler configuration"
+            });
+
+            if (ConsoleUI.Confirm("Would you like to try again?", true))
+            {
+                await GuideScheduledTaskCreation();
+            }
+        }
+    }
+
+    private static async Task<string> GetCustomCronExpression()
+    {
+        Console.WriteLine();
+        ConsoleUI.WriteSection("Custom Cron Expression");
+        ConsoleUI.WriteInfo("Enter a cron expression (minute hour day month weekday):");
+        ConsoleUI.WriteInfo("Examples:");
+        ConsoleUI.WriteBullet("0 */6 * * * - Every 6 hours");
+        ConsoleUI.WriteBullet("30 8 * * 1-5 - 8:30 AM on weekdays");
+        ConsoleUI.WriteBullet("0 0 1 * * - First day of every month");
+        Console.WriteLine();
+        ConsoleUI.WriteInline("Cron expression: ");
+        
+        var cronExpression = Console.ReadLine()?.Trim();
+        if (string.IsNullOrEmpty(cronExpression))
+        {
+            ConsoleUI.WriteStatus(false, "Cron expression is required.");
+            return await GetCustomCronExpression();
+        }
+
+        return cronExpression;
+    }
+
+    private static async Task<string?> SelectDeployedAgent()
+    {
+        try
+        {
+            using var apiService = new ApiService();
+            var (success, response) = await apiService.ListAgentsAsync();
+            
+            if (!success || string.IsNullOrEmpty(response))
+            {
+                ConsoleUI.WriteInfo("No deployed agents found. Task will run without a specific agent.");
+                return null;
+            }
+
+            // Parse the JSON response to extract agent names
+            var agentNames = new List<string>();
+            try
+            {
+                var jsonDoc = System.Text.Json.JsonDocument.Parse(response);
+                if (jsonDoc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Array)
+                {
+                    foreach (var element in jsonDoc.RootElement.EnumerateArray())
+                    {
+                        if (element.TryGetProperty("name", out var nameElement))
+                        {
+                            var name = nameElement.GetString();
+                            if (!string.IsNullOrEmpty(name))
+                            {
+                                agentNames.Add(name);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (System.Text.Json.JsonException)
+            {
+                ConsoleUI.WriteInfo("Could not parse agent list. Task will run without a specific agent.", ConsoleColor.Yellow);
+                return null;
+            }
+
+            if (agentNames.Count == 0)
+            {
+                ConsoleUI.WriteInfo("No deployed agents found. Task will run without a specific agent.");
+                return null;
+            }
+
+            ConsoleUI.WriteKeyValue("0", "No specific agent (default)", 3);
+            
+            for (int i = 0; i < Math.Min(agentNames.Count, 9); i++)
+            {
+                ConsoleUI.WriteKeyValue($"{i + 1}", agentNames[i], 3);
+            }
+
+            Console.WriteLine();
+            ConsoleUI.WriteInline($"Select agent (0-{Math.Min(agentNames.Count, 9)}): ");
+            var choice = Console.ReadLine()?.Trim();
+
+            if (int.TryParse(choice, out var index) && index > 0 && index <= Math.Min(agentNames.Count, 9))
+            {
+                return agentNames[index - 1];
+            }
+
+            return null; // No agent selected (option 0 or invalid)
+        }
+        catch (Exception ex)
+        {
+            ConsoleUI.WriteInfo($"Could not fetch agents: {ex.Message}. Task will run without a specific agent.", ConsoleColor.Yellow);
+            return null;
+        }
+    }
+
+    private static async Task CreateScheduledTaskDirectly(string name, string prompt, string cronExpression, string? agent)
+    {
+        try
+        {
+            using var apiService = new ApiService();
+
+            var task = new System.Text.Json.Nodes.JsonObject
+            {
+                ["name"] = name,
+                ["description"] = $"Interactive task: {name}",
+                ["cronExpression"] = cronExpression,
+                ["agentPrompt"] = prompt,
+                ["agent"] = agent,
+                ["startTime"] = DateTime.UtcNow.ToString("o"),
+                ["endTime"] = null,
+                ["threadId"] = null,
+                ["maxExecutions"] = null,
+                ["notificationChannel"] = null
+            };
+
+            // Save YAML locally first
+            try
+            {
+                var manifest = new Agent.Common.Core.Manifests.ScheduledTaskManifest
+                {
+                    ApiVersion = "azuresre.ai/v1",
+                    Kind = "ScheduledTask",
+                    Metadata = new Agent.Common.Core.Manifests.ManifestMetadata { Name = name },
+                    Spec = new Agent.Common.Core.Manifests.ScheduledTaskSpec
+                    {
+                        Name = name,
+                        Description = $"Interactive task: {name}",
+                        Cron = cronExpression,
+                        AgentPrompt = prompt,
+                        Agent = agent,
+                        StartTime = DateTime.UtcNow,
+                        EndTime = null,
+                        ThreadId = null,
+                        MaxExecutions = null,
+                        NotificationChannel = null
+                    }
+                };
+
+                var ser = new YamlDotNet.Serialization.SerializerBuilder()
+                    .WithNamingConvention(YamlDotNet.Serialization.NamingConventions.UnderscoredNamingConvention.Instance)
+                    .DisableAliases()
+                    .Build();
+                var yaml = ser.Serialize(manifest);
+
+                var dir = Path.Combine("scheduledtasks", name);
+                Directory.CreateDirectory(dir);
+                var path = Path.Combine(dir, $"{name}.yaml");
+                await File.WriteAllTextAsync(path, yaml, System.Text.Encoding.UTF8);
+
+                ConsoleUI.WriteBullet($"Saved YAML manifest to: {path}", ConsoleColor.Green);
+            }
+            catch (Exception ex)
+            {
+                ConsoleUI.WriteStatus(false, $"Warning: Failed to save YAML locally: {ex.Message}");
+                // Continue with API creation even if local save fails
+            }
+
+            var (success, message) = await apiService.CreateScheduledTaskAsync(task);
+            if (!success)
+            {
+                throw new InvalidOperationException($"Failed to create scheduled task: {message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Failed to create scheduled task: {ex.Message}", ex);
+        }
+    }
+
+    private static string GetScheduleDescription(string cronExpression)
+    {
+        return cronExpression switch
+        {
+            "*/15 * * * *" => "Every 15 minutes",
+            "0 * * * *" => "Every hour",
+            "0 9 * * *" => "Daily at 9:00 AM",
+            "0 9 * * 1" => "Weekly on Mondays at 9:00 AM",
+            _ => cronExpression
+        };
     }
 
     private static async Task GuideToolCreation()

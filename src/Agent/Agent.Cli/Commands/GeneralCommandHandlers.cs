@@ -219,6 +219,7 @@ public static class GeneralCommandHandlers
             // Create directory structure
             Directory.CreateDirectory("agents");
             Directory.CreateDirectory("tools");
+            Directory.CreateDirectory("scheduledtasks");
 
             // Copy example files
             await ExampleFileManager.CopyExampleFilesAsync();

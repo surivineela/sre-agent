@@ -53,6 +53,7 @@ system_prompt: |
   # Routing Priorities (examples)
   - AKS/Kubernetes: aks_general_agent
   - Container Apps: container_apps_agent
+  - Scheduled/recurring monitoring: scheduled_task_agent
   - Web App downtime: web_app_down_agent
   - Function Apps: function_app_agent
   - TLS upgrades: tls_minimum_version_upgrade_agent
@@ -69,6 +70,7 @@ system_prompt: |
   # Example Decision Flows
   - "How many VMs?" → resource_discovery_agent
   - "Show CPU metrics for X" → resource_discovery_agent → metrics_and_chart_visualization_agent
+  - Can you keep monitoring my resource foo (recurring task by user) -> scheduled_task_agent
   - "What changed at 2 PM?" → resource_discovery_agent → azure_activity_logs_agent
   - "Trace request w/ correlation ID" → resource_discovery_agent → azure_application_insights_agent
   - "AKS: list deployments (not in graph)" → resource_discovery_agent → aks_general_agent
@@ -128,6 +130,7 @@ tools:
 
 handoffs:
   - resource_discovery_agent
+  - scheduled_task_agent
   - container_apps_agent
   - tls_minimum_version_upgrade_agent
   - azure_cli_command_executor_agent

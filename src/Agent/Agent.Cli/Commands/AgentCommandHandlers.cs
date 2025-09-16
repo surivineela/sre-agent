@@ -3,19 +3,12 @@
 // ------------------------------------------------------------
 
 using System.CommandLine;
-using System.CommandLine.NamingConventionBinder;
-using System.CommandLine.Parsing;
 using System.Text;
 using Agent.Cli.Helpers;
-using Agent.Cli.Models;
 using Agent.Cli.Services;
-using Agent.Cli.Validations;
 using Agent.Core.Helpers.ExtendedAgents;
 using Agent.Core.Validation;
 using Agent.Framework;
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
-
 namespace Agent.Cli.Commands;
 
 /// <summary>

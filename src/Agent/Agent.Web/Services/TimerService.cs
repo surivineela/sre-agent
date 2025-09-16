@@ -5,7 +5,6 @@
 using System.Reflection;
 using System.Text;
 using Agent.Core.Configuration;
-using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Graph.Crawler;
@@ -15,8 +14,6 @@ using Agent.Plugins;
 using Agent.Plugins.Interface;
 using Agent.Runtime.Communication;
 using Agent.Runtime.Interfaces;
-using Agent.Runtime.MetaAgent;
-using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.AzMonitorAlertAgent;
 using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.DailyReportSummary;
@@ -88,6 +85,7 @@ public class TimerService : IHostedService, IDisposable
     private CustomerLogger _customerLogger;
     private CustomerAuditLogger _customerAuditLogger;
     private LocalAuthScanner _localAuthScanner;
+    private Agent.ScheduledTasks.Services.ScheduledTaskExecutionService _scheduledTaskExecutionService;
 
     private Timer? _crawlerTimer = null;
     private bool _crawlerTimerIsRunning = false;
@@ -152,6 +150,10 @@ public class TimerService : IHostedService, IDisposable
     private bool _localAuthScannerTimerIsRunning = false;
     private TimeSpan _localAuthScannerTimerInterval = TimeSpan.FromDays(1);
 
+    private Timer? _scheduledTaskTimer = null;
+    private bool _scheduledTaskTimerIsRunning = false;
+    private TimeSpan _scheduledTaskTimerInterval = TimeSpan.FromMinutes(1);
+
     private List<ScannerTimerInformation> GenericSubAgentScannerTimers = new();
 
     private bool _pagerDutyWelcomeSent = false;
@@ -186,7 +188,8 @@ public class TimerService : IHostedService, IDisposable
         CustomerLogger customerLogger,
         CustomerAuditLogger customerAuditLogger,
         IIncidentScanner incidentScanner,
-        LocalAuthScanner localAuthScanner)
+        LocalAuthScanner localAuthScanner,
+        Agent.ScheduledTasks.Services.ScheduledTaskExecutionService scheduledTaskExecutionService)
     {
         _logger = logger;
         _crawlerService = crawlerService;
@@ -214,6 +217,7 @@ public class TimerService : IHostedService, IDisposable
         _customerAuditLogger = customerAuditLogger;
         _incidentScanner = incidentScanner;
         _localAuthScanner = localAuthScanner;
+        _scheduledTaskExecutionService = scheduledTaskExecutionService;
         _agentMemorySettings = agentMemorySettings;
 
         _customerAuditLogger = customerAuditLogger;
@@ -276,6 +280,9 @@ public class TimerService : IHostedService, IDisposable
         _logger.LogInternalInformation("Starting Local Auth scanner timer...");
         StartLocalAuthScannerTimer(cancellationToken);
 
+        _logger.LogInternalInformation("Starting Scheduled Task execution timer...");
+        StartScheduledTaskTimer(cancellationToken);
+
         if (_incidentManagementSettings != null)
         {
             switch (_incidentManagementSettings.Type)
@@ -310,6 +317,7 @@ public class TimerService : IHostedService, IDisposable
         _threadEvaluatorTimer?.Change(Timeout.Infinite, 0); // Stop the ThreadEvaluator timer
         _trajectoryEvaluatorTimer?.Change(Timeout.Infinite, 0); // Stop the TrajectoryEvaluator timer
         _localAuthScannerTimer?.Change(Timeout.Infinite, 0); // Stop the Local Auth scanner timer
+        _scheduledTaskTimer?.Change(Timeout.Infinite, 0); // Stop the Scheduled Task timer
 
         // Stop all generic timers
         foreach (var scanner in GenericSubAgentScannerTimers)
@@ -904,6 +912,31 @@ public class TimerService : IHostedService, IDisposable
         }, null, TimeSpan.FromMinutes(5), _localAuthScannerTimerInterval);
     }
 
+    public void StartScheduledTaskTimer(CancellationToken cancellationToken)
+    {
+        _scheduledTaskTimer = new Timer(async _ =>
+        {
+            if (_scheduledTaskTimerIsRunning)
+            {
+                _logger.LogInternalInformation("Scheduled task executor is already running. Skip this round.");
+                return;
+            }
+            try
+            {
+                _scheduledTaskTimerIsRunning = true;
+                await _scheduledTaskExecutionService.ProcessDueTasksAsync(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Error executing scheduled task timer.");
+            }
+            finally
+            {
+                _scheduledTaskTimerIsRunning = false;
+            }
+        }, null, TimeSpan.FromMinutes(1), _scheduledTaskTimerInterval);
+    }
+
     public void Dispose()
     {
         _logger.LogInternalInformation("Disposing Azure Resource Crawler Worker");
@@ -911,6 +944,7 @@ public class TimerService : IHostedService, IDisposable
         _crawlerTimer?.Dispose();
         _threadEvaluatorTimer?.Dispose();
         _localAuthScannerTimer?.Dispose();
+        _scheduledTaskTimer?.Dispose();
 
         // Dispose generic timers
         foreach (var scanner in GenericSubAgentScannerTimers)

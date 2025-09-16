@@ -40,6 +40,7 @@
     <ProjectReference Include="..\Agent.Framework\Agent.Framework.csproj" />
     <ProjectReference Include="..\Agent.Data\Agent.Data.csproj" />
     <ProjectReference Include="..\Agent.Plugins\Agent.Plugins.csproj" />
+  <ProjectReference Include="..\Common.Core\Agent.Common.Core.csproj" />
   </ItemGroup>
 
 </Project>

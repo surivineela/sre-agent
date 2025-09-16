@@ -22,6 +22,8 @@ import { EnvironmentContext } from '../Common/AzPortalProxy/Providers/StartupInf
 import { AppInsightsClient } from '../Common/Clients/AppInsightsClient';
 import { AgentAccessLevel, IncidentManagementType } from '../Common/Contracts/Azure/SreAgent';
 import { ArmResourceDescriptor } from '../Common/Helpers/ResourceDescriptors';
+import { SettingNames, useConfigSetting } from '../Common/Hooks/ConfigSettings';
+import { useFeatureFlags } from '../Common/Hooks/useFeatureFlags';
 import { LocalStorageFlags, useLocalStorage } from '../Common/Hooks/useLocalStorage';
 import { IncidentManagementResources, SreAgentResources, SreAgentTabResources } from '../Strings/SREAgentResources';
 import Activities from './Activities/Activities.ReactView';
@@ -31,6 +33,7 @@ import DailyReports from './DailyReports/DailyReports';
 import Graph from './Graph/Graph';
 import { useIncidentManagementConnectivity } from './Hooks/useIncidentManagementConnectivity';
 import IncidentManagement from './IncidentManagement/IncidentManagement';
+import ScheduledTasksOverview from './ScheduledTasks/ScheduledTasksOverview';
 import { useSreAgent } from './Settings/Hooks/useSreAgent';
 import Settings from './Settings/Settings.ReactView';
 import { useSreAgentSpaceStyles } from './Settings/Styles/SreAgentSpaceStyles';
@@ -55,6 +58,7 @@ enum TabValues {
     Logs = 'logs',
     IncidentManagement = 'incidentmanagement',
     DailyReports = 'dailyreports',
+    ScheduledTasks = 'scheduledtasks',
 }
 
 const inStandaloneMode = AzPortalProxy.inStandaloneMode;
@@ -145,6 +149,13 @@ const TabsListWrapper: FC = () => {
         return isIncidentManagementTeachingPopoverDismissed !== 'true';
     }, [isIncidentManagementTeachingPopoverDismissed]);
 
+    const showDailyReportsTab = useConfigSetting(SettingNames.ShowDailyReportsTab);
+    const scheduledTasksConfigEnabled = useConfigSetting(SettingNames.ShowScheduledTasksTab);
+    const { features } = useFeatureFlags();
+
+    // Show scheduled tasks tab only if both config setting and backend feature flag are enabled
+    const showScheduledTasksTab = scheduledTasksConfigEnabled && features.scheduledTasks;
+
     const { controlPlaneTabsVisible, incidentManagementTabDisabled, logsTabDisabled, onLogsClick } = useControlPlaneDependentTabs({
         inStandaloneMode,
         isCrossTenantPortalMode,
@@ -165,6 +176,9 @@ const TabsListWrapper: FC = () => {
         }
         if (location.pathname?.startsWith('/views/dailyreports')) {
             return TabValues.DailyReports;
+        }
+        if (location.pathname?.startsWith('/views/scheduledtasks')) {
+            return TabValues.ScheduledTasks;
         }
         return TabValues.Activities;
     }, [location.pathname]);
@@ -195,6 +209,8 @@ const TabsListWrapper: FC = () => {
                 }
             } else if (data.value === TabValues.DailyReports) {
                 navigate({ ...location, pathname: '/views/dailyreports' });
+            } else if (data.value === TabValues.ScheduledTasks) {
+                navigate({ ...location, pathname: '/views/scheduledtasks' });
             } else if (data.value === TabValues.Logs) {
                 onLogsClick();
             }
@@ -261,9 +277,16 @@ const TabsListWrapper: FC = () => {
                     <Tab id="Knowledge" value={TabValues.Graph}>
                         {intl.formatMessage(SreAgentTabResources.resourceMapping)}
                     </Tab>
-                    <Tab id="DailyReports" value={TabValues.DailyReports}>
-                        {intl.formatMessage(SreAgentTabResources.dailyReports)}
-                    </Tab>
+                    {showDailyReportsTab && (
+                        <Tab id="DailyReports" value={TabValues.DailyReports}>
+                            {intl.formatMessage(SreAgentTabResources.dailyReports)}
+                        </Tab>
+                    )}
+                    {showScheduledTasksTab && (
+                        <Tab id="ScheduledTasks" value={TabValues.ScheduledTasks}>
+                            {'Scheduled Tasks'}
+                        </Tab>
+                    )}
                     {controlPlaneTabsVisible && (
                         <>
                             <Tab id="Settings" value={TabValues.Settings}>
@@ -309,6 +332,7 @@ const router = createHashRouter([
             { path: 'views/activities/threads/:threadId', element: <Activities /> },
             { path: 'views/activities', element: <Activities /> },
             { path: 'views/dailyreports', element: <DailyReports /> },
+            { path: 'views/scheduledtasks', element: <ScheduledTasksOverview /> },
             { path: '*', element: <Activities /> },
         ],
     },
