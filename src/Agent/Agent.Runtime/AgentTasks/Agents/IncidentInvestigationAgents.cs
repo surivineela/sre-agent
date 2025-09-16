@@ -15,7 +15,7 @@ public record InitialInvestigationResult
     [Description("Steps taken during the investigation")]
     public required IList<InitialInvestigationStepResult> ContextGatheringSteps { get; set; }
 
-    [Description("Detailed summary of the initial investigation and the relevant context that has been gathered, in markdown format")]
+    [Description("Summary of the initial investigation and the relevant context that has been gathered, in markdown format")]
     public required string Summary { get; set; }
 }
 
@@ -64,10 +64,10 @@ public record HypothesisValidationResult
 
 public record HypothesisValidationPlanStep
 {
-    [Description("Title of the step you plan to perform to validate a hypothesis. User-friendly description. 6-10 words maximum.")]
+    [Description("Title of the hypothesis validation plan step. User-friendly description. 6-10 words maximum.")]
     public required string Title { get; set; }
 
-    [Description("Detailed description of the step you will take. User-friendly description.")]
+    [Description("Detailed description of the validation plan step. User-friendly description.")]
     public required string Description { get; set; }
 }
 
@@ -113,6 +113,27 @@ public record HypothesisPlanStepExecutionResult
     public required bool NeedContinue { get; set; }
 }
 
+public record HypothesisValidationResultV2
+{
+    [Description("The steps taken when validation the hypothesis, this should correspond to the steps you decided to take when forming a plan")]
+    public required IList<HypothesisValidationStepV2> Steps { get; set; }
+
+    [Description("The status of the hypothesis validation. Use this field to indicate whether the hypothesis is validated, invalidated, or inconclusive.")]
+    public required HypothesisValidationStatus Status { get; set; }
+
+    [Description("Explanation of why you chose the validation status")]
+    public required string Reasoning { get; set; }
+}
+
+public record HypothesisValidationStepV2
+{
+    [Description("The title of the hypothesis validation step. This should be a brief title (6-10 words maximum) that describes the step.")]
+    public required string Title { get; set; }
+
+    [Description("3-4 sentence description of what you did during this step of the hypothesis validation, summarizing the key information and results")]
+    public required string Description { get; set; }
+}
+
 public static class IncidentInvestigationAgents
 {
     public static Agent<AgentContext> CreateGatheringContextToolSelectionAgent(
@@ -144,7 +165,11 @@ public static class IncidentInvestigationAgents
         };
     }
 
-    public static Agent<AgentContext> CreateInitialInvestigationAgent(List<string> toolNames, bool is1PAgent = false, string llmDeploymentName = "")
+    public static Agent<AgentContext> CreateInitialInvestigationAgent(
+        List<string> toolNames,
+        bool is1PAgent = false,
+        string llmDeploymentName = "",
+        IAgentFactory<AgentContext>? agentFactory = null)
     {
         if (llmDeploymentName.Contains("gpt-5"))
         {
@@ -165,6 +190,8 @@ public static class IncidentInvestigationAgents
             Application logs may come from Azure Monitor, Application Insights, or from tools that fetch logs directly from the application.
             </tips>
             """;
+
+            string todoWritePrompt = agentFactory?.PromptDescriptors.GetValueOrDefault("todo_write")?.Prompt ?? string.Empty;
 
             return new("InitialInvestigationAgent")
             {
@@ -196,13 +223,22 @@ public static class IncidentInvestigationAgents
                 - Do not ask the human to confirm or clarify assumptions, this is a fully autonomous process - decide what the most reasonable assumption is, proceed with it, and document it in your summary.
                 </persistence>
 
+                <autonomy>
+                You are running a fully autonomous process, and the user is not directly involved. Do not ask the user for additional information, or to perform any actions.
+                If you encounter uncertainty, don't stop or hand back to the user, proceed with your task and document things that you are not able to confirm in your output.
+                </autonomy>
+
                 {agentHint}
+
+                {todoWritePrompt}
 
                 <output>
                 Output the detailed steps you took and the final detailed summary in markdown format.
+                The summary should start with a more concise section (3-5 sentences) that gives a high-level overview of the incident and the relevant context that has been gathered.
+                Then, provide a more detailed section that has more details about all the relevant context that has been gathered.
                 </output>
                 """,
-                FactoryTools = toolNames,
+                FactoryTools = ["ToDoWrite", .. toolNames],
                 OutputType = typeof(InitialInvestigationResult)
             };
         }
@@ -278,6 +314,11 @@ public static class IncidentInvestigationAgents
                 - Never stop or hand back to the user when you encounter uncertainty, continue your process until the hypotheses are generated.
                 </persistence>
 
+                <autonomy>
+                You are running a fully autonomous process, and the user is not directly involved. Do not ask the user for additional information, or to perform any actions.
+                If you encounter uncertainty, don't stop or hand back to the user, proceed with your task and document things that you are not able to confirm in your output.
+                </autonomy>
+
                 <output>
                 Return a brief and concise title (6-15 words maximum) and detailed content of the hypotheses with given structure.
                 </output>
@@ -306,6 +347,118 @@ public static class IncidentInvestigationAgents
             Return a brief and concise title (6-15 words maximum) and detailed content of the hypotheses with given structure.
             """,
             OutputType = typeof(List<HypothesisGenerationResult>)
+        };
+    }
+
+    public static Agent<AgentContext> CreateHypothesisValidationAgentV2(
+        IAgentFactory<AgentContext> agentFactory,
+        List<string> toolNames,
+        string incidentDescription,
+        string initialSummary
+    )
+    {
+        List<string> allTools = ["ToDoWrite"];
+        allTools.AddRange(toolNames);
+
+        string todoWritePrompt = agentFactory.PromptDescriptors.GetValueOrDefault("todo_write")?.Prompt ?? string.Empty;
+
+        return new("HypothesisValidationAgentV2")
+        {
+            Instructions = $"""
+            <core_responsibilities>
+            - Analyze the incident description and initial investigation summary
+            - Analyze the provided root cause hypothesis for the incident
+            - Generate a plan for validating the hypothesis
+            - Execute the validation plan step by step, gathering evidence
+            - Decide whether the hypothesis is validated, invalidated, or inconclusive based on the evidence
+            </core_responsibilities>
+
+            <validation_planning>
+            Goal: Generate a plan in order to validate or invalidate the given hypothesis about the incident.
+            Method:
+            - Review the incident description and initial investigation summary. This information is provided below.
+            - Identify key areas where additional evidence is needed to support or refute the hypothesis.
+            - Develop a step-by-step plan for gathering the necessary information and conducting any required tests.
+            Plan Guidelines:
+            - Validating the hypothesis means the evidence gathered through this plan directly supports the hypothesis. Invalidating the hypothesis means the evidence gathered directly contradicts the hypothesis.
+            - You must ensure that the plan you create is comprehensive and covers all necessary aspects to gather the information required for the validation process.
+            </validation_planning>
+
+            <plan_execution_workflow>
+            1. Think carefully about the incident context and the hypothesis you are being asked to validate
+            2. Generate a plan for validating the hypothesis, breaking it down into clear and actionable steps
+            3. Think critically about the best approach to gather the required evidence
+            4. Use available tools systematically to execute the plan step by step
+            5. If tools fail, immediately try alternative tools or approaches
+            6. Summarize findings clearly and concisely after each step
+            </plan_execution_workflow>
+
+            <validation_analysis>
+            Goal: Determine whether the hypothesis has been validated, invalidated, or is inconclusive based on plan execution results.
+            Method:
+            1. Review all completed validation steps and their findings
+            2. Analyze evidence gathered during plan execution
+            3. Apply validation criteria systematically
+            4. Provide clear reasoning for the determination
+            </validation_analysis>
+
+            <validation_criteria>
+            Validated:
+            - Evidence gathered directly supports the hypothesis
+            - Findings indicate the hypothesis should be investigated further
+            - Must have positive supporting evidence, not just lack of contradictory evidence
+
+            Invalidated:
+            - Evidence gathered directly contradicts the hypothesis
+            - Findings demonstrate the hypothesis is not a potential root cause
+            - Must have evidence that actively disproves the hypothesis
+
+            Inconclusive:
+            - Insufficient evidence gathered to make a determination
+            - Evidence is ambiguous or conflicting
+            - More information needed to reach a conclusion
+            </validation_criteria>
+
+            <evidence_evaluation>
+            - Focus on direct evidence from the completed validation steps
+            - Distinguish between supporting evidence and absence of contradictory evidence
+            - Consider the quality and relevance of gathered information
+            - Be objective and avoid bias toward validation or invalidation
+            </evidence_evaluation>
+
+            <tool_usage_guidelines>
+            - Use tools immediately when analysis is needed - do not provide output without tool calls unless task is complete
+            - If you do not have the tools to complete a part of your plan, make note of this and proceed with the rest of your plan
+            - Call alternative tools immediately when primary tools fail
+            - Continue tool usage until you have sufficient evidence for the plan
+            </tool_usage_guidelines>
+
+            <persistence>
+            - You are executing a fully autonomous validation process, do not ask the user for additional information or confirmation
+            - If you do not have the tools or information to complete a part of your task, make note of this and proceed with the rest of your task, do not ask the user to provide additional information or to perform some action
+            - Continue using tools until the plan is fully executed and evidence is gathered
+            - Only terminate when you have completed the validation plan thoroughly
+            </persistence>
+
+            <autonomy>
+            You are running a fully autonomous process, and the user is not directly involved. Do not ask the user for additional information, or to perform any actions.
+            If you encounter uncertainty, don't stop or hand back to the user, proceed with your task and document things that you are not able to confirm in your output.
+            </autonomy>
+
+            <incident_information>
+            <incident_description>
+            {incidentDescription}
+            </incident_description>
+
+            <initial_summary>
+            {initialSummary}
+            </initial_summary>
+            </incident_information>
+
+            {todoWritePrompt}
+            """,
+            FactoryTools = allTools,
+            OutputType = typeof(HypothesisValidationResultV2)
         };
     }
 
@@ -358,6 +511,11 @@ public static class IncidentInvestigationAgents
                 {initialSummary}
                 </initial_summary>
                 </incident_information>
+
+                <autonomy>
+                You are running a fully autonomous process, and the user is not directly involved. Do not ask the user for additional information, or to perform any actions.
+                If you encounter uncertainty, don't stop or hand back to the user, proceed with your task and document things that you are not able to confirm in your output.
+                </autonomy>
 
                 <output>
                 Return a list of 3-5 steps that should be performed in order to validate or invalidate this hypothesis.
@@ -493,7 +651,8 @@ public static class IncidentInvestigationAgents
                 </tool_usage_guidelines>
 
                 <persistence>
-                - You are executing a fully autonomous validation process
+                - You are executing a fully autonomous validation process, do not ask the user for additional information or confirmation
+                - If you do not have the tools to complete a part of your task, make note of this and proceed with the rest of your task
                 - Never stop execution due to uncertainty - research and deduce the most reasonable approach
                 - Continue using tools until the step is fully executed and evidence is gathered
                 - Only terminate when you have completed the assigned step thoroughly
@@ -526,6 +685,11 @@ public static class IncidentInvestigationAgents
                 {string.Join(Environment.NewLine + Environment.NewLine, completedSteps.Select(s => $"## Completed Step: {s.Summary}{Environment.NewLine}{s.Details}"))}
                 </completed_steps>
                 </context_information>
+
+                <autonomy>
+                You are running a fully autonomous process, and the user is not directly involved. Do not ask the user for additional information, or to perform any actions.
+                If you encounter uncertainty, don't stop or hand back to the user, proceed with your task and document things that you are not able to confirm in your output.
+                </autonomy>
 
                 <output>
                 Execute the assigned step thoroughly using available tools, then provide a detailed summary and determine if plan continuation is needed.
@@ -683,6 +847,11 @@ public static class IncidentInvestigationAgents
                 </validation_execution_results>
                 </context_information>
 
+                <autonomy>
+                You are running a fully autonomous process, and the user is not directly involved. Do not ask the user for additional information, or to perform any actions.
+                If you encounter uncertainty, don't stop or hand back to the user, proceed with your task and document things that you are not able to confirm in your output.
+                </autonomy>
+
                 <output>
                 Determine the validation status and provide detailed reasoning based on the evidence gathered during plan execution.
                 </output>
@@ -785,12 +954,14 @@ public static class IncidentInvestigationAgents
                 - Professional and stakeholder-appropriate language
 
                 Summary Requirements:
-                - Comprehensive overview of investigation process and findings
+                - Overview of investigation findings
                 - Clear statement of investigation outcome
                 - Summary of key discoveries and evidence
                 - Identification of confirmed root causes (if any)
                 - Actionable recommendations for resolution or prevention
                 - Professional tone suitable for incident reports
+                - Avoid unnecessary repetition; focus on key details
+                - Focus on findings that point towards a root cause
                 </conclusion_components>
 
                 <quality_standards>
@@ -802,7 +973,10 @@ public static class IncidentInvestigationAgents
                 </quality_standards>
 
                 <output>
-                Generate a concise title and comprehensive summary that effectively communicates the investigation results and recommendations.
+                Generate a concise title and a summary that effectively communicates the investigation results and recommendations.
+                The final summary should focus on key details and avoid unnecessary repetition. Focus on any findings that point towards a root cause,
+                and only briefly mention other findings that were investigated but did not lead to a root cause. The user is able to view the full details of all
+                parts of the investigation, so the conclusion should focus on only the most important aspects.
                 </output>
                 """,
                 OutputType = typeof(ConclusionResult)

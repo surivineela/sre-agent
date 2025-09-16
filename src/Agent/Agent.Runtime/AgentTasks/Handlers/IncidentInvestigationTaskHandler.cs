@@ -40,7 +40,8 @@ public sealed class IncidentInvestigationTaskHandler(
     SearchHelper searchHelper,
     Tracer tracer,
     OpenAISettings openAISettings,
-    AgentTaskToolResultHelper agentTaskToolResultHelper
+    AgentTaskToolResultHelper agentTaskToolResultHelper /*,
+    IAgentFactory<AgentContext> agentFactory */
 ) : IAgentTaskHandler
 {
     private readonly SemaphoreSlim _stateLock = new(1, 1);
@@ -895,7 +896,7 @@ public sealed class IncidentInvestigationTaskHandler(
                     throw;
                 }
 
-                await Task.Delay(TimeSpan.FromSeconds(5));
+                await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
             }
         }
 
@@ -1073,28 +1074,70 @@ public sealed class IncidentInvestigationTaskHandler(
 
         ValidateAndAddRequiredTools(toolNames);
 
-        // call LLM to validate/invalidate the hypothesis
-        //var hypothesisValidationAgent = IncidentInvestigationAgents.CreateHypothesisValidationAgent(
-        //    toolNames,
-        //    incidentDescription,
-        //    investigationSummary,
-        //    validatedHypothesis);
-
         var inputMessage = new ChatMessage(ChatRole.User, $"""
             Please validate the following hypothesis:
 
             {currentHypothesis}
         """);
 
-        //var validationResult = await CallAgentAsync<HypothesisValidationResult>(
-        //    hypothesisValidationAgent,
-        //    context,
-        //    inputMessage,
-        //    runHooks,
-        //    cancellationToken
-        //);
+        // trying out single agent flow for GPT-5
+        // if (_llmDeploymentName.Contains("gpt-5", StringComparison.OrdinalIgnoreCase))
+        // {
+        //     var validationAgent = IncidentInvestigationAgents.CreateHypothesisValidationAgentV2(
+        //         agentFactory,
+        //         toolNames,
+        //         incidentDescription,
+        //         investigationSummary
+        //     );
 
-        // new flow:
+        //     // TODO: this won't output steps 1 by 1 anymore, need to find an alternate way to get the steps streamed out
+
+        //     var resultV2 = await CallAgentAsync<HypothesisValidationResultV2>(
+        //         validationAgent,
+        //         context,
+        //         inputMessage,
+        //         runHooks,
+        //         true,
+        //         tracer,
+        //         currentStepSpan,
+        //         cancellationToken);
+
+        //     var hypSteps = await Task.WhenAll(resultV2.Steps.Select(async step =>
+        //     {
+        //         // get databse item for the step to get tool executions
+        //         HypothesisStep? databaseStep = null;
+        //         if (_currentAgentTask != null)
+        //         {
+        //             databaseStep = await agentTaskToolResultHelper.FindExistingHypothesisStepAsync(
+        //                 _currentAgentTask.Id,
+        //                 _currentAgentTask.ThreadId,
+        //                 currentHypothesisId,
+        //                 step.Title);
+        //         }
+
+        //         var hypStep = new HypothesisStep
+        //         {
+        //             Summary = step.Title,
+        //             Details = step.Description,
+        //             ToolExecutions = databaseStep?.ToolExecutions ?? []
+        //         };
+
+        //         return hypStep;
+        //     }));
+
+        //     var validationResultV2 = new HypothesisValidationResult
+        //     {
+        //         Status = resultV2.Status,
+        //         Steps = hypSteps,
+        //         IsRootCause = false
+        //     };
+
+        //     logger.LogInternalInformation("Hypothesis validation result: {Status}",
+        //         validationResultV2.Status);
+
+        //     return validationResultV2;
+        // }
+
         // start by generating a plan
         var planningAgent = IncidentInvestigationAgents.CreateHypothesisValidationPlanningAgent(
             (toolFactory as ToolFactory<AgentContext>)!.FetchToolInfoForToolNames(toolNames),
@@ -1112,28 +1155,6 @@ public sealed class IncidentInvestigationTaskHandler(
             tracer,
             currentStepSpan,
             cancellationToken);
-
-        //var toolSelectionAgent = IncidentInvestigationAgents.CreateToolSelectionAgent(
-        //    IncidentInvestigationHelper.HypothesisValidation.GetToolSelectionInstructions(toolFactory, incidentDescription, investigationSummary));
-
-        //var toolSelectionInput = $"""
-        //    # Current hypothesis
-
-        //    {currentHypothesis}
-
-        //    # Validation Plan
-
-        //    {string.Join(Environment.NewLine + Environment.NewLine, plan.Steps.Select(s => $"## Plan Step: {s.Title}{Environment.NewLine}{s.Description}"))}
-        //    """;
-
-        //var toolNames = await CallAgentAsync<List<string>>(
-        //            toolSelectionAgent,
-        //            context,
-        //            new ChatMessage(ChatRole.User, toolSelectionInput),
-        //            runHooks,
-        //            cancellationToken);
-
-        //ValidateAndAddRequiredTools(toolNames);
 
         // execute plan step by step
         List<HypothesisStep> completedSteps = [];

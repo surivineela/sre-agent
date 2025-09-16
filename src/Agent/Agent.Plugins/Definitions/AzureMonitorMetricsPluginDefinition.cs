@@ -53,5 +53,45 @@ namespace Agent.Plugins
                 endTime.RecognizeAsDateTime() ?? now,
                 dimensionFilter);
         }
+
+        [Description("""
+        Gets an analysis of a metric time-series for a specific metric name of a azure resource id.
+        This tool analyzes the metric values over the specified time range and provides insights such as trends, anomalies, and statistical summaries.
+        It will also return the name of a file containing the full raw data which can be passed to other tools for further analysis or visualization.
+        Prefer this tool over GetMetricTimeSeriesElementsForAzureResource where possible.
+        Use `ListAvailableMetrics` to get the list of available metrics for a resource.
+        """)]
+        [AgentTool(ToolMode.Auto)]
+        public async Task<string> GetMetricsTimeSeriesAnalysis(
+            [Description("Azure Resource Id of the resource, e.g., /subscriptions/xxx/resourceGroups/yyy/providers/Microsoft.Web/sites/myapp")]
+            string resourceId,
+            [Description("Fully qualified metric namespace from MetricDefinition.FullyQualifiedName property. Generally it is Azure Resource Type for which metric is being fetched (e.g., Microsoft.Web/sites)")]
+            string metricNamespace,
+            [Description("The metric name to query (e.g., CpuUsage, Requests, etc.). Must match the name returned from ListAvailableMetrics.")]
+            string metricName,
+            [Description("The start time for the metric query range (Absolute in UTC or relative). Examples: '2024-03-05 10:50:00', '20 hours ago', '3 days ago'. Prefer relative format for recent values (e.g: '24 hours ago', '2 days ago'). Validation start date should be within last 90 days")]
+            string startTime,
+            [Description("The end time for the metric query range (Absolute in UTC or relative). Examples: '2024-03-05 10:50:00', 'now', 'an hour ago'. Prefer relative format for recent value (e.g: 'now', '1 hour ago'). Validation limit end date from last 90 days")]
+            string endTime,
+            [Description("Optional dimension filter in OData syntax. Use 'dimension eq \'value\'' format for exact match or 'dimension eq \'*\'' to split by dimension. Multiple conditions can be combined with 'and'. Examples: statusCode eq \'200\', revisionName eq \'*\', " +
+            "statusCode eq \'200\' and revisionName eq \'rev-1\'. Available dimensions can be found in the LocalizedDimensions property of the MetricDefinition.")]
+            string dimensionFilter = "",
+            [Description("Optional additional context or specific queries to guide the analysis. For example, you might ask 'Are there any anomalies in the CPU usage over the last 24 hours?' or 'What are the peak memory usage times?'")]
+            string contextualQuery = "")
+        {
+            // Note: startTime and endTime are inputs from the LLM. I don't think it has a concept of moving time.
+            // For example: it insists that 'now' (May '25) is some random day middle of July '24.
+            // Unless this is an investigation where the LLM is using absolute date/time ranges, we should instruct it to prefer relative time ranges to now, then we can calculate them more accurately.
+            var now = DateTimeOffset.UtcNow;
+
+            return await _plugin.GetMetricsTimeSeriesAnalysisAsync(
+                resourceId,
+                metricNamespace,
+                metricName,
+                startTime.RecognizeAsDateTime() ?? now.AddDays(-1),
+                endTime.RecognizeAsDateTime() ?? now,
+                dimensionFilter,
+                contextualQuery);
+        }
     }
 }

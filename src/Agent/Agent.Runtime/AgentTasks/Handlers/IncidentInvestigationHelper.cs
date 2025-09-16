@@ -22,7 +22,8 @@ public static class IncidentInvestigationHelper
         "GetDatabaseOverview",
         "ValidateEnhancedMetricsConfiguration",
         "AnalyzePostgreSQLHealth",
-        "GetPostgreSQLMetricsWithGroups" // depends on validate enhanced metrics
+        "GetPostgreSQLMetricsWithGroups", // depends on validate enhanced metrics,
+        "GetMetricTimeSeriesElementsForAzureResource" // returns too much raw data
     ];
 
     public static bool FilterTools(MethodInfo methodInfo)

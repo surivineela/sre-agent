@@ -24,6 +24,19 @@ namespace Agent.Plugins.Mocks
         {
             throw new NotImplementedException();
         }
+
+        public Task<string> GetMetricsTimeSeriesAnalysisAsync(
+            string resourceId,
+            string metricNamespace,
+            string metricName,
+            DateTimeOffset startTime,
+            DateTimeOffset endTime,
+            string dimensionFilter = "",
+            string contextualQuery = ""
+        )
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 

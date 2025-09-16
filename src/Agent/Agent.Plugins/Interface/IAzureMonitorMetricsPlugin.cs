@@ -14,5 +14,14 @@ namespace Agent.Plugins.Interface
 
         Task<IReadOnlyList<MetricTimeSeriesElement>> QueryMetricValuesForAzureResource(
             string resourceId, string metricNamespace, string metricName, DateTimeOffset startTime, DateTimeOffset endTime, string dimensionFilter = "");
+
+        Task<string> GetMetricsTimeSeriesAnalysisAsync(
+            string resourceId,
+            string metricNamespace,
+            string metricName,
+            DateTimeOffset startTime,
+            DateTimeOffset endTime,
+            string dimensionFilter = "",
+            string contextualQuery = "");
     }
 }
