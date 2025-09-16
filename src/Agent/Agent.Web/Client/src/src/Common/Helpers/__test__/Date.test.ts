@@ -12,6 +12,8 @@ import {
     getDateObjectFromDateAndTimeInput,
     getHourMinuteSecondFrom24HoursFormatTimeInput,
     getHourMinuteSecondFromTimeInput,
+    getKustoTimespan,
+    TimespanKeys,
 } from '../Date';
 
 describe('Date helpers', () => {
@@ -431,6 +433,36 @@ describe('TimerangePillFilter date utility functions', () => {
 
         it('returns empty string for undefined', () => {
             expect(formatShortDate(undefined)).toBe('');
+        });
+    });
+
+    describe('getKustoTimespan', () => {
+        it('returns between clause for custom range using provided dates (stable ISO format)', () => {
+            // Use fixed dates to avoid flakiness
+            const start = new Date('2025-01-01T00:00:00.000Z');
+            const end = new Date('2025-01-02T12:34:56.000Z');
+            const result = getKustoTimespan({ key: TimespanKeys.Custom, start, end });
+            expect(result).toBe(`between (datetime(${start.toISOString()}) .. datetime(${end.toISOString()}))`);
+        });
+
+        it('falls back to now() replacements when start/end missing for custom', () => {
+            // When start/end are undefined it uses current time; we just assert shape to avoid time sensitivity
+            const result = getKustoTimespan({ key: TimespanKeys.Custom });
+            expect(result.startsWith('between (datetime(')).toBe(true);
+            expect(result.includes(' .. datetime(')).toBe(true);
+            expect(result.endsWith('))')).toBe(true);
+        });
+
+        it('returns ago() expression with milliseconds for predefined key', () => {
+            const result = getKustoTimespan({ key: TimespanKeys.OneHour });
+            // 1 hour = 3600000 ms
+            expect(result).toBe('> ago(3600000ms)');
+        });
+
+        it('returns correct ms for SevenDays predefined key', () => {
+            const result = getKustoTimespan({ key: TimespanKeys.SevenDays });
+            // 7 days = 7 * 24 * 60 * 60 * 1000
+            expect(result).toBe('> ago(604800000ms)');
         });
     });
 });

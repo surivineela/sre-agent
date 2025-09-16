@@ -4159,6 +4159,12 @@
       "value": "The semiautonomous mode. The agent diagnoses incidents, then mitigates or modifies resources only after its proposed actions are reviewed and approved."
     }
   ],
+  "djNL6D": [
+    {
+      "type": 0,
+      "value": "Read-only"
+    }
+  ],
   "dnXgff": [
     {
       "type": 0,
@@ -4849,6 +4855,12 @@
     {
       "type": 0,
       "value": "AzureML Data Scientist"
+    }
+  ],
+  "lKv8ex": [
+    {
+      "type": 0,
+      "value": "Default"
     }
   ],
   "levHvg": [

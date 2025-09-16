@@ -1,5 +1,5 @@
 import { DataVizPalette, getColorFromToken, Sparkline } from '@fluentui/react-charting';
-import { Badge, Body1Strong, Caption1, Card, Subtitle2, Title2, tokens } from '@fluentui/react-components';
+import { Badge, Body1Strong, Caption1, Card, Skeleton, SkeletonItem, Subtitle2, Title2, tokens } from '@fluentui/react-components';
 import { ArrowUp16Regular } from '@fluentui/react-icons';
 
 const sparklineDummyData = {
@@ -37,9 +37,10 @@ const sparklineDummyData = {
 interface StatCardProps {
     title: string;
     subtitle: string;
+    isLoading?: boolean;
 }
 
-export const StatCard = ({ title, subtitle }: StatCardProps) => {
+export const StatCard = ({ title, subtitle, isLoading }: StatCardProps) => {
     return (
         <Card style={{ flexGrow: 1, minWidth: 315, height: 120 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
@@ -50,21 +51,29 @@ export const StatCard = ({ title, subtitle }: StatCardProps) => {
                     </Caption1>
                 </div>
 
-                <Badge appearance="tint">
-                    <ArrowUp16Regular /> X%
-                </Badge>
+                {!isLoading && (
+                    <Badge appearance="tint">
+                        <ArrowUp16Regular /> X%
+                    </Badge>
+                )}
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '150px' }}>
-                <div>
-                    <Title2>80</Title2>
-                    <Subtitle2>/100</Subtitle2>
-                </div>
+            {isLoading ? (
+                <Skeleton>
+                    <SkeletonItem size={16} style={{ height: 50 }} />
+                </Skeleton>
+            ) : (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '150px' }}>
+                    <div>
+                        <Title2>80</Title2>
+                        <Subtitle2>/100</Subtitle2>
+                    </div>
 
-                <div>
-                    <Sparkline data={sparklineDummyData} />
+                    <div>
+                        <Sparkline data={sparklineDummyData} />
+                    </div>
                 </div>
-            </div>
+            )}
         </Card>
     );
 };

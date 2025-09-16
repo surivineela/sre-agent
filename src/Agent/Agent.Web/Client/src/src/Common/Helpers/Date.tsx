@@ -1,3 +1,5 @@
+import { TimeRangeValue } from '../Components/PillFilter/TimeRangePillFilter';
+
 export function getSafeDateTime(dateTime: Date | string): Date {
     let stringFormat: string;
 
@@ -305,6 +307,18 @@ export const getTimespanInMilliseconds = (timeRangeKey: Omit<TimespanKeys, 'Cust
         case TimespanKeys.SevenDays:
         default:
             return 7 * millisecondsInDay;
+    }
+};
+
+/** Converts a `TimeRangeValue` to a Kusto timespan string */
+export const getKustoTimespan = (timeRange: TimeRangeValue) => {
+    if (timeRange.key === TimespanKeys.Custom) {
+        const defaultedStartTime = timeRange.start ?? new Date();
+        const defaultedEndTime = timeRange.end ?? new Date();
+        return `between (datetime(${defaultedStartTime.toISOString()}) .. datetime(${defaultedEndTime.toISOString()}))`;
+    } else {
+        const test = getTimespanInMilliseconds(timeRange.key);
+        return `> ago(${test}ms)`;
     }
 };
 

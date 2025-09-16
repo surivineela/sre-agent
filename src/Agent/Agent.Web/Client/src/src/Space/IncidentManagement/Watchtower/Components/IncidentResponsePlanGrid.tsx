@@ -17,10 +17,11 @@ import { debounce } from 'lodash';
 import { useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { ISortedDetailsListColumn } from '../../../../Common/Components/DetailsList/Constants';
+import { AgentMode } from '../../../../Common/Contracts/Azure/SreAgent';
+import { getLocalizedAgentMode } from '../../../../Common/Helpers/AgentMode';
 import { IncidentManagementResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
 import { useIncidentManagementStyles } from '../../../Styles/IncidentManagement.styles';
-
-// TODO: Remaining localization
+import { IncidentHandlerItem } from '../../Analysis';
 
 const sparklineDummyData = {
     chartTitle: '10.21',
@@ -54,8 +55,6 @@ const sparklineDummyData = {
     ],
 };
 
-type ResponsePlanItem = any;
-
 const all = 'all';
 
 enum IncidentResponsePlanGridColumnKey {
@@ -69,7 +68,7 @@ enum IncidentResponsePlanGridColumnKey {
 }
 
 interface IncidentResponsePlanGridProps {
-    responsePlans: ResponsePlanItem[];
+    responsePlans: IncidentHandlerItem[];
     disabled?: boolean;
     isLoading?: boolean;
 }
@@ -81,7 +80,7 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
     const [searchText, setSearchText] = useState<string>('');
     const [autonomyLevelFilter, setAutonomyLevelFilter] = useState<string>(all);
     const [customPlanFilter, setCustomPlanFilter] = useState<string>(all);
-    const [sortColumnKey, setSortColumnKey] = useState<keyof ResponsePlanItem | undefined>();
+    const [sortColumnKey, setSortColumnKey] = useState<keyof IncidentHandlerItem | undefined>();
     const [isSortedDescending, setIsSortedDescending] = useState<boolean>(false);
 
     const autonomyLevelFilterLabel = useMemo<string>(() => {
@@ -105,67 +104,80 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
     const autonomyLevelFilterOptions = useMemo<{ label: string; value: string }[]>(() => {
         return [
             { label: intl.formatMessage(SreAgentResources.all), value: all },
-            { label: 'Autonomous', value: 'Autonomous' },
-            { label: 'Semi-autonomous', value: 'Semi-autonomous' },
-            { label: 'Manual', value: 'Manual' },
+            { label: getLocalizedAgentMode(AgentMode.readonly, intl), value: AgentMode.readonly },
+            { label: getLocalizedAgentMode(AgentMode.review, intl), value: AgentMode.review },
+            { label: getLocalizedAgentMode(AgentMode.autonomous, intl), value: AgentMode.autonomous },
         ];
     }, [intl]);
 
     const customPlanFilterOptions = useMemo<{ label: string; value: string }[]>(() => {
         return [
             { label: intl.formatMessage(SreAgentResources.all), value: all },
-            { label: intl.formatMessage(SreAgentResources.yes), value: 'Yes' },
-            { label: intl.formatMessage(SreAgentResources.no), value: 'No' },
+            { label: intl.formatMessage(SreAgentResources.yes), value: 'yes' },
+            { label: intl.formatMessage(SreAgentResources.no), value: 'no' },
         ];
     }, [intl]);
 
     const handleColumnClick = useCallback(
         (column: IColumn) => {
             const isSameColumn = column.key === sortColumnKey;
-            setSortColumnKey(column.key as keyof ResponsePlanItem);
+            setSortColumnKey(column.key as keyof IncidentHandlerItem);
             setIsSortedDescending(isSameColumn ? !isSortedDescending : false);
         },
         [sortColumnKey, isSortedDescending]
     );
 
-    const onRenderResponsePlanName = useCallback((_item: ResponsePlanItem) => {
-        return (
-            <Link
-                onClick={() => {
-                    /* TODO: Open 'Response plans' tab */
-                }}
-            >
-                Default
-            </Link>
-        );
-    }, []);
+    const onRenderResponsePlanName = useCallback(
+        (item: IncidentHandlerItem) => {
+            return (
+                <Link
+                    onClick={() => {
+                        /* TODO: Open 'Response plans' tab */
+                    }}
+                >
+                    {item.responsePlanName || intl.formatMessage(SreAgentResources.default)}
+                </Link>
+            );
+        },
+        [intl]
+    );
 
-    const onRenderAutonomyLevel = useCallback((_item: ResponsePlanItem) => {
-        return (
-            <Badge appearance="tint" color="informative">
-                Autonomous
-            </Badge>
-        );
-    }, []);
+    const onRenderAutonomyLevel = useCallback(
+        (item: IncidentHandlerItem) => {
+            return (
+                <Badge appearance="tint" color="informative">
+                    {getLocalizedAgentMode(item.autonomyLevel, intl)}
+                </Badge>
+            );
+        },
+        [intl]
+    );
 
-    const onRenderCustomPlan = useCallback((_item: ResponsePlanItem) => {
-        return <Text>Yes</Text>;
-    }, []);
+    const onRenderCustomPlan = useCallback(
+        (item: IncidentHandlerItem) => {
+            return (
+                <Text>
+                    {item.planType === 'Default' ? intl.formatMessage(SreAgentResources.no) : intl.formatMessage(SreAgentResources.yes)}
+                </Text>
+            );
+        },
+        [intl]
+    );
 
-    const onRenderIncidentsReviewed = useCallback((_item: ResponsePlanItem) => {
+    const onRenderIncidentsReviewed = useCallback((_item: IncidentHandlerItem) => {
         return <Sparkline data={sparklineDummyData} />;
     }, []);
 
-    const onRenderMitigatedByAgent = useCallback((_item: ResponsePlanItem) => {
+    const onRenderMitigatedByAgent = useCallback((_item: IncidentHandlerItem) => {
         return <Sparkline data={sparklineDummyData} />;
     }, []);
 
-    const onRenderMitigatedByUser = useCallback((_item: ResponsePlanItem) => {
+    const onRenderMitigatedByUser = useCallback((_item: IncidentHandlerItem) => {
         return <Sparkline data={sparklineDummyData} />;
     }, []);
 
-    const onRenderPendingUserAction = useCallback((_item: ResponsePlanItem) => {
-        return <Text>3</Text>;
+    const onRenderPendingUserAction = useCallback((item: IncidentHandlerItem) => {
+        return <Text>{item.pendingUserAction}</Text>;
     }, []);
 
     const columns = useMemo<ISortedDetailsListColumn[]>(() => {
@@ -178,9 +190,11 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
                 maxWidth: 250,
                 isMultiline: true,
                 onRender: onRenderResponsePlanName,
-                isSorted: sortColumnKey === (IncidentResponsePlanGridColumnKey.name as keyof ResponsePlanItem),
+                isSorted: sortColumnKey === (IncidentResponsePlanGridColumnKey.name as keyof IncidentHandlerItem),
                 isSortedDescending:
-                    sortColumnKey === (IncidentResponsePlanGridColumnKey.name as keyof ResponsePlanItem) ? isSortedDescending : undefined,
+                    sortColumnKey === (IncidentResponsePlanGridColumnKey.name as keyof IncidentHandlerItem)
+                        ? isSortedDescending
+                        : undefined,
                 onColumnClick: (_, col) => handleColumnClick(col),
             },
             {
@@ -191,9 +205,9 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
                 minWidth: 150,
                 maxWidth: 150,
                 onRender: onRenderAutonomyLevel,
-                isSorted: sortColumnKey === (IncidentResponsePlanGridColumnKey.autonomyLevel as keyof ResponsePlanItem),
+                isSorted: sortColumnKey === (IncidentResponsePlanGridColumnKey.autonomyLevel as keyof IncidentHandlerItem),
                 isSortedDescending:
-                    sortColumnKey === (IncidentResponsePlanGridColumnKey.autonomyLevel as keyof ResponsePlanItem)
+                    sortColumnKey === (IncidentResponsePlanGridColumnKey.autonomyLevel as keyof IncidentHandlerItem)
                         ? isSortedDescending
                         : undefined,
                 onColumnClick: (_, col) => handleColumnClick(col),
@@ -206,9 +220,9 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
                 minWidth: 130,
                 maxWidth: 130,
                 onRender: onRenderCustomPlan,
-                isSorted: sortColumnKey === (IncidentResponsePlanGridColumnKey.customPlan as keyof ResponsePlanItem),
+                isSorted: sortColumnKey === (IncidentResponsePlanGridColumnKey.customPlan as keyof IncidentHandlerItem),
                 isSortedDescending:
-                    sortColumnKey === (IncidentResponsePlanGridColumnKey.customPlan as keyof ResponsePlanItem)
+                    sortColumnKey === (IncidentResponsePlanGridColumnKey.customPlan as keyof IncidentHandlerItem)
                         ? isSortedDescending
                         : undefined,
                 onColumnClick: (_, col) => handleColumnClick(col),
@@ -221,9 +235,9 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
                 minWidth: 150,
                 maxWidth: 250,
                 onRender: onRenderIncidentsReviewed,
-                isSorted: sortColumnKey === (IncidentResponsePlanGridColumnKey.incidentsReviewed as keyof ResponsePlanItem),
+                isSorted: sortColumnKey === (IncidentResponsePlanGridColumnKey.incidentsReviewed as keyof IncidentHandlerItem),
                 isSortedDescending:
-                    sortColumnKey === (IncidentResponsePlanGridColumnKey.incidentsReviewed as keyof ResponsePlanItem)
+                    sortColumnKey === (IncidentResponsePlanGridColumnKey.incidentsReviewed as keyof IncidentHandlerItem)
                         ? isSortedDescending
                         : undefined,
                 onColumnClick: (_, col) => handleColumnClick(col),
@@ -236,10 +250,10 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
                 minWidth: 150,
                 maxWidth: 250,
                 onRender: onRenderMitigatedByAgent,
-                isSorted: sortColumnKey === (IncidentResponsePlanGridColumnKey.mitigatedByAgent as keyof ResponsePlanItem),
+                isSorted: sortColumnKey === (IncidentResponsePlanGridColumnKey.mitigatedByAgent as keyof IncidentHandlerItem),
                 onColumnClick: (_, col) => handleColumnClick(col),
                 isSortedDescending:
-                    sortColumnKey === (IncidentResponsePlanGridColumnKey.mitigatedByAgent as keyof ResponsePlanItem)
+                    sortColumnKey === (IncidentResponsePlanGridColumnKey.mitigatedByAgent as keyof IncidentHandlerItem)
                         ? isSortedDescending
                         : undefined,
             },
@@ -250,10 +264,10 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
                 minWidth: 150,
                 maxWidth: 250,
                 onRender: onRenderMitigatedByUser,
-                isSorted: sortColumnKey === (IncidentResponsePlanGridColumnKey.mitigatedByUser as keyof ResponsePlanItem),
+                isSorted: sortColumnKey === (IncidentResponsePlanGridColumnKey.mitigatedByUser as keyof IncidentHandlerItem),
                 onColumnClick: (_, col) => handleColumnClick(col),
                 isSortedDescending:
-                    sortColumnKey === (IncidentResponsePlanGridColumnKey.mitigatedByUser as keyof ResponsePlanItem)
+                    sortColumnKey === (IncidentResponsePlanGridColumnKey.mitigatedByUser as keyof IncidentHandlerItem)
                         ? isSortedDescending
                         : undefined,
             },
@@ -264,10 +278,10 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
                 minWidth: 150,
                 maxWidth: 150,
                 onRender: onRenderPendingUserAction,
-                isSorted: sortColumnKey === (IncidentResponsePlanGridColumnKey.pendingUserAction as keyof ResponsePlanItem),
+                isSorted: sortColumnKey === (IncidentResponsePlanGridColumnKey.pendingUserAction as keyof IncidentHandlerItem),
                 onColumnClick: (_, col) => handleColumnClick(col),
                 isSortedDescending:
-                    sortColumnKey === (IncidentResponsePlanGridColumnKey.pendingUserAction as keyof ResponsePlanItem)
+                    sortColumnKey === (IncidentResponsePlanGridColumnKey.pendingUserAction as keyof IncidentHandlerItem)
                         ? isSortedDescending
                         : undefined,
             },
@@ -292,7 +306,11 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
         let filteredGridItems = responsePlans;
 
         if (searchText.trim() !== '') {
-            filteredGridItems = filteredGridItems.filter(item => item.id.includes(searchText.trim()));
+            filteredGridItems = filteredGridItems.filter(item =>
+                item.responsePlanName === ''
+                    ? intl.formatMessage(SreAgentResources.default).includes(searchText.trim())
+                    : item.responsePlanName.includes(searchText.trim())
+            );
         }
 
         if (autonomyLevelFilter !== all) {
@@ -300,11 +318,13 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
         }
 
         if (customPlanFilter !== all) {
-            filteredGridItems = filteredGridItems.filter(item => item.customPlan === customPlanFilter);
+            filteredGridItems = filteredGridItems.filter(item =>
+                customPlanFilter === 'yes' ? item.planType === 'Default' : item.planType !== 'Default'
+            );
         }
 
         return filteredGridItems;
-    }, [responsePlans, autonomyLevelFilter, customPlanFilter, searchText]);
+    }, [intl, responsePlans, autonomyLevelFilter, customPlanFilter, searchText]);
 
     const sortedItems = useMemo(() => {
         if (!sortColumnKey) return filteredGridItems;

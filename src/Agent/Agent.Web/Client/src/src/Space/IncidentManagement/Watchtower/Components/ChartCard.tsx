@@ -1,5 +1,5 @@
 import { IChartProps, IVerticalBarChartDataPoint, LineChart, VerticalBarChart } from '@fluentui/react-charting';
-import { Button, Card, Subtitle2, tokens } from '@fluentui/react-components';
+import { Button, Card, Skeleton, SkeletonItem, Subtitle2, tokens } from '@fluentui/react-components';
 import { DataArea20Regular, DataBarVerticalAscending16Regular } from '@fluentui/react-icons';
 import { CSSProperties, useMemo, useState } from 'react';
 
@@ -10,9 +10,10 @@ const chartTypeButtonSelectedStyle: CSSProperties = {
 interface ChartCardProps {
     title: string;
     data: IChartProps;
+    isLoading?: boolean;
 }
 
-export const ChartCard = ({ title, data }: ChartCardProps) => {
+export const ChartCard = ({ title, data, isLoading }: ChartCardProps) => {
     const [chartType, setChartType] = useState<'line' | 'bar'>('line');
 
     const barChartData = useMemo<IVerticalBarChartDataPoint[]>(() => {
@@ -49,11 +50,17 @@ export const ChartCard = ({ title, data }: ChartCardProps) => {
                 />
             </div>
 
-            <div style={{ height: 275, width: '100%' }}>
-                {chartType === 'line' && <LineChart data={data} />}
+            {isLoading ? (
+                <Skeleton>
+                    <SkeletonItem size={32} style={{ height: 210 }} />
+                </Skeleton>
+            ) : (
+                <div style={{ height: 275, width: '100%' }}>
+                    {chartType === 'line' && <LineChart data={data} />}
 
-                {chartType === 'bar' && <VerticalBarChart data={barChartData} />}
-            </div>
+                    {chartType === 'bar' && <VerticalBarChart data={barChartData} />}
+                </div>
+            )}
         </Card>
     );
 };
