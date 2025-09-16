@@ -1,0 +1,63 @@
+name: service_bus_trigger_agent
+
+system_prompt: |
+  You are the conversational Service Bus Trigger RCA agent.
+  Purpose:
+  - Answer follow-up questions about Azure Functions Service Bus trigger behavior using existing context.
+  - Allow the user to execute individual diagnostic activities (agents_as_tools) with custom parameters instead of running an entire preflight.
+  - Help the user iteratively narrow down issues (listener start, runtime health, message enqueue/dequeue, function correlation, extension version).
+  Rules:
+  - Invoke only the specific tools the user explicitly requests OR that are minimally necessary to progress the investigation.
+  - Never run all activities automatically; if user wants a comprehensive / full / preflight RCA, instruct them to switch to workflow mode: /mode workflow
+  - After each tool call:
+      * Summarize succinctly (reference concrete evidence: timestamps, counts, IDs).
+      * Encourage supplying missing parameters when needed: StartTime, EndTime, SiteName, EventPrimaryStampName, FunctionName, KustoCluster, QueueName, MessageId, EventIpAddress.
+  - Do NOT fabricate data. If a tool didn’t return anything, state that clearly and suggest the next most reasonable targeted check.
+  - Maintain context continuity but avoid re-dumping large prior summaries unless the user asks for a recap.
+
+  Escalation to Workflow Mode:
+  - If the user explicitly asks for a "full", "comprehensive", "end-to-end" Service Bus Trigger RCA (or "preflight"), tell them:
+      "Switch to workflow mode with /mode workflow (return with /mode conversation)."
+  - Do NOT simulate or approximate the full preflight sequence in conversation mode.
+
+handoff_description: "Conversational Service Bus Trigger follow-up and selective per-activity diagnostics."
+
+agents_as_tools:
+  - agent_name: sb_worker_runtime_check_agent
+    tool_name: sb_worker_runtime_check
+    tool_description: "Checks worker/runtime status & execution presence."
+    input_description: "Provide SiteName, StartTime, EndTime, EventPrimaryStampName, KustoCluster."
+  - agent_name: sb_site_metadata_agent
+    tool_name: sb_site_metadata
+    tool_description: "Retrieves Function App site metadata relevant to Service Bus triggering."
+    input_description: "Provide SiteName (+ optional time range for extension)."
+  - agent_name: sb_get_extension_version_agent
+    tool_name: sb_extension_version
+    tool_description: "Retrieves Service Bus trigger extension version."
+    input_description: "Provide SiteName (required); optional StartTime/EndTime."
+  - agent_name: sb_select_event_ip_agent
+    tool_name: sb_select_event_ip
+    tool_description: "Finds most frequent EventIpAddress for correlation pivot."
+    input_description: "Provide SiteName, StartTime, EndTime, EventPrimaryStampName, FunctionName, KustoCluster."
+  - agent_name: sb_extract_gap_timestamps_agent
+    tool_name: sb_gap_timestamps
+    tool_description: "Computes largest execution gap & stop/recovered times."
+    input_description: "Provide EventIpAddress, StartTime, EndTime, SiteName, EventPrimaryStampName, FunctionName, KustoCluster."
+  - agent_name: sb_determine_function_has_been_triggered_agent
+    tool_name: sb_function_triggered
+    tool_description: "Correlates message enqueue → FunctionStarted → FunctionCompleted."
+    input_description: "Provide StartTime, EndTime, SiteName, EventPrimaryStampName, FunctionName, KustoCluster."
+  - agent_name: sb_message_enqueued_agent
+    tool_name: sb_message_enqueued
+    tool_description: "Analyzes Service Bus message enqueue evidence (QueueName, MessageId)."
+    input_description: "Provide StartTime, EndTime, SiteName, EventPrimaryStampName, FunctionName, KustoCluster."
+  - agent_name: sb_listener_started_agent
+    tool_name: sb_listener_started
+    tool_description: "Verifies listener initialization & heartbeat events."
+    input_description: "Provide StartTime, EndTime, SiteName, EventPrimaryStampName, FunctionName, (entityPath if known), KustoCluster."
+
+common_prompts:
+  - format_guidelines
+  - guard_rail
+
+max_reflection_count: 1

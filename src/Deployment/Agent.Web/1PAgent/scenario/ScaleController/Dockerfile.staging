@@ -7,7 +7,7 @@ COPY . .
 ENV ASPNETCORE_URLS=http://+:8080
 ENV DOTNET_RUNNING_IN_CONTAINER=true
 ENV AppSettings__Core__External__IncidentManagement__Type=Icm
-ENV AppSettings__Core__External__IncidentManagement__ICMAPI__ReadOnly=false
+ENV AppSettings__Core__External__IncidentManagement__ICMAPI__ReadOnly=true
 ENV AppSettings__Core__External__IncidentManagement__AutomatedRCA__Enabled=true
 ENV AppSettings__Core__Experimental__EnableModeSwitch=true
 # TODO: This URL requires SAW access. Once we got cross-tenant access, revisit this.

@@ -14,8 +14,9 @@ user_prompt_override: |
   Focus on accurate routing based on team ownership patterns.
 
   Additional routing rule:
-  - If OwningTeamName is APPSERVICEWEBAPPS\AntaresFunctionsEventHub/ServiceBus/StorageLoop AND incident title/description does NOT mention any of ("blob trigger", "blobtrigger", "blob") case-insensitive → handoff to functions_loop_unsupported_preflight_agent.
-  - If it DOES mention blob trigger terms → handoff to blob_trigger_preflight_agent.
+  - If OwningTeamName is APPSERVICEWEBAPPS\AntaresFunctionsEventHub/ServiceBus/StorageLoop AND blob trigger terms present ("blob trigger", "blobtrigger", "blob") case-insensitive → handoff to blob_trigger_preflight_agent.
+  - Else if OwningTeamName is APPSERVICEWEBAPPS\AntaresFunctionsEventHub/ServiceBus/StorageLoop AND service bus trigger terms present ("service bus", "servicebus", "service bus trigger") case-insensitive → handoff to servicebus_trigger_preflight_agent.
+  - Else if OwningTeamName is APPSERVICEWEBAPPS\AntaresFunctionsEventHub/ServiceBus/StorageLoop AND none of those blob or service bus terms are present → handoff to functions_loop_unsupported_preflight_agent.
 
 enable_handoff_prompt_override: true
 
@@ -48,8 +49,8 @@ system_prompt: |
   → Handoff to: `servicebus_trigger_preflight_agent`
   → Purpose: ServiceBus Trigger RCA preflight analysis (listener, enqueues, function correlation)
 
-  **Functions Loop Non-Blob (Unsupported Yet):**
-  - OwningTeamName is APPSERVICEWEBAPPS\AntaresFunctionsEventHub/ServiceBus/StorageLoop and NOT mentioning blob trigger terms ("blob trigger", "blobtrigger", "blob") in title/description.
+  **Functions Loop Non-Blob/Non-ServiceBus (Unsupported Yet):**
+  - OwningTeamName is APPSERVICEWEBAPPS\AntaresFunctionsEventHub/ServiceBus/StorageLoop AND NOT mentioning blob trigger terms ("blob trigger", "blobtrigger", "blob") AND NOT mentioning service bus trigger terms ("service bus", "servicebus", "service bus trigger") in title/description.
     → Handoff to: `functions_loop_unsupported_preflight_agent`
     → Purpose: Post unsupported-status summary and mark completed to suppress future scans.
 
