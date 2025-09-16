@@ -284,6 +284,21 @@ namespace Agent.Runtime.Services
             _logger.LogInternalInformation("GetAvailableToolsPrompt: Invoked for AgentName: {AgentName}", request.AgentName);
 
             var availableTools = _toolFactory.FetchAvailableToolInfo();
+            _logger.LogInternalInformation("GetAvailableToolsPrompt: Fetched {ToolCount} available tools.", availableTools.Count);
+
+            // Get the configured platform name
+            var configuredPlatform = _incidentManagementSettings?.Type.ToString() ?? string.Empty;
+
+            // Filter out incident handler tools from general tool selection, except for the configured platform
+            availableTools = availableTools.Where(tool => 
+                !tool.IsIncidentHandlerTool || 
+                (tool.IsIncidentHandlerTool && 
+                 tool.IncidentHandlerPlatform?.Equals(configuredPlatform, StringComparison.OrdinalIgnoreCase) == true))
+                .ToList();
+            
+            _logger.LogInternalInformation("GetAvailableToolsPrompt: Filtered tools for platform {Platform}. Remaining: {FilteredCount}", 
+                configuredPlatform, availableTools.Count);
+
             if (request.Tools != null && request.Tools.Any())
             {
                 availableTools = availableTools.Where(tool => request.Tools.Contains(tool.Name, StringComparer.OrdinalIgnoreCase)).ToList();
