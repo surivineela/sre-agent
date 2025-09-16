@@ -5,8 +5,6 @@ import {
     ChartMultiple24Regular,
     ClipboardTaskList16Filled,
     ClipboardTaskList16Regular,
-    ClipboardTaskListLtr24Filled,
-    ClipboardTaskListLtr24Regular,
     LinkSettings24Filled,
     LinkSettings24Regular,
     PanelLeftContractRegular,
@@ -19,7 +17,7 @@ import { useIntl } from 'react-intl';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
-import { IncidentManagementResources } from '../../Strings/SREAgentResources';
+import { IncidentManagementResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { SreAgentContext } from '../Contracts/Context';
 import { IncidentManagementPlatform } from '../Contracts/IncidentManagement';
 import { getIncidentManagementPlatform } from '../Settings/Hooks/useIncidentManagementSettings';
@@ -29,7 +27,6 @@ import Analysis from './Analysis';
 import { IncidentManagementMenuKeys } from './CreateIncidentHandler/Contracts';
 import HandlersOverview from './HandlersOverview';
 import IncidentsOverview from './IncidentsOverview/IncidentsOverview';
-import ResponsePlan from './ResponsePlan';
 
 const IncidentManagement: FC = () => {
     const { menuItem } = useParams();
@@ -62,36 +59,31 @@ const IncidentManagement: FC = () => {
         const items = [
             {
                 key: IncidentManagementMenuKeys.IncidentOverview,
-                label: intl.formatMessage(IncidentManagementResources.incidentsOverview),
-                disabled: disableOverviewAndHandlers,
-            },
-            {
-                key: IncidentManagementMenuKeys.HandlerConfiguration,
-                label: intl.formatMessage(IncidentManagementResources.handlerConfiguration),
+                label: intl.formatMessage(SreAgentResources.incidents),
                 disabled: disableOverviewAndHandlers,
             },
         ];
 
         if (showWatchtower) {
-            items.push(
-                {
-                    key: IncidentManagementMenuKeys.Analysis,
-                    label: intl.formatMessage(IncidentManagementResources.analysis),
-                    disabled: disableOverviewAndHandlers,
-                },
-                {
-                    key: IncidentManagementMenuKeys.ResponsePlan,
-                    label: intl.formatMessage(IncidentManagementResources.responsePlan),
-                    disabled: disableOverviewAndHandlers,
-                }
-            );
+            items.push({
+                key: IncidentManagementMenuKeys.Analysis,
+                label: intl.formatMessage(IncidentManagementResources.analysis),
+                disabled: disableOverviewAndHandlers,
+            });
         }
 
-        items.push({
-            key: IncidentManagementMenuKeys.IncidentPlatform,
-            label: intl.formatMessage(IncidentManagementResources.incidentPlatform),
-            disabled: false,
-        });
+        items.push(
+            {
+                key: IncidentManagementMenuKeys.HandlerConfiguration,
+                label: intl.formatMessage(IncidentManagementResources.responsePlans),
+                disabled: disableOverviewAndHandlers,
+            },
+            {
+                key: IncidentManagementMenuKeys.IncidentPlatform,
+                label: intl.formatMessage(IncidentManagementResources.incidentPlatform),
+                disabled: false,
+            }
+        );
 
         return items;
     }, [intl, disableOverviewAndHandlers, showWatchtower]);
@@ -117,12 +109,6 @@ const IncidentManagement: FC = () => {
                         <ChartMultiple24Filled className={navigationStyles.itemIcon} />
                     ) : (
                         <ChartMultiple24Regular className={navigationStyles.itemIcon} />
-                    );
-                case IncidentManagementMenuKeys.ResponsePlan:
-                    return isSelected ? (
-                        <ClipboardTaskListLtr24Filled className={navigationStyles.itemIcon} />
-                    ) : (
-                        <ClipboardTaskListLtr24Regular className={navigationStyles.itemIcon} />
                     );
                 case IncidentManagementMenuKeys.IncidentPlatform:
                     return isSelected ? (
@@ -236,7 +222,6 @@ const IncidentManagement: FC = () => {
                             <HandlersOverview setNavigationHidden={setNavigationHidden} useConsolidatedCreate={true} />
                         )}
                         {showWatchtower && selectedKey === IncidentManagementMenuKeys.Analysis && <Analysis />}
-                        {showWatchtower && selectedKey === IncidentManagementMenuKeys.ResponsePlan && <ResponsePlan />}
                         {selectedKey === IncidentManagementMenuKeys.IncidentPlatform && <IncidentManagementSettings />}
                     </>
                 )}

@@ -401,12 +401,6 @@
       "value": "Connect repository"
     }
   ],
-  "1rAiXS": [
-    {
-      "type": 0,
-      "value": "Response plan"
-    }
-  ],
   "1xZjpU": [
     {
       "type": 0,
@@ -577,12 +571,6 @@
     {
       "type": 0,
       "value": "Suggested prompts for your resources"
-    }
-  ],
-  "3UAGOy": [
-    {
-      "type": 0,
-      "value": "Incident overview"
     }
   ],
   "3a5wL8": [
@@ -1621,6 +1609,12 @@
     {
       "type": 0,
       "value": "This resource group is recommended for optimal agent performance. It includes one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, Web Apps, Redis, Postgres SQL, CosmosDB, Virtual machines, or Storage accounts."
+    }
+  ],
+  "DeP+ZM": [
+    {
+      "type": 0,
+      "value": "Response plans"
     }
   ],
   "Dff3ms": [
