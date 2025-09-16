@@ -5,6 +5,8 @@ using Agent.Framework;
 using Agent.Plugins.IcmPlugin;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Kusto;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 
 namespace Agent.Plugins.Definitions
 {
@@ -13,11 +15,13 @@ namespace Agent.Plugins.Definitions
     {
         private readonly ICMWorkflowClient _icmWorkflowClient;
         private readonly IKustoPlugin _kustoPlugin;
+        private readonly IWebHostEnvironment _env;
 
-        public RCAContainerAppQuotaPluginDefinition(ICMWorkflowClient icmWorkflowClient, IKustoPlugin kustoPlugin)
+        public RCAContainerAppQuotaPluginDefinition(ICMWorkflowClient icmWorkflowClient, IKustoPlugin kustoPlugin, IWebHostEnvironment env)
         {
             _icmWorkflowClient = icmWorkflowClient;
             _kustoPlugin = kustoPlugin;
+            _env = env;
         }
 
                 [Description("""
@@ -102,6 +106,10 @@ Returns a string indicating if the operation was successful:
             [Description("Quota type.")] string quotaType,
             [Description("Target quota limit.")] string quotaLimit)
         {
+            if (_env.IsDevelopment())
+            {
+                return "Success"; // Do not Set Subscription Quota in development environment
+            }
             return await _icmWorkflowClient.SetSubscriptionQuota(subscriptionId, region, quotaType, quotaLimit);
         }
 
@@ -145,6 +153,11 @@ Returns a JSON object with operation details:
             [Description("Quota type.")] string quotaType,
             [Description("Target quota limit.")] string quotaLimit)
         {
+            if (_env.IsDevelopment())
+            {
+                return "Success"; // Do not Set Environment Quota in development environment
+            }
+
             return await _icmWorkflowClient.SetEnvironmentQuota(incidentId, environmentResourceURL, region, quotaType, quotaLimit);
         }
 

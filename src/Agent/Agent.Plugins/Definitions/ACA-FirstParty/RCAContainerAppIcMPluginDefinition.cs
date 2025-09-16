@@ -186,6 +186,25 @@ namespace Agent.Plugins.Definitions
 
         [Description(@"""
         Purpose:
+        Mitigate an ICM incident and sets its status to resolved with a provided reason.
+
+        Scenario:
+        Use this tool to mark an incident that is related to quota as mitigated after confirmation.
+
+        Output:
+        Returns a string indicating the result of the operation:
+        - result: A message indicating if the entry was added or any other relevant information
+        """
+        )]
+        public async Task<string> MitigateIncidentRCAContainerApp(
+            [Description("Unique identifier for the ICM incident.")] string incidentId,
+            [Description("Reason or comment for resolving the incident.")] string reason)
+        {
+            return await _plugin.MitigateIncident(incidentId, reason);
+        }
+
+        [Description(@"""
+        Purpose:
         Resolves an ICM incident and sets its status to resolved with a provided reason.
 
         Scenario:
