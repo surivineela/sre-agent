@@ -12,12 +12,14 @@ export interface ComboboxPillFilterProps {
     onApply: (keys: string[]) => void;
     selectedKeys: string[];
     displayValue?: string;
+    showValueAs?: 'count' | 'list';
+    valueMaxWidth?: number | string;
     multiSelect?: boolean;
     addAllOption?: boolean;
     allOptionLabel?: string;
     disabled?: boolean;
     onRemove?: () => void;
-    showColon?: boolean;
+    labelDelimiter?: string;
 }
 
 export const ComboboxPillFilter: FC<ComboboxPillFilterProps> = ({
@@ -26,12 +28,14 @@ export const ComboboxPillFilter: FC<ComboboxPillFilterProps> = ({
     onApply,
     selectedKeys,
     displayValue,
+    showValueAs = 'count',
+    valueMaxWidth,
     multiSelect,
     addAllOption,
     allOptionLabel,
     disabled,
     onRemove,
-    showColon = true,
+    labelDelimiter = ':',
 }) => {
     const intl = useIntl();
     const [currentSelectedKeys, setCurrentSelectedKeys] = useState<string[]>(selectedKeys || []);
@@ -55,20 +59,24 @@ export const ComboboxPillFilter: FC<ComboboxPillFilterProps> = ({
             return value ? getOptionText(value) : '';
         }
 
-        const currentSelectionLengthAdjustment = addAllOption && currentSelectedKeys.includes(ALL_OPTION) ? -1 : 0;
+        const currentSelectionAdjusted = addAllOption ? currentSelectedKeys.filter(key => key !== ALL_OPTION) : currentSelectedKeys;
 
-        const selectionLength = currentSelectedKeys.length + currentSelectionLengthAdjustment;
+        const selectionLength = currentSelectionAdjusted.length;
         const optionsLength = options.length;
 
         if (selectionLength === 0 || selectionLength === optionsLength) {
             return allLabel;
         }
 
+        if (showValueAs === 'list') {
+            return currentSelectionAdjusted.map(key => getOptionText(key)).join(', ');
+        }
+
         return intl.formatMessage(IncidentManagementResources.selectedOutOfTotal, {
             selectedCount: selectionLength,
             totalCount: optionsLength,
         });
-    }, [intl, multiSelect, currentSelectedKeys, getOptionText, addAllOption, allLabel, options]);
+    }, [intl, multiSelect, currentSelectedKeys, getOptionText, addAllOption, allLabel, options, showValueAs]);
 
     const onApplyClick = useCallback(() => {
         setCurrentSelectedKeys(pendingSelectedKeys);
@@ -87,14 +95,19 @@ export const ComboboxPillFilter: FC<ComboboxPillFilterProps> = ({
     return (
         <Pill
             label={label}
-            ariaLabel={intl.formatMessage(SreAgentResources.pillFilterAriaLabel, { columnName: label, filterValue: pillDisplayValue })}
+            ariaLabel={intl.formatMessage(SreAgentResources.pillFilterAriaLabel, {
+                columnName: label,
+                delimiter: labelDelimiter ? ` ${labelDelimiter} ` : '',
+                filterValue: pillDisplayValue,
+            })}
             value={displayValue || pillDisplayValue}
             onApply={onApplyClick}
             onCancelOrDismiss={() => initializeLocalState()}
             removeButtonAriaLabel={intl.formatMessage(SreAgentResources.pillFilterRemoveAriaLabel, { columnName: label })}
             onRemove={onRemove}
             disabled={disabled}
-            showColon={showColon}
+            labelDelimiter={labelDelimiter}
+            valueMaxWidth={valueMaxWidth}
         >
             <ListWithSearch
                 options={options}

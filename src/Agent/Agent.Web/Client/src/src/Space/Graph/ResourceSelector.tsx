@@ -73,7 +73,7 @@ const ResourceSelector = ({
                         }
                     }}
                     disabled={!hasChatPermissions}
-                    showColon={false}
+                    labelDelimiter=""
                 />
             )}
 
@@ -95,7 +95,7 @@ const ResourceSelector = ({
                     }
                 }}
                 disabled={!hasChatPermissions}
-                showColon={false}
+                labelDelimiter=""
             />
 
             {isAppGroupLoading ? (
@@ -112,7 +112,7 @@ const ResourceSelector = ({
                         }
                     }}
                     disabled={!hasChatPermissions}
-                    showColon={false}
+                    labelDelimiter=""
                 />
             )}
 

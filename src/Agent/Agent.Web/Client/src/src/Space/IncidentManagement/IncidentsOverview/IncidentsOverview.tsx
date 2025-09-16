@@ -539,6 +539,7 @@ const IncidentsOverview: FC = () => {
                                     onApply={value => setSelectedTimeRange(value)}
                                     selectedValue={selectedTimeRange}
                                     disabled={disableAllControls || !!selectedThreadInfo}
+                                    labelDelimiter={intl.formatMessage(SreAgentResources.equals)}
                                 />
                                 <ComboboxPillFilter
                                     label={intl.formatMessage(IncidentManagementResources.status)}
@@ -548,6 +549,8 @@ const IncidentsOverview: FC = () => {
                                     multiSelect={true}
                                     addAllOption={true}
                                     disabled={disableAllControls || !!selectedThreadInfo}
+                                    labelDelimiter={intl.formatMessage(SreAgentResources.equals)}
+                                    showValueAs="list"
                                 />
                                 {showMockedComponents && (
                                     <>
@@ -559,6 +562,8 @@ const IncidentsOverview: FC = () => {
                                             multiSelect={true}
                                             addAllOption={true}
                                             disabled={disableAllControls || !!selectedThreadInfo}
+                                            labelDelimiter={intl.formatMessage(SreAgentResources.equals)}
+                                            showValueAs="list"
                                         />
                                         <ComboboxPillFilter
                                             label={intl.formatMessage(IncidentManagementResources.investigation)}
@@ -568,6 +573,8 @@ const IncidentsOverview: FC = () => {
                                             multiSelect={true}
                                             addAllOption={true}
                                             disabled={disableAllControls || !!selectedThreadInfo}
+                                            labelDelimiter={intl.formatMessage(SreAgentResources.equals)}
+                                            showValueAs="list"
                                         />
                                     </>
                                 )}

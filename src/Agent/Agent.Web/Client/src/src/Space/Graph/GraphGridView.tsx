@@ -248,7 +248,7 @@ export const GraphGridView: React.FC<GraphGridViewProps> = ({
                     options={resourceTypeFilterOptions}
                     selectedKeys={[selectedPrimaryResourceType]}
                     onApply={keys => setSelectedPrimaryResourceType(keys[0] || ALL_RESOURCE_TYPE_KEY)}
-                    showColon={false}
+                    labelDelimiter=""
                 />
             </div>
             <ResourcesTable

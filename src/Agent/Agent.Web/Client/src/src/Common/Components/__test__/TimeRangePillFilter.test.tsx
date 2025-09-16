@@ -62,9 +62,9 @@ describe('TimeRangePillFilter', () => {
             </TestWrapper>
         );
 
-        const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Time Range: 1 Hour' });
+        const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Time Range : 1 Hour' });
         expect(pillButton).toBeInTheDocument();
-        expect(within(pillButton).getByText('Time Range:')).toBeInTheDocument();
+        expect(within(pillButton).getByText('Time Range')).toBeInTheDocument();
         expect(within(pillButton).getByText('1 Hour')).toBeInTheDocument();
     });
 
@@ -75,7 +75,7 @@ describe('TimeRangePillFilter', () => {
             </TestWrapper>
         );
 
-        const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Time Range: 1 Hour' });
+        const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Time Range : 1 Hour' });
         expect(pillButton).toBeInTheDocument();
         expect(within(pillButton).getByText('Custom Display')).toBeInTheDocument();
     });
@@ -87,7 +87,7 @@ describe('TimeRangePillFilter', () => {
             </TestWrapper>
         );
 
-        const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Time Range: 1 Hour' });
+        const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Time Range : 1 Hour' });
         await userEvent.click(pillButton);
 
         // Wait for the popover to appear
@@ -110,7 +110,7 @@ describe('TimeRangePillFilter', () => {
             </TestWrapper>
         );
 
-        const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Time Range: 1 Hour' });
+        const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Time Range : 1 Hour' });
         await userEvent.click(pillButton);
 
         await waitFor(() => {
@@ -126,7 +126,7 @@ describe('TimeRangePillFilter', () => {
             </TestWrapper>
         );
 
-        const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Time Range: 1 Hour' });
+        const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Time Range : 1 Hour' });
         await userEvent.click(pillButton);
 
         await waitFor(() => {
@@ -150,7 +150,7 @@ describe('TimeRangePillFilter', () => {
             </TestWrapper>
         );
 
-        const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Time Range: 1 Hour' });
+        const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Time Range : 1 Hour' });
         await userEvent.click(pillButton);
 
         await waitFor(() => {
@@ -185,7 +185,7 @@ describe('TimeRangePillFilter', () => {
             </TestWrapper>
         );
 
-        const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Time Range: 1 Hour' });
+        const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Time Range : 1 Hour' });
         await userEvent.click(pillButton);
 
         await waitFor(() => {
@@ -207,7 +207,7 @@ describe('TimeRangePillFilter', () => {
             </TestWrapper>
         );
 
-        const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Time Range: 1 Hour' });
+        const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Time Range : 1 Hour' });
         await userEvent.click(pillButton);
 
         await waitFor(() => {
@@ -252,7 +252,7 @@ describe('TimeRangePillFilter', () => {
             </TestWrapper>
         );
 
-        const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Time Range: 1 Hour' });
+        const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Time Range : 1 Hour' });
         expect(pillButton).toBeDisabled();
     });
 
@@ -291,7 +291,7 @@ describe('TimeRangePillFilter', () => {
             </TestWrapper>
         );
 
-        const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Time Range: 1 Hour' });
+        const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Time Range : 1 Hour' });
         await userEvent.click(pillButton);
 
         await waitFor(() => {
@@ -321,7 +321,7 @@ describe('TimeRangePillFilter', () => {
             </TestWrapper>
         );
 
-        const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Time Range: 1 Hour' });
+        const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Time Range : 1 Hour' });
         await userEvent.click(pillButton);
 
         await waitFor(() => {
@@ -348,7 +348,7 @@ describe('TimeRangePillFilter', () => {
             </TestWrapper>
         );
 
-        const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Time Range: Custom' });
+        const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Time Range : Custom' });
         await userEvent.click(pillButton);
 
         await waitFor(() => {
@@ -377,7 +377,7 @@ describe('TimeRangePillFilter', () => {
             </TestWrapper>
         );
 
-        const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Time Range: 1 Hour' });
+        const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Time Range : 1 Hour' });
         await userEvent.click(pillButton);
 
         await waitFor(() => {

@@ -56,6 +56,8 @@ const usePillStyles = makeStyles({
     fieldValue: {
         color: 'inherit',
         fontWeight: 600,
+        overflowX: 'hidden',
+        textOverflow: 'ellipsis',
     },
     closeButton: {
         position: 'absolute',
@@ -102,7 +104,8 @@ export interface PillProps {
     onCancelOrDismiss?: () => void;
     removeButtonAriaLabel?: string;
     onRemove?: () => void;
-    showColon?: boolean;
+    labelDelimiter?: string;
+    valueMaxWidth?: number | string;
 }
 
 export const Pill: FC<PropsWithChildren<PillProps>> = ({
@@ -118,7 +121,8 @@ export const Pill: FC<PropsWithChildren<PillProps>> = ({
     removeButtonAriaLabel,
     onRemove,
     children,
-    showColon = true,
+    labelDelimiter = ':',
+    valueMaxWidth = 200,
 }) => {
     const intl = useIntl();
     const styles = usePillStyles();
@@ -140,9 +144,12 @@ export const Pill: FC<PropsWithChildren<PillProps>> = ({
                 >
                     <div className={styles.fieldLabel}>
                         {label}
-                        {showColon ? ':' : ''}&nbsp;
+                        {labelDelimiter && <span>&nbsp;{labelDelimiter}</span>}
+                        &nbsp;
                     </div>
-                    <div className={styles.fieldValue}>{value}</div>
+                    <div className={styles.fieldValue} style={valueMaxWidth ? { maxWidth: valueMaxWidth } : undefined}>
+                        {value}
+                    </div>
                 </Button>
                 {onRemove && (
                     <Button

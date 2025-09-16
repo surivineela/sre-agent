@@ -305,8 +305,8 @@ export const SreAgentResources = defineMessages({
     endTimeAriaLabel: { defaultMessage: 'End time', id: 'yc/tuy' },
     noResults: { defaultMessage: 'No results', id: 'jHJmjf' },
     pillFilterAriaLabel: {
-        defaultMessage: 'Editor to filter the results by column value. {columnName}: {filterValue}',
-        id: 'mTsdF8',
+        defaultMessage: 'Editor to filter the results by column value. {columnName}{delimiter} {filterValue}',
+        id: '5j5HnL',
     },
     pillFilterRemoveAriaLabel: { defaultMessage: 'Remove {columnName} filter', id: '/ytgXm' },
     optionsListAriaLabel: { defaultMessage: '{fieldName} options', id: 'dDk23i' },
@@ -314,6 +314,7 @@ export const SreAgentResources = defineMessages({
     dateRange1Day: { defaultMessage: '1 day', id: '+7PjfV' },
     dateRange1Week: { defaultMessage: '1 wk', id: 'CL+NTm' },
     dateRange1Month: { defaultMessage: '1 mo', id: 'zfM/75' },
+    equals: { defaultMessage: 'equals', id: 'Y2QRpS' },
 });
 
 export const SreAgentTabResources = defineMessages({

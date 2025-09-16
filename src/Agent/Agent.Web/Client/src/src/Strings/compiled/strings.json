@@ -801,6 +801,28 @@
       "value": "Incidents that require attention"
     }
   ],
+  "5j5HnL": [
+    {
+      "type": 0,
+      "value": "Editor to filter the results by column value. "
+    },
+    {
+      "type": 1,
+      "value": "columnName"
+    },
+    {
+      "type": 1,
+      "value": "delimiter"
+    },
+    {
+      "type": 0,
+      "value": " "
+    },
+    {
+      "type": 1,
+      "value": "filterValue"
+    }
+  ],
   "5jeq8P": [
     {
       "type": 0,
@@ -3597,6 +3619,12 @@
       "value": "Monitoring metrics publisher"
     }
   ],
+  "Y2QRpS": [
+    {
+      "type": 0,
+      "value": "equals"
+    }
+  ],
   "Y7Lbpf": [
     {
       "type": 0,
@@ -4909,24 +4937,6 @@
     {
       "type": 0,
       "value": "Start"
-    }
-  ],
-  "mTsdF8": [
-    {
-      "type": 0,
-      "value": "Editor to filter the results by column value. "
-    },
-    {
-      "type": 1,
-      "value": "columnName"
-    },
-    {
-      "type": 0,
-      "value": ": "
-    },
-    {
-      "type": 1,
-      "value": "filterValue"
     }
   ],
   "mZ0R9v": [

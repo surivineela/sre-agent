@@ -88,6 +88,7 @@ export interface TimeRangePillProps {
     customTimeRangeProps?: CustomTimeRangeProps;
     disabled?: boolean;
     onRemove?: () => void;
+    labelDelimiter?: string;
 }
 
 export const TimeRangePillFilter: FC<TimeRangePillProps> = ({
@@ -99,6 +100,7 @@ export const TimeRangePillFilter: FC<TimeRangePillProps> = ({
     customTimeRangeProps,
     disabled,
     onRemove,
+    labelDelimiter = ':',
 }) => {
     const intl = useIntl();
     const styles = useTimeRangePillFilterStyles();
@@ -190,7 +192,11 @@ export const TimeRangePillFilter: FC<TimeRangePillProps> = ({
     return (
         <Pill
             label={label}
-            ariaLabel={intl.formatMessage(SreAgentResources.pillFilterAriaLabel, { columnName: label, filterValue: pillDisplayValue })}
+            ariaLabel={intl.formatMessage(SreAgentResources.pillFilterAriaLabel, {
+                columnName: label,
+                delimiter: labelDelimiter ? ` ${labelDelimiter} ` : '',
+                filterValue: pillDisplayValue,
+            })}
             value={displayValue || pillDisplayValue}
             onApply={onApplyClick}
             applyDisabled={!isComplete}
@@ -198,6 +204,7 @@ export const TimeRangePillFilter: FC<TimeRangePillProps> = ({
             removeButtonAriaLabel={intl.formatMessage(SreAgentResources.pillFilterRemoveAriaLabel, { columnName: label })}
             onRemove={onRemove}
             disabled={disabled}
+            labelDelimiter={labelDelimiter}
         >
             <div className={styles.root}>
                 <>

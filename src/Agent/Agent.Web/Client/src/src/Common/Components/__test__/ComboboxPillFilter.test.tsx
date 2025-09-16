@@ -53,9 +53,9 @@ describe('ComboboxPillFilter', () => {
                 </TestWrapper>
             );
 
-            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status: Option 1' });
+            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status : Option 1' });
             expect(pillButton).toBeInTheDocument();
-            expect(within(pillButton).getByText('Status:')).toBeInTheDocument();
+            expect(within(pillButton).getByText('Status')).toBeInTheDocument();
             expect(within(pillButton).getByText('Option 1')).toBeInTheDocument();
         });
 
@@ -66,7 +66,7 @@ describe('ComboboxPillFilter', () => {
                 </TestWrapper>
             );
 
-            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status: Option 1' });
+            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status : Option 1' });
             expect(pillButton).toBeInTheDocument();
             expect(within(pillButton).getByText('Custom Display')).toBeInTheDocument();
         });
@@ -78,7 +78,7 @@ describe('ComboboxPillFilter', () => {
                 </TestWrapper>
             );
 
-            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status: Option 1' });
+            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status : Option 1' });
             await userEvent.click(pillButton);
 
             await waitFor(() => {
@@ -101,7 +101,7 @@ describe('ComboboxPillFilter', () => {
                 </TestWrapper>
             );
 
-            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status: Option 1' });
+            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status : Option 1' });
             await userEvent.click(pillButton);
 
             await waitFor(() => {
@@ -138,7 +138,7 @@ describe('ComboboxPillFilter', () => {
                 </TestWrapper>
             );
 
-            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status: Option 1' });
+            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status : Option 1' });
             await userEvent.click(pillButton);
 
             await waitFor(() => {
@@ -176,7 +176,7 @@ describe('ComboboxPillFilter', () => {
                 </TestWrapper>
             );
 
-            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status: Option 1' });
+            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status : Option 1' });
             await userEvent.click(pillButton);
 
             await waitFor(() => {
@@ -204,7 +204,7 @@ describe('ComboboxPillFilter', () => {
                 </TestWrapper>
             );
 
-            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status: 2 of 4' });
+            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status : 2 of 4' });
             expect(pillButton).toBeInTheDocument();
             expect(within(pillButton).getByText('2 of 4')).toBeInTheDocument();
         });
@@ -221,7 +221,7 @@ describe('ComboboxPillFilter', () => {
                 </TestWrapper>
             );
 
-            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status: All' });
+            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status : All' });
             expect(within(pillButton).getByText('All')).toBeInTheDocument();
         });
 
@@ -237,7 +237,7 @@ describe('ComboboxPillFilter', () => {
                 </TestWrapper>
             );
 
-            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status: All' });
+            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status : All' });
             expect(within(pillButton).getByText('All')).toBeInTheDocument();
         });
 
@@ -248,7 +248,7 @@ describe('ComboboxPillFilter', () => {
                 </TestWrapper>
             );
 
-            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status: 2 of 4' });
+            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status : 2 of 4' });
             await userEvent.click(pillButton);
 
             await waitFor(() => {
@@ -307,7 +307,7 @@ describe('ComboboxPillFilter', () => {
                 </TestWrapper>
             );
 
-            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status: 2 of 4' });
+            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status : 2 of 4' });
             await userEvent.click(pillButton);
 
             await waitFor(() => {
@@ -375,7 +375,7 @@ describe('ComboboxPillFilter', () => {
                 </TestWrapper>
             );
 
-            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status: All' });
+            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status : All' });
             await userEvent.click(pillButton);
 
             await waitFor(() => {
@@ -401,7 +401,7 @@ describe('ComboboxPillFilter', () => {
             );
 
             const pillButton = screen.getByRole('button', {
-                name: 'Editor to filter the results by column value. Status: Select All Items',
+                name: 'Editor to filter the results by column value. Status : Select All Items',
             });
             await userEvent.click(pillButton);
 
@@ -422,7 +422,7 @@ describe('ComboboxPillFilter', () => {
                 </TestWrapper>
             );
 
-            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status: All' });
+            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status : All' });
             await userEvent.click(pillButton);
 
             await waitFor(() => {
@@ -449,7 +449,7 @@ describe('ComboboxPillFilter', () => {
                 </TestWrapper>
             );
 
-            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status: Option 1' });
+            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status : Option 1' });
             await userEvent.click(pillButton);
 
             await waitFor(() => {
@@ -464,7 +464,7 @@ describe('ComboboxPillFilter', () => {
                 </TestWrapper>
             );
 
-            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status: Option 1' });
+            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status : Option 1' });
             await userEvent.click(pillButton);
 
             await waitFor(() => {
@@ -493,7 +493,7 @@ describe('ComboboxPillFilter', () => {
                 </TestWrapper>
             );
 
-            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status: Option 1' });
+            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status : Option 1' });
             expect(pillButton).toBeDisabled();
         });
     });
@@ -536,7 +536,7 @@ describe('ComboboxPillFilter', () => {
                 </TestWrapper>
             );
 
-            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status: Option 1' });
+            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status : Option 1' });
             await userEvent.click(pillButton);
 
             await waitFor(() => {
@@ -558,7 +558,7 @@ describe('ComboboxPillFilter', () => {
                 </TestWrapper>
             );
 
-            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status: Option 1' });
+            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status : Option 1' });
             await userEvent.click(pillButton);
 
             await waitFor(() => {
@@ -632,7 +632,7 @@ describe('ComboboxPillFilter', () => {
                 </TestWrapper>
             );
 
-            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status:' });
+            const pillButton = screen.getByRole('button', { name: 'Editor to filter the results by column value. Status :' });
             expect(pillButton).toBeInTheDocument();
         });
 
