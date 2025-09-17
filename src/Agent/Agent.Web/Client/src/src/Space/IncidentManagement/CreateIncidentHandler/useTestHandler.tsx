@@ -9,6 +9,7 @@ import { Guid } from '../../../Common/Helpers/Guid';
 import { SreAgentContext } from '../../Contracts/Context';
 import { IncidentManagementPlatform } from '../../Contracts/IncidentManagement';
 import { getIncidentManagementPlatform } from '../../Settings/Hooks/useIncidentManagementSettings';
+import { getFilterValues } from '../Utilities';
 import { HandlerCreateOrEditInfo, TimeDuration } from './Contracts';
 import { IncidentHandlerCreateFormValues } from './IncidentHandlerCreateFormValues';
 
@@ -42,20 +43,13 @@ export const useTestHandler = (
         loadIncidentsCallId.current = Guid.newShortGuid();
         setLoadingIncidents(true);
 
+        const filterValues = getFilterValues(values, incidentPlatform, true, undefined);
         const queryPayload: IncidentQueryRequest = {
-            filter: {
-                impactedService: values.impactedService === 'ALL' ? undefined : values.impactedService,
-                priority: values.priority === 'ALL' ? undefined : values.priority,
-                incidentType: values.incidentType === 'ALL' ? undefined : values.incidentType,
-                titleContains: values.titleContains,
-                owningTeamId: incidentPlatform === IncidentManagementPlatform.Icm ? values.owningTeamId || '' : undefined,
-                createdBy: incidentPlatform === IncidentManagementPlatform.Icm ? values.createdBy || '' : undefined,
-                monitorId: incidentPlatform === IncidentManagementPlatform.Icm ? values.monitorId || '' : undefined,
-            },
+            filter: filterValues,
             durationInDays: TimeDuration.Last90Days,
             pageSize: pageSize,
             pageNumber: 1,
-            statuses: [IncidentStatus.resolved, IncidentStatus.mitigated],
+            statuses: [IncidentStatus.resolved, IncidentStatus.mitigated, IncidentStatus.closed],
             searchTerm: searchTerm,
         };
 

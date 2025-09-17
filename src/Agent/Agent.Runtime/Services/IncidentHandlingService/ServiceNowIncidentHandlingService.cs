@@ -1,11 +1,15 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
 using Agent.Framework;
-using Agent.Runtime.Interfaces;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
+using Thread = Agent.Core.Models.Api.v1.Thread;
 
 namespace Agent.Runtime.Services;
 
@@ -16,7 +20,6 @@ public class ServiceNowIncidentHandlingService : IncidentHandlingServiceBase<Ser
 {
     private readonly IServiceNowAPIClient _serviceNowAPIClient;
     private readonly IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload> _serviceNowIncidentManagementService;
-
 
     public ServiceNowIncidentHandlingService(
         IServiceNowAPIClient serviceNowAPIClient,
@@ -49,11 +52,11 @@ public class ServiceNowIncidentHandlingService : IncidentHandlingServiceBase<Ser
         {
             var normalizedFilterPriorities = serviceNowService.NormalizePriorityForFiltering(filterPriority);
             var normalizedIncidentPriorities = serviceNowService.NormalizePriorityForFiltering(incidentPriority);
-            
+
             // Check if any normalized value from filter matches any normalized value from incident
             return normalizedFilterPriorities.Any(fp => normalizedIncidentPriorities.Contains(fp));
         }
-        
+
         // Fallback to base implementation if cast fails
         return base.IsPriorityMatch(filterPriority, incidentPriority);
     }
@@ -81,7 +84,7 @@ public class ServiceNowIncidentHandlingService : IncidentHandlingServiceBase<Ser
         }
     }
 
-    protected override async Task<Core.Models.Api.v1.Thread> CreateIncidentHandlerAgentThreadAsync(
+    protected override async Task<Thread> CreateIncidentHandlerAgentThreadAsync(
         ServiceNowIncidentDocument incidentDetails,
         IncidentHandlerDocument incidentHandler,
         ServiceNowIncidentFilterDocument incidentFilterDocument,

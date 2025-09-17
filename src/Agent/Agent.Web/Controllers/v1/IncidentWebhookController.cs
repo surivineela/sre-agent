@@ -3,15 +3,10 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json;
 using System.Text.Json.Nodes;
-using Agent.Core.Services;
 using Agent.Data.DataModels;
 using Agent.Runtime.Services;
-using Agent.Runtime.SubAgents.AzMonitorAlertAgent;
 using Microsoft.AspNetCore.Mvc;
-using Agent.Web.Authorization;
-using Newtonsoft.Json;
 
 namespace Agent.Web.Controllers.v1;
 
@@ -20,53 +15,50 @@ namespace Agent.Web.Controllers.v1;
 public class IncidentWebhookController : ControllerBase
 {
     private readonly ILogger<IncidentWebhookController> _logger;
-    private readonly AzMonitorAlertScanner _azMonitorAlertScanner;
     private readonly IIncidentHandlingServiceFactory _incidentHandlingServiceFactory;
 
     public IncidentWebhookController(
-        AzMonitorAlertScanner azMonitorAlertScanner,
         IIncidentHandlingServiceFactory incidentHandlingServiceFactory,
         ILogger<IncidentWebhookController> logger)
     {
         _incidentHandlingServiceFactory = incidentHandlingServiceFactory;
-        _azMonitorAlertScanner = azMonitorAlertScanner;
         _logger = logger;
     }
 
-#if DEBUG
-    [HttpPost("azmonitor")]
-#pragma warning disable CUSTOM004 // HTTP action must declare AuthorizeArmOperation: webhook
-    public async Task AzMonitorAlertsWebhook([FromBody] AlertItem alertItem)
-#pragma warning restore CUSTOM004
-    {
-        if (alertItem == null)
-        {
-            _logger.LogInternalError("AzMonitorAlertsWebhook: AlertItem is null");
-            throw new ArgumentNullException(nameof(alertItem), "AlertItem cannot be null");
-        }
+    //#if DEBUG
+    //    [HttpPost("azmonitor")]
+    //#pragma warning disable CUSTOM004 // HTTP action must declare AuthorizeArmOperation: webhook
+    //    public async Task AzMonitorAlertsWebhook([FromBody] AlertItem alertItem)
+    //#pragma warning restore CUSTOM004
+    //    {
+    //        if (alertItem == null)
+    //        {
+    //            _logger.LogInternalError("AzMonitorAlertsWebhook: AlertItem is null");
+    //            throw new ArgumentNullException(nameof(alertItem), "AlertItem cannot be null");
+    //        }
 
-        _logger.LogInternalInformation(
-            "AzMonitorAlertsWebhook: Invoked with AlertId: {AlertId}, Name: {Name}, Type: {Type}",
-            alertItem.Id, alertItem.Name, alertItem.Type);
+    //    _logger.LogInternalInformation(
+    //        "AzMonitorAlertsWebhook: Invoked with AlertId: {AlertId}, Name: {Name}, Type: {Type}",
+    //        alertItem.Id, alertItem.Name, alertItem.Type);
 
-        try
-        {
-            await _azMonitorAlertScanner.ProcessAlertAsync(alertItem, CancellationToken.None);
+    //    try
+    //    {
+    //        await _azMonitorAlertScanner.ProcessAlertAsync(alertItem, CancellationToken.None);
 
-            _logger.LogInternalInformation(
-                "AzMonitorAlertsWebhook: Successfully processed alert with AlertId: {AlertId}",
-                alertItem?.Id);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError(
-                ex,
-                "AzMonitorAlertsWebhook: Error processing alert with AlertId: {AlertId}, Name: {Name}, Type: {Type}",
-                alertItem?.Id, alertItem?.Name, alertItem?.Type);
-            throw;
-        }
-    }
-#endif
+    //        _logger.LogInternalInformation(
+    //            "AzMonitorAlertsWebhook: Successfully processed alert with AlertId: {AlertId}",
+    //            alertItem?.Id);
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        _logger.LogInternalError(
+    //            ex,
+    //            "AzMonitorAlertsWebhook: Error processing alert with AlertId: {AlertId}, Name: {Name}, Type: {Type}",
+    //            alertItem?.Id, alertItem?.Name, alertItem?.Type);
+    //        throw;
+    //    }
+    //}
+    //#endif
 
     [HttpPost("processIncident")]
 #pragma warning disable CUSTOM004 // HTTP action must declare AuthorizeArmOperation: webhook
@@ -131,8 +123,6 @@ public class IncidentWebhookController : ControllerBase
 
     #region Request Models
 
-
-
     public class IcMRequest : IncidentRequest<IcmIncidentFilterDocumentPayload>
     {
         public string? Title { get; set; } = string.Empty;
@@ -140,7 +130,9 @@ public class IncidentWebhookController : ControllerBase
         public string? Description { get; set; } = string.Empty;
 
         public string? IncidentId { get; set; }
+
         public string? Severity { get; set; }
+
         public string? Source { get; set; }
     }
 
@@ -171,49 +163,6 @@ public class IncidentWebhookController : ControllerBase
         public string? Severity { get; set; }
 
         public string? Source { get; set; } = "ServiceNow";
-    }
-
-    public class AzMonitorAlertRequest
-    {
-        [JsonProperty("data")]
-        public required AlertData Data { get; set; }
-    }
-
-    public class AlertData
-    {
-        [JsonProperty("essentials")]
-        public required Essentials Essentials { get; set; }
-    }
-
-    public class Essentials
-    {
-        [JsonProperty("alertId")]
-        public required string AlertId { get; set; }
-
-        [JsonProperty("alertRule")]
-        public required string AlertRule { get; set; }
-
-        [JsonProperty("severity")]
-        public required string Severity { get; set; }
-
-        [JsonProperty("signalType")]
-        public required string SignalType { get; set; }
-
-        [JsonProperty("monitorCondition")]
-        public required string MonitorCondition { get; set; }
-
-        [JsonProperty("monitoringService")]
-        public required string MonitoringService { get; set; }
-
-        [JsonProperty("alertTargetIDs")]
-        public required List<string> AlertTargetIDs { get; set; }
-
-        [JsonProperty("firedDateTime")]
-        public required string FiredDateTime { get; set; }
-
-        [JsonProperty("description")]
-        public required string Description { get; set; }
-
     }
 }
 

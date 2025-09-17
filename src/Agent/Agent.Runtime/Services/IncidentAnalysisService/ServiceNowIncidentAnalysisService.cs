@@ -1,10 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
@@ -54,10 +52,10 @@ public class ServiceNowIncidentAnalysisService : IncidentAnalysisServiceBase<Ser
     {
         bool isMitigatedByAgent = false;
         string status;
-        
+
         status = serviceNowIncident.Status.ToString().ToLower();
         isMitigatedByAgent = (status == "resolved" || status == "closed") && (serviceNowIncident.Tags?.Contains("SREAgent_Mitigated") ?? false);
-               
+
         return isMitigatedByAgent;
     }
 

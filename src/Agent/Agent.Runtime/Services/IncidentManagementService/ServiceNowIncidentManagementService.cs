@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.ServiceNow;
@@ -9,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace Agent.Runtime.Services;
+
 public class ServiceNowIncidentManagementService : IncidentManagementServiceBase<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload>
 {
     protected override string DocumentType => "ServiceNowIncident";
@@ -108,10 +113,10 @@ public class ServiceNowIncidentManagementService : IncidentManagementServiceBase
             var priorityFilter = request.Priorities?.Select(p => p.ToLower()).ToList() ?? [];
             uint limit = request.PageSize > 0 ? (uint)request.PageSize : 20;
             uint offset = request.PageNumber > 0 ? (uint)((request.PageNumber - 1) * limit) : 0;
-            
+
             // Calculate since date based on duration
-            DateTime? since = request.DurationInDays > 0 
-                ? DateTime.UtcNow.AddDays(-request.DurationInDays) 
+            DateTime? since = request.DurationInDays > 0
+                ? DateTime.UtcNow.AddDays(-request.DurationInDays)
                 : null;
 
             // Try to get filter from database if FilterId is provided
@@ -143,7 +148,7 @@ public class ServiceNowIncidentManagementService : IncidentManagementServiceBase
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogInternalError(ex, 
+                    _logger.LogInternalError(ex,
                         "QueryIncidents: Error fetching filter document for FilterId: {FilterId}",
                         request.Filter.Id
                     );
@@ -157,7 +162,7 @@ public class ServiceNowIncidentManagementService : IncidentManagementServiceBase
             }
 
             List<ServiceNowIncident> incidents = new List<ServiceNowIncident>();
-            
+
             if (filter is not null)
             {
                 incidents = await _serviceNowAPIClient.GetIncidentsAsync(
@@ -196,7 +201,7 @@ public class ServiceNowIncidentManagementService : IncidentManagementServiceBase
             {
                 var normalizedStatuses = statusFilter.SelectMany(s => NormalizeStatusesForFiltering([s])).ToList();
                 docs = docs.Where(d => normalizedStatuses.Contains(d.Status?.ToLower() ?? "")).ToList();
-                
+
                 _logger.LogInternalInformation(
                     "QueryIncidents: Filtered by status. Count after filtering: {Count}",
                     docs.Count

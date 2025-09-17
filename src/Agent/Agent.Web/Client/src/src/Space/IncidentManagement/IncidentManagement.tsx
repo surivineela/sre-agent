@@ -151,12 +151,11 @@ const IncidentManagement: FC = () => {
     useEffect(() => {
         if (agentObj) {
             const incidentManagementPlatform = getIncidentManagementPlatform(agentObj);
-            if (
-                incidentManagementPlatform === IncidentManagementPlatform.Disconnected ||
-                incidentManagementPlatform === IncidentManagementPlatform.AzMonitor
-            ) {
+            if (incidentManagementPlatform === IncidentManagementPlatform.Disconnected) {
                 setDisableOverviewAndHandlers(true);
                 navigate({ ...location, pathname: `/views/incidentmanagement/${IncidentManagementMenuKeys.IncidentPlatform}` });
+            } else {
+                setDisableOverviewAndHandlers(false);
             }
         }
     }, [agentObj]);

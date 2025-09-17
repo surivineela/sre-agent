@@ -2,23 +2,19 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Models.Api.v1;
 using Agent.Core.Models.ICM;
 using Agent.Core.Models.ServiceNow;
-using System;
-using System.Collections.Generic;
-using System.Threading.Channels;
 
 namespace Agent.Data.DataModels
 {
     public record ServiceNowIncidentDocument(
         string Id, // Incident ID
-        string Number, 
+        string Number,
         string Status, // Incident status: new, in-progress, resolved
         string Priority, // e.g. 1, 2, 3, 4, 5
         string Urgency, // e.g. high, medium, low
-        string IncidentType, 
-        string ImpactedServiceId, 
+        string IncidentType,
+        string ImpactedServiceId,
         string ImpactedServiceName,
         DateTime CreatedAt
     ) : IIncidentDocument
@@ -48,14 +44,14 @@ namespace Agent.Data.DataModels
         public string GeneralSummary { get; set; } = string.Empty;
         public List<string> Tags { get; set; } = new List<string>();
         public ServiceNowIncidentDocument() : this(
-            string.Empty, 
-            string.Empty, 
-            string.Empty, 
-            string.Empty, 
-            string.Empty, 
-            "ServiceNow", 
-            string.Empty, 
-            string.Empty, 
+            string.Empty,
+            string.Empty,
+            string.Empty,
+            string.Empty,
+            string.Empty,
+            "ServiceNow",
+            string.Empty,
+            string.Empty,
             DateTime.UtcNow)
         {
         }

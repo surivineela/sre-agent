@@ -9,6 +9,7 @@ import { ThreadSource } from '../../../../Common/Contracts/DataPlane/Thread';
 import { IncidentHandlerCreateResources } from '../../../../Strings/SREAgentResources';
 import ChatBox from '../../../Activities/ChatBox';
 import { MultipleSelectionShimmerDetailsList } from '../../../Components/MultipleSelectionShimmerDetailsList';
+import { IncidentManagementPlatform } from '../../../Contracts/IncidentManagement';
 import { useIncidentManagementStyles } from '../../../Styles/IncidentManagement.styles';
 import { ToolTableFieldNames } from '../Contracts';
 import { IncidentHandlerConsolidatedCreateContext } from '../IncidentHandlerConsolidatedCreateContext';
@@ -25,9 +26,16 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view }) =>
     const { errors, values, setFieldValue } = useFormikContext<IncidentHandlerCreateFormValues>();
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
-    const { tools, toolsLoading, generatingUpdatedTools, generateUpdatedTools, handlerTestMetadata, handlerMode, filterMode } = useContext(
-        IncidentHandlerConsolidatedCreateContext
-    );
+    const {
+        incidentPlatform,
+        tools,
+        toolsLoading,
+        generatingUpdatedTools,
+        generateUpdatedTools,
+        handlerTestMetadata,
+        handlerMode,
+        filterMode,
+    } = useContext(IncidentHandlerConsolidatedCreateContext);
 
     const {
         searchTerm,
@@ -186,7 +194,11 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view }) =>
                                 placeholder={intl.formatMessage(IncidentHandlerCreateResources.incidentPlaceholder)}
                                 onOptionSelect={(_event, data) => {
                                     const selectedOption = incidents?.find(incident => incident.id === data.optionValue);
-                                    setSearchTerm(selectedOption?.id || '');
+                                    setSearchTerm(
+                                        (incidentPlatform === IncidentManagementPlatform.AzMonitor
+                                            ? selectedOption?.alertId
+                                            : selectedOption?.id) || ''
+                                    );
                                 }}
                                 disabled={creatingTestThread}
                                 onInput={event => {

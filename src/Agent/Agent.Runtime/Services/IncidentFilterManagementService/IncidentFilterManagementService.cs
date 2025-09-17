@@ -1,9 +1,13 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Configuration;
 using Agent.Data.DataModels;
+using Agent.Runtime.Reasoning;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
-using Agent.Runtime.Reasoning;
 
 namespace Agent.Runtime.Services
 {
@@ -31,16 +35,15 @@ namespace Agent.Runtime.Services
         Task<TIncidentFilterDocument?> GetIncidentFilter(string filterId);
         Task<TIncidentFilterDocument> SaveIncidentFilter(TIncidentFilterDocument incidentFilterDocument);
         Task<bool> DeleteIncidentFilter(string filterId);
-        bool ValidateAgentMode(string agentMode);
     }
 
     public abstract class IncidentFilterManagementServiceBase<TIncidentFilterDocument, TIncidentFilterPayload> : IIncidentFilterManagementService<TIncidentFilterDocument, TIncidentFilterPayload>
         where TIncidentFilterDocument : TIncidentFilterPayload, IIncidentFilterDocument, new()
         where TIncidentFilterPayload : IncidentFilterDocumentPayload
     {
-        private readonly Container _container;
+        protected readonly Container _container;
         protected readonly string DocumentType;
-        private readonly ILogger _logger;
+        protected readonly ILogger _logger;
 
         public IncidentFilterManagementServiceBase(
             Container container,
@@ -111,12 +114,13 @@ namespace Agent.Runtime.Services
             return fieldOptions;
         }
 
-        public async Task<List<TIncidentFilterDocument>> ListIncidentFilters()
+        public virtual async Task<List<TIncidentFilterDocument>> ListIncidentFilters()
         {
             _logger.LogInternalInformation("ListIncidentFilters: Invoked.");
 
             var queryable = _container.GetItemLinqQueryable<TIncidentFilterDocument>(allowSynchronousQueryExecution: false)
-                .Where(c => c.DocumentType == DocumentType && c.IsDeleted == false);
+                .Where(c => c.DocumentType == DocumentType && c.IsDeleted == false)
+                .OrderByDescending(c => c.UpdatedAt);
 
             var iterator = queryable.ToFeedIterator();
             var results = new List<TIncidentFilterDocument>();
@@ -226,16 +230,6 @@ namespace Agent.Runtime.Services
                 _logger.LogInternalError(ex, "DeleteIncidentFilter: Exception occurred for FilterId: {FilterId}", filterId);
                 throw;
             }
-        }
-
-        public bool ValidateAgentMode(string agentMode)
-        {
-            bool isValid = AgentModes.IsModeValid(agentMode);
-            if (!isValid)
-            {
-                _logger.LogInternalInformation($"[IncidentFilterManagementService] Validating Agent Mode failed, RequestAgentMode: {agentMode}");
-            }
-            return isValid;
         }
     }
 }

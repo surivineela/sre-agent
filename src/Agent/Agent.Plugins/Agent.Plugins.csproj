@@ -15,11 +15,11 @@
   <ItemGroup>
     <PackageReference Include="antares.kubectl" GeneratePathProperty="true" />
     <PackageReference Include="Azure.AI.OpenAI" />
-	  <PackageReference Include="Azure.Monitor.Query" />
-	  <PackageReference Include="Azure.ResourceManager.ApiManagement" />
-	  <PackageReference Include="Azure.ResourceManager.AppContainers" />
+    <PackageReference Include="Azure.Monitor.Query" />
+    <PackageReference Include="Azure.ResourceManager.ApiManagement" />
+    <PackageReference Include="Azure.ResourceManager.AppContainers" />
     <PackageReference Include="Azure.ResourceManager.Authorization" />
-	  <PackageReference Include="Azure.ResourceManager.ContainerRegistry" />
+    <PackageReference Include="Azure.ResourceManager.ContainerRegistry" />
     <PackageReference Include="Azure.ResourceManager.ContainerService" />
 	  <PackageReference Include="Azure.ResourceManager.Network" />
 	  <PackageReference Include="Azure.Search.Documents" />
@@ -29,11 +29,11 @@
     <PackageReference Include="Markdig" />
     <PackageReference Include="Microsoft.VisualStudio.Services.Search.Client" />
     <PackageReference Include="SharpZipLib" />
-	  <PackageReference Include="Microsoft.Azure.Management.Monitor.Fluent" />
-	  <PackageReference Include="Microsoft.Diagnostics.Runtime" />
-	  <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" />
-	  <PackageReference Include="Microsoft.Graph" />
-	  <PackageReference Include="Microsoft.TeamFoundationServer.Client" />
+    <PackageReference Include="Microsoft.Azure.Management.Monitor.Fluent" />
+    <PackageReference Include="Microsoft.Diagnostics.Runtime" />
+    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" />
+    <PackageReference Include="Microsoft.Graph" />
+    <PackageReference Include="Microsoft.TeamFoundationServer.Client" />
     <PackageReference Include="ScottPlot" />
     <PackageReference Include="Microsoft.SemanticKernel" />
     <PackageReference Include="Microsoft.SemanticKernel.Abstractions" />
@@ -48,13 +48,14 @@
     <ProjectReference Include="..\Agent.Graph\Agent.Graph.csproj" />
     <ProjectReference Include="..\Agent.Prometheus\Agent.Prometheus.csproj" />
     <ProjectReference Include="..\Agent.Framework\Agent.Framework.csproj" />
+    <ProjectReference Include="..\Agent.Data\Agent.Data.csproj" />
     <ProjectReference Include="..\Agent.ScheduledTasks\Agent.ScheduledTasks.csproj" />
   </ItemGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\Agent.Analyzers\Agent.Analyzers.csproj" OutputItemType="Analyzer" />
-		<ProjectReference Include="..\FirstPartyAgent.Common\FirstPartyAgent.Common.csproj" />
-	</ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Agent.Analyzers\Agent.Analyzers.csproj" OutputItemType="Analyzer" />
+    <ProjectReference Include="..\FirstPartyAgent.Common\FirstPartyAgent.Common.csproj" />
+  </ItemGroup>
 
   <ItemGroup>
     <None Update="Plugins\Definitions\Queries\*.kql">
@@ -79,9 +80,9 @@
 
   <ItemGroup>
     <Folder Include="Plugins\Definitions\Queries\AzureFunctions\FlexConsumption\" />
- </ItemGroup>
-   
- <ItemGroup>
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Plugins\Definitions\Queries\ColdStart\" />
   </ItemGroup>
 

@@ -15,7 +15,7 @@ using ModelContextProtocol.Client;
 /// <summary>
 /// Responsible for initializing the MCPMetaAgent instance with the provided MCP servers,
 /// making sure the connections stay open, and removing tools if the connections close.
-/// 
+///
 /// Does not yet support taking Prompt, Resource, Tool, or Utility change notifications and dynamically modifying agents. Only supports disconnecting and reconnecting to servers.
 /// </summary>
 public class MCPMetaAgentManagementService : IHostedService, IDisposable

@@ -2,9 +2,10 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Services;
+using Agent.Data.DataModels.IncidentModel;
 using Agent.Runtime.Models;
 using Thread = Agent.Core.Models.Api.v1.Thread;
+
 namespace Agent.Runtime.Interfaces;
 /// <summary>
 /// Interface for orchestrating the investigation flow

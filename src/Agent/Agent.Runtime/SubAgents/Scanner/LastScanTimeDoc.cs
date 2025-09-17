@@ -1,7 +1,12 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Data;
 using Agent.Data.DataModels;
 
-namespace Agent.Runtime.SubAgents.IcmScanner;
+namespace Agent.Runtime.SubAgents.Scanner;
+
 public class LastScanTimeDoc : ICosmosDocument
 {
     public const string LastScanTimeKey = "LastScanTimeIcm";

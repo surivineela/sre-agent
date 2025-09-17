@@ -70,6 +70,10 @@ const ThreadItem = forwardRef<HTMLDivElement, IThreadItemProps>(
                         return intl.formatMessage(SreAgentResources.closed);
                     case IncidentStatus.resolved:
                         return intl.formatMessage(SreAgentResources.resolved);
+                    case IncidentStatus.active:
+                        return intl.formatMessage(SreAgentResources.active);
+                    case IncidentStatus.new:
+                        return intl.formatMessage(SreAgentResources.new);
                 }
             }
             return intl.formatMessage(SreAgentResources.active);

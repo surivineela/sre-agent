@@ -7,7 +7,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
-using Agent.Core.Services;
+using Agent.Data.DataModels.IncidentModel;
 using Agent.Plugins;
 using Agent.Plugins.Interface;
 using Azure.Core;

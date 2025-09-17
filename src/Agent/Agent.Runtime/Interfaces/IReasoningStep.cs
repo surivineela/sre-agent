@@ -2,8 +2,9 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Services;
+using Agent.Data.DataModels.IncidentModel;
 using Agent.Runtime.Models;
+
 namespace Agent.Runtime.Interfaces;
 /// <summary>
 /// Interface for a single reasoning step in the investigation flow

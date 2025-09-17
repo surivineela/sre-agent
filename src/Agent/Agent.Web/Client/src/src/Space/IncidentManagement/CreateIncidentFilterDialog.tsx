@@ -19,15 +19,15 @@ import { Dismiss24Regular } from '@fluentui/react-icons';
 import { Formik, FormikHelpers, useFormikContext } from 'formik';
 import { Dispatch, FC, useCallback, useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import { IncidentFilterPayload } from '../../Common/Contracts/Azure/IncidentHandler';
+import { IncidentFilterDocumentPayload } from '../../Common/Contracts/Azure/IncidentHandler';
 import { AgentMode } from '../../Common/Contracts/Azure/SreAgent';
 import { IncidentManagementResources, SreAgentResources } from '../../Strings/SREAgentResources';
 
 interface CreateIncidentFilterProps {
     isDialogOpen: boolean;
     setIsDialogOpen: Dispatch<React.SetStateAction<boolean>>;
-    createIncidentFilter: (incidentFilter: IncidentFilterPayload) => Promise<void>;
-    updateIncidentFilter: (incidentFilter: IncidentFilterPayload) => Promise<void>;
+    createIncidentFilter: (incidentFilter: IncidentFilterDocumentPayload) => Promise<void>;
+    updateIncidentFilter: (incidentFilter: IncidentFilterDocumentPayload) => Promise<void>;
     priorityOptions: string[];
     impactedServiceOptions: string[];
     incidentTypeOptions: string[];
@@ -88,13 +88,13 @@ export const CreateOrUpdateIncidentFilterDialog: FC<CreateIncidentFilterProps> =
 
     const handleSubmit = useCallback(
         async (values: IncidentFilterFormProps, formikHelpers: FormikHelpers<IncidentFilterFormProps>) => {
-            const incidentFilter: IncidentFilterPayload = {
-                Id: values.id,
-                ImpactedService: values.impactedService === 'ALL' ? undefined : values.impactedService,
-                Priority: values.priority === 'ALL' ? undefined : values.priority,
-                IncidentType: values.incidentType === 'ALL' ? undefined : values.incidentType,
-                TitleContains: values.titleContains,
-                AgentMode: values.agentMode,
+            const incidentFilter: IncidentFilterDocumentPayload = {
+                id: values.id,
+                impactedService: values.impactedService === 'ALL' ? undefined : values.impactedService,
+                priority: values.priority === 'ALL' ? undefined : values.priority,
+                incidentType: values.incidentType === 'ALL' ? undefined : values.incidentType,
+                titleContains: values.titleContains,
+                agentMode: values.agentMode,
             };
 
             if (isEditMode) {

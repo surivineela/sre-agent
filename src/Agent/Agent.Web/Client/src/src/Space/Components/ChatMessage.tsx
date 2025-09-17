@@ -22,9 +22,9 @@ import AgentMessage from './AgentMessage';
 import AgentMessageLoadingComponent from './AgentMessageLoadingComponent';
 import ChatMessageFooter from './ChatMessageFooter';
 import ConnectionErrorComponent from './ConnectionErrorComponent';
+import DeepInvestigationStatusMessage from './DeepInvestigationStatusMessage';
 import ScheduledTaskCreationCard from './ScheduledTaskCreationCard';
 import ScheduledTaskExecutionCard from './ScheduledTaskExecutionCard';
-import DeepInvestigationStatusMessage from './DeepInvestigationStatusMessage';
 
 const chatMessageStyles = mergeStyleSets({
     regularMessageContent: {

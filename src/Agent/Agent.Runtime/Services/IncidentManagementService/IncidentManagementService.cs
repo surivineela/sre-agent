@@ -1,9 +1,14 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Data.DataModels;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.Services;
+
 public interface IIncidentManagementService<TIncidentDocument, TIncidentFilterDocumentPayload>
     where TIncidentDocument : IIncidentDocument
     where TIncidentFilterDocumentPayload : IncidentFilterDocumentPayload
@@ -12,7 +17,6 @@ public interface IIncidentManagementService<TIncidentDocument, TIncidentFilterDo
     Task<TIncidentDocument?> GetIncidentDetails(string incidentId);
     Task<TIncidentDocument?> SaveDocument(TIncidentDocument? document);
 }
-
 
 public abstract class IncidentManagementServiceBase<TIncidentDocument, TIncidentFilterDocument, TIncidentFilterDocumentPayload> : IIncidentManagementService<TIncidentDocument, TIncidentFilterDocumentPayload>
     where TIncidentDocument : IIncidentDocument

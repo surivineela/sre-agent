@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Runtime.Models;
+
 namespace Agent.Runtime.Interfaces;
 /// <summary>
 /// Interface for generating and updating hypotheses

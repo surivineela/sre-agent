@@ -3,7 +3,7 @@ import { ITelemetryInfo } from '../AzPortalProxy/Models/ITelemetryInfo';
 import {
     IncidentDocument,
     IncidentFilter,
-    IncidentFilterPayload,
+    IncidentFilterDocumentPayload,
     IncidentHandler,
     IncidentQueryRequest,
     IncidentQueryResponse,
@@ -135,8 +135,8 @@ export class IncidentHandlerClient extends DataPlaneClient {
         }
     };
 
-    public createIncidentFilter = async (body: IncidentFilterPayload): Promise<Response<IncidentFilter>> => {
-        const url = this.getRequestUrl(`${this._apiIncidentPlaygroundPathPrefix}/filters/${body.Id}`);
+    public createIncidentFilter = async (body: IncidentFilterDocumentPayload): Promise<Response<IncidentFilter>> => {
+        const url = this.getRequestUrl(`${this._apiIncidentPlaygroundPathPrefix}/filters/${body.id}`);
         try {
             const { data } = await axios.put<IncidentFilter>(url, body, {
                 headers: getAgentHeaders(),
@@ -160,8 +160,8 @@ export class IncidentHandlerClient extends DataPlaneClient {
         }
     };
 
-    public updateIncidentFilter = async (body: IncidentFilterPayload): Promise<Response<IncidentFilter>> => {
-        const url = this.getRequestUrl(`${this._apiIncidentPlaygroundPathPrefix}/filters/${body.Id}`);
+    public updateIncidentFilter = async (body: IncidentFilterDocumentPayload): Promise<Response<IncidentFilter>> => {
+        const url = this.getRequestUrl(`${this._apiIncidentPlaygroundPathPrefix}/filters/${body.id}`);
         try {
             const { data } = await axios.post<IncidentFilter>(url, body, {
                 headers: getAgentHeaders(),

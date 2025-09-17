@@ -4,7 +4,6 @@
 
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
-using Agent.Logging;
 using Agent.Runtime.Communication;
 using Microsoft.Extensions.Logging;
 

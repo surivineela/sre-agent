@@ -7,12 +7,14 @@ using System.Text.Json.Nodes;
 using Agent.Core.Configuration;
 using Agent.Data;
 using Agent.Data.DataModels;
+using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
-using Agent.Runtime.SubAgents.IcmScanner;
+using Agent.Runtime.SubAgents.Scanner;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Cosmos;
 using Agent.Web.Authorization;
 using ArmOperations = Agent.Core.Constants.ArmOperations;
+using Agent.Runtime.SubAgents.IcmScanner;
 
 namespace Agent.Web.Controllers.v1;
 
@@ -267,7 +269,7 @@ public class IncidentPlaygroundController : ControllerBase
         string agentMode = payload?["AgentMode"]?.ToString() ?? string.Empty;
         if (!string.IsNullOrWhiteSpace(agentMode))
         {
-            bool isValid = _incidentFilterManagementServiceFactory.GetServiceDynamic().ValidateAgentMode(agentMode);
+            bool isValid = AgentModes.IsModeValid(agentMode);
             if (isValid)
             {
                 filterDoc = filterDoc with { AgentMode = agentMode };
@@ -316,7 +318,7 @@ public class IncidentPlaygroundController : ControllerBase
         string agentMode = payload?["AgentMode"]?.ToString() ?? string.Empty;
         if (!string.IsNullOrWhiteSpace(agentMode))
         {
-            bool validateRes = _incidentFilterManagementServiceFactory.GetServiceDynamic().ValidateAgentMode(agentMode);
+            bool validateRes = AgentModes.IsModeValid(agentMode);
             if (validateRes)
             {
                 existingFilter = existingFilter with { AgentMode = agentMode };

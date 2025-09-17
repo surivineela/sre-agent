@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Net;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
@@ -9,11 +13,13 @@ using Agent.Data;
 using Agent.Data.DataModels;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Services;
+using Agent.Runtime.SubAgents.IcmScanner;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
 
-namespace Agent.Runtime.SubAgents.IcmScanner;
+namespace Agent.Runtime.SubAgents.Scanner;
+
 public class IcmScanner(ILogger<IcmScanner> logger,
     IICMAPIClient icmApiClient,
     CosmosClient cosmosClient,
@@ -34,12 +40,12 @@ public class IcmScanner(ILogger<IcmScanner> logger,
     //After offset > 5000, ICM endpoint will returning 400 bad request
     //Updating offset to 200, since now it will apply on every existing incident Filter
     private readonly static int maxOffset = 200;
-    
+
     // Automated RCA configuration
     private bool IsAutomatedRCAEnabled => incidentManagementSettings.AutomatedRCA.Enabled;
     private string WebBaseUrl => incidentManagementSettings.AutomatedRCA.WebBaseUrl;
     private bool IsICMAPIReadOnly => incidentManagementSettings.ICMAPI.ReadOnly;
-    
+
     // Track processed incidents to avoid duplicate processing
     private readonly HashSet<string> _processedIncidents = new();
     public async Task ScanAsync(CancellationToken cancellationToken)
@@ -65,16 +71,18 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             if (filters is null || filters.Count == 0)
             {
                 logger.LogInternalInformation("[IcmScanner] No incident filters found, skipping IcM scanner.");
-            } else
+            }
+            else
             {
                 logger.LogInternalInformation("[IcmScanner] Found {filterCount} incident filters, starting IcM scanner.", filters.Count);
-                await ScanAllIncidentsAsync(cancellationToken,filters);
-                if(isScanSucceeded)
+                await ScanAllIncidentsAsync(cancellationToken, filters);
+                if (isScanSucceeded)
                 {
                     //Once scan scceeded, update the last scan time to startTime - 50sec to give overlap between scans
                     //Since there is 30sec lag for ICM API to update incident status
                     lastScanTime = await UpdateLastScanTimeDocAsync(scanStartTime.AddSeconds(-50));
-                } else
+                }
+                else
                 {
                     logger.LogInternalWarning("[IcmScanner] IcM scanner failed to scan incidents, last scan time will not be updated.");
                 }
@@ -82,6 +90,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             await Task.Delay(ScanInterval, cancellationToken);
         }
     }
+
     private async Task ScanAllIncidentsAsync(CancellationToken cancellationToken, List<IcmIncidentFilterDocument> filters)
     {
 
@@ -119,7 +128,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 logger.LogInternalInformation("[IcmScanner] Cancellation requested, stopping the IcM scanner.");
                 return;
             }
-            uint offset = page * PageSize;
+            var offset = page * PageSize;
 
             if (offset > maxOffset)
             {
@@ -130,13 +139,13 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             try
             {
                 logger.LogInternalInformation("[IcmScanner] Scanning IcM incidents, page {page}, lastScanTime {lastScanTime}, filter: {filterId}", page, lastScanTime, filterDocument.Id);
-                
+
                 // Use OwningTeamId and IncidentType filtering if available
                 var incidents = await icmApiClient.GetIncidentsAsync(
-                    PageSize, 
-                    offset, 
-                    lastScanTime, 
-                    null, 
+                    PageSize,
+                    offset,
+                    lastScanTime,
+                    null,
                     filterDocument.TitleContains,
                     string.IsNullOrWhiteSpace(filterDocument.OwningTeamId) ? null : filterDocument.OwningTeamId,
                     string.IsNullOrWhiteSpace(filterDocument.IncidentType) ? null : filterDocument.IncidentType,
@@ -144,19 +153,19 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                     string.IsNullOrWhiteSpace(filterDocument.MonitorId) ? null : filterDocument.MonitorId,
                     string.IsNullOrWhiteSpace(filterDocument.Priority) ? null : filterDocument.Priority
                 );
-                
+
                 if (incidents is null || incidents.Count == 0)
                 {
                     logger.LogInternalInformation("[IcmScanner] No incidents found for filter: {filterId}", filterDocument.Id);
                     return;
                 }
-                
+
                 foreach (var incident in incidents)
                 {
                     var incidentDocument = await GetDocumentAsync<IcmIncidentDocument>(incident.IncidentId, incident.IncidentId);
                     incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident);
 
-                    if(!await isIncidentNeedToHandle(incident))
+                    if (!await isIncidentNeedToHandle(incident))
                     {
                         logger.LogInternalInformation("[IcmScanner] Incident {incidentId} does not need to be handled.", incident.IncidentId);
                         continue;
@@ -197,7 +206,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             var maxAttempts = 48;
             var checkInterval = TimeSpan.FromMinutes(30);
 
-            for (int attempt = 0; attempt < maxAttempts; attempt++)
+            for (var attempt = 0; attempt < maxAttempts; attempt++)
             {
                 await Task.Delay(checkInterval);
 
@@ -256,7 +265,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
     {
         try
         {
-            ItemResponse<T> response = await container.ReadItemAsync<T>(
+            var response = await container.ReadItemAsync<T>(
                 id,
                 new PartitionKey(partitionKey)
             );
@@ -419,7 +428,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             if (incidentDocument.Status.ToString().Equals("resolved", StringComparison.OrdinalIgnoreCase) || incidentDocument.Status.ToString().Equals("mitigated", StringComparison.OrdinalIgnoreCase))
             {
                 logger.LogInternalInformation("[IcmScanner] Incident {incidentId} is mitigated/resolved, updating thread status if exists.", incidentDocument.Id);
-                
+
                 // Update thread status if exists
                 try
                 {
@@ -447,7 +456,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             if (threadDocument is null)
             {
                 logger.LogInternalInformation("[IcmScanner] Thread doesn't exist for incident {incidentId}, creating new thread", incidentDocument.Id);
-                
+
                 // Default incident handling (manual response)
                 var response = await incidentHandlingService.HandleIncidentAsync(new IncidentHandlingRequestModel<IcmIncidentFilterDocumentPayload>()
                 {
@@ -494,7 +503,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
     {
         var threads = container.GetItemLinqQueryable<ThreadDocument>()
             .Where(doc => doc.DocumentType == "Thread" && doc.Source == ThreadSource.Incident)
-            .Where(doc => (doc.IncidentSource != null && doc.IncidentSource.IncidentType == Agent.Core.Models.Api.v1.IncidentType.Icm && doc.IncidentSource.IncidentId == incidentId) || (doc.IncidentId == incidentId))
+            .Where(doc => doc.IncidentSource != null && doc.IncidentSource.IncidentType == Agent.Core.Models.Api.v1.IncidentType.Icm && doc.IncidentSource.IncidentId == incidentId || doc.IncidentId == incidentId)
             .OrderBy(doc => doc.CreatedTimestamp)
             .ToFeedIterator();
 
@@ -538,7 +547,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             }
 
             // Skip resolved/mitigated incidents
-            if (incidentDocument.Status.ToString().Equals("resolved", StringComparison.OrdinalIgnoreCase) || 
+            if (incidentDocument.Status.ToString().Equals("resolved", StringComparison.OrdinalIgnoreCase) ||
                 incidentDocument.Status.ToString().Equals("mitigated", StringComparison.OrdinalIgnoreCase))
             {
                 logger.LogInternalInformation("[IcmScanner] Incident {incidentId} is mitigated/resolved, skipping team-specific processing.", incidentDocument.Id);
@@ -570,7 +579,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
 
 
             logger.LogInternalInformation("[IcmScanner] Incident {incidentId} qualifies for automated RCA execution via team filter", incidentDocument.Id);
-            
+
             // Execute Automated RCA
             await ExecuteAutomatedRCAAsync(incidentDocument, owningTeamId);
         }
@@ -605,7 +614,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                     incidentId: incidentDocument.Id,
                     incidentSource: new IncidentSource(Agent.Core.Models.Api.v1.IncidentType.Icm, incidentDocument.Id)
                 );
-                
+
                 // Start agent execution
                 await agentInboundCommunicationService.ProcessAlertMessageAsync(new ThreadMessage(
                     ThreadId: thread.Id,
@@ -618,7 +627,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 ));
 
                 var threadUrl = $"{WebBaseUrl}/static/#/views/activities/threads/{thread.Id}";
-                logger.LogInternalInformation($"[IcmScanner] Automated RCA thread created and started for incident {incidentDocument.Id}. Thread ID: {thread.Id}, URL: {threadUrl}", 
+                logger.LogInternalInformation($"[IcmScanner] Automated RCA thread created and started for incident {incidentDocument.Id}. Thread ID: {thread.Id}, URL: {threadUrl}",
                     incidentDocument.Id, thread.Id, threadUrl);
 
                 // Start background monitoring for RCA completion
@@ -628,7 +637,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
         catch (Exception ex)
         {
             logger.LogInternalError(ex, "[IcmScanner] Error executing automated RCA for incident {incidentId}", incidentDocument.Id);
-            
+
             // Remove from processed incidents on error
             _processedIncidents.Remove(incidentDocument.Id);
         }
@@ -682,7 +691,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
     private async Task<bool> isIncidentNeedToHandle(Incident incident)
     {
         //check if is newly created
-        if(incident.CreatedDate > DateTime.UtcNow.AddMinutes(-5))
+        if (incident.CreatedDate > DateTime.UtcNow.AddMinutes(-5))
         {
             logger.LogInternalInformation("[IcmScanner] Incident {incidentId} is newly created.", incident.IncidentId);
             return true;
@@ -696,7 +705,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             return true;
         }
         return false;
-    }   
+    }
 
     // ------------------------------------------------------------
     // Local test queue processing

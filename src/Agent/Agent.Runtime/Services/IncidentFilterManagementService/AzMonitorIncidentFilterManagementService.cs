@@ -1,0 +1,109 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Configuration;
+using Agent.Data;
+using Agent.Data.DataModels;
+using Agent.Data.Interface.IncidentAPI;
+using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos.Linq;
+using Microsoft.Extensions.Logging;
+
+namespace Agent.Runtime.Services;
+
+public class AzMonitorIncidentFilterManagementService : IncidentFilterManagementServiceBase<AzMonitorIncidentFilterDocument, AzMonitorIncidentFilterDocumentPayload>
+{
+    private readonly IAzMonitorAlertService _azMonitorAlertService;
+    public AzMonitorIncidentFilterManagementService(
+        CosmosClient cosmosClient,
+        CosmosDBSettings cosmosDbSettings,
+        IncidentManagementSettings incidentManagementSettings,
+        ILogger<AzMonitorIncidentFilterManagementService> logger,
+        IAzMonitorAlertService azMonitorAlertService)
+        : base(cosmosClient.GetContainer(
+            cosmosDbSettings.Docs.Database,
+            AgentDataConfiguration.ThreadContainerName
+        ), logger, incidentManagementSettings)
+    {
+        _azMonitorAlertService = azMonitorAlertService;
+    }
+
+    public async override Task<bool> CheckConnectivity()
+    {
+        try
+        {
+            await _azMonitorAlertService.GetIncidentsAsync(1, 0);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Connectivity check failed for AzMonitorIncidentFilterManagementService");
+            return false;
+        }
+    }
+
+    protected override Task<List<IncidentFilterFieldOption>> GetExtraFilterFieldOptions()
+    {
+        _logger.LogInternalInformation("ListServiceNowIncidentFilterFieldOptions: Invoked.");
+
+        var result = new List<IncidentFilterFieldOption>();
+
+        var priorityOptions = new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string, string>("Sev0", "Sev0"),
+                new KeyValuePair<string, string>("Sev1", "Sev1"),
+                new KeyValuePair<string, string>("Sev2", "Sev2"),
+                new KeyValuePair<string, string>("Sev3", "Sev3"),
+                new KeyValuePair<string, string>("Sev4", "Sev4"),
+            };
+
+        result.Add(new IncidentFilterFieldOption
+        {
+            FieldName = nameof(AzMonitorIncidentFilterDocument.Priority),
+            DisplayName = "Severity",
+            Options = priorityOptions
+        });
+
+        return Task.FromResult(result);
+    }
+
+    //Overriding ListIncidentFilters so that create and save a default filter if no filter exists
+    public override async Task<List<AzMonitorIncidentFilterDocument>> ListIncidentFilters()
+    {
+        //If there isn't any filter created, create a default filter
+        var queryable = _container.GetItemLinqQueryable<AzMonitorIncidentFilterDocument>(allowSynchronousQueryExecution: false)
+                .Where(c => c.DocumentType == DocumentType);
+
+        var iterator = queryable.ToFeedIterator();
+        var results = new List<AzMonitorIncidentFilterDocument>();
+        try
+        {
+            while (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync();
+                results.AddRange(response);
+            }
+            _logger.LogInternalInformation("ListIncidentFilters: Retrieved {FilterCount} filters.", results.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "ListIncidentFilters: Exception occurred while listing incident filters.");
+            throw;
+        }
+
+        if (results is null || results.Count == 0)
+        {
+            var defaultFilter = new AzMonitorIncidentFilterDocument
+            {
+                Id = "quickstart_handler",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                Priority = "Sev3"
+            };
+            await SaveIncidentFilter(defaultFilter);
+        }
+
+        return await base.ListIncidentFilters();
+    }
+}

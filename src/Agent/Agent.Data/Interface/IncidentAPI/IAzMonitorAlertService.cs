@@ -2,14 +2,14 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Services;
+using Agent.Data.DataModels;
+using Agent.Data.DataModels.IncidentModel;
 using Azure.ResourceManager.AlertsManagement.Models;
 
-namespace Agent.Core.Interfaces;
-public interface IAzMonitorAlertService
-{
-    Task<IEnumerable<AlertItem>> PollNewAlertsBySubscriptionId(string subscriptionId, int scanWindowInMins = 1);
+namespace Agent.Data.Interface.IncidentAPI;
 
+public interface IAzMonitorAlertService : IIncidentAPI<AlertItem, AzMonitorIncidentFilterDocumentPayload>
+{
     Task<bool> UpdateAlertStatus(string alertId, ServiceAlertState alertState);
 
     Task<bool> AcknowledgeAlert(string alertId);

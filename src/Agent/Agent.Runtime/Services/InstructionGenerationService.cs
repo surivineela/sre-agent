@@ -1,12 +1,14 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
 using Agent.Framework;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Agent.Logging;
 using Newtonsoft.Json;
-using Agent.Core.Configuration;  // Add this using
-using Agent.Core.Extensions;     // Add this using
+using Agent.Core.Configuration;
 
 namespace Agent.Runtime.Services
 {
@@ -39,7 +41,7 @@ namespace Agent.Runtime.Services
             IChatClient chatClient,
             IIncidentManagementServiceFactory incidentManagementServiceFactory,
             ILogger<InstructionGenerationService> logger,
-            IncidentManagementSettings incidentManagementSettings  
+            IncidentManagementSettings incidentManagementSettings
             )
         {
             _toolFactory = toolFactory;
@@ -60,13 +62,13 @@ namespace Agent.Runtime.Services
             var configuredPlatform = _incidentManagementSettings?.Type.ToString() ?? string.Empty;
 
             // Filter out incident handler tools from general tool selection, except for the configured platform
-            availableTools = availableTools.Where(tool => 
-                !tool.IsIncidentHandlerTool || 
-                (tool.IsIncidentHandlerTool && 
+            availableTools = availableTools.Where(tool =>
+                !tool.IsIncidentHandlerTool ||
+                (tool.IsIncidentHandlerTool &&
                  tool.IncidentHandlerPlatform?.Equals(configuredPlatform, StringComparison.OrdinalIgnoreCase) == true))
                 .ToList();
-            
-            _logger.LogInternalInformation("FilterTools: Filtered tools for platform {Platform}. Remaining: {FilteredCount}", 
+
+            _logger.LogInternalInformation("FilterTools: Filtered tools for platform {Platform}. Remaining: {FilteredCount}",
                 configuredPlatform, availableTools.Count);
 
             if (string.IsNullOrWhiteSpace(searchString))
@@ -91,7 +93,7 @@ namespace Agent.Runtime.Services
 
             var availableTools = _toolFactory.FetchAvailableToolInfo();
             var incidentHandlerTools = availableTools
-                .Where(tool => tool.IsIncidentHandlerTool && 
+                .Where(tool => tool.IsIncidentHandlerTool &&
                               tool.IncidentHandlerPlatform?.Equals(platform, StringComparison.OrdinalIgnoreCase) == true)
                 .ToList();
 
@@ -203,7 +205,7 @@ namespace Agent.Runtime.Services
             try
             {
                 var pagerDutyService = _incidentManagementServiceFactory.GetService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload>();
-                if(pagerDutyService is not null)
+                if (pagerDutyService is not null)
                 {
                     incidentDetails = await pagerDutyService.GetIncidentDetails(incident);
                 }
@@ -314,7 +316,7 @@ namespace Agent.Runtime.Services
             _logger.LogInternalInformation($"GetInstructionGenerationPrompt: Invoked. incidentSummariesPrompt: {incidentSummariesPrompt}, customInstructionsPrompt: {customInstructionsPrompt}, availableToolsPrompt: {availableToolsPrompt}, existingInstructions: {existingInstructions}");
 
             string exampleOutput = @"{""executionPlan"": ""<the complete execution plan>"", ""toolsUsed"": [""GetContainerLogs"", ""RunAzCliReadCommand""]}";
-            string systemPrompt = $@"You are an AI assistant that generates an EXECUTION_PLAN for an LLM-based Agent in the form of list of instructions based on provided template and requirements. You will use knowledge from INCIDENT_SUMMARIES of past incidents that have been handled, and CUSTOM_INSTRUCTIONS from human engineers. 
+            string systemPrompt = $@"You are an AI assistant that generates an EXECUTION_PLAN for an LLM-based Agent in the form of list of instructions based on provided template and requirements. You will use knowledge from INCIDENT_SUMMARIES of past incidents that have been handled, and CUSTOM_INSTRUCTIONS from human engineers.
 
     Here is the template of an EXECUTION_PLAN prompt for a scenario that requires mitigation:
 

@@ -27,6 +27,12 @@ public record IncidentFilterDocumentPayload
     public string AgentMode { get; set; } = string.Empty;
     public string HandlingAgent { get; set; } = string.Empty;
     public string OwningTeamId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Maximum number of automated investigation attempts for recurring alerts before requesting user input.
+    /// When an alert fires repeatedly and automated RCA fails to find a definitive root cause,
+    /// the agent will ask the user for additional context after this many attempts.
+    /// </summary>
     public int MaxAutomatedInvestigationAttempts { get; set; } = 3;
     public bool DeepInvestigationEnabled { get; set; } = false;
 

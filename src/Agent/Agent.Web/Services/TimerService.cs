@@ -14,7 +14,6 @@ using Agent.Plugins;
 using Agent.Plugins.Interface;
 using Agent.Runtime.Communication;
 using Agent.Runtime.Interfaces;
-using Agent.Runtime.SubAgents.AzMonitorAlertAgent;
 using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.DailyReportSummary;
 using Agent.Runtime.SubAgents.FeedbackRCAAgent;
@@ -24,7 +23,6 @@ using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
 using Agent.Runtime.SubAgents.WebAppDownAgent;
 using Agent.Runtime.ThreadEvaluator;
 using Agent.Runtime.TrajectoryEvaluator;
-using Microsoft.Extensions.AI;
 
 namespace Agent.Web.Services;
 
@@ -79,7 +77,6 @@ public class TimerService : IHostedService, IDisposable
     private AppServiceScanner _appServiceScanner;
     private ScoreCardService _scoreCardService;
     private FeedbackRCAScanner _feedbackRCAScanner;
-    private AzMonitorAlertScanner _azMonitorAlertScanner;
     private ThreadEvaluator _threadEvaluator;
     private TrajectoryEvaluator _trajectoryEvaluator;
     private CustomerLogger _customerLogger;
@@ -128,14 +125,6 @@ public class TimerService : IHostedService, IDisposable
     private bool _trajectoryEvaluatorTimerIsRunning = false;
     private TimeSpan _trajectoryEvaluatorTimerInterval = TimeSpan.FromMinutes(30);
 
-    private Timer? _azMonitorAlertScannerTimer = null;
-    private bool _azMonitorAlertScannerTimerIsRunning = false;
-    private TimeSpan _azMonitorAlertScannerTimerInterval = TimeSpan.FromMinutes(1);
-
-    private Timer? _azMonitorIncidentClosureTimer = null;
-    private bool _azMonitorIncidentClosureTimerIsRunning = false;
-    private TimeSpan _azMonitorIncidentClosureTimerInterval = TimeSpan.FromMinutes(1);
-
     private Timer? _githubAccessTokenTimer = null;
     private bool _githubAccessTokenTimerIsRunning = false;
     private TimeSpan _githubAccessTokenTimerInterval = TimeSpan.FromMinutes(1);
@@ -182,7 +171,6 @@ public class TimerService : IHostedService, IDisposable
         ScoreCardService scoreCardService,
         SinkService sinkService,
         FeedbackRCAScanner feedbackRCAScanner,
-        AzMonitorAlertScanner azMonitorAlertScanner,
         ThreadEvaluator threadEvaluator,
         TrajectoryEvaluator trajectoryEvaluator,
         CustomerLogger customerLogger,
@@ -210,7 +198,6 @@ public class TimerService : IHostedService, IDisposable
         _sinkService = sinkService;
         _feedbackRCAScanner = feedbackRCAScanner;
         _dashboardSettings = dashboardSettings;
-        _azMonitorAlertScanner = azMonitorAlertScanner;
         _threadEvaluator = threadEvaluator;
         _trajectoryEvaluator = trajectoryEvaluator;
         _customerLogger = customerLogger;
@@ -283,27 +270,10 @@ public class TimerService : IHostedService, IDisposable
         _logger.LogInternalInformation("Starting Scheduled Task execution timer...");
         StartScheduledTaskTimer(cancellationToken);
 
-        if (_incidentManagementSettings != null)
+        if (!string.IsNullOrEmpty(_incidentManagementSettings.Type?.ToString()))
         {
-            switch (_incidentManagementSettings.Type)
-            {
-                case IncidentManagementType.AzMonitor:
-                    _logger.LogInternalInformation("Starting Azure Monitor Alert Scanner timer ...");
-                    StartAzMonitorAlertScannerTimer(cancellationToken);
-
-                    _logger.LogInternalInformation("Starting Azure Monitor Incident Closure timer ...");
-                    StartAzMonitorIncidentClosureTimer(cancellationToken);
-                    break;
-                case IncidentManagementType.Icm:
-                case IncidentManagementType.ServiceNow:
-                case IncidentManagementType.PagerDuty:
-                    _logger.LogInternalInformation($"Starting {_incidentManagementSettings.Type} Scanner timer ...");
-                    StartIncidentScannerTimer(cancellationToken);
-                    break;
-                default:
-                    _logger.LogInternalWarning($"Unknown incident management type: {_incidentManagementSettings.Type}. No scanner started.");
-                    break;
-            }
+            _logger.LogInternalInformation($"Starting {_incidentManagementSettings.Type} Scanner timer ...");
+            StartIncidentScannerTimer(cancellationToken);
         }
 
         return Task.CompletedTask;
@@ -828,57 +798,6 @@ public class TimerService : IHostedService, IDisposable
         {
             _logger.LogInternalError(ex, "Error executing application insightslog flusher.");
         }
-    }
-
-    public void StartAzMonitorAlertScannerTimer(CancellationToken cancellationToken)
-    {
-        _azMonitorAlertScannerTimer = new Timer(async _ =>
-        {
-            if (_azMonitorAlertScannerTimerIsRunning)
-            {
-                _logger.LogInternalInformation("Az Monitor Alert Scanner is already running, Skipping this round.");
-                return;
-            }
-            try
-            {
-                _azMonitorAlertScannerTimerIsRunning = true;
-                await _azMonitorAlertScanner.PollNewAlertsAsync(cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogInternalError(ex, "Error executing Az Monitor Alert Scanner.");
-            }
-            finally
-            {
-                _azMonitorAlertScannerTimerIsRunning = false;
-            }
-        }, null, TimeSpan.Zero, _azMonitorAlertScannerTimerInterval);
-    }
-
-    public void StartAzMonitorIncidentClosureTimer(CancellationToken cancellationToken)
-    {
-        _azMonitorIncidentClosureTimer = new Timer(async _ =>
-        {
-            if (_azMonitorIncidentClosureTimerIsRunning)
-            {
-                _logger.LogInternalInformation("Az Monitor Incident Closure Timer is already running, Skipping this round.");
-                return;
-            }
-            try
-            {
-                _azMonitorIncidentClosureTimerIsRunning = true;
-                // Close any inactive Az Monitor incidents that have not been updated with new messages (or fired again) in the last 24 hours, we can modify this per needs
-                await _azMonitorAlertScanner.CloseInActiveAzMonitorIncidentThreads(24 * 60, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogInternalError(ex, "Error executing Az Monitor Incident Closure Timer.");
-            }
-            finally
-            {
-                _azMonitorIncidentClosureTimerIsRunning = false;
-            }
-        }, null, TimeSpan.Zero, _azMonitorIncidentClosureTimerInterval);
     }
 
     public void StartLocalAuthScannerTimer(CancellationToken cancellationToken)

@@ -1,20 +1,22 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Net;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Models.ICM;
 using Agent.Core.Models.ServiceNow;
-using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DataModels;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Services;
-using Agent.Runtime.SubAgents.IcmScanner;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
 
-namespace Agent.Runtime.SubAgents.ServiceNowScanner;
+namespace Agent.Runtime.SubAgents.Scanner;
 
 public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
     IServiceNowAPIClient serviceNowApiClient,
@@ -36,14 +38,14 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
     {
         var lastScanTimeDoc = await GetDocumentAsync<LastScanTimeDoc>(LastScanTimeDoc.LastScanTimeKey, LastScanTimeDoc.LastScanTimeKey);
         lastScanTime = lastScanTimeDoc != null ? lastScanTimeDoc.LastScanTime : DateTime.UtcNow.AddDays(-30); // Default to 30 days ago if not found
-        
+
         while (!cancellationToken.IsCancellationRequested)
         {
             var filters = await incidentFilterManagementService.ListIncidentFilters();
             if (filters is null || filters.Count == 0)
             {
                 logger.LogInternalInformation("No incident filters found, skipping ServiceNow scanner.");
-            } 
+            }
             else
             {
                 logger.LogInternalInformation("Found {filterCount} incident filters, starting ServiceNow scanner.", filters.Count);
@@ -57,12 +59,12 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
                 {
                     logger.LogInternalWarning("ServiceNow scanner encountered issues during scanning, last scan time will not be updated.");
                 }
-               
+
             }
             await Task.Delay(ScanInterval, cancellationToken);
         }
     }
-    
+
     private async Task<bool> ScanAllIncidentsAsync(CancellationToken cancellationToken, List<ServiceNowIncidentFilterDocument> filters)
     {
         // set to true if at least one filterDocument has scanned successfully
@@ -75,7 +77,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
                 logger.LogInternalInformation("Cancellation requested, stopping the ServiceNow scanner.");
                 return isSuccess;
             }
-            
+
             if (filter is ServiceNowIncidentFilterDocument filterDocument && filterDocument.DocumentType == "IncidentFilterServiceNow")
             {
                 try
@@ -105,7 +107,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
                 logger.LogInternalInformation("Cancellation requested, stopping the ServiceNow scanner.");
                 return isSuccess;
             }
-            
+
             uint offset = page * PageSize;
 
             if (offset > maxOffset)
@@ -124,7 +126,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
                     logger.LogInternalInformation("No incidents found for filter {filterId}", filterDocument.Id);
                     return isSuccess;
                 }
-                
+
                 foreach (var incident in incidents)
                 {
                     // Use Number as document ID instead of IncidentId (sys_id)
@@ -132,7 +134,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
                     incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident);
                     await NotifyUserAsync(incidentDocument, new List<string>());
                 }
-                
+
                 //Between each page, wait for 1 minute
                 await Task.Delay(ScanInterval);
             }
@@ -229,7 +231,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
         {
             logger.LogInternalError(ex, "Error upserting incident document for ServiceNow incident {incidentId} with number {incidentNumber}", incident.IncidentId, incident.Number);
             throw;
-        }       
+        }
     }
 
     private async Task<DateTime> UpdateLastScanTimeDocAsync(DateTime lastScanTime)
@@ -240,13 +242,13 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
             {
                 PatchOperation.Add($"/lastScanTime", lastScanTime)
             };
-            
+
             var doc = await container.PatchItemAsync<LastScanTimeDoc>(
                 LastScanTimeDoc.LastScanTimeKey,
                 new PartitionKey(LastScanTimeDoc.LastScanTimeKey),
                 patchOperationList
             );
-            
+
             return doc.Resource.LastScanTime;
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
@@ -255,7 +257,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
             {
                 LastScanTime = DateTime.UtcNow
             };
-            
+
             var doc = await container.CreateItemAsync(lastScanTimeDoc, new PartitionKey(lastScanTimeDoc.PartitionKey));
             return doc.Resource.LastScanTime;
         }
@@ -280,7 +282,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
             if (incidentDocument.Status.Equals("6") || incidentDocument.Status.Equals("7") || incidentDocument.Status.Equals("8"))
             {
                 logger.LogInternalInformation("Incident {incidentNumber} is resolved/closed/cancelled (status: {status}), updating thread status if exists.", incidentDocument.Id, incidentDocument.Status);
-                
+
                 // Update thread status if exists
                 try
                 {

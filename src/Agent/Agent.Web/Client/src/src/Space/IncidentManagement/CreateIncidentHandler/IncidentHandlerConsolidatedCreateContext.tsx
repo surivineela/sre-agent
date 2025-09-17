@@ -22,6 +22,20 @@ export interface IncidentHandlerTestMetadata {
     testIncidentThreadId?: string;
 }
 
+export interface IncidentsPreviewMetadata {
+    loadingIncidents: boolean;
+    incidents: IncidentDocument[] | undefined;
+
+    selectedTimespan: TimeDuration;
+    onSelectedTimespanChange: (value: TimeDuration) => void;
+
+    // For paginating incidents on scroll
+    incidentsListDivRef: React.RefObject<HTMLDivElement | null>;
+    isLoadingInitialIncidents: boolean;
+    hasMoreOldIncidents: boolean;
+    loadMoreOldIncidents: (overflowDiv: boolean) => Promise<boolean | undefined>;
+}
+
 export interface IncidentHandlerConsolidatedCreateMetadata {
     incidentPlatform: IncidentManagementPlatform | undefined;
     exitToHome: () => void;
@@ -58,6 +72,7 @@ export interface IncidentHandlerConsolidatedCreateMetadata {
     incidentTypeOptions: string[];
 
     handlerTestMetadata: IncidentHandlerTestMetadata;
+    incidentsPreviewMetadata: IncidentsPreviewMetadata;
 }
 
 export const IncidentHandlerConsolidatedCreateContext = React.createContext<IncidentHandlerConsolidatedCreateMetadata>({
@@ -74,7 +89,7 @@ export const IncidentHandlerConsolidatedCreateContext = React.createContext<Inci
     loadingIncidents: false,
     tools: [],
     toolsLoading: false,
-    selectedTimespan: TimeDuration.Last60Days,
+    selectedTimespan: TimeDuration.Last30Days,
     onSelectedTimespanChange: () => {},
     generatingInstructions: false,
     generateInstructions: () => {},
@@ -103,5 +118,15 @@ export const IncidentHandlerConsolidatedCreateContext = React.createContext<Inci
         createTestThreadFailure: undefined,
         creatingTestThread: false,
         testIncidentThreadId: undefined,
+    },
+    incidentsPreviewMetadata: {
+        loadingIncidents: false,
+        incidents: [],
+        selectedTimespan: TimeDuration.Last30Days,
+        onSelectedTimespanChange: () => {},
+        incidentsListDivRef: React.createRef<HTMLDivElement | null>(),
+        isLoadingInitialIncidents: false,
+        hasMoreOldIncidents: true,
+        loadMoreOldIncidents: () => Promise.resolve(true),
     },
 });

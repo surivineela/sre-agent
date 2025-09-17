@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Agent.Core.Services;
+using Agent.Data.DataModels.IncidentModel;
 using Agent.Logging;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;

@@ -9,7 +9,7 @@ import { IncidentHandlerClient } from '../../../Common/Clients/IncidentHandlerCl
 import {
     IncidentDocument,
     IncidentFilter,
-    IncidentFilterPayload,
+    IncidentFilterDocumentPayload,
     IncidentHandler,
     IncidentQueryRequest,
     ToolInfo,
@@ -21,9 +21,11 @@ import { IncidentHandlerCreateResources, IncidentManagementNotificationResources
 import { SreAgentContext } from '../../Contracts/Context';
 import { IncidentManagementPlatform } from '../../Contracts/IncidentManagement';
 import { getIncidentManagementPlatform } from '../../Settings/Hooks/useIncidentManagementSettings';
+import { getFilterValues } from '../Utilities';
 import { FilterMode, HandlerCreateOrEditInfo, HandlerMode, OperationStatus, TimeDuration } from './Contracts';
 import { IncidentHandlerCreateSteps } from './IncidentHandlerConsolidatedCreateContext';
 import { IncidentHandlerCreateFormValues } from './IncidentHandlerCreateFormValues';
+import { usePreviewIncidents } from './usePreviewIncidents';
 import { useTestHandler } from './useTestHandler';
 
 const pageSize = 10;
@@ -56,29 +58,8 @@ const getSaveOrUpdateActionForFilter = (
 ): 'create-incidentFilter' | 'update-incidentFilter' | undefined => {
     if (!originalFilter) return 'create-incidentFilter';
 
-    const originalFilterValues = {
-        incidentType: originalFilter.incidentType,
-        impactedService: originalFilter.impactedService,
-        priority: originalFilter.priority,
-        titleContains: originalFilter.titleContains,
-        agentMode: originalFilter.agentMode,
-        owningTeamId: incidentPlatform === IncidentManagementPlatform.Icm ? originalFilter.owningTeamId || '' : undefined,
-        createdBy: incidentPlatform === IncidentManagementPlatform.Icm ? originalFilter.createdBy || '' : undefined,
-        monitorId: incidentPlatform === IncidentManagementPlatform.Icm ? originalFilter.monitorId || '' : undefined,
-    };
-
-    const currentIncidentTypeValue = formValues.incidentType === 'ALL' ? '' : formValues.incidentType || '';
-    const currentFilterValues = {
-        incidentType: currentIncidentTypeValue,
-        impactedService: formValues.impactedService === 'ALL' ? '' : formValues.impactedService || '',
-        priority: formValues.priority === 'ALL' ? '' : formValues.priority || '',
-        titleContains: formValues.titleContains || '',
-        agentMode: formValues.agentMode || AgentMode.review,
-        owningTeamId:
-            incidentPlatform === IncidentManagementPlatform.Icm && currentIncidentTypeValue ? formValues.owningTeamId || '' : undefined,
-        createdBy: incidentPlatform === IncidentManagementPlatform.Icm ? formValues.createdBy || '' : undefined,
-        monitorId: incidentPlatform === IncidentManagementPlatform.Icm ? formValues.monitorId || '' : undefined,
-    };
+    const originalFilterValues = getFilterValues(originalFilter, incidentPlatform, false, '');
+    const currentFilterValues = getFilterValues(formValues, incidentPlatform, true, '');
     if (isEqual(originalFilterValues, currentFilterValues)) return undefined;
 
     return 'update-incidentFilter';
@@ -145,7 +126,11 @@ export const useConsolidatedCreateIncidentHandler = (
 
     // Timespan field
     const [selectedTimespan, setSelectedTimespan] = useState<TimeDuration>(
-        handlerMode === 'create' ? TimeDuration.Last60Days : TimeDuration.Last90Days
+        incidentPlatform === IncidentManagementPlatform.AzMonitor
+            ? TimeDuration.Last15Days
+            : handlerMode === 'create'
+              ? TimeDuration.Last60Days
+              : TimeDuration.Last90Days
     );
     const onSelectedTimespanChange = useCallback((value: TimeDuration) => {
         setSelectedTimespan(value);
@@ -408,18 +393,10 @@ export const useConsolidatedCreateIncidentHandler = (
         );
 
         if (saveOrUpdateFilterAction) {
-            const incidentTypeValue = values.incidentType === 'ALL' ? undefined : values.incidentType;
-            const filterPayload: IncidentFilterPayload = {
-                Id: values.filterName || '',
-                IncidentType: incidentTypeValue,
-                ImpactedService: values.impactedService === 'ALL' ? undefined : values.impactedService,
-                Priority: values.priority === 'ALL' ? undefined : values.priority,
-                TitleContains: values.titleContains || '',
-                AgentMode: values.agentMode || AgentMode.review,
-                OwningTeamId:
-                    incidentPlatform === IncidentManagementPlatform.Icm && incidentTypeValue ? values.owningTeamId || '' : undefined,
-                CreatedBy: incidentPlatform === IncidentManagementPlatform.Icm ? values.createdBy || '' : undefined,
-                MonitorId: incidentPlatform === IncidentManagementPlatform.Icm ? values.monitorId || '' : undefined,
+            const filterValues = getFilterValues(values, incidentPlatform, true, undefined);
+            const filterPayload: IncidentFilterDocumentPayload = {
+                id: values.filterName || '',
+                ...filterValues,
             };
 
             const additionalInfo = {
@@ -604,20 +581,9 @@ export const useConsolidatedCreateIncidentHandler = (
                     ? getNumberOfincidentsToOverflowincidentsListDiv(incidentsListDivRef.current?.clientHeight, incidents?.length || 0)
                     : defaultNumberOfIncidentsToLoad;
 
-                const incidentTypeValue = values.incidentType === 'ALL' ? undefined : values.incidentType;
+                const filterValues = getFilterValues(values, incidentPlatform, true, undefined);
                 const oldIncidentsResponse = await incidentHandlerClient.queryIncidents({
-                    filter: {
-                        impactedService: values.impactedService === 'ALL' ? undefined : values.impactedService,
-                        priority: values.priority === 'ALL' ? undefined : values.priority,
-                        incidentType: incidentTypeValue,
-                        titleContains: values.titleContains,
-                        owningTeamId:
-                            incidentPlatform === IncidentManagementPlatform.Icm && incidentTypeValue
-                                ? values.owningTeamId || ''
-                                : undefined,
-                        createdBy: incidentPlatform === IncidentManagementPlatform.Icm ? values.createdBy || '' : undefined,
-                        monitorId: incidentPlatform === IncidentManagementPlatform.Icm ? values.monitorId || '' : undefined,
-                    },
+                    filter: filterValues,
                     durationInDays: selectedTimespan,
                     pageSize: pageSize,
                     pageNumber: ++incidentsPageNumber.current,
@@ -670,6 +636,7 @@ export const useConsolidatedCreateIncidentHandler = (
     );
 
     const handlerTestMetadata = useTestHandler(resourceId, handlerCreateOrEditInfo, values, incidentHandlerClient);
+    const incidentsPreviewMetadata = usePreviewIncidents();
 
     useEffect(() => {
         if (handlerMode === 'create' && !values.toolNames && tools) {
@@ -709,18 +676,9 @@ export const useConsolidatedCreateIncidentHandler = (
             setLoadingIncidents(true);
             incidentsPageNumber.current = 0;
 
-            const incidentTypeValue = values.incidentType === 'ALL' ? undefined : values.incidentType;
+            const filterValues = getFilterValues(values, incidentPlatform, true, undefined);
             const queryPayload: IncidentQueryRequest = {
-                filter: {
-                    impactedService: values.impactedService === 'ALL' ? undefined : values.impactedService,
-                    priority: values.priority === 'ALL' ? undefined : values.priority,
-                    incidentType: incidentTypeValue,
-                    titleContains: values.titleContains,
-                    owningTeamId:
-                        incidentPlatform === IncidentManagementPlatform.Icm && incidentTypeValue ? values.owningTeamId : undefined,
-                    createdBy: incidentPlatform === IncidentManagementPlatform.Icm ? values.createdBy : undefined,
-                    monitorId: incidentPlatform === IncidentManagementPlatform.Icm ? values.monitorId : undefined,
-                },
+                filter: filterValues,
                 durationInDays: selectedTimespan,
                 pageSize: pageSize,
                 pageNumber: ++incidentsPageNumber.current,
@@ -969,6 +927,7 @@ export const useConsolidatedCreateIncidentHandler = (
         onSelectedIncidentsChange,
         tools: tools || [],
 
-        handlerTestMetadata: handlerTestMetadata,
+        handlerTestMetadata,
+        incidentsPreviewMetadata,
     };
 };

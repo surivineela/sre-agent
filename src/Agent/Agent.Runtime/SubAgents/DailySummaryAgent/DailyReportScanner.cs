@@ -1399,7 +1399,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 {
                     IncidentId = incident.Id,
                     Name = incident.Title,
-                    CreateTime = incident.CreatedAt.DateTime,
+                    CreateTime = incident.CreatedAt,
                     Duration = DateTime.UtcNow - incident.CreatedAt,
                     Status = incident.Status,
                     Impact = impactSummary,

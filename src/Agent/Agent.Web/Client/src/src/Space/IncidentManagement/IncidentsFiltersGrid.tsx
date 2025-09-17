@@ -4,14 +4,17 @@ import { CheckboxVisibility, ConstrainMode, DetailsListLayoutMode, IColumn, Sele
 import { Selection } from '@fluentui/react/lib/Selection';
 import { ShimmeredDetailsList } from '@fluentui/react/lib/ShimmeredDetailsList';
 import { debounce } from 'lodash';
-import { Dispatch, FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Dispatch, FC, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { IncidentFilter, IncidentHandler } from '../../Common/Contracts/Azure/IncidentHandler';
 import { AgentMode } from '../../Common/Contracts/Azure/SreAgent';
 import { IncidentManagementResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { SreAgentContext } from '../Contracts/Context';
+import { getIncidentManagementPlatform } from '../Settings/Hooks/useIncidentManagementSettings';
 import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
 import { IncidentFilterFormProps } from './CreateIncidentFilterDialog';
 import { HandlerCreateOrEditInfo, OperationStatus } from './CreateIncidentHandler/Contracts';
+import { getPriorityOrSeverityStrings } from './Utilities';
 
 export type ISortedDetailsListColumn = IColumn & {
     sort?: (items: any[], isSortedDescending: boolean) => any[];
@@ -75,6 +78,10 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
     const [sortColumnKey, setSortColumnKey] = useState<keyof IncidentFilter | undefined>();
     const [isSortedDescending, setIsSortedDescending] = useState<boolean>(false);
 
+    const sreAgentContext = useContext(SreAgentContext);
+    const incidentPlatform = useMemo(() => getIncidentManagementPlatform(sreAgentContext.agentObj), [sreAgentContext.agentObj]);
+    const priorityOrSeverityStrings = useMemo(() => getPriorityOrSeverityStrings(incidentPlatform), [incidentPlatform]);
+
     const filteredGridItems = useMemo(() => {
         let filteredGridItems = incidentFilters;
         if (searchText.trim() !== '') {
@@ -135,19 +142,22 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
         }));
 
         setIncidentPriorities([
-            { value: all, label: intl.formatMessage(IncidentManagementResources.allPriorities) },
+            { value: all, label: intl.formatMessage(priorityOrSeverityStrings.allOptionLabel) },
             ...incidentTypeOptions,
         ]);
-    }, [isIncidentFilterEmpty, incidentFilters, intl]);
+    }, [isIncidentFilterEmpty, incidentFilters, intl, priorityOrSeverityStrings]);
 
-    const getPriorityOptionLabel = (option: string): string => {
-        switch (option) {
-            case all:
-                return intl.formatMessage(IncidentManagementResources.allPriorities);
-            default:
-                return option;
-        }
-    };
+    const getPriorityOptionLabel = useCallback(
+        (option: string): string => {
+            switch (option) {
+                case all:
+                    return intl.formatMessage(priorityOrSeverityStrings.allOptionLabel);
+                default:
+                    return option;
+            }
+        },
+        [intl, priorityOrSeverityStrings]
+    );
 
     useEffect(() => {
         if (!isIncidentFilterEmpty) return;
@@ -361,6 +371,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
 
     const columns = useMemo<ISortedDetailsListColumn[]>(() => {
         const columnWidth = '14';
+        const { fieldLabel: priorityOrSeverityLabel } = getPriorityOrSeverityStrings(incidentPlatform);
 
         const columns: ISortedDetailsListColumn[] = [
             {
@@ -409,7 +420,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
             },
             {
                 key: IncidentsListColumnKey.priority,
-                name: intl.formatMessage(IncidentManagementResources.priority),
+                name: intl.formatMessage(priorityOrSeverityLabel),
                 fieldName: IncidentsListColumnKey.priority,
                 isResizable: true,
                 isMultiline: true,
@@ -476,6 +487,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
         return columns;
     }, [
         intl,
+        incidentPlatform,
         onRenderId,
         sortColumnKey,
         isSortedDescending,

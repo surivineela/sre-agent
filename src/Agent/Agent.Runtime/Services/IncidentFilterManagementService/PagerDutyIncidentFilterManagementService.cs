@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Net.Http.Json;
 using Agent.Core.Configuration;
 using Agent.Data;
@@ -7,10 +11,10 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.Services;
+
 public class PagerDutyIncidentFilterManagementService : IncidentFilterManagementServiceBase<PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload>
 {
     private readonly IPagerDutyService _pagerDutyService;
-    private readonly ILogger<PagerDutyIncidentFilterManagementService> _logger;
     public PagerDutyIncidentFilterManagementService(
         CosmosClient cosmosClient,
         CosmosDBSettings cosmosDbSettings,
@@ -23,7 +27,6 @@ public class PagerDutyIncidentFilterManagementService : IncidentFilterManagement
         ), logger, incidentManagementSettings)
     {
         _pagerDutyService = pagerDutyService;
-        _logger = logger;
     }
     public async override Task<bool> CheckConnectivity()
     {

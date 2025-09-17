@@ -27,7 +27,7 @@ import {
 import { CheckboxVisibility, ConstrainMode, DetailsListLayoutMode, IColumn, SelectionMode } from '@fluentui/react/lib/DetailsList';
 import { ShimmeredDetailsList } from '@fluentui/react/lib/ShimmeredDetailsList';
 import { debounce } from 'lodash';
-import { FC, useCallback, useMemo, useState } from 'react';
+import { FC, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { ComboboxPillFilter, LabelKeyPair } from '../../../Common/Components/PillFilter/ComboboxPillFilter';
 import { TimeRangeKeyLabelPair, TimeRangePillFilter, TimeRangeValue } from '../../../Common/Components/PillFilter/TimeRangePillFilter';
@@ -37,8 +37,12 @@ import { TimespanKeys } from '../../../Common/Helpers/Date';
 import Url from '../../../Common/Helpers/Url';
 import { IncidentManagementResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import ThreadActionsMenu from '../../Activities/ThreadActionsMenu';
+import { SreAgentContext } from '../../Contracts/Context';
+import { IncidentManagementPlatform } from '../../Contracts/IncidentManagement';
+import { getIncidentManagementPlatform } from '../../Settings/Hooks/useIncidentManagementSettings';
 import { useIncidentManagementStyles } from '../../Styles/IncidentManagement.styles';
 import IncidentChat from '../IncidentChat';
+import { getPriorityOrSeverityStrings } from '../Utilities';
 import { SortColumn, useIncidentThreadList } from './useIncidentThreadList';
 
 type ISortedDetailsListColumn<T> = IColumn & {
@@ -75,6 +79,10 @@ interface SelectedThreadInfo {
 
 const IncidentsOverview: FC = () => {
     const showMockedComponents = useMemo(() => Url.getFeatureValue('showIncidentOverviewMocked') === 'true', []);
+
+    const sreAgentContext = useContext(SreAgentContext);
+    const incidentPlatform = useMemo(() => getIncidentManagementPlatform(sreAgentContext.agentObj), [sreAgentContext.agentObj]);
+    const priorityOrSeverityStrings = useMemo(() => getPriorityOrSeverityStrings(incidentPlatform), [incidentPlatform]);
 
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
@@ -190,6 +198,10 @@ const IncidentsOverview: FC = () => {
                 label: intl.formatMessage(SreAgentResources.triggered),
             },
             {
+                key: IncidentStatus.new,
+                label: intl.formatMessage(SreAgentResources.new),
+            },
+            {
                 key: IncidentStatus.active,
                 label: intl.formatMessage(SreAgentResources.active),
             },
@@ -227,9 +239,19 @@ const IncidentsOverview: FC = () => {
                         return intl.formatMessage(SreAgentResources.closed);
                     case IncidentStatus.resolved:
                         return intl.formatMessage(SreAgentResources.resolved);
+                    case IncidentStatus.active:
+                        return intl.formatMessage(SreAgentResources.active);
+                    case IncidentStatus.new:
+                        return intl.formatMessage(SreAgentResources.new);
                 }
             }
-            return intl.formatMessage(SreAgentResources.active);
+            return intl.formatMessage(
+                incidentPlatform === IncidentManagementPlatform.AzMonitor
+                    ? SreAgentResources.new
+                    : incidentPlatform === IncidentManagementPlatform.PagerDuty
+                      ? SreAgentResources.triggered
+                      : SreAgentResources.active
+            );
         },
         [intl]
     );
@@ -385,7 +407,7 @@ const IncidentsOverview: FC = () => {
         if (showMockedComponents) {
             columns.push({
                 key: IncidentsListColumnKey.priority,
-                name: intl.formatMessage(IncidentManagementResources.priority),
+                name: intl.formatMessage(priorityOrSeverityStrings.fieldLabel),
                 fieldName: IncidentsListColumnKey.priority,
                 isResizable: true,
                 isMultiline: true,
@@ -405,7 +427,7 @@ const IncidentsOverview: FC = () => {
             isResizable: true,
             minWidth: 100,
             maxWidth: 250,
-            onRender: item => getStatusText(item.status?.incidentStatus?.status || IncidentStatus.active),
+            onRender: item => getStatusText(item.status?.incidentStatus?.status),
             isSorted: sortColumnKey === IncidentsListColumnKey.status,
             isSortedDescending: isSortedDescending,
             onColumnClick: (_, col) => handleColumnClick(col),
@@ -444,6 +466,7 @@ const IncidentsOverview: FC = () => {
         return columns;
     }, [
         intl,
+        incidentPlatform,
         sortColumnKey,
         isSortedDescending,
         getStatusText,
@@ -555,7 +578,7 @@ const IncidentsOverview: FC = () => {
                                 {showMockedComponents && (
                                     <>
                                         <ComboboxPillFilter
-                                            label={intl.formatMessage(IncidentManagementResources.priority)}
+                                            label={intl.formatMessage(priorityOrSeverityStrings.fieldLabel)}
                                             options={priorityOptions}
                                             onApply={values => setSelectedPriorities(values)}
                                             selectedKeys={selectedPriorities}
@@ -590,7 +613,7 @@ const IncidentsOverview: FC = () => {
                             {showMockedComponents && (
                                 <div style={{ display: 'flex', flexDirection: 'row', gap: '20px', margin: '20px 0px 20px -3px' }}>
                                     <SummaryBox
-                                        title={intl.formatMessage(IncidentManagementResources.priorities)}
+                                        title={intl.formatMessage(priorityOrSeverityStrings.fieldLabelPlural)}
                                         fields={[
                                             {
                                                 color: getPriorityColor(Priorities.P1),

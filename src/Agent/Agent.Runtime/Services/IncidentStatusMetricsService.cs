@@ -1,8 +1,9 @@
-using System.Text.Json.Serialization;
-using Agent.Core.Interfaces;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Models.Api.v1;
 using Agent.Data.Repositories;
-using Agent.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.Services

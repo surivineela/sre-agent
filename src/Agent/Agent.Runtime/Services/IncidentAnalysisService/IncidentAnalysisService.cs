@@ -1,33 +1,16 @@
-using System;
-using System.Collections.Generic;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Data;
-using System.Globalization;
-using System.Net;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
-using Agent.Core.Models.Api.v1;
-using Agent.Core.Models.ICM;
-using Agent.Core.Models.ServiceNow;
-using Agent.Core.Services;
 using Agent.Data.DataModels;
-using Agent.Graph.Interfaces;
-using Agent.Graph.Services;
 using Agent.Logging;
-using Kusto.Cloud.Platform.Security;
-using Microsoft.Azure.Amqp.Framing;
-using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph.Models.Security;
-using Incident = Agent.Core.Models.ICM.Incident;
 using JsonConvert = Newtonsoft.Json.JsonConvert;
-using PagerDutyIncident = Agent.Graph.Interfaces.PagerDutyIncident;
-using Thread = Agent.Core.Models.Api.v1.Thread;
-
 
 namespace Agent.Runtime.Services;
 
@@ -63,7 +46,7 @@ public class IncidentAIData
     public required DateTime IncidentCreatedAt { get; set; }
     public required DateTime HandlerUpdatedAt { get; set; }
     public required DateTime IncidentUpdatedAt { get; set; }
-    public required DateTime? IncidentHandledAt { get; set; } 
+    public required DateTime? IncidentHandledAt { get; set; }
     public required string Status { get; set; }
     public required bool IsMitigatedByAgent { get; set; }
     public required string RootCause { get; set; }
@@ -262,9 +245,9 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
                 customEvents
                 | where name == ""IncidentActivitySnapshot""
                 | extend IncidentHandledAt = todatetime(customDimensions.IncidentHandledOn), IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), UpdatedAt = todatetime(customDimensions.IncidentUpdatedOn)
-                | where IncidentHandledAt between (datetime(""{startTime:yyyy-MM-ddTHH:mm:ssZ}"") .. datetime(""{endTime:yyyy-MM-ddTHH:mm:ssZ}""))  
+                | where IncidentHandledAt between (datetime(""{startTime:yyyy-MM-ddTHH:mm:ssZ}"") .. datetime(""{endTime:yyyy-MM-ddTHH:mm:ssZ}""))
                 | where HandlerId in ('{string.Join("','", handlerIds)}')
-                | summarize DistinctIncidentIds=dcount(IncidentId) by bin(IncidentHandledAt, 1d)  
+                | summarize DistinctIncidentIds=dcount(IncidentId) by bin(IncidentHandledAt, 1d)
                 | order by IncidentHandledAt asc";
 
         var dataTable = await Query(query);
@@ -277,10 +260,10 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
                 customEvents
                 | where name == ""IncidentActivitySnapshot""
                 | extend IncidentHandledAt = todatetime(customDimensions.IncidentHandledOn), IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), IsMitigatedByAgent = tostring(customDimensions.IncidentMitigatedByAgent), Status = tostring(customDimensions.IncidentStatus), UpdatedAt = todatetime(customDimensions.IncidentUpdatedOn)
-                | where IncidentHandledAt between (datetime(""{startTime:yyyy-MM-ddTHH:mm:ssZ}"") .. datetime(""{endTime:yyyy-MM-ddTHH:mm:ssZ}""))  
+                | where IncidentHandledAt between (datetime(""{startTime:yyyy-MM-ddTHH:mm:ssZ}"") .. datetime(""{endTime:yyyy-MM-ddTHH:mm:ssZ}""))
                 | where HandlerId in ('{string.Join("','", handlerIds)}')
                 | summarize arg_max(UpdatedAt, HandlerId, Status, IsMitigatedByAgent, IncidentHandledAt) by IncidentId
-                | summarize TotalProcessed = dcount(IncidentId), HumanResolved = dcountif(IncidentId, IsMitigatedByAgent == ""false""), AgentResolved = dcountif(IncidentId, IsMitigatedByAgent == ""true""), InProgress = dcountif(IncidentId, Status == ""active"") by bin(IncidentHandledAt, 1d) 
+                | summarize TotalProcessed = dcount(IncidentId), HumanResolved = dcountif(IncidentId, IsMitigatedByAgent == ""false""), AgentResolved = dcountif(IncidentId, IsMitigatedByAgent == ""true""), InProgress = dcountif(IncidentId, Status == ""active"") by bin(IncidentHandledAt, 1d)
                 | order by IncidentHandledAt asc";
 
         var dataTable = await Query(query);
@@ -310,10 +293,10 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
                 customEvents
                 | where name == ""IncidentActivitySnapshot""
                 | extend IncidentHandledAt = todatetime(customDimensions.IncidentHandledOn), IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), IsMitigatedByAgent = tostring(customDimensions.IncidentMitigatedByAgent), Status = tostring(customDimensions.IncidentStatus), UpdatedAt = todatetime(customDimensions.IncidentUpdatedOn)
-                | where IncidentHandledAt between (datetime(""{startTime:yyyy-MM-ddTHH:mm:ssZ}"") .. datetime(""{endTime:yyyy-MM-ddTHH:mm:ssZ}""))  
+                | where IncidentHandledAt between (datetime(""{startTime:yyyy-MM-ddTHH:mm:ssZ}"") .. datetime(""{endTime:yyyy-MM-ddTHH:mm:ssZ}""))
                 | where HandlerId == {handlerId}
-                | summarize arg_max(UpdatedAt, HandlerId, Status, IsMitigatedByAgent, IncidentHandledAt) by IncidentId       
-                | summarize TotalProcessed = dcount(IncidentId), HumanResolved = dcountif(IncidentId, IsMitigatedByAgent == ""Human""), AgentResolved = dcountif(IncidentId, IsMitigatedByAgent == ""Agent""), InProgress = dcountif(IncidentId, Status == ""active"") by bin(IncidentHandledAt, 1d) 
+                | summarize arg_max(UpdatedAt, HandlerId, Status, IsMitigatedByAgent, IncidentHandledAt) by IncidentId
+                | summarize TotalProcessed = dcount(IncidentId), HumanResolved = dcountif(IncidentId, IsMitigatedByAgent == ""Human""), AgentResolved = dcountif(IncidentId, IsMitigatedByAgent == ""Agent""), InProgress = dcountif(IncidentId, Status == ""active"") by bin(IncidentHandledAt, 1d)
                 | order by IncidentHandledAt asc";
 
         var dataTable = await Query(query);
@@ -325,8 +308,8 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
         string query = $@"
                 customEvents
                 | where name == ""IncidentActivitySnapshot""
-                | extend IncidentHandledAt = todatetime(customDimensions.IncidentHandledOn), IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), IsMitigatedByAgent = tostring(customDimensions.IncidentMitigatedByAgent), Status = tostring(customDimensions.IncidentStatus), Priority = tostring(customDimensions.IncidentSeverity), UpdatedAt = todatetime(customDimensions.IncidentUpdatedOn)                                                                                                                                                                                                                                                                                                                                              
-                | where IncidentHandledAt between (datetime(""{startTime:yyyy-MM-ddTHH:mm:ssZ}"") .. datetime(""{endTime:yyyy-MM-ddTHH:mm:ssZ}""))  
+                | extend IncidentHandledAt = todatetime(customDimensions.IncidentHandledOn), IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), IsMitigatedByAgent = tostring(customDimensions.IncidentMitigatedByAgent), Status = tostring(customDimensions.IncidentStatus), Priority = tostring(customDimensions.IncidentSeverity), UpdatedAt = todatetime(customDimensions.IncidentUpdatedOn)
+                | where IncidentHandledAt between (datetime(""{startTime:yyyy-MM-ddTHH:mm:ssZ}"") .. datetime(""{endTime:yyyy-MM-ddTHH:mm:ssZ}""))
                 | where HandlerId == {handlerId}
                 | summarize arg_max(UpdatedAt, HandlerId, Status, Priority, IsMitigatedByAgent) by IncidentId
                 | distinct IncidentId, HandlerId, UpdatedAt, Status, Priority, IsMitigatedByAgent
@@ -358,7 +341,7 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
                         RunMode = tostring(customDimensions.AgentAutonomyLevel),
                         InstructionType = tostring(customDimensions.ResponsePlanCustom),
                 | where HandlerId == {handlerId} and IncidentId == {incidentId}
-                | summarize arg_max(UpdatedAt, HandlerId, CreatedAt, IncidentHandledAt, HandlerCreatedAt, HandlerUpdatedAt, Status, Priority, IsMitigatedByAgent, RootCause, ImpactedService, RunMode, InstructionType) by IncidentId, 
+                | summarize arg_max(UpdatedAt, HandlerId, CreatedAt, IncidentHandledAt, HandlerCreatedAt, HandlerUpdatedAt, Status, Priority, IsMitigatedByAgent, RootCause, ImpactedService, RunMode, InstructionType) by IncidentId,
                 | project IncidentId, HandlerId, CreatedAt, UpdatedAt, IncidentHandledAt, HandlerCreatedAt, HandlerUpdatedAt, Status, Priority, IsMitigatedByAgent, RootCause, ImpactedService, RunMode, InstructionType";
 
         var dataTable = await Query(query);
@@ -389,7 +372,7 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
             }
 
             var results = dataTable.Rows[0];
-            
+
 
             return results["HandlerId"]?.ToString() ?? string.Empty;
         }

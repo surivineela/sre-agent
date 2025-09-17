@@ -2,8 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Collections.Generic;
-
 namespace Agent.Data.DataModels;
 
 public interface IIncidentDocument : ICosmosDocument
@@ -19,6 +17,6 @@ public interface IIncidentDocument : ICosmosDocument
     string Title { get; set; }
     string Description { get; set; }
     string ExtractedKnowledge { get; set; }
-    string RootCause { get; set; } 
+    string RootCause { get; set; }
     string GeneralSummary { get; set; }
 }

@@ -6,6 +6,7 @@ using System.Text.Json;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
+using Agent.Data.DataModels.IncidentModel;
 using Agent.Logging;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;

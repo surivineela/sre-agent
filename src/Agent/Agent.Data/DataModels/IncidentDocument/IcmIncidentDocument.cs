@@ -1,11 +1,14 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Diagnostics.CodeAnalysis;
 using Agent.Core.Models.ICM;
-using Azure.ResourceManager.AppService.Models;
 
 namespace Agent.Data.DataModels;
+
 public class IcmIncidentDocument : Incident, IIncidentDocument
 {
-
     public IcmIncidentDocument()
     {
         // Default constructor for serialization

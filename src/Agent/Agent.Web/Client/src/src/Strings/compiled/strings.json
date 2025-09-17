@@ -1123,6 +1123,12 @@
       "value": "Azure Managed Grafana is a fully managed service for analytics and monitoring. To add the service and a Grafana dashboard, you need to create an Azure Managed Grafana resource. The necessary permissions will be automatically assigned so that the dashboard can display monitoring data. Azure Managed Grafana will incur costs in your subscription."
     }
   ],
+  "7vl63m": [
+    {
+      "type": 0,
+      "value": "Severities"
+    }
+  ],
   "7w4v59": [
     {
       "type": 0,
@@ -4007,6 +4013,12 @@
       "value": "Owned by"
     }
   ],
+  "boa1qH": [
+    {
+      "type": 0,
+      "value": "Last day"
+    }
+  ],
   "brxlTt": [
     {
       "type": 0,
@@ -5359,6 +5371,12 @@
     {
       "type": 0,
       "value": "Active threads"
+    }
+  ],
+  "rKq4sw": [
+    {
+      "type": 0,
+      "value": "Choose severity"
     }
   ],
   "rM7Pbj": [

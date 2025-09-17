@@ -1,5 +1,8 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Framework;
-using Agent.Framework.Reasoning.Models;
 
 namespace Agent.Runtime.Interfaces;
 

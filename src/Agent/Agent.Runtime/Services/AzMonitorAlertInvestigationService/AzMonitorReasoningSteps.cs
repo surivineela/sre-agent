@@ -4,6 +4,7 @@
 
 using Agent.Core.Interfaces;
 using Agent.Core.Services;
+using Agent.Data.DataModels.IncidentModel;
 using Agent.Runtime.Models;
 using Microsoft.Extensions.Logging;
 

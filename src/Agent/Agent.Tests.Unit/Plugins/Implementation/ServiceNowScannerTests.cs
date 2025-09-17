@@ -2,24 +2,15 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.ServiceNow;
 using Agent.Data.DataModels;
-using Agent.Runtime.Interfaces;
 using Agent.Runtime.Services;
-using Agent.Runtime.SubAgents.IcmScanner;
-using Agent.Runtime.SubAgents.ServiceNowScanner;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
-using Microsoft.Azure.Cosmos.Linq;
+using Agent.Runtime.SubAgents.Scanner;
 
 namespace Agent.Tests.Unit.Plugins.Implementation
 {
@@ -47,7 +38,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             _mockIncidentFilterManagementService = new Mock<IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload>>();
             _mockAgentInboundCommunicationService = new Mock<IAgentInboundCommunicationService>();
             _mockIncidentAnalysisService = new Mock<IIncidentAnalysisService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload>>();
-            
+
 
             _cosmosDbSettings = new CosmosDBSettings
             {
@@ -74,6 +65,22 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                 _mockAgentInboundCommunicationService.Object,
                 _mockIncidentAnalysisService.Object
             );
+        }
+
+        private ServiceNowIncidentFilterDocument GetIncidentFilter(string titleContains)
+        {
+            return new ServiceNowIncidentFilterDocument
+            {
+                Id = "filter1",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                Name = "Test Filter",
+                ImpactedService = "TestService",
+                Priority = "1",
+                IncidentType = "ServiceNow",
+                AlertId = "alert1",
+                TitleContains = titleContains
+            };
         }
 
         [Fact]
@@ -113,23 +120,10 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         public async Task ScanAsync_WithNonServiceNowFilter_SkipsScanForThatFilter()
         {
             // Arrange
-            var filters = new List<ServiceNowIncidentFilterDocument>
-            {
-                new ServiceNowIncidentFilterDocument
-                {
-                    Id = "filter1",
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow,
-                    Name = "Test Filter",
-                    ImpactedService = "TestService",
-                    Priority = "1",
-                    IncidentType = "ServiceNow",
-                    AlertId = "alert1",
-                    TitleContains = "Test"
-                }
-            };
+            var allFilters = new List<ServiceNowIncidentFilterDocument>() { GetIncidentFilter("Test") };
 
-           filters = filters.Where(f => f.DocumentType == "IncidentFilterIcm").ToList();
+            //Wrong filter type
+            var filters = allFilters.Where(f => f.DocumentType == IncidentFilterDocumentUtilities.GetDocumentTypeName(IncidentManagementType.Icm)).ToList();
 
             _mockIncidentFilterManagementService.Setup(s => s.ListIncidentFilters()).ReturnsAsync(filters);
             var lastScanTimeDocResponse = new Mock<ItemResponse<LastScanTimeDoc>>();
@@ -139,7 +133,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                 .ReturnsAsync(lastScanTimeDocResponse.Object);
 
             var scanner = CreateScanner();
-            
+
 
             try
             {
@@ -162,21 +156,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         public async Task ScanAsync_NewIncident_CreatesDocument()
         {
             // Arrange
-            var filters = new List<ServiceNowIncidentFilterDocument>
-            {
-                new ServiceNowIncidentFilterDocument
-                {
-                    Id = "filter1",
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow,
-                    Name = "Test Filter",
-                    ImpactedService = "",
-                    Priority = "",
-                    IncidentType = "ServiceNow",
-                    AlertId = "",
-                    TitleContains = ""
-                }
-            };
+            var filters = new List<ServiceNowIncidentFilterDocument>() { GetIncidentFilter("") };
             _mockIncidentFilterManagementService.Setup(s => s.ListIncidentFilters()).ReturnsAsync(filters);
 
             var incident = new ServiceNowIncident { IncidentId = "sys1", Number = "INC001", Title = "New Incident" };
@@ -221,7 +201,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                 // expected exception due to ToFeedIterator only can apply to internal class CosmosLinqQuery
                 Assert.Contains(ex.Message, "ToFeedIterator");
             }
-            catch(TaskCanceledException)
+            catch (TaskCanceledException)
             {
                 // expected cancellation exception
             }
@@ -234,21 +214,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         public async Task ScanAsync_ExistingIncident_UpsertsDocumentAndNotifies()
         {
             // Arrange
-            var filters = new List<ServiceNowIncidentFilterDocument>
-            {
-                new ServiceNowIncidentFilterDocument
-                {
-                    Id = "filter1",
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow,
-                    Name = "Test Filter",
-                    ImpactedService = "",
-                    Priority = "",
-                    IncidentType = "ServiceNow",
-                    AlertId = "",
-                    TitleContains = ""
-                }
-            };
+            var filters = new List<ServiceNowIncidentFilterDocument>() { GetIncidentFilter("") };
             _mockIncidentFilterManagementService.Setup(s => s.ListIncidentFilters()).ReturnsAsync(filters);
 
             var incident = new ServiceNowIncident { IncidentId = "sys1", Number = "INC001", Title = "Existing Incident" };

@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Configuration;
 using Agent.Core.Models.ICM;
 using Agent.Core.Services;
@@ -7,6 +11,7 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.Services;
+
 public class IcmIncidentManagementService : IncidentManagementServiceBase<IcmIncidentDocument, IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload>
 {
     protected override string DocumentType => "IcmIncident";

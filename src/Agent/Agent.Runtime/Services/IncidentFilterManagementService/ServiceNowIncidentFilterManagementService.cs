@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Data;
@@ -6,10 +10,10 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.Services;
+
 public class ServiceNowIncidentFilterManagementService : IncidentFilterManagementServiceBase<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload>
 {
     private readonly IServiceNowAPIClient _serviceNowAPIClient;
-    private readonly ILogger<ServiceNowIncidentFilterManagementService> _logger;
     public ServiceNowIncidentFilterManagementService(
         CosmosClient cosmosClient,
         CosmosDBSettings cosmosDbSettings,
@@ -22,7 +26,6 @@ public class ServiceNowIncidentFilterManagementService : IncidentFilterManagemen
         ), logger, incidentManagementSettings)
     {
         _serviceNowAPIClient = serviceNowAPIClient;
-        _logger = logger;
     }
     public async override Task<bool> CheckConnectivity()
     {

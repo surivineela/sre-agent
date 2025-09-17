@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Runtime.Models;
+
 namespace Agent.Runtime.Interfaces;
 /// <summary>
 /// Interface for evaluating the quality of an investigation

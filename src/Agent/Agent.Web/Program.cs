@@ -26,8 +26,6 @@ using Agent.Graph.Services;
 using Agent.Logging;
 using Agent.Plugins;
 using Agent.Plugins.Clients;
-using Agent.Plugins.DataConnectors.Documentation;
-using Agent.Plugins.DataConnectors.KustoMetadata;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Implementation;
 using Agent.Plugins.Implementation.AzureApplicationInsightsPlugin;
@@ -54,7 +52,6 @@ using Agent.Runtime.Services;
 using Agent.Runtime.Services.AzMonitorAlertInvestigation;
 using Agent.Runtime.Services.AzMonitorAlertInvestigationService;
 using Agent.Runtime.SubAgents;
-using Agent.Runtime.SubAgents.AzMonitorAlertAgent;
 using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.DailyReportSummary;
 using Agent.Runtime.SubAgents.FeedbackRCAAgent;
@@ -446,10 +443,8 @@ public class Program
             .AddSingleton<SourceCodeScanner>()
             .AddSingleton<CVEScanner>()
             .AddSingleton<FeedbackRCAScanner>()
-            .AddSingleton<IAzMonitorAlertService, AzMonitorAlertService>()
             .AddSingleton<ILogQueryService, LogQueryService>()
             .AddSingleton<IAzMonitorAlertInvestigationService, AzMonitorAlertInvestigationService>()
-            .AddSingleton<AzMonitorAlertScanner>()
             .AddSingleton<IInvestigationOrchestrator, InvestigationOrchestrator>()
             .AddSingleton<IReflexionEvaluator, ReflexionEvaluator>()
             .AddSingleton<IReasoningStep, ApplicationHealthStep>()

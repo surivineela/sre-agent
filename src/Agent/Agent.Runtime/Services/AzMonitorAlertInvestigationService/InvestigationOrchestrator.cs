@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
 using OpenTelemetry;
 using Thread = Agent.Core.Models.Api.v1.Thread;
+using Agent.Data.DataModels.IncidentModel;
 
 namespace Agent.Runtime.Services.AzMonitorAlertInvestigation;
 

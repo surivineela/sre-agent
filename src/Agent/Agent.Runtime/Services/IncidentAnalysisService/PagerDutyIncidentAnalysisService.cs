@@ -1,9 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
@@ -54,7 +53,7 @@ public class PagerDutyIncidentAnalysisService : IncidentAnalysisServiceBase<Page
 
         status = pdIncident.Status.ToLower();
         isMitigatedByAgent = (status == "resolved" || status == "closed") && (pdIncident.Tags?.Contains("SREAgent_Mitigated") ?? false);
-        
+
         return isMitigatedByAgent;
     }
 

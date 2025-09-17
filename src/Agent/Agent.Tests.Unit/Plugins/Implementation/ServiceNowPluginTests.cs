@@ -1,15 +1,11 @@
-using System;
-using System.Threading.Tasks;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.ServiceNow;
 using Agent.Data.DataModels;
 using Agent.Plugins.Implementation;
-using Agent.Runtime.SubAgents.IcmScanner;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace Agent.Tests.Unit.Plugins.Implementation
 {

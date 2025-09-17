@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using Agent.Core.Interfaces;
@@ -8,9 +12,11 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
 using Agent.Framework;
 using Agent.Core.Configuration;
+using Thread = Agent.Core.Models.Api.v1.Thread;
+using Author = Agent.Core.Models.Api.v1.Author;
+using System.Text.Json;
 
 namespace Agent.Runtime.Services;
-
 
 public class IncidentRequest<TIncidentFilterDocumentPayload> where TIncidentFilterDocumentPayload : IncidentFilterDocumentPayload
 {
@@ -89,7 +95,8 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
     }
 
     protected abstract Task<TIncidentDocument> GetIncidentAsync(string incidentId);
-    protected abstract Task<Core.Models.Api.v1.Thread> CreateIncidentHandlerAgentThreadAsync(
+
+    protected abstract Task<Thread> CreateIncidentHandlerAgentThreadAsync(
         TIncidentDocument incidentDetails,
         IncidentHandlerDocument incidentHandler,
         TIncidentFilterDocument incidentFilterDocument,
@@ -166,10 +173,9 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
         return Task.CompletedTask;
     }
 
-
-    public async Task<IncidentHandlingResponseModel> HandleIncidentAsync(IncidentHandlingRequestModel<TIncidentFilterDocumentPayload>? request)
+    public virtual async Task<IncidentHandlingResponseModel> HandleIncidentAsync(IncidentHandlingRequestModel<TIncidentFilterDocumentPayload>? request)
     {
-        if(request is null)
+        if (request is null)
         {
             return new IncidentHandlingResponseModel
             {
@@ -249,7 +255,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
 
             _logger.LogInternalInformation("[IncidentHandlingService] HandleIncidentAsync: Matched Handler. Creating IncidentHandlerAgent thread for IncidentId: {IncidentId}, FilterId: {FilterId} and HandlerId: {HandlerId}", incidentId, matchingFilter.Id, matchingHandler.Id);
 
-            Core.Models.Api.v1.Thread thread;
+            Thread thread;
 
             // Check if YAML-based incident handling is enabled
             if (_experimentalSettings.UseYamlForIncidentHandling)
@@ -324,7 +330,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
     /// <param name="request">The incident request</param>
     /// <param name="incidentFilterDocument">The matching incident filter</param>
     /// <returns>The created thread</returns>
-    public async Task<Core.Models.Api.v1.Thread> CreateIncidentMetaAgentThread(IncidentHandlingRequestModel<TIncidentFilterDocumentPayload> request, TIncidentFilterDocument incidentFilterDocument, string currentAgent)
+    public async Task<Thread> CreateIncidentMetaAgentThread(IncidentHandlingRequestModel<TIncidentFilterDocumentPayload> request, TIncidentFilterDocument incidentFilterDocument, string currentAgent)
     {
         _logger.LogInternalInformation("[BaseIncidentService] CreateIncidentMetaAgentThread: Invoked for IncidentId: {IncidentId}", request.IncidentId);
         try
@@ -380,7 +386,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
             // Emit agent action telemetry for meta thread creation with incident source
             try
             {
-                var param = System.Text.Json.JsonSerializer.Serialize(new { IncidentSource = request.Source ?? string.Empty });
+                var param = JsonSerializer.Serialize(new { IncidentSource = request.Source ?? string.Empty });
                 _logger.LogAgentAction(
                     action: AgentActionEvents.CreateThread,
                     parameter: param,
@@ -396,7 +402,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
             }
 
             var agentMessage = $"**Acknowledging the incident**. I'm starting to investigate and see how I can help.";
-            await _repository.AddMessageAsync(thread.Id, new Message(Guid.NewGuid(), DateTime.UtcNow, new Core.Models.Api.v1.Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"), agentMessage));
+            await _repository.AddMessageAsync(thread.Id, new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"), agentMessage));
 
             // Determine conversation modifier based on filter
             ConversationModifierEnum? conversationModifier = null;
@@ -523,7 +529,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
         }
     }
 
-    protected async Task<Core.Models.Api.v1.Thread> CreateIncidentHandlerAgentThreadInternalAsync(
+    protected async Task<Thread> CreateIncidentHandlerAgentThreadInternalAsync(
         TIncidentDocument incidentDetails,
         IncidentHandlerDocument incidentHandler,
         TIncidentFilterDocument incidentFilterDocument,
@@ -622,7 +628,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
                 // Emit agent action telemetry for thread creation with incident source
                 try
                 {
-                    var param = System.Text.Json.JsonSerializer.Serialize(new { IncidentSource = sourceSystem ?? string.Empty });
+                    var param = JsonSerializer.Serialize(new { IncidentSource = sourceSystem ?? string.Empty });
                     _logger.LogAgentAction(
                         action: AgentActionEvents.CreateThread,
                         parameter: param,

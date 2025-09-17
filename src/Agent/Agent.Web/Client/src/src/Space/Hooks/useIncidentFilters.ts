@@ -3,7 +3,7 @@ import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { IncidentHandlerClient } from '../../Common/Clients/IncidentHandlerClient';
-import { IncidentFilter, IncidentFilterPayload } from '../../Common/Contracts/Azure/IncidentHandler';
+import { IncidentFilter, IncidentFilterDocumentPayload } from '../../Common/Contracts/Azure/IncidentHandler';
 import { IncidentManagementNotificationResources } from '../../Strings/SREAgentResources';
 
 export const useIncidentFilters = () => {
@@ -65,7 +65,7 @@ export const useIncidentFilters = () => {
     );
 
     const createIncidentFilter = useCallback(
-        async (incidentFilter: IncidentFilterPayload): Promise<void> => {
+        async (incidentFilter: IncidentFilterDocumentPayload): Promise<void> => {
             const notification = portalContext.startNotification(
                 intl.formatMessage(IncidentManagementNotificationResources.createFilterTitle),
                 intl.formatMessage(IncidentManagementNotificationResources.createFilterInProgress)
@@ -100,7 +100,7 @@ export const useIncidentFilters = () => {
     );
 
     const updateIncidentFilter = useCallback(
-        async (incidentFilter: IncidentFilterPayload): Promise<void> => {
+        async (incidentFilter: IncidentFilterDocumentPayload): Promise<void> => {
             const notification = portalContext.startNotification(
                 intl.formatMessage(IncidentManagementNotificationResources.updateFilterTitle),
                 intl.formatMessage(IncidentManagementNotificationResources.updateFilterInProgress)
@@ -115,7 +115,7 @@ export const useIncidentFilters = () => {
                 if (updateFilterResponse.content) {
                     setIncidentFilters(prev => {
                         const updated = prev?.map(filter =>
-                            filter.id === incidentFilter.Id ? (updateFilterResponse.content as IncidentFilter) : filter
+                            filter.id === incidentFilter.id ? (updateFilterResponse.content as IncidentFilter) : filter
                         );
                         return updated ?? [];
                     });

@@ -7,7 +7,9 @@ import { IncidentDocument } from '../../../../Common/Contracts/Azure/IncidentHan
 import { IncidentHandlerCreateResources } from '../../../../Strings/SREAgentResources';
 import { MultipleSelectionShimmerDetailsList } from '../../../Components/MultipleSelectionShimmerDetailsList';
 import { SelectedItemsList } from '../../../Components/SelectedItemsList';
+import { IncidentManagementPlatform } from '../../../Contracts/IncidentManagement';
 import { generateHandlerStyles } from '../../../Styles/IncidentManagement.styles';
+import { getPriorityOrSeverityStrings } from '../../Utilities';
 import { IncidentTableFieldNames, TimeDuration, TimeDurationKey } from '../Contracts';
 import { DirtyStateConfirmationWrapper } from '../DirtyStateConfirmationDialog';
 import { IncidentHandlerConsolidatedCreateContext, IncidentHandlerCreateSteps } from '../IncidentHandlerConsolidatedCreateContext';
@@ -17,6 +19,7 @@ export const IncidentsAndGuidanceStep = () => {
     const intl = useIntl();
     const context = useContext(IncidentHandlerConsolidatedCreateContext);
     const {
+        incidentPlatform,
         exitToHome,
         setCurrentStep,
         setGenerateInstructionsStepSkipped,
@@ -37,8 +40,33 @@ export const IncidentsAndGuidanceStep = () => {
 
     const { dirty, values, setFieldValue } = useFormikContext<IncidentHandlerCreateFormValues>();
 
-    const timespanDropdownOptions = useMemo(
-        () => [
+    const timespanDropdownOptions = useMemo(() => {
+        if (incidentPlatform === IncidentManagementPlatform.AzMonitor) {
+            return [
+                {
+                    key: TimeDurationKey.Last1Day,
+                    value: TimeDuration.Last1Day,
+                    text: intl.formatMessage(IncidentHandlerCreateResources.last1day),
+                },
+                {
+                    key: TimeDurationKey.Last7Days,
+                    value: TimeDuration.Last7Days,
+                    text: intl.formatMessage(IncidentHandlerCreateResources.last7days),
+                },
+                {
+                    key: TimeDurationKey.Last15Days,
+                    value: TimeDuration.Last15Days,
+                    text: intl.formatMessage(IncidentHandlerCreateResources.last15days),
+                },
+                {
+                    key: TimeDurationKey.Last30Days,
+                    value: TimeDuration.Last30Days,
+                    text: intl.formatMessage(IncidentHandlerCreateResources.last30days),
+                },
+            ];
+        }
+
+        return [
             {
                 key: TimeDurationKey.Last15Days,
                 value: TimeDuration.Last15Days,
@@ -59,20 +87,20 @@ export const IncidentsAndGuidanceStep = () => {
                 value: TimeDuration.Last90Days,
                 text: intl.formatMessage(IncidentHandlerCreateResources.last90days),
             },
-        ],
-        [intl]
-    );
+        ];
+    }, [intl, incidentPlatform]);
 
     const selectedTimespanOption = useMemo(() => {
         return timespanDropdownOptions.find(option => option.value === selectedTimespan);
     }, [selectedTimespan, timespanDropdownOptions]);
 
     const incidentTableColumns: IColumn[] = useMemo(() => {
+        const { fieldLabel: priorityOrSeverityLabel } = getPriorityOrSeverityStrings(incidentPlatform);
         return [
             {
                 key: IncidentTableFieldNames.Priority,
                 fieldName: IncidentTableFieldNames.Priority,
-                name: intl.formatMessage(IncidentHandlerCreateResources.priority),
+                name: intl.formatMessage(priorityOrSeverityLabel),
                 minWidth: 50,
                 maxWidth: 100,
                 isResizable: true,
@@ -116,7 +144,7 @@ export const IncidentsAndGuidanceStep = () => {
                 isSortable: true,
             },
         ];
-    }, [intl]);
+    }, [intl, incidentPlatform]);
 
     const incidentsTableHeight = useMemo(() => {
         const selectedIncidentsListHeaderHeight = 55;
@@ -170,7 +198,7 @@ export const IncidentsAndGuidanceStep = () => {
                         value={selectedTimespanOption?.text}
                         onOptionSelect={(_event, data) => {
                             const selectedOption = timespanDropdownOptions.find(option => option.key === data.optionValue);
-                            onSelectedTimespanChange(selectedOption?.value || TimeDuration.Last60Days);
+                            onSelectedTimespanChange(selectedOption?.value || TimeDuration.Last30Days);
                         }}
                         disabled={loadingIncidents || generatingInstructions || !handlerLoaded}
                     >

@@ -18,7 +18,7 @@ using Microsoft.Extensions.Logging;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Services;
 
-namespace Agent.Runtime.SubAgents.PagerDutyAgent;
+namespace Agent.Runtime.SubAgents.Scanner;
 
 public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                               IPagerDutyService pagerDutyService,
@@ -67,7 +67,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                 logger.LogInternalInformation("Cancellation requested, stopping the scanner.");
                 return;
             }
-            uint offset = page * PageSize;
+            var offset = page * PageSize;
             try
             {
                 logger.LogInternalInformation("Scanning PagerDuty incidents, page {page}", page);
@@ -199,7 +199,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
     {
         var threads = container.GetItemLinqQueryable<ThreadDocument>()
             .Where(doc => doc.DocumentType == "Thread" && doc.Source == ThreadSource.Incident)
-            .Where(doc => (doc.IncidentSource != null && doc.IncidentSource.IncidentType == IncidentType.PagerDuty && doc.IncidentSource.IncidentId == incidentId) || (doc.IncidentId == incidentId))
+            .Where(doc => doc.IncidentSource != null && doc.IncidentSource.IncidentType == IncidentType.PagerDuty && doc.IncidentSource.IncidentId == incidentId || doc.IncidentId == incidentId)
             .OrderBy(doc => doc.CreatedTimestamp)
             .ToFeedIterator();
 
@@ -224,7 +224,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
         try
         {
             var latestDetails = await pagerDutyService.GetLatestIncidentDetails(incident.IncidentId);
-            bool needsUpsert = false;
+            var needsUpsert = false;
             // TODO: check latest title
             if (incidentDocument is null)
             {
@@ -301,7 +301,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                     }
                     if (incident.ImpactedService != null && incidentDocument.ImpactedServiceId != incident.ImpactedService.Id)
                     {
-                        incidentDocument.ImpactedServiceId = incident.ImpactedService.Id ;
+                        incidentDocument.ImpactedServiceId = incident.ImpactedService.Id;
                         needsUpsert = true;
                     }
                     if (incident.ImpactedService != null && incidentDocument.ImpactedServiceName != incident.ImpactedService.Summary)
@@ -315,7 +315,8 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                         needsUpsert = true;
                     }
 
-                    if (incidentDocument.Tags != null && incidentDocument.Tags.Contains("SREAgent_Resolved")) {
+                    if (incidentDocument.Tags != null && incidentDocument.Tags.Contains("SREAgent_Resolved"))
+                    {
                         needsUpsert = true;
                     }
 
@@ -462,7 +463,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
     {
         try
         {
-            ItemResponse<T> response = await container.ReadItemAsync<T>(
+            var response = await container.ReadItemAsync<T>(
                 id,
                 new PartitionKey(partitionKey)
             );

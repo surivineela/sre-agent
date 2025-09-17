@@ -6,6 +6,8 @@ import { useIntl } from 'react-intl';
 import { IncidentDocument } from '../../../../Common/Contracts/Azure/IncidentHandler';
 import { IncidentHandlerCreateResources } from '../../../../Strings/SREAgentResources';
 import { MultipleSelectionShimmerDetailsList } from '../../../Components/MultipleSelectionShimmerDetailsList';
+import { IncidentManagementPlatform } from '../../../Contracts/IncidentManagement';
+import { getPriorityOrSeverityStrings } from '../../Utilities';
 import { IncidentTableFieldNames, TimeDuration, TimeDurationKey } from '../Contracts';
 import { DirtyStateConfirmationWrapper } from '../DirtyStateConfirmationDialog';
 import { IncidentHandlerConsolidatedCreateContext, IncidentHandlerCreateSteps } from '../IncidentHandlerConsolidatedCreateContext';
@@ -13,9 +15,13 @@ import { IncidentHandlerCreateFormValues } from '../IncidentHandlerCreateFormVal
 
 export const PreviewIncidentsStep: FC = () => {
     const intl = useIntl();
+    const { dirty } = useFormikContext<IncidentHandlerCreateFormValues>();
+
+    const { incidentPlatform, setCurrentStep, exitToHome, handlerLoaded, saveHandler, incidentsPreviewMetadata } = useContext(
+        IncidentHandlerConsolidatedCreateContext
+    );
+
     const {
-        setCurrentStep,
-        exitToHome,
         incidentsListDivRef,
         incidents,
         loadingIncidents,
@@ -24,13 +30,35 @@ export const PreviewIncidentsStep: FC = () => {
         hasMoreOldIncidents,
         selectedTimespan,
         onSelectedTimespanChange,
-        handlerLoaded,
-        saveHandler,
-    } = useContext(IncidentHandlerConsolidatedCreateContext);
-    const { dirty } = useFormikContext<IncidentHandlerCreateFormValues>();
+    } = incidentsPreviewMetadata;
 
-    const timespanDropdownOptions = useMemo(
-        () => [
+    const timespanDropdownOptions = useMemo(() => {
+        if (incidentPlatform === IncidentManagementPlatform.AzMonitor) {
+            return [
+                {
+                    key: TimeDurationKey.Last1Day,
+                    value: TimeDuration.Last1Day,
+                    text: intl.formatMessage(IncidentHandlerCreateResources.last1day),
+                },
+                {
+                    key: TimeDurationKey.Last7Days,
+                    value: TimeDuration.Last7Days,
+                    text: intl.formatMessage(IncidentHandlerCreateResources.last7days),
+                },
+                {
+                    key: TimeDurationKey.Last15Days,
+                    value: TimeDuration.Last15Days,
+                    text: intl.formatMessage(IncidentHandlerCreateResources.last15days),
+                },
+                {
+                    key: TimeDurationKey.Last30Days,
+                    value: TimeDuration.Last30Days,
+                    text: intl.formatMessage(IncidentHandlerCreateResources.last30days),
+                },
+            ];
+        }
+
+        return [
             {
                 key: TimeDurationKey.Last15Days,
                 value: TimeDuration.Last15Days,
@@ -51,20 +79,20 @@ export const PreviewIncidentsStep: FC = () => {
                 value: TimeDuration.Last90Days,
                 text: intl.formatMessage(IncidentHandlerCreateResources.last90days),
             },
-        ],
-        [intl]
-    );
+        ];
+    }, [intl, incidentPlatform]);
 
     const selectedTimespanOption = useMemo(() => {
         return timespanDropdownOptions.find(option => option.value === selectedTimespan);
     }, [selectedTimespan, timespanDropdownOptions]);
 
     const incidentTableColumns: IColumn[] = useMemo(() => {
+        const { fieldLabel: priorityOrSeverityLabel } = getPriorityOrSeverityStrings(incidentPlatform);
         return [
             {
                 key: IncidentTableFieldNames.Priority,
                 fieldName: IncidentTableFieldNames.Priority,
-                name: intl.formatMessage(IncidentHandlerCreateResources.priority),
+                name: intl.formatMessage(priorityOrSeverityLabel),
                 minWidth: 50,
                 maxWidth: 100,
                 isResizable: true,
@@ -108,7 +136,7 @@ export const PreviewIncidentsStep: FC = () => {
                 isSortable: true,
             },
         ];
-    }, [intl]);
+    }, [intl, incidentPlatform]);
 
     return (
         <>
@@ -129,7 +157,7 @@ export const PreviewIncidentsStep: FC = () => {
                     value={selectedTimespanOption?.text}
                     onOptionSelect={(_event, data) => {
                         const selectedOption = timespanDropdownOptions.find(option => option.key === data.optionValue);
-                        onSelectedTimespanChange(selectedOption?.value || TimeDuration.Last60Days);
+                        onSelectedTimespanChange(selectedOption?.value || TimeDuration.Last30Days);
                     }}
                     disabled={loadingIncidents || !handlerLoaded}
                 >

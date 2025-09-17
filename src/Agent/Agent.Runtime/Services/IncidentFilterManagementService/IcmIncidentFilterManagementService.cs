@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Configuration;
 using Agent.Core.Models.ICM;
 using Agent.Core.Services;
@@ -7,9 +11,9 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.Services;
+
 public class IcmIncidentFilterManagementService : IncidentFilterManagementServiceBase<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload>
 {
-    private readonly ILogger<IcmIncidentFilterManagementService> _logger;
     private readonly IICMAPIClient _icmApiClient;
     public IcmIncidentFilterManagementService(
         CosmosClient cosmosClient,
@@ -22,7 +26,6 @@ public class IcmIncidentFilterManagementService : IncidentFilterManagementServic
             AgentDataConfiguration.ThreadContainerName
         ), logger, incidentManagementSettings)
     {
-        _logger = logger;
         _icmApiClient = icmApiClient;
     }
 

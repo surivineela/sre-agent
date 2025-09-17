@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Configuration;
 using Agent.Data;
 using Agent.Data.DataModels;
@@ -6,6 +10,7 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.Services;
+
 public class PagerDutyIncidentManagementService : IncidentManagementServiceBase<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload>
 {
     private readonly IPagerDutyService _pagerDutyService;
@@ -135,11 +140,11 @@ public class PagerDutyIncidentManagementService : IncidentManagementServiceBase<
                     ImpactedServiceName: incident.ImpactedService?.Summary ?? "Not set",
                     Priority: incident.Priority?.Summary ?? "Not set",
                     Urgency: incident.Urgency ?? "Not set")
-            {
-                Title = incident.Title,
-                Description = incident.FirstTriggerLogEntry.Channel?.Details ?? incident.Description,
-                UpdatedAt = DateTime.UtcNow
-            }).ToList();
+                {
+                    Title = incident.Title,
+                    Description = incident.FirstTriggerLogEntry.Channel?.Details ?? incident.Description,
+                    UpdatedAt = DateTime.UtcNow
+                }).ToList();
 
             return new IncidentQueryResult<PagerDutyIncidentDocument>
             {

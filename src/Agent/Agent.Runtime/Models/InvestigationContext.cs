@@ -3,7 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Text.Json.Serialization;
-using Agent.Core.Services;
+using Agent.Data.DataModels.IncidentModel;
 using OpenTelemetry.Trace;
 namespace Agent.Runtime.Models;
 

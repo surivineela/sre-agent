@@ -5,7 +5,7 @@ using Agent.Core.Services;
 using Agent.Data.DataModels;
 using Agent.Plugins.Interface;
 using Agent.Runtime.Services;
-using Agent.Runtime.SubAgents.IcmScanner;
+using Agent.Runtime.SubAgents.Scanner;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -112,24 +112,20 @@ public class IcmScannerTest
         };
     }
 
-    private List<IcmIncidentFilterDocument> GetIncidentFilters(string titleContains)
+    private IcmIncidentFilterDocument GetIncidentFilter(string titleContains)
     {
-        return new List<IcmIncidentFilterDocument>
+        return new IcmIncidentFilterDocument
         {
-            new IcmIncidentFilterDocument
-            {
-                Id = "filter1",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                Name = "Test Filter",
-                ImpactedService = "",
-                Priority = "",
-                IncidentType = "",
-                AlertId = "",
-                TitleContains = titleContains,
-                IsEnabled = true,
-                AgentMode = ""
-            }
+            Id = "filter1",
+            UpdatedAt = DateTime.UtcNow,
+            Name = "Test Filter",
+            ImpactedService = "",
+            Priority = "",
+            IncidentType = "",
+            AlertId = "",
+            TitleContains = titleContains,
+            IsEnabled = true,
+            AgentMode = ""
         };
     }
 
@@ -166,7 +162,12 @@ public class IcmScannerTest
     public async Task ScanAsync_WithNonIcmFilter_SkipsScanForThatFilter()
     {
         var title = "Test Incident";
-        var filters = GetIncidentFilters(title).Where(f => f.DocumentType == "IncidentFilterServiceNow").ToList(); //Wrong filter type
+        var allFilters = new List<IcmIncidentFilterDocument> { GetIncidentFilter(title) };
+
+        //Wrong filter type
+        var filters = allFilters.Where(f => f.DocumentType == IncidentFilterDocumentUtilities.GetDocumentTypeName(IncidentManagementType.ServiceNow)).ToList();
+
+        _mockIncidentFilterManagementService.Setup(s => s.ListIncidentFilters()).ReturnsAsync(filters);
 
         var incident = GetIncident(title);
         _mockIcmApiClient.Setup(c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<List<string>>()))
@@ -199,7 +200,7 @@ public class IcmScannerTest
     public async Task ScanAsync_NewIncident_CreatesDocument()
     {
         var title = "Test Incident";
-        var filters = GetIncidentFilters(title);
+        var filters = new List<IcmIncidentFilterDocument> { GetIncidentFilter(title) };
 
         _mockIncidentFilterManagementService.Setup(s => s.ListIncidentFilters()).ReturnsAsync(filters);
 
@@ -256,7 +257,7 @@ public class IcmScannerTest
     {
         string title = "Test Incident";
         string summary = "This is a test incident summary";
-        var filters = GetIncidentFilters(title);
+        var filters = new List<IcmIncidentFilterDocument> { GetIncidentFilter(title) };
 
         var oldIncident = GetIncident(title);
 

@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Agent.Core.Configuration;
@@ -5,13 +9,11 @@ using Agent.Core.Interfaces;
 using Agent.Core.Services;
 using Agent.Core.Services.TokenService;
 using Agent.Data.DataModels;
+using Agent.Data.Interface.IncidentAPI;
 using Agent.Graph.Interfaces;
 using Agent.Graph.Services;
 using Agent.Runtime.Interfaces;
-using Agent.Runtime.SubAgents.IcmScanner;
-using Agent.Runtime.SubAgents.PagerDutyAgent;
-using Agent.Runtime.SubAgents.ServiceNowScanner;
-using Microsoft.Azure.Amqp.Framing;
+using Agent.Runtime.SubAgents.Scanner;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 namespace Agent.Runtime.Services;
@@ -24,6 +26,7 @@ public static class IncidentServiceCollectionExtensions
         services.AddSingleton<IICMAPIClient, NullableICMAPIClient>();
         services.AddSingleton<IServiceNowAPIClient, NullableServiceNowAPIClient>();
         services.AddSingleton<IIncidentScanner, NullableIncidentScanner>();
+        services.AddSingleton<IAzMonitorAlertService, NullableAzMonitorAlertService>();
         return services;
     }
 
@@ -36,6 +39,16 @@ public static class IncidentServiceCollectionExtensions
         //Overwrite ApiClient and IIncidentScanner
         switch (incidentManagementSettings.Type)
         {
+            case IncidentManagementType.AzMonitor:
+                services.AddSingleton<IAzMonitorAlertService, AzMonitorAlertService>();
+                services.AddSingleton<IIncidentScanner, AzMonitorScanner>();
+
+                services.AddSingleton<IIncidentHandlingService<AzMonitorIncidentFilterDocumentPayload>, AzMonitorIncidentHandlingService>();
+                services.AddSingleton<IIncidentManagementService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocumentPayload>, AzMonitorIncidentManagementService>();
+                services.AddSingleton<IIncidentFilterManagementService<AzMonitorIncidentFilterDocument, AzMonitorIncidentFilterDocumentPayload>, AzMonitorIncidentFilterManagementService>();
+                services.AddSingleton<IIncidentAnalysisService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocumentPayload>, AzMonitorIncidentAnalysisService>();
+                break;
+
             case IncidentManagementType.PagerDuty:
                 services.AddSingleton<IPagerDutyService, PagerDutyService>();
                 services.AddSingleton<IIncidentScanner, PagerDutyScanner>();
@@ -160,6 +173,7 @@ public class IncidentFilterManagementServiceFactory : IncidentServiceFactoryBase
     {
         return _incidentManagementType switch
         {
+            IncidentManagementType.AzMonitor => _serviceProvider.GetRequiredService<IIncidentFilterManagementService<AzMonitorIncidentFilterDocument, AzMonitorIncidentFilterDocumentPayload>>(),
             IncidentManagementType.PagerDuty => _serviceProvider.GetRequiredService<IIncidentFilterManagementService<PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload>>(),
             IncidentManagementType.Icm => _serviceProvider.GetRequiredService<IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload>>(),
             IncidentManagementType.ServiceNow => _serviceProvider.GetRequiredService<IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload>>(),
@@ -171,6 +185,7 @@ public class IncidentFilterManagementServiceFactory : IncidentServiceFactoryBase
     {
         return _incidentManagementType switch
         {
+            IncidentManagementType.AzMonitor => await _serviceProvider.GetRequiredService<IIncidentFilterManagementService<AzMonitorIncidentFilterDocument, AzMonitorIncidentFilterDocumentPayload>>().SaveIncidentFilter(incidentFilterDocument.DeserializeJson<AzMonitorIncidentFilterDocument>()),
             IncidentManagementType.PagerDuty => await _serviceProvider.GetRequiredService<IIncidentFilterManagementService<PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload>>().SaveIncidentFilter(incidentFilterDocument.DeserializeJson<PagerDutyIncidentFilterDocument>()),
             IncidentManagementType.Icm => await _serviceProvider.GetRequiredService<IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload>>().SaveIncidentFilter(incidentFilterDocument.DeserializeJson<IcmIncidentFilterDocument>()),
             IncidentManagementType.ServiceNow => await _serviceProvider.GetRequiredService<IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload>>().SaveIncidentFilter(incidentFilterDocument.DeserializeJson<ServiceNowIncidentFilterDocument>()),
@@ -207,6 +222,7 @@ public class IncidentManagementServiceFactory : IncidentServiceFactoryBase, IInc
     {
         return _incidentManagementType switch
         {
+            IncidentManagementType.AzMonitor => _serviceProvider.GetRequiredService<IIncidentManagementService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocumentPayload>>(),
             IncidentManagementType.PagerDuty => _serviceProvider.GetRequiredService<IIncidentManagementService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload>>(),
             IncidentManagementType.Icm => _serviceProvider.GetRequiredService<IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>>(),
             IncidentManagementType.ServiceNow => _serviceProvider.GetRequiredService<IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload>>(),
@@ -221,6 +237,7 @@ public class IncidentManagementServiceFactory : IncidentServiceFactoryBase, IInc
             IncidentManagementType.PagerDuty => await _serviceProvider.GetRequiredService<IIncidentManagementService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload>>().QueryIncidents(request.DeserializeJson<IncidentQueryRequest<PagerDutyIncidentFilterDocumentPayload>>()),
             IncidentManagementType.Icm => await _serviceProvider.GetRequiredService<IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>>().QueryIncidents(request.DeserializeJson<IncidentQueryRequest<IcmIncidentFilterDocumentPayload>>()),
             IncidentManagementType.ServiceNow => await _serviceProvider.GetRequiredService<IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload>>().QueryIncidents(request.DeserializeJson<IncidentQueryRequest<ServiceNowIncidentFilterDocumentPayload>>()),
+            IncidentManagementType.AzMonitor => await _serviceProvider.GetRequiredService<IIncidentManagementService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocumentPayload>>().QueryIncidents(request.DeserializeJson<IncidentQueryRequest<AzMonitorIncidentFilterDocumentPayload>>()),
             _ => throw new NotSupportedException($"Unsupported incident management type: {_incidentManagementType}")
         };
     }
@@ -233,6 +250,7 @@ public class IncidentManagementServiceFactory : IncidentServiceFactoryBase, IInc
         }
         return _incidentManagementType switch
         {
+            IncidentManagementType.AzMonitor => await _serviceProvider.GetRequiredService<IIncidentManagementService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocumentPayload>>().SaveDocument(JsonSerializer.Deserialize<AzMonitorAlertDocument>(incidentDocument)),
             IncidentManagementType.PagerDuty => await _serviceProvider.GetRequiredService<IIncidentManagementService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload>>().SaveDocument(JsonSerializer.Deserialize<PagerDutyIncidentDocument>(incidentDocument)),
             IncidentManagementType.Icm => await _serviceProvider.GetRequiredService<IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>>().SaveDocument(JsonSerializer.Deserialize<IcmIncidentDocument>(incidentDocument)),
             IncidentManagementType.ServiceNow => await _serviceProvider.GetRequiredService<IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload>>().SaveDocument(JsonSerializer.Deserialize<ServiceNowIncidentDocument>(incidentDocument)),
@@ -267,6 +285,7 @@ public class IncidentHandlingServiceFactory : IncidentServiceFactoryBase, IIncid
     {
         return _incidentManagementType switch
         {
+            IncidentManagementType.AzMonitor => _serviceProvider.GetRequiredService<IIncidentHandlingService<AzMonitorIncidentFilterDocumentPayload>>(),
             IncidentManagementType.PagerDuty => _serviceProvider.GetRequiredService<IIncidentHandlingService<PagerDutyIncidentFilterDocumentPayload>>(),
             IncidentManagementType.Icm => _serviceProvider.GetRequiredService<IIncidentHandlingService<IcmIncidentFilterDocumentPayload>>(),
             IncidentManagementType.ServiceNow => _serviceProvider.GetRequiredService<IIncidentHandlingService<ServiceNowIncidentFilterDocumentPayload>>(),
@@ -277,6 +296,7 @@ public class IncidentHandlingServiceFactory : IncidentServiceFactoryBase, IIncid
     {
         return _incidentManagementType switch
         {
+            IncidentManagementType.AzMonitor => await _serviceProvider.GetRequiredService<IIncidentHandlingService<AzMonitorIncidentFilterDocumentPayload>>().HandleIncidentAsync(incidentDocument?.DeserializeJson<IncidentHandlingRequestModel<AzMonitorIncidentFilterDocumentPayload>>()),
             IncidentManagementType.PagerDuty => await _serviceProvider.GetRequiredService<IIncidentHandlingService<PagerDutyIncidentFilterDocumentPayload>>().HandleIncidentAsync(incidentDocument?.DeserializeJson<IncidentHandlingRequestModel<PagerDutyIncidentFilterDocumentPayload>>()),
             IncidentManagementType.Icm => await _serviceProvider.GetRequiredService<IIncidentHandlingService<IcmIncidentFilterDocumentPayload>>().HandleIncidentAsync(incidentDocument?.DeserializeJson<IncidentHandlingRequestModel<IcmIncidentFilterDocumentPayload>>()),
             IncidentManagementType.ServiceNow => await _serviceProvider.GetRequiredService<IIncidentHandlingService<ServiceNowIncidentFilterDocumentPayload>>().HandleIncidentAsync(incidentDocument?.DeserializeJson<IncidentHandlingRequestModel<ServiceNowIncidentFilterDocumentPayload>>()),

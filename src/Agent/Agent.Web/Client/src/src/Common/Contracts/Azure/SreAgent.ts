@@ -106,6 +106,7 @@ export enum UpgradeChannel {
 
 export enum IncidentStatus {
     active = 'active',
+    new = 'new',
     acknowledged = 'acknowledged',
     mitigated = 'mitigated',
     triggered = 'triggered',

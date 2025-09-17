@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
@@ -18,7 +15,8 @@ using Newtonsoft.Json;
 using Incident = Agent.Core.Models.ICM.Incident;
 
 namespace Agent.Runtime.Services;
-public class IcmIncidentAnalysisService: IncidentAnalysisServiceBase<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>
+
+public class IcmIncidentAnalysisService : IncidentAnalysisServiceBase<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>
 {
     private readonly ILogger<IcmIncidentAnalysisService> _logger;
     private readonly Container container;
@@ -31,7 +29,7 @@ public class IcmIncidentAnalysisService: IncidentAnalysisServiceBase<IcmIncident
         IAgentInboundCommunicationService inboundCommunicationService,
         CoreSettings coreSettings,
         ArmHelper armHelper,
-        ILogger<IcmIncidentAnalysisService> logger): base(client, incidentManagementService, repository, inboundCommunicationService, coreSettings, armHelper, logger)
+        ILogger<IcmIncidentAnalysisService> logger) : base(client, incidentManagementService, repository, inboundCommunicationService, coreSettings, armHelper, logger)
     {
         container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
         _logger = logger;
@@ -56,11 +54,11 @@ public class IcmIncidentAnalysisService: IncidentAnalysisServiceBase<IcmIncident
     {
         bool isMitigatedByAgent = false;
         string status;
-        
+
         status = icmIncident.Status.ToString().ToLower();
         isMitigatedByAgent = (status == "mitigated" || status == "resolved") && ((icmIncident.MitigateData?.MitigatedBy.Contains("agent") ?? false) ||
             icmIncident.Tags.Contains("SREAgent_Mitigated"));
-        
+
         return isMitigatedByAgent;
     }
 
@@ -89,15 +87,16 @@ public class IcmIncidentAnalysisService: IncidentAnalysisServiceBase<IcmIncident
                     FilterId = filterId,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
-                    RootCauses = new List<string>() { incidentRootCause }
+                    RootCauses = [incidentRootCause]
                 };
 
                 updatedDoc = await container.CreateItemAsync(updatedDoc, new PartitionKey(updatedDoc.PartitionKey), cancellationToken: cancellationToken);
             }
             else
             {
-                
-                if (!rootCauses.Select(x => x.ToLower()).Contains(incidentRootCause.ToLower())) {
+
+                if (!rootCauses.Select(x => x.ToLower()).Contains(incidentRootCause.ToLower()))
+                {
                     rootCauses.Add(incidentRootCause);
                 }
 
@@ -158,7 +157,7 @@ public class IcmIncidentAnalysisService: IncidentAnalysisServiceBase<IcmIncident
         {
             ToolMode = ChatToolMode.None,
             Temperature = 0.2f,
-            ResponseFormat = Microsoft.Extensions.AI.ChatResponseFormat.Text,
+            ResponseFormat = ChatResponseFormat.Text,
         };
 
         var reply = await _client.GetResponseAsync(messages, options);
@@ -167,7 +166,7 @@ public class IcmIncidentAnalysisService: IncidentAnalysisServiceBase<IcmIncident
 
     private async Task<string> GetAIRootCause(string prompt, Incident incident, List<string> rootCauses)
     {
-        var messages = new List<Microsoft.Extensions.AI.ChatMessage>
+        var messages = new List<ChatMessage>
         {
             new(ChatRole.System, "You are an expert in incident analysis."),
             new(ChatRole.User, @$"{prompt}:\n\n{await IncidentOverview(incident)}"),
@@ -178,7 +177,7 @@ public class IcmIncidentAnalysisService: IncidentAnalysisServiceBase<IcmIncident
         {
             ToolMode = ChatToolMode.None,
             Temperature = 0.2f,
-            ResponseFormat = Microsoft.Extensions.AI.ChatResponseFormat.Text,
+            ResponseFormat = ChatResponseFormat.Text,
         };
 
         var reply = await _client.GetResponseAsync(messages, options);

@@ -51,6 +51,7 @@ export interface IncidentDocument {
     impactedServiceId: string;
     impactedServiceName: string;
     id: string;
+    alertId?: string;
     status: string;
     incidentType: string;
     priority: string;
@@ -95,19 +96,6 @@ export interface IncidentFilter {
     owningTeamId?: string; // only for IcM
     createdBy?: string; // only for IcM
     monitorId?: string; // only for IcM
-}
-
-export interface IncidentFilterPayload {
-    Id: string;
-    ImpactedService?: string;
-    Priority?: string;
-    IncidentType?: string;
-    AlertId?: string;
-    TitleContains?: string;
-    AgentMode?: AgentMode;
-    OwningTeamId?: string; // only for IcM
-    CreatedBy?: string; // only for IcM
-    MonitorId?: string; // only for IcM
 }
 
 export interface TestHandlerPayload {

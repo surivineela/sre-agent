@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
@@ -6,6 +10,7 @@ using Agent.Data.DataModels;
 using Agent.Framework;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
+using Thread = Agent.Core.Models.Api.v1.Thread;
 
 namespace Agent.Runtime.Services;
 
@@ -57,7 +62,7 @@ public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmInciden
         }
     }
 
-    protected override async Task<Core.Models.Api.v1.Thread> CreateIncidentHandlerAgentThreadAsync(
+    protected override async Task<Thread> CreateIncidentHandlerAgentThreadAsync(
         IcmIncidentDocument incidentDetails,
         IncidentHandlerDocument incidentHandler,
         IcmIncidentFilterDocument incidentFilterDocument,

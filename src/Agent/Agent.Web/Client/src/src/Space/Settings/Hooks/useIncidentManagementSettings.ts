@@ -7,7 +7,7 @@ import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/Star
 import { getErrorMessage } from '../../../Common/Clients/ArmClient';
 import { IncidentHandlerClient } from '../../../Common/Clients/IncidentHandlerClient';
 import { ArmObj } from '../../../Common/Contracts/Azure/ArmObj';
-import { IncidentFilterPayload } from '../../../Common/Contracts/Azure/IncidentHandler';
+import { IncidentFilterDocumentPayload } from '../../../Common/Contracts/Azure/IncidentHandler';
 import { Agent, IncidentManagementConfiguration, IncidentManagementType } from '../../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../../Common/Helpers/Guid';
 import {
@@ -412,23 +412,23 @@ export function useIncidentManagement(close: (() => void) | undefined) {
                                     resourceId,
                                 });
 
-                                const defaultIncidentFilter: IncidentFilterPayload = {
-                                    Id: 'quickstart_handler',
+                                const defaultIncidentFilter: IncidentFilterDocumentPayload = {
+                                    id: 'quickstart_handler',
                                 };
 
                                 if (formValues.platform === IncidentManagementPlatform.PagerDuty) {
-                                    defaultIncidentFilter.IncidentType = 'incident_default';
-                                    defaultIncidentFilter.Priority = 'P1';
+                                    defaultIncidentFilter.incidentType = 'incident_default';
+                                    defaultIncidentFilter.priority = 'P1';
                                 }
 
                                 if (formValues.platform === IncidentManagementPlatform.Icm) {
-                                    defaultIncidentFilter.IncidentType = 'LiveSite';
-                                    defaultIncidentFilter.Priority = '3';
+                                    defaultIncidentFilter.incidentType = 'LiveSite';
+                                    defaultIncidentFilter.priority = '3';
                                 }
 
                                 if (formValues.platform === IncidentManagementPlatform.ServiceNow) {
-                                    defaultIncidentFilter.IncidentType = 'incident';
-                                    defaultIncidentFilter.Priority = '1';
+                                    defaultIncidentFilter.incidentType = 'incident';
+                                    defaultIncidentFilter.priority = '1';
                                 }
                                 incidentHandlerClient.createIncidentFilter(defaultIncidentFilter).then(filterResult => {
                                     setIsIncidentManagementConnected(true);
