@@ -692,21 +692,16 @@ public class Program
             .ConfigureIChatClient()
             .ConfigureIEmbeddingGenerator();
 
-        var searchSettings = GetAzureSearchSettings(builder.Configuration);
-        if (searchSettings.Enabled)
+        // Register TSG Plugin - Always enabled since it uses DataConnector (not Azure Search)
+        builder.Services.AddTransient<ITsgPlugin>(sp =>
         {
-            builder.Services.AddTransient<AzureSearchPluginDefinition>(sp =>
-            {
-                return new AzureSearchPluginDefinition(sp.GetRequiredService<IAzureSearchPlugin>());
-            });
+            return new TsgPlugin(
+                sp.GetRequiredService<ILogger<TsgPlugin>>(),
+                sp.GetRequiredService<DataConnectorIndex>());
+        });
+        builder.Services.AddTransient<TsgPluginDefinition>();
 
-            builder.Services.AddTransient<IAzureSearchPlugin>(sp =>
-            {
-                return new AzureSearchPlugin(
-                    sp.GetRequiredService<ILogger<AzureSearchPlugin>>(),
-                    sp.GetRequiredService<DataConnectorIndex>());
-            });
-        }
+        var searchSettings = GetAzureSearchSettings(builder.Configuration);
 
         // Register ApplensDetectorPlugin - now always enabled
         builder.Services.AddTransient<ApplensDetectorPluginDefinition>(sp =>

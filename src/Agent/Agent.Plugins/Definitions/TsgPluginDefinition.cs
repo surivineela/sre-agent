@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Threading;
 using System.Threading.Tasks;
 using Agent.Core.Models;
 using Agent.Framework;
@@ -15,13 +14,13 @@ using Agent.Plugins.Interface;
 namespace Agent.Plugins;
 
 [AgentToolPlugin(Category = ToolCategories.KnowledgeBase)]
-public class AzureSearchPluginDefinition
+public class TsgPluginDefinition
 {
-    private readonly IAzureSearchPlugin _azureSearchPlugin;
+    private readonly ITsgPlugin _tsgPlugin;
 
-    public AzureSearchPluginDefinition(IAzureSearchPlugin plugin)
+    public TsgPluginDefinition(ITsgPlugin plugin)
     {
-        _azureSearchPlugin = plugin ?? throw new ArgumentNullException(nameof(plugin));
+        _tsgPlugin = plugin ?? throw new ArgumentNullException(nameof(plugin));
     }
 
     [AgentTool(ToolMode.Auto)]
@@ -30,6 +29,6 @@ public class AzureSearchPluginDefinition
         [Description("Text to search for in the TSG content")] string searchText,
         [Description("Maximum number of results to return (default: 5)")] int maxResults = 5)
     {
-        return await _azureSearchPlugin.GetTsgContent(searchText, maxResults, default);
+        return await _tsgPlugin.GetTsgContent(searchText, maxResults, default);
     }
 }

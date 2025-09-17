@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json.Serialization;
 using Agent.Core.Attributes;
 using Azure.Search.Documents.Indexes;
 using Azure.Search.Documents.Indexes.Models;
@@ -11,6 +12,7 @@ namespace Agent.Core.DataConnectors;
 public class DataConnectorIndexDocument
 {
     [SearchableField(IsKey = true, IsFilterable = true, AnalyzerName = LexicalAnalyzerName.Values.Keyword)]
+    [JsonPropertyName("Id")]
 #pragma warning disable IDE1006 // Naming Styles - The index created by the control plane uses lower-casing
     public required string id { get; init; }
 #pragma warning restore IDE1006 // Naming Styles

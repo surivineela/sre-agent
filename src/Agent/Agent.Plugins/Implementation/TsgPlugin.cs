@@ -2,24 +2,29 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Agent.Core.DataConnectors;
 using Agent.Plugins.DataConnectors.TSG;
 using Agent.Plugins.Interface;
 using Microsoft.Extensions.Logging;
+using Agent.Logging;
 
 namespace Agent.Plugins.Implementation
 {
     /// <summary>
-    /// Implementation of IAzureSearchPlugin that provides TSG content retrieval
-    /// using the TSG DataConnector and Azure Cognitive Search
+    /// Implementation of ITsgPlugin that provides TSG content retrieval using DataConnector
     /// </summary>
-    public class AzureSearchPlugin : IAzureSearchPlugin
+    public class TsgPlugin : ITsgPlugin
     {
-        private readonly ILogger<AzureSearchPlugin> _logger;
+        private readonly ILogger<TsgPlugin> _logger;
         private readonly DataConnectorIndex _dataConnectorIndex;
 
-        public AzureSearchPlugin(
-            ILogger<AzureSearchPlugin> logger, 
+        public TsgPlugin(
+            ILogger<TsgPlugin> logger, 
             DataConnectorIndex dataConnectorIndex)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -64,42 +69,11 @@ namespace Agent.Plugins.Implementation
                 }
 
                 _logger.LogInternalInformation($"Found {results.Count} TSG documents for query: {searchText}");
-
                 return results;
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 _logger.LogInternalError(ex, $"Error retrieving TSG content for search text: {searchText}");
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// Lookup related GitHub issues based on issue URL and descriptions
-        /// </summary>
-        /// <param name="issueUrl">The GitHub issue URL</param>
-        /// <param name="issueDescriptions">List of issue descriptions to search for</param>
-        /// <param name="cancellationToken">Cancellation token</param>
-        /// <returns>List of related GitHub issues</returns>
-        public async Task<IEnumerable<object>> LookupRelatedGitHubIssues(
-            string issueUrl, 
-            List<string> issueDescriptions, 
-            CancellationToken cancellationToken = default)
-        {
-            _logger.LogInternalInformation($"Looking up related GitHub issues for: {issueUrl}");
-
-            try
-            {
-                // TODO: Implement GitHub issue search functionality
-                // This should search through indexed GitHub issues and return related ones
-                // For now, return empty list as placeholder
-
-                await Task.CompletedTask; // Placeholder to avoid compiler warning
-                return new List<object>();
-            }
-            catch (Exception ex) when (ex is not OperationCanceledException)
-            {
-                _logger.LogInternalError(ex, $"Error looking up related GitHub issues for: {issueUrl}");
                 throw;
             }
         }
