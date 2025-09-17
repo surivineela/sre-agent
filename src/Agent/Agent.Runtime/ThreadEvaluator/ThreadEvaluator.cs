@@ -10,6 +10,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
 using Agent.Framework;
+using Agent.Logging;
 using Agent.Plugins;
 using Agent.Runtime.Helpers;
 using Microsoft.Extensions.AI;
@@ -266,9 +267,9 @@ public partial class ThreadEvaluator
 
             // span.SetAttribute("sat_score", evaluationResult.SATScore);
             _logger.LogAgentAction(
-                action: "evaluate.thread",
+                action: AgentActionEvents.EvaluateThread,
                 parameter: JsonSerializer.Serialize(evaluationResult),
-                status: "success",
+                status: AgentActionStatus.Success,
                 duration: 0,
                 threadId: thread.Id.ToString(),
                 threadSource: thread.Source.ToString(),
@@ -780,10 +781,10 @@ public partial class ThreadEvaluator
                 evaluations.Add(evaluation);
 
                 _logger.LogAgentAction(
-                    action: "evaluate.handoffs",
+                    action: AgentActionEvents.EvaluateHandoffs,
                     // parameter: "JsonSerializer.Serialize(evaluation)",
                     parameter: "",
-                    status: "Success",
+                    status: AgentActionStatus.Success,
                     duration: 0,
                     threadId: thread.Id.ToString(),
                     threadSource: thread.Source.ToString(),
@@ -810,10 +811,10 @@ public partial class ThreadEvaluator
                 evaluations.Add(evaluation);
 
                 _logger.LogAgentAction(
-                    action: "evaluate.handoffs",
+                    action: AgentActionEvents.EvaluateHandoffs,
                     // parameter: JsonSerializer.Serialize(evaluation),
                     parameter: "",
-                    status: "Success",
+                    status: AgentActionStatus.Success,
                     duration: 0,
                     threadId: thread.Id.ToString(),
                     threadSource: thread.Source.ToString(),

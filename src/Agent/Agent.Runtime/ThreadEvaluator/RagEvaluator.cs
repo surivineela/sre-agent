@@ -7,6 +7,7 @@ using System.Text.Json;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Logging;
 using Agent.Runtime.Helpers;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -136,9 +137,9 @@ public class RagEvaluator : IRagEvaluator
                         results.Add(evaluationResult);
 
                         _logger.LogAgentAction(
-                            action: "evaluate.rag",
+                            action: AgentActionEvents.EvaluateRag,
                             parameter: JsonSerializer.Serialize(evaluationResult),
-                            status: "Success",
+                            status: AgentActionStatus.Success,
                             duration: 0,
                             threadId: thread.Id.ToString(),
                             threadSource: thread.Source.ToString(),

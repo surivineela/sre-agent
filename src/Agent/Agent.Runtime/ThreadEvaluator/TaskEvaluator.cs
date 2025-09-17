@@ -4,14 +4,12 @@
 
 using System.Text;
 using System.Text.Json;
-using System.Linq;
 using Agent.Core.Extensions;
-using Agent.Core.Models.Api.v1;
 using Agent.Framework;
+using Agent.Logging;
 using Agent.Runtime.Helpers;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Agent.Logging;
 using ThreadModel = Agent.Core.Models.Api.v1.Thread;
 
 namespace Agent.Runtime.ThreadEvaluator;
@@ -129,9 +127,9 @@ public partial class ThreadEvaluator
                 evaluations.Add(evaluation);
 
                 _logger.LogAgentAction(
-                    action: "evaluate.task",
+                    action: AgentActionEvents.EvaluateTask,
                     parameter: JsonSerializer.Serialize(evaluation),
-                    status: "Success",
+                    status: AgentActionStatus.Success,
                     duration: 0,
                     threadId: thread.Id.ToString(),
                     threadSource: thread.Source.ToString(),
@@ -348,7 +346,7 @@ public partial class ThreadEvaluator
         systemPromptBuilder.AppendLine("   - 2: Poor - Frequently deviated from or ignored the plan; weak connection between stated steps and actions");
         systemPromptBuilder.AppendLine("   - 1: Very poor - No visible alignment between plan and actions, or actions contradicted the plan");
         systemPromptBuilder.AppendLine();
-        systemPromptBuilder.AppendLine("3. **Intent Normalization:** Normalize the user's request to the format: [Action] [ResourcePhrase] <for [SecondaryResource]> <with condition [Condition]>." );
+        systemPromptBuilder.AppendLine("3. **Intent Normalization:** Normalize the user's request to the format: [Action] [ResourcePhrase] <for [SecondaryResource]> <with condition [Condition]>.");
         systemPromptBuilder.AppendLine("   - Action: Single Title Case verb (Get, List, Start, Stop, Restart, Create, Delete, Scale, Update, Describe, Query)");
         systemPromptBuilder.AppendLine("   - ResourcePhrase: Concise noun phrase (e.g., 'CPU usage', 'one VM', 'static IP', 'web app', 'app service plans')");
         systemPromptBuilder.AppendLine("   - SecondaryResource: Include only if user names a specific target (e.g., for VM demo-aca)");

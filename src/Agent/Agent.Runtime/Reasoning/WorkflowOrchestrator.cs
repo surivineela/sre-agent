@@ -4,8 +4,9 @@
 
 using System.Text;
 using System.Text.Json;
-using System.Linq;
+using Agent.Core.Configuration;
 using Agent.Core.Extensions;
+using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
@@ -14,8 +15,6 @@ using Agent.Runtime.Workflow;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
-using Agent.Core.Helpers;
-using Agent.Core.Configuration;
 
 namespace Agent.Runtime.Reasoning;
 
@@ -451,7 +450,7 @@ public class WorkflowOrchestrator : IDisposable
             // Unlike ReasoningLoop we currently do not distinguish user cancellation token here.
             try
             {
-               await _outboundCommunicationService.SignalProcessingComplete(_context.ThreadId, cancellationToken: cancellationToken);
+                await _outboundCommunicationService.SignalProcessingComplete(_context.ThreadId, cancellationToken: cancellationToken);
             }
             catch (OperationCanceledException)
             {
@@ -1003,7 +1002,7 @@ Please consolidate the findings, identify key insights, and provide actionable r
             var summaryText = !string.IsNullOrWhiteSpace(finalSummaryFromToolFlow)
                 ? finalSummaryFromToolFlow!
                 : (TryGetAssistantText(response) ?? "Unable to generate summary");
-            
+
             // Add thread link for detailed view + conditional access note
             string accessNote = string.Empty;
             if (!isLocal)
@@ -1063,9 +1062,9 @@ Please consolidate the findings, identify key insights, and provide actionable r
             return string.Empty;
         }
 
-    // Preserve execution (insertion) order so parameter-dependent sequence remains visible.
-    var sb = new StringBuilder();
-    foreach (var result in _executionResults.Values)
+        // Preserve execution (insertion) order so parameter-dependent sequence remains visible.
+        var sb = new StringBuilder();
+        foreach (var result in _executionResults.Values)
         {
             try
             {
@@ -1200,9 +1199,9 @@ Please consolidate the findings, identify key insights, and provide actionable r
 
 
                 // Stream auto tools to avoid missing them (manual tools are handled separately)
-                if (((AIFunction)tool).GetToolMode() == ToolMode.Auto)
+                if (tool.GetToolMode() == ToolMode.Auto)
                 {
-                    var callId = Agent.Framework.ToolStatic.AsyncLocalFunctionCallId.Value;
+                    var callId = ToolStatic.AsyncLocalFunctionCallId.Value;
                     if (!string.IsNullOrEmpty(callId))
                     {
                         _logger.LogInternalInformation("Workflow streaming auto tool call: {ToolName} with CallId: {CallId}", tool.Name, callId);
@@ -1210,7 +1209,7 @@ Please consolidate the findings, identify key insights, and provide actionable r
                         await _outboundCommunicationService.AppendAgentToolCallMessage(_context.ThreadId, (AIFunction)tool, toolCallMessageId, callId);
 
                         // Store the message ID for OnToolEnd to use
-                        Agent.Framework.ToolStatic.AsyncLocalToolCallMessageId.Value = toolCallMessageId;
+                        ToolStatic.AsyncLocalToolCallMessageId.Value = toolCallMessageId;
                     }
                 }
             },
@@ -1223,10 +1222,10 @@ Please consolidate the findings, identify key insights, and provide actionable r
                 _currentToolSpan = null;
 
                 // Stream auto tool results to complete the streaming flow
-                if (((AIFunction)tool).GetToolMode() == ToolMode.Auto)
+                if (tool.GetToolMode() == ToolMode.Auto)
                 {
-                    var callId = Agent.Framework.ToolStatic.AsyncLocalFunctionCallId.Value;
-                    var toolCallMessageId = Agent.Framework.ToolStatic.AsyncLocalToolCallMessageId.Value;
+                    var callId = ToolStatic.AsyncLocalFunctionCallId.Value;
+                    var toolCallMessageId = ToolStatic.AsyncLocalToolCallMessageId.Value;
 
                     if (!string.IsNullOrEmpty(callId) && toolCallMessageId.HasValue)
                     {
@@ -1235,8 +1234,8 @@ Please consolidate the findings, identify key insights, and provide actionable r
                         await _outboundCommunicationService.AppendAgentToolCallResult(_context.ThreadId, result, toolCallMessageId.Value);
 
                         // Clear the stored IDs for next tool
-                        Agent.Framework.ToolStatic.AsyncLocalFunctionCallId.Value = null;
-                        Agent.Framework.ToolStatic.AsyncLocalToolCallMessageId.Value = null;
+                        ToolStatic.AsyncLocalFunctionCallId.Value = null;
+                        ToolStatic.AsyncLocalToolCallMessageId.Value = null;
                     }
                 }
             },

@@ -14,10 +14,10 @@ public class RunHooks<TContext> where TContext : class
     public Func<RunContextWrapper<TContext>, Agent<TContext>, object?, Task> OnAgentEnd { get; set; } =
         (context, agent, result) => Task.CompletedTask;
 
-    public Func<RunContextWrapper<TContext>, Agent<TContext>, AITool, IEnumerable<KeyValuePair<string, object?>>?, Task> OnToolStart { get; set; } =
+    public Func<RunContextWrapper<TContext>, Agent<TContext>, AIFunction, IEnumerable<KeyValuePair<string, object?>>?, Task> OnToolStart { get; set; } =
         (context, agent, tool, arguments) => Task.CompletedTask;
 
-    public Func<RunContextWrapper<TContext>, Agent<TContext>, AITool, object?, Task> OnToolEnd { get; set; } =
+    public Func<RunContextWrapper<TContext>, Agent<TContext>, AIFunction, object?, Task> OnToolEnd { get; set; } =
         (context, agent, tool, result) => Task.CompletedTask;
 
     public Func<RunContextWrapper<TContext>, Agent<TContext>, Agent<TContext>, string, Task> OnHandoff { get; set; } =

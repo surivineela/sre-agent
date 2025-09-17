@@ -2,11 +2,11 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Diagnostics;
 using System.Threading.Channels;
 using Agent.Core.Attributes;
 using Agent.Core.Configuration;
@@ -565,20 +565,15 @@ public class ReasoningLoop : IDisposable
                             {
                                 _rootSpan.SetAttribute(TraceAttribute.TriggeredMessage, functionCallContent.Name);
                                 _msgSpan.SetAttribute(TraceAttribute.ToolName, functionCallContent.Name);
-                                _msgSpan.SetAttribute(TraceAttribute.ToolInput, System.Text.Json.JsonSerializer.Serialize(functionCallContent.Arguments, _toolArgumentsJsonOptions));
+                                _msgSpan.SetAttribute(TraceAttribute.ToolInput, JsonSerializer.Serialize(functionCallContent.Arguments, _toolArgumentsJsonOptions));
 
-                                // Emit agent action log for manual tool execution when receiving a function call message
                                 try
                                 {
                                     var resolvedTool = ResolveTool(functionCallContent.Name);
-                                    if (resolvedTool != null)
-                                    {
-                                        LogToolExecution(resolvedTool);
-                                    }
                                 }
                                 catch (Exception ex)
                                 {
-                                    _logger.LogInternalWarning(ex, "Failed to emit LogToolExecution for function call: {ToolName}", functionCallContent.Name);
+                                    _logger.LogInternalWarning(ex, "Failed to resolve tool for function call: {ToolName}", functionCallContent.Name);
                                 }
                             }
 
@@ -804,11 +799,6 @@ public class ReasoningLoop : IDisposable
                                         FunctionCall = toolCall.FunctionCall,
                                         Output = functionResult
                                     });
-                                    var tool = toolCall.Tool;
-                                    if (tool != null)
-                                    {
-                                        LogToolExecution(tool);
-                                    }
                                 }
                                 else if (azCliExecution != null)
                                 {
@@ -1155,7 +1145,7 @@ public class ReasoningLoop : IDisposable
                 _logger.LogAgentAction(
                     action: AgentActionEvents.InvokeAgent,
                     parameter: agent.Name,
-                    status: "Success",
+                    status: AgentActionStatus.Success,
                     duration: 0,
                     threadId: _context.ThreadId.ToString(),
                     subAgentName: agent.Name,
@@ -1202,14 +1192,14 @@ public class ReasoningLoop : IDisposable
                 _logger.LogAgentAction(
                     action: AgentActionEvents.InvokeTool,
                     parameter: tool.Name,
-                    status: "Success",
+                    status: AgentActionStatus.Success,
                     duration: 0,
                     threadId: _context.ThreadId.ToString(),
                     subAgentName: agent.Name,
                     featureConfig: WebJsonSerializer.Serialize(_featureConfig));
 
                 // Stream auto tools to avoid missing them (manual tools are handled separately)
-                if (((AIFunction)tool).GetToolMode() == ToolMode.Auto)
+                if (tool.GetToolMode() == ToolMode.Auto)
                 {
                     var callId = ToolStatic.AsyncLocalFunctionCallId.Value;
                     if (!string.IsNullOrEmpty(callId))
@@ -1232,7 +1222,7 @@ public class ReasoningLoop : IDisposable
                 _currentToolSpan = null;
 
                 // Stream auto tool results to complete the streaming flow
-                if (((AIFunction)tool).GetToolMode() == ToolMode.Auto)
+                if (tool.GetToolMode() == ToolMode.Auto)
                 {
                     var callId = ToolStatic.AsyncLocalFunctionCallId.Value;
                     var toolCallMessageId = ToolStatic.AsyncLocalToolCallMessageId.Value;
@@ -1247,10 +1237,9 @@ public class ReasoningLoop : IDisposable
                         ToolStatic.AsyncLocalFunctionCallId.Value = null;
                         ToolStatic.AsyncLocalToolCallMessageId.Value = null;
                     }
-
-                    LogToolExecution((AIFunction)tool);
-
                 }
+
+                LogToolExecution(tool, output);
             },
 
             OnModelGenerationStart = (context, agent, messages, chatOptions) =>
@@ -1336,19 +1325,17 @@ public class ReasoningLoop : IDisposable
                     CachedTokenCount = cachedTokenCount
                 };
 
-                var tokenUsageJson = JsonSerializer.Serialize(tokenUsageObj);
-
-
                 _logger.LogAgentAction(
                     action: AgentActionEvents.GenerateModelResponse,
                     parameter: response?.ModelId?.ToString() ?? string.Empty,
-                    status: tokenUsageJson,
+                    status: AgentActionStatus.Success,
                     duration: durationMs,
                     threadId: _context.ThreadId.ToString(),
                     subAgentName: agent?.Name ?? "Unknown",
                     inputToken: response?.Usage?.InputTokenCount ?? 0,
                     outputToken: response?.Usage?.OutputTokenCount ?? 0,
-                    featureConfig: WebJsonSerializer.Serialize(_featureConfig));
+                    featureConfig: WebJsonSerializer.Serialize(_featureConfig),
+                    actionMetadata: WebJsonSerializer.Serialize(tokenUsageObj));
                 return Task.CompletedTask;
             },
 
@@ -1397,7 +1384,7 @@ public class ReasoningLoop : IDisposable
                 _logger.LogAgentAction(
                     action: AgentActionEvents.CriticEvaluation,
                     parameter: wasApproved ? "Approved" : "Failed",
-                    status: "Success",
+                    status: AgentActionStatus.Success,
                     duration: 0,
                     threadId: _context.ThreadId.ToString(),
                     subAgentName: agent.Name,
@@ -1429,7 +1416,7 @@ public class ReasoningLoop : IDisposable
     }
 
     // Unified helper to log tool executions
-    private void LogToolExecution(AIFunction aiTool)
+    private void LogToolExecution(AIFunction aiTool, object? result)
     {
         if (aiTool == null)
         {
@@ -1446,7 +1433,7 @@ public class ReasoningLoop : IDisposable
         bool isWriteAction = false;
         try
         {
-            var writeAttr = aiTool.UnderlyingMethod?.GetCustomAttribute<Agent.Core.Attributes.WriteActionAttribute>();
+            var writeAttr = aiTool.UnderlyingMethod?.GetCustomAttribute<WriteActionAttribute>();
             if (writeAttr != null)
             {
                 isWriteAction = true;
@@ -1457,7 +1444,7 @@ public class ReasoningLoop : IDisposable
             _logger.LogInternalWarning(ex, "Failed to inspect WriteAction attribute for tool {ToolName}", aiTool.Name);
         }
 
-        var statusObj = new
+        var executionObj = new
         {
             RequireApproval = requireApproval,
             AgentMode = _agentRuntimeModifier.GetThreadAgentMode(_context),
@@ -1465,21 +1452,28 @@ public class ReasoningLoop : IDisposable
             WriteAction = isWriteAction
         };
 
-        var statusJson = JsonSerializer.Serialize(statusObj);
+        var status = AgentActionStatus.Success;
+        // catch exceptions and failures
+        if (result is string toolResponse
+            && toolResponse.StartsWith("Error: Function", StringComparison.OrdinalIgnoreCase))
+        {
+            status = toolResponse;
+        }
 
         try
         {
             _logger.LogAgentAction(
                 action: AgentActionEvents.ToolExecution,
                 parameter: aiTool.Name,
-                status: statusJson,
+                status: status,
                 duration: 0,
                 threadId: _context.ThreadId.ToString(),
                 subAgentName: _currentAgent?.Name ?? string.Empty,
                 inputToken: 0,
                 outputToken: 0,
                 threadSource: string.Empty,
-                featureConfig: WebJsonSerializer.Serialize(_featureConfig)
+                featureConfig: WebJsonSerializer.Serialize(_featureConfig),
+                actionMetadata: WebJsonSerializer.Serialize(executionObj)
             );
         }
         catch (Exception ex)
@@ -1513,7 +1507,6 @@ public class ReasoningLoop : IDisposable
             var functionResult = await aiTool.InvokeAsync(new AIFunctionArguments(functionCall.Arguments), cancellationToken);
             var result = new FunctionResultContent(functionCall.CallId, functionResult);
             var functionCallMessage = new ChatMessage(ChatRole.Tool, [result]);
-            LogToolExecution(aiTool);
             // Set the tool output in the span
             toolSpan.SetAttribute(TraceAttribute.ToolOutput, functionResult?.ToString() ?? string.Empty);
 

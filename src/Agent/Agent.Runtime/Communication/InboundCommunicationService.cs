@@ -252,18 +252,18 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             if (threadMessageFeedback.IsPositive)
             {
                 _logger.LogAgentAction(
-                    action: "ThumbsUp",
+                    action: AgentActionEvents.ThumbsUp,
                     parameter: $"{threadMessageFeedback.ThreadId}",
-                    status: "Success",
+                    status: AgentActionStatus.Success,
                     duration: 0,
                     threadId: threadMessageFeedback.ThreadId.ToString());
             }
             else
             {
                 _logger.LogAgentAction(
-                    action: "ThumbsDown",
+                    action: AgentActionEvents.ThumbsDown,
                     parameter: $"{threadMessageFeedback.ThreadId}",
-                    status: "Success",
+                    status: AgentActionStatus.Success,
                     duration: 0,
                     threadId: threadMessageFeedback.ThreadId.ToString());
             }

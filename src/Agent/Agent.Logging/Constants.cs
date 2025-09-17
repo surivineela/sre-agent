@@ -15,15 +15,24 @@ namespace Agent.Logging
 
     public static class AgentActionEvents
     {
-        public const string GenerateModelResponse = "GenerateModelResponse";
-        public const string InvokeAgent = "InvokeAgent";
-        public const string InvokeTool = "InvokeTool";
-        public const string ToolExecution = "ToolExecution";
-        public const string CriticEvaluation = "CriticEvaluation";
-    public const string CreateAgentMessage = "CreateAgentMessage";
-    public const string MarkThreadAsRead = "MarkThreadAsRead";
-    public const string CreateUserMessage = "CreateUserMessage";
-    public const string CreateThread = "CreateThread";
+        public const string CreateAgentMessage = nameof(CreateAgentMessage);
+        public const string CreateThread = nameof(CreateThread);
+        public const string CreateUserInitiatedThread = nameof(CreateUserInitiatedThread);
+        public const string CreateUserMessage = nameof(CreateUserMessage);
+        public const string CriticEvaluation = nameof(CriticEvaluation);
+        public const string GenerateModelResponse = nameof(GenerateModelResponse);
+        public const string InvokeAgent = nameof(InvokeAgent);
+        public const string InvokeTool = nameof(InvokeTool);
+        public const string MarkThreadAsRead = nameof(MarkThreadAsRead);
+        public const string ThumbsDown = nameof(ThumbsDown);
+        public const string ThumbsUp = nameof(ThumbsUp);
+        public const string ToolExecution = nameof(ToolExecution);
+
+        // LLM-as-Judge Evals
+        public const string EvaluateHandoffs = "evaluate.handoffs";
+        public const string EvaluateRag = "evaluate.rag";
+        public const string EvaluateTask = "evaluate.task";
+        public const string EvaluateThread = "evaluate.thread";
     }
 
     public static class AgentActionStatus

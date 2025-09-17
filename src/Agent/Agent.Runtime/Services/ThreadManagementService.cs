@@ -6,6 +6,7 @@ using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Logging;
 using Agent.Runtime.MetaAgent.Interfaces;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -128,9 +129,9 @@ public class ThreadManagementService(
         ));
         stopwatch.Stop();
         logger.LogAgentAction(
-            action: "CreateUserInitiatedThread",
+            action: AgentActionEvents.CreateUserInitiatedThread,
             parameter: $"{thread.Id}",
-            status: "Success",
+            status: AgentActionStatus.Success,
             duration: stopwatch.ElapsedMilliseconds,
             threadId: thread.Id.ToString(),
             subAgentName: "ThreadManagementService",

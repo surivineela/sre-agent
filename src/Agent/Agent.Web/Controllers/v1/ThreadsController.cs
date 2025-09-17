@@ -5,25 +5,24 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Json;
+using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
-using Agent.Core.Configuration;
 using Agent.Data.DataModels;
-using Agent.Framework;
 using Agent.Data.Repositories;
+using Agent.Framework;
+using Agent.Logging;
+using Agent.Plugins.Interface;
+using Agent.Plugins.Services.Interfaces;
+using Agent.Runtime.Reasoning;
+using Agent.Runtime.Services;
+using Agent.Web.Authorization;
+using Agent.Web.Models.WelcomeMessage;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Action = Agent.Core.Models.Api.v1.Action;
-using Thread = Agent.Core.Models.Api.v1.Thread;
-using Agent.Web.Models.WelcomeMessage;
-using Agent.Runtime.Services;
-using Agent.Plugins.Interface;
-using Agent.Runtime.Reasoning;
-using Agent.Plugins.Services.Interfaces;
-using Agent.Core;
-using Agent.Web.Authorization;
-using Agent.Logging;
 using ArmOperations = Agent.Core.Constants.ArmOperations;
+using Thread = Agent.Core.Models.Api.v1.Thread;
 
 namespace Agent.Web.Controllers.v1
 {

@@ -1,6 +1,4 @@
 using Agent.Logging;
-using System;
-using System.Collections.Generic;
 
 namespace Microsoft.Extensions.Logging;
 
@@ -191,10 +189,12 @@ public static partial class LoggerExtensions
     /// <param name="inputToken">Input token count</param>
     /// <param name="outputToken">Output token count</param>
     /// <param name="threadSource">Thread source</param>
+    /// <param name="featureConfig">Features enabled for the thread</param>
+    /// <param name="actionMetadata">Any additional properties we wanna log for the action</param>
     [LoggerMessage(
         EventId = 1001,
         Level = LogLevel.Information,
-        Message = "Agent Action: {Action} with parameters {Parameter} completed with status {Status} in {Duration}ms for thread {ThreadId}, subAgent: {SubAgentName}, inputTokens: {InputToken}, outputTokens: {OutputToken}, threadSource: {ThreadSource}, featureConfig: {FeatureConfig}")]
+        Message = "Agent Action: {Action} with parameters {Parameter} completed with status {Status} in {Duration}ms for thread {ThreadId}, subAgent: {SubAgentName}, inputTokens: {InputToken}, outputTokens: {OutputToken}, threadSource: {ThreadSource}, featureConfig: {FeatureConfig}, actionMetadata: {ActionMetadata}")]
     public static partial void LogAgentAction(
         this ILogger logger,
         string action,
@@ -206,7 +206,8 @@ public static partial class LoggerExtensions
         long inputToken = 0,
         long outputToken = 0,
         string threadSource = "",
-        string featureConfig = "");
+        string featureConfig = "",
+        string actionMetadata = "");
 
     /// <summary>
     /// Logs an agent action with exception information using LoggerMessage source generation
