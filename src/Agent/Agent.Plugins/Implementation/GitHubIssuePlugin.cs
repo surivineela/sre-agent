@@ -966,6 +966,44 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
         string result = await _graphDatabaseClient.SoftDeleteConnectedRepositoryByResourceId(resourceNodeId);
         return result;
     }
+
+    public async Task<IEnumerable<GithubIssuePluginIssue>> FetchGithubIssuesLimited(
+        string repoUrl,
+        int limit = 10,
+        GithubIssuePluginItemStateFilter state = GithubIssuePluginItemStateFilter.Open
+    )
+    {
+        return await KernelFunctionHelpers.TryAction(
+            nameof(GitHubIssuePlugin),
+            async () =>
+            {
+                var (owner, repo) = GitHubHelper.ParseGitHubUrl(repoUrl);
+
+                var request = new RepositoryIssueRequest
+                {
+                    Filter = IssueFilter.All,
+                    State = (ItemStateFilter)state
+                };
+
+                var options = new ApiOptions
+                {
+                    PageSize = Math.Min(limit, 100), // GitHub API max page size is 100
+                    PageCount = 1
+                };
+
+                var issues = await SendGitHubCallAsync(() => _gitHubClient.Issue.GetAllForRepository(owner, repo, request, options));
+
+                _logger.LogInternalInformation($"Fetched {issues.Count} GitHub issues (limited to {limit}) from {owner}/{repo}");
+
+                // Only fetch issues, not pull requests, and limit the results
+                return issues
+                    .Where(issue => issue.PullRequest == null)
+                    .Take(limit)
+                    .Select(issue => issue.ToGithubIssuePluginIssue());
+            },
+            _logger
+        );
+    }
 }
 
 public class SemanticSearchResponse

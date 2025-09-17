@@ -107,6 +107,16 @@ resolved
         return await _gitHubIssuePlugin.FetchGithubIssues(repoUrl, issueFilter, itemStateFilter, milestone, assignee, creator, mentioned, labels, since);
     }
 
+    [Description("Fetch a limited number of GitHub issues from a repository. This is a simplified version that returns up to a specified number of issues without complex filtering. Useful for getting a quick overview of recent issues.")]
+    public async Task<IEnumerable<GithubIssuePluginIssue>> FetchGithubIssuesLimited(
+        [Description("GitHub repository URL, e.g. https://github.com/owner/repo-name.git")] string repoUrl,
+        [Description("Maximum number of issues to return (default: 10, max: 100)")] int limit = 10,
+        [Description("Filter by issue state (default: Open)")] GithubIssuePluginItemStateFilter state = GithubIssuePluginItemStateFilter.Open
+    )
+    {
+        return await _gitHubIssuePlugin.FetchGithubIssuesLimited(repoUrl, limit, state);
+    }
+
     [KernelFunction("fetch_github_issue")]
     [Description("Fetch a specific github issue. If the returned object is empty and is not an exception, let the user know there were none found.")]
     public async Task<GithubIssuePluginIssue> FetchGithubIssue(

@@ -113,4 +113,9 @@ public class MockGithubIssuePlugin : IGithubIssuePlugin
     {
         throw new NotImplementedException();
     }
+
+    public Task<IEnumerable<GithubIssuePluginIssue>> FetchGithubIssuesLimited(string repoUrl, int limit = 10, GithubIssuePluginItemStateFilter state = GithubIssuePluginItemStateFilter.Open)
+    {
+        throw new NotImplementedException();
+    }
 }

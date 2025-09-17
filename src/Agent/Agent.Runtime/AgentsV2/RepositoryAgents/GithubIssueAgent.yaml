@@ -34,6 +34,7 @@ tools:
 - FindConnectedGitHubRepo
 - GetIaCForGitHub
 - DisconnectRepositoryFromResourceForGitHub
+- FetchGithubIssuesLimited
 - HandoffBack
 
 handoffs:

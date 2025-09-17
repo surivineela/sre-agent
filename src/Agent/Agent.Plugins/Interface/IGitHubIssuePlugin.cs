@@ -25,6 +25,7 @@ namespace Agent.Plugins.Interface
         Task<string> FindConnectedRepo(string resourceId);
         Task<string> DisconnectRepository(string resourceId);
         Task<string> GetIaCForGithub(string repoUrl, string branch, string fileMatches);
+        Task<IEnumerable<GithubIssuePluginIssue>> FetchGithubIssuesLimited(string repoUrl, int limit = 10, GithubIssuePluginItemStateFilter state = GithubIssuePluginItemStateFilter.Open);
         string GenerateLoginLink();
     }
 }
