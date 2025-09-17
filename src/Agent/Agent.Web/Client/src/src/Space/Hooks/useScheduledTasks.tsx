@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { CreateScheduledTaskRequest, ScheduledTask, UpdateScheduledTaskRequest } from '../Contracts/ScheduledTasks';
 
 export interface UseScheduledTasksResult {
@@ -43,9 +44,7 @@ export const useScheduledTasks = (): UseScheduledTasksResult => {
         const data = await handleApiCall<ScheduledTask[]>(() =>
             fetch('/api/v1/scheduledtasks', {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: getAgentHeaders(),
             })
         );
 
@@ -62,9 +61,7 @@ export const useScheduledTasks = (): UseScheduledTasksResult => {
             const response = await handleApiCall<{ taskId: string }>(() =>
                 fetch('/api/v1/scheduledtasks', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: getAgentHeaders(),
                     body: JSON.stringify(task),
                 })
             );
@@ -77,9 +74,7 @@ export const useScheduledTasks = (): UseScheduledTasksResult => {
                 const createdTask = await handleApiCall<ScheduledTask>(() =>
                     fetch(`/api/v1/scheduledtasks/${response.taskId}`, {
                         method: 'GET',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
+                        headers: getAgentHeaders(),
                     })
                 );
 
@@ -97,9 +92,7 @@ export const useScheduledTasks = (): UseScheduledTasksResult => {
             const response = await handleApiCall<any>(() =>
                 fetch(`/api/v1/scheduledtasks/${id}`, {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: getAgentHeaders(),
                     body: JSON.stringify(updates),
                 })
             );
@@ -120,9 +113,7 @@ export const useScheduledTasks = (): UseScheduledTasksResult => {
             const response = await handleApiCall<any>(() =>
                 fetch(`/api/v1/scheduledtasks/${id}`, {
                     method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: getAgentHeaders(),
                 })
             );
 
@@ -142,9 +133,7 @@ export const useScheduledTasks = (): UseScheduledTasksResult => {
             const response = await handleApiCall<any>(() =>
                 fetch(`/api/v1/scheduledtasks/${id}/pause`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: getAgentHeaders(),
                 })
             );
 
@@ -164,9 +153,7 @@ export const useScheduledTasks = (): UseScheduledTasksResult => {
             const response = await handleApiCall<any>(() =>
                 fetch(`/api/v1/scheduledtasks/${id}/resume`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: getAgentHeaders(),
                 })
             );
 

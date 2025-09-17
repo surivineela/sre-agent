@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { getAgentHeaders } from '../Helpers/headers';
 
 interface FeatureFlags {
     scheduledTasks: boolean;
@@ -21,7 +22,9 @@ export const useFeatureFlags = () => {
         const fetchFeatureFlags = async () => {
             try {
                 setLoading(true);
-                const response = await fetch('/api/v1/feature/status');
+                const response = await fetch('/api/v1/feature/status', {
+                    headers: getAgentHeaders(),
+                });
 
                 if (!response.ok) {
                     throw new Error(`Failed to fetch feature flags: ${response.status}`);
