@@ -1,4 +1,4 @@
-import { Button, Dropdown, InputOnChangeData, Link, Option, SearchBox, SearchBoxChangeEvent } from '@fluentui/react-components';
+import { Button, Dropdown, InputOnChangeData, Link, Option, SearchBox, SearchBoxChangeEvent, Tooltip } from '@fluentui/react-components';
 import { CheckmarkCircle16Regular } from '@fluentui/react-icons';
 import { CheckboxVisibility, ConstrainMode, DetailsListLayoutMode, IColumn, SelectionMode } from '@fluentui/react/lib/DetailsList';
 import { Selection } from '@fluentui/react/lib/Selection';
@@ -50,6 +50,7 @@ export type IncidentsFiltersGridProps = {
     handlerOperationStatus: OperationStatus | undefined;
     useConsolidatedCreate: boolean;
     disabled: boolean;
+    canWriteIncidentManagement?: boolean;
 };
 
 const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFiltersGridProps) => {
@@ -65,6 +66,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
         setIsEditFilterMode,
         setInitialValues,
         disabled,
+        canWriteIncidentManagement = true,
     } = props;
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
@@ -247,15 +249,28 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
         ]
     );
 
+    const disableEditActions = disableAllControls || !canWriteIncidentManagement;
+
     const onRenderId = useCallback(
         (item: IncidentFilter) => {
-            return (
-                <Link style={{ userSelect: 'text', fontSize: '13px' }} onClick={() => onIdClick(item)} disabled={disableAllControls}>
+            const tooltipMsg =
+                disableEditActions && !canWriteIncidentManagement
+                    ? intl.formatMessage(IncidentManagementResources.noPermissionEditIncidentHandler)
+                    : null;
+            const link = (
+                <Link style={{ userSelect: 'text', fontSize: '13px' }} onClick={() => onIdClick(item)} disabled={disableEditActions}>
                     {item.id ?? ''}
                 </Link>
             );
+            return tooltipMsg ? (
+                <Tooltip relationship="label" content={tooltipMsg}>
+                    {link}
+                </Tooltip>
+            ) : (
+                link
+            );
         },
-        [onIdClick, disabled, disableAllControls, handlerOperationStatus, incidentFiltersLoading]
+        [onIdClick, disableEditActions, canWriteIncidentManagement, intl]
     );
 
     const onRenderStatus = useCallback(
@@ -310,41 +325,66 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                             aria-label={intl.formatMessage(IncidentManagementResources.setUpComplete)}
                         />
                         <div>{intl.formatMessage(IncidentManagementResources.created)}</div>
-                        {!useConsolidatedCreate && (
-                            <Link
-                                style={{ fontSize: '13px' }}
-                                onClick={() => {
-                                    openHandlerCreate({ filter: item, handlerId: handler.id, quickEdit: true });
-                                }}
-                                disabled={disableAllControls}
-                            >{`(${intl.formatMessage(IncidentManagementResources.goToHandler)})`}</Link>
-                        )}
+                        {!useConsolidatedCreate &&
+                            (() => {
+                                const tooltipMsg =
+                                    disableEditActions && !canWriteIncidentManagement
+                                        ? intl.formatMessage(IncidentManagementResources.noPermissionEditIncidentHandler)
+                                        : null;
+                                const link = (
+                                    <Link
+                                        style={{ fontSize: '13px' }}
+                                        onClick={() => {
+                                            openHandlerCreate({ filter: item, handlerId: handler.id, quickEdit: true });
+                                        }}
+                                        disabled={disableEditActions}
+                                    >{`(${intl.formatMessage(IncidentManagementResources.goToHandler)})`}</Link>
+                                );
+                                return tooltipMsg ? (
+                                    <Tooltip relationship="label" content={tooltipMsg}>
+                                        {link}
+                                    </Tooltip>
+                                ) : (
+                                    link
+                                );
+                            })()}
                     </div>
                 );
             }
-            return (
-                <Link
-                    style={{ fontSize: '13px' }}
-                    onClick={() => {
-                        openHandlerCreate({ filter: item });
-                    }}
-                    disabled={disableAllControls}
-                >
-                    {intl.formatMessage(IncidentManagementResources.setUp)}
-                </Link>
-            );
+            return (() => {
+                const tooltipMsg =
+                    disableEditActions && !canWriteIncidentManagement
+                        ? intl.formatMessage(IncidentManagementResources.noPermissionEditIncidentHandler)
+                        : null;
+                const link = (
+                    <Link
+                        style={{ fontSize: '13px' }}
+                        onClick={() => {
+                            openHandlerCreate({ filter: item });
+                        }}
+                        disabled={disableEditActions}
+                    >
+                        {intl.formatMessage(IncidentManagementResources.setUp)}
+                    </Link>
+                );
+                return tooltipMsg ? (
+                    <Tooltip relationship="label" content={tooltipMsg}>
+                        {link}
+                    </Tooltip>
+                ) : (
+                    link
+                );
+            })();
         },
         [
-            handlerOperationStatus,
             filterIdToHandlerMap,
             intl,
             openHandlerCreate,
             styles.greenCheckIcon,
             styles.setUp,
             useConsolidatedCreate,
-            disabled,
-            disableAllControls,
-            incidentFiltersLoading,
+            disableEditActions,
+            canWriteIncidentManagement,
         ]
     );
 
@@ -584,22 +624,37 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
                             <img src="./NewFilter.svg" alt="NewFilter" />
                         </div>
                         <div className={styles.emptyStateTitle}>{intl.formatMessage(IncidentManagementResources.getStarted)}</div>
-                        <Button
-                            appearance="primary"
-                            onClick={() => {
-                                if (useConsolidatedCreate) {
-                                    openHandlerCreate({});
-                                } else {
-                                    setIsEditFilterMode(false);
-                                    setInitialValues(undefined);
-                                    setIsCreateIncidentFilterDialogOpen(true);
-                                }
-                            }}
-                            className={styles.newIncidentFilterButton}
-                            disabled={disableAllControls}
-                        >
-                            {intl.formatMessage(IncidentManagementResources.newIncidentHandler)}
-                        </Button>
+                        {(() => {
+                            const tooltipMsg =
+                                disableEditActions && !canWriteIncidentManagement
+                                    ? intl.formatMessage(IncidentManagementResources.noPermissionNewIncidentHandler)
+                                    : null;
+                            const btn = (
+                                <Button
+                                    appearance="primary"
+                                    onClick={() => {
+                                        if (useConsolidatedCreate) {
+                                            openHandlerCreate({});
+                                        } else {
+                                            setIsEditFilterMode(false);
+                                            setInitialValues(undefined);
+                                            setIsCreateIncidentFilterDialogOpen(true);
+                                        }
+                                    }}
+                                    className={styles.newIncidentFilterButton}
+                                    disabled={disableEditActions}
+                                >
+                                    {intl.formatMessage(IncidentManagementResources.newIncidentHandler)}
+                                </Button>
+                            );
+                            return tooltipMsg ? (
+                                <Tooltip relationship="label" content={tooltipMsg}>
+                                    {btn}
+                                </Tooltip>
+                            ) : (
+                                btn
+                            );
+                        })()}
                     </div>
                 )}
             </div>

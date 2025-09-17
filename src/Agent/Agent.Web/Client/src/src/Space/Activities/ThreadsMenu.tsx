@@ -17,6 +17,7 @@ import { ForwardedRef, forwardRef, ReactNode, useCallback, useContext, useMemo, 
 import { FormattedMessage, useIntl } from 'react-intl';
 import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import PermissionedButton from '../../Common/Components/PermissionedButton';
 import { Thread, ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { KnowledgeGraphBuildStatusContext } from '../../Common/Providers/KnowledgeGraphBuildStatusProvider';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
@@ -27,6 +28,7 @@ import ThreadItem from '../Components/ThreadItem';
 import ThreadSearchDialog from '../Components/ThreadSearchDialog';
 import { IThreadsMenuProps, ThreadMenuHandle } from '../Contracts/Activities';
 import { AgentContext } from '../Contracts/Context';
+import { usePermissionContext } from '../Contracts/PermissionContext';
 import { useThreadsMenu } from '../Hooks/useThreadsMenu';
 import { getExpandCollapseButtonStyles, skeletonStyle, useThreadMenuStyle } from '../Styles/Activities.styles';
 
@@ -64,6 +66,7 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
 
         const { activeThreadId } = useContext(AgentContext);
         const { hasChatPermissions } = useContext(KnowledgeGraphBuildStatusContext);
+        const { canWriteThreads } = usePermissionContext();
         const { logAmplitudeControlEvent } = useAzPortalContext();
 
         const [openThreadSections, setOpenThreadSections] = useState<ThreadSection[]>([ThreadSection.Favorite, ThreadSection.Chats]);
@@ -88,9 +91,12 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
             });
         }, [selectThread, logAmplitudeControlEvent]);
 
-        const assignThreadItemDivRef = useCallback((threadId: string, el: HTMLDivElement) => {
-            threadItemDivsRef.current.set(threadId, el);
-        }, []);
+        const assignThreadItemDivRef = useCallback(
+            (threadId: string, el: HTMLDivElement) => {
+                threadItemDivsRef.current.set(threadId, el);
+            },
+            [threadItemDivsRef]
+        );
 
         return (
             <div className={threadMenuStyles.root}>
@@ -112,7 +118,9 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
                     />
                 </div>
                 <div className={threadMenuStyles.newItemButtonAndSearchBox}>
-                    <Button
+                    <PermissionedButton
+                        canPerform={!!canWriteThreads && !!hasChatPermissions}
+                        noPermissionTooltip={intl.formatMessage(ActivitiesResources.createThreadNoPermissionTooltip)}
                         style={{
                             borderRadius: tokens.borderRadiusLarge,
                             borderColor: tokens.colorNeutralBackground3Selected,
@@ -122,14 +130,13 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
                         icon={<AddRegular />}
                         onClick={() => onClickNewThread()}
                         aria-label={intl.formatMessage(ActivitiesResources.createThreadButtonText)}
-                        disabled={!hasChatPermissions}
                     >
                         {!collapsed && (
                             <Fade visible={true} appear={true} unmountOnExit>
                                 <Text wrap={false}>{intl.formatMessage(ActivitiesResources.createThreadButtonText)}</Text>
                             </Fade>
                         )}
-                    </Button>
+                    </PermissionedButton>
                     {hasChatPermissions && (
                         <Fade visible={!collapsed} unmountOnExit>
                             <div>

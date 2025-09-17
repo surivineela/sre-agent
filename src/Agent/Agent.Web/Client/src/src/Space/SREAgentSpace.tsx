@@ -29,6 +29,7 @@ import { IncidentManagementResources, SreAgentResources, SreAgentTabResources } 
 import Activities from './Activities/Activities.ReactView';
 import { FeedbackDialog } from './Components/FeedbackDialog';
 import { SreAgentContext } from './Contracts/Context';
+import { PermissionProvider } from './Contracts/PermissionContext';
 import DailyReports from './DailyReports/DailyReports';
 import Graph from './Graph/Graph';
 import { useIncidentManagementConnectivity } from './Hooks/useIncidentManagementConnectivity';
@@ -427,7 +428,9 @@ const SREAgentSpace: FC = () => {
                 refresh,
             }}
         >
-            <RouterProvider router={router} />
+            <PermissionProvider>
+                <RouterProvider router={router} />
+            </PermissionProvider>
         </SreAgentContext.Provider>
     );
 };

@@ -22,7 +22,9 @@ import { FC, useContext } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
+import PermissionedToolbarButton from '../../Common/Components/PermissionedToolbarButton';
 import ShimmeredDetailsListWithSelection from '../../Common/Components/ShimmeredDetailsListWithSelection';
+import useUserPermissions from '../../Common/Hooks/useUserPermissions';
 import { ManagedResourcesStringResources, SettingsTabResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { useManagedResources } from './Hooks/useManagedResources';
 import { ResourceGroup } from './Hooks/useResourceGroups';
@@ -35,6 +37,7 @@ const ManagedResources: FC = () => {
     const intl = useIntl();
 
     const styles = useManagedResourcesStyles();
+    const { canWriteAgent } = useUserPermissions();
 
     const {
         managedResourceGroups,
@@ -70,15 +73,17 @@ const ManagedResources: FC = () => {
             </MessageBarGroup>
             <div className={styles.buttonsContainer}>
                 <Toolbar>
-                    <ToolbarButton
+                    <PermissionedToolbarButton
                         icon={<Add16Regular />}
                         style={{ paddingLeft: '0px', minWidth: '20px' }}
                         appearance="subtle"
-                        disabled={isLoading || isUpdating}
+                        disabledReason={isLoading || isUpdating}
                         onClick={() => setHideResourceGroupPicker(false)}
+                        canPerform={canWriteAgent}
+                        noPermissionTooltip={intl.formatMessage(SreAgentResources.noPermissionManagedResources)}
                     >
                         {intl.formatMessage(ManagedResourcesStringResources.add)}
-                    </ToolbarButton>
+                    </PermissionedToolbarButton>
                     <ToolbarButton
                         style={{ paddingLeft: '0px', minWidth: '20px' }}
                         icon={<ArrowClockwise16Regular />}
@@ -89,14 +94,16 @@ const ManagedResources: FC = () => {
                         {intl.formatMessage(ManagedResourcesStringResources.refresh)}
                     </ToolbarButton>
                     <ToolbarDivider style={{ padding: '0px' }} />
-                    <ToolbarButton
+                    <PermissionedToolbarButton
                         appearance="subtle"
                         icon={<Delete16Regular />}
                         onClick={() => setShowDeleteConfirmationDialog(true)}
-                        disabled={isDeleteDisabled}
+                        disabledReason={isDeleteDisabled}
+                        canPerform={canWriteAgent}
+                        noPermissionTooltip={intl.formatMessage(SreAgentResources.noPermissionManagedResources)}
                     >
                         {intl.formatMessage(SreAgentResources.delete)}
-                    </ToolbarButton>
+                    </PermissionedToolbarButton>
                 </Toolbar>
             </div>
             <div className={styles.pillsContainer}>

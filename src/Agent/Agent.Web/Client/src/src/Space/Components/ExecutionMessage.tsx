@@ -22,15 +22,17 @@ import {
     DismissCircle16Filled,
 } from '@fluentui/react-icons';
 import { useContext, useEffect, useMemo, useState } from 'react';
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getDataPlaneErrorMessage } from '../../Common/Clients/DataPlaneClient';
 import CopyButton from '../../Common/Components/CopyButton';
+import PermissionedButton from '../../Common/Components/PermissionedButton';
 import { Approval, AzCliExecution, ExecutionStatus, KubectlExecution } from '../../Common/Contracts/DataPlane/Message';
 // headers handled in ThreadClient
 import { ThreadClient } from '../../Common/Clients/ThreadClient';
-import { SreAgentResources } from '../../Strings/SREAgentResources';
+import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { usePermissionContext } from '../Contracts/PermissionContext';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
 import { ApprovalTimestamps } from './ApprovalTimestamps';
 import { getRiskColor, getRiskLevel } from './Utility';
@@ -121,6 +123,7 @@ const useStyles = makeStyles({
 const ExecutionMessage = ({ execution, threadId, type, updateSpecialMessageInStreamingMessage }: ExecutionMessageProps) => {
     const { resourceId, sreAgentEndpoint } = useContext(EnvironmentContext);
     const azPortalProxy = useAzPortalContext();
+    const { canApproveThreads } = usePermissionContext();
 
     const [currentExecution, setCurrentExecution] = useState<ExecutionLike>(execution);
     const [isActionLoading, setIsActionLoading] = useState(false);
@@ -134,6 +137,7 @@ const ExecutionMessage = ({ execution, threadId, type, updateSpecialMessageInStr
     const riskLevel = getRiskLevel(currentExecution.command);
     const riskColor = getRiskColor(riskLevel);
     const classes = useStyles();
+    const intl = useIntl();
 
     const executedByName = currentExecution.executedBy?.displayName;
     const isExecutedWithUserPerms = executedByName && executedByName !== SreAgentDisplayName;
@@ -432,26 +436,30 @@ const ExecutionMessage = ({ execution, threadId, type, updateSpecialMessageInStr
 
             {isCurrentExecutionPending && (
                 <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-                    <Button
+                    <PermissionedButton
+                        canPerform={canApproveThreads}
+                        noPermissionTooltip={intl.formatMessage(ActivitiesResources.approveActionNoPermissionTooltip)}
+                        disabledReason={isActionLoading}
                         appearance="primary"
                         onClick={() => handleAction('run')}
                         icon={loadingAction === 'run' ? <Spinner size="tiny" /> : undefined}
-                        disabled={isActionLoading}
                     >
                         {currentExecution.status === ExecutionStatus.Pending ? (
                             <FormattedMessage {...SreAgentResources.approveAction} />
                         ) : (
                             <FormattedMessage {...SreAgentResources.grantPermissions} />
                         )}
-                    </Button>
-                    <Button
+                    </PermissionedButton>
+                    <PermissionedButton
+                        canPerform={canApproveThreads}
+                        noPermissionTooltip={intl.formatMessage(ActivitiesResources.approveActionNoPermissionTooltip)}
+                        disabledReason={isActionLoading}
                         appearance="secondary"
                         onClick={() => handleAction('cancel')}
                         icon={loadingAction === 'cancel' ? <Spinner size="tiny" /> : undefined}
-                        disabled={isActionLoading}
                     >
                         <FormattedMessage {...SreAgentResources.cancel} />
-                    </Button>
+                    </PermissionedButton>
                 </div>
             )}
 

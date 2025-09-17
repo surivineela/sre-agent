@@ -60,7 +60,6 @@ const wildCardEscapeSequence = '\\*';
 const escapeRegExp = (regex: string): string => {
     return regex
         .replace(/([.*+?^=!:${}()|[\]/\\])/g, '\\$1')
-        .replace('\\/\\*\\/', '\\/?\\*\\/') // first make any / before a wildcard \\* and a slash / optional but leave the wildcard escaped.
         .replace(wildCardEscapeSequence, '.*') // the previous command escaped legitimate wildcards - replace them with Regex wildcards
         .replace('\x00', wildCardEscapeSequence) // replace sentinels with truly escaped wildcards
         .replace('\\t', '\t') // tabs
@@ -167,9 +166,26 @@ export class PermissionClient {
         });
     }
 
-    public hasPermission(resourceId: string, actions: string[]) {
+    /**
+     * Checks if the provided actions are allowed for the resource.
+     * @param resourceId Target resource id
+     * @param actions Actions to evaluate
+     * @param options.includeDataActions When true, include dataActions and notDataActions in evaluation.
+     */
+    public hasPermission(resourceId: string, actions: string[], options?: { includeDataActions?: boolean }) {
         return this.getPermissions(resourceId).then(response => {
-            return this.canPerformActions(actions, response.data?.value, resourceId);
+            const raw = response.data?.value;
+            if (!raw) return false;
+
+            let permissionSet = raw as any as ReadonlyArray<Permissions>;
+            if (options?.includeDataActions) {
+                // Merge dataActions into actions, and notDataActions into notActions
+                permissionSet = raw.map(p => ({
+                    actions: [...(p.actions || []), ...((p as any).dataActions || [])],
+                    notActions: [...(p.notActions || []), ...((p as any).notDataActions || [])],
+                }));
+            }
+            return this.canPerformActions(actions, permissionSet, resourceId);
         });
     }
 }

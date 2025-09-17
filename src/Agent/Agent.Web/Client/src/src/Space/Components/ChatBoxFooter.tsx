@@ -30,11 +30,14 @@ import { memo, useCallback, useContext, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import PermissionedButton from '../../Common/Components/PermissionedButton';
+import PermissionedMenuItem from '../../Common/Components/PermissionedMenuItem';
 import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
 import { ActivitiesResources, AgentTaskResources, PromptResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { ChatSuggestions } from '../Activities/ChatSuggestions';
 import { IChatBoxFooterProps } from '../Contracts/Activities';
 import { StreamingContext } from '../Contracts/Context';
+import { usePermissionContext } from '../Contracts/PermissionContext';
 import { chatInputTextStyles, sendButtonStyles, useChatInputStyles } from '../Styles/Activities.styles';
 import AgentModeSelector from './AgentModeSelector';
 import KnowledgeGraphBuildStatus from './KnowledgeGraphBuildStatus';
@@ -95,15 +98,21 @@ const ChatBoxFooter = ({
     const { root, footer, subFooter, chatStatement } = useChatInputStyles();
 
     const { isConnected } = useContext(StreamingContext);
+    const { canWriteThreads } = usePermissionContext();
     const { logAmplitudeControlEvent } = useAzPortalContext();
 
     const disableInputInteraction = useMemo(() => {
-        return isLoading || !isConnected || isCancellingStreaming;
-    }, [isLoading, isConnected, isCancellingStreaming]);
+        return isLoading || !isConnected || isCancellingStreaming || !canWriteThreads;
+    }, [isLoading, isConnected, isCancellingStreaming, canWriteThreads]);
 
     const SendOrCancelButtonIcon = () => {
-        const color = disableInputInteraction ? 'undefined' : tokens.colorBrandForeground1;
-        return isTyping ? <RecordStopFilled style={{ color }} /> : <SendFilled style={{ color }} />;
+        // NOTE: using the string 'undefined' prevents the browser from ignoring the property (it becomes an invalid CSS value).
+        // We want no explicit color override when disabled so Fluent's disabled styling applies. When enabled, force brand color.
+        const color: string | undefined = disableInputInteraction ? undefined : tokens.colorBrandForeground1;
+        if (isTyping) {
+            return <RecordStopFilled style={{ color }} />;
+        }
+        return <SendFilled style={{ color }} />;
     };
 
     const chatInputHandleSendClick = useCallback(() => {
@@ -230,9 +239,11 @@ const ChatBoxFooter = ({
                             />
                         </div>
                     </Overflow>
-                    <Button
+                    <PermissionedButton
+                        canPerform={canWriteThreads}
+                        noPermissionTooltip={intl.formatMessage(ActivitiesResources.sendMessageNoPermissionTooltip)}
+                        disabledReason={disableInputInteraction}
                         icon={<SendOrCancelButtonIcon />}
-                        disabled={disableInputInteraction}
                         onClick={() => {
                             if (isTyping) {
                                 cancelStreaming();
@@ -243,7 +254,15 @@ const ChatBoxFooter = ({
                         shape="square"
                         appearance="subtle"
                         style={sendButtonStyles}
-                    />
+                        aria-disabled={!canWriteThreads}
+                        aria-label={
+                            isTyping
+                                ? intl.formatMessage(ActivitiesResources.cancelGenerationAriaLabel)
+                                : intl.formatMessage(ActivitiesResources.sendMessageAriaLabel)
+                        }
+                    >
+                        <></>
+                    </PermissionedButton>
                 </div>
             </div>
 
@@ -269,51 +288,98 @@ const DeepInvestigationButton = memo(
         onClickDeepInvestigationButton: () => void;
     }) => {
         const isVisible = useIsOverflowItemVisible(ChatBoxButtonIds.DeepInvestigation);
+        const { canWriteThreads } = usePermissionContext();
+        const intl = useIntl();
 
         if (!asOverflowItem && isVisible) {
             return null;
         }
 
+        // Tooltip logic:
+        // 1. If user lacks permission -> show permission tooltip
+        // 2. If user has permission -> show state-specific message (on/off) so the user immediately sees current status
+        const tooltipContentWhenNoPermission = isDeepInvestigationTurnedOn
+            ? intl.formatMessage(AgentTaskResources.deepInvestigationNoPermissionTurnedOnMessage)
+            : intl.formatMessage(AgentTaskResources.deepInvestigationNoPermissionTurnedOffMessage);
+        const stateTooltip = isDeepInvestigationTurnedOn
+            ? intl.formatMessage(AgentTaskResources.deepInvestigationTurnedOnMessage)
+            : intl.formatMessage(AgentTaskResources.deepInvestigationTurnedOffMessage);
+
         return (
-            showDeepInvestigationButton && (
-                <Tooltip content={<FormattedMessage {...AgentTaskResources.deepInvestigationTooltip} />} relationship="label">
+            showDeepInvestigationButton &&
+            (canWriteThreads ? (
+                <Tooltip content={stateTooltip} relationship="label">
                     {asOverflowItem ? (
                         <OverflowItem id={ChatBoxButtonIds.DeepInvestigation}>
                             <div>
-                                <Button
+                                <PermissionedButton
+                                    canPerform={canWriteThreads}
+                                    noPermissionTooltip={tooltipContentWhenNoPermission}
+                                    disabledReason={!isDeepInvestigationButtonEnabled}
                                     style={{ fontSize: '13px', padding: '2px 8px 2px 4px', whiteSpace: 'nowrap' }}
                                     icon={
                                         <SearchSparkle16Filled
                                             style={{
-                                                color: isDeepInvestigationButtonEnabled ? undefined : tokens.colorNeutralForegroundDisabled,
+                                                color:
+                                                    isDeepInvestigationButtonEnabled && canWriteThreads
+                                                        ? undefined
+                                                        : tokens.colorNeutralForegroundDisabled,
                                             }}
                                         />
                                     }
                                     appearance={isDeepInvestigationTurnedOn ? 'primary' : undefined}
                                     onClick={onClickDeepInvestigationButton}
-                                    disabled={!isDeepInvestigationButtonEnabled}
                                 >
                                     <FormattedMessage {...AgentTaskResources.deepInvestigation} />
-                                </Button>
+                                </PermissionedButton>
                             </div>
                         </OverflowItem>
                     ) : (
-                        <MenuItem
+                        <PermissionedMenuItem
+                            canPerform={canWriteThreads}
+                            noPermissionTooltip={tooltipContentWhenNoPermission}
                             icon={<SearchSparkle16Filled />}
+                            disabledReason={!isDeepInvestigationButtonEnabled}
+                            onClick={onClickDeepInvestigationButton}
                             style={{
                                 color:
-                                    isDeepInvestigationTurnedOn && isDeepInvestigationButtonEnabled
+                                    isDeepInvestigationTurnedOn && isDeepInvestigationButtonEnabled && canWriteThreads
                                         ? tokens.colorBrandBackground
                                         : undefined,
                             }}
-                            onClick={onClickDeepInvestigationButton}
-                            disabled={!isDeepInvestigationButtonEnabled}
                         >
                             <FormattedMessage {...AgentTaskResources.deepInvestigation} />
-                        </MenuItem>
+                        </PermissionedMenuItem>
                     )}
                 </Tooltip>
-            )
+            ) : asOverflowItem ? (
+                <OverflowItem id={ChatBoxButtonIds.DeepInvestigation}>
+                    <div>
+                        <PermissionedButton
+                            canPerform={false}
+                            noPermissionTooltip={tooltipContentWhenNoPermission}
+                            style={{ fontSize: '13px', padding: '2px 8px 2px 4px', whiteSpace: 'nowrap' }}
+                            icon={
+                                <SearchSparkle16Filled
+                                    style={{
+                                        color: tokens.colorNeutralForegroundDisabled,
+                                    }}
+                                />
+                            }
+                        >
+                            <FormattedMessage {...AgentTaskResources.deepInvestigation} />
+                        </PermissionedButton>
+                    </div>
+                </OverflowItem>
+            ) : (
+                <PermissionedMenuItem
+                    canPerform={false}
+                    noPermissionTooltip={tooltipContentWhenNoPermission}
+                    icon={<SearchSparkle16Filled />}
+                >
+                    <FormattedMessage {...AgentTaskResources.deepInvestigation} />
+                </PermissionedMenuItem>
+            ))
         );
     }
 );

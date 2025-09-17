@@ -347,6 +347,8 @@ export const sendButtonStyles = {
     borderRadius: '4px',
     padding: '6px',
     flex: '0 0 auto',
+    minWidth: '10px',
+    paddingRight: '0px',
 };
 
 export const useThreadMenuStyle = () => {

@@ -28,7 +28,11 @@ import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
 import { isPaasResourceType, resolveResourceIcon } from '../../Common/Helpers/Resources';
+import useUserPermissions from '../../Common/Hooks/useUserPermissions';
 import { ResourceInfoResources, SreAgentResources } from '../../Strings/SREAgentResources';
+// Tooltip import removed (now using PermissionedButton abstraction for authorization tooltip)
+import PermissionedActionLink from '../../Common/Components/PermissionedActionLink';
+import PermissionedButton from '../../Common/Components/PermissionedButton';
 import { StreamingContext } from '../Contracts/Context';
 import { GraphContext, GraphNode, ResourceExtended } from '../Contracts/Graph';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
@@ -138,6 +142,7 @@ const ResourceInfo = () => {
 
 const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode }) => {
     const { isLoading, isUpdating, initialRemarks, resource, onSubmit, toasterId } = useResourceInfo(selectedNode);
+    const { canWriteGraph } = useUserPermissions();
     const { infoContent, title, spinner, content, dashboard, repoButton, titleRow, titleIcon } = useStyles();
     const intl = useIntl();
 
@@ -228,11 +233,16 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode }) => 
                                                     </Link>
                                                 </div>
                                             )}
-                                            <Button
+                                            <PermissionedButton
                                                 appearance="primary"
                                                 size="small"
                                                 icon={getRepoIcon(resource.sourceCodeLinkageStatus.repositoryUrl)}
+                                                canPerform={canWriteGraph}
+                                                noPermissionTooltip={intl.formatMessage(
+                                                    ResourceInfoResources.noPermissionAuthorizeRepositoryAccess
+                                                )}
                                                 onClick={() => {
+                                                    if (!canWriteGraph) return;
                                                     const status = resource?.sourceCodeLinkageStatus;
                                                     if (status?.loginCallbackUrl) {
                                                         const w = window.open(
@@ -243,7 +253,7 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode }) => 
                                                         if (w) {
                                                             const onLoad = () => {
                                                                 w.removeEventListener('load', onLoad);
-                                                                window.location.reload(); // Reload the page to reflect the login
+                                                                window.location.reload();
                                                             };
                                                             w.addEventListener('load', onLoad);
                                                         }
@@ -251,34 +261,55 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode }) => 
                                                 }}
                                             >
                                                 <FormattedMessage {...ResourceInfoResources.authorizeRepositoryAccess} />
-                                            </Button>
+                                            </PermissionedButton>
                                         </div>
                                     )
-                                ) : (
+                                ) : canWriteGraph ? (
                                     <ConnectRepositoryLink resourceId={selectedNode?.id} />
+                                ) : (
+                                    <PermissionedActionLink
+                                        canPerform={false}
+                                        noPermissionTooltip={intl.formatMessage(
+                                            ResourceInfoResources.noPermissionAuthorizeRepositoryAccess
+                                        )}
+                                    >
+                                        <FormattedMessage {...ResourceInfoResources.repositoryConnection} />
+                                    </PermissionedActionLink>
                                 )}
                             </SummaryField>
                         )}
                         <SummaryField label={intl.formatMessage(ResourceInfoResources.annotation)}>
                             {initialRemarks ? <div>{initialRemarks}</div> : null}
-                            <Dialog>
-                                <DialogTrigger disableButtonEnhancement>
-                                    <Link>
-                                        {initialRemarks ? (
-                                            <FormattedMessage {...ResourceInfoResources.editAnnotation} />
-                                        ) : (
-                                            <FormattedMessage {...ResourceInfoResources.addAnnotation} />
-                                        )}
-                                    </Link>
-                                </DialogTrigger>
-                                <AnnotationDialogSurface
-                                    initialRemarks={initialRemarks}
-                                    isUpdating={isUpdating}
-                                    onSubmit={async (remarks: string) => {
-                                        await onSubmit(remarks);
-                                    }}
-                                />
-                            </Dialog>
+                            <PermissionedActionLink
+                                canPerform={canWriteGraph}
+                                noPermissionTooltip={intl.formatMessage(ResourceInfoResources.noPermissionAddAnnotation)}
+                                onClick={() => {}}
+                            >
+                                {canWriteGraph ? (
+                                    <Dialog>
+                                        <DialogTrigger disableButtonEnhancement>
+                                            <Link>
+                                                {initialRemarks ? (
+                                                    <FormattedMessage {...ResourceInfoResources.editAnnotation} />
+                                                ) : (
+                                                    <FormattedMessage {...ResourceInfoResources.addAnnotation} />
+                                                )}
+                                            </Link>
+                                        </DialogTrigger>
+                                        <AnnotationDialogSurface
+                                            initialRemarks={initialRemarks}
+                                            isUpdating={isUpdating}
+                                            onSubmit={async (remarks: string) => {
+                                                await onSubmit(remarks);
+                                            }}
+                                        />
+                                    </Dialog>
+                                ) : initialRemarks ? (
+                                    <FormattedMessage {...ResourceInfoResources.editAnnotation} />
+                                ) : (
+                                    <FormattedMessage {...ResourceInfoResources.addAnnotation} />
+                                )}
+                            </PermissionedActionLink>
                         </SummaryField>
                     </div>
                 )}

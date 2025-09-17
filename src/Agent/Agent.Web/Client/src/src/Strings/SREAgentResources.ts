@@ -276,6 +276,22 @@ export const SreAgentResources = defineMessages({
     agentPermsRunning: { defaultMessage: 'The action is in progress with agent permissions.', id: 'wXKSRT' },
     agentPermsCompleted: { defaultMessage: 'The action was completed using agent permissions.', id: 'a8l/yJ' },
     agentPermsFailed: { defaultMessage: 'Agent permissions were used, but the action failed to run.', id: 'TFQBcG' },
+    noPermissionIncidentManagement: {
+        defaultMessage: 'You do not have permission to connect/disconnect incident management',
+        id: 'PGJzE0',
+    },
+    noPermissionManagedResources: {
+        defaultMessage: 'You do not have permission to add or delete managed resources',
+        id: 'g+9csc',
+    },
+    noPermissionDeleteAgent: {
+        defaultMessage: 'You do not have permission to delete this agent.',
+        id: 'V9A1Xh',
+    },
+    noPermissionDataConnectors: {
+        defaultMessage: 'You do not have permission to add or delete data connectors.',
+        id: 'EZbXbs',
+    },
     low: { defaultMessage: 'Low', id: '477I0g' },
     medium: { defaultMessage: 'Medium', id: 'ovJ26C' },
     high: { defaultMessage: 'High', id: 'AxMhQr' },
@@ -314,6 +330,20 @@ export const SreAgentResources = defineMessages({
     dateRange1Day: { defaultMessage: '1 day', id: '+7PjfV' },
     dateRange1Week: { defaultMessage: '1 wk', id: 'CL+NTm' },
     dateRange1Month: { defaultMessage: '1 mo', id: 'zfM/75' },
+    youDoNotHaveAccess: { defaultMessage: 'You do not have access', id: 'DnkQsX' },
+    missingPermissionForAgent: { defaultMessage: 'You are missing the required permission "{permission}" for this agent.', id: 'ldy3CI' },
+    errorDetails: { defaultMessage: 'Error details', id: 'qddSy6' },
+    accessHelpInstruction: {
+        defaultMessage: 'Copy the error details and send them to your administrator(s) to get access to this page.',
+        id: 'NBxjGE',
+    },
+    copyErrorDetails: { defaultMessage: 'Copy error details', id: 'g/hfuE' },
+    detailsResourceName: { defaultMessage: 'Resource name', id: 'eqYdSS' },
+    detailsResourceGroupName: { defaultMessage: 'Resource group name', id: 'xVPoso' },
+    detailsResourceId: { defaultMessage: 'Resource ID', id: 'iIoj97' },
+    detailsPermission: { defaultMessage: 'Permission', id: 'Oz5LRn' },
+    detailsAccess: { defaultMessage: 'Details', id: 'Lv0zJu' },
+    detailsAccessNoAccess: { defaultMessage: 'No access', id: 'XLRt15' },
     equals: { defaultMessage: 'equals', id: 'Y2QRpS' },
 });
 
@@ -387,6 +417,14 @@ export const AgentTaskResources = defineMessages({
     deepInvestigationTooltip: {
         defaultMessage: 'View decision tree of potential root causes.',
         id: 'UpTFVv',
+    },
+    deepInvestigationNoPermissionTurnedOnMessage: {
+        defaultMessage: 'You do not have permission to turn Deep Investigations off.',
+        id: 'HSZaZc',
+    },
+    deepInvestigationNoPermissionTurnedOffMessage: {
+        defaultMessage: 'You do not have permission to turn Deep Investigations on.',
+        id: 'Ysew65',
     },
 });
 
@@ -660,6 +698,30 @@ export const ActivitiesResources = defineMessages({
         id: 'CimbUb',
     },
     createThreadButtonText: { defaultMessage: 'New chat thread', id: 'TkWiD5' },
+    createThreadNoPermissionTooltip: {
+        defaultMessage: 'You do not have permission to create new chat threads.',
+        id: 'RU9VOd',
+    },
+    sendMessageNoPermissionTooltip: {
+        defaultMessage: 'You do not have permission to send a message to this agent.',
+        id: 't/atZW',
+    },
+    sendMessageAriaLabel: {
+        defaultMessage: 'Send message',
+        id: 'Xx0WZV',
+    },
+    cancelGenerationAriaLabel: {
+        defaultMessage: 'Cancel generation',
+        id: 'U4ZTAj',
+    },
+    favoriteThreadNoPermissionTooltip: {
+        defaultMessage: 'You do not have permission to favorite or unfavorite threads',
+        id: 'Amv/KL',
+    },
+    approveActionNoPermissionTooltip: {
+        defaultMessage: 'You do not have permission to approve this action.',
+        id: 'YigUHc',
+    },
     chatPivotHeader: { defaultMessage: 'Chat', id: 'WTrOy3' },
     actionsPivotHeader: { defaultMessage: 'Actions', id: 'wL7VAE' },
     chatInputPlaceholder: { defaultMessage: 'I want to...', id: 'PxLzzW' },
@@ -725,6 +787,10 @@ export const ActivitiesThreadHeaderResources = defineMessages({
     deleteThreadDialogDescription: {
         defaultMessage: 'This will permanently delete the chat and all actions in this thread. Are you sure you want to delete?',
         id: 'u5uL6R',
+    },
+    deleteThreadNoPermissionTooltip: {
+        defaultMessage: 'You do not have permission to delete this thread',
+        id: 'CVAKJE',
     },
 });
 
@@ -1032,6 +1098,11 @@ export const IncidentManagementResources = defineMessages({
     p2: { defaultMessage: 'P2', id: 'PwqiFa' },
     allStatuses: { defaultMessage: 'All statuses', id: 'fvK8Qi' },
     allActions: { defaultMessage: 'All actions', id: 'jK9a9x' },
+    noPermissionNewIncidentHandler: { defaultMessage: 'You do not have permission to create response plans.', id: 'Tq2F2Y' },
+    noPermissionDeleteIncidentHandler: { defaultMessage: 'You do not have permission to delete response plans.', id: 'fEYQWU' },
+    noPermissionTurnOffIncidentHandler: { defaultMessage: 'You do not have permission to turn response plans off.', id: 'vPX3R3' },
+    noPermissionTurnOnIncidentHandler: { defaultMessage: 'You do not have permission to turn response plans on.', id: 'xVnsKO' },
+    noPermissionEditIncidentHandler: { defaultMessage: 'You do not have permission to edit response plans.', id: 'jXIYLG' },
     incident: { defaultMessage: 'Incident', id: 'zaYxwd' },
     incidentId: { defaultMessage: 'Incident ID', id: 'MB9ceM' },
     handlerConfiguration: { defaultMessage: 'Handler configuration', id: 'yXTw0C' },
@@ -1499,6 +1570,8 @@ export const ResourceInfoResources = defineMessages({
         defaultMessage: 'Failed to update the annotation with the error: {errorMessage}',
         id: 'SL7+hl',
     },
+    noPermissionAuthorizeRepositoryAccess: { defaultMessage: 'You do not have permission to authorize repository access.', id: '5CX32Z' },
+    noPermissionAddAnnotation: { defaultMessage: 'You do not have permission to add or edit annotations.', id: 'IbIk/K' },
 });
 
 export const AppHealth = defineMessages({
@@ -1614,6 +1687,10 @@ export const AgentModeResources = defineMessages({
     agentModeTooltip: {
         defaultMessage: 'Change agent mode for this thread',
         id: '29xePt',
+    },
+    agentModeNoPermission: {
+        defaultMessage: 'You do not have permission to change the thread mode from {mode}',
+        id: 'UKMPBH',
     },
 });
 

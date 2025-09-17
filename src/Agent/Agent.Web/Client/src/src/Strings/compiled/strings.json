@@ -721,6 +721,12 @@
       "value": "error"
     }
   ],
+  "5CX32Z": [
+    {
+      "type": 0,
+      "value": "You do not have permission to authorize repository access."
+    }
+  ],
   "5GUtRJ": [
     {
       "type": 0,
@@ -1373,6 +1379,12 @@
       "value": "Turn off incident handler"
     }
   ],
+  "Amv/KL": [
+    {
+      "type": 0,
+      "value": "You do not have permission to favorite or unfavorite threads"
+    }
+  ],
   "ArsZkp": [
     {
       "type": 0,
@@ -1499,6 +1511,12 @@
     {
       "type": 0,
       "value": "Processed time"
+    }
+  ],
+  "CVAKJE": [
+    {
+      "type": 0,
+      "value": "You do not have permission to delete this thread"
     }
   ],
   "CZ6s9k": [
@@ -1663,6 +1681,12 @@
       "value": "Choose impacted service"
     }
   ],
+  "DnkQsX": [
+    {
+      "type": 0,
+      "value": "You do not have access"
+    }
+  ],
   "DpMYPV": [
     {
       "type": 0,
@@ -1751,6 +1775,12 @@
     {
       "type": 0,
       "value": "Incident platform"
+    }
+  ],
+  "EZbXbs": [
+    {
+      "type": 0,
+      "value": "You do not have permission to add or delete data connectors."
     }
   ],
   "EdEthU": [
@@ -1935,6 +1965,12 @@
       "value": "Cognitive Services OpenAI Contributor"
     }
   ],
+  "HSZaZc": [
+    {
+      "type": 0,
+      "value": "You do not have permission to turn Deep Investigations off."
+    }
+  ],
   "HWMrXF": [
     {
       "type": 0,
@@ -2023,6 +2059,12 @@
     {
       "type": 0,
       "value": "Delete scheduled task"
+    }
+  ],
+  "IbIk/K": [
+    {
+      "type": 0,
+      "value": "You do not have permission to add or edit annotations."
     }
   ],
   "IiNwpr": [
@@ -2331,6 +2373,12 @@
       "value": "Run History"
     }
   ],
+  "Lv0zJu": [
+    {
+      "type": 0,
+      "value": "Details"
+    }
+  ],
   "LyHqqV": [
     {
       "type": 0,
@@ -2429,6 +2477,12 @@
     {
       "type": 0,
       "value": "Authorized"
+    }
+  ],
+  "NBxjGE": [
+    {
+      "type": 0,
+      "value": "Copy the error details and send them to your administrator(s) to get access to this page."
     }
   ],
   "ND2EUR": [
@@ -2625,6 +2679,12 @@
       "value": "ServiceNow endpoint"
     }
   ],
+  "Oz5LRn": [
+    {
+      "type": 0,
+      "value": "Permission"
+    }
+  ],
   "P/1qUI": [
     {
       "type": 0,
@@ -2671,6 +2731,12 @@
     {
       "type": 0,
       "value": "Canceled"
+    }
+  ],
+  "PGJzE0": [
+    {
+      "type": 0,
+      "value": "You do not have permission to connect/disconnect incident management"
     }
   ],
   "PJ2FQv": [
@@ -2937,6 +3003,12 @@
     {
       "type": 0,
       "value": "Azure Kubernetes Service Cluster Admin"
+    }
+  ],
+  "RU9VOd": [
+    {
+      "type": 0,
+      "value": "You do not have permission to create new chat threads."
     }
   ],
   "RVf7gC": [
@@ -3213,10 +3285,22 @@
       "value": "You can now view incidents, and create additional incident handlers and custom handlers."
     }
   ],
+  "Tq2F2Y": [
+    {
+      "type": 0,
+      "value": "You do not have permission to create response plans."
+    }
+  ],
   "TyvDrC": [
     {
       "type": 0,
       "value": "Saving incident management configuration"
+    }
+  ],
+  "U4ZTAj": [
+    {
+      "type": 0,
+      "value": "Cancel generation"
     }
   ],
   "U4e+Yf": [
@@ -3229,6 +3313,16 @@
     {
       "type": 0,
       "value": "Autonomous mode"
+    }
+  ],
+  "UKMPBH": [
+    {
+      "type": 0,
+      "value": "You do not have permission to change the thread mode from "
+    },
+    {
+      "type": 1,
+      "value": "mode"
     }
   ],
   "UKUKGA": [
@@ -3307,6 +3401,12 @@
     {
       "type": 0,
       "value": "Repository"
+    }
+  ],
+  "V9A1Xh": [
+    {
+      "type": 0,
+      "value": "You do not have permission to delete this agent."
     }
   ],
   "VB97cf": [
@@ -3577,6 +3677,12 @@
       "value": "The fully autonomous mode. With the required permissions, the agent analyzes incidents and independently performs mitigation or resource modifications."
     }
   ],
+  "XLRt15": [
+    {
+      "type": 0,
+      "value": "No access"
+    }
+  ],
   "XRdOZL": [
     {
       "type": 0,
@@ -3623,6 +3729,12 @@
     {
       "type": 0,
       "value": "Monitoring metrics publisher"
+    }
+  ],
+  "Xx0WZV": [
+    {
+      "type": 0,
+      "value": "Send message"
     }
   ],
   "Y2QRpS": [
@@ -3673,6 +3785,12 @@
       "value": "Unhealthy"
     }
   ],
+  "YigUHc": [
+    {
+      "type": 0,
+      "value": "You do not have permission to approve this action."
+    }
+  ],
   "Yjk5Ow": [
     {
       "type": 0,
@@ -3701,6 +3819,12 @@
     {
       "type": 0,
       "value": "Managed identity"
+    }
+  ],
+  "Ysew65": [
+    {
+      "type": 0,
+      "value": "You do not have permission to turn Deep Investigations on."
     }
   ],
   "Z1VHv1": [
@@ -4319,6 +4443,12 @@
       "value": "Generate custom handler"
     }
   ],
+  "fEYQWU": [
+    {
+      "type": 0,
+      "value": "You do not have permission to delete response plans."
+    }
+  ],
   "fFyuVF": [
     {
       "type": 0,
@@ -4383,6 +4513,18 @@
     {
       "type": 0,
       "value": "All statuses"
+    }
+  ],
+  "g+9csc": [
+    {
+      "type": 0,
+      "value": "You do not have permission to add or delete managed resources"
+    }
+  ],
+  "g/hfuE": [
+    {
+      "type": 0,
+      "value": "Copy error details"
     }
   ],
   "gC4xMY": [
@@ -4649,6 +4791,12 @@
       "value": "Deploy incident handler"
     }
   ],
+  "iIoj97": [
+    {
+      "type": 0,
+      "value": "Resource ID"
+    }
+  ],
   "iTTSax": [
     {
       "type": 0,
@@ -4781,6 +4929,12 @@
       "value": "Enter sub-agent name"
     }
   ],
+  "jXIYLG": [
+    {
+      "type": 0,
+      "value": "You do not have permission to edit response plans."
+    }
+  ],
   "jabB4C": [
     {
       "type": 0,
@@ -4901,6 +5055,20 @@
     {
       "type": 0,
       "value": "Default"
+    }
+  ],
+  "ldy3CI": [
+    {
+      "type": 0,
+      "value": "You are missing the required permission \""
+    },
+    {
+      "type": 1,
+      "value": "permission"
+    },
+    {
+      "type": 0,
+      "value": "\" for this agent."
     }
   ],
   "levHvg": [
@@ -5319,6 +5487,12 @@
       "value": "In progress"
     }
   ],
+  "qddSy6": [
+    {
+      "type": 0,
+      "value": "Error details"
+    }
+  ],
   "qeUtXk": [
     {
       "type": 0,
@@ -5575,6 +5749,12 @@
       "value": "Scheduled tasks"
     }
   ],
+  "t/atZW": [
+    {
+      "type": 0,
+      "value": "You do not have permission to send a message to this agent."
+    }
+  ],
   "t3D4PH": [
     {
       "type": 0,
@@ -5783,6 +5963,12 @@
       "value": "Scheduled task paused successfully"
     }
   ],
+  "vPX3R3": [
+    {
+      "type": 0,
+      "value": "You do not have permission to turn response plans off."
+    }
+  ],
   "vR27zt": [
     {
       "type": 0,
@@ -5983,6 +6169,12 @@
     {
       "type": 0,
       "value": "Resource group name"
+    }
+  ],
+  "xVnsKO": [
+    {
+      "type": 0,
+      "value": "You do not have permission to turn response plans on."
     }
   ],
   "xXhn+h": [

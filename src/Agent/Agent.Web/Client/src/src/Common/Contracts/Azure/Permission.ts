@@ -14,6 +14,18 @@ export interface PermissionsCheckResponse {
 
 export enum PermissionActions {
     RbacWrite = 'Microsoft.Authorization/roleAssignments/write',
+    AgentWrite = 'Microsoft.App/agents/write',
+    AgentDelete = 'Microsoft.App/agents/delete',
+    AgentThreadsWrite = 'Microsoft.App/agents/threads/write',
+    AgentThreadsRead = 'Microsoft.App/agents/threads/read',
+    AgentThreadsDelete = 'Microsoft.App/agents/threads/delete',
+    AgentThreadsApprove = 'Microsoft.App/agents/threads/approve/action',
+    AgentIncidentManagementRead = 'Microsoft.App/agents/incidentmanagement/read',
+    AgentIncidentManagementWrite = 'Microsoft.App/agents/incidentmanagement/write',
+    AgentIncidentManagementDelete = 'Microsoft.App/agents/incidentmanagement/delete',
+    AgentGraphRead = 'Microsoft.App/agents/graph/read',
+    AgentGraphWrite = 'Microsoft.App/agents/graph/write',
+    AgentGraphDelete = 'Microsoft.App/agents/graph/delete',
 }
 
 export enum PermissionPrincipalType {
@@ -186,6 +198,7 @@ export enum RBACRoleNames {
 }
 
 export enum ResourceTypes {
+    FunctionApp = 'functionapp',
     WebsiteOrFunctionApp = 'microsoft.web/sites',
     StorageAccounts = 'microsoft.storage/storageaccounts',
     StorageBlobContainers = 'microsoft.storage/storageaccounts/blobservices/containers',
@@ -251,6 +264,7 @@ export enum ResourceTypeNames {
 }
 
 export const ResourceTypeToDisplayNameMap: Record<string, string> = {
+    [ResourceTypes.FunctionApp]: ResourceTypeNames.functionApp,
     [ResourceTypes.WebsiteOrFunctionApp]: ResourceTypeNames.website,
     [ResourceTypes.StorageAccounts]: ResourceTypeNames.storageAccounts,
     [ResourceTypes.StorageBlobContainers]: ResourceTypeNames.storageBlobContainers,

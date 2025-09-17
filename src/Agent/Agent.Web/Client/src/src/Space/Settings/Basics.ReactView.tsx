@@ -20,9 +20,11 @@ import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitud
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import SreAgentClient from '../../Common/Clients/SreAgentClient';
+import PermissionedButton from '../../Common/Components/PermissionedButton';
 import { UpgradeChannel } from '../../Common/Contracts/Azure/SreAgent';
 import { getAgentAccessLevelDisplayName } from '../../Common/Helpers/AgentMode';
 import { ArmResourceDescriptor } from '../../Common/Helpers/ResourceDescriptors';
+import useUserPermissions from '../../Common/Hooks/useUserPermissions';
 import { SettingsTabResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { useSreAgent } from './Hooks/useSreAgent';
 import { useSubscription } from './Hooks/useSubscription';
@@ -34,6 +36,7 @@ const Basics: FC = () => {
     const { resourceId } = useContext(EnvironmentContext);
     const az = useContext(AzPortalContext);
     const { agent, agentLoading, refresh } = useSreAgent(resourceId);
+    const { canDeleteAgent } = useUserPermissions();
     const region = useMemo(() => agent?.location, [agent?.location]);
 
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -286,9 +289,11 @@ const Basics: FC = () => {
             </div>
             <Dialog open={deleteDialogOpen}>
                 <DialogTrigger disableButtonEnhancement>
-                    <Button
+                    <PermissionedButton
                         icon={<Delete16Regular />}
                         style={styles.deleteButtonStyle}
+                        canPerform={canDeleteAgent}
+                        noPermissionTooltip={intl.formatMessage(SreAgentResources.noPermissionDeleteAgent)}
                         onClick={() => {
                             setDeleteDialogOpen(true);
                             az.logAmplitudeControlEvent({
@@ -302,7 +307,7 @@ const Basics: FC = () => {
                         }}
                     >
                         {intl.formatMessage(SreAgentResources.delete)}
-                    </Button>
+                    </PermissionedButton>
                 </DialogTrigger>
                 <DialogSurface>
                     <DialogBody>

@@ -18,11 +18,13 @@ import removeMd from 'remove-markdown';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import DeleteThreadDialog from '../../Common/Components/DeleteThreadDialog';
+import PermissionedMenuItem from '../../Common/Components/PermissionedMenuItem';
 import { IncidentStatus } from '../../Common/Contracts/Azure/SreAgent';
 import { Thread, ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { copyToClipboard } from '../../Common/Helpers/Clipboard';
 import { useThreadDeepLink } from '../../Common/Hooks/useThreadDeepLink';
-import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { ActivitiesResources, ActivitiesThreadHeaderResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { usePermissionContext } from '../Contracts/PermissionContext';
 import { useThreadMenuStyle } from '../Styles/Activities.styles';
 import { useActionsStatusBarStyles } from '../Styles/Incident.styles';
 import Fade from './Fade';
@@ -49,6 +51,7 @@ const ThreadItem = forwardRef<HTMLDivElement, IThreadItemProps>(
         const [isHovered, setIsHovered] = useState(false);
         const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
         const [isFavoriteSwitchButtonDisabled, setIsFavoriteSwitchButtonDisabled] = useState(false);
+        const { canDeleteThreads: canDelete, canWriteThreads } = usePermissionContext();
 
         const restoreFocusSourceAttributes = useRestoreFocusSource();
         const restoreFocusTargetAttributes = useRestoreFocusTarget();
@@ -179,11 +182,16 @@ const ThreadItem = forwardRef<HTMLDivElement, IThreadItemProps>(
                             </MenuTrigger>
                             <MenuPopover>
                                 <MenuList>
-                                    <MenuItem
-                                        disabled={isFavoriteSwitchButtonDisabled}
+                                    <PermissionedMenuItem
+                                        canPerform={canWriteThreads}
+                                        disabledReason={isFavoriteSwitchButtonDisabled}
+                                        noPermissionTooltip={
+                                            <FormattedMessage {...ActivitiesResources.favoriteThreadNoPermissionTooltip} />
+                                        }
                                         icon={favorite ? <StarOffRegular /> : <StarRegular />}
                                         onClick={e => {
                                             e.stopPropagation();
+                                            if (!canWriteThreads) return;
                                             setIsFavoriteSwitchButtonDisabled(true);
                                             updateThreadFavoriteProperty(thread.id, !favorite).finally(() =>
                                                 setIsFavoriteSwitchButtonDisabled(false)
@@ -195,7 +203,7 @@ const ThreadItem = forwardRef<HTMLDivElement, IThreadItemProps>(
                                         ) : (
                                             <FormattedMessage {...ActivitiesResources.addToFavorites} />
                                         )}
-                                    </MenuItem>
+                                    </PermissionedMenuItem>
                                     <MenuItem
                                         icon={<CopyRegular />}
                                         onClick={e => {
@@ -206,15 +214,21 @@ const ThreadItem = forwardRef<HTMLDivElement, IThreadItemProps>(
                                         {intl.formatMessage(SreAgentResources.copyLinkToThread)}
                                     </MenuItem>
                                     {deleteThread && (
-                                        <MenuItem
+                                        <PermissionedMenuItem
+                                            canPerform={canDelete}
+                                            noPermissionTooltip={
+                                                <FormattedMessage {...ActivitiesThreadHeaderResources.deleteThreadNoPermissionTooltip} />
+                                            }
                                             icon={<Delete20Regular />}
                                             onClick={e => {
                                                 e.stopPropagation();
-                                                setIsDeleteDialogOpen(true);
+                                                if (canDelete) {
+                                                    setIsDeleteDialogOpen(true);
+                                                }
                                             }}
                                         >
                                             {intl.formatMessage(SreAgentResources.delete)}
-                                        </MenuItem>
+                                        </PermissionedMenuItem>
                                     )}
                                 </MenuList>
                             </MenuPopover>

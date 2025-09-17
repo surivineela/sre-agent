@@ -4,7 +4,6 @@ import {
     AccordionItem,
     AccordionPanel,
     Badge,
-    Button,
     Card,
     Divider,
     Spinner,
@@ -15,13 +14,15 @@ import {
 import { CheckmarkCircle16Filled, Dismiss16Regular } from '@fluentui/react-icons';
 import { InfoLabel } from '@fluentui/react-infolabel';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { Approval, ApprovalDecision, AzCliExecution, KubectlExecution } from '../../Common/Contracts/DataPlane/Message';
 // headers handled by ThreadClient
 import { ThreadClient } from '../../Common/Clients/ThreadClient';
-import { SreAgentResources } from '../../Strings/SREAgentResources';
+import PermissionedButton from '../../Common/Components/PermissionedButton';
+import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { usePermissionContext } from '../Contracts/PermissionContext';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
 import { ApprovalTimestamps } from './ApprovalTimestamps';
 
@@ -74,6 +75,8 @@ const ApprovalMessage = ({
     const { userIdAndDisplayName } = useAuthenticatedUserInfo();
 
     const threadClient = useMemo(() => ThreadClient.getInstance(sreAgentEndpoint), [sreAgentEndpoint]);
+    const { canApproveThreads } = usePermissionContext();
+    const intl = useIntl();
 
     const isPending = approval?.status === ApprovalDecision.Pending || approval?.status === ApprovalDecision.PendingAuthorization;
 
@@ -232,22 +235,26 @@ const ApprovalMessage = ({
             {isPending ? (
                 <>
                     <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-                        <Button
+                        <PermissionedButton
+                            canPerform={canApproveThreads}
+                            noPermissionTooltip={intl.formatMessage(ActivitiesResources.approveActionNoPermissionTooltip)}
+                            disabledReason={isApprovalLoading}
                             appearance="primary"
                             onClick={() => handleApprovalDecision(true)}
                             icon={loadingButton === 'approve' ? <Spinner size="tiny" /> : undefined}
-                            disabled={isApprovalLoading}
                         >
                             <FormattedMessage {...primaryButtonText} />
-                        </Button>
-                        <Button
+                        </PermissionedButton>
+                        <PermissionedButton
+                            canPerform={canApproveThreads}
+                            noPermissionTooltip={intl.formatMessage(ActivitiesResources.approveActionNoPermissionTooltip)}
+                            disabledReason={isApprovalLoading}
                             appearance="secondary"
                             onClick={() => handleApprovalDecision(false)}
                             icon={loadingButton === 'deny' ? <Spinner size="tiny" /> : undefined}
-                            disabled={isApprovalLoading}
                         >
                             <FormattedMessage {...SreAgentResources.cancel} />
-                        </Button>
+                        </PermissionedButton>
                     </div>
 
                     <div style={{ marginTop: 8 }}>

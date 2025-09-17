@@ -1,14 +1,14 @@
-import { Button } from '@fluentui/react-button';
 import { makeStyles, OverflowItem, tokens } from '@fluentui/react-components';
 import { Settings16Regular } from '@fluentui/react-icons';
-import { Menu, MenuItem, MenuItemCheckbox, MenuList, MenuPopover, MenuTrigger } from '@fluentui/react-menu';
+import { Menu, MenuItemCheckbox, MenuList, MenuPopover, MenuTrigger } from '@fluentui/react-menu';
 import { Spinner } from '@fluentui/react-spinner';
 import { Text } from '@fluentui/react-text';
-import { Tooltip } from '@fluentui/react-tooltip';
 import { memo, useMemo } from 'react';
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import PermissionedButton from '../../Common/Components/PermissionedButton';
 import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
+import useUserPermissions from '../../Common/Hooks/useUserPermissions';
 import { AgentModeResources } from '../../Strings/SREAgentResources';
 import { IAgentModeSelectorProps } from '../Contracts/Activities';
 import { useAgentModeSelector } from '../Hooks/useAgentModeSelector';
@@ -46,91 +46,98 @@ const AgentModeSelector = (props: IAgentModeSelectorProps) => {
     } = useAgentModeSelector(props);
     const { logAmplitudeControlEvent } = useAzPortalContext();
     const { menuSurface, currentModeValue, errorMessage } = useAgentModeSelectorStyles();
+    const intl = useIntl();
 
-    const checkedValues = useMemo(() => {
-        const checked: Record<string, string[]> = {};
-        if (threadAgentMode) {
-            checked['agentMode'] = [threadAgentMode];
-        }
-        return checked;
-    }, [threadAgentMode]);
+    const { canWriteThreads } = useUserPermissions();
 
-    const ButtonComponent = () => {
-        return (
-            <Button
-                style={{ fontSize: '13px', padding: '2px 8px 2px 4px', whiteSpace: 'nowrap' }}
-                icon={showButtonLoadingSpinner ? <Spinner size="tiny" /> : <Settings16Regular />}
-                disabled={isButtonDisabled}
-            >
-                <FormattedMessage {...AgentModeResources.agentMode} />
-            </Button>
-        );
-    };
+    const currentModeDisplay = useMemo(() => (threadAgentMode ? threadAgentMode.toLowerCase() : 'unknown'), [threadAgentMode]);
+
+    const noPermissionTooltip = intl.formatMessage(AgentModeResources.agentModeNoPermission, {
+        mode: currentModeDisplay,
+    });
+
+    // Fluent Menu expects a checkedValues map where key is the checkbox group name
+    const checkedValues = useMemo(
+        () => ({
+            agentMode: threadAgentMode ? [threadAgentMode.toLowerCase()] : [],
+        }),
+        [threadAgentMode]
+    );
+
+    const ButtonComponent = () => (
+        <PermissionedButton
+            canPerform={canWriteThreads}
+            noPermissionTooltip={noPermissionTooltip}
+            allowedTooltip={buttonTooltipText}
+            disabledReason={isButtonDisabled}
+            style={{ fontSize: '13px', padding: '2px 8px 2px 4px', whiteSpace: 'nowrap' }}
+            icon={showButtonLoadingSpinner ? <Spinner size="tiny" /> : <Settings16Regular />}
+        >
+            <FormattedMessage {...AgentModeResources.agentMode} />
+        </PermissionedButton>
+    );
 
     return (
-        <Menu positioning={'after-top'}>
-            <Tooltip content={buttonTooltipText} relationship="label">
-                <MenuTrigger>
-                    {props.asOverflowItem ? (
-                        <OverflowItem id={props.id}>
-                            <div>
-                                <ButtonComponent />
-                            </div>
-                        </OverflowItem>
-                    ) : (
-                        <MenuItem
-                            icon={showButtonLoadingSpinner ? <Spinner size="tiny" /> : <Settings16Regular />}
-                            disabled={isButtonDisabled}
+        <Menu positioning="after-top">
+            <MenuTrigger>
+                {props.asOverflowItem ? (
+                    <OverflowItem id={props.id}>
+                        <div>
+                            <ButtonComponent />
+                        </div>
+                    </OverflowItem>
+                ) : (
+                    <ButtonComponent />
+                )}
+            </MenuTrigger>
+            <MenuPopover className={canWriteThreads ? menuSurface : undefined}>
+                {canWriteThreads && (
+                    <>
+                        <Text size={100} className={errorMessage}>
+                            {updatingAgentModeError}
+                        </Text>
+                        <MenuList
+                            checkedValues={checkedValues}
+                            onCheckedValueChange={(_, data) => {
+                                const selectedMode = data.checkedItems?.[0];
+                                if (selectedMode) {
+                                    updateThreadAgentMode(selectedMode);
+                                    logAmplitudeControlEvent({
+                                        targetType: 'radioButton',
+                                        targetAction: 'clicked',
+                                        targetName: 'threadAgentMode',
+                                        targetFriendlyName: 'Thread agent mode',
+                                        valueObjectName: selectedMode,
+                                        valueObjectFriendlyName: selectedMode,
+                                    });
+                                }
+                            }}
                         >
-                            <FormattedMessage {...AgentModeResources.agentMode} />
-                        </MenuItem>
-                    )}
-                </MenuTrigger>
-            </Tooltip>
-            <MenuPopover className={menuSurface}>
-                <Text size={100} className={errorMessage}>
-                    {updatingAgentModeError}
-                </Text>
-                <MenuList
-                    checkedValues={checkedValues}
-                    onCheckedValueChange={(_, data) => {
-                        const selectedMode = data.checkedItems?.[0];
-                        if (selectedMode) {
-                            updateThreadAgentMode(selectedMode);
-                            logAmplitudeControlEvent({
-                                targetType: 'radioButton',
-                                targetAction: 'clicked',
-                                targetName: 'threadAgentMode',
-                                targetFriendlyName: 'Thread agent mode',
-                                valueObjectName: selectedMode,
-                                valueObjectFriendlyName: selectedMode,
-                            });
-                        }
-                    }}
-                >
-                    {agentModes.map((mode, index) => {
-                        const showSelectedStyle =
-                            equals(mode.name, threadAgentMode || '', AntUxStringComparison.IgnoreCase) && !isUpdatingAgentMode;
-                        return (
-                            <MenuItemCheckbox
-                                key={index}
-                                name={'agentMode'}
-                                subText={mode.description}
-                                value={mode.name.toLowerCase()}
-                                onClick={() => updateThreadAgentMode(mode.name)}
-                                disabled={isUpdatingAgentMode}
-                            >
-                                <Text
-                                    className={showSelectedStyle ? currentModeValue : ''}
-                                    weight={showSelectedStyle ? 'semibold' : undefined}
-                                    size={showSelectedStyle ? 300 : undefined}
-                                >
-                                    {mode.displayName}
-                                </Text>
-                            </MenuItemCheckbox>
-                        );
-                    })}
-                </MenuList>
+                            {agentModes.map((mode, index) => {
+                                const showSelectedStyle =
+                                    equals(mode.name, threadAgentMode || '', AntUxStringComparison.IgnoreCase) && !isUpdatingAgentMode;
+                                return (
+                                    <MenuItemCheckbox
+                                        key={index}
+                                        name="agentMode"
+                                        subText={mode.description}
+                                        value={mode.name.toLowerCase()}
+                                        onClick={() => updateThreadAgentMode(mode.name)}
+                                        disabled={isUpdatingAgentMode}
+                                    >
+                                        <Text
+                                            className={showSelectedStyle ? currentModeValue : ''}
+                                            weight={showSelectedStyle ? 'semibold' : undefined}
+                                            size={showSelectedStyle ? 300 : undefined}
+                                        >
+                                            {mode.displayName}
+                                        </Text>
+                                    </MenuItemCheckbox>
+                                );
+                            })}
+                        </MenuList>
+                    </>
+                )}
             </MenuPopover>
         </Menu>
     );

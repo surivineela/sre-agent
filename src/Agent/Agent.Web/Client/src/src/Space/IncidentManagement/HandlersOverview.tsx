@@ -6,6 +6,7 @@ import { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react
 import { useIntl } from 'react-intl';
 import { IncidentFilter } from '../../Common/Contracts/Azure/IncidentHandler';
 import { IncidentManagementType } from '../../Common/Contracts/Azure/SreAgent';
+import useUserPermissions from '../../Common/Hooks/useUserPermissions';
 import { IcMResources, IncidentManagementResources, PagerDutyResources, ServiceNowResources } from '../../Strings/SREAgentResources';
 import { SreAgentContext } from '../Contracts/Context';
 import { useIncidentFilterFields } from '../Hooks/useIncidentFilterFields';
@@ -27,27 +28,24 @@ interface ConnectionIndicatorProps {
 
 const ConnectionIndicator: FC<ConnectionIndicatorProps> = ({ platform, connected, style, loading }) => {
     const intl = useIntl();
-    const { notConnectedMessage, connectedMessage } = useMemo(() => {
-        switch (platform) {
-            case IncidentManagementType.PagerDuty:
-                return {
-                    notConnectedMessage: PagerDutyResources.notConnectedMessage,
-                    connectedMessage: PagerDutyResources.connectedMessage,
-                };
-            case IncidentManagementType.Icm:
-                return {
-                    notConnectedMessage: IcMResources.notConnectedMessage,
-                    connectedMessage: IcMResources.connectedMessage,
-                };
-            case IncidentManagementType.ServiceNow:
-                return {
-                    notConnectedMessage: ServiceNowResources.notConnectedMessage,
-                    connectedMessage: ServiceNowResources.connectedMessage,
-                };
-            default:
-                return {};
-        }
-    }, [platform]);
+    let notConnectedMessage;
+    let connectedMessage;
+    switch (platform) {
+        case IncidentManagementType.PagerDuty:
+            notConnectedMessage = PagerDutyResources.notConnectedMessage;
+            connectedMessage = PagerDutyResources.connectedMessage;
+            break;
+        case IncidentManagementType.Icm:
+            notConnectedMessage = IcMResources.notConnectedMessage;
+            connectedMessage = IcMResources.connectedMessage;
+            break;
+        case IncidentManagementType.ServiceNow:
+            notConnectedMessage = ServiceNowResources.notConnectedMessage;
+            connectedMessage = ServiceNowResources.connectedMessage;
+            break;
+        default:
+            break;
+    }
 
     if (!platform || !notConnectedMessage || !connectedMessage) {
         return null;
@@ -102,7 +100,7 @@ const ConnectionFailureMessageBar: FC<ConnectionMessageBarProps> = ({ platform }
             default:
                 return undefined;
         }
-    }, [platform]);
+    }, [platform, intl]);
 
     return (
         !!platform &&
@@ -154,6 +152,7 @@ const HandlersOverview: FC<HandlersOverviewProps> = ({ setNavigationHidden, useC
         () => agentObj?.properties.incidentManagementConfiguration?.type,
         [agentObj?.properties.incidentManagementConfiguration?.type]
     );
+    const { canWriteIncidentManagement, canDeleteIncidentManagement } = useUserPermissions();
 
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
@@ -253,6 +252,8 @@ const HandlersOverview: FC<HandlersOverviewProps> = ({ setNavigationHidden, useC
                             isFilterSelected={!!selectedIncidentFilter}
                             isFilterEnabled={!selectedIncidentFilter || selectedIncidentFilter?.isEnabled}
                             connected={!checkingConnectivity && isIncidentManagementConnected}
+                            canWriteIncidentManagement={canWriteIncidentManagement}
+                            canDeleteIncidentManagement={canDeleteIncidentManagement}
                         />
                         <ConnectionIndicator
                             platform={incidentManagementType}
@@ -273,6 +274,7 @@ const HandlersOverview: FC<HandlersOverviewProps> = ({ setNavigationHidden, useC
                         setInitialValues={setInitialValues}
                         useConsolidatedCreate={useConsolidatedCreate}
                         disabled={!checkingConnectivity && !isIncidentManagementConnected}
+                        canWriteIncidentManagement={canWriteIncidentManagement}
                     />
                     <CreateOrUpdateIncidentFilterDialog
                         isDialogOpen={isCreateIncidentFilterDialogOpen}

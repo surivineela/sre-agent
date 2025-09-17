@@ -16,7 +16,11 @@ import { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react
 import { useIntl } from 'react-intl';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
+import { NoAccessError } from '../../Common/Components/NoAccessError';
+import { PermissionActions } from '../../Common/Contracts/Azure/Permission';
 import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
+import { useUserPermissions } from '../../Common/Hooks/useUserPermissions';
 import { IncidentManagementResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { SreAgentContext } from '../Contracts/Context';
 import { IncidentManagementPlatform } from '../Contracts/IncidentManagement';
@@ -36,6 +40,8 @@ const IncidentManagement: FC = () => {
 
     const { agentObj, agentLoading, agentLoadFailure } = useContext(SreAgentContext);
     const { logAmplitudeNavigationEvent } = useAzPortalContext();
+    const { canReadIncidentManagement } = useUserPermissions();
+    const { resourceId } = useContext(EnvironmentContext);
 
     const styles = useIncidentManagementStyles();
     const navigationStyles = useNavStyles();
@@ -171,6 +177,17 @@ const IncidentManagement: FC = () => {
                     <MessageBar messageBarType={MessageBarType.error}>
                         {intl.formatMessage(IncidentManagementResources.incidentManagementLoadFailure, { errorMessage: agentLoadFailure })}
                     </MessageBar>
+                ) : !canReadIncidentManagement ? (
+                    <div
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            height: '100%',
+                            width: '100%',
+                        }}
+                    >
+                        <NoAccessError requiredPermission={PermissionActions.AgentIncidentManagementRead} resourceId={resourceId} />
+                    </div>
                 ) : (
                     <>
                         <NavDrawer

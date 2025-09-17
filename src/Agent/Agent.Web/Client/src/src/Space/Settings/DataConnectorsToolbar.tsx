@@ -2,6 +2,8 @@ import { Button } from '@fluentui/react-components';
 import { Add16Regular, ArrowClockwise16Regular, Delete16Regular } from '@fluentui/react-icons';
 import { FC } from 'react';
 import { useIntl } from 'react-intl';
+import PermissionedButton from '../../Common/Components/PermissionedButton';
+import useUserPermissions from '../../Common/Hooks/useUserPermissions';
 import { DataConnectorsResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
 
@@ -22,20 +24,21 @@ const DataConnectorsToolbar: FC<DataConnectorsToolbarProps> = ({
 }) => {
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
+    const { canWriteAgent } = useUserPermissions();
 
     return (
         <div className={styles.toolbar}>
-            <Button
+            <PermissionedButton
                 icon={<Add16Regular />}
                 appearance="transparent"
                 className={styles.button}
-                onClick={() => {
-                    onNewDataConnectorClick();
-                }}
-                disabled={isOperationInProgress}
+                canPerform={canWriteAgent}
+                disabledReason={isOperationInProgress}
+                noPermissionTooltip={intl.formatMessage(SreAgentResources.noPermissionDataConnectors)}
+                onClick={() => onNewDataConnectorClick()}
             >
                 {intl.formatMessage(DataConnectorsResources.createDataConnector)}
-            </Button>
+            </PermissionedButton>
             <Button
                 icon={<ArrowClockwise16Regular />}
                 appearance="transparent"
@@ -48,17 +51,17 @@ const DataConnectorsToolbar: FC<DataConnectorsToolbarProps> = ({
                 {intl.formatMessage(SreAgentResources.refresh)}
             </Button>
             <div className={styles.divider} />
-            <Button
+            <PermissionedButton
                 icon={<Delete16Regular />}
                 appearance="transparent"
                 className={styles.button}
-                onClick={() => {
-                    onDeleteDataConnectorClick();
-                }}
-                disabled={!isConnectorSelected || isOperationInProgress}
+                canPerform={canWriteAgent}
+                disabledReason={!isConnectorSelected || isOperationInProgress}
+                noPermissionTooltip={intl.formatMessage(SreAgentResources.noPermissionDataConnectors)}
+                onClick={() => onDeleteDataConnectorClick()}
             >
                 {intl.formatMessage(SreAgentResources.delete)}
-            </Button>
+            </PermissionedButton>
         </div>
     );
 };

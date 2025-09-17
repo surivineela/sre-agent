@@ -20,6 +20,7 @@ import {
     Option,
     Spinner,
     Text,
+    Tooltip,
     tokens,
 } from '@fluentui/react-components';
 import { CheckmarkCircle16Filled } from '@fluentui/react-icons';
@@ -28,8 +29,10 @@ import { useIntl } from 'react-intl';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import PermissionedButton from '../../Common/Components/PermissionedButton';
 import { FirstPartyHelper } from '../../Common/Helpers/FirstPartyHelper';
 import { ArmResourceDescriptor } from '../../Common/Helpers/ResourceDescriptors';
+import useUserPermissions from '../../Common/Hooks/useUserPermissions';
 import {
     AzMonitorResources,
     IcMResources,
@@ -76,6 +79,7 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
     const {
         incidentManagement: { isIncidentManagementConnected, hasFilters },
     } = useContext(SreAgentContext);
+    const { canWriteAgent } = useUserPermissions();
 
     const incidentPlatformDropdownOptions = useMemo(() => {
         const options = [
@@ -226,49 +230,71 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                             required={true}
                             style={{ maxWidth: '80%' }}
                         >
-                            <Dropdown
-                                id="platform"
-                                style={styles.dropdownStyles}
-                                value={selectedPlatformDisplayName}
-                                placeholder={intl.formatMessage(IncidentManagementPlatformResources.disconnected)}
-                                onOptionSelect={(_event, data) => {
-                                    if (!isSetupScenario && data?.optionValue !== values.platform) {
-                                        setShowSwitchPlatformDisconnectDialog(true);
-                                    } else {
-                                        setFieldTouched('platform', true, false);
-                                        setFieldValue('platform', data?.optionValue);
-                                        if (
-                                            data?.optionValue !== IncidentManagementPlatform.PagerDuty &&
-                                            data?.optionValue !== IncidentManagementPlatform.ServiceNow
-                                        ) {
-                                            setFieldValue('connectionKey', undefined, false);
-                                            setFieldTouched('connectionKey', false, false);
+                            {canWriteAgent ? (
+                                <Dropdown
+                                    id="platform"
+                                    style={styles.dropdownStyles}
+                                    value={selectedPlatformDisplayName}
+                                    placeholder={intl.formatMessage(IncidentManagementPlatformResources.disconnected)}
+                                    onOptionSelect={(_event, data) => {
+                                        if (!isSetupScenario && data?.optionValue !== values.platform) {
+                                            setShowSwitchPlatformDisconnectDialog(true);
+                                        } else {
+                                            setFieldTouched('platform', true, false);
+                                            setFieldValue('platform', data?.optionValue);
+                                            if (
+                                                data?.optionValue !== IncidentManagementPlatform.PagerDuty &&
+                                                data?.optionValue !== IncidentManagementPlatform.ServiceNow
+                                            ) {
+                                                setFieldValue('connectionKey', undefined, false);
+                                                setFieldTouched('connectionKey', false, false);
+                                            }
+                                            // Clear ServiceNow fields when switching away from ServiceNow
+                                            if (data?.optionValue !== IncidentManagementPlatform.ServiceNow) {
+                                                setFieldValue('endpoint', undefined, false);
+                                                setFieldValue('username', undefined, false);
+                                                setFieldValue('password', undefined, false);
+                                            }
                                         }
-                                        // Clear ServiceNow fields when switching away from ServiceNow
-                                        if (data?.optionValue !== IncidentManagementPlatform.ServiceNow) {
-                                            setFieldValue('endpoint', undefined, false);
-                                            setFieldValue('username', undefined, false);
-                                            setFieldValue('password', undefined, false);
-                                        }
-                                    }
 
-                                    azPortalContext.logAmplitudeControlEvent({
-                                        targetType: 'dropdown',
-                                        targetAction: 'changed',
-                                        targetName: 'incidentPlatform',
-                                        targetFriendlyName: 'Incident platform',
-                                        valueObjectName: data?.optionValue ?? '',
-                                        valueObjectFriendlyName: data?.optionValue ?? '',
-                                    });
-                                }}
-                                disabled={loading || !!loadFailure || saving}
-                            >
-                                {incidentPlatformDropdownOptions.map(option => (
-                                    <Option value={option.key} checkIcon={null}>
-                                        {option.text}
-                                    </Option>
-                                ))}
-                            </Dropdown>
+                                        azPortalContext.logAmplitudeControlEvent({
+                                            targetType: 'dropdown',
+                                            targetAction: 'changed',
+                                            targetName: 'incidentPlatform',
+                                            targetFriendlyName: 'Incident platform',
+                                            valueObjectName: data?.optionValue ?? '',
+                                            valueObjectFriendlyName: data?.optionValue ?? '',
+                                        });
+                                    }}
+                                    disabled={loading || !!loadFailure || saving || !canWriteAgent}
+                                >
+                                    {incidentPlatformDropdownOptions.map(option => (
+                                        <Option value={option.key} checkIcon={null}>
+                                            {option.text}
+                                        </Option>
+                                    ))}
+                                </Dropdown>
+                            ) : (
+                                <Tooltip
+                                    content={intl.formatMessage(SreAgentResources.noPermissionIncidentManagement)}
+                                    relationship="label"
+                                >
+                                    <Dropdown
+                                        id="platform"
+                                        style={styles.dropdownStyles}
+                                        value={selectedPlatformDisplayName}
+                                        placeholder={intl.formatMessage(IncidentManagementPlatformResources.disconnected)}
+                                        onOptionSelect={() => {}}
+                                        disabled={true}
+                                    >
+                                        {incidentPlatformDropdownOptions.map(option => (
+                                            <Option value={option.key} checkIcon={null}>
+                                                {option.text}
+                                            </Option>
+                                        ))}
+                                    </Dropdown>
+                                </Tooltip>
+                            )}
                         </Field>
 
                         {values.platform === IncidentManagementPlatform.PagerDuty && (
@@ -313,7 +339,7 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                                             setFieldTouched('connectionKey', true, false);
                                             setFieldValue('connectionKey', newValue?.value);
                                         }}
-                                        disabled={saving || !isApiKeyEditable}
+                                        disabled={saving || !isApiKeyEditable || !canWriteAgent}
                                         contentAfter={isValidating && !isSubmitting ? <Spinner size={'tiny'} /> : null}
                                     />
                                 </Field>
@@ -532,24 +558,37 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                             {(initialValues.platform === IncidentManagementPlatform.PagerDuty ||
                                 initialValues.platform === IncidentManagementPlatform.ServiceNow) &&
                                 !editingApiKey && (
-                                    <Button
+                                    <PermissionedButton
                                         appearance="secondary"
                                         style={{ borderRadius: 5, marginRight: 10 }}
+                                        canPerform={canWriteAgent}
+                                        noPermissionTooltip={intl.formatMessage(SreAgentResources.noPermissionIncidentManagement)}
+                                        disabledReason={saving}
                                         onClick={() => {
                                             setEditingApiKey(true);
                                         }}
-                                        disabled={saving}
                                     >
                                         {initialValues.platform === IncidentManagementPlatform.PagerDuty
                                             ? intl.formatMessage(PagerDutyResources.changeKey)
                                             : intl.formatMessage(ServiceNowResources.changeKey)}
-                                    </Button>
+                                    </PermissionedButton>
                                 )}
 
                             {(isSetupScenario || editingApiKey) && (
-                                <Button
+                                <PermissionedButton
                                     appearance="primary"
                                     style={{ borderRadius: 5, marginRight: 10 }}
+                                    canPerform={canWriteAgent}
+                                    noPermissionTooltip={intl.formatMessage(SreAgentResources.noPermissionIncidentManagement)}
+                                    disabledReason={
+                                        !isDirty ||
+                                        saving ||
+                                        isValidating ||
+                                        !isValid ||
+                                        (values.platform === IncidentManagementPlatform.PagerDuty && !values.connectionKey) ||
+                                        (values.platform === IncidentManagementPlatform.ServiceNow &&
+                                            (!values.endpoint || !values.username || !values.password))
+                                    }
                                     onClick={() => {
                                         setEditingApiKey(false);
                                         submitForm();
@@ -563,18 +602,9 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                                             valueObjectFriendlyName: values.platform ?? '',
                                         });
                                     }}
-                                    disabled={
-                                        !isDirty ||
-                                        saving ||
-                                        isValidating ||
-                                        !isValid ||
-                                        (values.platform === IncidentManagementPlatform.PagerDuty && !values.connectionKey) ||
-                                        (values.platform === IncidentManagementPlatform.ServiceNow &&
-                                            (!values.endpoint || !values.username || !values.password))
-                                    }
                                 >
                                     {intl.formatMessage(SreAgentResources.save)}
-                                </Button>
+                                </PermissionedButton>
                             )}
 
                             {(isSetupScenario || editingApiKey) && (
@@ -594,10 +624,12 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                             {!isSetupScenario && (
                                 <Dialog modalType="alert">
                                     <DialogTrigger disableButtonEnhancement>
-                                        <Button
+                                        <PermissionedButton
                                             appearance="secondary"
                                             style={{ borderRadius: 5 }}
-                                            disabled={saving}
+                                            canPerform={canWriteAgent}
+                                            noPermissionTooltip={intl.formatMessage(SreAgentResources.noPermissionIncidentManagement)}
+                                            disabledReason={saving}
                                             onClick={() => {
                                                 azPortalContext.logAmplitudeControlEvent({
                                                     targetType: 'button',
@@ -610,7 +642,7 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                                             }}
                                         >
                                             {intl.formatMessage(SreAgentResources.disconnect)}
-                                        </Button>
+                                        </PermissionedButton>
                                     </DialogTrigger>
                                     <DialogSurface>
                                         <DialogBody>

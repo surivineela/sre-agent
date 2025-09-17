@@ -22,10 +22,12 @@ import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import CopyButton from '../../Common/Components/CopyButton';
 import DeleteThreadDialog from '../../Common/Components/DeleteThreadDialog';
+import PermissionedMenuItem from '../../Common/Components/PermissionedMenuItem';
 import { Thread } from '../../Common/Contracts/DataPlane/Thread';
 import { copyToClipboard } from '../../Common/Helpers/Clipboard';
 import { useThreadDeepLink } from '../../Common/Hooks/useThreadDeepLink';
-import { SreAgentResources } from '../../Strings/SREAgentResources';
+import { ActivitiesThreadHeaderResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { usePermissionContext } from '../Contracts/PermissionContext';
 
 const useStyles = makeStyles({
     infoContent: {
@@ -151,6 +153,8 @@ const ThreadActionsMenu = ({ thread, handleThreadDelete, hideCopyDeeplink, hideD
     const restoreFocusSourceAttributes = useRestoreFocusSource();
     const restoreFocusTargetAttributes = useRestoreFocusTarget();
 
+    const { canDeleteThreads: canDelete } = usePermissionContext();
+
     return (
         <>
             <Menu>
@@ -174,9 +178,14 @@ const ThreadActionsMenu = ({ thread, handleThreadDelete, hideCopyDeeplink, hideD
                             </MenuItem>
                         )}
                         {!hideDelete && (
-                            <MenuItem icon={<DeleteRegular />} onClick={() => setIsDeleteDialogOpen(true)}>
+                            <PermissionedMenuItem
+                                canPerform={canDelete}
+                                noPermissionTooltip={intl.formatMessage(ActivitiesThreadHeaderResources.deleteThreadNoPermissionTooltip)}
+                                icon={<DeleteRegular />}
+                                onClick={() => setIsDeleteDialogOpen(true)}
+                            >
                                 {intl.formatMessage(SreAgentResources.delete)}
-                            </MenuItem>
+                            </PermissionedMenuItem>
                         )}
                     </MenuList>
                 </MenuPopover>

@@ -3,9 +3,11 @@ import { Sparkle16Filled } from '@fluentui/react-icons';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import PermissionedButton from '../../Common/Components/PermissionedButton';
 import { resolveResourceIcon } from '../../Common/Helpers/Resources';
 import { KnowledgeGraphBuildStatusContext } from '../../Common/Providers/KnowledgeGraphBuildStatusProvider';
-import { SreAgentResources } from '../../Strings/SREAgentResources';
+import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { usePermissionContext } from '../Contracts/PermissionContext';
 
 const useChatSuggestionStyles = makeStyles({
     root: {
@@ -131,6 +133,7 @@ export const ChatSuggestions = (props: ChatSuggestionsProps) => {
     const [clickedKey, setClickedKey] = useState<string>(initialExpandedCategory ?? '');
 
     const { hasChatPermissions } = useContext(KnowledgeGraphBuildStatusContext);
+    const { canWriteThreads } = usePermissionContext();
     const { logAmplitudeControlEvent } = useAzPortalContext();
 
     const defaultCategories = useMemo(() => ['About me', 'App Services', 'Container Apps', 'AKS', 'APIM'], []);
@@ -259,6 +262,7 @@ export const ChatSuggestions = (props: ChatSuggestionsProps) => {
     };
 
     const handleQuestionClick = (question: string) => {
+        if (!canWriteThreads) return;
         void sendMessage(question);
         setClickedKey('');
         logAmplitudeControlEvent({
@@ -270,6 +274,21 @@ export const ChatSuggestions = (props: ChatSuggestionsProps) => {
             valueObjectFriendlyName: question,
         });
     };
+
+    const PromptSuggestionButton = ({ question }: { question: string }) => (
+        <PermissionedButton
+            key={question}
+            canPerform={canWriteThreads}
+            noPermissionTooltip={intl.formatMessage(ActivitiesResources.sendMessageNoPermissionTooltip)}
+            appearance="subtle"
+            className={chatSuggestionsStyles.questionButton}
+            onClick={() => handleQuestionClick(question)}
+        >
+            <Text size={200} style={{ textAlign: 'left', width: '100%' }}>
+                {question}
+            </Text>
+        </PermissionedButton>
+    );
 
     return (
         <div className={mergeClasses(chatSuggestionsStyles.root, alignLeft && chatSuggestionsStyles.leftRoot)}>
@@ -324,30 +343,12 @@ export const ChatSuggestions = (props: ChatSuggestionsProps) => {
                                                   {subcat}
                                               </Text>
                                               {questions.map(question => (
-                                                  <Button
-                                                      key={question}
-                                                      onClick={() => handleQuestionClick(question)}
-                                                      appearance={'subtle'}
-                                                      className={chatSuggestionsStyles.questionButton}
-                                                  >
-                                                      <Text size={200} style={{ textAlign: 'left', width: '100%' }}>
-                                                          {question}
-                                                      </Text>
-                                                  </Button>
+                                                  <PromptSuggestionButton key={question} question={question} />
                                               ))}
                                           </div>
                                       ))
                                 : getQuestionsForCategory(clickedKey).map(question => (
-                                      <Button
-                                          key={question}
-                                          onClick={() => handleQuestionClick(question)}
-                                          appearance={'subtle'}
-                                          className={chatSuggestionsStyles.questionButton}
-                                      >
-                                          <Text size={200} style={{ textAlign: 'left', width: '100%' }}>
-                                              {question}
-                                          </Text>
-                                      </Button>
+                                      <PromptSuggestionButton key={question} question={question} />
                                   ))}
                         </div>
                     );
