@@ -553,33 +553,16 @@ public partial class ThreadEvaluator
                         - 2 (Poor Adherence): Agent frequently ignores or misinterprets instructions, shows limited understanding of user/system prompts, significant deviations from requirements.
                         - 1 (No Adherence): Agent completely ignores instructions, shows no understanding of user/system prompts, acts contrary to explicit directions.
 
-                    Additional Classification Criteria:
-                    **Category** - Classify the thread into one of these categories:
-                    - "incidents": Thread triggered by an alert from PagerDuty or monitoring systems
-                    - "user-driven-investigation": Thread initiated by user investigating specific issues
-                    - "security-updates": Thread related to security issues or updates
-                    - "other": All other topics not covered above
-
-                    **Priority** - Assess the priority level:
-                    - "high": Important and urgent (e.g., P0 alerts, production outages, security incidents)
-                    - "medium": Important but non-urgent (e.g., P1/P2 alerts, planned maintenance, feature requests)
-                    - "low": Non-important and non-urgent (e.g., informational queries, documentation requests)
-
-                    **PriorityReason** - Explain why you assigned this priority level
-
-                    Respond in valid JSON format with:
-                    {
-                      "Resolved": 3,
-                      "Satisfied": 2,
-                      "Automatic": 5,
-                      "Smooth": 1,
-                      "Concise": 1,
-                      "Adherence": 4,
-                      "Summary": "Brief 1-2 sentence summary of performance",
-                      "Category": "incidents",
-                      "Priority": "high",
-                      "PriorityReason": "Explanation for the priority assignment"
-                    }
+                                        Respond in valid JSON format with only the evaluation fields (do NOT include category/priority):
+                                        {
+                                            "Resolved": 3,
+                                            "Satisfied": 2,
+                                            "Automatic": 5,
+                                            "Smooth": 1,
+                                            "Concise": 1,
+                                            "Adherence": 4,
+                                            "Summary": "Brief 1-2 sentence summary of performance"
+                                        }
                     """),
                 new(ChatRole.User, prompt)
             };
@@ -609,17 +592,21 @@ public partial class ThreadEvaluator
                 };
             }
 
-            // Parse LLM response
+            // Parse LLM response for numeric scores and summary
             try
             {
                 var cleanedJson = jsonResponse.Replace("\n", "").Replace("\\n", "").Trim();
                 var evaluationData = JsonSerializer.Deserialize<LLMEvaluationResponse>(cleanedJson);
+
+                // Delegate category determination to a separate method so it can be improved independently
+                var category = await EvaluateThreadCategory(thread, chatHistory, cancellationToken);
+
                 return new LLMEvaluationResult
                 {
                     SATScore = Math.Max(0.0, Math.Min(5.0, evaluationData?.SATScore ?? 2.5)), // Clamp between 0-5
                     Summary = evaluationData?.Summary ?? "Unable to evaluate",
                     DetailedFeedback = evaluationData?.DetailedFeedback ?? "No detailed feedback available",
-                    Category = evaluationData?.Category ?? "other",
+                    Category = category ?? evaluationData?.Category ?? "other",
                     Resolved = evaluationData?.Resolved ?? 0,
                     Satisfied = evaluationData?.Satisfied ?? 0,
                     Automatic = evaluationData?.Automatic ?? 0,
@@ -627,18 +614,20 @@ public partial class ThreadEvaluator
                     Concise = evaluationData?.Concise ?? 0,
                     Adherence = evaluationData?.Adherence ?? 0,
                     Priority = evaluationData?.Priority ?? "low",
-                    PriorityReason = evaluationData?.PriorityReason ?? "Unable to determine priority"
+                    PriorityReason = evaluationData?.PriorityReason ?? ""
                 };
             }
             catch (JsonException ex)
             {
                 _logger.LogInternalWarning(ex, $"Error parsing LLM evaluation response. Original response: {jsonResponse}");
+                // Still attempt to get category info separately
+                var category = await EvaluateThreadCategory(thread, chatHistory, cancellationToken);
                 return new LLMEvaluationResult
                 {
                     SATScore = 2.5,
                     Summary = "Evaluation parsing failed",
                     DetailedFeedback = $"Failed to parse LLM evaluation response: {ex.Message}",
-                    Category = "other",
+                    Category = category ?? "other",
                     Resolved = 0,
                     Satisfied = 0,
                     Automatic = 0,
@@ -646,7 +635,7 @@ public partial class ThreadEvaluator
                     Concise = 0,
                     Adherence = 0,
                     Priority = "low",
-                    PriorityReason = "Unable to determine priority - parsing failed"
+                    PriorityReason = ""
                 };
             }
         }
@@ -1041,6 +1030,125 @@ public partial class ThreadEvaluator
             return reasoningMessage.SerializedChatMessage ?? "";
         }
     }
+
+    /// <summary>
+    /// Evaluate only the Category for a thread using the LLM.
+    /// This is split out so category logic can be enhanced independently.
+    /// Returns category string (e.g. "incidents", "user-driven-investigation", "security-updates", "other").
+    /// </summary>
+    private async Task<string> EvaluateThreadCategory(
+        ThreadModel thread,
+        string chatHistory,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Fast-path: if this thread originates from an incident source, classify it directly
+            // to avoid an unnecessary LLM call.
+            if (thread.Source == ThreadSource.Incident)
+            {
+                return "incident-management";
+            }
+
+            var prompt = await BuildEvaluationPromptForCategory(thread, chatHistory);
+            _logger.LogInternalInformation("LLM Category Prompt for thread {ThreadId}:\n{Prompt}", thread.Id, prompt);
+
+            var systemMsg = """
+                You are an expert evaluator of AI agent conversations. Your task is to determine which one of the known categories best describes the provided thread. Return ONLY a JSON object with a single field "Category" (for example: {"Category": "incidents"}). Do not return any additional text.
+
+                Known categories and descriptions:
+                - incident-management: All items that are clearly incident records or IcM-linked investigations. Sub-category: tool type (Microsoft ICM, PagerDuty, ServiceNow, Azure Monitor alerts).
+                - resource-usage-and-health: Logs, metrics, error analysis, availability views, and summaries. If the thread contains analysis or diagnosis of errors, prefer "troubleshooting"; if it is querying or charting metrics or usage, prefer "resource-usage-and-health".
+                - troubleshooting: Diagnosis, remediation steps, configuration fixes, targeted checks, restarts, and root cause analysis.
+                - resource-configuration: Inventories, coverage/posture views, dashboards, and questions like "what's running where" (e.g., list resources, list revisions, show container image in use).
+                - cost-analysis: Cost, performance tuning, SKU/plan recommendations, and optimization advice.
+                - security: Hardening, exposure checks, authentication/authorization changes, and vulnerability scanning. Any agent-initiated LocalAuthScanner threads should be categorized as "security".
+                - learning-about-agent: Getting started, introductions, capability overviews, tests, or conversational experiments with the agent.
+
+                Few-shot examples (format: "example" -> category). Examples may be single-line or multi-line; choose the best matching category:
+                "List Azure Container Apps" -> resource-configuration
+                "Investigating Container App IoT-Dashboard Outage" -> troubleshooting
+                "ICM# 640732407: PagerDuty incident investigation" -> incident-management
+                "24-Hour Resource Availability Analysis" -> resource-usage-and-health
+                "App is sending 500 errors, why?" -> troubleshooting
+                "Disable Local Authentication for Event Hub" -> security
+                "Azure SRE Agent Introduction and quickstart" -> learning-about-agent
+                "Optimize Azure Service Bus SKU Utilization" -> cost-analysis
+
+                Respond with a valid JSON object containing only the Category field, for example:
+                {"Category": "resource-configuration"}
+                """;
+
+            var chatMessages = new List<ChatMessage>
+            {
+                new(ChatRole.System, systemMsg),
+                new(ChatRole.User, prompt)
+            };
+
+            var chatOptions = new ChatOptions
+            {
+                Temperature = 0
+            };
+
+            var response = await _chatClient.GetResponseAsync(chatMessages, chatOptions, cancellationToken: cancellationToken);
+            var jsonResponse = response.GetMessage().Text?.Trim();
+            if (string.IsNullOrEmpty(jsonResponse))
+            {
+                return "other";
+            }
+
+            try
+            {
+                var cleanedJson = jsonResponse.Replace("\n", "").Replace("\\n", "").Trim();
+                using var doc = JsonDocument.Parse(cleanedJson);
+                var root = doc.RootElement;
+                var category = root.TryGetProperty("Category", out var c) && c.ValueKind == JsonValueKind.String ? c.GetString() : null;
+
+                return category ?? "other";
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogInternalWarning(ex, $"Error parsing LLM category response. Original response: {jsonResponse}");
+                return "other";
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, $"Error during LLM category evaluation for thread {thread.Id}");
+            return "other";
+        }
+    }
+
+    /// <summary>
+    /// Build a concise evaluation prompt used for category classification.
+    /// This version uses the already-constructed chatHistory passed from the caller
+    /// instead of fetching messages from the repository. Do not distinguish between
+    /// user- or agent-initiated threads here; use the provided chatHistory as-is.
+    /// The prompt contains minimal thread metadata and tool call metrics.
+    /// </summary>
+    private Task<string> BuildEvaluationPromptForCategory(ThreadModel thread, string chatHistory)
+    {
+        // Build prompt synchronously from provided chatHistory to avoid extra repository calls
+        var sb = new StringBuilder();
+        sb.AppendLine("Thread chat history context:");
+
+        if (string.IsNullOrWhiteSpace(chatHistory))
+        {
+            sb.AppendLine("(No messages found for this thread)");
+        }
+        else
+        {
+            sb.AppendLine();
+            sb.AppendLine("Chat history (ordered):");
+            sb.AppendLine(chatHistory.Trim());
+        }
+
+        sb.AppendLine();
+        sb.AppendLine("Based on the content above, respond with valid JSON containing a single field 'Category' whose value is one of: 'incident-management', 'resource-usage-and-health', 'troubleshooting', 'resource-configuration', 'cost-analysis', 'security', 'learning-about-agent', or 'other'. Example: {\"Category\":\"troubleshooting\"}");
+
+        return Task.FromResult(sb.ToString());
+    }
+
 
     internal class ToolCallMetrics
     {
