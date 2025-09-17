@@ -150,11 +150,10 @@ const TabsListWrapper: FC = () => {
     }, [isIncidentManagementTeachingPopoverDismissed]);
 
     const showDailyReportsTab = useConfigSetting(SettingNames.ShowDailyReportsTab);
-    const scheduledTasksConfigEnabled = useConfigSetting(SettingNames.ShowScheduledTasksTab);
     const { features } = useFeatureFlags();
 
-    // Show scheduled tasks tab only if both config setting and backend feature flag are enabled
-    const showScheduledTasksTab = scheduledTasksConfigEnabled && features.scheduledTasks;
+    // Show scheduled tasks tab based on backend feature flag only
+    const showScheduledTasksTab = features.scheduledTasks;
 
     const { controlPlaneTabsVisible, incidentManagementTabDisabled, logsTabDisabled, onLogsClick } = useControlPlaneDependentTabs({
         inStandaloneMode,
