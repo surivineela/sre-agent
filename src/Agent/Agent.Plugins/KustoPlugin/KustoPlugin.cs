@@ -11,13 +11,13 @@ using System.Web;
 using Agent.Core;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
-using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DataModels;
 using Agent.Plugins.Interface;
 using Agent.Plugins.KustoPlugin;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
+using TextContent = Microsoft.Extensions.AI.TextContent;
 
 namespace Agent.Plugins.Kusto
 {
@@ -97,12 +97,14 @@ namespace Agent.Plugins.Kusto
             [Description("The short name of the target Kusto cluster (without URL schema or suffix).")] string cluster,
             [Description("The name of the target Kusto database.")] string database,
             [Description("The full Kusto query to execute.")] string fullQuery,
-            [Description("Whether to print the result.")] bool? printQuery = true
+            [Description("Whether to print the result.")] bool? printQuery = true,
+            string toolName = ""
             )
         {
             var queryResult = await ExecuteClusterKustoQueryInternal(cluster, database, fullQuery);
             if (printQuery == true && queryResult.Message != null)
             {
+                queryResult.Message.Contents.Add(new TextContent($"Tool: `{toolName}`\n"));
                 await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(ToolStatic.AsyncLocalThreadId.Value, string.Empty, queryResult.Message);
             }
 
