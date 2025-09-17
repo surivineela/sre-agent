@@ -121,7 +121,7 @@ public class DataConnectorResolverService : IConnectorResolver
                 {
                     settings = candidates.FirstOrDefault(ds =>
                         Uri.TryCreate(ds.DataSource, UriKind.Absolute, out var uri) &&
-                        uri.Host.StartsWith(dataSource, StringComparison.OrdinalIgnoreCase));
+                        uri.Host.Contains(dataSource, StringComparison.OrdinalIgnoreCase));
 
                     if (settings == null && _env.IsDevelopment())
                     {
