@@ -82,16 +82,19 @@ describe('ComboboxPillFilter', () => {
             await userEvent.click(pillButton);
 
             await waitFor(() => {
-                expect(screen.getByRole('listbox')).toBeInTheDocument();
+                expect(screen.getByText('Apply')).toBeInTheDocument();
             });
 
-            const listBox = screen.getByRole('listbox');
+            // Check that the search box is present (indicates popover opened)
+            expect(screen.getByPlaceholderText('Search')).toBeInTheDocument();
 
-            // Check that options are displayed
-            expect(within(listBox).getByText('Option 1')).toBeInTheDocument();
-            expect(within(listBox).getByText('Option 2')).toBeInTheDocument();
-            expect(within(listBox).getByText('Option 3')).toBeInTheDocument();
-            expect(within(listBox).getByText('Option 4')).toBeInTheDocument();
+            // Check that options are displayed by looking for option roles
+            const options = screen.getAllByRole('option');
+            expect(options).toHaveLength(4);
+            expect(screen.getByRole('option', { name: 'Option 1' })).toBeInTheDocument();
+            expect(screen.getByRole('option', { name: 'Option 2' })).toBeInTheDocument();
+            expect(screen.getByRole('option', { name: 'Option 3' })).toBeInTheDocument();
+            expect(screen.getByRole('option', { name: 'Option 4' })).toBeInTheDocument();
         });
 
         it('shows selected option with checkmark', async () => {
