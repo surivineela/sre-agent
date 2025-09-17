@@ -114,7 +114,7 @@
     <PackageVersion Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" Version="1.64.0" />
     <PackageVersion Include="Microsoft.SemanticKernel.Connectors.InMemory" Version="1.55.0-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.2" />
-    <PackageVersion Include="ModelContextProtocol" Version="0.1.0-preview.1.25171.12" />
+    <PackageVersion Include="ModelContextProtocol" Version="0.3.0-preview.4" />
     <PackageVersion Include="Npgsql" Version="9.0.3" />
     <PackageVersion Include="OpenTelemetry" Version="1.12.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.InMemory" Version="1.9.0" />

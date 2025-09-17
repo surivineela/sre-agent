@@ -1,16 +1,14 @@
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
-using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Interface;
-using Agent.Runtime.MetaAgent.Interfaces;
-using Agent.Runtime.SubAgents;
-using Microsoft.Extensions.AI;
-using Microsoft.Extensions.Logging;
-using Agent.Runtime.Reasoning;
 using Agent.Plugins.Services.Interfaces;
+using Agent.Runtime.Interfaces;
+using Agent.Runtime.MetaAgent.Interfaces;
+using Agent.Runtime.Reasoning;
+using Microsoft.Extensions.AI;
 
 namespace Agent.Runtime.MetaAgent;
 
@@ -239,7 +237,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
 $@"## Facts
 - Current DateTime is {DateTime.UtcNow:yyyy-MM-dd HH:mm}";
 
-    private readonly McpToolsRepository _mcpToolsRepository;
+    private readonly IMcpConnectable _mcpToolsRepository;
     private readonly IServiceProvider _serviceProvider;
 
     private readonly IAppServicePlugin _appServicePlugin;
@@ -265,7 +263,7 @@ $@"## Facts
     private readonly IGraphService _graphService;
 
     public ThirdPartyAgentsFactory(
-        McpToolsRepository mcpToolsRepository,
+        IMcpConnectable mcpToolsRepository,
         IServiceProvider serviceProvider,
 
         IChartPlugin chartPlugin,
@@ -354,7 +352,7 @@ $@"## Facts
         var azureMonitorMetricsPluginDefinition = new AzureMonitorMetricsPluginDefinition(_azureMonitorMetricsPlugin);
         var diagnosticsPluginDefinition = new DiagnosticsPluginDefinition(_diagnosticsPlugin);
         var azureDevOpsWorkItemPluginDefinition = new AzureDevOpsWorkItemPluginDefinition(_azureDevOpsWorkItemPlugin);
-        var repositoryPluginDefinition = new RepositoryPluginDefintion(); 
+        var repositoryPluginDefinition = new RepositoryPluginDefintion();
         var sourceCodeErrorAnalysisPluginDefinition = new SourceCodeAnalysisAgentPluginDefinition(_sourceCodeAnalysisPlugin);
 
 
@@ -444,7 +442,7 @@ $@"## Facts
             _aiTools.AddRange(subAgentTools);
         }
 
-        _aiTools.AddRange(_mcpToolsRepository.GetAllFunctions());
+        _aiTools.AddRange(_mcpToolsRepository.GetAllFunctions().Select(y => y as AITool));
         return _aiTools;
     }
 

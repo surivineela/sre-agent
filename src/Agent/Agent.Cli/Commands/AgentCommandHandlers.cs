@@ -9,6 +9,7 @@ using Agent.Cli.Services;
 using Agent.Core.Helpers.ExtendedAgents;
 using Agent.Core.Validation;
 using Agent.Framework;
+
 namespace Agent.Cli.Commands;
 
 /// <summary>
@@ -42,6 +43,7 @@ public static class AgentCommandHandlers
 
         string finalInstructions;
         List<string> finalTools;
+        List<string> finalMcpTools;
 
         // Initialize progress tracking for all agent creation
         var steps = useSmart
@@ -67,7 +69,7 @@ public static class AgentCommandHandlers
             ProgressService.AnimatedSpinner.Start("Generating smart agent with AI");
 
             using var apiService = new ApiService();
-            var (success, generatedInstructions, recommendedTools, errorMessage) = await apiService.GenerateSmartAgentAsync(name!, instructions);
+            var (success, generatedInstructions, recommendedTools, recommendedMcpTools, errorMessage) = await apiService.GenerateSmartAgentAsync(name!, instructions);
 
             ProgressService.AnimatedSpinner.Stop();
 
@@ -88,7 +90,9 @@ public static class AgentCommandHandlers
 
             finalInstructions = generatedInstructions;
             finalTools = recommendedTools;
+            finalMcpTools = recommendedMcpTools;
 
+            // TODO: Log mcp tools when supported
             ProgressService.ShowSuccess($"AI generated instructions and {recommendedTools.Count} recommended tools!");
             ConsoleUI.WriteKeyValue("Instructions", generatedInstructions.Length > 100 ? generatedInstructions.Substring(0, 100) + ConsoleUI.Chars.Ellipsis : generatedInstructions, 15);
             ConsoleUI.WriteKeyValue("Tools", string.Join(", ", recommendedTools), 15);
@@ -97,6 +101,7 @@ public static class AgentCommandHandlers
         {
             finalInstructions = instructions ?? $"This is the {name} agent. Please provide specific instructions for what this agent should do.";
             finalTools = tools?.ToList() ?? new List<string>();
+            finalMcpTools = new List<string>();
         }
 
         // Create YamlAgentDescriptor instance with final values
@@ -105,6 +110,7 @@ public static class AgentCommandHandlers
             Name = name!,
             Instructions = finalInstructions,
             Tools = finalTools,
+            McpTools = finalMcpTools,
             HandoffDescription = handoffDescription,
             Handoffs = handoffs?.ToList() ?? new List<string>(),
             AllowParallelToolCalls = allowParallelToolCalls,
@@ -550,7 +556,9 @@ public static class AgentCommandHandlers
             ConsoleUI.WriteStatus(false, $"Failed to delete agent: {ex.Message}");
             Environment.Exit(1);
         }
-    }    /// <summary>
+    }
+
+    /// <summary>
     /// Handles the agent test command to test an agent with a specific message.
     /// </summary>
     public static async Task HandleTestCommand(ParseResult parseResult)

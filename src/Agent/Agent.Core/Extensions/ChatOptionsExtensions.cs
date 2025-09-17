@@ -39,7 +39,7 @@ public static class ChatOptionsExtensions
         options.AdditionalProperties ??= new AdditionalPropertiesDictionary();
 
         // set strict json deserialization which will be enforced by openai
-        options.AdditionalProperties.TryAdd(StrictJsonKey, true);
+        options.AdditionalProperties.TryAdd(StrictJsonKey, false);
 
         // handle properties for reasoning models
         // update options to reflect in logging

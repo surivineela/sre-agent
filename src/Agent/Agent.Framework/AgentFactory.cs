@@ -137,6 +137,12 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             throw new Exception($"Agent descriptor {agentDescriptor.Name} refers unsupported model deployment: {agentDescriptor.LlmModelName}." +
                 $"Supported LLM Model Names are: {string.Join(", ", LlmModels.LlmClients.Keys)}");
         }
+
+        if (agentDescriptor.McpTools != null && agentDescriptor.McpTools.Any(tool => !_toolFactory.HasTool(tool)))
+        {
+            var missingMcpTools = agentDescriptor.McpTools.Where(tool => !_toolFactory.HasTool(tool)).ToList();
+            throw new Exception($"Agent descriptor {agentDescriptor.Name} has MCP tools that do not exist in the tool factory: {string.Join(", ", missingMcpTools)}");
+        }
     }
 
     private Agent<TContext> AddAgentDescriptor(IAgentDescriptor agentDescriptor, bool isCustomAgent, bool overwrite = false)
@@ -159,7 +165,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             CustomReflectionNote = agentDescriptor.CustomReflectionNote,
             Handoffs = [], // Will be populated later to avoid circular references
             CriticOnHandOff = agentDescriptor.CriticOnHandOff,
-            FactoryTools = agentDescriptor.Tools.Select(tool => tool).ToList<string>(),
+            FactoryTools = [.. agentDescriptor.Tools, .. agentDescriptor.McpTools],
             // TODO: parallel tool calls not supported in the framework yet, ignore agent-level overrides
             AllowParallelToolCalls = false, // agentDescriptor.AllowParallelToolCalls,
             OutputType = GetOutputType(agentDescriptor),

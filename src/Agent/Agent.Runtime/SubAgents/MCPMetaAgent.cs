@@ -2,13 +2,12 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Collections.Concurrent;
 using Agent.Core.Models;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
-using ModelContextProtocol.Client;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using System.Collections.Concurrent;
 
 namespace Agent.Runtime.SubAgents
 {
@@ -16,9 +15,9 @@ namespace Agent.Runtime.SubAgents
     {
         public override string SystemPrompt { get; protected set; } = $@"You must delegate to another MCP server.
 MCP stands for Model Context Protocol and represents a server which exposes prompts, tools, and resources to an LLM.";
-        
+
         private ConcurrentDictionary<McpConnection, MCPAgent> _agents = new ConcurrentDictionary<McpConnection, MCPAgent>();
-        private ConcurrentDictionary<McpConnection, AITool> _tools = new ConcurrentDictionary<McpConnection, AITool>();
+        private ConcurrentDictionary<McpConnection, AIFunction> _tools = new ConcurrentDictionary<McpConnection, AIFunction>();
 
         public MCPMetaAgent(IChatClient chatClient, ILoggerFactory loggerFactory)
             : base("MCPMetaAgent", chatClient)
@@ -26,6 +25,11 @@ MCP stands for Model Context Protocol and represents a server which exposes prom
         }
 
         public override IList<AITool> Tools()
+        {
+            return _tools.Values.Select(t => t as AITool).ToList();
+        }
+
+        List<AIFunction> IMcpConnectable.GetAllFunctions()
         {
             return _tools.Values.ToList();
         }
@@ -52,7 +56,7 @@ MCP stands for Model Context Protocol and represents a server which exposes prom
                 }
             );
 
-            ChatHistory.Add(new(ChatRole.Assistant, $"Added connection to {connection.Url}"));
+            ChatHistory.Add(new(ChatRole.Assistant, $"Added connection to {connection.Id}"));
         }
 
         /// <inheritdoc />
@@ -61,12 +65,17 @@ MCP stands for Model Context Protocol and represents a server which exposes prom
 
             _tools.TryRemove(connection, out _);
             _agents.TryRemove(connection, out _);
-            ChatHistory.Add(new(ChatRole.Assistant, $"Removed connection to {connection.Url} due to connection failure"));
+            ChatHistory.Add(new(ChatRole.Assistant, $"Removed connection to {connection.Id} due to connection failure"));
         }
 
         public override Task<IList<Microsoft.Extensions.AI.ChatMessage>> GetStartingMessagesAsync()
         {
             throw new NotImplementedException();
+        }
+
+        public Task InitializeAsync()
+        {
+            return Task.CompletedTask;
         }
     }
 }

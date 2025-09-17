@@ -56,6 +56,7 @@ public interface IToolFactory<TContext> : IAsyncInitializer
     public List<ToolInfo> FetchAvailableToolInfo(Func<MethodInfo, bool>? filter = null);
 
     public void RegisterExtendedToolFromModel(string extendedToolName, string extendedToolYaml);
+
     bool RegisterTool(YamlToolDefinitionBase tool, BehaviorOnNameConflict onNameConflict);
 }
 

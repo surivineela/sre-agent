@@ -27,6 +27,7 @@ public class ExtendedAgentApplyDetails
 {
     public string? AgentName { get; set; }
     public int ToolsCount { get; set; }
+    public int McpToolsCount { get; set; }
     public int ConnectorsCount { get; set; }
     public DateTime? EstimatedCompletionTime { get; set; }
 }

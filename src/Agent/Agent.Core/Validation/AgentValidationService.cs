@@ -2,13 +2,12 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Framework;
-using Agent.Core.Helpers.ExtendedAgents;
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
-using YamlDotNet.Core;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Agent.Framework;
+using YamlDotNet.Core;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace Agent.Core.Validation;
 
@@ -52,6 +51,8 @@ public class AgentValidationService
         {
             await ValidateToolAvailabilityAsync(agentDescriptor.Tools, result);
         }
+
+        // TODO: Validate tool availability for MCP tools (Remote MCPs may not be always available)
 
         return result;
     }
@@ -182,6 +183,22 @@ public class AgentValidationService
             }
         }
 
+        // Validate MCP tool names
+        if (agent.McpTools?.Count > 0)
+        {
+            foreach (var tool in agent.McpTools)
+            {
+                if (string.IsNullOrWhiteSpace(tool))
+                {
+                    result.AddError("MCP tool name cannot be empty.");
+                }
+                else if (tool.Any(char.IsWhiteSpace))
+                {
+                    result.AddError($"MCP tool name '{tool}' must not contain whitespace.");
+                }
+            }
+        }
+
         // Validate handoff names
         if (agent.Handoffs?.Count > 0)
         {
@@ -245,7 +262,7 @@ public class AgentValidationService
         try
         {
             var availabilityResult = await _toolChecker.CheckToolsAvailabilityAsync(toolNames);
-            
+
             if (availabilityResult.MissingTools.Count > 0)
             {
                 result.AddError($"The following tools are not available: {string.Join(", ", availabilityResult.MissingTools)}");
@@ -292,7 +309,7 @@ public class AgentValidationService
 
             // Deserialize as structured YAML model
             var structuredYaml = deserializer.Deserialize<StructuredAgentYaml>(yamlContent);
-            
+
             if (structuredYaml?.Spec == null)
             {
                 throw new InvalidOperationException("YAML content must contain 'spec' field");
@@ -366,17 +383,17 @@ public class AgentValidationResult
     public override string ToString()
     {
         var messages = new List<string>();
-        
+
         if (Errors.Count > 0)
         {
             messages.Add($"Errors: {string.Join("; ", Errors)}");
         }
-        
+
         if (Warnings.Count > 0)
         {
             messages.Add($"Warnings: {string.Join("; ", Warnings)}");
         }
-        
+
         return messages.Count > 0 ? string.Join(" | ", messages) : "Valid";
     }
 }

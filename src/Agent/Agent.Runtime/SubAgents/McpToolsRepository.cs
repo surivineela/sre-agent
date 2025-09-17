@@ -6,14 +6,56 @@ using System.Collections.Concurrent;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
+using ModelContextProtocol.Client;
 
 namespace Agent.Runtime.SubAgents;
 
 // [Export]
 public class McpToolsRepository : IMcpConnectable
 {
+    private readonly ILoggerFactory _loggerFactory;
+
     private readonly Dictionary<string, AIFunction> _aiFunctions = new();
     private ConcurrentDictionary<McpConnection, IReadOnlyList<string>> _connectionToToolSignatures = new();
+
+    public McpToolsRepository(
+        ILoggerFactory loggerFactory)
+    {
+        _loggerFactory = loggerFactory;
+    }
+
+    public async Task InitializeAsync()
+    {
+        if (_connectionToToolSignatures.Count == 0)
+        {
+            McpConnection connection = new McpConnection(GetAzureMcpStdioConnection())
+            {
+                McpLoggerFactory = _loggerFactory,
+                Backend = this
+            };
+
+            await connection.InitializeAsync();
+
+            TryAddServer(connection);
+        }
+    }
+
+    // TODO: Move to configuration
+    private IClientTransport GetAzureMcpStdioConnection()
+    {
+        return new StdioClientTransport(new()
+        {
+            Name = "LocalAzureMcp",
+            Command = "npx",
+            Arguments = new string[]
+            {
+                "@azure/mcp@0.5.11",
+                "server",
+                "start"
+            }
+        });
+    }
 
     private string GetAIFunctionSignature(
         McpConnection connection,

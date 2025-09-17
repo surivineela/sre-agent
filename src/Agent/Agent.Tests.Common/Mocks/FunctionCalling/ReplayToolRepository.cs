@@ -67,4 +67,14 @@ public class ReplayToolRepository : IToolsRepository
     {
         _innerRepository.TryRemoveServer(connection);
     }
+
+    public List<AIFunction> GetAllFunctions()
+    {
+        return _innerRepository.GetAllFunctions();
+    }
+
+    public Task InitializeAsync()
+    {
+        return Task.CompletedTask;
+    }
 }

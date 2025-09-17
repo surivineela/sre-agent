@@ -8,6 +8,7 @@ using System.Reflection;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.Helpers;
+using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
 using Microsoft.Extensions.AI;
 
@@ -262,5 +263,15 @@ public class ToolsRepository : IToolsRepository
     public IReadOnlyList<string> GetAllTools(IReadOnlyList<string> localTools)
     {
         return _connectionToToolSignatures.Values.SelectMany(t => t).Concat(localTools).ToList().AsReadOnly();
+    }
+
+    List<AIFunction> IMcpConnectable.GetAllFunctions()
+    {
+        return _aiFunctions.Values.Select(t => t.ToolFunction).ToList();
+    }
+
+    public Task InitializeAsync()
+    {
+        return Task.CompletedTask;
     }
 }

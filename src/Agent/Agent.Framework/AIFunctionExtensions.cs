@@ -4,6 +4,7 @@
 
 using System.Reflection;
 using Microsoft.Extensions.AI;
+using ModelContextProtocol.Client;
 
 namespace Agent.Framework;
 
@@ -34,5 +35,10 @@ public static class AIFunctionExtensions
     public static bool IsAgentAsTool(this AIFunction tool)
     {
         return tool.GetType().IsGenericType && tool.GetType().GetGenericTypeDefinition() == typeof(AgentAsTool<>);
+    }
+
+    public static bool IsMcpTool(this AIFunction tool)
+    {
+        return tool is McpClientTool;
     }
 }

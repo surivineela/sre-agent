@@ -9,6 +9,7 @@ using Agent.Framework.Interfaces;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Tools;
+using Agent.Runtime.Interfaces;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -32,21 +33,23 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
     private readonly IServiceProvider _serviceProvider;
     private readonly IEnumerable<Assembly> _assemblies;
     private readonly Dictionary<string, IDeferredToolFunction> _tools = new();
-    private readonly bool _handoffReasoningEnabled;
-
     private readonly IExtensibilityLoader? _extensibilityLoader;
+    private readonly IMcpConnectable _mcpToolsRepository;
+    private readonly bool _handoffReasoningEnabled;
 
     public ToolFactory(
         ILogger<ToolFactory<TContext>> logger,
         IServiceProvider serviceProvider,
         IEnumerable<Assembly> assembliesToScan,
-        IExtensibilityLoader? extensibilityLoader
+        IExtensibilityLoader? extensibilityLoader,
+        IMcpConnectable mcpToolsRepository
     )
     {
         _logger = logger;
         _serviceProvider = serviceProvider;
         _assemblies = assembliesToScan;
         _extensibilityLoader = extensibilityLoader;
+        _mcpToolsRepository = mcpToolsRepository;
 
         // enable handoff reasoning for dev envs
         var hostEnvironment = _serviceProvider.GetRequiredService<IHostEnvironment>();
@@ -59,7 +62,7 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
         return FindAndRegisterAllToolsAsync(BehaviorOnNameConflict.Overwrite);
     }
 
-    public void RegisterFromYamlFile(string filePath, BehaviorOnNameConflict onNameConflict = BehaviorOnNameConflict.Overwrite)
+    private void RegisterFromYamlFile(string filePath, BehaviorOnNameConflict onNameConflict = BehaviorOnNameConflict.ThrowException)
     {
         if (!File.Exists(filePath))
         {
@@ -72,7 +75,7 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
         RegisterFromYaml(yamlContent, onNameConflict);
     }
 
-    public void RegisterFromYaml(string yamlContent, BehaviorOnNameConflict onNameConflict = BehaviorOnNameConflict.Overwrite)
+    private void RegisterFromYaml(string yamlContent, BehaviorOnNameConflict onNameConflict = BehaviorOnNameConflict.ThrowException)
     {
         try
         {
@@ -290,7 +293,17 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
         }
 
         // Register the ToDo Write tool
-        RegisterTool(ToDoWriteTool.ToolName, ToDoWriteTool.Instance, onNameConflict);
+        RegisterTool(ToDoWriteTool.Instance, onNameConflict);
+
+        if (_mcpToolsRepository != null)
+        {
+            await _mcpToolsRepository.InitializeAsync();
+
+            foreach (var aiFunction in _mcpToolsRepository.GetAllFunctions())
+            {
+                RegisterTool(aiFunction, onNameConflict);
+            }
+        }
     }
 
     public AIFunction GetTool(string name)
@@ -328,6 +341,12 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
 
         _logger.LogInternalInformation("Function '{functionName}' registered successfully.", tool.Name);
         return true;
+    }
+
+    public bool RegisterTool(AIFunction function, BehaviorOnNameConflict onNameConflict)
+    {
+        var deferredFunction = new AIToolAdapter(function);
+        return RegisterTool(function.Name, deferredFunction, onNameConflict);
     }
 
     public bool RegisterTool(string name, IDeferredToolFunction function, BehaviorOnNameConflict onNameConflict)

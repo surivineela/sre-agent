@@ -858,7 +858,7 @@ public static class Runner
                             }
                         };
                     }
-                    else if (tool.GetToolMode() == ToolMode.Auto)
+                    else if (tool.GetToolMode() == ToolMode.Auto || tool.IsMcpTool())
                     {
                         // Store CallId for streaming correlation
                         ToolStatic.AsyncLocalFunctionCallId.Value = functionCall.CallId;

@@ -1,14 +1,7 @@
-using Agent.Cli.Services;
-using Agent.Cli.Helpers;
-using System;
-using System.Collections.Generic;
 using System.CommandLine;
-using System.CommandLine.Parsing;
-using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using Agent.Cli.Commands;
+using Agent.Cli.Helpers;
+using Agent.Cli.Services;
 using Agent.Framework; // For YamlAgentDescriptor
 
 namespace Agent.Cli.Commands;
@@ -251,7 +244,7 @@ public static class InteractiveCommandHandlers
     private static async Task<string> GetCustomInstructions(string category)
     {
         Console.WriteLine();
-    ConsoleUI.WriteSection($"Choose a sample {category} agent or enter your own");
+        ConsoleUI.WriteSection($"Choose a sample {category} agent or enter your own");
 
         // Category-specific sample prompts
         var samples = category switch
@@ -1480,12 +1473,17 @@ public static class InteractiveCommandHandlers
                 try
                 {
                     using var api = new ApiService();
-                    var (ok, generated, recommended, err) = await api.GenerateSmartAgentAsync(name, instructions);
+                    var (ok, generated, recommendedTools, mcpTools, err) = await api.GenerateSmartAgentAsync(name, instructions);
                     if (ok)
                     {
                         finalInstructions = string.IsNullOrWhiteSpace(generated) ? instructions : generated;
-                        finalTools = recommended ?? new List<string>();
+                        finalTools = recommendedTools ?? new List<string>();
                         ConsoleUI.WriteInfo($"AI suggested {finalTools.Count} tool(s)", ConsoleColor.Gray);
+
+                        if (mcpTools?.Count > 0)
+                        {
+                            ConsoleUI.WriteInfo($"AI suggested {mcpTools.Count} mcp tool(s)", ConsoleColor.Gray);
+                        }
                     }
                     else if (!string.IsNullOrWhiteSpace(err))
                     {

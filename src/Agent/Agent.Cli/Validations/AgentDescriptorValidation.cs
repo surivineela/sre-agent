@@ -1,5 +1,5 @@
-using Agent.Framework;
 using Agent.Cli.Services;
+using Agent.Framework;
 
 namespace Agent.Cli.Validations;
 
@@ -30,6 +30,8 @@ public static class AgentDescriptorValidation
         {
             await ValidateToolExistenceAsync(agentDescriptor.Tools, toolAvailabilityService, errors);
         }
+
+        // TODO: Add MCP tool existence validation if needed
     }
 
     /// <summary>
@@ -65,6 +67,22 @@ public static class AgentDescriptorValidation
                 else if (tool.Any(char.IsWhiteSpace))
                 {
                     errors.Add($"Tool name '{tool}' must not contain whitespace.");
+                }
+            }
+        }
+
+        // Validate individual mcp tool names if mcp tools are provided
+        if (agentDescriptor.McpTools != null && agentDescriptor.McpTools.Count > 0)
+        {
+            foreach (var tool in agentDescriptor.McpTools)
+            {
+                if (string.IsNullOrWhiteSpace(tool))
+                {
+                    errors.Add("MCP tool name cannot be empty.");
+                }
+                else if (tool.Any(char.IsWhiteSpace))
+                {
+                    errors.Add($"MCP tool name '{tool}' must not contain whitespace.");
                 }
             }
         }

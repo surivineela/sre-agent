@@ -18,5 +18,5 @@ public class RunConfig
     public string? GroupId { get; set; }
     public Guid ThreadId { get; set; } = Guid.Empty;
     public Dictionary<string, object>? TraceMetadata { get; set; }
-    public bool EnableDebugOutput { get; set; }
+    public bool EnableDebugOutput { get; set; } = true;
 }

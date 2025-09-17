@@ -138,7 +138,40 @@ public sealed class DeferredToolFunction<TContext> : IDeferredToolFunction where
             return ContextAIFunction<TContext>.Create(_methodInfo!, contextToolTarget, name: _reflectionBasedName!);
         }
 
+        // Generic-agnostic reflective wrapping for any ContextToolTarget<*>.
+        if (TryCreateContextWrapperForArbitraryContext(instance, out var wrapped))
+        {
+            return wrapped;
+        }
+
         return AIFunctionFactory.Create(_methodInfo!, instance, name: _reflectionBasedName!);
+    }
+
+    private bool TryCreateContextWrapperForArbitraryContext(object instance, out AIFunction wrapped)
+    {
+        wrapped = null!;
+        var type = instance.GetType();
+        var baseType = type.BaseType;
+
+        if (baseType is null || !baseType.IsGenericType) return false;
+        if (baseType.GetGenericTypeDefinition() != typeof(ContextToolTarget<>)) return false;
+
+        var actualContextType = baseType.GetGenericArguments()[0];
+
+        // Build ContextAIFunction<actualContextType>.Create(MethodInfo, object, string?, string?)
+        var wrapperGenericType = typeof(ContextAIFunction<>).MakeGenericType(actualContextType);
+        var createMethod = wrapperGenericType.GetMethod(
+            "Create",
+            BindingFlags.Public | BindingFlags.Static,
+            new[] { typeof(MethodInfo), typeof(object), typeof(string), typeof(string) });
+
+        if (createMethod == null)
+        {
+            return false;
+        }
+
+        wrapped = (AIFunction)createMethod.Invoke(null, [_methodInfo!, instance, _reflectionBasedName!, null])!;
+        return true;
     }
 
     private static bool IsReadOnlyMode(string? agentMode)

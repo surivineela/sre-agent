@@ -2,15 +2,15 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Collections.Concurrent;
+using System.Text.RegularExpressions;
 using Agent.Core.Configuration;
-using Agent.Logging;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
 using Agent.Runtime.SubAgents;
-using ModelContextProtocol.Client;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System.Collections.Concurrent;
+using ModelContextProtocol.Client;
 
 /// <summary>
 /// Responsible for initializing the MCPMetaAgent instance with the provided MCP servers,
@@ -28,7 +28,9 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
     private Timer? _reconnectTimer;
     private readonly SemaphoreSlim _reconnectTimerLock = new(1, 1);
     private readonly ILoggerFactory _loggerFactory;
-    private readonly McpToolsRepository _mcpToolsRepository;
+    private readonly IMcpConnectable _mcpToolsRepository;
+
+    private static Regex _unsafeToolNameChars = new Regex("[^a-zA-Z0-9_\\.\\-]", RegexOptions.Compiled);
 
     /// <summary>
     /// URLs mapped to connections
@@ -38,7 +40,7 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
     public MCPMetaAgentManagementService(
         MCPMetaAgent mcpMetaAgent,
         MCPSettings mcpSettings,
-        McpToolsRepository mcpToolsRepository,
+        IMcpConnectable mcpToolsRepository,
         ILogger<MCPMetaAgentManagementService> logger,
         ILoggerFactory loggerFactory)
     {
@@ -100,7 +102,13 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
             IMcpClient? client = connection.Client;
             if (client == null)
             {
-                throw new Exception($"MCP client is null for connection '{connection.Url}'. This should not happen.");
+                throw new Exception($"MCP client is null for connection '{connection.Id}'. This should not happen.");
+            }
+
+            if (connection.ClientTransport is StdioClientTransport)
+            {
+                _logger.LogInternalWarning("StdioClientTransport is not supported for pinging");
+                return;
             }
 
             bool completed = false;
@@ -113,7 +121,7 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
             {
                 _logger.LogInternalWarning("Ping timed out for '{connection}', removing associated agent", connection);
                 connection.Backend.TryRemoveServer(connection);
-                _activeConnections.TryRemove(connection.Url, out McpConnection? _);
+                _activeConnections.TryRemove(connection.Id, out McpConnection? _);
             }
             else
             {
@@ -124,7 +132,7 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
         {
             _logger.LogInternalWarning(ex, "Ping failed for MCP agent '{connection}', removing associated agent", connection);
             connection.Backend.TryRemoveServer(connection);
-            _activeConnections.TryRemove(connection.Url, out McpConnection? _);
+            _activeConnections.TryRemove(connection.Id, out McpConnection? _);
         }
     }
 
@@ -145,14 +153,14 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
         try
         {
             var disconnectedMcpMetaAgentUrls = _mcpSettings.IsolatedServers.Where(url => !_activeConnections.ContainsKey(url));
-            var mcpMetaAgentTasks = disconnectedMcpMetaAgentUrls.Select(async url => await AddConnectionIfSuccessful(url, _mcpMetaAgent));
+            var mcpMetaAgentTasks = disconnectedMcpMetaAgentUrls.Select(async url => await AddConnectionIfSuccessful(CreateMcpClientSseTransport(url), _mcpMetaAgent));
 
             var disconnectedToolsRepositoryUrls = _mcpSettings.SharedServers.Where(url => !_activeConnections.ContainsKey(url));
 
             //  for now, collect a separate set of MCP tools to expose to the meta agent
             //  todo - figure out how we want MCP tools injected into subagents too.
             //var toolsRepositoryTasks = disconnectedToolsRepositoryUrls.Select(async url => await AddConnectionIfSuccessful(url, _toolsRepository));
-            var mcpToolsRepositoryTasks = disconnectedToolsRepositoryUrls.Select(async url => await AddConnectionIfSuccessful(url, _mcpToolsRepository));
+            var mcpToolsRepositoryTasks = disconnectedToolsRepositoryUrls.Select(async url => await AddConnectionIfSuccessful(CreateMcpClientSseTransport(url), _mcpToolsRepository));
 
             await Task.WhenAll(mcpMetaAgentTasks.Concat(mcpToolsRepositoryTasks));
         }
@@ -162,15 +170,31 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
         }
     }
 
-    private async Task AddConnectionIfSuccessful(string url, IMcpConnectable connectable)
-    {
-        McpConnection connection = new McpConnection(url)
+    private IClientTransport CreateMcpClientSseTransport(string url)
+        => new SseClientTransport(new()
         {
-            LoggerFactory = _loggerFactory,
+            Name = _unsafeToolNameChars.Replace(url, string.Empty),
+            Endpoint = new Uri(url),
+            TransportMode = HttpTransportMode.AutoDetect
+        });
+
+    private IClientTransport CreateMcpClientStdioTransport(string name, string command, string[] arguments)
+        => new StdioClientTransport(new()
+        {
+            Name = _unsafeToolNameChars.Replace(name, string.Empty),
+            Command = command,
+            Arguments = arguments
+        });
+
+    private async Task AddConnectionIfSuccessful(IClientTransport clientTransport, IMcpConnectable connectable)
+    {
+        McpConnection connection = new McpConnection(clientTransport)
+        {
+            McpLoggerFactory = _loggerFactory,
             Backend = connectable
         };
 
-        await connection.Initialize().ContinueWith(t =>
+        await connection.InitializeAsync().ContinueWith(t =>
         {
             if (t.IsFaulted)
             {
@@ -180,12 +204,13 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
             {
                 _logger.LogInternalInformation("Initialized connection '{connection}'", connection);
                 connectable.TryAddServer(connection);
-                _activeConnections.TryAdd(connection.Url, connection);
+                _activeConnections.TryAdd(connection.Id, connection);
             }
         });
     }
 
-    public Task StopAsync(CancellationToken cancellationToken) {
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
         _logger.LogInternalInformation($"Stopping...");
 
         _connectionVerificationTimer?.Change(Timeout.Infinite, 0);

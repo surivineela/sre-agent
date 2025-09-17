@@ -4,13 +4,12 @@
 
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
-using Agent.Core.Validation;
 using Agent.Core.Helpers.ExtendedAgents;
+using Agent.Core.Validation;
 using Agent.Framework;
 using Agent.Framework.Reasoning.Models;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models.ExtendedAgents;
-using Agent.Runtime.Services;
 using Agent.Web.Models.ExtendedAgents;
 using Agent.Web.Models.ExtendedAgents.Response;
 using Agent.Web.Services;
@@ -166,6 +165,7 @@ public class ExtendedAgentController : ControllerBase
                         {
                             AgentName = agentDeployment.Spec.Name,
                             ToolsCount = agentDeployment.Spec.Tools?.Count ?? 0,
+                            McpToolsCount = agentDeployment.Spec.McpTools?.Count ?? 0
                         }
                     };
                     break;

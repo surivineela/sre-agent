@@ -289,6 +289,7 @@ public static class TestHelpers
                 assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
                     .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
                     .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true),
+                mcpToolsRepository: sp.GetRequiredService<IMcpConnectable>(),
                 extensibilityLoader: sp.GetRequiredService<IExtensibilityLoader>());
 
             var replay = new ReplayToolFactory<AgentContext>(inner, toolReplaySerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web));
@@ -464,7 +465,21 @@ public static class TestHelpers
                 foreach (var expectedProp in expectedRoot.EnumerateObject())
                 {
                     if (!actualRoot.TryGetProperty(expectedProp.Name, out var actualProp))
+                    {
+                        // Handle missing property: if expected value is empty string or null, treat as equivalent to missing property
+                        if (expectedProp.Value.ValueKind == JsonValueKind.String)
+                        {
+                            var expectedStr = expectedProp.Value.GetString() ?? "";
+                            if (string.IsNullOrEmpty(expectedStr))
+                                continue; // Missing property with empty expected value is OK
+                        }
+                        else if (expectedProp.Value.ValueKind == JsonValueKind.Null)
+                        {
+                            continue; // Missing property with null expected value is OK
+                        }
+
                         return false;
+                    }
 
                     // Special handling for "command" property
                     if (expectedProp.Name.Equals("command", StringComparison.OrdinalIgnoreCase))

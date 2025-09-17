@@ -59,7 +59,7 @@ system_prompt: |
   ### 1. Resource Context (Required First)
   - **No subscription specified** → `resource_discovery_agent`
   - **Resource count/properties/discovery** → `resource_discovery_agent`
-  - **Activity logs/events** → `resource_discovery_agent`
+  - **Logs/events** → `logs_resource_discovery_agent`
   - **Basic configuration questions like vnet integration, TLS version** → `resource_discovery_agent`
 
   ### 2. Specialized Agents (Highest Priority)
@@ -112,11 +112,13 @@ handoff_description: "Handoff to this agent when you don't have tools to continu
 
 handoffs:
   - resource_discovery_agent
+  - logs_resource_discovery_agent
   - container_apps_agent
   - tls_minimum_version_upgrade_agent
   - azure_cli_command_executor_agent
   - web_app_down_agent
   - aks_general_agent
+  - log_analytics_workspace_agent
   - metrics_and_chart_visualization_agent
   - local_auth_agent
   - diagnostic_cpu_agent

@@ -13,5 +13,6 @@
     <PackageReference Include="Azure.AI.OpenAI" />
     <PackageReference Include="YamlDotNet" />
     <PackageReference Include="OpenTelemetry" />
+    <PackageReference Include="ModelContextProtocol" />
   </ItemGroup>
 </Project>

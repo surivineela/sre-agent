@@ -9,7 +9,6 @@ using FirstPartyAgent.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
-using ModelContextProtocol.Protocol.Types;
 
 namespace FirstPartyAgent.Core.Services;
 
@@ -99,7 +98,8 @@ public class AlertProcessingService : IAlertProcessingService
 
     private async Task<ChatMessage> ProcessAlertAsync(AlertRequestBody alertRequest, string sessionId, bool test = false)
     {
-        if (alertRequest == null) {
+        if (alertRequest == null)
+        {
             throw new ArgumentNullException(nameof(alertRequest), "AlertRequestBody cannot be null");
         }
         if (string.IsNullOrEmpty(alertRequest.IncidentId))
@@ -107,7 +107,8 @@ public class AlertProcessingService : IAlertProcessingService
             throw new ArgumentException("IncidentId cannot be empty", nameof(alertRequest.IncidentId));
         }
 
-        if (!string.IsNullOrWhiteSpace(alertRequest.AgentMode)) {
+        if (!string.IsNullOrWhiteSpace(alertRequest.AgentMode))
+        {
             var foundAgent = AgentModeExists(alertRequest.AgentMode);
             if (!foundAgent)
             {
@@ -127,7 +128,8 @@ public class AlertProcessingService : IAlertProcessingService
             kernel.Data["sessionId"] = sessionId;
             var incidentDetails = await _icmPlugin.GetIncidentInfo(alertRequest.IncidentId, kernel);
 
-            if (!test) {
+            if (!test)
+            {
                 var guardrailMessage = ApplyGuardrails(incidentDetails);
                 if (guardrailMessage != null)
                 {
@@ -145,7 +147,7 @@ public class AlertProcessingService : IAlertProcessingService
                 AgentMode = alertRequest.AgentMode,
             };
 
-            if(alertRequest.CustomAlertConfig != null)
+            if (alertRequest.CustomAlertConfig != null)
             {
                 messageRequestBody.Data["customAlertConfig"] = alertRequest.CustomAlertConfig;
             }
@@ -186,5 +188,5 @@ public class AlertProcessingService : IAlertProcessingService
         return $"ICMProcessing-{alertRequest.IncidentId}";
     }
 
-    
+
 }

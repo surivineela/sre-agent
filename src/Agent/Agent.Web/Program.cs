@@ -470,7 +470,7 @@ public class Program
             .AddSingleton<IMIConfigurationCheckPlugin, MIConfigurationCheckPlugin>()
             .AddSingleton<IAppIdentityUpdatePlugin, AppIdentityUpdatePlugin>()
             .AddSingleton<ITimePlugin, TimePlugin>()
-            .AddSingleton<McpToolsRepository>()
+            .AddSingleton<IMcpConnectable, McpToolsRepository>()
             .AddSingleton<IThreadOrchestrationManager, CosmosThreadOrchestrationManager>()
             .AddSingleton<SinkService>()
             .AddSingleton<ThreadService>()
@@ -509,7 +509,8 @@ public class Program
                     assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
                         .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
                         .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true),
-                     extensibilityLoader: sp.GetRequiredService<IExtensibilityLoader>()
+                    extensibilityLoader: sp.GetRequiredService<IExtensibilityLoader>(),
+                    mcpToolsRepository: sp.GetRequiredService<IMcpConnectable>()
                     );
             })
             .AddSingleton<IToolFactory<AgentContext>, ToolFactory<AgentContext>>(sp =>

@@ -10,7 +10,9 @@ using Agent.Framework;
 using Agent.Framework.Interfaces;
 using Agent.Framework.Models;
 using Agent.Plugins;
+using Agent.Runtime.Interfaces;
 using Agent.Runtime.Reasoning;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -28,6 +30,7 @@ public class AgentFactoryTests
     private readonly Mock<ChatClientProvider> _mockChatClientProvider;
     private readonly Mock<IAgentModeConfigurator<AgentContext>> _mockAgentModeConfigurator;
     private readonly Mock<IExtensibilityLoader> _mockExtendedAgentRepository;
+    private readonly Mock<IMcpConnectable> _mockMcpToolsRepository;
     private readonly IServiceProvider _serviceProvider;
     private readonly ServiceCollection _services;
 
@@ -38,6 +41,8 @@ public class AgentFactoryTests
         _mockChatClientProvider = new Mock<ChatClientProvider>(_serviceProvider);
         _mockAgentModeConfigurator = new Mock<IAgentModeConfigurator<AgentContext>>();
         _mockExtendedAgentRepository = new Mock<IExtensibilityLoader>();
+        _mockMcpToolsRepository = new Mock<IMcpConnectable>();
+        _mockMcpToolsRepository.Setup(m => m.GetAllFunctions()).Returns(new List<AIFunction>());
 
         // Setup mock extensibility loader to return empty lists
         _mockExtendedAgentRepository.Setup(x => x.LoadExtendedToolsAsync(It.IsAny<CancellationToken>()))
@@ -236,7 +241,8 @@ public class AgentFactoryTests
             logger: _mockToolFactoryLogger.Object,
             serviceProvider: _serviceProvider,
             assembliesToScan: [Assembly.GetExecutingAssembly()],
-            extensibilityLoader: _mockExtendedAgentRepository.Object
+            extensibilityLoader: _mockExtendedAgentRepository.Object,
+            mcpToolsRepository: _mockMcpToolsRepository.Object
         );
 
         return toolFactory;
@@ -262,6 +268,7 @@ public class TestAgent1Descriptor : IAgentDescriptor
     public List<AgentsAsTools> AgentsAsTools { get; set; } = [];
     public string? OutputType { get; set; } = null;
     List<string> IAgentDescriptor.Tools { get; set; } = [];
+    List<string> IAgentDescriptor.McpTools { get; set; } = [];
     public string? UserPromptOverride { get; set; } = null;
     public bool DisableDocumentRetrieval { get; set; } = false;
     public bool EnableHandoffPromptOverride { get; set; } = false;
@@ -280,6 +287,7 @@ public class TestAgent2Descriptor : IAgentDescriptor
     public string? HandoffDescription { get; set; } = "Test Handoff Description";
     public List<string> Handoffs { get; set; } = [];
     public List<string> Tools { get; set; } = ["TestAutoTool", "TestManualTool"];
+    public List<string> McpTools { get; set; } = [];
     public bool AllowParallelToolCalls { get; set; } = false;
     public int MaxReflectionCount { get; set; } = 0;
     public string CustomReflectionNote { get; set; } = "Test Custom Reflection Note";

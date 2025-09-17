@@ -51,6 +51,7 @@ system_prompt: |
   - If a structured format is requested, map each step and agent accordingly and clarify unclear requirements prior to responding.
 
   # Routing Priorities (examples)
+  - Logging Resource: logs_resource_discovery_agent
   - AKS/Kubernetes: aks_general_agent
   - Container Apps: container_apps_agent
   - Scheduled/recurring monitoring: scheduled_task_agent
@@ -72,6 +73,7 @@ system_prompt: |
   - "Show CPU metrics for X" → resource_discovery_agent → metrics_and_chart_visualization_agent
   - Can you keep monitoring my resource foo (recurring task by user) -> scheduled_task_agent
   - "What changed at 2 PM?" → resource_discovery_agent → azure_activity_logs_agent
+  - "What monitoring resources is associated to a resource" → logs_resource_discovery_agent
   - "Trace request w/ correlation ID" → resource_discovery_agent → azure_application_insights_agent
   - "AKS: list deployments (not in graph)" → resource_discovery_agent → aks_general_agent
   - "Container App network issues" → resource_discovery_agent → container_apps_agent
@@ -130,6 +132,7 @@ tools:
 
 handoffs:
   - resource_discovery_agent
+  - logs_resource_discovery_agent
   - scheduled_task_agent
   - container_apps_agent
   - tls_minimum_version_upgrade_agent

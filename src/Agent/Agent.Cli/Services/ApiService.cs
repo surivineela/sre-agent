@@ -1,16 +1,15 @@
-using Azure.Core;
-using Azure.Identity;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Agent.Cli.Services;
 using Agent.Cli.Helpers;
+using Agent.Cli.Models;
+using Azure.Core;
+using Azure.Identity;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
-using System.Diagnostics;
-using Agent.Cli.Models;
 
 namespace Agent.Cli.Services;
 
@@ -1180,14 +1179,14 @@ public class ApiService : IDisposable
         }
     }
 
-    public async Task<(bool Success, string GeneratedInstructions, List<string> RecommendedTools, string ErrorMessage)> GenerateSmartAgentAsync(string agentName, string? userInstructions = null)
+    public async Task<(bool Success, string GeneratedInstructions, List<string> RecommendedTools, List<string> McpTools, string ErrorMessage)> GenerateSmartAgentAsync(string agentName, string? userInstructions = null)
     {
         try
         {
             var config = await _configService.LoadConfigurationAsync();
             if (config == null)
             {
-                return (false, "", new List<string>(), "Configuration not found. Please run 'srectl init' first.");
+                return (false, "", new List<string>(), new List<string>(), "Configuration not found. Please run 'srectl init' first.");
             }
 
             // Build custom instructions
@@ -1217,7 +1216,7 @@ public class ApiService : IDisposable
                 var token = await GetAccessTokenAsync();
                 if (string.IsNullOrEmpty(token))
                 {
-                    return (false, "", new List<string>(), "Failed to get access token. Please run 'az login' first.");
+                    return (false, "", new List<string>(), new List<string>(), "Failed to get access token. Please run 'az login' first.");
                 }
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
@@ -1246,16 +1245,29 @@ public class ApiService : IDisposable
                     }
                 }
 
-                return (true, generatedInstructions, recommendedTools, "");
+                var mcpTools = new List<string>();
+                if (root.TryGetProperty("mcpTools", out var mcpToolsElement) && mcpToolsElement.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var tool in mcpToolsElement.EnumerateArray())
+                    {
+                        var toolName = tool.GetString();
+                        if (!string.IsNullOrEmpty(toolName))
+                        {
+                            mcpTools.Add(toolName);
+                        }
+                    }
+                }
+
+                return (true, generatedInstructions, recommendedTools, mcpTools, string.Empty);
             }
             else
             {
-                return (false, "", new List<string>(), $"Failed to generate smart agent: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
+                return (false, "", new List<string>(), new List<string>(), $"Failed to generate smart agent: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
             }
         }
         catch (Exception ex)
         {
-            return (false, "", new List<string>(), $"Failed to generate smart agent: {ex.Message}");
+            return (false, "", new List<string>(), new List<string>(), $"Failed to generate smart agent: {ex.Message}");
         }
     }
 
@@ -1466,8 +1478,8 @@ public class ApiService : IDisposable
             var retryCount = 0;
 
             // For snappy spinner animation with shimmer effect
-            string[] dots = new[] {"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"};
-            string[] colors = new[] {"[36m", "[96m", "[37m", "[97m"}; // Mono cyan color
+            string[] dots = new[] { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" };
+            string[] colors = new[] { "[36m", "[96m", "[37m", "[97m" }; // Mono cyan color
             int dotIndex = 0;
             int colorIndex = 0;
             bool waitingPrinted = false;
@@ -1936,8 +1948,8 @@ public class ApiService : IDisposable
             var hasDisplayedInitialMessages = false;
 
             // For snappy spinner animation with shimmer effect
-            string[] dots = new[] {"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"};
-            string[] colors = new[] {"[36m", "[96m", "[37m", "[97m"}; // Mono cyan color
+            string[] dots = new[] { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" };
+            string[] colors = new[] { "[36m", "[96m", "[37m", "[97m" }; // Mono cyan color
             int dotIndex = 0;
             int colorIndex = 0;
             bool waitingPrinted = false;

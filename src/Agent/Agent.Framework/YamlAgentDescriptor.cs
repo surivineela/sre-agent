@@ -26,6 +26,9 @@ public class YamlAgentDescriptor : IAgentDescriptor
     [YamlMember(Alias = "tools")]
     public List<string> Tools { get; set; } = [];
 
+    [YamlMember(Alias = "mcp_tools")]
+    public List<string> McpTools { get; set; } = [];
+
     [YamlMember(Alias = "connectors")]
     public List<string> Connectors { get; set; } = [];
 

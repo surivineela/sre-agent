@@ -22,8 +22,8 @@
 	  <PackageReference Include="Azure.ResourceManager.ContainerRegistry" />
     <PackageReference Include="Azure.ResourceManager.ContainerService" />
 	  <PackageReference Include="Azure.ResourceManager.Network" />
-	  <PackageReference Include="Azure.ResourceManager.OperationalInsights" />
 	  <PackageReference Include="Azure.Search.Documents" />
+    <PackageReference Include="Azure.ResourceManager.OperationalInsights" />
 	  <PackageReference Include="Azure.Storage.Blobs" />
     <PackageReference Include="HtmlAgilityPack" />
     <PackageReference Include="Markdig" />

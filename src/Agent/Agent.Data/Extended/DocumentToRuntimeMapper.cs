@@ -18,6 +18,7 @@ public static class DocumentToRuntimeMapper
         HandoffDescription = api.HandoffDescription,
         Handoffs = api.Handoffs,
         Tools = api.Tools,
+        McpTools = new List<string>(), // Extended Agent Mcp Tool support pending
         Connectors = api.Connectors,
         AllowParallelToolCalls = api.AllowParallelToolCalls,
         MaxReflectionCount = api.MaxReflectionCount,

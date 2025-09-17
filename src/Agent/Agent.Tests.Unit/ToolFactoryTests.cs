@@ -7,7 +7,9 @@ using System.Reflection;
 using Agent.Core.Configuration;
 using Agent.Framework;
 using Agent.Plugins;
+using Agent.Runtime.Interfaces;
 using Agent.Runtime.Reasoning;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -119,12 +121,16 @@ namespace Agent.Tests.Unit
     public class ToolFactoryTests : IDisposable
     {
         private readonly Mock<ILogger<ToolFactory<object>>> _mockLogger;
+        private readonly Mock<IMcpConnectable> _mockMcpToolsRepository;
         private readonly IServiceProvider _serviceProvider;
         private readonly ServiceCollection _services;
 
         public ToolFactoryTests()
         {
             _mockLogger = new Mock<ILogger<ToolFactory<object>>>();
+            _mockMcpToolsRepository = new Mock<IMcpConnectable>();
+            _mockMcpToolsRepository.Setup(m => m.GetAllFunctions()).Returns(new List<AIFunction>());
+
             _services = new ServiceCollection();
             _services.AddSingleton(_mockLogger.Object);
             _services.AddSingleton(new ExperimentalSettings
@@ -292,12 +298,7 @@ namespace Agent.Tests.Unit
             // Arrange
             _services.AddTransient<IgnoredPlugin>();
             var serviceProvider = _services.BuildServiceProvider();
-            var toolFactory = new ToolFactory<object>(
-                logger: _mockLogger.Object,
-                serviceProvider: serviceProvider,
-                assembliesToScan: [Assembly.GetExecutingAssembly()],
-                extensibilityLoader: null);
-            await toolFactory.FindAndRegisterAllToolsAsync(BehaviorOnNameConflict.ThrowException);
+            var toolFactory = await CreateInitializedToolFactoryAsync();
 
             // Act & Assert
             Assert.False(toolFactory.HasTool("ShouldNotBeRegistered"));
@@ -358,14 +359,12 @@ namespace Agent.Tests.Unit
         [Fact]
         public async Task PluginWithContext()
         {
-            var toolFactory = new ToolFactory<string>(
-                logger: new Mock<ILogger<ToolFactory<string>>>().Object,
-                serviceProvider: _serviceProvider,
-                assembliesToScan: [Assembly.GetExecutingAssembly()],
-                extensibilityLoader: null);
-            await toolFactory.FindAndRegisterAllToolsAsync(BehaviorOnNameConflict.ThrowException);
+            var toolFactory = await CreateInitializedToolFactoryAsync();
 
-            var tool = toolFactory.GetTool("GetContextInfo") as ContextAIFunction<string>;
+            var aifunction = toolFactory.GetTool("GetContextInfo");
+            Assert.NotNull(aifunction);
+
+            var tool = aifunction as ContextAIFunction<string>;
             Assert.NotNull(tool);
 
             var context = "hello";
@@ -380,11 +379,13 @@ namespace Agent.Tests.Unit
         private async Task<ToolFactory<object>> CreateInitializedToolFactoryAsync()
         {
             var toolFactory = new ToolFactory<object>(
-                logger: _mockLogger.Object,
-                serviceProvider: _serviceProvider,
-                assembliesToScan: [Assembly.GetExecutingAssembly()],
-                extensibilityLoader: null);
+               logger: _mockLogger.Object,
+               serviceProvider: _serviceProvider,
+               assembliesToScan: [Assembly.GetExecutingAssembly()],
+               extensibilityLoader: null,
+               mcpToolsRepository: _mockMcpToolsRepository.Object);
             await toolFactory.InitializeAsync();
+
             return toolFactory;
         }
 

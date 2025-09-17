@@ -13,6 +13,7 @@ public interface IAgentDescriptor
     public string? HandoffDescription { get; set; }
     public List<string> Handoffs { get; set; }
     public List<string> Tools { get; set; }
+    public List<string> McpTools { get; set; }
     public bool AllowParallelToolCalls { get; set; }
     public List<AgentsAsTools> AgentsAsTools { get; set; }
     public int MaxReflectionCount { get; set; }

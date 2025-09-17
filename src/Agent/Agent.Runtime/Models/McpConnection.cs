@@ -2,14 +2,12 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Logging;
+using System.Text.RegularExpressions;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.SubAgents;
-using ModelContextProtocol.Client;
-using ModelContextProtocol.Configuration;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using System.Text.RegularExpressions;
+using ModelContextProtocol.Client;
 
 namespace Agent.Runtime.Models;
 
@@ -18,74 +16,76 @@ namespace Agent.Runtime.Models;
 /// </summary>
 public class McpConnection
 {
-    public required ILoggerFactory LoggerFactory { get; init; }
+    public required ILoggerFactory McpLoggerFactory { get; init; }
     public required IMcpConnectable Backend { get; init; }
 
     public string Id { get; private set; }
     public IList<AITool>? Tools { get; private set; }
     public string? ServerInstructions { get; private set; }
     public IMcpClient? Client { get; private set; }
-    public string Url { get; private set; }
+    public IClientTransport ClientTransport { get; private set; }
 
+    private bool _initialized = false;
     private static Regex _unsafeToolNameChars = new Regex("[^a-zA-Z0-9_\\.\\-]", RegexOptions.Compiled);
 
-    public McpConnection(string url)
+    public McpConnection(IClientTransport clientTransport)
     {
-        if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? _))
+        if (clientTransport == null)
         {
-            throw new ArgumentException("The provided string is not a valid URI.", url);
+            throw new ArgumentException("The provided client transport is null.", nameof(clientTransport));
         }
 
-        Url = url;
-        Id = _unsafeToolNameChars.Replace(url, "");
+        Id = _unsafeToolNameChars.Replace(clientTransport.Name, "");
+        ClientTransport = clientTransport;
     }
 
-    public async Task Initialize()
+    public async Task InitializeAsync()
     {
-        var logger = LoggerFactory.CreateLogger($"{typeof(MCPMetaAgent).FullName!}.{Id}");
+        var logger = McpLoggerFactory.CreateLogger($"{typeof(MCPMetaAgent).FullName!}.{Id}");
+
+        using ILoggerFactory loggerFactory = LoggerFactory.Create(builder =>
+        {
+            //builder.AddConsole();     // add console logging
+            //builder.SetMinimumLevel(LogLevel.Debug);
+        });
 
         try
         {
+            if (_initialized)
+            {
+                return;
+            }
 
             McpClientOptions options = new()
             {
                 ClientInfo = new() { Name = Id, Version = "1.0.0" }
             };
 
-            var config = new McpServerConfig
-            {
-                Id = Id,
-                Name = Id,
-                TransportType = "sse",
-                Location = Url
-            };
-
-
-            logger.LogInternalInformation("Attempting to connect to {endpoint}", Url);
+            logger.LogInternalInformation("Attempting to connect to {endpoint}", Id);
 
             Client = await McpClientFactory.CreateAsync(
-                config,
+                ClientTransport,
                 options,
-                loggerFactory: LoggerFactory
+                loggerFactory: loggerFactory
             );
 
-
-            // Can't use McpSessionScope yet because we need lower level functionality for pinging
-            Tools = (await Client.GetAIFunctionsAsync()).ToList<AITool>();
+            Tools = (await Client.ListToolsAsync()).ToList<AITool>();
 
             foreach (var tool in Tools)
             {
-                logger.LogInternalInformation("Imported tool: {tool} from MCP server {server}", tool.Name, config.Location);
+                logger.LogInternalInformation("Imported tool: {tool} from MCP server {server}", tool.Name, Id);
             }
 
             if (!string.IsNullOrEmpty(Client.ServerInstructions))
             {
                 ServerInstructions = Client.ServerInstructions;
             }
+
+            _initialized = true;
         }
         catch (Exception ex)
         {
-            logger.LogInternalError(ex, "Failed to initialize connection to {endpoint}", Url);
+            logger.LogInternalError(ex, "Failed to initialize connection to {endpoint}", Id);
             throw;
         }
     }
@@ -93,6 +93,6 @@ public class McpConnection
     // Added ToString override
     public override string ToString()
     {
-        return $"McpConnection: Id={Id}, Url={Url}";
+        return $"McpConnection: Id={Id}";
     }
 }

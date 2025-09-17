@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Runtime.Models;
+using Microsoft.Extensions.AI;
 
 namespace Agent.Runtime.Interfaces
 {
@@ -21,6 +22,10 @@ namespace Agent.Runtime.Interfaces
         /// </summary>
         /// <param name="connection"></param>
         public void TryRemoveServer(McpConnection connection);
+
+        public List<AIFunction> GetAllFunctions();
+
+        public Task InitializeAsync();
     }
 }
 

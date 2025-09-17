@@ -179,4 +179,9 @@ public sealed class ReplayToolFactory<TContext> : AsyncInitializerBase, IToolFac
         _innerFactory.RegisterTool(tool, onNameConflict);
         return true;
     }
+
+    Task IToolFactory<TContext>.FindAndRegisterAllToolsAsync(BehaviorOnNameConflict onNameConflict)
+    {
+        throw new NotImplementedException();
+    }
 }

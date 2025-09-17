@@ -25,6 +25,7 @@ using Agent.Prometheus.Services;
 using Agent.Runtime;
 using Agent.Runtime.Communication;
 using Agent.Runtime.Helpers;
+using Agent.Runtime.Interfaces;
 using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents.Core;
@@ -226,6 +227,7 @@ class Program
                 assembliesToScan: AppDomain.CurrentDomain.GetAssemblies()
                     .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
                     .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true),
+                mcpToolsRepository: sp.GetRequiredService<IMcpConnectable>(),
                 extensibilityLoader: sp.GetRequiredService<IExtensibilityLoader>());
         });
 
