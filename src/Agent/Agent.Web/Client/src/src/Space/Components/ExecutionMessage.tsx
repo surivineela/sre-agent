@@ -12,10 +12,11 @@ import {
     Text,
     Tooltip,
     makeStyles,
+    mergeClasses,
     tokens,
 } from '@fluentui/react-components';
 import {
-    CheckmarkCircle16Filled,
+    CheckmarkCircle16Regular,
     ChevronDownUp16Regular,
     ChevronUpDown16Regular,
     Dismiss16Regular,
@@ -26,18 +27,15 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getDataPlaneErrorMessage } from '../../Common/Clients/DataPlaneClient';
+import { ThreadClient } from '../../Common/Clients/ThreadClient';
 import CopyButton from '../../Common/Components/CopyButton';
 import PermissionedButton from '../../Common/Components/PermissionedButton';
 import { Approval, AzCliExecution, ExecutionStatus, KubectlExecution } from '../../Common/Contracts/DataPlane/Message';
-// headers handled in ThreadClient
-import { ThreadClient } from '../../Common/Clients/ThreadClient';
 import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { usePermissionContext } from '../Contracts/PermissionContext';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
 import { ApprovalTimestamps } from './ApprovalTimestamps';
-import { getRiskColor, getRiskLevel } from './Utility';
-
-// TODO: Show collapsed view by default for non-pending executions
+import { getRiskLevel } from './Utility';
 
 /* Current API notes:
     - Pending vs PendingAuthorization -> agent vs user creds
@@ -70,20 +68,14 @@ type ExecutionMessageProps = {
 };
 
 const useStyles = makeStyles({
-    card: {
-        border: `1px solid ${tokens.colorNeutralStroke2}`,
-        borderRadius: tokens.borderRadiusMedium,
-        padding: '12px',
-        backgroundColor: tokens.colorNeutralBackground2,
-    },
     codeBlock: {
         position: 'relative',
-        border: `1px solid ${tokens.colorNeutralStroke2}`,
-        borderRadius: tokens.borderRadiusSmall,
-        backgroundColor: tokens.colorNeutralBackground1,
-        padding: '12px',
+        border: `${tokens.strokeWidthThin} solid ${tokens.colorNeutralStrokeDisabled}`,
+        borderRadius: tokens.borderRadiusMedium,
+        backgroundColor: tokens.colorNeutralBackground2,
+        padding: '10px',
         fontFamily: 'Consolas, Monaco, monospace',
-        color: tokens.colorNeutralForeground1,
+        color: tokens.colorNeutralForeground2,
     },
     copyButton: {
         position: 'absolute',
@@ -118,9 +110,25 @@ const useStyles = makeStyles({
         fontFamily: 'Consolas, Monaco, monospace',
         fontSize: '12px',
     },
+    outputPreCollapsed: {
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        width: '95%',
+        display: 'block',
+    },
+    statusBadge: {
+        minWidth: '24px',
+        radius: tokens.borderRadiusLarge,
+        height: '24px',
+        overflowWrap: 'normal',
+    },
 });
 
 const ExecutionMessage = ({ execution, threadId, type, updateSpecialMessageInStreamingMessage }: ExecutionMessageProps) => {
+    const { userIdAndDisplayName } = useAuthenticatedUserInfo();
+    const classes = useStyles();
+    const intl = useIntl();
     const { resourceId, sreAgentEndpoint } = useContext(EnvironmentContext);
     const azPortalProxy = useAzPortalContext();
     const { canApproveThreads } = usePermissionContext();
@@ -132,17 +140,11 @@ const ExecutionMessage = ({ execution, threadId, type, updateSpecialMessageInStr
         execution.status !== ExecutionStatus.Pending && execution.status !== ExecutionStatus.PendingAuthorization
     );
 
-    const { userIdAndDisplayName } = useAuthenticatedUserInfo();
-
-    const riskLevel = getRiskLevel(currentExecution.command);
-    const riskColor = getRiskColor(riskLevel);
-    const classes = useStyles();
-    const intl = useIntl();
-
-    const executedByName = currentExecution.executedBy?.displayName;
-    const isExecutedWithUserPerms = executedByName && executedByName !== SreAgentDisplayName;
-
     const threadClient = useMemo(() => ThreadClient.getInstance(sreAgentEndpoint), [sreAgentEndpoint]);
+
+    const riskLevel = useMemo(() => getRiskLevel(currentExecution.command, intl), [currentExecution.command, intl]);
+    const executedByName = useMemo(() => currentExecution.executedBy?.displayName, [currentExecution.executedBy]);
+    const isExecutedWithUserPerms = useMemo(() => executedByName && executedByName !== SreAgentDisplayName, [executedByName]);
 
     const { basePath, executionTypeLabel } = useMemo(() => {
         switch (type) {
@@ -164,36 +166,36 @@ const ExecutionMessage = ({ execution, threadId, type, updateSpecialMessageInStr
         return currentExecution.status === ExecutionStatus.Pending || currentExecution.status === ExecutionStatus.PendingAuthorization;
     }, [currentExecution.status]);
 
-    const statusTag = useMemo(() => {
+    const statusBadge = useMemo(() => {
         switch (currentExecution.status) {
             case ExecutionStatus.Completed:
                 return (
-                    <Badge color="success" icon={<CheckmarkCircle16Filled />}>
-                        <FormattedMessage {...SreAgentResources.completed} />
+                    <Badge color="success" icon={<CheckmarkCircle16Regular />} className={classes.statusBadge}>
+                        {!isCollapsed && <FormattedMessage {...SreAgentResources.completed} />}
                     </Badge>
                 );
             case ExecutionStatus.Failed:
                 return (
-                    <Badge color="danger" size="large" icon={<DismissCircle16Filled />}>
-                        <FormattedMessage {...SreAgentResources.failed} />
+                    <Badge color="danger" size="large" icon={<DismissCircle16Filled />} className={classes.statusBadge}>
+                        {!isCollapsed && <FormattedMessage {...SreAgentResources.failed} />}
                     </Badge>
                 );
             case ExecutionStatus.Running:
                 return (
-                    <Badge appearance="outline" color="informative" icon={<Spinner size="extra-tiny" />}>
-                        <FormattedMessage {...SreAgentResources.running} />
+                    <Badge appearance="outline" color="informative" icon={<Spinner size="extra-tiny" />} className={classes.statusBadge}>
+                        {!isCollapsed && <FormattedMessage {...SreAgentResources.running} />}
                     </Badge>
                 );
             case ExecutionStatus.Cancelled:
                 return (
-                    <Badge color="informative" icon={<Dismiss16Regular />}>
-                        <FormattedMessage {...SreAgentResources.canceled} />
+                    <Badge color="informative" icon={<Dismiss16Regular />} className={classes.statusBadge}>
+                        {!isCollapsed && <FormattedMessage {...SreAgentResources.canceled} />}
                     </Badge>
                 );
             default:
                 return null;
         }
-    }, [currentExecution.status]);
+    }, [currentExecution.status, classes.statusBadge, isCollapsed]);
 
     const getCombinedOutput = (): string => {
         let outputText = '';
@@ -377,13 +379,16 @@ const ExecutionMessage = ({ execution, threadId, type, updateSpecialMessageInStr
     };
 
     return (
-        <Card className={classes.card}>
+        <Card>
             <div className={classes.headerRow}>
                 <div className={classes.summaryLeft}>
                     <Text weight="semibold">{currentExecution.description}</Text>
-                    <Badge appearance="tint" size="large" color={riskColor}>
+                    <Badge appearance="outline" size="large" color="informative">
                         {riskLevel}
                     </Badge>
+
+                    {isCollapsed && statusBadge}
+                    {isCollapsed && executedByName && isExecutedWithUserPerms && <Caption1>{executedByName}</Caption1>}
                 </div>
 
                 {!isCurrentExecutionPending && (
@@ -406,12 +411,12 @@ const ExecutionMessage = ({ execution, threadId, type, updateSpecialMessageInStr
                 )}
             </div>
 
-            <div className={classes.codeBlock} style={{ marginTop: 8 }}>
+            <div className={classes.codeBlock} style={{ marginTop: 4 }}>
                 {!isCollapsed && <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>{executionTypeLabel}</Caption1>}
                 <div className={classes.copyButton}>
                     <CopyButton textToCopy={currentExecution.command} />
                 </div>
-                <pre className={classes.outputPre}>
+                <pre className={mergeClasses(classes.outputPre, isCollapsed ? classes.outputPreCollapsed : undefined)}>
                     <code>{currentExecution.command}</code>
                 </pre>
             </div>
@@ -425,14 +430,14 @@ const ExecutionMessage = ({ execution, threadId, type, updateSpecialMessageInStr
                         <div className={classes.copyButton}>
                             <CopyButton textToCopy={currentExecution.stdin || ''} />
                         </div>
-                        <pre className={classes.outputPre} style={{ color: '#b58900' }}>
+                        <pre className={classes.outputPre} style={{ color: tokens.colorStatusWarningForeground1 }}>
                             <code>{currentExecution.stdin}</code>
                         </pre>
                     </div>
                 </div>
             )}
 
-            <Divider style={{ marginTop: 8 }} />
+            {!isCollapsed && <Divider style={{ marginTop: 8 }} />}
 
             {isCurrentExecutionPending && (
                 <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
@@ -475,9 +480,9 @@ const ExecutionMessage = ({ execution, threadId, type, updateSpecialMessageInStr
                 </div>
             )}
 
-            {!isCurrentExecutionPending && (
+            {!isCurrentExecutionPending && !isCollapsed && (
                 <div className={classes.infoLine} style={{ marginTop: 12 }}>
-                    <div style={{ overflowWrap: 'normal' }}>{statusTag}</div>
+                    {statusBadge}
 
                     {currentExecution.status === ExecutionStatus.Cancelled ? (
                         <Text>
@@ -527,12 +532,12 @@ const ExecutionMessage = ({ execution, threadId, type, updateSpecialMessageInStr
                                     <CopyButton textToCopy={getCombinedOutput()} />
                                 </div>
                                 {currentExecution.output && (
-                                    <pre className={classes.outputPre} style={{ color: '#198754' }}>
+                                    <pre className={classes.outputPre} style={{ color: tokens.colorStatusSuccessForeground1 }}>
                                         {currentExecution.output}
                                     </pre>
                                 )}
                                 {currentExecution.error && (
-                                    <pre className={classes.outputPre} style={{ color: '#d13438', marginTop: 8 }}>
+                                    <pre className={classes.outputPre} style={{ color: tokens.colorStatusDangerForeground1, marginTop: 8 }}>
                                         <FormattedMessage {...SreAgentResources.error} />: {currentExecution.error}
                                     </pre>
                                 )}

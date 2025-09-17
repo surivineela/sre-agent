@@ -1,42 +1,27 @@
-enum ExecutionRiskLevel {
-    Safe = 'Safe',
-    Low = 'Low',
-    Medium = 'Medium',
-    High = 'High',
-}
+import { IntlShape } from 'react-intl';
+import { SreAgentResources } from '../../Strings/SREAgentResources';
 
-export const getRiskLevel = (command: string): ExecutionRiskLevel => {
+export const getRiskLevel = (command: string, intl: IntlShape): string => {
     const cmd = command.toLowerCase();
 
-    // High risk operations
-    if (cmd.includes('delete') || cmd.includes('remove') || cmd.includes('purge')) return ExecutionRiskLevel.High;
-
-    // Medium risk operations
-    if (cmd.includes('create') || cmd.includes('update') || cmd.includes('set') || cmd.includes('scale') || cmd.includes('restart'))
-        return ExecutionRiskLevel.Medium;
-
-    // Low risk operations
-    if (cmd.includes('start') || cmd.includes('stop') || cmd.includes('enable') || cmd.includes('disable')) return ExecutionRiskLevel.Low;
-
-    // Safe operations (read-only)
-    if (cmd.includes('list') || cmd.includes('show') || cmd.includes('get') || cmd.includes('describe')) return ExecutionRiskLevel.Safe;
-
-    return ExecutionRiskLevel.Medium;
-};
-
-export const getRiskColor = (risk: ExecutionRiskLevel) => {
-    switch (risk) {
-        case ExecutionRiskLevel.Safe:
-            return 'success';
-        case ExecutionRiskLevel.Low:
-            return 'brand';
-        case ExecutionRiskLevel.Medium:
-            return 'warning';
-        case ExecutionRiskLevel.High:
-            return 'danger';
-        default:
-            return 'informative';
+    if (cmd.includes('delete') || cmd.includes('remove') || cmd.includes('purge')) {
+        return intl.formatMessage(SreAgentResources.highRisk);
     }
+
+    if (cmd.includes('create') || cmd.includes('update') || cmd.includes('set') || cmd.includes('scale') || cmd.includes('restart')) {
+        return intl.formatMessage(SreAgentResources.mediumRisk);
+    }
+
+    if (cmd.includes('start') || cmd.includes('stop') || cmd.includes('enable') || cmd.includes('disable')) {
+        return intl.formatMessage(SreAgentResources.lowRisk);
+    }
+
+    // Read-only operations
+    if (cmd.includes('list') || cmd.includes('show') || cmd.includes('get') || cmd.includes('describe')) {
+        return intl.formatMessage(SreAgentResources.safe);
+    }
+
+    return intl.formatMessage(SreAgentResources.mediumRisk);
 };
 
 /** Ex: 7/15/25, 1:00:00 PM */

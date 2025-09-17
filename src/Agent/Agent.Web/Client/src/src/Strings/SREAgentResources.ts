@@ -345,6 +345,10 @@ export const SreAgentResources = defineMessages({
     detailsAccess: { defaultMessage: 'Details', id: 'Lv0zJu' },
     detailsAccessNoAccess: { defaultMessage: 'No access', id: 'XLRt15' },
     equals: { defaultMessage: 'equals', id: 'Y2QRpS' },
+    safe: { defaultMessage: 'Safe', id: 'Fr5LyM' },
+    lowRisk: { defaultMessage: 'Low risk', id: 'jd2Xsp' },
+    mediumRisk: { defaultMessage: 'Medium risk', id: 'ZwYyES' },
+    highRisk: { defaultMessage: 'High risk', id: 'ox7DwN' },
 });
 
 export const SreAgentTabResources = defineMessages({

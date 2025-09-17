@@ -1861,6 +1861,12 @@
       "value": "Acknowledged"
     }
   ],
+  "Fr5LyM": [
+    {
+      "type": 0,
+      "value": "Safe"
+    }
+  ],
   "Fv1ZSz": [
     {
       "type": 0,
@@ -3935,6 +3941,12 @@
       "value": " managed resource groups to your SRE Agent"
     }
   ],
+  "ZwYyES": [
+    {
+      "type": 0,
+      "value": "Medium risk"
+    }
+  ],
   "a5msuh": [
     {
       "type": 0,
@@ -4941,6 +4953,12 @@
       "value": "Unread"
     }
   ],
+  "jd2Xsp": [
+    {
+      "type": 0,
+      "value": "Low risk"
+    }
+  ],
   "jlOO/9": [
     {
       "type": 0,
@@ -5365,6 +5383,12 @@
     {
       "type": 0,
       "value": "Medium"
+    }
+  ],
+  "ox7DwN": [
+    {
+      "type": 0,
+      "value": "High risk"
     }
   ],
   "p/xAmY": [
