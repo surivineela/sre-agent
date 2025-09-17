@@ -11,8 +11,7 @@ public static partial class TextVolumeHelpers
 {
     public static string ApplyWordTruncation(
         string input,
-        int maxWords = 1000,
-        bool addTruncationMessage = true)
+        int maxWords = 1000)
     {
         if (string.IsNullOrEmpty(input) || maxWords <= 0)
         {
@@ -37,13 +36,10 @@ public static partial class TextVolumeHelpers
 
         sb.Append("...");
 
-        if (addTruncationMessage)
-        {
-            var remainingWords = matches.Count - maxWords;
-            sb.Append(
-                $"\n[TRUNCATED: Output limited to first {maxWords} words. " +
-                $"{remainingWords} additional words were cut.]");
-        }
+        var remainingWords = matches.Count - maxWords;
+        sb.Append(
+            $"\n[TRUNCATED: Output limited to first {maxWords} words. " +
+            $"{remainingWords} additional words were cut.]");
 
         return sb.ToString();
     }

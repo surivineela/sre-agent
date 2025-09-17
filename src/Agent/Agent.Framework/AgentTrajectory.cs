@@ -127,6 +127,12 @@ public sealed class AgentTrajectory
 
     public void Append(ChatMessage message)
     {
+        // ignore system messages.. they are not part of trajectory, rather guidances
+        if (message.Role == ChatRole.System)
+        {
+            return;
+        }
+
         foreach (var content in message.Contents)
         {
             if (content is TextContent textContent)
@@ -251,8 +257,7 @@ public sealed class AgentTrajectory
 
             return TextVolumeHelpers.ApplyWordTruncation(
                 input: resultString,
-                maxWords: MaxResultWords,
-                addTruncationMessage: false);
+                maxWords: MaxResultWords);
         }
     }
 

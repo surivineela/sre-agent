@@ -263,7 +263,7 @@ public static class Runner
                     );
                 }
 
-                var turnResult = await RunSingleTurnAsync(
+                var turnResult = await RunSingleStepAsync(
                     agent: currentAgent,
                     originalInput: originalInput,
                     generatedMessages: generatedMessages,
@@ -538,7 +538,7 @@ public static class Runner
         return true;
     }
 
-    public static async Task<SingleStepResult<TContext>> RunSingleTurnAsync<TContext>(
+    public static async Task<SingleStepResult<TContext>> RunSingleStepAsync<TContext>(
         Agent<TContext> agent,
         List<ChatMessage> originalInput,
         List<ChatMessage> generatedMessages,
@@ -591,7 +591,8 @@ public static class Runner
         var chatClient = agent.GetChatClient(config);
 
         List<ChatMessage> modelInput = [new ChatMessage(ChatRole.System, systemPrompt)];
-        modelInput.AddRange(originalInput);
+        var lastCompactedInput = SplitLastCompactedSummary(originalInput);
+        modelInput.AddRange(lastCompactedInput);
         modelInput.AddRange(generatedMessages);
 
         // Process handoff prompt override if current agent has UserPromptOverride
@@ -1183,6 +1184,25 @@ public static class Runner
         }
 
         return userQueryLines.Count > 0 ? string.Join('\n', userQueryLines).Trim() : messageText;
+    }
+
+    private static List<ChatMessage> SplitLastCompactedSummary(List<ChatMessage> modelInput)
+    {
+        // Reverse search to find the first assistant message that starts with ChatSummaryMarker
+        for (var i = modelInput.Count - 1; i >= 0; i--)
+        {
+            var message = modelInput[i];
+
+            if (message.Role == ChatRole.User
+                && message.Text.StartsWith(Summarizer.ChatSummaryMarker))
+            {
+                // Return all messages from this point onward
+                return modelInput.Skip(i).ToList();
+            }
+        }
+
+        // If no compacted summary found, return the original input
+        return modelInput;
     }
 
     private static void AddPlanReminderIfNeeded(List<ChatMessage> modelInput, IReadOnlyList<AIFunction> tools)

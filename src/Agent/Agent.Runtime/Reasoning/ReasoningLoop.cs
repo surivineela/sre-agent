@@ -97,6 +97,8 @@ public class ReasoningLoop : IDisposable
 
     private const string RetrieveMarker = "#retrieve";
     private const string RememberMarker = "#remember";
+    private const string ForgetMarker = "#forget";
+    private const string CompactMarker = Core.Constants.ChatCommands.CompactCommand;
 
     public ReasoningLoop(
         ILoggerFactory loggerFactory,
@@ -429,14 +431,14 @@ public class ReasoningLoop : IDisposable
                             }
 
                             // process #remember command
-                            if (chatMessage.Message.Text.Contains(RememberMarker, StringComparison.OrdinalIgnoreCase) && _agentMemoryEnabled)
+                            if (chatMessage.Message.Text.StartsWith(RememberMarker, StringComparison.OrdinalIgnoreCase) && _agentMemoryEnabled)
                             {
                                 await HandleRememberCommandAsync(agentChatHistory, chatMessage.Message.Text, cancellationToken);
                                 return;
                             }
 
                             // process #retrieve command
-                            if (chatMessage.Message.Text.Contains(RetrieveMarker, StringComparison.OrdinalIgnoreCase) && _agentMemoryEnabled)
+                            if (chatMessage.Message.Text.StartsWith(RetrieveMarker, StringComparison.OrdinalIgnoreCase) && _agentMemoryEnabled)
                             {
 
                                 await HandleRetrieveCommandAsync(agentChatHistory, chatMessage.Message.Text, cancellationToken);
@@ -444,9 +446,16 @@ public class ReasoningLoop : IDisposable
                             }
 
                             // process #forget command
-                            if (chatMessage.Message.Text.Contains("#forget", StringComparison.OrdinalIgnoreCase) && _agentMemoryEnabled)
+                            if (chatMessage.Message.Text.StartsWith(ForgetMarker, StringComparison.OrdinalIgnoreCase) && _agentMemoryEnabled)
                             {
                                 await HandleForgetCommandAsync(agentChatHistory, chatMessage.Message.Text, cancellationToken);
+                                return;
+                            }
+
+                            // process /compact command
+                            if (chatMessage.Message.Text.StartsWith(CompactMarker, StringComparison.OrdinalIgnoreCase))
+                            {
+                                await HandleCompactCommandAsync(agentChatHistory, chatMessage.Message.Text, cancellationToken);
                                 return;
                             }
 
@@ -1473,8 +1482,7 @@ public class ReasoningLoop : IDisposable
                 outputToken: 0,
                 threadSource: string.Empty,
                 featureConfig: WebJsonSerializer.Serialize(_featureConfig),
-                actionMetadata: WebJsonSerializer.Serialize(executionObj)
-            );
+                actionMetadata: WebJsonSerializer.Serialize(executionObj));
         }
         catch (Exception ex)
         {
@@ -1845,7 +1853,7 @@ public class ReasoningLoop : IDisposable
     {
         try
         {
-            _logger.LogInternalInformation("[{threadId}]Processing #remember command.", _context.ThreadId);
+            _logger.LogInternalInformation($"[{_context.ThreadId}] Processing {RememberMarker} command.");
 
             await PersistReasoningMessageAsync(agentChatHistory, new ChatMessage(ChatRole.User, userMessage));
 
@@ -1893,7 +1901,7 @@ public class ReasoningLoop : IDisposable
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, "[{threadId}]Error processing #remember command", _context.ThreadId);
+            _logger.LogInternalError(ex, $"[{_context.ThreadId}]Error processing {RememberMarker} command");
 
             var errorMessage = new ChatMessage(ChatRole.Assistant, "Error saving memory. Please try again.");
 
@@ -1906,17 +1914,16 @@ public class ReasoningLoop : IDisposable
     {
         try
         {
-            _logger.LogInternalInformation("[{threadId}]Processing #forget command.", _context.ThreadId);
+            _logger.LogInternalInformation($"[{_context.ThreadId}] Processing {ForgetMarker} command.");
 
             await PersistReasoningMessageAsync(agentChatHistory, new ChatMessage(ChatRole.User, userMessage));
 
-            const string retrievePrefix = "#forget";
-            var retrieveIndex = userMessage.IndexOf(retrievePrefix, StringComparison.OrdinalIgnoreCase);
-            var query = userMessage.Substring(retrieveIndex + retrievePrefix.Length).Trim();
+            var forgetIndex = userMessage.IndexOf(ForgetMarker, StringComparison.OrdinalIgnoreCase);
+            var query = userMessage.Substring(forgetIndex + ForgetMarker.Length).Trim();
 
             if (string.IsNullOrWhiteSpace(query))
             {
-                var errorMessage = new ChatMessage(ChatRole.Assistant, "Please provide what to forget after #forget. For example: '#forget my preferences about coffee'");
+                var errorMessage = new ChatMessage(ChatRole.Assistant, $"Please provide what to forget after {ForgetMarker}. For example: '{ForgetMarker} my preferences about coffee'");
 
                 await PersistReasoningMessageAsync(agentChatHistory, errorMessage);
                 await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, errorMessage);
@@ -1945,25 +1952,24 @@ public class ReasoningLoop : IDisposable
             await PersistReasoningMessageAsync(agentChatHistory, responseMessage);
             await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, responseMessage);
 
-            _logger.LogInternalInformation("[{threadId}]Successfully processed #retrieve command with {count} memories", _context.ThreadId, memories.Count);
+            _logger.LogInternalInformation($"[{_context.ThreadId}] Successfully processed {ForgetMarker} command with {memories.Count} memories");
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, "[{threadId}]Error processing #retrieve command", _context.ThreadId);
+            _logger.LogInternalError(ex, $"[{_context.ThreadId}] Error processing {ForgetMarker} command");
 
-            var errorMessage = new ChatMessage(ChatRole.Assistant, "Error retrieving memories. Please try again.");
+            var errorMessage = new ChatMessage(ChatRole.Assistant, "Failed to forget memory. Please try again.");
 
             await PersistReasoningMessageAsync(agentChatHistory, errorMessage);
             await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, errorMessage);
         }
-
     }
 
     private async Task HandleRetrieveCommandAsync(AgentChatHistory agentChatHistory, string userMessage, CancellationToken cancellationToken)
     {
         try
         {
-            _logger.LogInternalInformation("[{threadId}]Processing #retrieve command.", _context.ThreadId);
+            _logger.LogInternalInformation($"[{_context.ThreadId}] Processing {RetrieveMarker} command.");
 
             var chatMessages = new List<ChatMessage>
             {
@@ -2018,8 +2024,6 @@ public class ReasoningLoop : IDisposable
 
             var prompt = $"Based on the following retrieved memories, please answer the user's query: '{query}'\n\n{memoryContext}";
 
-
-
             chatMessages.Add(new(ChatRole.User, prompt));
 
             var response = await _chatClient.GetResponseAsync(chatMessages, cancellationToken: cancellationToken);
@@ -2030,13 +2034,52 @@ public class ReasoningLoop : IDisposable
             await PersistReasoningMessageAsync(agentChatHistory, responseMessage);
             await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, responseMessage);
 
-            _logger.LogInternalInformation("[{threadId}]Successfully processed #retrieve command with {count} memories", _context.ThreadId, memories.Count);
+            _logger.LogInternalInformation($"[{_context.ThreadId}] Successfully processed {RetrieveMarker} command with {memories.Count} memories");
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, "[{threadId}]Error processing #retrieve command", _context.ThreadId);
+            _logger.LogInternalError(ex, $"[{_context.ThreadId}] Error processing {RetrieveMarker} command");
 
             var errorMessage = new ChatMessage(ChatRole.Assistant, "Error retrieving memories. Please try again.");
+
+            await PersistReasoningMessageAsync(agentChatHistory, errorMessage);
+            await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, errorMessage);
+        }
+    }
+
+    private async Task HandleCompactCommandAsync(AgentChatHistory agentChatHistory, string userMessage, CancellationToken cancellationToken)
+    {
+        try
+        {
+            _logger.LogInternalInformation($"[{_context.ThreadId}] Processing {CompactMarker} command.");
+
+            // parse any contextual additional instructions
+            var compactIndex = userMessage.IndexOf(CompactMarker, StringComparison.OrdinalIgnoreCase);
+            var compactAdditionalInstructions = userMessage.Substring(compactIndex + CompactMarker.Length).Trim();
+
+            // call LLM to get the compacted chat
+            var compactedChat = await Summarizer.CompactChatHistoryAsync(
+                additionalInstructions: compactAdditionalInstructions,
+                chatHistory: _chatHistory!,
+                startingAgent: _defaultStartingAgent.Name,
+                autoHandOffEnabled: _autoHandOffEnabled,
+                chatClient: _chatClient);
+
+            // modify chat history
+            var compactedChatMessage = new ChatMessage(ChatRole.User, compactedChat);
+            await PersistReasoningMessageAsync(agentChatHistory, compactedChatMessage);
+
+            // Send response to user
+            _logger.LogInternalInformation($"[{_context.ThreadId}] Successfully compacted chat history");
+            var responseMessage = new ChatMessage(ChatRole.Assistant, "✅ Chat compacted successfully.");
+            await PersistReasoningMessageAsync(agentChatHistory, responseMessage);
+            await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, responseMessage);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"[{_context.ThreadId}] Error processing {CompactMarker} command");
+
+            var errorMessage = new ChatMessage(ChatRole.Assistant, "Error compacting chat history. Please try again.");
 
             await PersistReasoningMessageAsync(agentChatHistory, errorMessage);
             await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, errorMessage);

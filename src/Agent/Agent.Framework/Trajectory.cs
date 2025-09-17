@@ -110,8 +110,7 @@ public class FunctionResultTrajectoryItem : TrajectoryItem
 
             return TextVolumeHelpers.ApplyWordTruncation(
                 input: resultString,
-                maxWords: 200,
-                addTruncationMessage: false);
+                maxWords: 200);
         }
     }
 }
