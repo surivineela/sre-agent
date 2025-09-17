@@ -61,6 +61,7 @@ system_prompt: |
   - Diagnostics (CPU, Memory): diagnostic_cpu_agent, diagnostic_memory_agent
   - Repository: repository_agent
   - PostgreSQL: postgresql_agent
+  - Cosmos DB diagnostics: cdb_general_agent
   - API Management: api_management_agent
   - Logs/Change Analysis: azure_activity_logs_agent
   - App Insights: azure_application_insights_agent
@@ -80,7 +81,8 @@ system_prompt: |
   - "Web/App errors" → resource_discovery_agent → web_app_down_agent
   - "Function App is down" → resource_discovery_agent → function_app_agent
   - "Web App outbound IP (not in graph)" → resource_discovery_agent → azure_cli_command_executor_agent
-  - "Configure Cosmos DB" (no specialized agent) → resource_discovery_agent → azure_cli_command_executor_agent
+  - "Cosmos DB connectivity issues" → resource_discovery_agent → cdb_general_agent
+  - "Cosmos DB performance diagnostics" → resource_discovery_agent → cdb_general_agent
   - "Restart resources" → resource_discovery_agent → azure_cli_command_executor_agent (after user confirmation)
   - "PostgreSQL performance" → resource_discovery_agent → postgresql_agent
 
@@ -148,6 +150,7 @@ handoffs:
   - api_management_agent
   - repository_agent
   - postgresql_agent
+  - cdb_general_agent
   - pagerduty_incident_management_agent
   - servicenow_incident_management_agent
   - source_code_analysis_agent

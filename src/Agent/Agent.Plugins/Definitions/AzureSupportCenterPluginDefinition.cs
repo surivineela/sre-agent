@@ -1,9 +1,11 @@
+using System.ComponentModel;
 using Agent.Core.Models;
+using Agent.Framework;
 using Agent.Plugins.Interface;
 using Microsoft.SemanticKernel;
-using System.ComponentModel;
 
 namespace Agent.Plugins;
+[AgentToolPlugin]
 public class AzureSupportCenterPluginDefinition
 {
     private readonly IAzureSupportCenterPlugin _supportCenterPlugin;
@@ -13,7 +15,7 @@ public class AzureSupportCenterPluginDefinition
         _supportCenterPlugin = supportCenterPlugin;
     }
 
-    [KernelFunction("GetSupportProductsFromArm")]
+    [AgentTool(ToolMode.Auto)]
     [Description("Retrieve a list of support products matching the given resource provider. May return more than one matching product. Disambiguate before using the results for further processing.")]
     public async Task<List<SupportProductFromArmModel>> GetSupportProductsFromArm(
         [Description("The resource ID of the azure resource to execute diagnostics against.")] string resourceId)
@@ -21,14 +23,14 @@ public class AzureSupportCenterPluginDefinition
         return await _supportCenterPlugin.GetSupportProductsFromArm(resourceId);
     }
 
-    [KernelFunction("GetSupportProblemClassificationsForProduct")]
+    [AgentTool(ToolMode.Auto)]
     [Description("Retrieve support problem classifications for a specific product.")]
     public async Task<List<SupportProblemClassificationModel>> GetSupportProblemClassificationsForProduct(Guid productId)
     {
         return await _supportCenterPlugin.GetSupportProblemClassificationsForProduct(productId);
     }
 
-    [KernelFunction("GetAzureSupportCenterDiagnosticResultsForQuestion")]
+    [AgentTool(ToolMode.Auto)]
     [Description("Retrieve diagnostic results for a specific question from Azure Support Center.")]
     public async Task<string> GetAzureSupportCenterDiagnosticResultsForQuestion(
         [Description("The resource ID of the azure resource to execute diagnostics against.")] string resourceId,

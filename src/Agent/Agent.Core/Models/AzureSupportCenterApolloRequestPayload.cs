@@ -27,14 +27,13 @@ public class AzureSupportCenterApolloRequestPayloadWrapper
                 Parameters = new ApolloRequestParameters() {
                     ResourceUri = resourceId,
                     SubscriptionId = subscriptionId,
-                    SapId = sapId,
+                    ProblemClassificationId = sapId,
                     SearchText = question,
                     ProductId = productId,
                     LegacyProductId = legacyProductId,
                     LegacyTopicId = legacyTopicId,
                     Preview = "false",
-                    UseInsightPickerV2 = "true",
-                    ResourceTag = serviceIdentifierName ?? string.Empty
+                    UseInsightPickerV2 = "true"
                 }
             }
         };
@@ -67,8 +66,8 @@ public class ApolloRequestParameters
     [JsonPropertyName("SubscriptionId")]
     public required string SubscriptionId { get; set; }
 
-    [JsonPropertyName("SapId")]
-    public required string SapId { get; set; }
+    [JsonPropertyName("ProblemClassificationId")]
+    public required string ProblemClassificationId { get; set; }
 
     [JsonPropertyName("SearchText")]
     public required string SearchText { get; set; }
@@ -84,9 +83,6 @@ public class ApolloRequestParameters
 
     [JsonPropertyName("Preview")]
     public required string Preview { get; set; } = "false";
-
-    [JsonPropertyName("ResourceTag")]
-    public required string ResourceTag { get; set; }
 
     [JsonPropertyName("UseInsightPickerV2")]
     public required string UseInsightPickerV2 { get; set; } = "true";

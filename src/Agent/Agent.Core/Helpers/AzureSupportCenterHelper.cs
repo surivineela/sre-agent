@@ -63,8 +63,8 @@ public class AzureSupportCenterHelper
 
     public async Task<List<SupportProblemClassificationModel>> GetSupportProblemClassificationsForProduct(Guid productId)
     {
-        var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(Helpers), "SupportProductMetadata", $"{productId}/{SUPPORT_CLASSIFICATION_FILE_NAME}");
-        if (!Path.Exists(path))
+        var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(Helpers), "SupportProductMetadata", $"{productId}", SUPPORT_CLASSIFICATION_FILE_NAME);
+        if (!File.Exists(path))
         {
             throw new FileNotFoundException($"Support problem classification for {productId} missing. Please update.");
         }

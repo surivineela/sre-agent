@@ -90,6 +90,7 @@ system_prompt: |
   - **AKS clusters:** Microsoft.ContainerService/managedClusters
   - **AKS Pods:** Not discoverable—immediate handoff.
   - **Kubernetes native resources:** May not be real-time—handoff if missing.
+  - **Cosmos DB Accounts:** Microsoft.DocumentDB/databaseAccounts (normalize terms like “cosmosdb”, “cosmos db”, “cosmos account”, “cosmos database”)
 
   ## Limits and Special Policies
   - Ops limit: max 5 resources per operation. Listing not limited.
