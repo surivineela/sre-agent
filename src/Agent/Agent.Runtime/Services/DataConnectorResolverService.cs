@@ -119,20 +119,42 @@ public class DataConnectorResolverService : IConnectorResolver
                 // 3. Refine by DataSource if provided
                 if (!string.IsNullOrWhiteSpace(dataSource))
                 {
-                    settings = candidates.FirstOrDefault(ds =>
-                        Uri.TryCreate(ds.DataSource, UriKind.Absolute, out var uri) &&
-                        uri.Host.Contains(dataSource, StringComparison.OrdinalIgnoreCase));
-
-                    if (settings == null && _env.IsDevelopment())
+                    foreach (var candidate in candidates)
                     {
-                        settings = candidates.First();
-                        settings.DataSource = $"https://{dataSource}.kusto.windows.net/capps"; // Override with runtime data source
+                        if (Uri.TryCreate(candidate.DataSource, UriKind.Absolute, out var uri) && uri != null)
+                        {
+                            // Extract the cluster name from the host (e.g., "mycluster" from "mycluster.kusto.windows.net")
+                            var hostParts = uri.Host.Split('.');
+                            var clusterName = hostParts.Length > 0 ? hostParts[0] : uri.Host;
+                            
+                            // Match against both the full host and the extracted cluster name
+                            if (string.Equals(uri.Host, dataSource, StringComparison.OrdinalIgnoreCase) ||
+                                string.Equals(clusterName, dataSource, StringComparison.OrdinalIgnoreCase))
+                            {
+                                settings = candidate;
+                                break;
+                            }
+                        }
                     }
-                    else
-                    {
-                        throw new InvalidOperationException(
-                            $"Connector of type '{connectorType}' with DataSource '{dataSource}' not found.");
-                    }
+                        if (settings == null)
+                        {
+                            if (_env.IsDevelopment())
+                            {
+                                var originalSettings = candidates.First();
+                                settings = new DataConnectorInstanceSettings
+                                {
+                                    Name = originalSettings.Name,
+                                    DataConnectorType = originalSettings.DataConnectorType,
+                                    DataSource = $"https://{dataSource}.kusto.windows.net/capps", // Override with runtime data source
+                                    Identity = originalSettings.Identity
+                                };
+                            }
+                            else
+                            {
+                                throw new InvalidOperationException(
+                                    $"Connector of type '{connectorType}' with DataSource '{dataSource}' not found.");
+                            }
+                        }
                 }
                 else
                 {
