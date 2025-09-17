@@ -7,13 +7,14 @@ import { AppInsightsClient } from '../../Common/Clients/AppInsightsClient';
 import { TimeRangeKeyLabelPair, TimeRangePillFilter, TimeRangeValue } from '../../Common/Components/PillFilter/TimeRangePillFilter';
 import { TimespanKeys } from '../../Common/Helpers/Date';
 import { getLocalizedIncidentPlatformName } from '../../Common/Helpers/IncidentManagement';
+import { getPercentChangeInArray } from '../../Common/Helpers/Math';
 import { useAuthToken } from '../../Common/Hooks/useAuthToken';
 import { IncidentManagementResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { SreAgentContext } from '../Contracts/Context';
 import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
 import { ChartCard } from './Watchtower/Components/ChartCard';
 import { IncidentResponsePlanGrid } from './Watchtower/Components/IncidentResponsePlanGrid';
-import { StatCard } from './Watchtower/Components/StatCard';
+import { StatCard, StatCardData } from './Watchtower/Components/StatCard';
 import {
     getHandlersIncidentCoverageTrendQuery,
     getHandlersIncidentSummaryTrendQuery,
@@ -21,9 +22,11 @@ import {
     watchtowerTempAppInsightsAppId,
 } from './Watchtower/Queries';
 
-// TODO: Hook up analysis stat cards + incident coverage lines
-// TODO: IncidentResponsePlanGrid response plan link + sparklines data
+// NOTE: Currently no way to calculate incidents NOT handled by a response plan
+// NOTE: Doesn't look like there's data for "Mean time to mitigate" for response plan incidents
+
 // TODO: Hook up actual app insights (agent.logConfiguration.applicationInsightsConfiguration.<appId|connectionString>) (-> remove watchtowerTempAppInsightsAppId)
+// (disable nav if agent doesn't have appInsights configured + tooltip explaining this)
 
 interface IncidentCoverageItem {
     handledAt: Date;
@@ -101,27 +104,109 @@ const Analysis = () => {
         [intl]
     );
 
+    const numIncidentsReviewed = useMemo(
+        () => incidentCoverageResponse?.reduce((sum, item) => sum + item.distinctIncidentCount, 0) ?? 0,
+        [incidentCoverageResponse]
+    );
+
+    const incidentsReviewedStatCardData = useMemo<StatCardData>(() => {
+        const percentChange = getPercentChangeInArray(incidentCoverageResponse ?? [], 'distinctIncidentCount');
+
+        return {
+            currentValue: numIncidentsReviewed,
+            percentChange,
+            sparklineData: {
+                lineChartData: [
+                    {
+                        legend: intl.formatMessage(IncidentManagementResources.incidentsReviewed),
+                        color: getColorFromToken(DataVizPalette.color16),
+                        data: incidentCoverageResponse?.map(row => ({ x: row.handledAt, y: row.distinctIncidentCount })) ?? [],
+                    },
+                ],
+            },
+        };
+    }, [intl, incidentCoverageResponse, numIncidentsReviewed]);
+
+    const mitigatedByAgentStatCardData = useMemo<StatCardData>(() => {
+        const percentChange = getPercentChangeInArray(incidentSummaryResponse ?? [], 'agentMitigated');
+
+        return {
+            currentValue: incidentSummaryResponse?.reduce((sum, item) => sum + item.agentMitigated, 0) ?? 0,
+            maxValue: numIncidentsReviewed,
+            percentChange,
+            sparklineData: {
+                lineChartData: [
+                    {
+                        legend: intl.formatMessage(IncidentManagementResources.mitigatedByAgent),
+                        color: getColorFromToken(DataVizPalette.color16),
+                        data: incidentSummaryResponse?.map(row => ({ x: row.handledAt, y: row.agentMitigated })) ?? [],
+                    },
+                ],
+            },
+        };
+    }, [intl, incidentSummaryResponse, numIncidentsReviewed]);
+
+    const mitigatedByUserStatCardData = useMemo<StatCardData>(() => {
+        const percentChange = getPercentChangeInArray(incidentSummaryResponse ?? [], 'userMitigated');
+
+        return {
+            currentValue: incidentSummaryResponse?.reduce((sum, item) => sum + item.userMitigated, 0) ?? 0,
+            maxValue: numIncidentsReviewed,
+            percentChange,
+            sparklineData: {
+                lineChartData: [
+                    {
+                        legend: intl.formatMessage(IncidentManagementResources.mitigatedByUser),
+                        color: getColorFromToken(DataVizPalette.color16),
+                        data: incidentSummaryResponse?.map(row => ({ x: row.handledAt, y: row.userMitigated })) ?? [],
+                    },
+                ],
+            },
+        };
+    }, [intl, incidentSummaryResponse, numIncidentsReviewed]);
+
+    const pendingUserActionStatCardData = useMemo<StatCardData>(() => {
+        const percentChange = getPercentChangeInArray(incidentSummaryResponse ?? [], 'pendingUserAction');
+
+        return {
+            currentValue: incidentSummaryResponse?.reduce((sum, item) => sum + item.pendingUserAction, 0) ?? 0,
+            maxValue: numIncidentsReviewed,
+            percentChange,
+            sparklineData: {
+                lineChartData: [
+                    {
+                        legend: intl.formatMessage(IncidentManagementResources.pendingUserAction),
+                        color: getColorFromToken(DataVizPalette.color16),
+                        data: incidentSummaryResponse?.map(row => ({ x: row.handledAt, y: row.pendingUserAction })) ?? [],
+                    },
+                ],
+            },
+        };
+    }, [intl, incidentSummaryResponse, numIncidentsReviewed]);
+
     const incidentCoverageChartData = useMemo<IChartProps>(() => {
         const chartData = incidentCoverageResponse ?? [];
 
         const data: IChartProps = {
             lineChartData: [
-                {
+                /*{
                     legend: intl.formatMessage(IncidentManagementResources.totalIncidents),
                     color: getColorFromToken(DataVizPalette.color1),
                     data: chartData.map(row => ({ x: row.handledAt, y: row.distinctIncidentCount })) ?? [],
-                },
-                // TODO: This data ???
+                    legendShape: 'circle',
+                },*/
                 {
                     legend: intl.formatMessage(IncidentManagementResources.incidentsReviewed),
-                    color: getColorFromToken(DataVizPalette.color2),
-                    data: chartData.map(row => ({ x: row.handledAt, y: row.distinctIncidentCount })) ?? [],
-                },
-                {
-                    legend: intl.formatMessage(IncidentManagementResources.incidentsNotHandledByResponsePlanCriteria),
                     color: getColorFromToken(DataVizPalette.color3),
                     data: chartData.map(row => ({ x: row.handledAt, y: row.distinctIncidentCount })) ?? [],
+                    legendShape: 'circle',
                 },
+                /*{
+                    legend: intl.formatMessage(IncidentManagementResources.incidentsNotHandledByResponsePlanCriteria),
+                    color: getColorFromToken(DataVizPalette.color2),
+                    data: chartData.map(row => ({ x: row.handledAt, y: row.distinctIncidentCount })) ?? [],
+                    legendShape: 'circle',
+                },*/
             ],
         };
 
@@ -137,21 +222,25 @@ const Analysis = () => {
                     legend: intl.formatMessage(IncidentManagementResources.incidentsReviewed),
                     color: getColorFromToken(DataVizPalette.color1),
                     data: chartData.map(row => ({ x: row.handledAt, y: row.distinctIncidentCount })) ?? [],
+                    legendShape: 'circle',
                 },
                 {
                     legend: intl.formatMessage(IncidentManagementResources.mitigatedByAgent),
-                    color: getColorFromToken(DataVizPalette.color2),
+                    color: getColorFromToken(DataVizPalette.color8),
                     data: chartData.map(row => ({ x: row.handledAt, y: row.agentMitigated })) ?? [],
+                    legendShape: 'circle',
                 },
                 {
                     legend: intl.formatMessage(IncidentManagementResources.mitigatedByUser),
-                    color: getColorFromToken(DataVizPalette.color3),
+                    color: getColorFromToken(DataVizPalette.color2),
                     data: chartData.map(row => ({ x: row.handledAt, y: row.userMitigated })) ?? [],
+                    legendShape: 'circle',
                 },
                 {
                     legend: intl.formatMessage(IncidentManagementResources.pendingUserAction),
-                    color: getColorFromToken(DataVizPalette.color4),
+                    color: getColorFromToken(DataVizPalette.color10),
                     data: chartData.map(row => ({ x: row.handledAt, y: row.pendingUserAction })) ?? [],
+                    legendShape: 'circle',
                 },
             ],
         };
@@ -181,7 +270,7 @@ const Analysis = () => {
                 resourceId,
                 logLevel: 'error',
                 data: {
-                    error: 'TODO',
+                    error: response.error?.response?.data?.error,
                 },
             });
         }
@@ -212,7 +301,7 @@ const Analysis = () => {
                 resourceId,
                 logLevel: 'error',
                 data: {
-                    error: 'TODO',
+                    error: response.error?.response?.data?.error,
                 },
             });
         }
@@ -245,7 +334,7 @@ const Analysis = () => {
                 resourceId,
                 logLevel: 'error',
                 data: {
-                    error: 'TODO',
+                    error: response.error?.response?.data?.error,
                 },
             });
         }
@@ -278,22 +367,26 @@ const Analysis = () => {
                                 subtitle={intl.formatMessage(IncidentManagementResources.acrossAllIncidentsInPeriod, {
                                     platform: getLocalizedIncidentPlatformName(incidentManagementPlatform ?? '', intl),
                                 })}
-                                isLoading={isIncidentSummaryLoading}
+                                data={incidentsReviewedStatCardData}
+                                isLoading={isIncidentCoverageLoading || isIncidentSummaryLoading}
                             />
                             <StatCard
                                 title={intl.formatMessage(IncidentManagementResources.mitigatedByAgent)}
                                 subtitle={intl.formatMessage(IncidentManagementResources.incidentsMitigatedByAgent)}
-                                isLoading={isIncidentSummaryLoading}
+                                data={mitigatedByAgentStatCardData}
+                                isLoading={isIncidentCoverageLoading || isIncidentSummaryLoading}
                             />
                             <StatCard
                                 title={intl.formatMessage(IncidentManagementResources.mitigatedByUser)}
                                 subtitle={intl.formatMessage(IncidentManagementResources.incidentsMitigatedByUser)}
-                                isLoading={isIncidentSummaryLoading}
+                                data={mitigatedByUserStatCardData}
+                                isLoading={isIncidentCoverageLoading || isIncidentSummaryLoading}
                             />
                             <StatCard
                                 title={intl.formatMessage(IncidentManagementResources.pendingUserAction)}
                                 subtitle={intl.formatMessage(IncidentManagementResources.incidentsThatRequireAttention)}
-                                isLoading={isIncidentSummaryLoading}
+                                data={pendingUserActionStatCardData}
+                                isLoading={isIncidentCoverageLoading || isIncidentSummaryLoading}
                             />
                         </div>
 
@@ -310,7 +403,7 @@ const Analysis = () => {
                             />
                         </div>
 
-                        <div style={{ display: 'flex', flex: '1 1 0', minHeight: 150 }}>
+                        <div style={{ display: 'flex', flex: '1 1 0', minHeight: 200 }}>
                             <IncidentResponsePlanGrid
                                 responsePlans={incidentHandlersResponse ?? []}
                                 isLoading={isIncidentHandlersLoading}

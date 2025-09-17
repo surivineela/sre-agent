@@ -38,6 +38,12 @@ export type AppInsightsQueryBody = {
     applications?: string[];
 };
 
+export type AppInsightsQueryResponseError = {
+    code: string;
+    correlationId: string;
+    message: string;
+};
+
 export type AppInsightsQueryResult = {
     tables: AppInsightsQueryResultTable[];
 };

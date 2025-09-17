@@ -24,7 +24,7 @@ export class AppInsightsClient {
                 isSuccessful: true,
                 content: response.data as AppInsightsQueryResult,
             };
-        } catch (e) {
+        } catch (e: any) {
             return {
                 isSuccessful: false,
                 error: e,

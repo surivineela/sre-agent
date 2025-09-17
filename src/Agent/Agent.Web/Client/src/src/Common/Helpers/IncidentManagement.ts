@@ -3,8 +3,7 @@ import { IncidentManagementPlatformResources } from '../../Strings/SREAgentResou
 import { IncidentManagementType } from '../Contracts/Azure/SreAgent';
 
 export const getLocalizedIncidentPlatformName = (platform: string, intl: IntlShape): string => {
-    const lowercasePlatform = platform?.toLowerCase() ?? '';
-    switch (lowercasePlatform) {
+    switch (platform) {
         case IncidentManagementType.AzMonitor:
             return intl.formatMessage(IncidentManagementPlatformResources.azMonitor);
         case IncidentManagementType.PagerDuty:
@@ -14,6 +13,6 @@ export const getLocalizedIncidentPlatformName = (platform: string, intl: IntlSha
         case IncidentManagementType.ServiceNow:
             return intl.formatMessage(IncidentManagementPlatformResources.serviceNow);
         default:
-            return '';
+            return platform;
     }
 };

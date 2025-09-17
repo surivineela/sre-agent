@@ -20,6 +20,7 @@ export const ChartCard = ({ title, data, isLoading }: ChartCardProps) => {
         return (
             data?.lineChartData?.map(item => ({
                 legend: item.legend,
+                // NOTE: BarCharts don't have a configurable `legendShape`, so squares to match the bars it is
                 color: item.color,
                 x: item.data[0]?.x ?? Date.now(),
                 y: item.data[0]?.y ?? 50,

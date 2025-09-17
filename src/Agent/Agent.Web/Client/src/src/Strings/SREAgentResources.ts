@@ -2,6 +2,7 @@ import { defineMessages } from 'react-intl';
 
 export const SreAgentResources = defineMessages({
     all: { defaultMessage: 'All', id: 'zQvVDJ' },
+    allAutonomyLevels: { defaultMessage: 'All autonomy levels', id: 'uI0Lmu' },
     addIdentity: { defaultMessage: 'Add identity', id: 'xUuESs' },
     azureSreAgent: { defaultMessage: 'Azure SRE Agent', id: 'Erci0g' },
     agentPermissionsLevel: { defaultMessage: 'Agent permissions level', id: '+bJIWo' },
@@ -1143,6 +1144,8 @@ export const IncidentManagementResources = defineMessages({
     incidentResponsePlan: { defaultMessage: 'Incident response plan', id: 'mky0K0' },
     noResponsePlansFound: { defaultMessage: 'No response plans found', id: 'W/siYq' },
     customPlan: { defaultMessage: 'Custom plan', id: 'NW3Qi+' },
+    searchResponsePlans: { defaultMessage: 'Search response plans', id: 'aTyEZH' },
+    allCustomPlans: { defaultMessage: 'All custom plans', id: 'tbPq1d' },
 });
 
 export const IncidentManagementPlatformResources = defineMessages({

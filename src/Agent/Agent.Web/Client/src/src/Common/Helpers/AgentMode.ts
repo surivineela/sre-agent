@@ -13,7 +13,7 @@ export const getAgentModeDisplayName = (mode: string, intl: IntlShape): string =
         case AgentMode.readonly:
             return intl.formatMessage(SreAgentResources.readonly);
         default:
-            return '';
+            return mode;
     }
 };
 
@@ -28,7 +28,7 @@ export const getLocalizedAgentMode = (mode: string, intl: IntlShape): string => 
         case AgentMode.readonly:
             return intl.formatMessage(SreAgentResources.readonlyWord);
         default:
-            return '';
+            return mode;
     }
 };
 

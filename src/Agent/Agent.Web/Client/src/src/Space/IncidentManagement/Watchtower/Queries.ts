@@ -3,6 +3,26 @@ import { getKustoTimespan } from '../../../Common/Helpers/Date';
 
 export const watchtowerTempAppInsightsAppId = 'bc8d1232-d691-428e-a29f-7e785bf2d016';
 
+/*
+
+customDimensions includes:
+
+- IncidentMitigatedByAgent: "False"
+- ResponsePlanUpdatedOn: "2025-09-11T22:02:32.0000000Z"
+- ResponsePlanCreatedOn: "2025-09-11T22:02:32.0000000Z"
+- IncidentUpdatedOn: "2025-09-11T22:02:14.0000000Z"
+- ResponsePlanCustom: "False"
+- AgentAutonomyLevel: "review"
+- IncidentCreatedOn: "2025-09-11T22:01:16.0000000Z"
+- IncidentTitle: "[Public] Some incident title"
+- IncidentSeverity: "3"
+- IncidentHandledOn: "2025-09-11T22:02:32.0000000Z" *Was IncidentHandledAt before
+- IncidentId: "000000000"
+- IncidentStatus: "active"
+- ResponsePlanId: "watchtower-test1"
+
+*/
+
 export const getHandlersIncidentCoverageTrendQuery = (timeRange: TimeRangeValue) => {
     const kustoTimespan = getKustoTimespan(timeRange);
 
@@ -10,11 +30,12 @@ export const getHandlersIncidentCoverageTrendQuery = (timeRange: TimeRangeValue)
     let timeGrain = 1d;
     customEvents
     | where name == 'IncidentActivitySnapshot'
-    | extend IncidentHandledAt = todatetime(customDimensions.IncidentHandledAt), IncidentId = tostring(customDimensions.IncidentId), UpdatedOn = todatetime(customDimensions.IncidentUpdatedOn)
-    | where IncidentHandledAt ${kustoTimespan}
-    | project IncidentId, IncidentHandledAt, UpdatedOn
-    | summarize arg_max(UpdatedOn, IncidentHandledAt ) by IncidentId
-    | summarize DistinctIncidentIds = dcount(IncidentId) by bin(IncidentHandledAt, timeGrain)
+    | extend IncidentHandledOn = todatetime(iif(isnull(customDimensions.IncidentHandledOn), customDimensions.IncidentHandledAt, customDimensions.IncidentHandledOn)), IncidentId = tostring(customDimensions.IncidentId), UpdatedOn = todatetime(customDimensions.IncidentUpdatedOn)
+    | where IncidentHandledOn ${kustoTimespan}
+    | project IncidentId, IncidentHandledOn, UpdatedOn
+    | summarize arg_max(UpdatedOn, IncidentHandledOn) by IncidentId
+    | summarize DistinctIncidentIds = dcount(IncidentId) by bin(IncidentHandledOn, timeGrain)
+    | order by IncidentHandledOn asc
     `;
 };
 
@@ -25,11 +46,12 @@ export const getHandlersIncidentSummaryTrendQuery = (timeRange: TimeRangeValue) 
     let timeGrain = 1d;
     customEvents
     | where name == 'IncidentActivitySnapshot'
-    | extend IncidentHandledAt = todatetime(customDimensions.IncidentHandledAt), IncidentId = tostring(customDimensions.IncidentId), UpdatedOn = todatetime(customDimensions.IncidentUpdatedOn), IsMitigatedByAgent = tostring(customDimensions.IncidentMitigatedByAgent), Status = tostring(customDimensions.IncidentStatus)
-    | project IncidentId, IncidentHandledAt, IsMitigatedByAgent, Status, UpdatedOn
-    | where IncidentHandledAt ${kustoTimespan}
-    | summarize arg_max(UpdatedOn, IncidentHandledAt, IsMitigatedByAgent, Status) by IncidentId
-    | summarize Incidents = dcount(IncidentId), UserMitigated = dcountif(IncidentId, IsMitigatedByAgent == 'false'), AgentMitigated = dcountif(IncidentId, IsMitigatedByAgent == 'true'), InProgress = dcountif(IncidentId, Status == 'active') by bin(IncidentHandledAt, timeGrain)
+    | extend IncidentHandledOn = todatetime(iif(isnull(customDimensions.IncidentHandledOn), customDimensions.IncidentHandledAt, customDimensions.IncidentHandledOn)), IncidentId = tostring(customDimensions.IncidentId), UpdatedOn = todatetime(customDimensions.IncidentUpdatedOn), IsMitigatedByAgent = tostring(customDimensions.IncidentMitigatedByAgent), Status = tostring(customDimensions.IncidentStatus)
+    | project IncidentId, IncidentHandledOn, IsMitigatedByAgent, Status, UpdatedOn
+    | where IncidentHandledOn ${kustoTimespan}
+    | summarize arg_max(UpdatedOn, IncidentHandledOn, IsMitigatedByAgent, Status) by IncidentId
+    | summarize Incidents = dcount(IncidentId), UserMitigated = dcountif(IncidentId, IsMitigatedByAgent == 'false'), AgentMitigated = dcountif(IncidentId, IsMitigatedByAgent == 'true'), InProgress = dcountif(IncidentId, Status == 'active') by bin(IncidentHandledOn, timeGrain)
+    | order by IncidentHandledOn asc
     `;
 };
 
@@ -39,9 +61,9 @@ export const getHandlersOverviewQuery = (timeRange: TimeRangeValue) => {
     return `
     customEvents
     | where name == 'IncidentActivitySnapshot'
-    | extend IncidentHandledAt = todatetime(customDimensions.IncidentHandledAt), IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), IsMitigatedByAgent = tostring(customDimensions.IncidentMitigatedByAgent), Status = tostring(customDimensions.Status), RunMode = tostring(customDimensions.HandlerRunMode), InstructionType = tostring(customDimensions.HandlerInstructionType), UpdatedOn = todatetime(customDimensions.IncidentUpdatedOn)
-    | project IncidentId, IncidentHandledAt, HandlerId, IsMitigatedByAgent, RunMode, InstructionType, Status, UpdatedOn
-    | where IncidentHandledAt ${kustoTimespan}
+    | extend IncidentHandledOn = todatetime(iif(isnull(customDimensions.IncidentHandledOn), customDimensions.IncidentHandledAt, customDimensions.IncidentHandledOn)), IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), IsMitigatedByAgent = tostring(customDimensions.IncidentMitigatedByAgent), Status = tostring(customDimensions.IncidentStatus), RunMode = tostring(customDimensions.HandlerRunMode), InstructionType = tostring(customDimensions.HandlerInstructionType), UpdatedOn = todatetime(customDimensions.IncidentUpdatedOn)
+    | project IncidentId, IncidentHandledOn, HandlerId, IsMitigatedByAgent, RunMode, InstructionType, Status, UpdatedOn
+    | where IncidentHandledOn ${kustoTimespan}
     | summarize arg_max(UpdatedOn, HandlerId, IncidentId, IsMitigatedByAgent, RunMode, InstructionType, Status) by IncidentId
     | summarize Incidents = dcount(IncidentId), UserMitigated = dcountif(IncidentId, IsMitigatedByAgent == 'false'), AgentMitigated = dcountif(IncidentId, IsMitigatedByAgent == 'true'), InProgress = dcountif(IncidentId, Status == 'active') by HandlerId, RunMode, InstructionType
     | order by Incidents desc
@@ -57,12 +79,12 @@ export const getHandlerIncidentOutcomeTrendQuery = (handlerId: string, timeRange
     let handlerId = '${handlerId}';
     customEvents
     | where name == 'IncidentActivitySnapshot'
-    | extend IncidentHandledAt = todatetime(customDimensions.IncidentHandledAt), IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), IsMitigatedByAgent = tostring(customDimensions.IsIncidentMitigatedByAgent), Status = tostring(customDimensions.IncidentStatus), UpdatedOn = todatetime(customDimensions.IncidentUpdatedOn)
-    | project IncidentId, IncidentHandledAt, HandlerId, IsMitigatedByAgent, Status, UpdatedOn
-    | where IncidentHandledAt ${kustoTimespan}
+    | extend IncidentHandledOn = todatetime(iif(isnull(customDimensions.IncidentHandledOn), customDimensions.IncidentHandledAt, customDimensions.IncidentHandledOn)), IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), IsMitigatedByAgent = tostring(customDimensions.IsIncidentMitigatedByAgent), Status = tostring(customDimensions.IncidentStatus), UpdatedOn = todatetime(customDimensions.IncidentUpdatedOn)
+    | project IncidentId, IncidentHandledOn, HandlerId, IsMitigatedByAgent, Status, UpdatedOn
+    | where IncidentHandledOn ${kustoTimespan}
     | where HandlerId == handlerId
-    | summarize arg_max(UpdatedOn, HandlerId, Status, IsMitigatedByAgent, Status, IncidentHandledAt) by IncidentId
-    | summarize Incidents = dcount(IncidentId), UserMitigated = dcountif(IncidentId, IsMitigatedByAgent == 'false'), AgentMitigated = dcountif(IncidentId, IsMitigatedByAgent == 'true'), InProgress = dcountif(IncidentId, Status == 'active') by bin(IncidentHandledAt, timeGrain)
+    | summarize arg_max(UpdatedOn, HandlerId, Status, IsMitigatedByAgent, Status, IncidentHandledOn) by IncidentId
+    | summarize Incidents = dcount(IncidentId), UserMitigated = dcountif(IncidentId, IsMitigatedByAgent == 'false'), AgentMitigated = dcountif(IncidentId, IsMitigatedByAgent == 'true'), InProgress = dcountif(IncidentId, Status == 'active') by bin(IncidentHandledOn, timeGrain)
     `;
 };
 
@@ -74,11 +96,11 @@ export const getHandlerIncidentOverviewQuery = (handlerId: string, timeRange: Ti
     let handlerId = '${handlerId}';
     customEvents
     | where name == 'IncidentActivitySnapshot'
-    | extend IncidentHandledAt = todatetime(customDimensions.IncidentHandledAt), IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), IsMitigatedByAgent = tostring(customDimensions.IncidentMitigatedByAgent), Status = tostring(customDimensions.IncidentStatus), Priority = tostring(customDimensions.IncidentSeverity), UpdatedOn = todatetime(customDimensions.IncidentUpdatedOn)
-    | project IncidentId, IncidentHandledAt, HandlerId, IsMitigatedByAgent, Status, Priority, UpdatedOn
-    | where IncidentHandledAt ${kustoTimespan}
+    | extend IncidentHandledOn = todatetime(iif(isnull(customDimensions.IncidentHandledOn), customDimensions.IncidentHandledAt, customDimensions.IncidentHandledOn)), IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), IsMitigatedByAgent = tostring(customDimensions.IncidentMitigatedByAgent), Status = tostring(customDimensions.IncidentStatus), Priority = tostring(customDimensions.IncidentSeverity), UpdatedOn = todatetime(customDimensions.IncidentUpdatedOn)
+    | project IncidentId, IncidentHandledOn, HandlerId, IsMitigatedByAgent, Status, Priority, UpdatedOn
+    | where IncidentHandledOn ${kustoTimespan}
     | where HandlerId == handlerId
-    | summarize arg_max(UpdatedOn, IncidentHandledAt, HandlerId, Status, Priority, IsMitigatedByAgent) by IncidentId
+    | summarize arg_max(UpdatedOn, IncidentHandledOn, HandlerId, Status, Priority, IsMitigatedByAgent) by IncidentId
     | project IncidentId, HandlerId, UpdatedOn, Status, Priority, IsMitigatedByAgent
     | order by Priority desc, Status desc, IsMitigatedByAgent
     `;
@@ -92,11 +114,11 @@ export const getIncidentRootCauseOverviewQuery = (handlerId: string, timeRange: 
     let handlerId = '${handlerId}';
     customEvents
     | where name == 'IncidentActivitySnapshot'
-    | extend IncidentHandledAt = todatetime(customDimensions.IncidentHandledAt), IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), RootCause= tostring(customDimensions.IncidentRootCauseCategory), Summary = tostring(customDimensions.IncidentSummary), UpdatedOn = todatetime(customDimensions.IncidentUpdatedOn)
-    | project IncidentId, IncidentHandledAt, HandlerId, RootCause, Summary, UpdatedOn
-    | where IncidentHandledAt ${kustoTimespan}
+    | extend IncidentHandledOn = todatetime(iif(isnull(customDimensions.IncidentHandledOn), customDimensions.IncidentHandledAt, customDimensions.IncidentHandledOn)), IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), RootCause= tostring(customDimensions.IncidentRootCauseCategory), Summary = tostring(customDimensions.IncidentSummary), UpdatedOn = todatetime(customDimensions.IncidentUpdatedOn)
+    | project IncidentId, IncidentHandledOn, HandlerId, RootCause, Summary, UpdatedOn
+    | where IncidentHandledOn ${kustoTimespan}
     | where HandlerId == handlerId
-    | summarize arg_max(UpdatedOn, IncidentHandledAt, HandlerId, RootCause, Summary) by IncidentId
+    | summarize arg_max(UpdatedOn, IncidentHandledOn, HandlerId, RootCause, Summary) by IncidentId
     | summarize dcount(IncidentId) by RootCause`;
 };
 
@@ -109,7 +131,7 @@ export const getLatestIncidentInformationQuery = (handlerId: string, incidentId:
     let incidentId = '${incidentId}';
     customEvents
     | where name == 'IncidentActivitySnapshot'
-    | extend IncidentHandledAt = todatetime(customDimensions.IncidentHandledAt),
+    | extend IncidentHandledOn = todatetime(iif(isnull(customDimensions.IncidentHandledOn), customDimensions.IncidentHandledAt, customDimensions.IncidentHandledOn)),
         IncidentId = tostring(customDimensions.IncidentId),
         IncidentTitle = tostring(customDimensions.IncidentTitle),
         HandlerId = tostring(customDimensions.ResponsePlanId),
@@ -125,8 +147,8 @@ export const getLatestIncidentInformationQuery = (handlerId: string, incidentId:
         ImpactedService = tostring(customDimensions.IncidentImpactedService),
         RunMode = tostring(customDimensions.AgentAutonomyLevel),
         InstructionType = tostring(customDimensions.ResponsePlanCustom)
-    | where IncidentHandledAt ${kustoTimespan}
+    | where IncidentHandledOn ${kustoTimespan}
     | where HandlerId == handlerId and IncidentId == incidentId
-    | summarize arg_max(UpdatedOn, HandlerId, CreatedOn, IncidentHandledAt, HandlerCreatedOn, HandlerUpdatedOn, Status, Priority, IsMitigatedByAgent, RootCause, ImpactedService, RunMode, InstructionType) by IncidentId
-    | project IncidentId, HandlerId, CreatedOn, UpdatedOn, IncidentHandledAt, HandlerCreatedOn, HandlerUpdatedOn, Status, Priority, IsMitigatedByAgent, RootCause, ImpactedService, RunMode, InstructionType`;
+    | summarize arg_max(UpdatedOn, HandlerId, CreatedOn, IncidentHandledOn, HandlerCreatedOn, HandlerUpdatedOn, Status, Priority, IsMitigatedByAgent, RootCause, ImpactedService, RunMode, InstructionType) by IncidentId
+    | project IncidentId, HandlerId, CreatedOn, UpdatedOn, IncidentHandledOn, HandlerCreatedOn, HandlerUpdatedOn, Status, Priority, IsMitigatedByAgent, RootCause, ImpactedService, RunMode, InstructionType`;
 };

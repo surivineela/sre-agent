@@ -1,46 +1,23 @@
-import { DataVizPalette, getColorFromToken, Sparkline } from '@fluentui/react-charting';
+import { IChartProps, Sparkline } from '@fluentui/react-charting';
 import { Badge, Body1Strong, Caption1, Card, Skeleton, SkeletonItem, Subtitle2, Title2, tokens } from '@fluentui/react-components';
-import { ArrowUp16Regular } from '@fluentui/react-icons';
+import { ArrowDown16Regular, ArrowRight16Regular, ArrowUp16Regular } from '@fluentui/react-icons';
 
-const sparklineDummyData = {
-    chartTitle: '10.21',
-    lineChartData: [
-        {
-            legend: '19.64',
-            color: getColorFromToken(DataVizPalette.color1),
-            data: [
-                {
-                    x: 1,
-                    y: 58.13,
-                },
-                {
-                    x: 3,
-                    y: 20,
-                },
-                {
-                    x: 6,
-                    y: 13.28,
-                },
-                {
-                    x: 7,
-                    y: 31.32,
-                },
-                {
-                    x: 8,
-                    y: 10.21,
-                },
-            ],
-        },
-    ],
-};
+export interface StatCardData {
+    percentChange?: number;
+    currentValue: number;
+    maxValue?: number;
+    /** NOTE: Sparklines WILL NOT RENDER ANYTHING with <6 data points */
+    sparklineData: IChartProps;
+}
 
 interface StatCardProps {
     title: string;
     subtitle: string;
+    data: StatCardData;
     isLoading?: boolean;
 }
 
-export const StatCard = ({ title, subtitle, isLoading }: StatCardProps) => {
+export const StatCard = ({ title, subtitle, data, isLoading }: StatCardProps) => {
     return (
         <Card style={{ flexGrow: 1, minWidth: 315, height: 120 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
@@ -51,9 +28,16 @@ export const StatCard = ({ title, subtitle, isLoading }: StatCardProps) => {
                     </Caption1>
                 </div>
 
-                {!isLoading && (
+                {!isLoading && data.percentChange !== undefined && (
                     <Badge appearance="tint">
-                        <ArrowUp16Regular /> X%
+                        {data.percentChange < 0 ? (
+                            <ArrowDown16Regular />
+                        ) : data.percentChange === 0 ? (
+                            <ArrowRight16Regular />
+                        ) : (
+                            <ArrowUp16Regular />
+                        )}{' '}
+                        {data.percentChange}%
                     </Badge>
                 )}
             </div>
@@ -65,12 +49,12 @@ export const StatCard = ({ title, subtitle, isLoading }: StatCardProps) => {
             ) : (
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '150px' }}>
                     <div>
-                        <Title2>80</Title2>
-                        <Subtitle2>/100</Subtitle2>
+                        <Title2>{data.currentValue}</Title2>
+                        {data.maxValue && <Subtitle2>/{data.maxValue}</Subtitle2>}
                     </div>
 
                     <div>
-                        <Sparkline data={sparklineDummyData} />
+                        <Sparkline data={data.sparklineData} />
                     </div>
                 </div>
             )}

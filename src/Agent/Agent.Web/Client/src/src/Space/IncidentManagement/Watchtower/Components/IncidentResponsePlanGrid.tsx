@@ -1,4 +1,3 @@
-import { DataVizPalette, getColorFromToken, Sparkline } from '@fluentui/react-charting';
 import {
     Badge,
     Card,
@@ -22,38 +21,6 @@ import { getLocalizedAgentMode } from '../../../../Common/Helpers/AgentMode';
 import { IncidentManagementResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
 import { useIncidentManagementStyles } from '../../../Styles/IncidentManagement.styles';
 import { IncidentHandlerItem } from '../../Analysis';
-
-const sparklineDummyData = {
-    chartTitle: '10.21',
-    lineChartData: [
-        {
-            legend: '19.64',
-            color: getColorFromToken(DataVizPalette.color1),
-            data: [
-                {
-                    x: 1,
-                    y: 58.13,
-                },
-                {
-                    x: 3,
-                    y: 20,
-                },
-                {
-                    x: 6,
-                    y: 13.28,
-                },
-                {
-                    x: 7,
-                    y: 31.32,
-                },
-                {
-                    x: 8,
-                    y: 10.21,
-                },
-            ],
-        },
-    ],
-};
 
 const all = 'all';
 
@@ -83,24 +50,6 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
     const [sortColumnKey, setSortColumnKey] = useState<keyof IncidentHandlerItem | undefined>();
     const [isSortedDescending, setIsSortedDescending] = useState<boolean>(false);
 
-    const autonomyLevelFilterLabel = useMemo<string>(() => {
-        switch (autonomyLevelFilter) {
-            case all:
-                return intl.formatMessage(SreAgentResources.all);
-            default:
-                return autonomyLevelFilter;
-        }
-    }, [intl, autonomyLevelFilter]);
-
-    const customPlanFilterLabel = useMemo<string>(() => {
-        switch (customPlanFilter) {
-            case all:
-                return intl.formatMessage(SreAgentResources.all);
-            default:
-                return customPlanFilter;
-        }
-    }, [intl, customPlanFilter]);
-
     const autonomyLevelFilterOptions = useMemo<{ label: string; value: string }[]>(() => {
         return [
             { label: intl.formatMessage(SreAgentResources.all), value: all },
@@ -117,6 +66,24 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
             { label: intl.formatMessage(SreAgentResources.no), value: 'no' },
         ];
     }, [intl]);
+
+    const autonomyLevelFilterLabel = useMemo<string>(() => {
+        switch (autonomyLevelFilter) {
+            case all:
+                return intl.formatMessage(SreAgentResources.allAutonomyLevels);
+            default:
+                return autonomyLevelFilterOptions.find(option => option.value === autonomyLevelFilter)?.label || autonomyLevelFilter;
+        }
+    }, [intl, autonomyLevelFilter, autonomyLevelFilterOptions]);
+
+    const customPlanFilterLabel = useMemo<string>(() => {
+        switch (customPlanFilter) {
+            case all:
+                return intl.formatMessage(IncidentManagementResources.allCustomPlans);
+            default:
+                return customPlanFilterOptions.find(option => option.value === customPlanFilter)?.label || customPlanFilter;
+        }
+    }, [intl, customPlanFilter, customPlanFilterOptions]);
 
     const handleColumnClick = useCallback(
         (column: IColumn) => {
@@ -144,8 +111,11 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
 
     const onRenderAutonomyLevel = useCallback(
         (item: IncidentHandlerItem) => {
+            // Don't think this should happen, but it did in the test data, so just in case
+            if (!item.autonomyLevel) return '-';
+
             return (
-                <Badge appearance="tint" color="informative">
+                <Badge appearance="tint" color="informative" shape="rounded">
                     {getLocalizedAgentMode(item.autonomyLevel, intl)}
                 </Badge>
             );
@@ -164,16 +134,16 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
         [intl]
     );
 
-    const onRenderIncidentsReviewed = useCallback((_item: IncidentHandlerItem) => {
-        return <Sparkline data={sparklineDummyData} />;
+    const onRenderIncidentsReviewed = useCallback((item: IncidentHandlerItem) => {
+        return <Text>{item.distinctIncidentCount}</Text>;
     }, []);
 
-    const onRenderMitigatedByAgent = useCallback((_item: IncidentHandlerItem) => {
-        return <Sparkline data={sparklineDummyData} />;
+    const onRenderMitigatedByAgent = useCallback((item: IncidentHandlerItem) => {
+        return <Text>{item.agentMitigated}</Text>;
     }, []);
 
-    const onRenderMitigatedByUser = useCallback((_item: IncidentHandlerItem) => {
-        return <Sparkline data={sparklineDummyData} />;
+    const onRenderMitigatedByUser = useCallback((item: IncidentHandlerItem) => {
+        return <Text>{item.userMitigated}</Text>;
     }, []);
 
     const onRenderPendingUserAction = useCallback((item: IncidentHandlerItem) => {
@@ -319,7 +289,7 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
 
         if (customPlanFilter !== all) {
             filteredGridItems = filteredGridItems.filter(item =>
-                customPlanFilter === 'yes' ? item.planType === 'Default' : item.planType !== 'Default'
+                customPlanFilter === 'yes' ? item.planType !== 'Default' : item.planType === 'Default'
             );
         }
 
@@ -339,14 +309,14 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
     }, [filteredGridItems, sortColumnKey, isSortedDescending]);
 
     return (
-        <Card style={{ width: '100%', height: '100%' }}>
+        <Card style={{ width: '100%', height: '100%', overflowY: 'auto' }}>
             <Subtitle2>{intl.formatMessage(IncidentManagementResources.incidentResponsePlan)}</Subtitle2>
 
             <div style={{ width: '100%' }}>
                 <div className={styles.incidentFiltersContainer}>
                     <SearchBox
                         className={styles.searchBox}
-                        placeholder={intl.formatMessage(SreAgentResources.search)}
+                        placeholder={intl.formatMessage(IncidentManagementResources.searchResponsePlans)}
                         value={searchText}
                         onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchText(data.value ?? ''))}
                         disabled={disabled}
@@ -384,7 +354,7 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
                 <div data-is-scrollable="true" user-select="text">
                     <ShimmeredDetailsList
                         columns={columns}
-                        items={sortedItems ?? []}
+                        items={sortedItems}
                         constrainMode={ConstrainMode.horizontalConstrained}
                         layoutMode={DetailsListLayoutMode.justified}
                         selectionMode={SelectionMode.none}
