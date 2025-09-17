@@ -14,11 +14,6 @@ public interface ISearchIndexService
     /// <summary>
     /// Indexes a single piece of content
     /// </summary>
-    Task<bool> IndexContentAsync(BaseIndexableContent content);
-
-    /// <summary>
-    /// Indexes a single piece of content
-    /// </summary>
     Task<bool> IndexContentAsync(AgentMemory content);
 
     /// <summary>

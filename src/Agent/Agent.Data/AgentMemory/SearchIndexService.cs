@@ -130,34 +130,6 @@ public class SearchIndexService : ISearchIndexService
     /// <summary>
     /// Indexes a single piece of content
     /// </summary>
-    public async Task<bool> IndexContentAsync(BaseIndexableContent content)
-    {
-        try
-        {
-            var searchDocument = content.ToSearchDocument();
-            var batch = IndexDocumentsBatch.Create(
-                new IndexDocumentsAction<SearchDocument>(IndexActionType.MergeOrUpload, searchDocument));
-            var response = await _searchClient.IndexDocumentsAsync(batch);
-
-            if (response.Value.Results.Any(r => r.Succeeded))
-            {
-                _logger.LogInternalInformation($"Successfully indexed content with ID: {content.Id}");
-                return true;
-            }
-
-            _logger.LogInternalError($"Failed to index content with ID: {content.Id}");
-            return false;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError(ex, $"Error indexing content with ID: {content.Id}");
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// Indexes a single piece of content
-    /// </summary>
     public async Task<bool> IndexContentAsync(AgentMemory content)
     {
         try

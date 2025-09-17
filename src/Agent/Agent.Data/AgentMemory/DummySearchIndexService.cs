@@ -31,12 +31,6 @@ public class DummySearchIndexService : ISearchIndexService
         return Task.CompletedTask;
     }
 
-    public Task<bool> IndexContentAsync(BaseIndexableContent content)
-    {
-        _logger.LogInternalInformation($"DummySearchIndexService: IndexContentAsync called with BaseIndexableContent ID: {content.Id}");
-        return Task.FromResult(true);
-    }
-
     public Task<bool> IndexContentAsync(AgentMemory content)
     {
         _logger.LogInternalInformation($"DummySearchIndexService: IndexContentAsync called with AgentMemory ID: {content.Id}");
