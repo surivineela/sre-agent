@@ -12,8 +12,7 @@ namespace Agent.Core.DataConnectors;
 public class DataConnectorIndexDocument
 {
     [SearchableField(IsKey = true, IsFilterable = true, AnalyzerName = LexicalAnalyzerName.Values.Keyword)]
-    [JsonPropertyName("Id")]
-#pragma warning disable IDE1006 // Naming Styles - The index created by the control plane uses lower-casing
+#pragma warning disable IDE1006 // Naming Styles - The index created by the control plane uses lower-casing. This property and its serialized JSON form must be lower-cased to match the index.
     public required string id { get; init; }
 #pragma warning restore IDE1006 // Naming Styles
 
