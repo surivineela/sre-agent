@@ -68,7 +68,7 @@ public class DataConnectorService : BackgroundService
         _logger.LogInternalInformation("Initializing data connector: {Name}, {DataConnectorType}, {ImplementationType}", instance.InstanceSettings.Name, instance.InstanceSettings.DataConnectorType, implementationTypeName);
 
         try
-        { 
+        {
             await instance.DataConnector.InitAsync(instance.InstanceSettings, stoppingToken);
         }
         catch (OperationCanceledException ex) when (ex.CancellationToken == stoppingToken)

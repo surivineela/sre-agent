@@ -119,6 +119,5 @@ public static class AgentMemoryConfiguration
         var indexClient = scope.ServiceProvider.GetRequiredService<IAgentMemoryClient>();
         await indexClient.SetupIndexerAsync();
     }
-
 }
 

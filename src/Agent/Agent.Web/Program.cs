@@ -12,7 +12,6 @@ using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
-using Agent.ScheduledTasks.Services;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Framework;
@@ -62,6 +61,7 @@ using Agent.Runtime.SubAgents.WebAppDownAgent;
 using Agent.Runtime.TeamsChatServices;
 using Agent.Runtime.ThreadEvaluator;
 using Agent.Runtime.TrajectoryEvaluator;
+using Agent.ScheduledTasks.Services;
 using Agent.Web.Authorization;
 using Agent.Web.Services;
 using FirstPartyAgent.Core.FirstPartyAgents;
@@ -157,6 +157,10 @@ public class Program
                     {
                         logger.LogInternalInformation("Agent Memory is not enabled. Skipping Agent Memory setup.");
                     }
+
+                    logger.LogInternalInformation("Setting up Data Connector...");
+                    var dataConnectorIndex = app.Services.GetRequiredService<DataConnectorIndex>();
+                    await dataConnectorIndex.CreateOrUpdateIndex();
                 }
                 catch (Exception ex)
                 {
