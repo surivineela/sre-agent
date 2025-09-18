@@ -1,6 +1,9 @@
-using System.Runtime.Caching;
-using System.Text.Json.Serialization;
 using System.Net;
+using System.Net.Http.Headers;
+using System.Runtime.Caching;
+using System.Text;
+using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
@@ -35,19 +38,25 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
     private readonly CosmosClient _cosmosDBService;
     private readonly CosmosDBSettings _cosmosDBSettings;
     private readonly GenevaActionsSettings _genevaActionsSettings;
+    private readonly AgentSpaceProxySettings _agentSpaceProxySettings;
     private readonly IICMAPIClient _icmAPIClient;
+    private readonly IAuthenticationService _authenticationService;
 
     private readonly bool _icmWorkflowReadOnly;
     private const string _genevaActionSecretName = "GenevaActionConfigs";
+    private const string GenevaActionProxyDefaultScope = "https://management.azure.com";
 
     private Lazy<Task<List<GenevaActionConfig>>> _lazyGenevaActions;
     private OneBranchApprovalService _oneBranchApprovalService;
     private IKeyVaultService _keyVaultService;
     private IThreadRepository _threadRepository;
     private IAgentOutboundCommunicationService _agentOutboundCommunicationService;
+    private TokenCredentialHttpClientHandler _tokenCredentialHttpClientHandler;
 
     // Static MemoryCache for approval requests shared across all instances
     private static readonly MemoryCache _approvalRequestsCache = MemoryCache.Default;
+
+    private readonly string _agentResourceId;
 
     public Guid? ThreadId { get; set; }
 
@@ -60,9 +69,11 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
         GenevaActionsSettings genevaActionsSettings,
         ICMWorkflowSettings iCMWorkflowSettings,
         OneBranchApprovalService oneBranchApprovalService,
+        AgentSpaceProxySettings agentSpaceProxySettings,
         IICMAPIClient iCMAPIClient,
         IKeyVaultService keyVaultService,
         IThreadRepository threadRepository,
+        IAuthenticationService authenticationService,
         IAgentOutboundCommunicationService agentOutboundCommunicationService)
     {
         _logger = logger;
@@ -78,7 +89,11 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
         _keyVaultService = keyVaultService;
         _threadRepository = threadRepository;
         _agentOutboundCommunicationService = agentOutboundCommunicationService;
+        _authenticationService = authenticationService;
+        _agentSpaceProxySettings = agentSpaceProxySettings;
+        _agentResourceId = GetAgentResourceId();
 
+        _tokenCredentialHttpClientHandler = new TokenCredentialHttpClientHandler(_authenticationService.GetAgentSpaceProxyCredential(), _agentSpaceProxySettings.Scope);
     }
 
     private async Task<List<GenevaActionConfig>> InitializeGenevaActionsConfig()
@@ -86,6 +101,11 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
         var allGenevaActions = new List<GenevaActionConfig>();
         _logger.LogInternalInformation("[GenevaActionsPlugin] Initializing Geneva Actions Config");
 
+        if (string.IsNullOrWhiteSpace(_agentSpaceProxySettings.Endpoint))
+        {
+            _logger.LogInternalWarning("[GenevaActionsPlugin] Agent Space Proxy endpoint is not configured. Geneva Actions Config will not be loaded.");
+            return allGenevaActions;
+        }
 
         try
         {
@@ -125,16 +145,20 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
         return await _lazyGenevaActions.Value;
     }
 
-    private async Task<GenevaActionWorkflowResponse> ExecuteGenevaActionWorkflow(GenevaActionConfig genevaActionConfig, Dictionary<string, string> inputParameters)
+    private async Task<GenevaActionWorkflowResponse> ExecuteGenevaActionWorkflow(string extensionName, string actionName, Dictionary<string, string> inputParameters)
     {
+        HttpResponseMessage? response = null;
+        string? content = null;
+
         try
         {
             var payload = JsonConvert.SerializeObject(inputParameters);
-            var response = await _icmWorkflowClient.SendICMWorkflowRequest(genevaActionConfig.WorkflowName, payload, genevaActionConfig.TenantId);
-            _logger.LogInternalInformation($"[GenevaActionsPlugin] [execute_geneva_action_workflow] - workflowName: {genevaActionConfig.WorkflowName}, statusCode: {response.StatusCode}");
+            var path = $"/genevaActions/extensions/{extensionName}/operations/{actionName}";
+            response = await CallAgentSpaceProxy(path, payload);
+            content = await response.Content.ReadAsStringAsync();
 
-            var content = await response.Content.ReadAsStringAsync();
-            
+            _logger.LogInternalInformation($"[GenevaActionsPlugin] [execute_geneva_action_workflow] - extensionName: {extensionName}, actionName: {actionName}, statusCode: {response.StatusCode}");
+
             return new GenevaActionWorkflowResponse
             {
                 StatusCode = response.StatusCode,
@@ -143,7 +167,7 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, $"[GenevaActionsPlugin] Failed to execute geneva action: {genevaActionConfig.ActionName} with parameters: {JsonConvert.SerializeObject(inputParameters)}");
+            _logger.LogInternalError(ex, $"[GenevaActionsPlugin] Failed to execute geneva action: extensionName {extensionName}, actionName {actionName} with parameters: {JsonConvert.SerializeObject(inputParameters)}. StatusCode: {response?.StatusCode}, Response: {content ?? "<null>"}, Exception: {ex.Message}");
             throw;
         }
     }
@@ -161,6 +185,54 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
             return $"No Geneva Action found for actionName: {actionName}";
         }
         return $"For actionName: {actionName}. Required parameters are: {string.Join(", ", genevaAction.WorkflowInputParameters)}";
+    }
+
+    private HttpClient GetHttpClient()
+    {
+        if (string.IsNullOrWhiteSpace(_agentSpaceProxySettings.Endpoint))
+        {
+            throw new ArgumentException("Agent Space Proxy endpoint is not configured.");
+        }
+
+        var client = new HttpClient(_tokenCredentialHttpClientHandler);
+        client.BaseAddress = new Uri(_agentSpaceProxySettings.Endpoint!);
+        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        client.DefaultRequestHeaders.Add("User-Agent", "SRE Agent");
+        client.Timeout = TimeSpan.FromSeconds(120);
+
+        return client;
+    }
+
+    private async Task<HttpResponseMessage> CallAgentSpaceProxy(string path, string payload)
+    {
+        _logger.LogInternalInformation($"[GenevaActionsPlugin] [CallAgentSpaceProxy] - endpoint: {_agentSpaceProxySettings.Endpoint}, path: {path}, agentResourceId: {_agentResourceId}, payload: {payload}");
+
+        var httpClient = GetHttpClient();
+
+        var request = new HttpRequestMessage(HttpMethod.Post, path)
+        {
+            Content = new StringContent(payload, Encoding.UTF8, "application/json")
+        };
+        request.Headers.Add("x-ms-sreagent-resource-id", _agentResourceId);
+
+        var response = await httpClient.SendAsync(request);
+        return response;
+    }
+
+    private static string GetAgentResourceId()
+    {
+        var agentName = Environment.GetEnvironmentVariable("AGENT_NAME");
+
+        if (agentName != null)
+        {
+            var doubleHypyhenIndex = agentName!.LastIndexOf("--");
+            if (doubleHypyhenIndex > 0)
+            {
+                agentName = agentName.Substring(0, doubleHypyhenIndex);
+            }
+        }
+
+        return $"/subscriptions/{Environment.GetEnvironmentVariable("AGENT_SUBSCRIPTION_ID")}/resourceGroups/{Environment.GetEnvironmentVariable("AGENT_RESOURCE_GROUP")}/providers/Microsoft.App/agents/{agentName}";
     }
 
     private async Task<string> GetApprovalStatus(string documentId)
@@ -278,9 +350,45 @@ No approval request found for document ID: {documentId}. Please ensure the docum
         return false;
     }
 
+    public async Task<string> ExecuteGenevaAction(string incidentId, string extensionName, string actionName, string inputParameters)
+    {
+        _logger.LogInternalInformation("[GenevaActionsPlugin] Proceeding with executing Geneva Action");
+
+        Dictionary<string, string> parsedInputParameters;
+
+        try
+        {
+            parsedInputParameters = ParseInputParameter(inputParameters);
+        }
+        catch (Exception ex)
+        {
+            var errorMessage = $"[execute_geneva_action] Error parsing input parameters: {ex.Message}";
+            _logger.LogInternalWarning(errorMessage);
+            return errorMessage;
+        }
+
+        var response = await ExecuteGenevaActionWorkflow(extensionName, actionName, parsedInputParameters);
+
+        // Log Geneva Action execution result to ICM
+        await _icmAPIClient.PostDiscussionEntryAsync(incidentId, $"Geneva Action '{actionName}' executed with status code: {response.StatusCode}, response: {response.Content}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                ThreadId!.Value,
+                string.Empty,
+                new ChatMessage(ChatRole.Assistant, $"Geneva Actions response: {response.Content}"));
+            return $"Geneva Action '{actionName}' executed successfully. Response: {response.Content}.";
+        }
+        else
+        {
+            return $"Geneva Action '{actionName}' execution failed with status code: {response.StatusCode}, response: {response.Content}";
+        }
+    }
+
+    // Old implementation
     public async Task<string> ExecuteGenevaAction(string incidentId, string actionName, Dictionary<string, string> inputParameters)
     {
-
         var logMessage = $"[execute_geneva_action] Invoked with actionName {actionName} and parameters: {JsonConvert.SerializeObject(inputParameters)}";
         _logger.LogInternalInformation(logMessage);
         await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
@@ -419,7 +527,7 @@ In order to potentially resolve the incident, the following Geneva Action '{acti
         //}
 
         _logger.LogInternalInformation("[GenevaActionsPlugin] Proceeding with executing Geneva Action");
-        var response = await ExecuteGenevaActionWorkflow(genevaAction, inputParameters);
+        var response = await ExecuteGenevaActionWorkflow(genevaAction.WorkflowName, genevaAction.ActionName, inputParameters);
 
         // Log Geneva Action execution result to ICM if allowed by IcmLogLevel
         await LogToICMIfAllowed(genevaAction, incidentId, $"Geneva Action '{actionName}' executed with status code: {response.StatusCode}, response: {response.Content}");
@@ -436,6 +544,43 @@ In order to potentially resolve the incident, the following Geneva Action '{acti
         {
             return $"Geneva Action '{actionName}' execution failed with status code: {response.StatusCode}, response: {response.Content}";
         }
+    }
+
+    public static Dictionary<string, string> ParseInputParameter(string inputParameter)
+    {
+        var tags = new Dictionary<string, string>();
+        if (string.IsNullOrWhiteSpace(inputParameter))
+            return tags;
+
+        // Pattern: key=value; key="value with ; and \"quotes\""; key2=unquoted
+        var pattern = @"(?<key>[^=;]*)=(?:(?:""(?<qval>(?:[^""\\]|\\.)*)"")|(?<val>[^;]*))(?:;|$)";
+        foreach (Match match in Regex.Matches(inputParameter, pattern))
+        {
+            var key = match.Groups["key"].Value.Trim();
+            if (key.Contains('\\') || key.Contains('"'))
+            {
+                throw new InvalidOperationException("Cannot use quotation marks or backslash in a variable name.");
+            }
+            string value;
+            if (match.Groups["qval"].Success)
+            {
+                // Unescape \" and \\ in quoted values
+                value = Regex.Unescape(match.Groups["qval"].Value);
+            }
+            else
+            {
+                value = match.Groups["val"].Value.Trim();
+            }
+            if (string.IsNullOrEmpty(key))
+            {
+                throw new InvalidOperationException("Empty variable name was found.");
+            }
+            else
+            {
+                tags[key] = value;
+            }
+        }
+        return tags;
     }
 
     // Approval requests management methods

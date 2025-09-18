@@ -103,12 +103,7 @@ namespace Agent.Tests.Integration.External
         public async Task ExecuteGenevaActionTest()
         {
             var plugin = _serviceProvider.GetRequiredService<IGenevaActionsPlugin>();
-            var result = await plugin.ExecuteGenevaAction("123","RestartWebApp", new Dictionary<string, string>
-            {
-                ["subscriptionId"] = "14300d68-d0c8-4060-82af-bf2d9b70f130",
-                ["webappName"] = "hotsite1",
-                ["webspaceName"] = "hotsite-rg-CentralUSwebspace"
-            });
+            var result = await plugin.ExecuteGenevaAction("123","Antares", "RestartWebApp", "subscriptionId=14300d68-d0c8-4060-82af-bf2d9b70f130;webappName=hotsite1;webspaceName=hotsite-rg-CentralUSwebspace");
             Assert.True(result?.Contains("RestartWebApp"));
         }
 

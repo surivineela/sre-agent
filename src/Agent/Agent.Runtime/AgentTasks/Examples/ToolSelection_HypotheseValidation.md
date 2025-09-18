@@ -395,9 +395,10 @@ The available tools go below:
   },
   {
     "Name": "ExecuteGenevaAction",
-    "Description": "Execute a geneva action for a specific incident with action name, and input parameters.\nIf Geneva Action execution fails due to incorrect parameters, then correct the parameters and try again.",
+    "Description": "Execute a geneva action for a specific incident with extension name, action name, and input parameters.\nIf Geneva Action execution fails due to incorrect parameters, then correct the parameters and try again.",
     "Parameters": [
       "incidentId",
+      "extensionName",
       "actionName",
       "inputParameters"
     ]

@@ -23,6 +23,9 @@ namespace Agent.Core.Configuration
         [Required]
         public ActionSettings Action { get; set; } = new();
 
+        [Required]
+        public AgentSpaceProxySettings AgentSpaceProxy { get; set; } = new();
+
         public FederationSettings Federation { get; set; } = new();
 
         public KustoFirstPartyAppSettings Kusto { get; set; } = new();

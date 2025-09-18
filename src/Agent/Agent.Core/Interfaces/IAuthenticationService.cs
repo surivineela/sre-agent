@@ -98,6 +98,7 @@ public interface IAuthenticationService
     public TokenCredential GetAgentMemoryAzureAISearchCredential();
     public TokenCredential GetObserverCredential();
     public TokenCredential GetAgentHelperCredential();
+    public TokenCredential GetAgentSpaceProxyCredential();
 
     public TokenCredential GetAzureDevOpsCredential();
     public Task<string> GetGitHubAccessToken();

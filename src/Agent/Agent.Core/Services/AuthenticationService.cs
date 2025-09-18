@@ -149,6 +149,16 @@ public class AuthenticationService : IAuthenticationService
         return GetManagedIdentityCredential(GetActionIdentity());
     }
 
+    public TokenCredential GetAgentSpaceProxyCredential()
+    {
+        if (_hostEnvironment.IsDevelopment())
+        {
+            return GetDefaultAzureCredential();
+        }
+
+        return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
+    }
+
     public TokenCredential GetAgentHelperCredential()
     {
         if (_hostEnvironment.IsDevelopment())
