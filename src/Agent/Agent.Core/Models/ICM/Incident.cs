@@ -2,6 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.ComponentModel.DataAnnotations;
+using System.Runtime.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -66,10 +68,89 @@ namespace Agent.Core.Models.ICM
         public string? Cause { get; set; }
     }
 
+    public enum OwnerType
+    {
+        /// <summary> The custom field is owned by service </summary>
+        Service = 1,
+
+        /// <summary> The custom field is owned by service category </summary>
+        ServiceCategory = 2,
+
+        /// <summary> The custom field is owned by team </summary>
+        Team = 3
+    }
+
+    //Same as CustomField.cs in Microsoft.AzureAd.Icm.IcmV3ODataModels
+    //Copied from https://msazure.visualstudio.com/One/_git/EngSys-OneIM-Libraries-IcmV2Public?path=/src/OData/IcmV3ODataModels/CustomField.cs&_a=contents&version=GBmaster
+    //Next step is to remove POCO and use SDK from ControlPlane
     public class CustomField
     {
-        public required string CustomFieldName { get; set; }
-        public required string CustomFieldValue { get; set; }
+        /// <summary> Gets or sets the key for this instance. </summary>
+        [Key]
+        public long IncidentCustomFieldId { get; set; }
+
+        /// <summary> Gets or sets the custom field identifier. </summary>
+        public long CustomFieldId { get; set; }
+
+        /// <summary> Gets or sets the incident identifier. </summary>
+        [IgnoreDataMember]
+        public long IncidentId { get; set; }
+
+        /// <summary> Gets or sets the team identifier to which this custom field belongs to. </summary>
+        public long? TeamId { get; set; }
+
+        /// <summary> Gets or sets the service identifier to which this custom field belongs to. </summary>
+        public long? TenantId { get; set; }
+
+        /// <summary> Gets or sets the service category identifier to which this custom field belongs to. </summary>
+        public long? ServiceCategoryId { get; set; }
+
+        /// <summary> Gets or sets the type of the owner for custom field set. </summary>
+        /// <value> The type of the owner for custom field set. </value>
+        public OwnerType OwnerType { get; set; }
+
+        /// <summary> Gets or sets the name of the custom field. </summary>
+        [MaxLength(128)]
+        public string? Name { get; set; }
+
+        /// <summary> Gets or sets the description of the custom field. </summary>
+        [MaxLength(256)]
+        public string? Description { get; set; }
+
+        /// <summary> Gets or sets the string value for the custom field. </summary>
+        public string? StringValue { get; set; }
+
+        /// <summary> Gets or sets the Number value for the custom field. </summary>
+        public long? NumberValue { get; set; }
+
+        /// <summary> Gets or sets a value indicating whether actual value for custom field is true or false. </summary>
+        public bool? BooleanValue { get; set; }
+
+        /// <summary> Gets or sets the enum value for the custom field. </summary>
+        public string? EnumValue { get; set; }
+
+        /// <summary> Gets or sets the enum value id for the custom field. </summary>
+        public long? EnumValueId { get; set; }
+
+        /// <summary> Gets or sets the DateTimeOffset value for the custom field. </summary>
+        public DateTimeOffset? DateTimeOffsetValue { get; set; }
+
+        /// <summary> Gets or sets the custom field created time. </summary>
+        [IgnoreDataMember]
+        public DateTimeOffset CreatedTime { get; set; }
+
+        /// <summary> Gets or sets the custom field created by. </summary>
+        [MaxLength(128)]
+        [IgnoreDataMember]
+        public string? CreatedBy { get; set; }
+
+        /// <summary> Gets or sets the modified time. </summary>
+        public DateTimeOffset ModifiedTime { get; set; }
+
+        /// <summary> Gets or sets the modified by. </summary>
+        [MaxLength(128)]
+        [IgnoreDataMember]
+        public string? ModifiedBy { get; set; }
     }
 
     public class SearchItem
