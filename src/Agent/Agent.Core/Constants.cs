@@ -207,6 +207,7 @@ public class Constants
         public const string AgentExtendedAgentDeleteActionId = "Microsoft.App/agents/extendedagents/delete";
         public const string AgentScheduledTaskReadActionId = "Microsoft.App/agents/scheduledtasks/read";
         public const string AgentScheduledTaskWriteActionId = "Microsoft.App/agents/scheduledtasks/write";
+        public const string AgentScheduledTaskDeleteActionId = "Microsoft.App/agents/scheduledtasks/delete";
     }
 }
 

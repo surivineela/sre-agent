@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel.DataAnnotations;
-using Agent.Core;
 using Agent.Data.DataModels;
 using Agent.ScheduledTasks.Services;
 using Agent.Web.Authorization;
@@ -207,7 +206,7 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpDelete("{id}")]
-        [AuthorizeArmOperation(ArmOperations.AgentScheduledTaskWriteActionId)]
+        [AuthorizeArmOperation(ArmOperations.AgentScheduledTaskDeleteActionId)]
         public async Task<IActionResult> DeleteScheduledTask(string id)
         {
             try
