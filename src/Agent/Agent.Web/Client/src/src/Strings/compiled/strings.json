@@ -1465,6 +1465,12 @@
       "value": "List cluster user credential action."
     }
   ],
+  "C2PrxB": [
+    {
+      "type": 0,
+      "value": "Click here to assign yourself the SRE Agent Admin role."
+    }
+  ],
   "C2iTEH": [
     {
       "type": 0,
@@ -2373,6 +2379,16 @@
       "value": "View all resources, but does not allow you to make any changes."
     }
   ],
+  "LUSiug": [
+    {
+      "type": 0,
+      "value": "Failed to add SRE Agent Administrator role to your agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
   "LnglaU": [
     {
       "type": 0,
@@ -2433,6 +2449,12 @@
       "value": "Create a new scheduled task to monitor or perform actions at regular intervals using cron expressions."
     }
   ],
+  "MWaWoR": [
+    {
+      "type": 0,
+      "value": "Starting September 25th, 2025, users without one of the required Azure role-based access control (RBAC) roles will lose access to Azure SRE Agent."
+    }
+  ],
   "MhTfXm": [
     {
       "type": 0,
@@ -2465,6 +2487,12 @@
     {
       "type": 1,
       "value": "error"
+    }
+  ],
+  "MxYLKu": [
+    {
+      "type": 0,
+      "value": "Add SRE Agent Administrator role"
     }
   ],
   "N+sJfO": [
@@ -3207,6 +3235,12 @@
     {
       "type": 0,
       "value": "Started"
+    }
+  ],
+  "TDaF6J": [
+    {
+      "type": 0,
+      "value": "Dismiss"
     }
   ],
   "TDoBlx": [
@@ -4239,6 +4273,16 @@
       "value": "Give as much detail as you can, but do not include any personal information."
     }
   ],
+  "csu95N": [
+    {
+      "type": 0,
+      "value": "Successfully added SRE Agent Administrator role to your agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
   "cubQfQ": [
     {
       "type": 0,
@@ -4833,6 +4877,12 @@
       "value": "Core application group resource name"
     }
   ],
+  "ic8SAj": [
+    {
+      "type": 0,
+      "value": "Or"
+    }
+  ],
   "icWG3R": [
     {
       "type": 0,
@@ -4965,6 +5015,16 @@
       "value": "Low risk"
     }
   ],
+  "jfgCRQ": [
+    {
+      "type": 0,
+      "value": "Adding SRE Agent Administrator role to your agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
   "jlOO/9": [
     {
       "type": 0,
@@ -5039,6 +5099,24 @@
     {
       "type": 0,
       "value": " selected"
+    }
+  ],
+  "krH81A": [
+    {
+      "type": 0,
+      "value": "Failed to add SRE Agent Administrator role to your agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ". Error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
     }
   ],
   "ku+mDU": [
@@ -5527,6 +5605,12 @@
     {
       "type": 0,
       "value": "Costs for last 7 days"
+    }
+  ],
+  "qhApmK": [
+    {
+      "type": 0,
+      "value": "Click here to learn more about SRE Agent RBAC"
     }
   ],
   "qj1uhz": [

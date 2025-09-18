@@ -117,6 +117,9 @@ export enum RBACRoleIds {
     workbookReader = 'b279062a-9be3-42a0-92ae-8b3cf002ec4d',
     azureCenterForSapSolutionsReader = '05352d14-a920-4328-a0de-4cbe7430e26b',
     costManagementReader = '72fafb9e-0641-4937-9268-a91bfd8191a3',
+    sreAgentUser = '2d84a65a-63b2-4343-bbb6-31105d857bc1',
+    sreAgentAdmin = 'e79298df-d852-4c6d-84f9-5d13249d1e55',
+    sreAgentReader = 'a4b156ac-253f-4a1a-9851-96d62b71b047',
 }
 
 export enum RBACRoleNames {

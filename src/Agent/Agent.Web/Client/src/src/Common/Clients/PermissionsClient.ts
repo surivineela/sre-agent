@@ -1,4 +1,6 @@
 import { ApiVersions } from '../ApiVersions';
+import { MicrosoftAuthorization } from '../Constants/Auth';
+import { Guid } from '../Helpers/Guid';
 import MakeArmCall from './ArmClient';
 
 export interface PermissionsCheckResponse {
@@ -25,16 +27,20 @@ interface PermissionsAsRegExp {
 }
 
 export interface Permissions {
-    /**
-     * The actions that are permitted.
-     */
+    /** The actions that are permitted. */
     readonly actions: ReadonlyArray<string>;
-
-    /**
-     * The actions that are explicitly not permitted.
-     */
+    /** The actions that are explicitly not permitted. */
     readonly notActions: ReadonlyArray<string>;
 }
+
+export type RoleAssignment = {
+    createdOn?: string;
+    roleDefinitionId?: string;
+    updatedBy?: string;
+    scope?: string;
+    principalId?: string;
+    principalType?: string;
+};
 
 const isAllowed = (requestedAction: string, permission: PermissionsAsRegExp): boolean => {
     const actionAllowed = permission.actions.some(action => {
@@ -111,9 +117,56 @@ export function getResourceType(resourceId: string): string | null {
 
 export class PermissionClient {
     private static _instance = new PermissionClient();
+    public static PermissionsApiVersion = '2022-04-01';
 
     public static getInstance() {
         return PermissionClient._instance;
+    }
+
+    public assignRole(scope: string, roleDefinitionGuid: string, principalId: string, principalType: string = 'User') {
+        const assignmentId = Guid.newGuid();
+        const apiVersion = PermissionClient.PermissionsApiVersion;
+        const url = `${scope}/providers/Microsoft.Authorization/roleAssignments/${assignmentId}?api-version=${apiVersion}`;
+        return MakeArmCall<RoleAssignment>({
+            commandName: 'assignRole',
+            method: 'PUT',
+            url,
+            body: {
+                properties: {
+                    roleDefinitionId: `${scope}/providers/Microsoft.Authorization/roleDefinitions/${roleDefinitionGuid}`,
+                    principalId,
+                    principalType,
+                },
+            } as any,
+        });
+    }
+
+    public async hasRoleAssignment(scope: string, roleDefinitionGuid: string, principalId: string): Promise<boolean> {
+        if (!scope || !roleDefinitionGuid || !principalId) {
+            return false;
+        }
+        try {
+            const assignments = await this.getRoleAssignmentsWithScope(scope, principalId);
+            const suffix = `/roledefinitions/${roleDefinitionGuid}`.toLowerCase();
+            return assignments.some(a => {
+                const rdId = (a?.properties?.roleDefinitionId || a?.roleDefinitionId || '').toLowerCase();
+                return rdId.endsWith(suffix);
+            });
+        } catch {
+            return false;
+        }
+    }
+
+    public async getRoleAssignmentsWithScope(scope: string, principalId: string, apiVersion = ApiVersions.rbacApiVersion): Promise<any[]> {
+        if (!scope || !principalId) return [];
+        const filter = `atScope()+and+assignedTo('{${principalId}}')`;
+        const url = `${scope}/${MicrosoftAuthorization.RoleAssignmentsProvider}?api-version=${apiVersion}&$filter=${filter}`;
+        const response = await MakeArmCall<{ value?: any[] }>({
+            commandName: 'getRoleAssignmentsWithScope',
+            method: 'GET',
+            url,
+        });
+        return response.data?.value || [];
     }
 
     /**

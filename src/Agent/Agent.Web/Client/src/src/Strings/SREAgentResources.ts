@@ -688,6 +688,35 @@ export const AccessControlResources = defineMessages({
     openAccessControl: { defaultMessage: 'Go to Access control', id: 'fUgypu' },
 });
 
+export const RbacWarningBannerResources = defineMessages({
+    rbacWarningMessage: {
+        defaultMessage:
+            'Starting September 25th, 2025, users without one of the required Azure role-based access control (RBAC) roles will lose access to Azure SRE Agent.',
+        id: 'MWaWoR',
+    },
+    clickHereToAssignRole: { defaultMessage: 'Click here to assign yourself the SRE Agent Admin role.', id: 'C2PrxB' },
+    or: { defaultMessage: ' Or', id: 'ic8SAj' },
+    learnMoreAboutRbac: { defaultMessage: 'Click here to learn more about SRE Agent RBAC', id: 'qhApmK' },
+    dismissBanner: { defaultMessage: 'Dismiss', id: 'TDaF6J' },
+    addAdminNotificationTitle: { defaultMessage: 'Add SRE Agent Administrator role', id: 'MxYLKu' },
+    addAdminNotificationDescription: {
+        defaultMessage: 'Adding SRE Agent Administrator role to your agent {name}',
+        id: 'jfgCRQ',
+    },
+    addAdminNotificationSuccess: {
+        defaultMessage: 'Successfully added SRE Agent Administrator role to your agent {name}',
+        id: 'csu95N',
+    },
+    addAdminNotificationError: {
+        defaultMessage: 'Failed to add SRE Agent Administrator role to your agent {name}',
+        id: 'LUSiug',
+    },
+    addAdminNotificationErrorWithMessage: {
+        defaultMessage: 'Failed to add SRE Agent Administrator role to your agent {name}. Error: {error}',
+        id: 'krH81A',
+    },
+});
+
 export const IdentityResources = defineMessages({
     goToIdentity: { defaultMessage: 'Go to Identity', id: '8/TArm' },
     identityDescription: {
