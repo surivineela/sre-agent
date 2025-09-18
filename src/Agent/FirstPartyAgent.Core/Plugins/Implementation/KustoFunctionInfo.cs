@@ -1,4 +1,6 @@
 // File: KustoFunction.cs
+
+namespace FirstPartyAgent.Plugins;
 public class KustoFunctionInfo
 {
     public string Name { get; set; } = string.Empty;

@@ -24,7 +24,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Agent.Runtime\Agent.Runtime.csproj" />
     <ProjectReference Include="..\Agent.Prometheus\Agent.Prometheus.csproj" />
-    <ProjectReference Include="..\Agent.Web\Agent.Web.csproj" />
+    <!-- Pass SkipReactBuild to the web project so its React build target is skipped during unit test builds -->
+    <ProjectReference Include="..\Agent.Web\Agent.Web.csproj" AdditionalProperties="SkipReactBuild=true" />
     <ProjectReference Include="..\Agent.Graph\Agent.Graph.csproj" />
     <ProjectReference Include="..\Agent.Tests.Common\Agent.Tests.Common.csproj" />
   </ItemGroup>

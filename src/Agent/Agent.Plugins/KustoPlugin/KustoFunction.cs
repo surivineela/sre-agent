@@ -1,4 +1,4 @@
-// File: KustoFunction.cs
+namespace Agent.Plugins.Kusto;
 public class KustoFunctionInfo
 {
     public string? Name { get; set; }
