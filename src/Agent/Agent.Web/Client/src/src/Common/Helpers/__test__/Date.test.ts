@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { TimespanKeys } from '../../Components/PillFilter/Contracts';
 import {
     changeToLocalTimezone,
     changeToUtcTimezone,
@@ -13,7 +14,6 @@ import {
     getHourMinuteSecondFrom24HoursFormatTimeInput,
     getHourMinuteSecondFromTimeInput,
     getKustoTimespan,
-    TimespanKeys,
 } from '../Date';
 
 describe('Date helpers', () => {

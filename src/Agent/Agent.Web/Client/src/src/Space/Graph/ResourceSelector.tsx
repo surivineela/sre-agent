@@ -9,7 +9,7 @@ import {
 } from '@fluentui/react-components';
 import { memo, useContext } from 'react';
 import { useIntl } from 'react-intl';
-import { ComboboxPillFilter } from '../../Common/Components/PillFilter/ComboboxPillFilter';
+import { PillFilter } from '../../Common/Components/PillFilter/PillFilter';
 import { ResourceTypeToDisplayNameMap } from '../../Common/Contracts/Azure/Permission';
 import { resolveResourceIcon } from '../../Common/Helpers/Resources';
 import { KnowledgeGraphBuildStatusContext } from '../../Common/Providers/KnowledgeGraphBuildStatusProvider';
@@ -62,8 +62,11 @@ const ResourceSelector = ({
             {isSubscriptionLoading ? (
                 <Shimmer />
             ) : (
-                <ComboboxPillFilter
+                <PillFilter
                     label={intl.formatMessage(SreAgentResources.subscriptionEquals)}
+                    labelDelimiter=""
+                    disabled={!hasChatPermissions}
+                    filterType="combobox"
                     options={subscriptions.map(s => ({ key: s.id, label: s.name, iconSrc: resolveResourceIcon('Subscription') }))}
                     selectedKeys={selectedSubscription ? [selectedSubscription.id] : []}
                     onApply={keys => {
@@ -72,13 +75,14 @@ const ResourceSelector = ({
                             onSelectSubscription(undefined as unknown as SelectionEvents, { optionValue: key } as OptionOnSelectData);
                         }
                     }}
-                    disabled={!hasChatPermissions}
-                    labelDelimiter=""
                 />
             )}
 
-            <ComboboxPillFilter
+            <PillFilter
                 label={intl.formatMessage(SreAgentResources.primaryResourceType)}
+                labelDelimiter=""
+                disabled={!hasChatPermissions}
+                filterType="combobox"
                 options={(() => {
                     const rest = resourceTypeFilterOptions.map(o => ({
                         key: o.key,
@@ -94,15 +98,16 @@ const ResourceSelector = ({
                         onSelectRscType(undefined as unknown as SelectionEvents, { optionValue: key } as OptionOnSelectData);
                     }
                 }}
-                disabled={!hasChatPermissions}
-                labelDelimiter=""
             />
 
             {isAppGroupLoading ? (
                 <Shimmer />
             ) : (
-                <ComboboxPillFilter
+                <PillFilter
                     label={intl.formatMessage(SreAgentResources.primaryResourceName)}
+                    labelDelimiter=""
+                    disabled={!hasChatPermissions}
+                    filterType="combobox"
                     options={filteredAppGroups.map(ag => ({ key: ag.id, label: ag.name, iconSrc: resolveResourceIcon(ag.type) }))}
                     selectedKeys={selectedAppGroup ? [selectedAppGroup.id] : []}
                     onApply={keys => {
@@ -111,8 +116,6 @@ const ResourceSelector = ({
                             onSelectAppGroupDropdown(undefined as unknown as SelectionEvents, { optionValue: key } as OptionOnSelectData);
                         }
                     }}
-                    disabled={!hasChatPermissions}
-                    labelDelimiter=""
                 />
             )}
 

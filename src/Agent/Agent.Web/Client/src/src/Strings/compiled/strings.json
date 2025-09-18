@@ -2407,6 +2407,12 @@
       "value": "Standard input"
     }
   ],
+  "M/zZVx": [
+    {
+      "type": 0,
+      "value": "Add filter"
+    }
+  ],
   "M88YzU": [
     {
       "type": 0,
@@ -3079,6 +3085,12 @@
     {
       "type": 0,
       "value": "Last 12 hours"
+    }
+  ],
+  "S57QRB": [
+    {
+      "type": 0,
+      "value": "Filter by"
     }
   ],
   "S6FECK": [
@@ -4857,6 +4869,12 @@
     {
       "type": 0,
       "value": "Resource ID"
+    }
+  ],
+  "iNgloh": [
+    {
+      "type": 0,
+      "value": "Select a filter"
     }
   ],
   "iTTSax": [

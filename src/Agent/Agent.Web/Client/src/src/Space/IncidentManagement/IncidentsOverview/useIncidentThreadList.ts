@@ -2,9 +2,10 @@ import debounce from 'lodash/debounce';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ThreadClient } from '../../../Common/Clients/ThreadClient';
-import { TimeRangeValue } from '../../../Common/Components/PillFilter/TimeRangePillFilter';
+import { TimeRangeValue, TimespanKeys } from '../../../Common/Components/PillFilter/Contracts';
+import { IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
 import { Thread, ThreadSource } from '../../../Common/Contracts/DataPlane/Thread';
-import { getSafeDateTime, getTimespanInMilliseconds, TimespanKeys } from '../../../Common/Helpers/Date';
+import { getSafeDateTime, getTimespanInMilliseconds } from '../../../Common/Helpers/Date';
 import { KnowledgeGraphBuildStatusContext } from '../../../Common/Providers/KnowledgeGraphBuildStatusProvider';
 import { getIntervalBetweenLoading, getUpdatedUnreadThreadIds } from '../../Activities/Utility';
 import { ThreadLoadingCounts } from '../../Contracts/Activities';
@@ -199,8 +200,13 @@ export const useIncidentThreadList = (
 
             if (statusFilter?.length) {
                 const statusFilterStrings = statusFilter.map(s => {
-                    const adjustedStatus = s === 'active' ? '' : s.toLowerCase();
-                    return `tolower(incidentStatus) eq '${adjustedStatus}'`;
+                    const statusToLower = s.toLowerCase();
+                    const mayBeEmptyString = ([IncidentStatus.active, IncidentStatus.triggered, IncidentStatus.new] as string[]).includes(
+                        statusToLower
+                    );
+                    return mayBeEmptyString
+                        ? `(tolower(incidentStatus) eq '${statusToLower}' or incidentStatus eq '')`
+                        : `tolower(incidentStatus) eq '${statusToLower}'`;
                 });
                 let statusFilterString = statusFilterStrings.join(' or ');
                 if (statusFilterStrings.length > 1) {

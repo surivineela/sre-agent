@@ -1,4 +1,4 @@
-import { TimeRangeValue } from '../Components/PillFilter/TimeRangePillFilter';
+import { TimeRangeValue, TimespanKeys } from '../Components/PillFilter/Contracts';
 
 export function getSafeDateTime(dateTime: Date | string): Date {
     let stringFormat: string;
@@ -273,16 +273,6 @@ export const formatDateTimeWithShortYear = (dateTime: Date): string => {
     };
     return dateTime.toLocaleDateString(undefined, options);
 };
-
-export enum TimespanKeys {
-    OneHour = 'OneHour',
-    SixHours = 'SixHours',
-    TwelveHours = 'TwelveHours',
-    TwentyFourHours = 'TwentyFourHours',
-    ThreeDays = 'ThreeDays',
-    SevenDays = 'SevenDays',
-    Custom = 'Custom',
-}
 
 /**
  * Calculates the duration in milliseconds for predefined timespan options.

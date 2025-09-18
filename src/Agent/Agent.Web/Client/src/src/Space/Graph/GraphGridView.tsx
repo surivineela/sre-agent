@@ -2,7 +2,7 @@ import { Link, SearchBox } from '@fluentui/react-components';
 import * as React from 'react';
 import { useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { ComboboxPillFilter } from '../../Common/Components/PillFilter/ComboboxPillFilter';
+import { PillFilter } from '../../Common/Components/PillFilter/PillFilter';
 import { getResourceTypeFriendlyName, isPaasResourceType, resolveResourceIcon } from '../../Common/Helpers/Resources';
 import { ComponentResources, GraphResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { Resource, ResourceExtended } from '../Contracts/Graph';
@@ -243,12 +243,13 @@ export const GraphGridView: React.FC<GraphGridViewProps> = ({
                     onChange={(_, data) => setSearchQuery(data.value)}
                     style={{ minWidth: '330px' }}
                 />
-                <ComboboxPillFilter
+                <PillFilter
                     label={intl.formatMessage(SreAgentResources.primaryResourceType)}
+                    labelDelimiter=""
+                    filterType="combobox"
                     options={resourceTypeFilterOptions}
                     selectedKeys={[selectedPrimaryResourceType]}
                     onApply={keys => setSelectedPrimaryResourceType(keys[0] || ALL_RESOURCE_TYPE_KEY)}
-                    labelDelimiter=""
                 />
             </div>
             <ResourcesTable

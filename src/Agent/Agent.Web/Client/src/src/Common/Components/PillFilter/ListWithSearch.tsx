@@ -26,14 +26,12 @@ const useStyles = makeStyles({
         maxWidth: '300px',
     },
     searchBox: {
-        position: 'absolute',
-        left: '16px',
-        right: '16px',
+        marginLeft: '16px',
+        marginRight: '16px',
         maxWidth: 'unset',
-    },
-    searchBoxSpacer: {
-        height: '32px',
-        flex: 'none',
+        '& .fui-SearchBox__contentAfter': {
+            display: 'none',
+        },
     },
     listWrapper: {
         position: 'relative',
@@ -168,7 +166,6 @@ export const ListWithSearch: FC<ListWithFilterProps> = ({
                 onChange={(_, data) => setSearchText(data.value)}
                 className={styles.searchBox}
             />
-            <div className={styles.searchBoxSpacer} />
             <div className={styles.listWrapper}>
                 {filteredOptions.length === 0 ? (
                     <div>{intl.formatMessage(SreAgentResources.noResults)}</div>

@@ -29,11 +29,17 @@ import { ShimmeredDetailsList } from '@fluentui/react/lib/ShimmeredDetailsList';
 import { debounce } from 'lodash';
 import { FC, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { ComboboxPillFilter, LabelKeyPair } from '../../../Common/Components/PillFilter/ComboboxPillFilter';
-import { TimeRangeKeyLabelPair, TimeRangePillFilter, TimeRangeValue } from '../../../Common/Components/PillFilter/TimeRangePillFilter';
+import {
+    FilterPropsWithKey,
+    RemovableFilterProps,
+    TimeRangeKeyLabelPair,
+    TimeRangeValue,
+    TimespanKeys,
+} from '../../../Common/Components/PillFilter/Contracts';
+import { LabelKeyPair } from '../../../Common/Components/PillFilter/ListWithSearch';
+import { PillFilterSet } from '../../../Common/Components/PillFilter/PillFilterSet';
 import { IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
 import { Thread } from '../../../Common/Contracts/DataPlane/Thread';
-import { TimespanKeys } from '../../../Common/Helpers/Date';
 import Url from '../../../Common/Helpers/Url';
 import { IncidentManagementResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import ThreadActionsMenu from '../../Activities/ThreadActionsMenu';
@@ -87,7 +93,7 @@ const IncidentsOverview: FC = () => {
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
     const [searchText, setSearchText] = useState<string>('');
-    const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRangeValue>({ key: TimespanKeys.SevenDays });
+    const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRangeValue>();
     const [selectedPriorities, setSelectedPriorities] = useState<string[]>([]);
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
     const [selectedActions, setSelectedActions] = useState<string[]>([]);
@@ -253,7 +259,7 @@ const IncidentsOverview: FC = () => {
                       : SreAgentResources.active
             );
         },
-        [intl]
+        [incidentPlatform, intl]
     );
     // End: Status
 
@@ -466,18 +472,108 @@ const IncidentsOverview: FC = () => {
         return columns;
     }, [
         intl,
-        incidentPlatform,
         sortColumnKey,
         isSortedDescending,
-        getStatusText,
-        onRenderPriority,
-        onRenderInvestigation,
         onRenderTitle,
-        handleColumnClick,
         showMockedComponents,
+        handleColumnClick,
+        priorityOrSeverityStrings.fieldLabel,
+        onRenderPriority,
+        getStatusText,
+        onRenderInvestigation,
     ]);
 
     const restoreFocusSourceAttributes = useRestoreFocusSource();
+
+    const timeFilterProps: RemovableFilterProps = useMemo(
+        () => ({
+            label: intl.formatMessage(SreAgentResources.timeRange),
+            disabled: disableAllControls || !!selectedThreadInfo,
+            onRemove: () => setSelectedTimeRange(undefined),
+            labelDelimiter: intl.formatMessage(SreAgentResources.equals),
+            filterType: 'timeRange' as const,
+            options: timeRangeOptions,
+            customTimeRangeProps: {
+                addCustomOption: true,
+            },
+            onApply: setSelectedTimeRange,
+            selectedValue: selectedTimeRange || { key: TimespanKeys.SevenDays },
+        }),
+        [disableAllControls, intl, selectedTimeRange, selectedThreadInfo, timeRangeOptions]
+    );
+
+    const statusFilterProps: RemovableFilterProps = useMemo(
+        () => ({
+            label: intl.formatMessage(IncidentManagementResources.status),
+            disabled: disableAllControls || !!selectedThreadInfo,
+            onRemove: () => setSelectedStatuses([]),
+            labelDelimiter: intl.formatMessage(SreAgentResources.equals),
+            filterType: 'combobox' as const,
+            showValueAs: 'list',
+            options: statusOptions,
+            onApply: setSelectedStatuses,
+            selectedKeys: selectedStatuses,
+            multiSelect: true,
+            addAllOption: true,
+        }),
+        [disableAllControls, intl, selectedStatuses, selectedThreadInfo, statusOptions]
+    );
+
+    const priorityFilterProps: RemovableFilterProps = useMemo(
+        () => ({
+            label: intl.formatMessage(IncidentManagementResources.priority),
+            disabled: disableAllControls || !!selectedThreadInfo,
+            onRemove: () => setSelectedPriorities([]),
+            labelDelimiter: intl.formatMessage(SreAgentResources.equals),
+            filterType: 'combobox' as const,
+            showValueAs: 'list',
+            options: priorityOptions,
+            onApply: setSelectedPriorities,
+            selectedKeys: selectedPriorities,
+            multiSelect: true,
+            addAllOption: true,
+        }),
+        [disableAllControls, intl, selectedPriorities, selectedThreadInfo, priorityOptions]
+    );
+
+    const actionFilterProps: RemovableFilterProps = useMemo(
+        () => ({
+            label: intl.formatMessage(IncidentManagementResources.investigation),
+            disabled: disableAllControls || !!selectedThreadInfo,
+            onRemove: () => setSelectedActions([]),
+            labelDelimiter: intl.formatMessage(SreAgentResources.equals),
+            filterType: 'combobox' as const,
+            showValueAs: 'list',
+            options: actionOptions,
+            onApply: setSelectedActions,
+            selectedKeys: selectedActions,
+            multiSelect: true,
+            addAllOption: true,
+        }),
+        [disableAllControls, intl, selectedActions, selectedThreadInfo, actionOptions]
+    );
+
+    const dynamicFilters: FilterPropsWithKey[] = useMemo(
+        () => [
+            {
+                key: IncidentsListColumnKey.createdTimestamp,
+                props: timeFilterProps,
+            },
+            {
+                key: IncidentsListColumnKey.status,
+                props: statusFilterProps,
+            },
+            {
+                key: IncidentsListColumnKey.priority,
+                props: priorityFilterProps,
+            },
+            {
+                key: IncidentsListColumnKey.investigation,
+                props: actionFilterProps,
+            },
+        ],
+        [timeFilterProps, statusFilterProps, priorityFilterProps, actionFilterProps]
+    );
 
     return selectedThreadInfo?.fullScreen ? (
         <IncidentChat selectedThread={selectedThreadInfo.thread} exitToHome={closeThread} isExpandedView={true} />
@@ -553,54 +649,7 @@ const IncidentsOverview: FC = () => {
                                     )}
                                     disabled={disableAllControls || !!selectedThreadInfo}
                                 />
-                                <TimeRangePillFilter
-                                    label={intl.formatMessage(SreAgentResources.timeRange)}
-                                    options={timeRangeOptions}
-                                    customTimeRangeProps={{
-                                        addCustomOption: true,
-                                    }}
-                                    onApply={value => setSelectedTimeRange(value)}
-                                    selectedValue={selectedTimeRange}
-                                    disabled={disableAllControls || !!selectedThreadInfo}
-                                    labelDelimiter={intl.formatMessage(SreAgentResources.equals)}
-                                />
-                                <ComboboxPillFilter
-                                    label={intl.formatMessage(IncidentManagementResources.status)}
-                                    options={statusOptions}
-                                    onApply={values => setSelectedStatuses(values)}
-                                    selectedKeys={selectedStatuses}
-                                    multiSelect={true}
-                                    addAllOption={true}
-                                    disabled={disableAllControls || !!selectedThreadInfo}
-                                    labelDelimiter={intl.formatMessage(SreAgentResources.equals)}
-                                    showValueAs="list"
-                                />
-                                {showMockedComponents && (
-                                    <>
-                                        <ComboboxPillFilter
-                                            label={intl.formatMessage(priorityOrSeverityStrings.fieldLabel)}
-                                            options={priorityOptions}
-                                            onApply={values => setSelectedPriorities(values)}
-                                            selectedKeys={selectedPriorities}
-                                            multiSelect={true}
-                                            addAllOption={true}
-                                            disabled={disableAllControls || !!selectedThreadInfo}
-                                            labelDelimiter={intl.formatMessage(SreAgentResources.equals)}
-                                            showValueAs="list"
-                                        />
-                                        <ComboboxPillFilter
-                                            label={intl.formatMessage(IncidentManagementResources.investigation)}
-                                            options={actionOptions}
-                                            onApply={values => setSelectedActions(values)}
-                                            selectedKeys={selectedActions}
-                                            multiSelect={true}
-                                            addAllOption={true}
-                                            disabled={disableAllControls || !!selectedThreadInfo}
-                                            labelDelimiter={intl.formatMessage(SreAgentResources.equals)}
-                                            showValueAs="list"
-                                        />
-                                    </>
-                                )}
+                                <PillFilterSet dynamicFilters={dynamicFilters} disabled={disableAllControls || !!selectedThreadInfo} />
                                 <Button
                                     icon={<ArrowClockwise16Regular />}
                                     appearance="transparent"

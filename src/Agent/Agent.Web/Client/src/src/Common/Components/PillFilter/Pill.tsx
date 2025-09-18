@@ -9,10 +9,11 @@ import {
     useRestoreFocusSource,
     useRestoreFocusTarget,
 } from '@fluentui/react-components';
-import { Dismiss24Filled } from '@fluentui/react-icons';
-import { FC, PropsWithChildren, useRef, useState } from 'react';
+import { Dismiss16Filled } from '@fluentui/react-icons';
+import { FC, PropsWithChildren, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { SreAgentResources } from '../../../Strings/SREAgentResources';
+import { PillProps } from './Contracts';
 
 const buttonDisabledStyles: GriffelStyle = {
     border: `1px solid ${tokens.colorNeutralStroke2}`,
@@ -22,7 +23,7 @@ const buttonDisabledStyles: GriffelStyle = {
 
 const buttonStyles: GriffelStyle = {
     borderRadius: `${tokens.borderRadiusCircular} !important`,
-    padding: '0px 12px 0px 12px',
+    padding: '0px',
     height: '32px',
     whiteSpace: 'nowrap',
     textOverflow: 'ellipsis',
@@ -45,9 +46,13 @@ const usePillStyles = makeStyles({
         position: 'relative',
     },
     button: buttonStyles,
-    removableButton: {
-        ...buttonStyles,
-        padding: '0px 40px 0px 12px',
+    buttonContent: {
+        display: 'flex',
+        padding: '0px 12px 0px 12px',
+    },
+    removableButtonContent: {
+        display: 'flex',
+        padding: '0px 32px 0px 12px',
     },
     fieldLabel: {
         color: 'inherit',
@@ -87,26 +92,15 @@ const usePillStyles = makeStyles({
         paddingLeft: '16px',
         paddingRight: '16px',
     },
+    filterDropdown: {
+        justifySelf: 'start',
+        paddingLeft: '16px',
+        paddingRight: '16px',
+    },
     portalContainer: {
         zIndex: '1000',
     },
 });
-
-export interface PillProps {
-    label: string;
-    ariaLabel?: string;
-    value: string;
-    onApply: () => void;
-    applyDisabled?: boolean;
-    applyLabel?: string;
-    disabled?: boolean;
-    cancelLabel?: string;
-    onCancelOrDismiss?: () => void;
-    removeButtonAriaLabel?: string;
-    onRemove?: () => void;
-    labelDelimiter?: string;
-    valueMaxWidth?: number | string;
-}
 
 export const Pill: FC<PropsWithChildren<PillProps>> = ({
     label,
@@ -120,6 +114,7 @@ export const Pill: FC<PropsWithChildren<PillProps>> = ({
     onCancelOrDismiss,
     removeButtonAriaLabel,
     onRemove,
+    onRenderButtonContent,
     children,
     labelDelimiter = ':',
     valueMaxWidth = 200,
@@ -131,31 +126,59 @@ export const Pill: FC<PropsWithChildren<PillProps>> = ({
     const restoreFocusSourceAttributes = useRestoreFocusSource();
     const restoreFocusTargetAttributes = useRestoreFocusTarget();
 
+    const buttonContent = useMemo(() => {
+        const buttonContentClass = onRemove ? styles.removableButtonContent : styles.buttonContent;
+        return onRenderButtonContent ? (
+            onRenderButtonContent({
+                label,
+                value,
+                contentClass: buttonContentClass,
+                labelClass: styles.fieldLabel,
+                valueClass: styles.fieldValue,
+            })
+        ) : (
+            <div className={buttonContentClass}>
+                <div className={styles.fieldLabel}>
+                    {label}
+                    {labelDelimiter && <span>&nbsp;{labelDelimiter}</span>}
+                    &nbsp;
+                </div>
+                <div className={styles.fieldValue} style={valueMaxWidth ? { maxWidth: valueMaxWidth } : undefined}>
+                    {value}
+                </div>
+            </div>
+        );
+    }, [
+        onRemove,
+        onRenderButtonContent,
+        label,
+        value,
+        styles.buttonContent,
+        styles.removableButtonContent,
+        styles.fieldLabel,
+        styles.fieldValue,
+        labelDelimiter,
+        valueMaxWidth,
+    ]);
+
     return (
         <>
             <div className={styles.root} ref={buttonRef}>
                 <Button
                     {...restoreFocusTargetAttributes}
                     appearance="transparent"
-                    className={onRemove ? styles.removableButton : styles.button}
+                    className={styles.button}
                     onClick={() => setDialogOpen(currentOpen => !currentOpen)}
                     disabled={disabled}
                     aria-label={ariaLabel}
                 >
-                    <div className={styles.fieldLabel}>
-                        {label}
-                        {labelDelimiter && <span>&nbsp;{labelDelimiter}</span>}
-                        &nbsp;
-                    </div>
-                    <div className={styles.fieldValue} style={valueMaxWidth ? { maxWidth: valueMaxWidth } : undefined}>
-                        {value}
-                    </div>
+                    {buttonContent}
                 </Button>
                 {onRemove && (
                     <Button
                         appearance="transparent"
                         className={styles.closeButton}
-                        icon={<Dismiss24Filled />}
+                        icon={<Dismiss16Filled />}
                         onClick={onRemove}
                         disabled={disabled}
                         aria-label={removeButtonAriaLabel}

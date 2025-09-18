@@ -4,8 +4,8 @@ import { useIntl } from 'react-intl';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { AppInsightsClient } from '../../Common/Clients/AppInsightsClient';
-import { TimeRangeKeyLabelPair, TimeRangePillFilter, TimeRangeValue } from '../../Common/Components/PillFilter/TimeRangePillFilter';
-import { TimespanKeys } from '../../Common/Helpers/Date';
+import { TimeRangeKeyLabelPair, TimeRangeValue, TimespanKeys } from '../../Common/Components/PillFilter/Contracts';
+import { PillFilter } from '../../Common/Components/PillFilter/PillFilter';
 import { getLocalizedIncidentPlatformName } from '../../Common/Helpers/IncidentManagement';
 import { getPercentChangeInArray } from '../../Common/Helpers/Math';
 import { useAuthToken } from '../../Common/Hooks/useAuthToken';
@@ -351,8 +351,10 @@ const Analysis = () => {
             <div className={styles.navPanelContent}>
                 <div className={styles.navPanelPadding}>
                     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 20 }}>
-                        <TimeRangePillFilter
+                        <PillFilter
                             label={intl.formatMessage(SreAgentResources.timeRange)}
+                            labelDelimiter={intl.formatMessage(SreAgentResources.equals)}
+                            filterType="timeRange"
                             options={timeRangeOptions}
                             selectedValue={selectedTimeRange}
                             onApply={value => setSelectedTimeRange(value)}

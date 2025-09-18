@@ -1,22 +1,16 @@
 import { DatePicker, initializeIcons, TimePicker } from '@fluentui/react';
 import { Field, makeStyles, Radio, RadioGroup } from '@fluentui/react-components';
-import { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { SreAgentResources } from '../../../Strings/SREAgentResources';
+import { SreAgentResources } from '../../../../Strings/SREAgentResources';
 import {
     changeToLocalTimezone,
     changeToUtcTimezone,
     extractDateFromDateTime,
     formatDateToYYYYMMDD,
     getCombineDateAndTime,
-    TimespanKeys,
-} from '../../Helpers/Date';
-import { Pill } from './Pill';
-
-export interface TimeRangeKeyLabelPair {
-    label: string;
-    key: TimespanKeys;
-}
+} from '../../../Helpers/Date';
+import { TimeRangeKeyLabelPair, TimeRangeValue, TimespanKeys, UseTimeRangePillFilterProps } from '../Contracts';
 
 const parseSelectedValue = (value: TimeRangeValue | undefined, defaultKey: string): TimeRangeValue | undefined => {
     if (!value) return undefined;
@@ -66,42 +60,13 @@ const useTimeRangePillFilterStyles = makeStyles({
     },
 });
 
-export interface TimeRangeValue {
-    key: string;
-    start?: Date;
-    end?: Date;
-}
+export const useTimeRangePillFilter = (props: UseTimeRangePillFilterProps | undefined) => {
+    const options = useMemo(() => props?.options || [], [props?.options]);
+    const onApply = useCallback((value: TimeRangeValue) => props?.onApply(value), [props?.onApply]);
+    const selectedValue = useMemo(() => props?.selectedValue, [props?.selectedValue]);
+    const customTimeRangeProps = useMemo(() => props?.customTimeRangeProps, [props?.customTimeRangeProps]);
+    const disabled = useMemo(() => props?.disabled || false, [props?.disabled]);
 
-export interface CustomTimeRangeProps {
-    addCustomOption?: boolean;
-    customOptionLabel?: string;
-    minDateTime?: Date;
-    maxDateTime?: Date;
-}
-
-export interface TimeRangePillProps {
-    label: string;
-    options: TimeRangeKeyLabelPair[];
-    onApply: (value: TimeRangeValue) => void;
-    selectedValue: TimeRangeValue;
-    displayValue?: string;
-    customTimeRangeProps?: CustomTimeRangeProps;
-    disabled?: boolean;
-    onRemove?: () => void;
-    labelDelimiter?: string;
-}
-
-export const TimeRangePillFilter: FC<TimeRangePillProps> = ({
-    label,
-    options,
-    onApply,
-    selectedValue,
-    displayValue,
-    customTimeRangeProps,
-    disabled,
-    onRemove,
-    labelDelimiter = ':',
-}) => {
     const intl = useIntl();
     const styles = useTimeRangePillFilterStyles();
     const [iconsInitialized, setIconsInitialized] = useState(false);
@@ -115,7 +80,7 @@ export const TimeRangePillFilter: FC<TimeRangePillProps> = ({
     const [pendingEndDate, setPendingEndDate] = useState<Date | undefined>();
     const [pendingEndTime, setPendingEndTime] = useState<Date | undefined>();
 
-    const { addCustomOption, customOptionLabel } = customTimeRangeProps || {};
+    const { addCustomOption, customOptionLabel } = useMemo(() => customTimeRangeProps || {}, [customTimeRangeProps]);
     const customLabel = useMemo(() => customOptionLabel || intl.formatMessage(SreAgentResources.custom), [customOptionLabel, intl]);
 
     const optionsList: TimeRangeKeyLabelPair[] = useMemo(() => {
@@ -189,23 +154,8 @@ export const TimeRangePillFilter: FC<TimeRangePillProps> = ({
         setIconsInitialized(true);
     }, []);
 
-    return (
-        <Pill
-            label={label}
-            ariaLabel={intl.formatMessage(SreAgentResources.pillFilterAriaLabel, {
-                columnName: label,
-                delimiter: labelDelimiter ? ` ${labelDelimiter} ` : '',
-                filterValue: pillDisplayValue,
-            })}
-            value={displayValue || pillDisplayValue}
-            onApply={onApplyClick}
-            applyDisabled={!isComplete}
-            onCancelOrDismiss={() => initializeLocalState()}
-            removeButtonAriaLabel={intl.formatMessage(SreAgentResources.pillFilterRemoveAriaLabel, { columnName: label })}
-            onRemove={onRemove}
-            disabled={disabled}
-            labelDelimiter={labelDelimiter}
-        >
+    const onRenderPopoverContent = useCallback(() => {
+        return (
             <div className={styles.root}>
                 <>
                     <RadioGroup
@@ -292,6 +242,25 @@ export const TimeRangePillFilter: FC<TimeRangePillProps> = ({
                     </>
                 )}
             </div>
-        </Pill>
-    );
+        );
+    }, [
+        addCustomOption,
+        disabled,
+        iconsInitialized,
+        intl,
+        optionsList,
+        pendingEndDate,
+        pendingEndTime,
+        pendingSelectedKey,
+        pendingStartDate,
+        pendingStartTime,
+        styles,
+    ]);
+    return {
+        pillDisplayValue,
+        onApplyClick,
+        isComplete,
+        initializeLocalState,
+        onRenderPopoverContent,
+    };
 };

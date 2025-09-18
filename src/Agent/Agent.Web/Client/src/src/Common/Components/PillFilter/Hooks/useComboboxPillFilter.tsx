@@ -1,42 +1,20 @@
-import { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { IncidentManagementResources, SreAgentResources } from '../../../Strings/SREAgentResources';
-import { ALL_OPTION, LabelKeyPair, ListWithSearch } from './ListWithSearch';
-import { Pill } from './Pill';
+import { IncidentManagementResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
+import { UseComboboxPillFilterProps } from '../Contracts';
+import { ALL_OPTION, ListWithSearch } from '../ListWithSearch';
 
-export type { LabelKeyPair };
+export const useComboboxPillFilter = (props: UseComboboxPillFilterProps | undefined) => {
+    const label = useMemo(() => props?.label || '', [props?.label]);
+    const options = useMemo(() => props?.options || [], [props?.options]);
+    const onApply = useCallback((keys: string[]) => props?.onApply(keys), [props?.onApply]);
+    const selectedKeys = useMemo(() => props?.selectedKeys || [], [props?.selectedKeys]);
+    const multiSelect = useMemo(() => props?.multiSelect || false, [props?.multiSelect]);
+    const addAllOption = useMemo(() => props?.addAllOption || false, [props?.addAllOption]);
+    const allOptionLabel = useMemo(() => props?.allOptionLabel, [props?.allOptionLabel]);
+    const showValueAs = useMemo(() => props?.showValueAs || 'count', [props?.showValueAs]);
+    const disabled = useMemo(() => props?.disabled || false, [props?.disabled]);
 
-export interface ComboboxPillFilterProps {
-    label: string;
-    options: LabelKeyPair[];
-    onApply: (keys: string[]) => void;
-    selectedKeys: string[];
-    displayValue?: string;
-    showValueAs?: 'count' | 'list';
-    valueMaxWidth?: number | string;
-    multiSelect?: boolean;
-    addAllOption?: boolean;
-    allOptionLabel?: string;
-    disabled?: boolean;
-    onRemove?: () => void;
-    labelDelimiter?: string;
-}
-
-export const ComboboxPillFilter: FC<ComboboxPillFilterProps> = ({
-    label,
-    options,
-    onApply,
-    selectedKeys,
-    displayValue,
-    showValueAs = 'count',
-    valueMaxWidth,
-    multiSelect,
-    addAllOption,
-    allOptionLabel,
-    disabled,
-    onRemove,
-    labelDelimiter = ':',
-}) => {
     const intl = useIntl();
     const [currentSelectedKeys, setCurrentSelectedKeys] = useState<string[]>(selectedKeys || []);
     const [pendingSelectedKeys, setPendingSelectedKeys] = useState<string[]>(selectedKeys || []);
@@ -92,23 +70,8 @@ export const ComboboxPillFilter: FC<ComboboxPillFilterProps> = ({
         initializeLocalState();
     }, [initializeLocalState]);
 
-    return (
-        <Pill
-            label={label}
-            ariaLabel={intl.formatMessage(SreAgentResources.pillFilterAriaLabel, {
-                columnName: label,
-                delimiter: labelDelimiter ? ` ${labelDelimiter} ` : '',
-                filterValue: pillDisplayValue,
-            })}
-            value={displayValue || pillDisplayValue}
-            onApply={onApplyClick}
-            onCancelOrDismiss={() => initializeLocalState()}
-            removeButtonAriaLabel={intl.formatMessage(SreAgentResources.pillFilterRemoveAriaLabel, { columnName: label })}
-            onRemove={onRemove}
-            disabled={disabled}
-            labelDelimiter={labelDelimiter}
-            valueMaxWidth={valueMaxWidth}
-        >
+    const onRenderPopoverContent = useCallback(() => {
+        return (
             <ListWithSearch
                 options={options}
                 selectedKeys={pendingSelectedKeys}
@@ -119,6 +82,14 @@ export const ComboboxPillFilter: FC<ComboboxPillFilterProps> = ({
                 ariaLabel={intl.formatMessage(SreAgentResources.optionsListAriaLabel, { fieldName: label })}
                 disabled={disabled}
             />
-        </Pill>
-    );
+        );
+    }, [options, pendingSelectedKeys, setPendingSelectedKeys, multiSelect, addAllOption, allLabel, intl, label, disabled]);
+
+    return {
+        pillDisplayValue,
+        onApplyClick,
+        isComplete: true,
+        initializeLocalState,
+        onRenderPopoverContent,
+    };
 };

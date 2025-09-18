@@ -350,6 +350,9 @@ export const SreAgentResources = defineMessages({
     lowRisk: { defaultMessage: 'Low risk', id: 'jd2Xsp' },
     mediumRisk: { defaultMessage: 'Medium risk', id: 'ZwYyES' },
     highRisk: { defaultMessage: 'High risk', id: 'ox7DwN' },
+    filterBy: { defaultMessage: 'Filter by', id: 'S57QRB' },
+    selectFilter: { defaultMessage: 'Select a filter', id: 'iNgloh' },
+    addFilter: { defaultMessage: 'Add filter', id: 'M/zZVx' },
 });
 
 export const SreAgentTabResources = defineMessages({
