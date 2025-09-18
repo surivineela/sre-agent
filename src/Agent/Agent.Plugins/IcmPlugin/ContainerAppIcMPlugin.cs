@@ -65,11 +65,7 @@ public class ContainerAppIcMPlugin : IContainerAppIcMPlugin
             startDate = endDate.AddMonths(-1);
         }
 
-        // If end date is older than 4 months, throw error
-        if ((now - endDate).TotalDays > 120)
-        {
-            throw new ArgumentException("Issue end date is older than 4 months. Please specify correct dates as we can't investigate it.");
-        }
+        
 
         // Add a 1-hour buffer before and after the time window to capture events near the start and end of the investigation period.
         startDate = startDate.AddHours(-1);

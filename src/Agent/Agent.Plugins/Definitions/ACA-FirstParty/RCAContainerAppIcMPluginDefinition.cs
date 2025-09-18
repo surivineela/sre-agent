@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Globalization;
 using Agent.Core;
 using Agent.Plugins;
 using Agent.Plugins.IcmPlugin;
@@ -22,6 +23,44 @@ namespace Agent.Plugins.Definitions
         private readonly GeneralSettings _generalSettings;
         private readonly string icmWebPortalMessage = @"Please use this link to view the SRE agent investigation in the web portal: <a href = ""{0}"" > Azure portal link</a>";
 
+        private static readonly string[] KnownFormats =
+{
+    "yyyy-MM-ddTHH:mm:ssZ",   // ISO 8601 UTC
+    "yyyy-MM-ddTHH:mm:ss",    // ISO without Z
+    "yyyy-MM-dd",             // Date only
+    "MM/dd/yyyy HH:mm:ss",
+    "MM/dd/yyyy",
+    "dd/MM/yyyy",
+    "dd-MMM-yyyy",
+};
+
+        public static bool TryParseSmart(string? input, out DateTimeOffset result)
+        {
+            // First, try general parse
+            if (DateTimeOffset.TryParse(input,
+                                        CultureInfo.InvariantCulture,
+                                        DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+                                        out result))
+            {
+                return true;
+            }
+
+            // Then, try known patterns
+            foreach (var format in KnownFormats)
+            {
+                if (DateTimeOffset.TryParseExact(input,
+                                                 format,
+                                                 CultureInfo.InvariantCulture,
+                                                 DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+                                                 out result))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public RCAContainerAppIcMPluginDefinition(IContainerAppIcMPlugin plugin, IWebHostEnvironment env, IOptions<GeneralSettings> generalSettings)
         {
             _plugin = plugin;
@@ -42,16 +81,17 @@ namespace Agent.Plugins.Definitions
         - EndDate: The calculated end date of the investigation window
         """
         )]
+
         public (DateTime StartDate, DateTime EndDate) GetIssueInvestigationTimeRangeRCAContainerApp(
             [Description("ISO 8601 string for the first occurrence of the issue, or leave null if not available.")] string? issueFirstOccurrence,
             [Description("ISO 8601 string for the last occurrence of the issue, or leave null if not available.")] string? issueLastOccurrence,
             [Description("ISO 8601 string for when the issue was observed and reported, or leave null if not available.")] string? reportedIssueObservedOnTime)
         {
-            var issueFirstOccurrenceDate = issueFirstOccurrence.IsNotNullOrEmpty() ? DateTime.Parse(issueFirstOccurrence!) : (DateTime?)null;
-            var issueLastOccurrenceDate = issueLastOccurrence.IsNotNullOrEmpty() ? DateTime.Parse(issueLastOccurrence!) : (DateTime?)null;
-            var reportedIssueObservedOnTimeDate = reportedIssueObservedOnTime.IsNotNullOrEmpty() ? DateTime.Parse(reportedIssueObservedOnTime!) : (DateTime?)null;
+            TryParseSmart(issueFirstOccurrence, out var issueFirstOccurrenceDate);
+            TryParseSmart(issueLastOccurrence, out var issueLastOccurrenceDate);
+            TryParseSmart(reportedIssueObservedOnTime, out var reportedIssueObservedOnTimeDate);
 
-            return _plugin.GetIssueInvestigationTimeRange(issueFirstOccurrenceDate, issueLastOccurrenceDate, reportedIssueObservedOnTimeDate);
+            return _plugin.GetIssueInvestigationTimeRange(issueFirstOccurrenceDate.DateTime, issueLastOccurrenceDate.DateTime, reportedIssueObservedOnTimeDate.DateTime);
         }
 
         [Description(@"""
