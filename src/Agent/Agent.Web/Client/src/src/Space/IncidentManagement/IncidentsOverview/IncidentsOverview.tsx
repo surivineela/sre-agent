@@ -553,8 +553,8 @@ const IncidentsOverview: FC = () => {
         [disableAllControls, intl, selectedActions, selectedThreadInfo, actionOptions]
     );
 
-    const dynamicFilters: FilterPropsWithKey[] = useMemo(
-        () => [
+    const dynamicFilters: FilterPropsWithKey[] = useMemo(() => {
+        const filters = [
             {
                 key: IncidentsListColumnKey.createdTimestamp,
                 props: timeFilterProps,
@@ -563,17 +563,23 @@ const IncidentsOverview: FC = () => {
                 key: IncidentsListColumnKey.status,
                 props: statusFilterProps,
             },
-            {
-                key: IncidentsListColumnKey.priority,
-                props: priorityFilterProps,
-            },
-            {
-                key: IncidentsListColumnKey.investigation,
-                props: actionFilterProps,
-            },
-        ],
-        [timeFilterProps, statusFilterProps, priorityFilterProps, actionFilterProps]
-    );
+        ];
+
+        if (showMockedComponents) {
+            filters.push(
+                {
+                    key: IncidentsListColumnKey.priority,
+                    props: priorityFilterProps,
+                },
+                {
+                    key: IncidentsListColumnKey.investigation,
+                    props: actionFilterProps,
+                }
+            );
+        }
+
+        return filters;
+    }, [timeFilterProps, statusFilterProps, showMockedComponents, priorityFilterProps, actionFilterProps]);
 
     return selectedThreadInfo?.fullScreen ? (
         <IncidentChat selectedThread={selectedThreadInfo.thread} exitToHome={closeThread} isExpandedView={true} />
