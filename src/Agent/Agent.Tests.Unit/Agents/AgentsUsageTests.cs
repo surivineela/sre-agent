@@ -4,8 +4,11 @@
 
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
+using Agent.Runtime.Interfaces;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 
 namespace Agent.Tests.Unit.Agents;
 
@@ -17,8 +20,22 @@ public class AgentsUsageTests
     {
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "test");
 
-        _app = Web.Program.CreateWebApplicationBuilder([]).Build();
+        var builder = Web.Program.CreateWebApplicationBuilder([]);
 
+        // Mock the IMcpConnectable service to prevent actual MCP connections during tests
+        var mockMcpConnectable = new Mock<IMcpConnectable>();
+        mockMcpConnectable.Setup(m => m.GetAllFunctions()).Returns(new List<AIFunction>());
+        mockMcpConnectable.Setup(m => m.InitializeAsync()).Returns(Task.CompletedTask);
+
+        // Replace the IMcpConnectable registration with our mock
+        var serviceDescriptor = builder.Services.FirstOrDefault(d => d.ServiceType == typeof(IMcpConnectable));
+        if (serviceDescriptor != null)
+        {
+            builder.Services.Remove(serviceDescriptor);
+        }
+        builder.Services.AddSingleton(mockMcpConnectable.Object);
+
+        _app = builder.Build();
     }
 
     [Fact]
