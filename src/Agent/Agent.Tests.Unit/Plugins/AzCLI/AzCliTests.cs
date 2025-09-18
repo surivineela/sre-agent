@@ -82,6 +82,9 @@ namespace Agent.Tests.Unit.Plugins.AzCLI
         [InlineData("az storage list --query \"[?name=='test'] | [0]\"", true)]
         [InlineData("az vm list-skus --location eastus --query \"[?name=='Standard_Ds_v6'].{Name:name,Capacity:capabilities[?name=='MaxResourceVolumeMB']|[0].value,Restrictions:restrictions}\" --subscription 31ce06e2-bf5d-4bdf-9649-243ec548316f", true)]
         [InlineData("az monitor log-analytics query --analytics-query \"Heartbeat | take 10\" && echo 'test'", false)] // Dangerous character outside whitelisted flag
+        [InlineData("az monitor scheduled-query create -g rgname -n alertname --scopes resourceId --condition \"count 'ErrorPods' > 0 at least 1 violations out of 5 aggregated points\" --condition-query 'ErrorPods=\"KubePodInventory\" | where Namespace == \"default\"'", true)] // Dangerous character outside whitelisted flag
+        [InlineData("az monitor metrics alert create -n name --condition \"avg requests/duration > 2000\"", true)] // Dangerous character outside whitelisted flag
+
         public void ValidateCommand_ShouldReturnExpectedResult(string command, bool shouldBeValid)
         {
             // Arrange & Act

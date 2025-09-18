@@ -3531,7 +3531,7 @@ public class ArmHelper
 
         // Try to derive tier from unknown SKUs based on common patterns
         var skuUpper = sku.ToUpperInvariant();
-        
+
         // Check for common tier patterns
         if (skuUpper.StartsWith("F"))
             return "Free";
@@ -3641,7 +3641,9 @@ public class ArmHelper
         var whitelistedFlags = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "--analytics-query",
-            "--query"
+            "--query",
+            "--condition-query", // az monitor scheduled-query create -g rgname -n alertname --scopes resourceId --condition "count 'ErrorPods' > 0 at least 1 violations out of 5 aggregated points" --condition-query 'ErrorPods="KubePodInventory" | where Namespace == "default"'
+            "--condition" // az monitor metrics alert create -n name --condition "avg requests/duration > 2000"
         };
 
         // Check for dangerous characters that could indicate command injection
