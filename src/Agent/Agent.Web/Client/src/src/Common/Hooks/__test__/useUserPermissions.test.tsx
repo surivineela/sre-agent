@@ -32,7 +32,6 @@ vi.mock('../ConfigSettings', () => ({
         ShowAgentModeForThread: 'showAgentModeForThread',
         ConsolidatedCreate: 'consolidatedCreate',
         DataConnectors: 'dataConnectors',
-        ShowDailyReportsTab: 'showDailyReportsTab',
         ShowScheduledTasksTab: 'showScheduledTasksTab',
         ShowWatchtower: 'showWatchtower',
         KnowledgeBase: 'knowledgeBase',

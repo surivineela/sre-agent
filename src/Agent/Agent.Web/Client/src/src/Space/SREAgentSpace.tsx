@@ -23,7 +23,6 @@ import { AppInsightsClient } from '../Common/Clients/AppInsightsClient';
 import RbacWarningBanner from '../Common/Components/RbacWarningBanner';
 import { AgentAccessLevel, IncidentManagementType } from '../Common/Contracts/Azure/SreAgent';
 import { ArmResourceDescriptor } from '../Common/Helpers/ResourceDescriptors';
-import { SettingNames, useConfigSetting } from '../Common/Hooks/ConfigSettings';
 import { useFeatureFlags } from '../Common/Hooks/useFeatureFlags';
 import { LocalStorageFlags, useLocalStorage } from '../Common/Hooks/useLocalStorage';
 import { IncidentManagementResources, SreAgentResources, SreAgentTabResources } from '../Strings/SREAgentResources';
@@ -151,7 +150,6 @@ const TabsListWrapper: FC = () => {
         return isIncidentManagementTeachingPopoverDismissed !== 'true';
     }, [isIncidentManagementTeachingPopoverDismissed]);
 
-    const showDailyReportsTab = useConfigSetting(SettingNames.ShowDailyReportsTab);
     const { features } = useFeatureFlags();
 
     // Show scheduled tasks tab based on backend feature flag only
@@ -279,11 +277,9 @@ const TabsListWrapper: FC = () => {
                     <Tab id="Knowledge" value={TabValues.Graph}>
                         {intl.formatMessage(SreAgentTabResources.resourceMapping)}
                     </Tab>
-                    {showDailyReportsTab && (
-                        <Tab id="DailyReports" value={TabValues.DailyReports}>
-                            {intl.formatMessage(SreAgentTabResources.dailyReports)}
-                        </Tab>
-                    )}
+                    <Tab id="DailyReports" value={TabValues.DailyReports}>
+                        {intl.formatMessage(SreAgentTabResources.dailyReports)}
+                    </Tab>
                     {showScheduledTasksTab && (
                         <Tab id="ScheduledTasks" value={TabValues.ScheduledTasks}>
                             {'Scheduled Tasks'}
