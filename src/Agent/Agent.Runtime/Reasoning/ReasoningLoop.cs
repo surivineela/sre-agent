@@ -16,6 +16,7 @@ using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
+using Agent.Core.Services;
 using Agent.Data.AgentMemory;
 using Agent.Framework;
 using Agent.Logging;
@@ -1461,13 +1462,8 @@ public class ReasoningLoop : IDisposable
             WriteAction = isWriteAction
         };
 
-        var status = AgentActionStatus.Success;
-        // catch exceptions and failures
-        if (result is string toolResponse
-            && toolResponse.StartsWith("Error: Function", StringComparison.OrdinalIgnoreCase))
-        {
-            status = toolResponse;
-        }
+        // Determine status using similar logic as CalculateToolCallMetrics
+        var status = DetermineToolExecutionStatus(aiTool.Name, result);
 
         try
         {
@@ -1488,6 +1484,48 @@ public class ReasoningLoop : IDisposable
         {
             _logger.LogInternalWarning(ex, "Failed to emit LogAgentAction for ToolExecution");
         }
+    }
+
+    // Helper method to determine tool execution status using similar logic as CalculateToolCallMetrics
+    private static string DetermineToolExecutionStatus(string toolName, object? result)
+    {
+        // Convert result to string for analysis
+        string output = result?.ToString() ?? string.Empty;
+
+        // Check for basic "Error: Function" pattern first (original logic)
+        if (output.StartsWith("Error: Function", StringComparison.OrdinalIgnoreCase))
+        {
+            return AgentActionStatus.Fail;
+        }
+
+        // Use similar logic as CalculateToolCallMetrics for specific tool types
+        var normalizedToolName = EvaluationHelper.GetToolCallName(toolName);
+
+        // Check AzCli tools (using string literals instead of nameof to avoid dependency issues)
+        if (normalizedToolName == "RunAzCliReadCommands" ||
+            normalizedToolName == "RunAzCliWriteCommands")
+        {
+            return output.Contains(ExternalProcessCommand.ProcessFailureMessage) 
+                ? AgentActionStatus.Fail 
+                : AgentActionStatus.Success;
+        }
+
+        // Check Kubectl tools (using string literals instead of nameof to avoid dependency issues)
+        if (normalizedToolName == "RunKubectlReadCommand" ||
+            normalizedToolName == "RunKubectlWriteCommand")
+        {
+            return output.Contains(ExternalProcessCommand.ProcessFailureMessage) 
+                ? AgentActionStatus.Fail 
+                : AgentActionStatus.Success;
+        }
+
+        // For other tools, check for generic error patterns
+        if (output.ToLower().Contains("error") || output.ToLower().Contains("failed"))
+        {
+            return AgentActionStatus.Fail;
+        }
+
+        return AgentActionStatus.Success;
     }
 
     private async Task ExecuteToolAsync(

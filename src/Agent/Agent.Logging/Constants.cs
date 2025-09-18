@@ -38,5 +38,6 @@ namespace Agent.Logging
     public static class AgentActionStatus
     {
         public const string Success = "Success";
+        public const string Fail = "Fail";
     }
 }
