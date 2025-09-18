@@ -28,37 +28,22 @@ public class ToDoWriteTool : AIToolFunction<ToDoWriteTool>
         AIFunctionArguments arguments,
         CancellationToken cancellationToken)
     {
-        if (!arguments.TryGetValue("todos", out var todosObj) || todosObj is null)
+        var todoItems = TryExtractTodos(arguments);
+
+        if (string.IsNullOrEmpty(todoItems))
         {
             return new("No todos were provided. Nothing to update.");
-        }
-
-        string serializedTodos;
-
-        if (todosObj is JsonElement element)
-        {
-            // Re-serialize to string directly
-            serializedTodos = element.GetRawText();
-        }
-        else
-        {
-            // Handle case where it's already some enumerable/dictionary
-            serializedTodos = JsonSerializer.Serialize(todosObj, AIJsonUtilities.DefaultOptions);
         }
 
         var sb = new StringBuilder();
 
         sb.Append("Todos have been modified successfully. ");
         sb.Append("Ensure that you continue to use the todo list to track your progress. ");
-        sb.Append("Please proceed with the current tasks if applicable");
-
-        sb.AppendLine();
-        sb.AppendLine();
+        sb.AppendLine("Please proceed with the current tasks if applicable");
         sb.AppendLine("<system-reminder>");
         sb.AppendLine("Your todo list has changed. DO NOT mention this explicitly to the user. Here are the latest contents of your todo list:");
-        sb.AppendLine();
-        sb.Append(serializedTodos);
-        sb.AppendLine(". Continue on with the tasks at hand if applicable.");
+        sb.AppendLine(todoItems);
+        sb.AppendLine("Continue on with the tasks at hand if applicable.");
         sb.AppendLine("</system-reminder>");
 
         return new(sb.ToString());
@@ -288,6 +273,21 @@ public class ToDoWriteTool : AIToolFunction<ToDoWriteTool>
         TodoStatus Status,
         [property: MinLength(1)]
         string ActiveForm);
+
+    public static string? TryExtractTodos(
+        AIFunctionArguments arguments)
+    {
+        if (!arguments.TryGetValue("todos", out var todosObj) || todosObj is null)
+        {
+            return default;
+        }
+
+        return todosObj is JsonElement element
+            // Re-serialize to string directly i f possible
+            ? element.GetRawText()
+            // Handle case where it's already some enumerable/dictionary
+            : JsonSerializer.Serialize(todosObj, AIJsonUtilities.DefaultOptions);
+    }
 
     #endregion
 }

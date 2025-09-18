@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -1207,42 +1208,65 @@ public static class Runner
         return modelInput;
     }
 
+    private const string EmptyToDoReminder =
+    """
+    <system-reminder>
+    This is a reminder that your todo list is currently empty. DO NOT mention this to the user explicitly because they are already aware. If you are working on tasks that would benefit from a todo list please use the TodoWrite tool to create one. If not, please feel free to ignore. Again do not mention this message to the user.
+    </system-reminder>
+    """;
+
     private static void AddPlanReminderIfNeeded<TContext>(
         List<ChatMessage> modelInput,
         IReadOnlyList<AIFunction> tools,
         Agent<TContext> agent)
         where TContext : class
     {
-        const string ToDoReminder =
-        """
-        <system-reminder>
-        This is a reminder that your todo list is currently empty. DO NOT mention this to the user explicitly because they are already aware. If you are working on tasks that would benefit from a todo list please use the TodoWrite tool to create one. If not, please feel free to ignore. Again do not mention this message to the user.
-        </system-reminder>
-        """;
-
-        const string InProgressPlanReminder =
-        """
-        <system-reminder>
-        This is a reminder that you have an in-progress plan. Please make sure to complete all the tasks in your plan before providing a final answer to the user. If you have already completed all the tasks in your plan, please provide a final answer to the user. DO NOT mention this to the user explicitly because they are already aware. Again do not mention this message to the user.
-        </system-reminder>
-        """;
-
         var needsPlan = tools
             .Any(t => string.Equals(ToDoWriteTool.ToolName, t.Name, StringComparison.OrdinalIgnoreCase));
-        if (needsPlan)
+        if (!needsPlan)
         {
-            var hasPlan = modelInput.Any(m => m.Role == ChatRole.Assistant
-                && m.Contents.Any(c => c is FunctionCallContent f
-                && string.Equals(f.Name, ToDoWriteTool.ToolName, StringComparison.OrdinalIgnoreCase)));
+            return;
+        }
 
-            if (!hasPlan)
+        var lastPlanMessage = modelInput.LastOrDefault(
+            m => m.Role == ChatRole.Assistant
+            && m.Contents.Any(IsToDoWriteCall));
+
+        // if no active plan, add reminder and return
+        if (lastPlanMessage is null)
+        {
+            modelInput.Add(new ChatMessage(ChatRole.User, EmptyToDoReminder));
+            return;
+        }
+
+        // if there is active plan, add reminder based on agent settings
+        if (agent.AlwaysAddPlanReminder)
+        {
+            var lastPlanContent = lastPlanMessage.Contents.Last(IsToDoWriteCall) as FunctionCallContent;
+            var lastPlanTodos = ToDoWriteTool.TryExtractTodos(new(lastPlanContent!.Arguments));
+            if (lastPlanTodos is not null)
             {
-                modelInput.Add(new ChatMessage(ChatRole.User, ToDoReminder));
-            }
-            else if (agent.AlwaysAddPlanReminder)
-            {
-                modelInput.Add(new ChatMessage(ChatRole.User, InProgressPlanReminder));
+                var sb = new StringBuilder();
+
+                sb.AppendLine("<system-reminder>");
+                sb.AppendLine("These are the latest contents of your todo list:");
+                sb.AppendLine(lastPlanTodos);
+                sb.AppendLine("Continue on with the tasks at hand if applicable.");
+                sb.AppendLine("Ensure that you continue to use the todo list to track your progress.");
+                //sb.AppendLine("While working on a user ask, do not remove any items from the todo list, even if completed.");
+                //sb.AppendLine("You may only refresh the todo list from new, if the user intent changes.");
+                sb.AppendLine("</system-reminder>");
+
+                var planReminder = sb.ToString();
+
+                modelInput.Add(new ChatMessage(ChatRole.User, planReminder));
             }
         }
+    }
+
+    private static bool IsToDoWriteCall(AIContent content)
+    {
+        return content is FunctionCallContent f
+            && string.Equals(f.Name, ToDoWriteTool.ToolName, StringComparison.OrdinalIgnoreCase);
     }
 }
