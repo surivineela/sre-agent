@@ -371,6 +371,12 @@
       "value": "New incident handler"
     }
   ],
+  "1YF+AW": [
+    {
+      "type": 0,
+      "value": "Root cause analysis"
+    }
+  ],
   "1YN49J": [
     {
       "type": 0,
@@ -461,6 +467,12 @@
     {
       "type": 0,
       "value": "The selected resource groups are being set up"
+    }
+  ],
+  "2Oxmp9": [
+    {
+      "type": 0,
+      "value": "Incident title"
     }
   ],
   "2PnnDB": [
@@ -871,6 +883,12 @@
     {
       "type": 0,
       "value": "Password"
+    }
+  ],
+  "5w4pim": [
+    {
+      "type": 0,
+      "value": "All mitigated by"
     }
   ],
   "5wGcN7": [
@@ -2209,6 +2227,12 @@
       "value": "Client"
     }
   ],
+  "JYbAwr": [
+    {
+      "type": 0,
+      "value": "The agent's analysis of the causes that triggered the incident."
+    }
+  ],
   "JgQ1gX": [
     {
       "type": 0,
@@ -2399,6 +2423,12 @@
     {
       "type": 0,
       "value": "Details"
+    }
+  ],
+  "LwwzP6": [
+    {
+      "type": 0,
+      "value": "Severity level"
     }
   ],
   "LyHqqV": [
@@ -3119,6 +3149,12 @@
       "value": "Cognitive Services Data Reader"
     }
   ],
+  "SFUZOQ": [
+    {
+      "type": 0,
+      "value": "Incident created"
+    }
+  ],
   "SL7+hl": [
     {
       "type": 0,
@@ -3837,6 +3873,12 @@
       "value": "Unhealthy"
     }
   ],
+  "YgyuGj": [
+    {
+      "type": 0,
+      "value": "Mitigated by"
+    }
+  ],
   "YigUHc": [
     {
       "type": 0,
@@ -4033,6 +4075,12 @@
     {
       "type": 0,
       "value": "Copy to clipboard"
+    }
+  ],
+  "aF4iw+": [
+    {
+      "type": 0,
+      "value": "Using this response plan"
     }
   ],
   "aGL+Qo": [
@@ -4553,6 +4601,12 @@
       "value": "Impacted service"
     }
   ],
+  "ffTMIX": [
+    {
+      "type": 0,
+      "value": "All severity levels"
+    }
+  ],
   "ffkuNo": [
     {
       "type": 0,
@@ -4781,6 +4835,12 @@
       "value": "Successfully deleted incident handler"
     }
   ],
+  "hZY54D": [
+    {
+      "type": 0,
+      "value": "Top categories"
+    }
+  ],
   "hfACn+": [
     {
       "type": 0,
@@ -5001,6 +5061,12 @@
     {
       "type": 0,
       "value": "Setup complete"
+    }
+  ],
+  "jRtus7": [
+    {
+      "type": 0,
+      "value": "No root cause analysis categories found"
     }
   ],
   "jTQZpk": [
@@ -5481,6 +5547,12 @@
       "value": "Provide response feedback"
     }
   ],
+  "ongAz6": [
+    {
+      "type": 0,
+      "value": "Search incidents"
+    }
+  ],
   "ovJ26C": [
     {
       "type": 0,
@@ -5611,6 +5683,12 @@
     {
       "type": 0,
       "value": "In progress"
+    }
+  ],
+  "qczspd": [
+    {
+      "type": 0,
+      "value": "View plan"
     }
   ],
   "qddSy6": [
@@ -6153,6 +6231,12 @@
     {
       "type": 0,
       "value": "Can read Azure Cosmos DB account data."
+    }
+  ],
+  "vfrUDN": [
+    {
+      "type": 0,
+      "value": "AI-generated"
     }
   ],
   "w+XRP2": [

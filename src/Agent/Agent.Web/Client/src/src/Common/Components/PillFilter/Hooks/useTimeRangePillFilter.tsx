@@ -1,8 +1,8 @@
 import { DatePicker, initializeIcons, TimePicker } from '@fluentui/react';
 import { Field, makeStyles, Radio, RadioGroup } from '@fluentui/react-components';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useIntl } from 'react-intl';
-import { SreAgentResources } from '../../../../Strings/SREAgentResources';
+import { IntlShape, useIntl } from 'react-intl';
+import { IncidentManagementResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
 import {
     changeToLocalTimezone,
     changeToUtcTimezone,
@@ -20,6 +20,35 @@ const parseSelectedValue = (value: TimeRangeValue | undefined, defaultKey: strin
         start: changeToLocalTimezone(start),
         end: changeToLocalTimezone(end),
     };
+};
+
+export const getDefaultTimeRangeOptions = (intl: IntlShape): TimeRangeKeyLabelPair[] => {
+    return [
+        {
+            key: TimespanKeys.OneHour,
+            label: intl.formatMessage(IncidentManagementResources.lastHour),
+        },
+        {
+            key: TimespanKeys.SixHours,
+            label: intl.formatMessage(IncidentManagementResources.last6Hours),
+        },
+        {
+            key: TimespanKeys.TwelveHours,
+            label: intl.formatMessage(IncidentManagementResources.last12Hours),
+        },
+        {
+            key: TimespanKeys.TwentyFourHours,
+            label: intl.formatMessage(IncidentManagementResources.last24Hours),
+        },
+        {
+            key: TimespanKeys.ThreeDays,
+            label: intl.formatMessage(IncidentManagementResources.last3Days),
+        },
+        {
+            key: TimespanKeys.SevenDays,
+            label: intl.formatMessage(IncidentManagementResources.last7Days),
+        },
+    ];
 };
 
 const useTimeRangePillFilterStyles = makeStyles({

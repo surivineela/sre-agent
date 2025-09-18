@@ -20,6 +20,7 @@ customDimensions includes:
 - IncidentId: "000000000"
 - IncidentStatus: "active"
 - ResponsePlanId: "watchtower-test1"
+- Misc: IncidentSummary, IncidentRootCauseCategory
 
 */
 
@@ -70,8 +71,7 @@ export const getHandlersOverviewQuery = (timeRange: TimeRangeValue) => {
     `;
 };
 
-/** Results not confirmed yet */
-export const getHandlerIncidentOutcomeTrendQuery = (handlerId: string, timeRange: TimeRangeValue) => {
+export const getHandlerIncidentSummaryTrendQuery = (handlerId: string, timeRange: TimeRangeValue) => {
     const kustoTimespan = getKustoTimespan(timeRange);
 
     return `
@@ -88,7 +88,6 @@ export const getHandlerIncidentOutcomeTrendQuery = (handlerId: string, timeRange
     `;
 };
 
-/** Results not confirmed yet */
 export const getHandlerIncidentOverviewQuery = (handlerId: string, timeRange: TimeRangeValue) => {
     const kustoTimespan = getKustoTimespan(timeRange);
 
@@ -96,17 +95,17 @@ export const getHandlerIncidentOverviewQuery = (handlerId: string, timeRange: Ti
     let handlerId = '${handlerId}';
     customEvents
     | where name == 'IncidentActivitySnapshot'
-    | extend IncidentHandledOn = todatetime(iif(isnull(customDimensions.IncidentHandledOn), customDimensions.IncidentHandledAt, customDimensions.IncidentHandledOn)), IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), IsMitigatedByAgent = tostring(customDimensions.IncidentMitigatedByAgent), Status = tostring(customDimensions.IncidentStatus), Priority = tostring(customDimensions.IncidentSeverity), UpdatedOn = todatetime(customDimensions.IncidentUpdatedOn)
-    | project IncidentId, IncidentHandledOn, HandlerId, IsMitigatedByAgent, Status, Priority, UpdatedOn
+    | extend IncidentHandledOn = todatetime(iif(isnull(customDimensions.IncidentHandledOn), customDimensions.IncidentHandledAt, customDimensions.IncidentHandledOn)), IncidentCreatedOn = todatetime(customDimensions.IncidentCreatedOn), IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), IsMitigatedByAgent = tostring(customDimensions.IncidentMitigatedByAgent), Status = tostring(customDimensions.IncidentStatus), Priority = tostring(customDimensions.IncidentSeverity), UpdatedOn = todatetime(customDimensions.IncidentUpdatedOn), IncidentTitle = tostring(customDimensions.IncidentTitle)
+    | project IncidentId, IncidentTitle, IncidentHandledOn, IncidentCreatedOn, HandlerId, IsMitigatedByAgent, Status, Priority, UpdatedOn
     | where IncidentHandledOn ${kustoTimespan}
     | where HandlerId == handlerId
-    | summarize arg_max(UpdatedOn, IncidentHandledOn, HandlerId, Status, Priority, IsMitigatedByAgent) by IncidentId
-    | project IncidentId, HandlerId, UpdatedOn, Status, Priority, IsMitigatedByAgent
+    | summarize arg_max(UpdatedOn, IncidentHandledOn, IncidentCreatedOn, IncidentTitle, HandlerId, Status, Priority, IsMitigatedByAgent) by IncidentId
+    | project IncidentId, IncidentTitle, Priority, IncidentCreatedOn, Status, IsMitigatedByAgent
     | order by Priority desc, Status desc, IsMitigatedByAgent
     `;
 };
 
-/** Results not confirmed yet */
+/** ImpactedService field not actually populated in the data (*test data; yet?) */
 export const getIncidentRootCauseOverviewQuery = (handlerId: string, timeRange: TimeRangeValue) => {
     const kustoTimespan = getKustoTimespan(timeRange);
 
@@ -114,15 +113,15 @@ export const getIncidentRootCauseOverviewQuery = (handlerId: string, timeRange: 
     let handlerId = '${handlerId}';
     customEvents
     | where name == 'IncidentActivitySnapshot'
-    | extend IncidentHandledOn = todatetime(iif(isnull(customDimensions.IncidentHandledOn), customDimensions.IncidentHandledAt, customDimensions.IncidentHandledOn)), IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), RootCause= tostring(customDimensions.IncidentRootCauseCategory), Summary = tostring(customDimensions.IncidentSummary), UpdatedOn = todatetime(customDimensions.IncidentUpdatedOn)
-    | project IncidentId, IncidentHandledOn, HandlerId, RootCause, Summary, UpdatedOn
+    | extend IncidentHandledOn = todatetime(iif(isnull(customDimensions.IncidentHandledOn), customDimensions.IncidentHandledAt, customDimensions.IncidentHandledOn)), IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), RootCause= tostring(customDimensions.IncidentRootCauseCategory), Summary = tostring(customDimensions.IncidentSummary), UpdatedOn = todatetime(customDimensions.IncidentUpdatedOn), ImpactedService = tostring(customDimensions.IncidentImpactedService)
+    | project IncidentId, IncidentHandledOn, HandlerId, RootCause, Summary, UpdatedOn, ImpactedService
     | where IncidentHandledOn ${kustoTimespan}
     | where HandlerId == handlerId
-    | summarize arg_max(UpdatedOn, IncidentHandledOn, HandlerId, RootCause, Summary) by IncidentId
-    | summarize dcount(IncidentId) by RootCause`;
+    | summarize arg_max(UpdatedOn, IncidentHandledOn, HandlerId, ImpactedService, RootCause, Summary) by IncidentId
+    | summarize dcount(IncidentId) by RootCause, ImpactedService`;
 };
 
-/** Results not confirmed yet */
+/** Results not confirmed yet - don't think this had a confirmed use case; likely just there for ref */
 export const getLatestIncidentInformationQuery = (handlerId: string, incidentId: string, timeRange: TimeRangeValue) => {
     const kustoTimespan = getKustoTimespan(timeRange);
 

@@ -1,6 +1,7 @@
 import { defineMessages } from 'react-intl';
 
 export const SreAgentResources = defineMessages({
+    aiGeneratedHyphenated: { defaultMessage: 'AI-generated', id: 'vfrUDN' },
     all: { defaultMessage: 'All', id: 'zQvVDJ' },
     allAutonomyLevels: { defaultMessage: 'All autonomy levels', id: 'uI0Lmu' },
     addIdentity: { defaultMessage: 'Add identity', id: 'xUuESs' },
@@ -144,6 +145,8 @@ export const SreAgentResources = defineMessages({
     activeThreads: { defaultMessage: 'Active threads', id: 'rFlkvY' },
     unread: { defaultMessage: 'Unread', id: 'jabB4C' },
     agent: { defaultMessage: 'Agent', id: 'QGVI63' },
+    user: { defaultMessage: 'User', id: 'EwRIOm' },
+    inProgress: { defaultMessage: 'In progress', id: 'q1WWIr' },
     agentDetails: { defaultMessage: 'Agent details', id: 'Wf6bDe' },
     agents: { defaultMessage: 'Agents', id: 'GBnvl1' },
     apply: { defaultMessage: 'Apply', id: 'EWw/tK' },
@@ -350,6 +353,7 @@ export const SreAgentResources = defineMessages({
     lowRisk: { defaultMessage: 'Low risk', id: 'jd2Xsp' },
     mediumRisk: { defaultMessage: 'Medium risk', id: 'ZwYyES' },
     highRisk: { defaultMessage: 'High risk', id: 'ox7DwN' },
+    unknown: { defaultMessage: 'Unknown', id: '5jeq8P' },
     filterBy: { defaultMessage: 'Filter by', id: 'S57QRB' },
     selectFilter: { defaultMessage: 'Select a filter', id: 'iNgloh' },
     addFilter: { defaultMessage: 'Add filter', id: 'M/zZVx' },
@@ -1178,6 +1182,20 @@ export const IncidentManagementResources = defineMessages({
     customPlan: { defaultMessage: 'Custom plan', id: 'NW3Qi+' },
     searchResponsePlans: { defaultMessage: 'Search response plans', id: 'aTyEZH' },
     allCustomPlans: { defaultMessage: 'All custom plans', id: 'tbPq1d' },
+    viewPlan: { defaultMessage: 'View plan', id: 'qczspd' },
+    usingThisResponsePlan: { defaultMessage: 'Using this response plan', id: 'aF4iw+' },
+    rootCauseAnalysis: { defaultMessage: 'Root cause analysis', id: '1YF+AW' },
+    rootCauseAnalysisDescription: { defaultMessage: "The agent's analysis of the causes that triggered the incident.", id: 'JYbAwr' },
+    allSeverityLevels: { defaultMessage: 'All severity levels', id: 'ffTMIX' },
+    allMitigatedBy: { defaultMessage: 'All mitigated by', id: '5w4pim' },
+    incidentTitle: { defaultMessage: 'Incident title', id: '2Oxmp9' },
+    severityLevel: { defaultMessage: 'Severity level', id: 'LwwzP6' },
+    incidentCreated: { defaultMessage: 'Incident created', id: 'SFUZOQ' },
+    mitigatedBy: { defaultMessage: 'Mitigated by', id: 'YgyuGj' },
+    searchIncidents: { defaultMessage: 'Search incidents', id: 'ongAz6' },
+    topCategories: { defaultMessage: 'Top categories', id: 'hZY54D' },
+    incidents: { defaultMessage: 'Incidents', id: 'mtr3R4' },
+    noRcaCategoriesFound: { defaultMessage: 'No root cause analysis categories found', id: 'jRtus7' },
 });
 
 export const IncidentManagementPlatformResources = defineMessages({

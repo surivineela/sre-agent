@@ -29,7 +29,7 @@ export const ChartCard = ({ title, data, isLoading }: ChartCardProps) => {
     }, [data]);
 
     return (
-        <Card style={{ flexGrow: 1, minWidth: 650, height: 310 }}>
+        <Card style={{ flex: '1 1 650px', minWidth: 650, height: 310 }}>
             <div>
                 <Subtitle2>{title}</Subtitle2>
             </div>
@@ -56,7 +56,7 @@ export const ChartCard = ({ title, data, isLoading }: ChartCardProps) => {
                     <SkeletonItem size={32} style={{ height: 210 }} />
                 </Skeleton>
             ) : (
-                <div style={{ height: 275, width: '100%' }}>
+                <div style={{ height: 275, width: 'calc(100% - 16px)' }}>
                     {chartType === 'line' && <LineChart data={data} />}
 
                     {chartType === 'bar' && <VerticalBarChart data={barChartData} />}

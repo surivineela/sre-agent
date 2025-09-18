@@ -1,5 +1,5 @@
 import { IntlShape } from 'react-intl';
-import { IncidentManagementPlatformResources } from '../../Strings/SREAgentResources';
+import { IncidentManagementPlatformResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { IncidentManagementType } from '../Contracts/Azure/SreAgent';
 
 export const getLocalizedIncidentPlatformName = (platform: string, intl: IntlShape): string => {
@@ -14,5 +14,18 @@ export const getLocalizedIncidentPlatformName = (platform: string, intl: IntlSha
             return intl.formatMessage(IncidentManagementPlatformResources.serviceNow);
         default:
             return platform;
+    }
+};
+
+export const getLocalizedMitigatedBy = (mitigatedBy: 'agent' | 'user' | 'inProgress', intl: IntlShape) => {
+    switch (mitigatedBy) {
+        case 'agent':
+            return intl.formatMessage(SreAgentResources.agent);
+        case 'user':
+            return intl.formatMessage(SreAgentResources.user);
+        case 'inProgress':
+            return intl.formatMessage(SreAgentResources.inProgress);
+        default:
+            return mitigatedBy;
     }
 };

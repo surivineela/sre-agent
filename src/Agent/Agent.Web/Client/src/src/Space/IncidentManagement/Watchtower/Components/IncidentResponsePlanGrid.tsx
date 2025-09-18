@@ -36,11 +36,12 @@ enum IncidentResponsePlanGridColumnKey {
 
 interface IncidentResponsePlanGridProps {
     responsePlans: IncidentHandlerItem[];
+    setOpenedResponsePlan: (responsePlan: IncidentHandlerItem | undefined) => void;
     disabled?: boolean;
     isLoading?: boolean;
 }
 
-export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }: IncidentResponsePlanGridProps) => {
+export const IncidentResponsePlanGrid = ({ responsePlans, setOpenedResponsePlan, disabled, isLoading }: IncidentResponsePlanGridProps) => {
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
 
@@ -99,14 +100,14 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
             return (
                 <Link
                     onClick={() => {
-                        /* TODO: Open 'Response plans' tab */
+                        setOpenedResponsePlan(item);
                     }}
                 >
                     {item.responsePlanName || intl.formatMessage(SreAgentResources.default)}
                 </Link>
             );
         },
-        [intl]
+        [intl, setOpenedResponsePlan]
     );
 
     const onRenderAutonomyLevel = useCallback(
@@ -158,7 +159,6 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
                 isResizable: true,
                 minWidth: 150,
                 maxWidth: 250,
-                isMultiline: true,
                 onRender: onRenderResponsePlanName,
                 isSorted: sortColumnKey === (IncidentResponsePlanGridColumnKey.name as keyof IncidentHandlerItem),
                 isSortedDescending:
@@ -171,7 +171,6 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
                 key: IncidentResponsePlanGridColumnKey.autonomyLevel,
                 name: intl.formatMessage(IncidentManagementResources.autonomyLevel),
                 isResizable: true,
-                isMultiline: true,
                 minWidth: 150,
                 maxWidth: 150,
                 onRender: onRenderAutonomyLevel,
@@ -186,7 +185,6 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
                 key: IncidentResponsePlanGridColumnKey.customPlan,
                 name: intl.formatMessage(IncidentManagementResources.customPlan),
                 isResizable: true,
-                isMultiline: true,
                 minWidth: 130,
                 maxWidth: 130,
                 onRender: onRenderCustomPlan,
@@ -201,7 +199,6 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
                 key: IncidentResponsePlanGridColumnKey.incidentsReviewed,
                 name: intl.formatMessage(IncidentManagementResources.incidentsReviewed),
                 isResizable: true,
-                isMultiline: true,
                 minWidth: 150,
                 maxWidth: 250,
                 onRender: onRenderIncidentsReviewed,
@@ -216,7 +213,6 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
                 key: IncidentResponsePlanGridColumnKey.mitigatedByAgent,
                 name: intl.formatMessage(IncidentManagementResources.mitigatedByAgent),
                 isResizable: true,
-                isMultiline: true,
                 minWidth: 150,
                 maxWidth: 250,
                 onRender: onRenderMitigatedByAgent,
@@ -313,7 +309,7 @@ export const IncidentResponsePlanGrid = ({ responsePlans, disabled, isLoading }:
             <Subtitle2>{intl.formatMessage(IncidentManagementResources.incidentResponsePlan)}</Subtitle2>
 
             <div style={{ width: '100%' }}>
-                <div className={styles.incidentFiltersContainer}>
+                <div className={styles.incidentFiltersContainer} style={{ marginBottom: 0 }}>
                     <SearchBox
                         className={styles.searchBox}
                         placeholder={intl.formatMessage(IncidentManagementResources.searchResponsePlans)}
