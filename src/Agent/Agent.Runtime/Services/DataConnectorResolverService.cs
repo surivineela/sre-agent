@@ -123,13 +123,8 @@ public class DataConnectorResolverService : IConnectorResolver
                     {
                         if (Uri.TryCreate(candidate.DataSource, UriKind.Absolute, out var uri) && uri != null)
                         {
-                            // Extract the cluster name from the host (e.g., "mycluster" from "mycluster.kusto.windows.net")
-                            var hostParts = uri.Host.Split('.');
-                            var clusterName = hostParts.Length > 0 ? hostParts[0] : uri.Host;
-                            
-                            // Match against both the full host and the extracted cluster name
-                            if (string.Equals(uri.Host, dataSource, StringComparison.OrdinalIgnoreCase) ||
-                                string.Equals(clusterName, dataSource, StringComparison.OrdinalIgnoreCase))
+                            if (uri.Host.Contains(dataSource, StringComparison.OrdinalIgnoreCase) ||
+                                uri.AbsolutePath.Contains(dataSource, StringComparison.OrdinalIgnoreCase))
                             {
                                 settings = candidate;
                                 break;
