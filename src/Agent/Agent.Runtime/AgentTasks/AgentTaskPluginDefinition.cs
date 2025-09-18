@@ -51,6 +51,11 @@ public class AgentTaskPluginDefinition(
             {
                 Status = InitialInvestigationStatus.InProgress,
                 Summary = string.Empty,
+                IncidentDescription = string.Empty,
+                TimeFrame = string.Empty,
+                AffectedResources = new List<string>(),
+                KeyFindings = string.Empty,
+                Details = string.Empty,
                 GatheringContext = new GatheringContextProperties()
                 {
                     Status = InitialInvestigationStatus.NotStarted,

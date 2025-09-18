@@ -81,6 +81,16 @@ public sealed record InitialInvestigationProperties
     public required GatheringContextProperties GatheringContext { get; set; }
     public required string Summary { get; set; }
 
+    public required string IncidentDescription { get; set; }
+
+    public required string TimeFrame { get; set; }
+
+    public required IList<string> AffectedResources { get; set; }
+
+    public required string KeyFindings { get; set; }
+
+    public required string Details { get; set; }
+
     [NJ.JsonConverter(typeof(NJC.StringEnumConverter))]
     [SJ.JsonConverter(typeof(SJ.JsonStringEnumConverter))]
     public required InitialInvestigationStatus Status { get; set; }

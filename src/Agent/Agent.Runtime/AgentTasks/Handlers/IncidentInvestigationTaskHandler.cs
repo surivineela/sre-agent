@@ -268,6 +268,11 @@ public sealed class IncidentInvestigationTaskHandler(
                     // 4. Generate a summary of the initial investigation
 
                     state.InitialInvestigation.Summary = initialInvestigationResult.Summary;
+                    state.InitialInvestigation.TimeFrame = initialInvestigationResult.TimeFrame;
+                    state.InitialInvestigation.Details = initialInvestigationResult.Details;
+                    state.InitialInvestigation.IncidentDescription = initialInvestigationResult.IncidentDescription;
+                    state.InitialInvestigation.AffectedResources = new List<string>(initialInvestigationResult.AffectedResources);
+                    state.InitialInvestigation.KeyFindings = initialInvestigationResult.KeyFindings;
                     state.InitialInvestigation.Status = InitialInvestigationStatus.Complete;
 
                     state = await SaveStateAndStreamUpdateAsync(cancellationToken: cancellationToken);

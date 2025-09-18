@@ -16,8 +16,24 @@ public record InitialInvestigationResult
     [Description("Steps taken during the investigation")]
     public required IList<InitialInvestigationStepResult> ContextGatheringSteps { get; set; }
 
-    [Description("Summary of the initial investigation and the relevant context that has been gathered, in markdown format")]
+    [Description("High-level overview of the initial investigation and the relevant context that has been gathered in 3-5 bullet points. Use markdown format.")]
     public required string Summary { get; set; }
+
+    [Description("Description of the incident being investigated")]
+    public required string IncidentDescription { get; set; }
+
+    [Description("The timeframe during which the incident occurred")]
+    public required string TimeFrame { get; set; }
+
+    [Description("List of Azure resources affected by the incident")]
+    public required IList<string> AffectedResources { get; set; }
+
+    [Description("Key findings from the initial investigation, in markdown format.")]
+    public required string KeyFindings { get; set; }
+
+    [Description("More details about all the relevant context that has been gathered, focus on relevant factual information and context. Use markdown format with headings and bullet points.")]
+    public required string Details { get; set; }
+
 }
 
 public record InitialInvestigationStepResult
@@ -241,12 +257,13 @@ public static class IncidentInvestigationAgents
                 {todoWritePrompt}
 
                 <output>
-                Output the detailed steps you took and the final detailed summary in markdown format.
-                The summary should start with a more concise section (3-5 sentences) that gives a high-level overview of the incident and the relevant context that has been gathered.
-                Then, provide a more detailed section below that summarizes the relevant context that has been gathered. Focus on relevant factual information and context, your job is NOT
-                to determine the root cause. Be concise, the user reading this summary needs to be able to quickly synthesize the information you've gathered.
+                Output the results of your initial analysis in the provided structured format.
+                Make sure to use markdown where appropriate.
+                Focus on relevant factual information and context, your job is NOT to determine the root cause.
+                Be concise, the user reading this summary needs to be able to quickly synthesize the information you've gathered.
                 </output>
                 """,
+
                 FactoryTools = ["ToDoWrite", .. toolNames],
                 //FactoryTools = toolNames,
                 OutputType = typeof(InitialInvestigationResult),
