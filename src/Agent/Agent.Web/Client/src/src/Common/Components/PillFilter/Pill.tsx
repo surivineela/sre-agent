@@ -10,7 +10,7 @@ import {
     useRestoreFocusTarget,
 } from '@fluentui/react-components';
 import { Dismiss16Filled } from '@fluentui/react-icons';
-import { FC, PropsWithChildren, useMemo, useRef, useState } from 'react';
+import { FC, PropsWithChildren, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { SreAgentResources } from '../../../Strings/SREAgentResources';
 import { PillProps } from './Contracts';
@@ -80,12 +80,16 @@ const usePillStyles = makeStyles({
         zIndex: 100,
         paddingLeft: '0px',
         paddingRight: '0px',
+        display: 'flex',
+        flexDirection: 'column',
+        overflowY: 'hidden',
     },
     body: {
         display: 'flex',
         flexDirection: 'column',
         gap: '16px',
         paddingBottom: '16px',
+        overflowY: 'hidden',
     },
     dialogActions: {
         justifySelf: 'start',
@@ -161,6 +165,15 @@ export const Pill: FC<PropsWithChildren<PillProps>> = ({
         valueMaxWidth,
     ]);
 
+    const [maxPopoverHeight, setMaxPopoverHeight] = useState<string>('calc(100vh - 200px)');
+
+    useEffect(() => {
+        if (buttonRef.current) {
+            const rect = buttonRef.current?.getBoundingClientRect();
+            setMaxPopoverHeight(`calc(100vh - ${rect.bottom + 44}px)`);
+        }
+    }, [buttonRef]);
+
     return (
         <>
             <div className={styles.root} ref={buttonRef}>
@@ -203,7 +216,7 @@ export const Pill: FC<PropsWithChildren<PillProps>> = ({
                 }}
                 mountNode={{ className: styles.portalContainer }}
             >
-                <PopoverSurface className={styles.surface}>
+                <PopoverSurface className={styles.surface} style={{ maxHeight: maxPopoverHeight }}>
                     <div className={styles.body}>{children}</div>
                     <DialogActions className={styles.dialogActions}>
                         <Button

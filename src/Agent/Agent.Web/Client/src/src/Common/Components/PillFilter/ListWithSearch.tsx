@@ -24,6 +24,7 @@ const useStyles = makeStyles({
         flexDirection: 'column',
         gap: '10px',
         maxWidth: '300px',
+        overflow: 'hidden',
     },
     searchBox: {
         marginLeft: '16px',
