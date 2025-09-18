@@ -33,6 +33,9 @@ namespace Agent.Logging
         public const string EvaluateRag = "evaluate.rag";
         public const string EvaluateTask = "evaluate.task";
         public const string EvaluateThread = "evaluate.thread";
+
+        // Incident Management
+        public const string ResolveIncident = nameof(ResolveIncident);
     }
 
     public static class AgentActionStatus

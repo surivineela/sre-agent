@@ -17,6 +17,8 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Services;
+using Agent.Logging;
+using System.Text.Json;
 
 namespace Agent.Runtime.SubAgents.Scanner;
 
@@ -121,6 +123,36 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                     {
                         if (existingThreadDocument.IncidentStatus != "resolved")
                         {
+                            // Log agent action event for incident resolution only when status changes
+                            try
+                            {
+                                // Determine if the incident was resolved by Agent or User based on tags
+                                var resolvedBy = "User"; // Default to User
+                                if (incidentDocument.Tags?.Any(tag => tag.Equals("SREAgent_Resolved", StringComparison.OrdinalIgnoreCase)) == true)
+                                {
+                                    resolvedBy = "Agent";
+                                }
+
+                                var resolveActionData = new IncidentResolveActionData
+                                {
+                                    IncidentSource = "PagerDuty",
+                                    IncidentId = incidentDocument.Id,
+                                    Status = incidentDocument.Status,
+                                    ResolvedBy = resolvedBy
+                                };
+
+                                logger.LogAgentAction(
+                                    action: AgentActionEvents.ResolveIncident,
+                                    parameter: JsonSerializer.Serialize(resolveActionData),
+                                    status: AgentActionStatus.Success,
+                                    duration: 0,
+                                    threadId: existingThreadDocument.Id);
+                            }
+                            catch (Exception ex)
+                            {
+                                logger.LogInternalError(ex, "Error logging agent action for PagerDuty incident resolution {incidentId}", incidentDocument.Id);
+                            }
+
                             existingThreadDocument.IncidentStatus = "resolved";
                             logger.LogInternalInformation("Updating thread status to resolved for incident {incidentId}", incidentDocument.Id);
                             await container.UpsertItemAsync(existingThreadDocument, new PartitionKey(existingThreadDocument.Id));

@@ -15,6 +15,8 @@ using Agent.Runtime.Services;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
+using Agent.Logging;
+using System.Text.Json;
 
 namespace Agent.Runtime.SubAgents.Scanner;
 
@@ -291,6 +293,36 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
                     {
                         if (existingThreadDocument.IncidentStatus != "resolved")
                         {
+                            // Log agent action event for incident resolution only when status changes
+                            try
+                            {
+                                // Determine if the incident was resolved by Agent or User based on tags
+                                var resolvedBy = "User"; // Default to User
+                                if (incidentDocument.Tags?.Any(tag => tag.Equals("SREAgent_Resolved", StringComparison.OrdinalIgnoreCase)) == true)
+                                {
+                                    resolvedBy = "Agent";
+                                }
+
+                                var resolveActionData = new IncidentResolveActionData
+                                {
+                                    IncidentSource = "ServiceNow",
+                                    IncidentId = incidentDocument.Id,
+                                    Status = GetServiceNowStatusText(incidentDocument.Status),
+                                    ResolvedBy = resolvedBy,
+                                };
+
+                                logger.LogAgentAction(
+                                    action: AgentActionEvents.ResolveIncident,
+                                    parameter: JsonSerializer.Serialize(resolveActionData),
+                                    status: AgentActionStatus.Success,
+                                    duration: 0,
+                                    threadId: existingThreadDocument.Id);
+                            }
+                            catch (Exception ex)
+                            {
+                                logger.LogInternalError(ex, "Error logging agent action for ServiceNow incident resolution {incidentNumber}", incidentDocument.Id);
+                            }
+
                             existingThreadDocument.IncidentStatus = "resolved";
                             logger.LogInternalInformation("Updating thread status to resolved for ServiceNow incident {incidentNumber}", incidentDocument.Id);
                             await container.UpsertItemAsync(existingThreadDocument, new PartitionKey(existingThreadDocument.Id));
@@ -371,5 +403,21 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
             }
         }
         return null;
+    }
+
+    /// <summary>
+    /// Converts ServiceNow status codes to readable text
+    /// </summary>
+    /// <param name="statusCode">ServiceNow status code</param>
+    /// <returns>Readable status text</returns>
+    private static string GetServiceNowStatusText(string statusCode)
+    {
+        return statusCode switch
+        {
+            "6" => "Resolved",
+            "7" => "Closed",
+            "8" => "Cancelled",
+            _ => $"Status_{statusCode}"
+        };
     }
 }

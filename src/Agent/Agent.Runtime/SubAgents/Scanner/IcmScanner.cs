@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Net;
+using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
@@ -11,6 +12,7 @@ using Agent.Core.Models.ICM;
 using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DataModels;
+using Agent.Logging;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents.IcmScanner;
@@ -19,6 +21,18 @@ using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.SubAgents.Scanner;
+
+/// <summary>
+/// Represents the information logged when an incident is resolved or mitigated
+/// </summary>
+public record IncidentResolveActionData
+{
+    public string IncidentSource { get; init; } = string.Empty;
+    public string IncidentId { get; init; } = string.Empty;
+    public string Status { get; init; } = string.Empty;
+    public string ResolvedBy { get; init; } = string.Empty;
+    public string AgentMode { get; init; } = string.Empty;
+}
 
 public class IcmScanner(ILogger<IcmScanner> logger,
     IICMAPIClient icmApiClient,
@@ -438,6 +452,40 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                         var newStatus = incidentDocument.Status.ToString().Equals("mitigated", StringComparison.OrdinalIgnoreCase) ? "mitigated" : "resolved";
                         if (existingThreadDocument.IncidentStatus != newStatus)
                         {
+                            // Log agent action event for incident resolution/mitigation only when status changes
+                            try
+                            {
+                                // Determine if the incident was resolved by Agent or User based on tags
+                                var resolvedBy = "User"; // Default to User
+                                if (incidentDocument.Tags?.Any(tag => tag.Equals("SREAgent_Processed", StringComparison.OrdinalIgnoreCase) ||
+                                                                     tag.Equals("SREAgent_Mitigated", StringComparison.OrdinalIgnoreCase)) == true)
+                                {
+                                    resolvedBy = "Agent";
+                                }
+
+                                var resolveActionData = new IncidentResolveActionData
+                                {
+                                    IncidentSource = "Icm",
+                                    IncidentId = incidentDocument.Id,
+                                    Status = incidentDocument.Status.ToString(),
+                                    ResolvedBy = resolvedBy
+                                };
+
+                                logger.LogAgentAction(
+                                    action: AgentActionEvents.ResolveIncident,
+                                    parameter: JsonSerializer.Serialize(resolveActionData),
+                                    status: AgentActionStatus.Success,
+                                    duration: 0,
+                                    threadId: existingThreadDocument.Id);
+
+                                logger.LogInternalInformation("[IcmScanner] Logged ResolveIncident action for incident {incidentId} with status {status} resolved by {resolvedBy}",
+                                                            incidentDocument.Id, incidentDocument.Status, resolvedBy);
+                            }
+                            catch (Exception ex)
+                            {
+                                logger.LogInternalError(ex, "[IcmScanner] Failed to log ResolveIncident action for incident {incidentId}", incidentDocument.Id);
+                            }
+
                             existingThreadDocument.IncidentStatus = newStatus;
                             logger.LogInternalInformation("[IcmScanner] Updating thread status to {status} for ICM incident {incidentId}", newStatus, incidentDocument.Id);
                             await container.UpsertItemAsync(existingThreadDocument, new PartitionKey(existingThreadDocument.Id));
