@@ -51,89 +51,96 @@ public sealed class TracingHelper : IDisposable
             throw new ObjectDisposedException(nameof(TracingHelper));
         }
 
-        return new RunHooks<AgentContext>
+        var hooks = new RunHooks<AgentContext>();
+
+        hooks.AgentStart += (context, agent) =>
         {
-            OnAgentStart = (context, agent) =>
+            if (_currentAgentSpan is not null)
             {
-                if (_currentAgentSpan is not null)
-                {
-                    _currentAgentSpan.End();
-                    _currentAgentSpan = null;
-                }
-
-                var agentContext = context.Context ?? throw new InvalidOperationException("Invalid agent context");
-
-                _currentAgentSpan = _tracer.StartActiveSpan($"invoke.agent.{agent.Name}", SpanKind.Internal, _currentStepSpan);
-                _currentAgentSpan.SetAttribute(TraceAttribute.ThreadId, agentContext.ThreadId.ToString());
-                _currentAgentSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
-                _currentAgentSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.InvokeAgent);
-
-                return Task.CompletedTask;
-            },
-            OnAgentEnd = (context, agent, output) =>
-            {
-                _currentAgentSpan?.End();
+                _currentAgentSpan.End();
                 _currentAgentSpan = null;
-                return Task.CompletedTask;
-            },
-            OnHandoff = (context, agent, handoffAgent, handoffReasoning) =>
-            {
-                var agentContext = context.Context ?? throw new InvalidOperationException("Invalid agent context");
-                _currentToolSpan = _tracer.StartSpan($"handoff", SpanKind.Internal, _currentAgentSpan);
-                _currentToolSpan.SetAttribute(TraceAttribute.ThreadId, agentContext.ThreadId.ToString());
-                _currentToolSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Handoff);
-                _currentToolSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
-                _currentToolSpan.SetAttribute(TraceAttribute.HandoffAgentName, handoffAgent.Name);
-                _currentToolSpan.SetAttribute(TraceAttribute.HandoffReasoning, handoffReasoning);
-                _currentToolSpan.End();
-                _currentToolSpan = null;
-                _currentAgentSpan?.End();
-                return Task.CompletedTask;
-            },
-            OnToolStart = (context, agent, tool, input) =>
-            {
-                var agentContext = context.Context ?? throw new InvalidOperationException("Invalid agent context");
-                _currentToolSpan = _tracer.StartActiveSpan($"tool.{tool.Name}", SpanKind.Internal, _currentAgentSpan);
-                _currentToolSpan.SetAttribute(TraceAttribute.ThreadId, agentContext.ThreadId.ToString());
-                _currentToolSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Tool);
-                _currentToolSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
-                _currentToolSpan.SetAttribute(TraceAttribute.ToolName, tool.Name);
-                _currentToolSpan.SetAttribute(TraceAttribute.ToolInput, FormatToolArguments(input));
-                _currentToolSpan.SetAttribute(TraceAttribute.ModelTemperature, agent.Temperature.ToString());
-                _currentToolSpan.SetAttribute(TraceAttribute.ToolDescription, tool.Description);
-
-                return Task.CompletedTask;
-            },
-            OnToolEnd = (context, agent, tool, output) =>
-            {
-                _currentToolSpan?.SetAttribute(TraceAttribute.ToolOutput, output?.ToString() ?? string.Empty);
-                _currentToolSpan?.End();
-                _currentToolSpan = null;
-                return Task.CompletedTask;
-            },
-            OnModelGenerationStart = (context, agent, messages, chatOptions) =>
-            {
-                var agentContext = context.Context ?? throw new InvalidOperationException("Invalid agent context");
-                _currentGenerationSpan = _tracer.StartActiveSpan($"model_generation", SpanKind.Internal, _currentAgentSpan);
-                _currentGenerationSpan.SetAttribute(TraceAttribute.ThreadId, agentContext.ThreadId.ToString());
-                _currentGenerationSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
-                _currentGenerationSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.ModelGeneration);
-                _currentGenerationSpan.SetAttribute(TraceAttribute.ModelInput, FormatChatMessages(messages));
-
-                return Task.CompletedTask;
-            },
-            OnModelGenerationEnd = (context, agent, response) =>
-            {
-                _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelOutput, FormatChatMessages(response?.Messages ?? []));
-                _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelInputTokensCount, response?.Usage?.InputTokenCount?.ToString() ?? string.Empty);
-                _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelOutputTokensCount, response?.Usage?.OutputTokenCount?.ToString() ?? string.Empty);
-                _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelTotalTokensCount, response?.Usage?.TotalTokenCount?.ToString() ?? string.Empty);
-                _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelTemperature, agent?.Temperature.ToString() ?? string.Empty);
-                _currentGenerationSpan?.End();
-                _currentGenerationSpan = null;
-                return Task.CompletedTask;
             }
+
+            var agentContext = context.Context ?? throw new InvalidOperationException("Invalid agent context");
+
+            _currentAgentSpan = _tracer.StartActiveSpan($"invoke.agent.{agent.Name}", SpanKind.Internal, _currentStepSpan);
+            _currentAgentSpan.SetAttribute(TraceAttribute.ThreadId, agentContext.ThreadId.ToString());
+            _currentAgentSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
+            _currentAgentSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.InvokeAgent);
+
+            return Task.CompletedTask;
         };
+
+        hooks.AgentEnd += (context, agent, output) =>
+        {
+            _currentAgentSpan?.End();
+            _currentAgentSpan = null;
+            return Task.CompletedTask;
+        };
+
+        hooks.Handoff += (context, agent, handoffAgent, handoffReasoning) =>
+        {
+            var agentContext = context.Context ?? throw new InvalidOperationException("Invalid agent context");
+            _currentToolSpan = _tracer.StartSpan($"handoff", SpanKind.Internal, _currentAgentSpan);
+            _currentToolSpan.SetAttribute(TraceAttribute.ThreadId, agentContext.ThreadId.ToString());
+            _currentToolSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Handoff);
+            _currentToolSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
+            _currentToolSpan.SetAttribute(TraceAttribute.HandoffAgentName, handoffAgent.Name);
+            _currentToolSpan.SetAttribute(TraceAttribute.HandoffReasoning, handoffReasoning);
+            _currentToolSpan.End();
+            _currentToolSpan = null;
+            _currentAgentSpan?.End();
+            return Task.CompletedTask;
+        };
+
+        hooks.ToolStart += (context, agent, tool, input) =>
+        {
+            var agentContext = context.Context ?? throw new InvalidOperationException("Invalid agent context");
+            _currentToolSpan = _tracer.StartActiveSpan($"tool.{tool.Name}", SpanKind.Internal, _currentAgentSpan);
+            _currentToolSpan.SetAttribute(TraceAttribute.ThreadId, agentContext.ThreadId.ToString());
+            _currentToolSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Tool);
+            _currentToolSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
+            _currentToolSpan.SetAttribute(TraceAttribute.ToolName, tool.Name);
+            _currentToolSpan.SetAttribute(TraceAttribute.ToolInput, FormatToolArguments(input));
+            _currentToolSpan.SetAttribute(TraceAttribute.ModelTemperature, agent.Temperature.ToString());
+            _currentToolSpan.SetAttribute(TraceAttribute.ToolDescription, tool.Description);
+
+            return Task.CompletedTask;
+        };
+
+        hooks.ToolEnd += (context, agent, tool, output) =>
+        {
+            _currentToolSpan?.SetAttribute(TraceAttribute.ToolOutput, output?.ToString() ?? string.Empty);
+            _currentToolSpan?.End();
+            _currentToolSpan = null;
+            return Task.CompletedTask;
+        };
+
+        hooks.ModelGenerationStart += (context, agent, messages, chatOptions) =>
+        {
+            var agentContext = context.Context ?? throw new InvalidOperationException("Invalid agent context");
+            _currentGenerationSpan = _tracer.StartActiveSpan($"model_generation", SpanKind.Internal, _currentAgentSpan);
+            _currentGenerationSpan.SetAttribute(TraceAttribute.ThreadId, agentContext.ThreadId.ToString());
+            _currentGenerationSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
+            _currentGenerationSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.ModelGeneration);
+            _currentGenerationSpan.SetAttribute(TraceAttribute.ModelInput, FormatChatMessages(messages));
+
+            return Task.CompletedTask;
+        };
+
+        hooks.ModelGenerationEnd += (context, agent, response) =>
+        {
+            _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelOutput, FormatChatMessages(response?.Messages ?? []));
+            _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelInputTokensCount, response?.Usage?.InputTokenCount?.ToString() ?? string.Empty);
+            _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelOutputTokensCount, response?.Usage?.OutputTokenCount?.ToString() ?? string.Empty);
+            _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelTotalTokensCount, response?.Usage?.TotalTokenCount?.ToString() ?? string.Empty);
+            _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelTemperature, agent?.Temperature.ToString() ?? string.Empty);
+            _currentGenerationSpan?.End();
+            _currentGenerationSpan = null;
+            return Task.CompletedTask;
+        };
+
+        return hooks;
     }
 
     public TelemetrySpan StartAgentTaskStepSpan(string stepName)

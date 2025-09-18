@@ -11,6 +11,7 @@ public record HypothesisDetailsDocument(
     string AgentTaskId,
     string Title,
     string Description,
+    string Reasoning,
     IEnumerable<HypothesisStep> Steps,
     IEnumerable<HypothesisTreeItem> Children,
     HypothesisStatus Status
@@ -28,7 +29,8 @@ public record HypothesisDetailsDocument(
             Description: hypothesisDetails.Description,
             Steps: hypothesisDetails.Steps,
             Children: hypothesisDetails.Children,
-            Status: hypothesisDetails.Status
+            Status: hypothesisDetails.Status,
+            Reasoning: hypothesisDetails.Reasoning
         );
 
     public HypothesisDetails ToDomainModel() =>
@@ -42,5 +44,6 @@ public record HypothesisDetailsDocument(
             Status = Status,
             AgentTaskId = Guid.Parse(AgentTaskId),
             ParentHypothesisDescription = string.Empty,
+            Reasoning = Reasoning
         };
 }

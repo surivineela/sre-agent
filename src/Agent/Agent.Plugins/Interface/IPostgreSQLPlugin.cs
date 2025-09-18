@@ -31,9 +31,10 @@ public interface IPostgreSQLPlugin
     /// Analyzes slow-running queries and identifies performance bottlenecks
     /// </summary>
     /// <param name="resourceId">The full Azure resource ID of the PostgreSQL server</param>
-    /// <param name="window">Time window for analysis</param>
+    /// <param name="startTime">The start time for the metric query range (Absolute in UTC or relative). Examples: '2024-03-05 10:50:00', '20 hours ago', '3 days ago'. Prefer relative format for recent values (e.g: '24 hours ago', '2 days ago'). Validation start date should be within last 90 days</param>
+    /// <param name="endTime">The end time for the metric query range (Absolute in UTC or relative). Examples: '2024-03-05 10:50:00', 'now', 'an hour ago'. Prefer relative format for recent value (e.g: 'now', '1 hour ago'). Validation limit end date from last 90 days</param>
     /// <returns>Slow query analysis results</returns>
-    Task<SlowQueryAnalysis> AnalyzeSlowQueriesAsync(string resourceId, TimeSpan window);
+    Task<SlowQueryAnalysis> AnalyzeSlowQueriesAsync(string resourceId, DateTimeOffset startTime, DateTimeOffset endTime);
 
     /// <summary>
     /// Gets Azure resource health status and recent health events

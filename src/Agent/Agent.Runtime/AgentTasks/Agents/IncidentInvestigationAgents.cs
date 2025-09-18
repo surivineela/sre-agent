@@ -4,6 +4,7 @@
 
 using System.ComponentModel;
 using System.Text.Json;
+using Agent.Core.Extensions;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Agent.Runtime.AgentTasks.Handlers;
@@ -33,7 +34,7 @@ public record HypothesisGenerationResult
     [Description("The title of the hypothesis. This should be a brief title (6-10 words maximum) that describes the hypothesis.")]
     public required string Title { get; set; }
 
-    [Description("The detailed content of the hypothesis. This should be a more detailed description of the hypothesis, including the reasoning behind the hypothesis.")]
+    [Description("The detailed content of the hypothesis. This should be a more detailed description of the hypothesis, including the reasoning behind the hypothesis. Use Markdown to format the content in a readable way using headings, bullet points, etc.")]
     public required string Content { get; set; }
 }
 
@@ -60,6 +61,8 @@ public record HypothesisValidationResult
     [Description("Whether the hypothesis is a root cause of the incident. Use this field to indicate whether the hypothesis is a root cause of the incident. " +
         "This should only be 'true' if you have validated this hypothesis and there is substantial evidence to support this item being the root cause.")]
     public required bool IsRootCause { get; set; }
+
+    public required string Reasoning { get; set; }
 }
 
 public record HypothesisValidationPlanStep
@@ -146,7 +149,8 @@ public static class IncidentInvestigationAgents
         return new("ToolSelectionAgent")
         {
             Instructions = GatheringContext.GetToolSelectionInstructions(toolFactory, is1PAgent, toolAllowList),
-            OutputType = typeof(List<string>)
+            OutputType = typeof(List<string>),
+            ReasoningEffortLevel = ChatOptionsExtensions.MinimalReasoningEffort
         };
     }
 
@@ -161,7 +165,8 @@ public static class IncidentInvestigationAgents
         return new("ToolSelectionAgent")
         {
             Instructions = HypothesisValidation.GetToolSelectionInstructions(toolFactory, incidentDescription, initialInvestigationSummary, toolAllowList),
-            OutputType = typeof(List<string>)
+            OutputType = typeof(List<string>),
+            ReasoningEffortLevel = ChatOptionsExtensions.MinimalReasoningEffort
         };
     }
 
@@ -210,8 +215,9 @@ public static class IncidentInvestigationAgents
                 </workflow>
 
                 <investigation_guidelines>
-                Your goal is gather as much context as possible about the incident. You do not need to determine the root cause of the incident at this point.
+                Your goal is gather relevant context about the incident. You do not need to determine the root cause of the incident at this point.
                 Search for past memories and design docs to inform your planning and reasoning.
+                Discover connected resources and application components to inform your investigation.
                 Focus on trying to gather relevant logs, metrics, deployment, and change information.
                 The result of your initial investigation will be used by another agent to try to determine the root cause of the incident, you should gather enough context for that agent to think of potential root cause hypotheses.
                 </investigation_guidelines>
@@ -221,11 +227,13 @@ public static class IncidentInvestigationAgents
                 - Only terminate your turn when you gathered sufficient information and context about the incident.
                 - Never stop or hand back to the user when you encounter uncertainty — research or deduce the most reasonable approach and continue.
                 - Do not ask the human to confirm or clarify assumptions, this is a fully autonomous process - decide what the most reasonable assumption is, proceed with it, and document it in your summary.
+                - Ensure you have completed every step of your plan before ending your turn.
                 </persistence>
 
                 <autonomy>
                 You are running a fully autonomous process, and the user is not directly involved. Do not ask the user for additional information, or to perform any actions.
                 If you encounter uncertainty, don't stop or hand back to the user, proceed with your task and document things that you are not able to confirm in your output.
+                Ensure you have completed every step of your plan before ending your turn.
                 </autonomy>
 
                 {agentHint}
@@ -235,11 +243,15 @@ public static class IncidentInvestigationAgents
                 <output>
                 Output the detailed steps you took and the final detailed summary in markdown format.
                 The summary should start with a more concise section (3-5 sentences) that gives a high-level overview of the incident and the relevant context that has been gathered.
-                Then, provide a more detailed section that has more details about all the relevant context that has been gathered.
+                Then, provide a more detailed section below that summarizes the relevant context that has been gathered. Focus on relevant factual information and context, your job is NOT
+                to determine the root cause. Be concise, the user reading this summary needs to be able to quickly synthesize the information you've gathered.
                 </output>
                 """,
                 FactoryTools = ["ToDoWrite", .. toolNames],
-                OutputType = typeof(InitialInvestigationResult)
+                //FactoryTools = toolNames,
+                OutputType = typeof(InitialInvestigationResult),
+                ReasoningEffortLevel = ChatOptionsExtensions.MinimalReasoningEffort,
+                AlwaysAddPlanReminder = true
             };
         }
 
@@ -254,7 +266,7 @@ public static class IncidentInvestigationAgents
 
             You should analyze the incident step by step, using the tools to gather relevant context and information. Focus on trying to gather
             relevant logs, metrics, deployment / change information, etc. Use all of this information to generate a detailed summary of the incident
-            and all the relevant context that you have gathered.
+            and all the relevant context that you have gathered. Discover connected resources and application components to inform your investigation.
 
             Output the detailed steps you took and the final detailed summary.
 
@@ -277,13 +289,13 @@ public static class IncidentInvestigationAgents
         };
     }
 
-    public static Agent<AgentContext> CreateHypothesisGenerationAgent(string llmDeploymentName = "")
+    public static Agent<AgentContext> CreateHypothesisGenerationAgent(string llmDeploymentName = "", IList<string>? existingHypotheses = null)
     {
         if (llmDeploymentName.Contains("gpt-5"))
         {
             return new("HypothesisGenerationAgent")
             {
-                Instructions = """
+                Instructions = $"""
                 <core_responsibilities>
                 - Analyze incident descriptions and initial investigation summaries.
                 - Generate potential root cause hypotheses and avenues of investigation based on provided information.
@@ -291,18 +303,26 @@ public static class IncidentInvestigationAgents
                 </core_responsibilities>
 
                 <hypothesis_generation>
-                Goal: Generate 1-3 hypotheses / avenues of investigation for the provided incident.
+                Goal: Generate 1-3 hypotheses / avenues of investigation for the provided incident. If you are refining a previously validated hypothesis, only generate 1-2 more specific hypotheses based on that.
                 Method:
                 - Analyze and think carefully about the incident description and the initial investigation summary.
                 - Search memories and design documents for relevant information to guide your hypothesis generation.
                 - Generate hypotheses that are based on the information provided.
-                - Ensure the hypotheses are grounded in the evidence collected during the investigation.
+                - Think carefully about the structure and architecture of the system you are investigating. Which components are interacting? How do these connections relate to the incident, if at all?
+                - Ensure the hypotheses are grounded in the evidence collected during the investigation, but remember that there may be more information that hasn't been discovered yet. Further investigation may uncover more information.
+                - Think about changes that may have occurred in the system around the time of the incident that may not be readily apparent from the initial investigation summary.
                 Initial Hypotheses:
                 - If you are tasked with generating the initial hypotheses for this investigation, the hypotheses should be broad and exploratory in nature.
                 Refining Hypotheses:
                 - If you are tasked with generating hypotheses based on a previously validated hypothesis, you should focus on narrowing down the hypothesis and making it more specific.
                 - Try to go one level deeper on the validated hypothesis by asking "why?" and "how?" to uncover additional insights.
                 </hypothesis_generation>
+
+                <all_existing_hypotheses>
+                The following hypotheses have already been generated for this incident. Do not repeat these hypotheses because they are already being investigated:
+
+                {JsonSerializer.Serialize(existingHypotheses, JsonSerializerOptions.Web)}
+                </all_existing_hypotheses>
 
                 <tool_usage>
                 In accordance with your hypothesis generation goal, you may use tools to search for relevant memories or design documents to guide your hypothesis generation.
@@ -321,9 +341,12 @@ public static class IncidentInvestigationAgents
 
                 <output>
                 Return a brief and concise title (6-15 words maximum) and detailed content of the hypotheses with given structure.
+                For initial hypotheses, ensure the hypotheses are broad and exploratory in nature. Generate 1-3 hypotheses.
+                For refining hypotheses, ensure the hypotheses are more specific and dig deeper into the previously validated hypothesis. Generate 1-2 hypotheses.
                 </output>
                 """,
-                OutputType = typeof(List<HypothesisGenerationResult>)
+                OutputType = typeof(List<HypothesisGenerationResult>),
+                ReasoningEffortLevel = ChatOptionsExtensions.LowReasoningEffort
             };
         }
 
@@ -458,7 +481,9 @@ public static class IncidentInvestigationAgents
             {todoWritePrompt}
             """,
             FactoryTools = allTools,
-            OutputType = typeof(HypothesisValidationResultV2)
+            OutputType = typeof(HypothesisValidationResultV2),
+            ReasoningEffortLevel = ChatOptionsExtensions.LowReasoningEffort,
+            AlwaysAddPlanReminder = true
         };
     }
 
@@ -521,7 +546,8 @@ public static class IncidentInvestigationAgents
                 Return a list of 3-5 steps that should be performed in order to validate or invalidate this hypothesis.
                 </output>
                 """,
-                OutputType = typeof(HypothesisValidationPlanOutput)
+                OutputType = typeof(HypothesisValidationPlanOutput),
+                ReasoningEffortLevel = ChatOptionsExtensions.LowReasoningEffort
             };
         }
 
@@ -692,11 +718,12 @@ public static class IncidentInvestigationAgents
                 </autonomy>
 
                 <output>
-                Execute the assigned step thoroughly using available tools, then provide a detailed summary and determine if plan continuation is needed.
+                Execute the assigned step thoroughly using available tools, then provide a summary and determine if plan continuation is needed.
                 </output>
                 """,
                 FactoryTools = toolNames,
-                OutputType = typeof(HypothesisPlanStepExecutionResult)
+                OutputType = typeof(HypothesisPlanStepExecutionResult),
+                ReasoningEffortLevel = ChatOptionsExtensions.MinimalReasoningEffort
             };
         }
 
@@ -856,7 +883,8 @@ public static class IncidentInvestigationAgents
                 Determine the validation status and provide detailed reasoning based on the evidence gathered during plan execution.
                 </output>
                 """,
-                OutputType = typeof(HypothesisResultSummaryOutput)
+                OutputType = typeof(HypothesisResultSummaryOutput),
+                ReasoningEffortLevel = ChatOptionsExtensions.MinimalReasoningEffort
             };
         }
 
@@ -979,7 +1007,8 @@ public static class IncidentInvestigationAgents
                 parts of the investigation, so the conclusion should focus on only the most important aspects.
                 </output>
                 """,
-                OutputType = typeof(ConclusionResult)
+                OutputType = typeof(ConclusionResult),
+                ReasoningEffortLevel = ChatOptionsExtensions.MinimalReasoningEffort
             };
         }
 
@@ -1024,7 +1053,7 @@ public static class IncidentInvestigationAgents
         4. Retrieve resource status.
         5. Retrieve resource configuration.
         6. Get recent changes to the affected resources.
-
+        7. Find/discover connected or related resources.
 
         Azure Activity Logs are different from Application Logs. Activity Logs give information about control plane operations,
         application logs are runtime logs from the application itself.
@@ -1137,7 +1166,7 @@ public static class IncidentInvestigationAgents
 
         {{ToolSelectionContextToken}}
 
-        Return enough tools for the next agent to perform its task. You should return 4-6 tools.
+        Return enough tools for the next agent to perform its task. You should return 6-10 tools.
 
         # Example
 

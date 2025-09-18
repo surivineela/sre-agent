@@ -4,6 +4,7 @@
 
 using System.Collections.Concurrent;
 using System.Text.Json;
+using Agent.Core.Extensions;
 using Agent.Core.Helpers;
 using Agent.Plugins.Interface;
 using Azure.Core;
@@ -121,7 +122,11 @@ public class AzureMonitorMetricsPlugin : IAzureMonitorMetricsPlugin
 
         var options = new ChatOptions
         {
-            Temperature = (float)0.2
+            Temperature = (float)0.2,
+            AdditionalProperties = new AdditionalPropertiesDictionary
+            {
+                { ChatOptionsExtensions.ReasoningEffortKey, ChatOptionsExtensions.MinimalReasoningEffort }
+            }
         };
 
         var messages = new[]

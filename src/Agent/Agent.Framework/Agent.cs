@@ -66,6 +66,10 @@ public class Agent<TContext>(string name) where TContext : class
 
     public virtual float Temperature { get; set; } = 0.3f;
 
+    public string ReasoningEffortLevel { get; set; } = "low";
+
+    public bool AlwaysAddPlanReminder { get; set; } = false;
+
     // === Workflow Agent Properties ===
 
     /// <summary>

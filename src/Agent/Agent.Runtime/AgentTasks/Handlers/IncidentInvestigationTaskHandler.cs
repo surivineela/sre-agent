@@ -40,8 +40,8 @@ public sealed class IncidentInvestigationTaskHandler(
     SearchHelper searchHelper,
     Tracer tracer,
     OpenAISettings openAISettings,
-    AgentTaskToolResultHelper agentTaskToolResultHelper /*,
-    IAgentFactory<AgentContext> agentFactory */
+    AgentTaskToolResultHelper agentTaskToolResultHelper,
+    IAgentFactory<AgentContext> agentFactory
 ) : IAgentTaskHandler
 {
     private readonly SemaphoreSlim _stateLock = new(1, 1);
@@ -124,7 +124,7 @@ public sealed class IncidentInvestigationTaskHandler(
             using var tracingHelper = new TracingHelper(tracer, context.ThreadId.ToString(), nameof(AgentTaskType.IncidentInvestigation));
             var runHooks = tracingHelper.GetAgentTaskTracingHooks();
 
-            runHooks.ResolveFactoryTools = (runContext, agent) =>
+            runHooks.ResolveFactoryTools += (runContext, agent) =>
             {
                 List<AIFunction> tools = [];
 
@@ -174,9 +174,10 @@ public sealed class IncidentInvestigationTaskHandler(
                         new ChatMessage(ChatRole.User, msg),
                         runHooks,
                         true,
-                        tracer,
-                        currentStepSpan,
-                        cancellationToken);
+                        injectToolHistory: false,
+                        tracer: tracer,
+                        parentSpan: currentStepSpan,
+                        cancellationToken: cancellationToken);
 
                     ValidateAndAddRequiredTools(toolNames);
 
@@ -191,11 +192,26 @@ public sealed class IncidentInvestigationTaskHandler(
                         state.InitialInvestigation.ToolNames = toolNames;
                     }
 
-                    state.InitialInvestigation.StatusMessage = $"Selected {toolNames.Count} investigation tools, beginning analysis...";
+                    state.InitialInvestigation.StatusMessage = $"Selected {toolNames.Count} investigation tools, running initial analysis...";
                     state = await SaveStateAndStreamUpdateAsync(cancellationToken: cancellationToken);
 
                     logger.LogInternalInformation("Starting initial investigation agent.");
                     var initialInvestigationAgent = IncidentInvestigationAgents.CreateInitialInvestigationAgent(toolNames, _is1PAgent, _llmDeploymentName);
+
+                    // local function to wrap updating initial investigation status with tool call info
+                    async Task UpdateInitialInvestigationStatus(
+                        RunContextWrapper<AgentContext> ctx,
+                        Agent<AgentContext> agent,
+                        AIFunction tool,
+                        IEnumerable<KeyValuePair<string, object?>>? input)
+                    {
+                        var userDisplayedToolDescription = ToolDescriptionHelper.GetUserDescriptionForFunctionCallName(tool.Name);
+                        state.InitialInvestigation.StatusMessage = userDisplayedToolDescription;
+                        state = await SaveStateAndStreamUpdateAsync(cancellationToken: cancellationToken);
+                    }
+
+                    // subscribe to tool start event to update status
+                    runHooks.ToolStart += UpdateInitialInvestigationStatus;
 
                     var initialInvestigationResult = await CallAgentAsync<InitialInvestigationResult>(
                         initialInvestigationAgent,
@@ -203,11 +219,14 @@ public sealed class IncidentInvestigationTaskHandler(
                         new ChatMessage(ChatRole.User, msg),
                         runHooks,
                         true,
-                        tracer,
-                        currentStepSpan,
-                        cancellationToken);
+                        tracer: tracer,
+                        parentSpan: currentStepSpan,
+                        cancellationToken: cancellationToken);
 
                     state.InitialInvestigation.GatheringContext.Status = InitialInvestigationStatus.Complete;
+
+                    // unsubscribe from tool start event
+                    runHooks.ToolStart -= UpdateInitialInvestigationStatus;
 
                     // Create steps from LLM result
                     // merge with existing tool execution step that were saved during initial investigation
@@ -278,6 +297,7 @@ public sealed class IncidentInvestigationTaskHandler(
                     inputData.IncidentDescription,
                     state.InitialInvestigation.Summary,
                     null,
+                    [],
                     context,
                     runHooks,
                     currentStepSpan,
@@ -292,9 +312,12 @@ public sealed class IncidentInvestigationTaskHandler(
 
                 var queue = new Queue<(HypothesisTreeItem, int)>();
 
+                var allHypothesesTitles = new List<string>();
+
                 foreach (var h in state.FormingHypothesis.Hypotheses)
                 {
                     queue.Enqueue((h, 1));
+                    allHypothesesTitles.Add(h.Title);
                 }
 
                 while (queue.Count > 0)
@@ -347,6 +370,7 @@ public sealed class IncidentInvestigationTaskHandler(
                     };
 
                     current.StatusMessage = statusMessage;
+                    current.Reasoning = validationResult.Reasoning;
                     await SaveStateAndStreamUpdateAsync(state, cancellationToken: cancellationToken);
 
                     if (current.Status == HypothesisStatus.Validated)
@@ -383,7 +407,7 @@ public sealed class IncidentInvestigationTaskHandler(
                     // // Keep the IsRootCause value for cross checking later
                     // logger.LogInternalInformation("Hypothesis validation check result: {ShouldStop}, isRootCause: {IsRootCause}", shouldStop, validationResult.IsRootCause);
 
-                    if (depth >= 4)
+                    if (depth >= 3)
                     {
                         // if hypothesis is at maximum depth, add to final validated hypotheses but continue processing
                         // TODO: isRootCause functionality removed - only using depth-based stopping
@@ -400,6 +424,7 @@ public sealed class IncidentInvestigationTaskHandler(
                         inputData.IncidentDescription,
                         state.InitialInvestigation.Summary,
                         validatedHypothesis,
+                        allHypothesesTitles,
                         context,
                         runHooks,
                         currentStepSpan,
@@ -410,6 +435,7 @@ public sealed class IncidentInvestigationTaskHandler(
                     foreach (var child in hypotheses)
                     {
                         child.ParentHypothesisDescription = current.Description;
+                        allHypothesesTitles.Add(child.Title);
                     }
 
                     await SaveStateAndStreamUpdateAsync(state, cancellationToken: cancellationToken);
@@ -570,8 +596,14 @@ public sealed class IncidentInvestigationTaskHandler(
                 "GetResourceIdForResourceName",
                 "ListResourcesByType",
                 "SearchDesignDocs",
-                "SearchMemory"
+                "SearchMemory",
+                "GetApplicationComponentsSummary"
             ]);
+
+            if (toolNames.Contains("GetMetricsTimeSeriesAnalysis") || toolNames.Contains("GetMetricTimeSeriesElementsForAzureResource"))
+            {
+                toolNames.Add("ListAvailableMetrics");
+            }
         }
 
         toolNames.RemoveAll(name => !toolFactory.HasTool(name));
@@ -668,6 +700,10 @@ public sealed class IncidentInvestigationTaskHandler(
         // Examine all messages in the conversation (both input and newly generated)
         var allMessages = runResult.Input.Concat(runResult.NewItems).ToList();
 
+        string[] ignoredTools = [
+            "ToDoWrite" // ignore the planning tool calls from other agents
+        ];
+
         foreach (var message in allMessages)
         {
             // Look for function calls in assistant messages
@@ -676,7 +712,7 @@ public sealed class IncidentInvestigationTaskHandler(
                 var functionCalls = message.Contents.OfType<FunctionCallContent>().ToList();
                 foreach (var functionCall in functionCalls)
                 {
-                    if (!string.IsNullOrEmpty(functionCall.CallId))
+                    if (!string.IsNullOrEmpty(functionCall.CallId) && !ignoredTools.Contains(functionCall.Name))
                     {
                         pendingFunctionCalls[functionCall.CallId] = (message, functionCall);
                     }
@@ -765,6 +801,7 @@ public sealed class IncidentInvestigationTaskHandler(
         ChatMessage inputMessage,
         RunHooks<AgentContext> runHooks,
         bool enableDocumentSearch,
+        bool injectToolHistory = true,
         Tracer? tracer = null,
         TelemetrySpan? parentSpan = null,
         CancellationToken cancellationToken = default)
@@ -828,13 +865,14 @@ public sealed class IncidentInvestigationTaskHandler(
                 };
 
                 // Inject tool call history into the chat input
-                var chatHistory = InjectToolCallHistory(inputMessage);
+                var chatHistory = injectToolHistory ? InjectToolCallHistory(inputMessage) : [inputMessage];
 
                 var runResult = await Runner.RunAsync(
                     startingAgent: agent,
                     input: chatHistory,
                     config: runConfig,
                     context: context,
+                    maxTurns: 100,
                     hooks: runHooks,
                     cancellationToken: cancellationToken
                 );
@@ -994,13 +1032,15 @@ public sealed class IncidentInvestigationTaskHandler(
         string incidentDescription,
         string investigationSummary,
         string? validatedHypothesis,
+        IList<string> existingHypotheses,
         AgentContext context,
         RunHooks<AgentContext> runHooks,
         TelemetrySpan currentStepSpan,
         CancellationToken cancellationToken)
     {
         logger.LogInternalInformation("Generating hypotheses for incident description.");
-        var hypothesisGenerationAgent = IncidentInvestigationAgents.CreateHypothesisGenerationAgent(_llmDeploymentName);
+
+        var hypothesisGenerationAgent = IncidentInvestigationAgents.CreateHypothesisGenerationAgent(_llmDeploymentName, existingHypotheses);
         string message = $"""
             <incident_description>
             {incidentDescription}
@@ -1022,15 +1062,18 @@ public sealed class IncidentInvestigationTaskHandler(
                 Please dig deeper into the hypothesis above and make more detailed hypotheses in the scope of it. Don't make any assumptions out of the scope.
                 """;
         }
+
         var hypotheses = await CallAgentAsync<List<HypothesisGenerationResult>>(
             hypothesisGenerationAgent,
             context,
             new ChatMessage(ChatRole.User, message),
             runHooks,
             true,
-            tracer,
-            currentStepSpan,
-            cancellationToken);
+            injectToolHistory: false,
+            tracer: tracer,
+            parentSpan: currentStepSpan,
+            cancellationToken: cancellationToken);
+
         var result = hypotheses.Select(h => new HypothesisTreeItem
         {
             Id = Guid.NewGuid(),
@@ -1063,14 +1106,15 @@ public sealed class IncidentInvestigationTaskHandler(
         var toolSelectionAgent = IncidentInvestigationAgents.CreateHypothesisValidationToolSelectionAgent(toolFactory, incidentDescription, investigationSummary, toolSubset, _llmDeploymentName);
 
         var toolNames = await CallAgentAsync<List<string>>(
-                    toolSelectionAgent,
-                    context,
-                    new ChatMessage(ChatRole.User, currentHypothesis),
-                    runHooks,
-                    true,
-                    tracer,
-                    currentStepSpan,
-                    cancellationToken);
+            toolSelectionAgent,
+            context,
+            new ChatMessage(ChatRole.User, currentHypothesis),
+            runHooks,
+            true,
+            injectToolHistory: false,
+            tracer: tracer,
+            parentSpan: currentStepSpan,
+            cancellationToken: cancellationToken);
 
         ValidateAndAddRequiredTools(toolNames);
 
@@ -1081,62 +1125,63 @@ public sealed class IncidentInvestigationTaskHandler(
         """);
 
         // trying out single agent flow for GPT-5
-        // if (_llmDeploymentName.Contains("gpt-5", StringComparison.OrdinalIgnoreCase))
-        // {
-        //     var validationAgent = IncidentInvestigationAgents.CreateHypothesisValidationAgentV2(
-        //         agentFactory,
-        //         toolNames,
-        //         incidentDescription,
-        //         investigationSummary
-        //     );
+        if (_llmDeploymentName.Contains("gpt-5", StringComparison.OrdinalIgnoreCase))
+        {
+            var validationAgent = IncidentInvestigationAgents.CreateHypothesisValidationAgentV2(
+                agentFactory,
+                toolNames,
+                incidentDescription,
+                investigationSummary
+            );
 
-        //     // TODO: this won't output steps 1 by 1 anymore, need to find an alternate way to get the steps streamed out
+            // // TODO: this won't output steps 1 by 1 anymore, need to find an alternate way to get the steps streamed out
 
-        //     var resultV2 = await CallAgentAsync<HypothesisValidationResultV2>(
-        //         validationAgent,
-        //         context,
-        //         inputMessage,
-        //         runHooks,
-        //         true,
-        //         tracer,
-        //         currentStepSpan,
-        //         cancellationToken);
+            // var resultV2 = await CallAgentAsync<HypothesisValidationResultV2>(
+            //     validationAgent,
+            //     context,
+            //     inputMessage,
+            //     runHooks,
+            //     true,
+            //     tracer: tracer,
+            //     parentSpan: currentStepSpan,
+            //     cancellationToken: cancellationToken);
 
-        //     var hypSteps = await Task.WhenAll(resultV2.Steps.Select(async step =>
-        //     {
-        //         // get databse item for the step to get tool executions
-        //         HypothesisStep? databaseStep = null;
-        //         if (_currentAgentTask != null)
-        //         {
-        //             databaseStep = await agentTaskToolResultHelper.FindExistingHypothesisStepAsync(
-        //                 _currentAgentTask.Id,
-        //                 _currentAgentTask.ThreadId,
-        //                 currentHypothesisId,
-        //                 step.Title);
-        //         }
+            // var hypSteps = await Task.WhenAll(resultV2.Steps.Select(async step =>
+            // {
+            //     // get databse item for the step to get tool executions
+            //     HypothesisStep? databaseStep = null;
+            //     if (_currentAgentTask != null)
+            //     {
+            //         databaseStep = await agentTaskToolResultHelper.FindExistingHypothesisStepAsync(
+            //             _currentAgentTask.Id,
+            //             _currentAgentTask.ThreadId,
+            //             currentHypothesisId,
+            //             step.Title);
+            //     }
 
-        //         var hypStep = new HypothesisStep
-        //         {
-        //             Summary = step.Title,
-        //             Details = step.Description,
-        //             ToolExecutions = databaseStep?.ToolExecutions ?? []
-        //         };
+            //     var hypStep = new HypothesisStep
+            //     {
+            //         Summary = step.Title,
+            //         Details = step.Description,
+            //         ToolExecutions = databaseStep?.ToolExecutions ?? []
+            //     };
 
-        //         return hypStep;
-        //     }));
+            //     return hypStep;
+            // }));
 
-        //     var validationResultV2 = new HypothesisValidationResult
-        //     {
-        //         Status = resultV2.Status,
-        //         Steps = hypSteps,
-        //         IsRootCause = false
-        //     };
+            // var validationResultV2 = new HypothesisValidationResult
+            // {
+            //     Status = resultV2.Status,
+            //     Steps = hypSteps,
+            //     IsRootCause = false,
+            //     Reasoning = resultV2.Reasoning
+            // };
 
-        //     logger.LogInternalInformation("Hypothesis validation result: {Status}",
-        //         validationResultV2.Status);
+            // logger.LogInternalInformation("Hypothesis validation result: {Status}",
+            //     validationResultV2.Status);
 
-        //     return validationResultV2;
-        // }
+            // return validationResultV2;
+        }
 
         // start by generating a plan
         var planningAgent = IncidentInvestigationAgents.CreateHypothesisValidationPlanningAgent(
@@ -1152,9 +1197,10 @@ public sealed class IncidentInvestigationTaskHandler(
             inputMessage,
             runHooks,
             true,
-            tracer,
-            currentStepSpan,
-            cancellationToken);
+            injectToolHistory: false,
+            tracer: tracer,
+            parentSpan: currentStepSpan,
+            cancellationToken: cancellationToken);
 
         // execute plan step by step
         List<HypothesisStep> completedSteps = [];
@@ -1198,9 +1244,9 @@ public sealed class IncidentInvestigationTaskHandler(
                 new ChatMessage(ChatRole.User, stepInputMessage),
                 runHooks,
                 true,
-                tracer,
-                currentStepSpan,
-                cancellationToken);
+                tracer: tracer,
+                parentSpan: currentStepSpan,
+                cancellationToken: cancellationToken);
 
             // get databse item for the step to get tool executions
             HypothesisStep? databaseStep = null;
@@ -1244,9 +1290,10 @@ public sealed class IncidentInvestigationTaskHandler(
             new ChatMessage(ChatRole.User, "Analyze the validation steps and provide your result"),
             runHooks,
             false,
-            tracer,
-            currentStepSpan,
-            cancellationToken);
+            injectToolHistory: false,
+            tracer: tracer,
+            parentSpan: currentStepSpan,
+            cancellationToken: cancellationToken);
 
         logger.LogInternalInformation("Hypothesis validation result: Hypothesis: {Hypothesis}, Status: {Status}, Reasoning: {Reasoning}",
             currentHypothesis, result.Status, result.Reasoning);
@@ -1255,7 +1302,8 @@ public sealed class IncidentInvestigationTaskHandler(
         {
             Status = result.Status,
             Steps = completedSteps,
-            IsRootCause = false
+            IsRootCause = false,
+            Reasoning = result.Reasoning
         };
 
         // TODO: isRootCause functionality removed
@@ -1306,9 +1354,10 @@ public sealed class IncidentInvestigationTaskHandler(
             new(ChatRole.User, message),
             runHooks,
             false,
-            tracer,
-            currentStepSpan,
-            cancellationToken
+            injectToolHistory: false,
+            tracer: tracer,
+            parentSpan: currentStepSpan,
+            cancellationToken: cancellationToken
         );
 
         state.Conclusion.Title = conclusion.Title;
@@ -1357,9 +1406,10 @@ public sealed class IncidentInvestigationTaskHandler(
             new(ChatRole.User, message),
             runHooks,
             false,
-            tracer,
-            currentStepSpan,
-            cancellationToken
+            injectToolHistory: false,
+            tracer: tracer,
+            parentSpan: currentStepSpan,
+            cancellationToken: cancellationToken
         );
 
         state.Conclusion.Title = conclusion.Title;
@@ -1408,9 +1458,10 @@ public sealed class IncidentInvestigationTaskHandler(
             new(ChatRole.User, message),
             runHooks,
             false,
-            tracer,
-            currentStepSpan,
-            cancellationToken
+            injectToolHistory: false,
+            tracer: tracer,
+            parentSpan: currentStepSpan,
+            cancellationToken: cancellationToken
         );
 
         state.Conclusion.Title = conclusion.Title;
@@ -1423,7 +1474,35 @@ public sealed class IncidentInvestigationTaskHandler(
     {
         try
         {
+            // temp hack to send the status reasoning in the hypothesis details
+
+            // create copy of task record
+            // var taskToStream = task with { };
+
+            // var hypotheses = (taskToStream.Properties as IncidentInvestigationTaskProperties)?.FormingHypothesis.Hypotheses;
+
+            // if (hypotheses != null)
+            // {
+            //     foreach (var hypothesis in hypotheses)
+            //     {
+            //         if (string.IsNullOrEmpty(hypothesis.Reasoning))
+            //         {
+            //             continue;
+            //         }
+
+            //         // prepend reasoning to description with markdown formatting
+            //         hypothesis.Description = $"""
+            //         ## Decision Reasoning
+            //         {hypothesis.Reasoning}
+
+            //         {hypothesis.Description}
+            //         """;
+            //     }
+            // }
+
+            // var jsonUpdate = JsonSerializer.Serialize(taskToStream, JsonSerializerOptions.Web);
             var jsonUpdate = JsonSerializer.Serialize(task, JsonSerializerOptions.Web);
+
             await outboundCommunicationService.AppendAgentTaskUpdate(
                 threadId,
                 jsonUpdate,

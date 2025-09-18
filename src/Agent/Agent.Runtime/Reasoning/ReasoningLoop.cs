@@ -1122,286 +1122,288 @@ public class ReasoningLoop : IDisposable
 
     private RunHooks<AgentContext> CreateRunHooks()
     {
-        return new RunHooks<AgentContext>
+        var hooks = new RunHooks<AgentContext>();
+
+        hooks.ResolveFactoryTools += (context, agent) =>
         {
-            ResolveFactoryTools = (context, agent) =>
+            List<AIFunction> tools = [];
+
+            foreach (var toolName in agent.FactoryTools)
             {
-                List<AIFunction> tools = [];
+                var tool = _toolFactory.GetTool(toolName, _context.ThreadId);
 
-                foreach (var toolName in agent.FactoryTools)
-                {
-                    var tool = _toolFactory.GetTool(toolName, _context.ThreadId);
+                tools.Add(tool);
+            }
 
-                    tools.Add(tool);
-                }
+            return Task.FromResult(tools);
+        };
 
-                return Task.FromResult(tools);
-            },
-
-            OnAgentStart = (context, agent) =>
+        hooks.AgentStart += (context, agent) =>
+        {
+            if (_currentAgentSpan is not null)
             {
-                if (_currentAgentSpan is not null)
-                {
-                    _currentAgentSpan.End();
-                    _currentAgentSpan = null;
-                }
-
-                _logger.LogInternalInformation("Trace invoke agent: {AgentName}", agent.Name);
-                _currentAgentSpan = _tracer.StartActiveSpan($"invoke.agent.{agent.Name}", SpanKind.Internal, _rootSpan);
-                _currentAgentSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
-                _currentAgentSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
-                _currentAgentSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.InvokeAgent);
-
-                _logger.LogAgentAction(
-                    action: AgentActionEvents.InvokeAgent,
-                    parameter: agent.Name,
-                    status: AgentActionStatus.Success,
-                    duration: 0,
-                    threadId: _context.ThreadId.ToString(),
-                    subAgentName: agent.Name,
-                    featureConfig: WebJsonSerializer.Serialize(_featureConfig));
-                return Task.CompletedTask;
-            },
-
-            OnAgentEnd = (context, agent, output) =>
-            {
-                _logger.LogInternalInformation("Trace Ending agent: {AgentName}", agent.Name);
-                _currentAgentSpan?.End();
+                _currentAgentSpan.End();
                 _currentAgentSpan = null;
-                return Task.CompletedTask;
-            },
+            }
 
-            OnHandoff = async (context, agent, handoffAgent, handoffReasoning) =>
+            _logger.LogInternalInformation("Trace invoke agent: {AgentName}", agent.Name);
+            _currentAgentSpan = _tracer.StartActiveSpan($"invoke.agent.{agent.Name}", SpanKind.Internal, _rootSpan);
+            _currentAgentSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+            _currentAgentSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
+            _currentAgentSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.InvokeAgent);
+
+            _logger.LogAgentAction(
+                action: AgentActionEvents.InvokeAgent,
+                parameter: agent.Name,
+                status: AgentActionStatus.Success,
+                duration: 0,
+                threadId: _context.ThreadId.ToString(),
+                subAgentName: agent.Name,
+                featureConfig: WebJsonSerializer.Serialize(_featureConfig));
+            return Task.CompletedTask;
+        };
+
+        hooks.AgentEnd += (context, agent, output) =>
+        {
+            _logger.LogInternalInformation("Trace Ending agent: {AgentName}", agent.Name);
+            _currentAgentSpan?.End();
+            _currentAgentSpan = null;
+            return Task.CompletedTask;
+        };
+
+        hooks.Handoff += async (context, agent, handoffAgent, handoffReasoning) =>
+        {
+            _logger.LogInternalInformation("Trace Handoff from agent: {AgentName} to agent: {HandoffAgentName}", agent.Name, handoffAgent.Name);
+            _currentToolSpan = _tracer.StartSpan($"handoff", SpanKind.Internal, _currentAgentSpan);
+            _currentToolSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+            _currentToolSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Handoff);
+            _currentToolSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
+            _currentToolSpan.SetAttribute(TraceAttribute.HandoffAgentName, handoffAgent.Name);
+            _currentToolSpan.SetAttribute(TraceAttribute.HandoffReasoning, handoffReasoning);
+            _currentToolSpan.End();
+            _currentToolSpan = null;
+            _currentAgentSpan?.End();
+            _context.AgentHandoffChain.Add(handoffAgent.Name);
+            _context = await _threadRepository.UpdateAgentContextAsync(_context);
+        };
+
+        hooks.ToolStart += async (context, agent, tool, input) =>
+        {
+            _logger.LogInternalInformation("Trace Starting tool: {ToolName} for agent: {AgentName}", tool.Name, agent.Name);
+            _currentToolSpan = _tracer.StartActiveSpan($"tool.{tool.Name}", SpanKind.Internal, _currentAgentSpan);
+            _currentToolSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+            _currentToolSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Tool);
+            _currentToolSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
+            _currentToolSpan.SetAttribute(TraceAttribute.ToolName, tool.Name);
+            _currentToolSpan.SetAttribute(TraceAttribute.ToolInput, FormatToolArguments(input));
+            _currentToolSpan.SetAttribute(TraceAttribute.ModelTemperature, agent.Temperature.ToString());
+            _currentToolSpan.SetAttribute(TraceAttribute.ToolDescription, tool.Description);
+
+            _logger.LogAgentAction(
+                action: AgentActionEvents.InvokeTool,
+                parameter: tool.Name,
+                status: AgentActionStatus.Success,
+                duration: 0,
+                threadId: _context.ThreadId.ToString(),
+                subAgentName: agent.Name,
+                featureConfig: WebJsonSerializer.Serialize(_featureConfig));
+
+            // Stream auto tools to avoid missing them (manual tools are handled separately)
+            if (tool.GetToolMode() == ToolMode.Auto)
             {
-                _logger.LogInternalInformation("Trace Handoff from agent: {AgentName} to agent: {HandoffAgentName}", agent.Name, handoffAgent.Name);
-                _currentToolSpan = _tracer.StartSpan($"handoff", SpanKind.Internal, _currentAgentSpan);
-                _currentToolSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
-                _currentToolSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Handoff);
-                _currentToolSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
-                _currentToolSpan.SetAttribute(TraceAttribute.HandoffAgentName, handoffAgent.Name);
-                _currentToolSpan.SetAttribute(TraceAttribute.HandoffReasoning, handoffReasoning);
-                _currentToolSpan.End();
-                _currentToolSpan = null;
-                _currentAgentSpan?.End();
-                _context.AgentHandoffChain.Add(handoffAgent.Name);
-                _context = await _threadRepository.UpdateAgentContextAsync(_context);
-            },
+                var callId = ToolStatic.AsyncLocalFunctionCallId.Value;
+                if (!string.IsNullOrEmpty(callId))
+                {
+                    _logger.LogInternalInformation("Streaming auto tool call: {ToolName} with CallId: {CallId}", tool.Name, callId);
+                    var toolCallMessageId = Guid.NewGuid();
+                    await _outboundCommunicationService.AppendAgentToolCallMessage(_context.ThreadId, (AIFunction)tool, toolCallMessageId, callId);
+                    // Store the message ID for OnToolEnd to use
+                    ToolStatic.AsyncLocalToolCallMessageId.Value = toolCallMessageId;
+                }
+            }
+        };
 
-            OnToolStart = async (context, agent, tool, input) =>
+        hooks.ToolEnd += async (context, agent, tool, output) =>
+        {
+            _logger.LogInternalInformation("Trace Ending tool: {ToolName} for agent: {AgentName}", tool.Name, agent.Name);
+            _currentToolSpan?.SetAttribute(TraceAttribute.ToolOutput, output?.ToString() ?? string.Empty);
+            _currentToolSpan?.End();
+            _currentToolSpan = null;
+
+            // Stream auto tool results to complete the streaming flow
+            if (tool.GetToolMode() == ToolMode.Auto)
             {
-                _logger.LogInternalInformation("Trace Starting tool: {ToolName} for agent: {AgentName}", tool.Name, agent.Name);
-                _currentToolSpan = _tracer.StartActiveSpan($"tool.{tool.Name}", SpanKind.Internal, _currentAgentSpan);
-                _currentToolSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
-                _currentToolSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Tool);
-                _currentToolSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
-                _currentToolSpan.SetAttribute(TraceAttribute.ToolName, tool.Name);
-                _currentToolSpan.SetAttribute(TraceAttribute.ToolInput, FormatToolArguments(input));
-                _currentToolSpan.SetAttribute(TraceAttribute.ModelTemperature, agent.Temperature.ToString());
-                _currentToolSpan.SetAttribute(TraceAttribute.ToolDescription, tool.Description);
-
-                _logger.LogAgentAction(
-                    action: AgentActionEvents.InvokeTool,
-                    parameter: tool.Name,
-                    status: AgentActionStatus.Success,
-                    duration: 0,
-                    threadId: _context.ThreadId.ToString(),
-                    subAgentName: agent.Name,
-                    featureConfig: WebJsonSerializer.Serialize(_featureConfig));
-
-                // Stream auto tools to avoid missing them (manual tools are handled separately)
-                if (tool.GetToolMode() == ToolMode.Auto)
+                var callId = ToolStatic.AsyncLocalFunctionCallId.Value;
+                var toolCallMessageId = ToolStatic.AsyncLocalToolCallMessageId.Value;
+                if (!string.IsNullOrEmpty(callId) && toolCallMessageId.HasValue)
                 {
-                    var callId = ToolStatic.AsyncLocalFunctionCallId.Value;
-                    if (!string.IsNullOrEmpty(callId))
-                    {
-                        _logger.LogInternalInformation("Streaming auto tool call: {ToolName} with CallId: {CallId}", tool.Name, callId);
-                        var toolCallMessageId = Guid.NewGuid();
-                        await _outboundCommunicationService.AppendAgentToolCallMessage(_context.ThreadId, (AIFunction)tool, toolCallMessageId, callId);
-
-                        // Store the message ID for OnToolEnd to use
-                        ToolStatic.AsyncLocalToolCallMessageId.Value = toolCallMessageId;
-                    }
+                    _logger.LogInternalInformation("Streaming auto tool result: {ToolName} with CallId: {CallId}", tool.Name, callId);
+                    var result = new FunctionResultContent(callId, output);
+                    await _outboundCommunicationService.AppendAgentToolCallResult(_context.ThreadId, result, toolCallMessageId.Value);
+                    // Clear the stored IDs for next tool
+                    ToolStatic.AsyncLocalFunctionCallId.Value = null;
+                    ToolStatic.AsyncLocalToolCallMessageId.Value = null;
                 }
-            },
+            }
 
-            OnToolEnd = async (context, agent, tool, output) =>
+            LogToolExecution(tool, output);
+        };
+
+        hooks.ModelGenerationStart += (context, agent, messages, chatOptions) =>
+        {
+            _logger.LogInternalInformation("Trace Starting model generation for agent: {AgentName}", agent.Name);
+            _currentGenerationSpan = _tracer.StartActiveSpan($"model_generation", SpanKind.Internal, _currentAgentSpan);
+
+            // start timing the model generation
+            try
             {
-                _logger.LogInternalInformation("Trace Ending tool: {ToolName} for agent: {AgentName}", tool.Name, agent.Name);
-                _currentToolSpan?.SetAttribute(TraceAttribute.ToolOutput, output?.ToString() ?? string.Empty);
-                _currentToolSpan?.End();
-                _currentToolSpan = null;
-
-                // Stream auto tool results to complete the streaming flow
-                if (tool.GetToolMode() == ToolMode.Auto)
-                {
-                    var callId = ToolStatic.AsyncLocalFunctionCallId.Value;
-                    var toolCallMessageId = ToolStatic.AsyncLocalToolCallMessageId.Value;
-
-                    if (!string.IsNullOrEmpty(callId) && toolCallMessageId.HasValue)
-                    {
-                        _logger.LogInternalInformation("Streaming auto tool result: {ToolName} with CallId: {CallId}", tool.Name, callId);
-                        var result = new FunctionResultContent(callId, output);
-                        await _outboundCommunicationService.AppendAgentToolCallResult(_context.ThreadId, result, toolCallMessageId.Value);
-
-                        // Clear the stored IDs for next tool
-                        ToolStatic.AsyncLocalFunctionCallId.Value = null;
-                        ToolStatic.AsyncLocalToolCallMessageId.Value = null;
-                    }
-                }
-
-                LogToolExecution(tool, output);
-            },
-
-            OnModelGenerationStart = (context, agent, messages, chatOptions) =>
+                _currentGenerationStopwatch = Stopwatch.StartNew();
+            }
+            catch (Exception ex)
             {
-                _logger.LogInternalInformation("Trace Starting model generation for agent: {AgentName}", agent.Name);
-                _currentGenerationSpan = _tracer.StartActiveSpan($"model_generation", SpanKind.Internal, _currentAgentSpan);
-                // start timing the model generation
-                try
-                {
-                    _currentGenerationStopwatch = Stopwatch.StartNew();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogInternalWarning(ex, "Failed to start generation stopwatch");
-                    _currentGenerationStopwatch = null;
-                }
-                _currentGenerationSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
-                _currentGenerationSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
-                _currentGenerationSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.ModelGeneration);
-                _currentGenerationSpan.SetAttribute(TraceAttribute.ModelInput, FormatChatMessages(messages));
-                _currentGenerationSpan.SetAttribute(TraceAttribute.ModelTools, FormatTools(chatOptions.Tools));
-
-                return Task.CompletedTask;
-            },
-
-            OnModelGenerationEnd = (context, agent, response) =>
-            {
-                _logger.LogInternalInformation("Trace Ending model generation for agent: {AgentName}", agent?.Name ?? "Unknown");
-                _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelOutput, FormatChatMessages(response?.Messages ?? []));
-                _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelInputTokensCount, response?.Usage?.InputTokenCount?.ToString() ?? string.Empty);
-                _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelOutputTokensCount, response?.Usage?.OutputTokenCount?.ToString() ?? string.Empty);
-                _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelTotalTokensCount, response?.Usage?.TotalTokenCount?.ToString() ?? string.Empty);
-                _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelTemperature, agent?.Temperature.ToString() ?? string.Empty);
-                _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelId, response?.ModelId?.ToString() ?? string.Empty);
-                // stop the stopwatch and capture duration (ms)
-                long durationMs = 0;
-                try
-                {
-                    if (_currentGenerationStopwatch != null)
-                    {
-                        _currentGenerationStopwatch.Stop();
-                        durationMs = (long)_currentGenerationStopwatch.Elapsed.TotalMilliseconds;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogInternalWarning(ex, "Failed to stop/read generation stopwatch");
-                    durationMs = 0;
-                }
-
-                _currentGenerationSpan?.End();
-                _currentGenerationSpan = null;
+                _logger.LogInternalWarning(ex, "Failed to start generation stopwatch");
                 _currentGenerationStopwatch = null;
+            }
 
-                // Build token usage JSON including cached token count if available
-                long cachedTokenCount = 0;
-                try
+            _currentGenerationSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+            _currentGenerationSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
+            _currentGenerationSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.ModelGeneration);
+            _currentGenerationSpan.SetAttribute(TraceAttribute.ModelInput, FormatChatMessages(messages));
+            _currentGenerationSpan.SetAttribute(TraceAttribute.ModelTools, FormatTools(chatOptions.Tools));
+            return Task.CompletedTask;
+        };
+
+        hooks.ModelGenerationEnd += (context, agent, response) =>
+        {
+            _logger.LogInternalInformation("Trace Ending model generation for agent: {AgentName}", agent?.Name ?? "Unknown");
+            _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelOutput, FormatChatMessages(response?.Messages ?? []));
+            _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelInputTokensCount, response?.Usage?.InputTokenCount?.ToString() ?? string.Empty);
+            _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelOutputTokensCount, response?.Usage?.OutputTokenCount?.ToString() ?? string.Empty);
+            _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelTotalTokensCount, response?.Usage?.TotalTokenCount?.ToString() ?? string.Empty);
+            _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelTemperature, agent?.Temperature.ToString() ?? string.Empty);
+            _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelId, response?.ModelId?.ToString() ?? string.Empty);
+
+            // stop the stopwatch and capture duration (ms)
+            long durationMs = 0;
+
+            try
+            {
+                if (_currentGenerationStopwatch != null)
                 {
-                    if (response?.Usage?.AdditionalCounts is not null)
+                    _currentGenerationStopwatch.Stop();
+                    durationMs = (long)_currentGenerationStopwatch.Elapsed.TotalMilliseconds;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalWarning(ex, "Failed to stop/read generation stopwatch");
+                durationMs = 0;
+            }
+
+            _currentGenerationSpan?.End();
+            _currentGenerationSpan = null;
+            _currentGenerationStopwatch = null;
+            // Build token usage JSON including cached token count if available
+            long cachedTokenCount = 0;
+
+            try
+            {
+                if (response?.Usage?.AdditionalCounts is not null)
+                {
+                    if (response.Usage.AdditionalCounts.TryGetValue("InputTokenDetails.CachedTokenCount", out var cachedObj))
                     {
-                        if (response.Usage.AdditionalCounts.TryGetValue("InputTokenDetails.CachedTokenCount", out var cachedObj))
+                        try
                         {
-                            try
-                            {
-                                cachedTokenCount = Convert.ToInt64(cachedObj);
-                            }
-                            catch
-                            {
-                                long.TryParse(cachedObj.ToString(), out cachedTokenCount);
-                            }
+                            cachedTokenCount = Convert.ToInt64(cachedObj);
+                        }
+                        catch
+                        {
+                            long.TryParse(cachedObj.ToString(), out cachedTokenCount);
                         }
                     }
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogInternalWarning(ex, "Failed to parse cached token count from AdditionalCounts");
-                }
-
-                var tokenUsageObj = new
-                {
-                    InputTokenCount = response?.Usage?.InputTokenCount ?? 0,
-                    OutputTokenCount = response?.Usage?.OutputTokenCount ?? 0,
-                    CachedTokenCount = cachedTokenCount
-                };
-
-                _logger.LogAgentAction(
-                    action: AgentActionEvents.GenerateModelResponse,
-                    parameter: response?.ModelId?.ToString() ?? string.Empty,
-                    status: AgentActionStatus.Success,
-                    duration: durationMs,
-                    threadId: _context.ThreadId.ToString(),
-                    subAgentName: agent?.Name ?? "Unknown",
-                    inputToken: response?.Usage?.InputTokenCount ?? 0,
-                    outputToken: response?.Usage?.OutputTokenCount ?? 0,
-                    featureConfig: WebJsonSerializer.Serialize(_featureConfig),
-                    actionMetadata: WebJsonSerializer.Serialize(tokenUsageObj));
-                return Task.CompletedTask;
-            },
-
-            OnSummarizerStart = (context, agent) =>
-            {
-                _logger.LogInternalInformation("Trace starting Summarizer for agent: {AgentName}.", agent.Name);
-                _currentSummarizerSpan = _tracer.StartSpan($"summarizer", SpanKind.Internal, _currentAgentSpan);
-                _currentSummarizerSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
-                _currentSummarizerSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
-                _currentSummarizerSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Summarizer);
-                return Task.CompletedTask;
-            },
-
-            OnSummarizerEnd = (context, agent, extractedUserIntent) =>
-            {
-                _logger.LogInternalInformation("Trace ending Summarizer for agent: {AgentName}.", agent.Name);
-                _currentSummarizerSpan?.SetAttribute("summarizer.extracted_user_query", extractedUserIntent);
-                _currentSummarizerSpan?.End();
-                _currentSummarizerSpan = null;
-                return Task.CompletedTask;
-            },
-
-            OnCriticStart = (context, agent, currentTurn) =>
-            {
-                var maxTurns = agent.MaxReflectionCount;
-                _logger.LogInternalInformation("Trace starting Critic for agent: {AgentName}. Turn# {CurrentTurn}/{MaxTurns}", agent.Name, currentTurn, maxTurns);
-                _currentCriticSpan = _tracer.StartSpan($"critic", SpanKind.Internal, _currentAgentSpan);
-                _currentCriticSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
-                _currentCriticSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
-                _currentCriticSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Critic);
-                _currentCriticSpan.SetAttribute("critic.turn_index", currentTurn.ToString());
-                _currentCriticSpan.SetAttribute("critic.max_turns", maxTurns.ToString());
-                _currentCriticSpan.SetAttribute("critic.reflection_note", agent.CustomReflectionNote);
-                return Task.CompletedTask;
-            },
-
-            OnCriticEnd = (context, agent, userQuery, criticResult, wasApproved) =>
-            {
-                _logger.LogInternalInformation("Trace Ending critic for agent: {AgentName}, Approved: {WasApproved}", agent.Name, wasApproved);
-                _currentCriticSpan?.SetAttribute("critic.user_query", userQuery);
-                _currentCriticSpan?.SetAttribute("critic.result", criticResult);
-                _currentCriticSpan?.SetAttribute("critic.was_approved", wasApproved.ToString());
-                _currentCriticSpan?.End();
-                _currentCriticSpan = null;
-
-                _logger.LogAgentAction(
-                    action: AgentActionEvents.CriticEvaluation,
-                    parameter: wasApproved ? "Approved" : "Failed",
-                    status: AgentActionStatus.Success,
-                    duration: 0,
-                    threadId: _context.ThreadId.ToString(),
-                    subAgentName: agent.Name,
-                    featureConfig: WebJsonSerializer.Serialize(_featureConfig));
-                return Task.CompletedTask;
             }
+            catch (Exception ex)
+            {
+                _logger.LogInternalWarning(ex, "Failed to parse cached token count from AdditionalCounts");
+            }
+
+            var tokenUsageObj = new
+            {
+                InputTokenCount = response?.Usage?.InputTokenCount ?? 0,
+                OutputTokenCount = response?.Usage?.OutputTokenCount ?? 0,
+                CachedTokenCount = cachedTokenCount
+            };
+
+            _logger.LogAgentAction(
+                action: AgentActionEvents.GenerateModelResponse,
+                parameter: response?.ModelId?.ToString() ?? string.Empty,
+                status: AgentActionStatus.Success,
+                duration: durationMs,
+                threadId: _context.ThreadId.ToString(),
+                subAgentName: agent?.Name ?? "Unknown",
+                inputToken: response?.Usage?.InputTokenCount ?? 0,
+                outputToken: response?.Usage?.OutputTokenCount ?? 0,
+                featureConfig: WebJsonSerializer.Serialize(_featureConfig),
+                actionMetadata: WebJsonSerializer.Serialize(tokenUsageObj));
+
+            return Task.CompletedTask;
         };
+
+        hooks.SummarizerStart += (context, agent) =>
+        {
+            _logger.LogInternalInformation("Trace starting Summarizer for agent: {AgentName}.", agent.Name);
+            _currentSummarizerSpan = _tracer.StartSpan($"summarizer", SpanKind.Internal, _currentAgentSpan);
+            _currentSummarizerSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+            _currentSummarizerSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
+            _currentSummarizerSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Summarizer);
+            return Task.CompletedTask;
+        };
+
+        hooks.SummarizerEnd += (context, agent, extractedUserIntent) =>
+        {
+            _logger.LogInternalInformation("Trace ending Summarizer for agent: {AgentName}.", agent.Name);
+            _currentSummarizerSpan?.SetAttribute("summarizer.extracted_user_query", extractedUserIntent);
+            _currentSummarizerSpan?.End();
+            _currentSummarizerSpan = null;
+            return Task.CompletedTask;
+        };
+
+        hooks.CriticStart += (context, agent, currentTurn) =>
+        {
+            var maxTurns = agent.MaxReflectionCount;
+            _logger.LogInternalInformation("Trace starting Critic for agent: {AgentName}. Turn# {CurrentTurn}/{MaxTurns}", agent.Name, currentTurn, maxTurns);
+            _currentCriticSpan = _tracer.StartSpan($"critic", SpanKind.Internal, _currentAgentSpan);
+            _currentCriticSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+            _currentCriticSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
+            _currentCriticSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Critic);
+            _currentCriticSpan.SetAttribute("critic.turn_index", currentTurn.ToString());
+            _currentCriticSpan.SetAttribute("critic.max_turns", maxTurns.ToString());
+            _currentCriticSpan.SetAttribute("critic.reflection_note", agent.CustomReflectionNote);
+            return Task.CompletedTask;
+        };
+
+        hooks.CriticEnd += (context, agent, userQuery, criticResult, wasApproved) =>
+        {
+            _logger.LogInternalInformation("Trace ending Critic for agent: {AgentName}, Approved: {WasApproved}", agent.Name, wasApproved);
+            _currentCriticSpan?.SetAttribute("critic.user_query", userQuery);
+            _currentCriticSpan?.SetAttribute("critic.result", criticResult);
+            _currentCriticSpan?.SetAttribute("critic.was_approved", wasApproved.ToString());
+            _currentCriticSpan?.End();
+            _currentCriticSpan = null;
+
+            _logger.LogAgentAction(
+                action: AgentActionEvents.CriticEvaluation,
+                parameter: wasApproved ? "Approved" : "Failed",
+                status: AgentActionStatus.Success,
+                duration: 0,
+                threadId: _context.ThreadId.ToString(),
+                subAgentName: agent.Name,
+                featureConfig: WebJsonSerializer.Serialize(_featureConfig));
+            return Task.CompletedTask;
+        };
+
+        return hooks;
     }
 
     private string GetApprovalTitle(FunctionCallContent functionCall)

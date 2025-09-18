@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Agent.Framework;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
+using Microsoft.OperationalAgent.Core.Extensions;
 
 namespace Agent.Plugins.Definitions
 {
@@ -59,11 +60,17 @@ namespace Agent.Plugins.Definitions
         [Description("Analyzes slow-running queries using Query Store data to identify performance bottlenecks, missing indexes, and inefficient query patterns. " +
                     "Provides specific recommendations for query optimization and index creation.")]
         public async Task<SlowQueryAnalysis> AnalyzeSlowQueries(
-            [Description("The full Azure resource ID of the PostgreSQL server")] string resourceId,
-            [Description("Time window for analysis in minutes (default: 60)")] int windowMinutes = 60)
+            [Description("The full Azure resource ID of the PostgreSQL server")]
+            string resourceId,
+            [Description("The start time for the metric query range (Absolute in UTC or relative). Examples: '2024-03-05 10:50:00', '20 hours ago', '3 days ago'. Prefer relative format for recent values (e.g: '24 hours ago', '2 days ago'). Validation start date should be within last 90 days")]
+            string startTime,
+            [Description("The end time for the metric query range (Absolute in UTC or relative). Examples: '2024-03-05 10:50:00', 'now', 'an hour ago'. Prefer relative format for recent value (e.g: 'now', '1 hour ago'). Validation limit end date from last 90 days")]
+            string endTime)
         {
-            var window = TimeSpan.FromMinutes(windowMinutes);
-            return await _postgreSQLPlugin.AnalyzeSlowQueriesAsync(resourceId, window);
+            return await _postgreSQLPlugin.AnalyzeSlowQueriesAsync(
+                resourceId,
+                startTime.RecognizeAsDateTime() ?? DateTimeOffset.UtcNow.AddDays(-1),
+                endTime.RecognizeAsDateTime() ?? DateTimeOffset.UtcNow);
         }
 
         /// <summary>

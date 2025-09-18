@@ -2411,8 +2411,18 @@ Here are the logs in JSON format:
             ResourceIdentifier resourceIdentifier = new ResourceIdentifier(resourceId);
             string containerAppName = resourceIdentifier.Name;
 
-            var logsAndComponents = await _azureActivityLogsPlugin.FetchActivityLogsAndComponents(resourceId);
-            var logs = logsAndComponents.ActivityLogs;
+            List<Dictionary<string, object>> logs;
+
+            try
+            {
+                var (ActivityLogs, Components) = await _azureActivityLogsPlugin.FetchActivityLogsAndComponents(resourceId);
+                logs = ActivityLogs;
+            }
+            catch (ArgumentException ex) when (ex.Message.Contains("No activity logs found for the specified resource and its dependencies"))
+            {
+                // expected when no logs are found
+                return [];
+            }
 
             var successfulDeployments = logs.Where(l =>
             {

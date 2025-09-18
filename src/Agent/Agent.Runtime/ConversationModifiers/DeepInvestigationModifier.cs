@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Extensions;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Agent.Runtime.AgentTasks;
@@ -74,7 +75,8 @@ public sealed class DeepInvestigationModifier : IConversationModifier
             FactoryTools = [
                 nameof(AgentTaskPluginDefinition.StartIncidentInvestigationTask),
                 nameof(AgentTaskPluginDefinition.ListAllActiveTasks)
-            ]
+            ],
+            ReasoningEffortLevel = ChatOptionsExtensions.MinimalReasoningEffort
         };
     }
 

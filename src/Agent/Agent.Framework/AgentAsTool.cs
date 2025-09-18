@@ -99,28 +99,27 @@ public class AgentAsTool<TContext> : AIFunction where TContext : class
             throw new InvalidOperationException("RunHooks was not set on AgentAsTool instance");
         }
 
-        var runHooks = new RunHooks<TContext>
+        var runHooks = new RunHooks<TContext>();
+
+        runHooks.ResolveFactoryTools += async (context, agent) =>
         {
-            ResolveFactoryTools = async (context, agent) =>
+            var tools = await RunHooks.OnResolveFactoryTools(context, _targetAgent);
+            // Validate and filter tools - only allow auto tools in agent-as-tool context
+            var autoTools = new List<AIFunction>();
+
+            foreach (var tool in tools)
             {
-                var tools = await RunHooks.ResolveFactoryTools(context, _targetAgent);
-                // Validate and filter tools - only allow auto tools in agent-as-tool context
-                var autoTools = new List<AIFunction>();
-
-                foreach (var tool in tools)
+                if (tool.GetToolMode() == ToolMode.Auto)
                 {
-                    if (tool.GetToolMode() == ToolMode.Auto)
-                    {
-                        autoTools.Add(tool);
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException($"Manual tool '{tool.Name}' is not supported in agent-as-tool context. Agent-as-tool can only use auto tools that don't require user interaction.");
-                    }
+                    autoTools.Add(tool);
                 }
-
-                return autoTools;
+                else
+                {
+                    throw new InvalidOperationException($"Manual tool '{tool.Name}' is not supported in agent-as-tool context. Agent-as-tool can only use auto tools that don't require user interaction.");
+                }
             }
+
+            return autoTools;
         };
 
         var result = await Runner.RunAsync(

@@ -153,18 +153,12 @@ public static class Runner
 
         // Create custom hooks that detect handoff
         var handoffDetectionHooks = hooks ?? new RunHooks<TContext>();
-        var originalOnHandoff = handoffDetectionHooks.OnHandoff;
 
-        handoffDetectionHooks.OnHandoff = async (context, fromAgent, toAgent, handoffReasoning) =>
+        handoffDetectionHooks.Handoff += (context, fromAgent, toAgent, handoffReasoning) =>
         {
             handoffDetected = true;
             handoffTargetAgent = toAgent.Name;
-
-            // Call original hook if it exists
-            if (originalOnHandoff != null)
-            {
-                await originalOnHandoff(context, fromAgent, toAgent, handoffReasoning);
-            }
+            return Task.CompletedTask;
         };
 
         try
@@ -459,7 +453,7 @@ public static class Runner
 
             var trajectoryString = trajectory.GetFilteredTrajectory();
 
-            var agentTools = await hooks.ResolveFactoryTools(contextWrapper, currentAgent);
+            var agentTools = await hooks.OnResolveFactoryTools(contextWrapper, currentAgent);
 
             var criticResult = await Critic.CriticAsync(
                 currentAgent,
@@ -575,7 +569,7 @@ public static class Runner
 
         List<AIFunction> tools = [];
         tools.AddRange(agent.Tools);
-        tools.AddRange(await hooks.ResolveFactoryTools(contextWrapper, agent));
+        tools.AddRange(await hooks.OnResolveFactoryTools(contextWrapper, agent));
         tools.AddRange(agent.Handoffs);
 
         var chatOptions = new ChatOptions
@@ -590,6 +584,14 @@ public static class Runner
 
         var chatClient = agent.GetChatClient(config);
 
+        // for gpt-5 allow overriding the reasoning effort level per agent
+        var chatClientMetaData = chatClient.GetRequiredService<ChatClientMetadata>();
+        if (chatClientMetaData?.DefaultModelId?.StartsWith("gpt-5") == true)
+        {
+            chatOptions.AdditionalProperties ??= [];
+            chatOptions.AdditionalProperties["reasoning_effort"] = agent.ReasoningEffortLevel;
+        }
+
         List<ChatMessage> modelInput = [new ChatMessage(ChatRole.System, systemPrompt)];
         var lastCompactedInput = SplitLastCompactedSummary(originalInput);
         modelInput.AddRange(lastCompactedInput);
@@ -602,7 +604,7 @@ public static class Runner
         }
 
         // Add plan reminder if required
-        AddPlanReminderIfNeeded(modelInput, tools);
+        AddPlanReminderIfNeeded(modelInput, tools, agent);
 
         // tool invocations like metrics query depend on current time
         modelInput.Add(new ChatMessage(ChatRole.System, $"The current date is {DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss zzz}"));
@@ -1205,12 +1207,23 @@ public static class Runner
         return modelInput;
     }
 
-    private static void AddPlanReminderIfNeeded(List<ChatMessage> modelInput, IReadOnlyList<AIFunction> tools)
+    private static void AddPlanReminderIfNeeded<TContext>(
+        List<ChatMessage> modelInput,
+        IReadOnlyList<AIFunction> tools,
+        Agent<TContext> agent)
+        where TContext : class
     {
         const string ToDoReminder =
         """
         <system-reminder>
         This is a reminder that your todo list is currently empty. DO NOT mention this to the user explicitly because they are already aware. If you are working on tasks that would benefit from a todo list please use the TodoWrite tool to create one. If not, please feel free to ignore. Again do not mention this message to the user.
+        </system-reminder>
+        """;
+
+        const string InProgressPlanReminder =
+        """
+        <system-reminder>
+        This is a reminder that you have an in-progress plan. Please make sure to complete all the tasks in your plan before providing a final answer to the user. If you have already completed all the tasks in your plan, please provide a final answer to the user. DO NOT mention this to the user explicitly because they are already aware. Again do not mention this message to the user.
         </system-reminder>
         """;
 
@@ -1221,9 +1234,14 @@ public static class Runner
             var hasPlan = modelInput.Any(m => m.Role == ChatRole.Assistant
                 && m.Contents.Any(c => c is FunctionCallContent f
                 && string.Equals(f.Name, ToDoWriteTool.ToolName, StringComparison.OrdinalIgnoreCase)));
+
             if (!hasPlan)
             {
                 modelInput.Add(new ChatMessage(ChatRole.User, ToDoReminder));
+            }
+            else if (agent.AlwaysAddPlanReminder)
+            {
+                modelInput.Add(new ChatMessage(ChatRole.User, InProgressPlanReminder));
             }
         }
     }

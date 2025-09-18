@@ -8,43 +8,45 @@ namespace Agent.Framework;
 
 public class RunHooks<TContext> where TContext : class
 {
-    public Func<RunContextWrapper<TContext>, Agent<TContext>, Task> OnAgentStart { get; set; } =
-        (context, agent) => Task.CompletedTask;
+    public delegate Task AgentStartDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent);
+    public delegate Task AgentEndDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, object? result);
+    public delegate Task ToolStartDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, AIFunction tool, IEnumerable<KeyValuePair<string, object?>>? arguments);
+    public delegate Task ToolEndDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, AIFunction tool, object? result);
+    public delegate Task HandoffDelegate(RunContextWrapper<TContext> context, Agent<TContext> fromAgent, Agent<TContext> toAgent, string handoffReasoning);
+    public delegate Task<List<AIFunction>> ResolveFactoryToolsDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent);
+    public delegate Task ModelGenerationStartDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, IEnumerable<ChatMessage> chatMessages, ChatOptions chatOption);
+    public delegate Task ModelGenerationEndDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, ChatResponse response);
+    public delegate Task SummarizerStartDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent);
+    public delegate Task SummarizerEndDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, string extractedUserIntent);
+    public delegate Task CriticStartDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, int currentTurn);
+    public delegate Task CriticEndDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, string userQuery, string criticResult, bool wasApproved);
+    public delegate Task InputInjectionDelegate(RunContextWrapper<TContext> context, ChatMessage injectedMessage, string injectionSource);
 
-    public Func<RunContextWrapper<TContext>, Agent<TContext>, object?, Task> OnAgentEnd { get; set; } =
-        (context, agent, result) => Task.CompletedTask;
+    public event AgentStartDelegate? AgentStart;
+    public event AgentEndDelegate? AgentEnd;
+    public event ToolStartDelegate? ToolStart;
+    public event ToolEndDelegate? ToolEnd;
+    public event HandoffDelegate? Handoff;
+    public event ResolveFactoryToolsDelegate? ResolveFactoryTools;
+    public event ModelGenerationStartDelegate? ModelGenerationStart;
+    public event ModelGenerationEndDelegate? ModelGenerationEnd;
+    public event SummarizerStartDelegate? SummarizerStart;
+    public event SummarizerEndDelegate? SummarizerEnd;
+    public event CriticStartDelegate? CriticStart;
+    public event CriticEndDelegate? CriticEnd;
+    public event InputInjectionDelegate? InputInjection;
 
-    public Func<RunContextWrapper<TContext>, Agent<TContext>, AIFunction, IEnumerable<KeyValuePair<string, object?>>?, Task> OnToolStart { get; set; } =
-        (context, agent, tool, arguments) => Task.CompletedTask;
-
-    public Func<RunContextWrapper<TContext>, Agent<TContext>, AIFunction, object?, Task> OnToolEnd { get; set; } =
-        (context, agent, tool, result) => Task.CompletedTask;
-
-    public Func<RunContextWrapper<TContext>, Agent<TContext>, Agent<TContext>, string, Task> OnHandoff { get; set; } =
-        (context, fromAgent, toAgent, handoffReasoning) => Task.CompletedTask;
-
-    public Func<RunContextWrapper<TContext>, Agent<TContext>, Task<List<AIFunction>>> ResolveFactoryTools { get; set; } =
-        (context, agent) => Task.FromResult<List<AIFunction>>([]);
-
-    public Func<RunContextWrapper<TContext>, Agent<TContext>, IEnumerable<ChatMessage>, ChatOptions, Task> OnModelGenerationStart { get; set; } =
-        (context, agent, chatMessages, chatOption) => Task.CompletedTask;
-
-    public Func<RunContextWrapper<TContext>, Agent<TContext>, ChatResponse, Task> OnModelGenerationEnd { get; set; } =
-        (context, agent, response) => Task.CompletedTask;
-
-    public Func<RunContextWrapper<TContext>, Agent<TContext>, Task> OnSummarizerStart { get; set; } =
-        (context, agent) => Task.CompletedTask;
-
-    public Func<RunContextWrapper<TContext>, Agent<TContext>, string, Task> OnSummarizerEnd { get; set; } =
-        (context, agent, extractedUserIntent) => Task.CompletedTask;
-
-    public Func<RunContextWrapper<TContext>, Agent<TContext>, int, Task> OnCriticStart { get; set; } =
-        (context, agent, currentTurn) => Task.CompletedTask;
-
-    public Func<RunContextWrapper<TContext>, Agent<TContext>, string, string, bool, Task> OnCriticEnd { get; set; } =
-        (context, agent, userQuery, criticResult, wasApproved) => Task.CompletedTask;
-
-    //todo: convert to enum - critic or reasoningloophandler
-    public Func<RunContextWrapper<TContext>, ChatMessage, string, Task> OnInputInjection { get; set; } =
-        (context, injectedMessage, injectionSource) => Task.CompletedTask;
+    public Task OnAgentStart(RunContextWrapper<TContext> context, Agent<TContext> agent) => AgentStart?.Invoke(context, agent) ?? Task.CompletedTask;
+    public Task OnAgentEnd(RunContextWrapper<TContext> context, Agent<TContext> agent, object? result) => AgentEnd?.Invoke(context, agent, result) ?? Task.CompletedTask;
+    public Task OnToolStart(RunContextWrapper<TContext> context, Agent<TContext> agent, AIFunction tool, IEnumerable<KeyValuePair<string, object?>>? arguments) => ToolStart?.Invoke(context, agent, tool, arguments) ?? Task.CompletedTask;
+    public Task OnToolEnd(RunContextWrapper<TContext> context, Agent<TContext> agent, AIFunction tool, object? result) => ToolEnd?.Invoke(context, agent, tool, result) ?? Task.CompletedTask;
+    public Task OnHandoff(RunContextWrapper<TContext> context, Agent<TContext> fromAgent, Agent<TContext> toAgent, string handoffReasoning) => Handoff?.Invoke(context, fromAgent, toAgent, handoffReasoning) ?? Task.CompletedTask;
+    public Task<List<AIFunction>> OnResolveFactoryTools(RunContextWrapper<TContext> context, Agent<TContext> agent) => ResolveFactoryTools?.Invoke(context, agent) ?? Task.FromResult(new List<AIFunction>());
+    public Task OnModelGenerationStart(RunContextWrapper<TContext> context, Agent<TContext> agent, IEnumerable<ChatMessage> chatMessages, ChatOptions chatOption) => ModelGenerationStart?.Invoke(context, agent, chatMessages, chatOption) ?? Task.CompletedTask;
+    public Task OnModelGenerationEnd(RunContextWrapper<TContext> context, Agent<TContext> agent, ChatResponse response) => ModelGenerationEnd?.Invoke(context, agent, response) ?? Task.CompletedTask;
+    public Task OnSummarizerStart(RunContextWrapper<TContext> context, Agent<TContext> agent) => SummarizerStart?.Invoke(context, agent) ?? Task.CompletedTask;
+    public Task OnSummarizerEnd(RunContextWrapper<TContext> context, Agent<TContext> agent, string extractedUserIntent) => SummarizerEnd?.Invoke(context, agent, extractedUserIntent) ?? Task.CompletedTask;
+    public Task OnCriticStart(RunContextWrapper<TContext> context, Agent<TContext> agent, int currentTurn) => CriticStart?.Invoke(context, agent, currentTurn) ?? Task.CompletedTask;
+    public Task OnCriticEnd(RunContextWrapper<TContext> context, Agent<TContext> agent, string userQuery, string criticResult, bool wasApproved) => CriticEnd?.Invoke(context, agent, userQuery, criticResult, wasApproved) ?? Task.CompletedTask;
+    public Task OnInputInjection(RunContextWrapper<TContext> context, ChatMessage injectedMessage, string injectionSource) => InputInjection?.Invoke(context, injectedMessage, injectionSource) ?? Task.CompletedTask;
 }

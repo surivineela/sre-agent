@@ -175,11 +175,12 @@ public class PostgreSQLPlugin : IPostgreSQLPlugin
     /// <param name="resourceId">The full Azure resource ID of the PostgreSQL server</param>
     /// <param name="window">Time window for analysis</param>
     /// <returns>Slow query analysis results</returns>
-    public async Task<SlowQueryAnalysis> AnalyzeSlowQueriesAsync(string resourceId, TimeSpan window)
+    public async Task<SlowQueryAnalysis> AnalyzeSlowQueriesAsync(
+        string resourceId, DateTimeOffset startTime, DateTimeOffset endTime)
     {
         try
         {
-            _logger.LogInternalInformation($"[postgresql_query_analysis] Analyzing slow queries for {resourceId}, window: {window}");
+            _logger.LogInternalInformation($"[postgresql_query_analysis] Analyzing slow queries for {resourceId}, window: {startTime} - {endTime}");
 
             // Validate resource ID format first
             if (!IsValidAzureResourceId(resourceId))
@@ -246,7 +247,7 @@ public class PostgreSQLPlugin : IPostgreSQLPlugin
             }
 
             // Query slow queries from Log Analytics
-            var slowQueries = await GetSlowQueriesFromLogAnalyticsAsync(workspaceCustomerId, window);
+            var slowQueries = await GetSlowQueriesFromLogAnalyticsAsync(workspaceCustomerId, startTime, endTime);
             var recommendations = GenerateSlowQueryRecommendations(slowQueries);
             var summary = GenerateSlowQuerySummary(slowQueries);
 
@@ -1832,13 +1833,10 @@ public class PostgreSQLPlugin : IPostgreSQLPlugin
     /// <param name="workspaceCustomerId">Log Analytics workspace customerId</param>
     /// <param name="window">Time window for query analysis</param>
     /// <returns>List of slow queries found</returns>
-    private async Task<List<SlowQuery>> GetSlowQueriesFromLogAnalyticsAsync(string workspaceCustomerId, TimeSpan window)
+    private async Task<List<SlowQuery>> GetSlowQueriesFromLogAnalyticsAsync(string workspaceCustomerId, DateTimeOffset startTime, DateTimeOffset endTime)
     {
         try
         {
-            var endTime = DateTimeOffset.UtcNow;
-            var startTime = endTime.Subtract(window);
-
             // KQL query to get slow queries from PostgreSQL Query Store runtime statistics
             // This queries the AzureDiagnostics table where PostgreSQL diagnostic data is stored
             var query = $"""

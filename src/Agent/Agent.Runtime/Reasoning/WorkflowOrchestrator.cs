@@ -1127,193 +1127,194 @@ Please consolidate the findings, identify key insights, and provide actionable r
     /// </summary>
     private RunHooks<AgentContext> CreateRunHooks()
     {
-        return new RunHooks<AgentContext>
+        var hooks = new RunHooks<AgentContext>();
+
+        hooks.ResolveFactoryTools += (context, agent) =>
         {
-            ResolveFactoryTools = (context, agent) =>
+            List<AIFunction> tools = [];
+
+            foreach (var toolName in agent.FactoryTools)
             {
-                List<AIFunction> tools = [];
+                var tool = _toolFactory.GetTool(toolName, _context.ThreadId);
+                tools.Add(tool);
+            }
 
-                foreach (var toolName in agent.FactoryTools)
-                {
-                    var tool = _toolFactory.GetTool(toolName, _context.ThreadId);
-                    tools.Add(tool);
-                }
+            return Task.FromResult(tools);
+        };
 
-                return Task.FromResult(tools);
-            },
-
-            OnAgentStart = (context, agent) =>
+        hooks.AgentStart += (context, agent) =>
+        {
+            if (_currentAgentSpan is not null)
             {
-                if (_currentAgentSpan is not null)
-                {
-                    _currentAgentSpan.End();
-                    _currentAgentSpan = null;
-                }
-
-                _logger.LogInternalInformation("Workflow trace invoke agent: {AgentName}", agent.Name);
-                _currentAgentSpan = _tracer.StartActiveSpan($"workflow.agent.{agent.Name}", SpanKind.Internal, _rootSpan);
-                _currentAgentSpan.SetAttribute("workflow.thread_id", _context.ThreadId.ToString());
-                _currentAgentSpan.SetAttribute("workflow.agent_name", agent.Name);
-                _currentAgentSpan.SetAttribute("workflow.operation", "InvokeAgent");
-
-                return Task.CompletedTask;
-            },
-
-            OnAgentEnd = (context, agent, output) =>
-            {
-                _logger.LogInternalInformation("Workflow trace ending agent: {AgentName}", agent.Name);
-                _currentAgentSpan?.End();
+                _currentAgentSpan.End();
                 _currentAgentSpan = null;
-                return Task.CompletedTask;
-            },
+            }
 
-            OnHandoff = async (context, agent, handoffAgent, handoffReasoning) =>
+            _logger.LogInternalInformation("Workflow trace invoke agent: {AgentName}", agent.Name);
+            _currentAgentSpan = _tracer.StartActiveSpan($"workflow.agent.{agent.Name}", SpanKind.Internal, _rootSpan);
+            _currentAgentSpan.SetAttribute("workflow.thread_id", _context.ThreadId.ToString());
+            _currentAgentSpan.SetAttribute("workflow.agent_name", agent.Name);
+            _currentAgentSpan.SetAttribute("workflow.operation", "InvokeAgent");
+
+            return Task.CompletedTask;
+        };
+
+        hooks.AgentEnd += (context, agent, output) =>
+        {
+            _logger.LogInternalInformation("Workflow trace ending agent: {AgentName}", agent.Name);
+            _currentAgentSpan?.End();
+            _currentAgentSpan = null;
+            return Task.CompletedTask;
+        };
+
+        hooks.Handoff += async (context, agent, handoffAgent, handoffReasoning) =>
+        {
+            _logger.LogInternalInformation("Workflow trace handoff from agent: {AgentName} to agent: {HandoffAgentName}", agent.Name, handoffAgent.Name);
+            _currentToolSpan = _tracer.StartSpan($"workflow.handoff", SpanKind.Internal, _currentAgentSpan);
+            _currentToolSpan.SetAttribute("workflow.thread_id", _context.ThreadId.ToString());
+            _currentToolSpan.SetAttribute("workflow.operation", "Handoff");
+            _currentToolSpan.SetAttribute("workflow.source_agent", agent.Name);
+            _currentToolSpan.SetAttribute("workflow.target_agent", handoffAgent.Name);
+            _currentToolSpan.SetAttribute("workflow.handoff_reasoning", handoffReasoning);
+            _currentToolSpan.End();
+            _currentToolSpan = null;
+            _currentAgentSpan?.End();
+
+            // Update handoff chain (workflow orchestrator handles this differently)
+            _context.AgentHandoffChain.Add(handoffAgent.Name);
+            await _threadRepository.UpdateAgentContextAsync(_context);
+        };
+
+        hooks.ToolStart += async (context, agent, tool, input) =>
+        {
+            _logger.LogInternalInformation("Workflow trace starting tool: {ToolName} for agent: {AgentName}", tool.Name, agent.Name);
+            _currentToolSpan = _tracer.StartActiveSpan($"workflow.tool.{tool.Name}", SpanKind.Internal, _currentAgentSpan);
+            _currentToolSpan.SetAttribute("workflow.thread_id", _context.ThreadId.ToString());
+            _currentToolSpan.SetAttribute("workflow.operation", "Tool");
+            _currentToolSpan.SetAttribute("workflow.agent_name", agent.Name);
+            _currentToolSpan.SetAttribute("workflow.tool_name", tool.Name);
+            _currentToolSpan.SetAttribute("workflow.tool_input", FormatToolArguments(input));
+            _currentToolSpan.SetAttribute("workflow.model_temperature", agent.Temperature.ToString());
+            _currentToolSpan.SetAttribute("workflow.tool_description", tool.Description);
+
+
+            // Stream auto tools to avoid missing them (manual tools are handled separately)
+            if (tool.GetToolMode() == ToolMode.Auto)
             {
-                _logger.LogInternalInformation("Workflow trace handoff from agent: {AgentName} to agent: {HandoffAgentName}", agent.Name, handoffAgent.Name);
-                _currentToolSpan = _tracer.StartSpan($"workflow.handoff", SpanKind.Internal, _currentAgentSpan);
-                _currentToolSpan.SetAttribute("workflow.thread_id", _context.ThreadId.ToString());
-                _currentToolSpan.SetAttribute("workflow.operation", "Handoff");
-                _currentToolSpan.SetAttribute("workflow.source_agent", agent.Name);
-                _currentToolSpan.SetAttribute("workflow.target_agent", handoffAgent.Name);
-                _currentToolSpan.SetAttribute("workflow.handoff_reasoning", handoffReasoning);
-                _currentToolSpan.End();
-                _currentToolSpan = null;
-                _currentAgentSpan?.End();
-
-                // Update handoff chain (workflow orchestrator handles this differently)
-                _context.AgentHandoffChain.Add(handoffAgent.Name);
-                await _threadRepository.UpdateAgentContextAsync(_context);
-            },
-
-            OnToolStart = async (context, agent, tool, input) =>
-            {
-                _logger.LogInternalInformation("Workflow trace starting tool: {ToolName} for agent: {AgentName}", tool.Name, agent.Name);
-                _currentToolSpan = _tracer.StartActiveSpan($"workflow.tool.{tool.Name}", SpanKind.Internal, _currentAgentSpan);
-                _currentToolSpan.SetAttribute("workflow.thread_id", _context.ThreadId.ToString());
-                _currentToolSpan.SetAttribute("workflow.operation", "Tool");
-                _currentToolSpan.SetAttribute("workflow.agent_name", agent.Name);
-                _currentToolSpan.SetAttribute("workflow.tool_name", tool.Name);
-                _currentToolSpan.SetAttribute("workflow.tool_input", FormatToolArguments(input));
-                _currentToolSpan.SetAttribute("workflow.model_temperature", agent.Temperature.ToString());
-                _currentToolSpan.SetAttribute("workflow.tool_description", tool.Description);
-
-
-                // Stream auto tools to avoid missing them (manual tools are handled separately)
-                if (tool.GetToolMode() == ToolMode.Auto)
+                var callId = ToolStatic.AsyncLocalFunctionCallId.Value;
+                if (!string.IsNullOrEmpty(callId))
                 {
-                    var callId = ToolStatic.AsyncLocalFunctionCallId.Value;
-                    if (!string.IsNullOrEmpty(callId))
-                    {
-                        _logger.LogInternalInformation("Workflow streaming auto tool call: {ToolName} with CallId: {CallId}", tool.Name, callId);
-                        var toolCallMessageId = Guid.NewGuid();
-                        await _outboundCommunicationService.AppendAgentToolCallMessage(_context.ThreadId, (AIFunction)tool, toolCallMessageId, callId);
+                    _logger.LogInternalInformation("Workflow streaming auto tool call: {ToolName} with CallId: {CallId}", tool.Name, callId);
+                    var toolCallMessageId = Guid.NewGuid();
+                    await _outboundCommunicationService.AppendAgentToolCallMessage(_context.ThreadId, (AIFunction)tool, toolCallMessageId, callId);
 
-                        // Store the message ID for OnToolEnd to use
-                        ToolStatic.AsyncLocalToolCallMessageId.Value = toolCallMessageId;
-                    }
+                    // Store the message ID for OnToolEnd to use
+                    ToolStatic.AsyncLocalToolCallMessageId.Value = toolCallMessageId;
                 }
-            },
-
-            OnToolEnd = async (context, agent, tool, output) =>
-            {
-                _logger.LogInternalInformation("Workflow trace ending tool: {ToolName} for agent: {AgentName}", tool.Name, agent.Name);
-                _currentToolSpan?.SetAttribute("workflow.tool_output", output?.ToString() ?? string.Empty);
-                _currentToolSpan?.End();
-                _currentToolSpan = null;
-
-                // Stream auto tool results to complete the streaming flow
-                if (tool.GetToolMode() == ToolMode.Auto)
-                {
-                    var callId = ToolStatic.AsyncLocalFunctionCallId.Value;
-                    var toolCallMessageId = ToolStatic.AsyncLocalToolCallMessageId.Value;
-
-                    if (!string.IsNullOrEmpty(callId) && toolCallMessageId.HasValue)
-                    {
-                        _logger.LogInternalInformation("Workflow streaming auto tool result: {ToolName} with CallId: {CallId}", tool.Name, callId);
-                        var result = new FunctionResultContent(callId, output);
-                        await _outboundCommunicationService.AppendAgentToolCallResult(_context.ThreadId, result, toolCallMessageId.Value);
-
-                        // Clear the stored IDs for next tool
-                        ToolStatic.AsyncLocalFunctionCallId.Value = null;
-                        ToolStatic.AsyncLocalToolCallMessageId.Value = null;
-                    }
-                }
-            },
-
-            OnModelGenerationStart = (context, agent, messages, chatOptions) =>
-            {
-                _logger.LogInternalInformation("Workflow trace starting model generation for agent: {AgentName}", agent.Name);
-                _currentGenerationSpan = _tracer.StartActiveSpan($"workflow.model_generation", SpanKind.Internal, _currentAgentSpan);
-                _currentGenerationSpan.SetAttribute("workflow.thread_id", _context.ThreadId.ToString());
-                _currentGenerationSpan.SetAttribute("workflow.agent_name", agent.Name);
-                _currentGenerationSpan.SetAttribute("workflow.operation", "ModelGeneration");
-                _currentGenerationSpan.SetAttribute("workflow.model_input", FormatChatMessages(messages));
-
-                return Task.CompletedTask;
-            },
-
-            OnModelGenerationEnd = (context, agent, response) =>
-            {
-                _logger.LogInternalInformation("Workflow trace ending model generation for agent: {AgentName}", agent?.Name ?? "Unknown");
-                _currentGenerationSpan?.SetAttribute("workflow.model_output", FormatChatMessages(response?.Messages ?? []));
-                _currentGenerationSpan?.SetAttribute("workflow.model_input_tokens", response?.Usage?.InputTokenCount?.ToString() ?? string.Empty);
-                _currentGenerationSpan?.SetAttribute("workflow.model_output_tokens", response?.Usage?.OutputTokenCount?.ToString() ?? string.Empty);
-                _currentGenerationSpan?.SetAttribute("workflow.model_total_tokens", response?.Usage?.TotalTokenCount?.ToString() ?? string.Empty);
-                _currentGenerationSpan?.SetAttribute("workflow.model_temperature", agent?.Temperature.ToString() ?? string.Empty);
-                _currentGenerationSpan?.End();
-                _currentGenerationSpan = null;
-
-                return Task.CompletedTask;
-            },
-
-            OnSummarizerStart = (context, agent) =>
-            {
-                _logger.LogInternalInformation("Workflow trace starting Summarizer for agent: {AgentName}.", agent.Name);
-                _currentSummarizerSpan = _tracer.StartSpan($"summarizer", SpanKind.Internal, _currentAgentSpan);
-                _currentSummarizerSpan.SetAttribute("workflow.thread_id", _context.ThreadId.ToString());
-                _currentSummarizerSpan.SetAttribute("workflow.agent_name", agent.Name);
-                _currentSummarizerSpan.SetAttribute("workflow.operation", TraceOperationName.Summarizer);
-
-                return Task.CompletedTask;
-            },
-
-            OnSummarizerEnd = (context, agent, extractedUserIntent) =>
-            {
-                _logger.LogInternalInformation("Workflow trace ending Summarizer for agent: {AgentName}.", agent.Name);
-                _currentSummarizerSpan?.SetAttribute("workflow.summarizer.extracted_user_query", extractedUserIntent);
-                _currentSummarizerSpan?.End();
-                _currentSummarizerSpan = null;
-
-                return Task.CompletedTask;
-            },
-
-            OnCriticStart = (context, agent, currentTurn) =>
-            {
-                var maxTurns = agent.MaxReflectionCount;
-                _logger.LogInternalInformation("Workflow trace starting Critic for agent: {AgentName}. Turn# {CurrentTurn}/{MaxTurns}", agent.Name, currentTurn, maxTurns);
-                _currentCriticSpan = _tracer.StartSpan($"workflow.critic", SpanKind.Internal, _currentAgentSpan);
-                _currentCriticSpan.SetAttribute("workflow.thread_id", _context.ThreadId.ToString());
-                _currentCriticSpan.SetAttribute("workflow.agent_name", agent.Name);
-                _currentCriticSpan.SetAttribute("workflow.operation", TraceOperationName.Critic);
-                _currentCriticSpan.SetAttribute("workflow.critic.turn_index", currentTurn.ToString());
-                _currentCriticSpan.SetAttribute("workflow.critic.max_turns", maxTurns.ToString());
-                _currentCriticSpan.SetAttribute("workflow.critic.reflection_note", agent.CustomReflectionNote);
-
-                return Task.CompletedTask;
-            },
-
-            OnCriticEnd = (context, agent, userQuery, criticResult, wasApproved) =>
-            {
-                _logger.LogInternalInformation("Workflow trace ending Critic for agent: {AgentName}, Approved: {WasApproved}", agent.Name, wasApproved);
-                _currentCriticSpan?.SetAttribute("workflow.critic.user_query", userQuery);
-                _currentCriticSpan?.SetAttribute("workflow.critic.result", criticResult);
-                _currentCriticSpan?.SetAttribute("workflow.critic.was_approved", wasApproved.ToString());
-                _currentCriticSpan?.End();
-                _currentCriticSpan = null;
-
-                return Task.CompletedTask;
             }
         };
+
+        hooks.ToolEnd += async (context, agent, tool, output) =>
+        {
+            _logger.LogInternalInformation("Workflow trace ending tool: {ToolName} for agent: {AgentName}", tool.Name, agent.Name);
+            _currentToolSpan?.SetAttribute("workflow.tool_output", output?.ToString() ?? string.Empty);
+            _currentToolSpan?.End();
+            _currentToolSpan = null;
+
+            // Stream auto tool results to complete the streaming flow
+            if (tool.GetToolMode() == ToolMode.Auto)
+            {
+                var callId = ToolStatic.AsyncLocalFunctionCallId.Value;
+                var toolCallMessageId = ToolStatic.AsyncLocalToolCallMessageId.Value;
+
+                if (!string.IsNullOrEmpty(callId) && toolCallMessageId.HasValue)
+                {
+                    _logger.LogInternalInformation("Workflow streaming auto tool result: {ToolName} with CallId: {CallId}", tool.Name, callId);
+                    var result = new FunctionResultContent(callId, output);
+                    await _outboundCommunicationService.AppendAgentToolCallResult(_context.ThreadId, result, toolCallMessageId.Value);
+
+                    // Clear the stored IDs for next tool
+                    ToolStatic.AsyncLocalFunctionCallId.Value = null;
+                    ToolStatic.AsyncLocalToolCallMessageId.Value = null;
+                }
+            }
+        };
+
+        hooks.ModelGenerationStart += (context, agent, messages, chatOptions) =>
+        {
+            _logger.LogInternalInformation("Workflow trace starting model generation for agent: {AgentName}", agent.Name);
+            _currentGenerationSpan = _tracer.StartActiveSpan($"workflow.model_generation", SpanKind.Internal, _currentAgentSpan);
+            _currentGenerationSpan.SetAttribute("workflow.thread_id", _context.ThreadId.ToString());
+            _currentGenerationSpan.SetAttribute("workflow.agent_name", agent.Name);
+            _currentGenerationSpan.SetAttribute("workflow.operation", "ModelGeneration");
+            _currentGenerationSpan.SetAttribute("workflow.model_input", FormatChatMessages(messages));
+
+            return Task.CompletedTask;
+        };
+
+        hooks.ModelGenerationEnd += (context, agent, response) =>
+        {
+            _logger.LogInternalInformation("Workflow trace ending model generation for agent: {AgentName}", agent?.Name ?? "Unknown");
+            _currentGenerationSpan?.SetAttribute("workflow.model_output", FormatChatMessages(response?.Messages ?? []));
+            _currentGenerationSpan?.SetAttribute("workflow.model_input_tokens", response?.Usage?.InputTokenCount?.ToString() ?? string.Empty);
+            _currentGenerationSpan?.SetAttribute("workflow.model_output_tokens", response?.Usage?.OutputTokenCount?.ToString() ?? string.Empty);
+            _currentGenerationSpan?.SetAttribute("workflow.model_total_tokens", response?.Usage?.TotalTokenCount?.ToString() ?? string.Empty);
+            _currentGenerationSpan?.SetAttribute("workflow.model_temperature", agent?.Temperature.ToString() ?? string.Empty);
+            _currentGenerationSpan?.End();
+            _currentGenerationSpan = null;
+
+            return Task.CompletedTask;
+        };
+
+        hooks.SummarizerStart += (context, agent) =>
+        {
+            _logger.LogInternalInformation("Workflow trace starting Summarizer for agent: {AgentName}.", agent.Name);
+            _currentSummarizerSpan = _tracer.StartSpan($"summarizer", SpanKind.Internal, _currentAgentSpan);
+            _currentSummarizerSpan.SetAttribute("workflow.thread_id", _context.ThreadId.ToString());
+            _currentSummarizerSpan.SetAttribute("workflow.agent_name", agent.Name);
+            _currentSummarizerSpan.SetAttribute("workflow.operation", TraceOperationName.Summarizer);
+
+            return Task.CompletedTask;
+        };
+
+        hooks.SummarizerEnd += (context, agent, extractedUserIntent) =>
+        {
+            _logger.LogInternalInformation("Workflow trace ending Summarizer for agent: {AgentName}.", agent.Name);
+            _currentSummarizerSpan?.SetAttribute("workflow.summarizer.extracted_user_query", extractedUserIntent);
+            _currentSummarizerSpan?.End();
+            _currentSummarizerSpan = null;
+
+            return Task.CompletedTask;
+        };
+
+        hooks.CriticStart += (context, agent, currentTurn) =>
+        {
+            var maxTurns = agent.MaxReflectionCount;
+            _logger.LogInternalInformation("Workflow trace starting Critic for agent: {AgentName}. Turn# {CurrentTurn}/{MaxTurns}", agent.Name, currentTurn, maxTurns);
+            _currentCriticSpan = _tracer.StartSpan($"workflow.critic", SpanKind.Internal, _currentAgentSpan);
+            _currentCriticSpan.SetAttribute("workflow.thread_id", _context.ThreadId.ToString());
+            _currentCriticSpan.SetAttribute("workflow.agent_name", agent.Name);
+            _currentCriticSpan.SetAttribute("workflow.operation", TraceOperationName.Critic);
+            _currentCriticSpan.SetAttribute("workflow.critic.turn_index", currentTurn.ToString());
+            _currentCriticSpan.SetAttribute("workflow.critic.max_turns", maxTurns.ToString());
+            _currentCriticSpan.SetAttribute("workflow.critic.reflection_note", agent.CustomReflectionNote);
+
+            return Task.CompletedTask;
+        };
+
+        hooks.CriticEnd += (context, agent, userQuery, criticResult, wasApproved) =>
+        {
+            _logger.LogInternalInformation("Workflow trace ending Critic for agent: {AgentName}, Approved: {WasApproved}", agent.Name, wasApproved);
+            _currentCriticSpan?.SetAttribute("workflow.critic.user_query", userQuery);
+            _currentCriticSpan?.SetAttribute("workflow.critic.result", criticResult);
+            _currentCriticSpan?.SetAttribute("workflow.critic.was_approved", wasApproved.ToString());
+            _currentCriticSpan?.End();
+            _currentCriticSpan = null;
+
+            return Task.CompletedTask;
+        };
+
+        return hooks;
     }
 
     /// <summary>

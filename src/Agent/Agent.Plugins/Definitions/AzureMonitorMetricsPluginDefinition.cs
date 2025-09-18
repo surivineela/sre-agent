@@ -22,7 +22,11 @@ namespace Agent.Plugins
         }
 
         [AgentTool(ToolMode.Auto)]
-        [Description("Lists all available metric definitions for a given Azure resource. Returns MetricDefinition object which contains properties like Name, Unit, DisplayDescription, Dimensions.")]
+        [Description("""
+        Lists all available metric definitions for a given Azure resource. Returns MetricDefinition object which contains properties like Name, Unit, DisplayDescription, Dimensions.
+        This tool will return the same results for resources with the same resource type, so you do not need to call this tool multiple times for different resources of the same type.
+        (e.g., all App Service resources with the type 'Microsoft.Web/sites' will have the same set of available metrics)
+        """)]
         public async Task<List<MetricDefinition>> ListAvailableMetrics(
             [Description("Azure Resource Id of the resource, e.g., /subscriptions/xxx/resourceGroups/yyy/providers/Microsoft.Web/sites/myapp")] string resourceId)
         {
