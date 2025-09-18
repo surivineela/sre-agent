@@ -98,14 +98,23 @@ namespace Agent.Plugins.Kusto
             [Description("The name of the target Kusto database.")] string database,
             [Description("The full Kusto query to execute.")] string fullQuery,
             [Description("Whether to print the result.")] bool? printQuery = true,
-            string toolName = ""
+            [Description("The name of the query tool.")] string toolName = ""
             )
         {
             var queryResult = await ExecuteClusterKustoQueryInternal(cluster, database, fullQuery);
             if (printQuery == true && queryResult.Message != null)
             {
-                queryResult.Message.Contents.Add(new TextContent($"Tool: `{toolName}`\n"));
-                await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(ToolStatic.AsyncLocalThreadId.Value, string.Empty, queryResult.Message);
+                ChatMessage msg;
+                if (!string.IsNullOrEmpty(toolName))
+                {
+                    msg = new ChatMessage(ChatRole.Tool, $"`{toolName}`{Environment.NewLine + Environment.NewLine}{queryResult.Message?.Text}");
+                }
+                else
+                {
+                    msg = queryResult.Message;
+                }
+
+                await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(ToolStatic.AsyncLocalThreadId.Value, string.Empty, msg);
             }
 
             return queryResult.Result;
@@ -557,12 +566,12 @@ namespace Agent.Plugins.Kusto
             // Check if we're in agent task context and route accordingly
             var agentTaskId = Agent.Core.ToolStatic.AsyncLocalAgentTaskId.Value;
             var threadId = ToolStatic.AsyncLocalThreadId.Value;
-            
+
             if (agentTaskId.HasValue)
             {
                 // Agent task context - use dedicated handler with same content as chat message
                 await _agentOutboundCommunicationService.HandleAgentTaskKustoResult(
-                    threadId, 
+                    threadId,
                     msg.Text ?? string.Empty);
             }
             else
