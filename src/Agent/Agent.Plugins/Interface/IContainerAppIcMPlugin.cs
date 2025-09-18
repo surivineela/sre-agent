@@ -1,9 +1,10 @@
 using Agent.Core.Models.ICM;
+using Agent.Plugins.Definitions;
 
 namespace Agent.Plugins.Interface;
 public interface IContainerAppIcMPlugin
 {
-    (DateTime StartDate, DateTime EndDate) GetIssueInvestigationTimeRange(DateTime? issueFirstOccurence, DateTime? issueLastOccurene, DateTime? reportedIssueObservedOnTime);
+    InvestigationTimeRangeResult GetIssueInvestigationTimeRange(DateTime? issueFirstOccurence, DateTime? issueLastOccurene, DateTime? reportedIssueObservedOnTime);
     Task WasAgentHelpfulInDebuggingIssueAsync(string incidentId, bool? wasHelpful, bool? isResolutionCorrect);
     Task<Incident?> GetIncidentInfo(string incidentId);
     Task<string> MitigateIncident(string incidentId, string reason);

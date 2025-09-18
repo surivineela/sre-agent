@@ -3,17 +3,14 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using Agent.Core.Models.ICM;
 using Agent.Core.Services;
-using Agent.Logging;
+using Agent.Plugins.Definitions;
 using Agent.Plugins.Interface;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using OpenAI.Chat;
-using ChatResponseFormat = Microsoft.Extensions.AI.ChatResponseFormat;
 
 namespace Agent.Plugins.IcmPlugin;
 public class ContainerAppIcMPlugin : IContainerAppIcMPlugin
@@ -36,7 +33,7 @@ public class ContainerAppIcMPlugin : IContainerAppIcMPlugin
         _icmApiClient = icmApiClient;
     }
 
-    public (DateTime StartDate, DateTime EndDate) GetIssueInvestigationTimeRange(DateTime? issueFirstOccurence, DateTime? issueLastOccurene, DateTime? reportedIssueObservedOnTime)
+    public InvestigationTimeRangeResult GetIssueInvestigationTimeRange(DateTime? issueFirstOccurence, DateTime? issueLastOccurene, DateTime? reportedIssueObservedOnTime)
     {
         if (issueFirstOccurence == null && issueLastOccurene == null && reportedIssueObservedOnTime == null)
         {
@@ -72,7 +69,11 @@ public class ContainerAppIcMPlugin : IContainerAppIcMPlugin
         endDate = endDate.AddHours(1);
 
         _logger.LogInternalInformation($"Calculated investigation time range: StartDate={startDate}, EndDate={endDate}");
-        return (startDate, endDate);
+        return new InvestigationTimeRangeResult()
+        {
+            StartDate = startDate,
+            EndDate = endDate
+        };
     }
 
     public async Task<Incident?> GetIncidentInfo(string incidentId)

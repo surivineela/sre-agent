@@ -15,6 +15,12 @@ using ScottPlot.Palettes;
 
 namespace Agent.Plugins.Definitions
 {
+    public class InvestigationTimeRangeResult
+    {
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+    }
+
     [AgentToolPlugin(IsFirstPartyOnly = true)]
     public class RCAContainerAppIcMPluginDefinition
     {
@@ -76,13 +82,12 @@ namespace Agent.Plugins.Definitions
         Use this tool to determine the investigation window for an incident when at least one relevant timestamp is available.
 
         Output:
-        Returns a tuple with two values:
-        - StartDate: The calculated start date of the investigation window
-        - EndDate: The calculated end date of the investigation window
+        Returns a JSON object with two fields:
+        - StartDate (string): ISO 8601 timestamp of investigation start
+        - EndDate (string): ISO 8601 timestamp of investigation end
         """
         )]
-
-        public (DateTime StartDate, DateTime EndDate) GetIssueInvestigationTimeRangeRCAContainerApp(
+        public InvestigationTimeRangeResult GetIssueInvestigationTimeRangeRCAContainerApp(
             [Description("ISO 8601 string for the first occurrence of the issue, or leave null if not available.")] string? issueFirstOccurrence,
             [Description("ISO 8601 string for the last occurrence of the issue, or leave null if not available.")] string? issueLastOccurrence,
             [Description("ISO 8601 string for when the issue was observed and reported, or leave null if not available.")] string? reportedIssueObservedOnTime)
@@ -221,7 +226,7 @@ namespace Agent.Plugins.Definitions
             {
                 return "Success"; // Web portal link already exists, no need to add again
             }
-                return await _plugin.AddDiscussionEntry(incidentId, webPortalLink);
+            return await _plugin.AddDiscussionEntry(incidentId, webPortalLink);
         }
 
         [Description(@"""
@@ -261,6 +266,5 @@ namespace Agent.Plugins.Definitions
         {
             return await _plugin.ResolveIncident(incidentId, reason);
         }
-
     }
 }

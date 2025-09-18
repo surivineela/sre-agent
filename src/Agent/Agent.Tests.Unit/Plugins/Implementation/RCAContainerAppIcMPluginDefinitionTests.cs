@@ -49,14 +49,14 @@ namespace Agent.Plugins.Tests.Definitions
             var lastOccurrence = "2025-05-27T19:30:00Z";
             var reportedTime = "";
 
-            var expectedResult = (new DateTime(2025, 4, 27, 18, 30, 0), new DateTime(2025, 5, 27, 20, 30, 0));
+            var expectedResult = new InvestigationTimeRangeResult(){ StartDate = new DateTime(2025, 4, 27, 18, 30, 0), EndDate = new DateTime(2025, 5, 27, 20, 30, 0)};
 
             // Act
             var result = _pluginDefinition.GetIssueInvestigationTimeRangeRCAContainerApp(
                 firstOccurrence, lastOccurrence, reportedTime);
 
             // Assert
-            Assert.Equal(expectedResult, result);
+            Assert.Equivalent(expectedResult, result);
         }
 
         [Fact]
@@ -66,14 +66,14 @@ namespace Agent.Plugins.Tests.Definitions
             var firstOccurrence = "2024-09-12T10:00:00+05:00"; // UTC+5
             var lastOccurrence = "2024-09-12T20:00:00-03:00";  // UTC-3
 
-            var expectedResult = (new DateTime(2024, 9, 12, 4, 0, 0), new DateTime(2024, 9, 13, 0, 0, 0)); // Converted to UTC
+            var expectedResult = new InvestigationTimeRangeResult(){ StartDate = new DateTime(2024, 9, 12, 4, 0, 0), EndDate = new DateTime(2024, 9, 13, 0, 0, 0)}; // Converted to UTC
 
             // Act
             var result = _pluginDefinition.GetIssueInvestigationTimeRangeRCAContainerApp(
                 firstOccurrence, lastOccurrence, null);
 
             // Assert
-            Assert.Equal(expectedResult, result);
+            Assert.Equivalent(expectedResult, result);
         }
 
         [Fact]
@@ -81,14 +81,14 @@ namespace Agent.Plugins.Tests.Definitions
         {
             // Arrange
             var sameDateTime = "2024-11-25T15:30:00Z";
-            var expectedResult = (new DateTime(2024, 11, 25, 14, 30, 0), new DateTime(2024, 11, 25, 16, 30, 0));
+            var expectedResult = new InvestigationTimeRangeResult() { StartDate = new DateTime(2024, 11, 25, 14, 30, 0), EndDate = new DateTime(2024, 11, 25, 16, 30, 0) };
 
             // Act
             var result = _pluginDefinition.GetIssueInvestigationTimeRangeRCAContainerApp(
                 sameDateTime, sameDateTime, sameDateTime);
 
             // Assert
-            Assert.Equal(expectedResult, result);
+            Assert.Equivalent(expectedResult, result);
         }
     }
 }
