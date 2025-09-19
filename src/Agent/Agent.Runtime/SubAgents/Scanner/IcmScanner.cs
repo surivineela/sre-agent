@@ -193,7 +193,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                     else
                     {
                         // Traditional incident handling for regular filters
-                        await NotifyUserAsync(incidentDocument, new List<string>());
+                        await NotifyUserAsync(incidentDocument, new List<string>(), filterDocument);
                     }
                 }
             }
@@ -429,7 +429,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
         }
     }
 
-    private async Task NotifyUserAsync(IcmIncidentDocument incidentDocument, List<string> relatedResourceIds)
+    private async Task NotifyUserAsync(IcmIncidentDocument incidentDocument, List<string> relatedResourceIds, IcmIncidentFilterDocument? filterDocument)
     {
         try
         {
@@ -503,7 +503,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             var threadDocument = await GetIncidentThread(incidentDocument.Id);
             if (threadDocument is null)
             {
-                logger.LogInternalInformation("[IcmScanner] Thread doesn't exist for incident {incidentId}, creating new thread", incidentDocument.Id);
+                logger.LogInternalInformation("[IcmScanner] Thread doesn't exist for incident {incidentId} by filter {filterId}, creating new thread", incidentDocument.Id, filterDocument?.Id);
 
                 // Default incident handling (manual response)
                 var response = await incidentHandlingService.HandleIncidentAsync(new IncidentHandlingRequestModel<IcmIncidentFilterDocumentPayload>()
@@ -791,7 +791,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 }
                 else
                 {
-                    await NotifyUserAsync(incidentDoc, new List<string>());
+                    await NotifyUserAsync(incidentDoc, new List<string>(), null);
                 }
             }
             catch (Exception ex)

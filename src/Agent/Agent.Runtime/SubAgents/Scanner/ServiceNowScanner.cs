@@ -134,7 +134,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
                     // Use Number as document ID instead of IncidentId (sys_id)
                     var incidentDocument = await GetDocumentAsync<ServiceNowIncidentDocument>(incident.Number, incident.Number);
                     incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident);
-                    await NotifyUserAsync(incidentDocument, new List<string>());
+                    await NotifyUserAsync(incidentDocument, new List<string>(), filterDocument);
                 }
 
                 //Between each page, wait for 1 minute
@@ -270,7 +270,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
         }
     }
 
-    private async Task NotifyUserAsync(ServiceNowIncidentDocument incidentDocument, List<string> relatedResourceIds)
+    private async Task NotifyUserAsync(ServiceNowIncidentDocument incidentDocument, List<string> relatedResourceIds, ServiceNowIncidentFilterDocument filterDocument)
     {
         try
         {
@@ -340,7 +340,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
             var threadDocument = await GetIncidentThread(incidentDocument.Id);
             if (threadDocument is null)
             {
-                logger.LogInternalInformation("Thread doesn't exist for incident {incidentNumber}, creating new incident thread", incidentDocument.Id);
+                logger.LogInternalInformation("Thread doesn't exist for incident {incidentNumber} by filter {filterId}, creating new incident thread", incidentDocument.Id, filterDocument.Id);
                 var response = await incidentHandlingService.HandleIncidentAsync(new IncidentHandlingRequestModel<ServiceNowIncidentFilterDocumentPayload>()
                 {
                     IncidentId = incidentDocument.Id,
