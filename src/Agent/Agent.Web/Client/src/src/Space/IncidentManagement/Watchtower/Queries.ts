@@ -1,8 +1,6 @@
 import { TimeRangeValue } from '../../../Common/Components/PillFilter/Contracts';
 import { getKustoTimespan } from '../../../Common/Helpers/Date';
 
-export const watchtowerTempAppInsightsAppId = 'bc8d1232-d691-428e-a29f-7e785bf2d016';
-
 /*
 
 customDimensions includes:

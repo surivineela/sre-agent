@@ -32,6 +32,8 @@ import { IncidentManagementMenuKeys } from './CreateIncidentHandler/Contracts';
 import HandlersOverview from './HandlersOverview';
 import IncidentsOverview from './IncidentsOverview/IncidentsOverview';
 
+// TODO: Tooltip for disabled NavItems with reason
+
 const IncidentManagement: FC = () => {
     const { menuItem } = useParams();
     const location = useLocation();
@@ -52,6 +54,11 @@ const IncidentManagement: FC = () => {
     const [iconsInitialized, setIconsInitialized] = useState(false);
     const [navigationHidden, setNavigationHidden] = useState<boolean>(false);
     const [navigationCollapsed, setNavigationCollapsed] = useState<boolean>(false);
+
+    const agentAppInsightsAppId = useMemo<string | undefined>(
+        () => agentObj?.properties?.logConfiguration?.applicationInsightsConfiguration?.appId,
+        [agentObj]
+    );
 
     const selectedKey = useMemo(() => {
         return (
@@ -74,7 +81,7 @@ const IncidentManagement: FC = () => {
             items.push({
                 key: IncidentManagementMenuKeys.Analysis,
                 label: intl.formatMessage(IncidentManagementResources.analysis),
-                disabled: disableOverviewAndHandlers,
+                disabled: disableOverviewAndHandlers || !agentAppInsightsAppId,
             });
         }
 
@@ -92,7 +99,7 @@ const IncidentManagement: FC = () => {
         );
 
         return items;
-    }, [intl, disableOverviewAndHandlers, showWatchtower]);
+    }, [intl, disableOverviewAndHandlers, showWatchtower, agentAppInsightsAppId]);
 
     const renderNavIcon = useCallback(
         (key: IncidentManagementMenuKeys) => {
@@ -237,7 +244,9 @@ const IncidentManagement: FC = () => {
                         {selectedKey === IncidentManagementMenuKeys.HandlerConfiguration && (
                             <HandlersOverview setNavigationHidden={setNavigationHidden} useConsolidatedCreate={true} />
                         )}
-                        {showWatchtower && selectedKey === IncidentManagementMenuKeys.Analysis && <Analysis />}
+                        {showWatchtower && agentAppInsightsAppId && selectedKey === IncidentManagementMenuKeys.Analysis && (
+                            <Analysis agentAppInsightsAppId={agentAppInsightsAppId} />
+                        )}
                         {selectedKey === IncidentManagementMenuKeys.IncidentPlatform && <IncidentManagementSettings />}
                     </>
                 )}

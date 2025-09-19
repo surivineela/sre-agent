@@ -31,6 +31,10 @@
     - Misc:
         - AKA link used for "copy link to thread" to persist FFs: https://aka.ms/sreagent-prefixonly
 
+## Feature flags
+
+Format (through portal): `Microsoft_Azure_PaasServerless_ext=enablepermissionchecking~true`
+
 ## Localization
 
 Define messages in `SREAgentResources.ts`, with a `description` if warranted. `eslint` will scream at you about missing the `id` prop, which is a hash of the message content - either hover over it and quick-fix -> formatjs/enforce-id (or Fix all auto-fixable) or commit it (pre-commit will run eslint to auto-fix it)...or manually calculate the hash in your head if that's your jam.

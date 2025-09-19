@@ -20,7 +20,6 @@ import {
     getHandlersIncidentCoverageTrendQuery,
     getHandlersIncidentSummaryTrendQuery,
     getHandlersOverviewQuery,
-    watchtowerTempAppInsightsAppId,
 } from './Watchtower/Queries';
 import { ResponsePlanView } from './Watchtower/ResponsePlanView';
 
@@ -28,9 +27,8 @@ import { ResponsePlanView } from './Watchtower/ResponsePlanView';
 // NOTE: Doesn't look like there's data for "Mean time to mitigate" for response plan incidents
 // NOTE: RCA impacted service(s) not hooked up, at least for test data set
 
-// TODO: Hook up actual app insights (agent.logConfiguration.applicationInsightsConfiguration.<appId|connectionString>) (-> remove watchtowerTempAppInsightsAppId)
-// (disable nav if agent doesn't have appInsights configured + tooltip explaining this)
-// show in MPAC and/or FF
+// TODO: Empty data state
+// TODO: Context panes in ResponsePlanView
 
 interface IncidentCoverageItem {
     handledAt: Date;
@@ -56,7 +54,11 @@ export interface IncidentHandlerItem {
     pendingUserAction: number;
 }
 
-const Analysis = () => {
+interface AnalysisProps {
+    agentAppInsightsAppId: string;
+}
+
+const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
     const appInsightsToken = useAuthToken('applicationinsightapi');
@@ -228,7 +230,7 @@ const Analysis = () => {
     const fetchIncidentCoverageData = useCallback(async () => {
         if (!appInsightsToken) return;
 
-        const response = await AppInsightsClient.getLogQueryResults(watchtowerTempAppInsightsAppId, appInsightsToken, {
+        const response = await AppInsightsClient.getLogQueryResults(agentAppInsightsAppId, appInsightsToken, {
             query: getHandlersIncidentCoverageTrendQuery(selectedTimeRange),
         });
 
@@ -251,12 +253,12 @@ const Analysis = () => {
                 },
             });
         }
-    }, [resourceId, log, appInsightsToken, selectedTimeRange]);
+    }, [agentAppInsightsAppId, resourceId, log, appInsightsToken, selectedTimeRange]);
 
     const fetchIncidentSummaryData = useCallback(async () => {
         if (!appInsightsToken) return;
 
-        const response = await AppInsightsClient.getLogQueryResults(watchtowerTempAppInsightsAppId, appInsightsToken, {
+        const response = await AppInsightsClient.getLogQueryResults(agentAppInsightsAppId, appInsightsToken, {
             query: getHandlersIncidentSummaryTrendQuery(selectedTimeRange),
         });
 
@@ -282,12 +284,12 @@ const Analysis = () => {
                 },
             });
         }
-    }, [resourceId, log, appInsightsToken, selectedTimeRange]);
+    }, [agentAppInsightsAppId, resourceId, log, appInsightsToken, selectedTimeRange]);
 
     const fetchIncidentHandlersData = useCallback(async () => {
         if (!appInsightsToken) return;
 
-        const response = await AppInsightsClient.getLogQueryResults(watchtowerTempAppInsightsAppId, appInsightsToken, {
+        const response = await AppInsightsClient.getLogQueryResults(agentAppInsightsAppId, appInsightsToken, {
             query: getHandlersOverviewQuery(selectedTimeRange),
         });
 
@@ -315,7 +317,7 @@ const Analysis = () => {
                 },
             });
         }
-    }, [resourceId, log, appInsightsToken, selectedTimeRange]);
+    }, [agentAppInsightsAppId, resourceId, log, appInsightsToken, selectedTimeRange]);
 
     useEffect(() => {
         fetchIncidentCoverageData();
@@ -398,7 +400,7 @@ const Analysis = () => {
                             timeRangeOptions={timeRangeOptions}
                             selectedTimeRange={selectedTimeRange}
                             setSelectedTimeRange={setSelectedTimeRange}
-                            appInsightsId={watchtowerTempAppInsightsAppId}
+                            appInsightsId={agentAppInsightsAppId}
                             appInsightsToken={appInsightsToken}
                         />
                     )}
