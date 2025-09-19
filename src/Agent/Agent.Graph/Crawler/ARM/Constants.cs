@@ -29,6 +29,7 @@ public class Constants
     public const string EventHubType = "microsoft.eventhub/namespaces";
     public const string ServiceBusType = "microsoft.servicebus/namespaces";
     public const string AzureMonitorWorkspaceType = "Microsoft.Monitor/accounts";
+    public const string AzureMonitorResourceKind = "azmonitor";
     public const string KeyVaultType = "Microsoft.KeyVault/vaults";
     public const string ManagedDiskType = "Microsoft.Compute/disks";
     public const string ApiManagementType = "Microsoft.ApiManagement/service";

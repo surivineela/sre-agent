@@ -62,6 +62,9 @@ public static class ResourceKindHelper
         [AzureSQLType] = "sqlserver",
         [AzureRedisCacheType] = "redis",
 
+        // Azure Monitoring & Insights
+        [AzureMonitorWorkspaceType] = "azmonitor",
+
         // Networking
         [VirtualNetworkType] = "vnet",
         [VirtualNetworkSubnetType] = "subnet",
@@ -87,7 +90,8 @@ public static class ResourceKindHelper
             }
         }
 
-        var match = ResourceFriendlyName.Where(k => type.Contains(k.Key)).FirstOrDefault();
+        var match = ResourceFriendlyName.Where(k =>
+    type.Contains(k.Key, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
 
         if (match.Value != null) {
             return match.Value;

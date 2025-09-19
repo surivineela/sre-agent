@@ -270,6 +270,7 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
                                         subscriptionId,
                                         resourceGroupName,
                                         resourceName,
+                                        Constants.AzureMonitorResourceKind,
                                         prometheusQueryEndpoint,
                                         location
                                     );
