@@ -113,7 +113,7 @@ export const DynamicPillFilter: FC<DynamicPillFilterProps> = props => {
                         disabled={disableFilterDropdown || disabled}
                     >
                         {options?.map(option => (
-                            <Option key={option.key} onClick={() => setPendingSelectedKey?.(option.key)}>
+                            <Option key={option.key} value={option.key}>
                                 {option.props.label}
                             </Option>
                         ))}
