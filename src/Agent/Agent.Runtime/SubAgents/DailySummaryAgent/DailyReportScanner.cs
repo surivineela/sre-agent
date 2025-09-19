@@ -226,6 +226,11 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         // Returns main dashboard url
         public async Task<string?> TryToImportDashboards()
         {
+            if (string.IsNullOrEmpty(_grafanaUrl))
+            {
+                return "";
+            }
+
             try
             {
                 string uid = await SetupPrometheusDataSourceAsync(_grafanaUrl, _prometheusUrl, _dataSourceName);

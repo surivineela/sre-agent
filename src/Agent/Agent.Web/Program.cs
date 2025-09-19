@@ -343,7 +343,6 @@ public class Program
             .AddSingleton<IReliabilityPlugin, ReliabilityPlugin>()
             .AddSingleton<INSGRulePlugin, NSGRulePlugin>()
             .AddSingleton<IContainerAppPlugin, ContainerAppPlugin>()
-            .AddSingleton<IRemoteWriteService, RemoteWriteService>()
             .AddSingleton<AzureSupportCenterHelper>()
             .AddSingleton<IAzureSupportCenterPlugin, AzureSupportCenterPlugin>()
             .AddSingleton<AppInsightsSettings>()

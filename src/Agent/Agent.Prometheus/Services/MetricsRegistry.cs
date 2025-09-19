@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
-using Agent.Logging;
 
 namespace Agent.Prometheus.Services;
 
@@ -195,15 +194,16 @@ public class MetricsRegistry : IMetricsRegistry
             ScrapeIntervalSeconds = 300
         });
 
-        // Resource relationship metrics
-        RegisterMetric(new MetricDefinition
-        {
-            Name = "dependency_count_by_resource",
-            Description = "Count of dependencies by resource",
-            Query = "g.V().has('isDeleted', false).project('id', 'dependencyCount').by('id').by(__.outE('depends_on').count())",
-            Type = MetricType.Gauge,
-            ScrapeIntervalSeconds = 600
-        });
+        // todo fix: throws as it returns array of (resource, count) rather than single count
+        //// Resource relationship metrics
+        //RegisterMetric(new MetricDefinition
+        //{
+        //    Name = "dependency_count_by_resource",
+        //    Description = "Count of dependencies by resource",
+        //    Query = "g.V().has('isDeleted', false).project('id', 'dependencyCount').by('id').by(__.outE('depends_on').count())",
+        //    Type = MetricType.Gauge,
+        //    ScrapeIntervalSeconds = 600
+        //});
 
         RegisterMetric(new MetricDefinition
         {

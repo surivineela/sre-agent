@@ -9,11 +9,9 @@ using Agent.Graph.Interfaces;
 using Azure;
 using Azure.Core;
 using Azure.ResourceManager;
-using Azure.ResourceManager.ManagedServiceIdentities;
 using Azure.ResourceManager.Models;
 using Azure.ResourceManager.Resources;
 using Microsoft.Extensions.Logging;
-using ScottPlot.TickGenerators.TimeUnits;
 
 namespace Agent.Graph.Crawler.ARM;
 
@@ -186,8 +184,8 @@ public class GenericArmResourceCrawler : IResourceCrawler
                     try
                     {
                         var rootString = root.GetString();
-                        // "/" means tenant
-                        if (rootString != "/" && rootString != null)
+                        if (!string.IsNullOrEmpty(rootString)
+                            && rootString.StartsWith("/subscriptions/", StringComparison.OrdinalIgnoreCase))
                         {
                             var id = new ResourceIdentifier(rootString);
                             node = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(id!);

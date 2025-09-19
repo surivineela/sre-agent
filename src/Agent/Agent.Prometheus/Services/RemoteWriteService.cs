@@ -4,17 +4,15 @@
 
 namespace Agent.Prometheus.Services;
 
+using System.Buffers;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
-using Agent.Logging;
 using Azure.Core;
-using Microsoft.Extensions.Logging;
 using Google.Protobuf;
+using Microsoft.Extensions.Logging;
 using Snappier;
-using System.Net.Http.Headers;
-using Agent.Prometheus.Extensions;
-using System.Buffers;
 
 // push metric to azure managed workspace(Azure managed prometheus) using Remote write
 // https://prometheus.io/docs/specs/prw/remote_write_spec/
@@ -57,6 +55,11 @@ public class RemoteWriteService(ILogger<RemoteWriteService> logger,
 
     public async Task<bool> RemoteWriteAsync(global::Prometheus.Protobuf.WriteRequest writeRequest)
     {
+        if (string.IsNullOrEmpty(dashboardSettings.MetricsIngestionEndpoint))
+        {
+            return false;
+        }
+
         using var memoryOwner = SerializeAndCompress(writeRequest);
         // TODO: use Memory<byte>/ReadOnlySpan<byte> instead of byte[] to avoid copying the data
         using var content = new ByteArrayContent(memoryOwner.Memory.ToArray());
