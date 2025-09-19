@@ -215,6 +215,10 @@ public class Program
         builder.Services.Configure<ScheduledTaskSettings>(
             builder.Configuration.GetSection("AppSettings:Core:Azure:ScheduledTasks"));
 
+        // Configure MCP settings
+        builder.Services.Configure<MCPSettings>(
+            builder.Configuration.GetSection("AppSettings:Core:External:MCP"));
+
         // Add AzureSearchSettings registration
         builder.Services.AddSingleton<Agent.Core.Configuration.AzureSearchSettings>(sp =>
         {

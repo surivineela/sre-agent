@@ -3,10 +3,12 @@
 // ------------------------------------------------------------
 
 using System.Collections.Concurrent;
+using Agent.Core.Configuration;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using ModelContextProtocol.Client;
 
 namespace Agent.Runtime.SubAgents;
@@ -15,46 +17,43 @@ namespace Agent.Runtime.SubAgents;
 public class McpToolsRepository : IMcpConnectable
 {
     private readonly ILoggerFactory _loggerFactory;
+    private readonly MCPSettings _mcpSettings;
 
     private readonly Dictionary<string, AIFunction> _aiFunctions = new();
     private ConcurrentDictionary<McpConnection, IReadOnlyList<string>> _connectionToToolSignatures = new();
 
     public McpToolsRepository(
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        IOptions<MCPSettings> mcpSettings)
     {
         _loggerFactory = loggerFactory;
+        _mcpSettings = mcpSettings.Value;
     }
 
     public async Task InitializeAsync()
     {
         if (_connectionToToolSignatures.Count == 0)
         {
-            McpConnection connection = new McpConnection(GetAzureMcpStdioConnection())
+            // Initialize STDIO connections from configuration
+            foreach (var stdioConfig in _mcpSettings.StdioConnections.Where(c => c.Enabled))
             {
-                McpLoggerFactory = _loggerFactory,
-                Backend = this
-            };
+                var transport = new StdioClientTransport(new()
+                {
+                    Name = stdioConfig.Name,
+                    Command = stdioConfig.Command,
+                    Arguments = stdioConfig.Arguments
+                });
 
-            await connection.InitializeAsync();
+                var connection = new McpConnection(transport)
+                {
+                    McpLoggerFactory = _loggerFactory,
+                    Backend = this
+                };
 
-            TryAddServer(connection);
-        }
-    }
-
-    // TODO: Move to configuration
-    private IClientTransport GetAzureMcpStdioConnection()
-    {
-        return new StdioClientTransport(new()
-        {
-            Name = "LocalAzureMcp",
-            Command = "npx",
-            Arguments = new string[]
-            {
-                "@azure/mcp@0.5.11",
-                "server",
-                "start"
+                await connection.InitializeAsync();
+                TryAddServer(connection);
             }
-        });
+        }
     }
 
     private string GetAIFunctionSignature(
