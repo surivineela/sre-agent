@@ -47,8 +47,10 @@ namespace Agent.Plugins.Kusto.Tools
                 throw new InvalidOperationException("Connector is not set in the tool definition.");
             }
 
+            // Substitute parameters in connector name similar to FormatQuery, e.g. capps-##region## => capps-westeurope
+            var parameterizedConnectorName = FormatConnectorName(_definition.Connector, args);
             
-            var connector = _connectorResolver.GetConnectorFromSettings<KustoConnector>(_definition.Connector, _definition.Connector, kustoCluster);
+            var connector = _connectorResolver.GetConnectorFromSettings<KustoConnector>(parameterizedConnectorName, parameterizedConnectorName, kustoCluster);
             
             var kustoChat = _kustoFactory.Create(connector);
             
@@ -65,6 +67,29 @@ namespace Agent.Plugins.Kusto.Tools
                 default:
                     return string.Empty;
             }
+        }
+
+        /// <summary>
+        /// Formats the connector name by substituting ##parameter## patterns with values from args dictionary,
+        /// similar to how KustoPlugin.FormatQuery works.
+        /// </summary>
+        /// <param name="connectorName">The connector name template with ##parameter## patterns</param>
+        /// <param name="args">Dictionary of parameter values</param>
+        /// <returns>The connector name with parameters substituted</returns>
+        private static string FormatConnectorName(string connectorName, Dictionary<string, string> args)
+        {
+            if (args == null || !args.Any())
+            {
+                return connectorName;
+            }
+
+            var formattedName = connectorName;
+            foreach (var arg in args)
+            {
+                formattedName = formattedName.Replace($"##{arg.Key}##", arg.Value);
+            }
+
+            return formattedName;
         }
 
         [ToolTypeAttribute("KustoQuery")]
