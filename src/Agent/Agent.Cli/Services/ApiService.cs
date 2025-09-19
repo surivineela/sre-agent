@@ -17,6 +17,7 @@ public class ApiService : IDisposable
 {
     private readonly HttpClient _httpClient;
     private readonly CliConfigurationService _configService;
+    private readonly TokenService _tokenService;
     private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
     {
         PropertyNameCaseInsensitive = true
@@ -24,32 +25,15 @@ public class ApiService : IDisposable
 
     public ApiService()
     {
-        _httpClient = new HttpClient();
         _configService = new CliConfigurationService();
-    }
+        _tokenService = new TokenService();
 
-    public async Task<string?> GetAccessTokenAsync()
-    {
-        var stopwatch = Stopwatch.StartNew();
-        try
+        var handler = new AuthenticationHandler(_tokenService)
         {
-            DebugLogger.LogAuth("Attempting to get Azure CLI credentials");
-            var credential = new AzureCliCredential();
-            var token = await credential.GetTokenAsync(new TokenRequestContext(new[] { "https://azuresre.dev/.default" }));
+            InnerHandler = new HttpClientHandler()
+        };
 
-            stopwatch.Stop();
-            DebugLogger.LogAuth($"Successfully obtained access token (expires: {token.ExpiresOn})");
-            DebugLogger.LogTiming("GetAccessToken", stopwatch.Elapsed);
-
-            return token.Token;
-        }
-        catch (Exception ex)
-        {
-            stopwatch.Stop();
-            DebugLogger.LogAuth($"Failed to get access token: {ex.Message}");
-            DebugLogger.LogTiming("GetAccessToken (failed)", stopwatch.Elapsed);
-            return null;
-        }
+        _httpClient = new HttpClient(handler);
     }
 
     /// <summary>
@@ -145,17 +129,6 @@ public class ApiService : IDisposable
             DebugLogger.LogConfig("IsLocalhost", CliConfigurationService.IsLocalhost(resourceUrl).ToString());
 
             var request = new HttpRequestMessage(HttpMethod.Get, $"{resourceUrl.TrimEnd('/')}/api/v1/extendedAgent/agents");
-
-            // Add auth header if not localhost
-            if (!CliConfigurationService.IsLocalhost(resourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    return (false, "Failed to get access token. Please run 'az login' first.");
-                }
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
 
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
@@ -427,17 +400,6 @@ public class ApiService : IDisposable
             var request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
             request.Content = new StringContent(wrappedYamlContent, Encoding.UTF8, "application/yaml");
 
-            // Add auth header if not localhost
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    return (false, "Failed to get access token. Please run 'az login' first.");
-                }
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
-
             DebugLogger.Debug("Request", $"Making apply request to {requestUrl}");
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
@@ -496,17 +458,6 @@ public class ApiService : IDisposable
 
             var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/agents";
             var request = new HttpRequestMessage(HttpMethod.Get, url);
-
-            // Add auth header if not localhost
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    return (false, "Failed to get access token. Please run 'az login' first.");
-                }
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
 
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
@@ -714,16 +665,6 @@ public class ApiService : IDisposable
             var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/agents";
             var request = new HttpRequestMessage(HttpMethod.Get, url);
 
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    return (false, new List<string>(), "Failed to get access token. Please run 'az login' first.");
-                }
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
-
             var (response, content, _) = await MakeHttpRequestAsync(request);
             if (!response.IsSuccessStatusCode)
             {
@@ -821,17 +762,6 @@ public class ApiService : IDisposable
             var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/incidentplayground/listTools";
             var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
 
-            // Add auth header if not localhost
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    return (false, "Failed to get access token. Please run 'az login' first.");
-                }
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
-
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
             if (response.IsSuccessStatusCode)
@@ -880,16 +810,6 @@ public class ApiService : IDisposable
 
             var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/tools";
             var request = new HttpRequestMessage(HttpMethod.Get, url);
-
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    return (false, new List<string>(), "Failed to get access token. Please run 'az login' first.");
-                }
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
 
             var (response, content, _) = await MakeHttpRequestAsync(request);
             if (!response.IsSuccessStatusCode)
@@ -991,17 +911,6 @@ public class ApiService : IDisposable
 
             var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/tools";
             var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
-
-            // Add auth header if not localhost
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    return (false, "Failed to get access token. Please run 'az login' first.");
-                }
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
 
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
@@ -1151,17 +1060,6 @@ public class ApiService : IDisposable
             var request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
             request.Content = new StringContent(wrappedYamlContent, Encoding.UTF8, "application/yaml");
 
-            // Add auth header if not localhost
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    return (false, "Failed to get access token. Please run 'az login' first.");
-                }
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
-
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
             if (response.IsSuccessStatusCode)
@@ -1209,17 +1107,6 @@ public class ApiService : IDisposable
             var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/incidentplayground/generateInstructions";
             var request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
             request.Content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-            // Add auth header if not localhost
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    return (false, "", new List<string>(), new List<string>(), "Failed to get access token. Please run 'az login' first.");
-                }
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
 
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
@@ -1300,17 +1187,6 @@ public class ApiService : IDisposable
             var request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
             request.Content = new StringContent(yamlContent, Encoding.UTF8, "application/yaml");
 
-            // Add auth header if not localhost
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    return (false, "Failed to get access token. Please run 'az login' first.");
-                }
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
-
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
             if (response.IsSuccessStatusCode)
@@ -1375,17 +1251,6 @@ public class ApiService : IDisposable
             request.Content = new StringContent(jsonContent, Encoding.UTF8);
             request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
 
-            // Add auth header if not localhost
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    return (false, "", "Failed to get access token. Please run 'az login' first.");
-                }
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
-
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
             if (response.IsSuccessStatusCode)
@@ -1430,17 +1295,6 @@ public class ApiService : IDisposable
             var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/threads/{threadId}/messages";
             var request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
             request.Content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-            // Add auth header if not localhost
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    return (false, "", "Failed to get access token. Please run 'az login' first.");
-                }
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
 
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
@@ -1488,17 +1342,6 @@ public class ApiService : IDisposable
             {
                 var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/threads/{threadId}/messages";
                 var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
-
-                // Add auth header if not localhost
-                if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-                {
-                    var token = await GetAccessTokenAsync();
-                    if (string.IsNullOrEmpty(token))
-                    {
-                        return (false, new List<ThreadMessage>(), "Failed to get access token. Please run 'az login' first.");
-                    }
-                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                }
 
                 var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
@@ -1670,21 +1513,6 @@ public class ApiService : IDisposable
                 {
                     var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/threads/{threadId}/messages";
                     var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
-
-                    // Add auth header if not localhost
-                    if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-                    {
-                        var token = await GetAccessTokenAsync();
-                        if (string.IsNullOrEmpty(token))
-                        {
-                            if (waitingPrinted)
-                            {
-                                ClearLine();
-                            }
-                            return (false, new List<ThreadMessage>(), "Failed to get access token. Please run 'az login' first.");
-                        }
-                        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                    }
 
                     var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
@@ -1963,17 +1791,6 @@ public class ApiService : IDisposable
                 var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/threads/{threadId}/messages";
                 var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
 
-                // Add auth header if not localhost
-                if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-                {
-                    var token = await GetAccessTokenAsync();
-                    if (string.IsNullOrEmpty(token))
-                    {
-                        return (false, new List<ThreadMessage>(), "Failed to get access token. Please run 'az login' first.");
-                    }
-                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                }
-
                 var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
                 if (response.IsSuccessStatusCode)
@@ -2153,17 +1970,6 @@ public class ApiService : IDisposable
             var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/threads";
             var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
 
-            // Add auth header if not localhost
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    return (false, new List<ThreadInfo>(), "Failed to get access token. Please run 'az login' first.");
-                }
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
-
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
             if (response.IsSuccessStatusCode)
@@ -2208,17 +2014,6 @@ public class ApiService : IDisposable
             var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/threads/{threadId}";
             var request = new HttpRequestMessage(HttpMethod.Delete, requestUrl);
 
-            // Add auth header if not localhost
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    return (false, "Failed to get access token. Please run 'az login' first.");
-                }
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
-
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
             if (response.IsSuccessStatusCode)
@@ -2248,17 +2043,6 @@ public class ApiService : IDisposable
 
             var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/agents/{agentName}";
             var request = new HttpRequestMessage(HttpMethod.Delete, requestUrl);
-
-            // Add auth header if not localhost
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    return (false, "Failed to get access token. Please run 'az login' first.");
-                }
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
 
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
@@ -2322,17 +2106,6 @@ public class ApiService : IDisposable
 
             var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/tools/{toolName}";
             var request = new HttpRequestMessage(HttpMethod.Delete, requestUrl);
-
-            // Add auth header if not localhost
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    return (false, "Failed to get access token. Please run 'az login' first.");
-                }
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
 
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
@@ -2400,18 +2173,6 @@ public class ApiService : IDisposable
             DebugLogger.LogHttpRequest("GET", url);
 
             var request = new HttpRequestMessage(HttpMethod.Get, url);
-            
-            // Add auth header if not localhost
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    DebugLogger.Debug("No access token available");
-                    return null;
-                }
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
 
             var response = await _httpClient.SendAsync(request);
             var responseContent = await response.Content.ReadAsStringAsync();
@@ -2448,18 +2209,6 @@ public class ApiService : IDisposable
 
             var request = new HttpRequestMessage(HttpMethod.Get, url);
             
-            // Add auth header if not localhost
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    DebugLogger.Debug("No access token available");
-                    return null;
-                }
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
-
             var response = await _httpClient.SendAsync(request);
             var responseContent = await response.Content.ReadAsStringAsync();
             DebugLogger.LogHttpResponse((int)response.StatusCode, response.ReasonPhrase ?? "", responseContent);
@@ -2497,17 +2246,6 @@ public class ApiService : IDisposable
                 Content = new StringContent(json, Encoding.UTF8, "application/json")
             };
             
-            // Add auth header if not localhost
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    return (false, "Failed to get access token. Please run 'az login' first.");
-                }
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
-
             var response = await _httpClient.SendAsync(request);
             var responseContent = await response.Content.ReadAsStringAsync();
             DebugLogger.LogHttpResponse((int)response.StatusCode, response.ReasonPhrase ?? "", responseContent);
@@ -2541,17 +2279,6 @@ public class ApiService : IDisposable
                 Content = new StringContent(json, Encoding.UTF8, "application/json")
             };
             
-            // Add auth header if not localhost
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    return false;
-                }
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
-
             var response = await _httpClient.SendAsync(request);
             var responseContent = await response.Content.ReadAsStringAsync();
             DebugLogger.LogHttpResponse((int)response.StatusCode, response.ReasonPhrase ?? "", responseContent);
@@ -2580,17 +2307,6 @@ public class ApiService : IDisposable
 
             var request = new HttpRequestMessage(HttpMethod.Delete, url);
             
-            // Add auth header if not localhost
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    return false;
-                }
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
-
             var response = await _httpClient.SendAsync(request);
             var responseContent = await response.Content.ReadAsStringAsync();
             DebugLogger.LogHttpResponse((int)response.StatusCode, response.ReasonPhrase ?? "", responseContent);
@@ -2619,17 +2335,6 @@ public class ApiService : IDisposable
 
             var request = new HttpRequestMessage(HttpMethod.Post, url);
             
-            // Add auth header if not localhost
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    return false;
-                }
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
-
             var response = await _httpClient.SendAsync(request);
             var responseContent = await response.Content.ReadAsStringAsync();
             DebugLogger.LogHttpResponse((int)response.StatusCode, response.ReasonPhrase ?? "", responseContent);
@@ -2658,17 +2363,6 @@ public class ApiService : IDisposable
 
             var request = new HttpRequestMessage(HttpMethod.Post, url);
             
-            // Add auth header if not localhost
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    return false;
-                }
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
-
             var response = await _httpClient.SendAsync(request);
             var responseContent = await response.Content.ReadAsStringAsync();
             DebugLogger.LogHttpResponse((int)response.StatusCode, response.ReasonPhrase ?? "", responseContent);
@@ -2712,16 +2406,6 @@ public class ApiService : IDisposable
             // Only collection API exists: fetch collection, find by name, convert JSON->YAML
             var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/agents";
             var request = new HttpRequestMessage(HttpMethod.Get, url);
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    return (false, "", "Failed to get access token. Please run 'az login' first.");
-                }
-                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            }
-
             var (response, content, _) = await MakeHttpRequestAsync(request);
             if (!response.IsSuccessStatusCode)
             {
@@ -2811,16 +2495,6 @@ public class ApiService : IDisposable
             // Only collection API exists: fetch collection, find by name, convert JSON->YAML
             var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/tools";
             var request = new HttpRequestMessage(HttpMethod.Get, url);
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    return (false, "", "Failed to get access token. Please run 'az login' first.");
-                }
-                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            }
-
             var (response, content, _) = await MakeHttpRequestAsync(request);
             if (!response.IsSuccessStatusCode)
             {
@@ -2996,7 +2670,7 @@ public class ApiService : IDisposable
     /// </summary>
     public async Task<string?> GetAccessTokenForInternalUseAsync()
     {
-        return await GetAccessTokenAsync();
+        return await _tokenService.GetAccessTokenAsync();
     }
 
     public async Task<(bool Success, string Response)> ListDataConnectorsAsync()
@@ -3011,17 +2685,6 @@ public class ApiService : IDisposable
 
             var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/dataconnectors";
             var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
-
-            // Add auth header if not localhost
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    return (false, "Failed to get access token. Please run 'az login' first.");
-                }
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
 
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
@@ -3139,17 +2802,6 @@ public class ApiService : IDisposable
                 var request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
                 request.Content = multipartContent;
 
-                // Add auth header if not localhost
-                if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-                {
-                    var token = await GetAccessTokenAsync();
-                    if (string.IsNullOrEmpty(token))
-                    {
-                        return (false, "Failed to get access token. Please run 'az login' first.");
-                    }
-                    request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-                }
-
                 var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
                 if (response.IsSuccessStatusCode)
@@ -3249,17 +2901,6 @@ public class ApiService : IDisposable
             var encodedQuery = Uri.EscapeDataString(query);
             var getRequestUrl = $"{requestUrl}?query={encodedQuery}&k=10";
             var request = new HttpRequestMessage(HttpMethod.Get, getRequestUrl);
-
-            // Add auth header if not localhost
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    return (false, "Failed to get access token. Please run 'az login' first.");
-                }
-                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            }
 
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
@@ -3389,17 +3030,6 @@ public class ApiService : IDisposable
             var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/AgentMemory/rebuildIndex";
             var request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
 
-            // Add auth header if not localhost
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    return (false, "Failed to get access token. Please run 'az login' first.");
-                }
-                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            }
-
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
             if (response.IsSuccessStatusCode)
@@ -3511,18 +3141,6 @@ public class ApiService : IDisposable
             var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/incidentplayground/filters";
             var request = new HttpRequestMessage(HttpMethod.Get, url);
 
-            // Add auth header if not localhost
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    Console.WriteLine("[ERROR] Failed to get access token. Please run 'az login' first.");
-                    return null;
-                }
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
-
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
             if (response.IsSuccessStatusCode)
@@ -3555,17 +3173,6 @@ public class ApiService : IDisposable
             var filterId = filter["id"]?.ToString();
             var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/incidentplayground/filters/{filterId}";
             var request = new HttpRequestMessage(HttpMethod.Put, url);
-
-            // Add auth header if not localhost
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    return (false, "Failed to get access token. Please run 'az login' first.");
-                }
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
 
             var json = JsonSerializer.Serialize(filter);
             request.Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
@@ -3600,18 +3207,6 @@ public class ApiService : IDisposable
             var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/incidentplayground/filters/{filterId}";
             var request = new HttpRequestMessage(HttpMethod.Post, url);
 
-            // Add auth header if not localhost
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    Console.WriteLine("[ERROR] Failed to get access token. Please run 'az login' first.");
-                    return false;
-                }
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
-
             var json = JsonSerializer.Serialize(filter);
             request.Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
 
@@ -3638,18 +3233,6 @@ public class ApiService : IDisposable
 
             var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/incidentplayground/handlers";
             var request = new HttpRequestMessage(HttpMethod.Get, url);
-
-            // Add auth header if not localhost
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    Console.WriteLine("[ERROR] Failed to get access token. Please run 'az login' first.");
-                    return null;
-                }
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
 
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
@@ -3684,18 +3267,7 @@ public class ApiService : IDisposable
             var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/incidentplayground/handlers/{handlerId}";
             var request = new HttpRequestMessage(HttpMethod.Delete, url);
 
-            // Add auth header if not localhost
-            if (!CliConfigurationService.IsLocalhost(config.ResourceUrl))
-            {
-                var token = await GetAccessTokenAsync();
-                if (string.IsNullOrEmpty(token))
-                {
-                    Console.WriteLine("[ERROR] Failed to get access token. Please run 'az login' first.");
-                    return false;
-                }
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
-
+            
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
             return response.IsSuccessStatusCode;
         }

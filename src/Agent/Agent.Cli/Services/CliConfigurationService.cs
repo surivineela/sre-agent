@@ -3,7 +3,7 @@ using Agent.Cli.Models;
 
 namespace Agent.Cli.Services;
 
-public class CliConfigurationService
+public class CliConfigurationService : ICliConfigurationService
 {
     private static readonly string UserConfigDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".sreagent");
     private static readonly string ConfigFileName = Path.Combine(UserConfigDir, "config.json");
