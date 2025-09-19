@@ -16,14 +16,15 @@ interface ChartCardProps {
 export const ChartCard = ({ title, data, isLoading }: ChartCardProps) => {
     const [chartType, setChartType] = useState<'line' | 'bar'>('line');
 
+    // TODO: Need to more carefully explore this, and likely use either the GroupedVerticalBarChart or VerticalStackedBarChart
     const barChartData = useMemo<IVerticalBarChartDataPoint[]>(() => {
         return (
-            data?.lineChartData?.map(item => ({
-                legend: item.legend,
+            data?.lineChartData?.map(series => ({
+                legend: series.legend,
                 // NOTE: BarCharts don't have a configurable `legendShape`, so squares to match the bars it is
-                color: item.color,
-                x: item.data[0]?.x ?? Date.now(),
-                y: item.data[0]?.y ?? 50,
+                color: series.color,
+                x: series.data[0]?.x ?? Date.now(),
+                y: series.data[0]?.y ?? 50,
             })) ?? []
         );
     }, [data]);
@@ -48,6 +49,7 @@ export const ChartCard = ({ title, data, isLoading }: ChartCardProps) => {
                         setChartType('bar');
                     }}
                     style={chartType === 'bar' ? chartTypeButtonSelectedStyle : {}}
+                    disabled={true}
                 />
             </div>
 

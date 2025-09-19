@@ -30,6 +30,7 @@ enum ResponsePlanIncidentsGridColumnKey {
     title = 'title',
     severity = 'severity',
     createdOn = 'createdOn',
+    assistedByAgent = 'assistedByAgent',
     mitigatedBy = 'mitigatedBy',
     // meanTimeToMitigate = 'meanTimeToMitigate',
 }
@@ -124,6 +125,15 @@ export const ResponsePlanIncidentsGrid = ({ incidents, disabled, isLoading }: Re
         return <Text>{formatDateTimeWithShortYear(item.createdOn)}</Text>;
     }, []);
 
+    const onRenderAssistedByAgent = useCallback(
+        (item: IncidentItem) => {
+            return (
+                <Text>{item.assistedByAgent ? intl.formatMessage(SreAgentResources.yes) : intl.formatMessage(SreAgentResources.no)}</Text>
+            );
+        },
+        [intl]
+    );
+
     const onRenderMitigatedBy = useCallback(
         (item: IncidentItem) => {
             return <Text>{getLocalizedMitigatedBy(item.mitigatedBy, intl)}</Text>;
@@ -181,6 +191,20 @@ export const ResponsePlanIncidentsGrid = ({ incidents, disabled, isLoading }: Re
                 onColumnClick: (_, col) => handleColumnClick(col),
             },
             {
+                key: ResponsePlanIncidentsGridColumnKey.assistedByAgent,
+                name: intl.formatMessage(IncidentManagementResources.assistedByAgent),
+                isResizable: true,
+                minWidth: 150,
+                maxWidth: 150,
+                onRender: onRenderAssistedByAgent,
+                isSorted: sortColumnKey === (ResponsePlanIncidentsGridColumnKey.assistedByAgent as keyof IncidentItem),
+                isSortedDescending:
+                    sortColumnKey === (ResponsePlanIncidentsGridColumnKey.assistedByAgent as keyof IncidentItem)
+                        ? isSortedDescending
+                        : undefined,
+                onColumnClick: (_, col) => handleColumnClick(col),
+            },
+            {
                 key: ResponsePlanIncidentsGridColumnKey.mitigatedBy,
                 name: intl.formatMessage(IncidentManagementResources.mitigatedBy),
                 isResizable: true,
@@ -203,6 +227,7 @@ export const ResponsePlanIncidentsGrid = ({ incidents, disabled, isLoading }: Re
         onRenderIncidentTitle,
         onRenderSeverityLevel,
         onRenderIncidentCreated,
+        onRenderAssistedByAgent,
         onRenderMitigatedBy,
         sortColumnKey,
         isSortedDescending,

@@ -23,6 +23,7 @@ export interface IncidentItem {
     incidentTitle: string;
     severity: string;
     createdOn: Date;
+    assistedByAgent: boolean;
     mitigatedBy: 'user' | 'agent' | 'inProgress';
     // meantTimeToMitigate: number; // No data for this yet
 }
@@ -76,6 +77,25 @@ export const ResponsePlanView = ({
                         legend: intl.formatMessage(IncidentManagementResources.incidentsReviewed),
                         color: getColorFromToken(DataVizPalette.color16),
                         data: incidentSummaryResponse?.map(row => ({ x: row.handledAt, y: row.distinctIncidentCount })) ?? [],
+                    },
+                ],
+            },
+        };
+    }, [intl, incidentSummaryResponse, numIncidentsReviewed]);
+
+    const assistedByAgentStatCardData = useMemo<StatCardData>(() => {
+        const percentChange = getPercentChangeInArray(incidentSummaryResponse ?? [], 'agentAssisted');
+
+        return {
+            currentValue: incidentSummaryResponse?.reduce((sum, item) => sum + item.agentAssisted, 0) ?? 0,
+            maxValue: numIncidentsReviewed,
+            percentChange,
+            sparklineData: {
+                lineChartData: [
+                    {
+                        legend: intl.formatMessage(IncidentManagementResources.assistedByAgent),
+                        color: getColorFromToken(DataVizPalette.color16),
+                        data: incidentSummaryResponse?.map(row => ({ x: row.handledAt, y: row.agentAssisted })) ?? [],
                     },
                 ],
             },
@@ -151,6 +171,12 @@ export const ResponsePlanView = ({
                     legendShape: 'circle',
                 },
                 {
+                    legend: intl.formatMessage(IncidentManagementResources.assistedByAgent),
+                    color: getColorFromToken(DataVizPalette.color16),
+                    data: chartData.map(row => ({ x: row.handledAt, y: row.agentAssisted })) ?? [],
+                    legendShape: 'circle',
+                },
+                {
                     legend: intl.formatMessage(IncidentManagementResources.mitigatedByAgent),
                     color: getColorFromToken(DataVizPalette.color8),
                     data: chartData.map(row => ({ x: row.handledAt, y: row.agentMitigated })) ?? [],
@@ -186,9 +212,10 @@ export const ResponsePlanView = ({
             const data: IncidentSummaryItem[] = queryResultRows.map(row => ({
                 handledAt: new Date(row[0] ?? Date.now()),
                 distinctIncidentCount: row[1] as number,
-                userMitigated: row[2] as number,
-                agentMitigated: row[3] as number,
-                pendingUserAction: row[4] as number,
+                agentAssisted: row[2] as number,
+                userMitigated: row[3] as number,
+                agentMitigated: row[4] as number,
+                pendingUserAction: row[5] as number,
             }));
             setIncidentSummaryResponse(data);
             setIsIncidentSummaryLoading(false);
@@ -219,7 +246,13 @@ export const ResponsePlanView = ({
                 incidentTitle: row[1] as string,
                 severity: row[2] as string,
                 createdOn: new Date(row[3] ?? Date.now()),
-                mitigatedBy: row[5] === 'active' ? 'inProgress' : row[4] === 'True' ? 'agent' : 'user',
+                mitigatedBy:
+                    (row[5] as string).toLowerCase() === 'active'
+                        ? 'inProgress'
+                        : (row[4] as string).toLowerCase() === 'true'
+                          ? 'agent'
+                          : 'user',
+                assistedByAgent: (row[6] as string).toLowerCase() === 'true',
             }));
             setIncidentsResponse(data);
             setIsIncidentsLoading(false);
@@ -279,6 +312,12 @@ export const ResponsePlanView = ({
                     title={intl.formatMessage(IncidentManagementResources.incidentsReviewed)}
                     subtitle={intl.formatMessage(IncidentManagementResources.usingThisResponsePlan)}
                     data={incidentsReviewedStatCardData}
+                    isLoading={isIncidentSummaryLoading}
+                />
+                <StatCard
+                    title={intl.formatMessage(IncidentManagementResources.assistedByAgent)}
+                    subtitle={intl.formatMessage(IncidentManagementResources.incidentsAssistedByAgent)}
+                    data={assistedByAgentStatCardData}
                     isLoading={isIncidentSummaryLoading}
                 />
                 <StatCard

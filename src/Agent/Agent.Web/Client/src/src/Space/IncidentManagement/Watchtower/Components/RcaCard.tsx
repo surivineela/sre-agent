@@ -1,4 +1,4 @@
-import { Badge, Card, Link, Subtitle2, Text, tokens } from '@fluentui/react-components';
+import { Card, Link, Subtitle2, Text, tokens } from '@fluentui/react-components';
 import { ConstrainMode, DetailsListLayoutMode, IColumn, SelectionMode } from '@fluentui/react/lib/DetailsList';
 import { ShimmeredDetailsList } from '@fluentui/react/lib/ShimmeredDetailsList';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
@@ -22,7 +22,7 @@ enum ResponsePlanIncidentsGridColumnKey {
 interface RcaItem {
     category: string;
     incidentCount: number;
-    impactedServices: string[];
+    // impactedServices: string[]; // No data yet
 }
 
 interface RcaCardProps {
@@ -57,8 +57,8 @@ export const RcaCard = ({ openedResponsePlan, selectedTimeRange, appInsightsId, 
             const queryResultRows = response.content?.tables[0]?.rows ?? [];
             const data: RcaItem[] = queryResultRows.map(row => ({
                 category: row[0] as string,
-                impactedServices: [row[1] as string],
-                incidentCount: row[2] as number,
+                // impactedServices: [row[1] as string],
+                incidentCount: row[1] as number,
             }));
             setRcaOverviewItems(data);
             setIsRcaOverviewLoading(false);
@@ -86,7 +86,7 @@ export const RcaCard = ({ openedResponsePlan, selectedTimeRange, appInsightsId, 
 
     const onRenderCategory = useCallback(
         (item: RcaItem) => {
-            if (!item.category) return intl.formatMessage(SreAgentResources.unknown);
+            if (!item.category) return intl.formatMessage(SreAgentResources.other);
 
             return (
                 <Link
@@ -105,7 +105,7 @@ export const RcaCard = ({ openedResponsePlan, selectedTimeRange, appInsightsId, 
         return <Text>{item.incidentCount}</Text>;
     }, []);
 
-    const onRenderImpactedServices = useCallback((item: RcaItem) => {
+    /*const onRenderImpactedServices = useCallback((item: RcaItem) => {
         return (
             <div style={{ display: 'flex', gap: 4 }}>
                 {item.impactedServices.map((service, index) => {
@@ -127,7 +127,7 @@ export const RcaCard = ({ openedResponsePlan, selectedTimeRange, appInsightsId, 
                 })}
             </div>
         );
-    }, []);
+    }, []);*/
 
     const columns = useMemo<ISortedDetailsListColumn[]>(() => {
         const columns: ISortedDetailsListColumn[] = [
@@ -150,18 +150,10 @@ export const RcaCard = ({ openedResponsePlan, selectedTimeRange, appInsightsId, 
                     sortColumnKey === (ResponsePlanIncidentsGridColumnKey.incidentCount as keyof RcaItem) ? isSortedDescending : undefined,
                 onColumnClick: (_, col) => handleColumnClick(col),
             },
-            {
-                key: ResponsePlanIncidentsGridColumnKey.impactedServices,
-                name: intl.formatMessage(IncidentManagementResources.impactedService),
-                isResizable: true,
-                minWidth: 225,
-                maxWidth: 300,
-                onRender: onRenderImpactedServices,
-            },
         ];
 
         return columns;
-    }, [intl, onRenderCategory, onRenderIncidentCount, onRenderImpactedServices, sortColumnKey, isSortedDescending, handleColumnClick]);
+    }, [intl, onRenderCategory, onRenderIncidentCount, sortColumnKey, isSortedDescending, handleColumnClick]);
 
     const sortedItems = useMemo(() => {
         if (!rcaOverviewItems) return [];

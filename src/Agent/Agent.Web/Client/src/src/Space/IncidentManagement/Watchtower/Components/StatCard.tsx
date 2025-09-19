@@ -19,7 +19,7 @@ interface StatCardProps {
 
 export const StatCard = ({ title, subtitle, data, isLoading }: StatCardProps) => {
     return (
-        <Card style={{ flexGrow: 1, minWidth: 315, height: 120 }}>
+        <Card style={{ flexGrow: 1, minWidth: 225, height: 120 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                 <div>
                     <Body1Strong block>{title}</Body1Strong>

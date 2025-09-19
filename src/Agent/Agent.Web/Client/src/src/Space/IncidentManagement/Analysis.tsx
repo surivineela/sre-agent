@@ -25,10 +25,11 @@ import { ResponsePlanView } from './Watchtower/ResponsePlanView';
 
 // NOTE: Currently no way to calculate incidents NOT handled by a response plan
 // NOTE: Doesn't look like there's data for "Mean time to mitigate" for response plan incidents
-// NOTE: RCA impacted service(s) not hooked up, at least for test data set
+// NOTE: RCA impacted service(s) not hooked up
 
 // TODO: Empty data state
 // TODO: Context panes in ResponsePlanView
+// TODO: Bar charts (see comment in ChartCard)
 
 interface IncidentCoverageItem {
     handledAt: Date;
@@ -38,6 +39,7 @@ interface IncidentCoverageItem {
 export interface IncidentSummaryItem {
     handledAt: Date;
     distinctIncidentCount: number;
+    agentAssisted: number;
     userMitigated: number;
     agentMitigated: number;
     pendingUserAction: number;
@@ -105,6 +107,25 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
             },
         };
     }, [intl, incidentCoverageResponse, numIncidentsReviewed]);
+
+    const assistedByAgentStatCardData = useMemo<StatCardData>(() => {
+        const percentChange = getPercentChangeInArray(incidentSummaryResponse ?? [], 'agentAssisted');
+
+        return {
+            currentValue: incidentSummaryResponse?.reduce((sum, item) => sum + item.agentAssisted, 0) ?? 0,
+            maxValue: numIncidentsReviewed,
+            percentChange,
+            sparklineData: {
+                lineChartData: [
+                    {
+                        legend: intl.formatMessage(IncidentManagementResources.assistedByAgent),
+                        color: getColorFromToken(DataVizPalette.color16),
+                        data: incidentSummaryResponse?.map(row => ({ x: row.handledAt, y: row.agentAssisted })) ?? [],
+                    },
+                ],
+            },
+        };
+    }, [intl, incidentSummaryResponse, numIncidentsReviewed]);
 
     const mitigatedByAgentStatCardData = useMemo<StatCardData>(() => {
         const percentChange = getPercentChangeInArray(incidentSummaryResponse ?? [], 'agentMitigated');
@@ -204,6 +225,12 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
                     legendShape: 'circle',
                 },
                 {
+                    legend: intl.formatMessage(IncidentManagementResources.assistedByAgent),
+                    color: getColorFromToken(DataVizPalette.color16),
+                    data: chartData.map(row => ({ x: row.handledAt, y: row.agentAssisted })) ?? [],
+                    legendShape: 'circle',
+                },
+                {
                     legend: intl.formatMessage(IncidentManagementResources.mitigatedByAgent),
                     color: getColorFromToken(DataVizPalette.color8),
                     data: chartData.map(row => ({ x: row.handledAt, y: row.agentMitigated })) ?? [],
@@ -267,9 +294,10 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
             const data: IncidentSummaryItem[] = queryResultRows.map(row => ({
                 handledAt: new Date(row[0] ?? Date.now()),
                 distinctIncidentCount: row[1] as number,
-                userMitigated: row[2] as number,
-                agentMitigated: row[3] as number,
-                pendingUserAction: row[4] as number,
+                agentAssisted: row[2] as number,
+                userMitigated: row[3] as number,
+                agentMitigated: row[4] as number,
+                pendingUserAction: row[5] as number,
             }));
             setIncidentSummaryResponse(data);
             setIsIncidentSummaryLoading(false);
@@ -350,6 +378,12 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
                                         platform: getLocalizedIncidentPlatformName(incidentManagementPlatform ?? '', intl),
                                     })}
                                     data={incidentsReviewedStatCardData}
+                                    isLoading={isIncidentCoverageLoading || isIncidentSummaryLoading}
+                                />
+                                <StatCard
+                                    title={intl.formatMessage(IncidentManagementResources.assistedByAgent)}
+                                    subtitle={intl.formatMessage(IncidentManagementResources.incidentsAssistedByAgent)}
+                                    data={assistedByAgentStatCardData}
                                     isLoading={isIncidentCoverageLoading || isIncidentSummaryLoading}
                                 />
                                 <StatCard

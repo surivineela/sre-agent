@@ -121,6 +121,12 @@
       "value": "Priorities"
     }
   ],
+  "/VnDMl": [
+    {
+      "type": 0,
+      "value": "Other"
+    }
+  ],
   "/WrP/v": [
     {
       "type": 0,
@@ -3249,6 +3255,12 @@
       "value": "SQL Managed Instance Contributor"
     }
   ],
+  "SyPo+k": [
+    {
+      "type": 0,
+      "value": "Incidents assisted by agent"
+    }
+  ],
   "T5+AEf": [
     {
       "type": 0,
@@ -5857,6 +5869,12 @@
     {
       "type": 0,
       "value": "Test incident response"
+    }
+  ],
+  "ryPHA8": [
+    {
+      "type": 0,
+      "value": "Assisted by agent"
     }
   ],
   "s7DlV0": [

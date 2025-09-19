@@ -180,6 +180,7 @@ export const SreAgentResources = defineMessages({
             'Select the subscription to manage deployed resources and costs. Use resources groups like folders to organize and manage all your resources.',
         id: '6dWeUs',
     },
+    other: { defaultMessage: 'Other', id: '/VnDMl' },
     refresh: { defaultMessage: 'Refresh', id: 'rELDbB' },
     region: { defaultMessage: 'Region', id: 'lnaWo/' },
     regionPlaceHolder: { defaultMessage: 'Select region', id: 'tshYzs' },
@@ -1196,6 +1197,8 @@ export const IncidentManagementResources = defineMessages({
     topCategories: { defaultMessage: 'Top categories', id: 'hZY54D' },
     incidents: { defaultMessage: 'Incidents', id: 'mtr3R4' },
     noRcaCategoriesFound: { defaultMessage: 'No root cause analysis categories found', id: 'jRtus7' },
+    assistedByAgent: { defaultMessage: 'Assisted by agent', id: 'ryPHA8' },
+    incidentsAssistedByAgent: { defaultMessage: 'Incidents assisted by agent', id: 'SyPo+k' },
 });
 
 export const IncidentManagementPlatformResources = defineMessages({
