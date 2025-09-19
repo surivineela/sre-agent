@@ -158,7 +158,7 @@ public class Program
                         logger.LogInternalInformation("Agent Memory is not enabled. Skipping Agent Memory setup.");
                     }
 
-                    logger.LogInternalInformation("Setting up Data Connector...");
+                    logger.LogInternalInformation("Setting up Data Connector index...");
                     var dataConnectorIndex = app.Services.GetRequiredService<DataConnectorIndex>();
                     await dataConnectorIndex.CreateOrUpdateIndex();
                 }

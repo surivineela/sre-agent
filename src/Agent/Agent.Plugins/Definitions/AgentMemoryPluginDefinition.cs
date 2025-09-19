@@ -4,6 +4,7 @@
 
 using System.ComponentModel;
 using System.Text;
+using Agent.Core;
 using Agent.Core.Configuration;
 using Agent.Core.DataConnectors;
 using Agent.Data.AgentMemory;
@@ -46,11 +47,13 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
         List<string> userMemories,
         TrajectorySearchResult trajectories)
     {
+        var threadId = ToolStatic.AsyncLocalThreadId.Value;
         var sb = new StringBuilder();
 
         if (trajectories.SameResourceTrajectories.Count > 0)
         {
-            logger.LogInternalInformation("Found {Count} past incidents on the same resource", trajectories.SameResourceTrajectories.Count);
+            logger.LogInternalInformation("[Thread {ThreadId}] Found {Count} past incidents on the same resource",
+                threadId, trajectories.SameResourceTrajectories.Count);
             sb.AppendLine("## Similar Past Incidents on the exact Same Resource, which has a high likelihood of helping with the current incident resolution.");
             sb.AppendLine();
             foreach (var trajectory in trajectories.SameResourceTrajectories)
@@ -65,12 +68,13 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
         }
         else
         {
-            logger.LogInternalInformation("No past incidents found on the same resource");
+            logger.LogInternalInformation("[Thread {ThreadId}] No past incidents found on the same resource", threadId);
         }
 
         if (trajectories.SimilarSymptomsTrajectories.Count > 0)
         {
-            logger.LogInternalInformation("Found {Count} past incidents with similar symptoms", trajectories.SimilarSymptomsTrajectories.Count);
+            logger.LogInternalInformation("[Thread {ThreadId}] Found {Count} past incidents with similar symptoms",
+                threadId, trajectories.SimilarSymptomsTrajectories.Count);
             sb.AppendLine("## Past Incidents with Similar Symptoms, which may provide insights into the current incident resolution.");
             sb.AppendLine();
             foreach (var trajectory in trajectories.SimilarSymptomsTrajectories)
@@ -86,12 +90,13 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
         }
         else
         {
-            logger.LogInternalInformation("No past incidents found with similar symptoms");
+            logger.LogInternalInformation("[Thread {ThreadId}] No past incidents found with similar symptoms", threadId);
         }
 
         if (userMemories.Count > 0)
         {
-            logger.LogInternalInformation("Found {Count} relevant user memories", userMemories.Count);
+            logger.LogInternalInformation("[Thread {ThreadId}] Found {Count} relevant user memories",
+                threadId, userMemories.Count);
             sb.AppendLine("## Related User Memories");
             sb.AppendLine();
             foreach (var memory in userMemories)
@@ -102,12 +107,12 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
         }
         else
         {
-            logger.LogInternalInformation("No relevant user memories found");
+            logger.LogInternalInformation("[Thread {ThreadId}] No relevant user memories found", threadId);
         }
 
         if (documents.Count > 0)
         {
-            logger.LogInternalInformation("Found {Count} relevant documents", documents.Count);
+            logger.LogInternalInformation("[Thread {ThreadId}] Found {Count} relevant documents", threadId, documents.Count);
             sb.AppendLine("## Relevant Documents");
             sb.AppendLine();
             foreach (var doc in documents)
@@ -117,7 +122,7 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
         }
         else
         {
-            logger.LogInternalInformation("No relevant documents found");
+            logger.LogInternalInformation("[Thread {ThreadId}] No relevant documents found", threadId);
         }
 
         if (sb.Length == 0)
@@ -125,6 +130,7 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
             return "No relevant memories, documents, or past incidents found for the current symptoms";
         }
 
+        logger.LogInternalInformation("[Thread {ThreadId}] Memory response built successfully", threadId);
         return sb.ToString();
     }
 
@@ -150,7 +156,7 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
         }
 
         var memories = await agentMemoryClient.SearchUserMemoriesAsync(new SearchParams(
-            Query: symptoms, K: 5, EnableHybridSearch: true, ExhaustiveKnn: true , VectorSimilarityThreshold: 0.1f));
+            Query: symptoms, K: 5, EnableHybridSearch: true, ExhaustiveKnn: true, VectorSimilarityThreshold: 0.1f));
         if (memories.Count == 0)
         {
             return [];
