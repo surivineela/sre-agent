@@ -1,9 +1,11 @@
 import { Body1, Card, CardHeader, makeStyles, Subtitle1, Text, tokens } from '@fluentui/react-components';
 import { NodeProps } from '@xyflow/react';
 import { memo, useContext } from 'react';
+import { useIntl } from 'react-intl';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
+import { SreAgentResources } from '../../../Strings/SREAgentResources';
 import { AgentTaskNodeSize, GraphFlowNode } from '../../Contracts/Activities';
 import { AgentTaskGraphContext } from '../../Contracts/Context';
 import { getInitialInvestigationStepsIcon } from './Utility';
@@ -80,6 +82,7 @@ const useStyles = makeStyles({
 
 const InitialInvestigationNode = (props: NodeProps<GraphFlowNode>) => {
     const { id, data } = props;
+    const intl = useIntl();
 
     const { nodeContainer, card, header, title, description, stepsContainer, stepContainer, stepText } = useStyles();
 
@@ -160,7 +163,11 @@ const InitialInvestigationNode = (props: NodeProps<GraphFlowNode>) => {
                     </div>
                 ))}
                 {showEllipsis && (
-                    <Body1 style={{ margin: '16px 0px 0px 16px' }}>{`and ${steps.length - stepsToDisplay.length} more`}</Body1>
+                    <Body1 style={{ margin: '16px 0px 0px 16px' }}>
+                        {intl.formatMessage(SreAgentResources.andMoreCount, {
+                            count: steps.length - stepsToDisplay.length,
+                        })}
+                    </Body1>
                 )}
             </div>
         );
@@ -181,7 +188,9 @@ const InitialInvestigationNode = (props: NodeProps<GraphFlowNode>) => {
                     header={
                         <div className={header}>
                             <Subtitle1 block={true} className={title}>
-                                {isSummaryNode ? 'Summary' : 'Investigation steps'}
+                                {isSummaryNode
+                                    ? intl.formatMessage(SreAgentResources.summary)
+                                    : intl.formatMessage(SreAgentResources.investigationSteps)}
                             </Subtitle1>
                         </div>
                     }

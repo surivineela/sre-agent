@@ -99,15 +99,11 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
         [centerNode, selectedNodeId]
     );
 
-    const selectNode = useCallback(
-        (nodeId: string | null) => {
-            setSelectedNodeId(nodeId);
-            selectedNodeIdRef.current = nodeId;
-            setIsDetailsPanelOpen(!!nodeId);
-            centerNode(nodeId);
-        },
-        [centerNode]
-    );
+    const selectNode = useCallback((nodeId: string | null) => {
+        setSelectedNodeId(nodeId);
+        selectedNodeIdRef.current = nodeId;
+        setIsDetailsPanelOpen(!!nodeId);
+    }, []);
 
     const closeDetailsPanel = useCallback(() => {
         selectNode(null);
@@ -632,109 +628,112 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
         return Math.min(reactFlowWrapperRef.current.clientWidth / width, reactFlowWrapperRef.current.clientHeight / height, 0.6);
     };
 
-    const constructGraph = (
-        treeState: InvestigationTreeState | null
-    ): { graphFlowNodes: GraphFlowNode[]; graphFlowEdges: GraphFlowEdge[]; minZoom?: number } => {
-        const graphFlowNodes: GraphFlowNode[] = [];
-        const graphFlowEdges: GraphFlowEdge[] = [];
+    const constructGraph = useCallback(
+        (
+            treeState: InvestigationTreeState | null
+        ): { graphFlowNodes: GraphFlowNode[]; graphFlowEdges: GraphFlowEdge[]; minZoom?: number } => {
+            const graphFlowNodes: GraphFlowNode[] = [];
+            const graphFlowEdges: GraphFlowEdge[] = [];
 
-        if (!treeState || treeState.rootNodeIds.length === 0) {
-            return {
-                graphFlowNodes: [],
-                graphFlowEdges: [],
-            };
-        }
-
-        const { rootNodeIds, nodes } = treeState;
-
-        // Get phase nodes
-        const phaseNodes: InvestigationTreeNode[] = [];
-        rootNodeIds.forEach(id => {
-            const node = nodes.get(id);
-            if (
-                node &&
-                (node?.nodeType === TreeNodeType.InitialInvestigation || node?.nodeType === TreeNodeType.Conclusion) &&
-                !node.title.toLowerCase().includes('validating hypothesis')
-            ) {
-                phaseNodes.push(node);
+            if (!treeState || treeState.rootNodeIds.length === 0) {
+                return {
+                    graphFlowNodes: [],
+                    graphFlowEdges: [],
+                };
             }
-        });
 
-        // Add initial investigation nodes
-        const initialInvestigationNodes = getInitialInvestigationNode(phaseNodes);
-        if (!initialInvestigationNodes?.initialInvestigationGroupNode) {
-            return {
-                graphFlowNodes,
-                graphFlowEdges,
-            };
-        }
-        const {
-            nodes: initialInvestigationNodesWithLayout,
-            initialInvestigationGroupNodeWidth,
-            initialInvestigationGroupNodeHeight,
-            centerX,
-            initialInvestigationGroupNodePositionY,
-        } = layoutInitialInvestigationGroupAndChildrenNode(initialInvestigationNodes);
-        graphFlowNodes.push(...initialInvestigationNodesWithLayout);
+            const { rootNodeIds, nodes } = treeState;
 
-        // Add hypothesis nodes
-        const hypothesisGroupsAndRootGroup = getHypothesisGroups(phaseNodes, nodes);
-        if (hypothesisGroupsAndRootGroup.hypothesisGroups.length === 0) {
-            return {
-                graphFlowNodes,
-                graphFlowEdges,
-                minZoom: computeMinZoom({ width: initialInvestigationGroupNodeWidth, height: initialInvestigationGroupNodeHeight }),
-            };
-        }
-        const {
-            nodes: hypothesisNodes,
-            edges: hypothesisEdges,
-            hypothesisRootGroupNodeWidth,
-            hypothesisRootGroupNodeHeight,
-            hypothesisRootGroupNodePositionY,
-        } = layoutHypothesisGroupAndChildrenNode(
-            hypothesisGroupsAndRootGroup,
-            initialInvestigationNodes.initialInvestigationGroupNode.id,
-            initialInvestigationGroupNodePositionY,
-            initialInvestigationGroupNodeHeight,
-            centerX
-        );
-        graphFlowNodes.push(...hypothesisNodes);
-        graphFlowEdges.push(...hypothesisEdges);
+            // Get phase nodes
+            const phaseNodes: InvestigationTreeNode[] = [];
+            rootNodeIds.forEach(id => {
+                const node = nodes.get(id);
+                if (
+                    node &&
+                    (node?.nodeType === TreeNodeType.InitialInvestigation || node?.nodeType === TreeNodeType.Conclusion) &&
+                    !node.title.toLowerCase().includes('validating hypothesis')
+                ) {
+                    phaseNodes.push(node);
+                }
+            });
 
-        // Add conclusion nodes
-        const conclusionNode = getConclusionNodesAndEdges(phaseNodes);
-        if (!conclusionNode) {
+            // Add initial investigation nodes
+            const initialInvestigationNodes = getInitialInvestigationNode(phaseNodes);
+            if (!initialInvestigationNodes?.initialInvestigationGroupNode) {
+                return {
+                    graphFlowNodes,
+                    graphFlowEdges,
+                };
+            }
+            const {
+                nodes: initialInvestigationNodesWithLayout,
+                initialInvestigationGroupNodeWidth,
+                initialInvestigationGroupNodeHeight,
+                centerX,
+                initialInvestigationGroupNodePositionY,
+            } = layoutInitialInvestigationGroupAndChildrenNode(initialInvestigationNodes);
+            graphFlowNodes.push(...initialInvestigationNodesWithLayout);
+
+            // Add hypothesis nodes
+            const hypothesisGroupsAndRootGroup = getHypothesisGroups(phaseNodes, nodes);
+            if (hypothesisGroupsAndRootGroup.hypothesisGroups.length === 0) {
+                return {
+                    graphFlowNodes,
+                    graphFlowEdges,
+                    minZoom: computeMinZoom({ width: initialInvestigationGroupNodeWidth, height: initialInvestigationGroupNodeHeight }),
+                };
+            }
+            const {
+                nodes: hypothesisNodes,
+                edges: hypothesisEdges,
+                hypothesisRootGroupNodeWidth,
+                hypothesisRootGroupNodeHeight,
+                hypothesisRootGroupNodePositionY,
+            } = layoutHypothesisGroupAndChildrenNode(
+                hypothesisGroupsAndRootGroup,
+                initialInvestigationNodes.initialInvestigationGroupNode.id,
+                initialInvestigationGroupNodePositionY,
+                initialInvestigationGroupNodeHeight,
+                centerX
+            );
+            graphFlowNodes.push(...hypothesisNodes);
+            graphFlowEdges.push(...hypothesisEdges);
+
+            // Add conclusion nodes
+            const conclusionNode = getConclusionNodesAndEdges(phaseNodes);
+            if (!conclusionNode) {
+                return {
+                    graphFlowNodes,
+                    graphFlowEdges,
+                    minZoom: computeMinZoom(
+                        { width: initialInvestigationGroupNodeWidth, height: initialInvestigationGroupNodeHeight },
+                        { width: hypothesisRootGroupNodeWidth, height: hypothesisRootGroupNodeHeight }
+                    ),
+                };
+            }
+
+            const { conclusionNode: conclusionNodeWithPosition, edge: conclusionEdge } = layoutConclusionNode(
+                conclusionNode,
+                hypothesisGroupsAndRootGroup.rootGroup.id,
+                hypothesisRootGroupNodePositionY,
+                hypothesisRootGroupNodeHeight,
+                centerX
+            );
+            graphFlowNodes.push(conclusionNodeWithPosition);
+            graphFlowEdges.push(conclusionEdge);
+
             return {
                 graphFlowNodes,
                 graphFlowEdges,
                 minZoom: computeMinZoom(
                     { width: initialInvestigationGroupNodeWidth, height: initialInvestigationGroupNodeHeight },
-                    { width: hypothesisRootGroupNodeWidth, height: hypothesisRootGroupNodeHeight }
+                    { width: hypothesisRootGroupNodeWidth, height: hypothesisRootGroupNodeHeight },
+                    { width: AgentTaskNodeSize.ConclusionNode.width, height: AgentTaskNodeSize.ConclusionNode.height }
                 ),
             };
-        }
-
-        const { conclusionNode: conclusionNodeWithPosition, edge: conclusionEdge } = layoutConclusionNode(
-            conclusionNode,
-            hypothesisGroupsAndRootGroup.rootGroup.id,
-            hypothesisRootGroupNodePositionY,
-            hypothesisRootGroupNodeHeight,
-            centerX
-        );
-        graphFlowNodes.push(conclusionNodeWithPosition);
-        graphFlowEdges.push(conclusionEdge);
-
-        return {
-            graphFlowNodes,
-            graphFlowEdges,
-            minZoom: computeMinZoom(
-                { width: initialInvestigationGroupNodeWidth, height: initialInvestigationGroupNodeHeight },
-                { width: hypothesisRootGroupNodeWidth, height: hypothesisRootGroupNodeHeight },
-                { width: AgentTaskNodeSize.ConclusionNode.width, height: AgentTaskNodeSize.ConclusionNode.height }
-            ),
-        };
-    };
+        },
+        []
+    );
 
     useEffect(() => {
         const treeState = treeStateValue?.treeState || null;
@@ -743,7 +742,7 @@ export const useAgentTaskGraphFlow = (props: IAgentTaskGraphProps) => {
         setMinZoom(minZoom);
         setNodes(graphFlowNodes);
         setEdges(graphFlowEdges);
-    }, [treeStateValue]);
+    }, [treeStateValue, constructGraph, setNodes, setEdges]);
 
     useEffect(() => {
         // Reset render key to center graph only when no node is selected

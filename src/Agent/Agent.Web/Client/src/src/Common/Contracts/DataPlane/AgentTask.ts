@@ -32,6 +32,12 @@ export interface InitialInvestigationProperties {
     summary: string;
     status: InvestigationStatusCommon;
     statusMessage: string;
+    incidentDescription?: string;
+    timeFrame?: string;
+    affectedResources?: string[];
+    keyFindings?: string;
+    details?: string;
+    toolNames?: string[];
 }
 
 export interface FormingHypothesisProperties {
@@ -134,6 +140,12 @@ export type InvestigationTreeNode = {
     steps?: HypothesisStep[] | InitialInvestigationStep[];
     // For initial investigation phase, store the gathering context steps
     gatheringContextSteps?: InitialInvestigationStep[];
+    incidentDescription?: string;
+    timeFrame?: string;
+    affectedResources?: string[];
+    keyFindings?: string;
+    details?: string;
+    toolNames?: string[] | null;
 };
 
 export interface InvestigationTreeState {
