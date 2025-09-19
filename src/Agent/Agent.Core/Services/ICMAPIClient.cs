@@ -42,6 +42,7 @@ namespace Agent.Core.Services
         Task<string> RemoveParentIncidentLinkAsync(long incidentId);
         Task<List<string>> GetChildIncidentsInfoAsync(long incidentId);
         Task<List<IncidentRepairItem>> GetIncidentRepairItemsAsync(long incidentId);
+        Task<string> AddIncidentAttachment(string incidentId, string fileName, string base64Content);
     }
 
     public class ICMAPIClient : IICMAPIClient
@@ -685,6 +686,55 @@ namespace Agent.Core.Services
             }
         }
 
+        public async Task<string> AddIncidentAttachment(string incidentId, string fileName, string base64Content)
+        {
+            if (_icmApiSettings.ReadOnly)
+            {
+                return "Success. ICM API is in read-only mode.";
+            }
+
+            if (string.IsNullOrWhiteSpace(incidentId))
+            {
+                throw new ArgumentException("Incident ID cannot be null or empty.", nameof(incidentId));
+            }
+
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                throw new ArgumentException("File name cannot be null or empty.", nameof(fileName));
+            }
+
+            if (string.IsNullOrWhiteSpace(base64Content))
+            {
+                throw new ArgumentException("Base64 content cannot be null or empty.", nameof(base64Content));
+            }
+
+            var content = new
+            {
+                attachments = new[]
+                {
+                    new
+                    {
+                        FileName = fileName,
+                        ContentBase64 = base64Content
+                    }
+                }
+            };
+
+            var response = await SendICMPostRequestAsync($"{IcmAPIPathPrefix}/incidents({incidentId})/PostAttachments", content);
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInternalInformation($"Successfully added attachment '{fileName}' to incident {incidentId}. Response: {responseContent}");
+                return "Attachment added successfully.";
+            }
+            else
+            {
+                _logger.LogInternalError($"Failed to add attachment '{fileName}' to incident {incidentId}. Status: {response.StatusCode}, Response: {responseContent}");
+                throw new Exception($"Failed to add attachment to incident. Status code: {response.StatusCode} : {responseContent}");
+            }
+        }
+
         public void Dispose()
         {
             _httpClient?.Dispose();
@@ -1046,6 +1096,11 @@ namespace Agent.Core.Services
         }
 
         public Task<string> TransferIncidentAsync(string incidentId, string discussionEntry, string tenantId, string teamId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> AddIncidentAttachment(string incidentId, string fileName, string base64Content)
         {
             throw new NotImplementedException();
         }

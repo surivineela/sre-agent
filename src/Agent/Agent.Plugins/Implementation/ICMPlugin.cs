@@ -677,4 +677,83 @@ Example structure:
         var childIncidents = await _icmApiClient.GetChildIncidentsInfoAsync(incidentId);
         return childIncidents;
     }
+
+    [KernelFunction("add_incident_attachment")]
+    [Description("Add a file attachment to an ICM incident by reading a file from the local filesystem")]
+    public async Task<string> AddIncidentAttachment(
+        [Description("Incident ID")] string incidentId,
+        [Description("Local file path to attach to the incident")] string filePath)
+    {
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(AddIncidentAttachment)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}, filePath: {filePath}";
+        _logger.LogInternalInformation(logMessage);
+
+        try
+        {
+            // Validate inputs
+            if (string.IsNullOrWhiteSpace(incidentId))
+            {
+                throw new ArgumentException("Incident ID cannot be null or empty.", nameof(incidentId));
+            }
+
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                throw new ArgumentException("File path cannot be null or empty.", nameof(filePath));
+            }
+
+            // Check if file exists
+            if (!File.Exists(filePath))
+            {
+                throw new FileNotFoundException($"File not found: {filePath}");
+            }
+
+            // Get file info
+            var fileInfo = new FileInfo(filePath);
+            var fileName = fileInfo.Name;
+
+            // Check file type - only allow specific extensions
+            var allowedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ".png", ".html", ".txt", ".zip", ".csv", ".json", ".xlsx", ".svg", ".jpg", ".docx", 
+                ".msg", ".pdf", ".log", ".eml", ".mp4", ".xml", ".gif", ".jpeg", ".dat", ".etl", 
+                ".sts", ".sql", ".mht", ".cab", ".evtx", ".pptx", ".sqlplan", ".alcpuprofile", 
+                ".7z", ".pbix", ".rar", ".one", ".yaml", ".py", ".jfif", ".wav", ".xls", ".tsv", 
+                ".tiff", ".tgz", ".sit", ".sgml", ".rtf", ".rdf", ".ram", ".ra", ".qt", ".ppt", 
+                ".pl", ".ogg", ".mpeg", ".mp3", ".midi", ".jar", ".hqx", ".gz", ".doc", ".dtd", 
+                ".css", ".bz2", ".bmp", ".avi", ".au"
+            };
+
+            var fileExtension = fileInfo.Extension;
+            if (string.IsNullOrEmpty(fileExtension) || !allowedExtensions.Contains(fileExtension))
+            {
+                throw new InvalidOperationException($"File type '{fileExtension}' is not allowed. Allowed file types: {string.Join(", ", allowedExtensions.OrderBy(x => x))}");
+            }
+
+            // Check file size (15MB limit as per ICM API documentation)
+            const long maxFileSizeBytes = 15 * 1024 * 1024; // 15MB
+            if (fileInfo.Length > maxFileSizeBytes)
+            {
+                throw new InvalidOperationException($"File size ({fileInfo.Length} bytes) exceeds the maximum allowed size of {maxFileSizeBytes} bytes (15MB).");
+            }
+
+            _logger.LogInternalInformation($"Reading file: {filePath} (Size: {fileInfo.Length} bytes)");
+
+            // Read file and convert to base64
+            byte[] fileBytes = await File.ReadAllBytesAsync(filePath);
+            string base64Content = Convert.ToBase64String(fileBytes);
+
+            _logger.LogInternalInformation($"Successfully converted file to base64. Base64 length: {base64Content.Length} characters");
+
+            // Call the ICM API client to add the attachment
+            var result = await _icmApiClient.AddIncidentAttachment(incidentId, fileName, base64Content);
+
+            _logger.LogInternalInformation($"Successfully attached file '{fileName}' to incident {incidentId}");
+            return result;
+        }
+        catch (Exception ex)
+        {
+            var errorMessage = $"Failed to add attachment to incident {incidentId} from file {filePath}. Error: {ex.Message}";
+            _logger.LogInternalError(ex, errorMessage);
+            throw new Exception(errorMessage, ex);
+        }
+    }
 }

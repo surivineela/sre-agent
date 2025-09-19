@@ -27,4 +27,5 @@ public interface IICMPlugin
     Task<string> RemoveParentIncidentLink(long incidentId);
     Task<List<string>> GetChildIncidentsInfo(long incidentId);
     Task<string> GetParametersFromIncident(string incidentId, string instruction);
+    Task<string> AddIncidentAttachment(string incidentId, string filePath);
 }

@@ -212,4 +212,12 @@ public class ICMPluginDefinition
     {
         return await _icmPlugin.GetChildIncidentsInfo(incidentId);
     }
+
+    [Description("Add a file attachment to an ICM incident by reading a file from the local filesystem")]
+    public async Task<string> AddIncidentAttachment(
+        [Description("Incident ID")] string incidentId,
+        [Description("Local file path to attach to the incident")] string filePath)
+    {
+        return await _icmPlugin.AddIncidentAttachment(incidentId, filePath);
+    }
 }
