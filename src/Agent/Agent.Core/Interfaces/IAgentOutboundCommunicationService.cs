@@ -113,4 +113,10 @@ public interface IAgentOutboundCommunicationService
     /// Saves results to agent task object step instead of streaming to chat.
     /// </summary>
     Task HandleAgentTaskKustoResult(Guid threadId, string chatMessageContent);
+
+    /// <summary>
+    /// Handles Memory tool results specifically for agent tasks/deep investigation.
+    /// Saves results to agent task object step instead of streaming to chat.
+    /// </summary>
+    Task HandleAgentTaskMemoryResult(Guid threadId, string chatMessageContent);
 }

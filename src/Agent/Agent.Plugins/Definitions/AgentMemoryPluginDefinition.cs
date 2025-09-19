@@ -9,12 +9,14 @@ using Agent.Core.Configuration;
 using Agent.Core.DataConnectors;
 using Agent.Data.AgentMemory;
 using Agent.Plugins.DataConnectors.Documentation;
+using Agent.Core.Interfaces;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Plugins.Definitions;
 
 [AgentToolPlugin]
-public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, AgentMemorySettings agentMemorySettings, DataConnectorIndex dataConnectorindex, ILogger<AgentMemoryPluginDefinition> logger)
+public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, AgentMemorySettings agentMemorySettings,  DataConnectorIndex dataConnectorindex, ILogger<AgentMemoryPluginDefinition> logger, IAgentOutboundCommunicationService agentOutboundCommunicationService)
 {
     [Description(@"Retrieves knowledge from past memories to assist with current incident resolution")]
     public async Task<string> SearchMemoryAsync(
@@ -35,11 +37,17 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
         var userMemories = await userMemorySearch;
         var documents = await documentSearch;
 
-        return BuildMemoryResponse(
+        var result = BuildMemoryResponse(
             documents: documents,
             userMemories: userMemories,
             trajectories: trajectories
         );
+        
+        // Push the memory search results to the agent chat interface
+        var displayMessage = new ChatMessage(ChatRole.Tool, result);
+        await PushMemoryResultToChat(displayMessage);
+        
+        return result;
     }
 
     private string BuildMemoryResponse(
@@ -99,11 +107,14 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
                 threadId, userMemories.Count);
             sb.AppendLine("## Related User Memories");
             sb.AppendLine();
-            foreach (var memory in userMemories)
+            for (int i = 0; i < userMemories.Count; i++)
             {
-                sb.AppendLine($"- {memory}");
+                var memory = userMemories[i];
+                var truncatedMemory = TruncateText(memory, 300);
+                sb.AppendLine($"**Memory {i + 1}:**");
+                sb.AppendLine($"> {truncatedMemory}");
+                sb.AppendLine();
             }
-            sb.AppendLine();
         }
         else
         {
@@ -113,11 +124,17 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
         if (documents.Count > 0)
         {
             logger.LogInternalInformation("[Thread {ThreadId}] Found {Count} relevant documents", threadId, documents.Count);
-            sb.AppendLine("## Relevant Documents");
+            sb.AppendLine("## Relevant Documentation");
             sb.AppendLine();
-            foreach (var doc in documents)
+            for (int i = 0; i < documents.Count; i++)
             {
-                sb.AppendLine($"- {doc}");
+                var doc = documents[i];
+                var truncatedDoc = TruncateText(doc, 400);
+                sb.AppendLine($"**Document {i + 1}:**");
+                sb.AppendLine("```");
+                sb.AppendLine(truncatedDoc);
+                sb.AppendLine("```");
+                sb.AppendLine();
             }
         }
         else
@@ -233,5 +250,42 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
             SameResourceTrajectories: sameResourceTrajectories,
             SimilarSymptomsTrajectories: similarSymptomsTrajectories
         );
+    }
+
+    private static string TruncateText(string text, int maxLength)
+    {
+        if (string.IsNullOrEmpty(text) || text.Length <= maxLength)
+            return text;
+
+        // Find the last space before the max length to avoid cutting words
+        var truncateIndex = text.LastIndexOf(' ', maxLength);
+        if (truncateIndex == -1)
+            truncateIndex = maxLength;
+
+        return text.Substring(0, truncateIndex).TrimEnd() + "...";
+    }
+
+    /// <summary>
+    /// Pushes memory search results to the agent chat interface, similar to how KustoPlugin displays query results.
+    /// Routes to agent task storage if in agent task context, otherwise to normal chat flow.
+    /// </summary>
+    private async Task PushMemoryResultToChat(ChatMessage msg)
+    {
+        var agentTaskId = ToolStatic.AsyncLocalAgentTaskId.Value;
+        var threadId = ToolStatic.AsyncLocalThreadId.Value;
+
+        if (agentTaskId.HasValue)
+        {
+            // Agent task context - use dedicated handler with same content as chat message
+            await agentOutboundCommunicationService.HandleAgentTaskMemoryResult(
+                threadId,
+                msg.Text ?? string.Empty);
+        }
+        else
+        {
+            // Normal chat flow - use existing method
+            await agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                threadId, string.Empty, msg);
+        }
     }
 }

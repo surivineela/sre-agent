@@ -923,4 +923,45 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         }
     }
 
+    /// <summary>
+    /// Handles Memory tool results specifically for agent tasks/deep investigation.
+    /// Saves results to agent task storage instead of streaming to chat.
+    /// </summary>
+    public async Task HandleAgentTaskMemoryResult(Guid threadId, string chatMessageContent)
+    {
+        var agentTaskId = ToolStatic.AsyncLocalAgentTaskId.Value;
+        var stepContext = ToolStatic.AsyncLocalInvestigationStepContext.Value;
+
+        _logger.LogInternalInformation("HandleAgentTaskMemoryResult called - AgentTaskId: {AgentTaskId}", agentTaskId);
+
+        if (!agentTaskId.HasValue)
+        {
+            _logger.LogInternalWarning("HandleAgentTaskMemoryResult called without agent task context - this should not happen");
+            return;
+        }
+
+        try
+        {
+            // Save to agent task with exact same content as chat message
+            var toolResult = new ToolExecutionResult
+            {
+                Type = ToolExecutionType.Memory,
+                MemorySearchResults = chatMessageContent,
+                ExecutedTimestamp = DateTime.UtcNow
+            };
+
+            await _agentTaskHelper.SaveToolResultAsync(agentTaskId.Value, stepContext, toolResult, threadId);
+
+            // Add reasoning message for agent context using the same content
+            var memoryMessage = new ChatMessage(ChatRole.Tool, chatMessageContent);
+            await _agentTaskHelper.AddToolResultToAgentChatHistoryAsync(threadId, memoryMessage);
+
+            _logger.LogInternalInformation("Memory tool result saved to agent task {AgentTaskId}", agentTaskId.Value);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to handle agent task Memory result for task {AgentTaskId}", agentTaskId.Value);
+        }
+    }
+
 }

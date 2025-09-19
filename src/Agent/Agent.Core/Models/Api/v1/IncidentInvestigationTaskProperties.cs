@@ -299,6 +299,7 @@ public sealed record ToolExecutionResult
     public ToolExecutionType Type { get; set; }
 
     public string KustoQueryResults { get; set; } = string.Empty; // Full markdown string for Kusto results
+    public string MemorySearchResults { get; set; } = string.Empty; // Full markdown string for Memory search results
     public DateTime ExecutedTimestamp { get; set; }
 
     // Structured data for specific tool types (avoids re-parsing JSON)
@@ -312,6 +313,7 @@ public enum ToolExecutionType
 {
     Kusto,
     AzCli,
+    Memory,
 }
 
 #endregion

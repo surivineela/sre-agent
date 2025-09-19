@@ -172,6 +172,13 @@ namespace Agent.Tests.Common.Mocks
             return Task.CompletedTask;
         }
 
+        public Task HandleAgentTaskMemoryResult(Guid threadId, string chatMessageContent)
+        {
+            _logger?.LogInternalInformation($"Mock: Handling agent task Memory result for thread {threadId}, Content: {chatMessageContent}");
+            Messages.Add($"AgentTask_Memory:{chatMessageContent}");
+            return Task.CompletedTask;
+        }
+
         public Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message, Guid? messageId = null, StreamMessageType? type = null)
         {
             _logger?.LogInternalInformation($"ThreadId: {threadId}, OrchestrationInstanceId: {orchestrationInstanceId}, Message: {message.Text}");
