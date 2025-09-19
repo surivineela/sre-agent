@@ -51,7 +51,7 @@ public class DeclarativeArgumentTransformer : IToolArgumentTransformer
 
             foreach (var kvp in rawDict)
             {
-                var convertedValue = kvp.Value != null ? Convert.ChangeType(kvp.Value, valueType) : null;
+                var convertedValue = SafeConvertType(kvp.Value, valueType);
                 typedDict[kvp.Key] = convertedValue;
             }
 
@@ -70,7 +70,7 @@ public class DeclarativeArgumentTransformer : IToolArgumentTransformer
             }
             else if (flatArgs.TryGetValue(name, out var directVal))
             {
-                argument = Convert.ChangeType(directVal, paramInfo.ParameterType);
+                argument = SafeConvertType(directVal, paramInfo.ParameterType);
             }
             else
             {
@@ -81,7 +81,7 @@ public class DeclarativeArgumentTransformer : IToolArgumentTransformer
 
                 if (match != null && flatArgs.TryGetValue(match.Name, out var val))
                 {
-                    argument = Convert.ChangeType(val, paramInfo.ParameterType);
+                    argument = SafeConvertType(val, paramInfo.ParameterType);
                 }
                 else
                 {
@@ -98,5 +98,154 @@ public class DeclarativeArgumentTransformer : IToolArgumentTransformer
     private static object? GetDefault(Type type)
     {
         return type.IsValueType ? Activator.CreateInstance(type) : null;
+    }
+
+    private static object? SafeConvertType(object? value, Type targetType)
+    {
+        if (value == null)
+        {
+            // Handle null values appropriately
+            if (targetType.IsValueType && Nullable.GetUnderlyingType(targetType) == null)
+            {
+                // For non-nullable value types, return default value
+                return Activator.CreateInstance(targetType);
+            }
+            return null;
+        }
+
+        // If types are already compatible, return as-is
+        if (targetType.IsAssignableFrom(value.GetType()))
+        {
+            return value;
+        }
+        try
+        {
+            // Handle JsonElement specifically - check for JsonElement type name as well in case of type system issues
+            if (value is System.Text.Json.JsonElement jsonElement || 
+                value?.GetType().Name == "JsonElement")
+            {
+                if (value is System.Text.Json.JsonElement je)
+                {
+                    return ConvertJsonElementToType(je, targetType);
+                }
+            }
+
+            // Handle nullable types
+            var underlyingType = Nullable.GetUnderlyingType(targetType);
+            if (underlyingType != null)
+            {
+                return SafeConvertType(value, underlyingType);
+            }
+
+            // Handle string conversion to enum
+            if (targetType.IsEnum && value is string stringValue)
+            {
+                return Enum.Parse(targetType, stringValue, ignoreCase: true);
+            }
+
+            // Only use Convert.ChangeType for types that implement IConvertible
+            if (value is IConvertible)
+            {
+                return Convert.ChangeType(value, targetType);
+            }
+            
+            // For non-IConvertible types, try ToString() conversion if target is string
+            if (targetType == typeof(string))
+            {
+                return value?.ToString() ?? string.Empty;
+            }
+            
+            // Last resort - return default value
+            return GetDefault(targetType);
+        }
+        catch (Exception ex) when (ex is InvalidCastException or FormatException or OverflowException or ArgumentException)
+        {
+            // If conversion fails, return default value for the type
+            return GetDefault(targetType);
+        }
+    }
+
+    private static object? ConvertJsonElementToType(System.Text.Json.JsonElement jsonElement, Type targetType)
+    {
+        try
+        {
+            // Handle nullable types
+            var underlyingType = Nullable.GetUnderlyingType(targetType);
+            if (underlyingType != null)
+            {
+                targetType = underlyingType;
+            }
+
+            if (targetType == typeof(string))
+            {
+                return jsonElement.ValueKind == System.Text.Json.JsonValueKind.String 
+                    ? jsonElement.GetString() 
+                    : jsonElement.GetRawText();
+            }
+
+            if (targetType == typeof(int))
+            {
+                return jsonElement.ValueKind == System.Text.Json.JsonValueKind.Number 
+                    ? jsonElement.GetInt32() 
+                    : int.TryParse(jsonElement.GetString(), out var intVal) ? intVal : 0;
+            }
+
+            if (targetType == typeof(long))
+            {
+                return jsonElement.ValueKind == System.Text.Json.JsonValueKind.Number 
+                    ? jsonElement.GetInt64() 
+                    : long.TryParse(jsonElement.GetString(), out var longVal) ? longVal : 0L;
+            }
+
+            if (targetType == typeof(double))
+            {
+                return jsonElement.ValueKind == System.Text.Json.JsonValueKind.Number 
+                    ? jsonElement.GetDouble() 
+                    : double.TryParse(jsonElement.GetString(), out var doubleVal) ? doubleVal : 0.0;
+            }
+
+            if (targetType == typeof(float))
+            {
+                return jsonElement.ValueKind == System.Text.Json.JsonValueKind.Number 
+                    ? jsonElement.GetSingle() 
+                    : float.TryParse(jsonElement.GetString(), out var floatVal) ? floatVal : 0.0f;
+            }
+
+            if (targetType == typeof(bool))
+            {
+                return jsonElement.ValueKind == System.Text.Json.JsonValueKind.True ? true :
+                       jsonElement.ValueKind == System.Text.Json.JsonValueKind.False ? false :
+                       bool.TryParse(jsonElement.GetString(), out var boolVal) ? boolVal : false;
+            }
+
+            if (targetType == typeof(DateTime))
+            {
+                return DateTime.TryParse(jsonElement.GetString(), out var dateVal) ? dateVal : DateTime.MinValue;
+            }
+
+            if (targetType.IsEnum)
+            {
+                var enumString = jsonElement.GetString();
+                return enumString != null ? Enum.Parse(targetType, enumString, ignoreCase: true) : GetDefault(targetType);
+            }
+
+            // For other types, try to get the raw value and convert
+            object? rawValue = jsonElement.ValueKind switch
+            {
+                System.Text.Json.JsonValueKind.String => jsonElement.GetString(),
+                System.Text.Json.JsonValueKind.Number => jsonElement.GetDecimal(),
+                System.Text.Json.JsonValueKind.True => (object)true,
+                System.Text.Json.JsonValueKind.False => (object)false,
+                System.Text.Json.JsonValueKind.Null => null,
+                _ => jsonElement.GetRawText()
+            };
+
+            return rawValue == null ? GetDefault(targetType) : Convert.ChangeType(rawValue, targetType);
+        }
+        catch
+        {
+            // Return default value on conversion failure
+            return GetDefault(targetType);
+        }
     }
 }

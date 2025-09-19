@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text.Json;
+using System.ComponentModel;
 using Agent.Framework;
 using Agent.Plugins.Tools;
 using Microsoft.Extensions.AI;
@@ -10,7 +11,6 @@ public class YamlToolFunction<TContext> : IDeferredToolFunction where TContext :
     private readonly IServiceProvider _sp;
     private readonly IEnumerable<Assembly> _assemblies;
     private readonly YamlToolDefinitionBase _toolDef;
-    private AIFunctionArguments? _args;
     private Guid? _threadId;
 
     public YamlToolFunction(IServiceProvider sp, IEnumerable<Assembly> assemblies, YamlToolDefinitionBase toolDef)
@@ -41,45 +41,17 @@ public class YamlToolFunction<TContext> : IDeferredToolFunction where TContext :
         var pluginMethod = pluginType.GetMethod("Run", BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase)
             ?? throw new MissingMethodException(pluginType.Name, "Run");
 
-        var paramType = ToolParameterTypeGenerator.Create(_toolDef);
+        // Create an instance that will handle the execution
+        var instance = new YamlToolFunction<TContext>(_sp, _assemblies, _toolDef)
+        {
+            _threadId = threadId
+        };
 
-        var wrapperMethod = typeof(YamlToolFunction<TContext>)
-            .GetMethod(nameof(ExecuteWrapper), BindingFlags.NonPublic | BindingFlags.Instance)!
-            .MakeGenericMethod(paramType);
-
-        return AIFunctionFactory.Create(wrapperMethod,
-            createInstanceFunc: args => new YamlToolFunction<TContext>(_sp, _assemblies, _toolDef)
-            {
-                _args = args,
-                _threadId = threadId
-            },
-            new AIFunctionFactoryOptions
-            {
-                Name = _toolDef.Name,
-                Description = _toolDef.Description,
-                ConfigureParameterBinding = param => new AIFunctionFactoryOptions.ParameterBindingOptions
-                {
-                    BindParameter = (_, args) =>
-                    {
-                        var instance = Activator.CreateInstance(paramType)!;
-                        foreach (var p in _toolDef.Parameters)
-                        {
-                            if (args.TryGetValue(p.Name, out var value) && value != null)
-                            {
-                                var prop = paramType.GetProperty(p.Name);
-                                if (prop != null)
-                                {
-                                    prop.SetValue(instance, Convert.ChangeType(value, prop.PropertyType));
-                                }
-                            }
-                        }
-                        return instance;
-                    }
-                }
-            });
+        // Return our custom AIFunction implementation that handles YAML parameters properly
+        return new YamlAwareAIFunction<TContext>(instance, _toolDef);
     }
-
-    private async Task<string?> ExecuteWrapper<TArgs>(TArgs typedArgs, CancellationToken ct) where TArgs : class
+    
+    public async Task<string?> ExecuteCore(Dictionary<string, object?> parameterValues, CancellationToken cancellationToken)
     {
         var pluginType = _assemblies
             .SelectMany(a => a.GetTypes())
@@ -92,32 +64,19 @@ public class YamlToolFunction<TContext> : IDeferredToolFunction where TContext :
         var instance = _sp.GetRequiredService(pluginType);
 
         var flatArgs = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
-        var aiArgs = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var arg in _args ?? new AIFunctionArguments())
+        
+        // Copy the provided parameters
+        foreach (var kvp in parameterValues)
         {
-            if (arg.Value is JsonElement json && json.ValueKind == JsonValueKind.Object)
-            {
-                var parsed = ConvertArgsToDictionary(json);
-                foreach (var kvp in parsed)
-                    aiArgs[kvp.Key] = kvp.Value;
-            }
-            else
-            {
-                aiArgs[arg.Key] = arg.Value;
-            }
-        }
-
-        foreach (var param in _toolDef.Parameters)
-        {
-            flatArgs[param.Name] = aiArgs.TryGetValue(param.Name, out var v) ? v : null;
+            flatArgs[kvp.Key] = kvp.Value;
         }
 
         flatArgs["threadId"] = _threadId;
         flatArgs["toolName"] = _toolDef.Name;
 
         var transformer = instance as IToolArgumentTransformer ?? new DeclarativeArgumentTransformer();
-        var invokeArgs = transformer.TransformArguments(method, flatArgs, _toolDef);
+        var transformedArgs = transformer.TransformArguments(method, flatArgs, _toolDef);
+        var invokeArgs = transformedArgs?.Select(arg => arg ?? (object)string.Empty).ToArray() ?? new object[0];
 
         if (instance is IYamlToolAware aware)
         {
@@ -132,29 +91,17 @@ public class YamlToolFunction<TContext> : IDeferredToolFunction where TContext :
 
             return result?.ToString();
         }
-
         catch (TargetParameterCountException ex)
         {
-            // Get the expected parameters' names and types from the MethodInfo object.
-            // This creates a readable list like: "string message", "int retries"
-            var expectedParams = method.GetParameters()
-                                       .Select(p => $"{p.ParameterType.Name} {p.Name}");
-
-            // Get the types of the arguments that were actually provided.
-            // This handles null arguments gracefully by outputting "null".
+            var expectedParams = method.GetParameters().Select(p => $"{p.ParameterType.Name} {p.Name}");
             var providedArgTypes = invokeArgs.Select(a => a?.GetType().Name ?? "null");
 
-            // Build a detailed, multi-line error message for logging or the exception.
-            // This clearly shows the mismatch between what was expected and what was given.
             var errorMessage = $"""
         Error invoking method '{method.Name}' on type '{pluginType.Name}'. Parameter count mismatch.
         - Expected Parameters ({method.GetParameters().Length}): {string.Join(", ", expectedParams)}
         - Provided Arguments ({invokeArgs.Length}): [{string.Join(", ", providedArgTypes)}]
         """;
 
-            // Throw a new, more informative exception.
-            // It's crucial to pass the original exception 'ex' as the inner exception
-            // to preserve the full stack trace and original error context.
             throw new InvalidOperationException(errorMessage, ex);
         }
     }
@@ -197,5 +144,78 @@ public class YamlToolFunction<TContext> : IDeferredToolFunction where TContext :
     public string GetPluginName()
     {
         return _toolDef.Name;
+    }
+}
+
+/// <summary>
+/// A wrapper AIFunction that incorporates YAML parameter descriptions into the function schema
+/// </summary>
+internal class YamlAwareAIFunction<TContext> : AIFunction where TContext : class
+{
+    private readonly YamlToolFunction<TContext> _yamlFunction;
+    private readonly YamlToolDefinitionBase _toolDef;
+    private readonly JsonElement _customSchema;
+
+    public YamlAwareAIFunction(YamlToolFunction<TContext> yamlFunction, YamlToolDefinitionBase toolDef)
+    {
+        _yamlFunction = yamlFunction;
+        _toolDef = toolDef;
+        _customSchema = CreateCustomSchema();
+    }
+
+    public override string Name => _toolDef.Name;
+    public override string Description => _toolDef.Description;
+    public override JsonElement JsonSchema => _customSchema;
+    public override IReadOnlyDictionary<string, object?> AdditionalProperties => new Dictionary<string, object?>();
+
+    protected override async ValueTask<object?> InvokeCoreAsync(AIFunctionArguments arguments, CancellationToken cancellationToken)
+    {
+        // Convert AIFunctionArguments to Dictionary<string, object?>
+        var argsDict = new Dictionary<string, object?>();
+        foreach (var arg in arguments)
+        {
+            argsDict[arg.Key] = arg.Value;
+        }
+        
+        return await _yamlFunction.ExecuteCore(argsDict, cancellationToken);
+    }
+
+    private JsonElement CreateCustomSchema()
+    {
+        // Create a schema that includes the YAML parameter descriptions
+        var properties = new Dictionary<string, object>();
+        var required = new List<string>();
+
+        foreach (var param in _toolDef.Parameters)
+        {
+            var paramType = param.Type switch
+            {
+                "int" => "integer",
+                "bool" => "boolean", 
+                "double" => "number",
+                _ => "string"
+            };
+
+            properties[param.Name] = new
+            {
+                type = paramType,
+                description = param.Description ?? $"Parameter {param.Name}"
+            };
+
+            if (param.Required)
+            {
+                required.Add(param.Name);
+            }
+        }
+
+        var schema = new
+        {
+            type = "object",
+            properties = properties,
+            required = required.ToArray()
+        };
+
+        var json = JsonSerializer.Serialize(schema);
+        return JsonDocument.Parse(json).RootElement;
     }
 }
