@@ -93,6 +93,10 @@ const ThreadItem = forwardRef<HTMLDivElement, IThreadItemProps>(
                 targetFriendlyName: 'Select thread',
                 valueObjectName: thread.id,
                 valueObjectFriendlyName: thread.id,
+                metadata: {
+                    threadId: thread.id,
+                    threadType: thread.source ?? 'unknown',
+                },
             });
         }, [logAmplitudeControlEvent, thread, isActive, selectThread]);
 

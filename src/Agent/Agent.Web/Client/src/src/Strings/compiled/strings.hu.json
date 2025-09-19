@@ -329,6 +329,12 @@
       "value": "Azure Monitor hozzáadva"
     }
   ],
+  "1DDIYv": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to resume this scheduled task?"
+    }
+  ],
   "1HLt0U": [
     {
       "type": 0,
@@ -361,6 +367,12 @@
       "value": "New incident handler"
     }
   ],
+  "1YF+AW": [
+    {
+      "type": 0,
+      "value": "Root cause analysis"
+    }
+  ],
   "1YN49J": [
     {
       "type": 0,
@@ -391,10 +403,10 @@
       "value": "Connect repository"
     }
   ],
-  "1rAiXS": [
+  "1xZjpU": [
     {
       "type": 0,
-      "value": "Response plan"
+      "value": "Are you sure you want to pause this scheduled task?"
     }
   ],
   "2/2yg+": [
@@ -429,6 +441,18 @@
       "value": "Change agent mode for this thread"
     }
   ],
+  "2FLZrG": [
+    {
+      "type": 0,
+      "value": "Total incidents"
+    }
+  ],
+  "2HM8tn": [
+    {
+      "type": 0,
+      "value": "Create and manage scheduled tasks to automatically run agent actions at regular intervals."
+    }
+  ],
   "2LQx4N": [
     {
       "type": 0,
@@ -439,6 +463,12 @@
     {
       "type": 0,
       "value": "A kijelölt erőforráscsoportok beállítása folyamatban van"
+    }
+  ],
+  "2Oxmp9": [
+    {
+      "type": 0,
+      "value": "Incident title"
     }
   ],
   "2PnnDB": [
@@ -459,6 +489,12 @@
     {
       "type": 0,
       "value": "% done. You can chat about other topics in the meantime."
+    }
+  ],
+  "2Smahe": [
+    {
+      "type": 0,
+      "value": "Incident summary"
     }
   ],
   "2a+ttj": [
@@ -545,12 +581,6 @@
       "value": "Suggested prompts for your resources"
     }
   ],
-  "3UAGOy": [
-    {
-      "type": 0,
-      "value": "Incident overview"
-    }
-  ],
   "3a5wL8": [
     {
       "type": 0,
@@ -579,6 +609,12 @@
     {
       "type": 0,
       "value": "Expand navigation"
+    }
+  ],
+  "3y9DGg": [
+    {
+      "type": 0,
+      "value": "Resume"
     }
   ],
   "3zLsNR": [
@@ -653,12 +689,6 @@
       "value": "Copy"
     }
   ],
-  "4nFchm": [
-    {
-      "type": 0,
-      "value": "Updating upgrade channel"
-    }
-  ],
   "4upwsn": [
     {
       "type": 0,
@@ -683,6 +713,12 @@
       "value": "Azure Monitor is not connected."
     }
   ],
+  "53O1/Z": [
+    {
+      "type": 0,
+      "value": "Incident coverage"
+    }
+  ],
   "59z+Aj": [
     {
       "type": 0,
@@ -691,6 +727,12 @@
     {
       "type": 1,
       "value": "error"
+    }
+  ],
+  "5CX32Z": [
+    {
+      "type": 0,
+      "value": "You do not have permission to authorize repository access."
     }
   ],
   "5GUtRJ": [
@@ -751,6 +793,12 @@
       "value": "errorMessage"
     }
   ],
+  "5cRddy": [
+    {
+      "type": 0,
+      "value": "Mitigated by user"
+    }
+  ],
   "5dcGlG": [
     {
       "type": 0,
@@ -759,6 +807,34 @@
     {
       "type": 1,
       "value": "error"
+    }
+  ],
+  "5gEh2M": [
+    {
+      "type": 0,
+      "value": "Incidents that require attention"
+    }
+  ],
+  "5j5HnL": [
+    {
+      "type": 0,
+      "value": "Editor to filter the results by column value. "
+    },
+    {
+      "type": 1,
+      "value": "columnName"
+    },
+    {
+      "type": 1,
+      "value": "delimiter"
+    },
+    {
+      "type": 0,
+      "value": " "
+    },
+    {
+      "type": 1,
+      "value": "filterValue"
     }
   ],
   "5jeq8P": [
@@ -803,6 +879,12 @@
     {
       "type": 0,
       "value": "Password"
+    }
+  ],
+  "5w4pim": [
+    {
+      "type": 0,
+      "value": "All mitigated by"
     }
   ],
   "5wGcN7": [
@@ -917,6 +999,12 @@
     {
       "type": 0,
       "value": "Contribute to Speech service resources."
+    }
+  ],
+  "6ZDt71": [
+    {
+      "type": 0,
+      "value": "Edit scheduled task"
     }
   ],
   "6aWd+W": [
@@ -1053,6 +1141,12 @@
     {
       "type": 0,
       "value": "Azure Managed Grafana is a fully managed service for analytics and monitoring. To add the service and a Grafana dashboard, you need to create an Azure Managed Grafana resource. The necessary permissions will be automatically assigned so that the dashboard can display monitoring data. Azure Managed Grafana will incur costs in your subscription."
+    }
+  ],
+  "7vl63m": [
+    {
+      "type": 0,
+      "value": "Severities"
     }
   ],
   "7w4v59": [
@@ -1269,6 +1363,12 @@
       "value": "Show only recommended resource groups"
     }
   ],
+  "AbXVP4": [
+    {
+      "type": 0,
+      "value": "Created at"
+    }
+  ],
   "AbpmRv": [
     {
       "type": 0,
@@ -1291,6 +1391,12 @@
     {
       "type": 0,
       "value": "Turn off incident handler"
+    }
+  ],
+  "Amv/KL": [
+    {
+      "type": 0,
+      "value": "You do not have permission to favorite or unfavorite threads"
     }
   ],
   "ArsZkp": [
@@ -1335,6 +1441,12 @@
       "value": "Azure Center for SAP solutions reader"
     }
   ],
+  "BT9p8f": [
+    {
+      "type": 0,
+      "value": "Response plan name"
+    }
+  ],
   "BV3Mir": [
     {
       "type": 0,
@@ -1361,6 +1473,18 @@
     {
       "type": 0,
       "value": "List cluster user credential action."
+    }
+  ],
+  "C2PrxB": [
+    {
+      "type": 0,
+      "value": "Click here to assign yourself the SRE Agent Admin role."
+    }
+  ],
+  "C2iTEH": [
+    {
+      "type": 0,
+      "value": "Paused"
     }
   ],
   "C3PGqj": [
@@ -1403,6 +1527,12 @@
     {
       "type": 0,
       "value": "Processed time"
+    }
+  ],
+  "CVAKJE": [
+    {
+      "type": 0,
+      "value": "You do not have permission to delete this thread"
     }
   ],
   "CZ6s9k": [
@@ -1543,6 +1673,12 @@
       "value": "This resource group is recommended for optimal agent performance. It includes one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, Web Apps, Redis, Postgres SQL, CosmosDB, Virtual machines, or Storage accounts."
     }
   ],
+  "DeP+ZM": [
+    {
+      "type": 0,
+      "value": "Response plans"
+    }
+  ],
   "Dff3ms": [
     {
       "type": 0,
@@ -1559,6 +1695,12 @@
     {
       "type": 0,
       "value": "Choose impacted service"
+    }
+  ],
+  "DnkQsX": [
+    {
+      "type": 0,
+      "value": "You do not have access"
     }
   ],
   "DpMYPV": [
@@ -1651,6 +1793,12 @@
       "value": "Incidensplatform"
     }
   ],
+  "EZbXbs": [
+    {
+      "type": 0,
+      "value": "You do not have permission to add or delete data connectors."
+    }
+  ],
   "EdEthU": [
     {
       "type": 0,
@@ -1727,6 +1875,12 @@
     {
       "type": 0,
       "value": "Visszaigazolva"
+    }
+  ],
+  "Fr5LyM": [
+    {
+      "type": 0,
+      "value": "Safe"
     }
   ],
   "Fv1ZSz": [
@@ -1833,6 +1987,12 @@
       "value": "Cognitive Services OpenAI Contributor"
     }
   ],
+  "HSZaZc": [
+    {
+      "type": 0,
+      "value": "You do not have permission to turn Deep Investigations off."
+    }
+  ],
   "HWMrXF": [
     {
       "type": 0,
@@ -1915,6 +2075,18 @@
     {
       "type": 0,
       "value": "Creating Sub-Agent"
+    }
+  ],
+  "IYLPrk": [
+    {
+      "type": 0,
+      "value": "Delete scheduled task"
+    }
+  ],
+  "IbIk/K": [
+    {
+      "type": 0,
+      "value": "You do not have permission to add or edit annotations."
     }
   ],
   "IiNwpr": [
@@ -2055,6 +2227,12 @@
       "value": "Ügyfél"
     }
   ],
+  "JYbAwr": [
+    {
+      "type": 0,
+      "value": "The agent's analysis of the causes that triggered the incident."
+    }
+  ],
   "JgQ1gX": [
     {
       "type": 0,
@@ -2077,16 +2255,6 @@
     {
       "type": 0,
       "value": "Disconnect ServiceNow?"
-    }
-  ],
-  "JmZ3gF": [
-    {
-      "type": 0,
-      "value": "Updating upgrade channel to "
-    },
-    {
-      "type": 1,
-      "value": "channel"
     }
   ],
   "JwHSD6": [
@@ -2113,6 +2281,12 @@
       "value": "Allows for full read access to IoT Hub data-plane properties."
     }
   ],
+  "KJuQJ3": [
+    {
+      "type": 0,
+      "value": "Incidents reviewed"
+    }
+  ],
   "KLYuRX": [
     {
       "type": 0,
@@ -2123,6 +2297,12 @@
     {
       "type": 0,
       "value": "Error"
+    }
+  ],
+  "KS5JHs": [
+    {
+      "type": 0,
+      "value": "Execution count"
     }
   ],
   "KVPNxV": [
@@ -2161,6 +2341,12 @@
       "value": ")"
     }
   ],
+  "KsuM4D": [
+    {
+      "type": 0,
+      "value": "Agent prompt"
+    }
+  ],
   "KyDsjH": [
     {
       "type": 0,
@@ -2193,6 +2379,12 @@
       "value": "Data connectors"
     }
   ],
+  "LFn7Ak": [
+    {
+      "type": 0,
+      "value": "Scheduled task created successfully"
+    }
+  ],
   "LPprqA": [
     {
       "type": 0,
@@ -2211,16 +2403,44 @@
       "value": "View all resources, but does not allow you to make any changes."
     }
   ],
+  "LUSiug": [
+    {
+      "type": 0,
+      "value": "Failed to add SRE Agent Administrator role to your agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
   "LnglaU": [
     {
       "type": 0,
       "value": "Run History"
     }
   ],
+  "Lv0zJu": [
+    {
+      "type": 0,
+      "value": "Details"
+    }
+  ],
+  "LwwzP6": [
+    {
+      "type": 0,
+      "value": "Severity level"
+    }
+  ],
   "LyHqqV": [
     {
       "type": 0,
       "value": "Standard input"
+    }
+  ],
+  "M/zZVx": [
+    {
+      "type": 0,
+      "value": "Add filter"
     }
   ],
   "M88YzU": [
@@ -2245,6 +2465,30 @@
     {
       "type": 0,
       "value": "Deleting incident handler"
+    }
+  ],
+  "MIxpkh": [
+    {
+      "type": 0,
+      "value": "Incidents not handled by response plan criteria"
+    }
+  ],
+  "MPzBut": [
+    {
+      "type": 0,
+      "value": "Execution history"
+    }
+  ],
+  "MSWnaq": [
+    {
+      "type": 0,
+      "value": "Create a new scheduled task to monitor or perform actions at regular intervals using cron expressions."
+    }
+  ],
+  "MWaWoR": [
+    {
+      "type": 0,
+      "value": "Starting September 25th, 2025, users without one of the required Azure role-based access control (RBAC) roles will lose access to Azure SRE Agent."
     }
   ],
   "MhTfXm": [
@@ -2281,6 +2525,12 @@
       "value": "error"
     }
   ],
+  "MxYLKu": [
+    {
+      "type": 0,
+      "value": "Add SRE Agent Administrator role"
+    }
+  ],
   "N+sJfO": [
     {
       "type": 0,
@@ -2297,6 +2547,12 @@
     {
       "type": 0,
       "value": "Authorized"
+    }
+  ],
+  "NBxjGE": [
+    {
+      "type": 0,
+      "value": "Copy the error details and send them to your administrator(s) to get access to this page."
     }
   ],
   "ND2EUR": [
@@ -2321,6 +2577,12 @@
     {
       "type": 0,
       "value": "Riasztási szabály"
+    }
+  ],
+  "NW3Qi+": [
+    {
+      "type": 0,
+      "value": "Custom plan"
     }
   ],
   "NYTGIb": [
@@ -2363,12 +2625,6 @@
     {
       "type": 0,
       "value": "Create data connector"
-    }
-  ],
-  "O2umhN": [
-    {
-      "type": 0,
-      "value": "Failed to update upgrade channel"
     }
   ],
   "O79Wpv": [
@@ -2493,6 +2749,12 @@
       "value": "ServiceNow endpoint"
     }
   ],
+  "Oz5LRn": [
+    {
+      "type": 0,
+      "value": "Permission"
+    }
+  ],
   "P/1qUI": [
     {
       "type": 0,
@@ -2539,6 +2801,12 @@
     {
       "type": 0,
       "value": "Canceled"
+    }
+  ],
+  "PGJzE0": [
+    {
+      "type": 0,
+      "value": "You do not have permission to connect/disconnect incident management"
     }
   ],
   "PJ2FQv": [
@@ -2807,6 +3075,12 @@
       "value": "Azure Kubernetes Service Cluster Admin"
     }
   ],
+  "RU9VOd": [
+    {
+      "type": 0,
+      "value": "You do not have permission to create new chat threads."
+    }
+  ],
   "RVf7gC": [
     {
       "type": 0,
@@ -2843,6 +3117,12 @@
       "value": "Last 12 hours"
     }
   ],
+  "S57QRB": [
+    {
+      "type": 0,
+      "value": "Filter by"
+    }
+  ],
   "S6FECK": [
     {
       "type": 0,
@@ -2867,6 +3147,12 @@
     {
       "type": 0,
       "value": "Cognitive Services Data Reader"
+    }
+  ],
+  "SFUZOQ": [
+    {
+      "type": 0,
+      "value": "Incident created"
     }
   ],
   "SL7+hl": [
@@ -2999,6 +3285,12 @@
       "value": "Started"
     }
   ],
+  "TDaF6J": [
+    {
+      "type": 0,
+      "value": "Dismiss"
+    }
+  ],
   "TDoBlx": [
     {
       "type": 0,
@@ -3023,10 +3315,26 @@
       "value": "Ezt a mezőt kötelező kitölteni"
     }
   ],
+  "TKp3Ld": [
+    {
+      "type": 0,
+      "value": "Across all incidents in "
+    },
+    {
+      "type": 1,
+      "value": "platform"
+    }
+  ],
   "TMZ2Rq": [
     {
       "type": 0,
       "value": "Grafana-adminisztrátor"
+    }
+  ],
+  "TZWmvi": [
+    {
+      "type": 0,
+      "value": "Invalid cron expression. Please use format: minute hour day month day-of-week"
     }
   ],
   "TdTXXf": [
@@ -3065,10 +3373,22 @@
       "value": "You can now view incidents, and create additional incident handlers and custom handlers."
     }
   ],
+  "Tq2F2Y": [
+    {
+      "type": 0,
+      "value": "You do not have permission to create response plans."
+    }
+  ],
   "TyvDrC": [
     {
       "type": 0,
       "value": "Incidenskezelési konfiguráció mentése"
+    }
+  ],
+  "U4ZTAj": [
+    {
+      "type": 0,
+      "value": "Cancel generation"
     }
   ],
   "U4e+Yf": [
@@ -3081,6 +3401,16 @@
     {
       "type": 0,
       "value": "Autonomous mode"
+    }
+  ],
+  "UKMPBH": [
+    {
+      "type": 0,
+      "value": "You do not have permission to change the thread mode from "
+    },
+    {
+      "type": 1,
+      "value": "mode"
     }
   ],
   "UKUKGA": [
@@ -3161,6 +3491,12 @@
       "value": "Repository"
     }
   ],
+  "V9A1Xh": [
+    {
+      "type": 0,
+      "value": "You do not have permission to delete this agent."
+    }
+  ],
   "VB97cf": [
     {
       "type": 0,
@@ -3221,6 +3557,20 @@
       "value": "Application Insights Component Contributor"
     }
   ],
+  "VpsD7s": [
+    {
+      "type": 0,
+      "value": "Upgrade channel updated to "
+    },
+    {
+      "type": 1,
+      "value": "channel"
+    },
+    {
+      "type": 0,
+      "value": " successfully"
+    }
+  ],
   "VtBCjG": [
     {
       "type": 0,
@@ -3243,6 +3593,12 @@
     {
       "type": 0,
       "value": "Collapse"
+    }
+  ],
+  "W/siYq": [
+    {
+      "type": 0,
+      "value": "No response plans found"
     }
   ],
   "W2JBdp": [
@@ -3373,6 +3729,12 @@
       "value": "A következő változata:"
     }
   ],
+  "X5UCWb": [
+    {
+      "type": 0,
+      "value": "Scheduled task deleted successfully"
+    }
+  ],
   "X8SzJ6": [
     {
       "type": 0,
@@ -3401,6 +3763,12 @@
     {
       "type": 0,
       "value": "The fully autonomous mode. With the required permissions, the agent analyzes incidents and independently performs mitigation or resource modifications."
+    }
+  ],
+  "XLRt15": [
+    {
+      "type": 0,
+      "value": "No access"
     }
   ],
   "XRdOZL": [
@@ -3451,6 +3819,18 @@
       "value": "Figyelési metrikák közzétevője"
     }
   ],
+  "Xx0WZV": [
+    {
+      "type": 0,
+      "value": "Send message"
+    }
+  ],
+  "Y2QRpS": [
+    {
+      "type": 0,
+      "value": "equals"
+    }
+  ],
   "Y7Lbpf": [
     {
       "type": 0,
@@ -3493,6 +3873,18 @@
       "value": "Nem kifogástalan"
     }
   ],
+  "YgyuGj": [
+    {
+      "type": 0,
+      "value": "Mitigated by"
+    }
+  ],
+  "YigUHc": [
+    {
+      "type": 0,
+      "value": "You do not have permission to approve this action."
+    }
+  ],
   "Yjk5Ow": [
     {
       "type": 0,
@@ -3505,6 +3897,12 @@
       "value": "Cognitive Services QnA Maker Reader"
     }
   ],
+  "YmslQP": [
+    {
+      "type": 0,
+      "value": "Cron expression"
+    }
+  ],
   "Yp7NCi": [
     {
       "type": 0,
@@ -3515,6 +3913,12 @@
     {
       "type": 0,
       "value": "Felügyelt identitás"
+    }
+  ],
+  "Ysew65": [
+    {
+      "type": 0,
+      "value": "You do not have permission to turn Deep Investigations on."
     }
   ],
   "Z1VHv1": [
@@ -3539,6 +3943,16 @@
     {
       "type": 0,
       "value": "Agent ID"
+    }
+  ],
+  "ZCA/Ga": [
+    {
+      "type": 0,
+      "value": "Updating upgrade channel to "
+    },
+    {
+      "type": 1,
+      "value": "channel"
     }
   ],
   "ZNMCbm": [
@@ -3615,6 +4029,12 @@
       "value": " felügyelt erőforráscsoportot az SRE-ügynökhöz"
     }
   ],
+  "ZwYyES": [
+    {
+      "type": 0,
+      "value": "Medium risk"
+    }
+  ],
   "a5msuh": [
     {
       "type": 0,
@@ -3657,6 +4077,12 @@
       "value": "Copy to clipboard"
     }
   ],
+  "aF4iw+": [
+    {
+      "type": 0,
+      "value": "Using this response plan"
+    }
+  ],
   "aGL+Qo": [
     {
       "type": 0,
@@ -3685,6 +4111,18 @@
     {
       "type": 0,
       "value": "Visszajelzés"
+    }
+  ],
+  "aRUGFu": [
+    {
+      "type": 0,
+      "value": "Failed to update upgrade channel"
+    }
+  ],
+  "aTyEZH": [
+    {
+      "type": 0,
+      "value": "Search response plans"
     }
   ],
   "aXGUvh": [
@@ -3721,6 +4159,12 @@
     {
       "type": 0,
       "value": "Choose incidents"
+    }
+  ],
+  "ak4FqD": [
+    {
+      "type": 0,
+      "value": "Scheduled task resumed successfully"
     }
   ],
   "anSi7M": [
@@ -3805,6 +4249,12 @@
       "value": "Tulajdonos:"
     }
   ],
+  "boa1qH": [
+    {
+      "type": 0,
+      "value": "Last day"
+    }
+  ],
   "brxlTt": [
     {
       "type": 0,
@@ -3883,6 +4333,16 @@
       "value": "Adjon meg minél több részletet, de ne adjon meg személyes adatokat."
     }
   ],
+  "csu95N": [
+    {
+      "type": 0,
+      "value": "Successfully added SRE Agent Administrator role to your agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
   "cubQfQ": [
     {
       "type": 0,
@@ -3901,6 +4361,12 @@
     {
       "type": 0,
       "value": "Vissza"
+    }
+  ],
+  "d+XOMl": [
+    {
+      "type": 0,
+      "value": "Incidents mitigated by agent"
     }
   ],
   "d2GmfJ": [
@@ -3931,18 +4397,16 @@
       "value": " options"
     }
   ],
-  "dPoAxA": [
+  "dG8VrM": [
     {
       "type": 0,
-      "value": "Upgrade channel updated to "
-    },
-    {
-      "type": 1,
-      "value": "channel"
-    },
+      "value": "Scheduled task"
+    }
+  ],
+  "dJqE3e": [
     {
       "type": 0,
-      "value": " successfully"
+      "value": "Create scheduled task"
     }
   ],
   "dQ5/dh": [
@@ -3979,6 +4443,12 @@
     {
       "type": 0,
       "value": "The semiautonomous mode. The agent diagnoses incidents, then mitigates or modifies resources only after its proposed actions are reviewed and approved."
+    }
+  ],
+  "djNL6D": [
+    {
+      "type": 0,
+      "value": "Read-only"
     }
   ],
   "dnXgff": [
@@ -4095,6 +4565,12 @@
       "value": "Generate custom handler"
     }
   ],
+  "fEYQWU": [
+    {
+      "type": 0,
+      "value": "You do not have permission to delete response plans."
+    }
+  ],
   "fFyuVF": [
     {
       "type": 0,
@@ -4123,6 +4599,12 @@
     {
       "type": 0,
       "value": "Impacted service"
+    }
+  ],
+  "ffTMIX": [
+    {
+      "type": 0,
+      "value": "All severity levels"
     }
   ],
   "ffkuNo": [
@@ -4159,6 +4641,18 @@
     {
       "type": 0,
       "value": "Minden állapot"
+    }
+  ],
+  "g+9csc": [
+    {
+      "type": 0,
+      "value": "You do not have permission to add or delete managed resources"
+    }
+  ],
+  "g/hfuE": [
+    {
+      "type": 0,
+      "value": "Copy error details"
     }
   ],
   "gC4xMY": [
@@ -4287,6 +4781,12 @@
       "value": "Administer Device Update accounts."
     }
   ],
+  "hGQqkW": [
+    {
+      "type": 0,
+      "value": "Schedule"
+    }
+  ],
   "hHz/bk": [
     {
       "type": 0,
@@ -4333,6 +4833,12 @@
     {
       "type": 0,
       "value": "Successfully deleted incident handler"
+    }
+  ],
+  "hZY54D": [
+    {
+      "type": 0,
+      "value": "Top categories"
     }
   ],
   "hfACn+": [
@@ -4419,6 +4925,18 @@
       "value": "Deploy incident handler"
     }
   ],
+  "iIoj97": [
+    {
+      "type": 0,
+      "value": "Resource ID"
+    }
+  ],
+  "iNgloh": [
+    {
+      "type": 0,
+      "value": "Select a filter"
+    }
+  ],
   "iTTSax": [
     {
       "type": 0,
@@ -4435,6 +4953,12 @@
     {
       "type": 0,
       "value": "Core application group resource name"
+    }
+  ],
+  "ic8SAj": [
+    {
+      "type": 0,
+      "value": "Or"
     }
   ],
   "icWG3R": [
@@ -4539,6 +5063,12 @@
       "value": "Setup complete"
     }
   ],
+  "jRtus7": [
+    {
+      "type": 0,
+      "value": "No root cause analysis categories found"
+    }
+  ],
   "jTQZpk": [
     {
       "type": 0,
@@ -4551,10 +5081,38 @@
       "value": "Enter sub-agent name"
     }
   ],
+  "jXIYLG": [
+    {
+      "type": 0,
+      "value": "You do not have permission to edit response plans."
+    }
+  ],
   "jabB4C": [
     {
       "type": 0,
       "value": "Unread"
+    }
+  ],
+  "jd2Xsp": [
+    {
+      "type": 0,
+      "value": "Low risk"
+    }
+  ],
+  "jfgCRQ": [
+    {
+      "type": 0,
+      "value": "Adding SRE Agent Administrator role to your agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
+  "jlOO/9": [
+    {
+      "type": 0,
+      "value": "Next execution"
     }
   ],
   "juQ8mz": [
@@ -4627,6 +5185,24 @@
       "value": " selected"
     }
   ],
+  "krH81A": [
+    {
+      "type": 0,
+      "value": "Failed to add SRE Agent Administrator role to your agent "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ". Error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "ku+mDU": [
     {
       "type": 0,
@@ -4659,6 +5235,26 @@
     {
       "type": 0,
       "value": "AzureML Data Scientist"
+    }
+  ],
+  "lKv8ex": [
+    {
+      "type": 0,
+      "value": "Default"
+    }
+  ],
+  "ldy3CI": [
+    {
+      "type": 0,
+      "value": "You are missing the required permission \""
+    },
+    {
+      "type": 1,
+      "value": "permission"
+    },
+    {
+      "type": 0,
+      "value": "\" for this agent."
     }
   ],
   "levHvg": [
@@ -4709,28 +5305,16 @@
       "value": "Start"
     }
   ],
-  "mTsdF8": [
-    {
-      "type": 0,
-      "value": "Editor to filter the results by column value. "
-    },
-    {
-      "type": 1,
-      "value": "columnName"
-    },
-    {
-      "type": 0,
-      "value": ": "
-    },
-    {
-      "type": 1,
-      "value": "filterValue"
-    }
-  ],
   "mZ0R9v": [
     {
       "type": 0,
       "value": "Run test"
+    }
+  ],
+  "makWrV": [
+    {
+      "type": 0,
+      "value": "Incidents mitigated by user"
     }
   ],
   "mgYBYo": [
@@ -4743,6 +5327,12 @@
     {
       "type": 0,
       "value": "Read and write Azure Monitor monitoring settings and data."
+    }
+  ],
+  "mky0K0": [
+    {
+      "type": 0,
+      "value": "Incident response plan"
     }
   ],
   "mq/sud": [
@@ -4875,6 +5465,18 @@
       "value": "Connect to ICM so that the Agent can automatically listen and respond to your Incidents."
     }
   ],
+  "o9bCTX": [
+    {
+      "type": 0,
+      "value": "Last execution"
+    }
+  ],
+  "oDb8Xv": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete this scheduled task? This action cannot be undone."
+    }
+  ],
   "oH9YKC": [
     {
       "type": 0,
@@ -4903,6 +5505,12 @@
     {
       "type": 0,
       "value": "Szerkesztő/operátor"
+    }
+  ],
+  "oXd3cw": [
+    {
+      "type": 0,
+      "value": "Max executions"
     }
   ],
   "oY4j0R": [
@@ -4939,10 +5547,22 @@
       "value": "Provide response feedback"
     }
   ],
+  "ongAz6": [
+    {
+      "type": 0,
+      "value": "Search incidents"
+    }
+  ],
   "ovJ26C": [
     {
       "type": 0,
       "value": "Medium"
+    }
+  ],
+  "ox7DwN": [
+    {
+      "type": 0,
+      "value": "High risk"
     }
   ],
   "p/xAmY": [
@@ -5041,6 +5661,12 @@
       "value": "A Grafana-irányítópult kiépítése és összekapcsolása után eltarthat egy ideig, amíg az erőforrások teljesen feltöltik az irányítópultot."
     }
   ],
+  "ppARxn": [
+    {
+      "type": 0,
+      "value": "Updating upgrade channel"
+    }
+  ],
   "pqgzm0": [
     {
       "type": 0,
@@ -5059,10 +5685,28 @@
       "value": "Folyamatban"
     }
   ],
+  "qczspd": [
+    {
+      "type": 0,
+      "value": "View plan"
+    }
+  ],
+  "qddSy6": [
+    {
+      "type": 0,
+      "value": "Error details"
+    }
+  ],
   "qeUtXk": [
     {
       "type": 0,
       "value": "Az elmúlt 7 nap költségei"
+    }
+  ],
+  "qhApmK": [
+    {
+      "type": 0,
+      "value": "Click here to learn more about SRE Agent RBAC"
     }
   ],
   "qj1uhz": [
@@ -5111,6 +5755,18 @@
     {
       "type": 0,
       "value": "Aktív beszélgetések"
+    }
+  ],
+  "rKq4sw": [
+    {
+      "type": 0,
+      "value": "Choose severity"
+    }
+  ],
+  "rM7Pbj": [
+    {
+      "type": 0,
+      "value": "Pending user action"
     }
   ],
   "rNvlCF": [
@@ -5297,6 +5953,18 @@
       "value": "Gazdagépek"
     }
   ],
+  "sy7vzf": [
+    {
+      "type": 0,
+      "value": "Scheduled tasks"
+    }
+  ],
+  "t/atZW": [
+    {
+      "type": 0,
+      "value": "You do not have permission to send a message to this agent."
+    }
+  ],
   "t3D4PH": [
     {
       "type": 0,
@@ -5307,6 +5975,12 @@
     {
       "type": 0,
       "value": "Healthcare Agent Editor"
+    }
+  ],
+  "tFFMkF": [
+    {
+      "type": 0,
+      "value": "Pause"
     }
   ],
   "tH6Myj": [
@@ -5365,6 +6039,12 @@
       "value": "Add to favorites"
     }
   ],
+  "tbPq1d": [
+    {
+      "type": 0,
+      "value": "All custom plans"
+    }
+  ],
   "tfuXMw": [
     {
       "type": 0,
@@ -5377,6 +6057,12 @@
     {
       "type": 0,
       "value": "\" has been created successfully"
+    }
+  ],
+  "trPabo": [
+    {
+      "type": 0,
+      "value": "No scheduled tasks found"
     }
   ],
   "tshYzs": [
@@ -5433,6 +6119,12 @@
       "value": "All priorities"
     }
   ],
+  "uI0Lmu": [
+    {
+      "type": 0,
+      "value": "All autonomy levels"
+    }
+  ],
   "uRMqBi": [
     {
       "type": 0,
@@ -5457,6 +6149,12 @@
       "value": "Tools selected for incident response"
     }
   ],
+  "v8cTK0": [
+    {
+      "type": 0,
+      "value": "Scheduled task updated successfully"
+    }
+  ],
   "v8lolG": [
     {
       "type": 0,
@@ -5479,6 +6177,18 @@
     {
       "type": 0,
       "value": "Authorized by"
+    }
+  ],
+  "vEHhXK": [
+    {
+      "type": 0,
+      "value": "Scheduled task paused successfully"
+    }
+  ],
+  "vPX3R3": [
+    {
+      "type": 0,
+      "value": "You do not have permission to turn response plans off."
     }
   ],
   "vR27zt": [
@@ -5521,6 +6231,12 @@
     {
       "type": 0,
       "value": "Can read Azure Cosmos DB account data."
+    }
+  ],
+  "vfrUDN": [
+    {
+      "type": 0,
+      "value": "AI-generated"
     }
   ],
   "w+XRP2": [
@@ -5681,6 +6397,12 @@
     {
       "type": 0,
       "value": "Erőforráscsoport neve"
+    }
+  ],
+  "xVnsKO": [
+    {
+      "type": 0,
+      "value": "You do not have permission to turn response plans on."
     }
   ],
   "xXhn+h": [

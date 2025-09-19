@@ -110,6 +110,10 @@ const ThreadSearchDialog = ({ threads: initialThreads, selectThread, activeThrea
                     targetFriendlyName: 'Select searched thread',
                     valueObjectName: thread.id,
                     valueObjectFriendlyName: thread.id,
+                    metadata: {
+                        threadId: thread.id,
+                        threadType: thread.source ?? 'unknown',
+                    },
                 });
             }
         },
