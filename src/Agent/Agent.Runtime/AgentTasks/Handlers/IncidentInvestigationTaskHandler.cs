@@ -300,7 +300,7 @@ public sealed class IncidentInvestigationTaskHandler(
 
                 var initialHypotheses = await GenerateHypotheses(
                     inputData.IncidentDescription,
-                    state.InitialInvestigation.Summary,
+                    state.InitialInvestigation.ToString(),
                     null,
                     [],
                     context,
@@ -337,7 +337,7 @@ public sealed class IncidentInvestigationTaskHandler(
 
                     var validationResult = await ValidateHypothesisAsync(
                         inputData.IncidentDescription,
-                        state.InitialInvestigation.Summary,
+                        state.InitialInvestigation.ToString(),
                         validatedHypothesis,
                         current.Description,
                         current.Id, // Pass the hypothesis ID for tool result routing
@@ -427,7 +427,7 @@ public sealed class IncidentInvestigationTaskHandler(
                     // call LLM to generate hypotheses
                     var hypotheses = await GenerateHypotheses(
                         inputData.IncidentDescription,
-                        state.InitialInvestigation.Summary,
+                        state.InitialInvestigation.ToString(),
                         validatedHypothesis,
                         allHypothesesTitles,
                         context,
@@ -879,6 +879,7 @@ public sealed class IncidentInvestigationTaskHandler(
                     context: context,
                     maxTurns: 100,
                     hooks: runHooks,
+                    allowParallelToolCalls: true,
                     cancellationToken: cancellationToken
                 );
 
@@ -915,6 +916,7 @@ public sealed class IncidentInvestigationTaskHandler(
                         config: runConfig,
                         context: context,
                         hooks: runHooks,
+                        allowParallelToolCalls: true,
                         cancellationToken: cancellationToken
                     );
                 }
@@ -1340,7 +1342,7 @@ public sealed class IncidentInvestigationTaskHandler(
             {inputData.IncidentDescription}
 
             **Initial Investigation Summary:**
-            {state.InitialInvestigation.Summary}
+            {state.InitialInvestigation.ToString()}
 
             **Investigation Outcome:**
             The investigation has identified a single validated hypothesis that can be treated as the likely root cause.
@@ -1394,7 +1396,7 @@ public sealed class IncidentInvestigationTaskHandler(
             {inputData.IncidentDescription}
 
             **Initial Investigation Summary:**
-            {state.InitialInvestigation.Summary}
+            {state.InitialInvestigation.ToString()}
 
             **Investigation Outcome:**
             The investigation has identified multiple validated hypotheses that could be contributing factors.
@@ -1446,7 +1448,7 @@ public sealed class IncidentInvestigationTaskHandler(
             {inputData.IncidentDescription}
 
             **Initial Investigation Summary:**
-            {state.InitialInvestigation.Summary}
+            {state.InitialInvestigation.ToString()}
 
             **Investigation Outcome:**
             The investigation was unable to identify validated hypotheses or determine a root cause for this incident.

@@ -43,6 +43,7 @@ public static class Runner
         TContext? context = null,
         RunHooks<TContext>? hooks = null,
         Func<string, Task>? displayModelOutput = null,
+        bool allowParallelToolCalls = false,
         CancellationToken cancellationToken = default
     ) where TContext : class
     {
@@ -75,7 +76,6 @@ public static class Runner
             {
                 var resultContent = new FunctionResultContent(manualToolCall.FunctionCall.CallId, matchingResult.Output);
 
-                functionCallMessages.Add(manualToolCall.OriginalMessage);
                 functionCallMessages.Add(new ChatMessage(ChatRole.Tool, [resultContent]));
 
                 previousResult.Trajectory.Append(resultContent);
@@ -104,7 +104,8 @@ public static class Runner
             trajectory: previousResult.Trajectory,
             displayModelOutput: displayModelOutput,
             cancellationToken: cancellationToken,
-            _shouldRunAgentStartHooks: previousResult.AgentChanged()
+            _shouldRunAgentStartHooks: previousResult.AgentChanged(),
+            allowParallelToolCalls: allowParallelToolCalls
         );
     }
 
@@ -117,6 +118,7 @@ public static class Runner
         int maxTurns = DefaultMaxTurns,
         RunHooks<TContext>? hooks = null,
         Func<string, Task>? displayModelOutput = null,
+        bool allowParallelToolCalls = false,
         CancellationToken cancellationToken = default
     ) where TContext : class
     {
@@ -130,6 +132,7 @@ public static class Runner
             hooks: hooks,
             displayModelOutput: displayModelOutput,
             cancellationToken: cancellationToken,
+            allowParallelToolCalls: allowParallelToolCalls,
             _shouldRunAgentStartHooks: true // always run agent start hooks on initial run
         );
     }
@@ -146,6 +149,7 @@ public static class Runner
         int maxTurns = DefaultMaxTurns,
         RunHooks<TContext>? hooks = null,
         Func<string, Task>? displayModelOutput = null,
+        bool allowParallelToolCalls = false,
         CancellationToken cancellationToken = default
     ) where TContext : class
     {
@@ -174,7 +178,8 @@ public static class Runner
                 hooks: handoffDetectionHooks,
                 displayModelOutput: displayModelOutput,
                 cancellationToken: cancellationToken,
-                _shouldRunAgentStartHooks: true
+                _shouldRunAgentStartHooks: true,
+                allowParallelToolCalls: allowParallelToolCalls
             );
 
             return new RunResultWithHandoff<TContext>
@@ -205,6 +210,7 @@ public static class Runner
         Trajectory? trajectory = null,
         Func<string, Task>? displayModelOutput = null,
         bool _shouldRunAgentStartHooks = true,
+        bool allowParallelToolCalls = false,
         CancellationToken cancellationToken = default // TODO: use cancellation token
     ) where TContext : class
     {
@@ -269,6 +275,7 @@ public static class Runner
                     shouldRunAgentStartHooks: shouldRunAgentStartHooks,
                     trajectory: trajectory,
                     logger: logger,
+                    allowParallelToolCalls: allowParallelToolCalls,
                     displayModelOutput: displayModelOutput
                 );
 
@@ -366,7 +373,7 @@ public static class Runner
                     // do nothing, we will run the agent again
                 }
                 else if (turnResult.NextStep.Type == NextStepType.ManualTool
-                    && turnResult.NextStep.ManualToolCall is not null)
+                    && turnResult.NextStep.ManualToolCalls.Count > 0)
                 {
                     return new RunResult<TContext>(currentAgent)
                     {
@@ -374,7 +381,7 @@ public static class Runner
                         NewItems = generatedMessages,
                         Output = turnResult.NextStep.Output,
                         ContextWrapper = contextWrapper,
-                        ManualToolCalls = [turnResult.NextStep.ManualToolCall],
+                        ManualToolCalls = turnResult.NextStep.ManualToolCalls,
                         CurrentTurn = currentTurn,
                         MaxTurns = maxTurns,
                         RawResponses = rawResponses,
@@ -544,6 +551,7 @@ public static class Runner
         bool shouldRunAgentStartHooks,
         Trajectory trajectory,
         ILogger logger,
+        bool allowParallelToolCalls = false,
         Func<string, Task>? displayModelOutput = null
     ) where TContext : class
     {
@@ -578,9 +586,7 @@ public static class Runner
             Tools = tools.Cast<AITool>().ToList(),
             ToolMode = agent.ChatToolMode,
             Temperature = agent.Temperature,
-            AllowMultipleToolCalls = tools.Count > 0
-                ? false // agent.AllowParallelToolCalls TODO: not supported yet
-                : null // if there are no tools this value needs to be null, not false
+            AllowMultipleToolCalls = tools.Count > 0 ? allowParallelToolCalls : null
         };
 
         var chatClient = agent.GetChatClient(config);
@@ -669,6 +675,45 @@ public static class Runner
     ) where TContext : class
     {
         List<ChatMessage> newStepItems = [];
+        List<ManualToolCall> manualToolCalls = [];
+        bool anyToolsCalled = modelResponse.Messages.Any(m => m.Contents.OfType<FunctionCallContent>().Any());
+        List<FunctionResultContent> functionResults = [];
+        bool handoffOccurred = false;
+        Agent<TContext>? handoffNewAgent = null;
+
+        // validate tool calling
+        // if parallel tool calling is enabled, handoffs must still be called alone
+        if (modelResponse.Messages.Any(m => m.Contents.OfType<FunctionCallContent>().Any(f => IsAllowedHandOff(f, agent, tools)))
+            && modelResponse.Messages.Any(m => m.Contents.OfType<FunctionCallContent>().Any(f => !IsAllowedHandOff(f, agent, tools))))
+        {
+            // invalid to have both handoff and regular tool calls in the same response
+            var errorMessage = """
+            Invalid response: cannot have both handoff and regular tool calls in the same response. If you need to make other tool calls, do so before calling the handoff.
+            If you need to call a handoff now, do so without calling any other tools.
+            """;
+
+            newStepItems.AddRange(modelResponse.Messages);
+
+            List<AIContent> results = [..
+                modelResponse.Messages
+                .Select(m => m.Contents.OfType<FunctionCallContent>())
+                .SelectMany(f => f)
+                .Select(f => new FunctionResultContent(f.CallId, errorMessage))];
+
+            newStepItems.Add(new ChatMessage(ChatRole.Tool, results));
+
+            return new SingleStepResult<TContext>
+            {
+                OriginalInput = originalInput,
+                ModelResponse = modelResponse,
+                PreStepItems = preStepItems,
+                NewStepItems = newStepItems,
+                NextStep = new NextStep<TContext>
+                {
+                    Type = NextStepType.RunAgain,
+                }
+            };
+        }
 
         // process tool calls
         // assume no parallel tool calling, so if a regular tool is called, we are not handing off to another agent
@@ -705,25 +750,17 @@ public static class Runner
                                 var loopDetectedMessage = $"Handoff loop detected: {trajectory.GetHandoffSummary()}. " +
                                                         "There appears to be transferring between agents repeatedly without making progress. " +
                                                         "Please review the conversation history and provide a substantive response to the user's query.";
-                                newStepItems.Add(modelResponseMessage);
+
                                 var errorResult = new FunctionResultContent(functionCall.CallId, loopDetectedMessage);
-                                newStepItems.Add(new ChatMessage(ChatRole.Tool, [errorResult]));
+
+                                functionResults.Add(errorResult);
                             });
 
                         if (!criticApproval)
                         {
                             logger.LogInformation("Critic intervened to break handoff loop for {AgentName}", agent.Name);
-                            return new SingleStepResult<TContext>
-                            {
-                                OriginalInput = originalInput,
-                                ModelResponse = modelResponse,
-                                PreStepItems = preStepItems,
-                                NewStepItems = newStepItems,
-                                NextStep = new NextStep<TContext>
-                                {
-                                    Type = NextStepType.RunAgain,
-                                }
-                            };
+
+                            continue;
                         }
                     }
 
@@ -751,26 +788,16 @@ public static class Runner
                             {
                                 // add fn result to deny
                                 var handOffDeniedMessage = $"HandOff denied because of unsatisfactory response.";
-                                newStepItems.Add(modelResponseMessage);
                                 var errorResult = new FunctionResultContent(functionCall.CallId, handOffDeniedMessage);
-                                newStepItems.Add(new ChatMessage(ChatRole.Tool, [errorResult]));
+
+                                functionResults.Add(errorResult);
                             });
 
                         if (!criticApproval)
                         {
                             logger.LogInformation("Critic failure {AgentName}. Running reasoning step again.", agent.Name);
 
-                            return new SingleStepResult<TContext>
-                            {
-                                OriginalInput = originalInput,
-                                ModelResponse = modelResponse,
-                                PreStepItems = preStepItems,
-                                NewStepItems = newStepItems,
-                                NextStep = new NextStep<TContext>
-                                {
-                                    Type = NextStepType.RunAgain,
-                                }
-                            };
+                            continue;
                         }
                     }
                 }
@@ -786,8 +813,8 @@ public static class Runner
                     await hooks.OnHandoff(contextWrapper, agent, newAgent, handoffReasoning);
 
                     var handoffResult = new FunctionResultContent(functionCall.CallId, handoffResponse);
-                    newStepItems.Add(modelResponseMessage);
-                    newStepItems.Add(new ChatMessage(ChatRole.Tool, [handoffResult]));
+
+                    functionResults.Add(handoffResult);
 
                     if (config.EnableDebugOutput)
                     {
@@ -797,18 +824,10 @@ public static class Runner
                         }
                     }
 
-                    return new SingleStepResult<TContext>
-                    {
-                        OriginalInput = originalInput,
-                        ModelResponse = modelResponse,
-                        PreStepItems = preStepItems,
-                        NewStepItems = newStepItems,
-                        NextStep = new NextStep<TContext>
-                        {
-                            Type = NextStepType.Handoff,
-                            Agent = newAgent
-                        }
-                    };
+                    handoffOccurred = true;
+                    handoffNewAgent = newAgent;
+
+                    continue;
                 }
 
                 // handle regular tool call
@@ -838,8 +857,8 @@ public static class Runner
                         await hooks.OnToolEnd(contextWrapper, agent, agentAsTool, toolResult);
 
                         var result = new FunctionResultContent(functionCall.CallId, toolResult);
-                        newStepItems.Add(modelResponseMessage);
-                        newStepItems.Add(new ChatMessage(ChatRole.Tool, [result]));
+                        functionResults.Add(result);
+
                         trajectory.Append(result);
 
                         if (config.EnableDebugOutput)
@@ -850,17 +869,7 @@ public static class Runner
                             }
                         }
 
-                        return new SingleStepResult<TContext>
-                        {
-                            OriginalInput = originalInput,
-                            ModelResponse = modelResponse,
-                            PreStepItems = preStepItems,
-                            NewStepItems = newStepItems,
-                            NextStep = new NextStep<TContext>
-                            {
-                                Type = NextStepType.RunAgain
-                            }
-                        };
+                        continue;
                     }
                     else if (tool.GetToolMode() == ToolMode.Auto || tool.IsMcpTool())
                     {
@@ -885,8 +894,7 @@ public static class Runner
                         await hooks.OnToolEnd(contextWrapper, agent, tool, toolResult);
 
                         var result = new FunctionResultContent(functionCall.CallId, toolResult);
-                        newStepItems.Add(modelResponseMessage);
-                        newStepItems.Add(new ChatMessage(ChatRole.Tool, [result]));
+                        functionResults.Add(result);
                         trajectory.Append(result);
 
                         if (config.EnableDebugOutput)
@@ -897,17 +905,7 @@ public static class Runner
                             }
                         }
 
-                        return new SingleStepResult<TContext>
-                        {
-                            OriginalInput = originalInput,
-                            ModelResponse = modelResponse,
-                            PreStepItems = preStepItems,
-                            NewStepItems = newStepItems,
-                            NextStep = new NextStep<TContext>
-                            {
-                                Type = NextStepType.RunAgain
-                            }
-                        };
+                        continue;
                     }
                     else
                     {
@@ -919,23 +917,14 @@ public static class Runner
 
                         // modelResponseMessage will be added to the context when the loop is resumed
 
-                        return new SingleStepResult<TContext>
+                        manualToolCalls.Add(new ManualToolCall
                         {
-                            OriginalInput = originalInput,
-                            ModelResponse = modelResponse,
-                            PreStepItems = preStepItems,
-                            NewStepItems = newStepItems,
-                            NextStep = new NextStep<TContext>
-                            {
-                                Type = NextStepType.ManualTool,
-                                ManualToolCall = new ManualToolCall
-                                {
-                                    FunctionCall = functionCall,
-                                    Tool = tool,
-                                    OriginalMessage = modelResponseMessage
-                                }
-                            }
-                        };
+                            FunctionCall = functionCall,
+                            Tool = tool,
+                            OriginalMessage = modelResponseMessage
+                        });
+
+                        continue;
                     }
                 }
                 else
@@ -945,31 +934,75 @@ public static class Runner
 
                     var errorResult = new FunctionResultContent(functionCall.CallId, errorMessage);
 
-                    newStepItems.Add(modelResponseMessage);
-                    newStepItems.Add(new ChatMessage(ChatRole.Tool, [errorResult]));
+                    functionResults.Add(errorResult);
                     trajectory.Append(errorResult);
 
-                    return new SingleStepResult<TContext>
-                    {
-                        OriginalInput = originalInput,
-                        ModelResponse = modelResponse,
-                        PreStepItems = preStepItems,
-                        NewStepItems = newStepItems,
-                        NextStep = new NextStep<TContext>
-                        {
-                            Type = NextStepType.RunAgain
-                        }
-                    };
+                    continue;
                 }
             }
         }
 
+        // record model response messages in new items
+        newStepItems.AddRange(modelResponse.Messages);
+
+        // record function results in new items
+        foreach (var fnResult in functionResults)
+        {
+            newStepItems.Add(new ChatMessage(ChatRole.Tool, [fnResult]));
+        }
+
+        if (handoffOccurred && handoffNewAgent is not null)
+        {
+            return new SingleStepResult<TContext>
+            {
+                OriginalInput = originalInput,
+                ModelResponse = modelResponse,
+                PreStepItems = preStepItems,
+                NewStepItems = newStepItems,
+                NextStep = new NextStep<TContext>
+                {
+                    Type = NextStepType.Handoff,
+                    Agent = handoffNewAgent
+                }
+            };
+        }
+        else if (anyToolsCalled)
+        {
+            if (manualToolCalls.Count > 0)
+            {
+                return new SingleStepResult<TContext>
+                {
+                    OriginalInput = originalInput,
+                    ModelResponse = modelResponse,
+                    PreStepItems = preStepItems,
+                    NewStepItems = newStepItems,
+                    NextStep = new NextStep<TContext>
+                    {
+                        Type = NextStepType.ManualTool,
+                        ManualToolCalls = manualToolCalls
+                    }
+                };
+            }
+
+            // if we reach here, all tool calls were automatic, can run again immediately
+            return new SingleStepResult<TContext>
+            {
+                OriginalInput = originalInput,
+                ModelResponse = modelResponse,
+                PreStepItems = preStepItems,
+                NewStepItems = newStepItems,
+                NextStep = new NextStep<TContext>
+                {
+                    Type = NextStepType.RunAgain
+                }
+            };
+        }
+
+        // if we reach here, there were no tool calls in the response
         if (agent.HasStructuredOutput)
         {
             if (structuredOutput is not null && structuredOutput.GetType() == agent.OutputType)
             {
-                newStepItems.AddRange(modelResponse.Messages);
-
                 // model produced output in the expected format
                 return new SingleStepResult<TContext>
                 {
@@ -992,9 +1025,6 @@ public static class Runner
         }
         else
         {
-            // if we reach here, there were no tool calls in the response
-            newStepItems.AddRange(modelResponse.Messages);
-
             return new SingleStepResult<TContext>
             {
                 OriginalInput = originalInput,

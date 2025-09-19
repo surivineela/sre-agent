@@ -29,7 +29,9 @@ public class NextStep<TContext> where TContext : class
 {
     public required NextStepType Type { get; set; }
     public Agent<TContext>? Agent { get; set; }
-    public ManualToolCall? ManualToolCall { get; set; }
+    //public ManualToolCall? ManualToolCall { get; set; }
+
+    public List<ManualToolCall> ManualToolCalls { get; set; } = [];
 
     public object? Output { get; set; }
 }

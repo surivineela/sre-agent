@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using System.Text.Json;
 using NJ = Newtonsoft.Json;
 using NJC = Newtonsoft.Json.Converters;
 using SJ = System.Text.Json.Serialization;
@@ -101,6 +102,11 @@ public sealed record InitialInvestigationProperties
     /// List of tool names that were selected for the initial investigation.
     /// </summary>
     public List<string>? ToolNames { get; set; } = null;
+
+    public override string ToString()
+    {
+        return $"<initial_investigation_summary>Summary={Summary}, Details={Details}, Steps={JsonSerializer.Serialize(GatheringContext.Steps)}</initial_investigation_summary>";
+    }
 }
 
 public enum InitialInvestigationStatus
