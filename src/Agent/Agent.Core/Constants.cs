@@ -180,11 +180,6 @@ public class Constants
 
     public const string ExtendedAgentsRepoPath = "customAgents";
 
-    public static class ChatCommands
-    {
-        public const string CompactCommand = "/compact";
-    }
-
     public static class ArmOperations
     {
         public const string AgentUserReadActionId = "Microsoft.App/agents/read";

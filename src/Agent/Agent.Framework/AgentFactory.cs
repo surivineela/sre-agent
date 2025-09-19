@@ -55,7 +55,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
     private readonly IExtensibilityLoader? _extensibiltyLoader;
     private readonly bool _gpt5Enabled;
     private readonly bool _agentMemoryRetrievalEnabled;
-    private readonly bool _isFirstPartyAgent = false;
+    private readonly bool _isAcaFirstPartyAgent = false;
     private readonly bool _scheduledTasksEnabled;
 
     public AgentFactory(
@@ -74,7 +74,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         IExtensibilityLoader? extensibiltyLoader = null,
         bool gpt5Enabled = false,
         bool agentMemoryRetrievalEnabled = false,
-        bool firstPartyAgent = false,
+        bool acaFirstPartyAgent = false,
         bool scheduledTasksEnabled = false
     )
     {
@@ -93,7 +93,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         _extensibiltyLoader = extensibiltyLoader;
         _gpt5Enabled = gpt5Enabled;
         _agentMemoryRetrievalEnabled = agentMemoryRetrievalEnabled;
-        _isFirstPartyAgent = firstPartyAgent;
+        _isAcaFirstPartyAgent = acaFirstPartyAgent;
         _scheduledTasksEnabled = scheduledTasksEnabled;
     }
 
@@ -383,26 +383,18 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
 
         if (_gpt5Enabled)
         {
-            var path = _isFirstPartyAgent ? Path.Combine(AppContext.BaseDirectory, "AgentsGPT5", "FirstParty") : Path.Combine(AppContext.BaseDirectory, "AgentsGPT5", "ThirdParty");
+            var path = Path.Combine(AppContext.BaseDirectory, "AgentsGPT5");
             LoadYamlAgentsFromFolder(path, overwriteExistingAgents: true, recursive: true);
         }
 
         if (_agentMemoryRetrievalEnabled)
         {
-            if (!_isFirstPartyAgent)
+            var path = Path.Combine(AppContext.BaseDirectory, "AgentsRag");
+            if (_gpt5Enabled)
             {
-                var path = _gpt5Enabled
-                    ? Path.Combine(AppContext.BaseDirectory, "AgentsRag", "ThirdParty", "GPT5")
-                    : Path.Combine(AppContext.BaseDirectory, "AgentsRag", "ThirdParty");
-                LoadYamlAgentsFromFolder(path, overwriteExistingAgents: true, recursive: false);
+                path = Path.Combine(AppContext.BaseDirectory, "AgentsRag", "GPT5");
             }
-            else
-            {
-                var path = _gpt5Enabled
-                    ? Path.Combine(AppContext.BaseDirectory, "AgentsRag", "FirstParty", "GPT5")
-                    : Path.Combine(AppContext.BaseDirectory, "AgentsRag", "FirstParty");
-                LoadYamlAgentsFromFolder(path, overwriteExistingAgents: true, recursive: false);
-            }
+            LoadYamlAgentsFromFolder(path, overwriteExistingAgents: true, recursive: false);
         }
 
         UpdateHandoffs();

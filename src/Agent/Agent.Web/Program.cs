@@ -566,7 +566,7 @@ public class Program
                 extensibiltyLoader: extensibilityLoader,
                 gpt5Enabled: isGPT5Enabled,
                 agentMemoryRetrievalEnabled: agentMemoryRetrievalEnabled,
-                firstPartyAgent: isAcaFirstPartyAgent,
+                acaFirstPartyAgent: isAcaFirstPartyAgent,
                 scheduledTasksEnabled: isScheduledTaskEnabled);
         });
 

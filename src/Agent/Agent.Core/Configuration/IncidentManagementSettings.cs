@@ -11,11 +11,11 @@ namespace Agent.Core.Configuration
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum IncidentManagementType
     {
-        None,
         PagerDuty,
         Icm,
         AzMonitor,
-        ServiceNow
+        ServiceNow,
+        None,
     }
 
     public class IncidentManagementSettings

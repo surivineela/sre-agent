@@ -99,7 +99,7 @@ public class ReasoningLoop : IDisposable
     private const string RetrieveMarker = "#retrieve";
     private const string RememberMarker = "#remember";
     private const string ForgetMarker = "#forget";
-    private const string CompactMarker = Core.Constants.ChatCommands.CompactCommand;
+    private const string CompactMarker = "/compact";
 
     public ReasoningLoop(
         ILoggerFactory loggerFactory,
@@ -1507,8 +1507,8 @@ public class ReasoningLoop : IDisposable
         if (normalizedToolName == "RunAzCliReadCommands" ||
             normalizedToolName == "RunAzCliWriteCommands")
         {
-            return output.Contains(ExternalProcessCommand.ProcessFailureMessage) 
-                ? AgentActionStatus.Fail 
+            return output.Contains(ExternalProcessCommand.ProcessFailureMessage)
+                ? AgentActionStatus.Fail
                 : AgentActionStatus.Success;
         }
 
@@ -1516,8 +1516,8 @@ public class ReasoningLoop : IDisposable
         if (normalizedToolName == "RunKubectlReadCommand" ||
             normalizedToolName == "RunKubectlWriteCommand")
         {
-            return output.Contains(ExternalProcessCommand.ProcessFailureMessage) 
-                ? AgentActionStatus.Fail 
+            return output.Contains(ExternalProcessCommand.ProcessFailureMessage)
+                ? AgentActionStatus.Fail
                 : AgentActionStatus.Success;
         }
 
