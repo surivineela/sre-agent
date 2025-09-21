@@ -576,15 +576,6 @@ public class ReasoningLoop : IDisposable
                                 _rootSpan.SetAttribute(TraceAttribute.TriggeredMessage, functionCallContent.Name);
                                 _msgSpan.SetAttribute(TraceAttribute.ToolName, functionCallContent.Name);
                                 _msgSpan.SetAttribute(TraceAttribute.ToolInput, JsonSerializer.Serialize(functionCallContent.Arguments, _toolArgumentsJsonOptions));
-
-                                try
-                                {
-                                    var resolvedTool = ResolveTool(functionCallContent.Name);
-                                }
-                                catch (Exception ex)
-                                {
-                                    _logger.LogInternalWarning(ex, "Failed to resolve tool for function call: {ToolName}", functionCallContent.Name);
-                                }
                             }
 
                             if (functionResultContent != null)
@@ -594,7 +585,9 @@ public class ReasoningLoop : IDisposable
                             }
 
                             _msgSpan.End();
-                            await PersistReasoningMessagesAsync(agentChatHistory, functionCall.Messages);
+
+                            var toolResults = functionCall.Messages.Where(m => m.Role == ChatRole.Tool).ToList();
+                            await PersistReasoningMessagesAsync(agentChatHistory, toolResults);
                             break;
                         }
                     case ReasoningLoopContinuation continuation:
@@ -856,7 +849,6 @@ public class ReasoningLoop : IDisposable
                         if (shouldStop)
                         {
                             // Either it needs approval or authorization
-                            await PersistReasoningMessageAsync(agentChatHistory, toolCall.OriginalMessage);
                             await ChangeAgentContextStateAsync(ContextStateEnum.PendingApproval);
                             var contextWrapper = new RunContextWrapper<AgentContext>(_context);
                             var pendingApprovalMessage = "Tool execution is waiting for approval";

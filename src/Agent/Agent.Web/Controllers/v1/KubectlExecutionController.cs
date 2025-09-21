@@ -9,9 +9,9 @@ using Agent.Logging;
 using Agent.Plugins.Interface;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.Reasoning;
+using Agent.Web.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.AI;
-using Agent.Web.Authorization;
 using ArmOperations = Agent.Core.Constants.ArmOperations;
 
 namespace Agent.Web.Controllers.v1
@@ -259,19 +259,16 @@ namespace Agent.Web.Controllers.v1
                             await _agentOutboundCommunicationService.NotifyKubectlUpdate(threadGuid, execution, messageId);
                             if (_coreSettings.UseAgentFramework && agentContext != null)
                             {
-                                var functionCall = !string.IsNullOrEmpty(execution.OriginalFunctionCall) ? JsonSerializer.Deserialize<FunctionCallContent>(execution.OriginalFunctionCall) : null;
+                                var functionCall = !string.IsNullOrEmpty(execution.OriginalFunctionCall)
+                                    ? JsonSerializer.Deserialize<FunctionCallContent>(execution.OriginalFunctionCall)
+                                    : null;
                                 if (functionCall != null)
                                 {
-                                    await _reasoningLoopManager.AppendFunctionCallMessagesAsync(agentContext, new List<Microsoft.Extensions.AI.ChatMessage>
-                                    {
-                                        new Microsoft.Extensions.AI.ChatMessage(Microsoft.Extensions.AI.ChatRole.Assistant,
-                                            new List<Microsoft.Extensions.AI.AIContent>{functionCall }),
-                                        new Microsoft.Extensions.AI.ChatMessage(Microsoft.Extensions.AI.ChatRole.Tool,
-                                        new List<Microsoft.Extensions.AI.AIContent>
-                                        {
-                                            new Microsoft.Extensions.AI.FunctionResultContent(functionCall.CallId, output)
-                                        })
-                                    });
+                                    await _reasoningLoopManager.AppendFunctionCallMessagesAsync(agentContext,
+                                    [
+                                        new(ChatRole.Assistant, [functionCall]),
+                                        new(ChatRole.Tool, [new FunctionResultContent(functionCall.CallId, output)])
+                                    ]);
                                 }
                             }
                         }
@@ -292,16 +289,13 @@ namespace Agent.Web.Controllers.v1
                                 var functionCall = !string.IsNullOrEmpty(execution.OriginalFunctionCall) ? JsonSerializer.Deserialize<FunctionCallContent>(execution.OriginalFunctionCall) : null;
                                 if (functionCall != null)
                                 {
-                                    await _reasoningLoopManager.AppendFunctionCallMessagesAsync(agentContext, new List<Microsoft.Extensions.AI.ChatMessage>
-                                    {
-                                        new Microsoft.Extensions.AI.ChatMessage(Microsoft.Extensions.AI.ChatRole.Assistant,
-                                            new List<Microsoft.Extensions.AI.AIContent>{functionCall }),
-                                        new Microsoft.Extensions.AI.ChatMessage(Microsoft.Extensions.AI.ChatRole.Tool,
-                                        new List<Microsoft.Extensions.AI.AIContent>
-                                        {
-                                            new Microsoft.Extensions.AI.FunctionResultContent(functionCall.CallId, $"Execution Failed: {execution.Command}, Result: {ex.Message}")
-                                        })
-                                    });
+                                    await _reasoningLoopManager.AppendFunctionCallMessagesAsync(agentContext,
+                                    [
+                                        new(ChatRole.Assistant, [functionCall]),
+                                        new(ChatRole.Tool, [new FunctionResultContent(
+                                            functionCall.CallId,
+                                            $"Execution Failed: {execution.Command}, Result: {ex.Message}")])
+                                    ]);
                                 }
                             }
 

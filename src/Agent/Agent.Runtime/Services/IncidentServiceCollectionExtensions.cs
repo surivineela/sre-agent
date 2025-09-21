@@ -85,6 +85,10 @@ public static class IncidentServiceCollectionExtensions
                 services.AddSingleton<IIncidentAnalysisService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload>, ServiceNowIncidentAnalysisService>();
                 break;
 
+            case IncidentManagementType.None:
+                services.AddSingleton<IIncidentFilterManagementService<NullableIncidentFilterDocument, IncidentFilterDocumentPayload>, NullableIncidentFilterManagementService>();
+                break;
+
             default:
                 break;
         }
@@ -177,6 +181,7 @@ public class IncidentFilterManagementServiceFactory : IncidentServiceFactoryBase
             IncidentManagementType.PagerDuty => _serviceProvider.GetRequiredService<IIncidentFilterManagementService<PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload>>(),
             IncidentManagementType.Icm => _serviceProvider.GetRequiredService<IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload>>(),
             IncidentManagementType.ServiceNow => _serviceProvider.GetRequiredService<IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload>>(),
+            IncidentManagementType.None => _serviceProvider.GetRequiredService<IIncidentFilterManagementService<NullableIncidentFilterDocument, IncidentFilterDocumentPayload>>(),
             _ => throw new NotSupportedException($"Unsupported incident management type: {_incidentManagementType}")
         };
     }
