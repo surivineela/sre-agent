@@ -37,9 +37,14 @@ namespace Agent.Core.Services
                 }
                 else
                 {
+                    string requestContent = string.Empty;
+                    if(request.Content is not null)
+                    {
+                        requestContent = await request.Content.ReadAsStringAsync();
+                    }
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    _logger.LogInternalWarning("HTTP Request Failed [{RequestId}]: {Method} {Uri} returned {StatusCode} in {ElapsedMs}ms. Response: {ResponseContent}", 
-                        requestId, request.Method, request.RequestUri, (int)response.StatusCode, stopwatch.ElapsedMilliseconds, responseContent);
+                    _logger.LogInternalWarning("HTTP Request Failed [{RequestId}]: {Method} {Uri} returned {StatusCode} in {ElapsedMs}ms. Request: {RequestContent}, Response: {ResponseContent}", 
+                        requestId, request.Method, request.RequestUri, (int)response.StatusCode, stopwatch.ElapsedMilliseconds, requestContent, responseContent);
                 }
 
                 return response;
