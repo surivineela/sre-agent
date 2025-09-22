@@ -105,7 +105,33 @@ public sealed record InitialInvestigationProperties
 
     public override string ToString()
     {
-        return $"<initial_investigation_summary>Summary={Summary}, Details={Details}, Steps={JsonSerializer.Serialize(GatheringContext.Steps)}</initial_investigation_summary>";
+        return $"""
+        <initial_investigation_summary>
+        <high_level_summary>
+        {Summary}
+        </high_level_summary>
+
+        <details>
+        {Details}
+        </details>
+
+        <key_findings>
+        {KeyFindings}
+        </key_findings>
+
+        <time_frame>
+        {TimeFrame}
+        </time_frame>
+
+        <affected_resources>
+        {JsonSerializer.Serialize(AffectedResources)}
+        </affected_resources>
+
+        <gathering_context_steps>
+        {JsonSerializer.Serialize(GatheringContext.Steps)}
+        </gathering_context_steps>
+        </initial_investigation_summary>
+        """;
     }
 }
 

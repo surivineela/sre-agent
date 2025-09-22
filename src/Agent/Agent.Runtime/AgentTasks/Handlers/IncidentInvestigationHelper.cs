@@ -3,10 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Reflection;
-using System.Text.Json;
 using Agent.Core.Attributes;
-using Agent.Core.Models.Api.v1;
-using Agent.Framework;
 using Agent.Plugins.Definitions;
 
 namespace Agent.Runtime.AgentTasks.Handlers;
@@ -23,7 +20,11 @@ public static class IncidentInvestigationHelper
         "ValidateEnhancedMetricsConfiguration",
         "AnalyzePostgreSQLHealth",
         "GetPostgreSQLMetricsWithGroups", // depends on validate enhanced metrics,
-        "GetMetricTimeSeriesElementsForAzureResource" // returns too much raw data
+        "GetMetricTimeSeriesElementsForAzureResource", // returns too much raw data,
+        // these metrics tools only get current metrics, can't target timestamp
+        "GetContainerAppMemoryMetrics",
+        "GetContainerAppRequestMetrics",
+        "GetContainerAppCpuMetrics"
     ];
 
     public static bool FilterTools(MethodInfo methodInfo)

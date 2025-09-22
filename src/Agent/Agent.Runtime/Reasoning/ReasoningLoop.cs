@@ -772,13 +772,11 @@ public class ReasoningLoop : IDisposable
                     if (string.Equals(currentAgentMode, ActionMode.ReadOnly.ToString(), StringComparison.OrdinalIgnoreCase) &&
                        checkWriteActionResult.NeedSkip)
                     {
-                        var chatMessage = new ChatMessage(ChatRole.System, checkWriteActionResult.Prompt);
+                        //var chatMessage = new ChatMessage(ChatRole.System, checkWriteActionResult.Prompt);
                         toolResults.Add(new ManualToolCallResult()
                         {
                             FunctionCall = toolCall.FunctionCall,
-                            Output = null,
-                            SkipToolCall = true,
-                            ReplacementMessage = chatMessage,
+                            Output = checkWriteActionResult.Prompt
                         });
 
                     }
@@ -2182,7 +2180,7 @@ public class ReasoningLoop : IDisposable
                 };
             }
 
-            var prompt = $"You are in read-only mode. You MUST NOT perform any write action. You should ONLY provide suggestions to user for what to do next using NotifyUser. " +
+            var prompt = $"You are in read-only mode. You MUST NOT perform any write action. You should ONLY provide suggestions to user for what to do next. " +
             "Please format your suggestions in a user-friendly way:\n" +
             "- If suggesting CLI commands (like az cli, kubectl, shell scripts, etc.), format them using markdown ```shell code blocks``` for easy copy-paste\n" +
             "- If the command is accurate and ready to use, tell the user they can copy and paste it directly\n" +

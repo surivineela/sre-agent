@@ -227,14 +227,15 @@ public static class IncidentInvestigationAgents
                 <workflow>
                 1. Think carefully about the incident description provided, and formulate a plan for what you need to investigate.
                 2. Execute your plan step by step. Use tools as appropriate to gather all the information and context that will be needed for this incident.
-                3. Generate a detailed summary of your preliminary investigation.
+                3. Discover relevant logs, metrics, deployment / change information, and connected resources and application components to inform your investigation.
+                4. Generate a detailed summary of your preliminary investigation.
                 </workflow>
 
                 <investigation_guidelines>
                 Your goal is gather relevant context about the incident. You do not need to determine the root cause of the incident at this point.
                 Search for past memories and design docs to inform your planning and reasoning.
                 Discover connected resources and application components to inform your investigation.
-                Focus on trying to gather relevant logs, metrics, deployment, and change information.
+                Focus on trying to gather relevant logs, metrics, deployment, change information, and discover connected resources and application components to inform your investigation.
                 The result of your initial investigation will be used by another agent to try to determine the root cause of the incident, you should gather enough context for that agent to think of potential root cause hypotheses.
                 </investigation_guidelines>
 
@@ -537,6 +538,10 @@ public static class IncidentInvestigationAgents
                 - Provide as much detail as possible in the plan steps.
                 </validation_planning>
 
+                <tool_call_history>
+                There are tool calls in the chat history related to this investigation. Please refer to the tool call history for more information about what has been done already when creating your plan.
+                </tool_call_history>
+
                 <tools_available_during_validation>
                 - The next agent will have access to the following tools during the validation process. Keep these tools in mind when formulating the plan. The next agent will ONLY be able to use these tools.
                 <tools>
@@ -691,6 +696,7 @@ public static class IncidentInvestigationAgents
                 - If Application Insights tools fail, try direct log access tools
                 - Call alternative tools immediately when primary tools fail
                 - Continue tool usage until you have sufficient evidence for the step
+                - IMPORTANT: Do NOT repeat tool calls that have already been made with the same arguments. Refer to the conversation history before calling tools.
                 </tool_usage_guidelines>
 
                 <persistence>
@@ -733,6 +739,10 @@ public static class IncidentInvestigationAgents
                 You are running a fully autonomous process, and the user is not directly involved. Do not ask the user for additional information, or to perform any actions.
                 If you encounter uncertainty, don't stop or hand back to the user, proceed with your task and document things that you are not able to confirm in your output.
                 </autonomy>
+
+                <reminders>
+                - Do NOT repeat tool calls that have already been made with the same arguments. Refer to the conversation history before calling tools.
+                </reminders>
 
                 <output>
                 Execute the assigned step thoroughly using available tools, then provide a summary and determine if plan continuation is needed.

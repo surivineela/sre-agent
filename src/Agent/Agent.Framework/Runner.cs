@@ -44,6 +44,7 @@ public static class Runner
         RunHooks<TContext>? hooks = null,
         Func<string, Task>? displayModelOutput = null,
         bool allowParallelToolCalls = false,
+        ToolResultCache? toolResultCache = null,
         CancellationToken cancellationToken = default
     ) where TContext : class
     {
@@ -71,19 +72,9 @@ public static class Runner
                 }
             }
 
-            // todo: review: this may remove the text reasoning produced by the model
-            if (!matchingResult.SkipToolCall)
-            {
-                var resultContent = new FunctionResultContent(manualToolCall.FunctionCall.CallId, matchingResult.Output);
-
-                functionCallMessages.Add(new ChatMessage(ChatRole.Tool, [resultContent]));
-
-                previousResult.Trajectory.Append(resultContent);
-            }
-            else if (matchingResult.ReplacementMessage != null)
-            {
-                functionCallMessages.Add(matchingResult.ReplacementMessage);
-            }
+            var resultContent = new FunctionResultContent(manualToolCall.FunctionCall.CallId, matchingResult.Output);
+            functionCallMessages.Add(new ChatMessage(ChatRole.Tool, [resultContent]));
+            previousResult.Trajectory.Append(resultContent);
 
             if (hooks != null)
             {
@@ -105,7 +96,8 @@ public static class Runner
             displayModelOutput: displayModelOutput,
             cancellationToken: cancellationToken,
             _shouldRunAgentStartHooks: previousResult.AgentChanged(),
-            allowParallelToolCalls: allowParallelToolCalls
+            allowParallelToolCalls: allowParallelToolCalls,
+            toolResultCache: toolResultCache
         );
     }
 
@@ -119,6 +111,7 @@ public static class Runner
         RunHooks<TContext>? hooks = null,
         Func<string, Task>? displayModelOutput = null,
         bool allowParallelToolCalls = false,
+        ToolResultCache? toolResultCache = null,
         CancellationToken cancellationToken = default
     ) where TContext : class
     {
@@ -133,6 +126,7 @@ public static class Runner
             displayModelOutput: displayModelOutput,
             cancellationToken: cancellationToken,
             allowParallelToolCalls: allowParallelToolCalls,
+            toolResultCache: toolResultCache,
             _shouldRunAgentStartHooks: true // always run agent start hooks on initial run
         );
     }
@@ -211,6 +205,7 @@ public static class Runner
         Func<string, Task>? displayModelOutput = null,
         bool _shouldRunAgentStartHooks = true,
         bool allowParallelToolCalls = false,
+        ToolResultCache? toolResultCache = null,
         CancellationToken cancellationToken = default // TODO: use cancellation token
     ) where TContext : class
     {
@@ -276,7 +271,8 @@ public static class Runner
                     trajectory: trajectory,
                     logger: logger,
                     allowParallelToolCalls: allowParallelToolCalls,
-                    displayModelOutput: displayModelOutput
+                    displayModelOutput: displayModelOutput,
+                    toolResultCache: toolResultCache
                 );
 
                 shouldRunAgentStartHooks = false;
@@ -552,6 +548,7 @@ public static class Runner
         Trajectory trajectory,
         ILogger logger,
         bool allowParallelToolCalls = false,
+        ToolResultCache? toolResultCache = null,
         Func<string, Task>? displayModelOutput = null
     ) where TContext : class
     {
@@ -653,7 +650,8 @@ public static class Runner
             tools: tools,
             trajectory: trajectory,
             logger: logger,
-            displayModelOutput: displayModelOutput
+            displayModelOutput: displayModelOutput,
+            toolResultCache: toolResultCache
         );
     }
 
@@ -671,6 +669,7 @@ public static class Runner
         List<AIFunction> tools,
         Trajectory trajectory,
         ILogger logger,
+        ToolResultCache? toolResultCache = null,
         Func<string, Task>? displayModelOutput = null
     ) where TContext : class
     {
@@ -723,6 +722,28 @@ public static class Runner
 
             foreach (var functionCall in functionCalls)
             {
+                AIFunction? tool = tools.FirstOrDefault(t => t.Name == functionCall.Name);
+
+                // check for cached function call result
+                if (tool is not null && toolResultCache is not null && toolResultCache.TryGetValue(functionCall, out var cachedResult))
+                {
+                    var cachedFunctionResult = new FunctionResultContent(functionCall.CallId, cachedResult);
+                    functionResults.Add(cachedFunctionResult);
+                    trajectory.Append(cachedFunctionResult);
+
+                    if (config.EnableDebugOutput)
+                    {
+                        if (displayModelOutput is not null)
+                        {
+                            await displayModelOutput($"[DEBUG]\n\nUsing cached result for tool: {functionCall.Name}");
+                        }
+                    }
+
+                    await hooks.OnToolEnd(contextWrapper, agent, tool, cachedFunctionResult);
+
+                    continue;
+                }
+
                 if (IsAllowedHandOff(functionCall, agent, tools))
                 {
                     // Check for handoff loops BEFORE processing the handoff
@@ -831,7 +852,6 @@ public static class Runner
                 }
 
                 // handle regular tool call
-                AIFunction? tool = tools.FirstOrDefault(t => t.Name == functionCall.Name);
 
                 if (tool is ContextAIFunction<TContext> contextTool)
                 {

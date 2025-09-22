@@ -2,14 +2,13 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Collections.Concurrent;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Agent.Core;
 using Agent.Core.Attributes;
-using Agent.Core.Extensions;
 using Agent.Core.Configuration;
+using Agent.Core.Extensions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
@@ -46,7 +45,7 @@ public sealed class IncidentInvestigationTaskHandler(
 {
     private readonly SemaphoreSlim _stateLock = new(1, 1);
     private AgentTask? _currentAgentTask;
-    private readonly ConcurrentDictionary<string, object?> _toolCache = new();
+    private readonly ToolResultCache _toolCache = new();
     private readonly List<ChatMessage> _aggregatedToolHistory = new();
     private List<string>? toolSubset = null;
     private readonly bool _is1PAgent = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") == "ACAAgent";
@@ -602,13 +601,15 @@ public sealed class IncidentInvestigationTaskHandler(
                 "ListResourcesByType",
                 "SearchDesignDocs",
                 "SearchMemory",
-                "GetApplicationComponentsSummary"
+                "GetApplicationComponentsSummary",
+                "GetMetricsTimeSeriesAnalysis",
+                "ListAvailableMetrics"
             ]);
 
-            if (toolNames.Contains("GetMetricsTimeSeriesAnalysis") || toolNames.Contains("GetMetricTimeSeriesElementsForAzureResource"))
-            {
-                toolNames.Add("ListAvailableMetrics");
-            }
+            //if (toolNames.Contains("GetMetricsTimeSeriesAnalysis") || toolNames.Contains("GetMetricTimeSeriesElementsForAzureResource"))
+            //{
+            //    toolNames.Add("ListAvailableMetrics");
+            //}
         }
 
         toolNames.RemoveAll(name => !toolFactory.HasTool(name));
@@ -739,6 +740,8 @@ public sealed class IncidentInvestigationTaskHandler(
                         // Remove from pending since we've processed it
                         pendingFunctionCalls.Remove(functionResult.CallId);
 
+                        _toolCache.Add(callInfo.functionCall, functionResult.Result);
+
                         logger.LogInternalInformation(
                             "Aggregated tool call: {ToolName} with CallId: {CallId}",
                             callInfo.functionCall.Name,
@@ -781,16 +784,10 @@ public sealed class IncidentInvestigationTaskHandler(
         // If we have aggregated tool history, inject it before the current input
         if (_aggregatedToolHistory.Count > 0)
         {
-            // Add a context message explaining the tool history
-            //var contextMessage = new ChatMessage(ChatRole.System,
-            //    $"The following {_aggregatedToolHistory.Count / 2} tool interactions have been performed previously in this investigation. " +
-            //    "Use this information and avoid redundant tool calls and build upon previous results. IMPORTANT: Do not repeat tool calls with same parameters");
-
-            //chatHistory.Insert(0, contextMessage);
-
             // Insert the aggregated tool history after the context message
-            //chatHistory.InsertRange(1, _aggregatedToolHistory);
-            chatHistory.InsertRange(0, _aggregatedToolHistory);
+            chatHistory.InsertRange(0, [.. _aggregatedToolHistory, new ChatMessage(ChatRole.User,
+               $"The tool calls above have been performed previously in this investigation. " +
+               "Use this information and avoid redundant tool calls and build upon previous results. IMPORTANT: Do not repeat tool calls with same parameters")]);
 
             logger.LogInternalInformation(
                 "Injected {Count} tool history messages into agent input",
@@ -880,6 +877,7 @@ public sealed class IncidentInvestigationTaskHandler(
                     maxTurns: 100,
                     hooks: runHooks,
                     allowParallelToolCalls: true,
+                    toolResultCache: _toolCache,
                     cancellationToken: cancellationToken
                 );
 
@@ -896,8 +894,7 @@ public sealed class IncidentInvestigationTaskHandler(
                             results.Add(new ManualToolCallResult
                             {
                                 FunctionCall = toolCall.FunctionCall,
-                                SkipToolCall = true,
-                                Output = null,
+                                Output = "Error: cannot call tool that requires approval or write action",
                             });
                         }
 
@@ -905,7 +902,6 @@ public sealed class IncidentInvestigationTaskHandler(
                         results.Add(new ManualToolCallResult
                         {
                             FunctionCall = toolCall.FunctionCall,
-                            SkipToolCall = false,
                             Output = toolOutput,
                         });
                     }
@@ -917,6 +913,7 @@ public sealed class IncidentInvestigationTaskHandler(
                         context: context,
                         hooks: runHooks,
                         allowParallelToolCalls: true,
+                        toolResultCache: _toolCache,
                         cancellationToken: cancellationToken
                     );
                 }
@@ -959,28 +956,6 @@ public sealed class IncidentInvestigationTaskHandler(
         return results;
     }
 
-    private void CacheToolResult(string toolName, object? parameters, object? result)
-    {
-        var key = GenerateCacheKey(toolName, parameters);
-        _toolCache[key] = result;
-    }
-
-    private bool TryGetCachedResult(string toolName, object? parameters, out object? result)
-    {
-        var key = GenerateCacheKey(toolName, parameters);
-        return _toolCache.TryGetValue(key, out result);
-    }
-
-    private static string GenerateCacheKey(string toolName, object? parameters)
-    {
-        // the order of the parameters shouldn't matter since its serialized to JSON and then hashed
-        var parametersJson = parameters == null ? "null" : JsonSerializer.Serialize(parameters, JsonSerializerOptions.Web);
-        var combined = $"{toolName}:{parametersJson}";
-        var hashBytes = System.Security.Cryptography.SHA256.HashData(
-            System.Text.Encoding.UTF8.GetBytes(combined));
-        return Convert.ToBase64String(hashBytes);
-    }
-
     private async Task<object?> InvokeToolWithErrorHandlingAsync(
         ManualToolCall toolCall,
         AgentContext context,
@@ -988,7 +963,11 @@ public sealed class IncidentInvestigationTaskHandler(
     {
         try
         {
-            if (TryGetCachedResult(toolCall.Tool.Name, toolCall.FunctionCall.Arguments, out var cachedResult))
+            string[] ignoredToolsForCache = [
+                "ToDoWrite" // don't cache the planning tool calls from other agents
+            ];
+
+            if (!ignoredToolsForCache.Contains(toolCall.FunctionCall.Name) && _toolCache.TryGetValue(toolCall.FunctionCall, out var cachedResult))
             {
                 logger.LogInternalInformation("Cache hit for tool: {ToolName}", toolCall.Tool.Name);
                 return cachedResult;
@@ -1004,7 +983,7 @@ public sealed class IncidentInvestigationTaskHandler(
             Core.ToolStatic.AsyncLocalCancellationToken.Value = cancellationToken;
             var result = await toolCall.Tool.InvokeAsync(new AIFunctionArguments(toolCall.FunctionCall.Arguments), cancellationToken);
 
-            CacheToolResult(toolCall.Tool.Name, toolCall.FunctionCall.Arguments, result);
+            _toolCache.Add(toolCall.FunctionCall, result);
             logger.LogInternalInformation("Cached result for tool: {ToolName}", toolCall.Tool.Name);
 
             return result;
@@ -1204,7 +1183,7 @@ public sealed class IncidentInvestigationTaskHandler(
             inputMessage,
             runHooks,
             true,
-            injectToolHistory: false,
+            injectToolHistory: true,
             tracer: tracer,
             parentSpan: currentStepSpan,
             cancellationToken: cancellationToken);

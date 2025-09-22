@@ -104,8 +104,6 @@ public class ManualToolCallResult
 {
     public required FunctionCallContent FunctionCall { get; set; }
     public required object? Output { get; set; }
-    public bool SkipToolCall { get; set; } = false;
-    public ChatMessage? ReplacementMessage { get; set; }
 }
 
 public class TurnLimitReachedException<TContext>(
