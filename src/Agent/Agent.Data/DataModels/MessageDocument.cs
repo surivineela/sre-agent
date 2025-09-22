@@ -18,6 +18,7 @@ public record MessageDocument(
     Approval? Approval = null,
     AzCliExecution? AzCliExecution = null,
     KubectlExecution? KubectlExecution = null,
+    PsqlExecution? PsqlExecution = null,
     // e.g. If this message belongs to a PagerDuty incident thread and is a discussion(called note in PagerDuty),
     // it is the PagerDuty note id. PagerDuty note id is is not a guid
     string? IncidentDiscussionId = null,
@@ -43,6 +44,7 @@ public record MessageDocument(
             Approval: message.Approval ?? null,
             AzCliExecution: message.AzCliExecution ?? null,
             KubectlExecution: message.KubectlExecution ?? null,
+            PsqlExecution: message.PsqlExecution ?? null,
             IncidentDiscussionId: message.IncidentDiscussionId,
             message.IsDailyReport,
             message.AgentTaskInfo ?? null
@@ -59,6 +61,7 @@ public record MessageDocument(
             Approval,
             AzCliExecution,
             KubectlExecution,
+            PsqlExecution,
             IncidentDiscussionId: IncidentDiscussionId,
             IsDailyReport,
             AgentTaskInfo

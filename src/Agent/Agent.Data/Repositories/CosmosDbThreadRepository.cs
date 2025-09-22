@@ -891,6 +891,7 @@ public class CosmosDbThreadRepository : IThreadRepository
                         approvalDoc?.ToDomainModel(),
                         messageDoc.AzCliExecution,
                         messageDoc.KubectlExecution,
+                        messageDoc.PsqlExecution,
                         messageDoc.IncidentDiscussionId,
                         messageDoc.IsDailyReport);
                 }
@@ -920,7 +921,8 @@ public class CosmosDbThreadRepository : IThreadRepository
                             messageDoc.IsImageContent,
                             messageDoc.Posted,
                             messageDoc.Approval,
-                            executionDoc.ToDomainModel(), // Use the updated execution
+                            executionDoc.ToDomainModel(),
+                            null,
                             null,
                             messageDoc.IncidentDiscussionId,
                             messageDoc.IsDailyReport
@@ -955,6 +957,41 @@ public class CosmosDbThreadRepository : IThreadRepository
                             messageDoc.Approval,
                             null, // Use the updated execution
                             executionDoc.ToDomainModel(),
+                            messageDoc.PsqlExecution,
+                            messageDoc.IncidentDiscussionId,
+                            messageDoc.IsDailyReport
+                        );
+                    }
+                }
+
+                if (messageDoc.PsqlExecution != null)
+                {
+                    var executionQuery = _client.GetContainer<CliExecutionDocument>(_databaseName)
+                        .GetItemLinqQueryable<CliExecutionDocument>()
+                        .Where(e => e.Id == messageDoc.PsqlExecution.Id.ToString());
+
+                    using var executionIterator = executionQuery.ToFeedIterator();
+                    CliExecutionDocument? executionDoc = null;
+                    if (executionIterator.HasMoreResults)
+                    {
+                        var executionResults = await executionIterator.ReadNextAsync();
+                        executionDoc = executionResults.FirstOrDefault();
+                    }
+
+                    if (executionDoc != null)
+                    {
+                        messageDocWithApproval = new MessageDocument(
+                            messageDoc.Id,
+                            messageDoc.ThreadId,
+                            messageDoc.TimeStamp,
+                            messageDoc.Author,
+                            messageDoc.Text,
+                            messageDoc.IsImageContent,
+                            messageDoc.Posted,
+                            messageDoc.Approval,
+                            null, // Use the updated execution
+                            null,
+                            executionDoc.ToPsqlDomainModel(),
                             messageDoc.IncidentDiscussionId,
                             messageDoc.IsDailyReport
                         );
@@ -1010,6 +1047,7 @@ public class CosmosDbThreadRepository : IThreadRepository
                         approvalDoc?.ToDomainModel(),
                         messageDoc.AzCliExecution,
                         messageDoc.KubectlExecution,
+                        messageDoc.PsqlExecution,
                         messageDoc.IncidentDiscussionId,
                         messageDoc.IsDailyReport);
                 }
@@ -1064,6 +1102,7 @@ public class CosmosDbThreadRepository : IThreadRepository
                             messageDoc.Approval,
                             executionDoc.ToDomainModel(), // Use the updated execution
                             null,
+                            messageDoc.PsqlExecution,
                             messageDoc.IncidentDiscussionId,
                             messageDoc.IsDailyReport
                         );
@@ -1119,8 +1158,9 @@ public class CosmosDbThreadRepository : IThreadRepository
                             messageDoc.IsImageContent,
                             messageDoc.Posted,
                             messageDoc.Approval,
-                            null, // Use the updated execution
-                            executionDoc.ToDomainModel(),
+                            null, // AzCliExecution
+                            executionDoc.ToDomainModel(), // KubectlExecution
+                            messageDoc.PsqlExecution,
                             messageDoc.IncidentDiscussionId,
                             messageDoc.IsDailyReport
                         );
@@ -2607,6 +2647,169 @@ public class CosmosDbThreadRepository : IThreadRepository
 
     #endregion
 
+    #region PsqlExecution Operations
+
+    public async Task<PsqlExecution?> GetPsqlExecutionAsync(Guid threadId, Guid executionId)
+    {
+         try
+        {
+            string threadIdStr = threadId.ToString();
+            string executionIdStr = executionId.ToString();
+
+            CliExecutionDocument? executionDoc = await GetDocumentAsync<CliExecutionDocument>(executionIdStr, threadIdStr);
+
+            return executionDoc?.ToPsqlDomainModel();
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public async Task<PsqlExecution?> CreatePsqlExecutionAsync(Guid threadId, PsqlExecution execution)
+    {
+        // Ensure ID is set
+        if (execution.Id == Guid.Empty)
+        {
+            execution = execution with { Id = Guid.NewGuid() };
+        }
+
+        string threadIdStr = threadId.ToString();
+        // Create the execution document
+        CliExecutionDocument executionDoc = CliExecutionDocument.FromDomainModel(execution, threadIdStr);
+        await _client.GetContainer<CliExecutionDocument>(_databaseName).CreateItemAsync(executionDoc, new PartitionKey(executionDoc.PartitionKey));
+
+        return execution;
+    }
+
+    public async Task<PsqlExecution?> UpdatePsqlExecutionAsync(Guid threadId, PsqlExecution execution)
+    {
+        string threadIdStr = threadId.ToString();
+
+        var executionDoc = CliExecutionDocument.FromDomainModel(execution, threadIdStr);
+        await _client.GetContainer<CliExecutionDocument>(_databaseName).UpsertItemAsync(executionDoc, new PartitionKey(executionDoc.PartitionKey));
+    
+        return execution;
+    }
+
+    public async Task<PsqlExecution?> UpdatePsqlExecutionOutputAsync(Guid threadId, Guid executionId, string output, string? error = null)
+    {
+        string threadIdStr = threadId.ToString();
+        string executionIdStr = executionId.ToString();
+
+        try
+        {
+            var executionDoc = await GetDocumentAsync<CliExecutionDocument>(executionIdStr, threadIdStr);
+            if (executionDoc == null) return null;
+
+            var updatedDoc = executionDoc with
+            {
+                Output = output,
+                Error = error,
+                Status = error != null ? AzCliExecutionStatus.Failed : executionDoc.Status
+            };
+
+            await _client.GetContainer<CliExecutionDocument>(_databaseName).ReplaceItemAsync(
+                updatedDoc,
+                updatedDoc.Id,
+                new PartitionKey(updatedDoc.PartitionKey)
+            );
+
+            return updatedDoc.ToPsqlDomainModel();
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public async Task<PsqlExecution?> ListPendingPsqlExecutionAsync(Guid threadId)
+    {
+         try
+        {
+            string threadIdStr = threadId.ToString();
+            var pendingExecutions = new List<PsqlExecution>();
+
+            var query = _client.GetContainer<CliExecutionDocument>(_databaseName).GetItemLinqQueryable<CliExecutionDocument>()
+                .Where(m => m.DocumentType == "CliExecution" && m.ThreadId == threadIdStr && (m.Status == AzCliExecutionStatus.Pending || m.Status == AzCliExecutionStatus.PendingAuthorization));
+            using var iterator = query.ToFeedIterator();
+
+            while (iterator.HasMoreResults)
+            {
+                foreach (var executionDocument in await iterator.ReadNextAsync())
+                {
+                    pendingExecutions.Add(executionDocument.ToPsqlDomainModel());
+                }
+            }
+
+            return pendingExecutions.FirstOrDefault();
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public async Task<IEnumerable<Message>> GetMessagesWithPsqlAsync(Guid threadId)
+    {
+        var messages = new List<Message>();
+        string threadIdStr = threadId.ToString();
+
+        var query = _client.GetContainer<MessageDocument>(_databaseName).GetItemLinqQueryable<MessageDocument>()
+            .Where(m => m.DocumentType == "Message" && m.ThreadId == threadIdStr && m.AzCliExecution != null)
+            .OrderBy(m => m.TimeStamp);
+
+        using var iterator = query.ToFeedIterator();
+
+        while (iterator.HasMoreResults)
+        {
+            foreach (var messageDoc in await iterator.ReadNextAsync())
+            {
+                var messageDocWithApproval = messageDoc;
+
+                if (messageDoc.PsqlExecution != null)
+                {
+                    var executionQuery = _client.GetContainer<CliExecutionDocument>(_databaseName)
+                        .GetItemLinqQueryable<CliExecutionDocument>()
+                        .Where(e => e.Id == messageDoc.PsqlExecution.Id.ToString());
+
+                    using var executionIterator = executionQuery.ToFeedIterator();
+                    CliExecutionDocument? executionDoc = null;
+                    if (executionIterator.HasMoreResults)
+                    {
+                        var executionResults = await executionIterator.ReadNextAsync();
+                        executionDoc = executionResults.FirstOrDefault();
+                    }
+
+                    if (executionDoc != null)
+                    {
+                        messageDocWithApproval = new MessageDocument(
+                            messageDoc.Id,
+                            messageDoc.ThreadId,
+                            messageDoc.TimeStamp,
+                            messageDoc.Author,
+                            messageDoc.Text,
+                            messageDoc.IsImageContent,
+                            messageDoc.Posted,
+                            messageDoc.Approval,
+                            null, // AzCliExecution
+                            null, // KubectlExecution  
+                            executionDoc.ToPsqlDomainModel(), // Use the PsqlExecution
+                            messageDoc.IncidentDiscussionId,
+                            messageDoc.IsDailyReport
+                        );
+                    }
+                }
+
+                messages.Add(messageDocWithApproval.ToDomainModel(isDailyReport: messageDoc.IsDailyReport));
+            }
+        }
+
+        return messages;
+    }
+
+    #endregion
+
     #region ThreadEvaluateResult Operations
 
     public async Task<ThreadEvaluateResult?> GetThreadEvaluateResultAsync(Guid evaluationId)
@@ -2824,3 +3027,4 @@ public class CosmosDbThreadRepository : IThreadRepository
 
     #endregion
 }
+

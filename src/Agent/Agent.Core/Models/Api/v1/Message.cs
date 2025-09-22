@@ -21,6 +21,7 @@ public record Message(
     Approval? Approval = null,
     AzCliExecution? AzCliExecution = null,
     KubectlExecution? KubectlExecution = null,
+    PsqlExecution? PsqlExecution = null,
     // e.g. If this message belongs to a PagerDuty incident thread and is a discussion(called note in PagerDuty),
     // it is the PagerDuty note id. PagerDuty note id is is not a guid
     string? IncidentDiscussionId = null,

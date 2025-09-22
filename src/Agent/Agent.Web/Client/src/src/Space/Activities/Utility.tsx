@@ -608,9 +608,10 @@ export const isUpdatedSpecialStreamingMessage = (streamingMessage: StreamingMess
     const approval = getSpecialMessageContentFromStreamingMessage<Approval>(streamingMessage, 'approval');
     const azCliExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'azcli');
     const kubectlExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'kubectl');
-    const status = approval?.status || azCliExecution?.status || kubectlExecution?.status;
+    const psqlExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'psql');
+    const status = approval?.status || azCliExecution?.status || kubectlExecution?.status || psqlExecution?.status;
 
-    return (!!approval || !!azCliExecution || !!kubectlExecution) && !isPendingState(status);
+    return (!!approval || !!azCliExecution || !!kubectlExecution || !!psqlExecution) && !isPendingState(status);
 };
 
 export const processApprovalStreamingMessageStatus = (status: ApprovalDecision | number): ApprovalDecision => {
@@ -672,6 +673,7 @@ export const isChatMessageContentNonImageText = (chatMessageContent: ChatMessage
         !chatMessageContent.approval &&
         !chatMessageContent.azCliExecution &&
         !chatMessageContent.kubectlExecution &&
+        !chatMessageContent.psqlExecution &&
         !chatMessageContent.isImage
     );
 };
@@ -799,7 +801,7 @@ export const isChatMessageEmpty = (message?: ChatMessage | null): boolean => {
     const messageContents = message?.contents || [];
 
     return !messageContents.some(content => {
-        return !!content.text || !!content.approval || !!content.azCliExecution || !!content.kubectlExecution;
+        return !!content.text || !!content.approval || !!content.azCliExecution || !!content.kubectlExecution || !!content.psqlExecution;
     });
 };
 
@@ -819,6 +821,7 @@ export const convertMessageToChatMessage = (message: Message): ChatMessage => {
                 approval: message.approval,
                 azCliExecution: message.azCliExecution,
                 kubectlExecution: message.kubectlExecution,
+                psqlExecution: message.psqlExecution,
                 isDailyReport: message.isDailyReport,
                 changeDiff: message.changeDiff,
                 agentTaskInfo: message.agentTaskInfo,

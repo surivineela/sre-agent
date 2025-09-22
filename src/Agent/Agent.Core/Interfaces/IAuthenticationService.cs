@@ -130,4 +130,10 @@ public interface IAuthenticationService
     public TokenCredential GetAzureSearchCredential();
 
     public TokenCredential GetEventHubTraceExportCredential(EventHubTraceExporterOptions options);
+
+    /// <summary>
+    /// Get the credential to access PostgreSQL databases
+    /// </summary>
+    /// <returns></returns>
+    public TokenCredential GetPostgresSqlCredential();
 }

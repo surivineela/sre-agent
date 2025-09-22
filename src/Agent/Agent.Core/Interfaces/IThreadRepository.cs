@@ -34,6 +34,7 @@ public interface IThreadRepository
     Task<IEnumerable<Message>> GetMessagesWithApprovalAsync(Guid threadId);
     Task<IEnumerable<Message>> GetMessagesWithAzCliExecutionAsync(Guid threadId);
     Task<IEnumerable<Message>> GetMessagesWithKubectlAsync(Guid threadId);
+    Task<IEnumerable<Message>> GetMessagesWithPsqlAsync(Guid threadId);
     Task<int> GetUnreadMessagesCountAsync(Guid threadId, DateTime? lastReadTime);
     Task<Message> AddMessageAsync(Guid threadId, Message message);
     Task<Message?> UpdateMessageAsync(Guid threadId, Message message);
@@ -107,6 +108,13 @@ public interface IThreadRepository
     Task<KubectlExecution?> CreateKubectlExecutionAsync(Guid threadId, KubectlExecution execution);
     Task<KubectlExecution?> UpdateKubectlExecutionAsync(Guid threadId, KubectlExecution execution);
     Task<KubectlExecution?> UpdateKubectlExecutionOutputAsync(Guid threadId, Guid executionId, string output, string? error = null);
+
+    // PsqlExecution operations (using unified CliExecutionDocument for persistence)
+    Task<PsqlExecution?> GetPsqlExecutionAsync(Guid threadId, Guid executionId);
+    Task<PsqlExecution?> CreatePsqlExecutionAsync(Guid threadId, PsqlExecution execution);
+    Task<PsqlExecution?> UpdatePsqlExecutionAsync(Guid threadId, PsqlExecution execution);
+    Task<PsqlExecution?> UpdatePsqlExecutionOutputAsync(Guid threadId, Guid executionId, string output, string? error = null);
+    Task<PsqlExecution?> ListPendingPsqlExecutionAsync(Guid threadId);
 
     // ThreadEvaluateResult operations
     Task<ThreadEvaluateResult?> GetThreadEvaluateResultAsync(Guid evaluationId);

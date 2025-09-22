@@ -140,7 +140,7 @@ public abstract class IncidentServiceFactoryBase : IServiceFactory
     {
         _serviceProvider = serviceProvider;
         var incidentManagementSettings = _serviceProvider.GetRequiredService<IncidentManagementSettings>();
-        _incidentManagementType = incidentManagementSettings.Type ?? throw new ArgumentNullException(nameof(incidentManagementSettings.Type), "Incident management type must be specified.");
+        _incidentManagementType = incidentManagementSettings.Type ?? IncidentManagementType.None;
     }
     public abstract dynamic GetServiceDynamic();
 }
@@ -177,11 +177,11 @@ public class IncidentFilterManagementServiceFactory : IncidentServiceFactoryBase
     {
         return _incidentManagementType switch
         {
+            IncidentManagementType.None => _serviceProvider.GetRequiredService<IIncidentFilterManagementService<NullableIncidentFilterDocument, IncidentFilterDocumentPayload>>(),
             IncidentManagementType.AzMonitor => _serviceProvider.GetRequiredService<IIncidentFilterManagementService<AzMonitorIncidentFilterDocument, AzMonitorIncidentFilterDocumentPayload>>(),
             IncidentManagementType.PagerDuty => _serviceProvider.GetRequiredService<IIncidentFilterManagementService<PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload>>(),
             IncidentManagementType.Icm => _serviceProvider.GetRequiredService<IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload>>(),
             IncidentManagementType.ServiceNow => _serviceProvider.GetRequiredService<IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload>>(),
-            IncidentManagementType.None => _serviceProvider.GetRequiredService<IIncidentFilterManagementService<NullableIncidentFilterDocument, IncidentFilterDocumentPayload>>(),
             _ => throw new NotSupportedException($"Unsupported incident management type: {_incidentManagementType}")
         };
     }
@@ -190,6 +190,7 @@ public class IncidentFilterManagementServiceFactory : IncidentServiceFactoryBase
     {
         return _incidentManagementType switch
         {
+            IncidentManagementType.None => throw new InvalidOperationException("Cannot save incident filter when incident management type is None"),
             IncidentManagementType.AzMonitor => await _serviceProvider.GetRequiredService<IIncidentFilterManagementService<AzMonitorIncidentFilterDocument, AzMonitorIncidentFilterDocumentPayload>>().SaveIncidentFilter(incidentFilterDocument.DeserializeJson<AzMonitorIncidentFilterDocument>()),
             IncidentManagementType.PagerDuty => await _serviceProvider.GetRequiredService<IIncidentFilterManagementService<PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload>>().SaveIncidentFilter(incidentFilterDocument.DeserializeJson<PagerDutyIncidentFilterDocument>()),
             IncidentManagementType.Icm => await _serviceProvider.GetRequiredService<IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload>>().SaveIncidentFilter(incidentFilterDocument.DeserializeJson<IcmIncidentFilterDocument>()),
@@ -227,6 +228,7 @@ public class IncidentManagementServiceFactory : IncidentServiceFactoryBase, IInc
     {
         return _incidentManagementType switch
         {
+            IncidentManagementType.None => null!,
             IncidentManagementType.AzMonitor => _serviceProvider.GetRequiredService<IIncidentManagementService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocumentPayload>>(),
             IncidentManagementType.PagerDuty => _serviceProvider.GetRequiredService<IIncidentManagementService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload>>(),
             IncidentManagementType.Icm => _serviceProvider.GetRequiredService<IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>>(),
@@ -239,6 +241,7 @@ public class IncidentManagementServiceFactory : IncidentServiceFactoryBase, IInc
     {
         return _incidentManagementType switch
         {
+            IncidentManagementType.None => throw new InvalidOperationException("Cannot query incidents when incident management type is None"),
             IncidentManagementType.PagerDuty => await _serviceProvider.GetRequiredService<IIncidentManagementService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload>>().QueryIncidents(request.DeserializeJson<IncidentQueryRequest<PagerDutyIncidentFilterDocumentPayload>>()),
             IncidentManagementType.Icm => await _serviceProvider.GetRequiredService<IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>>().QueryIncidents(request.DeserializeJson<IncidentQueryRequest<IcmIncidentFilterDocumentPayload>>()),
             IncidentManagementType.ServiceNow => await _serviceProvider.GetRequiredService<IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload>>().QueryIncidents(request.DeserializeJson<IncidentQueryRequest<ServiceNowIncidentFilterDocumentPayload>>()),
@@ -255,6 +258,7 @@ public class IncidentManagementServiceFactory : IncidentServiceFactoryBase, IInc
         }
         return _incidentManagementType switch
         {
+            IncidentManagementType.None => throw new InvalidOperationException("Cannot save document when incident management type is None"),
             IncidentManagementType.AzMonitor => await _serviceProvider.GetRequiredService<IIncidentManagementService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocumentPayload>>().SaveDocument(JsonSerializer.Deserialize<AzMonitorAlertDocument>(incidentDocument)),
             IncidentManagementType.PagerDuty => await _serviceProvider.GetRequiredService<IIncidentManagementService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload>>().SaveDocument(JsonSerializer.Deserialize<PagerDutyIncidentDocument>(incidentDocument)),
             IncidentManagementType.Icm => await _serviceProvider.GetRequiredService<IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>>().SaveDocument(JsonSerializer.Deserialize<IcmIncidentDocument>(incidentDocument)),
@@ -290,6 +294,7 @@ public class IncidentHandlingServiceFactory : IncidentServiceFactoryBase, IIncid
     {
         return _incidentManagementType switch
         {
+            IncidentManagementType.None => null!,
             IncidentManagementType.AzMonitor => _serviceProvider.GetRequiredService<IIncidentHandlingService<AzMonitorIncidentFilterDocumentPayload>>(),
             IncidentManagementType.PagerDuty => _serviceProvider.GetRequiredService<IIncidentHandlingService<PagerDutyIncidentFilterDocumentPayload>>(),
             IncidentManagementType.Icm => _serviceProvider.GetRequiredService<IIncidentHandlingService<IcmIncidentFilterDocumentPayload>>(),
@@ -301,6 +306,7 @@ public class IncidentHandlingServiceFactory : IncidentServiceFactoryBase, IIncid
     {
         return _incidentManagementType switch
         {
+            IncidentManagementType.None => throw new InvalidOperationException("Cannot handle incident when incident management type is None"),
             IncidentManagementType.AzMonitor => await _serviceProvider.GetRequiredService<IIncidentHandlingService<AzMonitorIncidentFilterDocumentPayload>>().HandleIncidentAsync(incidentDocument?.DeserializeJson<IncidentHandlingRequestModel<AzMonitorIncidentFilterDocumentPayload>>()),
             IncidentManagementType.PagerDuty => await _serviceProvider.GetRequiredService<IIncidentHandlingService<PagerDutyIncidentFilterDocumentPayload>>().HandleIncidentAsync(incidentDocument?.DeserializeJson<IncidentHandlingRequestModel<PagerDutyIncidentFilterDocumentPayload>>()),
             IncidentManagementType.Icm => await _serviceProvider.GetRequiredService<IIncidentHandlingService<IcmIncidentFilterDocumentPayload>>().HandleIncidentAsync(incidentDocument?.DeserializeJson<IncidentHandlingRequestModel<IcmIncidentFilterDocumentPayload>>()),

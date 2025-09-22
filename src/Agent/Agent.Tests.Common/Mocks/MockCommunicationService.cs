@@ -95,6 +95,13 @@ namespace Agent.Tests.Common.Mocks
             return Task.CompletedTask;
         }
 
+        public Task NotifyPsqlUpdate(Guid threadId, PsqlExecution execution, Guid messageId = default)
+        {
+            _logger?.LogInternalInformation($"ThreadId: {threadId}, Command: {execution.Command}, Status: {execution.Status}");
+            Messages.Add(execution.Command);
+            return Task.CompletedTask;
+        }
+
         public Task NotifyApprovalUpdate(Guid threadId, Approval approval, Guid messageId = default)
         {
             _logger?.LogInternalInformation($"ThreadId: {threadId}, ApprovalId: {approval.Id}, Status: {approval.Status}");
@@ -140,11 +147,6 @@ namespace Agent.Tests.Common.Mocks
             return Task.CompletedTask;
         }
 
-        public Task NotifyIncidentStatusMetrics(Guid threadId, IncidentStatusMetrics metrics, Guid? messageId = null)
-        {
-            _logger?.LogInternalInformation($"ThreadId: {threadId}, Metrics: {metrics}");
-            return Task.CompletedTask;
-        }
 
         public Task PostActivity(string threadId, Activity activity, string messageId = "")
         {
@@ -158,17 +160,10 @@ namespace Agent.Tests.Common.Mocks
             return Task.CompletedTask;
         }
 
-        public Task HandleAgentTaskAzCliResult(Guid threadId, AzCliExecution execution)
+        public Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string agentId, ChatMessage message, Guid? messageId = null)
         {
-            _logger?.LogInternalInformation($"Mock: Handling agent task AzCli result for thread {threadId}, Command: {execution.Command}, Status: {execution.Status}");
-            Messages.Add($"AgentTask_AzCli:{execution.Command}");
-            return Task.CompletedTask;
-        }
-
-        public Task HandleAgentTaskKustoResult(Guid threadId, string chatMessageContent)
-        {
-            _logger?.LogInternalInformation($"Mock: Handling agent task Kusto result for thread {threadId}, Content: {chatMessageContent}");
-            Messages.Add($"AgentTask_Kusto:{chatMessageContent}");
+            _logger?.LogInternalInformation($"ThreadId: {threadId}, AgentId: {agentId}, Message: {message.Text}");
+            Messages.Add(message.Text);
             return Task.CompletedTask;
         }
 
@@ -197,6 +192,27 @@ namespace Agent.Tests.Common.Mocks
         {
             _logger?.LogInternalInformation($"ThreadId: {context.ThreadId}, Message: {message.Text}");
             Messages.Add(message.Text);
+            return Task.CompletedTask;
+        }
+
+        public Task NotifyIncidentStatusMetrics(Guid threadId, IncidentStatusMetrics metrics, Guid? messageId = null)
+        {
+            _logger?.LogInternalInformation($"ThreadId: {threadId}, ActiveCount: {metrics.ActiveCount}, MitigatedCount: {metrics.MitigatedCount}, ResolvedCount: {metrics.ResolvedCount}");
+            Messages.Add($"Incident metrics: Active {metrics.ActiveCount}, Mitigated {metrics.MitigatedCount}, Resolved {metrics.ResolvedCount}");
+            return Task.CompletedTask;
+        }
+
+        public Task HandleAgentTaskAzCliResult(Guid threadId, AzCliExecution execution)
+        {
+            _logger?.LogInternalInformation($"ThreadId: {threadId}, Command: {execution.Command}, Status: {execution.Status}");
+            Messages.Add(execution.Command);
+            return Task.CompletedTask;
+        }
+
+        public Task HandleAgentTaskKustoResult(Guid threadId, string chatMessageContent)
+        {
+            _logger?.LogInternalInformation($"ThreadId: {threadId}, MessageContent: {chatMessageContent}");
+            Messages.Add(chatMessageContent);
             return Task.CompletedTask;
         }
     }

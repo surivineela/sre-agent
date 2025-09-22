@@ -34,11 +34,11 @@ namespace Agent.Tests.Unit
 
             // Create mock ArmHelper with all required dependencies
             var mockArmLogger = new Mock<ILogger<ArmHelper>>();
+            var mockCustomerLogger = new Mock<CustomerLogger>();
             var mockHttpClientFactory = new Mock<IHttpClientFactory>();
             var mockArmClientFactory = new Mock<IArmClientFactory>();
             var mockAuthService = new Mock<IAuthenticationService>();
             var mockAzureSettings = new AzureSettings();
-            var mockCustomerLogger = new Mock<CustomerLogger>();
             var mockHostEnvironment = new Mock<IHostEnvironment>();
             var mockCrawlerTriggerService = new Mock<ICrawlerTriggerService>();
             var mockSessionPoolService = new Mock<ISessionPoolService>();
@@ -63,7 +63,13 @@ namespace Agent.Tests.Unit
                 mockAuthService.Object,
                 mockAzureSettings);
 
-            _postgreSQLPlugin = new PostgreSQLPlugin(_mockLogger.Object, armHelper, _playbookService, mockArmClientFactory.Object, mockAzureMonitorMetricsHelper.Object, mockAuthService.Object);
+            // Create mock PostgresSQLCommandHelper
+            var mockPostgresSQLCommandHelper = new Mock<PostgresSQLCommandHelper>(
+                Mock.Of<ILogger<PostgresSQLCommandHelper>>(),
+                mockAuthService.Object,
+                mockHostEnvironment.Object);
+
+            _postgreSQLPlugin = new PostgreSQLPlugin(_mockLogger.Object, armHelper, _playbookService, mockArmClientFactory.Object, mockAzureMonitorMetricsHelper.Object, mockPostgresSQLCommandHelper.Object, mockAuthService.Object);
         }
 
         [Fact]

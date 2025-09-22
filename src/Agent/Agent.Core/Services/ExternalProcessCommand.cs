@@ -32,13 +32,18 @@ public class ExternalProcessCommand
         var processInfo = new ProcessStartInfo
         {
             FileName = exePath,
-            Arguments = string.Join(" ", _arguments),
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             RedirectStandardInput = !string.IsNullOrEmpty(_stdin),
             UseShellExecute = false,
             CreateNoWindow = true
         };
+
+        // Add arguments individually to ensure proper quoting
+        foreach (var arg in _arguments)
+        {
+            processInfo.ArgumentList.Add(arg);
+        }
 
         foreach (var env in _envs)
         {

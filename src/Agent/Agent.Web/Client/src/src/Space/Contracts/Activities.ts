@@ -9,6 +9,7 @@ import {
     Message,
     MessageContent,
     MessageMetaData,
+    PsqlExecution,
 } from '../../Common/Contracts/DataPlane/Message';
 import { Thread } from '../../Common/Contracts/DataPlane/Thread';
 import { AgentTaskStyleProps, ChatBoxV2StyleProps } from '../Styles/Activities.styles';
@@ -88,6 +89,7 @@ export interface IChatMessageProps {
         approval?: Approval;
         azCliExecution?: AzCliExecution;
         kubectlExecution?: KubectlExecution;
+        psqlExecution?: PsqlExecution;
     }) => void;
 }
 
@@ -104,7 +106,7 @@ export interface ChatMessage extends MessageMetaData {
 }
 
 export interface ChatMessageComponentInput
-    extends Omit<Message, 'text' | 'approval' | 'azCliExecution' | 'kubectlExecution' | 'isDailyReport'> {
+    extends Omit<Message, 'text' | 'approval' | 'azCliExecution' | 'kubectlExecution' | 'psqlExecution' | 'isDailyReport'> {
     text: string;
     approval?: Approval;
     azCliExecution?: AzCliExecution;
@@ -123,6 +125,7 @@ export interface IAgentMessageProps {
         approval?: Approval;
         azCliExecution?: AzCliExecution;
         kubectlExecution?: KubectlExecution;
+        psqlExecution?: PsqlExecution;
     }) => void;
 }
 

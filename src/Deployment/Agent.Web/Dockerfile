@@ -24,6 +24,7 @@ RUN apt-get update && \
     printf "Types: deb \nURIs: https://packages.microsoft.com/repos/azure-cli/ \nSuites: ${AZ_DIST} \nComponents: main \nArchitectures: $(dpkg --print-architecture) \nSigned-by: /etc/apt/keyrings/microsoft.gpg" | tee /etc/apt/sources.list.d/azure-cli.sources && \
     apt-get update && \
     apt-get install -y azure-cli=2.74.0-1~bookworm && \
+    apt-get install -y postgresql-client && \
     # Install Log Analytics extension for Azure CLI
     (az extension add --name log-analytics --yes || echo 'log-analytics extension already installed') && \
     # Install Kusto (azure-kusto) extension for Azure CLI

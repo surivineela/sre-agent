@@ -793,7 +793,9 @@ public class ReasoningLoop : IDisposable
 
                                 var azCliExecution = await _threadRepository.ListPendingAzCliExecutionAsync(_context.ThreadId);
                                 var kubectlExecution = await _threadRepository.ListPendingKubectlExecutionAsync(_context.ThreadId);
-                                if (azCliExecution == null && kubectlExecution == null)
+                                var psqlExecution = await _threadRepository.ListPendingPsqlExecutionAsync(_context.ThreadId);
+
+                                if (azCliExecution == null && kubectlExecution == null && psqlExecution == null)
                                 {
                                     toolResults.Add(new ManualToolCallResult()
                                     {
@@ -821,6 +823,18 @@ public class ReasoningLoop : IDisposable
                                         OriginalFunctionCall = JsonSerializer.Serialize(toolCall.FunctionCall),
                                     };
                                     await _threadRepository.UpdateKubectlExecutionAsync(_context.ThreadId, kubectlExecution);
+                                    var contextWrapper = new RunContextWrapper<AgentContext>(_context);
+                                    await runHooks.OnToolEnd(contextWrapper, _currentAgent, toolCall.Tool, functionResult);
+                                    break;
+                                }
+                                else if (psqlExecution != null)
+                                {
+                                    psqlExecution = psqlExecution with
+                                    {
+                                        AgentContextId = _context.Id,
+                                        OriginalFunctionCall = JsonSerializer.Serialize(toolCall.FunctionCall),
+                                    };
+                                    await _threadRepository.UpdatePsqlExecutionAsync(_context.ThreadId, psqlExecution);
                                     var contextWrapper = new RunContextWrapper<AgentContext>(_context);
                                     await runHooks.OnToolEnd(contextWrapper, _currentAgent, toolCall.Tool, functionResult);
                                     break;

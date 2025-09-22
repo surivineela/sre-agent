@@ -71,6 +71,11 @@ public interface IAgentOutboundCommunicationService
 
     Task NotifyIncidentStatusMetrics(Guid threadId, IncidentStatusMetrics metrics, Guid? messageId = null);
 
+    /// <summary>
+    /// Notifies about an update to a PostgreSQL execution
+    /// </summary>
+    Task NotifyPsqlUpdate(Guid threadId, PsqlExecution execution, Guid messageId = default);
+
     Task PostActivity(string threadId, Microsoft.Bot.Schema.Activity activity, string messageId = "");
 
     Task<Guid> AppendAgentImageMessage(Guid threadId, string message, Guid messageId = default);

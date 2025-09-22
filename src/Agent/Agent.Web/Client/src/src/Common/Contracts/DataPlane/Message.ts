@@ -14,12 +14,22 @@ export interface MessageContent {
     approval?: Approval;
     azCliExecution?: AzCliExecution;
     kubectlExecution?: KubectlExecution;
+    psqlExecution?: PsqlExecution;
     isDailyReport?: boolean;
     changeDiff?: ChangeDiffViewer;
     agentTaskInfo?: AgentTaskMetaData;
 }
 
-export interface Message extends MessageMetaData, MessageContent {}
+export interface Message extends MessageMetaData {
+    text: string;
+    approval?: Approval;
+    azCliExecution?: AzCliExecution;
+    kubectlExecution?: KubectlExecution;
+    psqlExecution?: PsqlExecution;
+    isDailyReport?: boolean;
+    changeDiff?: ChangeDiffViewer;
+    agentTaskInfo?: AgentTaskMetaData;
+}
 
 export interface Approval {
     id: string;
@@ -82,6 +92,24 @@ export interface KubectlExecution {
     stdin?: string;
     description: string;
     status: ExecutionStatus;
+    output?: string;
+    error?: string;
+    createdTimestamp: string;
+    startedTimestamp?: string;
+    completedTimestamp?: string;
+    executedBy?: {
+        displayName: string;
+        userId: string;
+        role: string;
+    };
+}
+
+export interface PsqlExecution {
+    id: string;
+    command: string;
+    stdin?: string;
+    description: string;
+    status: 'Pending' | 'Running' | 'Completed' | 'Failed' | 'Cancelled' | 'PendingAuthorization';
     output?: string;
     error?: string;
     createdTimestamp: string;

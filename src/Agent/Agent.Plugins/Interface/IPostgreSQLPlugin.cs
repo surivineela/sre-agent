@@ -31,10 +31,10 @@ public interface IPostgreSQLPlugin
     /// Analyzes slow-running queries and identifies performance bottlenecks
     /// </summary>
     /// <param name="resourceId">The full Azure resource ID of the PostgreSQL server</param>
-    /// <param name="startTime">The start time for the metric query range (Absolute in UTC or relative). Examples: '2024-03-05 10:50:00', '20 hours ago', '3 days ago'. Prefer relative format for recent values (e.g: '24 hours ago', '2 days ago'). Validation start date should be within last 90 days</param>
-    /// <param name="endTime">The end time for the metric query range (Absolute in UTC or relative). Examples: '2024-03-05 10:50:00', 'now', 'an hour ago'. Prefer relative format for recent value (e.g: 'now', '1 hour ago'). Validation limit end date from last 90 days</param>
+    /// <param name="database">The name of the database to analyze</param>
+    /// <param name="window">Time window for analysis</param>
     /// <returns>Slow query analysis results</returns>
-    Task<SlowQueryAnalysis> AnalyzeSlowQueriesAsync(string resourceId, DateTimeOffset startTime, DateTimeOffset endTime);
+    Task<SlowQueryAnalysis> AnalyzeSlowQueriesAsync(string resourceId, string database, TimeSpan window);
 
     /// <summary>
     /// Gets Azure resource health status and recent health events
@@ -74,36 +74,41 @@ public interface IPostgreSQLPlugin
     /// Analyzes PostgreSQL table bloat by comparing actual vs estimated table sizes
     /// </summary>
     /// <param name="resourceId">The full Azure resource ID of the PostgreSQL server</param>
+    /// <param name="database">The name of the database to analyze for table bloat</param>
     /// <returns>Table bloat analysis results</returns>
-    Task<TableBloatAnalysis> AnalyzeTableBloat(string resourceId);
+    Task<TableBloatAnalysis> AnalyzeTableBloat(string resourceId, string database);
 
     /// <summary>
     /// Checks autovacuum configuration and identifies disabled autovacuum tables
     /// </summary>
     /// <param name="resourceId">The full Azure resource ID of the PostgreSQL server</param>
+    /// <param name="database">The name of the database to analyze autovacuum configuration</param>
     /// <returns>Autovacuum configuration analysis</returns>
-    Task<AutovacuumConfigurationAnalysis> AnalyzeAutovacuumConfiguration(string resourceId);
+    Task<AutovacuumConfigurationAnalysis> AnalyzeAutovacuumConfiguration(string resourceId, string database);
 
     /// <summary>
     /// Shows table activity statistics including insert/update/delete rates and vacuum history
     /// </summary>
     /// <param name="resourceId">The full Azure resource ID of the PostgreSQL server</param>
+    /// <param name="database">The name of the database to analyze for table activity</param>
     /// <returns>Table activity analysis results</returns>
-    Task<TableActivityAnalysis> AnalyzeTableActivity(string resourceId);
+    Task<TableActivityAnalysis> AnalyzeTableActivity(string resourceId, string database);
 
     /// <summary>
     /// Gets comprehensive PostgreSQL database overview including size, settings, and health
     /// </summary>
     /// <param name="resourceId">The full Azure resource ID of the PostgreSQL server</param>
+    /// <param name="database">The name of the database to analyze</param>
     /// <returns>Database overview analysis</returns>
-    Task<DatabaseOverviewAnalysis> GetDatabaseOverview(string resourceId);
+    Task<DatabaseOverviewAnalysis> GetDatabaseOverview(string resourceId, string database);
 
     /// <summary>
     /// Comprehensive PostgreSQL health check combining multiple diagnostic areas
     /// </summary>
     /// <param name="resourceId">The full Azure resource ID of the PostgreSQL server</param>
+    /// <param name="database">The name of the database to analyze for health assessment</param>
     /// <returns>Complete health analysis</returns>
-    Task<PostgreSQLHealthAnalysis> AnalyzePostgreSQLHealth(string resourceId);
+    Task<PostgreSQLHealthAnalysis> AnalyzePostgreSQLHealth(string resourceId, string database);
 
     /// <summary>
     /// Gets PostgreSQL performance metrics with specific metric groups for optimized collection
@@ -167,7 +172,9 @@ public record SlowQuery(
     double AverageDuration,
     double MaxDuration,
     string ExecutionPlan,
-    List<string> Issues);
+    List<string> Issues,
+    DateTime? StartTime,
+    DateTime? EndTime);
 
 /// <summary>
 /// Resource health status data

@@ -81,6 +81,7 @@ system_prompt: |
   - **Memory diagnostics** → `diagnostic_memory_agent`
   - **Repository (Repo) Related Queries such as Connection / Creating Work Items** → `repository_agent`
   - **PostgreSQL issues/performance** → `postgresql_agent`
+  - **PostgreSQL command execution/querying** → `psql_command_automation_agent`
   - **API Management issues** → `api_management_agent`
   - **Azure Activity Logs and Change Analysis** → `azure_activity_logs_agent`
   - **Application Insights Analysis and Telemetry** → `azure_application_insights_agent`
@@ -126,6 +127,8 @@ system_prompt: |
   | "Show outbound IP of my web app", properties not exist in knowledge graph | `resource_discovery_agent` (to find subscription, rg) → `azure_cli_command_executor_agent` (azure cli can get realtime information and full properties required) |
   | "Require Azure Portal or Azure CLI to resolve or get realtime information" | `resource_discovery_agent` (to find subscription, rg) → `azure_cli_command_executor_agent` |
   | "PostgreSQL performance or connection issues" | `resource_discovery_agent` → `postgresql_agent` |
+  | "Query my PostgreSQL database" or "Execute SQL commands" | `resource_discovery_agent` → `psql_command_automation_agent` |
+  | "My API Management is slow" | `resource_discovery_agent` (to find subscription, rg) → `api_management_agent` |
 
   ## Execution
   1. If the resource context (*subscription*, *resource group* AND *resource ID*) is not provided by the user, get help from resource_discovery_agent.
@@ -162,6 +165,7 @@ handoffs:
   - pagerduty_incident_management_agent
   - servicenow_incident_management_agent
   - source_code_analysis_agent
+  - psql_command_automation_agent
   - self_manual_agent
   - cdb_general_agent
   - kql_agent

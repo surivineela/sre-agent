@@ -501,7 +501,7 @@ namespace Agent.Plugins.Implementation
             }
         }
 
-        private static JsonSerializerOptions GetJsonSerializerOptions()
+        public static JsonSerializerOptions GetJsonSerializerOptions()
         {
             var options = new JsonSerializerOptions
             {

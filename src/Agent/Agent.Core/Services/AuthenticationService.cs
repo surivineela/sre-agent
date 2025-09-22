@@ -531,5 +531,17 @@ public class AuthenticationService : IAuthenticationService
         return "http://diag-runtimehost-euap.trafficmanager.net";
     }
     #endregion
+
+    #region PostgreSQL specific methods
+    public TokenCredential GetPostgresSqlCredential()
+    {
+        if (_hostEnvironment.IsDevelopment())
+        {
+            return GetDefaultAzureCredential();
+        }
+
+        return GetManagedIdentityCredential(GetActionIdentity());
+    }
+    #endregion
 }
 

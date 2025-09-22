@@ -5,7 +5,7 @@ import { useIntl } from 'react-intl';
 import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { AgentTaskMetaData } from '../../Common/Contracts/DataPlane/AgentTask';
-import { Approval, AzCliExecution, KubectlExecution } from '../../Common/Contracts/DataPlane/Message';
+import { Approval, AzCliExecution, KubectlExecution, PsqlExecution } from '../../Common/Contracts/DataPlane/Message';
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
@@ -271,7 +271,8 @@ export const useChatBox = (
                 specialMessageId &&
                 (content.approval?.id === specialMessageId ||
                     content.azCliExecution?.id === specialMessageId ||
-                    content.kubectlExecution?.id === specialMessageId)
+                    content.kubectlExecution?.id === specialMessageId ||
+                    content.psqlExecution?.id === specialMessageId)
             );
         });
         return result === -1 ? undefined : result;
@@ -285,7 +286,8 @@ export const useChatBox = (
                     specialMessageId &&
                     (content.approval?.id === specialMessageId ||
                         content.azCliExecution?.id === specialMessageId ||
-                        content.kubectlExecution?.id === specialMessageId)
+                        content.kubectlExecution?.id === specialMessageId ||
+                        content.psqlExecution?.id === specialMessageId)
                 ) {
                     return [i, j];
                 }
@@ -295,12 +297,17 @@ export const useChatBox = (
     };
 
     const updateSpecialMessageInStreamingMessage = useCallback(
-        (specialMessageProperties: { approval?: Approval; azCliExecution?: AzCliExecution; kubectlExecution?: KubectlExecution }) => {
-            const { approval, azCliExecution, kubectlExecution } = specialMessageProperties;
+        (specialMessageProperties: {
+            approval?: Approval;
+            azCliExecution?: AzCliExecution;
+            kubectlExecution?: KubectlExecution;
+            psqlExecution?: PsqlExecution;
+        }) => {
+            const { approval, azCliExecution, kubectlExecution, psqlExecution } = specialMessageProperties;
 
             setStreamingMessage(prev => {
                 if (!prev) return prev;
-                const specialMessageId = approval?.id || azCliExecution?.id || kubectlExecution?.id;
+                const specialMessageId = approval?.id || azCliExecution?.id || kubectlExecution?.id || psqlExecution?.id;
                 const index = getMessageIndexInStreamingMessage(prev, specialMessageId);
                 if (index !== undefined) {
                     prev.contents[index] = {
@@ -308,6 +315,7 @@ export const useChatBox = (
                         approval,
                         azCliExecution,
                         kubectlExecution,
+                        psqlExecution,
                     };
                     return cloneDeep(prev);
                 } else {
@@ -324,8 +332,9 @@ export const useChatBox = (
         let approval = getSpecialMessageContentFromStreamingMessage<Approval>(streamingMessage, 'approval');
         const azCliExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'azcli');
         const kubectlExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'kubectl');
-        const agentTaskInfo = getSpecialMessageContentFromStreamingMessage<AgentTaskMetaData>(streamingMessage, 'deepinvestigation');
-        const text = messageContent?.text && !approval && !azCliExecution && !kubectlExecution ? messageContent.text : '';
+        const psqlExecution = getSpecialMessageContentFromStreamingMessage<PsqlExecution>(streamingMessage, 'psql');
+        const text = messageContent?.text && !approval && !azCliExecution && !kubectlExecution && !psqlExecution ? messageContent.text : '';
+        const agentTaskInfo = getSpecialMessageContentFromStreamingMessage<AgentTaskMetaData>(streamingMessage, 'taskupdate');
         const isImage = isImageStreamingMessageType(streamingMessage);
 
         if (approval) {
@@ -341,11 +350,16 @@ export const useChatBox = (
             approval,
             azCliExecution,
             kubectlExecution,
+            psqlExecution,
             agentTaskInfo,
             isDailyReport: false,
         };
 
-        const specialMessage = chatMessageContent.approval || chatMessageContent.azCliExecution || chatMessageContent.kubectlExecution;
+        const specialMessage =
+            chatMessageContent.approval ||
+            chatMessageContent.azCliExecution ||
+            chatMessageContent.kubectlExecution ||
+            chatMessageContent.psqlExecution;
         const specialMessageId = specialMessage?.id;
         const isSpecialMessageInInitialState = isPendingState(specialMessage?.status);
 

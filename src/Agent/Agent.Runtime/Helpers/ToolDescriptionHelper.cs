@@ -268,7 +268,7 @@ public static class ToolDescriptionHelper
             nameof(GitHubIssuePlugin.FindConnectedRepo) => "Finding connected GitHub repository...",
             nameof(GitHubIssuePlugin.CreateGithubIssueComment) => "Adding comment to GitHub issue...",
             nameof(GitHubIssuePlugin.FetchGithubSecurityDependabotAlerts) => "Fetching GitHub security alerts...",
-            nameof(GitHubIssuePlugin.FetchGithubIssuesLimited) => "Fetching GitHub Issues...",
+            nameof(GitHubIssuePluginDefinition.FetchGithubIssuesLimited) => "Fetching GitHub Issues...",
 
             // Kubectl Plugin functions
             "RunKubectlWriteCommand" => "Executing Kubernetes write command...",

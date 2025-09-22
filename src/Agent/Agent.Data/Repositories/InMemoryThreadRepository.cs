@@ -1151,9 +1151,61 @@ namespace Agent.Data.Repositories
         #region Agent Task Operations
         public Task<bool> UpdateTaskOnThreadAsync(Guid threadId, AgentTaskShort task)
         {
-            throw new NotImplementedException();
+            // Stub implementation for testing
+            return Task.FromResult(true);
+        }
+        #endregion
+
+        #region PSQL Execution Operations
+        public Task<PsqlExecution?> GetPsqlExecutionAsync(Guid threadId, Guid executionId)
+        {
+            // Stub implementation for testing
+            return Task.FromResult<PsqlExecution?>(null);
+        }
+
+        public Task<PsqlExecution?> CreatePsqlExecutionAsync(Guid threadId, PsqlExecution execution)
+        {
+            // Stub implementation for testing
+            return Task.FromResult<PsqlExecution?>(execution);
+        }
+
+        public Task<PsqlExecution?> UpdatePsqlExecutionAsync(Guid threadId, PsqlExecution execution)
+        {
+            // Stub implementation for testing
+            return Task.FromResult<PsqlExecution?>(execution);
+        }
+
+        public Task<PsqlExecution?> UpdatePsqlExecutionOutputAsync(Guid threadId, Guid executionId, string output, string? error)
+        {
+            // Stub implementation for testing
+            var execution = new PsqlExecution(
+                Id: executionId,
+                Command: "test",
+                Description: "test",
+                Status: AzCliExecutionStatus.Completed,
+                OriginalFunctionCall: null,
+                Output: output,
+                Error: error,
+                CreatedTimestamp: DateTime.UtcNow,
+                StartedTimestamp: DateTime.UtcNow,
+                CompletedTimestamp: DateTime.UtcNow,
+                ExecutedBy: null,
+                AgentContextId: null
+            );
+            return Task.FromResult<PsqlExecution?>(execution);
+        }
+
+                public Task<PsqlExecution?> ListPendingPsqlExecutionAsync(Guid threadId)
+        {
+            // Stub implementation for testing
+            return Task.FromResult<PsqlExecution?>(null);
+        }
+
+                public Task<IEnumerable<Message>> GetMessagesWithPsqlAsync(Guid threadId)
+        {
+            // Stub implementation for testing - return empty list
+            return Task.FromResult(Enumerable.Empty<Message>());
         }
         #endregion
     }
 }
-

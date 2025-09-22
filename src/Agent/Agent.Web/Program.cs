@@ -341,6 +341,7 @@ public class Program
             .AddSingleton<AzureResourceGraphClient>()
             .AddSingleton<ArmHelper>()
             .AddSingleton<AzureMonitorMetricsHelper>()
+            .AddSingleton<PostgresSQLCommandHelper>()
             .AddSingleton<ArmResourceCrawlerFactory>()
             .AddSingleton<ICrawlerService, ResourceGraphCrawlerService>()
             .AddSingleton<ICrawlerTriggerService, CrawlerTriggerService>()
@@ -363,6 +364,8 @@ public class Program
 
             .AddTransient<IPostgreSQLPlugin, PostgreSQLPlugin>()
             .AddTransient<PostgreSQLPluginDefinition>()
+            .AddTransient<IPostgreSQLAutomationPlugin, PostgreSQLAutomationPlugin>()
+            .AddTransient<PostgreSQLAutomationPluginDefinition>()
             .AddSingleton<IPlaybookService, PlaybookService>()
 
             .AddTransient<MetricsPluginDefinition>()

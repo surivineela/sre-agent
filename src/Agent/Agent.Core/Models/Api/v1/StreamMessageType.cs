@@ -41,6 +41,11 @@ public enum StreamMessageType
     Kubectl,
 
     /// <summary>
+    /// PostgreSQL Execution message type.
+    /// </summary>
+    Psql,
+
+    /// <summary>
     /// Thread creation or update message type.
     /// </summary>
     ThreadEvent,

@@ -60,17 +60,12 @@ namespace Agent.Plugins.Definitions
         [Description("Analyzes slow-running queries using Query Store data to identify performance bottlenecks, missing indexes, and inefficient query patterns. " +
                     "Provides specific recommendations for query optimization and index creation.")]
         public async Task<SlowQueryAnalysis> AnalyzeSlowQueries(
-            [Description("The full Azure resource ID of the PostgreSQL server")]
-            string resourceId,
-            [Description("The start time for the metric query range (Absolute in UTC or relative). Examples: '2024-03-05 10:50:00', '20 hours ago', '3 days ago'. Prefer relative format for recent values (e.g: '24 hours ago', '2 days ago'). Validation start date should be within last 90 days")]
-            string startTime,
-            [Description("The end time for the metric query range (Absolute in UTC or relative). Examples: '2024-03-05 10:50:00', 'now', 'an hour ago'. Prefer relative format for recent value (e.g: 'now', '1 hour ago'). Validation limit end date from last 90 days")]
-            string endTime)
+            [Description("The full Azure resource ID of the PostgreSQL server")] string resourceId,
+            [Description("The name of the database to analyze slow queries for")] string database,
+            [Description("Time window for analysis in minutes (default: 60)")] int windowMinutes = 60)
         {
-            return await _postgreSQLPlugin.AnalyzeSlowQueriesAsync(
-                resourceId,
-                startTime.RecognizeAsDateTime() ?? DateTimeOffset.UtcNow.AddDays(-1),
-                endTime.RecognizeAsDateTime() ?? DateTimeOffset.UtcNow);
+            var window = TimeSpan.FromMinutes(windowMinutes);
+            return await _postgreSQLPlugin.AnalyzeSlowQueriesAsync(resourceId, database, window);
         }
 
         /// <summary>
@@ -133,9 +128,10 @@ namespace Agent.Plugins.Definitions
         [Description("Analyzes PostgreSQL table bloat by comparing actual table sizes to estimated sizes based on live tuples. " +
                     "Identifies tables with excessive bloat that may need vacuum attention. Critical for maintaining PostgreSQL performance.")]
         public async Task<TableBloatAnalysis> AnalyzeTableBloat(
-            [Description("The full Azure resource ID of the PostgreSQL server")] string resourceId)
+            [Description("The full Azure resource ID of the PostgreSQL server")] string resourceId,
+            [Description("The name of the database to analyze for table bloat")] string database)
         {
-            return await _postgreSQLPlugin.AnalyzeTableBloat(resourceId);
+            return await _postgreSQLPlugin.AnalyzeTableBloat(resourceId, database);
         }
 
         /// <summary>
@@ -144,9 +140,10 @@ namespace Agent.Plugins.Definitions
         [Description("Checks autovacuum configuration for all tables, identifying tables with disabled autovacuum and showing current settings. " +
                     "Critical for maintaining PostgreSQL performance as disabled autovacuum leads to table bloat.")]
         public async Task<AutovacuumConfigurationAnalysis> AnalyzeAutovacuumConfiguration(
-            [Description("The full Azure resource ID of the PostgreSQL server")] string resourceId)
+            [Description("The full Azure resource ID of the PostgreSQL server")] string resourceId,
+            [Description("The name of the database to analyze autovacuum configuration")] string database)
         {
-            return await _postgreSQLPlugin.AnalyzeAutovacuumConfiguration(resourceId);
+            return await _postgreSQLPlugin.AnalyzeAutovacuumConfiguration(resourceId, database);
         }
 
         /// <summary>
@@ -155,9 +152,10 @@ namespace Agent.Plugins.Definitions
         [Description("Shows detailed table activity statistics including insert/update/delete rates, vacuum history, and dead tuple ratios. " +
                     "Helps identify high-activity tables needing attention and correlates activity with bloat issues.")]
         public async Task<TableActivityAnalysis> AnalyzeTableActivity(
-            [Description("The full Azure resource ID of the PostgreSQL server")] string resourceId)
+            [Description("The full Azure resource ID of the PostgreSQL server")] string resourceId,
+            [Description("The name of the database to analyze for table activity")] string database)
         {
-            return await _postgreSQLPlugin.AnalyzeTableActivity(resourceId);
+            return await _postgreSQLPlugin.AnalyzeTableActivity(resourceId, database);
         }
 
         /// <summary>
@@ -166,9 +164,10 @@ namespace Agent.Plugins.Definitions
         [Description("Gets comprehensive PostgreSQL database overview including database size, table counts, tuple statistics, and global autovacuum settings. " +
                     "Provides baseline information for PostgreSQL health assessment.")]
         public async Task<DatabaseOverviewAnalysis> GetDatabaseOverview(
-            [Description("The full Azure resource ID of the PostgreSQL server")] string resourceId)
+            [Description("The full Azure resource ID of the PostgreSQL server")] string resourceId,
+            [Description("The name of the database to analyze")] string database)
         {
-            return await _postgreSQLPlugin.GetDatabaseOverview(resourceId);
+            return await _postgreSQLPlugin.GetDatabaseOverview(resourceId, database);
         }
 
         /// <summary>
@@ -177,9 +176,10 @@ namespace Agent.Plugins.Definitions
         [Description("Performs comprehensive PostgreSQL health analysis combining bloat, autovacuum, activity, and overview data. " +
                     "Use this for complete diagnostic assessment and overall health status. Provides prioritized issues and recommendations.")]
         public async Task<PostgreSQLHealthAnalysis> AnalyzePostgreSQLHealth(
-            [Description("The full Azure resource ID of the PostgreSQL server")] string resourceId)
+            [Description("The full Azure resource ID of the PostgreSQL server")] string resourceId,
+            [Description("The name of the database to analyze for health assessment")] string database)
         {
-            return await _postgreSQLPlugin.AnalyzePostgreSQLHealth(resourceId);
+            return await _postgreSQLPlugin.AnalyzePostgreSQLHealth(resourceId, database);
         }
 
         /// <summary>

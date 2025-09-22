@@ -7,6 +7,7 @@ import ChangeDiffMessage from './ChangeDiffMessage';
 import DailyReportMessage from './DailyReportMessage';
 import ErrorChatMessage from './ErrorMessage';
 import ExecutionMessage, { ExecutionMessageType } from './ExecutionMessage';
+import PsqlExecutionMessage from './PsqlExecutionMessage';
 import ScheduledTaskCreationCard from './ScheduledTaskCreationCard';
 import ScheduledTaskExecutionCard from './ScheduledTaskExecutionCard';
 import TextOrImageMessage from './TextOrImageMessage';
@@ -63,6 +64,12 @@ const AgentMessage = ({
                 <ExecutionMessage
                     type={ExecutionMessageType.Kubectl}
                     execution={messageContent.kubectlExecution}
+                    threadId={threadId}
+                    updateSpecialMessageInStreamingMessage={updateSpecialMessageInStreamingMessage}
+                />
+            ) : messageContent.psqlExecution ? (
+                <PsqlExecutionMessage
+                    execution={messageContent.psqlExecution}
                     threadId={threadId}
                     updateSpecialMessageInStreamingMessage={updateSpecialMessageInStreamingMessage}
                 />

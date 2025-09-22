@@ -262,6 +262,31 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         }
     }
 
+    public async Task NotifyPsqlUpdate(Guid threadId, PsqlExecution execution, Guid messageId = default)
+    {
+        if (threadId == Guid.Empty)
+        {
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
+        }
+
+        try
+        {
+            string jsonString = JsonSerializer.Serialize(execution, _azCliKubectlSerializerOptions);
+            if (messageId != default)
+            {
+                await AppendAgentStreamMessage(threadId, jsonString, StreamMessageType.Psql, messageId);
+            }
+            else
+            {
+                await AppendAgentStreamMessage(threadId, jsonString, StreamMessageType.Psql);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to stream PostgreSQL update for thread {ThreadId}", threadId);
+        }
+    }
+
     public async Task NotifyApprovalUpdate(Guid threadId, Approval approval, Guid messageId = default)
     {
         if (threadId == Guid.Empty)
