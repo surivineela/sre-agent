@@ -16,8 +16,14 @@ using Microsoft.Extensions.Logging;
 namespace Agent.Plugins.Definitions;
 
 [AgentToolPlugin]
-public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, AgentMemorySettings agentMemorySettings,  DataConnectorIndex dataConnectorindex, ILogger<AgentMemoryPluginDefinition> logger, IAgentOutboundCommunicationService agentOutboundCommunicationService)
+public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, AgentMemorySettings agentMemorySettings, DataConnectorIndex dataConnectorindex, ILogger<AgentMemoryPluginDefinition> logger, IAgentOutboundCommunicationService agentOutboundCommunicationService)
 {
+    public const string NoRelevantResultsMessage = "No relevant memories, documents, or past incidents found for the current symptoms";
+    public const string NoSameResourceIncidentsMessage = "No past incidents found on the same resource";
+    public const string NoSimilarSymptomsMessage = "No past incidents found with similar symptoms";
+    public const string NoUserMemoriesMessage = "No relevant user memories found";
+    public const string NoDocumentsMessage = "No relevant documents found";
+
     [Description(@"Retrieves knowledge from past memories to assist with current incident resolution")]
     public async Task<string> SearchMemoryAsync(
         [Description("The Azure resource id of the affected resource experiencing the incident")] string resourceId,
@@ -42,11 +48,11 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
             userMemories: userMemories,
             trajectories: trajectories
         );
-        
+
         // Push the memory search results to the agent chat interface
         var displayMessage = new ChatMessage(ChatRole.Tool, result);
         await PushMemoryResultToChat(displayMessage);
-        
+
         return result;
     }
 
@@ -76,7 +82,7 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
         }
         else
         {
-            logger.LogInternalInformation("[Thread {ThreadId}] No past incidents found on the same resource", threadId);
+            logger.LogInternalInformation($"[Thread {{ThreadId}}] {NoSameResourceIncidentsMessage}", threadId);
         }
 
         if (trajectories.SimilarSymptomsTrajectories.Count > 0)
@@ -98,7 +104,7 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
         }
         else
         {
-            logger.LogInternalInformation("[Thread {ThreadId}] No past incidents found with similar symptoms", threadId);
+            logger.LogInternalInformation($"[Thread {{ThreadId}}] {NoSimilarSymptomsMessage}", threadId);
         }
 
         if (userMemories.Count > 0)
@@ -118,7 +124,7 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
         }
         else
         {
-            logger.LogInternalInformation("[Thread {ThreadId}] No relevant user memories found", threadId);
+            logger.LogInternalInformation($"[Thread {{ThreadId}}] {NoUserMemoriesMessage}", threadId);
         }
 
         if (documents.Count > 0)
@@ -139,12 +145,12 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
         }
         else
         {
-            logger.LogInternalInformation("[Thread {ThreadId}] No relevant documents found", threadId);
+            logger.LogInternalInformation($"[Thread {{ThreadId}}] {NoDocumentsMessage}", threadId);
         }
 
         if (sb.Length == 0)
         {
-            return "No relevant memories, documents, or past incidents found for the current symptoms";
+            return NoRelevantResultsMessage;
         }
 
         logger.LogInternalInformation("[Thread {ThreadId}] Memory response built successfully", threadId);

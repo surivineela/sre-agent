@@ -8,6 +8,7 @@ using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Logging;
+using Agent.Plugins.Definitions;
 using Agent.Runtime.Helpers;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -186,17 +187,35 @@ public class RagEvaluator : IRagEvaluator
     /// Evaluates a SearchMemory result using RetrievalEvaluator
     /// </summary>
     private async Task<RagEvaluationResult> EvaluateSearchMemoryResult(
-        ThreadModel thread,
-        AgentContext agentContext,
-        SearchMemoryCall call,
-        FunctionResultContent result,
-        CancellationToken cancellationToken)
+    ThreadModel thread,
+    AgentContext agentContext,
+    SearchMemoryCall call,
+    FunctionResultContent result,
+    CancellationToken cancellationToken)
     {
         var retrievalResult = result.Result?.ToString() ?? "";
 
+        // Skip evaluation if no relevant results were found
+        if (ShouldSkipEvaluation(retrievalResult))
+        {
+            _logger.LogInternalInformation(
+                $"Skipping RAG evaluation for SearchMemory call {call.CallId} - no relevant results found");
+
+            return new RagEvaluationResult(
+                ThreadId: thread.Id,
+                AgentContextId: agentContext.Id,
+                CallId: call.CallId,
+                ResourceId: call.ResourceId,
+                SearchQuery: call.Symptoms,
+                RetrievalScore: -1, // Use -1 to indicate skipped evaluation
+                Explanation: "Skipped - No relevant results found",
+                Reasoning: "Evaluation skipped as SearchMemory returned no relevant memories, documents, or past incidents",
+                EvaluatedAt: DateTime.UtcNow
+            );
+        }
+
         try
         {
-
             // Build query context from the SearchMemory call
             var query = BuildQueryFromSearchMemoryCall(call);
 
@@ -231,6 +250,25 @@ public class RagEvaluator : IRagEvaluator
                 EvaluatedAt: DateTime.UtcNow
             );
         }
+    }
+
+    /// <summary>
+    /// Determines if RAG evaluation should be skipped based on the retrieval result
+    /// </summary>
+    private bool ShouldSkipEvaluation(string retrievalResult)
+    {
+        if (string.IsNullOrWhiteSpace(retrievalResult))
+        {
+            return true;
+        }
+
+        // Only check for the main "no results" message that's actually returned
+        if (retrievalResult.Equals(AgentMemoryPluginDefinition.NoRelevantResultsMessage, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return false;
     }
 
     private record RetrievalEvaluationResult(
