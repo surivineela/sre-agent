@@ -7,6 +7,7 @@ import ChangeDiffMessage from './ChangeDiffMessage';
 import DailyReportMessage from './DailyReportMessage';
 import ErrorChatMessage from './ErrorMessage';
 import ExecutionMessage, { ExecutionMessageType } from './ExecutionMessage';
+import MemorySearchCard from './MemorySearchCard';
 import PsqlExecutionMessage from './PsqlExecutionMessage';
 import ScheduledTaskCreationCard from './ScheduledTaskCreationCard';
 import ScheduledTaskExecutionCard from './ScheduledTaskExecutionCard';
@@ -77,6 +78,8 @@ const AgentMessage = ({
                 <AgentTaskChatMessage agentTask={messageContent.agentTaskInfo} />
             ) : messageContent.error ? (
                 <ErrorChatMessage error={messageContent.error} />
+            ) : messageContent.memorySearchResult ? (
+                <MemorySearchCard memoryResult={messageContent.memorySearchResult} />
             ) : (messageContent.text || isTyping) &&
               !scheduledTaskData.isScheduledTaskMessage &&
               !scheduledTaskData.isScheduledTaskCreationMessage ? (

@@ -7,6 +7,7 @@ using System.Text;
 using Agent.Core;
 using Agent.Core.Configuration;
 using Agent.Core.DataConnectors;
+using Agent.Core.Models.Api.v1;
 using Agent.Data.AgentMemory;
 using Agent.Plugins.DataConnectors.Documentation;
 using Agent.Core.Interfaces;
@@ -51,8 +52,8 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
 
         // Push the memory search results to the agent chat interface
         var displayMessage = new ChatMessage(ChatRole.Tool, result);
-        await PushMemoryResultToChat(displayMessage);
-
+        await PushMemoryResultToChat(displayMessage, documents, userMemories, trajectories, resourceId, symptoms);
+        
         return result;
     }
 
@@ -272,10 +273,10 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
     }
 
     /// <summary>
-    /// Pushes memory search results to the agent chat interface, similar to how KustoPlugin displays query results.
-    /// Routes to agent task storage if in agent task context, otherwise to normal chat flow.
+    /// Pushes memory search results to the agent chat interface using streaming pattern.
+    /// Creates MemorySearchResult and streams it to frontend for real-time rendering.
     /// </summary>
-    private async Task PushMemoryResultToChat(ChatMessage msg)
+    private async Task PushMemoryResultToChat(ChatMessage msg, List<string> documents, List<string> userMemories, TrajectorySearchResult trajectories, string resourceId, string symptoms)
     {
         var agentTaskId = ToolStatic.AsyncLocalAgentTaskId.Value;
         var threadId = ToolStatic.AsyncLocalThreadId.Value;
@@ -289,9 +290,41 @@ public class AgentMemoryPluginDefinition(IAgentMemoryClient agentMemoryClient, A
         }
         else
         {
-            // Normal chat flow - use existing method
-            await agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
-                threadId, string.Empty, msg);
+            // Normal chat flow - use streaming pattern
+            var memorySearchResult = new MemorySearchResult(
+                ResourceId: resourceId,
+                Symptoms: symptoms,
+                SameResourceTrajectories: trajectories.SameResourceTrajectories.Select(t => new TrajectoryResult(
+                    Id: t.Id,
+                    Title: t.Title,
+                    InitialSymptoms: t.InitialSymptoms,
+                    SymptomsObserved: t.SymptomsObserved,
+                    StepsFollowed: t.StepsFollowed,
+                    RootCause: t.RootCause,
+                    Pitfalls: t.Pitfalls
+                )).ToList(),
+                SimilarSymptomsTrajectories: trajectories.SimilarSymptomsTrajectories.Select(t => new TrajectoryResult(
+                    Id: t.Id,
+                    Title: t.Title,
+                    InitialSymptoms: t.InitialSymptoms,
+                    SymptomsObserved: t.SymptomsObserved,
+                    StepsFollowed: t.StepsFollowed,
+                    RootCause: t.RootCause,
+                    Pitfalls: t.Pitfalls
+                )).ToList(),
+                UserMemories: userMemories,
+                Documents: documents,
+                Timestamp: DateTime.UtcNow,
+                TotalResults: trajectories.SameResourceTrajectories.Count + trajectories.SimilarSymptomsTrajectories.Count + userMemories.Count + documents.Count
+            );
+
+            // Stream to frontend using same pattern as AzCli - serialize and stream with StreamMessageType
+            var jsonString = System.Text.Json.JsonSerializer.Serialize(memorySearchResult);
+            await agentOutboundCommunicationService.AppendAgentStreamMessage(
+                threadId,
+                jsonString,
+                Agent.Core.Models.Api.v1.StreamMessageType.MemorySearch
+            );
         }
     }
 }

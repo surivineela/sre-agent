@@ -6,6 +6,7 @@ import {
     AzCliExecution,
     ChatMessageError,
     KubectlExecution,
+    MemorySearchResult,
     Message,
     MessageContent,
     MessageMetaData,
@@ -90,6 +91,7 @@ export interface IChatMessageProps {
         azCliExecution?: AzCliExecution;
         kubectlExecution?: KubectlExecution;
         psqlExecution?: PsqlExecution;
+        memorySearchResult?: MemorySearchResult;
     }) => void;
 }
 
@@ -125,6 +127,7 @@ export interface IAgentMessageProps {
         approval?: Approval;
         azCliExecution?: AzCliExecution;
         kubectlExecution?: KubectlExecution;
+        memorySearchResult?: MemorySearchResult;
         psqlExecution?: PsqlExecution;
     }) => void;
 }

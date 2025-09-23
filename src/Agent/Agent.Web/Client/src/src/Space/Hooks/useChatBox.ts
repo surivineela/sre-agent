@@ -5,7 +5,7 @@ import { useIntl } from 'react-intl';
 import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { AgentTaskMetaData } from '../../Common/Contracts/DataPlane/AgentTask';
-import { Approval, AzCliExecution, KubectlExecution, PsqlExecution } from '../../Common/Contracts/DataPlane/Message';
+import { Approval, AzCliExecution, KubectlExecution, MemorySearchResult, PsqlExecution } from '../../Common/Contracts/DataPlane/Message';
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
@@ -302,8 +302,9 @@ export const useChatBox = (
             azCliExecution?: AzCliExecution;
             kubectlExecution?: KubectlExecution;
             psqlExecution?: PsqlExecution;
+            memorySearchResult?: MemorySearchResult;
         }) => {
-            const { approval, azCliExecution, kubectlExecution, psqlExecution } = specialMessageProperties;
+            const { approval, azCliExecution, kubectlExecution, psqlExecution, memorySearchResult } = specialMessageProperties;
 
             setStreamingMessage(prev => {
                 if (!prev) return prev;
@@ -316,6 +317,7 @@ export const useChatBox = (
                         azCliExecution,
                         kubectlExecution,
                         psqlExecution,
+                        memorySearchResult,
                     };
                     return cloneDeep(prev);
                 } else {
@@ -332,8 +334,12 @@ export const useChatBox = (
         let approval = getSpecialMessageContentFromStreamingMessage<Approval>(streamingMessage, 'approval');
         const azCliExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'azcli');
         const kubectlExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'kubectl');
+        const memorySearchResult = getSpecialMessageContentFromStreamingMessage<MemorySearchResult>(streamingMessage, 'memorysearch');
         const psqlExecution = getSpecialMessageContentFromStreamingMessage<PsqlExecution>(streamingMessage, 'psql');
-        const text = messageContent?.text && !approval && !azCliExecution && !kubectlExecution && !psqlExecution ? messageContent.text : '';
+        const text =
+            messageContent?.text && !approval && !azCliExecution && !kubectlExecution && !memorySearchResult && !psqlExecution
+                ? messageContent.text
+                : '';
         const agentTaskInfo = getSpecialMessageContentFromStreamingMessage<AgentTaskMetaData>(streamingMessage, 'taskupdate');
         const isImage = isImageStreamingMessageType(streamingMessage);
 
@@ -351,6 +357,7 @@ export const useChatBox = (
             azCliExecution,
             kubectlExecution,
             psqlExecution,
+            memorySearchResult,
             agentTaskInfo,
             isDailyReport: false,
         };
@@ -362,8 +369,9 @@ export const useChatBox = (
             chatMessageContent.psqlExecution;
         const specialMessageId = specialMessage?.id;
         const isSpecialMessageInInitialState = isPendingState(specialMessage?.status);
+        const hasMemorySearchResult = !!chatMessageContent.memorySearchResult;
 
-        if (!specialMessage || isSpecialMessageInInitialState) {
+        if (!specialMessage || isSpecialMessageInInitialState || hasMemorySearchResult) {
             setStreamingMessage(prev => {
                 const newStreamingMessage = prev ? { ...prev } : composeDefaultAgentMessage();
                 return {

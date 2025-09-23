@@ -18,6 +18,7 @@ export interface MessageContent {
     isDailyReport?: boolean;
     changeDiff?: ChangeDiffViewer;
     agentTaskInfo?: AgentTaskMetaData;
+    memorySearchResult?: MemorySearchResult;
 }
 
 export interface Message extends MessageMetaData {
@@ -29,6 +30,7 @@ export interface Message extends MessageMetaData {
     isDailyReport?: boolean;
     changeDiff?: ChangeDiffViewer;
     agentTaskInfo?: AgentTaskMetaData;
+    memorySearchResult?: MemorySearchResult;
 }
 
 export interface Approval {
@@ -140,4 +142,25 @@ export interface ChangeDiffItem {
     changesJson: string;
     previousSnapshotId?: string;
     newSnapshotId?: string;
+}
+
+export interface MemorySearchResult {
+    ResourceId: string;
+    Symptoms: string;
+    SameResourceTrajectories: TrajectoryResult[];
+    SimilarSymptomsTrajectories: TrajectoryResult[];
+    UserMemories: string[];
+    Documents: string[];
+    Timestamp: string;
+    TotalResults: number;
+}
+
+export interface TrajectoryResult {
+    Id: string;
+    Title: string;
+    InitialSymptoms: string;
+    SymptomsObserved: string;
+    StepsFollowed: string;
+    RootCause: string;
+    Pitfalls: string;
 }

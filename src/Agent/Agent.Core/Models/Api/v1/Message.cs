@@ -27,7 +27,9 @@ public record Message(
     string? IncidentDiscussionId = null,
     bool IsDailyReport = false,
     // Agent Task information associated with this message (for deep investigation)
-    AgentTaskInfo? AgentTaskInfo = null
+    AgentTaskInfo? AgentTaskInfo = null,
+    // Memory search results from agent memory plugin
+    MemorySearchResult? MemorySearchResult = null
 );
 
 public record Posted(
@@ -39,3 +41,4 @@ public record Attachment(
     string Name,
     string Typep
 );
+

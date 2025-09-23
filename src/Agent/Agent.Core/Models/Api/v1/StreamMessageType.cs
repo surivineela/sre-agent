@@ -79,4 +79,9 @@ public enum StreamMessageType
     /// Status update for an incident, re-reported when an incident appears
     /// </summary>
     IncidentStatus,
+
+    /// <summary>
+    /// Memory search results with structured data for rendering memory card
+    /// </summary>
+    MemorySearch,
 }
