@@ -79,10 +79,22 @@
       "value": "Agent permissions level"
     }
   ],
+  "+fXByQ": [
+    {
+      "type": 0,
+      "value": "Delete incident?"
+    }
+  ],
   "+hJd45": [
     {
       "type": 0,
       "value": "Edit data connector"
+    }
+  ],
+  "+iCTRd": [
+    {
+      "type": 0,
+      "value": "User Memories"
     }
   ],
   "+k5t/y": [
@@ -137,6 +149,12 @@
     {
       "type": 0,
       "value": "Other"
+    }
+  ],
+  "/Vy71a": [
+    {
+      "type": 0,
+      "value": "Past Incidents on Same Resource"
     }
   ],
   "/WrP/v": [
@@ -853,6 +871,12 @@
       "value": "IoT Hub Twin Contributor"
     }
   ],
+  "5T/jmb": [
+    {
+      "type": 0,
+      "value": "You do not have permission to delete this report"
+    }
+  ],
   "5UfRjw": [
     {
       "type": 0,
@@ -985,6 +1009,12 @@
     {
       "type": 0,
       "value": "Cost Management Reader"
+    }
+  ],
+  "5wPI+O": [
+    {
+      "type": 0,
+      "value": "This will permanently delete this incident and the related incident thread from Azure SRE Agent. Are you sure you want to delete this incident?"
     }
   ],
   "5y2qWO": [
@@ -1893,6 +1923,12 @@
       "value": "Failed to delete logic app"
     }
   ],
+  "DuejfP": [
+    {
+      "type": 0,
+      "value": "Memory Search Results"
+    }
+  ],
   "Dx3Xj3": [
     {
       "type": 0,
@@ -1933,6 +1969,20 @@
     {
       "type": 0,
       "value": "Transactions for last 30 minutes"
+    }
+  ],
+  "EI/cfO": [
+    {
+      "type": 0,
+      "value": "Deleting report '"
+    },
+    {
+      "type": 1,
+      "value": "title"
+    },
+    {
+      "type": 0,
+      "value": "'"
     }
   ],
   "EI4WZI": [
@@ -2673,6 +2723,16 @@
     {
       "type": 0,
       "value": "Prompt examples"
+    }
+  ],
+  "LRTerU": [
+    {
+      "type": 0,
+      "value": "Steps: "
+    },
+    {
+      "type": 1,
+      "value": "steps"
     }
   ],
   "LSaaxU": [
@@ -3447,6 +3507,12 @@
     {
       "type": 0,
       "value": "Last 30 days"
+    }
+  ],
+  "RpKuX5": [
+    {
+      "type": 0,
+      "value": "Delete report?"
     }
   ],
   "RrCui3": [
@@ -4245,6 +4311,12 @@
       "value": "Uploading Files"
     }
   ],
+  "XbNTkN": [
+    {
+      "type": 0,
+      "value": "Deleting incident"
+    }
+  ],
   "XdHOL0": [
     {
       "type": 0,
@@ -4291,6 +4363,12 @@
     {
       "type": 0,
       "value": "Failed to validate the access key. Please try again."
+    }
+  ],
+  "YBXVNU": [
+    {
+      "type": 0,
+      "value": "Report was deleted successfully"
     }
   ],
   "YBiTCc": [
@@ -5085,6 +5163,16 @@
       "value": "Agent instructions are required."
     }
   ],
+  "exofc7": [
+    {
+      "type": 0,
+      "value": "Failed to delete report with error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
   "ezP+aQ": [
     {
       "type": 0,
@@ -5227,6 +5315,12 @@
     {
       "type": 0,
       "value": "Copy error details"
+    }
+  ],
+  "g7HOVb": [
+    {
+      "type": 0,
+      "value": "This will permanently delete this report and its information. Are you sure you want to delete this report?"
     }
   ],
   "g8ctzH": [
@@ -5667,6 +5761,20 @@
       "value": "Action summary"
     }
   ],
+  "j2vvrh": [
+    {
+      "type": 0,
+      "value": "Found "
+    },
+    {
+      "type": 1,
+      "value": "numMemories"
+    },
+    {
+      "type": 0,
+      "value": " relevant memories from past experiences"
+    }
+  ],
   "j3bwJQ": [
     {
       "type": 0,
@@ -5899,6 +6007,16 @@
     {
       "type": 0,
       "value": "AzureML Data Scientist"
+    }
+  ],
+  "lDMkTI": [
+    {
+      "type": 0,
+      "value": "Failed to delete incident with error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
     }
   ],
   "lKv8ex": [
@@ -6183,6 +6301,12 @@
       "value": "Last execution"
     }
   ],
+  "oBv1Sy": [
+    {
+      "type": 0,
+      "value": "Relevant Documents"
+    }
+  ],
   "oDI/Rp": [
     {
       "type": 0,
@@ -6405,6 +6529,20 @@
       "value": "Once a Grafana dashboard is provisioned and linked, it may take some time for resources to fully populate the dashboard."
     }
   ],
+  "pnlHOZ": [
+    {
+      "type": 0,
+      "value": "Deleting incident '"
+    },
+    {
+      "type": 1,
+      "value": "title"
+    },
+    {
+      "type": 0,
+      "value": "'"
+    }
+  ],
   "ppARxn": [
     {
       "type": 0,
@@ -6531,6 +6669,12 @@
       "value": "Active threads"
     }
   ],
+  "rI2aPZ": [
+    {
+      "type": 0,
+      "value": "Similar Symptom Incidents"
+    }
+  ],
   "rKq4sw": [
     {
       "type": 0,
@@ -6569,6 +6713,12 @@
     {
       "type": 0,
       "value": " over time. The correlation values indicate how strongly these two metrics influence each other."
+    }
+  ],
+  "rVtn/e": [
+    {
+      "type": 0,
+      "value": "Deleting report"
     }
   ],
   "rXYf9o": [
@@ -6659,6 +6809,16 @@
     {
       "type": 0,
       "value": "Assisted by agent"
+    }
+  ],
+  "s5cLGN": [
+    {
+      "type": 0,
+      "value": "Root Cause: "
+    },
+    {
+      "type": 1,
+      "value": "rootCause"
     }
   ],
   "s7DlV0": [
@@ -6771,6 +6931,16 @@
     {
       "type": 0,
       "value": "Info:"
+    }
+  ],
+  "t2u8dC": [
+    {
+      "type": 0,
+      "value": "Symptoms: "
+    },
+    {
+      "type": 1,
+      "value": "symptoms"
     }
   ],
   "t323u5": [
@@ -7227,6 +7397,12 @@
       "value": "Add a default incident handler for the agent to use for High priority incidents."
     }
   ],
+  "x7C8JZ": [
+    {
+      "type": 0,
+      "value": "No relevant memories found for this query"
+    }
+  ],
   "xDYr9m": [
     {
       "type": 0,
@@ -7371,6 +7547,12 @@
       "value": "Create Sub-Agent"
     }
   ],
+  "yNCGjc": [
+    {
+      "type": 0,
+      "value": "Incident was deleted successfully"
+    }
+  ],
   "yVc78v": [
     {
       "type": 0,
@@ -7471,6 +7653,12 @@
     {
       "type": 0,
       "value": "Find incident threads and incident response plans together on the Incident Management tab."
+    }
+  ],
+  "zCA8jl": [
+    {
+      "type": 0,
+      "value": "You do not have permission to delete this incident"
     }
   ],
   "zGhyFV": [

@@ -11,11 +11,12 @@ import {
     tokens,
     useRestoreFocusSource,
 } from '@fluentui/react-components';
-import { useContext } from 'react';
+import { useCallback, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { ActivitiesThreadHeaderResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { AzPortalContext } from '../AzPortalProxy/Providers/AzPortalProxyContext';
-import { Thread } from '../Contracts/DataPlane/Thread';
+import { Thread, ThreadSource } from '../Contracts/DataPlane/Thread';
+import { useDialogStyles } from './Dialog.styles';
 
 const useStyles = makeStyles({
     dangerButton: {
@@ -48,10 +49,11 @@ const DeleteThreadDialog = ({
     restoreFocusSourceAttributes,
 }: DeleteThreadDialogProps) => {
     const { dangerButton } = useStyles();
+    const { dialogSurface } = useDialogStyles();
     const intl = useIntl();
     const azPortalContext = useContext(AzPortalContext);
 
-    const handleConfirmedDelete = () => {
+    const handleConfirmedDelete = useCallback(() => {
         azPortalContext.log({
             action: 'deleteThread',
             actionModifier: 'started',
@@ -63,14 +65,34 @@ const DeleteThreadDialog = ({
         });
         onConfirmDelete();
         onOpenChange(false);
-    };
+    }, [azPortalContext, onConfirmDelete, onOpenChange, thread.id, source]);
+
+    const { title, description } = useMemo(() => {
+        switch (thread.source) {
+            case ThreadSource.incident:
+                return {
+                    title: ActivitiesThreadHeaderResources.deleteIncidentDialogTitle,
+                    description: ActivitiesThreadHeaderResources.deleteIncidentDialogDescription,
+                };
+            case ThreadSource.dailyReport:
+                return {
+                    title: ActivitiesThreadHeaderResources.deleteReportDialogTitle,
+                    description: ActivitiesThreadHeaderResources.deleteReportDialogDescription,
+                };
+            default:
+                return {
+                    title: ActivitiesThreadHeaderResources.deleteThreadDialogTitle,
+                    description: ActivitiesThreadHeaderResources.deleteThreadDialogDescription,
+                };
+        }
+    }, [thread.source]);
 
     return (
         <Dialog modalType="alert" open={isOpen} onOpenChange={(_, data) => onOpenChange(data.open)} {...restoreFocusSourceAttributes}>
-            <DialogSurface>
+            <DialogSurface mountNode={{ className: dialogSurface }}>
                 <DialogBody>
-                    <DialogTitle>{intl.formatMessage(ActivitiesThreadHeaderResources.deleteThreadDialogTitle)}</DialogTitle>
-                    <DialogContent>{intl.formatMessage(ActivitiesThreadHeaderResources.deleteThreadDialogDescription)}</DialogContent>
+                    <DialogTitle>{intl.formatMessage(title)}</DialogTitle>
+                    <DialogContent>{intl.formatMessage(description)}</DialogContent>
                     <DialogActions>
                         <DialogTrigger>
                             <Button className={dangerButton} onClick={handleConfirmedDelete}>

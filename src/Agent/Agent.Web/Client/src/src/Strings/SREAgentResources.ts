@@ -950,6 +950,41 @@ export const ActivitiesThreadHeaderResources = defineMessages({
         defaultMessage: 'You do not have permission to delete this thread',
         id: 'CVAKJE',
     },
+
+    deleteReportTitle: { defaultMessage: "Deleting report ''{title}''", id: 'EI/cfO' },
+    deleteReportInProgressDescription: { defaultMessage: 'Deleting report', id: 'rVtn/e' },
+    deleteReportSuccessDescription: { defaultMessage: 'Report was deleted successfully', id: 'YBXVNU' },
+    deleteReportFailureDescription: {
+        defaultMessage: 'Failed to delete report with error: {errorMessage}',
+        id: 'exofc7',
+    },
+    deleteReportDialogTitle: { defaultMessage: 'Delete report?', id: 'RpKuX5' },
+    deleteReportDialogDescription: {
+        defaultMessage: 'This will permanently delete this report and its information. Are you sure you want to delete this report?',
+        id: 'g7HOVb',
+    },
+    deleteReportNoPermissionTooltip: {
+        defaultMessage: 'You do not have permission to delete this report',
+        id: '5T/jmb',
+    },
+
+    deleteIncidentTitle: { defaultMessage: "Deleting incident ''{title}''", id: 'pnlHOZ' },
+    deleteIncidentInProgressDescription: { defaultMessage: 'Deleting incident', id: 'XbNTkN' },
+    deleteIncidentSuccessDescription: { defaultMessage: 'Incident was deleted successfully', id: 'yNCGjc' },
+    deleteIncidentFailureDescription: {
+        defaultMessage: 'Failed to delete incident with error: {errorMessage}',
+        id: 'lDMkTI',
+    },
+    deleteIncidentDialogTitle: { defaultMessage: 'Delete incident?', id: '+fXByQ' },
+    deleteIncidentDialogDescription: {
+        defaultMessage:
+            'This will permanently delete this incident and the related incident thread from Azure SRE Agent. Are you sure you want to delete this incident?',
+        id: '5wPI+O',
+    },
+    deleteIncidentNoPermissionTooltip: {
+        defaultMessage: 'You do not have permission to delete this incident',
+        id: 'zCA8jl',
+    },
 });
 
 export const ActionsHeaderResources = defineMessages({
@@ -2281,4 +2316,18 @@ export const SubAgentsResources = defineMessages({
     subAgentCreated: { defaultMessage: 'Sub-Agent "{name}" has been created successfully', id: 'tfuXMw' },
     createSubAgentFailed: { defaultMessage: 'Failed to create sub-agent', id: 'YP06jq' },
     createSubAgentWithMessageFailed: { defaultMessage: 'Failed to create sub-agent with error: {error}', id: '6v8Uj+' },
+});
+
+export const MemorySearchCardResources = defineMessages({
+    relevantMemoriesFound: { defaultMessage: 'Found {numMemories} relevant memories from past experiences', id: 'j2vvrh' },
+    relevantMemoriesNotFound: { defaultMessage: 'No relevant memories found for this query', id: 'x7C8JZ' },
+    memory: { defaultMessage: 'Memory', id: 'dVx3yz' },
+    memorySearchResults: { defaultMessage: 'Memory Search Results', id: 'DuejfP' },
+    pastIncidentsOnSameResource: { defaultMessage: 'Past Incidents on Same Resource', id: '/Vy71a' },
+    similarSymptomIncidents: { defaultMessage: 'Similar Symptom Incidents', id: 'rI2aPZ' },
+    userMemories: { defaultMessage: 'User Memories', id: '+iCTRd' },
+    relevantDocuments: { defaultMessage: 'Relevant Documents', id: 'oBv1Sy' },
+    symptoms: { defaultMessage: 'Symptoms: {symptoms}', id: 't2u8dC' },
+    rootCause: { defaultMessage: 'Root Cause: {rootCause}', id: 's5cLGN' },
+    steps: { defaultMessage: 'Steps: {steps}', id: 'LRTerU' },
 });

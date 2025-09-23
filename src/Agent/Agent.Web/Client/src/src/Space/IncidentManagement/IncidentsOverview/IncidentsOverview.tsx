@@ -29,6 +29,8 @@ import { ShimmeredDetailsList } from '@fluentui/react/lib/ShimmeredDetailsList';
 import { debounce } from 'lodash';
 import { FC, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import { getDataPlaneErrorMessage } from '../../../Common/Clients/DataPlaneClient';
 import {
     FilterPropsWithKey,
     RemovableFilterProps,
@@ -41,7 +43,7 @@ import { PillFilterSet } from '../../../Common/Components/PillFilter/PillFilterS
 import { IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
 import { Thread } from '../../../Common/Contracts/DataPlane/Thread';
 import Url from '../../../Common/Helpers/Url';
-import { IncidentManagementResources, SreAgentResources } from '../../../Strings/SREAgentResources';
+import { ActivitiesThreadHeaderResources, IncidentManagementResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import ThreadActionsMenu from '../../Activities/ThreadActionsMenu';
 import { SreAgentContext } from '../../Contracts/Context';
 import { IncidentManagementPlatform } from '../../Contracts/IncidentManagement';
@@ -124,6 +126,7 @@ const IncidentsOverview: FC = () => {
         threadListDivRef,
         intersectionObserverRef,
         onScroll,
+        deleteThread,
     } = useIncidentThreadList(
         undefined,
         searchText,
@@ -134,6 +137,57 @@ const IncidentsOverview: FC = () => {
         !selectedThreadInfo?.fullScreen,
         refreshCounter
     );
+
+    const proxy = useContext(AzPortalContext);
+
+    const handleThreadDelete = useCallback(() => {
+        if (selectedThreadInfo?.thread) {
+            proxy.log({
+                action: 'deleteIncidentThread',
+                actionModifier: 'start',
+                logLevel: 'info',
+                resourceId: selectedThreadInfo.thread.id,
+            });
+
+            const id = proxy.startNotification(
+                intl.formatMessage(ActivitiesThreadHeaderResources.deleteIncidentTitle, { title: selectedThreadInfo.thread.title }),
+                intl.formatMessage(ActivitiesThreadHeaderResources.deleteIncidentInProgressDescription)
+            );
+
+            deleteThread(selectedThreadInfo.thread.id).then(response => {
+                if (response.isSuccessful) {
+                    closeThread();
+
+                    proxy.log({
+                        action: 'deleteIncidentThread',
+                        actionModifier: 'success',
+                        logLevel: 'info',
+                        resourceId: selectedThreadInfo.thread.id,
+                    });
+
+                    proxy.stopNotification(id, true, intl.formatMessage(ActivitiesThreadHeaderResources.deleteIncidentSuccessDescription));
+                } else {
+                    proxy.log({
+                        action: 'deleteIncidentThread',
+                        actionModifier: 'failure',
+                        logLevel: 'error',
+                        resourceId: selectedThreadInfo.thread.id,
+                        data: {
+                            error: getDataPlaneErrorMessage(response.error),
+                        },
+                    });
+
+                    proxy.stopNotification(
+                        id,
+                        false,
+                        intl.formatMessage(ActivitiesThreadHeaderResources.deleteIncidentFailureDescription, {
+                            errorMessage: response.error?.message || response.error?.response?.data,
+                        })
+                    );
+                }
+            });
+        }
+    }, [intl, proxy, deleteThread, closeThread, selectedThreadInfo?.thread]);
 
     const handleColumnClick = useCallback(
         (column: IColumn) => {
@@ -582,7 +636,12 @@ const IncidentsOverview: FC = () => {
     }, [timeFilterProps, statusFilterProps, showMockedComponents, priorityFilterProps, actionFilterProps]);
 
     return selectedThreadInfo?.fullScreen ? (
-        <IncidentChat selectedThread={selectedThreadInfo.thread} exitToHome={closeThread} isExpandedView={true} />
+        <IncidentChat
+            selectedThread={selectedThreadInfo.thread}
+            exitToHome={closeThread}
+            isExpandedView={true}
+            handleThreadDelete={handleThreadDelete}
+        />
     ) : (
         <>
             <Drawer
@@ -598,7 +657,14 @@ const IncidentsOverview: FC = () => {
                 <DrawerHeader style={{ padding: '16px 16px 7px 16px' }}>
                     <DrawerHeaderTitle
                         heading={{
-                            style: { whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' },
+                            style: {
+                                display: 'flex',
+                                flexDirection: 'row',
+                                gap: 8,
+                                alignItems: 'center',
+                                justifyContent: 'start',
+                                overflow: 'hidden',
+                            },
                         }}
                         action={
                             <Toolbar>
@@ -626,19 +692,26 @@ const IncidentsOverview: FC = () => {
                             </Toolbar>
                         }
                     >
-                        {selectedThreadInfo?.thread.title}
+                        <div style={{ whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                            {selectedThreadInfo?.thread.title}
+                        </div>
                         {selectedThreadInfo?.thread && (
                             <ThreadActionsMenu
                                 thread={selectedThreadInfo.thread}
-                                handleThreadDelete={() => {}}
+                                handleThreadDelete={handleThreadDelete}
                                 hideCopyDeeplink={true}
-                                hideDelete={true}
                             />
                         )}
                     </DrawerHeaderTitle>
                 </DrawerHeader>
                 <DrawerBody style={{ padding: '0px 16px 0px 0px' }}>
-                    {selectedThreadInfo?.thread && <IncidentChat selectedThread={selectedThreadInfo.thread} exitToHome={closeThread} />}
+                    {selectedThreadInfo?.thread && (
+                        <IncidentChat
+                            selectedThread={selectedThreadInfo.thread}
+                            exitToHome={closeThread}
+                            handleThreadDelete={handleThreadDelete}
+                        />
+                    )}
                 </DrawerBody>
             </Drawer>
             <div className={styles.navPanelWrapper}>

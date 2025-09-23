@@ -1,7 +1,9 @@
 import { Badge, Caption1, Text, makeStyles, mergeClasses, shorthands, tokens } from '@fluentui/react-components';
 import { SearchSparkle20Regular } from '@fluentui/react-icons';
 import { memo } from 'react';
+import { useIntl } from 'react-intl';
 import { MemorySearchResult } from '../../Common/Contracts/DataPlane/Message';
+import { MemorySearchCardResources } from '../../Strings/SREAgentResources';
 
 interface MemorySearchCardProps {
     memoryResult: MemorySearchResult;
@@ -98,6 +100,7 @@ const useStyles = makeStyles({
 
 const MemorySearchCard = ({ memoryResult, className }: MemorySearchCardProps) => {
     const styles = useStyles();
+    const intl = useIntl();
 
     const hasResults = memoryResult.TotalResults > 0;
 
@@ -113,9 +116,15 @@ const MemorySearchCard = ({ memoryResult, className }: MemorySearchCardProps) =>
                     {trajectories.map((trajectory, index) => (
                         <div key={index} className={styles.trajectoryItem}>
                             <Text className={styles.trajectoryTitle}>{trajectory.Title}</Text>
-                            <Text className={styles.trajectoryDetail}>Symptoms: {trajectory.SymptomsObserved}</Text>
-                            <Text className={styles.trajectoryDetail}>Root Cause: {trajectory.RootCause}</Text>
-                            <Text className={styles.trajectoryDetail}>Steps: {trajectory.StepsFollowed}</Text>
+                            <Text className={styles.trajectoryDetail}>
+                                {intl.formatMessage(MemorySearchCardResources.symptoms, { symptoms: trajectory.SymptomsObserved })}
+                            </Text>
+                            <Text className={styles.trajectoryDetail}>
+                                {intl.formatMessage(MemorySearchCardResources.rootCause, { rootCause: trajectory.RootCause })}
+                            </Text>
+                            <Text className={styles.trajectoryDetail}>
+                                {intl.formatMessage(MemorySearchCardResources.steps, { steps: trajectory.StepsFollowed })}
+                            </Text>
                         </div>
                     ))}
                 </div>
@@ -147,26 +156,34 @@ const MemorySearchCard = ({ memoryResult, className }: MemorySearchCardProps) =>
             <div className={styles.header}>
                 <SearchSparkle20Regular className={styles.headerIcon} />
                 <div className={styles.headerContent}>
-                    <Text className={styles.headerTitle}>Memory Search Results</Text>
+                    <Text className={styles.headerTitle}>{intl.formatMessage(MemorySearchCardResources.memorySearchResults)}</Text>
                     <Caption1 className={styles.headerSubtitle}>
                         {hasResults
-                            ? `Found ${memoryResult.TotalResults} relevant memories from past experiences`
-                            : 'No relevant memories found for this query'}
+                            ? intl.formatMessage(MemorySearchCardResources.relevantMemoriesFound, {
+                                  numMemories: memoryResult.TotalResults,
+                              })
+                            : intl.formatMessage(MemorySearchCardResources.relevantMemoriesNotFound)}
                     </Caption1>
                 </div>
                 {hasResults && (
                     <Badge appearance="filled" color="brand" className={styles.badge}>
-                        Memory
+                        {intl.formatMessage(MemorySearchCardResources.memory)}
                     </Badge>
                 )}
             </div>
 
             {hasResults && (
                 <div className={styles.content}>
-                    {renderTrajectories(memoryResult.SameResourceTrajectories, 'Past Incidents on Same Resource')}
-                    {renderTrajectories(memoryResult.SimilarSymptomsTrajectories, 'Similar Symptom Incidents')}
-                    {renderMemories(memoryResult.UserMemories, 'User Memories')}
-                    {renderMemories(memoryResult.Documents, 'Relevant Documents')}
+                    {renderTrajectories(
+                        memoryResult.SameResourceTrajectories,
+                        intl.formatMessage(MemorySearchCardResources.pastIncidentsOnSameResource)
+                    )}
+                    {renderTrajectories(
+                        memoryResult.SimilarSymptomsTrajectories,
+                        intl.formatMessage(MemorySearchCardResources.similarSymptomIncidents)
+                    )}
+                    {renderMemories(memoryResult.UserMemories, intl.formatMessage(MemorySearchCardResources.userMemories))}
+                    {renderMemories(memoryResult.Documents, intl.formatMessage(MemorySearchCardResources.relevantDocuments))}
                 </div>
             )}
         </div>

@@ -150,6 +150,23 @@ export const useIncidentThreadList = (
     const currentScrollTop = useRef<number>(0);
     const threadListDivRef = useRef<HTMLDivElement | null>(null);
 
+    const deleteThread = useCallback(
+        async (threadId: string) => {
+            return threadClient.deleteThread(threadId).then(response => {
+                if (response.isSuccessful) {
+                    setThreads(prevThreads => prevThreads.filter(thread => thread.id !== threadId));
+                    setUnreadThreadIds(prev => {
+                        const newSet = new Set(prev);
+                        newSet.delete(threadId);
+                        return newSet;
+                    });
+                }
+                return response;
+            });
+        },
+        [threadClient.deleteThread]
+    );
+
     const getThreads = useCallback(
         async (
             searchText: string | undefined,
@@ -414,6 +431,7 @@ export const useIncidentThreadList = (
         intersectionObserverRef,
 
         onScroll,
+        deleteThread,
     };
 };
 

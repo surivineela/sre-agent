@@ -22,6 +22,7 @@ import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import CopyButton from '../../Common/Components/CopyButton';
 import DeleteThreadDialog from '../../Common/Components/DeleteThreadDialog';
+import { useDialogStyles } from '../../Common/Components/Dialog.styles';
 import PermissionedMenuItem from '../../Common/Components/PermissionedMenuItem';
 import { Thread } from '../../Common/Contracts/DataPlane/Thread';
 import { copyToClipboard } from '../../Common/Helpers/Clipboard';
@@ -72,6 +73,7 @@ interface ThreadActionsMenuProps {
 
 const ThreadActionsMenu = ({ thread, handleThreadDelete, hideCopyDeeplink, hideDelete }: ThreadActionsMenuProps) => {
     const { infoContent, threadIdHighlight, section, sectionTitle } = useStyles();
+    const { dialogSurface } = useDialogStyles();
     const intl = useIntl();
     const { resourceId, isCrossTenantPortalMode, sreAgentEndpoint } = useContext(EnvironmentContext);
     const threadDeepLink = useThreadDeepLink(thread.id, resourceId, sreAgentEndpoint);
@@ -193,7 +195,7 @@ const ThreadActionsMenu = ({ thread, handleThreadDelete, hideCopyDeeplink, hideD
 
             {/* Thread info Dialog */}
             <Dialog open={isInfoDialogOpen} onOpenChange={(_, data) => setIsInfoDialogOpen(data.open)} {...restoreFocusSourceAttributes}>
-                <DialogSurface>
+                <DialogSurface mountNode={{ className: dialogSurface }}>
                     <DialogBody>
                         <DialogTitle>{intl.formatMessage(SreAgentResources.threadInfo)}</DialogTitle>
                         <DialogContent>

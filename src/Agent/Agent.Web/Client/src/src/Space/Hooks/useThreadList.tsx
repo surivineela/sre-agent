@@ -89,6 +89,23 @@ export const useThreadList = (
         }
     }, [includedSources, excludedSources, unreadOnly, searchText, isLoadingInitialChatMessages]);
 
+    const deleteThread = useCallback(
+        async (threadId: string) => {
+            return threadClient.deleteThread(threadId).then(response => {
+                if (response.isSuccessful) {
+                    setThreads(prevThreads => prevThreads.filter(thread => thread.id !== threadId));
+                    setUnreadThreadIds(prev => {
+                        const newSet = new Set(prev);
+                        newSet.delete(threadId);
+                        return newSet;
+                    });
+                }
+                return response;
+            });
+        },
+        [threadClient.deleteThread]
+    );
+
     const handleScroll = debounce(() => {
         loadThreads();
     }, 300);
@@ -213,5 +230,6 @@ export const useThreadList = (
         intersectionObserverRef,
 
         onScroll,
+        deleteThread,
     };
 };
