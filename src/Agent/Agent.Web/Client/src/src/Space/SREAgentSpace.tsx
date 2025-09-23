@@ -21,7 +21,7 @@ import { AzPortalContext, useAzPortalContext } from '../Common/AzPortalProxy/Pro
 import { EnvironmentContext } from '../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { AppInsightsClient } from '../Common/Clients/AppInsightsClient';
 import RbacWarningBanner from '../Common/Components/RbacWarningBanner';
-import { AgentAccessLevel, IncidentManagementType } from '../Common/Contracts/Azure/SreAgent';
+import { AgentAccessLevel } from '../Common/Contracts/Azure/SreAgent';
 import { ArmResourceDescriptor } from '../Common/Helpers/ResourceDescriptors';
 import { useFeatureFlags } from '../Common/Hooks/useFeatureFlags';
 import { LocalStorageFlags, useLocalStorage } from '../Common/Hooks/useLocalStorage';
@@ -350,10 +350,7 @@ const SREAgentSpace: FC = () => {
     const [agentAccessLevel, setAgentAccessLevel] = useState<AgentAccessLevel>(AgentAccessLevel.low);
 
     const shouldPoll = useMemo(
-        () =>
-            agent?.properties?.incidentManagementConfiguration?.type === IncidentManagementType.PagerDuty ||
-            agent?.properties?.incidentManagementConfiguration?.type === IncidentManagementType.Icm ||
-            agent?.properties?.incidentManagementConfiguration?.type === IncidentManagementType.ServiceNow,
+        () => !!agent?.properties?.incidentManagementConfiguration?.type,
         [agent?.properties?.incidentManagementConfiguration?.type]
     );
 

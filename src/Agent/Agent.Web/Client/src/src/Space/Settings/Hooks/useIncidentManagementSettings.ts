@@ -399,12 +399,7 @@ export function useIncidentManagement(close: (() => void) | undefined) {
                                     false,
                                     intl.formatMessage(IncidentManagementNotificationResources.connectionToPlatformFailed)
                                 );
-                            } else if (
-                                (formValues.platform === IncidentManagementPlatform.PagerDuty ||
-                                    formValues.platform === IncidentManagementPlatform.Icm ||
-                                    formValues.platform === IncidentManagementPlatform.ServiceNow) &&
-                                formValues.createDefaultHandler
-                            ) {
+                            } else if (formValues.createDefaultHandler) {
                                 azPortalContext.log({
                                     action: 'create-defaultHandler',
                                     actionModifier: 'start',
@@ -430,6 +425,11 @@ export function useIncidentManagement(close: (() => void) | undefined) {
                                     defaultIncidentFilter.incidentType = 'incident';
                                     defaultIncidentFilter.priority = '1';
                                 }
+
+                                if (formValues.platform === IncidentManagementPlatform.AzMonitor) {
+                                    defaultIncidentFilter.priority = 'Sev3';
+                                }
+
                                 incidentHandlerClient.createIncidentFilter(defaultIncidentFilter).then(filterResult => {
                                     setIsIncidentManagementConnected(true);
                                     setSaving(false);

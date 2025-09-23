@@ -358,9 +358,18 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                                     {intl.formatMessage(AzMonitorResources.description)}
                                 </div>
                                 {!isSetupScenario && (
-                                    <div style={styles.connectedWrapperStyle}>
-                                        <img src="./success.svg" alt="Connected" style={styles.connectedImageStyle} />
-                                        <span>{intl.formatMessage(AzMonitorResources.connectedMessage)}</span>
+                                    <div className={pagerDutyStyles.iconContainer}>
+                                        <CheckmarkCircle16Filled
+                                            className={pagerDutyStyles.greenCheckIcon}
+                                            aria-label={intl.formatMessage(IncidentManagementResources.setUpComplete)}
+                                        />
+                                        <div>
+                                            {!isIncidentManagementConnected
+                                                ? intl.formatMessage(AzMonitorResources.addedMessage)
+                                                : hasFilters
+                                                  ? intl.formatMessage(AzMonitorResources.connectedMessage)
+                                                  : intl.formatMessage(AzMonitorResources.connectedMessageWithoutHandlers)}
+                                        </div>
                                     </div>
                                 )}
                             </>
@@ -508,51 +517,50 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                             </>
                         )}
 
-                        {(values.platform === IncidentManagementPlatform.PagerDuty ||
-                            values.platform === IncidentManagementPlatform.Icm ||
-                            values.platform === IncidentManagementPlatform.ServiceNow) &&
-                            isSetupScenario && (
-                                <>
-                                    <Field
-                                        id="createDefaultHandlerField"
-                                        label={intl.formatMessage(IncidentManagementResources.quickstartHandler)}
-                                        orientation="horizontal"
-                                        style={{ maxWidth: '78.5%', marginTop: 20 }}
-                                    >
-                                        <Checkbox
-                                            id="createDefaultHandler"
-                                            checked={formikProps.values.createDefaultHandler}
-                                            onChange={(_event, newValue) => {
-                                                setFieldTouched('createDefaultHandler', true, false);
-                                                setFieldValue('createDefaultHandler', !!newValue?.checked);
+                        {values.platform !== IncidentManagementPlatform.Disconnected && isSetupScenario && (
+                            <>
+                                <Field
+                                    id="createDefaultHandlerField"
+                                    label={intl.formatMessage(IncidentManagementResources.quickstartHandler)}
+                                    orientation="horizontal"
+                                    style={{ maxWidth: '78.5%', marginTop: 20 }}
+                                >
+                                    <Checkbox
+                                        id="createDefaultHandler"
+                                        checked={formikProps.values.createDefaultHandler}
+                                        onChange={(_event, newValue) => {
+                                            setFieldTouched('createDefaultHandler', true, false);
+                                            setFieldValue('createDefaultHandler', !!newValue?.checked);
 
-                                                azPortalContext.logAmplitudeControlEvent({
-                                                    targetType: 'checkbox',
-                                                    targetAction: 'changed',
-                                                    targetName: 'createDefaultHandler',
-                                                    targetFriendlyName: 'Create default handler',
-                                                    valueObjectName: newValue?.checked ? 'checked' : 'unchecked',
-                                                    valueObjectFriendlyName: newValue?.checked ? 'Checked' : 'Unchecked',
-                                                });
-                                            }}
-                                            disabled={saving}
-                                            label={
-                                                values.platform === IncidentManagementPlatform.PagerDuty
-                                                    ? intl.formatMessage(PagerDutyResources.quickstartHandlerDescription)
-                                                    : values.platform === IncidentManagementPlatform.ServiceNow
-                                                      ? intl.formatMessage(ServiceNowResources.quickstartHandlerDescription)
-                                                      : intl.formatMessage(IcMResources.quickstartHandlerDescription)
-                                            }
-                                            labelPosition="after"
-                                        />
-                                    </Field>
-                                    {!formikProps.values.createDefaultHandler && (
-                                        <MessageBar style={{ maxWidth: '80%', marginTop: 16, marginBottom: 16 }}>
-                                            {intl.formatMessage(IncidentManagementResources.quickstartHandlerInfoMessage)}
-                                        </MessageBar>
-                                    )}
-                                </>
-                            )}
+                                            azPortalContext.logAmplitudeControlEvent({
+                                                targetType: 'checkbox',
+                                                targetAction: 'changed',
+                                                targetName: 'createDefaultHandler',
+                                                targetFriendlyName: 'Create default handler',
+                                                valueObjectName: newValue?.checked ? 'checked' : 'unchecked',
+                                                valueObjectFriendlyName: newValue?.checked ? 'Checked' : 'Unchecked',
+                                            });
+                                        }}
+                                        disabled={saving}
+                                        label={
+                                            values.platform === IncidentManagementPlatform.PagerDuty
+                                                ? intl.formatMessage(PagerDutyResources.quickstartHandlerDescription)
+                                                : values.platform === IncidentManagementPlatform.ServiceNow
+                                                  ? intl.formatMessage(ServiceNowResources.quickstartHandlerDescription)
+                                                  : values.platform === IncidentManagementPlatform.AzMonitor
+                                                    ? intl.formatMessage(AzMonitorResources.quickstartHandlerDescription)
+                                                    : intl.formatMessage(IcMResources.quickstartHandlerDescription)
+                                        }
+                                        labelPosition="after"
+                                    />
+                                </Field>
+                                {!formikProps.values.createDefaultHandler && (
+                                    <MessageBar style={{ maxWidth: '80%', marginTop: 16, marginBottom: 16 }}>
+                                        {intl.formatMessage(IncidentManagementResources.quickstartHandlerInfoMessage)}
+                                    </MessageBar>
+                                )}
+                            </>
+                        )}
 
                         <div style={styles.buttonsWrapperStyle}>
                             {(initialValues.platform === IncidentManagementPlatform.PagerDuty ||

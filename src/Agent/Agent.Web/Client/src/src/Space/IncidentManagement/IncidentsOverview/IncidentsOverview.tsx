@@ -726,7 +726,7 @@ const IncidentsOverview: FC = () => {
                                     onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) =>
                                         setSearchText(data.value ?? '')
                                     )}
-                                    disabled={disableAllControls || !!selectedThreadInfo}
+                                    disabled={!!selectedThreadInfo}
                                 />
                                 <PillFilterSet dynamicFilters={dynamicFilters} disabled={disableAllControls || !!selectedThreadInfo} />
                                 <Button

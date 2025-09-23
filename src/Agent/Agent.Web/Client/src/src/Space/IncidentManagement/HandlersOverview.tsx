@@ -9,7 +9,13 @@ import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPorta
 import { IncidentFilter } from '../../Common/Contracts/Azure/IncidentHandler';
 import { IncidentManagementType } from '../../Common/Contracts/Azure/SreAgent';
 import useUserPermissions from '../../Common/Hooks/useUserPermissions';
-import { IcMResources, IncidentManagementResources, PagerDutyResources, ServiceNowResources } from '../../Strings/SREAgentResources';
+import {
+    AzMonitorResources,
+    IcMResources,
+    IncidentManagementResources,
+    PagerDutyResources,
+    ServiceNowResources,
+} from '../../Strings/SREAgentResources';
 import { SreAgentContext } from '../Contracts/Context';
 import { useIncidentFilterFields } from '../Hooks/useIncidentFilterFields';
 import { useIncidentFilters } from '../Hooks/useIncidentFilters';
@@ -44,6 +50,10 @@ const ConnectionIndicator: FC<ConnectionIndicatorProps> = ({ platform, connected
         case IncidentManagementType.ServiceNow:
             notConnectedMessage = ServiceNowResources.notConnectedMessage;
             connectedMessage = ServiceNowResources.connectedMessage;
+            break;
+        case IncidentManagementType.AzMonitor:
+            notConnectedMessage = AzMonitorResources.notConnectedMessage;
+            connectedMessage = AzMonitorResources.connectedMessage;
             break;
         default:
             break;

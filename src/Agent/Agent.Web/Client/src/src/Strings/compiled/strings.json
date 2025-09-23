@@ -49,6 +49,12 @@
       "value": "Azure Kubernetes Services"
     }
   ],
+  "+Cb5Vh": [
+    {
+      "type": 0,
+      "value": "Add a default incident handler for the agent to use for Sev3 alerts."
+    }
+  ],
   "+DBMRK": [
     {
       "type": 0,
@@ -373,12 +379,6 @@
     {
       "type": 0,
       "value": "Uses (Trigger)"
-    }
-  ],
-  "14xQ4i": [
-    {
-      "type": 0,
-      "value": "Azure Monitor added"
     }
   ],
   "1DDIYv": [
@@ -1845,6 +1845,12 @@
       "value": "Mitigated by agent"
     }
   ],
+  "DChIJ8": [
+    {
+      "type": 0,
+      "value": "Azure Monitor connection added successfully"
+    }
+  ],
   "DHc2gc": [
     {
       "type": 0,
@@ -1903,6 +1909,12 @@
     {
       "type": 0,
       "value": "Why isn't my application working?"
+    }
+  ],
+  "Dmb0ZD": [
+    {
+      "type": 0,
+      "value": "Connection to Azure Monitor failed. Please check your configuration and try again."
     }
   ],
   "DmtYK4": [
@@ -3261,6 +3273,12 @@
     {
       "type": 0,
       "value": "Show thread actions"
+    }
+  ],
+  "Pm5Z9t": [
+    {
+      "type": 0,
+      "value": "Azure Monitor is connected"
     }
   ],
   "PrFU82": [
@@ -5747,6 +5765,12 @@
     {
       "type": 0,
       "value": "Administer HDInsight clusters on AKS."
+    }
+  ],
+  "iyG66Y": [
+    {
+      "type": 0,
+      "value": "Azure Monitor connected. Your next step is to set up incident handlers."
     }
   ],
   "iyOYgd": [

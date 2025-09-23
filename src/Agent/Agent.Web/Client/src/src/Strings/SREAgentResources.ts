@@ -1545,7 +1545,20 @@ export const AzMonitorResources = defineMessages({
         id: 'obRqDQ',
     },
     notConnectedMessage: { defaultMessage: 'Azure Monitor is not connected.', id: '52hqVX' },
-    connectedMessage: { defaultMessage: 'Azure Monitor added', id: '14xQ4i' },
+    connectedMessage: { defaultMessage: 'Azure Monitor is connected', id: 'Pm5Z9t' },
+    connectedMessageWithoutHandlers: {
+        defaultMessage: 'Azure Monitor connected. Your next step is to set up incident handlers.',
+        id: 'iyG66Y',
+    },
+    addedMessage: { defaultMessage: 'Azure Monitor connection added successfully', id: 'DChIJ8' },
+    quickstartHandlerDescription: {
+        defaultMessage: 'Add a default incident handler for the agent to use for Sev3 alerts.',
+        id: '+Cb5Vh',
+    },
+    connectionFailureMessage: {
+        defaultMessage: 'Connection to Azure Monitor failed. Please check your configuration and try again.',
+        id: 'Dmb0ZD',
+    },
 });
 
 export const IcMResources = defineMessages({
