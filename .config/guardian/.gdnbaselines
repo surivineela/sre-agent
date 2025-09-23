@@ -1,4 +1,5 @@
 {
+  "hydrated": true,
   "properties": {
     "helpUri": "https://eng.ms/docs/microsoft-security/security/azure-security/cloudai-security-fundamentals-engineering/security-integration/guardian-wiki/microsoft-guardian/general/baselines"
   },
@@ -6,8 +7,8 @@
   "baselines": {
     "default": {
       "name": "default",
-      "createdDate": "2025-06-04 14:11:55Z",
-      "lastUpdatedDate": "2025-06-04 14:11:55Z"
+      "createdDate": "2025-09-23 05:53:47Z",
+      "lastUpdatedDate": "2025-09-23 05:53:47Z"
     }
   },
   "results": {
@@ -22,9 +23,7 @@
       ],
       "tool": "binskim",
       "ruleId": "BA2008",
-      "createdDate": "2025-06-04 14:11:55Z",
-      "expirationDate": "2025-11-21 14:24:49Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-06-04 14:24:49Z"
+      "createdDate": "2025-09-23 05:53:47Z"
     },
     "b07b573597da62c43e50ea51e2fdd84de90cc7461bbc3993b4089b0660792aab": {
       "signature": "b07b573597da62c43e50ea51e2fdd84de90cc7461bbc3993b4089b0660792aab",
@@ -37,9 +36,7 @@
       ],
       "tool": "binskim",
       "ruleId": "BA2008",
-      "createdDate": "2025-06-04 14:11:55Z",
-      "expirationDate": "2025-11-21 14:24:49Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-06-04 14:24:49Z"
+      "createdDate": "2025-09-23 05:53:47Z"
     },
     "1d4819d68883235a7eb5fecfa8ef6d202a0f251603c0be8752ba69a4f6f01b43": {
       "signature": "1d4819d68883235a7eb5fecfa8ef6d202a0f251603c0be8752ba69a4f6f01b43",
@@ -52,9 +49,7 @@
       ],
       "tool": "binskim",
       "ruleId": "BA2008",
-      "createdDate": "2025-06-04 14:11:55Z",
-      "expirationDate": "2025-11-21 14:24:49Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-06-04 14:24:49Z"
+      "createdDate": "2025-09-23 05:53:47Z"
     },
     "a09380a4b544aa573e6ae31be407a599d195c431dad6493eef8e976a815d68ac": {
       "signature": "a09380a4b544aa573e6ae31be407a599d195c431dad6493eef8e976a815d68ac",
@@ -67,9 +62,7 @@
       ],
       "tool": "binskim",
       "ruleId": "BA2008",
-      "createdDate": "2025-06-04 14:11:55Z",
-      "expirationDate": "2025-11-21 14:24:49Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-06-04 14:24:49Z"
+      "createdDate": "2025-09-23 05:53:47Z"
     },
     "6f217607a018962a91a1ec81a8bfde4ac1cf2fb30b9a49b1aca26230ce282944": {
       "signature": "6f217607a018962a91a1ec81a8bfde4ac1cf2fb30b9a49b1aca26230ce282944",
@@ -82,9 +75,7 @@
       ],
       "tool": "binskim",
       "ruleId": "BA2008",
-      "createdDate": "2025-06-04 14:11:55Z",
-      "expirationDate": "2025-11-21 14:24:49Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-06-04 14:24:49Z"
+      "createdDate": "2025-09-23 05:53:47Z"
     },
     "6d63d242716602a644ef5a297e0cbe69fa498a760f2811b1477fa182f538ef41": {
       "signature": "6d63d242716602a644ef5a297e0cbe69fa498a760f2811b1477fa182f538ef41",
@@ -97,51 +88,109 @@
       ],
       "tool": "binskim",
       "ruleId": "BA2008",
-      "createdDate": "2025-06-04 14:11:55Z",
-      "expirationDate": "2025-11-21 14:24:49Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-06-04 14:24:49Z"
+      "createdDate": "2025-09-23 05:53:47Z"
+    },
+    "3154e15b8312f44fe1af12190ba3ff20c056901f8fd3f67b7ec617bf30c6f889": {
+      "signature": "3154e15b8312f44fe1af12190ba3ff20c056901f8fd3f67b7ec617bf30c6f889",
+      "alternativeSignatures": [
+        "4fc9efda3e1153427cc39e42e6a132ce1be10b11fddb3f916f1b3113f06de726"
+      ],
+      "target": "out/Session.Cli/runtimes/win-arm64/native/libHarfBuzzSharp.dll",
+      "memberOf": [
+        "default"
+      ],
+      "tool": "binskim",
+      "ruleId": "BA2008",
+      "createdDate": "2025-09-23 05:53:47Z"
+    },
+    "74594c8ce01891c2362c1c4844d59bbadaab460d464ed9091b519188e17a7274": {
+      "signature": "74594c8ce01891c2362c1c4844d59bbadaab460d464ed9091b519188e17a7274",
+      "alternativeSignatures": [
+        "ea895f8041596abf2974fb4261eb5dda2ba4a38daafffef609656031a1cf42a9"
+      ],
+      "target": "out/Session.Cli/runtimes/win-arm64/native/libSkiaSharp.dll",
+      "memberOf": [
+        "default"
+      ],
+      "tool": "binskim",
+      "ruleId": "BA2008",
+      "createdDate": "2025-09-23 05:53:47Z"
+    },
+    "278292c26a67c5ea2570f46cfa4deeca8d67107ca6295b69dc45978782aacd8e": {
+      "signature": "278292c26a67c5ea2570f46cfa4deeca8d67107ca6295b69dc45978782aacd8e",
+      "alternativeSignatures": [
+        "a30ae6439ace8cc44e59096adeee3cad0d9c5f027ddaa4eac758de91eef8073c"
+      ],
+      "target": "out/Session.Cli/runtimes/win-x64/native/libHarfBuzzSharp.dll",
+      "memberOf": [
+        "default"
+      ],
+      "tool": "binskim",
+      "ruleId": "BA2008",
+      "createdDate": "2025-09-23 05:53:47Z"
+    },
+    "1eaf355095d6a92e11bbb191322c8806b16cf3e2c033d33903e4fd167e84a8aa": {
+      "signature": "1eaf355095d6a92e11bbb191322c8806b16cf3e2c033d33903e4fd167e84a8aa",
+      "alternativeSignatures": [
+        "2c80c546db744239fd8d9399923f69663af1a56d80470605ded74627c473490e"
+      ],
+      "target": "out/Session.Cli/runtimes/win-x64/native/libSkiaSharp.dll",
+      "memberOf": [
+        "default"
+      ],
+      "tool": "binskim",
+      "ruleId": "BA2008",
+      "createdDate": "2025-09-23 05:53:47Z"
+    },
+    "91d64f27bf56ffe29bf46e2cada28e669db6e8b4d0472dc6c4602079534f38e1": {
+      "signature": "91d64f27bf56ffe29bf46e2cada28e669db6e8b4d0472dc6c4602079534f38e1",
+      "alternativeSignatures": [
+        "876ddd1961cc7b2aa03d9900466bdd783ff86729334719cbcb8223e03f935ff3"
+      ],
+      "target": "out/Session.Cli/runtimes/win-x86/native/libHarfBuzzSharp.dll",
+      "memberOf": [
+        "default"
+      ],
+      "tool": "binskim",
+      "ruleId": "BA2008",
+      "createdDate": "2025-09-23 05:53:47Z"
+    },
+    "ef5f55dfbbfa5c88336d7d2dbe3b3d07fca52aaa563d68f305d35e8ec1a7df5e": {
+      "signature": "ef5f55dfbbfa5c88336d7d2dbe3b3d07fca52aaa563d68f305d35e8ec1a7df5e",
+      "alternativeSignatures": [
+        "a5a50389279e4eaa53b4148476090d38b3757defed78369a08c710ea4b0bceea"
+      ],
+      "target": "out/Session.Cli/runtimes/win-x86/native/libSkiaSharp.dll",
+      "memberOf": [
+        "default"
+      ],
+      "tool": "binskim",
+      "ruleId": "BA2008",
+      "createdDate": "2025-09-23 05:53:47Z"
     },
     "df3c13dcbd96f0646ccfec3eb416ddbb61eb5d31da173ccabe5d8662c5639b61": {
       "signature": "df3c13dcbd96f0646ccfec3eb416ddbb61eb5d31da173ccabe5d8662c5639b61",
       "alternativeSignatures": [],
       "target": "out/Agent.Web/Client/src/src/Strings/extracted/strings.json",
-      "line": 113,
+      "line": 347,
       "memberOf": [
         "default"
       ],
       "tool": "credscan",
       "ruleId": "CSCAN-GENERAL0130",
-      "createdDate": "2025-06-04 14:11:55Z",
-      "expirationDate": "2025-11-21 14:24:49Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-06-04 14:24:49Z"
+      "createdDate": "2025-09-23 05:53:47Z"
     },
     "414b2c78d24ad20384e7b5d2304e599affcea926c6cf682055d660006fd2420e": {
       "signature": "414b2c78d24ad20384e7b5d2304e599affcea926c6cf682055d660006fd2420e",
       "alternativeSignatures": [],
       "target": "out/loc/en/src/Agent/Agent.Web/Client/src/src/Strings/extracted/strings.json",
-      "line": 113,
+      "line": 347,
       "memberOf": [
         "default"
       ],
       "tool": "credscan",
       "ruleId": "CSCAN-GENERAL0130",
-      "createdDate": "2025-06-04 14:11:55Z",
-      "expirationDate": "2025-11-21 14:24:49Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-06-04 14:24:49Z"
-    },
-    "5062b8f5d769001d67117a979d07fa3957ce44a18236f59c1e5637ccc0115b2a": {
-      "signature": "5062b8f5d769001d67117a979d07fa3957ce44a18236f59c1e5637ccc0115b2a",
-      "alternativeSignatures": [],
-      "target": "dst/drop_build_main/Agent.Web/Client/src/src/Strings/extracted/strings.json",
-      "line": 113,
-      "memberOf": [
-        "default"
-      ],
-      "tool": "credscan",
-      "ruleId": "CSCAN-GENERAL0130",
-      "createdDate": "2025-06-04 14:18:58Z",
-      "expirationDate": "2025-11-21 14:24:49Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-06-04 14:24:49Z"
+      "createdDate": "2025-09-23 05:53:47Z"
     }
   }
 }

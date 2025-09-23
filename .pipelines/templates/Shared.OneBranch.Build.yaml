@@ -284,16 +284,6 @@ extends:
             includeNuGetOrg: false
             zipAfterPublish: false
 
-        - task: DotNetCoreCLI@2
-          displayName: '🔨 Publish Session.Cli'
-          inputs:
-            command: 'publish'
-            publishWebProjects: false
-            projects: '.\src\Agent\Session.Cli\Session.Cli.csproj'
-            arguments: '--no-restore --output $(ob_outputDirectory) -c $(BuildConfiguration) -p:Version=$(Build.BuildNumber)'
-            includeNuGetOrg: false
-            zipAfterPublish: false
-
         # Add runtime test for Agent.Web
         # Commenting this out for now, since running this project depends on settings being present
         # (We want to know if something is broken before runtime)
@@ -408,44 +398,6 @@ extends:
               dockerFileContextPath: drop_build_main/Agent.Web
               saveImageToPath: 'images/sre-agent-web.tar.gz'
               saveMetadataToPath: 'images/sre-agent-web-metadata.json'
-              enable_service_tree_acr_path: false
-              build_tag: $(Build.BuildNumber)
-              enable_acr_push: true
-              endpoint: k8seprod
-
-      - stage: docker      
-        dependsOn: build
-        jobs:
-        - job: buildImageForSessionCli
-          displayName: "🔨 Build Docker Image for Session.Cli"
-          pool:
-            type: docker
-            os: linux
-          variables:
-            ob_git_checkout: true
-          steps:
-          - task: DownloadPipelineArtifact@2
-            inputs:
-              targetPath: $(Build.SourcesDirectory)/dst/drop_build_main
-              artifact: drop_build_main
-            # This task downloads the build artifacts from the previous stage.
-
-          - task: onebranch.pipeline.containercontrol@1
-            displayName: "Login to ACR"
-            inputs:
-              command: login
-              acr_name: k8seprod
-              endpoint: k8seprod
-
-          - task: onebranch.pipeline.imagebuildinfo@1
-            displayName: 'Build Docker image for Agent.Web'
-            inputs:
-              registry: k8seprod.azurecr.io
-              repositoryName: public/k8se/sre-session-cli
-              dockerFileRelPath: src/Deployment/Session.Cli/Dockerfile
-              dockerFileContextPath: drop_build_main/Session.Cli
-              saveImageToPath: 'images/sre-session-cli.tar.gz'
-              saveMetadataToPath: 'images/sre-session-cli-metadata.json'
               enable_service_tree_acr_path: false
               build_tag: $(Build.BuildNumber)
               enable_acr_push: true

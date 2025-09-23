@@ -32,7 +32,7 @@ public class PsqlExecution
         _logger.LogInternalInformation($"[PsqlExecution] - port: '{port}'");
         _logger.LogInternalInformation($"[PsqlExecution] - accessToken length: {accessToken?.Length ?? 0}");
         _logger.LogInternalInformation($"[PsqlExecution] - isDevelopment: {isDevelopment}");
-        
+
         _command = command.Trim();
         _accessToken = accessToken;
         _isDevelopment = isDevelopment;
@@ -77,10 +77,10 @@ public class PsqlExecution
             _logger.LogInternalInformation($"[PsqlExecution] psql args: -h {_host} -p {_port ?? "5432"} -d {_database} -U {_user} -c <sql>");
 
             // Use appropriate psql path based on environment
-            var psqlPath = _isDevelopment 
+            var psqlPath = _isDevelopment
                 ? @"C:\Program Files\PostgreSQL\17\bin\psql.exe"  // Windows development
                 : "psql";  // Linux container (installed via postgresql-client package)
-            
+
             _logger.LogInternalInformation($"[PsqlExecution] Using psql path: {psqlPath}");
 
             var pCmd = new ExternalProcessCommand(
@@ -89,9 +89,9 @@ public class PsqlExecution
                 psqlArgs.ToArray(),
                 envs: envs);
 
-            var result = await pCmd.ExecuteAsync(cancellationToken);
-            _logger.LogInternalInformation($"[PsqlExecution] Command completed successfully. Result length: {result?.Length ?? 0}");
-            return result ?? string.Empty;
+            var (exitCode, stdout, stderr) = await pCmd.ExecuteAsync(cancellationToken);
+            _logger.LogInternalInformation($"[PsqlExecution] Command completed successfully. Result length: {stdout?.Length ?? 0}");
+            return stdout ?? string.Empty;
         }
         catch (Exception ex)
         {

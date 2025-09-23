@@ -38,6 +38,7 @@ extends:
     authenticatedContainerRegistries:
     - serviceConnection: sreagentdev
     - serviceConnection: sreagentprod
+    - serviceConnection: k8seprod      # used by session cli image
 
     stages:
     - stage: build
@@ -242,6 +243,16 @@ extends:
             includeNuGetOrg: false
             zipAfterPublish: false
 
+        - task: DotNetCoreCLI@2
+          displayName: '🔨 Publish Session.Cli'
+          inputs:
+            command: 'publish'
+            publishWebProjects: false
+            projects: '.\src\Agent\Session.Cli\Session.Cli.csproj'
+            arguments: '--no-restore --output $(ArtifactDirectory) -c $(BuildConfiguration) -p:Version=$(Build.BuildNumber)'
+            includeNuGetOrg: false
+            zipAfterPublish: false
+
         # Add runtime test for Agent.Web
         # Commenting this out for now, since running this project depends on settings being present
         # (We want to know if something is broken before runtime)
@@ -357,7 +368,7 @@ extends:
         #       Copy-Item -Path $(Build.SourcesDirectory)\src\Deployment\Agent.Web\Dockerfile -Destination $(ob_outputDirectory)\src\Deployment\Agent.Web\Dockerfile
 
     - ${{ if parameters.isOfficialBuild }}:
-      - stage: docker      
+      - stage: docker_agent_web
         dependsOn: build
         jobs:
         - job: image_build
@@ -388,3 +399,36 @@ extends:
               remoteImage:
               - sreagentdev.azurecr.io/sre-agent-web:$(Build.BuildNumber)
               - sreagentprod.azurecr.io/sre-agent-web:$(Build.BuildNumber)
+
+      - stage: docker_session_cli
+        dependsOn: build
+        jobs:
+        - job: image_build
+          displayName: "🔨 Build Docker Image for Session.Cli"
+          pool:
+            name: Azure-Pipelines-1ESPT-ExDShared
+            image: ubuntu-latest
+            os: linux
+          steps:
+            # This task downloads the build artifacts from the previous stage.
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              targetPath: $(Build.SourcesDirectory)/dst/drop_build_main
+              artifact: drop_build_main
+
+          - task: 1ES.BuildContainerImage@1
+            displayName: 'Build Docker image for Session.Cli'
+            inputs:
+              context: $(Build.SourcesDirectory)/dst/drop_build_main/Session.Cli
+              dockerFile: $(Build.SourcesDirectory)/src/Deployment/Session.Cli/Dockerfile
+              image: sre-agent-session-cli:$(Build.BuildNumber)
+              enableNetwork: true
+          
+          templateContext:
+            outputs:
+            - output: containerImage
+              image: sre-agent-session-cli:$(Build.BuildNumber)
+              remoteImage:
+              - sreagentdev.azurecr.io/sre-agent-session-cli:$(Build.BuildNumber)
+              - sreagentprod.azurecr.io/sre-agent-session-cli:$(Build.BuildNumber)
+              - k8seprod.azurecr.io/public/k8se/sre-agent-session-cli:$(Build.BuildNumber)
