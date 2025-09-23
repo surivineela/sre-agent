@@ -63,5 +63,10 @@ namespace FirstPartyAgent.Core.Services
         {
             return Task.FromResult(string.Empty);
         }
+
+        public Task ReplaceEdgeRelationshipAsync(ArmResourceEdge edge, string newRelationship)
+        {
+            return Task.CompletedTask;
+        }
     }
 }

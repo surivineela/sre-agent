@@ -115,6 +115,9 @@ export enum NodeRelations {
     MonitoredBy = 'MONITORED_BY',
     IsPartOF = 'IS_PART_OF',
     Uses = 'USES',
+    UsesAction = 'USES_ACTION',
+    UsesTrigger = 'USES_TRIGGER',
+    UsesTriggerAction = 'USES_TRIGGER_ACTION',
 }
 
 export type HandlePosition = 'T' | 'B' | 'L' | 'R';

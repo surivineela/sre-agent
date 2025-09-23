@@ -112,6 +112,9 @@ public class Constants
         public const string PullsFrom = "PULLS_FROM";
         public const string DelegatedTo = "DELEGATED_TO";
         public const string UsesDnsZone = "USES_DNS_ZONE";
+        public const string UsesAction = "USES_ACTION";
+        public const string UsesTrigger = "USES_TRIGGER";
+        public const string UsesTriggerAction = "USES_TRIGGER_ACTION";
     }
 
     // indicates this node is a part of specific topology

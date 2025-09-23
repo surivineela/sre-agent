@@ -66,5 +66,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
 
         Task SoftDeleteResourceById(string resourceId);
         Task<string> SoftDeleteConnectedRepositoryByResourceId(string resourceId);
+
+        Task ReplaceEdgeRelationshipAsync(ArmResourceEdge edge, string newRelationship);
     }
 }

@@ -333,6 +333,12 @@
       "value": "In-progress"
     }
   ],
+  "1389z+": [
+    {
+      "type": 0,
+      "value": "Uses (Trigger)"
+    }
+  ],
   "14xQ4i": [
     {
       "type": 0,
@@ -2991,6 +2997,12 @@
       "value": "No incidents selected"
     }
   ],
+  "QR4/mV": [
+    {
+      "type": 0,
+      "value": "Uses (Trigger, Action)"
+    }
+  ],
   "QfEnqG": [
     {
       "type": 0,
@@ -3567,6 +3579,12 @@
     {
       "type": 0,
       "value": "Degraded"
+    }
+  ],
+  "VUVCb1": [
+    {
+      "type": 0,
+      "value": "Uses (Action)"
     }
   ],
   "VYjDXQ": [

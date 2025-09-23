@@ -421,5 +421,31 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
                 throw;
             }
         }
+
+        public async Task ReplaceEdgeRelationshipAsync(ArmResourceEdge edge, string newRelationship)
+        {
+            if (string.Equals(edge.Relationship, newRelationship, StringComparison.OrdinalIgnoreCase))
+            {
+                return ; // no change
+            }
+
+            var sourceSan = GetSanitizedCosmosDBId(edge.SourceNodeId);
+            var targetSan = GetSanitizedCosmosDBId(edge.TargetNodeId);
+            var oldEdgeId = GetSanitizedCosmosDBId($"{sourceSan}_{edge.Relationship}_{targetSan}");
+
+            try
+            {
+                await Query($"g.E('{oldEdgeId}').drop()");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalWarning($"Failed dropping old edge {oldEdgeId}: {ex.Message}");
+            }
+
+            edge.Relationship = newRelationship;
+            edge.UpdateTs = DateTime.UtcNow.Ticks;
+
+            await AddOrUpdateEdgeAsync(edge);
+        }
     }
 }

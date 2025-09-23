@@ -1599,6 +1599,9 @@ export const GraphEdgeLabel = defineMessages({
     isPartOf: { defaultMessage: 'Is part of', id: 'DMd1Ql' },
     backedBy: { defaultMessage: 'Backed by', id: '7wHL/l' },
     uses: { defaultMessage: 'Uses', id: 'Vb+qQ4' },
+    usesAction: { defaultMessage: 'Uses (Action)', id: 'VUVCb1' },
+    usesTrigger: { defaultMessage: 'Uses (Trigger)', id: '1389z+' },
+    usesTriggerAction: { defaultMessage: 'Uses (Trigger, Action)', id: 'QR4/mV' },
 });
 
 export const ResourceInfoResources = defineMessages({

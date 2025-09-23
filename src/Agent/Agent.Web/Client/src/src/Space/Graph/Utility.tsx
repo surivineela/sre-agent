@@ -233,6 +233,12 @@ export const getFriendlyEdgeLabel = (nodeRelations: string) => {
             return GraphEdgeLabel.backedBy;
         case NodeRelations.Uses.toLowerCase():
             return GraphEdgeLabel.uses;
+        case NodeRelations.UsesAction.toLowerCase():
+            return GraphEdgeLabel.usesAction;
+        case NodeRelations.UsesTrigger.toLowerCase():
+            return GraphEdgeLabel.usesTrigger;
+        case NodeRelations.UsesTriggerAction.toLowerCase():
+            return GraphEdgeLabel.usesTriggerAction;
         default:
             return undefined;
     }
