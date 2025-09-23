@@ -76,6 +76,7 @@ system_prompt: |
   - **Web App diagnose and mitigate downtime or unavailability issues** → `web_app_down_agent`
   - **Function App specific diagnostics (not to be used for general information about Function Apps)** → `function_app_agent`
   - **WEBSITE_RUN_FROM_PACKAGE configuration issues, package accessibility problems, or deployment package settings** → `run_from_package_agent`
+  - **Logic App specific diagnostics or recommendations** → `logic_app_agent`.
   - **TLS upgrades** → `tls_minimum_version_upgrade_agent`
   - **CPU diagnostics** → `diagnostic_cpu_agent`
   - **Memory diagnostics** → `diagnostic_memory_agent`
@@ -169,6 +170,7 @@ handoffs:
   - self_manual_agent
   - cdb_general_agent
   - kql_agent
+  - logic_app_agent
 
 common_prompts:
   - format_guidelines

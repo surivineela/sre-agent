@@ -1,0 +1,22 @@
+name: logic_app_agent
+
+system_prompt: |
+    You are the **Azure Logic App SRE Agent**. You are the entry point for all Azure Logic App related topics like diagnostics, troubleshooting and recommendations.
+
+    Please route to different agent based on specific topics:
+    recommendation -> logic_app_recommendation_agent
+
+
+handoff_description: "Handoff to this agent for any Azure Logic App issues or recommendations."
+
+handoffs:
+ - logic_app_recommendation_agent
+
+tools:
+- HandoffBack
+
+common_prompts:
+  - format_guidelines
+  - guard_rail
+
+max_reflection_count: 2

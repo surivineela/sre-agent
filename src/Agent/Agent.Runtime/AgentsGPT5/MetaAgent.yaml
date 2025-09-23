@@ -57,6 +57,7 @@ system_prompt: |
   - Scheduled/recurring monitoring: scheduled_task_agent
   - Web App downtime: web_app_down_agent
   - Function Apps: function_app_agent
+  - Logic App: logic_app_agent
   - TLS upgrades: tls_minimum_version_upgrade_agent
   - Diagnostics (CPU, Memory): diagnostic_cpu_agent, diagnostic_memory_agent
   - Repository: repository_agent
@@ -80,6 +81,7 @@ system_prompt: |
   - "Container App network issues" → resource_discovery_agent → container_apps_agent
   - "Web/App errors" → resource_discovery_agent → web_app_down_agent
   - "Function App is down" → resource_discovery_agent → function_app_agent
+  - "Logic Apps recommendations" → resource_discovery_agent → logic_app_agent
   - "Web App outbound IP (not in graph)" → resource_discovery_agent → azure_cli_command_executor_agent
   - "Cosmos DB connectivity issues" → resource_discovery_agent → cdb_general_agent
   - "Cosmos DB performance diagnostics" → resource_discovery_agent → cdb_general_agent
@@ -155,6 +157,7 @@ handoffs:
   - servicenow_incident_management_agent
   - source_code_analysis_agent
   - self_manual_agent
+  - logic_app_agent
 
 common_prompts:
   - todo_write

@@ -401,6 +401,7 @@ public class Program
             .AddTransient<FunctionAppExecutionFailuresPluginDefinition>()
             .AddTransient<FunctionAppConfigurationChecksPluginDefinition>()
             .AddTransient<FunctionAppDeploymentChecksPluginDefinition>()
+            .AddTransient<LogicAppsPluginDefinition>()
             .AddTransient<FunctionsFlexConsumptionCRIPluginDefinition>()
             .AddTransient<AgentControlFlowPluginDefinition>()
             .AddTransient<AgentReasoningControlFlowPluginDefinition>()
@@ -441,6 +442,7 @@ public class Program
             .AddTransient<IAPIManagementPlugin, APIManagementPlugin>()
             .AddTransient<IGenevaActionsPlugin, GenevaActionsPlugin>()
             .AddTransient<AgentHelperService>()
+            .AddTransient<ILogicAppsPlugin, LogicAppsPlugin>()
 
             .AddTransient<IICMPlugin, ICMPlugin>()
             .AddTransient<IAzureAlertingPlugin, AzureAlertingPlugin>()

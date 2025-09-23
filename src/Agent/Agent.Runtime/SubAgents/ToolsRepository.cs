@@ -90,6 +90,7 @@ public class ToolsRepository : IToolsRepository
         RegisterPlugin<WebAppPluginDefinition>();
         RegisterPlugin<RoleAssignmentPluginDefinition>();
         RegisterPlugin<FunctionAppsPluginDefinition>();
+        RegisterPlugin<LogicAppsPluginDefinition>();
         RegisterPlugin<FunctionAppExecutionFailuresPluginDefinition>();
         RegisterPlugin<FunctionAppConfigurationChecksPluginDefinition>();
         RegisterPlugin<FunctionAppDeploymentChecksPluginDefinition>();
