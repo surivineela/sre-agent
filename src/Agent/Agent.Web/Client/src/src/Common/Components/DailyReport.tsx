@@ -488,7 +488,7 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
             chartTitle: intl.formatMessage(DailyReportResources.resourceMetrics),
             lineChartData: [
                 {
-                    legend: 'Availability',
+                    legend: intl.formatMessage(DailyReportResources.availability),
                     data: sortedData.map(d => ({ x: new Date(d.Timestamp), y: d.Availability })),
                     color: tokens.colorPaletteBlueForeground2,
                     lineOptions: {
@@ -496,7 +496,7 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                     },
                 },
                 {
-                    legend: 'CPU Usage',
+                    legend: intl.formatMessage(DailyReportResources.cpuUsage),
                     data: sortedData.map(d => ({ x: new Date(d.Timestamp), y: d.CpuUsage })),
                     color: tokens.colorPalettePinkForeground2,
                     lineOptions: {
@@ -504,7 +504,7 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                     },
                 },
                 {
-                    legend: 'Memory Usage',
+                    legend: intl.formatMessage(DailyReportResources.memory),
                     data: sortedData.map(d => ({ x: new Date(d.Timestamp), y: d.MemoryUsage })),
                     color: tokens.colorPaletteTealForeground2,
                     lineOptions: {
@@ -546,7 +546,7 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                 marginRight: '2px',
                             }}
                         ></div>
-                        <span>Availability</span>
+                        <span>{intl.formatMessage(DailyReportResources.availability)}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                         <div
@@ -557,7 +557,7 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                 marginRight: '2px',
                             }}
                         ></div>
-                        <span>CPU Usage</span>
+                        <span>{intl.formatMessage(DailyReportResources.cpuUsage)}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                         <div
@@ -568,7 +568,7 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                 marginRight: '2px',
                             }}
                         ></div>
-                        <span>Memory Usage</span>
+                        <span>{intl.formatMessage(DailyReportResources.memory)}</span>
                     </div>
                 </div>
             </div>

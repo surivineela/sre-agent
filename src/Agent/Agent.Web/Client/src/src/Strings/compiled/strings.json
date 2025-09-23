@@ -43,6 +43,12 @@
       "value": "IcM is not connected."
     }
   ],
+  "+BcF2d": [
+    {
+      "type": 0,
+      "value": "Azure Kubernetes Services"
+    }
+  ],
   "+DBMRK": [
     {
       "type": 0,
@@ -53,6 +59,12 @@
     {
       "type": 0,
       "value": "Submit feedback to Microsoft"
+    }
+  ],
+  "+TlNdm": [
+    {
+      "type": 0,
+      "value": "Container Apps"
     }
   ],
   "+U6ozc": [
@@ -285,6 +297,12 @@
       "value": "To get optimal agent performance for diagnostics, metrics, knowledge, and more during preview, use resource groups that include one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, or Web Apps."
     }
   ],
+  "0fhwgp": [
+    {
+      "type": 0,
+      "value": "Select task"
+    }
+  ],
   "0mx8D9": [
     {
       "type": 0,
@@ -377,10 +395,22 @@
       "value": "The selected managed resource groups were deleted successfully"
     }
   ],
+  "1Pgd3P": [
+    {
+      "type": 0,
+      "value": "Click and drag to move • Scroll or use buttons to zoom • Press ESC to close"
+    }
+  ],
   "1TlUPy": [
     {
       "type": 0,
       "value": "New incident handler"
+    }
+  ],
+  "1VB9/h": [
+    {
+      "type": 0,
+      "value": "Highlight Point"
     }
   ],
   "1YF+AW": [
@@ -429,6 +459,12 @@
     {
       "type": 0,
       "value": "Add"
+    }
+  ],
+  "235+J4": [
+    {
+      "type": 0,
+      "value": "More items"
     }
   ],
   "23nct0": [
@@ -525,6 +561,12 @@
       "value": "Azure Monitor Workspace resource name"
     }
   ],
+  "2os8R1": [
+    {
+      "type": 0,
+      "value": "Copy output"
+    }
+  ],
   "2pzTGC": [
     {
       "type": 0,
@@ -541,6 +583,12 @@
     {
       "type": 0,
       "value": "Grafana dashboard"
+    }
+  ],
+  "30Ap/Y": [
+    {
+      "type": 0,
+      "value": "Cron:"
     }
   ],
   "312q4w": [
@@ -615,6 +663,12 @@
       "value": "Reader"
     }
   ],
+  "3sjbqq": [
+    {
+      "type": 0,
+      "value": "Creating Scheduled Task..."
+    }
+  ],
   "3t/IhV": [
     {
       "type": 0,
@@ -643,6 +697,12 @@
     {
       "type": 0,
       "value": "Linking Grafana dashboard to SRE Agent in progress"
+    }
+  ],
+  "40gxTJ": [
+    {
+      "type": 0,
+      "value": "Agent Prompt"
     }
   ],
   "41zpq3": [
@@ -699,6 +759,12 @@
       "value": "List cluster admin credential action."
     }
   ],
+  "4l/H3O": [
+    {
+      "type": 0,
+      "value": "Create your first scheduled task to automatically run agent actions at regular intervals."
+    }
+  ],
   "4l6vz1": [
     {
       "type": 0,
@@ -733,6 +799,12 @@
     {
       "type": 0,
       "value": "Incident coverage"
+    }
+  ],
+  "543Ygw": [
+    {
+      "type": 0,
+      "value": "Execution details and request"
     }
   ],
   "59z+Aj": [
@@ -797,6 +869,12 @@
     {
       "type": 0,
       "value": "Create new"
+    }
+  ],
+  "5WWljt": [
+    {
+      "type": 0,
+      "value": "Error loading investigation"
     }
   ],
   "5X0whH": [
@@ -1011,6 +1089,12 @@
       "value": "Approved"
     }
   ],
+  "6YHhH+": [
+    {
+      "type": 0,
+      "value": "e.g. */5 * * * *"
+    }
+  ],
   "6YXj/s": [
     {
       "type": 0,
@@ -1027,6 +1111,12 @@
     {
       "type": 0,
       "value": "Delete incident handler"
+    }
+  ],
+  "6bkNTl": [
+    {
+      "type": 0,
+      "value": "Correlation ID:"
     }
   ],
   "6dWeUs": [
@@ -1093,6 +1183,18 @@
       "value": "Time range"
     }
   ],
+  "75lAeu": [
+    {
+      "type": 0,
+      "value": "Select end date for scheduled task"
+    }
+  ],
+  "77t9cY": [
+    {
+      "type": 0,
+      "value": "Invalid thread data received from streaming message"
+    }
+  ],
   "7C0xai": [
     {
       "type": 0,
@@ -1109,6 +1211,12 @@
     {
       "type": 0,
       "value": "Review mode"
+    }
+  ],
+  "7M8VZy": [
+    {
+      "type": 0,
+      "value": "Reset View"
     }
   ],
   "7N87nD": [
@@ -1225,6 +1333,12 @@
       "value": "Select identity"
     }
   ],
+  "8UznIt": [
+    {
+      "type": 0,
+      "value": "Failed to resume task"
+    }
+  ],
   "8Wiwkg": [
     {
       "type": 0,
@@ -1235,6 +1349,12 @@
     {
       "type": 0,
       "value": "Read-only access to service and APIs."
+    }
+  ],
+  "8fYK1J": [
+    {
+      "type": 0,
+      "value": "Execution Time"
     }
   ],
   "8hR178": [
@@ -1285,6 +1405,12 @@
       "value": "Agent can only view and analyze information without taking any actions"
     }
   ],
+  "90THKF": [
+    {
+      "type": 0,
+      "value": "Failed to parse investigation data"
+    }
+  ],
   "94Fg25": [
     {
       "type": 0,
@@ -1295,6 +1421,18 @@
     {
       "type": 0,
       "value": "Completed"
+    }
+  ],
+  "96GJ5w": [
+    {
+      "type": 0,
+      "value": "No matches"
+    }
+  ],
+  "9MPGF8": [
+    {
+      "type": 0,
+      "value": "Agent Instructions"
     }
   ],
   "9VUlhV": [
@@ -1325,6 +1463,12 @@
     {
       "type": 0,
       "value": "Role assignments"
+    }
+  ],
+  "A0mVzo": [
+    {
+      "type": 0,
+      "value": "Define success / failure signals and required output format if specific."
     }
   ],
   "A2BJnD": [
@@ -1587,6 +1731,12 @@
       "value": "Make sure you have Contributor or Owner access to the resource group where the agent is hosted. If you still have access issues, assign the role directly to your account instead of relying on group-based role assignments."
     }
   ],
+  "Ck8Kax": [
+    {
+      "type": 0,
+      "value": "Output available"
+    }
+  ],
   "CnouOe": [
     {
       "type": 0,
@@ -1603,6 +1753,20 @@
     {
       "type": 0,
       "value": "Connection to ServiceNow failed. Please check your configuration and try again."
+    }
+  ],
+  "CzglId": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete the scheduled task \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\"? This action cannot be undone."
     }
   ],
   "D/TfIH": [
@@ -1759,6 +1923,12 @@
       "value": "Some of the selected resource groups do not have the required roleAssignments/write and Microsoft.ManagedIdentity/userAssignedIdentities/write permissions."
     }
   ],
+  "EAO/K+": [
+    {
+      "type": 0,
+      "value": "Download PNG"
+    }
+  ],
   "ED/jWk": [
     {
       "type": 0,
@@ -1843,6 +2013,12 @@
       "value": "ServiceNow is connected."
     }
   ],
+  "EqwyQ/": [
+    {
+      "type": 0,
+      "value": "https://github.com/owner/repo-name or https://dev.azure.com/organization/project/_git/repo or https://organization.visualstudio.com/project/_git/repository-name"
+    }
+  ],
   "Erci0g": [
     {
       "type": 0,
@@ -1879,10 +2055,22 @@
       "value": "Repository connection"
     }
   ],
+  "FSYccN": [
+    {
+      "type": 0,
+      "value": "When should this task run?"
+    }
+  ],
   "FUQvS0": [
     {
       "type": 0,
       "value": "Subscription ID"
+    }
+  ],
+  "FZwBv0": [
+    {
+      "type": 0,
+      "value": "Execution Details"
     }
   ],
   "FitglU": [
@@ -1971,6 +2159,12 @@
       "value": "Successfully enabled incident handler"
     }
   ],
+  "Gl8fnJ": [
+    {
+      "type": 0,
+      "value": "Resize drawer"
+    }
+  ],
   "GoSIa4": [
     {
       "type": 0,
@@ -1989,6 +2183,12 @@
       "value": "Go to handler"
     }
   ],
+  "Gvxoji": [
+    {
+      "type": 0,
+      "value": "Name is required"
+    }
+  ],
   "H3ooTI": [
     {
       "type": 0,
@@ -1999,6 +2199,18 @@
     {
       "type": 0,
       "value": "Name"
+    }
+  ],
+  "HEgmnC": [
+    {
+      "type": 0,
+      "value": "Investigation Results"
+    }
+  ],
+  "HOJNsf": [
+    {
+      "type": 0,
+      "value": "Select when the task should stop running"
     }
   ],
   "HQhDfV": [
@@ -2035,6 +2247,12 @@
     {
       "type": 0,
       "value": "Time frame"
+    }
+  ],
+  "HtpD+z": [
+    {
+      "type": 0,
+      "value": "Change Diff"
     }
   ],
   "Humfno": [
@@ -2107,6 +2325,12 @@
     {
       "type": 0,
       "value": "Delete scheduled task"
+    }
+  ],
+  "IZYDgM": [
+    {
+      "type": 0,
+      "value": "Task Description"
     }
   ],
   "IbIk/K": [
@@ -2227,6 +2451,12 @@
       "value": "Previous"
     }
   ],
+  "JT7be1": [
+    {
+      "type": 0,
+      "value": "Tip:"
+    }
+  ],
   "JVZyFs": [
     {
       "type": 0,
@@ -2249,6 +2479,12 @@
     {
       "type": 0,
       "value": "The agent's analysis of the causes that triggered the incident."
+    }
+  ],
+  "JezZlU": [
+    {
+      "type": 0,
+      "value": "Final Summary:"
     }
   ],
   "JgQ1gX": [
@@ -2329,6 +2565,12 @@
       "value": "Error"
     }
   ],
+  "KQ9L9d": [
+    {
+      "type": 0,
+      "value": "Zoom In"
+    }
+  ],
   "KS5JHs": [
     {
       "type": 0,
@@ -2375,6 +2617,12 @@
     {
       "type": 0,
       "value": "Agent prompt"
+    }
+  ],
+  "KvZ6B9": [
+    {
+      "type": 0,
+      "value": "Take Screenshot"
     }
   ],
   "KyDsjH": [
@@ -2467,10 +2715,22 @@
       "value": "Standard input"
     }
   ],
+  "M/3/kG": [
+    {
+      "type": 0,
+      "value": "Max executions must be a positive number."
+    }
+  ],
   "M/zZVx": [
     {
       "type": 0,
       "value": "Add filter"
+    }
+  ],
+  "M4emJP": [
+    {
+      "type": 0,
+      "value": "End Date (Optional)"
     }
   ],
   "M88YzU": [
@@ -2495,6 +2755,12 @@
     {
       "type": 0,
       "value": "Deleting incident handler"
+    }
+  ],
+  "MI5gZ+": [
+    {
+      "type": 0,
+      "value": "Download SVG"
     }
   ],
   "MIxpkh": [
@@ -2559,6 +2825,12 @@
     {
       "type": 0,
       "value": "Add SRE Agent Administrator role"
+    }
+  ],
+  "MydQzO": [
+    {
+      "type": 0,
+      "value": "Data Points"
     }
   ],
   "N+sJfO": [
@@ -2767,6 +3039,12 @@
       "value": "View and search all monitoring data as well as view monitoring settings, including viewing the configuration of Azure diagnostics on all Azure resources."
     }
   ],
+  "OsIQyM": [
+    {
+      "type": 0,
+      "value": "No changes found for this correlation ID"
+    }
+  ],
   "OuEM6V": [
     {
       "type": 0,
@@ -2795,6 +3073,12 @@
     {
       "type": 0,
       "value": "The custom incident handler was successfully updated"
+    }
+  ],
+  "P04Zui": [
+    {
+      "type": 0,
+      "value": "PostgreSQL Command"
     }
   ],
   "P3Xgmf": [
@@ -2845,6 +3129,12 @@
       "value": "You do not have permission to connect/disconnect incident management"
     }
   ],
+  "PI1EY1": [
+    {
+      "type": 0,
+      "value": "Highlighted points indicate significant events or anomalies in the data that warrant attention."
+    }
+  ],
   "PJ2FQv": [
     {
       "type": 0,
@@ -2861,6 +3151,12 @@
     {
       "type": 0,
       "value": "Resource analysis"
+    }
+  ],
+  "PXYq8b": [
+    {
+      "type": 0,
+      "value": "Enter a valid 5-part cron expression (m h dom mon dow)."
     }
   ],
   "PXg8+x": [
@@ -2961,6 +3257,12 @@
       "value": "Description"
     }
   ],
+  "Q9Zp/n": [
+    {
+      "type": 0,
+      "value": "Correlation:"
+    }
+  ],
   "QAVYIG": [
     {
       "type": 0,
@@ -3013,6 +3315,12 @@
     {
       "type": 0,
       "value": "Edit annotation"
+    }
+  ],
+  "QgFHei": [
+    {
+      "type": 0,
+      "value": "Web Apps"
     }
   ],
   "QlsDcr": [
@@ -3129,6 +3437,12 @@
       "value": "TODO"
     }
   ],
+  "RYbE1p": [
+    {
+      "type": 0,
+      "value": "Databases"
+    }
+  ],
   "Rfvi9/": [
     {
       "type": 0,
@@ -3195,6 +3509,12 @@
     {
       "type": 0,
       "value": "Incident created"
+    }
+  ],
+  "SL+c5a": [
+    {
+      "type": 0,
+      "value": "—"
     }
   ],
   "SL7+hl": [
@@ -3273,6 +3593,12 @@
       "value": "Custom"
     }
   ],
+  "Slnpm8": [
+    {
+      "type": 0,
+      "value": "Click to open fullscreen"
+    }
+  ],
   "Sr4IbA": [
     {
       "type": 0,
@@ -3295,6 +3621,12 @@
     {
       "type": 0,
       "value": "Incidents assisted by agent"
+    }
+  ],
+  "T0/eoE": [
+    {
+      "type": 0,
+      "value": "Scheduled Task Execution"
     }
   ],
   "T5+AEf": [
@@ -3351,6 +3683,12 @@
       "value": "Agent permissions were used, but the action failed to run."
     }
   ],
+  "TFsGSl": [
+    {
+      "type": 0,
+      "value": "Leave empty for unlimited executions"
+    }
+  ],
   "TIDNOO": [
     {
       "type": 0,
@@ -3377,6 +3715,12 @@
     {
       "type": 0,
       "value": "Grafana Admin"
+    }
+  ],
+  "TN/U9d": [
+    {
+      "type": 0,
+      "value": "Failed to update task"
     }
   ],
   "TZWmvi": [
@@ -3449,6 +3793,12 @@
     {
       "type": 0,
       "value": "Autonomous mode"
+    }
+  ],
+  "UCYFxr": [
+    {
+      "type": 0,
+      "value": "Configuration Changes"
     }
   ],
   "UKMPBH": [
@@ -3545,6 +3895,12 @@
       "value": "You do not have permission to delete this agent."
     }
   ],
+  "VB+AjJ": [
+    {
+      "type": 0,
+      "value": "Custom Cron Expression"
+    }
+  ],
   "VB97cf": [
     {
       "type": 0,
@@ -3579,6 +3935,12 @@
     {
       "type": 0,
       "value": "Degraded"
+    }
+  ],
+  "VUHkVQ": [
+    {
+      "type": 0,
+      "value": "No property changes detected"
     }
   ],
   "VUVCb1": [
@@ -3723,6 +4085,16 @@
       "value": "Grafana dashboard created successfully"
     }
   ],
+  "WbV0j4": [
+    {
+      "type": 0,
+      "value": "Editing: "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
   "Wc5b/J": [
     {
       "type": 0,
@@ -3789,6 +4161,12 @@
       "value": "Scheduled task deleted successfully"
     }
   ],
+  "X5yqtT": [
+    {
+      "type": 0,
+      "value": "PostgreSQL"
+    }
+  ],
   "X8SzJ6": [
     {
       "type": 0,
@@ -3813,10 +4191,22 @@
       "value": "Lets you read and modify HDInsight cluster configurations."
     }
   ],
+  "XJuPK6": [
+    {
+      "type": 0,
+      "value": "Include any resource identifiers (e.g. subscription / resource group) needed each run."
+    }
+  ],
   "XKhlZF": [
     {
       "type": 0,
       "value": "The fully autonomous mode. With the required permissions, the agent analyzes incidents and independently performs mitigation or resource modifications."
+    }
+  ],
+  "XKvrQy": [
+    {
+      "type": 0,
+      "value": "Task Details"
     }
   ],
   "XLRt15": [
@@ -3859,6 +4249,18 @@
     {
       "type": 0,
       "value": "Updating incident handler"
+    }
+  ],
+  "XeBq0b": [
+    {
+      "type": 0,
+      "value": "Highlighted Point"
+    }
+  ],
+  "Xkdnen": [
+    {
+      "type": 0,
+      "value": "An unexpected error occurred."
     }
   ],
   "XtnlO8": [
@@ -4107,10 +4509,22 @@
       "value": "Your permissions will be used temporarily to complete this action."
     }
   ],
+  "a7QT/5": [
+    {
+      "type": 0,
+      "value": "Advanced: Use cron format (minute hour day month day-of-week)"
+    }
+  ],
   "a8l/yJ": [
     {
       "type": 0,
       "value": "The action was completed using agent permissions."
+    }
+  ],
+  "a8vxDw": [
+    {
+      "type": 0,
+      "value": "Starting investigation and forming hypothesis"
     }
   ],
   "aA1SYF": [
@@ -4191,6 +4605,12 @@
       "value": "Search response plans"
     }
   ],
+  "aWpBzj": [
+    {
+      "type": 0,
+      "value": "Show more"
+    }
+  ],
   "aXGUvh": [
     {
       "type": 0,
@@ -4225,6 +4645,12 @@
     {
       "type": 0,
       "value": "Choose incidents"
+    }
+  ],
+  "ajASB/": [
+    {
+      "type": 0,
+      "value": "Keep description short; put detailed run logic here."
     }
   ],
   "ak4FqD": [
@@ -4327,10 +4753,26 @@
       "value": "Title contains"
     }
   ],
+  "bswtOq": [
+    {
+      "type": 0,
+      "value": "Unsupported chart type: "
+    },
+    {
+      "type": 1,
+      "value": "type"
+    }
+  ],
   "bxnWhY": [
     {
       "type": 0,
       "value": "result"
+    }
+  ],
+  "bxv59V": [
+    {
+      "type": 0,
+      "value": "Just now"
     }
   ],
   "c/KktL": [
@@ -4355,6 +4797,12 @@
     {
       "type": 0,
       "value": "Deep investigation is turned on"
+    }
+  ],
+  "cEBkPF": [
+    {
+      "type": 0,
+      "value": "Failed to create scheduled task. Please try again."
     }
   ],
   "cRTR/A": [
@@ -4453,6 +4901,12 @@
       "value": "IoT Hub Data Reader"
     }
   ],
+  "dCrF9n": [
+    {
+      "type": 0,
+      "value": "Copy cron"
+    }
+  ],
   "dDk23i": [
     {
       "type": 1,
@@ -4469,6 +4923,12 @@
       "value": "Scheduled task"
     }
   ],
+  "dI9gP+": [
+    {
+      "type": 0,
+      "value": "Agent instructions"
+    }
+  ],
   "dJqE3e": [
     {
       "type": 0,
@@ -4479,6 +4939,12 @@
     {
       "type": 0,
       "value": "Allows for full read access to Device Provisioning Service data-plane properties."
+    }
+  ],
+  "dQKATf": [
+    {
+      "type": 0,
+      "value": "Please enter a name (min 3 characters)."
     }
   ],
   "dQtJBl": [
@@ -4505,6 +4971,12 @@
       "value": "Repository URL must be like the following for GitHub: https://github.com/owner/repo-name or for Azure DevOps: https://dev.azure.com/organization/project/_git/repository-name or https://organization.visualstudio.com/project/_git/repository-name"
     }
   ],
+  "dd6gV2": [
+    {
+      "type": 0,
+      "value": "Schedule Preview"
+    }
+  ],
   "dhqlRa": [
     {
       "type": 0,
@@ -4521,6 +4993,12 @@
     {
       "type": 0,
       "value": "Mitigated"
+    }
+  ],
+  "du1laW": [
+    {
+      "type": 0,
+      "value": "Never"
     }
   ],
   "e0a3XV": [
@@ -4601,6 +5079,12 @@
       "value": "Custom response guidance"
     }
   ],
+  "euBSDU": [
+    {
+      "type": 0,
+      "value": "Agent instructions are required."
+    }
+  ],
   "ezP+aQ": [
     {
       "type": 0,
@@ -4631,10 +5115,22 @@
       "value": "Generate custom handler"
     }
   ],
+  "f7Zx3L": [
+    {
+      "type": 0,
+      "value": "Prompt Tips"
+    }
+  ],
   "fEYQWU": [
     {
       "type": 0,
       "value": "You do not have permission to delete response plans."
+    }
+  ],
+  "fF376U": [
+    {
+      "type": 0,
+      "value": "Current"
     }
   ],
   "fFyuVF": [
@@ -4677,6 +5173,12 @@
     {
       "type": 0,
       "value": "A sub-agent with this name already exists"
+    }
+  ],
+  "fk/+VC": [
+    {
+      "type": 0,
+      "value": "Correlation ranges from -1 (inverse) to 1 (direct)"
     }
   ],
   "foUmLR": [
@@ -4727,6 +5229,12 @@
       "value": "Copy error details"
     }
   ],
+  "g8ctzH": [
+    {
+      "type": 0,
+      "value": "Executing..."
+    }
+  ],
   "gC4xMY": [
     {
       "type": 0,
@@ -4755,6 +5263,12 @@
       "value": "Set up incident handlers and custom handlers so that the agent can start receiving incidents."
     }
   ],
+  "gNhYpU": [
+    {
+      "type": 0,
+      "value": "Failed to process investigation message"
+    }
+  ],
   "gO/IxZ": [
     {
       "type": 0,
@@ -4771,6 +5285,12 @@
     {
       "type": 0,
       "value": "Manage IoT Hub device twins."
+    }
+  ],
+  "gdUWAX": [
+    {
+      "type": 0,
+      "value": "Description should be 140 characters or fewer."
     }
   ],
   "ggVnjB": [
@@ -4801,6 +5321,54 @@
     {
       "type": 0,
       "value": "You need permissions to set up a Grafana dashboard."
+    }
+  ],
+  "gwSeXa": [
+    {
+      "type": 0,
+      "value": "Note: There "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "is "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " highlighted point"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "are "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " highlighted points"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " in this chart that may require attention."
     }
   ],
   "gzx/k1": [
@@ -5015,6 +5583,12 @@
       "value": "Changes to this incident handler might affect how incidents are processed and also any custom handlers."
     }
   ],
+  "iZuO+L": [
+    {
+      "type": 0,
+      "value": "Legend"
+    }
+  ],
   "ia2Cai": [
     {
       "type": 0,
@@ -5045,6 +5619,12 @@
       "value": "Fired At"
     }
   ],
+  "ifcOhH": [
+    {
+      "type": 0,
+      "value": "Copy command"
+    }
+  ],
   "irFBKn": [
     {
       "type": 0,
@@ -5073,6 +5653,12 @@
     {
       "type": 0,
       "value": "Administer HDInsight clusters on AKS."
+    }
+  ],
+  "iyOYgd": [
+    {
+      "type": 0,
+      "value": "Loading scheduled tasks..."
     }
   ],
   "iyTlSa": [
@@ -5227,6 +5813,12 @@
       "value": "failedFiles"
     }
   ],
+  "kn+J82": [
+    {
+      "type": 0,
+      "value": "Correlation Analysis"
+    }
+  ],
   "ko0rr4": [
     {
       "type": 0,
@@ -5315,10 +5907,22 @@
       "value": "Default"
     }
   ],
+  "lM2HXD": [
+    {
+      "type": 0,
+      "value": "No prompt provided."
+    }
+  ],
   "lP5P2a": [
     {
       "type": 0,
       "value": "Affected resources"
+    }
+  ],
+  "lcOT8X": [
+    {
+      "type": 0,
+      "value": "Next runs (local time):"
     }
   ],
   "ldy3CI": [
@@ -5375,6 +5979,18 @@
     {
       "type": 0,
       "value": "Edit QnA Maker knowledge bases."
+    }
+  ],
+  "mChei1": [
+    {
+      "type": 0,
+      "value": "Detailed multi-line instructions. Provide: goal, context/resources, constraints, success criteria."
+    }
+  ],
+  "mN2MCk": [
+    {
+      "type": 0,
+      "value": "Failed to delete task"
     }
   ],
   "mOFG3K": [
@@ -5507,6 +6123,12 @@
       "value": "Primary resource type"
     }
   ],
+  "nRkusX": [
+    {
+      "type": 0,
+      "value": "Cron expression is required"
+    }
+  ],
   "nmpevl": [
     {
       "type": 0,
@@ -5541,6 +6163,12 @@
     {
       "type": 0,
       "value": "Scope"
+    }
+  ],
+  "nxvTtg": [
+    {
+      "type": 0,
+      "value": "Failed to link repository"
     }
   ],
   "o7TUwc": [
@@ -5591,6 +6219,12 @@
     {
       "type": 0,
       "value": "Allowlist below Managed Identity on your ICM Service Team."
+    }
+  ],
+  "oTzitk": [
+    {
+      "type": 0,
+      "value": "Failed to pause task"
     }
   ],
   "oUWADl": [
@@ -5747,6 +6381,18 @@
       "value": "Change key"
     }
   ],
+  "panI3e": [
+    {
+      "type": 0,
+      "value": "0 0 * * *"
+    }
+  ],
+  "pe7UAe": [
+    {
+      "type": 0,
+      "value": "Dismiss notification"
+    }
+  ],
   "pf5nil": [
     {
       "type": 0,
@@ -5771,6 +6417,18 @@
       "value": "Manage Application Insights components."
     }
   ],
+  "psUT6S": [
+    {
+      "type": 0,
+      "value": "Maximum number of times this task should run"
+    }
+  ],
+  "pyXjlj": [
+    {
+      "type": 0,
+      "value": "Not scheduled"
+    }
+  ],
   "q/uwLT": [
     {
       "type": 0,
@@ -5783,10 +6441,22 @@
       "value": "In progress"
     }
   ],
+  "q4EmsW": [
+    {
+      "type": 0,
+      "value": "Total:"
+    }
+  ],
   "qczspd": [
     {
       "type": 0,
       "value": "View plan"
+    }
+  ],
+  "qdAlfY": [
+    {
+      "type": 0,
+      "value": "Copy request"
     }
   ],
   "qddSy6": [
@@ -5823,6 +6493,12 @@
     {
       "type": 0,
       "value": "Backend Endpoint"
+    }
+  ],
+  "qyJtWy": [
+    {
+      "type": 0,
+      "value": "Show less"
     }
   ],
   "r2x5ZI": [
@@ -5871,6 +6547,28 @@
     {
       "type": 0,
       "value": "Date range:"
+    }
+  ],
+  "rQAyD6": [
+    {
+      "type": 0,
+      "value": "This chart shows the relationship between "
+    },
+    {
+      "type": 1,
+      "value": "y1"
+    },
+    {
+      "type": 0,
+      "value": " and "
+    },
+    {
+      "type": 1,
+      "value": "y2"
+    },
+    {
+      "type": 0,
+      "value": " over time. The correlation values indicate how strongly these two metrics influence each other."
     }
   ],
   "rXYf9o": [
@@ -6069,6 +6767,12 @@
       "value": "You do not have permission to send a message to this agent."
     }
   ],
+  "t071V3": [
+    {
+      "type": 0,
+      "value": "Info:"
+    }
+  ],
   "t323u5": [
     {
       "type": 0,
@@ -6085,6 +6789,12 @@
     {
       "type": 0,
       "value": "Healthcare Agent Editor"
+    }
+  ],
+  "tCrMHt": [
+    {
+      "type": 0,
+      "value": "Failed to parse daily report:"
     }
   ],
   "tFFMkF": [
@@ -6241,6 +6951,12 @@
       "value": "Read, write, and delete Azure Storage containers and blobs."
     }
   ],
+  "uRYFcI": [
+    {
+      "type": 0,
+      "value": "Execution Request"
+    }
+  ],
   "ubMRDT": [
     {
       "type": 0,
@@ -6253,10 +6969,22 @@
       "value": "Time"
     }
   ],
+  "uln7eT": [
+    {
+      "type": 0,
+      "value": "Zoom Out"
+    }
+  ],
   "unxs9C": [
     {
       "type": 0,
       "value": "Tools selected for incident response"
+    }
+  ],
+  "v0CXYP": [
+    {
+      "type": 0,
+      "value": "Enter a descriptive name for your task"
     }
   ],
   "v0fBOU": [
@@ -6343,6 +7071,12 @@
       "value": "Has access to Read and Test functions under Language portal."
     }
   ],
+  "vdazhF": [
+    {
+      "type": 0,
+      "value": "Error available"
+    }
+  ],
   "vfndow": [
     {
       "type": 0,
@@ -6377,6 +7111,12 @@
     {
       "type": 0,
       "value": "Unknown agent mode"
+    }
+  ],
+  "wEQDC6": [
+    {
+      "type": 0,
+      "value": "Edit"
     }
   ],
   "wElgyk": [
@@ -6441,6 +7181,12 @@
     {
       "type": 0,
       "value": "Authorize repository access"
+    }
+  ],
+  "wuk3yS": [
+    {
+      "type": 0,
+      "value": "Output and error available"
     }
   ],
   "wwNLHo": [
@@ -6607,6 +7353,12 @@
       "value": "Website Contributor"
     }
   ],
+  "xxoHVE": [
+    {
+      "type": 0,
+      "value": "Agent prompt is required"
+    }
+  ],
   "yDh8i7": [
     {
       "type": 0,
@@ -6661,6 +7413,12 @@
       "value": "Failed to create data connector"
     }
   ],
+  "yeJPGA": [
+    {
+      "type": 0,
+      "value": "Failed to check agent memory status, falling back to disabled:"
+    }
+  ],
   "yh4G7g": [
     {
       "type": 0,
@@ -6697,6 +7455,18 @@
       "value": "Core application group type"
     }
   ],
+  "yzfsFI": [
+    {
+      "type": 0,
+      "value": "Short one-line summary (<=140 chars)"
+    }
+  ],
+  "z5cF/O": [
+    {
+      "type": 0,
+      "value": "Description must be a single line summary."
+    }
+  ],
   "z8ZYoc": [
     {
       "type": 0,
@@ -6725,6 +7495,12 @@
     {
       "type": 0,
       "value": "All"
+    }
+  ],
+  "zZsxcQ": [
+    {
+      "type": 0,
+      "value": "State frequency-sensitive expectations (e.g. \"summarize only last 15m of metrics\")."
     }
   ],
   "zaYxwd": [
@@ -6761,6 +7537,12 @@
     {
       "type": 0,
       "value": "Incidents summary"
+    }
+  ],
+  "zvKOAu": [
+    {
+      "type": 0,
+      "value": "Fullscreen"
     }
   ],
   "zvLfRe": [

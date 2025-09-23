@@ -18,7 +18,7 @@ import {
 import { Add16Regular, Bot16Regular, DocumentEdit16Regular, Info16Regular, Timer16Regular } from '@fluentui/react-icons';
 import React, { FC, useCallback, useMemo, useReducer, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { ScheduledTasksResources } from '../../Strings/SREAgentResources';
+import { GenericErrorResources, ScheduledTasksResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { CreateScheduledTaskRequest } from '../Contracts/ScheduledTasks';
 
 export interface CreateScheduledTaskDialogProps {
@@ -237,6 +237,7 @@ const SectionHeader: FC<{ icon: React.ReactNode; title: string }> = ({ icon, tit
 );
 
 const PreviewCard: FC<{ cron: string }> = ({ cron }) => {
+    const intl = useIntl();
     const desc = getCronDescription(cron);
     const samples = useMemo(() => getNextRunExamples(cron, 3), [cron]);
     return (
@@ -254,7 +255,7 @@ const PreviewCard: FC<{ cron: string }> = ({ cron }) => {
             <Stack horizontal verticalAlign="center" tokens={{ childrenGap: 8 }}>
                 <Info16Regular style={{ color: '#0078d4', fontSize: 14 }} />
                 <Text variant="small" styles={{ root: { fontWeight: 600 } }}>
-                    Schedule Preview
+                    {intl.formatMessage(SreAgentResources.schedulePreview)}
                 </Text>
             </Stack>
             <Text variant="small" styles={{ root: { color: '#605e5c' } }}>
@@ -266,7 +267,7 @@ const PreviewCard: FC<{ cron: string }> = ({ cron }) => {
             {samples.length > 0 && (
                 <Stack tokens={{ childrenGap: 4 }} styles={{ root: { marginTop: 4 } }}>
                     <Text variant="xSmall" styles={{ root: { color: '#605e5c', fontWeight: 600 } }}>
-                        Next runs (local time):
+                        {intl.formatMessage(SreAgentResources.nextRunsLocalTime)}
                     </Text>
                     {samples.map((s, i) => (
                         <Text key={i} variant="xSmall" styles={{ root: { color: '#605e5c' } }}>
@@ -349,14 +350,14 @@ const CreateScheduledTaskDialog: FC<CreateScheduledTaskDialogProps> = ({ isOpen,
                 onTaskCreated();
                 dispatch({ type: 'reset' });
             } else {
-                setSubmitError('Failed to create scheduled task. Please try again.');
+                setSubmitError(intl.formatMessage(GenericErrorResources.failedToCreateScheduledTask));
             }
         } catch (err: any) {
-            setSubmitError(err?.message || 'An unexpected error occurred.');
+            setSubmitError(err?.message || intl.formatMessage(GenericErrorResources.unexpectedError));
         } finally {
             setSubmitting(false);
         }
-    }, [formData, createTask, onTaskCreated]);
+    }, [formData, createTask, onTaskCreated, intl]);
 
     const dialogContentProps = {
         type: DialogType.close,
@@ -377,10 +378,10 @@ const CreateScheduledTaskDialog: FC<CreateScheduledTaskDialogProps> = ({ isOpen,
                 />
                 <Stack tokens={{ childrenGap: 2 }}>
                     <Text variant="xLarge" styles={{ root: { fontWeight: 600, color: '#323130' } }}>
-                        Create Scheduled Task
+                        {intl.formatMessage(ScheduledTasksResources.createScheduledTask)}
                     </Text>
                     <Text variant="medium" styles={{ root: { color: '#605e5c' } }}>
-                        Set up automated agent actions to run on a schedule
+                        {intl.formatMessage(ScheduledTasksResources.createScheduledTaskDescription)}
                     </Text>
                 </Stack>
             </Stack>
@@ -401,13 +402,16 @@ const CreateScheduledTaskDialog: FC<CreateScheduledTaskDialogProps> = ({ isOpen,
 
                 {/* Task Details */}
                 <Stack tokens={{ childrenGap: 8 }} styles={{ root: { maxWidth: 520 } }}>
-                    <SectionHeader icon={<DocumentEdit16Regular style={{ color: '#0078d4', fontSize: 16 }} />} title="Task Details" />
+                    <SectionHeader
+                        icon={<DocumentEdit16Regular style={{ color: '#0078d4', fontSize: 16 }} />}
+                        title={intl.formatMessage(ScheduledTasksResources.taskDetailsSection)}
+                    />
 
                     <TextField
                         label={intl.formatMessage(ScheduledTasksResources.name)}
                         value={formData.name}
                         onChange={(_, v) => onFieldChange('name', v || '')}
-                        placeholder="Enter a descriptive name for your task"
+                        placeholder={intl.formatMessage(ScheduledTasksResources.namePlaceholder)}
                         required
                         errorMessage={touched.name ? validation.name : undefined}
                         styles={{ root: { maxWidth: 480 } }}
@@ -417,7 +421,7 @@ const CreateScheduledTaskDialog: FC<CreateScheduledTaskDialogProps> = ({ isOpen,
                         label={intl.formatMessage(ScheduledTasksResources.description)}
                         value={formData.description}
                         onChange={(_, v) => onFieldChange('description', v || '')}
-                        placeholder="Short one-line summary (<=140 chars)"
+                        placeholder={intl.formatMessage(ScheduledTasksResources.descriptionPlaceholder)}
                         maxLength={140}
                         onGetErrorMessage={() => (touched.description ? validation.description : '')}
                         validateOnLoad={false}
@@ -429,12 +433,15 @@ const CreateScheduledTaskDialog: FC<CreateScheduledTaskDialogProps> = ({ isOpen,
 
                 {/* Schedule */}
                 <Stack tokens={{ childrenGap: 12 }}>
-                    <SectionHeader icon={<Timer16Regular style={{ color: '#0078d4', fontSize: 16 }} />} title="Schedule" />
+                    <SectionHeader
+                        icon={<Timer16Regular style={{ color: '#0078d4', fontSize: 16 }} />}
+                        title={intl.formatMessage(ScheduledTasksResources.scheduleSection)}
+                    />
 
                     <Stack horizontal tokens={{ childrenGap: 24 }} wrap>
                         <Stack tokens={{ childrenGap: 12 }} styles={{ root: { maxWidth: 460, minWidth: 320 } }}>
                             <Dropdown
-                                label="When should this task run?"
+                                label={intl.formatMessage(ScheduledTasksResources.whenShouldTaskRun)}
                                 selectedKey={currentPreset}
                                 options={DROPDOWN_OPTIONS}
                                 onChange={(_, option) => onPresetChange(option)}
@@ -442,24 +449,24 @@ const CreateScheduledTaskDialog: FC<CreateScheduledTaskDialogProps> = ({ isOpen,
 
                             {currentPreset === 'custom' && (
                                 <TextField
-                                    label="Custom Cron Expression"
+                                    label={intl.formatMessage(ScheduledTasksResources.customCronExpression)}
                                     value={formData.cronExpression}
                                     onChange={(_, v) => onCustomCronChange(v || '')}
-                                    placeholder="0 0 * * *"
-                                    description="Advanced: Use cron format (minute hour day month day-of-week)"
+                                    placeholder={intl.formatMessage(ScheduledTasksResources.cronExpressionPlaceholder)}
+                                    description={intl.formatMessage(ScheduledTasksResources.cronExpressionDescription)}
                                     required
                                     errorMessage={touched.cronExpression ? validation.cronExpression : undefined}
                                 />
                             )}
 
                             <DatePicker
-                                label="End Date (Optional)"
+                                label={intl.formatMessage(ScheduledTasksResources.endDateOptional)}
                                 value={formData.endTime ? new Date(formData.endTime) : undefined}
                                 onSelectDate={date =>
                                     onFieldChange('endTime', date ? new Date(date.setHours(23, 59, 59, 999)).toISOString() : undefined)
                                 }
-                                placeholder="Select when the task should stop running"
-                                ariaLabel="Select end date for scheduled task"
+                                placeholder={intl.formatMessage(ScheduledTasksResources.endDatePlaceholder)}
+                                ariaLabel={intl.formatMessage(ScheduledTasksResources.endDateAriaLabel)}
                                 firstDayOfWeek={DayOfWeek.Sunday}
                                 formatDate={date => (date ? date.toLocaleDateString() : '')}
                             />
@@ -475,13 +482,16 @@ const CreateScheduledTaskDialog: FC<CreateScheduledTaskDialogProps> = ({ isOpen,
 
                 {/* Agent Instructions */}
                 <Stack tokens={{ childrenGap: 12 }} styles={{ root: { display: 'flex', flexDirection: 'column' } }}>
-                    <SectionHeader icon={<Bot16Regular style={{ color: '#0078d4', fontSize: 16 }} />} title="Agent Instructions" />
+                    <SectionHeader
+                        icon={<Bot16Regular style={{ color: '#0078d4', fontSize: 16 }} />}
+                        title={intl.formatMessage(ScheduledTasksResources.agentInstructionsSection)}
+                    />
 
                     <TextField
                         label={intl.formatMessage(ScheduledTasksResources.agentPrompt)}
                         value={formData.agentPrompt}
                         onChange={(_, v) => onFieldChange('agentPrompt', v || '')}
-                        placeholder="Detailed multi-line instructions. Provide: goal, context/resources, constraints, success criteria."
+                        placeholder={intl.formatMessage(ScheduledTasksResources.agentPromptPlaceholder)}
                         multiline
                         rows={8}
                         required
@@ -503,12 +513,12 @@ const CreateScheduledTaskDialog: FC<CreateScheduledTaskDialogProps> = ({ isOpen,
                         tokens={{ childrenGap: 4 }}
                     >
                         <Text variant="small" styles={{ root: { fontWeight: 600 } }}>
-                            Prompt Tips
+                            {intl.formatMessage(ScheduledTasksResources.promptTipsHeader)}
                         </Text>
-                        <Text variant="xSmall">Keep description short; put detailed run logic here.</Text>
-                        <Text variant="xSmall">Include any resource identifiers (e.g. subscription / resource group) needed each run.</Text>
-                        <Text variant="xSmall">State frequency-sensitive expectations (e.g. "summarize only last 15m of metrics").</Text>
-                        <Text variant="xSmall">Define success / failure signals and required output format if specific.</Text>
+                        <Text variant="xSmall">{intl.formatMessage(ScheduledTasksResources.promptTip1)}</Text>
+                        <Text variant="xSmall">{intl.formatMessage(ScheduledTasksResources.promptTip2)}</Text>
+                        <Text variant="xSmall">{intl.formatMessage(ScheduledTasksResources.promptTip3)}</Text>
+                        <Text variant="xSmall">{intl.formatMessage(ScheduledTasksResources.promptTip4)}</Text>
                     </Stack>
 
                     <TextField
@@ -516,8 +526,8 @@ const CreateScheduledTaskDialog: FC<CreateScheduledTaskDialogProps> = ({ isOpen,
                         type="number"
                         value={formData.maxExecutions?.toString() || ''}
                         onChange={(_, v) => onFieldChange('maxExecutions', v ? Math.max(1, parseInt(v, 10)) : undefined)}
-                        placeholder="Leave empty for unlimited executions"
-                        description="Maximum number of times this task should run"
+                        placeholder={intl.formatMessage(ScheduledTasksResources.placeholderMaxExecutions)}
+                        description={intl.formatMessage(ScheduledTasksResources.descriptionMaxExecutions)}
                         errorMessage={touched.maxExecutions ? validation.maxExecutions : undefined}
                         styles={{ root: { maxWidth: 300 } }}
                     />
@@ -528,10 +538,14 @@ const CreateScheduledTaskDialog: FC<CreateScheduledTaskDialogProps> = ({ isOpen,
                 <PrimaryButton
                     onClick={handleSubmit}
                     disabled={disableSubmit}
-                    text={submitting ? 'Creating Task...' : 'Create Task'}
+                    text={
+                        submitting
+                            ? intl.formatMessage(ScheduledTasksResources.creatingScheduledTaskProgress)
+                            : intl.formatMessage(ScheduledTasksResources.createScheduledTask)
+                    }
                     iconProps={{ iconName: submitting ? 'Clock' : 'Add' }}
                 />
-                <DefaultButton onClick={onDismiss} disabled={submitting} text="Cancel" />
+                <DefaultButton onClick={onDismiss} disabled={submitting} text={intl.formatMessage(SreAgentResources.cancel)} />
             </DialogFooter>
         </Dialog>
     );

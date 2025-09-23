@@ -1,6 +1,8 @@
 import { Checkmark24Regular, ChevronDown24Regular, ChevronUp24Regular, DocumentSearch24Regular } from '@fluentui/react-icons';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useIntl } from 'react-intl';
 import ReactMarkdown from 'react-markdown';
+import { SreAgentResources } from '../../Strings/SREAgentResources';
 
 // ────────────────────────────────────────────────────────────────────────────────
 // TYPES
@@ -86,7 +88,8 @@ const InvestigationSummaryPanel: React.FC<InvestigationSummaryPanelProps> = ({ m
         sectionsRef.current = sections;
     }, [sections]);
 
-    const [containerTitle, setContainerTitle] = useState('Starting investigation and forming hypothesis');
+    const intl = useIntl();
+    const [containerTitle, setContainerTitle] = useState(intl.formatMessage(SreAgentResources.investigationStartingHypothesis));
 
     // ────────────────────────────────────────────────────────────────────────────
     // EFFECT: PARSE messageText
@@ -115,7 +118,7 @@ const InvestigationSummaryPanel: React.FC<InvestigationSummaryPanelProps> = ({ m
         const createPlaceholderSection = (): Section[] => [
             {
                 id: 1,
-                title: 'Working on investigation…',
+                title: intl.formatMessage(SreAgentResources.investigationStartingHypothesis),
                 expanded: false,
                 thinking: true,
                 content: '',
@@ -185,12 +188,13 @@ const InvestigationSummaryPanel: React.FC<InvestigationSummaryPanelProps> = ({ m
             }
         } catch (err) {
             console.error('Error processing message text', err);
-            setError('Failed to process investigation message');
+            setError(intl.formatMessage(SreAgentResources.investigationFailedToProcess));
             setSections(createPlaceholderSection());
         } finally {
             setIsLoading(false);
         }
-    }, [messageText]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- showNextSection is a timer callback recreated intentionally
+    }, [messageText, intl]);
 
     // ────────────────────────────────────────────────────────────────────────────
     // EFFECT: AUTO-COLLAPSE main container when everything is done
@@ -313,7 +317,7 @@ const InvestigationSummaryPanel: React.FC<InvestigationSummaryPanelProps> = ({ m
                             fontSize: 14,
                         }}
                     >
-                        Error loading investigation
+                        {intl.formatMessage(SreAgentResources.investigationErrorLoading)}
                     </p>
                     <p style={{ color: '#d32f2f', margin: 0, fontSize: 12 }}>{error}</p>
                 </div>
@@ -641,7 +645,7 @@ const InvestigationSummaryPanel: React.FC<InvestigationSummaryPanelProps> = ({ m
                                 paddingBottom: 6,
                             }}
                         >
-                            Final Summary:
+                            {intl.formatMessage(SreAgentResources.investigationFinalSummaryLabel)}
                         </span>
                         <div style={{ color: '#555' }}>
                             <ReactMarkdown components={{ a: aLinkRenderer as any }}>{finalSummaryText}</ReactMarkdown>

@@ -475,19 +475,21 @@ const AzureSREWelcome = ({ threadId, addThread }: AzureSREWelcomeProps) => {
                                     <Text className={styles.statValue}>{resourceCounts.total}</Text>
                                 </div>
                                 <div className={styles.statCard}>
-                                    <Text className={styles.statLabel}>Web Apps</Text>
+                                    <Text className={styles.statLabel}>{intl.formatMessage(SreAgentResources.webApps)}</Text>
                                     <Text className={styles.statValue}>{resourceCounts.webApps}</Text>
                                 </div>
                                 <div className={styles.statCard}>
-                                    <Text className={styles.statLabel}>Container Apps</Text>
+                                    <Text className={styles.statLabel}>{intl.formatMessage(SreAgentResources.containerApps)}</Text>
                                     <Text className={styles.statValue}>{resourceCounts.containerApps}</Text>
                                 </div>
                                 <div className={styles.statCard}>
-                                    <Text className={styles.statLabel}>Azure Kubernetes Services</Text>
+                                    <Text className={styles.statLabel}>
+                                        {intl.formatMessage(SreAgentResources.azureKubernetesServices)}
+                                    </Text>
                                     <Text className={styles.statValue}>{resourceCounts.azureKubernetesServices}</Text>
                                 </div>
                                 <div className={styles.statCard}>
-                                    <Text className={styles.statLabel}>Databases</Text>
+                                    <Text className={styles.statLabel}>{intl.formatMessage(SreAgentResources.databases)}</Text>
                                     <Text className={styles.statValue}>{resourceCounts.databases}</Text>
                                 </div>
                             </div>

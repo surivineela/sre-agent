@@ -1,5 +1,7 @@
 import { Checkmark24Regular, ChevronDown24Regular, ChevronUp24Regular, Document24Regular } from '@fluentui/react-icons';
 import React, { useEffect, useRef, useState } from 'react';
+import { useIntl } from 'react-intl';
+import { SreAgentResources } from '../../Strings/SREAgentResources';
 
 // ────────────────────────────────────────────────────────────────────────────────
 // TYPES
@@ -31,6 +33,7 @@ export interface InvestigationSummaryPanelProps {
 }
 
 const InvestigationSummaryPanel: React.FC<InvestigationSummaryPanelProps> = ({ messageText }) => {
+    const intl = useIntl();
     // ────────────────────────────────────────────────────────────────────────────
     // STATE
     // ────────────────────────────────────────────────────────────────────────────
@@ -58,7 +61,7 @@ const InvestigationSummaryPanel: React.FC<InvestigationSummaryPanelProps> = ({ m
         sectionsRef.current = sections;
     }, [sections]);
 
-    const [containerTitle, setContainerTitle] = useState('Starting investigation and forming hypothesis');
+    const [containerTitle, setContainerTitle] = useState(intl.formatMessage(SreAgentResources.investigationStartingHypothesis));
 
     // ────────────────────────────────────────────────────────────────────────────
     // EFFECT: PARSE messageText
@@ -93,7 +96,7 @@ const InvestigationSummaryPanel: React.FC<InvestigationSummaryPanelProps> = ({ m
             setSections([
                 {
                     id: 1,
-                    title: 'Investigation Results',
+                    title: intl.formatMessage(SreAgentResources.investigationResults),
                     expanded: true,
                     thinking: false,
                     content: rawContent,
@@ -146,7 +149,7 @@ const InvestigationSummaryPanel: React.FC<InvestigationSummaryPanelProps> = ({ m
         } finally {
             setIsLoading(false);
         }
-    }, [messageText]);
+    }, [messageText, intl]);
 
     // ────────────────────────────────────────────────────────────────────────────
     // EFFECT: KICK-OFF animation once sections ready
@@ -272,7 +275,7 @@ const InvestigationSummaryPanel: React.FC<InvestigationSummaryPanelProps> = ({ m
                             fontSize: 14,
                         }}
                     >
-                        Error loading investigation
+                        {intl.formatMessage(SreAgentResources.investigationErrorLoading)}
                     </p>
                     <p style={{ color: '#d32f2f', margin: 0, fontSize: 13 }}>{error}</p>
                 </div>
@@ -547,7 +550,7 @@ const InvestigationSummaryPanel: React.FC<InvestigationSummaryPanelProps> = ({ m
                                 fontSize: 14,
                             }}
                         >
-                            Final Summary:
+                            {intl.formatMessage(SreAgentResources.investigationFinalSummaryLabel)}
                         </span>
                         <div
                             style={{ color: '#555', fontSize: 13 }}

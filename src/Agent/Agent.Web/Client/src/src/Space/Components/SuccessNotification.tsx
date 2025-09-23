@@ -2,7 +2,8 @@ import { Button } from '@fluentui/react-components';
 import { Dismiss12Regular } from '@fluentui/react-icons';
 import { MessageBar, MessageBarBody, MessageBarTitle } from '@fluentui/react-message-bar';
 import { memo, useEffect } from 'react';
-import { FormattedMessage, MessageDescriptor } from 'react-intl';
+import { FormattedMessage, MessageDescriptor, useIntl } from 'react-intl';
+import { SreAgentResources } from '../../Strings/SREAgentResources';
 
 const SuccessNotification = ({
     show,
@@ -21,6 +22,7 @@ const SuccessNotification = ({
     onDismiss?: () => void;
     autoHideDuration?: number;
 }) => {
+    const intl = useIntl();
     useEffect(() => {
         if (show && autoHideDuration > 0 && onDismiss) {
             const timer = setTimeout(onDismiss, autoHideDuration);
@@ -62,7 +64,7 @@ const SuccessNotification = ({
                                 size="small"
                                 icon={<Dismiss12Regular />}
                                 onClick={onDismiss}
-                                aria-label="Dismiss notification"
+                                aria-label={intl.formatMessage(SreAgentResources.dismissNotification)}
                             />
                         )}
                     </div>

@@ -16,7 +16,7 @@ import {
 import { ShimmeredDetailsList } from '@fluentui/react/lib/ShimmeredDetailsList';
 import { FC, useCallback, useEffect, useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import { ScheduledTasksResources } from '../../Strings/SREAgentResources';
+import { ScheduledTasksResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { ScheduledTask } from '../Contracts/ScheduledTasks';
 
 export type ISortedDetailsListColumn = IColumn & {
@@ -157,31 +157,37 @@ const ScheduledTaskDetailsList: FC<ScheduledTaskPickerProps> = (props: Scheduled
         return <div style={{ userSelect: 'text' }}>{humanReadable}</div>;
     }, []);
 
-    const onRenderLastExecution = useCallback((item: ScheduledTask) => {
-        if (!item.lastExecutionTime) {
-            return <div style={{ userSelect: 'text' }}>Never</div>;
-        }
+    const onRenderLastExecution = useCallback(
+        (item: ScheduledTask) => {
+            if (!item.lastExecutionTime) {
+                return <div style={{ userSelect: 'text' }}>{intl.formatMessage(SreAgentResources.never)}</div>;
+            }
 
-        const date = new Date(item.lastExecutionTime);
-        return (
-            <div style={{ userSelect: 'text' }}>
-                {date.toLocaleDateString()} {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </div>
-        );
-    }, []);
+            const date = new Date(item.lastExecutionTime);
+            return (
+                <div style={{ userSelect: 'text' }}>
+                    {date.toLocaleDateString()} {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </div>
+            );
+        },
+        [intl]
+    );
 
-    const onRenderNextExecution = useCallback((item: ScheduledTask) => {
-        if (!item.nextExecutionTime || item.status !== 'Active') {
-            return <div style={{ userSelect: 'text' }}>Not scheduled</div>;
-        }
+    const onRenderNextExecution = useCallback(
+        (item: ScheduledTask) => {
+            if (!item.nextExecutionTime || item.status !== 'Active') {
+                return <div style={{ userSelect: 'text' }}>{intl.formatMessage(SreAgentResources.notScheduled)}</div>;
+            }
 
-        const date = new Date(item.nextExecutionTime);
-        return (
-            <div style={{ userSelect: 'text' }}>
-                {date.toLocaleDateString()} {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </div>
-        );
-    }, []);
+            const date = new Date(item.nextExecutionTime);
+            return (
+                <div style={{ userSelect: 'text' }}>
+                    {date.toLocaleDateString()} {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </div>
+            );
+        },
+        [intl]
+    );
 
     const onRenderExecutionCount = useCallback((item: ScheduledTask) => {
         return <div style={{ userSelect: 'text' }}>{item.executionCount}</div>;

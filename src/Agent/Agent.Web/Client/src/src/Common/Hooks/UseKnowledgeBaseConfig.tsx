@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
+import { useIntl } from 'react-intl';
+import { GenericErrorResources } from '../../Strings/SREAgentResources';
 import { AgentMemoryClient } from '../Clients/AgentMemoryClient';
 import { SettingNames, useConfigSetting } from './ConfigSettings';
 
 export const useKnowledgeBaseConfig = () => {
     const staticConfig = useConfigSetting(SettingNames.KnowledgeBase);
     const [backendEnabled, setBackendEnabled] = useState<boolean | null>(null);
+    const intl = useIntl();
 
     useEffect(() => {
         // Only check backend if static config allows it
@@ -26,13 +29,13 @@ export const useKnowledgeBaseConfig = () => {
                     setBackendEnabled(false);
                 }
             } catch (error) {
-                console.warn('Failed to check agent memory status, falling back to disabled:', error);
+                console.warn(intl.formatMessage(GenericErrorResources.failedToCheckAgentMemoryStatus), error);
                 setBackendEnabled(false);
             }
         };
 
         checkBackendStatus();
-    }, [staticConfig]);
+    }, [staticConfig, intl]);
 
     // Return true only if both static config AND backend allow it
     return staticConfig && (backendEnabled ?? false);

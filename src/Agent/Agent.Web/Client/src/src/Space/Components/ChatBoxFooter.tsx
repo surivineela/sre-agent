@@ -700,7 +700,7 @@ const PromptLibraryButton = memo(
                                     />
                                 ) : (
                                     <Text size={200} style={{ opacity: 0.7 }}>
-                                        No matches
+                                        {intl.formatMessage(SreAgentResources.noMatches)}
                                     </Text>
                                 )}
                             </div>
@@ -739,6 +739,7 @@ const OverflowMenu = memo(
         showAgentModeSelector: boolean;
     }) => {
         const { ref, isOverflowing } = useOverflowMenu<HTMLButtonElement>();
+        const intl = useIntl();
 
         if (!isOverflowing) {
             return null;
@@ -747,7 +748,12 @@ const OverflowMenu = memo(
         return (
             <Menu>
                 <MenuTrigger disableButtonEnhancement>
-                    <Button ref={ref} icon={<MoreHorizontal20Filled />} aria-label="More items" appearance="subtle" />
+                    <Button
+                        ref={ref}
+                        icon={<MoreHorizontal20Filled />}
+                        aria-label={intl.formatMessage(SreAgentResources.moreItems)}
+                        appearance="subtle"
+                    />
                 </MenuTrigger>
 
                 <MenuPopover>

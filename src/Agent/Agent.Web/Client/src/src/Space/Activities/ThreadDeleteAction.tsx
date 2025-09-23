@@ -45,13 +45,13 @@ const ThreadDeleteAction = ({ handleThreadDelete }: { handleThreadDelete: () => 
                         style={{ display: 'inline-block' }}
                         appearance="transparent"
                         icon={<MoreHorizontal20Regular />}
-                        aria-label="More options"
+                        aria-label={intl.formatMessage(SreAgentResources.moreOptions)}
                     />
                 </MenuTrigger>
                 <MenuPopover>
                     <MenuList>
                         <DialogTrigger disableButtonEnhancement>
-                            <MenuItem icon={<DeleteRegular />}>{'Delete'}</MenuItem>
+                            <MenuItem icon={<DeleteRegular />}>{intl.formatMessage(SreAgentResources.delete)}</MenuItem>
                         </DialogTrigger>
                     </MenuList>
                 </MenuPopover>

@@ -13,7 +13,7 @@ import {
 } from '@fluentui/react';
 import { FC, useCallback, useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { ScheduledTasksResources } from '../../Strings/SREAgentResources';
+import { ScheduledTasksResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { ScheduledTask, UpdateScheduledTaskRequest } from '../Contracts/ScheduledTasks';
 
 export interface ScheduledTaskDetailsPanelProps {
@@ -66,14 +66,14 @@ const ScheduledTaskDetailsPanel: FC<ScheduledTaskDetailsPanelProps> = ({
             if (success) {
                 onTaskUpdated();
             } else {
-                setError('Failed to pause task');
+                setError(intl.formatMessage(ScheduledTasksResources.failedToPauseTask));
             }
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to pause task');
+            setError(err instanceof Error ? err.message : intl.formatMessage(ScheduledTasksResources.failedToPauseTask));
         } finally {
             setLoading(false);
         }
-    }, [task.id, pauseTask, onTaskUpdated]);
+    }, [task.id, pauseTask, onTaskUpdated, intl]);
 
     const handleResume = useCallback(async () => {
         setLoading(true);
@@ -83,14 +83,14 @@ const ScheduledTaskDetailsPanel: FC<ScheduledTaskDetailsPanelProps> = ({
             if (success) {
                 onTaskUpdated();
             } else {
-                setError('Failed to resume task');
+                setError(intl.formatMessage(ScheduledTasksResources.failedToResumeTask));
             }
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to resume task');
+            setError(err instanceof Error ? err.message : intl.formatMessage(ScheduledTasksResources.failedToResumeTask));
         } finally {
             setLoading(false);
         }
-    }, [task.id, resumeTask, onTaskUpdated]);
+    }, [task.id, resumeTask, onTaskUpdated, intl]);
 
     const handleDelete = useCallback(async () => {
         if (!window.confirm(intl.formatMessage(ScheduledTasksResources.deleteScheduledTaskConfirmation))) {
@@ -104,10 +104,10 @@ const ScheduledTaskDetailsPanel: FC<ScheduledTaskDetailsPanelProps> = ({
             if (success) {
                 onTaskUpdated();
             } else {
-                setError('Failed to delete task');
+                setError(intl.formatMessage(ScheduledTasksResources.failedToDeleteTask));
             }
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to delete task');
+            setError(err instanceof Error ? err.message : intl.formatMessage(ScheduledTasksResources.failedToDeleteTask));
         } finally {
             setLoading(false);
         }
@@ -148,15 +148,15 @@ const ScheduledTaskDetailsPanel: FC<ScheduledTaskDetailsPanelProps> = ({
     const handleSaveEdit = useCallback(async () => {
         // Basic validation
         if (!name.trim()) {
-            setError('Name is required');
+            setError(intl.formatMessage(ScheduledTasksResources.nameRequired));
             return;
         }
         if (!cronExpression.trim()) {
-            setError('Cron expression is required');
+            setError(intl.formatMessage(ScheduledTasksResources.cronExpressionRequired));
             return;
         }
         if (!agentPrompt.trim()) {
-            setError('Agent prompt is required');
+            setError(intl.formatMessage(ScheduledTasksResources.agentPromptRequired));
             return;
         }
         setLoading(true);
@@ -172,14 +172,14 @@ const ScheduledTaskDetailsPanel: FC<ScheduledTaskDetailsPanelProps> = ({
                 setIsEditing(false);
                 onTaskUpdated();
             } else {
-                setError('Failed to update task');
+                setError(intl.formatMessage(ScheduledTasksResources.failedToUpdateTask));
             }
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to update task');
+            setError(err instanceof Error ? err.message : intl.formatMessage(ScheduledTasksResources.failedToUpdateTask));
         } finally {
             setLoading(false);
         }
-    }, [name, description, cronExpression, agentPrompt, updateTask, task.id, onTaskUpdated]);
+    }, [name, description, cronExpression, agentPrompt, updateTask, task.id, onTaskUpdated, intl]);
 
     const commandBarItems: ICommandBarItemProps[] = [];
 
@@ -187,7 +187,7 @@ const ScheduledTaskDetailsPanel: FC<ScheduledTaskDetailsPanelProps> = ({
         // Edit action
         commandBarItems.push({
             key: 'edit',
-            text: 'Edit',
+            text: intl.formatMessage(ScheduledTasksResources.editAction),
             iconProps: { iconName: 'Edit' },
             onClick: handleEnterEdit,
             disabled: loading,
@@ -228,7 +228,7 @@ const ScheduledTaskDetailsPanel: FC<ScheduledTaskDetailsPanelProps> = ({
         // Save / Cancel actions when editing
         commandBarItems.push({
             key: 'save',
-            text: 'Save',
+            text: intl.formatMessage(ScheduledTasksResources.saveAction),
             iconProps: { iconName: 'Save' },
             onClick: () => {
                 void handleSaveEdit();
@@ -237,7 +237,7 @@ const ScheduledTaskDetailsPanel: FC<ScheduledTaskDetailsPanelProps> = ({
         });
         commandBarItems.push({
             key: 'cancel',
-            text: 'Cancel',
+            text: intl.formatMessage(ScheduledTasksResources.cancelAction),
             iconProps: { iconName: 'Cancel' },
             onClick: handleCancelEdit,
             disabled: loading,
@@ -245,7 +245,7 @@ const ScheduledTaskDetailsPanel: FC<ScheduledTaskDetailsPanelProps> = ({
     }
 
     const formatDateTime = (dateString?: string) => {
-        if (!dateString) return 'N/A';
+        if (!dateString) return intl.formatMessage(ScheduledTasksResources.notAvailable);
         const date = new Date(dateString);
         return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
     };
@@ -255,8 +255,8 @@ const ScheduledTaskDetailsPanel: FC<ScheduledTaskDetailsPanelProps> = ({
             isOpen={isOpen}
             onDismiss={onDismiss}
             type={PanelType.medium}
-            headerText={isEditing ? `Editing: ${task.name}` : task.name}
-            closeButtonAriaLabel="Close"
+            headerText={isEditing ? intl.formatMessage(ScheduledTasksResources.editingScheduledTaskHeader, { name: task.name }) : task.name}
+            closeButtonAriaLabel={intl.formatMessage(SreAgentResources.close)}
             isLightDismiss={true}
             onOuterClick={onDismiss}
         >
@@ -282,9 +282,15 @@ const ScheduledTaskDetailsPanel: FC<ScheduledTaskDetailsPanelProps> = ({
 
                 {isEditing && (
                     <Stack tokens={{ childrenGap: 12 }}>
-                        <TextField label="Name" required value={name} onChange={(_, v) => setName(v || '')} disabled={loading} />
                         <TextField
-                            label="Description"
+                            label={intl.formatMessage(ScheduledTasksResources.name)}
+                            required
+                            value={name}
+                            onChange={(_, v) => setName(v || '')}
+                            disabled={loading}
+                        />
+                        <TextField
+                            label={intl.formatMessage(ScheduledTasksResources.description)}
                             multiline
                             autoAdjustHeight
                             value={description}
@@ -300,14 +306,14 @@ const ScheduledTaskDetailsPanel: FC<ScheduledTaskDetailsPanelProps> = ({
                 <Stack tokens={{ childrenGap: 16 }}>
                     <Stack tokens={{ childrenGap: 8 }}>
                         <Text variant="medium" styles={{ root: { fontWeight: 600 } }}>
-                            Schedule
+                            {intl.formatMessage(ScheduledTasksResources.scheduleSection)}
                         </Text>
                         {!isEditing && (
                             <Text
                                 variant="medium"
                                 styles={{ root: { fontFamily: 'Monaco, monospace', background: '#faf9f8', padding: 4, borderRadius: 4 } }}
                             >
-                                {task.cronExpression || '—'}
+                                {task.cronExpression || intl.formatMessage(ScheduledTasksResources.dashPlaceholder)}
                             </Text>
                         )}
                         {isEditing && (
@@ -316,14 +322,14 @@ const ScheduledTaskDetailsPanel: FC<ScheduledTaskDetailsPanelProps> = ({
                                 value={cronExpression}
                                 onChange={(_, v) => setCronExpression(v || '')}
                                 disabled={loading}
-                                description="e.g. */5 * * * *"
+                                description={intl.formatMessage(ScheduledTasksResources.cronExampleEveryFiveMinutes)}
                             />
                         )}
                     </Stack>
 
                     <Stack tokens={{ childrenGap: 8 }}>
                         <Text variant="medium" styles={{ root: { fontWeight: 600 } }}>
-                            Agent Prompt
+                            {intl.formatMessage(ScheduledTasksResources.agentPromptSection)}
                         </Text>
                         {!isEditing && (
                             <div
@@ -343,7 +349,7 @@ const ScheduledTaskDetailsPanel: FC<ScheduledTaskDetailsPanelProps> = ({
                                 {task.agentPrompt && task.agentPrompt.trim().length > 0 ? (
                                     task.agentPrompt
                                 ) : (
-                                    <em style={{ color: '#605e5c' }}>No prompt provided.</em>
+                                    <em style={{ color: '#605e5c' }}>{intl.formatMessage(ScheduledTasksResources.noPromptProvided)}</em>
                                 )}
                             </div>
                         )}
@@ -363,46 +369,49 @@ const ScheduledTaskDetailsPanel: FC<ScheduledTaskDetailsPanelProps> = ({
 
                     <Stack tokens={{ childrenGap: 8 }}>
                         <Text variant="smallPlus" styles={{ root: { fontWeight: 600 } }}>
-                            Execution Details
+                            {intl.formatMessage(ScheduledTasksResources.executionDetailsSection)}
                         </Text>
                         <Stack tokens={{ childrenGap: 4 }}>
                             <Text variant="small">
-                                <strong>Executions:</strong> {task.executionCount}
+                                <strong>{intl.formatMessage(ScheduledTasksResources.executionCount)}:</strong> {task.executionCount}
                                 {task.maxExecutions && ` / ${task.maxExecutions}`}
                             </Text>
                             <Text variant="small">
-                                <strong>Last execution:</strong> {formatDateTime(task.lastExecutionTime)}
+                                <strong>{intl.formatMessage(ScheduledTasksResources.lastExecution)}:</strong>{' '}
+                                {formatDateTime(task.lastExecutionTime)}
                             </Text>
                             <Text variant="small">
-                                <strong>Next execution:</strong> {formatDateTime(task.nextExecutionTime)}
+                                <strong>{intl.formatMessage(ScheduledTasksResources.nextExecution)}:</strong>{' '}
+                                {formatDateTime(task.nextExecutionTime)}
                             </Text>
                         </Stack>
                     </Stack>
 
                     <Stack tokens={{ childrenGap: 8 }}>
                         <Text variant="smallPlus" styles={{ root: { fontWeight: 600 } }}>
-                            Task Details
+                            {intl.formatMessage(ScheduledTasksResources.taskDetailsSection)}
                         </Text>
                         <Stack tokens={{ childrenGap: 4 }}>
                             <Text variant="small">
-                                <strong>Created by:</strong> {task.createdBy}
+                                <strong>{intl.formatMessage(ScheduledTasksResources.createdBy)}:</strong> {task.createdBy}
                             </Text>
                             <Text variant="small">
-                                <strong>Created:</strong> {formatDateTime(task.createdAt)}
+                                <strong>{intl.formatMessage(ScheduledTasksResources.createdAt)}:</strong> {formatDateTime(task.createdAt)}
                             </Text>
                             {task.threadId && (
                                 <Text variant="small">
-                                    <strong>Thread ID:</strong> {task.threadId}
+                                    <strong>{intl.formatMessage(ScheduledTasksResources.threadId)}:</strong> {task.threadId}
                                 </Text>
                             )}
                             {task.startTime && (
                                 <Text variant="small">
-                                    <strong>Start time:</strong> {formatDateTime(task.startTime)}
+                                    <strong>{intl.formatMessage(ScheduledTasksResources.startTime)}:</strong>{' '}
+                                    {formatDateTime(task.startTime)}
                                 </Text>
                             )}
                             {task.endTime && (
                                 <Text variant="small">
-                                    <strong>End time:</strong> {formatDateTime(task.endTime)}
+                                    <strong>{intl.formatMessage(ScheduledTasksResources.endTime)}:</strong> {formatDateTime(task.endTime)}
                                 </Text>
                             )}
                         </Stack>

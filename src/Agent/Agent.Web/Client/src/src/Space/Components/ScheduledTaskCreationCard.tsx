@@ -14,7 +14,9 @@ import {
 } from '@fluentui/react-components';
 import { CheckmarkCircle16Filled, Copy16Regular } from '@fluentui/react-icons';
 import * as React from 'react';
+import { useIntl } from 'react-intl';
 import { formatDateTimeWithShortYear, getSafeDateTime } from '../../Common/Helpers/Date';
+import { GenericErrorResources, ScheduledTasksResources } from '../../Strings/SREAgentResources';
 
 interface ScheduledTaskCreationData {
     taskId: string;
@@ -161,9 +163,10 @@ const cronToHuman = (cron: string): string => {
 
 const ScheduledTaskCreationCard: React.FC<ScheduledTaskCreationCardProps> = ({ data, className }) => {
     const styles = useStyles();
+    const intl = useIntl();
     const scheduleText = cronToHuman(data.cronExpression);
     const createdTime = getSafeDateTime(data.createdAt);
-    const formattedTime = createdTime ? formatDateTimeWithShortYear(createdTime) : 'Just now';
+    const formattedTime = createdTime ? formatDateTimeWithShortYear(createdTime) : intl.formatMessage(GenericErrorResources.justNow);
 
     return (
         <Card className={mergeClasses(styles.card, className)}>
@@ -173,15 +176,19 @@ const ScheduledTaskCreationCard: React.FC<ScheduledTaskCreationCardProps> = ({ d
                         <CheckmarkCircle16Filled />
                     </div>
                 }
-                header={<Text className={styles.headerTitle}>Scheduled Task Created Successfully</Text>}
-                description={<Caption1 className={styles.headerSubtitle}>Your scheduled task has been created and is now active</Caption1>}
+                header={<Text className={styles.headerTitle}>{intl.formatMessage(ScheduledTasksResources.taskCreatedSuccessfully)}</Text>}
+                description={
+                    <Caption1 className={styles.headerSubtitle}>
+                        {intl.formatMessage(ScheduledTasksResources.taskCreatedSuccessfully)}
+                    </Caption1>
+                }
             />
 
             <Divider />
 
             <div className={styles.body}>
                 <div className={styles.row}>
-                    <Text className={styles.label}>Task</Text>
+                    <Text className={styles.label}>{intl.formatMessage(ScheduledTasksResources.name)}</Text>
                     <Text className={styles.value} weight="semibold">
                         {data.taskName}
                     </Text>
@@ -189,20 +196,20 @@ const ScheduledTaskCreationCard: React.FC<ScheduledTaskCreationCardProps> = ({ d
 
                 {data.description && (
                     <div className={styles.row}>
-                        <Text className={styles.label}>Description</Text>
+                        <Text className={styles.label}>{intl.formatMessage(ScheduledTasksResources.description)}</Text>
                         <Text className={styles.value}>{data.description}</Text>
                     </div>
                 )}
 
                 <div className={styles.row}>
-                    <Text className={styles.label}>Schedule</Text>
+                    <Text className={styles.label}>{intl.formatMessage(ScheduledTasksResources.scheduleSection)}</Text>
                     <div className={styles.value}>
                         <Text>{scheduleText}</Text>
                         <div style={{ marginTop: tokens.spacingVerticalXS }}>
                             <span className={styles.codePill}>
                                 <span>{data.cronExpression}</span>
                                 <Button
-                                    aria-label="Copy cron"
+                                    aria-label={intl.formatMessage(ScheduledTasksResources.customCronExpression)}
                                     size="small"
                                     appearance="subtle"
                                     icon={<Copy16Regular />}
@@ -214,7 +221,9 @@ const ScheduledTaskCreationCard: React.FC<ScheduledTaskCreationCardProps> = ({ d
                 </div>
 
                 <div className={styles.row}>
-                    <Text className={styles.label}>Status</Text>
+                    <Text className={styles.label}>
+                        {intl.formatMessage(ScheduledTasksResources.status ?? ScheduledTasksResources.taskDetailsSection)}
+                    </Text>
                     <div className={styles.value}>
                         <Badge appearance="filled" color="success">
                             {data.status}
@@ -223,20 +232,22 @@ const ScheduledTaskCreationCard: React.FC<ScheduledTaskCreationCardProps> = ({ d
                 </div>
 
                 <div className={styles.row}>
-                    <Text className={styles.label}>Duration</Text>
+                    <Text className={styles.label}>{intl.formatMessage(ScheduledTasksResources.executionDetailsSection)}</Text>
                     <Text className={styles.value}>
                         {[data.durationText, data.maxExecutionsText].filter((v, i, arr) => v && arr.indexOf(v) === i).join(' | ')}
                     </Text>
                 </div>
 
                 <div className={styles.row}>
-                    <Text className={styles.label}>Created</Text>
+                    <Text className={styles.label}>{intl.formatMessage(ScheduledTasksResources.createScheduledTask)}</Text>
                     <Text className={styles.value}>{formattedTime}</Text>
                 </div>
             </div>
 
             <CardFooter className={styles.footer}>
-                <Caption1 className={styles.faded}>Task ID: {data.taskId}</Caption1>
+                <Caption1 className={styles.faded}>
+                    {intl.formatMessage(ScheduledTasksResources.name)} ID: {data.taskId}
+                </Caption1>
             </CardFooter>
         </Card>
     );

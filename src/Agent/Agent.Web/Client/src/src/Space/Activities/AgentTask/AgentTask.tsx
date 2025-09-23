@@ -26,7 +26,9 @@ import {
 import { mergeStyleSets } from '@fluentui/react/lib/Styling';
 import { ReactFlowProvider } from '@xyflow/react';
 import { Dispatch, memo, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useIntl } from 'react-intl';
 import { AgentTaskMetaData, AgentTaskStatus } from '../../../Common/Contracts/DataPlane/AgentTask';
+import { GenericErrorResources } from '../../../Strings/SREAgentResources';
 import NodeStatusPill from '../../Components/AgentTask/NodeStatusPill';
 import { AgentTaskGraphHandle, TreeStateValue } from '../../Contracts/Activities';
 import { AgentTaskContext } from '../../Contracts/Context';
@@ -142,14 +144,18 @@ const AgentTask = (props: IAgentTaskProps) => {
     const sidebarRef = useRef<HTMLDivElement>(null);
     const [sideBarWidth, setSidebarWidth] = useState<number | null>(null);
     const [isResizing, setIsResizing] = useState(false);
+    const intl = useIntl();
 
     const selectedTaskMenuId: Record<string, string[]> = useMemo(() => {
         return { taskId: selectedTaskId ? [selectedTaskId] : [] };
     }, [selectedTaskId]);
 
-    const onSelectedTaskChange = useCallback((_: MenuCheckedValueChangeEvent, data: MenuCheckedValueChangeData) => {
-        setSelectedTaskId(data.checkedItems[0] || '');
-    }, []);
+    const onSelectedTaskChange = useCallback(
+        (_: MenuCheckedValueChangeEvent, data: MenuCheckedValueChangeData) => {
+            setSelectedTaskId(data.checkedItems[0] || '');
+        },
+        [setSelectedTaskId]
+    );
 
     const getMenuItemIcon = useCallback((task: AgentTaskMetaData) => {
         switch (task.status.toLowerCase()) {
@@ -218,7 +224,7 @@ const AgentTask = (props: IAgentTaskProps) => {
                                 onCheckedValueChange={onSelectedTaskChange}
                             >
                                 <MenuTrigger disableButtonEnhancement>
-                                    <MenuButton aria-label="select task" appearance="subtle">
+                                    <MenuButton aria-label={intl.formatMessage(GenericErrorResources.selectTask)} appearance="subtle">
                                         <ArrowCounterclockwise24Regular />
                                     </MenuButton>
                                 </MenuTrigger>
@@ -242,7 +248,7 @@ const AgentTask = (props: IAgentTaskProps) => {
                             </Menu>
 
                             <ToolbarButton
-                                aria-label="Close panel"
+                                aria-label={intl.formatMessage(GenericErrorResources.closePanel)}
                                 appearance="subtle"
                                 icon={<Dismiss24Regular />}
                                 onClick={() => setCollapsed(true)}
@@ -253,7 +259,7 @@ const AgentTask = (props: IAgentTaskProps) => {
                     <div
                         className={styles.resizer}
                         onMouseDown={startResizing}
-                        aria-label="Resize drawer"
+                        aria-label={intl.formatMessage(GenericErrorResources.resizeDrawer)}
                         role="separator"
                         aria-orientation="vertical"
                     />

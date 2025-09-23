@@ -17,7 +17,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
-import { ResourceInfoResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { GenericErrorResources, ResourceInfoResources, SreAgentResources } from '../../Strings/SREAgentResources';
 
 export const githubRepoRegex = /^https:\/\/github\.com\/[\w-]+\/[\w.-]+(?:\.git)?$/;
 export const azdoRepoRegex =
@@ -114,7 +114,7 @@ export const RepositoryConnectionDialog = ({
                 targetFriendlyName: 'Connect repository',
             });
 
-            if (!isSuccessful) throw new Error('Failed to link repository');
+            if (!isSuccessful) throw new Error(intl.formatMessage(GenericErrorResources.failedToLinkRepository));
 
             // Reset form and close dialog
             setRepoUrl('');
@@ -129,7 +129,7 @@ export const RepositoryConnectionDialog = ({
                 window.location.reload();
             }
         } catch (err) {
-            console.error('Failed to link repository:', err);
+            console.error(intl.formatMessage(GenericErrorResources.failedToLinkRepository), err);
         } finally {
             setIsLinking(false);
         }
@@ -156,7 +156,7 @@ export const RepositoryConnectionDialog = ({
                         validationMessage={repoUrlError}
                     >
                         <Textarea
-                            placeholder="https://github.com/owner/repo-name or https://dev.azure.com/organization/project/_git/repo or https://organization.visualstudio.com/project/_git/repository-name"
+                            placeholder={intl.formatMessage(ResourceInfoResources.repositoryLongUrlPlaceholder)}
                             value={repoUrl}
                             onChange={(_, data) => {
                                 setRepoUrl(data.value);

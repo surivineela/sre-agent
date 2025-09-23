@@ -10,6 +10,8 @@ import {
     PersonRegular,
 } from '@fluentui/react-icons';
 import { useEffect, useMemo, useState } from 'react';
+import { useIntl } from 'react-intl';
+import { ChangeDiffResources, SreAgentResources } from '../../Strings/SREAgentResources';
 
 interface ChangeDiffItem {
     changeTime: string;
@@ -49,7 +51,9 @@ const parseChanges = (c: ChangeDiffItem): ParsedChanges => {
 };
 
 // ---------- small modal (click outside & ESC to close, locks scroll)
-const Modal = ({ onClose, children, title = 'Change Diff' }: { onClose: () => void; children: React.ReactNode; title?: string }) => {
+const Modal = ({ onClose, children, title }: { onClose: () => void; children: React.ReactNode; title?: string }) => {
+    const intl = useIntl();
+    const effectiveTitle = title || intl.formatMessage(ChangeDiffResources.changeDiffTitle);
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
             if (e.key === 'Escape') onClose();
@@ -101,7 +105,7 @@ const Modal = ({ onClose, children, title = 'Change Diff' }: { onClose: () => vo
                         borderBottom: '1px solid #e5e7eb',
                     }}
                 >
-                    <div style={{ fontWeight: 600 }}>{title}</div>
+                    <div style={{ fontWeight: 600 }}>{effectiveTitle}</div>
                     <button
                         onClick={onClose}
                         style={{
@@ -115,7 +119,7 @@ const Modal = ({ onClose, children, title = 'Change Diff' }: { onClose: () => vo
                             cursor: 'pointer',
                         }}
                     >
-                        <FullScreenMinimizeRegular fontSize={16} /> Close
+                        <FullScreenMinimizeRegular fontSize={16} /> {intl.formatMessage(SreAgentResources.close)}
                     </button>
                 </div>
                 <div style={{ flex: 1, overflow: 'auto' }}>{children}</div>
@@ -155,6 +159,7 @@ const FullSpecDiffView = ({
 
     // ✅ Hooks are called unconditionally, before any return
     const propertyPaths = useMemo(() => Object.keys(changes), [changes]);
+    const intl = useIntl();
     const { beforeObj, afterObj } = useMemo(() => reconstructObjects(changes), [changes]);
 
     const beforeLines = JSON.stringify(beforeObj, null, 2).split('\n');
@@ -209,7 +214,7 @@ const FullSpecDiffView = ({
                     borderRadius: 6,
                 }}
             >
-                No property changes detected
+                {intl.formatMessage(SreAgentResources.noPropertyChangesDetected)}
             </div>
         );
     }
@@ -242,7 +247,9 @@ const FullSpecDiffView = ({
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <DocumentTextRegular fontSize={14} />
                     <div>
-                        <div style={{ fontWeight: 600, fontSize: 13, color: '#24292e' }}>Configuration Changes</div>
+                        <div style={{ fontWeight: 600, fontSize: 13, color: '#24292e' }}>
+                            {intl.formatMessage(SreAgentResources.configurationChanges)}
+                        </div>
                         <div style={{ fontSize: 11, color: '#586069', marginTop: 2, display: 'flex', gap: 12, alignItems: 'center' }}>
                             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                                 <PersonRegular fontSize={12} />
@@ -289,7 +296,9 @@ const FullSpecDiffView = ({
                         >
                             {s.previousSnapshotId && (
                                 <>
-                                    <span style={{ color: '#d73a49', fontWeight: 600 }}>Previous</span>
+                                    <span style={{ color: '#d73a49', fontWeight: 600 }}>
+                                        {intl.formatMessage(SreAgentResources.previous)}
+                                    </span>
                                     <code
                                         style={{
                                             color: '#586069',
@@ -323,7 +332,9 @@ const FullSpecDiffView = ({
                             )}
                             {s.newSnapshotId && (
                                 <>
-                                    <span style={{ color: '#28a745', fontWeight: 600 }}>Current</span>
+                                    <span style={{ color: '#28a745', fontWeight: 600 }}>
+                                        {intl.formatMessage(SreAgentResources.current)}
+                                    </span>
                                     <code
                                         style={{
                                             color: '#586069',
@@ -461,6 +472,7 @@ interface ChangeDiffMessageProps {
 
 const ChangeDiffMessage = ({ changeDiffData }: ChangeDiffMessageProps) => {
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const intl = useIntl();
 
     const getChangeTypeStyle = (changeType: string) => {
         const t = changeType.toLowerCase();
@@ -526,7 +538,8 @@ const ChangeDiffMessage = ({ changeDiffData }: ChangeDiffMessageProps) => {
                     }}
                 >
                     <div style={{ color: '#605e5c', marginBottom: 2 }}>
-                        <strong>Correlation ID:</strong> <span style={{ color: '#323130' }}>{changeDiffData.correlationId}</span>
+                        <strong>{intl.formatMessage(SreAgentResources.correlationIdLabel)}</strong>{' '}
+                        <span style={{ color: '#323130' }}>{changeDiffData.correlationId}</span>
                     </div>
                     <div style={{ color: '#605e5c' }}>
                         <strong>Resource:</strong>{' '}
@@ -578,7 +591,7 @@ const ChangeDiffMessage = ({ changeDiffData }: ChangeDiffMessageProps) => {
                         fontSize: 14,
                     }}
                 >
-                    No changes found for this correlation ID
+                    {intl.formatMessage(SreAgentResources.noChangesFoundForCorrelation)}
                 </div>
             )}
         </>
@@ -606,7 +619,8 @@ const ChangeDiffMessage = ({ changeDiffData }: ChangeDiffMessageProps) => {
                             }}
                         >
                             <div style={{ color: '#605e5c', marginBottom: 2 }}>
-                                <strong>Correlation ID:</strong> <span style={{ color: '#323130' }}>{changeDiffData.correlationId}</span>
+                                <strong>{intl.formatMessage(SreAgentResources.correlationIdLabel)}</strong>{' '}
+                                <span style={{ color: '#323130' }}>{changeDiffData.correlationId}</span>
                             </div>
                             <div style={{ color: '#605e5c' }}>
                                 <strong>Resource:</strong>{' '}

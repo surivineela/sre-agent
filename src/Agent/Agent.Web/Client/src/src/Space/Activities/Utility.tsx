@@ -1,3 +1,4 @@
+import { createIntl, createIntlCache } from 'react-intl';
 import { IncidentStatus, SREAgentUserId } from '../../Common/Contracts/Azure/SreAgent';
 import {
     Approval,
@@ -12,6 +13,7 @@ import { Thread, ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
 import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
+import { GenericErrorResources } from '../../Strings/SREAgentResources';
 import { ChatMessage, ChatMessageContent, ThreadListsState, ThreadListState } from '../Contracts/Activities';
 import { DefaultUserIdAndDisplayName } from '../Hooks/useAuthenticatedUserInfo';
 
@@ -835,6 +837,9 @@ export const parseThreadFromStreamingText = (text: string) => {
     if (thread && thread.id && thread.startMessage && thread.title && thread.lastMessage && thread.modifiedTimestamp) {
         return thread;
     } else {
-        throw new Error('Invalid thread data received from streaming message');
+        // This utility is not a React component; create a lightweight intl instance for localization.
+        const cache = createIntlCache();
+        const intl = createIntl({ locale: 'en', messages: {} }, cache);
+        throw new Error(intl.formatMessage(GenericErrorResources.invalidThreadDataFromStream));
     }
 };

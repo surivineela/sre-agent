@@ -1,5 +1,6 @@
 import { toPng } from 'html-to-image';
 import React, { memo, useMemo, useRef, useState } from 'react';
+import { useIntl } from 'react-intl';
 import {
     Area,
     AreaChart,
@@ -21,6 +22,7 @@ import {
     XAxis,
     YAxis,
 } from 'recharts';
+import { SreAgentResources } from '../../Strings/SREAgentResources';
 
 interface ChartData {
     type: 'line' | 'bar' | 'pie' | 'scatter' | 'heatmap' | 'areaCorrelation';
@@ -147,6 +149,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
 
     // State for zoom modal
     const [isZoomed, setIsZoomed] = useState(false);
+    const intl = useIntl();
 
     if (!chartData) {
         return null;
@@ -281,7 +284,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
 
         // Screenshot icon for normal view
         const screenshotButton = (
-            <button style={screenshotIconStyle} onClick={takeScreenshot} aria-label="Take Screenshot">
+            <button style={screenshotIconStyle} onClick={takeScreenshot} aria-label={intl.formatMessage(SreAgentResources.takeScreenshot)}>
                 <svg
                     width="20"
                     height="20"
@@ -937,7 +940,12 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                 />
 
                                 {/* Render all points with a single color */}
-                                <Scatter name="Data Points" data={typedData} fill={CHART_COLORS[0]} isAnimationActive={true}>
+                                <Scatter
+                                    name={intl.formatMessage(SreAgentResources.dataPointsLabel)}
+                                    data={typedData}
+                                    fill={CHART_COLORS[0]}
+                                    isAnimationActive={true}
+                                >
                                     {typedData.map((_: ScatterDataPoint, index: number) => (
                                         <Cell
                                             key={`cell-${index}-${isZoomedView ? 'zoomed' : 'normal'}`}
@@ -1018,7 +1026,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                             marginBottom: '0.5rem',
                                         }}
                                     >
-                                        {dataPoint.highlightLabel || 'Highlighted Point'}
+                                        {dataPoint.highlightLabel || intl.formatMessage(SreAgentResources.highlightedPointFallback)}
                                     </div>
                                 )}
                                 <p
@@ -1066,7 +1074,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                             marginBottom: '0.25rem',
                                         }}
                                     >
-                                        <span>Total:</span>
+                                        <span>{intl.formatMessage(SreAgentResources.totalLabel)}</span>
                                         <span>{total.toFixed(2)}</span>
                                     </p>
                                     <p
@@ -1078,7 +1086,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                             justifyContent: 'space-between',
                                         }}
                                     >
-                                        <span>Correlation:</span>
+                                        <span>{intl.formatMessage(SreAgentResources.correlationLabel)}</span>
                                         <span>{dataPoint.correlation.toFixed(2)}</span>
                                     </p>
                                     {dataPoint.additionalInfo && (
@@ -1226,7 +1234,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
                                     }}
                                 >
-                                    Correlation Analysis
+                                    {intl.formatMessage(SreAgentResources.correlationAnalysis)}
                                 </h3>
                                 <div
                                     style={{
@@ -1245,16 +1253,19 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                         }}
                                     >
                                         <p style={{ color: '#4B5563', marginBottom: '0.5rem' }}>
-                                            This chart shows the relationship between {y1Label} and {y2Label} over time. The correlation
-                                            values indicate how strongly these two metrics influence each other.
+                                            {intl.formatMessage(SreAgentResources.correlationRelationshipDescription, {
+                                                y1: y1Label,
+                                                y2: y2Label,
+                                            })}
                                         </p>
                                         <p style={{ color: '#4B5563' }}>
-                                            Highlighted points indicate significant events or anomalies in the data that warrant attention.
+                                            {intl.formatMessage(SreAgentResources.correlationAnalysisDescription)}
                                         </p>
                                         {typedData.some(d => d.isHighlight) && (
                                             <p style={{ color: '#ea580c', fontWeight: 'bold', marginTop: '0.5rem' }}>
-                                                Note: There are {typedData.filter(d => d.isHighlight).length} highlighted point(s) in this
-                                                chart that may require attention.
+                                                {intl.formatMessage(SreAgentResources.correlationNoteHighlightedPoints, {
+                                                    count: typedData.filter(d => d.isHighlight).length,
+                                                })}
                                             </p>
                                         )}
                                     </div>
@@ -1270,7 +1281,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                         }}
                                     >
                                         <h4 style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#1F2937', marginBottom: '0.5rem' }}>
-                                            Legend
+                                            {intl.formatMessage(SreAgentResources.legend)}
                                         </h4>
                                         <div style={{ display: 'flex', alignItems: 'center', marginTop: '0.25rem' }}>
                                             <div
@@ -1307,7 +1318,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                                 }}
                                             ></div>
                                             <span style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#4B5563' }}>
-                                                Highlight Point
+                                                {intl.formatMessage(SreAgentResources.highlightPoint)}
                                             </span>
                                         </div>
                                         <div
@@ -1321,7 +1332,8 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                                 color: '#1E40AF',
                                             }}
                                         >
-                                            <strong>Info:</strong> Correlation ranges from -1 (inverse) to 1 (direct)
+                                            <strong>{intl.formatMessage(SreAgentResources.infoLabel)}</strong>{' '}
+                                            {intl.formatMessage(SreAgentResources.correlationRangeHelp)}
                                         </div>
                                     </div>
                                 </div>
@@ -1332,7 +1344,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
             }
 
             default:
-                return <div>Unsupported chart type: {type}</div>;
+                return <div>{intl.formatMessage(SreAgentResources.unsupportedChartType, { type })}</div>;
         }
     };
 
@@ -1367,7 +1379,11 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                         onClick={e => e.stopPropagation()} // Prevent closing when clicking on content
                     >
                         {/* Simple dark gray cross button */}
-                        <button style={closeButtonStyle as React.CSSProperties} onClick={toggleZoom} aria-label="Close">
+                        <button
+                            style={closeButtonStyle as React.CSSProperties}
+                            onClick={toggleZoom}
+                            aria-label={intl.formatMessage(SreAgentResources.close)}
+                        >
                             ×
                         </button>
 
@@ -1392,7 +1408,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                     } as React.CSSProperties
                                 }
                                 onClick={takeScreenshot}
-                                aria-label="Take Screenshot"
+                                aria-label={intl.formatMessage(SreAgentResources.takeScreenshot)}
                             >
                                 <svg
                                     width="20"

@@ -11,6 +11,7 @@ import {
 import { useIntl } from 'react-intl';
 import { Approval, KubectlExecution, PsqlExecution } from '../../Common/Contracts/DataPlane/Message';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
+import { ExecutionOutputResources, GraphViewerResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
 import { getRiskLevel } from './Utility';
 
@@ -261,7 +262,7 @@ const PsqlExecutionMessage: FC<{
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <span style={{ fontSize: '16px' }}>🐘</span>
-                            <span style={{ fontWeight: '600', fontSize: '14px' }}>PostgreSQL</span>
+                            <span style={{ fontWeight: '600', fontSize: '14px' }}>{intl.formatMessage(SreAgentResources.postgreSql)}</span>
                         </div>
 
                         {/* Risk indicator */}
@@ -355,7 +356,7 @@ const PsqlExecutionMessage: FC<{
                             borderRadius: '4px',
                             transition: 'color 0.2s',
                         }}
-                        title={copied ? 'Copied!' : 'Copy command'}
+                        title={copied ? intl.formatMessage(SreAgentResources.copied) : intl.formatMessage(GraphViewerResources.copyCommand)}
                         onMouseEnter={e => !copied && (e.currentTarget.style.color = '#fff')}
                         onMouseLeave={e => !copied && (e.currentTarget.style.color = '#888')}
                     >
@@ -391,7 +392,7 @@ const PsqlExecutionMessage: FC<{
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span style={{ fontSize: '16px' }}>🐘</span>
-                        <h4 style={{ margin: '0', fontWeight: '600' }}>PostgreSQL Command</h4>
+                        <h4 style={{ margin: '0', fontWeight: '600' }}>{intl.formatMessage(SreAgentResources.postgreSqlCommand)}</h4>
                     </div>
 
                     {/* Subtle risk indicator */}
@@ -442,7 +443,7 @@ const PsqlExecutionMessage: FC<{
                                 padding: '4px',
                                 borderRadius: '4px',
                             }}
-                            title="Collapse"
+                            title={intl.formatMessage(SreAgentResources.collapse)}
                             onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#e0e0e0')}
                             onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                         >
@@ -470,7 +471,7 @@ const PsqlExecutionMessage: FC<{
                         color: copied ? '#16a34a' : '#9ca3af',
                         transition: 'color 0.2s',
                     }}
-                    title="Copy command"
+                    title={intl.formatMessage(GraphViewerResources.copyCommand)}
                     onMouseEnter={e => (e.currentTarget.style.color = '#ffffff')}
                     onMouseLeave={e => (e.currentTarget.style.color = copied ? '#16a34a' : '#9ca3af')}
                 >
@@ -529,7 +530,9 @@ const PsqlExecutionMessage: FC<{
                         ) : (
                             <AiOutlinePlayCircle size={14} />
                         )}
-                        {currentExecution.status === 'Pending' ? 'Continue' : 'Authorize'}
+                        {currentExecution.status === 'Pending'
+                            ? intl.formatMessage(SreAgentResources.continue)
+                            : intl.formatMessage(SreAgentResources.authorize)}
                     </button>
 
                     <button
@@ -565,7 +568,7 @@ const PsqlExecutionMessage: FC<{
                         ) : (
                             <AiOutlineClose size={14} />
                         )}
-                        Cancel
+                        {intl.formatMessage(SreAgentResources.cancel)}
                     </button>
                 </div>
             )}
@@ -591,15 +594,22 @@ const PsqlExecutionMessage: FC<{
                         >
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <span style={{ color: '#e2e8f0', fontSize: '13px', fontWeight: '500' }}>
-                                    Output {currentExecution.status === 'Running' ? '(Running...)' : ''}
+                                    {intl.formatMessage(
+                                        currentExecution.output && currentExecution.error
+                                            ? ExecutionOutputResources.outputAndErrorAvailable
+                                            : currentExecution.output
+                                              ? ExecutionOutputResources.outputAvailable
+                                              : ExecutionOutputResources.errorAvailable
+                                    )}{' '}
+                                    {currentExecution.status === 'Running' ? '(Running...)' : ''}
                                 </span>
                                 {isOutputCollapsed && (
                                     <span style={{ color: '#a0aec0', fontSize: '11px' }}>
                                         {currentExecution.output && currentExecution.error
-                                            ? 'Output and error available'
+                                            ? intl.formatMessage(ExecutionOutputResources.outputAndErrorAvailable)
                                             : currentExecution.output
-                                              ? 'Output available'
-                                              : 'Error available'}
+                                              ? intl.formatMessage(ExecutionOutputResources.outputAvailable)
+                                              : intl.formatMessage(ExecutionOutputResources.errorAvailable)}
                                     </span>
                                 )}
                             </div>
@@ -646,7 +656,7 @@ const PsqlExecutionMessage: FC<{
                                         zIndex: 1,
                                         opacity: 0.7,
                                     }}
-                                    title="Copy output"
+                                    title={intl.formatMessage(GraphViewerResources.copyOutput)}
                                     onMouseEnter={e => {
                                         e.currentTarget.style.color = '#ffffff';
                                         e.currentTarget.style.opacity = '1';
@@ -710,7 +720,7 @@ const PsqlExecutionMessage: FC<{
                                                     animation: 'spin 1s linear infinite',
                                                 }}
                                             />
-                                            <span>Executing...</span>
+                                            <span>{intl.formatMessage(SreAgentResources.executingEllipsis)}</span>
                                         </div>
                                     )}
                                 </div>
@@ -722,7 +732,9 @@ const PsqlExecutionMessage: FC<{
             {/* Execution metadata */}
             {currentExecution.executedBy && (
                 <div style={{ fontSize: '14px', color: '#666', marginBottom: '8px' }}>
-                    <strong>{currentExecution.status === 'Cancelled' ? 'Cancelled by' : 'Executed by'}:</strong>{' '}
+                    <strong>
+                        {currentExecution.status === 'Cancelled' ? intl.formatMessage(SreAgentResources.canceledBy) : 'Executed by'}:
+                    </strong>{' '}
                     {currentExecution.executedBy.displayName}
                 </div>
             )}
@@ -730,7 +742,8 @@ const PsqlExecutionMessage: FC<{
             {/* Timestamps */}
             <div style={{ fontSize: '12px', color: '#888', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                 <div>
-                    <strong>Created:</strong> {new Date(currentExecution.createdTimestamp).toLocaleString()}
+                    <strong>{intl.formatMessage(SreAgentResources.created)}:</strong>{' '}
+                    {new Date(currentExecution.createdTimestamp).toLocaleString()}
                 </div>
                 {currentExecution.startedTimestamp && (
                     <div>
@@ -744,7 +757,7 @@ const PsqlExecutionMessage: FC<{
                 )}
                 {currentExecution.startedTimestamp && currentExecution.completedTimestamp && (
                     <div>
-                        <strong>Duration:</strong>{' '}
+                        <strong>{intl.formatMessage(SreAgentResources.duration)}:</strong>{' '}
                         {Math.round(
                             (new Date(currentExecution.completedTimestamp).getTime() -
                                 new Date(currentExecution.startedTimestamp).getTime()) /
@@ -766,7 +779,7 @@ const PsqlExecutionMessage: FC<{
                         fontStyle: 'italic',
                     }}
                 >
-                    If you click 'Continue', this operation will be executed using agent identity credentials.
+                    {intl.formatMessage(SreAgentResources.continueUsingCreds)}
                 </p>
             )}
 
@@ -780,7 +793,7 @@ const PsqlExecutionMessage: FC<{
                         fontStyle: 'italic',
                     }}
                 >
-                    If you click 'Authorize', this operation will be executed on your behalf using your credentials.
+                    {intl.formatMessage(SreAgentResources.authorizeUsingCreds)}
                 </p>
             )}
 

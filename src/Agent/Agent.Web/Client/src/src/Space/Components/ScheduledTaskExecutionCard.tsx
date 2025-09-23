@@ -15,7 +15,9 @@ import {
 } from '@fluentui/react-components';
 import { Clock16Regular, Copy16Regular } from '@fluentui/react-icons';
 import * as React from 'react';
+import { useIntl } from 'react-intl';
 import { formatDateTimeWithShortYear, getSafeDateTime } from '../../Common/Helpers/Date';
+import { SreAgentResources } from '../../Strings/SREAgentResources';
 import { ScheduledTask } from '../Contracts/ScheduledTasks';
 
 /**
@@ -216,6 +218,7 @@ const copyToClipboard = async (value: string) => {
 
 const ScheduledTaskExecutionCard: React.FC<ScheduledTaskExecutionCardProps> = ({ task, executionTime, className }) => {
     const styles = useStyles();
+    const intl = useIntl();
     const { color, text } = statusToBadge(task.status);
     const scheduleText = cronToHuman(task.cronExpression);
     const times = toLocalAndUTC(executionTime);
@@ -229,31 +232,35 @@ const ScheduledTaskExecutionCard: React.FC<ScheduledTaskExecutionCardProps> = ({
                         <Clock16Regular />
                     </div>
                 }
-                header={<Text className={styles.headerTitle}>Scheduled Task Execution</Text>}
-                description={<Caption1 className={styles.headerSubtitle}>Execution details and request</Caption1>}
+                header={<Text className={styles.headerTitle}>{intl.formatMessage(SreAgentResources.scheduledTaskExecutionTitle)}</Text>}
+                description={
+                    <Caption1 className={styles.headerSubtitle}>
+                        {intl.formatMessage(SreAgentResources.executionDetailsAndRequest)}
+                    </Caption1>
+                }
             />
 
             <Divider />
 
             <div className={styles.body}>
                 <div className={styles.row}>
-                    <Text className={styles.label}>Task</Text>
+                    <Text className={styles.label}>{intl.formatMessage(SreAgentResources.task)}</Text>
                     <Text className={styles.value} weight="semibold">
                         {task.name || '—'}
                     </Text>
                 </div>
 
                 <div className={styles.row}>
-                    <Text className={styles.label}>Schedule</Text>
+                    <Text className={styles.label}>{intl.formatMessage(SreAgentResources.scheduleLabel)}</Text>
                     <div className={styles.value}>
                         <Text>{scheduleText}</Text>
                         <div style={{ marginTop: tokens.spacingVerticalXS }}>
-                            <Tooltip content="Cron expression" relationship="label">
+                            <Tooltip content={intl.formatMessage(SreAgentResources.cronExpressionLabel)} relationship="label">
                                 <span className={styles.codePill}>
                                     <span>{task.cronExpression || '—'}</span>
                                     {task.cronExpression && (
                                         <Button
-                                            aria-label="Copy cron"
+                                            aria-label={intl.formatMessage(SreAgentResources.copyCron)}
                                             size="small"
                                             appearance="subtle"
                                             icon={<Copy16Regular />}
@@ -267,7 +274,7 @@ const ScheduledTaskExecutionCard: React.FC<ScheduledTaskExecutionCardProps> = ({
                 </div>
 
                 <div className={styles.row}>
-                    <Text className={styles.label}>Execution Time</Text>
+                    <Text className={styles.label}>{intl.formatMessage(SreAgentResources.executionTimeLabel)}</Text>
                     <div className={styles.value}>
                         <Text>{times.local}</Text>
                         <Caption1 className={styles.faded}>{times.utc} UTC</Caption1>
@@ -275,7 +282,7 @@ const ScheduledTaskExecutionCard: React.FC<ScheduledTaskExecutionCardProps> = ({
                 </div>
 
                 <div className={styles.row}>
-                    <Text className={styles.label}>Status</Text>
+                    <Text className={styles.label}>{intl.formatMessage(SreAgentResources.status)}</Text>
                     <div className={styles.value}>
                         <Badge appearance="filled" color={color}>
                             {text}
@@ -286,20 +293,20 @@ const ScheduledTaskExecutionCard: React.FC<ScheduledTaskExecutionCardProps> = ({
                 {task.description && (
                     <>
                         <Divider />
-                        <Text className={styles.sectionTitle}>Task Description</Text>
+                        <Text className={styles.sectionTitle}>{intl.formatMessage(SreAgentResources.taskDescriptionLabel)}</Text>
                         <Text>{task.description}</Text>
                     </>
                 )}
 
                 <>
                     <Divider />
-                    <Text className={styles.sectionTitle}>Execution Request</Text>
+                    <Text className={styles.sectionTitle}>{intl.formatMessage(SreAgentResources.executionRequestLabel)}</Text>
                     <div className={styles.promptBox}>
                         <Text font="monospace">{prompt.shown}</Text>
                     </div>
                     {prompt.needsClamp && (
                         <Button appearance="subtle" size="small" onClick={() => prompt.setOpen(!prompt.open)}>
-                            {prompt.open ? 'Show less' : 'Show more'}
+                            {prompt.open ? intl.formatMessage(SreAgentResources.showLess) : intl.formatMessage(SreAgentResources.showMore)}
                         </Button>
                     )}
                 </>
@@ -309,7 +316,7 @@ const ScheduledTaskExecutionCard: React.FC<ScheduledTaskExecutionCardProps> = ({
                 <Caption1 className={styles.faded}>ID: {task.id || '—'}</Caption1>
                 {task.agentPrompt && (
                     <Button size="small" appearance="secondary" icon={<Copy16Regular />} onClick={() => copyToClipboard(task.agentPrompt!)}>
-                        Copy request
+                        {intl.formatMessage(SreAgentResources.copyRequest)}
                     </Button>
                 )}
             </CardFooter>

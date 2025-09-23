@@ -211,7 +211,12 @@ const AgentTaskDetailsPanel = ({ node, isOpen, onClose }: IAgentTaskDetailsPanel
             <DialogSurface aria-label={node.data.title} className={styles.dialogSurface}>
                 <DialogTitle className={styles.dialogTitle}>
                     {node.data.title}
-                    <Button appearance="subtle" aria-label="Close" icon={<Dismiss24Regular />} onClick={onClose} />
+                    <Button
+                        appearance="subtle"
+                        aria-label={intl.formatMessage(SREAgentResources.close)}
+                        icon={<Dismiss24Regular />}
+                        onClick={onClose}
+                    />
                 </DialogTitle>
                 <DialogBody className={styles.dialogBody}>
                     <DialogContent className={`${scrollable} ${styles.dialogContent}`}>

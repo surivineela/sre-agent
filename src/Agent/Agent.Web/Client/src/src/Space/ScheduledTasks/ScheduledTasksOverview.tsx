@@ -3,7 +3,7 @@ import { Spinner } from '@fluentui/react/lib/Spinner';
 import { Text } from '@fluentui/react/lib/Text';
 import { FC, useCallback, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { ScheduledTasksResources } from '../../Strings/SREAgentResources';
+import { ScheduledTasksResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { ScheduledTask } from '../Contracts/ScheduledTasks';
 import { useScheduledTasks } from '../Hooks/useScheduledTasks';
 import CreateScheduledTaskDialog from './CreateScheduledTaskDialog';
@@ -121,7 +121,7 @@ const ScheduledTasksOverview: FC = () => {
                     {loading ? (
                         <div className={styles.spinner}>
                             <Spinner size={3} />
-                            <div className={styles.spinnerText}>Loading scheduled tasks...</div>
+                            <div className={styles.spinnerText}>{intl.formatMessage(SreAgentResources.loadingScheduledTasks)}</div>
                         </div>
                     ) : scheduledTasks.length === 0 ? (
                         <div className={styles.emptyState}>
@@ -129,7 +129,7 @@ const ScheduledTasksOverview: FC = () => {
                             <div>
                                 <div className={styles.emptyStateTitle}>{intl.formatMessage(ScheduledTasksResources.noScheduledTasks)}</div>
                                 <div className={styles.emptyStateDescription}>
-                                    Create your first scheduled task to automatically run agent actions at regular intervals.
+                                    {intl.formatMessage(SreAgentResources.createFirstScheduledTask)}
                                 </div>
                             </div>
                         </div>

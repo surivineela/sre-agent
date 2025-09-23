@@ -85,7 +85,11 @@ const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
                         <DialogTitle>{intl.formatMessage(ScheduledTasksResources.deleteScheduledTaskConfirmation)}</DialogTitle>
                         <DialogContent>
                             {selectedTask && (
-                                <>Are you sure you want to delete the scheduled task "{selectedTask.name}"? This action cannot be undone.</>
+                                <>
+                                    {intl.formatMessage(ScheduledTasksResources.deleteScheduledTaskWithNameConfirmation, {
+                                        name: selectedTask.name,
+                                    })}
+                                </>
                             )}
                         </DialogContent>
                         <DialogActions>

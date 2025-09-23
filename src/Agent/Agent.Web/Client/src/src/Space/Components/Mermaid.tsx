@@ -1,5 +1,7 @@
 import mermaid from 'mermaid';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useIntl } from 'react-intl';
+import { GraphViewerResources, SreAgentResources } from '../../Strings/SREAgentResources';
 
 interface MermaidChartProps {
     chart: string;
@@ -28,6 +30,7 @@ mermaid.initialize({
 });
 
 const MermaidChart: React.FC<MermaidChartProps> = ({ chart, title }) => {
+    const intl = useIntl();
     const chartRef = useRef<HTMLDivElement>(null);
     const modalChartRef = useRef<HTMLDivElement>(null);
     const [error, setError] = useState<string | null>(null);
@@ -112,86 +115,96 @@ const MermaidChart: React.FC<MermaidChartProps> = ({ chart, title }) => {
     };
 
     // Toggle fullscreen modal
-    const toggleModal = () => {
+    const toggleModal = useCallback(() => {
         setIsModalOpen(!isModalOpen);
         // Reset zoom and position when opening/closing modal
         setScale(1);
         setPosition({ x: 0, y: 0 });
-    };
+    }, [isModalOpen]);
 
     // Handle zoom in/out
-    const handleZoom = (zoomIn: boolean) => {
-        const newScale = zoomIn
-            ? Math.min(scale + 0.2, 3) // Max zoom 3x
-            : Math.max(scale - 0.2, 0.5); // Min zoom 0.5x
-        setScale(newScale);
-    };
+    const handleZoom = useCallback(
+        (zoomIn: boolean) => {
+            const newScale = zoomIn
+                ? Math.min(scale + 0.2, 3) // Max zoom 3x
+                : Math.max(scale - 0.2, 0.5); // Min zoom 0.5x
+            setScale(newScale);
+        },
+        [scale]
+    );
 
     // Reset zoom and position
-    const resetView = () => {
+    const resetView = useCallback(() => {
         setScale(1);
         setPosition({ x: 0, y: 0 });
-    };
+    }, []);
 
     // Handle drag start
-    const handleMouseDown = (e: React.MouseEvent) => {
-        setIsDragging(true);
-        setStartPosition({
-            x: e.clientX - position.x,
-            y: e.clientY - position.y,
-        });
-    };
+    const handleMouseDown = useCallback(
+        (e: React.MouseEvent) => {
+            setIsDragging(true);
+            setStartPosition({
+                x: e.clientX - position.x,
+                y: e.clientY - position.y,
+            });
+        },
+        [position.x, position.y]
+    );
 
     // Handle drag move
-    const handleMouseMove = (e: React.MouseEvent) => {
-        if (!isDragging) return;
+    const handleMouseMove = useCallback(
+        (e: React.MouseEvent) => {
+            if (!isDragging) return;
 
-        const newX = e.clientX - startPosition.x;
-        const newY = e.clientY - startPosition.y;
+            const newX = e.clientX - startPosition.x;
+            const newY = e.clientY - startPosition.y;
 
-        setPosition({ x: newX, y: newY });
-    };
+            setPosition({ x: newX, y: newY });
+        },
+        [isDragging, startPosition.x, startPosition.y]
+    );
 
     // Handle drag end
-    const handleMouseUp = () => {
+    const handleMouseUp = useCallback(() => {
         setIsDragging(false);
-    };
+    }, []);
 
     // Handle mouse leave
-    const handleMouseLeave = () => {
+    const handleMouseLeave = useCallback(() => {
         if (isDragging) {
             setIsDragging(false);
         }
-    };
+    }, [isDragging]);
 
     // Handle keyboard events in modal
-    const handleKeyDown = (e: KeyboardEvent) => {
-        if (!isModalOpen) return;
+    const handleKeyDown = useCallback(
+        (e: KeyboardEvent) => {
+            if (!isModalOpen) return;
 
-        switch (e.key) {
-            case 'Escape':
-                toggleModal();
-                break;
-            case '+':
-            case '=':
-                handleZoom(true);
-                break;
-            case '-':
-                handleZoom(false);
-                break;
-            case '0':
-                resetView();
-                break;
-        }
-    };
+            switch (e.key) {
+                case 'Escape':
+                    toggleModal();
+                    break;
+                case '+':
+                case '=':
+                    handleZoom(true);
+                    break;
+                case '-':
+                    handleZoom(false);
+                    break;
+                case '0':
+                    resetView();
+                    break;
+            }
+        },
+        [isModalOpen, toggleModal, handleZoom, resetView]
+    );
 
     // Add keyboard event listener for modal
     useEffect(() => {
         window.addEventListener('keydown', handleKeyDown);
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-        };
-    }, [isModalOpen, scale]);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [handleKeyDown]);
 
     // Prevent body scrolling when modal is open
     useEffect(() => {
@@ -206,119 +219,122 @@ const MermaidChart: React.FC<MermaidChartProps> = ({ chart, title }) => {
     }, [isModalOpen]);
 
     // Render mermaid diagram
-    const renderMermaidDiagram = (containerRef: React.RefObject<HTMLDivElement>) => {
-        if (containerRef.current && chart) {
-            const id = `mermaid-${Math.random().toString(36).substring(2, 11)}`;
+    const renderMermaidDiagram = useCallback(
+        (containerRef: React.RefObject<HTMLDivElement>) => {
+            if (containerRef.current && chart) {
+                const id = `mermaid-${Math.random().toString(36).substring(2, 11)}`;
 
-            try {
-                mermaid
-                    .render(id, chart)
-                    .then(({ svg }) => {
-                        if (containerRef.current) {
-                            // Store SVG content for downloading
-                            setSvgContent(svg);
+                try {
+                    mermaid
+                        .render(id, chart)
+                        .then(({ svg }) => {
+                            if (containerRef.current) {
+                                // Store SVG content for downloading
+                                setSvgContent(svg);
 
-                            // Add unique class to the diagram
-                            const enhancedSvg = svg.replace('<svg ', `<svg class="mermaid-svg-${id}" `);
+                                // Add unique class to the diagram
+                                const enhancedSvg = svg.replace('<svg ', `<svg class="mermaid-svg-${id}" `);
 
-                            // Render the SVG
-                            containerRef.current.innerHTML = enhancedSvg;
+                                // Render the SVG
+                                containerRef.current.innerHTML = enhancedSvg;
 
-                            // Apply custom styling to the SVG after rendering
-                            const svgElement = containerRef.current.querySelector('svg');
-                            if (svgElement instanceof SVGElement) {
-                                // Apply responsive styling
-                                svgElement.style.maxWidth = '100%';
-                                svgElement.style.height = 'auto';
+                                // Apply custom styling to the SVG after rendering
+                                const svgElement = containerRef.current.querySelector('svg');
+                                if (svgElement instanceof SVGElement) {
+                                    // Apply responsive styling
+                                    svgElement.style.maxWidth = '100%';
+                                    svgElement.style.height = 'auto';
 
-                                // Apply font styling to all text elements
-                                const textElements = svgElement.querySelectorAll('text');
-                                textElements.forEach(text => {
-                                    if (text instanceof SVGTextElement) {
-                                        text.style.fontFamily =
-                                            '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
-                                        text.style.fontSize = '13px';
-                                        text.style.fontWeight = '500';
-                                    }
-                                });
+                                    // Apply font styling to all text elements
+                                    const textElements = svgElement.querySelectorAll('text');
+                                    textElements.forEach(text => {
+                                        if (text instanceof SVGTextElement) {
+                                            text.style.fontFamily =
+                                                '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+                                            text.style.fontSize = '13px';
+                                            text.style.fontWeight = '500';
+                                        }
+                                    });
 
-                                // Style the nodes to match chart styling
-                                const nodeElements = svgElement.querySelectorAll(
-                                    '.node rect, .node circle, .node ellipse, .node polygon, .node path'
-                                );
-                                nodeElements.forEach(node => {
-                                    if (node instanceof SVGElement) {
-                                        node.style.stroke = '#4F46E5'; // Primary color from chart
-                                        node.style.strokeWidth = '1.5px';
-                                        node.style.filter = 'drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.1))';
-                                    }
-                                });
+                                    // Style the nodes to match chart styling
+                                    const nodeElements = svgElement.querySelectorAll(
+                                        '.node rect, .node circle, .node ellipse, .node polygon, .node path'
+                                    );
+                                    nodeElements.forEach(node => {
+                                        if (node instanceof SVGElement) {
+                                            node.style.stroke = '#4F46E5'; // Primary color from chart
+                                            node.style.strokeWidth = '1.5px';
+                                            node.style.filter = 'drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.1))';
+                                        }
+                                    });
 
-                                // Style the edges to match chart styling
-                                const edgeElements = svgElement.querySelectorAll('.edge path');
-                                edgeElements.forEach(edge => {
-                                    if (edge instanceof SVGElement) {
-                                        edge.style.stroke = '#6B7280'; // Softer gray that matches chart grid
-                                        edge.style.strokeWidth = '1.5px';
-                                        edge.style.opacity = '0.8';
-                                    }
-                                });
+                                    // Style the edges to match chart styling
+                                    const edgeElements = svgElement.querySelectorAll('.edge path');
+                                    edgeElements.forEach(edge => {
+                                        if (edge instanceof SVGElement) {
+                                            edge.style.stroke = '#6B7280'; // Softer gray that matches chart grid
+                                            edge.style.strokeWidth = '1.5px';
+                                            edge.style.opacity = '0.8';
+                                        }
+                                    });
 
-                                // Style edge labels with better readability
-                                const edgeLabels = svgElement.querySelectorAll('.edgeLabel');
-                                edgeLabels.forEach(label => {
-                                    if (label instanceof SVGElement) {
-                                        label.style.background = '#FFFFFF';
-                                        label.style.borderRadius = '4px';
-                                        label.style.padding = '2px 4px';
-                                        label.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
-                                    }
-                                });
+                                    // Style edge labels with better readability
+                                    const edgeLabels = svgElement.querySelectorAll('.edgeLabel');
+                                    edgeLabels.forEach(label => {
+                                        if (label instanceof SVGElement) {
+                                            label.style.background = '#FFFFFF';
+                                            label.style.borderRadius = '4px';
+                                            label.style.padding = '2px 4px';
+                                            label.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
+                                        }
+                                    });
 
-                                // Style arrowheads to match line colors
-                                const markers = svgElement.querySelectorAll('marker path');
-                                markers.forEach(marker => {
-                                    if (marker instanceof SVGElement) {
-                                        marker.style.fill = '#6B7280'; // Match line color
-                                        marker.style.stroke = '#6B7280'; // Match line color
-                                    }
-                                });
+                                    // Style arrowheads to match line colors
+                                    const markers = svgElement.querySelectorAll('marker path');
+                                    markers.forEach(marker => {
+                                        if (marker instanceof SVGElement) {
+                                            marker.style.fill = '#6B7280'; // Match line color
+                                            marker.style.stroke = '#6B7280'; // Match line color
+                                        }
+                                    });
 
-                                // Apply zoom effect and position based on scale state
-                                svgElement.style.transform = `scale(${scale}) translate(${position.x / scale}px, ${position.y / scale}px)`;
-                                svgElement.style.transformOrigin = 'center';
-                                svgElement.style.transition = isDragging ? 'none' : 'transform 0.2s ease';
-                                svgElement.style.cursor = isDragging ? 'grabbing' : 'grab';
+                                    // Apply zoom effect and position based on scale state
+                                    svgElement.style.transform = `scale(${scale}) translate(${position.x / scale}px, ${position.y / scale}px)`;
+                                    svgElement.style.transformOrigin = 'center';
+                                    svgElement.style.transition = isDragging ? 'none' : 'transform 0.2s ease';
+                                    svgElement.style.cursor = isDragging ? 'grabbing' : 'grab';
+                                }
                             }
-                        }
-                    })
-                    .catch(err => {
+                        })
+                        .catch(err => {
+                            console.error('Error rendering mermaid chart:', err);
+                            setError(err.message);
+                        });
+                } catch (err) {
+                    if (err instanceof Error) {
                         console.error('Error rendering mermaid chart:', err);
                         setError(err.message);
-                    });
-            } catch (err) {
-                if (err instanceof Error) {
-                    console.error('Error rendering mermaid chart:', err);
-                    setError(err.message);
-                } else {
-                    console.error('Unknown error rendering mermaid chart');
-                    setError('Unknown error');
+                    } else {
+                        console.error('Unknown error rendering mermaid chart');
+                        setError('Unknown error');
+                    }
                 }
             }
-        }
-    };
+        },
+        [chart, scale, position.x, position.y, isDragging]
+    );
 
     // Render mermaid in container
     useEffect(() => {
         renderMermaidDiagram(chartRef);
-    }, [chart]);
+    }, [chart, renderMermaidDiagram]);
 
     // Render mermaid in modal when modal is opened
     useEffect(() => {
         if (isModalOpen && modalChartRef.current) {
             renderMermaidDiagram(modalChartRef);
         }
-    }, [isModalOpen, chart]);
+    }, [isModalOpen, chart, renderMermaidDiagram]);
 
     // Update SVG transform when scale or position changes
     useEffect(() => {
@@ -412,8 +428,8 @@ const MermaidChart: React.FC<MermaidChartProps> = ({ chart, title }) => {
                             boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
                             transition: 'all 0.2s ease',
                         }}
-                        aria-label="Fullscreen"
-                        title="Fullscreen"
+                        aria-label={intl.formatMessage(GraphViewerResources.fullscreen)}
+                        title={intl.formatMessage(GraphViewerResources.fullscreen)}
                     >
                         <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path
@@ -465,7 +481,7 @@ const MermaidChart: React.FC<MermaidChartProps> = ({ chart, title }) => {
                             pointerEvents: 'none',
                         }}
                     >
-                        Click to open fullscreen
+                        {intl.formatMessage(GraphViewerResources.clickToOpenFullscreen)}
                     </div>
                 </div>
             </div>
@@ -543,8 +559,8 @@ const MermaidChart: React.FC<MermaidChartProps> = ({ chart, title }) => {
                                         boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
                                         transition: 'all 0.2s ease',
                                     }}
-                                    aria-label="Reset View"
-                                    title="Reset View"
+                                    aria-label={intl.formatMessage(GraphViewerResources.resetView)}
+                                    title={intl.formatMessage(GraphViewerResources.resetView)}
                                 >
                                     <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path
@@ -570,8 +586,8 @@ const MermaidChart: React.FC<MermaidChartProps> = ({ chart, title }) => {
                                         boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
                                         transition: 'all 0.2s ease',
                                     }}
-                                    aria-label="Zoom Out"
-                                    title="Zoom Out"
+                                    aria-label={intl.formatMessage(GraphViewerResources.zoomOut)}
+                                    title={intl.formatMessage(GraphViewerResources.zoomOut)}
                                 >
                                     <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M5 10H15" stroke="#666666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -591,8 +607,8 @@ const MermaidChart: React.FC<MermaidChartProps> = ({ chart, title }) => {
                                         boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
                                         transition: 'all 0.2s ease',
                                     }}
-                                    aria-label="Zoom In"
-                                    title="Zoom In"
+                                    aria-label={intl.formatMessage(GraphViewerResources.zoomIn)}
+                                    title={intl.formatMessage(GraphViewerResources.zoomIn)}
                                 >
                                     <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path
@@ -618,8 +634,8 @@ const MermaidChart: React.FC<MermaidChartProps> = ({ chart, title }) => {
                                         boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
                                         transition: 'all 0.2s ease',
                                     }}
-                                    aria-label="Download SVG"
-                                    title="Download SVG"
+                                    aria-label={intl.formatMessage(GraphViewerResources.downloadSvg)}
+                                    title={intl.formatMessage(GraphViewerResources.downloadSvg)}
                                 >
                                     <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path
@@ -645,8 +661,8 @@ const MermaidChart: React.FC<MermaidChartProps> = ({ chart, title }) => {
                                         boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
                                         transition: 'all 0.2s ease',
                                     }}
-                                    aria-label="Download PNG"
-                                    title="Download PNG"
+                                    aria-label={intl.formatMessage(GraphViewerResources.downloadPng)}
+                                    title={intl.formatMessage(GraphViewerResources.downloadPng)}
                                 >
                                     <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path
@@ -672,8 +688,8 @@ const MermaidChart: React.FC<MermaidChartProps> = ({ chart, title }) => {
                                         boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
                                         transition: 'all 0.2s ease',
                                     }}
-                                    aria-label="Close"
-                                    title="Close"
+                                    aria-label={intl.formatMessage(SreAgentResources.close)}
+                                    title={intl.formatMessage(SreAgentResources.close)}
                                 >
                                     <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path
@@ -729,8 +745,8 @@ const MermaidChart: React.FC<MermaidChartProps> = ({ chart, title }) => {
                                 textAlign: 'center',
                             }}
                         >
-                            <span style={{ fontWeight: 'bold' }}>Tip:</span> Click and drag to move • Scroll or use buttons to zoom • Press
-                            ESC to close
+                            <span style={{ fontWeight: 'bold' }}>{intl.formatMessage(GraphViewerResources.tipLabel)}</span>{' '}
+                            {intl.formatMessage(GraphViewerResources.tipInstructions)}
                         </div>
                     </div>
                 </div>

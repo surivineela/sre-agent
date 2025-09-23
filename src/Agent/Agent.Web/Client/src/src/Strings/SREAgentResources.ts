@@ -372,6 +372,80 @@ export const SreAgentResources = defineMessages({
     selectFilter: { defaultMessage: 'Select a filter', id: 'iNgloh' },
     addFilter: { defaultMessage: 'Add filter', id: 'M/zZVx' },
     andMoreCount: { defaultMessage: 'and {count} more', id: 'oDI/Rp' },
+    takeScreenshot: { defaultMessage: 'Take Screenshot', id: 'KvZ6B9' },
+    closePanel: { defaultMessage: 'Close panel', id: 'RAjqKb' },
+    resizeDrawer: { defaultMessage: 'Resize drawer', id: 'Gl8fnJ' },
+    selectTask: { defaultMessage: 'Select task', id: '0fhwgp' },
+    dismissNotification: { defaultMessage: 'Dismiss notification', id: 'pe7UAe' },
+    copyCron: { defaultMessage: 'Copy cron', id: 'dCrF9n' },
+    copyRequest: { defaultMessage: 'Copy request', id: 'qdAlfY' },
+    showMore: { defaultMessage: 'Show more', id: 'aWpBzj' },
+    showLess: { defaultMessage: 'Show less', id: 'qyJtWy' },
+    moreItems: { defaultMessage: 'More items', id: '235+J4' },
+    scheduledTaskExecutionTitle: { defaultMessage: 'Scheduled Task Execution', id: 'T0/eoE' },
+    executionDetailsAndRequest: { defaultMessage: 'Execution details and request', id: '543Ygw' },
+    scheduleLabel: { defaultMessage: 'Schedule', id: 'hGQqkW' },
+    cronExpressionLabel: { defaultMessage: 'Cron expression', id: 'YmslQP' },
+    executionTimeLabel: { defaultMessage: 'Execution Time', id: '8fYK1J' },
+    taskDescriptionLabel: { defaultMessage: 'Task Description', id: 'IZYDgM' },
+    executionRequestLabel: { defaultMessage: 'Execution Request', id: 'uRYFcI' },
+    // Investigation summary / report strings
+    investigationErrorLoading: { defaultMessage: 'Error loading investigation', id: '5WWljt' },
+    investigationFinalSummaryLabel: { defaultMessage: 'Final Summary:', id: 'JezZlU' },
+    investigationStartingHypothesis: { defaultMessage: 'Starting investigation and forming hypothesis', id: 'a8vxDw' },
+    investigationResults: { defaultMessage: 'Investigation Results', id: 'HEgmnC' },
+    investigationFailedToParse: { defaultMessage: 'Failed to parse investigation data', id: '90THKF' },
+    investigationFailedToProcess: { defaultMessage: 'Failed to process investigation message', id: 'gNhYpU' },
+    webApps: { defaultMessage: 'Web Apps', id: 'QgFHei' },
+    containerApps: { defaultMessage: 'Container Apps', id: '+TlNdm' },
+    azureKubernetesServices: { defaultMessage: 'Azure Kubernetes Services', id: '+BcF2d' },
+    databases: { defaultMessage: 'Databases', id: 'RYbE1p' },
+    noPropertyChangesDetected: { defaultMessage: 'No property changes detected', id: 'VUHkVQ' },
+    configurationChanges: { defaultMessage: 'Configuration Changes', id: 'UCYFxr' },
+    previous: { defaultMessage: 'Previous', id: 'JJNc3c' },
+    current: { defaultMessage: 'Current', id: 'fF376U' },
+    correlationIdLabel: { defaultMessage: 'Correlation ID:', id: '6bkNTl' },
+    noChangesFoundForCorrelation: { defaultMessage: 'No changes found for this correlation ID', id: 'OsIQyM' },
+    correlationAnalysis: { defaultMessage: 'Correlation Analysis', id: 'kn+J82' },
+    correlationAnalysisDescription: {
+        defaultMessage: 'Highlighted points indicate significant events or anomalies in the data that warrant attention.',
+        id: 'PI1EY1',
+    },
+    legend: { defaultMessage: 'Legend', id: 'iZuO+L' },
+    highlightPoint: { defaultMessage: 'Highlight Point', id: '1VB9/h' },
+    noMatches: { defaultMessage: 'No matches', id: '96GJ5w' },
+    postgreSql: { defaultMessage: 'PostgreSQL', id: 'X5yqtT' },
+    postgreSqlCommand: { defaultMessage: 'PostgreSQL Command', id: 'P04Zui' },
+    executingEllipsis: { defaultMessage: 'Executing...', id: 'g8ctzH' },
+    schedulePreview: { defaultMessage: 'Schedule Preview', id: 'dd6gV2' },
+    nextRunsLocalTime: { defaultMessage: 'Next runs (local time):', id: 'lcOT8X' },
+    never: { defaultMessage: 'Never', id: 'du1laW' },
+    notScheduled: { defaultMessage: 'Not scheduled', id: 'pyXjlj' },
+    loadingScheduledTasks: { defaultMessage: 'Loading scheduled tasks...', id: 'iyOYgd' },
+    createFirstScheduledTask: {
+        defaultMessage: 'Create your first scheduled task to automatically run agent actions at regular intervals.',
+        id: '4l/H3O',
+    },
+    unsupportedChartType: { defaultMessage: 'Unsupported chart type: {type}', id: 'bswtOq' },
+    infoLabel: { defaultMessage: 'Info:', id: 't071V3' },
+    correlationRangeHelp: {
+        defaultMessage: 'Correlation ranges from -1 (inverse) to 1 (direct)',
+        id: 'fk/+VC',
+    },
+    correlationNoteHighlightedPoints: {
+        defaultMessage:
+            'Note: There {count, plural, one {is # highlighted point} other {are # highlighted points}} in this chart that may require attention.',
+        id: 'gwSeXa',
+    },
+    correlationLabel: { defaultMessage: 'Correlation:', id: 'Q9Zp/n' },
+    totalLabel: { defaultMessage: 'Total:', id: 'q4EmsW' },
+    dataPointsLabel: { defaultMessage: 'Data Points', id: 'MydQzO' },
+    highlightedPointFallback: { defaultMessage: 'Highlighted Point', id: 'XeBq0b' },
+    correlationRelationshipDescription: {
+        defaultMessage:
+            'This chart shows the relationship between {y1} and {y2} over time. The correlation values indicate how strongly these two metrics influence each other.',
+        id: 'rQAyD6',
+    },
 });
 
 export const SreAgentTabResources = defineMessages({
@@ -418,6 +492,34 @@ export const ResourcePickerTabResources = defineMessages({
             'This resource group is recommended for optimal agent performance. It includes one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, Web Apps, Redis, Postgres SQL, CosmosDB, Virtual machines, or Storage accounts.',
         id: 'DasCIQ',
     },
+});
+
+// Graph viewer (mermaid visualization & psql execution message) tooltips / labels
+export const GraphViewerResources = defineMessages({
+    fullscreen: { defaultMessage: 'Fullscreen', id: 'zvKOAu' },
+    resetView: { defaultMessage: 'Reset View', id: '7M8VZy' },
+    zoomOut: { defaultMessage: 'Zoom Out', id: 'uln7eT' },
+    zoomIn: { defaultMessage: 'Zoom In', id: 'KQ9L9d' },
+    downloadSvg: { defaultMessage: 'Download SVG', id: 'MI5gZ+' },
+    downloadPng: { defaultMessage: 'Download PNG', id: 'EAO/K+' },
+    clickToOpenFullscreen: { defaultMessage: 'Click to open fullscreen', id: 'Slnpm8' },
+    copyCommand: { defaultMessage: 'Copy command', id: 'ifcOhH' },
+    copyOutput: { defaultMessage: 'Copy output', id: '2os8R1' },
+    tipLabel: { defaultMessage: 'Tip:', id: 'JT7be1' },
+    tipInstructions: {
+        defaultMessage: 'Click and drag to move • Scroll or use buttons to zoom • Press ESC to close',
+        id: '1Pgd3P',
+    },
+});
+
+export const ChangeDiffResources = defineMessages({
+    changeDiffTitle: { defaultMessage: 'Change Diff', id: 'HtpD+z' },
+});
+
+export const ExecutionOutputResources = defineMessages({
+    outputAndErrorAvailable: { defaultMessage: 'Output and error available', id: 'wuk3yS' },
+    outputAvailable: { defaultMessage: 'Output available', id: 'Ck8Kax' },
+    errorAvailable: { defaultMessage: 'Error available', id: 'vdazhF' },
 });
 
 export const PromptResources = defineMessages({
@@ -1618,6 +1720,11 @@ export const ResourceInfoResources = defineMessages({
     connectRepository: { defaultMessage: 'Connect repository', id: '1fNFGt' },
     linkRepositoryToResource: { defaultMessage: 'Link repository to resource', id: 'BV3Mir' },
     repositoryUrl: { defaultMessage: 'Repository URL', id: 'AA/tRJ' },
+    repositoryLongUrlPlaceholder: {
+        defaultMessage:
+            'https://github.com/owner/repo-name or https://dev.azure.com/organization/project/_git/repo or https://organization.visualstudio.com/project/_git/repository-name',
+        id: 'EqwyQ/',
+    },
     repositoryUrlErrorMessage: {
         defaultMessage:
             'Repository URL must be like the following for GitHub: https://github.com/owner/repo-name or for Azure DevOps: https://dev.azure.com/organization/project/_git/repository-name or https://organization.visualstudio.com/project/_git/repository-name',
@@ -1769,6 +1876,44 @@ export const AgentModeResources = defineMessages({
         defaultMessage: 'You do not have permission to change the thread mode from {mode}',
         id: 'UKMPBH',
     },
+});
+
+export const GenericErrorResources = defineMessages({
+    failedToCreateScheduledTask: {
+        defaultMessage: 'Failed to create scheduled task. Please try again.',
+        id: 'cEBkPF',
+    },
+    unexpectedError: {
+        defaultMessage: 'An unexpected error occurred.',
+        id: 'Xkdnen',
+    },
+    failedToLinkRepository: {
+        defaultMessage: 'Failed to link repository',
+        id: 'nxvTtg',
+    },
+    failedToParseDailyReport: {
+        defaultMessage: 'Failed to parse daily report:',
+        id: 'tCrMHt',
+    },
+    invalidThreadDataFromStream: {
+        defaultMessage: 'Invalid thread data received from streaming message',
+        id: '77t9cY',
+    },
+    failedToCheckAgentMemoryStatus: {
+        defaultMessage: 'Failed to check agent memory status, falling back to disabled:',
+        id: 'yeJPGA',
+    },
+    justNow: {
+        defaultMessage: 'Just now',
+        id: 'bxv59V',
+    },
+    close: { defaultMessage: 'Close', id: 'rbrahO' },
+    closePanel: { defaultMessage: 'Close panel', id: 'RAjqKb' },
+    resizeDrawer: { defaultMessage: 'Resize drawer', id: 'Gl8fnJ' },
+    selectTask: { defaultMessage: 'Select task', id: '0fhwgp' },
+    takeScreenshot: { defaultMessage: 'Take Screenshot', id: 'KvZ6B9' },
+    moreOptions: { defaultMessage: 'More options', id: 'IzCVhG' },
+    dismissNotification: { defaultMessage: 'Dismiss notification', id: 'pe7UAe' },
 });
 
 export const ServiceNowResources = defineMessages({
@@ -1983,16 +2128,20 @@ export const ScheduledTasksResources = defineMessages({
     createScheduledTask: { defaultMessage: 'Create scheduled task', id: 'dJqE3e' },
     editScheduledTask: { defaultMessage: 'Edit scheduled task', id: '6ZDt71' },
     deleteScheduledTask: { defaultMessage: 'Delete scheduled task', id: 'IYLPrk' },
+    editingScheduledTaskHeader: { defaultMessage: 'Editing: {name}', id: 'WbV0j4' },
     name: { defaultMessage: 'Name', id: 'HAlOn1' },
     description: { defaultMessage: 'Description', id: 'Q8Qw5B' },
     status: { defaultMessage: 'Status', id: 'tzMNF3' },
     schedule: { defaultMessage: 'Schedule', id: 'hGQqkW' },
     cronExpression: { defaultMessage: 'Cron expression', id: 'YmslQP' },
     agentPrompt: { defaultMessage: 'Agent prompt', id: 'KsuM4D' },
+    agentPromptSection: { defaultMessage: 'Agent Prompt', id: '40gxTJ' },
     lastExecution: { defaultMessage: 'Last execution', id: 'o9bCTX' },
     nextExecution: { defaultMessage: 'Next execution', id: 'jlOO/9' },
     executionCount: { defaultMessage: 'Execution count', id: 'KS5JHs' },
     maxExecutions: { defaultMessage: 'Max executions', id: 'oXd3cw' },
+    placeholderMaxExecutions: { defaultMessage: 'Leave empty for unlimited executions', id: 'TFsGSl' },
+    descriptionMaxExecutions: { defaultMessage: 'Maximum number of times this task should run', id: 'psUT6S' },
     startTime: { defaultMessage: 'Start time', id: '/zFP1/' },
     endTime: { defaultMessage: 'End time', id: 'yc/tuy' },
     threadId: { defaultMessage: 'Thread ID', id: 'ggVnjB' },
@@ -2014,6 +2163,40 @@ export const ScheduledTasksResources = defineMessages({
         defaultMessage: 'Create a new scheduled task to monitor or perform actions at regular intervals using cron expressions.',
         id: 'MSWnaq',
     },
+    taskDetailsSection: { defaultMessage: 'Task Details', id: 'XKvrQy' },
+    scheduleSection: { defaultMessage: 'Schedule', id: 'hGQqkW' },
+    agentInstructionsSection: { defaultMessage: 'Agent Instructions', id: '9MPGF8' },
+    whenShouldTaskRun: { defaultMessage: 'When should this task run?', id: 'FSYccN' },
+    customCronExpression: { defaultMessage: 'Custom Cron Expression', id: 'VB+AjJ' },
+    cronExpressionPlaceholder: { defaultMessage: '0 0 * * *', id: 'panI3e' },
+    cronExpressionDescription: {
+        defaultMessage: 'Advanced: Use cron format (minute hour day month day-of-week)',
+        id: 'a7QT/5',
+    },
+    endDateOptional: { defaultMessage: 'End Date (Optional)', id: 'M4emJP' },
+    endDatePlaceholder: { defaultMessage: 'Select when the task should stop running', id: 'HOJNsf' },
+    endDateAriaLabel: { defaultMessage: 'Select end date for scheduled task', id: '75lAeu' },
+    agentPromptPlaceholder: {
+        defaultMessage: 'Detailed multi-line instructions. Provide: goal, context/resources, constraints, success criteria.',
+        id: 'mChei1',
+    },
+    promptTipsHeader: { defaultMessage: 'Prompt Tips', id: 'f7Zx3L' },
+    promptTip1: { defaultMessage: 'Keep description short; put detailed run logic here.', id: 'ajASB/' },
+    promptTip2: {
+        defaultMessage: 'Include any resource identifiers (e.g. subscription / resource group) needed each run.',
+        id: 'XJuPK6',
+    },
+    promptTip3: {
+        defaultMessage: 'State frequency-sensitive expectations (e.g. "summarize only last 15m of metrics").',
+        id: 'zZsxcQ',
+    },
+    promptTip4: {
+        defaultMessage: 'Define success / failure signals and required output format if specific.',
+        id: 'A0mVzo',
+    },
+    agentInstructionsLabel: { defaultMessage: 'Agent instructions', id: 'dI9gP+' },
+    namePlaceholder: { defaultMessage: 'Enter a descriptive name for your task', id: 'v0CXYP' },
+    descriptionPlaceholder: { defaultMessage: 'Short one-line summary (<=140 chars)', id: 'yzfsFI' },
     deleteScheduledTaskConfirmation: {
         defaultMessage: 'Are you sure you want to delete this scheduled task? This action cannot be undone.',
         id: 'oDb8Xv',
@@ -2050,6 +2233,41 @@ export const ScheduledTasksResources = defineMessages({
         defaultMessage: 'Scheduled task resumed successfully',
         id: 'ak4FqD',
     },
+    noPromptProvided: { defaultMessage: 'No prompt provided.', id: 'lM2HXD' },
+    editAction: { defaultMessage: 'Edit', id: 'wEQDC6' },
+    saveAction: { defaultMessage: 'Save', id: 'jvo0vs' },
+    cancelAction: { defaultMessage: 'Cancel', id: '47FYwb' },
+    failedToPauseTask: { defaultMessage: 'Failed to pause task', id: 'oTzitk' },
+    failedToResumeTask: { defaultMessage: 'Failed to resume task', id: '8UznIt' },
+    failedToDeleteTask: { defaultMessage: 'Failed to delete task', id: 'mN2MCk' },
+    failedToUpdateTask: { defaultMessage: 'Failed to update task', id: 'TN/U9d' },
+    nameRequired: { defaultMessage: 'Name is required', id: 'Gvxoji' },
+    cronExpressionRequired: { defaultMessage: 'Cron expression is required', id: 'nRkusX' },
+    agentPromptRequired: { defaultMessage: 'Agent prompt is required', id: 'xxoHVE' },
+    // Newly added keys (ids will be corrected after hash validation errors report expected ids)
+    executionDetailsSection: { defaultMessage: 'Execution Details', id: 'FZwBv0' },
+    schedulePreview: { defaultMessage: 'Schedule Preview', id: 'dd6gV2' },
+    nextRunsLocalTime: { defaultMessage: 'Next runs (local time):', id: 'lcOT8X' },
+    cronLabel: { defaultMessage: 'Cron:', id: '30Ap/Y' },
+    cronExampleEveryFiveMinutes: { defaultMessage: 'e.g. */5 * * * *', id: '6YHhH+' },
+    creatingScheduledTaskProgress: { defaultMessage: 'Creating Scheduled Task...', id: '3sjbqq' },
+    nameValidationMinChars: { defaultMessage: 'Please enter a name (min 3 characters).', id: 'dQKATf' },
+    agentInstructionsRequired: { defaultMessage: 'Agent instructions are required.', id: 'euBSDU' },
+    cronExpressionValidation: {
+        defaultMessage: 'Enter a valid 5-part cron expression (m h dom mon dow).',
+        id: 'PXYq8b',
+    },
+    maxExecutionsValidation: { defaultMessage: 'Max executions must be a positive number.', id: 'M/3/kG' },
+    descriptionSingleLine: { defaultMessage: 'Description must be a single line summary.', id: 'z5cF/O' },
+    descriptionLength140: { defaultMessage: 'Description should be 140 characters or fewer.', id: 'gdUWAX' },
+    failedToCreateTask: { defaultMessage: 'Failed to create scheduled task. Please try again.', id: 'cEBkPF' },
+    unexpectedError: { defaultMessage: 'An unexpected error occurred.', id: 'Xkdnen' },
+    deleteScheduledTaskWithNameConfirmation: {
+        defaultMessage: 'Are you sure you want to delete the scheduled task "{name}"? This action cannot be undone.',
+        id: 'CzglId',
+    },
+    notAvailable: { defaultMessage: 'N/A', id: 'PW+sL4' },
+    dashPlaceholder: { defaultMessage: '—', id: 'SL+c5a' },
 });
 
 export const SubAgentsResources = defineMessages({
