@@ -3,14 +3,14 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Models;
+using Agent.Core.Models.Session;
 
 namespace Agent.Core.Interfaces;
 
 public interface ISessionPoolService
 {
-    Task<string> ExecuteCliAsync(string command, string accessToken, string identifier);
-
-    Task<SessionResponse> ExecuteShellCommandAsync(string command, string identifier);
+    Task<(int, string, string)> ExecuteCliLegacyAsync(string command, string accessToken, string identifier);
+    Task<(int, string, string)> ExecuteCliAsync(string command, string identifier, Dictionary<string, string>? tokens);
 
     /// <summary>
     /// Execute a bash command within the dedicated Code Interpreter session pool (isolated ACA environment for Python/report generation).

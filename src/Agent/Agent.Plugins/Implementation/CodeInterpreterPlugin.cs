@@ -10,6 +10,7 @@ using Agent.Plugins.Interface;
 using Agent.Core.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Agent.Core.Models.Session;
 
 namespace Agent.Plugins;
 

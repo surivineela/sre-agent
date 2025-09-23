@@ -102,7 +102,14 @@ public class KubectlExecution
 
         try
         {
-            return await pCmd.ExecuteAsync(cancellationToken);
+            var (exitCode, stdout, stderr) = await pCmd.ExecuteAsync(cancellationToken);
+
+            if (exitCode != 0)
+            {
+                throw new InvalidOperationException(stderr);
+            }
+
+            return stdout;
         }
         catch (Exception ex)
         {

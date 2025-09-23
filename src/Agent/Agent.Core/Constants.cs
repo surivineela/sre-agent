@@ -12,7 +12,10 @@ public class Constants
 
     public const string HttpClientForArmOperation = "ArmOperation";
 
-    public const string DefaultOboTokenScope = "https://management.core.windows.net/.default";
+    public const string DefaultOboTokenScope = ArmOboTokenScope;
+    public const string ArmOboTokenScope = "https://management.core.windows.net/.default";
+    public const string AkvOboTokenScope = "https://vault.azure.net/.default";
+    public const string StorageOboTokenScope = "https://storage.azure.com/.default";
 
     public const string AksOboTokenScope = "6dae42f8-4368-4678-94ff-3960e28e3630/.default";
     public const string AzureDevOpsScope = "499b84ac-1321-427f-aa17-267ca6975798/.default";

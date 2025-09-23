@@ -415,9 +415,25 @@ public class AuthenticationService : IAuthenticationService
             throw new InvalidOperationException("OboToken not found in the approval document");
         }
 
-        _logger.LogInternalInformation($"[{approval.ThreadId}] Obo credential will be used. Approval id: {approval.ApprovalId}");
+        var oboTokens = approvalDoc.OboToken.Split(","); // Do not remove empty entries, as YARP sets empty token when failed to exchange obo token
+        var scopes = (approvalDoc.OboTokenScope ?? Constants.DefaultOboTokenScope).Split(",");
+        if (oboTokens.Length != scopes.Length)
+        {
+            throw new InvalidOperationException("The number of OboTokens does not match the number of OboTokenScopes in the approval document");
+        }
 
-        return GetOboTokenCredential(approvalDoc.OboToken);
+        var tokens = new Dictionary<string, string>();
+        for (int i = 0; i < oboTokens.Length; i++)
+        {
+            if (!tokens.ContainsKey(scopes[i]))
+            {
+                tokens[scopes[i]] = oboTokens[i];
+            }
+        }
+
+        _logger.LogInternalInformation($"[{approval.ThreadId}] Obo credential will be used. Approval id: {approval.ApprovalId}. Token scopes: {string.Join(",", tokens.Keys)}");
+
+        return GetOboTokenCredential(tokens);
     }
 
     private ManagedIdentityCredential GetManagedIdentityCredential(string? identity)
@@ -459,26 +475,51 @@ public class AuthenticationService : IAuthenticationService
     private DefaultAzureCredential GetDefaultAzureCredential()
     {
 #pragma warning disable CUSTOM003 // This is only used in local development
-        return new DefaultAzureCredential(); // CodeQL [SM05137] This is not used in production code and only used in local development.
+        var options = new DefaultAzureCredentialOptions
+        {
+            ExcludeInteractiveBrowserCredential = false,
+            ExcludeAzureCliCredential = false,
+            ExcludeEnvironmentCredential = false,
+            ExcludeManagedIdentityCredential = true,
+            ExcludeSharedTokenCacheCredential = true,
+            ExcludeVisualStudioCodeCredential = true,
+            ExcludeVisualStudioCredential = true, // visual stuido credential cannot retireve non-ARM token
+        };
+        return new DefaultAzureCredential(options); // CodeQL [SM05137] This is not used in production code and only used in local development.
 #pragma warning restore CUSTOM003
     }
 
-    private TokenCredential GetOboTokenCredential(string token)
+    private TokenCredential GetOboTokenCredential(Dictionary<string, string> tokens)
     {
-        AccessToken accessToken;
-        try
+        var accessTokens = new Dictionary<string, AccessToken>();
+        foreach (var kvp in tokens)
         {
-            var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
-            accessToken = new AccessToken(token, jwt.ValidTo);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError(ex, "Failed to parse access token.");
-            // blindly set expiration to 1 hour later
-            accessToken = new AccessToken(token, DateTimeOffset.UtcNow.AddHours(1));
+            try
+            {
+                var jwt = new JwtSecurityTokenHandler().ReadJwtToken(kvp.Value);
+                accessTokens[kvp.Key] = new AccessToken(kvp.Value, jwt.ValidTo);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Failed to parse access token.");
+                // blindly set expiration to 1 hour later
+                accessTokens[kvp.Key] = new AccessToken(kvp.Value, DateTimeOffset.UtcNow.AddHours(1));
+            }
         }
 
-        return DelegatedTokenCredential.Create((_, _) => accessToken);
+        return DelegatedTokenCredential.Create((context, _) =>
+        {
+            AccessToken accessToken;
+            if (accessTokens.TryGetValue(context.Scopes[0], out accessToken))
+            {
+                return accessToken;
+            }
+            else
+            {
+                // backward compatibility
+                return accessTokens.Values.First();
+            }
+        });
     }
 
     public string? GetActionIdentity()

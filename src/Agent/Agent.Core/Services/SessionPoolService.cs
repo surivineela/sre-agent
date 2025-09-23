@@ -8,18 +8,12 @@ using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
+using Agent.Core.Models.Session;
 using Azure.Core;
 using Azure.Identity;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Core.Services;
-
-public class SessionRequest
-{
-    public List<string> Commands { get; set; } = [];
-
-    public int TimeoutInSeconds { get; set; } = 60;
-}
 
 public class SessionPoolService : ISessionPoolService
 {
@@ -51,14 +45,15 @@ public class SessionPoolService : ISessionPoolService
         return $"{agentName}-{threadId}";
     }
 
-    public async Task<string> ExecuteCliAsync(string command, string accessToken, string identifier)
+    public async Task<(int, string, string)> ExecuteCliLegacyAsync(string command, string accessToken, string identifier)
     {
         if (string.IsNullOrEmpty(accessToken))
         {
             throw new InvalidOperationException("Access token must be provided to execute CLI commands.");
         }
 
-        if (string.IsNullOrEmpty(identifier)) {
+        if (string.IsNullOrEmpty(identifier))
+        {
             throw new InvalidOperationException("Identifier must be provided to execute CLI commands.");
         }
 
@@ -67,22 +62,55 @@ public class SessionPoolService : ISessionPoolService
         command = command.StartsWith("az ", StringComparison.OrdinalIgnoreCase) ? command : $"az {command}";
         var finalCommand = $"export AZURE_CLI_ACCESS_TOKEN={accessToken} && {command}".Trim();
 
-        var sessionResponse = await ExecuteShellCommandAsync(finalCommand, identifier);
-        var result = sessionResponse.ExitCode == 0 ? sessionResponse.Result?.Stdout : sessionResponse.Result?.Stderr;
+        var req = new SessionRequest
+        {
+            Commands = ["/bin/bash", "-c", finalCommand],
+            TimeoutInSeconds = 900 // 15 minutes
+        };
+        var sessionResponse = await ExecuteShellCommandAsync<SessionRequest, SessionResponse>(req, identifier);
 
-        return result ?? string.Empty;
+        return (sessionResponse.ExitCode ?? -1, sessionResponse.Result?.Stdout ?? string.Empty, sessionResponse.Result?.Stderr ?? string.Empty);
     }
 
-    public async Task<SessionResponse> ExecuteShellCommandAsync(string command, string identifier)
+    public async Task<(int, string, string)> ExecuteCliAsync(string command, string identifier, Dictionary<string, string>? tokens)
     {
-        _logger.LogInternalInformation($"Executing shell command with identifier {identifier}");
-        var sessionRequest = new SessionRequest
+        if (tokens == null || tokens.Count == 0)
         {
-            Commands = ["/bin/bash", "-c", command],
+            throw new InvalidOperationException("Access token must be provided to execute CLI commands.");
+        }
+
+        if (string.IsNullOrEmpty(identifier))
+        {
+            throw new InvalidOperationException("Identifier must be provided to execute CLI commands.");
+        }
+
+        _logger.LogInternalInformation($"Executing CLI command: {command} with identifier {identifier}. Token scopes: {string.Join(", ", tokens.Keys)}");
+
+        var req = new AzCliExecutionRequest
+        {
+            ShellScripts = command,
+            AccessTokens = tokens,
             TimeoutInSeconds = 900 // 15 minutes
         };
 
-        var sessionResponse = await SendRequestAsync<SessionResponse>(HttpMethod.Post, "/shellExecute", identifier, sessionRequest);
+        var resp = await ExecuteShellCommandAsync<AzCliExecutionRequest, ShellExecuteResponse>(req, identifier);
+
+        return (resp.ExitCode ?? -1, resp.Result?.Stdout ?? string.Empty, resp.Result?.Stderr ?? string.Empty);
+    }
+
+    public async Task<TResp> ExecuteShellCommandAsync<TReq, TResp>(TReq request, string identifier)
+        where TReq : SessionRequest
+        where TResp : SessionResponse
+    {
+        var path = request switch
+        {
+            AzCliExecutionRequest => "/shellexecute/azcli",
+            KubectlExecutionRequest => "/shellexecute/kubectl",
+            SessionRequest => "/shellExecute",
+            _ => throw new InvalidOperationException("Unsupported shell execute request type.")
+        };
+
+        var sessionResponse = await SendRequestAsync<TReq, TResp>(HttpMethod.Post, path, identifier, request);
         _logger.LogInternalInformation($"Shell command executed successfully, identifier {identifier}, exit code {sessionResponse.ExitCode}, ExecutionTimeInMilliseconds {sessionResponse.Result?.ExecutionTimeInMilliseconds}");
 
         return sessionResponse;
@@ -97,7 +125,7 @@ public class SessionPoolService : ISessionPoolService
             TimeoutInSeconds = Math.Clamp(timeoutSeconds, 5, 900)
         };
 
-        var sessionResponse = await SendRequestAsync<SessionResponse>(HttpMethod.Post, "/shellExecute", identifier, sessionRequest, useCodeInterpreterPool: true);
+        var sessionResponse = await SendRequestAsync<SessionRequest, SessionResponse>(HttpMethod.Post, "/shellExecute", identifier, sessionRequest, useCodeInterpreterPool: true);
         _logger.LogInternalInformation($"Code Interpreter execution complete. Identifier={identifier} ExitCode={sessionResponse.ExitCode} ExecMs={sessionResponse.Result?.ExecutionTimeInMilliseconds}");
         return sessionResponse;
     }
@@ -134,8 +162,6 @@ public class SessionPoolService : ISessionPoolService
             {
                 Content = new StringContent(json, Encoding.UTF8, "application/json")
             };
-            string token = await GetAccessTokenAsync();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(Math.Clamp(timeoutSeconds, 5, 900)));
             using var response = await client.SendAsync(request, cts.Token);
             var content = await response.Content.ReadAsStringAsync(cts.Token);
@@ -164,7 +190,7 @@ public class SessionPoolService : ISessionPoolService
 
         if (!filename.StartsWith("mnt/data/"))
         {
-            filename.Replace("mnt/data/","");
+            filename.Replace("mnt/data/", "");
         }
 
         var url = $"{baseEndpoint.TrimEnd('/')}/python/downloadFile?fileName={filename}&identifier={identifier}&api-version=2024-02-02-preview";
@@ -172,8 +198,6 @@ public class SessionPoolService : ISessionPoolService
         try
         {
             var client = _httpClientFactory.CreateClient(Constants.HttpClientForSessionPool);
-            string token = await GetAccessTokenAsync();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             using var response = await client.GetAsync(url);
             if (!response.IsSuccessStatusCode)
             {
@@ -190,17 +214,7 @@ public class SessionPoolService : ISessionPoolService
         }
     }
 
-    private static async Task<string> GetAccessTokenAsync()
-    {
-#pragma warning disable CUSTOM003 // DefaultAzureCredential use in Production
-        var credential = new DefaultAzureCredential();
-#pragma warning restore CUSTOM003 // DefaultAzureCredential use in Production
-        var tokenRequestContext = new TokenRequestContext(new[] { "https://dynamicsessions.io/.default" });
-        AccessToken token = await credential.GetTokenAsync(tokenRequestContext);
-        return token.Token;
-    }
-
-    private async Task<T> SendRequestAsync<T>(HttpMethod method, string path, string identifier, SessionRequest? sessionRequest = null, bool useCodeInterpreterPool = false)
+    private async Task<TResp> SendRequestAsync<TReq, TResp>(HttpMethod method, string path, string identifier, TReq sessionRequest, bool useCodeInterpreterPool = false)
     {
         // Choose endpoint: prefer dedicated code interpreter pool if requested & configured
         var baseEndpoint = useCodeInterpreterPool && !string.IsNullOrWhiteSpace(_sessionPoolSettings.CodeInterpreterPoolManagementEndpoint)
@@ -218,7 +232,7 @@ public class SessionPoolService : ISessionPoolService
 
             if (sessionRequest != null)
             {
-                request.Content = new StringContent(JsonSerializer.Serialize(sessionRequest), Encoding.UTF8, "application/json");
+                request.Content = new StringContent(JsonSerializer.Serialize(sessionRequest, sessionRequest.GetType()), Encoding.UTF8, "application/json");
             }
 
             using var response = await client.SendAsync(request);
@@ -232,7 +246,7 @@ public class SessionPoolService : ISessionPoolService
 
             var content = await response.Content.ReadAsStringAsync();
 
-            return JsonSerializer.Deserialize<T>(content, new JsonSerializerOptions
+            return JsonSerializer.Deserialize<TResp>(content, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             })!;

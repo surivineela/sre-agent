@@ -1,6 +1,13 @@
 using System.Text.Json.Serialization;
 
-namespace Agent.Core.Models;
+namespace Agent.Core.Models.Session;
+
+public class SessionRequest
+{
+    public List<string> Commands { get; set; } = [];
+
+    public int TimeoutInSeconds { get; set; } = 60;
+}
 
 /// <summary>
 /// Represents a response from the session pool service.

@@ -111,7 +111,7 @@ namespace Agent.Web.Controllers.v1
                 try
                 {
                     var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
-                    var jsonToken = handler.ReadToken(token) as System.IdentityModel.Tokens.Jwt.JwtSecurityToken;
+                    var jsonToken = handler.ReadToken(authzHeader.Substring("Bearer ".Length).Trim()) as System.IdentityModel.Tokens.Jwt.JwtSecurityToken;
 
                     if (jsonToken != null)
                     {

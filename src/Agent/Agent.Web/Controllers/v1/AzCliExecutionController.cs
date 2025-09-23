@@ -24,6 +24,8 @@ namespace Agent.Web.Controllers.v1
     [Route("api/v1/[controller]")]
     public class AzCliExecutionController : ControllerBase
     {
+        private const string ExchangedTokenScopesHeader = "x-sreagent-exchanged-tokens-scopes";
+        private const string ExchangedTokensHeader = "x-sreagent-exchanged-tokens";
         private readonly IThreadRepository _threadRepository;
         private readonly ArmHelper _armHelper;
         private readonly ILogger<AzCliExecutionController> _logger;
@@ -112,6 +114,16 @@ namespace Agent.Web.Controllers.v1
                 return Unauthorized();
             }
 
+            var tokenScope = Constants.DefaultOboTokenScope;
+            var exchangedTokens = Request.Headers[ExchangedTokensHeader].ToString();
+            var exchangedTokenScopes = Request.Headers[ExchangedTokenScopesHeader].ToString();
+
+            if (!string.IsNullOrEmpty(exchangedTokens) && !string.IsNullOrEmpty(exchangedTokenScopes))
+            {
+                token = exchangedTokens;
+                tokenScope = exchangedTokenScopes;
+            }
+
             // Get user info from token or use provided user
             string userName = "Unknown User";
             string userId = request.User ?? "sreagent-client"; // Use provided user or default
@@ -127,7 +139,7 @@ namespace Agent.Web.Controllers.v1
                 try
                 {
                     var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
-                    var jsonToken = handler.ReadToken(token) as System.IdentityModel.Tokens.Jwt.JwtSecurityToken;
+                    var jsonToken = handler.ReadToken(authzHeader.Substring("Bearer ".Length).Trim()) as System.IdentityModel.Tokens.Jwt.JwtSecurityToken;
 
                     if (jsonToken != null)
                     {
@@ -244,7 +256,7 @@ namespace Agent.Web.Controllers.v1
                                                     AgentContextId: agentContext?.Id,
                                                     DecisionUser: execution.ExecutedBy,
                                                     OboToken: token,
-                                                    OboTokenScope: Constants.DefaultOboTokenScope);
+                                                    OboTokenScope: tokenScope);
 
                                 await _threadRepository.CreateApprovalAsync(approval);
 

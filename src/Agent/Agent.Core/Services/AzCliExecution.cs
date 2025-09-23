@@ -12,7 +12,7 @@ public class AzCliExecution
     // The command is the full az command without the 'az ' prefix
     private readonly string _command;
     private readonly string? _accessToken;
-    private readonly string? _identity;
+    private readonly Dictionary<string, string>? _additionalTokens;
     private readonly string _configDir;
     private readonly bool _isDevelopment;
     private readonly SessionPoolSettings _sessionPoolSettings;
@@ -22,19 +22,15 @@ public class AzCliExecution
         SessionPoolSettings sessionPoolSettings,
         ISessionPoolService sessionPoolService,
         string? accessToken = null,
-        string? identity = null,
-        bool isDevelopment = false)
+        bool isDevelopment = false,
+        Dictionary<string, string>? additionalTokens = null)
     {
         _logger = logger;
         _command = command.Trim();
-        if (_command.StartsWith("az ", StringComparison.OrdinalIgnoreCase))
-        {
-            _command = _command.Substring("az ".Length).Trim();
-        }
         _sessionPoolSettings = sessionPoolSettings;
         _sessionPoolService = sessionPoolService;
         _accessToken = accessToken;
-        _identity = identity;
+        _additionalTokens = additionalTokens;
         _configDir = isDevelopment ? string.Empty : Path.Join(Path.GetTempPath(), $"azcli-{Path.GetRandomFileName()}");
         _isDevelopment = isDevelopment;
     }
@@ -43,94 +39,49 @@ public class AzCliExecution
     {
         try
         {
+            int exitCode;
+            string stdout;
+            string stderr;
             if (_sessionPoolSettings.Enabled
-                && !string.IsNullOrEmpty(_sessionPoolSettings.PoolManagementEndpoint)
-                && !string.IsNullOrEmpty(_accessToken))
+                && !string.IsNullOrEmpty(_sessionPoolSettings.PoolManagementEndpoint))
             {
-                return await _sessionPoolService.ExecuteCliAsync(_command, _accessToken, $"{AgentNameHelper.GetAgentName(!_isDevelopment)}-{Guid.NewGuid().ToString("N").Substring(0, 8)}");
-            }
-
-            // az login does not support access token
-            // the token is consumed using Environment variable AZURE_CLI_ACCESS_TOKEN
-            if (string.IsNullOrEmpty(_accessToken))
-            {
-                var login = await AzLogin(cancellationToken);
-                if (!login)
-                {
-                    return "[Exception encountered]: Failed to login to Azure CLI";
-                }
+                // Uncomment to move to new session cli image
+                // return await _sessionPoolService.ExecuteCliAsync(_command, $"{AgentNameHelper.GetAgentName(!_isDevelopment)}-{Guid.NewGuid().ToString("N").Substring(0, 8)}", _additionalTokens);
+                (exitCode, stdout, stderr) = await _sessionPoolService.ExecuteCliLegacyAsync(_command, _accessToken ?? string.Empty, $"{AgentNameHelper.GetAgentName(!_isDevelopment)}-{Guid.NewGuid().ToString("N").Substring(0, 8)}");
             }
             else
             {
-                _logger.LogInternalInformation($"[AzCliExecution] Skip Az login and use OBO token for command execution.");
+                var cmd = _command.Substring("az ".Length);
+                var envs = new Dictionary<string, string>();
+
+                if (!string.IsNullOrEmpty(_configDir))
+                {
+                    envs["AZURE_CONFIG_DIR"] = _configDir;
+                }
+
+                if (!string.IsNullOrEmpty(_accessToken))
+                {
+                    envs["AZURE_CLI_ACCESS_TOKEN"] = _accessToken;
+                }
+
+                var (exe, args) = GetExecuableAndArgs([_command]);
+                var pCmd = new ExternalProcessCommand(_logger, exe, [args], envs: envs);
+                (exitCode, stdout, stderr) = await pCmd.ExecuteAsync(cancellationToken);
             }
 
-            var cmd = _command.Substring("az ".Length);
-            var envs = new Dictionary<string, string>();
-
-            if (!string.IsNullOrEmpty(_configDir))
+            if (exitCode != 0)
             {
-                envs["AZURE_CONFIG_DIR"] = _configDir;
+                stderr = string.IsNullOrEmpty(stderr) ? "Unknown error occurred." : stderr;
+                throw new InvalidOperationException(stderr);
             }
 
-            if (!string.IsNullOrEmpty(_accessToken))
-            {
-                envs["AZURE_CLI_ACCESS_TOKEN"] = _accessToken;
-            }
-
-            var (exe, args) = GetExecuableAndArgs([_command]);
-            var pCmd = new ExternalProcessCommand(_logger, exe, [args], envs: envs);
-            return await pCmd.ExecuteAsync(cancellationToken);
+            return stdout;
         }
         catch (Exception ex)
         {
             _logger.LogInternalError($"AzCliExecution failed for command '{_command}': {ex}");
             throw;
         }
-    }
-
-    private async Task<bool> AzLogin(CancellationToken cancellationToken)
-    {
-        if (_isDevelopment)
-        {
-            return true;
-        }
-
-        string[] loginCommands;
-        if (string.IsNullOrEmpty(_identity))
-        {
-            throw new InvalidOperationException("No managed identity provided for az login.");
-        }
-        else if (string.Equals(Constants.SystemManagedIdentityName, _identity))
-        {
-            loginCommands = ["login", "--identity", "--allow-no-subscriptions"];
-        }
-        else
-        {
-            loginCommands = ["login", "--identity", "--allow-no-subscriptions", "--resource-id", _identity];
-        }
-
-        _logger.LogInternalInformation($"Az login with managed identity {_identity}");
-        try
-        {
-            var envs = new Dictionary<string, string>();
-
-            if (!string.IsNullOrEmpty(_configDir))
-            {
-                envs["AZURE_CONFIG_DIR"] = _configDir;
-            }
-
-            var (exe, args) = GetExecuableAndArgs(loginCommands);
-            var cmd = new ExternalProcessCommand(_logger, exe, [args], envs: envs);
-            await cmd.ExecuteAsync(cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError($"Az login failed: {ex}");
-            return false;
-        }
-
-        return true;
     }
 
     private (string, string) GetExecuableAndArgs(string[] commands)

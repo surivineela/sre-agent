@@ -26,7 +26,7 @@ public class ExternalProcessCommand
         _envs = envs ?? new Dictionary<string, string>();
     }
 
-    public async Task<string> ExecuteAsync(CancellationToken cancellationToken)
+    public async Task<(int, string, string)> ExecuteAsync(CancellationToken cancellationToken)
     {
         var exePath = GetAbsoluteExecutablePath(_exe);
         var processInfo = new ProcessStartInfo
@@ -100,7 +100,9 @@ public class ExternalProcessCommand
             }
             catch { }
 
-            throw new InvalidOperationException($"{ProcessFailureMessage} timeout after {_timeout.TotalSeconds} seconds.");
+            _logger.LogInternalError($"Process '{_exe} {string.Join(" ", _arguments)}' timed out after {_timeout.TotalSeconds} seconds. Stdout: {outputBuilder}, Stderr: {errorBuilder}");
+
+            throw new TimeoutException($"{ProcessFailureMessage} timeout after {_timeout.TotalSeconds} seconds.");
         }
 
         // Check for errors
@@ -108,10 +110,13 @@ public class ExternalProcessCommand
         {
             var errorMessage = errorBuilder.ToString();
             _logger.LogInternalError($"Process '{_exe} {string.Join(" ", _arguments)}' failed with exit code {process.ExitCode}: {errorMessage}");
-            throw new InvalidOperationException($"{ProcessFailureMessage} exit code {process.ExitCode}: {errorMessage}");
+
+            // Thread evaluator uses ProcessFailureMessage to detect failure
+            var stderr = $"{ProcessFailureMessage} exit code {process.ExitCode}: {errorMessage}";
+            return (process.ExitCode, outputBuilder.ToString(), stderr);
         }
 
-        return outputBuilder.ToString();
+        return (process.ExitCode, outputBuilder.ToString(), errorBuilder.ToString());
     }
 
     private static string GetAbsoluteExecutablePath(string exe)
