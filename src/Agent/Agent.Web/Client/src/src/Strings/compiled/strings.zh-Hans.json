@@ -121,6 +121,12 @@
       "value": "Priorities"
     }
   ],
+  "/VnDMl": [
+    {
+      "type": 0,
+      "value": "Other"
+    }
+  ],
   "/WrP/v": [
     {
       "type": 0,
@@ -2019,6 +2025,12 @@
       "value": "Add instructions"
     }
   ],
+  "HljkEY": [
+    {
+      "type": 0,
+      "value": "Time frame"
+    }
+  ],
   "Humfno": [
     {
       "type": 0,
@@ -2253,6 +2265,12 @@
       "value": "移除受管理资源组"
     }
   ],
+  "JjNi2L": [
+    {
+      "type": 0,
+      "value": "Incident research"
+    }
+  ],
   "JlJ8dZ": [
     {
       "type": 0,
@@ -2287,6 +2305,12 @@
     {
       "type": 0,
       "value": "Allows for full read access to IoT Hub data-plane properties."
+    }
+  ],
+  "KI/Heo": [
+    {
+      "type": 0,
+      "value": "Key findings"
     }
   ],
   "KJuQJ3": [
@@ -2701,6 +2725,12 @@
     {
       "type": 0,
       "value": "如果需要，请提供数据使用量、客户权限和隐私声明。我们已为你准备好。"
+    }
+  ],
+  "OV6svF": [
+    {
+      "type": 0,
+      "value": "Research steps"
     }
   ],
   "OVAsQ8": [
@@ -3255,6 +3285,12 @@
     {
       "type": 0,
       "value": "SQL Managed Instance Contributor"
+    }
+  ],
+  "SyPo+k": [
+    {
+      "type": 0,
+      "value": "Incidents assisted by agent"
     }
   ],
   "T5+AEf": [
@@ -3905,6 +3941,12 @@
       "value": "Cognitive Services QnA Maker Reader"
     }
   ],
+  "YlGniM": [
+    {
+      "type": 0,
+      "value": "Validation steps"
+    }
+  ],
   "YmslQP": [
     {
       "type": 0,
@@ -4113,6 +4155,12 @@
     {
       "type": 0,
       "value": "Remove All"
+    }
+  ],
+  "aPWGNa": [
+    {
+      "type": 0,
+      "value": "Incident research in progress..."
     }
   ],
   "aQPexO": [
@@ -4637,6 +4685,12 @@
     {
       "type": 0,
       "value": "选择资源组"
+    }
+  ],
+  "ftvKVy": [
+    {
+      "type": 0,
+      "value": "Investigation steps"
     }
   ],
   "ftzwIR": [
@@ -5251,6 +5305,12 @@
       "value": "Default"
     }
   ],
+  "lP5P2a": [
+    {
+      "type": 0,
+      "value": "Affected resources"
+    }
+  ],
   "ldy3CI": [
     {
       "type": 0,
@@ -5373,6 +5433,12 @@
       "value": "事件"
     }
   ],
+  "muUj+F": [
+    {
+      "type": 0,
+      "value": "Incident description"
+    }
+  ],
   "mzRg+7": [
     {
       "type": 0,
@@ -5477,6 +5543,20 @@
     {
       "type": 0,
       "value": "Last execution"
+    }
+  ],
+  "oDI/Rp": [
+    {
+      "type": 0,
+      "value": "and "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " more"
     }
   ],
   "oDb8Xv": [
@@ -5867,6 +5947,12 @@
       "value": "Test incident response"
     }
   ],
+  "ryPHA8": [
+    {
+      "type": 0,
+      "value": "Assisted by agent"
+    }
+  ],
   "s7DlV0": [
     {
       "type": 0,
@@ -5971,6 +6057,12 @@
     {
       "type": 0,
       "value": "You do not have permission to send a message to this agent."
+    }
+  ],
+  "t323u5": [
+    {
+      "type": 0,
+      "value": "Expand all"
     }
   ],
   "t3D4PH": [
@@ -6155,6 +6247,12 @@
     {
       "type": 0,
       "value": "Tools selected for incident response"
+    }
+  ],
+  "v0fBOU": [
+    {
+      "type": 0,
+      "value": "Collapse all"
     }
   ],
   "v8cTK0": [
@@ -6383,6 +6481,12 @@
     {
       "type": 0,
       "value": "HDInsight Cluster Operator"
+    }
+  ],
+  "xK7rmd": [
+    {
+      "type": 0,
+      "value": "Insights"
     }
   ],
   "xUgb9H": [

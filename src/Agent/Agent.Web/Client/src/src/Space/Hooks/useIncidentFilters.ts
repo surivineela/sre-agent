@@ -37,6 +37,15 @@ export const useIncidentFilters = () => {
                 intl.formatMessage(IncidentManagementNotificationResources.deleteFilterTitle),
                 intl.formatMessage(IncidentManagementNotificationResources.deleteFilterInProgress)
             );
+
+            portalContext.logAmplitudeOperationEvent({
+                targetAction: 'start',
+                targetType: 'delete',
+                targetName: 'deleteIncidentHandler',
+                targetFriendlyName: 'Delete incident handler',
+                metadata: { incidentHandlersCount: incidentFilters?.length ?? 0 },
+            });
+
             const deleteFilterResponse = await incidentHandlerClient.deleteIncidentFilter(id);
             if (deleteFilterResponse.isSuccessful) {
                 portalContext.stopNotification(
@@ -45,6 +54,13 @@ export const useIncidentFilters = () => {
                     intl.formatMessage(IncidentManagementNotificationResources.deleteFilterSuccess)
                 );
                 setIncidentFilters(prev => prev?.filter(filter => filter.id !== id));
+                portalContext.logAmplitudeOperationEvent({
+                    targetAction: 'success',
+                    targetType: 'delete',
+                    targetName: 'deleteIncidentHandler',
+                    targetFriendlyName: 'Delete incident handler',
+                    metadata: { incidentHandlersCount: incidentFilters?.length ?? 0 },
+                });
             } else {
                 portalContext.log({
                     action: 'deleteIncidentFilter',
@@ -54,6 +70,13 @@ export const useIncidentFilters = () => {
                         message: `Failed to delete incident filter`,
                     },
                 });
+                portalContext.logAmplitudeOperationEvent({
+                    targetAction: 'failed',
+                    targetType: 'delete',
+                    targetName: 'deleteIncidentHandler',
+                    targetFriendlyName: 'Delete incident handler',
+                    metadata: { incidentHandlersCount: incidentFilters?.length ?? 0 },
+                });
                 portalContext.stopNotification(
                     notification,
                     false,
@@ -61,7 +84,7 @@ export const useIncidentFilters = () => {
                 );
             }
         },
-        [incidentHandlerClient, intl, portalContext]
+        [incidentHandlerClient, intl, portalContext, incidentFilters]
     );
 
     const createIncidentFilter = useCallback(
@@ -70,6 +93,15 @@ export const useIncidentFilters = () => {
                 intl.formatMessage(IncidentManagementNotificationResources.createFilterTitle),
                 intl.formatMessage(IncidentManagementNotificationResources.createFilterInProgress)
             );
+
+            portalContext.logAmplitudeOperationEvent({
+                targetAction: 'start',
+                targetType: 'create',
+                targetName: 'createIncidentHandler',
+                targetFriendlyName: 'Create incident handler',
+                metadata: { incidentHandlersCount: incidentFilters?.length ?? 0 },
+            });
+
             const createFilterResponse = await incidentHandlerClient.createIncidentFilter(incidentFilter);
             if (createFilterResponse.isSuccessful) {
                 portalContext.stopNotification(
@@ -80,6 +112,13 @@ export const useIncidentFilters = () => {
                 if (createFilterResponse.content) {
                     setIncidentFilters(prev => [...(prev ?? []), createFilterResponse.content as IncidentFilter]);
                 }
+                portalContext.logAmplitudeOperationEvent({
+                    targetAction: 'success',
+                    targetType: 'create',
+                    targetName: 'createIncidentHandler',
+                    targetFriendlyName: 'Create incident handler',
+                    metadata: { incidentHandlersCount: incidentFilters?.length ?? 0 },
+                });
             } else {
                 portalContext.log({
                     action: 'createIncidentFilter',
@@ -94,9 +133,16 @@ export const useIncidentFilters = () => {
                     false,
                     intl.formatMessage(IncidentManagementNotificationResources.createFilterError)
                 );
+                portalContext.logAmplitudeOperationEvent({
+                    targetAction: 'failed',
+                    targetType: 'create',
+                    targetName: 'createIncidentHandler',
+                    targetFriendlyName: 'Create incident handler',
+                    metadata: { incidentHandlersCount: incidentFilters?.length ?? 0 },
+                });
             }
         },
-        [incidentHandlerClient, intl, portalContext]
+        [incidentHandlerClient, intl, portalContext, incidentFilters]
     );
 
     const updateIncidentFilter = useCallback(
@@ -105,6 +151,15 @@ export const useIncidentFilters = () => {
                 intl.formatMessage(IncidentManagementNotificationResources.updateFilterTitle),
                 intl.formatMessage(IncidentManagementNotificationResources.updateFilterInProgress)
             );
+
+            portalContext.logAmplitudeOperationEvent({
+                targetAction: 'start',
+                targetType: 'update',
+                targetName: 'updateIncidentHandler',
+                targetFriendlyName: 'Update incident handler',
+                metadata: { incidentHandlersCount: incidentFilters?.length ?? 0 },
+            });
+
             const updateFilterResponse = await incidentHandlerClient.updateIncidentFilter(incidentFilter);
             if (updateFilterResponse.isSuccessful) {
                 portalContext.stopNotification(
@@ -120,6 +175,13 @@ export const useIncidentFilters = () => {
                         return updated ?? [];
                     });
                 }
+                portalContext.logAmplitudeOperationEvent({
+                    targetAction: 'success',
+                    targetType: 'update',
+                    targetName: 'updateIncidentHandler',
+                    targetFriendlyName: 'Update incident handler',
+                    metadata: { incidentHandlersCount: incidentFilters?.length ?? 0 },
+                });
             } else {
                 portalContext.log({
                     action: 'updateIncidentFilter',
@@ -134,9 +196,16 @@ export const useIncidentFilters = () => {
                     false,
                     intl.formatMessage(IncidentManagementNotificationResources.updateFilterError)
                 );
+                portalContext.logAmplitudeOperationEvent({
+                    targetAction: 'failed',
+                    targetType: 'update',
+                    targetName: 'updateIncidentHandler',
+                    targetFriendlyName: 'Update incident handler',
+                    metadata: { incidentHandlersCount: incidentFilters?.length ?? 0 },
+                });
             }
         },
-        [incidentHandlerClient, intl, portalContext]
+        [incidentHandlerClient, intl, portalContext, incidentFilters]
     );
 
     const enableIncidentFilter = useCallback(

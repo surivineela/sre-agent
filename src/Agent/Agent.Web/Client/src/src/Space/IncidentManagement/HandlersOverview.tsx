@@ -4,6 +4,8 @@ import { CheckmarkCircle16Filled, Warning16Filled } from '@fluentui/react-icons'
 import { tokens } from '@fluentui/react-theme';
 import { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
+import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { IncidentFilter } from '../../Common/Contracts/Azure/IncidentHandler';
 import { IncidentManagementType } from '../../Common/Contracts/Azure/SreAgent';
 import useUserPermissions from '../../Common/Hooks/useUserPermissions';
@@ -143,6 +145,7 @@ interface HandlersOverviewProps {
 }
 
 const HandlersOverview: FC<HandlersOverviewProps> = ({ setNavigationHidden, useConsolidatedCreate }) => {
+    const { logAmplitudeControlEvent } = useAzPortalContext();
     const {
         incidentManagement: { isIncidentManagementConnected, checkingConnectivity, refreshConnectivity },
         agentObj,
@@ -239,6 +242,16 @@ const HandlersOverview: FC<HandlersOverviewProps> = ({ setNavigationHidden, useC
                                 } else {
                                     setIsCreateIncidentFilterDialogOpen(true);
                                 }
+
+                                logAmplitudeControlEvent({
+                                    targetAction: 'clicked',
+                                    targetType: 'button',
+                                    targetName: 'newIncidentHandler',
+                                    targetFriendlyName: 'New incident handler',
+                                    valueObjectName: SpecialControlValue.DoAction,
+                                    valueObjectFriendlyName: SpecialControlValue.DoAction,
+                                    metadata: { useConsolidatedCreate, incidentHandlersCount: incidentFilters?.length ?? 0 },
+                                });
                             }}
                             onTurnOffIncidentFilterClick={() => {
                                 if (selectedIncidentFilter?.isEnabled) {
