@@ -561,10 +561,9 @@ public class IncidentPlaygroundController : ControllerBase
             {
                 continue;
             }
-            if (target[property.Key] is not null)
-            {
-                target[property.Key] = property.Value?.DeepClone();
-            }
+            if(property.Value is not null) {
+                target[property.Key] = property.Value.DeepClone();
+            } 
         }
     }
 }

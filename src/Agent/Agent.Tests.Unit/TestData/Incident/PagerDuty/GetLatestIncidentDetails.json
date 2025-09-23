@@ -1,0 +1,284 @@
+{
+  "log_entries": [
+    {
+      "id": "R7SN499ZKLVDNSBWN2TVP4IN11",
+      "type": "resolve_log_entry",
+      "summary": "Resolved by Vineela Suri.",
+      "self": "https://api.pagerduty.com/log_entries/R7SN499ZKLVDNSBWN2TVP4IN11",
+      "html_url": null,
+      "created_at": "2025-09-22T16:17:41Z",
+      "agent": {
+        "id": "PQ2OQB3",
+        "type": "user_reference",
+        "summary": "Vineela Suri",
+        "self": "https://api.pagerduty.com/users/PQ2OQB3",
+        "html_url": "https://surivmicrosoft.pagerduty.com/users/PQ2OQB3"
+      },
+      "channel": {
+        "type": "api"
+      },
+      "service": {
+        "id": "POWVZWT",
+        "type": "service_reference",
+        "summary": "Default Service",
+        "self": "https://api.pagerduty.com/services/POWVZWT",
+        "html_url": "https://surivmicrosoft.pagerduty.com/service-directory/POWVZWT"
+      },
+      "incident": {
+        "id": "Q2HZ36TE0J5I8P",
+        "type": "incident_reference",
+        "summary": "[#472] E2E 20250912200922",
+        "self": "https://api.pagerduty.com/incidents/Q2HZ36TE0J5I8P",
+        "html_url": "https://surivmicrosoft.pagerduty.com/incidents/Q2HZ36TE0J5I8P"
+      },
+      "teams": [],
+      "contexts": [],
+      "event_details": {}
+    },
+    {
+      "id": "R610H4EVBASBNF6FH5E3JD55AI",
+      "type": "annotate_log_entry",
+      "summary": "Note added by Vineela Suri.",
+      "self": "https://api.pagerduty.com/log_entries/R610H4EVBASBNF6FH5E3JD55AI",
+      "html_url": null,
+      "created_at": "2025-09-22T16:17:19Z",
+      "agent": {
+        "id": "PQ2OQB3",
+        "type": "user_reference",
+        "summary": "Vineela Suri",
+        "self": "https://api.pagerduty.com/users/PQ2OQB3",
+        "html_url": "https://surivmicrosoft.pagerduty.com/users/PQ2OQB3"
+      },
+      "channel": {
+        "type": "note",
+        "summary": "Incident acknowledged on 2025-09-22 09:17:16 -07:00. Further investigation is ongoing."
+      },
+      "service": {
+        "id": "POWVZWT",
+        "type": "service_reference",
+        "summary": "Default Service",
+        "self": "https://api.pagerduty.com/services/POWVZWT",
+        "html_url": "https://surivmicrosoft.pagerduty.com/service-directory/POWVZWT"
+      },
+      "incident": {
+        "id": "Q2HZ36TE0J5I8P",
+        "type": "incident_reference",
+        "summary": "[#472] E2E 20250912200922",
+        "self": "https://api.pagerduty.com/incidents/Q2HZ36TE0J5I8P",
+        "html_url": "https://surivmicrosoft.pagerduty.com/incidents/Q2HZ36TE0J5I8P"
+      },
+      "teams": [],
+      "contexts": []
+    },
+    {
+      "id": "RN9FNGJICCN7235LDYCIPD5DYQ",
+      "type": "acknowledge_log_entry",
+      "summary": "Acknowledged by Vineela Suri.",
+      "self": "https://api.pagerduty.com/log_entries/RN9FNGJICCN7235LDYCIPD5DYQ",
+      "html_url": null,
+      "created_at": "2025-09-22T16:17:15Z",
+      "agent": {
+        "id": "PQ2OQB3",
+        "type": "user_reference",
+        "summary": "Vineela Suri",
+        "self": "https://api.pagerduty.com/users/PQ2OQB3",
+        "html_url": "https://surivmicrosoft.pagerduty.com/users/PQ2OQB3"
+      },
+      "channel": {
+        "type": "api"
+      },
+      "service": {
+        "id": "POWVZWT",
+        "type": "service_reference",
+        "summary": "Default Service",
+        "self": "https://api.pagerduty.com/services/POWVZWT",
+        "html_url": "https://surivmicrosoft.pagerduty.com/service-directory/POWVZWT"
+      },
+      "incident": {
+        "id": "Q2HZ36TE0J5I8P",
+        "type": "incident_reference",
+        "summary": "[#472] E2E 20250912200922",
+        "self": "https://api.pagerduty.com/incidents/Q2HZ36TE0J5I8P",
+        "html_url": "https://surivmicrosoft.pagerduty.com/incidents/Q2HZ36TE0J5I8P"
+      },
+      "teams": [],
+      "contexts": [],
+      "event_details": {}
+    },
+    {
+      "id": "R3N75XHZ14QCU8NT7Q7F4GHCI5",
+      "type": "priority_change_log_entry",
+      "summary": "Priority set to \"P1\" by Vineela Suri.",
+      "self": "https://api.pagerduty.com/log_entries/R3N75XHZ14QCU8NT7Q7F4GHCI5",
+      "html_url": null,
+      "created_at": "2025-09-12T22:21:04Z",
+      "agent": {
+        "id": "PQ2OQB3",
+        "type": "user_reference",
+        "summary": "Vineela Suri",
+        "self": "https://api.pagerduty.com/users/PQ2OQB3",
+        "html_url": "https://surivmicrosoft.pagerduty.com/users/PQ2OQB3"
+      },
+      "channel": {
+        "type": "website",
+        "old_priority": null,
+        "new_priority": {
+          "id": "PJBQYEV",
+          "type": "priority",
+          "summary": "P1",
+          "self": "https://api.pagerduty.com/priorities/PJBQYEV",
+          "html_url": null,
+          "account_id": "PS2E0YF",
+          "color": "a8171c",
+          "created_at": "2025-04-30T18:23:41Z",
+          "description": "",
+          "name": "P1",
+          "order": 500000000,
+          "schema_version": 0,
+          "updated_at": "2025-04-30T18:23:41Z"
+        }
+      },
+      "service": {
+        "id": "POWVZWT",
+        "type": "service_reference",
+        "summary": "Default Service",
+        "self": "https://api.pagerduty.com/services/POWVZWT",
+        "html_url": "https://surivmicrosoft.pagerduty.com/service-directory/POWVZWT"
+      },
+      "incident": {
+        "id": "Q2HZ36TE0J5I8P",
+        "type": "incident_reference",
+        "summary": "[#472] E2E 20250912200922",
+        "self": "https://api.pagerduty.com/incidents/Q2HZ36TE0J5I8P",
+        "html_url": "https://surivmicrosoft.pagerduty.com/incidents/Q2HZ36TE0J5I8P"
+      },
+      "teams": [],
+      "contexts": []
+    },
+    {
+      "id": "R4G6QGFYFPE2XC1NQJ935DWCI2",
+      "type": "notify_log_entry",
+      "summary": "Notified Vineela Suri by email.",
+      "self": "https://api.pagerduty.com/log_entries/R4G6QGFYFPE2XC1NQJ935DWCI2",
+      "html_url": null,
+      "created_at": "2025-09-12T20:15:32Z",
+      "channel": {
+        "type": "auto",
+        "notification": {
+          "type": "email",
+          "address": "surivineela@microsoft.com",
+          "conferenceAddress": null,
+          "status": "success"
+        }
+      },
+      "service": {
+        "id": "POWVZWT",
+        "type": "service_reference",
+        "summary": "Default Service",
+        "self": "https://api.pagerduty.com/services/POWVZWT",
+        "html_url": "https://surivmicrosoft.pagerduty.com/service-directory/POWVZWT"
+      },
+      "incident": {
+        "id": "Q2HZ36TE0J5I8P",
+        "type": "incident_reference",
+        "summary": "[#472] E2E 20250912200922",
+        "self": "https://api.pagerduty.com/incidents/Q2HZ36TE0J5I8P",
+        "html_url": "https://surivmicrosoft.pagerduty.com/incidents/Q2HZ36TE0J5I8P"
+      },
+      "teams": [],
+      "contexts": [],
+      "user": {
+        "id": "PQ2OQB3",
+        "type": "user_reference",
+        "summary": "Vineela Suri",
+        "self": "https://api.pagerduty.com/users/PQ2OQB3",
+        "html_url": "https://surivmicrosoft.pagerduty.com/users/PQ2OQB3"
+      }
+    },
+    {
+      "id": "R38WRQ2LFT9P9X2JS7XFCQTADB",
+      "type": "assign_log_entry",
+      "summary": "Assigned to Vineela Suri.",
+      "self": "https://api.pagerduty.com/log_entries/R38WRQ2LFT9P9X2JS7XFCQTADB",
+      "html_url": null,
+      "created_at": "2025-09-12T20:15:31Z",
+      "agent": {
+        "id": "POWVZWT",
+        "type": "service_reference",
+        "summary": "Default Service",
+        "self": "https://api.pagerduty.com/services/POWVZWT",
+        "html_url": "https://surivmicrosoft.pagerduty.com/service-directory/POWVZWT"
+      },
+      "channel": {
+        "type": "auto"
+      },
+      "service": {
+        "id": "POWVZWT",
+        "type": "service_reference",
+        "summary": "Default Service",
+        "self": "https://api.pagerduty.com/services/POWVZWT",
+        "html_url": "https://surivmicrosoft.pagerduty.com/service-directory/POWVZWT"
+      },
+      "incident": {
+        "id": "Q2HZ36TE0J5I8P",
+        "type": "incident_reference",
+        "summary": "[#472] E2E 20250912200922",
+        "self": "https://api.pagerduty.com/incidents/Q2HZ36TE0J5I8P",
+        "html_url": "https://surivmicrosoft.pagerduty.com/incidents/Q2HZ36TE0J5I8P"
+      },
+      "teams": [],
+      "contexts": [],
+      "assignees": [
+        {
+          "id": "PQ2OQB3",
+          "type": "user_reference",
+          "summary": "Vineela Suri",
+          "self": "https://api.pagerduty.com/users/PQ2OQB3",
+          "html_url": "https://surivmicrosoft.pagerduty.com/users/PQ2OQB3"
+        }
+      ]
+    },
+    {
+      "id": "RO7RCFYWPJ1D1D66VPQQON6V09",
+      "type": "trigger_log_entry",
+      "summary": "Triggered through the website.",
+      "self": "https://api.pagerduty.com/log_entries/RO7RCFYWPJ1D1D66VPQQON6V09",
+      "html_url": "https://surivmicrosoft.pagerduty.com/incidents/Q2HZ36TE0J5I8P/log_entries/RO7RCFYWPJ1D1D66VPQQON6V09",
+      "created_at": "2025-09-12T20:15:31Z",
+      "agent": {
+        "id": "PQ2OQB3",
+        "type": "user_reference",
+        "summary": "Vineela Suri",
+        "self": "https://api.pagerduty.com/users/PQ2OQB3",
+        "html_url": "https://surivmicrosoft.pagerduty.com/users/PQ2OQB3"
+      },
+      "channel": {
+        "type": "api",
+        "summary": "E2E 20250912200922"
+      },
+      "service": {
+        "id": "POWVZWT",
+        "type": "service_reference",
+        "summary": "Default Service",
+        "self": "https://api.pagerduty.com/services/POWVZWT",
+        "html_url": "https://surivmicrosoft.pagerduty.com/service-directory/POWVZWT"
+      },
+      "incident": {
+        "id": "Q2HZ36TE0J5I8P",
+        "type": "incident_reference",
+        "summary": "[#472] E2E 20250912200922",
+        "self": "https://api.pagerduty.com/incidents/Q2HZ36TE0J5I8P",
+        "html_url": "https://surivmicrosoft.pagerduty.com/incidents/Q2HZ36TE0J5I8P"
+      },
+      "teams": [],
+      "contexts": [],
+      "event_details": {
+        "description": "E2E 20250912200922"
+      }
+    }
+  ],
+  "limit": 25,
+  "offset": 0,
+  "more": false,
+  "total": null
+}
