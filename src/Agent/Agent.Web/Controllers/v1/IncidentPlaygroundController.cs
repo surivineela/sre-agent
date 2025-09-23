@@ -280,7 +280,7 @@ public class IncidentPlaygroundController : ControllerBase
             }
         }
 
-        var filterDocJNode = JsonSerializer.SerializeToNode(filterDoc);
+        var filterDocJNode = JsonSerializer.SerializeToNode(filterDoc, new JsonSerializerOptions{  PropertyNameCaseInsensitive = true });
         MergeJsonNode(payload, filterDocJNode, new List<string>() { "AgentMode" });
 
 
@@ -329,7 +329,7 @@ public class IncidentPlaygroundController : ControllerBase
             }
         }
 
-        var existingDocJNode = JsonSerializer.SerializeToNode(existingFilter);
+        var existingDocJNode = JsonSerializer.SerializeToNode(existingFilter, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         MergeJsonNode(payload, existingDocJNode, new List<string>() { "AgentMode" });
 
         if (existingDocJNode is null)
