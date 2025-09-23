@@ -519,6 +519,21 @@ public class IncidentPlaygroundController : ControllerBase
         }
     }
 
+    [HttpGet("incidentPlatformType")]
+    [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementReadActionId)]
+    public IActionResult GetIncidentPlatformType()
+    {
+        try
+        {
+            return Ok(new { IncidentPlatformType = _incidentManagementSettings.Type.ToString() });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError("Failed to getIncidentPlatformType", ex);
+            return StatusCode(500, "Failed to getIncidentPlatformType");
+        }
+    }
+
     // ---------- Test Scanner Queue (local only) ----------
     public sealed record EnqueueTestScannerRequest(string IncidentId, string? OwningTeamId, bool ForceTeamSpecific = false);
 
