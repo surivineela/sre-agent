@@ -41,6 +41,8 @@ namespace Agent.Web.Controllers.v1
         IAgentInboundCommunicationService agentInboundCommunicationService,
         IThreadRepository repository,
         IAgentTasksRepository agentTasksRepository,
+        IThreadOrchestrationMappingRepository threadOrchestrationMappingRepository,
+        IInstanceManagementRepository instanceManagementRepository,
         ILogger<ThreadsController> logger,
         IGraphService graphService,
         IConnectedIntegrationsPlugin connectedIntegrationsPlugin,
@@ -342,6 +344,7 @@ namespace Agent.Web.Controllers.v1
             if (thread == null)
                 return NotFound();
 
+            // Delete all agent contexts and their related data
             var agentContexts = await repository.GetAgentContextsForThreadAsync(threadId);
             foreach (var agentContext in agentContexts)
             {
@@ -359,6 +362,65 @@ namespace Agent.Web.Controllers.v1
                 }
             }
 
+            // Delete all agent tasks for this thread
+            var agentTasks = await agentTasksRepository.GetAgentTasksAsync(threadId);
+            foreach (var agentTask in agentTasks)
+            {
+                await agentTasksRepository.DeleteAgentTaskAsync(threadId, agentTask.Id);
+            }
+
+            // Delete all message feedbacks for this thread
+            var messageFeedbacks = await repository.GetMessageFeedbacksAsync(threadId);
+            foreach (var feedback in messageFeedbacks)
+            {
+                await repository.DeleteMessageFeedbackAsync(threadId, feedback.Id);
+            }
+
+            // Delete all approvals for this thread
+            var approvals = await repository.GetApprovalsAsync(threadId);
+            foreach (var approval in approvals)
+            {
+                await repository.DeleteApprovalAsync(threadId, approval.Id);
+            }
+
+            // Delete all approval V2s for this thread - we need to get all and filter by threadId
+            var allApprovalV2s = await repository.GetAllApprovalV2sAsync();
+            var threadApprovalV2s = allApprovalV2s.Where(a => a.ThreadId == threadId);
+            foreach (var approvalV2 in threadApprovalV2s)
+            {
+                await repository.DeleteApprovalV2Async(approvalV2.Id, approvalV2.AgentContextId);
+            }
+
+            // Delete thread evaluation result if it exists
+            var threadEvaluation = await repository.GetThreadEvaluateResultByThreadIdAsync(threadId);
+            if (threadEvaluation != null)
+            {
+                logger.LogInternalInformation("Thread evaluation {id} found for thread {}", threadEvaluation.Id, threadId);
+                await repository.DeleteThreadEvaluateResultAsync(threadEvaluation.Id);
+            }
+
+            // Delete CLI executions (Az CLI) for this thread
+            await repository.DeleteAllCliExecutionsAsync(threadId);
+
+            // Delete Kubectl executions for this thread
+            await repository.DeleteAllKubectlExecutionsAsync(threadId);
+
+            // Delete PSQL executions for this thread
+            // await repository.DeleteAllPsqlExecutionsAsync(threadId);
+
+            // Delete scheduled tasks for this thread
+            await repository.DeleteAllScheduledTasksAsync(threadId);
+
+            // Delete thread orchestration mappings
+            await threadOrchestrationMappingRepository.RemoveThreadMappingAsync(threadId.ToString());
+
+            // Delete agent context instance assignments
+            await instanceManagementRepository.DeleteAllAssignmentsForThreadAsync(threadId);
+
+            // Delete thread context
+            await repository.DeleteThreadContextAsync(threadId: threadId);
+
+            // Finally delete the thread itself (this also deletes messages, actions, and teams mappings)
             await repository.DeleteThreadAsync(threadId);
 
             return NoContent();

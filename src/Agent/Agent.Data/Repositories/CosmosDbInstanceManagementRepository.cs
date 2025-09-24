@@ -398,6 +398,40 @@ public class CosmosDbInstanceManagementRepository(
 
         return result;
     }
+
+    /// <inheritdoc/>
+    public async Task<bool> DeleteAllAssignmentsForThreadAsync(Guid threadId)
+    {
+        try
+        {
+            string threadIdStr = threadId.ToString();
+            var container = cosmosClient.GetContainer<AgentContextInstanceAssignmentDocument>(databaseName);
+
+            var query = container.GetItemLinqQueryable<AgentContextInstanceAssignmentDocument>()
+                .Where(d => d.DocumentType == "AgentContextInstanceAssignment" && d.ThreadId == threadIdStr);
+
+            using var iterator = query.ToFeedIterator();
+
+            while (iterator.HasMoreResults)
+            {
+                foreach (var assignment in await iterator.ReadNextAsync())
+                {
+                    await container.DeleteItemAsync<AgentContextInstanceAssignmentDocument>(
+                        assignment.Id,
+                        new PartitionKey(assignment.PartitionKey)
+                    );
+                }
+            }
+
+            logger.LogInternalInformation("Successfully deleted all agent context instance assignments for thread {ThreadId}", threadId);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            logger.LogInternalError(ex, "Failed to delete agent context instance assignments for thread {ThreadId}", threadId);
+            return false;
+        }
+    }
     #endregion
 
     #region Helper Methods

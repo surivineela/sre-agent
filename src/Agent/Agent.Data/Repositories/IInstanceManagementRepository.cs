@@ -99,5 +99,12 @@ public interface IInstanceManagementRepository
     /// <param name="instanceId">Instance ID</param>
     /// <returns>List of assignment records</returns>
     Task<List<AgentContextInstanceAssignment>> GetAssignmentsForInstanceAsync(string instanceId);
+
+    /// <summary>
+    /// Deletes all agent context instance assignments for a given thread
+    /// </summary>
+    /// <param name="threadId">Thread ID</param>
+    /// <returns>True if assignments were deleted successfully, false otherwise</returns>
+    Task<bool> DeleteAllAssignmentsForThreadAsync(Guid threadId);
     #endregion
 }

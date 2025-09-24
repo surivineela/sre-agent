@@ -1201,11 +1201,48 @@ namespace Agent.Data.Repositories
             return Task.FromResult<PsqlExecution?>(null);
         }
 
-                public Task<IEnumerable<Message>> GetMessagesWithPsqlAsync(Guid threadId)
+        public Task<IEnumerable<Message>> GetMessagesWithPsqlAsync(Guid threadId)
         {
             // Stub implementation for testing - return empty list
             return Task.FromResult(Enumerable.Empty<Message>());
         }
+
+        public Task<bool> DeleteApprovalAsync(Guid threadId, Guid approvalId)
+        {
+            // Stub implementation for testing
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> DeleteApprovalV2Async(Guid approvalIdV2, Guid agentContextId)
+        {
+            // Stub implementation for testing
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> DeleteAllCliExecutionsAsync(Guid threadId)
+        {
+            // Stub implementation for testing
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> DeleteAllKubectlExecutionsAsync(Guid threadId)
+        {
+            // Stub implementation for testing
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> DeleteAllPsqlExecutionsAsync(Guid threadId)
+        {
+            // Stub implementation for testing
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> DeleteAllScheduledTasksAsync(Guid threadId)
+        {
+            // Stub implementation for testing
+            return Task.FromResult(true);
+        }
+
         #endregion
     }
 }

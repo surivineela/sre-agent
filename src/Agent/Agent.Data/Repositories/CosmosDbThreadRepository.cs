@@ -2248,6 +2248,26 @@ public class CosmosDbThreadRepository : IThreadRepository
         return approvalV2;
     }
 
+    public async Task<bool> DeleteApprovalV2Async(Guid approvalIdV2, Guid agentContextId)
+    {
+        try
+        {
+            string id = approvalIdV2.ToString();
+            string partitionKey = agentContextId.ToString();
+
+            await _client.GetContainer<ApprovalV2Document>(_databaseName).DeleteItemAsync<ApprovalV2Document>(
+                id,
+                new PartitionKey(partitionKey)
+            );
+
+            return true;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return false;
+        }
+    }
+
     public async Task<Approval?> CreateApprovalAsync(Approval approval)
     {
         // Ensure IDs are set
@@ -2353,6 +2373,27 @@ public class CosmosDbThreadRepository : IThreadRepository
             return new List<Approval>();
         }
     }
+
+    public async Task<bool> DeleteApprovalAsync(Guid threadId, Guid approvalId)
+    {
+        try
+        {
+            string id = approvalId.ToString();
+            string partitionKey = threadId.ToString();
+
+            await _client.GetContainer<ApprovalDocument>(_databaseName).DeleteItemAsync<ApprovalDocument>(
+                id,
+                new PartitionKey(partitionKey)
+            );
+
+            return true;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return false;
+        }
+    }
+
     #endregion
 
     #region GitHubAccessToken Operations
@@ -2688,7 +2729,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
         var executionDoc = CliExecutionDocument.FromDomainModel(execution, threadIdStr);
         await _client.GetContainer<CliExecutionDocument>(_databaseName).UpsertItemAsync(executionDoc, new PartitionKey(executionDoc.PartitionKey));
-    
+
         return execution;
     }
 
@@ -2793,7 +2834,7 @@ public class CosmosDbThreadRepository : IThreadRepository
                             messageDoc.Posted,
                             messageDoc.Approval,
                             null, // AzCliExecution
-                            null, // KubectlExecution  
+                            null, // KubectlExecution
                             executionDoc.ToPsqlDomainModel(), // Use the PsqlExecution
                             messageDoc.IncidentDiscussionId,
                             messageDoc.IsDailyReport
@@ -3024,6 +3065,114 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
         return false;
     }
+
+    #region Bulk Deletion Methods for Thread Cleanup
+
+    public async Task<bool> DeleteAllCliExecutionsAsync(Guid threadId)
+    {
+        try
+        {
+            string threadIdStr = threadId.ToString();
+            var container = _client.GetContainer<CliExecutionDocument>(_databaseName);
+
+            var query = container.GetItemLinqQueryable<CliExecutionDocument>()
+                .Where(d => d.DocumentType == "CliExecution" && d.ThreadId == threadIdStr);
+
+            using var iterator = query.ToFeedIterator();
+
+            while (iterator.HasMoreResults)
+            {
+                foreach (var execution in await iterator.ReadNextAsync())
+                {
+                    await container.DeleteItemAsync<CliExecutionDocument>(
+                        execution.Id,
+                        new PartitionKey(execution.PartitionKey)
+                    );
+                }
+            }
+
+            return true;
+        }
+        catch (CosmosException ex)
+        {
+            _logger.LogInternalError(ex, "Failed to delete CLI executions for thread {ThreadId}", threadId);
+            return false;
+        }
+    }
+
+    public async Task<bool> DeleteAllKubectlExecutionsAsync(Guid threadId)
+    {
+        try
+        {
+            string threadIdStr = threadId.ToString();
+            var container = _client.GetContainer<KubectlExecutionDocument>(_databaseName);
+
+            var query = container.GetItemLinqQueryable<KubectlExecutionDocument>()
+                .Where(d => d.DocumentType == "KubectlExecution" && d.ThreadId == threadIdStr);
+
+            using var iterator = query.ToFeedIterator();
+
+            while (iterator.HasMoreResults)
+            {
+                foreach (var execution in await iterator.ReadNextAsync())
+                {
+                    await container.DeleteItemAsync<KubectlExecutionDocument>(
+                        execution.Id,
+                        new PartitionKey(execution.PartitionKey)
+                    );
+                }
+            }
+
+            return true;
+        }
+        catch (CosmosException ex)
+        {
+            _logger.LogInternalError(ex, "Failed to delete Kubectl executions for thread {ThreadId}", threadId);
+            return false;
+        }
+    }
+
+    public async Task<bool> DeleteAllPsqlExecutionsAsync(Guid threadId)
+    {
+        // PSQL executions are stored in the same CliExecutionDocument as AzCli executions
+        // Since there's no way to distinguish them, we'll handle both in DeleteAllCliExecutionsAsync
+        // This method is kept for interface compatibility but delegates to CLI deletion
+        return await DeleteAllCliExecutionsAsync(threadId);
+    }
+
+    public async Task<bool> DeleteAllScheduledTasksAsync(Guid threadId)
+    {
+        try
+        {
+            string threadIdStr = threadId.ToString();
+            var container = _client.GetContainer<ScheduledTaskDocument>(_databaseName);
+
+            var query = container.GetItemLinqQueryable<ScheduledTaskDocument>()
+                .Where(d => d.DocumentType == "ScheduledTask" && d.ThreadId == threadIdStr);
+
+            using var iterator = query.ToFeedIterator();
+
+            while (iterator.HasMoreResults)
+            {
+                foreach (var task in await iterator.ReadNextAsync())
+                {
+                    await container.DeleteItemAsync<ScheduledTaskDocument>(
+                        task.Id,
+                        new PartitionKey(task.PartitionKey)
+                    );
+                }
+            }
+
+            return true;
+        }
+        catch (CosmosException ex)
+        {
+            _logger.LogInternalError(ex, "Failed to delete scheduled tasks for thread {ThreadId}", threadId);
+            return false;
+        }
+    }
+
+    #endregion
 
     #endregion
 }

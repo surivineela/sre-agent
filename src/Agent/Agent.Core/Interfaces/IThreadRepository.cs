@@ -86,11 +86,13 @@ public interface IThreadRepository
     Task<Approval?> GetApprovalAsync(Guid threadId, Guid approvalId);
     Task<Approval?> GetApprovalAsync(Guid threadId, string title);
     Task<Approval?> UpdateApprovalAsync(Approval approval);
+    Task<bool> DeleteApprovalAsync(Guid threadId, Guid approvalId);
 
     Task<ApprovalV2?> GetApprovalV2Async(Guid approvalIdV2, Guid agentContextId);
     Task<IEnumerable<ApprovalV2>> GetAllApprovalV2sAsync();
     Task<ApprovalV2?> CreateApprovalV2Async(ApprovalV2 approvalV2);
     Task<ApprovalV2?> UpdateApprovalV2Async(ApprovalV2 approvalV2);
+    Task<bool> DeleteApprovalV2Async(Guid approvalIdV2, Guid agentContextId);
 
     Task<GitHubAccessToken?> GetGitHubAccessTokenAsync();
     Task<GitHubAccessToken?> CreateOrUpdateGitHubAccessTokenAsync(GitHubAccessToken gitHubAccessToken);
@@ -126,4 +128,10 @@ public interface IThreadRepository
 
     // agent tasks
     Task<bool> UpdateTaskOnThreadAsync(Guid threadId, AgentTaskShort task);
+
+    // Bulk deletion methods for thread cleanup
+    Task<bool> DeleteAllCliExecutionsAsync(Guid threadId);
+    Task<bool> DeleteAllKubectlExecutionsAsync(Guid threadId);
+    Task<bool> DeleteAllPsqlExecutionsAsync(Guid threadId);
+    Task<bool> DeleteAllScheduledTasksAsync(Guid threadId);
 }

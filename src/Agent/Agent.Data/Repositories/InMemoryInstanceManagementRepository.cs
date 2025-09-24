@@ -165,4 +165,11 @@ public class InMemoryInstanceManagementRepository(
 
         return Task.FromResult(assignments);
     }
+
+    public Task<bool> DeleteAllAssignmentsForThreadAsync(Guid threadId)
+    {
+        // For in-memory implementation, we can't easily filter by ThreadId since assignments don't store ThreadId
+        // This is a stub implementation for testing
+        return Task.FromResult(true);
+    }
 }
