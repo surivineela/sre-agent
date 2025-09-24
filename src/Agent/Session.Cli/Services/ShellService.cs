@@ -55,7 +55,7 @@ public class ShellService : IShellService
         try
         {
             _logger.LogInformation($"Start to run az login. MSI endpoint: {_msiEndpoint}");
-            var pCmd = new ExternalProcessCommand(_logger, "/bin/bash", ["-c", "\"az login -i\""], timeout: TimeSpan.FromSeconds(10), envs: commonEnvs);
+            var pCmd = new ExternalProcessCommand(_logger, "az", ["login", "-i"], timeout: TimeSpan.FromSeconds(10), envs: commonEnvs);
             var (exitCode, stdout, stderr) = await pCmd.ExecuteAsync(cancellationToken);
             if (exitCode != 0)
             {
