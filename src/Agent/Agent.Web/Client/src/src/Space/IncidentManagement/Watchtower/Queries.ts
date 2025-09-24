@@ -112,9 +112,10 @@ export const getIncidentRootCauseOverviewQuery = (handlerId: string, timeRange: 
     let handlerId = '${handlerId}';
     customEvents
     | where name == 'IncidentActivitySnapshot'
-    | extend IncidentHandledOn = todatetime(iif(isnull(customDimensions.IncidentHandledOn), customDimensions.IncidentHandledAt, customDimensions.IncidentHandledOn)), IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), RootCause= tostring(customDimensions.IncidentRootCauseCategory), Summary = tostring(customDimensions.IncidentSummary), UpdatedOn = todatetime(customDimensions.IncidentUpdatedOn)
-    | project IncidentId, IncidentHandledOn, HandlerId, RootCause, Summary, UpdatedOn
+    | extend IncidentHandledOn = todatetime(iif(isnull(customDimensions.IncidentHandledOn), customDimensions.IncidentHandledAt, customDimensions.IncidentHandledOn)), IncidentId = tostring(customDimensions.IncidentId), HandlerId = tostring(customDimensions.ResponsePlanId), RootCause= tostring(customDimensions.IncidentRootCauseCategory), Summary = tostring(customDimensions.IncidentSummary), UpdatedOn = todatetime(customDimensions.IncidentUpdatedOn), Status = tostring(customDimensions.IncidentStatus)
+    | project IncidentId, IncidentHandledOn, HandlerId, RootCause, Summary, UpdatedOn, Status
     | where IncidentHandledOn ${kustoTimespan}
+    | where tolower(Status) != 'active'
     | where HandlerId == handlerId
     | summarize arg_max(UpdatedOn, IncidentHandledOn, HandlerId, RootCause, Summary) by IncidentId
     | summarize dcount(IncidentId) by RootCause
