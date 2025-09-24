@@ -37,8 +37,6 @@ tools:
   - RestartContainerApp
   - GetContainerAppRequestMetrics
   - GetContainerAppMemoryMetrics
-  - IsContainerAppDotnet
-  - GetContainerMemoryAnalysisForDotnet
   - GetContainerAppCpuMetrics
   - RemoveNSGRule
   - ScaleContainerApp

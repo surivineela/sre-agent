@@ -502,8 +502,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         if (string.IsNullOrEmpty(folderPath) || !Directory.Exists(folderPath))
         {
             _logger.LogError("Folder path {folderPath} is invalid or does not exist.", folderPath);
-            throw new DirectoryNotFoundException($"Folder path {folderPath} does not exist.");
-        }
+            throw new DirectoryNotFoundException($"Folder path {folderPath} does not exist."); }
 
         var searchOption = recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
         var yamlFiles = Directory.GetFiles(folderPath, "*.yaml", searchOption)

@@ -2131,38 +2131,6 @@ namespace Agent.Plugins.Implementation
             }
         }
 
-        public async Task<string> GetContainerMemoryAnalysisForDotnet(string resourceId)
-        {
-            _logger.LogInternalInformation($"[GetContainerMemoryAnalysisForDotnet] Getting memory analysis for {resourceId}");
-            try
-            {
-                string commands = " apt-get update; apt-get install -y curl; curl https://dotnetanalysis.blob.core.windows.net/acascripts/dotnet-dump-analyze.sh -o /tmp/dotnet-dump-analyze.sh; chmod +x /tmp/dotnet-dump-analyze.sh; sh /tmp/dotnet-dump-analyze.sh";
-                return await InvokeExecCommand(resourceId, commands);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogInternalError($"[GetContainerMemoryAnalysisForDotnet] Error executing command: {ex.Message} for {resourceId}");
-                throw;
-            }
-        }
-
-        public async Task<bool> IsDotnetBased(string resourceId)
-        {
-            _logger.LogInternalInformation($"[IsDotnetBased] Checking if .NET Based {resourceId}");
-            try
-            {
-                string commands = " apt-get update; apt-get install -y curl; curl https://dotnetanalysis.blob.core.windows.net/acascripts/dotnet-detect.sh -o /tmp/dotnet-detect.sh; chmod +x /tmp/dotnet-detect.sh; sh /tmp/dotnet-detect.sh";
-                var result = await InvokeExecCommand(resourceId, commands);
-                return result.Any();
-            }
-
-            catch (Exception ex)
-            {
-                _logger.LogInternalError($"[IsDotnetBased] Error executing command: {ex.Message} for {resourceId}");
-                throw;
-            }
-        }
-
         private async Task<bool> ContainsErrorsInLogs(string logs)
         {
             if (string.IsNullOrEmpty(logs))

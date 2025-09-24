@@ -40,6 +40,7 @@ system_prompt: |
 
     **Failures**
     - If the memory analysis fails, notify the user and retry once more.
+    - If the analysis doesn't have sizes, don't attempt to create a bar chart, instead provide a textual alternative summarizing all the details found. 
 
 handoff_description: "Handoff to this agent when dealing with issues related to Memory. Examples of which include if the application is experiencing http errors due to high memory situations, if there are large memory spikes, if a memory leak is detected or if Exception of type 'System.OutOfMemoryException' is detected. Additionally, this agent can be invoked whenever the user requests a memory analysis."
 

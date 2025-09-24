@@ -56,6 +56,34 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
 
+    <None Update="AgentsV2\DiagnosticsAgents\DiagnosticBinariesAndScripts\dotnet-cpu-analyzer-aca.sh">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+
+    <None Update="AgentsV2\DiagnosticsAgents\DiagnosticBinariesAndScripts\dotnet-cpu.sh">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+
+    <None Update="AgentsV2\DiagnosticsAgents\DiagnosticBinariesAndScripts\dotnet-detect.sh">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+
+    <None Update="AgentsV2\DiagnosticsAgents\DiagnosticBinariesAndScripts\dotnet-memory-analyzer-aca.sh">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+
+    <None Update="AgentsV2\DiagnosticsAgents\DiagnosticBinariesAndScripts\DotnetAnalyzer_lin64">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+
+    <None Update="AgentsV2\DiagnosticsAgents\DiagnosticBinariesAndScripts\DotnetAnalyzer_win32.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+
+    <None Update="AgentsV2\DiagnosticsAgents\DiagnosticBinariesAndScripts\DotnetAnalyzer_win64.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+
     <None Update="SubAgents\ContainerAppsAgent\dotnet-detect.sh">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

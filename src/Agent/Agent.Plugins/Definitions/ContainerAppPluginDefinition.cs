@@ -118,29 +118,6 @@ namespace Agent.Plugins.Definitions
             return await _containerAppPlugin.GetContainerAppMemoryMetrics(resourceId);
         }
 
-        [KernelFunction("check_if_containerapp_is_dotnet")]
-        [AgentTool(ToolMode.Auto)]
-        [Description(
-            "Start a background operation to check if the container app is dotnet based.")]
-        public async Task<bool> IsContainerAppDotnet(
-            [Description("The resource ID of the ContainerApp resource.")]
-            string resourceId)
-        {
-            return await _containerAppPlugin.IsDotnetBased(resourceId);
-        }
-
-        [KernelFunction("get_containerapp_memory_analysis_dotnet")]
-        [AgentTool(ToolMode.Auto)]
-        [Description(
-            "Start a background operation to get an in-depth memory analysis for .NET Apps of the App instance." +
-            " This remediation measure is in the case of high memory load or if the user requests it. This should be executed if there are memory related issues without asking the user.")]
-        public async Task<string> GetContainerMemoryAnalysisForDotnet(
-            [Description("The resource ID of the ContainerApp resource.")]
-            string resourceId)
-        {
-            return await _containerAppPlugin.GetContainerMemoryAnalysisForDotnet(resourceId);
-        }
-
         [KernelFunction("get_containerapp_cpu_metrics")]
         [AgentTool(ToolMode.Auto)]
         [Description(

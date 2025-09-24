@@ -44,8 +44,6 @@ namespace Agent.Plugins.Interface
 
         Task<RollbackResult> RollbackToLastKnownWorkingRevision(string resourceId);
 
-        Task<string> GetContainerMemoryAnalysisForDotnet(string resourceId);
-        Task<bool> IsDotnetBased(string resourceId);
         // Task<string> RollbackToLastRevision(string resourceId);
         Task<ImageUpdateResult> UpdateContainerImage(string resourceId, string newImageReference);
 

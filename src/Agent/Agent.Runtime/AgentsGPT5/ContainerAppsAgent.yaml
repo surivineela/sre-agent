@@ -79,8 +79,6 @@ tools:
   - ListRevisions
   - GetContainerAppRequestMetrics
   - GetContainerAppMemoryMetrics
-  - IsContainerAppDotnet
-  - GetContainerMemoryAnalysisForDotnet
   - GetContainerAppCpuMetrics
   - GetRevisionLogs
   - GetContainerAppLogs
