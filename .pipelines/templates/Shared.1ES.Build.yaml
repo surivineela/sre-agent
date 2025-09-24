@@ -421,14 +421,14 @@ extends:
             inputs:
               context: $(Build.SourcesDirectory)/dst/drop_build_main/Session.Cli
               dockerFile: $(Build.SourcesDirectory)/src/Deployment/Session.Cli/Dockerfile
-              image: sre-agent-session-cli:$(Build.BuildNumber)
+              image: session-cli:$(Build.BuildNumber)
               enableNetwork: true
           
           templateContext:
             outputs:
             - output: containerImage
-              image: sre-agent-session-cli:$(Build.BuildNumber)
+              image: session-cli:$(Build.BuildNumber)
               remoteImage:
-              - sreagentdev.azurecr.io/sre-agent-session-cli:$(Build.BuildNumber)
-              - sreagentprod.azurecr.io/sre-agent-session-cli:$(Build.BuildNumber)
-              - k8seprod.azurecr.io/public/k8se/sre-agent-session-cli:$(Build.BuildNumber)
+              - sreagentdev.azurecr.io/session-cli:$(Build.BuildNumber)
+              - sreagentprod.azurecr.io/session-cli:$(Build.BuildNumber)
+              - k8seprod.azurecr.io/public/k8se/sreagent/session-cli:$(Build.BuildNumber)
