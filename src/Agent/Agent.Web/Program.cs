@@ -436,6 +436,7 @@ public class Program
             .AddTransient<ServiceNowPluginDefinition>()
             .AddTransient<ScheduledTaskPluginDefinition>()
             .AddTransient<KustoPlugin>()
+            .AddSingleton<IKustoPlugin, KustoPlugin>()
             .AddSingleton<DynamicKqlToolsPlugin>()
             .AddTransient<KustoToolType>()
             .AddTransient<LinkToolType>()
@@ -633,22 +634,13 @@ public class Program
             // Register ACA First Party tools
             builder.Services
                 .AddTransient<RCAContainerAppIcMPluginDefinition>()
-                .AddTransient<RCAContainerAppQuotaPluginDefinition>()
-                .AddSingleton<IKustoDashboardPlugin, KustoDashboardPlugin>();
-
-            builder.Services.AddSingleton<IAgentsFactory, FirstPartyAgentsFactory>();
-            builder.Services.AddSingleton<IToolsRepository, FirstPartyToolsRepository>();
-            builder.Services.AddSingleton<ITitleGenerationService, FirstPartyTitleGenerationService>();
-            builder.RegisterFirstPartySubAgentsDependencies();
-            builder.RegisterAcaFirstPartyAppSettings();
-        }
-        else
-        {
-            builder.Services.AddSingleton<IAgentsFactory, ThirdPartyAgentsFactory>();
-            builder.Services.AddSingleton<IToolsRepository, ToolsRepository>();
-            builder.Services.AddSingleton<ITitleGenerationService, TitleGenerationService>();
+                .AddTransient<RCAContainerAppQuotaPluginDefinition>();
+                
         }
 
+        builder.Services.AddSingleton<IAgentsFactory, ThirdPartyAgentsFactory>();
+        builder.Services.AddSingleton<ITitleGenerationService, TitleGenerationService>();
+        builder.Services.AddSingleton<IToolsRepository, ToolsRepository>();
         builder.ValidateAndRegisterAcaFirstPartyTypes();
         builder.RegisterFunctionsFirstPartyTypes();
         builder.Services.AddTransient<IExtendedAgentService, ExtendedAgentService>();

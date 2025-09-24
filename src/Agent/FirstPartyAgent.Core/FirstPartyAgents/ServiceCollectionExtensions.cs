@@ -94,8 +94,6 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IHelloWorldPlugin, HelloWorldPlugin>();
         services.AddSingleton<HelloWorldPluginDefinition>();
         services.AddSingleton<IAzureSearchClient, AzureSearchClient>();
-
-        services.AddSingleton<IIcmPlugin, IcmPlugin>();
     }
 
     private static void RegisterFirstPartySubAgentPluginImplementationDependencies(this IServiceCollection services)

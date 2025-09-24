@@ -1,17 +1,12 @@
 using System.ComponentModel;
 using System.Globalization;
 using Agent.Core;
-using Agent.Plugins;
-using Agent.Plugins.IcmPlugin;
 using Agent.Plugins.Interface;
 using FirstPartyAgent.Common.Configuration;
-using Kusto.Cloud.Platform.Utils;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using ReverseMarkdown.Converters;
-using ScottPlot.Palettes;
 
 namespace Agent.Plugins.Definitions
 {
