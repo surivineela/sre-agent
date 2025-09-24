@@ -65,6 +65,145 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
         return repoUrl;
     }
 
+    private async Task<string> CreateWorkItemInternal(string repositoryUrl, string accessToken, string title, string description, string[]? tags, string assignedTo = "", string areaPath = "", string iterationPath = "", string workItemType = "Task", string priority = "Medium", string severity = "None", string state = "New")
+    {
+        // Parse the repository URL
+        var (orgUrl, project, _) = ParseRepositoryUrl(repositoryUrl);
+
+        // Create a connection to Azure DevOps
+        using var connection = new VssConnection(
+            new Uri(orgUrl),
+            new VssBasicCredential(string.Empty, accessToken));
+
+        // Get a client for work item tracking
+        using var witClient = connection.GetClient<WorkItemTrackingHttpClient>();
+
+        // Create the patch document
+        var patchDocument = new JsonPatchDocument
+        {
+            new JsonPatchOperation()
+            {
+                Operation = Microsoft.VisualStudio.Services.WebApi.Patch.Operation.Add,
+                Path = "/fields/System.Title",
+                Value = title
+            },
+            new JsonPatchOperation()
+            {
+                Operation = Microsoft.VisualStudio.Services.WebApi.Patch.Operation.Add,
+                Path = "/fields/System.Description",
+                Value = description
+            },
+            new JsonPatchOperation()
+            {
+                Operation = Microsoft.VisualStudio.Services.WebApi.Patch.Operation.Add,
+                Path = "/fields/System.Tags",
+                Value = string.Join(";", tags ?? Array.Empty<string>())
+            }
+        };
+
+        // Add optional fields if provided
+        if (!string.IsNullOrEmpty(assignedTo))
+        {
+            patchDocument.Add(new JsonPatchOperation()
+            {
+                Operation = Microsoft.VisualStudio.Services.WebApi.Patch.Operation.Add,
+                Path = "/fields/System.AssignedTo",
+                Value = assignedTo
+            });
+        }
+
+        if (!string.IsNullOrEmpty(areaPath))
+        {
+            patchDocument.Add(new JsonPatchOperation()
+            {
+                Operation = Microsoft.VisualStudio.Services.WebApi.Patch.Operation.Add,
+                Path = "/fields/System.AreaPath", 
+                Value = areaPath
+            });
+        }
+
+        if (!string.IsNullOrEmpty(iterationPath))
+        {
+            patchDocument.Add(new JsonPatchOperation()
+            {
+                Operation = Microsoft.VisualStudio.Services.WebApi.Patch.Operation.Add,
+                Path = "/fields/System.IterationPath",
+                Value = iterationPath
+            });
+        }
+
+        if (!string.IsNullOrEmpty(priority) && priority != "Medium")
+        {
+            patchDocument.Add(new JsonPatchOperation()
+            {
+                Operation = Microsoft.VisualStudio.Services.WebApi.Patch.Operation.Add,
+                Path = "/fields/Microsoft.VSTS.Common.Priority",
+                Value = priority
+            });
+        }
+
+        if (!string.IsNullOrEmpty(severity) && severity != "None")
+        {
+            patchDocument.Add(new JsonPatchOperation()
+            {
+                Operation = Microsoft.VisualStudio.Services.WebApi.Patch.Operation.Add,
+                Path = "/fields/Microsoft.VSTS.Common.Severity",
+                Value = severity
+            });
+        }
+
+        if (!string.IsNullOrEmpty(state) && state != "New")
+        {
+            patchDocument.Add(new JsonPatchOperation()
+            {
+                Operation = Microsoft.VisualStudio.Services.WebApi.Patch.Operation.Add,
+                Path = "/fields/System.State",
+                Value = state
+            });
+        }
+
+        // Create the work item
+        var workItem = await witClient.CreateWorkItemAsync(patchDocument, project, workItemType);
+
+        // Extract the HTML URL (user-friendly work item link)
+        var htmlUrl = workItem.Links.Links["html"] as ReferenceLink;
+
+        _logger.LogInternalInformation($"Work item created successfully. ID: {workItem.Id}, URL: {htmlUrl?.Href}");
+        return htmlUrl?.Href ?? string.Empty;
+    }
+
+    public async Task<string> CreateWorkItemWithoutResourceLinkage(string repositoryUrl, string title, string description, string[]? tags, string assignedTo = "", string areaPath = "", string iterationPath = "", string workItemType = "Task", string priority = "Medium", string severity = "None", string state = "New")
+    {
+        try
+        {
+            // Validate the repository URL
+            if (string.IsNullOrEmpty(repositoryUrl))
+            {
+                throw new ArgumentException("Repository URL cannot be null or empty.", nameof(repositoryUrl));
+            }
+
+            var azdoRepoRegex = new Regex(GraphService.AzDoRepoRegexPattern, RegexOptions.Compiled);
+            var match = azdoRepoRegex.Match(repositoryUrl);
+            if (!match.Success)
+            {
+                throw new ArgumentException("Invalid Azure DevOps repository URL.", nameof(repositoryUrl));
+            }
+
+            _logger.LogInternalInformation($"Creating work item: '{title}' for repository: {repositoryUrl}");
+
+            // Get token for Azure DevOps authentication
+            var token = await GetToken();
+
+            // Create the work item using the shared internal method
+            return await CreateWorkItemInternal(repositoryUrl, token.AccessToken, title, description, tags, assignedTo, areaPath, iterationPath, workItemType, priority, severity, state);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Error creating work item without resource linkage: {ex.Message}");
+            throw;
+        }
+    }
+
     public async Task<string> CreateWorkItem(string resourceId, string title, string description, string[]? tags, string assignedTo = "", string areaPath = "", string iterationPath = "", string workItemType = "Task", string priority = "Medium", string severity = "None", string state = "New")
     {
         try
@@ -76,56 +215,20 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
                 throw new InvalidOperationException("Azure DevOps Personal Access Token is not configured. Please authenticate via Azure DevOps authentication flow.");
             }
 
-            _logger.LogInternalInformation($"Creating issue: '{title}'");
+            _logger.LogInternalInformation($"Creating work item: '{title}' for resource: {resourceId}");
             string repoUrl = await FindConnectedRepository(resourceId);
 
-            // Parse the repository URL
-            var (orgUrl, project, _) = ParseRepositoryUrl(repoUrl);
-
-            // Create a connection to Azure DevOps
-            var connection = new VssConnection(
-                new Uri(orgUrl),
-                new VssBasicCredential(string.Empty, token?.AccessToken));
-
-            // Get a client for work item tracking
-            var witClient = connection.GetClient<WorkItemTrackingHttpClient>();
-
-            // Update the code where the `Operation.Add` is used:
-            var patchDocument = new JsonPatchDocument
+            if (string.IsNullOrEmpty(repoUrl))
             {
-                new JsonPatchOperation()
-                {
-                    Operation = Microsoft.VisualStudio.Services.WebApi.Patch.Operation.Add, // Correct enum reference
-                    Path = "/fields/System.Title",
-                    Value = title
-                },
-                new JsonPatchOperation()
-                {
-                    Operation = Microsoft.VisualStudio.Services.WebApi.Patch.Operation.Add, // Correct enum reference
-                    Path = "/fields/System.Description",
-                    Value = description
-                },
-                new JsonPatchOperation()
-                {
-                    Operation = Microsoft.VisualStudio.Services.WebApi.Patch.Operation.Add, // Correct enum reference
-                    Path = "/fields/System.Tags",
-                    Value = string.Join(";", tags ?? Array.Empty<string>())
-                },
-            };
+                throw new InvalidOperationException($"No connected repository found for resource ID: {resourceId}");
+            }
 
-            // Create the issue
-            var workItem = await witClient.CreateWorkItemAsync(patchDocument, project, workItemType);
-
-            // Extract the HTML URL (user-friendly work item link)
-            var htmlUrl = workItem.Links.Links["html"] as ReferenceLink;
-
-            _logger.LogInternalInformation($"Issue created successfully. ID: {workItem.Id}, URL: {htmlUrl?.Href}");
-            return htmlUrl?.Href ?? string.Empty;
+            // Create the work item using the shared internal method
+            return await CreateWorkItemInternal(repoUrl, token!.AccessToken, title, description, tags, assignedTo, areaPath, iterationPath, workItemType, priority, severity, state);
         }
-
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, $"Error creating issue: {ex.Message}");
+            _logger.LogInternalError(ex, $"Error creating work item: {ex.Message}");
             throw;
         }
     }

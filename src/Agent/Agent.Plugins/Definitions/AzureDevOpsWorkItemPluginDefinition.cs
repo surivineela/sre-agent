@@ -24,6 +24,22 @@ public class AzureDevOpsWorkItemPluginDefinition
         return await _azureDevOpsWorkItemPlugin.CreateWorkItem(resourceId, title, description, tags: tags, workItemType: workItemType);
     }
 
+    [Description("Create a work item directly in an Azure DevOps (AzDo/TFS) repository without needing a linked Azure resource. Creates any work item type: tasks, user stories, bugs, features, epics, test cases, issues, tickets, cards. Works directly with repository URLs. Use when you have a specific Azure DevOps repository URL and want to create work items without resource linkage. Handles requests like 'create a task in this specific Azure DevOps repo', 'add a bug to this AzDo repository', 'file an issue in this project', etc.")]
+    public async Task<string> CreateAzureDevOpsWorkItemWithoutResourceLinkage([Description("The Azure DevOps repository URL (e.g., https://dev.azure.com/org/project/_git/repo)")] string repositoryUrl,
+                                                                              [Description("Title of the WorkItem")] string title,
+                                                                              [Description("Type of Work Item: Task, Bugs, Epic, Feature - default to Task if an invalid type is given.")] string workItemType,
+                                                                              [Description("Description to be filled in the body of the work item as well formatted markdown.")] string description,
+                                                                              [Description("An array of tags to be used in the work item based on the description.")] string[] tags,
+                                                                              [Description("User to assign the work item to (optional)")] string assignedTo = "",
+                                                                              [Description("Area path for the work item (optional)")] string areaPath = "",
+                                                                              [Description("Iteration path for the work item (optional)")] string iterationPath = "",
+                                                                              [Description("Priority of the work item (Low, Medium, High, Critical) - default: Medium")] string priority = "Medium",
+                                                                              [Description("Severity of the work item (None, Low, Medium, High, Critical) - default: None")] string severity = "None",
+                                                                              [Description("State of the work item (New, Active, Resolved, Closed) - default: New")] string state = "New")
+    {
+        return await _azureDevOpsWorkItemPlugin.CreateWorkItemWithoutResourceLinkage(repositoryUrl, title, description, tags, assignedTo, areaPath, iterationPath, workItemType, priority, severity, state);
+    }
+
     [Description("Finds the connected or linked Azure DevOps (AzDo/TFS) repository for a given Azure Resource ID. Locates associated repos, git repositories, source code repositories, or code bases linked to Azure resources. Works with any Azure resource type (App Service, Function App, Container Instance, AKS, etc.). Use for requests to find, locate, discover, identify, or get the repository, repo, source code, git repo, or code base connected to Azure resources. Handles variations like 'what repo is linked to this resource', 'find the source code', 'get the repository', 'where is the code', etc.")]
     public async Task<string> FindConnectedRepositoryForAzureDevOps([Description("The resource ID of the Azure Resource for example: /subscriptions/be8d491e-109c-4ee1-aaee-dc7615af0a42/resourceGroups/mrsharm-operations-agent-3p-rg/providers/Microsoft.App/containerApps/memory-leak-app/containerapp")] string resourceId)
     {

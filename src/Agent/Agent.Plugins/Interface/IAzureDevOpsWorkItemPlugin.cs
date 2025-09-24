@@ -5,6 +5,7 @@ namespace Agent.Plugins.Interface;
 public interface IAzureDevOpsWorkItemPlugin
 {
     Task<string> CreateWorkItem(string resourceId, string title, string description, string[]? tags = null, string assignedTo = "", string areaPath = "", string iterationPath = "", string workItemType = "Task", string priority = "Medium", string severity = "None", string state = "New");
+    Task<string> CreateWorkItemWithoutResourceLinkage(string repositoryUrl, string title, string description, string[]? tags = null, string assignedTo = "", string areaPath = "", string iterationPath = "", string workItemType = "Task", string priority = "Medium", string severity = "None", string state = "New");
     Task<string> GetIaCForAzureDevOps(string resourceId, string branch, string fileMatches);
     Task<string> FindConnectedRepository(string resourceId);
     Task<string> ConnectRepository(string resourceId, string repositoryUrl);

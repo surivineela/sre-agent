@@ -47,6 +47,7 @@ handoff_description:
 
 tools:
 - CreateAzureDevOpsWorkItem 
+- CreateAzureDevOpsWorkItemWithoutResourceLinkage
 - GetIaCForAzureDevOps
 - FindConnectedRepositoryForAzureDevOps
 - ConnectRepositoryToResourceForAzureDevOps
