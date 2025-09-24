@@ -306,4 +306,92 @@ public class ExtendedAgentService : IExtendedAgentService
             return;
         }
     }
+
+    /// <summary>
+    /// Validates YAML structure to catch common indentation mistakes
+    /// </summary>
+    public List<string> ValidateYamlStructure(Dictionary<string, object> rootDocument)
+    {
+        var errors = new List<string>();
+
+        // Extract spec section
+        if (!rootDocument.TryGetValue("spec", out var specObj))
+        {
+            // If no spec section, return early - this will be caught by other validation
+            return errors;
+        }
+
+        Dictionary<string, object> spec;
+        if (specObj is Dictionary<string, object> stringSpec)
+        {
+            spec = stringSpec;
+        }
+        else if (specObj is Dictionary<object, object> objectSpec)
+        {
+            spec = objectSpec.ToDictionary(
+                kvp => kvp.Key.ToString()!,
+                kvp => kvp.Value
+            );
+        }
+        else
+        {
+            return errors;
+        }
+
+        // Define agent properties that should be under 'spec', not at root level
+        var agentProperties = new HashSet<string>
+        {
+            "name", "system_prompt", "tools", "handoffs", "mcp_tools",
+            "temperature", "max_reflection_count", "handoff_description", "common_prompts",
+            "common_tools", "allow_parallel_tool_calls", "agents_as_tools", "custom_reflection_note",
+            "critic_prompt_path", "critic_on_handoff", "disable_document_retrieval",
+            "instructions_override", "enable_handoff_prompt_override", "handoff_prompt_override",
+            "user_prompt_override", "llm_model_name", "disable_common_prompts", "agent_type",
+            "parameter_extraction_agent", "orchestration_start_agents", "result_summarization_prompt",
+            "next_agent_mappings", "output_type"
+        };
+
+        // Check for agent properties at root level (common indentation mistake)
+        foreach (var property in agentProperties)
+        {
+            if (rootDocument.ContainsKey(property))
+            {
+                errors.Add($"Property '{property}' should be under 'spec' section, not at root level. Check indentation.");
+            }
+        }
+
+        // Check if spec section is missing required properties
+        if (!spec.ContainsKey("name"))
+        {
+            errors.Add("Required property 'name' is missing from 'spec' section");
+        }
+
+        // Check for required system_prompt property
+        if (!spec.ContainsKey("system_prompt"))
+        {
+            // Check if it's at root level due to indentation error
+            if (rootDocument.ContainsKey("system_prompt"))
+            {
+                errors.Add("Property 'system_prompt' found at root level - should be under 'spec' section. Check indentation.");
+            }
+            else
+            {
+                errors.Add("Required property 'system_prompt' is missing from 'spec' section");
+            }
+        }
+
+        // Check for invalid 'instructions' property usage
+        if (spec.ContainsKey("instructions"))
+        {
+            errors.Add("Use 'system_prompt' instead of 'instructions' in the 'spec' section");
+        }
+
+        // Validate that spec has some content
+        if (spec.Count == 0)
+        {
+            errors.Add("'spec' section is empty - agent properties should be defined here");
+        }
+
+        return errors;
+    }
 }

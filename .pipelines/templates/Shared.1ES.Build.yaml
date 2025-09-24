@@ -351,6 +351,28 @@ extends:
             publishTestResults: false
 
         #
+        # Run Agent.Cli.UnitTests
+        #
+        - task: DotNetCoreCLI@2
+          displayName: '🧪 Run Agent.Cli.UnitTests'
+          inputs:
+            command: 'test'
+            projects: 'src/Agent/Agent.Cli.UnitTests/Validations/'
+            arguments: '--no-build --output $(BuildSolutionOutputPath) -c $(BuildConfiguration) --blame --logger trx --collect "Code coverage" --results-directory $(Build.SourcesDirectory)\ValidationTestResults\'
+            publishTestResults: false
+
+        #
+        # Publish Agent.Cli.UnitTests results
+        #
+        - task: PublishTestResults@2
+          displayName: '📢 Publish Agent.Cli.UnitTests results'
+          inputs:
+            testResultsFormat: VSTest
+            testResultsFiles: '$(Build.SourcesDirectory)\ValidationTestResults\*.trx'
+            failTaskOnFailedTests: true
+            testRunTitle: 'ValidationTests'
+
+        #
         # Publish Integration Test results
         #
         - task: PublishTestResults@2

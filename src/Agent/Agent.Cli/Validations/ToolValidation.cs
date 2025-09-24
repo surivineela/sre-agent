@@ -31,38 +31,39 @@ namespace Agent.Cli.Validations
         public static bool ValidateToolYaml(string yamlContent, out List<string> errors)
         {
             errors = new List<string>();
-            
+
             try
             {
                 var deserializer = new DeserializerBuilder().Build();
                 var toolData = deserializer.Deserialize<Dictionary<string, object>>(yamlContent);
-                
+
                 if (toolData == null)
                 {
                     errors.Add("Invalid YAML format");
                     return false;
                 }
 
-                // Get tool type for specific validation
-                if (!toolData.TryGetValue("type", out var typeObj) || typeObj?.ToString() is not string toolType)
-                {
-                    errors.Add("Tool type is required");
-                    return false;
-                }
+                // Required fields validation
+                if (!ValidateRequiredField(toolData, "name", errors)) return false;
+                if (!ValidateRequiredField(toolData, "type", errors)) return false;
+                if (!ValidateRequiredField(toolData, "description", errors)) return false;
 
-                // Type-specific validation using proper C# classes
-                switch (toolType.ToLowerInvariant())
+                var toolType = toolData["type"].ToString()!.ToLowerInvariant();
+
+                // Type-specific validation
+                switch (toolType)
                 {
                     case "kustotool":
-                        return ValidateKustoTool(yamlContent, errors);
-                    // Add other tool type validations as needed
+                        return ValidateKustoTool(toolData, yamlContent, errors);
                     default:
-                        // Generic validation for unknown types - just ensure basic structure
-                        if (!toolData.ContainsKey("name"))
-                            errors.Add("Tool name is required");
-                        if (!toolData.ContainsKey("description"))
-                            errors.Add("Tool description is required");
+                        // Generic validation for unknown types
                         break;
+                }
+
+                // Validate parameters if present
+                if (toolData.TryGetValue("parameters", out var parametersObj))
+                {
+                    ValidateParameters(parametersObj, errors);
                 }
 
                 return errors.Count == 0;
@@ -74,41 +75,114 @@ namespace Agent.Cli.Validations
             }
         }
 
-        private static bool ValidateKustoTool(string yamlContent, List<string> errors)
+        /// <summary>
+        /// Validates required field presence and non-empty value
+        /// </summary>
+        private static bool ValidateRequiredField(Dictionary<string, object> data, string fieldName, List<string> errors)
         {
+            if (!data.TryGetValue(fieldName, out var value) ||
+                value == null ||
+                string.IsNullOrWhiteSpace(value.ToString()))
+            {
+                errors.Add($"Field '{fieldName}' is required and cannot be empty");
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Enhanced KustoTool validation with required field checking
+        /// </summary>
+        private static bool ValidateKustoTool(Dictionary<string, object> toolData, string yamlContent, List<string> errors)
+        {
+            // Required fields for KustoTool
+            if (!ValidateRequiredField(toolData, "connector", errors)) return false;
+            if (!ValidateRequiredField(toolData, "database", errors)) return false;
+            if (!ValidateRequiredField(toolData, "query", errors)) return false;
+
+            // Validate mode if present
+            if (toolData.TryGetValue("mode", out var modeObj))
+            {
+                var mode = modeObj.ToString()!.ToLowerInvariant();
+                if (mode != "query" && mode != "command")
+                {
+                    errors.Add("Mode must be either 'query' or 'command'");
+                    return false;
+                }
+            }
+
+            // Use existing KustoToolDefinition validation
             try
             {
                 var deserializer = new DeserializerBuilder().Build();
                 var kustoTool = deserializer.Deserialize<KustoToolDefinition>(yamlContent);
-                
-                if (kustoTool == null)
-                {
-                    errors.Add("Failed to parse KustoTool YAML");
-                    return false;
-                }
-
-                // Use the built-in validation from the KustoToolDefinition class
-                kustoTool.Validate();
-                
+                kustoTool?.Validate();
                 return true;
             }
             catch (ArgumentException ex)
             {
-                // Validation errors from KustoToolDefinition.Validate()
                 errors.Add(ex.Message);
                 return false;
             }
             catch (InvalidOperationException ex)
             {
-                // Invalid mode or other operational errors
                 errors.Add(ex.Message);
                 return false;
             }
             catch (Exception ex)
             {
-                // YAML deserialization errors
                 errors.Add($"KustoTool validation error: {ex.Message}");
                 return false;
+            }
+        }
+
+
+        /// <summary>
+        /// Validates tool parameters structure and content
+        /// </summary>
+        private static void ValidateParameters(object parametersObj, List<string> errors)
+        {
+            if (parametersObj is not IEnumerable<object> parameters) return;
+
+            foreach (var paramObj in parameters)
+            {
+                if (paramObj is not Dictionary<string, object> param) continue;
+
+                // Required parameter fields
+                if (!ValidateRequiredField(param, "name", errors)) continue;
+                if (!ValidateRequiredField(param, "type", errors)) continue;
+                if (!ValidateRequiredField(param, "description", errors)) continue;
+
+                // Validate type field
+                if (param.TryGetValue("type", out var typeObj))
+                {
+                    var type = typeObj.ToString()!.ToLowerInvariant();
+                    var validTypes = new[] { "string", "int", "bool", "float", "double" };
+                    if (!validTypes.Contains(type))
+                    {
+                        errors.Add($"Parameter type '{type}' is not valid. Must be one of: {string.Join(", ", validTypes)}");
+                    }
+                }
+
+                // Validate map_to field if present
+                if (param.TryGetValue("map_to", out var mapToObj))
+                {
+                    var mapTo = mapToObj.ToString()!.ToLowerInvariant();
+                    var validMapTo = new[] { "args", "context", "body" };
+                    if (!validMapTo.Contains(mapTo))
+                    {
+                        errors.Add($"Parameter map_to '{mapTo}' is not valid. Must be one of: {string.Join(", ", validMapTo)}");
+                    }
+                }
+
+                // Validate required field if present
+                if (param.TryGetValue("required", out var requiredObj))
+                {
+                    if (requiredObj is not bool)
+                    {
+                        errors.Add("Parameter 'required' field must be a boolean value");
+                    }
+                }
             }
         }
     }

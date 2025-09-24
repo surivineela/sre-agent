@@ -1,0 +1,555 @@
+using Agent.Cli.Validations;
+using Agent.Framework;
+using Agent.Framework.Models;
+using Xunit;
+
+namespace Agent.Cli.UnitTests.Validations;
+
+public class AgentDescriptorValidationTests
+{
+    #region Basic Validation Tests
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithNullDescriptor_ShouldAddError()
+    {
+        // Arrange
+        IAgentDescriptor? agentDescriptor = null;
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Single(errors);
+        Assert.Contains("Agent descriptor is null", errors[0]);
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithEmptyName_ShouldAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.Name = "";
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Contains(errors, e => e.Contains("does not have a name"));
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithEmptyInstructions_ShouldAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.Instructions = "";
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Contains(errors, e => e.Contains("does not have instructions"));
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithInstructionsTooShort_ShouldAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.Instructions = "Short instruction"; // Less than 50 characters
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Contains(errors, e => e.Contains("System prompt must be longer than 50 characters"));
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithInstructionsTooLong_ShouldAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.Instructions = new string('x', 60001); // More than 60000 characters
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Contains(errors, e => e.Contains("System prompt must be under 60000 characters"));
+    }
+
+    #endregion
+
+    #region Temperature Validation Tests
+
+    [Theory]
+    [InlineData(-0.1)]
+    [InlineData(2.1)]
+    [InlineData(-1)]
+    [InlineData(3)]
+    public void ValidateAgentDescriptor_WithInvalidTemperature_ShouldAddError(float temperature)
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.Temperature = temperature;
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Contains(errors, e => e.Contains("Temperature must be between 0 and 2"));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(0.5)]
+    [InlineData(1.5)]
+    public void ValidateAgentDescriptor_WithValidTemperature_ShouldNotAddError(float temperature)
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.Temperature = temperature;
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.DoesNotContain(errors, e => e.Contains("Temperature must be between 0 and 2"));
+    }
+
+    #endregion
+
+    #region Tools Validation Tests
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithEmptyToolName_ShouldAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.Tools = new List<string> { "validTool", "", "anotherValidTool" };
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Contains(errors, e => e.Contains("Tool name cannot be empty"));
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithToolNameContainingWhitespace_ShouldAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.Tools = new List<string> { "valid Tool", "another tool" };
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Contains(errors, e => e.Contains("'valid Tool' must not contain whitespace"));
+        Assert.Contains(errors, e => e.Contains("'another tool' must not contain whitespace"));
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithValidToolNames_ShouldNotAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.Tools = new List<string> { "validTool", "anotherValidTool", "tool123" };
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.DoesNotContain(errors, e => e.Contains("Tool name"));
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithNullTools_ShouldConvertToEmptyArray()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.Tools = null;
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.NotNull(agentDescriptor.Tools);
+        Assert.Empty(agentDescriptor.Tools);
+        Assert.DoesNotContain(errors, e => e.Contains("Tools property"));
+    }
+
+    #endregion
+
+    #region Handoffs Validation Tests
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithEmptyHandoffName_ShouldAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.Handoffs = new List<string> { "validAgent", "", "anotherValidAgent" };
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Contains(errors, e => e.Contains("Handoff name cannot be empty"));
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithHandoffNameContainingWhitespace_ShouldAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.Handoffs = new List<string> { "valid Agent", "another agent" };
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Contains(errors, e => e.Contains("'valid Agent' must not contain whitespace"));
+        Assert.Contains(errors, e => e.Contains("'another agent' must not contain whitespace"));
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithSelfReferenceHandoff_ShouldAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.Name = "testAgent";
+        agentDescriptor.Handoffs = new List<string> { "otherAgent", "testAgent" };
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Contains(errors, e => e.Contains("Agent 'testAgent' cannot have a handoff to itself"));
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithDuplicateHandoffs_ShouldAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.Handoffs = new List<string> { "agent1", "agent2", "agent1", "agent3" };
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Contains(errors, e => e.Contains("Duplicate handoff target 'agent1' found"));
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithValidHandoffs_ShouldNotAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.Handoffs = new List<string> { "agent1", "agent2", "agent3" };
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.DoesNotContain(errors, e => e.Contains("handoff"));
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithNullHandoffs_ShouldConvertToEmptyArray()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.Handoffs = null;
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.NotNull(agentDescriptor.Handoffs);
+        Assert.Empty(agentDescriptor.Handoffs);
+        Assert.DoesNotContain(errors, e => e.Contains("Handoffs property"));
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithEmptyHandoffs_ShouldNotAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.Handoffs = new List<string>();
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.DoesNotContain(errors, e => e.Contains("handoff"));
+        Assert.DoesNotContain(errors, e => e.Contains("Handoff"));
+    }
+
+    #endregion
+
+    #region MCP Tools Validation Tests
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithEmptyMcpToolName_ShouldAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.McpTools = new List<string> { "validMcpTool", "", "anotherValidMcpTool" };
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Contains(errors, e => e.Contains("MCP tool name cannot be empty"));
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithMcpToolNameContainingWhitespace_ShouldAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.McpTools = new List<string> { "valid McpTool", "another mcpTool" };
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Contains(errors, e => e.Contains("'valid McpTool' must not contain whitespace"));
+        Assert.Contains(errors, e => e.Contains("'another mcpTool' must not contain whitespace"));
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithNullMcpTools_ShouldConvertToEmptyArray()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.McpTools = null;
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.NotNull(agentDescriptor.McpTools);
+        Assert.Empty(agentDescriptor.McpTools);
+        Assert.DoesNotContain(errors, e => e.Contains("MCP tools property"));
+    }
+
+    #endregion
+
+    #region Agent Name Validation Tests
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithAgentNameContainingWhitespace_ShouldAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.Name = "agent with spaces";
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Contains(errors, e => e.Contains("Agent name 'agent with spaces' must not contain whitespace"));
+    }
+
+    #endregion
+
+    #region Max Reflection Count Validation Tests
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithNegativeMaxReflectionCount_ShouldAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.MaxReflectionCount = -1;
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Contains(errors, e => e.Contains("Max reflection count cannot be negative"));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(5)]
+    public void ValidateAgentDescriptor_WithValidMaxReflectionCount_ShouldNotAddError(int count)
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.MaxReflectionCount = count;
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.DoesNotContain(errors, e => e.Contains("Max reflection count"));
+    }
+
+    #endregion
+
+    #region Handoff Description Validation Tests
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithHandoffDescriptionTooLong_ShouldAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.HandoffDescription = new string('x', 501); // More than 500 characters
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Contains(errors, e => e.Contains("Handoff description must be under 500 characters"));
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithValidHandoffDescription_ShouldNotAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.HandoffDescription = new string('x', 500); // Exactly 500 characters
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.DoesNotContain(errors, e => e.Contains("Handoff description"));
+    }
+
+    #endregion
+
+    #region Common Prompts Validation Tests
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithEmptyCommonPrompt_ShouldAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.CommonPrompts = new List<string> { "validPrompt", "", "anotherValidPrompt" };
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Contains(errors, e => e.Contains("Common prompt name cannot be empty"));
+    }
+
+    #endregion
+
+    #region Agents As Tools Validation Tests
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithEmptyAgentNameInAgentsAsTools_ShouldAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.AgentsAsTools = new List<AgentsAsTools>
+        {
+            new AgentsAsTools { AgentName = "", ToolName = "tool1", ToolDescription = "desc1" }
+        };
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Contains(errors, e => e.Contains("Agent name in agents_as_tools cannot be empty"));
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithEmptyToolNameInAgentsAsTools_ShouldAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.AgentsAsTools = new List<AgentsAsTools>
+        {
+            new AgentsAsTools { AgentName = "agent1", ToolName = "", ToolDescription = "desc1" }
+        };
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Contains(errors, e => e.Contains("Tool name in agents_as_tools cannot be empty"));
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithEmptyToolDescriptionInAgentsAsTools_ShouldAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.AgentsAsTools = new List<AgentsAsTools>
+        {
+            new AgentsAsTools { AgentName = "agent1", ToolName = "tool1", ToolDescription = "" }
+        };
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Contains(errors, e => e.Contains("Tool description in agents_as_tools cannot be empty"));
+    }
+
+    #endregion
+
+    #region Valid Agent Tests
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithValidAgent_ShouldNotAddErrors()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Empty(errors);
+    }
+
+    #endregion
+
+    #region Helper Methods
+
+    private static YamlAgentDescriptor CreateValidAgentDescriptor()
+    {
+        return new YamlAgentDescriptor
+        {
+            Name = "validAgent",
+            Instructions = "This is a valid instruction that is longer than 50 characters to meet the minimum requirement.",
+            HandoffDescription = "Valid handoff description",
+            Handoffs = new List<string>(),
+            Tools = new List<string>(),
+            McpTools = new List<string>(),
+            AllowParallelToolCalls = false,
+            AgentsAsTools = new List<AgentsAsTools>(),
+            MaxReflectionCount = 0,
+            CustomReflectionNote = "",
+            CriticPromptPath = "",
+            CriticOnHandOff = false,
+            CommonPrompts = new List<string>(),
+            CommonTools = new List<string>(),
+            Temperature = 1.0f,
+            LlmModelName = null,
+            OutputType = null,
+            UserPromptOverride = null,
+            DisableDocumentRetrieval = false,
+            EnableHandoffPromptOverride = false,
+            DisableCommonPrompts = false,
+            AgentType = AgentType.Autonomous,
+            ParameterExtractionAgent = null,
+            OrchestrationStartAgents = new List<string>(),
+            ResultSummarizationPrompt = null,
+            NextAgentMappings = new List<NextAgentMapping>()
+        };
+    }
+
+    #endregion
+}

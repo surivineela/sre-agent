@@ -131,6 +131,21 @@ public class ExtendedAgentController : ControllerBase
             switch (generic.Kind)
             {
                 case "AgentConfiguration":
+                    // Validate YAML structure before parsing
+                    var structureValidationErrors = _extendedAgentService.ValidateYamlStructure(yamlDict);
+                    if (structureValidationErrors.Count > 0)
+                    {
+                        var errorDetails = structureValidationErrors.Select(error =>
+                            new ExtendedAgentErrorField("yaml", error)).ToList();
+
+                        return BadRequest(new ExtendedAgentErrorResponse
+                        {
+                            ErrorCode = "YAML_STRUCTURE_INVALID",
+                            Message = "YAML structure validation failed",
+                            Details = new ExtendedAgentErrorDetails(errorDetails)
+                        });
+                    }
+
                     // Use AgentYamlParser to properly handle structured YAML
                     var agentDescriptor = AgentYamlParser.ParseAgentYaml(yaml);
                     if (agentDescriptor == null)
@@ -422,4 +437,5 @@ public class ExtendedAgentController : ControllerBase
             });
         }
     }
+
 }

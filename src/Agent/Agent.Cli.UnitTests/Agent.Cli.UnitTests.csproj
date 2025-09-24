@@ -20,6 +20,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Agent.Cli\Agent.Cli.csproj" />
+    <ProjectReference Include="..\Agent.Web\Agent.Web.csproj" />
+    <ProjectReference Include="..\Agent.Runtime\Agent.Runtime.csproj" />
+    <ProjectReference Include="..\Agent.Core\Agent.Core.csproj" />
+    <ProjectReference Include="..\Agent.Data\Agent.Data.csproj" />
   </ItemGroup>
 
 </Project>

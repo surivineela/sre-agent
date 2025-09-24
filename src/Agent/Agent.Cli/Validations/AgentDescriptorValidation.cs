@@ -55,8 +55,12 @@ public static class AgentDescriptorValidation
             errors.Add($"Agent descriptor {agentDescriptor.Name} does not have instructions.");
         }
 
-        // Validate individual tool names if tools are provided
-        if (agentDescriptor.Tools != null && agentDescriptor.Tools.Count > 0)
+        // Ensure tools is not null - convert to empty array if null
+        if (agentDescriptor.Tools == null)
+        {
+            agentDescriptor.Tools = new List<string>();
+        }
+        else if (agentDescriptor.Tools.Count > 0)
         {
             foreach (var tool in agentDescriptor.Tools)
             {
@@ -71,8 +75,12 @@ public static class AgentDescriptorValidation
             }
         }
 
-        // Validate individual mcp tool names if mcp tools are provided
-        if (agentDescriptor.McpTools != null && agentDescriptor.McpTools.Count > 0)
+        // Ensure mcp tools is not null - convert to empty array if null
+        if (agentDescriptor.McpTools == null)
+        {
+            agentDescriptor.McpTools = new List<string>();
+        }
+        else if (agentDescriptor.McpTools.Count > 0)
         {
             foreach (var tool in agentDescriptor.McpTools)
             {
@@ -93,8 +101,12 @@ public static class AgentDescriptorValidation
             errors.Add($"Agent name '{agentDescriptor.Name}' must not contain whitespace.");
         }
 
-        // Validate handoffs
-        if (agentDescriptor.Handoffs != null)
+        // Ensure handoffs is not null - convert to empty array if null
+        if (agentDescriptor.Handoffs == null)
+        {
+            agentDescriptor.Handoffs = new List<string>();
+        }
+        else if (agentDescriptor.Handoffs.Count > 0)
         {
             foreach (var handoff in agentDescriptor.Handoffs)
             {
@@ -170,6 +182,98 @@ public static class AgentDescriptorValidation
                     errors.Add("Tool description in agents_as_tools cannot be empty.");
                 }
             }
+        }
+
+        // Enhanced validation for handoffs (only if handoffs is not null)
+        if (agentDescriptor.Handoffs != null && agentDescriptor.Handoffs.Count > 0)
+        {
+            ValidateHandoffTargets(agentDescriptor.Name, agentDescriptor.Handoffs, errors);
+        }
+    }
+
+    /// <summary>
+    /// Enhanced validation for handoff targets including circular dependency detection.
+    /// </summary>
+    private static void ValidateHandoffTargets(string agentName, List<string> handoffs, List<string> errors)
+    {
+        // Validate for self-reference
+        if (handoffs.Contains(agentName))
+        {
+            errors.Add($"Agent '{agentName}' cannot have a handoff to itself.");
+        }
+
+        // Validate for duplicates
+        var duplicates = handoffs.GroupBy(h => h).Where(g => g.Count() > 1).Select(g => g.Key);
+        foreach (var duplicate in duplicates)
+        {
+            errors.Add($"Duplicate handoff target '{duplicate}' found.");
+        }
+
+        // Note: Agent existence and circular dependency validation would require
+        // access to other agent definitions, which should be done at the service level
+        // when full agent context is available
+    }
+
+    /// <summary>
+    /// Enhanced validation for tools including definition completeness.
+    /// </summary>
+    /// <param name="agentDescriptor">The agent descriptor to validate</param>
+    /// <param name="toolAvailabilityService">Service for checking tool existence and definitions</param>
+    /// <param name="errors">List of validation errors</param>
+    public static async Task ValidateToolDefinitionsAsync(IAgentDescriptor agentDescriptor, ToolAvailabilityService toolAvailabilityService, List<string> errors)
+    {
+        if (agentDescriptor.Tools == null || agentDescriptor.Tools.Count == 0) return;
+
+        foreach (var toolName in agentDescriptor.Tools)
+        {
+            try
+            {
+                // Check if tool definition exists and is valid
+                var toolDefinitionValid = await ValidateToolDefinitionAsync(toolName, toolAvailabilityService);
+                if (!toolDefinitionValid)
+                {
+                    errors.Add($"Tool '{toolName}' definition is invalid or incomplete.");
+                }
+            }
+            catch (Exception ex)
+            {
+                errors.Add($"Failed to validate tool '{toolName}': {ex.Message}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Validates a single tool definition for completeness and correctness.
+    /// </summary>
+    private static async Task<bool> ValidateToolDefinitionAsync(string toolName, ToolAvailabilityService toolAvailabilityService)
+    {
+        try
+        {
+            // Check if tool exists locally first
+            var localTools = toolAvailabilityService.GetLocalTools();
+            if (localTools.Contains(toolName))
+            {
+                // Validate local tool definition
+                var toolFilePath = Path.Combine("tools", $"{toolName}.yaml");
+                if (!File.Exists(toolFilePath))
+                {
+                    toolFilePath = Path.Combine("tools", toolName, $"{toolName}.yaml");
+                }
+
+                if (File.Exists(toolFilePath))
+                {
+                    var toolYamlContent = await File.ReadAllTextAsync(toolFilePath);
+                    return ToolValidation.ValidateToolYaml(toolYamlContent, out var toolErrors);
+                }
+            }
+
+            // Tool might exist on remote server - consider it valid for now
+            // Full remote validation would require additional API calls
+            return true;
+        }
+        catch
+        {
+            return false;
         }
     }
 

@@ -17,4 +17,6 @@ public interface IExtendedAgentService
     Task RefreshAgentAndToolsRegisterationsAsync();
 
     Task<(bool deleted, List<string> dependentAgents)> DeleteToolAsync(string toolName);
+
+    List<string> ValidateYamlStructure(Dictionary<string, object> rootDocument);
 }
