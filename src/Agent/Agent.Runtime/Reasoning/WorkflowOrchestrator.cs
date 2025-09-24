@@ -508,6 +508,7 @@ public class WorkflowOrchestrator : IDisposable
         builder.Append($"IncidentManagement.ICMAPI.ReadOnly: {_incidentManagementSettings?.ICMAPI?.ReadOnly},");
         builder.Append($"IncidentManagement.AutomatedRCA.Enabled: {_incidentManagementSettings?.AutomatedRCA?.Enabled},");
         builder.Append($"IncidentManagement.AutomatedRCA.WebBaseUrl: {_incidentManagementSettings?.AutomatedRCA?.WebBaseUrl}");
+        builder.Append($"Experimental.EnableModeSwitch: {_coreSettings.Experimental.EnableModeSwitch}");
         return builder.ToString();
     }
 

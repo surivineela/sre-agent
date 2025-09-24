@@ -153,7 +153,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to validate agent descriptor {descriptorName}.", agentDescriptor.Name);
+            _logger.LogInternalError(ex, "Failed to validate agent descriptor {descriptorName}.", agentDescriptor.Name);
             throw;
         }
 
@@ -212,7 +212,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         {
             if (!_promptDescriptors.TryGetValue(commonPromptName, out var commonPrompt))
             {
-                _logger.LogWarning("Agent descriptor {descriptorName} has a common prompt {commonPromptName} that does not exist.",
+                _logger.LogInternalWarning("Agent descriptor {descriptorName} has a common prompt {commonPromptName} that does not exist.",
                     agentDescriptor.Name, commonPromptName);
 
                 throw new Exception($"Agent descriptor {agentDescriptor.Name} has a common prompt {commonPromptName} that does not exist.");
@@ -228,7 +228,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             {
                 if (!_commonToolsDescriptors.TryGetValue(commonToolName, out var commonTools))
                 {
-                    _logger.LogWarning("Agent descriptor {descriptorName} has a common tool {commonToolName} that does not exist.",
+                    _logger.LogInternalWarning("Agent descriptor {descriptorName} has a common tool {commonToolName} that does not exist.",
                         agentDescriptor.Name, commonToolName);
 
                     throw new Exception($"Agent descriptor {agentDescriptor.Name} has a common tool {commonToolName} that does not exist.");
@@ -249,7 +249,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
 
         if (_agents.ContainsKey(agentDescriptor.Name) && !isCustomAgent && !overwrite)
         {
-            _logger.LogError("Agent with name {agentName} already exists and overwrite is not allowed.", agentDescriptor.Name);
+            _logger.LogInternalError("Agent with name {agentName} already exists and overwrite is not allowed.", agentDescriptor.Name);
             throw new Exception($"Agent with name {agentDescriptor.Name} already exists and overwrite is not allowed.");
         }
 
@@ -291,7 +291,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
                 if (!_agents.ContainsKey(handoff))
                 {
                     var warning = $"Agent descriptor {agentDescriptor.Name} has a handoff to {handoff} but it does not exist.";
-                    _logger.LogWarning(warning);
+                    _logger.LogInternalWarning(warning);
                 }
             }
             // Populate handoffs with existing agents only to avoid startup issues
@@ -323,7 +323,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             {
                 if (!_agents.TryGetValue(agentAsTool.AgentName, out var targetAgent))
                 {
-                    _logger.LogWarning("Agent {agentName} specified in agents_as_tools for {sourceAgent} does not exist.",
+                    _logger.LogInternalWarning("Agent {agentName} specified in agents_as_tools for {sourceAgent} does not exist.",
                     agentAsTool.AgentName, agentDescriptor.Name);
                     continue;
                 }
@@ -340,7 +340,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
 
                 agent.Tools.Add(tool);
 
-                _logger.LogInformation("Added agent {targetAgent} as tool to agent {sourceAgent}",
+                _logger.LogInternalInformation("Added agent {targetAgent} as tool to agent {sourceAgent}",
                 agentAsTool.AgentName, agentDescriptor.Name);
             }
         }
@@ -350,56 +350,70 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
     {
         // Order is important here, as tools need to be loaded before agents
         // TODO create a Dependency graph and load in order
-        LoadCommonPromptsFromAssembly();
-        LoadCommonPromptsFromYaml();
-        if (_extensibiltyLoader != null)
+        try
         {
-            var commonPrompts = await _extensibiltyLoader.LoadExtendedCommonPromptsAsync();
-            foreach (var prompt in commonPrompts)
+            LoadCommonPromptsFromAssembly();
+            LoadCommonPromptsFromYaml();
+            if (_extensibiltyLoader != null)
             {
-                _promptDescriptors[prompt.Name] = prompt;
+                var commonPrompts = await _extensibiltyLoader.LoadExtendedCommonPromptsAsync();
+                foreach (var prompt in commonPrompts)
+                {
+                    _promptDescriptors[prompt.Name] = prompt;
+                }
             }
-        }
-        LoadCommonToolsFromYaml();
-        if (_extensibiltyLoader != null)
-        {
-            var commonTools = await _extensibiltyLoader.LoadExtendedCommonToolsListsAsync();
-            foreach (var tool in commonTools)
+            LoadCommonToolsFromYaml();
+            if (_extensibiltyLoader != null)
             {
-                _commonToolsDescriptors[tool.Name] = tool.Tools;
+                var commonTools = await _extensibiltyLoader.LoadExtendedCommonToolsListsAsync();
+                foreach (var tool in commonTools)
+                {
+                    _commonToolsDescriptors[tool.Name] = tool.Tools;
+                }
             }
-        }
 
-        LoadAgentFromAssembly();
-        LoadAgentFromYaml();
-        if (_extensibiltyLoader != null)
-        {
-            var extendedAgents = await _extensibiltyLoader.LoadExtendedAgentsAsync();
-            foreach (var agent in extendedAgents)
+            LoadAgentFromAssembly();
+            LoadAgentFromYaml();
+            if (_extensibiltyLoader != null)
             {
-                LoadAgentFromDescriptor(agent, true);
+                var extendedAgents = await _extensibiltyLoader.LoadExtendedAgentsAsync();
+                foreach (var agent in extendedAgents)
+                {
+                    try
+                    {
+                        LoadAgentFromDescriptor(agent, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogInternalError(ex, "[AgentFactory:EXT] Failed to load extended agent {AgentName}", agent.Name);
+                    }
+                }
             }
-        }
 
-        if (_gpt5Enabled)
-        {
-            var path = Path.Combine(AppContext.BaseDirectory, "AgentsGPT5");
-            LoadYamlAgentsFromFolder(path, overwriteExistingAgents: true, recursive: true);
-        }
-
-        if (_agentMemoryRetrievalEnabled)
-        {
-            var path = Path.Combine(AppContext.BaseDirectory, "AgentsRag");
             if (_gpt5Enabled)
             {
-                path = Path.Combine(AppContext.BaseDirectory, "AgentsRag", "GPT5");
+                var path = Path.Combine(AppContext.BaseDirectory, "AgentsGPT5");
+                LoadYamlAgentsFromFolder(path, overwriteExistingAgents: true, recursive: true);
             }
-            LoadYamlAgentsFromFolder(path, overwriteExistingAgents: true, recursive: false);
+
+            if (_agentMemoryRetrievalEnabled)
+            {
+                var path = Path.Combine(AppContext.BaseDirectory, "AgentsRag");
+                if (_gpt5Enabled)
+                {
+                    path = Path.Combine(AppContext.BaseDirectory, "AgentsRag", "GPT5");
+                }
+                LoadYamlAgentsFromFolder(path, overwriteExistingAgents: true, recursive: false);
+            }
+
+            UpdateHandoffs();
+
+            UpdateAgentTools();
+        } catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "[AgentFactory:INIT_AGENTS] Failure during agent initialization pipeline");
+            throw;
         }
-
-        UpdateHandoffs();
-
-        UpdateAgentTools();
     }
 
     private void AddAgentToMetaAgentHandoffs(string agentName)
@@ -437,7 +451,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
 
         if (!agentDescriptorTypes.Any())
         {
-            _logger.LogWarning("No agent descriptors found in assembly.");
+            _logger.LogInternalWarning("No agent descriptors found in assembly.");
             return;
         }
 
@@ -445,17 +459,17 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         {
             if (Activator.CreateInstance(agentType) is not IAgentDescriptor agentDescriptor)
             {
-                _logger.LogError("Failed to create an instance of {agentType}.", agentType.FullName);
+                _logger.LogInternalError("Failed to create an instance of {agentType}.", agentType.FullName);
                 continue;
             }
             if (agentDescriptor.GetType()?.Name == nameof(YamlAgentDescriptor))
             {
-                _logger.LogDebug("Skipping YamlAgentDescriptor type as it's just for parser.");
+                _logger.LogInternalDebug("Skipping YamlAgentDescriptor type as it's just for parser.");
                 continue;
             }
 
             AddAgentDescriptor(agentDescriptor, false);
-            _logger.LogInformation("Successfully loaded agent descriptor '{descriptorName}' from assembly '{assemblyName}'.", agentType.Name, agentType.Assembly.GetName().Name);
+            _logger.LogInternalInformation("Successfully loaded agent descriptor '{descriptorName}' from assembly '{assemblyName}'.", agentType.Name, agentType.Assembly.GetName().Name);
         }
     }
 
@@ -472,7 +486,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         foreach (var yamlFile in yamlFiles)
         {
             var agent = LoadAgentFromYamlContent(File.ReadAllText(yamlFile), false);
-            _logger.LogInformation(
+            _logger.LogInternalInformation(
                 "Successfully loaded agent descriptor '{agentName}' from YAML file '{yamlFile}'.",
                 agent.Name,
                 yamlFile);
@@ -501,8 +515,9 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
     {
         if (string.IsNullOrEmpty(folderPath) || !Directory.Exists(folderPath))
         {
-            _logger.LogError("Folder path {folderPath} is invalid or does not exist.", folderPath);
-            throw new DirectoryNotFoundException($"Folder path {folderPath} does not exist."); }
+            _logger.LogInternalError("Folder path {folderPath} is invalid or does not exist.", folderPath);
+            throw new DirectoryNotFoundException($"Folder path {folderPath} does not exist.");
+        }
 
         var searchOption = recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
         var yamlFiles = Directory.GetFiles(folderPath, "*.yaml", searchOption)
@@ -514,7 +529,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             if (agentDescriptor != null)
             {
                 AddAgentDescriptor(agentDescriptor, isCustomAgent: false, overwrite: overwriteExistingAgents);
-                _logger.LogInformation(
+                _logger.LogInternalInformation(
                     "Successfully loaded agent descriptor '{agentName}' from YAML file '{yamlFile}'.",
                     agentDescriptor.Name,
                     yamlFile);
@@ -547,13 +562,13 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         {
             if (Activator.CreateInstance(promptDescriptorType) is not IPromptDescriptor promptDescriptor)
             {
-                _logger.LogError("Failed to create an instance of {promptDescriptorType}.", promptDescriptorType.FullName);
+                _logger.LogInternalError("Failed to create an instance of {promptDescriptorType}.", promptDescriptorType.FullName);
                 continue;
             }
 
             if (promptDescriptor.GetType()?.Name == nameof(YamlPromptDescriptor))
             {
-                _logger.LogDebug("Skipping YamlPromptDescriptor type as it's just for parser.");
+                _logger.LogInternalDebug("Skipping YamlPromptDescriptor type as it's just for parser.");
                 continue;
             }
 
@@ -592,7 +607,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to load common prompt from file {filePath}.", filePath);
+            _logger.LogInternalError(ex, "Failed to load common prompt from file {filePath}.", filePath);
             throw;
         }
     }
@@ -655,7 +670,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to load common tools from file {filePath}.", filePath);
+            _logger.LogInternalError(ex, "Failed to load common tools from file {filePath}.", filePath);
             throw;
         }
     }
@@ -687,7 +702,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         var agentFound = _agents.TryGetValue(name, out var agent);
         if (!agentFound || agent is null)
         {
-            _logger.LogError("Agent {agentName} not found.", name);
+            _logger.LogInternalError("Agent {agentName} not found.", name);
             throw new KeyNotFoundException($"Agent {name} not found.");
         }
 
@@ -727,7 +742,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to load agent from descriptor {descriptorName}.", agentDescriptor.Name);
+            _logger.LogInternalError(ex, "Failed to load agent from descriptor {descriptorName}.", agentDescriptor.Name);
             throw;
         }
     }

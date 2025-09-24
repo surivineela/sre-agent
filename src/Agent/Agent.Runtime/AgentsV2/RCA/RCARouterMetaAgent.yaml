@@ -45,7 +45,7 @@ system_prompt: |
     → Purpose: Blob Trigger RCA preflight analysis (polling, listener, enqueues, function correlation)
 
   **ServiceBus Trigger Issues:**
-  - OwningTeamName is APPSERVICEWEBAPPS\AntaresFunctionsEventHub/ServiceBus/StorageLoop and ICM mentioned ServiceBus Trigger issue.
+  - OwningTeamName is APPSERVICEWEBAPPS\AntaresFunctionsEventHub/ServiceBus/StorageLoop and ICM mentioned ServiceBus Trigger, ServiceBus related issue.
   → Handoff to: `servicebus_trigger_preflight_agent`
   → Purpose: ServiceBus Trigger RCA preflight analysis (listener, enqueues, function correlation)
 

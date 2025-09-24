@@ -15,4 +15,8 @@
     <PackageReference Include="OpenTelemetry" />
     <PackageReference Include="ModelContextProtocol" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Agent.Logging\Agent.Logging.csproj" />
+  </ItemGroup>
 </Project>
