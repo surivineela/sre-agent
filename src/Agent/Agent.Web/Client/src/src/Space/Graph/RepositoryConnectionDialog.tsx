@@ -21,7 +21,7 @@ import { GenericErrorResources, ResourceInfoResources, SreAgentResources } from 
 
 export const githubRepoRegex = /^https:\/\/github\.com\/[\w-]+\/[\w.-]+(?:\.git)?$/;
 export const azdoRepoRegex =
-    /^https:\/\/(?:dev\.azure\.com\/[\w-]+\/(?:[\w.-]|%[0-9A-Fa-f]{2})+\/_git\/(?:[\w.-]|%[0-9A-Fa-f]{2})+|[\w-]+\.visualstudio\.com\/(?:[\w.-]|%[0-9A-Fa-f]{2})+\/_git\/(?:[\w.-]|%[0-9A-Fa-f]{2})+)$/;
+    /^https:\/\/(?:[\w.-]+@)?(?:dev\.azure\.com\/[\w-]+\/(?:[\w.-]|%[0-9A-Fa-f]{2})+\/_git\/(?:[\w.-]|%[0-9A-Fa-f]{2})+|[\w-]+\.visualstudio\.com\/(?:[\w.-]|%[0-9A-Fa-f]{2})+\/_git\/(?:[\w.-]|%[0-9A-Fa-f]{2})+)$/;
 
 export const getRepoIcon = (url: string) => {
     if (githubRepoRegex.test(url)) {
