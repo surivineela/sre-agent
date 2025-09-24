@@ -96,8 +96,10 @@ namespace Agent.Plugins.DataConnectors.TSG
 
                 using var request = new HttpRequestMessage(HttpMethod.Get, url);
                 request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", token);
+                _logger.LogInternalInformation($"debug message: Sending request to URL: {url}");
 
                 var response = await _httpClient.SendAsync(request);
+                _logger.LogInternalInformation($"debug message: Received response with status code: {response.Content}");
                 response.EnsureSuccessStatusCode();
 
                 return await response.Content.ReadAsStringAsync();
