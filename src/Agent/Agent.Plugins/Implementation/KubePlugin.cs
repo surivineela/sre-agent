@@ -26,6 +26,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using YamlDotNet.Serialization;
+using Agent.Plugins.Implementation.DiagnosticsPlugin;
 using CrawlerConstants = Agent.Graph.Crawler.ARM.Constants;
 
 namespace Agent.Plugins
@@ -45,6 +46,7 @@ namespace Agent.Plugins
         private readonly ICrawlerTriggerService _crawlerTriggerService;
         private readonly ActionSettings _actionSettings;
         private readonly IAgentRuntimeModifier<AgentContext> _agentRuntimeModifier;
+        private readonly IKubeJavaPlugin _kubePluginJava;
         private readonly IPrometheusEndpointService _prometheusEndpointService;
 
         private static readonly ISerializer _configJsonSerializer = new SerializerBuilder().ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitNull).Build();
@@ -68,6 +70,7 @@ namespace Agent.Plugins
             ICrawlerTriggerService crawlerTriggerService,
             ActionSettings actionSettings,
             IAgentRuntimeModifier<AgentContext> agentRuntimeModifier,
+            IKubeJavaPlugin kubePluginJava,
             IPrometheusEndpointService prometheusEndpointService)
         {
             _logger = logger;
@@ -83,6 +86,7 @@ namespace Agent.Plugins
             _crawlerTriggerService = crawlerTriggerService;
             _actionSettings = actionSettings;
             _agentRuntimeModifier = agentRuntimeModifier;
+            _kubePluginJava = kubePluginJava;
             _prometheusEndpointService = prometheusEndpointService;
         }
 
@@ -1879,7 +1883,33 @@ namespace Agent.Plugins
             return File.ReadAllText(scriptPath);
         }
 
-        public async Task<string> ProfileDotnetAppCpuInAKSContainerAsync(
+        private LanguageStack GetPodLanguageStack(V1Pod pod)
+        {
+            // Get pod-level annotations
+            string? languageStackStr = null;
+            pod.Metadata?.Annotations?.TryGetValue("languageStack", out languageStackStr);
+
+            if (!string.IsNullOrEmpty(languageStackStr) &&
+                Enum.TryParse<LanguageStack>(languageStackStr, ignoreCase: true, out var languageStack))
+            {
+                return languageStack;
+            }
+
+            _logger?.LogInternalWarning("Unknown language stack annotation value: {LanguageStack}. Defaulting to Dotnet", languageStackStr);
+            return LanguageStack.Dotnet;
+        }
+
+        private string GetProfileScriptForLanguageStack(LanguageStack languageStack)
+        {
+            return languageStack switch
+            {
+                LanguageStack.Dotnet => "profile_script.sh",
+                LanguageStack.Java => "java_profile_script.sh",
+                _ => "profile_script.sh" // Default fallback to .NET
+            };
+        }
+
+        public async Task<string> ProfileAppCpuInAKSContainerAsync(
             string aksResourceId,
             string _namespace,
             string podName,
@@ -1933,10 +1963,13 @@ namespace Agent.Plugins
 
             _logger?.LogInformation("Targeting pod '{PodName}', container '{ContainerName}' for in-container .NET CPU profiling for {Duration} seconds.", podName, targetContainerName, durationSeconds);
 
+            var languageStack = GetPodLanguageStack(pod);
+            var profileScript = GetProfileScriptForLanguageStack(languageStack);
+
             string scriptContent;
             try
             {
-                scriptContent = LoadScriptContent("profile_script.sh");
+                scriptContent = LoadScriptContent(profileScript);
             }
             catch (Exception ex)
             {
@@ -1952,10 +1985,22 @@ namespace Agent.Plugins
                 "sh", // Command to run the script
                 "-c", // Argument to sh: execute the following string
                 scriptContent, // The actual script content
-                "profiling_script.sh", // $0 argument for the script (its "name")
+                profileScript, // $0 argument for the script (its "name")
                 durationSeconds.ToString() // $1 argument for the script (duration)
                 );
 
+            switch (languageStack)
+            {
+                case LanguageStack.Java:
+                    return await analyseJavaCpuProfilingResult(stdout, stderr, exitCode, aksResourceId, client, pod, targetContainerName);
+                case LanguageStack.Dotnet:
+                default:
+                    return analyseDotNetCpuProfilingResult(podName, targetContainerName, _namespace, aksResourceId, stdout, stderr, exitCode);
+            }
+        }
+
+        private string analyseDotNetCpuProfilingResult(string podName, string targetContainerName, string _namespace, string aksResourceId, string stdout, string stderr, int exitCode)
+        {
             const string noDotNetProcessMarker = "[PROF_SCRIPT_INFO] No debuggable .NET process found."; // Partial match is fine
             if (stdout != null && stdout.Contains(noDotNetProcessMarker))
             {
@@ -2033,6 +2078,35 @@ namespace Agent.Plugins
             }
 
             return resultBuilder.ToString();
+        }
+
+        private async Task<string> analyseJavaCpuProfilingResult(
+            string stdout,
+            string stderr,
+            int exitCode,
+            string aksResourceId,
+            IKubernetes client,
+            V1Pod pod,
+            string targetContainerName)
+        {
+            if(stderr != null && (stderr.Contains("Illuminate has not been executed") ||
+                    stderr.Contains("must be present") ||
+                    stderr.Contains("This indicates the diagnosis data is stale")))
+            {
+                // Illuminate is not installed or the required files are missing, trigger the debug container analysis
+                return await _kubePluginJava
+                    .AnalyzeJavaApplicationAsync(
+                        aksResourceId,
+                        client,
+                        pod,
+                        targetContainerName,
+                        this
+                    );
+            }
+            else
+            {
+                 return stdout;
+            }
         }
 
         private async Task<(string stdout, string stderr, int exitCode)> ExecInPodAsync(
@@ -2259,7 +2333,6 @@ namespace Agent.Plugins
                 cancellationToken);
         }
 
-
         private static string GetFolderName(string filePath)
         {
             var folderName = Path.GetDirectoryName(filePath);
@@ -2267,7 +2340,17 @@ namespace Agent.Plugins
             return string.IsNullOrEmpty(folderName) ? "." : folderName;
         }
 
-        public async Task<string> AnalyzeDotnetAppMemoryInAKSContainerAsync(
+        private string GetMemoryProfileScriptForLanguageStack(LanguageStack languageStack)
+        {
+            return languageStack switch
+            {
+                LanguageStack.Dotnet => "analyze_memory_aks.sh",
+                LanguageStack.Java => "java_profile_script.sh", // Same as cpu, java does not have a separate memory analysis script
+                _ => "analyze_memory_aks.sh" // Default fallback to .NET
+            };
+        }
+
+        public async Task<string> AnalyzeAppMemoryInAKSContainerAsync(
             string aksResourceId,
             string _namespace,
             string podName,
@@ -2290,7 +2373,7 @@ namespace Agent.Plugins
                 return $"Error reading pod '{podName}': {ex.Message}";
             }
 
-            // Determine target container (same logic as ProfileDotnetAppCpuInAKSContainerAsync)
+            // Determine target container (same logic as ProfileAppCpuInAKSContainerAsync)
             if (string.IsNullOrEmpty(targetContainerName))
             {
                 targetContainerName = pod.Spec.Containers.FirstOrDefault()?.Name;
@@ -2335,10 +2418,13 @@ namespace Agent.Plugins
 
             _logger?.LogInformation("Starting in-container .NET memory analysis for pod '{PodName}', container '{ContainerName}'.", podName, targetContainerName);
 
+            var languageStack = GetPodLanguageStack(pod);
+            var profileScript = GetMemoryProfileScriptForLanguageStack(languageStack);
+
             string scriptContent;
             try
             {
-                scriptContent = LoadScriptContent("analyze_memory_aks.sh");
+                scriptContent = LoadScriptContent(profileScript);
             }
             catch (Exception ex)
             {
@@ -2356,6 +2442,19 @@ namespace Agent.Plugins
                 scriptContent
             );
 
+            switch (languageStack)
+            {
+                case LanguageStack.Java:
+                    // Java does not have a separate memory analysis script, so we can use the same logic as CPU profiling
+                    return await analyseJavaCpuProfilingResult(stdout, stderr, exitCode, aksResourceId, client, pod, targetContainerName);
+                case LanguageStack.Dotnet:
+                default:
+                    return analyseDotNetMemoryProfilingResult(podName, targetContainerName, _namespace, aksResourceId, stdout, stderr, exitCode);
+            }
+        }
+
+        private string analyseDotNetMemoryProfilingResult(string podName, string targetContainerName, string _namespace, string aksResourceId, string stdout, string stderr, int exitCode)
+        {
             var resultBuilder = new StringBuilder();
             resultBuilder.AppendLine($"In-Container .NET Memory Analysis Result for Pod: {podName}, Container: {targetContainerName}");
             resultBuilder.AppendLine($"Script Execution Exit Code: {exitCode}");

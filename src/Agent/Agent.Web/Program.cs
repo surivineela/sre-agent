@@ -284,6 +284,26 @@ public class Program
             return externalSettings;
         });
 
+        // Add JavaProfilerSettings registration
+        builder.Services.AddSingleton<Agent.Core.Configuration.JavaProfilerSettings>(sp =>
+        {
+            var configuration = sp.GetRequiredService<IConfiguration>();
+            // Try to get from configuration first
+            var settings = configuration.GetSection("AppSettings:Core:Azure:JavaProfiler").Get<Agent.Core.Configuration.JavaProfilerSettings>();
+
+            if (settings == null)
+            {
+                // Provide default settings to prevent null reference exceptions
+                settings = new Agent.Core.Configuration.JavaProfilerSettings
+                {
+                    DebugProfileContainer = "",
+                    ProfileTimeoutMinutes = 5
+                };
+            }
+
+            return settings;
+        });
+
         var azureSettings = builder.Configuration.GetSection("AppSettings:Core:Azure").Get<AzureSettings>();
         var agentModeString = azureSettings?.Action.Mode.ToString();
 
@@ -428,6 +448,7 @@ public class Program
             .AddTransient<RCAPreflightICMPluginDefinition>()
             .AddTransient<ColdStartPluginDefinition>()
             .AddTransient<LogsPluginDefinition>()
+            .AddTransient<IKubeJavaPlugin, KubePluginJava>()
             .AddTransient<IKubePlugin, KubePlugin>()
             .AddTransient<IChartPlugin, ChartPluginV2>()
             .AddTransient<ChartPluginV2>()
@@ -1540,3 +1561,4 @@ public class Program
             && !string.IsNullOrEmpty(settings.ManagedIdentityResourceId);
     }
 }
+

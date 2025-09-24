@@ -532,7 +532,8 @@ namespace Agent.Plugins
         public async Task<CliExecutionResult> ExecuteKubectlCommandSafely(
             string resourceId,
             string command,
-            string stdin = "")
+            string stdin = "",
+            TimeSpan? timeoutMin = null)
         {
             // get the cluster kubeconfig
             // todo: change to create a `view` clusterrolebinding with a service account, and use that guy's config
@@ -569,7 +570,9 @@ namespace Agent.Plugins
                     serializedKubeConfig,
                     command,
                     stdin);
-                var output = await cliExecution.ExecuteAsync();
+                var output = await cliExecution.ExecuteAsync(
+                    timeout: timeoutMin
+                );
 
                 if (MaybeWriteCommand(command))
                 {

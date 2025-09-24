@@ -9,6 +9,7 @@ using Agent.Framework;
 using Agent.Graph.Crawler.Metrics;
 using Agent.Graph.Services;
 using Agent.Plugins;
+using Agent.Plugins.Interface;
 using Agent.Prometheus.Services;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Hosting;
@@ -38,6 +39,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             var mockAgentCommunicationService = new Mock<IAgentOutboundCommunicationService>();
             var mockActionSettings = new Mock<ActionSettings>();
             var mockAgentRuntimeModifier = new Mock<IAgentRuntimeModifier<AgentContext>>();
+            var mockKubePluginJava = new Mock<IKubeJavaPlugin>();
             var mockPrometheusEndpointService = new Mock<IPrometheusEndpointService>();
             _mockLogger = new Mock<ILogger<KubePlugin>>();
 
@@ -57,6 +59,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                 mockCrawlerTriggerService.Object,
                 mockActionSettings.Object,
                 mockAgentRuntimeModifier.Object,
+                mockKubePluginJava.Object,
                 mockPrometheusEndpointService.Object
             );
         }

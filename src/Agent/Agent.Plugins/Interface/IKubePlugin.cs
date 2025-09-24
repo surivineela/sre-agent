@@ -39,8 +39,8 @@ namespace Agent.Plugins.Interface
         Task<string> DiscoverMetricsAsync(string AKSClusterResourceId, string? namePattern, string? metricType);
         Task<string> GetMetricLabelsAsync(string AKSClusterResourceId, string metricName, string? labelName);
         Task<string> ExecutePromQLAsync(string AKSClusterResourceId, string query, string duration, string step, string? labelFilters, string? aggregateFunction, string? aggregateBy, int? limit, double? minValue);
-        Task<string> ProfileDotnetAppCpuInAKSContainerAsync(string aksResourceId, string _namespace, string podName, string? targetContainerName, int durationSeconds = 30);
-        Task<string> AnalyzeDotnetAppMemoryInAKSContainerAsync(string aksResourceId, string _namespace, string podName, string? targetContainerName);
-        Task<CliExecutionResult> ExecuteKubectlCommandSafely(string resourceId, string command, string stdin = "");
+        Task<string> ProfileAppCpuInAKSContainerAsync(string aksResourceId, string _namespace, string podName, string? targetContainerName, int durationSeconds = 30);
+        Task<string> AnalyzeAppMemoryInAKSContainerAsync(string aksResourceId, string _namespace, string podName, string? targetContainerName);
+        Task<CliExecutionResult> ExecuteKubectlCommandSafely(string resourceId, string command, string stdin = "", TimeSpan? timeoutMin = null);
     }
 }

@@ -110,7 +110,7 @@ internal sealed class KubernetesDiagnosticStrategy : ComputeResourceDiagnosticSt
 
         try
         {
-            return await _kubePlugin.AnalyzeDotnetAppMemoryInAKSContainerAsync(
+            return await _kubePlugin.AnalyzeAppMemoryInAKSContainerAsync(
                 resourceId,
                 k8sContext.Namespace,
                 k8sContext.PodName,
@@ -144,7 +144,7 @@ internal sealed class KubernetesDiagnosticStrategy : ComputeResourceDiagnosticSt
         {
             int durationSeconds = 30; // Default
 
-            return await _kubePlugin.ProfileDotnetAppCpuInAKSContainerAsync(
+            return await _kubePlugin.ProfileAppCpuInAKSContainerAsync(
                 resourceId,
                 k8sContext.Namespace,
                 k8sContext.PodName,

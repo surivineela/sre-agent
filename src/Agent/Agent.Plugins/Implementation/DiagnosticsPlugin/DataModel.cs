@@ -38,7 +38,8 @@ internal enum Architecture
 internal enum LanguageStack
 {
     Dotnet,
-    // Java, Go etc.
+    Java,
+    // Go etc.
     Unknown
 }
 

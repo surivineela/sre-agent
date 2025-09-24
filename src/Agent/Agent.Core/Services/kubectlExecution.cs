@@ -33,7 +33,10 @@ public class KubectlExecution
         _cacheDir = Path.Combine(Path.GetTempPath(), ".kube");
     }
 
-    public async Task<string> ExecuteAsync(CancellationToken cancellationToken = default)
+    public async Task<string> ExecuteAsync(
+        CancellationToken cancellationToken = default,
+        TimeSpan? timeout = null
+    )
     {
         // write to temp file
         await File.WriteAllTextAsync(_kubeConfigPath, _k8sConfiguration, cancellationToken);
@@ -98,7 +101,8 @@ public class KubectlExecution
         var pCmd = new ExternalProcessCommand(_logger,
             "kubectl",
             allArgs.ToArray(),
-            stdin: _stdin);
+            stdin: _stdin,
+            timeout: timeout);
 
         try
         {

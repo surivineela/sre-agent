@@ -331,7 +331,14 @@ public static class TestHelpers
 
         builder.Services.AddSingleton<ISearchEndpointService, SearchEndpointService>();
 
+        builder.Services.AddSingleton<JavaProfilerSettings>(new JavaProfilerSettings
+        {
+            DebugProfileContainer = string.Empty,
+            ProfileTimeoutMinutes = 5
+        });
+
         builder.Services.AddSingleton<SearchHelper>();
+        builder.Services.AddTransient<IKubeJavaPlugin, KubePluginJava>();
         builder.Services.AddTransient<KubePluginDefinition>();
         builder.Services.AddTransient<IKubePlugin, KubePlugin>();
         builder.Services.AddTransient<SearchPluginDefinition>();

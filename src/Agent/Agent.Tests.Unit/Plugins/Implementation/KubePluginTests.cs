@@ -8,6 +8,7 @@ using Agent.Graph.Crawler.Metrics;
 using Agent.Graph.Services;
 using Agent.Plugins;
 using Agent.Prometheus.Services;
+using Agent.Plugins.Interface;
 using k8s;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Hosting;
@@ -52,6 +53,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
           new Mock<ICrawlerTriggerService>().Object,
           new Mock<ActionSettings>().Object,
           new Mock<IAgentRuntimeModifier<AgentContext>>().Object,
+          new Mock<IKubeJavaPlugin>().Object,
           new Mock<IPrometheusEndpointService>().Object
           );
     }

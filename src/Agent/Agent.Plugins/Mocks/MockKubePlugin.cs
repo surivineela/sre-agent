@@ -726,12 +726,12 @@ public class MockKubePlugin : IKubePlugin
         throw new NotImplementedException();
     }
 
-    public Task<string> ProfileDotnetAppCpuInAKSContainerAsync(string aksResourceId, string _namespace, string podName, string? targetContainerName, int durationSeconds = 30)
+    public Task<string> ProfileAppCpuInAKSContainerAsync(string aksResourceId, string _namespace, string podName, string? targetContainerName, int durationSeconds = 30)
     {
         throw new NotImplementedException();
     }
 
-    public Task<string> AnalyzeDotnetAppMemoryInAKSContainerAsync(string aksResourceId, string _namespace, string podName, string? targetContainerName)
+    public Task<string> AnalyzeAppMemoryInAKSContainerAsync(string aksResourceId, string _namespace, string podName, string? targetContainerName)
     {
         throw new NotImplementedException();
     }
@@ -750,7 +750,7 @@ public class MockKubePlugin : IKubePlugin
     {
         throw new NotImplementedException();
     }
-    public Task<CliExecutionResult> ExecuteKubectlCommandSafely(string resourceId, string command, string stdin = "")
+    public Task<CliExecutionResult> ExecuteKubectlCommandSafely(string resourceId, string command, string stdin = "", TimeSpan? timeoutMin = null)
     {
         throw new NotImplementedException();
     }
