@@ -51,6 +51,7 @@ export interface IncidentHandlerItem {
     /** `"Default"` for default handler */
     planType: string;
     distinctIncidentCount: number;
+    agentAssisted: number;
     userMitigated: number;
     agentMitigated: number;
     pendingUserAction: number;
@@ -328,9 +329,10 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
                 autonomyLevel: row[1] as string,
                 planType: row[2] as string,
                 distinctIncidentCount: row[3] as number,
-                userMitigated: row[4] as number,
-                agentMitigated: row[5] as number,
-                pendingUserAction: row[6] as number,
+                agentAssisted: row[4] as number,
+                userMitigated: row[5] as number,
+                agentMitigated: row[6] as number,
+                pendingUserAction: row[7] as number,
             }));
             setIncidentHandlersResponse(data);
             setIsIncidentHandlersLoading(false);

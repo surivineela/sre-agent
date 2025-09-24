@@ -30,7 +30,7 @@ export const ChartCard = ({ title, data, isLoading }: ChartCardProps) => {
     }, [data]);
 
     return (
-        <Card style={{ flex: '1 1 650px', minWidth: 650, height: 310 }}>
+        <Card style={{ flex: '1 1 550px', minWidth: 550, height: 310 }}>
             <div>
                 <Subtitle2>{title}</Subtitle2>
             </div>
