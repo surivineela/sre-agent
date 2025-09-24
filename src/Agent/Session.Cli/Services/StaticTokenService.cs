@@ -41,13 +41,20 @@ public class StaticTokenService : ITokenService
     {
         foreach (var (resource, raw) in tokens)
         {
-            var handler = new JwtSecurityTokenHandler();
-            var jwtToken = handler.ReadJwtToken(raw);
-            _tokens[resource] = new Token
+            try
             {
-                JwtToken = jwtToken,
-                Raw = raw
-            };
+                var handler = new JwtSecurityTokenHandler();
+                var jwtToken = handler.ReadJwtToken(raw);
+                _tokens[resource] = new Token
+                {
+                    JwtToken = jwtToken,
+                    Raw = raw
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to parse token for resource: {resource}.");
+            }
         }
 
         _logger.LogInformation($"Added {tokens.Count} tokens. New resources: {string.Join(", ", _tokens.Keys)}");

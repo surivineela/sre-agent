@@ -501,10 +501,13 @@ public class AuthenticationService : IAuthenticationService
             }
             catch (Exception ex)
             {
-                _logger.LogInternalError(ex, "Failed to parse access token.");
-                // blindly set expiration to 1 hour later
-                accessTokens[kvp.Key] = new AccessToken(kvp.Value, DateTimeOffset.UtcNow.AddHours(1));
+                _logger.LogInternalError(ex, $"Failed to parse token for resource: {kvp.Key}.");
             }
+        }
+
+        if (accessTokens.Count == 0)
+        {
+            throw new InvalidOperationException("No valid OBO token found.");
         }
 
         return DelegatedTokenCredential.Create((context, _) =>
