@@ -63,7 +63,7 @@ namespace FirstPartyAgent.Core.Services
             _logger.LogInformation($"Found {allFiles.Count} files to process");
             
             // Use a semaphore to limit concurrent operations
-            int maxConcurrentOperations = 10; // Adjust based on system capacity
+            int maxConcurrentOperations = 5; // Adjust based on system capacity
             using var semaphore = new System.Threading.SemaphoreSlim(maxConcurrentOperations);
             
             var tasks = new List<Task>();
