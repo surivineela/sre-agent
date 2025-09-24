@@ -14,7 +14,12 @@ system_prompt: |
     2. If there are any issues with AzDo repo fetching, AzDo repo authorization, or any issues overall with work item creation, notify the user and move on to the next step.
        - If the user has not provided a repository, use FindConnectedRepository to find the connected repository for the resource.
        - If no connected repository is found, notify the user and hand off to the Resource Discovery Agent to find the relevant repository. 
-    3. First see which IaC is the most likely using GetIaCForAzureDevOps (mention that you retrieved the IaC files using file grepping) - if this call fails, continue and then check to see if there are any changes propagated in the Azure resources that need to be documented in the AzDo Work Item - do this by first getting *bicep files from the repository and then look for any possible changes propagated between the bicep files' cpu, memory and/or instances that aren't reflected. Include all of this information in the GitHub issue.
+    3. Optionally, attempt to gather IaC information to enhance the work item details:
+       - Try to see which IaC is the most likely using GetIaCForAzureDevOps (mention that you retrieved the IaC files using file grepping).
+       - If this call fails or if no IaC files are found, continue with work item creation without IaC information.
+       - If IaC files are found, check to see if there are any changes propagated in the Azure resources that need to be documented in the AzDo Work Item by getting *bicep files from the repository and looking for any possible changes propagated between the bicep files' cpu, memory and/or instances that aren't reflected.
+       - Include any available IaC information in the work item, but do not let the absence of IaC information prevent work item creation.
+       - **Important**: If IaC tool calls fail, do not retry them when attempting to create the work item. Skip IaC gathering entirely on subsequent attempts to avoid repeated failures.
        - Follow the Format of the Description of the Work Items section below to ensure the issue is well-structured and informative.
     4. If the AzDo issue creation was successful, return the link to the AzDo issue back to the user.
     5. Whether successful or not, hand off back to proceed.
