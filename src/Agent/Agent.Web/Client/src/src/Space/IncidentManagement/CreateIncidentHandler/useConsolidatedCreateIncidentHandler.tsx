@@ -393,7 +393,7 @@ export const useConsolidatedCreateIncidentHandler = (
         );
 
         if (saveOrUpdateFilterAction) {
-            const filterValues = getFilterValues(values, incidentPlatform, true, undefined);
+            const filterValues = getFilterValues(values, incidentPlatform, true, '');
             const filterPayload: IncidentFilterDocumentPayload = {
                 id: values.filterName || '',
                 ...filterValues,
