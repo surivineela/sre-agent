@@ -1082,6 +1082,481 @@ public class ArmHelper
         }
     }
 
+    public async Task<(bool, string)> EnableAzureFrontDoorEndpointOrigin(
+        string subscriptionId,
+        string resourceGroupName,
+        string frontDoorProfileName,
+        string endpointNameOrHostName,
+        string originName)
+    {
+        return await ChangeAzureFrontDoorOriginState(subscriptionId, resourceGroupName, frontDoorProfileName, endpointNameOrHostName, originName, true);
+    }
+
+    public async Task<(bool, string)> DisableAzureFrontDoorEndpointOrigin(
+        string subscriptionId,
+        string resourceGroupName,
+        string frontDoorProfileName,
+        string endpointNameOrHostName,
+        string originName)
+    {
+        return await ChangeAzureFrontDoorOriginState(subscriptionId, resourceGroupName, frontDoorProfileName, endpointNameOrHostName, originName, false);
+    }
+
+    public async Task<string> GetAllAzureFrontDoorEndpointOriginsStatus(
+        string subscriptionId,
+        string resourceGroupName,
+        string frontDoorProfileName)
+    {
+        try
+        {
+            _logger.LogInternalInformation("Retrieving all Azure Front Door origins status...");
+
+            // Get all endpoints for the profile
+            var endpointsUrl = new Uri(new Uri("https://management.azure.com"),
+                $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{frontDoorProfileName}/afdEndpoints?api-version=2023-05-01");
+
+            var cred = await _authService.GetArmOperationCredential();
+            var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
+
+            var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+
+            HttpRequestMessage endpointsRequest = new HttpRequestMessage(HttpMethod.Get, endpointsUrl);
+            endpointsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+
+            HttpResponseMessage endpointsResponse = await httpClient.SendAsync(endpointsRequest);
+            string endpointsResponseBody = await endpointsResponse.Content.ReadAsStringAsync();
+
+            if (!endpointsResponse.IsSuccessStatusCode)
+            {
+                if (CheckForUnauthorizedAccess(endpointsResponse))
+                {
+                    throw new ToolExecutionUnauthorizedException($"Unauthorized access");
+                }
+                return $"Error getting endpoints: {endpointsResponse.StatusCode}, {endpointsResponseBody}";
+            }
+
+            // Parse the response to get all endpoints
+            using JsonDocument endpointsJson = JsonDocument.Parse(endpointsResponseBody);
+            var endpointsRoot = endpointsJson.RootElement;
+
+            if (endpointsRoot.TryGetProperty("value", out var endpointsArray) && endpointsArray.ValueKind == JsonValueKind.Array)
+            {
+                int endpointCount = endpointsArray.GetArrayLength();
+                _logger.LogInternalInformation($"Found {endpointCount} endpoints in profile {frontDoorProfileName}");
+
+                var allEndpointsInfo = new List<object>();
+
+                foreach (var endpoint in endpointsArray.EnumerateArray())
+                {
+                    string endpointName = endpoint.GetProperty("name").GetString() ?? "";
+                    var properties = endpoint.GetProperty("properties");
+                    string endpointHostName = properties.GetProperty("hostName").GetString() ?? "";
+                    bool endpointEnabled = properties.TryGetProperty("enabledState", out var enabledState) &&
+                                         enabledState.GetString() == "Enabled";
+
+                    _logger.LogInternalInformation($"Processing endpoint: {endpointName}, Hostname: {endpointHostName}");
+
+                    // Get routes for this endpoint
+                    var routesUrl = new Uri(new Uri("https://management.azure.com"),
+                        $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{frontDoorProfileName}/afdEndpoints/{endpointName}/routes?api-version=2023-05-01");
+
+                    HttpRequestMessage routesRequest = new HttpRequestMessage(HttpMethod.Get, routesUrl);
+                    routesRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+
+                    HttpResponseMessage routesResponse = await httpClient.SendAsync(routesRequest);
+                    string routesResponseBody = await routesResponse.Content.ReadAsStringAsync();
+
+                    var originGroupsInfo = new List<object>();
+                    var allOrigins = new List<object>();
+
+                    if (routesResponse.IsSuccessStatusCode)
+                    {
+                        using JsonDocument routesJson = JsonDocument.Parse(routesResponseBody);
+                        var routesRoot = routesJson.RootElement;
+
+                        if (routesRoot.TryGetProperty("value", out var routesArray) && routesArray.ValueKind == JsonValueKind.Array)
+                        {
+                            _logger.LogInternalInformation($"Found {routesArray.GetArrayLength()} routes for endpoint {endpointName}");
+
+                            // Process each route to get its associated origin group
+                            foreach (var route in routesArray.EnumerateArray())
+                            {
+                                var routeName = route.GetProperty("name").GetString();
+                                var routeProperties = route.GetProperty("properties");
+
+                                // Get origin group reference from the route
+                                if (routeProperties.TryGetProperty("originGroup", out var originGroupRef))
+                                {
+                                    string originGroupId = originGroupRef.GetProperty("id").GetString() ?? "";
+                                    // Extract origin group name from the ID
+                                    string originGroupName = ExtractResourceNameFromId(originGroupId);
+
+                                    _logger.LogInternalInformation($"Route: {routeName}, Origin Group: {originGroupName}");
+
+                                    if (!string.IsNullOrEmpty(originGroupName))
+                                    {
+                                        // Now get the origin group details and its origins
+                                        var originGroup = await GetAzureFrontDoorOriginGroupDetails(subscriptionId, resourceGroupName, frontDoorProfileName, originGroupName, httpClient, cred, searchForOriginName: null, findOriginGroupForOrigin: false, endpointName: null);
+                                        originGroupsInfo.Add(originGroup.Item1);
+                                        allOrigins.AddRange(originGroup.Item2);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    var endpointInfo = new
+                    {
+                        Name = endpointName,
+                        HostName = endpointHostName,
+                        Status = endpointEnabled ? "Enabled" : "Disabled",
+                        OriginGroups = originGroupsInfo,
+                        Origins = allOrigins
+                    };
+
+                    allEndpointsInfo.Add(endpointInfo);
+                }
+
+                var result = new
+                {
+                    ProfileName = frontDoorProfileName,
+                    EndpointCount = endpointCount,
+                    Endpoints = allEndpointsInfo
+                };
+
+                return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+            }
+            else
+            {
+                return $"Error: No endpoints found or invalid response format for profile '{frontDoorProfileName}'";
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Failed to get Azure Front Door origins status for profile '{frontDoorProfileName}'");
+            return $"Error: {ex.Message}";
+        }
+    }
+
+    private async Task<(bool, string)> ChangeAzureFrontDoorOriginState(
+        string subscriptionId,
+        string resourceGroupName,
+        string frontDoorProfileName,
+        string endpointNameOrHostName,
+        string originName,
+        bool enable)
+    {
+        try
+        {
+            _logger.LogInternalInformation($"{(enable ? "Enabling" : "Disabling")} Azure Front Door origin '{originName}'...");
+
+            // Step 1: Find the endpoint by name or hostname
+            string endpointName = string.Empty;
+
+            // Get all endpoints for the profile
+            var endpointsUrl = new Uri(new Uri("https://management.azure.com"),
+                $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{frontDoorProfileName}/afdEndpoints?api-version=2023-05-01");
+
+            var cred = await _authService.GetArmOperationCredential();
+            var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
+
+            var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+
+            HttpRequestMessage endpointsRequest = new HttpRequestMessage(HttpMethod.Get, endpointsUrl);
+            endpointsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+
+            HttpResponseMessage endpointsResponse = await httpClient.SendAsync(endpointsRequest);
+            string endpointsResponseBody = await endpointsResponse.Content.ReadAsStringAsync();
+
+            if (endpointsResponse.IsSuccessStatusCode)
+            {
+                // Parse the response to find the endpoint with the matching name or hostname
+                using JsonDocument endpointsJson = JsonDocument.Parse(endpointsResponseBody);
+                var endpointsRoot = endpointsJson.RootElement;
+
+                if (endpointsRoot.TryGetProperty("value", out var endpointsArray) && endpointsArray.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var endpoint in endpointsArray.EnumerateArray())
+                    {
+                        var properties = endpoint.GetProperty("properties");
+                        string endpointHostName = properties.GetProperty("hostName").GetString() ?? "";
+                        string endpointNameValue = endpoint.GetProperty("name").GetString() ?? "";
+
+                        // Check if the provided value matches either the endpoint name or hostname
+                        if (endpointHostName.Equals(endpointNameOrHostName, StringComparison.OrdinalIgnoreCase) ||
+                            endpointNameValue.Equals(endpointNameOrHostName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            endpointName = endpointNameValue;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (string.IsNullOrEmpty(endpointName))
+            {
+                return (false, $"Could not find endpoint with name or hostname '{endpointNameOrHostName}'");
+            }
+
+            _logger.LogInternalInformation($"Found endpoint: {endpointName}");
+
+            // Step 2: Find the origin group for this origin
+            string originGroupName = string.Empty;
+
+            // Get routes for this endpoint to find origin groups
+            var routesUrl = new Uri(new Uri("https://management.azure.com"),
+                $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{frontDoorProfileName}/afdEndpoints/{endpointName}/routes?api-version=2023-05-01");
+
+            HttpRequestMessage routesRequest = new HttpRequestMessage(HttpMethod.Get, routesUrl);
+            routesRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+
+            HttpResponseMessage routesResponse = await httpClient.SendAsync(routesRequest);
+            string routesResponseBody = await routesResponse.Content.ReadAsStringAsync();
+
+            if (!routesResponse.IsSuccessStatusCode)
+            {
+                _logger.LogInternalError($"Error getting routes: {routesResponse.StatusCode}");
+                return (false, $"Could not get routes for endpoint '{endpointName}'");
+            }
+
+            // Extract all origin groups from routes
+            List<string> originGroups = new List<string>();
+
+            using JsonDocument routesJson = JsonDocument.Parse(routesResponseBody);
+            var routesRoot = routesJson.RootElement;
+
+            if (routesRoot.TryGetProperty("value", out var routesArray) && routesArray.ValueKind == JsonValueKind.Array)
+            {
+                // Get all origin group names from the routes
+                foreach (var route in routesArray.EnumerateArray())
+                {
+                    var routeProperties = route.GetProperty("properties");
+
+                    if (routeProperties.TryGetProperty("originGroup", out var originGroupRef))
+                    {
+                        string originGroupId = originGroupRef.GetProperty("id").GetString() ?? "";
+                        string extractedOriginGroupName = ExtractResourceNameFromId(originGroupId);
+
+                        if (!string.IsNullOrEmpty(extractedOriginGroupName) && !originGroups.Contains(extractedOriginGroupName))
+                        {
+                            originGroups.Add(extractedOriginGroupName);
+                        }
+                    }
+                }
+
+                // Check each origin group for the origin
+                foreach (var currentOriginGroup in originGroups)
+                {
+                    var originGroupDetails = await GetAzureFrontDoorOriginGroupDetails(
+                        subscriptionId,
+                        resourceGroupName,
+                        frontDoorProfileName,
+                        currentOriginGroup,
+                        httpClient,
+                        cred,
+                        originName,
+                        true,  // Indicate we're searching for an origin group containing the origin
+                        endpointName);
+
+                    string foundOriginGroupName = originGroupDetails.Item3;
+                    if (!string.IsNullOrEmpty(foundOriginGroupName))
+                    {
+                        originGroupName = foundOriginGroupName;
+                        break;
+                    }
+                }
+            }
+
+            if (string.IsNullOrEmpty(originGroupName))
+            {
+                return (false, $"Could not find origin '{originName}' in any origin group for endpoint '{endpointName}'");
+            }
+
+            _logger.LogInternalInformation($"Found origin '{originName}' in origin group '{originGroupName}'");
+
+            // Step 3: Get the current origin details
+            var originUrl = new Uri(new Uri("https://management.azure.com"),
+                $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{frontDoorProfileName}/originGroups/{originGroupName}/origins/{originName}?api-version=2023-05-01");
+
+            HttpRequestMessage getOriginRequest = new HttpRequestMessage(HttpMethod.Get, originUrl);
+            getOriginRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+
+            HttpResponseMessage getOriginResponse = await httpClient.SendAsync(getOriginRequest);
+            string getOriginResponseBody = await getOriginResponse.Content.ReadAsStringAsync();
+
+            if (!getOriginResponse.IsSuccessStatusCode)
+            {
+                if (CheckForUnauthorizedAccess(getOriginResponse))
+                {
+                    throw new ToolExecutionUnauthorizedException($"Unauthorized access");
+                }
+                return (false, $"Error getting origin details: {getOriginResponse.StatusCode}, {getOriginResponseBody}");
+            }
+
+            // Step 4: Create patch document to update the enabledState
+            var patchDocument = new
+            {
+                properties = new
+                {
+                    enabledState = enable ? "Enabled" : "Disabled"
+                }
+            };
+
+            string patchContent = JsonSerializer.Serialize(patchDocument);
+
+            // Step 5: Update the origin with PATCH request
+            HttpRequestMessage patchRequest = new HttpRequestMessage(new HttpMethod("PATCH"), originUrl);
+            patchRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+            patchRequest.Content = new StringContent(patchContent, Encoding.UTF8, "application/json");
+
+            _logger.LogInternalInformation($"Sending PATCH request to {(enable ? "enable" : "disable")} origin...");
+
+            HttpResponseMessage patchResponse = await httpClient.SendAsync(patchRequest);
+            string patchResponseBody = await patchResponse.Content.ReadAsStringAsync();
+
+            if (!patchResponse.IsSuccessStatusCode)
+            {
+                if (CheckForUnauthorizedAccess(patchResponse))
+                {
+                    throw new ToolExecutionUnauthorizedException($"Unauthorized access");
+                }
+                return (false, $"Error updating origin: {patchResponse.StatusCode}, {patchResponseBody}");
+            }
+
+            // Success message
+            return (true, $"Azure Front Door origin '{originName}' {(enable ? "enabled" : "disabled")} successfully in origin group '{originGroupName}' for endpoint '{endpointName}'");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Failed to {(enable ? "enable" : "disable")} Azure Front Door origin '{originName}'");
+            return (false, ex.Message);
+        }
+    }
+
+    private async Task<Tuple<object, List<object>, string>> GetAzureFrontDoorOriginGroupDetails(
+        string subscriptionId,
+        string resourceGroupName,
+        string frontDoorProfileName,
+        string originGroupName,
+        HttpClient httpClient,
+        TokenCredential credential,
+        string? searchForOriginName = null,
+        bool findOriginGroupForOrigin = false,
+        string? endpointName = null)
+    {
+        // Get the origin group details
+        var originGroupUrl = new Uri(new Uri("https://management.azure.com"),
+            $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{frontDoorProfileName}/originGroups/{originGroupName}?api-version=2023-05-01");
+
+        var token = await credential.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
+
+        HttpRequestMessage originGroupRequest = new HttpRequestMessage(HttpMethod.Get, originGroupUrl);
+        originGroupRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+
+        HttpResponseMessage originGroupResponse = await httpClient.SendAsync(originGroupRequest);
+        string originGroupResponseBody = await originGroupResponse.Content.ReadAsStringAsync();
+
+        if (!originGroupResponse.IsSuccessStatusCode)
+        {
+            _logger.LogInternalError($"Error getting origin group {originGroupName}: {originGroupResponse.StatusCode}");
+            return new Tuple<object, List<object>, string>(
+                new { Name = originGroupName, Error = $"{originGroupResponse.StatusCode}" },
+                new List<object>(),
+                string.Empty
+            );
+        }
+
+        using JsonDocument originGroupJson = JsonDocument.Parse(originGroupResponseBody);
+        var originGroupRoot = originGroupJson.RootElement;
+        var originGroupProperties = originGroupRoot.GetProperty("properties");
+
+        bool sessionAffinityEnabled = originGroupProperties.TryGetProperty("sessionAffinityState", out var sessionAffinity) ?
+            sessionAffinity.GetString() == "Enabled" : false;
+
+        // Now get the list of origins for this origin group
+        var originsUrl = new Uri(new Uri("https://management.azure.com"),
+            $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{frontDoorProfileName}/originGroups/{originGroupName}/origins?api-version=2023-05-01");
+
+        HttpRequestMessage originsRequest = new HttpRequestMessage(HttpMethod.Get, originsUrl);
+        originsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+
+        HttpResponseMessage originsResponse = await httpClient.SendAsync(originsRequest);
+        string originsResponseBody = await originsResponse.Content.ReadAsStringAsync();
+
+        var originsList = new List<object>();
+        bool foundSearchedOrigin = false;
+
+        if (originsResponse.IsSuccessStatusCode)
+        {
+            using JsonDocument originsJson = JsonDocument.Parse(originsResponseBody);
+            var originsRoot = originsJson.RootElement;
+
+            if (originsRoot.TryGetProperty("value", out var originsArray) && originsArray.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var origin in originsArray.EnumerateArray())
+                {
+                    var name = origin.GetProperty("name").GetString();
+
+                    // If we're searching for a specific origin, check if this is it
+                    if (!string.IsNullOrEmpty(searchForOriginName) &&
+                        !string.IsNullOrEmpty(name) && name.Equals(searchForOriginName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        foundSearchedOrigin = true;
+                    }
+
+                    var properties = origin.GetProperty("properties");
+
+                    string hostName = properties.GetProperty("hostName").GetString() ?? string.Empty;
+                    string? originHostHeader = properties.TryGetProperty("originHostHeader", out var hostHeader) ? hostHeader.GetString() : null;
+                    int? priority = properties.TryGetProperty("priority", out var priorityValue) ? priorityValue.GetInt32() : null;
+                    int? weight = properties.TryGetProperty("weight", out var weightValue) ? weightValue.GetInt32() : null;
+                    bool enabled = properties.TryGetProperty("enabledState", out var enabledStateValue) &&
+                                  enabledStateValue.GetString() == "Enabled";
+
+                    string status = enabled ? "Enabled" : "Disabled";
+
+                    var originDetails = new
+                    {
+                        Name = name,
+                        OriginGroupName = originGroupName,
+                        OriginHostName = hostName,
+                        OriginHostHeader = originHostHeader,
+                        Status = status,
+                        Priority = priority,
+                        Weight = weight
+                    };
+
+                    originsList.Add(originDetails);
+                }
+            }
+        }
+
+        var originGroupInfo = new
+        {
+            Name = originGroupName,
+            SessionAffinityEnabled = sessionAffinityEnabled,
+            OriginsCount = originsList.Count,
+            FoundSearchedOrigin = foundSearchedOrigin,
+            LoadBalancingSettings = originGroupProperties.TryGetProperty("loadBalancingSettings", out var loadBalancingSettings) ?
+                JsonSerializer.Deserialize<object>(loadBalancingSettings.GetRawText()) : null
+        };
+
+        // If we're looking for an origin group containing a specific origin and found it in this one
+        string foundOriginGroupName = foundSearchedOrigin && findOriginGroupForOrigin ? originGroupName : string.Empty;
+
+        return new Tuple<object, List<object>, string>(originGroupInfo, originsList, foundOriginGroupName);
+    }
+
+    private string ExtractResourceNameFromId(string resourceId)
+    {
+        if (string.IsNullOrEmpty(resourceId))
+            return string.Empty;
+
+        // Resource ID format: /subscriptions/{subId}/resourceGroups/{rgName}/providers/{provider}/{resourceType}/{resourceName}
+        var parts = resourceId.Split('/');
+        return parts.Length > 0 ? parts[parts.Length - 1] : string.Empty;
+    }
+
     // Use the generic method for all specific cases:
     public async Task<List<TlsStatus>> GetTlsSettings(List<string> resourceIds)
     {

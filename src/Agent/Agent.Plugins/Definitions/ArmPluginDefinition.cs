@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using Agent.Core;
 using Agent.Core.Attributes;
 using Agent.Core.Models;
 using Agent.Framework;
@@ -280,6 +281,46 @@ NOTE: This is an internal tool for command validation, not for generating user d
             [Description("The name of the Traffic Manager profile")] string profileName)
         {
             return await _armPlugin.GetAllTrafficManagerEndpointsStatus(subscriptionId, resourceGroupName, profileName);
+        }
+
+        [RequiresApproval]
+        [WriteAction]
+        [OboContext(scope: Constants.DefaultOboTokenScope)]
+        [Description("Enables (brings online) an Azure Front Door endpoint origin")]
+        public async Task<string> EnableAzureFrontDoorEndpointOrigin(
+            [Description("The subscription ID containing the Azure Front Door profile")] string subscriptionId,
+            [Description("The name of the resource group containing the Azure Front Door profile")] string resourceGroupName,
+            [Description("The name of the Azure Front Door profile")] string frontDoorProfileName,
+            [Description("The name or hostname of the endpoint")] string endpointNameOrHostName,
+            [Description("The name of the origin to enable")] string originName)
+        {
+            var result = await _armPlugin.EnableAzureFrontDoorEndpointOrigin(subscriptionId, resourceGroupName, frontDoorProfileName, endpointNameOrHostName, originName);
+            return result.Item1 ? result.Item2 : $"Failed to enable origin: {result.Item2}";
+        }
+
+        [RequiresApproval]
+        [WriteAction]
+        [OboContext(scope: Constants.DefaultOboTokenScope)]
+        [Description("Disables (takes offline) an Azure Front Door endpoint origin")]
+        public async Task<string> DisableAzureFrontDoorEndpointOrigin(
+            [Description("The subscription ID containing the Azure Front Door profile")] string subscriptionId,
+            [Description("The name of the resource group containing the Azure Front Door profile")] string resourceGroupName,
+            [Description("The name of the Azure Front Door profile")] string frontDoorProfileName,
+            [Description("The name or hostname of the endpoint")] string endpointNameOrHostName,
+            [Description("The name of the origin to disable")] string originName)
+        {
+            var result = await _armPlugin.DisableAzureFrontDoorEndpointOrigin(subscriptionId, resourceGroupName, frontDoorProfileName, endpointNameOrHostName, originName);
+            return result.Item1 ? result.Item2 : $"Failed to disable origin: {result.Item2}";
+        }
+
+        [Description("Gets the status of all origins across endpoints in an Azure Front Door profile with health summary")]
+        [AgentTool(ToolMode.Auto)]
+        public async Task<string> GetAllAzureFrontDoorEndpointOriginsStatus(
+            [Description("The subscription ID containing the Azure Front Door profile")] string subscriptionId,
+            [Description("The name of the resource group containing the Azure Front Door profile")] string resourceGroupName,
+            [Description("The name of the Azure Front Door profile")] string frontDoorProfileName)
+        {
+            return await _armPlugin.GetAllAzureFrontDoorEndpointOriginsStatus(subscriptionId, resourceGroupName, frontDoorProfileName);
         }
     }
 }

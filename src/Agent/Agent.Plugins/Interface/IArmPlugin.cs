@@ -36,6 +36,9 @@ namespace Agent.Plugins.Interface
         Task<(bool, string)> EnableTrafficManagerEndpoint(string subscriptionId, string resourceGroupName, string profileName, string endpointName, string endpointType);
         Task<(bool, string)> DisableTrafficManagerEndpoint(string subscriptionId, string resourceGroupName, string profileName, string endpointName, string endpointType);
         Task<string> GetAllTrafficManagerEndpointsStatus(string subscriptionId, string resourceGroupName, string profileName);
+        Task<(bool, string)> EnableAzureFrontDoorEndpointOrigin(string subscriptionId, string resourceGroupName, string frontDoorProfileName, string endpointNameOrHostName, string originName);
+        Task<(bool, string)> DisableAzureFrontDoorEndpointOrigin(string subscriptionId, string resourceGroupName, string frontDoorProfileName, string endpointNameOrHostName, string originName);
+        Task<string> GetAllAzureFrontDoorEndpointOriginsStatus(string subscriptionId, string resourceGroupName, string frontDoorProfileName);
     }
 }
 

@@ -222,5 +222,20 @@ namespace Agent.Plugins.Mocks
         {
             return Task.FromResult("Mock: All Traffic Manager endpoints are healthy");
         }
+
+        public Task<(bool, string)> EnableAzureFrontDoorEndpointOrigin(string subscriptionId, string resourceGroupName, string frontDoorProfileName, string endpointNameOrHostName, string originName)
+        {
+            return Task.FromResult((true, $"Mock: Azure Front Door endpoint origin {originName} enabled successfully for endpoint {endpointNameOrHostName}"));
+        }
+
+        public Task<(bool, string)> DisableAzureFrontDoorEndpointOrigin(string subscriptionId, string resourceGroupName, string frontDoorProfileName, string endpointNameOrHostName, string originName)
+        {
+            return Task.FromResult((true, $"Mock: Azure Front Door endpoint origin {originName} disabled successfully for endpoint {endpointNameOrHostName}"));
+        }
+
+        public Task<string> GetAllAzureFrontDoorEndpointOriginsStatus(string subscriptionId, string resourceGroupName, string frontDoorProfileName)
+        {
+            return Task.FromResult("Mock: All Azure Front Door endpoint origins are healthy");
+        }
     }
 }

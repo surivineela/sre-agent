@@ -300,7 +300,7 @@ namespace Agent.Plugins.Implementation
             // Check if we're in a deep investigation context
             var agentTaskId = Agent.Core.ToolStatic.AsyncLocalAgentTaskId.Value;
             Guid messageId;
-            
+
             if (agentTaskId.HasValue)
             {
                 // In deep investigation - don't create chat message, use a placeholder message ID
@@ -462,7 +462,7 @@ namespace Agent.Plugins.Implementation
         {
             // Check if we're in agent task context and route accordingly
             var agentTaskId = Agent.Core.ToolStatic.AsyncLocalAgentTaskId.Value;
-            
+
             if (agentTaskId.HasValue)
             {
                 // Agent task context - use dedicated handler
@@ -484,7 +484,7 @@ namespace Agent.Plugins.Implementation
         {
             // Check if we're in agent task context and route accordingly
             var agentTaskId = Agent.Core.ToolStatic.AsyncLocalAgentTaskId.Value;
-            
+
             if (agentTaskId.HasValue)
             {
                 // Agent task context - use dedicated handler
@@ -620,6 +620,21 @@ namespace Agent.Plugins.Implementation
         public async Task<string> GetAllTrafficManagerEndpointsStatus(string subscriptionId, string resourceGroupName, string profileName)
         {
             return await _armHelper.GetAllTrafficManagerEndpointsStatus(subscriptionId, resourceGroupName, profileName);
+        }
+
+        public async Task<(bool, string)> EnableAzureFrontDoorEndpointOrigin(string subscriptionId, string resourceGroupName, string frontDoorProfileName, string endpointNameOrHostName, string originName)
+        {
+            return await _armHelper.EnableAzureFrontDoorEndpointOrigin(subscriptionId, resourceGroupName, frontDoorProfileName, endpointNameOrHostName, originName);
+        }
+
+        public async Task<(bool, string)> DisableAzureFrontDoorEndpointOrigin(string subscriptionId, string resourceGroupName, string frontDoorProfileName, string endpointNameOrHostName, string originName)
+        {
+            return await _armHelper.DisableAzureFrontDoorEndpointOrigin(subscriptionId, resourceGroupName, frontDoorProfileName, endpointNameOrHostName, originName);
+        }
+
+        public async Task<string> GetAllAzureFrontDoorEndpointOriginsStatus(string subscriptionId, string resourceGroupName, string frontDoorProfileName)
+        {
+            return await _armHelper.GetAllAzureFrontDoorEndpointOriginsStatus(subscriptionId, resourceGroupName, frontDoorProfileName);
         }
 
     }
