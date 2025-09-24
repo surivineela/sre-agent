@@ -109,12 +109,12 @@ const useStyles = makeStyles({
         wordBreak: 'break-word',
         fontFamily: 'Consolas, Monaco, monospace',
         fontSize: '12px',
+        width: 'calc(100% - 32px)',
     },
     outputPreCollapsed: {
         whiteSpace: 'nowrap',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
-        width: '95%',
         display: 'block',
     },
     statusBadge: {
