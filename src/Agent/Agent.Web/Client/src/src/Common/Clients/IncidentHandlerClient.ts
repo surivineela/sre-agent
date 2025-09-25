@@ -188,7 +188,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
     public enableIncidentFilter = async (id: string): Promise<Response<IncidentFilter>> => {
         const url = this.getRequestUrl(`${this._apiIncidentPlaygroundPathPrefix}/filters/${id}/enable`);
         try {
-            const { data } = await axios.post<IncidentFilter>(url, {
+            const { data } = await axios.post<IncidentFilter>(url, null, {
                 headers: getAgentHeaders(),
             });
             return {
@@ -213,7 +213,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
     public disableIncidentFilter = async (id: string): Promise<Response<IncidentFilter>> => {
         const url = this.getRequestUrl(`${this._apiIncidentPlaygroundPathPrefix}/filters/${id}/disable`);
         try {
-            const { data } = await axios.post<IncidentFilter>(url, {
+            const { data } = await axios.post<IncidentFilter>(url, null, {
                 headers: getAgentHeaders(),
             });
             return {
