@@ -18,19 +18,17 @@ export enum SettingNames {
 const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
     default: {
         [SettingNames.ConsolidatedCreate]: true,
+        [SettingNames.DataConnectors]: true,
+        [SettingNames.KnowledgeBase]: true,
     },
     'portal.azure.com': {},
     'ms.portal.azure.com': {
-        [SettingNames.DataConnectors]: true,
-        [SettingNames.KnowledgeBase]: true,
+        [SettingNames.ShowWatchtower]: true,
     },
     localhost: {
         [SettingNames.ShowAgentModeForThread]: true,
-        [SettingNames.DataConnectors]: true,
-        [SettingNames.ShowScheduledTasksTab]: true,
         [SettingNames.ShowWatchtower]: true,
         [SettingNames.ForUnitTests]: true,
-        [SettingNames.KnowledgeBase]: true,
     },
 };
 
