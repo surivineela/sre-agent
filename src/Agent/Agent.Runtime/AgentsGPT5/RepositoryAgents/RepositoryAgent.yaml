@@ -80,7 +80,7 @@ tools:
   - DisconnectRepositoryFromResourceForGitHub
   # AzDo
   - CreateAzureDevOpsWorkItem 
-  - CreateWorkItemWithoutResourceLinkage
+  - CreateAzureDevOpsWorkItemWithoutResourceLinkage
   - GetIaCForAzureDevOps
   - FindConnectedRepositoryForAzureDevOps
   - ConnectRepositoryToResourceForAzureDevOps
