@@ -1,0 +1,182 @@
+{
+  "version": "1.0",
+  "description": "Published tools configuration for IncidentPlayground - curated list of essential incident management tools",
+  "tools": [
+    {
+      "name": "CheckIfResourceExists",
+      "version": "latest"
+    },
+    {
+      "name": "CheckTcpConnectivity",
+      "version": "latest"
+    },
+    {
+      "name": "DisableTrafficManagerEndpoint",
+      "version": "latest"
+    },
+    {
+      "name": "EnableTrafficManagerEndpoint",
+      "version": "latest"
+    },
+    {
+      "name": "GetAppSetting",
+      "version": "latest"
+    },
+    {
+      "name": "GetArmResourceAsJson",
+      "version": "latest"
+    },
+    {
+      "name": "GetAzCliHelp",
+      "version": "latest"
+    },
+    {
+      "name": "GetTlsSettings",
+      "version": "latest"
+    },
+    {
+      "name": "PowerOnVirtualMachine",
+      "version": "latest"
+    },
+    {
+      "name": "RestartWebApp",
+      "version": "latest"
+    },
+    {
+      "name": "RunAzCliReadCommands",
+      "version": "latest"
+    },
+    {
+      "name": "RunAzCliWriteCommands",
+      "version": "latest"
+    },
+    {
+      "name": "SetMinimumTlsVersion",
+      "version": "latest"
+    },
+    {
+      "name": "UpdateAppSettings",
+      "version": "latest"
+    },
+    {
+      "name": "AnalyzeDeploymentFailures",
+      "version": "latest"
+    },
+    {
+      "name": "GetActivityLogsSummary",
+      "version": "latest"
+    },
+    {
+      "name": "GetChangeHistory",
+      "version": "latest"
+    },
+    {
+      "name": "ShowChangeDiffViewer",
+      "version": "latest"
+    },
+    {
+      "name": "GetMetricTimeSeriesElementsForAzureResource",
+      "version": "latest"
+    },
+    {
+      "name": "ListAvailableMetrics",
+      "version": "latest"
+    },
+    {
+      "name": "PlotAreaChartWithCorrelation",
+      "version": "latest"
+    },
+    {
+      "name": "PlotBarChart",
+      "version": "latest"
+    },
+    {
+      "name": "PlotHeatmap",
+      "version": "latest"
+    },
+    {
+      "name": "PlotPieChart",
+      "version": "latest"
+    },
+    {
+      "name": "PlotScatter",
+      "version": "latest"
+    },
+    {
+      "name": "GetAnalysis",
+      "version": "latest"
+    },
+    {
+      "name": "ExecuteGenevaAction",
+      "version": "latest"
+    },
+    {
+      "name": "ListInputParametersForGenevaAction",
+      "version": "latest"
+    },
+    {
+      "name": "CreateGithubIssue",
+      "version": "latest"
+    },
+    {
+      "name": "CreateGithubIssueComment",
+      "version": "latest"
+    },
+    {
+      "name": "DeleteGithubIssueComment",
+      "version": "latest"
+    },
+    {
+      "name": "DisconnectRepositoryFromResourceForGitHub",
+      "version": "latest"
+    },
+    {
+      "name": "FetchGithubIssue",
+      "version": "latest"
+    },
+    {
+      "name": "FetchGithubIssueComments",
+      "version": "latest"
+    },
+    {
+      "name": "FetchGithubIssues",
+      "version": "latest"
+    },
+    {
+      "name": "FetchGithubSecurityDependabotAlerts",
+      "version": "latest"
+    },
+    {
+      "name": "FindConnectedGitHubRepo",
+      "version": "latest"
+    },
+    {
+      "name": "GetIaCForGitHub",
+      "version": "latest"
+    },
+    {
+      "name": "GetUserOrganizations",
+      "version": "latest"
+    },
+    {
+      "name": "UpdateGithubIssue",
+      "version": "latest"
+    },
+    {
+      "name": "UpdateGithubIssueComment",
+      "version": "latest"
+    },
+    {
+      "name": "ExecuteClusterKustoQuery",
+      "version": "latest"
+    },
+    {
+      "name": "ValidateQuery",
+      "version": "latest"
+    },
+    {
+      "name": "GetCurrentUtcTime",
+      "version": "latest"
+    }
+  ]
+}

@@ -96,6 +96,7 @@ public static class IncidentServiceCollectionExtensions
         services.AddSingleton<IIncidentHandlerManagementService, IncidentHandlerManagementService>();
         services.AddSingleton<IInstructionGenerationService, InstructionGenerationService>();
         services.AddSingleton<IIncidentStatusMetricsService, IncidentStatusMetricsService>();
+        services.AddSingleton<Agent.Core.Services.IPublishedToolsService, Agent.Core.Services.PublishedToolsService>();
 
         services.AddSingleton<IIncidentFilterManagementServiceFactory, IncidentFilterManagementServiceFactory>();
         services.AddSingleton<IIncidentManagementServiceFactory, IncidentManagementServiceFactory>();

@@ -8,7 +8,9 @@ using Agent.Framework;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Agent.Core.Configuration;
+using Agent.Core.Configuration;  // Add this using
+using Agent.Core.Extensions;     // Add this using
+using Agent.Core.Services;
 
 namespace Agent.Runtime.Services
 {
@@ -35,13 +37,15 @@ namespace Agent.Runtime.Services
         private readonly IIncidentManagementServiceFactory _incidentManagementServiceFactory;
         private readonly ILogger<InstructionGenerationService> _logger;
         private readonly IncidentManagementSettings _incidentManagementSettings; // Add this
+        private readonly IPublishedToolsService _publishedToolsService;
 
         public InstructionGenerationService(
             IToolFactory<AgentContext> toolFactory,
             IChatClient chatClient,
             IIncidentManagementServiceFactory incidentManagementServiceFactory,
             ILogger<InstructionGenerationService> logger,
-            IncidentManagementSettings incidentManagementSettings
+            IncidentManagementSettings incidentManagementSettings,
+            IPublishedToolsService publishedToolsService
             )
         {
             _toolFactory = toolFactory;
@@ -49,9 +53,10 @@ namespace Agent.Runtime.Services
             _incidentManagementServiceFactory = incidentManagementServiceFactory;
             _logger = logger;
             _incidentManagementSettings = incidentManagementSettings; // Add this
+            _publishedToolsService = publishedToolsService;
         }
 
-        public Task<List<ToolInfo>> FilterTools(string? searchString)
+        public async Task<List<ToolInfo>> FilterTools(string? searchString)
         {
             _logger.LogInternalInformation("FilterTools: Invoked with searchString: {SearchString}", searchString);
 
@@ -71,10 +76,35 @@ namespace Agent.Runtime.Services
             _logger.LogInternalInformation("FilterTools: Filtered tools for platform {Platform}. Remaining: {FilteredCount}",
                 configuredPlatform, availableTools.Count);
 
+            // Filter by published tools list and automatically include incident handler tools
+            var publishedToolNames = await _publishedToolsService.GetPublishedToolNamesAsync();
+            if (publishedToolNames.Count > 0)
+            {
+                // Create a combined list: published tools + incident handler tools for the configured platform
+                var allowedTools = availableTools.Where(tool => 
+                    publishedToolNames.Contains(tool.Name) || 
+                    (tool.IsIncidentHandlerTool && 
+                     tool.IncidentHandlerPlatform?.Equals(configuredPlatform, StringComparison.OrdinalIgnoreCase) == true))
+                    .ToList();
+
+                var incidentHandlerToolsCount = allowedTools.Count(t => t.IsIncidentHandlerTool);
+                var publishedToolsCount = allowedTools.Count - incidentHandlerToolsCount;
+                
+                _logger.LogInternalInformation("FilterTools: Filtered by published tools + incident handler tools. " +
+                    "Published: {PublishedCount}, Incident Handler: {IncidentHandlerCount}, Total: {TotalCount}", 
+                    publishedToolsCount, incidentHandlerToolsCount, allowedTools.Count);
+
+                availableTools = allowedTools;
+            }
+            else
+            {
+                _logger.LogInternalWarning("FilterTools: No published tools configured. Returning all available tools.");
+            }
+
             if (string.IsNullOrWhiteSpace(searchString))
             {
                 _logger.LogInternalInformation("FilterTools: No search string provided. Returning filtered tools.");
-                return Task.FromResult(availableTools);
+                return availableTools;
             }
 
             var filteredTools = availableTools
@@ -84,7 +114,7 @@ namespace Agent.Runtime.Services
 
             _logger.LogInternalInformation("FilterTools: Filtered tools count: {FilteredCount} for searchString: {SearchString}", filteredTools.Count, searchString);
 
-            return Task.FromResult(filteredTools);
+            return filteredTools;
         }
 
         public Task<List<ToolInfo>> GetIncidentHandlerTools(string platform)
