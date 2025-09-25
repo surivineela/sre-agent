@@ -43,12 +43,12 @@ public class ContainerAppIcMPlugin : IContainerAppIcMPlugin
         var now = DateTime.UtcNow;
 
         // If no endDate, set to now
-        DateTime endDate = issueLastOccurene
-            ?? (reportedIssueObservedOnTime.HasValue ? reportedIssueObservedOnTime.Value.AddDays(2) : now);
+        DateTime endDate = (issueLastOccurene != null && issueLastOccurene != DateTime.MinValue) ? issueLastOccurene.Value
+            : (reportedIssueObservedOnTime.HasValue ? reportedIssueObservedOnTime.Value.AddDays(2) : now);
 
         // If no startDate, set to now-10d
-        DateTime startDate = issueFirstOccurence
-            ?? (reportedIssueObservedOnTime.HasValue ? reportedIssueObservedOnTime.Value.AddDays(-2) : now.AddDays(-10));
+        DateTime startDate = (issueFirstOccurence != null && issueFirstOccurence != DateTime.MinValue) ? issueFirstOccurence.Value
+            : (reportedIssueObservedOnTime.HasValue ? reportedIssueObservedOnTime.Value.AddDays(-2) : now.AddDays(-10));
 
         // Ensure the start date is not after the end date
         if (startDate > endDate)
@@ -62,7 +62,7 @@ public class ContainerAppIcMPlugin : IContainerAppIcMPlugin
             startDate = endDate.AddMonths(-1);
         }
 
-        
+
 
         // Add a 1-hour buffer before and after the time window to capture events near the start and end of the investigation period.
         startDate = startDate.AddHours(-1);
@@ -96,12 +96,12 @@ public class ContainerAppIcMPlugin : IContainerAppIcMPlugin
     {
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         List<DiscussionEntry> allDiscussionEntries = await _icmApiClient.GetIncidentDiscussionEntriesAsync(incidentId) ?? new List<DiscussionEntry>();
-        
+
         // Filter discussion entries based on queryFrom date
         List<DiscussionEntry> discussionEntries = allDiscussionEntries
             .Where(entry => entry.Date >= queryFrom.DateTime)
             .ToList();
-            
+
         foreach (var discussionEntry in discussionEntries)
         {
             if (discussionEntry.Text != null && discussionEntry.IsHtml)
