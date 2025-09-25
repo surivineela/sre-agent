@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using Microsoft.Identity.Client.Extensibility;
 
 namespace Agent.Framework;
 
@@ -577,6 +578,8 @@ public static class Runner
         tools.AddRange(agent.Tools);
         tools.AddRange(await hooks.OnResolveFactoryTools(contextWrapper, agent));
         tools.AddRange(agent.Handoffs);
+
+        tools = ValidateTools(tools, logger);
 
         var chatOptions = new ChatOptions
         {
@@ -1318,5 +1321,29 @@ public static class Runner
     {
         return content is FunctionCallContent f
             && string.Equals(f.Name, ToDoWriteTool.ToolName, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static List<AIFunction> ValidateTools(List<AIFunction> tools, ILogger logger)
+    {
+        var validTools = new List<AIFunction>();
+
+        foreach (var tool in tools)
+        {
+            if (string.IsNullOrWhiteSpace(tool.Name) || tool.Name.Length > 64)
+            {
+                logger.LogCritical("Tool with invalid name '{ToolName}' was removed from the tool list.", tool.Name);
+                continue;
+            }
+
+            if (tool.Description.Length > 1024)
+            {
+                logger.LogCritical("Tool '{ToolName}' has a description that is too long and was removed from the tool list.", tool.Name);
+                continue;
+            }
+
+            validTools.Add(tool);
+        }
+
+        return validTools;
     }
 }
