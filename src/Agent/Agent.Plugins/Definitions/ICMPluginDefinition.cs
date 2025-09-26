@@ -214,10 +214,34 @@ public class ICMPluginDefinition
     }
 
     [Description("Add a file attachment to an ICM incident by reading a file from the local filesystem")]
-    public async Task<string> AddIncidentAttachment(
+    public async Task<string> AddIncidentAttachmentFromFile(
         [Description("Incident ID")] string incidentId,
         [Description("Local file path to attach to the incident")] string filePath)
     {
-        return await _icmPlugin.AddIncidentAttachment(incidentId, filePath);
+        return await _icmPlugin.AddIncidentAttachmentFromFile(incidentId, filePath);
+    }
+
+    [Description("Add a file attachment to an ICM incident from string content without requiring a local file")]
+    public async Task<string> AddIncidentAttachmentFromContent(
+        [Description("Incident ID")] string incidentId,
+        [Description("Name of the file to create (with extension)")] string fileName,
+        [Description("String content to attach as a file")] string content)
+    {
+        return await _icmPlugin.AddIncidentAttachmentFromContent(incidentId, fileName, content);
+    }
+
+    [Description("List all attachments for an ICM incident")]
+    public async Task<List<Attachment>> ListIncidentAttachments(
+        [Description("Incident ID")] string incidentId)
+    {
+        return await _icmPlugin.ListIncidentAttachments(incidentId);
+    }
+
+    [Description("Download an attachment from an ICM incident. For text files (.txt, .log, .csv) under 1MB, returns content as string. Larger files or other types are saved locally.")]
+    public async Task<string> DownloadIncidentAttachment(
+        [Description("Incident ID")] string incidentId,
+        [Description("Attachment ID to download")] string attachmentId)
+    {
+        return await _icmPlugin.DownloadIncidentAttachment(incidentId, attachmentId);
     }
 }

@@ -45,6 +45,19 @@ namespace Agent.Core.Models.ICM
         public string? Datacenter { get; set; }
     }
 
+    public class Attachment
+    {
+        public required long Id { get; set; }
+        public required string FileName { get; set; }
+        public required string FileUrl { get; set; }
+        public string? ContentBase64 { get; set; }
+        public required string UploadedBy { get; set; }
+        public required DateTime UploadedDate { get; set; }
+        public required long Size { get; set; }
+        public string? Type { get; set; }
+        public required bool AllowAnonymousAccess { get; set; }
+    }
+
     public class MitigationData
     {
         public required string MitigationSteps { get; set; }

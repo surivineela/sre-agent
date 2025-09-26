@@ -43,6 +43,8 @@ namespace Agent.Core.Services
         Task<List<string>> GetChildIncidentsInfoAsync(long incidentId);
         Task<List<IncidentRepairItem>> GetIncidentRepairItemsAsync(long incidentId);
         Task<string> AddIncidentAttachment(string incidentId, string fileName, string base64Content);
+        Task<List<Attachment>> ListIncidentAttachments(string incidentId);
+        Task<string> DownloadIncidentAttachment(string incidentId, string attachmentId);
     }
 
     public class ICMAPIClient : IICMAPIClient
@@ -981,6 +983,106 @@ namespace Agent.Core.Services
                 throw new Exception($"Failed to retrieve incident repair items. Status code: {response.StatusCode} : {await response.Content.ReadAsStringAsync()}");
             }
         }
+
+        public async Task<List<Attachment>> ListIncidentAttachments(string incidentId)
+        {
+            var apiPath = $"{IcmAPIPathPrefix}/incidents({incidentId})/GetIncidentDetails?$expand=Attachments";
+            var response = await SendICMGetRequestAsync(apiPath);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception($"Failed to retrieve incident attachments. Status code: {response.StatusCode}");
+            }
+
+            var responseString = await response.Content.ReadAsStringAsync();
+            var obj = JsonConvert.DeserializeObject<JObject>(responseString);
+
+            if (obj == null || !obj.TryGetValue("Attachments", out var attachmentsToken))
+            {
+                return new List<Attachment>();
+            }
+
+            var attachments = attachmentsToken.ToObject<List<Attachment>>();
+            return attachments ?? new List<Attachment>();
+        }
+
+        public async Task<string> DownloadIncidentAttachment(string incidentId, string attachmentId)
+        {
+            try
+            {
+                // First get attachment metadata to check file extension and size
+                var attachments = await ListIncidentAttachments(incidentId);
+                var attachment = attachments.FirstOrDefault(a => a.Id.ToString() == attachmentId);
+                
+                if (attachment == null)
+                {
+                    return $"Attachment with ID {attachmentId} not found for incident {incidentId}.";
+                }
+
+                var fileExtension = Path.GetExtension(attachment.FileName).ToLowerInvariant();
+                var allowedTextExtensions = new HashSet<string> { ".txt", ".log", ".csv" };
+                var fileSizeInBytes = attachment.Size;
+                const long maxSizeForTextReturn = 1024 * 1024; // 1MB
+
+                // Download the file directly using GET request
+                var url = $"{_icmApiSettings.APIEndpoint}/api2/attachmentapi/attachments({attachmentId})";
+                var response = await _httpClient.GetAsync(url);
+                
+                if (!response.IsSuccessStatusCode)
+                {
+                    return $"Failed to download attachment. Status code: {response.StatusCode}";
+                }
+
+                // Check if this is a text file that we should return content for
+                if (allowedTextExtensions.Contains(fileExtension))
+                {
+                    if (fileSizeInBytes <= maxSizeForTextReturn)
+                    {
+                        // Return content as string for small text files
+                        var fileContent = await response.Content.ReadAsStringAsync();
+                        return fileContent;
+                    }
+                    else
+                    {
+                        // Save large text files locally and return error message
+                        var fileName = $"attachment_{attachmentId}_{attachment.FileName}";
+                        var filePath = Path.Combine(Path.GetTempPath(), fileName);
+                        
+                        try
+                        {
+                            var fileBytes = await response.Content.ReadAsByteArrayAsync();
+                            await File.WriteAllBytesAsync(filePath, fileBytes);
+                            return $"File size ({fileSizeInBytes} bytes) exceeds 1MB limit. File saved locally at: {filePath}";
+                        }
+                        catch (Exception fileEx)
+                        {
+                            return $"Failed to save large file locally. File size: {fileSizeInBytes} bytes. Error: {fileEx.Message}";
+                        }
+                    }
+                }
+                else
+                {
+                    // Save non-text files locally
+                    var fileName = $"attachment_{attachmentId}_{attachment.FileName}";
+                    var filePath = Path.Combine(Path.GetTempPath(), fileName);
+                    
+                    try
+                    {
+                        var fileBytes = await response.Content.ReadAsByteArrayAsync();
+                        await File.WriteAllBytesAsync(filePath, fileBytes);
+                        return $"File downloaded and saved locally at: {filePath}";
+                    }
+                    catch (Exception fileEx)
+                    {
+                        return $"Failed to save file locally. Error: {fileEx.Message}";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return $"Error downloading attachment: {ex.Message}";
+            }
+        }
     }
 
     public class NullableICMAPIClient : IICMAPIClient
@@ -1101,6 +1203,16 @@ namespace Agent.Core.Services
         }
 
         public Task<string> AddIncidentAttachment(string incidentId, string fileName, string base64Content)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<Attachment>> ListIncidentAttachments(string incidentId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> DownloadIncidentAttachment(string incidentId, string attachmentId)
         {
             throw new NotImplementedException();
         }

@@ -678,13 +678,11 @@ Example structure:
         return childIncidents;
     }
 
-    [KernelFunction("add_incident_attachment")]
-    [Description("Add a file attachment to an ICM incident by reading a file from the local filesystem")]
-    public async Task<string> AddIncidentAttachment(
+    public async Task<string> AddIncidentAttachmentFromFile(
         [Description("Incident ID")] string incidentId,
         [Description("Local file path to attach to the incident")] string filePath)
     {
-        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(AddIncidentAttachment)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}, filePath: {filePath}";
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(AddIncidentAttachmentFromFile)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}, filePath: {filePath}";
         _logger.LogInternalInformation(logMessage);
 
         try
@@ -754,6 +752,134 @@ Example structure:
             var errorMessage = $"Failed to add attachment to incident {incidentId} from file {filePath}. Error: {ex.Message}";
             _logger.LogInternalError(ex, errorMessage);
             throw new Exception(errorMessage, ex);
+        }
+    }
+
+    public async Task<string> AddIncidentAttachmentFromContent(
+        [Description("Incident ID")] string incidentId,
+        [Description("Name of the file to create (with extension)")] string fileName,
+        [Description("String content to attach as a file")] string content)
+    {
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(AddIncidentAttachmentFromContent)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}, fileName: {fileName}";
+        _logger.LogInternalInformation(logMessage);
+
+        try
+        {
+            // Validate inputs
+            if (string.IsNullOrWhiteSpace(incidentId))
+            {
+                throw new ArgumentException("Incident ID cannot be null or empty.", nameof(incidentId));
+            }
+
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                throw new ArgumentException("File name cannot be null or empty.", nameof(fileName));
+            }
+
+            if (content == null)
+            {
+                throw new ArgumentException("Content cannot be null.", nameof(content));
+            }
+
+            // Check file type - only allow specific extensions
+            var allowedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ".png", ".html", ".txt", ".zip", ".csv", ".json", ".xlsx", ".svg", ".jpg", ".docx", 
+                ".msg", ".pdf", ".log", ".eml", ".mp4", ".xml", ".gif", ".jpeg", ".dat", ".etl", 
+                ".sts", ".sql", ".mht", ".cab", ".evtx", ".pptx", ".sqlplan", ".alcpuprofile", 
+                ".7z", ".pbix", ".rar", ".one", ".yaml", ".py", ".jfif", ".wav", ".xls", ".tsv", 
+                ".tiff", ".tgz", ".sit", ".sgml", ".rtf", ".rdf", ".ram", ".ra", ".qt", ".ppt", 
+                ".pl", ".ogg", ".mpeg", ".mp3", ".midi", ".jar", ".hqx", ".gz", ".doc", ".dtd", 
+                ".css", ".bz2", ".bmp", ".avi", ".au"
+            };
+
+            var fileExtension = Path.GetExtension(fileName);
+            if (string.IsNullOrEmpty(fileExtension) || !allowedExtensions.Contains(fileExtension))
+            {
+                throw new InvalidOperationException($"File type '{fileExtension}' is not allowed. Allowed file types: {string.Join(", ", allowedExtensions.OrderBy(x => x))}");
+            }
+
+            // Convert string content to bytes and check size
+            byte[] contentBytes = Encoding.UTF8.GetBytes(content);
+            
+            // Check content size (15MB limit as per ICM API documentation)
+            const long maxFileSizeBytes = 15 * 1024 * 1024; // 15MB
+            if (contentBytes.Length > maxFileSizeBytes)
+            {
+                throw new InvalidOperationException($"Content size ({contentBytes.Length} bytes) exceeds the maximum allowed size of {maxFileSizeBytes} bytes (15MB).");
+            }
+
+            _logger.LogInternalInformation($"Converting content to base64 for file: {fileName} (Size: {contentBytes.Length} bytes)");
+
+            // Convert content to base64
+            string base64Content = Convert.ToBase64String(contentBytes);
+
+            _logger.LogInternalInformation($"Successfully converted content to base64. Base64 length: {base64Content.Length} characters");
+
+            // Call the ICM API client to add the attachment
+            var result = await _icmApiClient.AddIncidentAttachment(incidentId, fileName, base64Content);
+
+            _logger.LogInternalInformation($"Successfully attached content as file '{fileName}' to incident {incidentId}");
+            return result;
+        }
+        catch (Exception ex)
+        {
+            var errorMessage = $"Failed to add attachment to incident {incidentId} from content with fileName {fileName}. Error: {ex.Message}";
+            _logger.LogInternalError(ex, errorMessage);
+            throw new Exception(errorMessage, ex);
+        }
+    }
+
+    public async Task<List<Attachment>> ListIncidentAttachments(string incidentId)
+    {
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(ListIncidentAttachments)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+        _logger.LogInternalInformation(logMessage);
+
+        try
+        {
+            if (string.IsNullOrWhiteSpace(incidentId))
+            {
+                throw new ArgumentException("Incident ID cannot be null or empty.", nameof(incidentId));
+            }
+
+            var attachments = await _icmApiClient.ListIncidentAttachments(incidentId);
+            _logger.LogInternalInformation($"Successfully retrieved {attachments.Count} attachments for incident {incidentId}");
+            return attachments;
+        }
+        catch (Exception ex)
+        {
+            var errorMessage = $"Failed to list attachments for incident {incidentId}. Error: {ex.Message}";
+            _logger.LogInternalError(ex, errorMessage);
+            throw new Exception(errorMessage, ex);
+        }
+    }
+
+    public async Task<string> DownloadIncidentAttachment(string incidentId, string attachmentId)
+    {
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(DownloadIncidentAttachment)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}, attachmentId {attachmentId}";
+        _logger.LogInternalInformation(logMessage);
+
+        try
+        {
+            if (string.IsNullOrWhiteSpace(incidentId))
+            {
+                throw new ArgumentException("Incident ID cannot be null or empty.", nameof(incidentId));
+            }
+
+            if (string.IsNullOrWhiteSpace(attachmentId))
+            {
+                throw new ArgumentException("Attachment ID cannot be null or empty.", nameof(attachmentId));
+            }
+
+            var result = await _icmApiClient.DownloadIncidentAttachment(incidentId, attachmentId);
+            _logger.LogInternalInformation($"Successfully processed download request for attachment {attachmentId} from incident {incidentId}");
+            return result;
+        }
+        catch (Exception ex)
+        {
+            var errorMessage = $"Failed to download attachment {attachmentId} from incident {incidentId}. Error: {ex.Message}";
+            _logger.LogInternalError(ex, errorMessage);
+            return errorMessage; // Return error message instead of throwing for download operations
         }
     }
 }
