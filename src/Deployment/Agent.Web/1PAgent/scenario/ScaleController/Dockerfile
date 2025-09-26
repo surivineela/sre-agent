@@ -3,6 +3,18 @@ FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /app
 COPY . .
 
+RUN apt-get update && \
+    apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release git curl && \
+    mkdir -p /etc/apt/keyrings && \
+    curl -sLS https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | tee /etc/apt/keyrings/microsoft.gpg > /dev/null && \
+    chmod go+r /etc/apt/keyrings/microsoft.gpg && \
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs && \
+    node -v && npm -v && \
+    echo 'Installing MCP CLI (@azure/mcp@0.5.11)...' && \
+    (npm install -g @azure/mcp@0.5.11 || (echo 'Fallback: cloning repo'; git clone --depth 1 --branch v0.5.11 https://github.com/Azure/mcp /tmp/mcp && cd /tmp/mcp && npm ci && npm install -g .)) && \
+    npm cache clean --force && rm -rf /var/lib/apt/lists/* /tmp/mcp   # Install Node.js 20 (required for MCP CLI)
+
 # Set environment variables (optional)
 ENV ASPNETCORE_URLS=http://+:8080
 ENV DOTNET_RUNNING_IN_CONTAINER=true
