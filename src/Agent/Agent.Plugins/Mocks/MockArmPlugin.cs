@@ -237,5 +237,25 @@ namespace Agent.Plugins.Mocks
         {
             return Task.FromResult("Mock: All Azure Front Door endpoint origins are healthy");
         }
+
+        public Task<(bool, string)> RunAzureDataFactoryPipeline(string subscriptionId, string resourceGroupName, string dataFactoryName, string pipelineName)
+        {
+            return Task.FromResult((true, $"Mock: Azure Data Factory pipeline {pipelineName} started successfully"));
+        }
+
+        public Task<(bool, string)> StopAzureDataFactoryPipeline(string subscriptionId, string resourceGroupName, string dataFactoryName, string pipelineName)
+        {
+            return Task.FromResult((true, $"Mock: Azure Data Factory pipeline {pipelineName} stopped successfully"));
+        }
+
+        public Task<(bool, string)> RestartAzureDataFactoryPipeline(string subscriptionId, string resourceGroupName, string dataFactoryName, string pipelineName)
+        {
+            return Task.FromResult((true, $"Mock: Azure Data Factory pipeline {pipelineName} restarted successfully"));
+        }
+
+        public Task<string> GetAllAzureDataFactoryPipelinesStatus(string subscriptionId, string resourceGroupName, string dataFactoryName)
+        {
+            return Task.FromResult("Mock: All Azure Data Factory pipelines are running successfully");
+        }
     }
 }

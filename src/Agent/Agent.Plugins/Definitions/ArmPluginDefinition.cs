@@ -322,5 +322,57 @@ NOTE: This is an internal tool for command validation, not for generating user d
         {
             return await _armPlugin.GetAllAzureFrontDoorEndpointOriginsStatus(subscriptionId, resourceGroupName, frontDoorProfileName);
         }
+
+        [RequiresApproval]
+        [WriteAction]
+        [OboContext(scope: Constants.DefaultOboTokenScope)]
+        [Description("Starts (runs) an Azure Data Factory pipeline")]
+        public async Task<string> RunAzureDataFactoryPipeline(
+            [Description("The subscription ID containing the Azure Data Factory")] string subscriptionId,
+            [Description("The name of the resource group containing the Azure Data Factory")] string resourceGroupName,
+            [Description("The name of the Azure Data Factory")] string dataFactoryName,
+            [Description("The name of the pipeline to run")] string pipelineName)
+        {
+            var result = await _armPlugin.RunAzureDataFactoryPipeline(subscriptionId, resourceGroupName, dataFactoryName, pipelineName);
+            return result.Item1 ? result.Item2 : $"Failed to run pipeline: {result.Item2}";
+        }
+
+        [RequiresApproval]
+        [WriteAction]
+        [OboContext(scope: Constants.DefaultOboTokenScope)]
+        [Description("Stops (cancels) an Azure Data Factory pipeline")]
+        public async Task<string> StopAzureDataFactoryPipeline(
+            [Description("The subscription ID containing the Azure Data Factory")] string subscriptionId,
+            [Description("The name of the resource group containing the Azure Data Factory")] string resourceGroupName,
+            [Description("The name of the Azure Data Factory")] string dataFactoryName,
+            [Description("The name of the pipeline to stop")] string pipelineName)
+        {
+            var result = await _armPlugin.StopAzureDataFactoryPipeline(subscriptionId, resourceGroupName, dataFactoryName, pipelineName);
+            return result.Item1 ? result.Item2 : $"Failed to stop pipeline: {result.Item2}";
+        }
+
+        [RequiresApproval]
+        [WriteAction]
+        [OboContext(scope: Constants.DefaultOboTokenScope)]
+        [Description("Restarts an Azure Data Factory pipeline (stops and then starts)")]
+        public async Task<string> RestartAzureDataFactoryPipeline(
+            [Description("The subscription ID containing the Azure Data Factory")] string subscriptionId,
+            [Description("The name of the resource group containing the Azure Data Factory")] string resourceGroupName,
+            [Description("The name of the Azure Data Factory")] string dataFactoryName,
+            [Description("The name of the pipeline to restart")] string pipelineName)
+        {
+            var result = await _armPlugin.RestartAzureDataFactoryPipeline(subscriptionId, resourceGroupName, dataFactoryName, pipelineName);
+            return result.Item1 ? result.Item2 : $"Failed to restart pipeline: {result.Item2}";
+        }
+
+        [Description("Gets the status of all pipelines in an Azure Data Factory with execution details")]
+        [AgentTool(ToolMode.Auto)]
+        public async Task<string> GetAllAzureDataFactoryPipelinesStatus(
+            [Description("The subscription ID containing the Azure Data Factory")] string subscriptionId,
+            [Description("The name of the resource group containing the Azure Data Factory")] string resourceGroupName,
+            [Description("The name of the Azure Data Factory")] string dataFactoryName)
+        {
+            return await _armPlugin.GetAllAzureDataFactoryPipelinesStatus(subscriptionId, resourceGroupName, dataFactoryName);
+        }
     }
 }

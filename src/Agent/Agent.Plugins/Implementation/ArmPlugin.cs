@@ -637,6 +637,26 @@ namespace Agent.Plugins.Implementation
             return await _armHelper.GetAllAzureFrontDoorEndpointOriginsStatus(subscriptionId, resourceGroupName, frontDoorProfileName);
         }
 
+        public async Task<(bool, string)> RunAzureDataFactoryPipeline(string subscriptionId, string resourceGroupName, string dataFactoryName, string pipelineName)
+        {
+            return await _armHelper.RunAzureDataFactoryPipeline(subscriptionId, resourceGroupName, dataFactoryName, pipelineName);
+        }
+
+        public async Task<(bool, string)> StopAzureDataFactoryPipeline(string subscriptionId, string resourceGroupName, string dataFactoryName, string pipelineName)
+        {
+            return await _armHelper.StopAzureDataFactoryPipeline(subscriptionId, resourceGroupName, dataFactoryName, pipelineName);
+        }
+
+        public async Task<(bool, string)> RestartAzureDataFactoryPipeline(string subscriptionId, string resourceGroupName, string dataFactoryName, string pipelineName)
+        {
+            return await _armHelper.RestartAzureDataFactoryPipeline(subscriptionId, resourceGroupName, dataFactoryName, pipelineName);
+        }
+
+        public async Task<string> GetAllAzureDataFactoryPipelinesStatus(string subscriptionId, string resourceGroupName, string dataFactoryName)
+        {
+            return await _armHelper.GetAllAzureDataFactoryPipelinesStatus(subscriptionId, resourceGroupName, dataFactoryName);
+        }
+
     }
 }
 

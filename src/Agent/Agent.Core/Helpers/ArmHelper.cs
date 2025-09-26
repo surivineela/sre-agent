@@ -1557,6 +1557,427 @@ public class ArmHelper
         return parts.Length > 0 ? parts[parts.Length - 1] : string.Empty;
     }
 
+    public async Task<(bool, string)> RunAzureDataFactoryPipeline(
+        string subscriptionId,
+        string resourceGroupName,
+        string dataFactoryName,
+        string pipelineName)
+    {
+        return await ManageAzureDataFactoryPipelineExecution(subscriptionId, resourceGroupName, dataFactoryName, pipelineName, "Start");
+    }
+
+    public async Task<(bool, string)> StopAzureDataFactoryPipeline(
+        string subscriptionId,
+        string resourceGroupName,
+        string dataFactoryName,
+        string pipelineName)
+    {
+        return await ManageAzureDataFactoryPipelineExecution(subscriptionId, resourceGroupName, dataFactoryName, pipelineName, "Stop");
+    }
+
+    public async Task<(bool, string)> RestartAzureDataFactoryPipeline(
+        string subscriptionId,
+        string resourceGroupName,
+        string dataFactoryName,
+        string pipelineName)
+    {
+        try
+        {
+            _logger.LogInternalInformation($"Restarting Azure Data Factory pipeline '{pipelineName}'...");
+
+            // First stop the pipeline
+            var stopResult = await ManageAzureDataFactoryPipelineExecution(
+                subscriptionId, resourceGroupName, dataFactoryName, pipelineName, "Stop");
+
+            if (!stopResult.Item1)
+            {
+                return (false, $"Error during stop phase: {stopResult.Item2}");
+            }
+
+            // Wait a moment for the stop to take effect
+            await Task.Delay(2000);
+
+            // Then start the pipeline
+            var startResult = await ManageAzureDataFactoryPipelineExecution(
+                subscriptionId, resourceGroupName, dataFactoryName, pipelineName, "Start");
+
+            if (!startResult.Item1)
+            {
+                return (false, $"Error during start phase: {startResult.Item2}");
+            }
+
+            return (true, $"Successfully restarted pipeline '{pipelineName}' in Data Factory '{dataFactoryName}'");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Failed to restart Azure Data Factory pipeline '{pipelineName}'");
+            return (false, $"Error: {ex.Message}");
+        }
+    }
+
+    public async Task<string> GetAllAzureDataFactoryPipelinesStatus(
+        string subscriptionId,
+        string resourceGroupName,
+        string dataFactoryName)
+    {
+        try
+        {
+            _logger.LogInternalInformation("Retrieving all Azure Data Factory pipelines status...");
+
+            var pipelinesUrl = new Uri(new Uri("https://management.azure.com"),
+                $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataFactory/factories/{dataFactoryName}/pipelines?api-version=2018-06-01");
+
+            var cred = await _authService.GetArmOperationCredential();
+            var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
+
+            var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+
+            HttpRequestMessage pipelinesRequest = new HttpRequestMessage(HttpMethod.Get, pipelinesUrl);
+            pipelinesRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+
+            HttpResponseMessage pipelinesResponse = await httpClient.SendAsync(pipelinesRequest);
+            string pipelinesResponseBody = await pipelinesResponse.Content.ReadAsStringAsync();
+
+            if (!pipelinesResponse.IsSuccessStatusCode)
+            {
+                if (CheckForUnauthorizedAccess(pipelinesResponse))
+                {
+                    throw new ToolExecutionUnauthorizedException($"Unauthorized access");
+                }
+                return $"Error getting pipelines: {pipelinesResponse.StatusCode}, {pipelinesResponseBody}";
+            }
+
+            using JsonDocument pipelinesJson = JsonDocument.Parse(pipelinesResponseBody);
+            var pipelinesRoot = pipelinesJson.RootElement;
+
+            if (pipelinesRoot.TryGetProperty("value", out var pipelinesArray) && pipelinesArray.ValueKind == JsonValueKind.Array)
+            {
+                int pipelineCount = pipelinesArray.GetArrayLength();
+                _logger.LogInternalInformation($"Found {pipelineCount} pipelines in Data Factory {dataFactoryName}");
+
+                var allPipelinesInfo = new List<object>();
+
+                foreach (var pipeline in pipelinesArray.EnumerateArray())
+                {
+                    string pipelineName = pipeline.GetProperty("name").GetString() ?? "";
+                    _logger.LogInternalInformation($"Processing pipeline: {pipelineName}");
+
+                    // Get pipeline execution details
+                    var pipelineDetails = await GetAzureDataFactoryPipelineDetails(
+                        subscriptionId, resourceGroupName, dataFactoryName, pipelineName, httpClient, cred);
+
+                    allPipelinesInfo.Add(pipelineDetails);
+                }
+
+                var result = new
+                {
+                    FactoryName = dataFactoryName,
+                    PipelineCount = pipelineCount,
+                    Pipelines = allPipelinesInfo
+                };
+
+                return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+            }
+            else
+            {
+                return $"Error: No pipelines found or invalid response format for Data Factory '{dataFactoryName}'";
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Failed to get Azure Data Factory pipelines for factory '{dataFactoryName}'");
+            return $"Error: {ex.Message}";
+        }
+    }
+
+    private async Task<object> GetAzureDataFactoryPipelineDetails(
+        string subscriptionId,
+        string resourceGroupName,
+        string dataFactoryName,
+        string pipelineName,
+        HttpClient httpClient,
+        TokenCredential credential)
+    {
+        try
+        {
+            // Get pipeline runs for the last 7 days
+            var pipelineRunsUrl = new Uri(new Uri("https://management.azure.com"),
+                $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataFactory/factories/{dataFactoryName}/queryPipelineRuns?api-version=2018-06-01");
+
+            var token = await credential.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
+
+            // Create request body for pipeline runs query
+            var lastRunStartTime = DateTime.UtcNow.AddDays(-7).ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+            var lastRunEndTime = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+
+            var queryBody = new
+            {
+                lastUpdatedAfter = lastRunStartTime,
+                lastUpdatedBefore = lastRunEndTime,
+                filters = new[]
+                {
+                    new
+                    {
+                        operand = "PipelineName",
+                        @operator = "Equals",
+                        values = new[] { pipelineName }
+                    }
+                }
+            };
+
+            string queryContent = JsonSerializer.Serialize(queryBody);
+
+            HttpRequestMessage pipelineRunsRequest = new HttpRequestMessage(HttpMethod.Post, pipelineRunsUrl);
+            pipelineRunsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+            pipelineRunsRequest.Content = new StringContent(queryContent, System.Text.Encoding.UTF8, "application/json");
+
+            HttpResponseMessage pipelineRunsResponse = await httpClient.SendAsync(pipelineRunsRequest);
+            string pipelineRunsResponseBody = await pipelineRunsResponse.Content.ReadAsStringAsync();
+
+            DateTime? lastExecutionTime = null;
+            TimeSpan? duration = null;
+            bool isCurrentlyRunning = false;
+            string lastRunStatus = "No runs found";
+            string lastRunId = "";
+
+            if (pipelineRunsResponse.IsSuccessStatusCode)
+            {
+                using JsonDocument runsJson = JsonDocument.Parse(pipelineRunsResponseBody);
+                var runsRoot = runsJson.RootElement;
+
+                if (runsRoot.TryGetProperty("value", out var runsArray) && runsArray.ValueKind == JsonValueKind.Array && runsArray.GetArrayLength() > 0)
+                {
+                    // Sort runs by start time to find the most recent one
+                    var sortedRuns = new List<(JsonElement run, DateTime startTime)>();
+
+                    foreach (var run in runsArray.EnumerateArray())
+                    {
+                        if (run.TryGetProperty("runStart", out var runStart))
+                        {
+                            if (DateTime.TryParse(runStart.GetString(), out var startTime))
+                            {
+                                sortedRuns.Add((run, startTime));
+                            }
+                        }
+                    }
+
+                    if (sortedRuns.Count > 0)
+                    {
+                        // Get the run with the most recent start time
+                        var mostRecentRun = sortedRuns.OrderByDescending(x => x.startTime).First().run;
+
+                        lastRunId = mostRecentRun.GetProperty("runId").GetString() ?? "";
+                        lastRunStatus = mostRecentRun.GetProperty("status").GetString() ?? "Unknown";
+                        isCurrentlyRunning = lastRunStatus.Equals("InProgress", StringComparison.OrdinalIgnoreCase);
+
+                        if (mostRecentRun.TryGetProperty("runStart", out var runStart))
+                        {
+                            if (DateTime.TryParse(runStart.GetString(), out var startTime))
+                            {
+                                lastExecutionTime = startTime;
+
+                                // Use the precise durationInMs field provided by the API
+                                if (mostRecentRun.TryGetProperty("durationInMs", out var durationMs))
+                                {
+                                    if (durationMs.TryGetInt64(out var durationMilliseconds))
+                                    {
+                                        // Round to nearest second to match Azure portal display
+                                        var totalSeconds = Math.Round(durationMilliseconds / 1000.0);
+                                        duration = TimeSpan.FromSeconds(totalSeconds);
+                                    }
+                                }
+                                else if (mostRecentRun.TryGetProperty("runEnd", out var runEnd) && !isCurrentlyRunning)
+                                {
+                                    if (DateTime.TryParse(runEnd.GetString(), out var endTime))
+                                    {
+                                        duration = endTime - startTime;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return new
+            {
+                Name = pipelineName,
+                LastExecutionTime = lastExecutionTime?.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+                Duration = duration?.ToString(@"hh\:mm\:ss"),
+                IsCurrentlyRunning = isCurrentlyRunning,
+                LastRunStatus = lastRunStatus,
+                LastRunId = lastRunId
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalInformation($"Error getting pipeline details for {pipelineName}: {ex.Message}");
+            return new
+            {
+                Name = pipelineName,
+                LastExecutionTime = (string?)null,
+                Duration = (string?)null,
+                IsCurrentlyRunning = false,
+                LastRunStatus = $"Error: {ex.Message}",
+                LastRunId = ""
+            };
+        }
+    }
+
+    private async Task<(bool, string)> ManageAzureDataFactoryPipelineExecution(
+        string subscriptionId,
+        string resourceGroupName,
+        string dataFactoryName,
+        string pipelineName,
+        string action)
+    {
+        try
+        {
+            _logger.LogInternalInformation($"{action}ing Azure Data Factory pipeline '{pipelineName}'...");
+
+            var cred = await _authService.GetArmOperationCredential();
+            var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
+            var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+
+            if (action == "Start")
+            {
+                // Start/Run the pipeline
+                var createRunUrl = new Uri(new Uri("https://management.azure.com"),
+                    $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataFactory/factories/{dataFactoryName}/pipelines/{pipelineName}/createRun?api-version=2018-06-01");
+
+                HttpRequestMessage createRunRequest = new HttpRequestMessage(HttpMethod.Post, createRunUrl);
+                createRunRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+                createRunRequest.Content = new StringContent("{}", System.Text.Encoding.UTF8, "application/json");
+
+                _logger.LogInternalInformation($"Sending request to start pipeline...");
+                HttpResponseMessage createRunResponse = await httpClient.SendAsync(createRunRequest);
+                string createRunResponseBody = await createRunResponse.Content.ReadAsStringAsync();
+
+                if (!createRunResponse.IsSuccessStatusCode)
+                {
+                    if (CheckForUnauthorizedAccess(createRunResponse))
+                    {
+                        throw new ToolExecutionUnauthorizedException($"Unauthorized access");
+                    }
+                    return (false, $"Error starting pipeline: {createRunResponse.StatusCode}, {createRunResponseBody}");
+                }
+
+                using JsonDocument runJson = JsonDocument.Parse(createRunResponseBody);
+                var runId = runJson.RootElement.GetProperty("runId").GetString();
+
+                return (true, $"Successfully started pipeline '{pipelineName}' with run ID: {runId}");
+            }
+            else if (action == "Stop")
+            {
+                // Find and cancel active runs
+                var pipelineRunsUrl = new Uri(new Uri("https://management.azure.com"),
+                    $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataFactory/factories/{dataFactoryName}/queryPipelineRuns?api-version=2018-06-01");
+
+                // Query for active runs in the last day
+                var lastRunStartTime = DateTime.UtcNow.AddDays(-1).ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+                var lastRunEndTime = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+
+                var queryBody = new
+                {
+                    lastUpdatedAfter = lastRunStartTime,
+                    lastUpdatedBefore = lastRunEndTime,
+                    filters = new[]
+                    {
+                        new
+                        {
+                            operand = "PipelineName",
+                            @operator = "Equals",
+                            values = new[] { pipelineName }
+                        },
+                        new
+                        {
+                            operand = "Status",
+                            @operator = "Equals",
+                            values = new[] { "InProgress" }
+                        }
+                    }
+                };
+
+                string queryContent = JsonSerializer.Serialize(queryBody);
+
+                HttpRequestMessage pipelineRunsRequest = new HttpRequestMessage(HttpMethod.Post, pipelineRunsUrl);
+                pipelineRunsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+                pipelineRunsRequest.Content = new StringContent(queryContent, System.Text.Encoding.UTF8, "application/json");
+
+                HttpResponseMessage pipelineRunsResponse = await httpClient.SendAsync(pipelineRunsRequest);
+                string pipelineRunsResponseBody = await pipelineRunsResponse.Content.ReadAsStringAsync();
+
+                if (!pipelineRunsResponse.IsSuccessStatusCode)
+                {
+                    if (CheckForUnauthorizedAccess(pipelineRunsResponse))
+                    {
+                        throw new ToolExecutionUnauthorizedException($"Unauthorized access to query pipeline runs");
+                    }
+                    return (false, $"Error querying pipeline runs: {pipelineRunsResponse.StatusCode}, {pipelineRunsResponseBody}");
+                }
+
+                using JsonDocument runsJson = JsonDocument.Parse(pipelineRunsResponseBody);
+                var runsRoot = runsJson.RootElement;
+
+                if (runsRoot.TryGetProperty("value", out var runsArray) && runsArray.ValueKind == JsonValueKind.Array)
+                {
+                    int cancelledCount = 0;
+
+                    foreach (var run in runsArray.EnumerateArray())
+                    {
+                        string runId = run.GetProperty("runId").GetString() ?? "";
+
+                        if (!string.IsNullOrEmpty(runId))
+                        {
+                            // Cancel this run
+                            var cancelUrl = new Uri(new Uri("https://management.azure.com"),
+                                $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DataFactory/factories/{dataFactoryName}/pipelineruns/{runId}/cancel?api-version=2018-06-01");
+
+                            HttpRequestMessage cancelRequest = new HttpRequestMessage(HttpMethod.Post, cancelUrl);
+                            cancelRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+
+                            HttpResponseMessage cancelResponse = await httpClient.SendAsync(cancelRequest);
+
+                            if (cancelResponse.IsSuccessStatusCode)
+                            {
+                                cancelledCount++;
+                                _logger.LogInternalInformation($"Cancelled run: {runId}");
+                            }
+                            else
+                            {
+                                string cancelResponseBody = await cancelResponse.Content.ReadAsStringAsync();
+                                if (CheckForUnauthorizedAccess(cancelResponse))
+                                {
+                                    throw new ToolExecutionUnauthorizedException($"Unauthorized access to cancel pipeline run {runId}");
+                                }
+                            }
+                        }
+                    }
+
+                    if (cancelledCount > 0)
+                    {
+                        return (true, $"Successfully stopped {cancelledCount} active run(s) of pipeline '{pipelineName}'");
+                    }
+                    else
+                    {
+                        return (true, $"No active runs found for pipeline '{pipelineName}' to stop");
+                    }
+                }
+                else
+                {
+                    return (true, $"No active runs found for pipeline '{pipelineName}' to stop");
+                }
+            }
+
+            return (false, $"Unknown action: {action}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Failed to {action.ToLower()} Azure Data Factory pipeline '{pipelineName}'");
+            return (false, $"Error: {ex.Message}");
+        }
+    }
+
     // Use the generic method for all specific cases:
     public async Task<List<TlsStatus>> GetTlsSettings(List<string> resourceIds)
     {
