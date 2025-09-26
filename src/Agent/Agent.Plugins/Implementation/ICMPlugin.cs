@@ -427,6 +427,25 @@ Example structure:
         return result;
     }
 
+    public async Task<string> UpdateIncidentSeverity(string incidentId, int severity, string discussionEntry)
+    {
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(UpdateIncidentSeverity)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}, severity {severity}.\n<b>discussionEntry</b>:\n {discussionEntry}";
+        _logger.LogInternalInformation(logMessage);
+
+        // Validate severity level
+        if ((severity < 2 || severity > 4) && severity != 25)
+        {
+            var errorMessage = $"Invalid severity level: {severity}. Valid severity levels are: 2=High, 3=Medium, 4=Low, 25=Security Incident";
+            _logger.LogInternalError(errorMessage);
+            throw new ArgumentException(errorMessage, nameof(severity));
+        }
+
+        discussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntry);
+        var result = await _icmApiClient.ChangeSeverityAsync(incidentId, severity, discussionEntry);
+        await AddTagToIncident(incidentId, AgentProcessedTag);
+        return result;
+    }
+
     public async Task<string> ResolveIncident(string incidentId, string discussionEntry)
     {
         var logMessage = $"[{nameof(ICMPlugin)}_{nameof(ResolveIncident)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";

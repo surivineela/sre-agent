@@ -103,6 +103,16 @@ public class ICMPluginDefinition
         return await _icmPlugin.DowngradeSeverity(incidentId, discussionEntry);
     }
 
+    //For the purposes of SRE Agent usage, we are only allowing SRE Agent to set severities 2 or lower.
+    [Description("Update the severity level of an ICM incident to any level (1=Critical, 2=High, 3=Medium, 4=Low)")]
+    public async Task<string> UpdateIncidentSeverity(
+        [Description("Incident ID")] string incidentId,
+        [Description("New severity level (2=Highest, 25 (reserved for Security Incidents), 3, 4=Lowest)")] int severity,
+        [Description("Discussion Entry (HTML) - reason for updating the incident severity")] string discussionEntry)
+    {
+        return await _icmPlugin.UpdateIncidentSeverity(incidentId, severity, discussionEntry);
+    }
+
 
     [Description("Resolve ICM incident")]
     public async Task<string> ResolveIncident(

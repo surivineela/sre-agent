@@ -13,6 +13,7 @@ public interface IICMPlugin
     Task<string> TransferIncident(string incidentId, string discussionEntry, string tenantName, string owningTeam);
     Task<string> MitigateIncident(string incidentId, string discussionEntry);
     Task<string> DowngradeSeverity(string incidentId, string discussionEntry);
+    Task<string> UpdateIncidentSeverity(string incidentId, int severity, string discussionEntry);
     Task<string> ResolveIncident(string incidentId, string discussionEntry);
     Task<string> PostDiscussionEntry(string incidentId, string discussionEntry);
     Task<string> AddTagToIncident(string incidentId, string tag);

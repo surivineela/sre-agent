@@ -454,23 +454,44 @@ namespace Agent.Core.Services
             {
                 return ("Success. ICM API is in read-only mode.");
             }
-            var content = new
+
+            try
             {
-                Severity = severity,
-                NewDescriptionEntry = new
+                // Get current incident to determine the current severity
+                var currentIncident = await GetIncidentAsync(incidentId);
+                var currentSeverity = currentIncident.Severity;
+
+                // Construct the description with severity change information
+                var severityChangeDescription = $"<p>Severity change from {currentSeverity} to {severity}.</p><label>Reason</label><div>{discussionEntry}</div>";
+
+                var content = new
                 {
-                    Text = discussionEntry,
-                    RenderType = htmlRendering ? "Html" : "Plaintext",
-                },
-            };
-            var response = await SendICMPatchRequestAsync($"{IcmAPIPathPrefix}/incidents({incidentId})", content);
-            if (response.IsSuccessStatusCode)
-            {
-                return "Severity changed successfully.";
+                    Id = long.Parse(incidentId),
+                    Description = severityChangeDescription,
+                    Severity = severity
+                };
+
+                // Use the direct API2 incidentapi path as specified
+                var url = $"{_icmApiSettings.APIEndpoint}/api2/incidentapi/incidents({incidentId})";
+                var response = await _httpClient.PatchAsync(url, new StringContent(
+                    JsonConvert.SerializeObject(content), 
+                    Encoding.UTF8, 
+                    "application/json"));
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return $"Severity changed successfully from {currentSeverity} to {severity}.";
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    throw new Exception($"Failed to change severity. Status code: {response.StatusCode}, Error: {errorContent}");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                throw new Exception($"Failed to change severity. Status code: {response.StatusCode}");
+                _logger.LogInternalError(ex, $"Exception changing severity for incident {incidentId}");
+                throw;
             }
         }
 
