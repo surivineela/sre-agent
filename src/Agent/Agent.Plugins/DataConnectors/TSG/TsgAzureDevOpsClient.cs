@@ -95,8 +95,7 @@ namespace Agent.Plugins.DataConnectors.TSG
                 var url = $"https://dev.azure.com/{_settings.Organization}/{_settings.ProjectName}/_apis/git/repositories/{_settings.RepositoryName}/items?scopePath={Uri.EscapeDataString(path)}&recursionLevel={recursionLevel}&includeContent=false&api-version=7.0";
 
                 using var request = new HttpRequestMessage(HttpMethod.Get, url);
-                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-                _logger.LogInternalInformation($"debug message using Bearer: Sending request to URL: {url}");
+                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", token);                
 
                 var response = await _httpClient.SendAsync(request);
                 _logger.LogInternalInformation($"debug message using Bearer: Received response with status code: {response.Content}");
@@ -122,7 +121,7 @@ namespace Agent.Plugins.DataConnectors.TSG
                 var url = $"https://dev.azure.com/{_settings.Organization}/{_settings.ProjectName}/_apis/git/repositories/{_settings.RepositoryName}/items?path={Uri.EscapeDataString(filePath)}&includeContent=true&api-version=7.0";
 
                 using var request = new HttpRequestMessage(HttpMethod.Get, url);
-                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", token);
 
                 var response = await _httpClient.SendAsync(request);
                 response.EnsureSuccessStatusCode();
@@ -156,10 +155,9 @@ namespace Agent.Plugins.DataConnectors.TSG
                 }
 
 
-                return tokenResult.Token; // raw, no base64 required for AzDo 
                 // Convert token to Base64 for Basic Authentication
-                //var tokenBytes = Encoding.ASCII.GetBytes($":{tokenResult.Token}");
-                //return Convert.ToBase64String(tokenBytes);
+                var tokenBytes = Encoding.ASCII.GetBytes($":{tokenResult.Token}");
+                return Convert.ToBase64String(tokenBytes);
             }
             catch (Exception ex)
             {
