@@ -3644,10 +3644,17 @@ public class ArmHelper
 
             // pre-fetch obo tokens for other scopes for az cli to use
             var additionalTokens = new Dictionary<string, string>();
-            additionalTokens[Constants.ArmOboTokenScope] = (await cred.GetTokenAsync(new TokenRequestContext(new[] { Constants.ArmOboTokenScope }), default)).Token;
-            additionalTokens[Constants.AksOboTokenScope] = (await cred.GetTokenAsync(new TokenRequestContext(new[] { Constants.AksOboTokenScope }), default)).Token;
-            additionalTokens[Constants.AkvOboTokenScope] = (await cred.GetTokenAsync(new TokenRequestContext(new[] { Constants.AkvOboTokenScope }), default)).Token;
-            additionalTokens[Constants.StorageOboTokenScope] = (await cred.GetTokenAsync(new TokenRequestContext(new[] { Constants.StorageOboTokenScope }), default)).Token;
+
+            var tokenTasks = new List<Task>
+            {
+                Task.Run(async () => additionalTokens[Constants.ArmOboTokenScope] = (await cred.GetTokenAsync(new TokenRequestContext([Constants.ArmOboTokenScope]), default)).Token),
+                Task.Run(async () => additionalTokens[Constants.AksOboTokenScope] = (await cred.GetTokenAsync(new TokenRequestContext([Constants.AksOboTokenScope]), default)).Token),
+                Task.Run(async () => additionalTokens[Constants.AkvOboTokenScope] = (await cred.GetTokenAsync(new TokenRequestContext([Constants.AkvOboTokenScope]), default)).Token),
+                Task.Run(async () => additionalTokens[Constants.StorageOboTokenScope] = (await cred.GetTokenAsync(new TokenRequestContext([Constants.StorageOboTokenScope]), default)).Token),
+                Task.Run(async () => additionalTokens[Constants.SynapseOboTokenScope] = (await cred.GetTokenAsync(new TokenRequestContext([Constants.SynapseOboTokenScope]), default)).Token),
+            };
+
+            await Task.WhenAll(tokenTasks);
 
             var cliExecution = new AzCliExecution(_logger, command, _azureSettings.SessionPool, _sessionPoolService, accessToken: token.Token, isDevelopment: _hostEnvironment.IsDevelopment(), additionalTokens: additionalTokens);
             var result = await cliExecution.ExecuteAsync();
