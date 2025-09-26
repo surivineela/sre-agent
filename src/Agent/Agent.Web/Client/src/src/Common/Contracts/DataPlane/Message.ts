@@ -21,17 +21,7 @@ export interface MessageContent {
     memorySearchResult?: MemorySearchResult;
 }
 
-export interface Message extends MessageMetaData {
-    text: string;
-    approval?: Approval;
-    azCliExecution?: AzCliExecution;
-    kubectlExecution?: KubectlExecution;
-    psqlExecution?: PsqlExecution;
-    isDailyReport?: boolean;
-    changeDiff?: ChangeDiffViewer;
-    agentTaskInfo?: AgentTaskMetaData;
-    memorySearchResult?: MemorySearchResult;
-}
+export interface Message extends MessageMetaData, MessageContent {}
 
 export interface Approval {
     id: string;
