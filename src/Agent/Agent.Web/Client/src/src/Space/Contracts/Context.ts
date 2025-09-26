@@ -7,6 +7,10 @@ import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
 import { AgentContextProps, ChatMessage } from './Activities';
 
 type SreAgentContextProps = {
+    activities: {
+        lastVisitedThreadId: string | undefined;
+        setLastVisitedThreadId: (lastVisitedThreadId: string | undefined) => void;
+    };
     grafana: {
         isGrafanaUpdating: boolean;
         deploymentId: string;
@@ -82,6 +86,10 @@ type AgentTaskGraphContextProps = {
 };
 
 export const SreAgentContext = createContext<SreAgentContextProps>({
+    activities: {
+        lastVisitedThreadId: undefined,
+        setLastVisitedThreadId: () => {},
+    },
     grafana: {
         isGrafanaUpdating: false,
         deploymentId: '',

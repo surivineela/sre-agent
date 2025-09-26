@@ -9,6 +9,7 @@ import { Guid } from '../../Common/Helpers/Guid';
 import { ActivitiesThreadHeaderResources } from '../../Strings/SREAgentResources';
 import { isThreadUnread } from '../Activities/Utility';
 import { ThreadMenuHandle } from '../Contracts/Activities';
+import { SreAgentContext } from '../Contracts/Context';
 
 export const useActivities = () => {
     const intl = useIntl();
@@ -22,9 +23,14 @@ export const useActivities = () => {
 
     const untouched = useRef<boolean>(true);
     const threadMenuHandleRef = useRef<ThreadMenuHandle>(null);
+    const activeThreadIdRef = useRef<string>(activeThreadId);
+    activeThreadIdRef.current = activeThreadId;
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const proxy = useContext(AzPortalContext);
+    const {
+        activities: { setLastVisitedThreadId },
+    } = useContext(SreAgentContext);
 
     const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
 
@@ -169,6 +175,15 @@ export const useActivities = () => {
             isSubscribed = false;
         };
     }, [initialThreadId, activeThreadId, selectThread, threadClient, proxy]);
+
+    useEffect(() => {
+        return () => {
+            // Update the last visited thread id when navigating away from Activities tab
+            if (activeThreadIdRef.current) {
+                setLastVisitedThreadId(activeThreadIdRef.current);
+            }
+        };
+    }, []);
 
     return {
         selectedThread,

@@ -133,6 +133,7 @@ const TabsListWrapper: FC = () => {
     const { logAmplitudeNavigationEvent } = useAzPortalContext();
 
     const {
+        activities: { lastVisitedThreadId },
         agent: { setMode },
     } = sreAgentContext;
     const intl = useIntl();
@@ -194,7 +195,7 @@ const TabsListWrapper: FC = () => {
 
             if (data.value === TabValues.Activities) {
                 if (!location.pathname?.startsWith('/views/activities')) {
-                    navigate({ ...location, pathname: '/views/activities' });
+                    navigate({ ...location, pathname: `/views/activities${lastVisitedThreadId ? `/threads/${lastVisitedThreadId}` : ''}` });
                 }
             } else if (data.value === TabValues.Graph) {
                 navigate({ ...location, pathname: '/views/resourcegraph' });
@@ -214,7 +215,7 @@ const TabsListWrapper: FC = () => {
                 onLogsClick();
             }
         },
-        [location, navigate, onLogsClick, logAmplitudeNavigationEvent]
+        [location, navigate, onLogsClick, logAmplitudeNavigationEvent, lastVisitedThreadId]
     );
 
     useEffect(() => {
@@ -348,6 +349,7 @@ const SREAgentSpace: FC = () => {
     const [notificationId, setNotificationId] = useState<string>('');
     const [agentMode, setAgentMode] = useState<string>('');
     const [agentAccessLevel, setAgentAccessLevel] = useState<AgentAccessLevel>(AgentAccessLevel.low);
+    const [lastVisitedThreadId, setLastVisitedThreadId] = useState<string>();
 
     const shouldPoll = useMemo(
         () => !!agent?.properties?.incidentManagementConfiguration?.type,
@@ -390,6 +392,10 @@ const SREAgentSpace: FC = () => {
     return (
         <SreAgentContext.Provider
             value={{
+                activities: {
+                    lastVisitedThreadId,
+                    setLastVisitedThreadId,
+                },
                 grafana: {
                     isGrafanaUpdating,
                     deploymentId,
