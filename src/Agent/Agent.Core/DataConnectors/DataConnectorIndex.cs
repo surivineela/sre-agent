@@ -345,9 +345,16 @@ public class DataConnectorIndex
 
     public async Task<T> GetOriginalDocumentAsync<T>(DataConnectorIndexDocument indexDocument)
     {
-        Stream stream = await _azureBlobStorageClient.DownloadBlobContentsAsStreamAsync(new Uri(indexDocument.SourceDocumentUrl));
+        try
+        {
+            Stream stream = await _azureBlobStorageClient.DownloadBlobContentsAsStreamAsync(new Uri(indexDocument.SourceDocumentUrl));
 
-        return JsonSerializer.Deserialize<T>(stream)
-            ?? throw new InvalidOperationException($"Failed to deserialize document from {indexDocument.SourceDocumentUrl}");
+            return JsonSerializer.Deserialize<T>(stream)
+                ?? throw new InvalidOperationException($"Failed to deserialize document from {indexDocument.SourceDocumentUrl}");
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Failed to get original document from URL: {indexDocument.SourceDocumentUrl}. Error: {ex.Message}", ex);
+        }
     }
 }
