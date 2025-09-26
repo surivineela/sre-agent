@@ -177,6 +177,34 @@
     {
       "name": "GetCurrentUtcTime",
       "version": "latest"
+    },
+    {
+      "name": "EnableAzureFrontDoorEndpointOrigin",
+      "version": "latest"
+    },
+    {
+      "name": "DisableAzureFrontDoorEndpointOrigin",
+      "version": "latest"
+    },
+    {
+      "name": "GetAllAzureFrontDoorEndpointOriginsStatus",
+      "version": "latest"
+    },
+    {
+      "name": "RunAzureDataFactoryPipeline",
+      "version": "latest"
+    },
+    {
+      "name": "StopAzureDataFactoryPipeline",
+      "version": "latest"
+    },
+    {
+      "name": "RestartAzureDataFactoryPipeline",
+      "version": "latest"
+    },
+    {
+      "name": "GetAllAzureDataFactoryPipelinesStatus",
+      "version": "latest"
     }
   ]
 }
