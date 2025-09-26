@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Net;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -18,8 +17,8 @@ namespace Agent.Cli.Services;
 public class ApiService : IDisposable
 {
     private readonly HttpClient _httpClient;
-    private readonly CliConfigurationService _configService;
-    private readonly TokenService _tokenService;
+    private readonly ICliConfigurationService _configService;
+    private readonly ITokenService _tokenService;
     private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
     {
         PropertyNameCaseInsensitive = true
@@ -36,6 +35,14 @@ public class ApiService : IDisposable
         };
 
         _httpClient = new HttpClient(handler);
+    }
+
+    // Constructor for dependency injection (primarily for testing)
+    public ApiService(HttpClient httpClient, ICliConfigurationService configService, ITokenService tokenService)
+    {
+        _httpClient = httpClient;
+        _configService = configService;
+        _tokenService = tokenService;
     }
 
     /// <summary>
