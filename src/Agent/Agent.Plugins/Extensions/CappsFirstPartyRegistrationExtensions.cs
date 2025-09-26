@@ -44,7 +44,7 @@ public static class CappsFirstPartyRegistrationExtensions
         builder.Services.AddSingleton<ICMWorkflowClient>();
         builder.Services.AddSingleton<ICMWorkflowClient, ICMWorkflowClient>();
 
-        builder.Services.AddOptionsWithValidateOnStart<FirstPartyAgent.Common.Configuration.ICMWorkflowSettings>()
+        builder.Services.AddOptionsWithValidateOnStart<Agent.Core.Configuration.ICMWorkflowSettings>()
             .BindConfiguration("AppSettings:Core:External:ICMWorkflows")
             .ValidateDataAnnotations();
 
@@ -55,12 +55,12 @@ public static class CappsFirstPartyRegistrationExtensions
     .BindConfiguration("AppSettings:Core:External:AzureSearch")
     .ValidateDataAnnotations();
 
-        // keep multiple lines for better debugging
-        builder.Services.AddSingleton(sp =>
-        {
-            var icmWorkflowSettings = sp.GetRequiredService<IOptions<FirstPartyAgent.Common.Configuration.ICMWorkflowSettings>>();
-            return icmWorkflowSettings.Value;
-        });
+        //// keep multiple lines for better debugging
+        //builder.Services.AddSingleton(sp =>
+        //{
+        //    var icmWorkflowSettings = sp.GetRequiredService<IOptions<FirstPartyAgent.Common.Configuration.ICMWorkflowSettings>>();
+        //    return icmWorkflowSettings.Value;
+        //});
 
         builder.Services.AddSingleton(sp =>
         {
