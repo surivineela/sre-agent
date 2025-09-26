@@ -19,6 +19,17 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class CappsFirstPartyRegistrationExtensions
 {
+    public static void RegisterAcaFirstPartyAppSettings(this IHostApplicationBuilder builder)
+    {
+        // Load static appsettings which are applicable for ACA 1P RCA Agent.
+        builder.Configuration.AddJsonFile("appsettings-aca.json", optional: false, reloadOnChange: true); //load base settings
+
+        // load development setting if env is local
+        if (builder.Environment.IsDevelopment())
+        {
+            builder.Configuration.AddJsonFile("appsettings-aca.development.json", optional: true, reloadOnChange: true);
+        }
+    }
     public static void ValidateAndRegisterAcaFirstPartyTypes(this IHostApplicationBuilder builder)
     {
         var secretResolvedEnvConfig = new { };
