@@ -11,19 +11,19 @@ namespace Agent.Plugins.DataConnectors.TSG;
 public record TsgDocumentMetadata : DataConnectorSourceDocument
 {
     [SimpleField(IsFilterable = true)]
-    public required string Source { get; init; }
+    public string? Source { get; init; }
 
     [SimpleField(IsFilterable = true)]
-    public required string DocumentType { get; init; }
+    public string? DocumentType { get; init; }
 
     [SimpleField(IsFilterable = true)]
-    public required string ServiceName { get; init; }
+    public string? ServiceName { get; init; }
 
     [SimpleField]
-    public required string Url { get; init; }
+    public string? Url { get; init; }
 
     [SimpleField]
-    public required DateTime LastModified { get; init; }
+    public DateTime? LastModified { get; init; }
 
     [SimpleField]
     public required DateTime IndexedAt { get; init; }

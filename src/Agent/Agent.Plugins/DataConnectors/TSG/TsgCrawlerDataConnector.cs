@@ -199,6 +199,8 @@ namespace Agent.Plugins.DataConnectors.TSG
                     if (stoppingToken.IsCancellationRequested)
                         return null;
 
+                    _logger.LogInternalInformation("debug log tsgcrawler filepath:{filepath}", filePath);
+
                     return await ProcessSingleFileAsync(filePath, repositoryInfo, dataSourceUri);
                 }
                 catch (Exception ex)
@@ -305,7 +307,11 @@ namespace Agent.Plugins.DataConnectors.TSG
 
         private static string GetBlobNameForTsgDocument(TsgDocumentMetadata metadata)
         {
-            return $"{DocumentsRootPath}/{TsgDocumentHelper.GetSafeRepositoryName(new Uri(metadata.Source))}/{metadata.Id}.json";
+            string repoName = !string.IsNullOrWhiteSpace(metadata.Source)
+                ? TsgDocumentHelper.GetSafeRepositoryName(new Uri(metadata.Source))
+                : "unknown-sourcerepo";
+
+            return $"{DocumentsRootPath}/{repoName}/{metadata.Id}.json";
         }
     }
 
