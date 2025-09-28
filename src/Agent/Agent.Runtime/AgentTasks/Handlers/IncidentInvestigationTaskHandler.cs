@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Collections.Concurrent;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -44,9 +45,13 @@ public sealed class IncidentInvestigationTaskHandler(
 ) : IAgentTaskHandler
 {
     private readonly SemaphoreSlim _stateLock = new(1, 1);
+    private readonly SemaphoreSlim _hypothesisValidationSemaphore = new(3, 3); // Allow max 3 concurrent hypothesis validations
     private AgentTask? _currentAgentTask;
     private readonly ToolResultCache _toolCache = new();
     private readonly List<ChatMessage> _aggregatedToolHistory = new();
+    private readonly ConcurrentBag<HypothesisTreeItem> _allInvestigatedHypotheses = new();
+    private readonly ConcurrentBag<HypothesisTreeItem> _finalValidatedHypotheses = new();
+    private readonly ConcurrentBag<string> _allHypothesesTitles = new();
     private List<string>? toolSubset = null;
     private readonly bool _is1PAgent = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") == "ACAAgent";
     private Guid? _deepInvestigationNotificationMessageId;
@@ -288,8 +293,8 @@ public sealed class IncidentInvestigationTaskHandler(
             Core.ToolStatic.AsyncLocalInvestigationStepContext.Value = new InvestigationStepContext(
                 "FormingHypothesis");
 
-            var finalValidatedHypotheses = new List<HypothesisTreeItem>();
-            var allInvestigatedHypotheses = new List<HypothesisTreeItem>();
+            // Clear thread-safe collections for this investigation
+            ClearConcurrentCollections();
 
             if (state.FormingHypothesis.Status != FormingHypothesisStatus.Complete)
             {
@@ -309,156 +314,33 @@ public sealed class IncidentInvestigationTaskHandler(
 
                 state.FormingHypothesis.Hypotheses = initialHypotheses;
 
+                // Add initial hypothesis titles to thread-safe collection
+                foreach (var h in initialHypotheses)
+                {
+                    _allHypothesesTitles.Add(h.Title);
+                }
+
                 state = await SaveStateAndStreamUpdateAsync(cancellationToken: cancellationToken);
 
-                // 3. Validating Hypotheses
-                logger.LogInternalInformation("Starting hypothesis validation for task: {TaskId}", agentTask.Id);
+                // 3. Validating Hypotheses with Parallel Processing
+                logger.LogInternalInformation("Starting parallel hypothesis validation for task: {TaskId}", agentTask.Id);
 
-                var queue = new Queue<(HypothesisTreeItem, int)>();
-
-                var allHypothesesTitles = new List<string>();
-
-                foreach (var h in state.FormingHypothesis.Hypotheses)
-                {
-                    queue.Enqueue((h, 1));
-                    allHypothesesTitles.Add(h.Title);
-                }
-
-                while (queue.Count > 0)
-                {
-                    // Validate the current hypothesis
-                    (var current, int depth) = queue.Dequeue();
-                    string validatedHypothesis = current.ParentHypothesisDescription;
-
-                    current.StatusMessage = "Analyzing...";
-                    current.Status = HypothesisStatus.Validating;
-                    await SaveStateAndStreamUpdateAsync(state, cancellationToken: cancellationToken);
-
-                    var validationResult = await ValidateHypothesisAsync(
-                        inputData.IncidentDescription,
-                        state.InitialInvestigation.ToString(),
-                        validatedHypothesis,
-                        current.Description,
-                        current.Id, // Pass the hypothesis ID for tool result routing
-                        context,
-                        runHooks,
-                        currentStepSpan,
-                        async step =>
-                        {
-                            // Save and update the state with the current step
-                            current.Steps.Add(step);
-                            await SaveStateAndStreamUpdateAsync(state, cancellationToken: cancellationToken);
-                        },
-                        cancellationToken);
-
-                    current.Status = validationResult.Status switch
-                    {
-                        HypothesisValidationStatus.Validated => HypothesisStatus.Validated,
-                        HypothesisValidationStatus.Invalidated => HypothesisStatus.Invalidated,
-                        HypothesisValidationStatus.Inconclusive => HypothesisStatus.Inconclusive,
-                        _ => HypothesisStatus.Inconclusive
-                    };
-
-                    current.Steps = validationResult.Steps;
-
-                    // Add to all investigated hypotheses list
-                    allInvestigatedHypotheses.Add(current);
-
-                    // Stream hypothesis status update with more descriptive message
-                    var statusMessage = current.Status switch
-                    {
-                        HypothesisStatus.Validated => $"Hypothesis validated: {current.Title}",
-                        HypothesisStatus.Invalidated => $"Hypothesis invalidated: {current.Title}",
-                        HypothesisStatus.Inconclusive => $"Hypothesis inconclusive: {current.Title}",
-                        _ => $"Hypothesis status updated to {current.Status}: {current.Title}"
-                    };
-
-                    current.StatusMessage = statusMessage;
-                    current.Reasoning = validationResult.Reasoning;
-                    await SaveStateAndStreamUpdateAsync(state, cancellationToken: cancellationToken);
-
-                    if (current.Status == HypothesisStatus.Validated)
-                    {
-                        validatedHypothesis = current.Description;
-                    }
-                    else
-                    {
-                        // if hypothesis is invalidated, continue to next hypothesis
-                        continue;
-                    }
-
-                    // TODO: isRootCause functionality removed - using depth-based stopping only
-
-                    // logger.LogInternalInformation("Checking if we should stop based current validations.");
-                    // string message = $"""
-                    //     The incident description is as follows:
-                    //     {inputData.IncidentDescription}
-
-                    //     The summary of the current investigation is:
-                    //     {state.InitialInvestigation.Summary}
-
-                    //     The following hypothesis was validated:
-                    //     - {validatedHypothesis}
-                    //     """;
-                    // var checkAgent = IncidentInvestigationAgents.CreateHypothesisValidationCheckAgent();
-                    // bool shouldStop = await CallAgentAsync<bool>(
-                    //     checkAgent,
-                    //     context,
-                    //     new ChatMessage(ChatRole.User, message),
-                    //     runHooks,
-                    //     cancellationToken);
-
-                    // // Keep the IsRootCause value for cross checking later
-                    // logger.LogInternalInformation("Hypothesis validation check result: {ShouldStop}, isRootCause: {IsRootCause}", shouldStop, validationResult.IsRootCause);
-
-                    if (depth >= 3)
-                    {
-                        // if hypothesis is at maximum depth, add to final validated hypotheses but continue processing
-                        // TODO: isRootCause functionality removed - only using depth-based stopping
-                        finalValidatedHypotheses.Add(current);
-
-                        state.FormingHypothesis.StatusMessage = "Maximum search depth reached for this hypothesis, continuing with other hypotheses.";
-
-                        // Continue to next hypothesis without generating children
-                        continue;
-                    }
-
-                    // call LLM to generate hypotheses
-                    var hypotheses = await GenerateHypotheses(
-                        inputData.IncidentDescription,
-                        state.InitialInvestigation.ToString(),
-                        validatedHypothesis,
-                        allHypothesesTitles,
-                        context,
-                        runHooks,
-                        currentStepSpan,
-                        cancellationToken);
-                    current.Children = hypotheses;
-
-                    // Stream children addition
-                    foreach (var child in hypotheses)
-                    {
-                        child.ParentHypothesisDescription = current.Description;
-                        allHypothesesTitles.Add(child.Title);
-                    }
-
-                    await SaveStateAndStreamUpdateAsync(state, cancellationToken: cancellationToken);
-
-                    foreach (var h in hypotheses)
-                    {
-                        // set the current hypothesis as the parent description for the child hypotheses
-                        h.ParentHypothesisDescription = current.Description;
-                        queue.Enqueue((h, depth + 1));
-                    }
-                }
+                await ProcessHypothesesInParallel(
+                    state.FormingHypothesis.Hypotheses,
+                    1, // Initial depth
+                    inputData,
+                    state,
+                    context,
+                    runHooks,
+                    currentStepSpan,
+                    cancellationToken);
 
                 state.FormingHypothesis.Status = FormingHypothesisStatus.Complete;
-
                 state = await SaveStateAndStreamUpdateAsync(state, cancellationToken: cancellationToken);
             }
             tracingHelper.EndAgentTaskStepSpan();
             logger.LogInternalInformation("Forming hypothesis completed with {ValidHypothesisCount} valid hypotheses.",
-                finalValidatedHypotheses.Count);
+                _finalValidatedHypotheses.Count);
 
             // 4. Conclusion
             // three possibilities based on investigation results:
@@ -470,20 +352,23 @@ public sealed class IncidentInvestigationTaskHandler(
             logger.LogInternalInformation("Starting conclusion generation for task: {TaskId}", agentTask.Id);
             currentStepSpan = tracingHelper.StartAgentTaskStepSpan("Conclusion");
 
-            if (finalValidatedHypotheses.Count == 1)
+            var finalValidatedHypothesesList = _finalValidatedHypotheses.ToList();
+            var allInvestigatedHypothesesList = _allInvestigatedHypotheses.ToList();
+
+            if (finalValidatedHypothesesList.Count == 1)
             {
                 // Stream single hypothesis conclusion
-                await GenerateSingleValidHypothesisConclusion(finalValidatedHypotheses.First(), inputData, context, runHooks, currentStepSpan, cancellationToken);
+                await GenerateSingleValidHypothesisConclusion(finalValidatedHypothesesList.First(), inputData, context, runHooks, currentStepSpan, cancellationToken);
             }
-            else if (finalValidatedHypotheses.Count > 1)
+            else if (finalValidatedHypothesesList.Count > 1)
             {
                 // Stream multiple hypotheses conclusion
-                await GenerateMultipleValidHypothesesConclusion(finalValidatedHypotheses, inputData, context, runHooks, currentStepSpan, cancellationToken);
+                await GenerateMultipleValidHypothesesConclusion(finalValidatedHypothesesList, inputData, context, runHooks, currentStepSpan, cancellationToken);
             }
             else
             {
                 // Stream inconclusive conclusion - use all investigated hypotheses
-                await GenerateInconclusiveConclusion(inputData, context, runHooks, currentStepSpan, allInvestigatedHypotheses, cancellationToken);
+                await GenerateInconclusiveConclusion(inputData, context, runHooks, currentStepSpan, allInvestigatedHypothesesList, cancellationToken);
             }
 
             state = await SaveStateAndStreamUpdateAsync(newStatus: AgentTaskStatus.Complete, cancellationToken: cancellationToken);
@@ -524,6 +409,185 @@ public sealed class IncidentInvestigationTaskHandler(
             Core.ToolStatic.AsyncLocalInvestigationStepContext.Value = null;
             // Clear agent task context
             Core.ToolStatic.AsyncLocalAgentTaskId.Value = null;
+        }
+    }
+
+    /// <summary>
+    /// Processes hypotheses in parallel with controlled concurrency and proper thread safety.
+    /// </summary>
+    private async Task ProcessHypothesesInParallel(
+        IList<HypothesisTreeItem> hypotheses,
+        int currentDepth,
+        IncidentInvestigationTaskInputData inputData,
+        IncidentInvestigationTaskProperties state,
+        AgentContext context,
+        RunHooks<AgentContext> runHooks,
+        TelemetrySpan currentStepSpan,
+        CancellationToken cancellationToken)
+    {
+        if (hypotheses.Count == 0 || currentDepth > 3)
+            return;
+
+        logger.LogInternalInformation("Processing {HypothesisCount} hypotheses at depth {Depth}", hypotheses.Count, currentDepth);
+
+        // Process hypotheses in parallel with controlled concurrency
+        var tasks = hypotheses.Select(hypothesis => ProcessSingleHypothesisAsync(
+            hypothesis,
+            currentDepth,
+            inputData,
+            state,
+            context,
+            runHooks,
+            currentStepSpan,
+            cancellationToken)).ToArray();
+
+        await Task.WhenAll(tasks);
+
+        // Collect all validated hypotheses from this level for next level processing
+        var validatedHypotheses = new List<HypothesisTreeItem>();
+        foreach (var hypothesis in hypotheses)
+        {
+            if (hypothesis.Status == HypothesisStatus.Validated && hypothesis.Children.Count > 0)
+            {
+                validatedHypotheses.AddRange(hypothesis.Children);
+            }
+        }
+
+        // Recursively process children if any
+        if (validatedHypotheses.Count > 0 && currentDepth < 3)
+        {
+            await ProcessHypothesesInParallel(
+                validatedHypotheses,
+                currentDepth + 1,
+                inputData,
+                state,
+                context,
+                runHooks,
+                currentStepSpan,
+                cancellationToken);
+        }
+    }
+
+    /// <summary>
+    /// Processes a single hypothesis with proper concurrency control and thread safety.
+    /// </summary>
+    private async Task ProcessSingleHypothesisAsync(
+        HypothesisTreeItem hypothesis,
+        int depth,
+        IncidentInvestigationTaskInputData inputData,
+        IncidentInvestigationTaskProperties state,
+        AgentContext context,
+        RunHooks<AgentContext> runHooks,
+        TelemetrySpan currentStepSpan,
+        CancellationToken cancellationToken)
+    {
+        await _hypothesisValidationSemaphore.WaitAsync(cancellationToken);
+        try
+        {
+            logger.LogInternalInformation("Starting validation for hypothesis: {HypothesisTitle} at depth {Depth}", hypothesis.Title, depth);
+
+            // Update status with thread-safe state update
+            hypothesis.StatusMessage = "Analyzing...";
+            hypothesis.Status = HypothesisStatus.Validating;
+            await SaveStateAndStreamUpdateAsync(state, cancellationToken: cancellationToken);
+
+            var validationResult = await ValidateHypothesisAsync(
+                inputData.IncidentDescription,
+                state.InitialInvestigation.ToString(),
+                hypothesis.ParentHypothesisDescription,
+                hypothesis.Description,
+                hypothesis.Id,
+                context,
+                runHooks,
+                currentStepSpan,
+                async step =>
+                {
+                    // Thread-safe step addition
+                    hypothesis.Steps.Add(step);
+                    await SaveStateAndStreamUpdateAsync(state, cancellationToken: cancellationToken);
+                },
+                cancellationToken);
+
+            // Update hypothesis status
+            hypothesis.Status = validationResult.Status switch
+            {
+                HypothesisValidationStatus.Validated => HypothesisStatus.Validated,
+                HypothesisValidationStatus.Invalidated => HypothesisStatus.Invalidated,
+                HypothesisValidationStatus.Inconclusive => HypothesisStatus.Inconclusive,
+                _ => HypothesisStatus.Inconclusive
+            };
+
+            hypothesis.Steps = validationResult.Steps;
+            hypothesis.Reasoning = validationResult.Reasoning;
+
+            // Add to thread-safe collections
+            _allInvestigatedHypotheses.Add(hypothesis);
+
+            // Update status message
+            var statusMessage = hypothesis.Status switch
+            {
+                HypothesisStatus.Validated => $"Hypothesis validated: {hypothesis.Title}",
+                HypothesisStatus.Invalidated => $"Hypothesis invalidated: {hypothesis.Title}",
+                HypothesisStatus.Inconclusive => $"Hypothesis inconclusive: {hypothesis.Title}",
+                _ => $"Hypothesis status updated to {hypothesis.Status}: {hypothesis.Title}"
+            };
+
+            hypothesis.StatusMessage = statusMessage;
+            await SaveStateAndStreamUpdateAsync(state, cancellationToken: cancellationToken);
+
+            // Handle validated hypotheses
+            if (hypothesis.Status == HypothesisStatus.Validated)
+            {
+                if (depth >= 3)
+                {
+                    // At maximum depth, add to final validated hypotheses
+                    _finalValidatedHypotheses.Add(hypothesis);
+                    logger.LogInternalInformation("Added hypothesis to final validated list at max depth: {HypothesisTitle}", hypothesis.Title);
+                }
+                else
+                {
+                    // Generate child hypotheses for further investigation
+                    var childHypotheses = await GenerateHypotheses(
+                        inputData.IncidentDescription,
+                        state.InitialInvestigation.ToString(),
+                        hypothesis.Description,
+                        _allHypothesesTitles.ToList(),
+                        context,
+                        runHooks,
+                        currentStepSpan,
+                        cancellationToken);
+
+                    hypothesis.Children = childHypotheses;
+
+                    // Add child hypothesis titles to thread-safe collection
+                    foreach (var child in childHypotheses)
+                    {
+                        child.ParentHypothesisDescription = hypothesis.Description;
+                        _allHypothesesTitles.Add(child.Title);
+                    }
+
+                    await SaveStateAndStreamUpdateAsync(state, cancellationToken: cancellationToken);
+
+                    // If no children were generated or we're at depth 2, add to final validated
+                    if (childHypotheses.Count == 0 || depth >= 2)
+                    {
+                        _finalValidatedHypotheses.Add(hypothesis);
+                    }
+                }
+            }
+
+            logger.LogInternalInformation("Completed validation for hypothesis: {HypothesisTitle} with status: {Status}", hypothesis.Title, hypothesis.Status);
+        }
+        catch (Exception ex)
+        {
+            logger.LogInternalError(ex, "Error processing hypothesis: {HypothesisTitle}", hypothesis.Title);
+            hypothesis.Status = HypothesisStatus.Inconclusive;
+            hypothesis.StatusMessage = $"Error processing hypothesis: {ex.Message}";
+            _allInvestigatedHypotheses.Add(hypothesis);
+        }
+        finally
+        {
+            _hypothesisValidationSemaphore.Release();
         }
     }
 
@@ -813,7 +877,7 @@ public sealed class IncidentInvestigationTaskHandler(
             throw new InvalidOperationException("Agent has structured output but the result type is not the same as the output type.");
         }
 
-        const int retryLimit = 3;
+        const int retryLimit = 5; // Increased retry limit for rate limiting
         var threadId = context.ThreadId.ToString();
 
         for (var i = 0; i < retryLimit; i++)
@@ -930,15 +994,42 @@ public sealed class IncidentInvestigationTaskHandler(
                     agent.Name, typeof(TResult), runResult.Output);
                 throw new InvalidOperationException("Invalid output from agent.");
             }
-            catch (Exception e) when (e.Message.Contains("HTTP 429"))
+            catch (Exception e) when (IsRateLimitException(e))
             {
-                // probably rate-limited by AOAI, retry after a few seconds
+                logger.LogInternalWarning("Rate limit encountered on attempt {Attempt}/{MaxAttempts}: {Error}", i + 1, retryLimit, e.Message);
+
+                if (i == retryLimit - 1)
+                {
+                    logger.LogInternalError("Max retry attempts reached for rate limiting.");
+                    throw;
+                }
+
+                // Exponential backoff with jitter for rate limits - start with longer delays
+                var baseDelay = TimeSpan.FromSeconds(Math.Pow(2, i + 3)); // Start at 8 seconds
+                var jitter = TimeSpan.FromMilliseconds(Random.Shared.Next(0, 2000)); // 0-2 second jitter
+                var totalDelay = baseDelay + jitter;
+
+                // Cap the delay at 2 minutes
+                if (totalDelay > TimeSpan.FromMinutes(2))
+                {
+                    totalDelay = TimeSpan.FromMinutes(2);
+                }
+
+                logger.LogInternalInformation("Waiting {Delay} before retry due to rate limiting.", totalDelay);
+                await Task.Delay(totalDelay, cancellationToken);
+            }
+            catch (Exception e) when (IsTransientException(e))
+            {
+                logger.LogInternalWarning("Transient error on attempt {Attempt}/{MaxAttempts}: {Error}", i + 1, retryLimit, e.Message);
+
                 if (i == retryLimit - 1)
                 {
                     throw;
                 }
 
-                await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
+                // Exponential backoff for transient errors
+                var delay = TimeSpan.FromSeconds(Math.Pow(2, i) + Random.Shared.NextDouble());
+                await Task.Delay(delay, cancellationToken);
             }
         }
 
@@ -1499,4 +1590,44 @@ public sealed class IncidentInvestigationTaskHandler(
             logger.LogInternalWarning(ex, "Failed to stream task update for thread {ThreadId}", threadId);
         }
     }
+
+    /// <summary>
+    /// Clears all concurrent collections by creating new instances.
+    /// ConcurrentBag doesn't have a Clear method, so we need to recreate the collections.
+    /// </summary>
+    private void ClearConcurrentCollections()
+    {
+        // Since ConcurrentBag doesn't have Clear(), we need to drain them
+        while (_allInvestigatedHypotheses.TryTake(out _)) { }
+        while (_finalValidatedHypotheses.TryTake(out _)) { }
+        while (_allHypothesesTitles.TryTake(out _)) { }
+    }
+
+    #region Rate Limiting Helper Methods
+
+    /// <summary>
+    /// Determines if an exception is a rate limit exception.
+    /// </summary>
+    private static bool IsRateLimitException(Exception exception)
+    {
+        return exception.Message.Contains("HTTP 429") ||
+               exception.Message.Contains("rate limit", StringComparison.OrdinalIgnoreCase) ||
+               exception.Message.Contains("throttle", StringComparison.OrdinalIgnoreCase) ||
+               exception.Message.Contains("quota", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Determines if an exception is a transient exception that should be retried.
+    /// </summary>
+    private static bool IsTransientException(Exception exception)
+    {
+        return exception.Message.Contains("HTTP 5") || // 5xx errors
+               exception.Message.Contains("timeout", StringComparison.OrdinalIgnoreCase) ||
+               exception.Message.Contains("connection", StringComparison.OrdinalIgnoreCase) ||
+               exception is TaskCanceledException ||
+               exception is HttpRequestException;
+    }
+
+
+    #endregion
 }
