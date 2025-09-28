@@ -11,6 +11,7 @@ using Agent.Tests.Common;
 using Agent.Tests.Common.Mocks;
 using Agent.Tests.Common.ScenarioTestHelpers;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -56,10 +57,37 @@ public partial class DocumentRetrievalEval
 
         builder.RegisterDefaultServices();
         builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
+        // Add AzureSearchSettings registration
+        builder.Services.AddSingleton<Agent.Core.Configuration.AzureSearchSettings>(sp =>
+        {
+            var searchSettings = GetAzureSearchSettings(builder.Configuration);
+
+            return searchSettings;
+        });
         builder.ConfigureAgentMemory();
 
         _host = builder.Build();
         await _host.StartAsync();
+    }
+
+    private static Agent.Core.Configuration.AzureSearchSettings GetAzureSearchSettings(IConfiguration configuration)
+    {
+        var settings = configuration.GetSection("AppSettings:Core:Azure:AzureSearch").Get<Agent.Core.Configuration.AzureSearchSettings>();
+        if (settings == null)
+        {
+            var firstPartySettings = configuration
+                .GetSection("AppSettings:Core:External:AzureSearch")
+                .Get<Agent.Core.Configuration.AzureSearchSettings>();
+            if (firstPartySettings != null)
+            {
+                settings = firstPartySettings;
+            }
+            else
+            {
+                settings = new Agent.Core.Configuration.AzureSearchSettings();
+            }
+        }
+        return settings;
     }
 
     [TestCleanup]
@@ -178,7 +206,7 @@ public partial class DocumentRetrievalEval
                     NumberOfResults = searchResults.Count
                 };
 
-                var progressMessage = $"Test {testNumber}: Expected '{scenario.FileName}', Retrieved '{retrievedFileName}', Top1 Match: {foundCorrectDocument}, Top5 Match: {foundInTop5}";
+                var progressMessage = $"Test {testNumber}: Expected '{scenario.FileName}', Retrieved '{retrievedFileName}', Top1 Match: {foundCorrectDocument}, Top5 Match: {foundInTop5}, result count: {searchResults.Count}";
                 Console.WriteLine(progressMessage);
                 // Note: TestContext is not thread-safe, so we'll collect these messages and write them later
                 return result;
@@ -210,7 +238,7 @@ public partial class DocumentRetrievalEval
         for (int i = 0; i < results.Count; i++)
         {
             var result = results[i];
-            progressSummary += $"Test {i + 1}: Expected '{result.ExpectedFileName}', Retrieved '{result.RetrievedFileName}', Top1 Match: {result.IsCorrectMatch}, Top5 Match: {result.IsFoundInTop5}\n";
+            progressSummary += $"Test {i + 1}: Expected '{result.ExpectedFileName}', Retrieved '{result.RetrievedFileName}', Top1 Match: {result.IsCorrectMatch}, Top5 Match: {result.IsFoundInTop5} results: {result.NumberOfResults}\n";
         }
         TestContext.WriteLine(progressSummary);
 
