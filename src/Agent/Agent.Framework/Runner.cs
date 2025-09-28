@@ -1335,11 +1335,14 @@ public static class Runner
                 continue;
             }
 
-            if (tool.Description.Length > 1024)
-            {
-                logger.LogCritical("Tool '{ToolName}' has a description that is too long and was removed from the tool list.", tool.Name);
-                continue;
-            }
+            // There's no documentation about the length limit.
+            // Per test, gpt-4.1 and gpt-5 can at least support description length of 16384. Which is a reasonable high value.
+            // Remove the check here unless we see errors again.
+            // if (tool.Description.Length > 1024)
+            // {
+            //     logger.LogCritical("Tool '{ToolName}' has a description that is too long and was removed from the tool list.", tool.Name);
+            //     continue;
+            // }
 
             validTools.Add(tool);
         }
