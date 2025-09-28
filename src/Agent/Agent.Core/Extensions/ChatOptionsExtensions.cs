@@ -84,7 +84,10 @@ public static class ChatOptionsExtensions
                 }
 
                 // reasoning effort: only supported for gpt-5 or other reasoning models
-                if (additionalProperties.TryGetValue(ReasoningEffortKey, out string? reasoningEffort))
+                if (additionalProperties.TryGetValue(ReasoningEffortKey, out string? reasoningEffort)
+                    && clientMetadata?.DefaultModelId is not null
+                    && clientMetadata.DefaultModelId.Contains("gpt-5", StringComparison.OrdinalIgnoreCase)
+                    && !clientMetadata.DefaultModelId.Contains("gpt-5-chat", StringComparison.OrdinalIgnoreCase))
                 {
                     if (string.Equals(LowReasoningEffort, reasoningEffort, StringComparison.OrdinalIgnoreCase))
                     {
@@ -113,7 +116,10 @@ public static class ChatOptionsExtensions
                 // output verbosity: only supported for gpt-5 model series
                 // Reference: https://cookbook.openai.com/examples/gpt-5/gpt-5_new_params_and_tools
                 if (additionalProperties.TryGetValue(VerbosityKey, out string? verbosity)
-                    && !string.IsNullOrEmpty(verbosity))
+                    && !string.IsNullOrEmpty(verbosity)
+                    && clientMetadata?.DefaultModelId is not null
+                    && clientMetadata.DefaultModelId.Contains("gpt-5", StringComparison.OrdinalIgnoreCase)
+                    && !clientMetadata.DefaultModelId.Contains("gpt-5-chat", StringComparison.OrdinalIgnoreCase))
                 {
                     completionOptions = AugmentVerbosityData(completionOptions, verbosity);
                 }
