@@ -1,0 +1,225 @@
+name: E2E Container Tests
+
+on:
+  pull_request:
+    branches:
+      - '**'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+  actions: read
+  id-token: write
+
+env:
+  DOTNET_VERSION: '9.x'
+  E2E_TEST_IMAGE: 'sreagentdev.azurecr.io/sreagent-e2e-tests:latest'
+  E2E_TEST_FILTER: 'Category=AgentE2ETest&PrGatingTest=true'
+  SREAGENT_TESTING_KEYVAULT_URI: 'https://sreagent-e2e-test-kv.vault.azure.net/'
+  ACR_NAME: 'sreagentdev'
+  ACR_RESOURCE_GROUP: 'sreagent-acr-global-rg'
+  ACR_SUBSCRIPTION_ID: be8d491e-109c-4ee1-aaee-dc7615af0a42
+  BUILD_CONFIGURATION: 'Release'
+  BUILD_SOLUTION: './src/Agent/Agent.sln'
+  # OIDC identity mapping from repository/environment variables
+  AZURE_TENANT_ID: ${{ vars.CFS_TENANT_ID }}
+  AZURE_CLIENT_ID: ${{ vars.CFS_CLIENT_ID }}
+  AZURE_SUBSCRIPTION_ID: be8d491e-109c-4ee1-aaee-dc7615af0a42
+  OIDC_REFRESH_ENABLED: 'true'
+
+jobs:
+  run-e2e:
+    name: Run E2E Container Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛒 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: 🔐 Azure OIDC Login (CFS)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.CFS_CLIENT_ID }}
+          tenant-id: ${{ vars.CFS_TENANT_ID }}
+          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+        continue-on-error: false
+
+      - name: 🔑 ACR Login (${{ env.ACR_NAME }})
+        run: |
+          az acr login -n $ACR_NAME --subscription $ACR_SUBSCRIPTION_ID
+        env:
+          ACR_NAME: ${{ env.ACR_NAME }}
+          ACR_SUBSCRIPTION_ID: ${{ env.ACR_SUBSCRIPTION_ID }}
+        continue-on-error: false
+
+      - name: 🔎 Post-login ACR Repository Listing
+        run: |
+          echo '== Re-validate az acr show after login =='
+          az acr show -n $ACR_NAME -g $ACR_RESOURCE_GROUP -o table || echo 'acr show failed post-login'
+          echo '\n== List repositories (may fail if no permission) =='
+          az acr repository list -n $ACR_NAME -o table 2>&1 || echo 'repo list failed'
+        env:
+          ACR_NAME: ${{ env.ACR_NAME }}
+          ACR_RESOURCE_GROUP: ${{ env.ACR_RESOURCE_GROUP }}
+        continue-on-error: true
+
+      - name: 🧰 Setup .NET (for trx parsing utilities if needed later)
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+        continue-on-error: false
+
+      - name: 🔐 Setup CFS (NuGet feeds)
+        uses: 1es-actions/setup-cfs@v1
+        with:
+          feed-url: https://msazure.pkgs.visualstudio.com/Antares/_packaging/antares-websites/
+          nuget: true
+          nuget-config: true
+          nuget-config-path: nuget.config
+
+      - name: 📦 Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.nuget/packages
+            ~/.local/share/NuGet/v3-cache
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json', '**/*.csproj', '**/Directory.Packages.props') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: 🔨 Restore Agent solution
+        run: |
+           dotnet restore ${{ env.BUILD_SOLUTION }} \
+              --verbosity quiet \
+              --locked-mode \
+              --use-current-runtime
+
+      - name: 🦾 Build Agent solution (skip React)
+        run: |
+          dotnet build ${{ env.BUILD_SOLUTION }} \
+            --no-restore \
+            --configuration ${{ env.BUILD_CONFIGURATION }} \
+            -p:SkipReactBuild=true \
+            -p:WarningLevel=4 \
+            /clp:ErrorOnly \
+            --verbosity quiet
+
+      - name: 📦 Publish Agent.Web
+        run: |
+          dotnet publish ./src/Agent/Agent.Web/Agent.Web.csproj \
+            --no-restore \
+            --no-build \
+            --configuration ${{ env.BUILD_CONFIGURATION }} \
+            -p:SkipReactBuild=true \
+            -o ./out/publish
+
+      - name: 🏷️ Compute PR Image Tag
+        id: image-tag
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          SHORT_SHA=${GITHUB_SHA::8}
+          IMAGE_TAG="pr-${PR_NUMBER}-${SHORT_SHA}"
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "Computed image tag: $IMAGE_TAG"
+
+      - name: 🐳 Set up Docker Buildx
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🐳 Build & Push Agent PR Image
+        id: build-push-agent
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          IMAGE_TAG: ${{ steps.image-tag.outputs.IMAGE_TAG }}
+        run: |
+          if [ -z "${IMAGE_TAG}" ]; then echo "::error::IMAGE_TAG missing"; exit 1; fi
+          IMAGE_REPO="${{ env.ACR_NAME }}.azurecr.io/sre-agent-web"
+          echo "Building image ${IMAGE_REPO}:${IMAGE_TAG}"
+          PUBLISH_DIR=out/publish
+          if [ ! -d "$PUBLISH_DIR" ]; then echo "::error::Publish directory '$PUBLISH_DIR' not found"; exit 1; fi
+          DOCKERFILE=src/Deployment/Agent.Web/Dockerfile
+          docker build -f ${DOCKERFILE} -t ${IMAGE_REPO}:${IMAGE_TAG} ${PUBLISH_DIR} \
+            --label org.opencontainers.image.revision=${GITHUB_SHA} \
+            --label pr.number=${{ github.event.pull_request.number }}
+          docker push ${IMAGE_REPO}:${IMAGE_TAG}
+          echo "IMAGE_FULL=${IMAGE_REPO}:${IMAGE_TAG}" >> $GITHUB_OUTPUT
+
+      - name: 🧾 Emit release-metadata.json (PR image)
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          IMAGE_TAG: ${{ steps.image-tag.outputs.IMAGE_TAG }}
+        run: |
+          IMAGE_REPO="${{ env.ACR_NAME }}.azurecr.io/sre-agent-web"
+          cat > release-metadata.json <<EOF
+          {
+            "prNumber": "${{ github.event.pull_request.number }}",
+            "commitSha": "${GITHUB_SHA}",
+            "imageTag": "${IMAGE_TAG}",
+            "registry": "${IMAGE_REPO}",
+            "timestampUtc": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF
+          cat release-metadata.json
+
+      - name: 📦 Upload release metadata
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-release-metadata
+          path: release-metadata.json
+
+      - name: 🐳 Docker version
+        run: docker version
+
+
+      - name: ▶️ Run container tests script
+        id: run
+        shell: pwsh
+        env:
+          SREAGENT_TESTING_IMAGE_OVERRIDE: ${{ steps.build-push-agent.outputs.IMAGE_FULL }}
+        run: |
+          $image='${{ env.E2E_TEST_IMAGE }}'
+          $filter='${{ env.E2E_TEST_FILTER }}'
+          Write-Host "Using hardcoded image: $image"
+          Write-Host "Using hardcoded filter: $filter"
+          ./scripts/run-container-tests.ps1 $image $filter
+        continue-on-error: true
+
+      - name: 📄 List produced TRX files
+        shell: bash
+        run: |
+          echo "Listing TRX files under container-test-results" || true
+          ls -R ./container-test-results || true
+          COUNT=$(ls container-test-results/*.trx 2>/dev/null | wc -l || echo 0)
+          echo "Found $COUNT trx files"
+          
+
+      - name: 📢 Publish E2E test results
+        uses: serverless-paas-balam/actions-test-reporter@main
+        if: always()
+        with:
+          name: E2E Container Tests
+          path: 'container-test-results/*.trx'
+          reporter: dotnet-trx
+          use-actions-summary: 'true'
+          post-pr-comment: 'false'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fail-on-error: false
+
+      - name: 📦 Upload raw TRX artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-container-test-results
+          path: container-test-results/
+          retention-days: 14
+
+      - name: ❌ Fail if tests failed
+        if: steps.run.outcome == 'failure'
+        run: |
+          echo "E2E container tests failed" >&2
+          exit 1
