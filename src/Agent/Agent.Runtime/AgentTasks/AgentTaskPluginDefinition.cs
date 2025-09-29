@@ -88,4 +88,19 @@ public class AgentTaskPluginDefinition(
         await agentTaskService.StartAgentTaskAsync(task);
         return true;
     }
+
+    [Description("Report completion of a hypothesis validation step with results")]
+    [AgentTool(ToolMode.Auto)]
+    public string ReportStepCompletion(
+        [Description("Title of the completed step")] string stepTitle,
+        [Description("Detailed summary of findings and results from this step")] string summary,
+        [Description("Status of this step execution: Success, Inconclusive, Failed, or Skipped")] string status = "Success",
+        [Description("Any error message if step failed")] string? errorMessage = null)
+    {
+        // This tool doesn't need to do much - the real work happens in the hook
+        // Just return a confirmation that the step was reported
+        var timestamp = DateTime.UtcNow;
+
+        return $"Step '{stepTitle}' reported as {status} at {timestamp:HH:mm:ss}.";
+    }
 }

@@ -398,7 +398,7 @@ public static class IncidentInvestigationAgents
         string initialSummary
     )
     {
-        List<string> allTools = ["ToDoWrite"];
+        List<string> allTools = ["ToDoWrite", "ReportStepCompletion"];
         allTools.AddRange(toolNames);
 
         string todoWritePrompt = agentFactory.PromptDescriptors.GetValueOrDefault("todo_write")?.Prompt ?? string.Empty;
@@ -430,9 +430,30 @@ public static class IncidentInvestigationAgents
             2. Generate a plan for validating the hypothesis, breaking it down into clear and actionable steps
             3. Think critically about the best approach to gather the required evidence
             4. Use available tools systematically to execute the plan step by step
-            5. If tools fail, immediately try alternative tools or approaches
-            6. Summarize findings clearly and concisely after each step
+            5. **IMPORTANT**: After completing each validation step, call ReportStepCompletion with:
+               - stepTitle: Clear title of the completed step
+               - summary: Detailed findings from this step
+               - status: "Success", "Inconclusive", "Failed", or "Skipped"
+               - errorMessage: Any error details if the step failed
+            6. If tools fail, immediately try alternative tools or approaches
+            7. Continue with remaining steps even if some fail
+            8. Provide final validation conclusion at the end
             </plan_execution_workflow>
+
+            <step_reporting_example>
+            Example of proper step reporting:
+            1. Execute investigation tools (GetMetrics, CheckLogs, etc.)
+            2. Call ReportStepCompletion(
+                 stepTitle: "Check Database Connection Pool",
+                 summary: "Analyzed connection pool metrics and found 95% utilization during incident window with significant wait times. Pool at 95% capacity with wait time increased to 2.3s, correlating with incident timing.",
+                 status: "Success"
+               )
+            3. Continue to next step
+            </step_reporting_example>
+
+            <output>
+            The final result should be based on every calls to ReportStepCompletion and your overall analysis.
+            </output>
 
             <validation_analysis>
             Goal: Determine whether the hypothesis has been validated, invalidated, or is inconclusive based on plan execution results.

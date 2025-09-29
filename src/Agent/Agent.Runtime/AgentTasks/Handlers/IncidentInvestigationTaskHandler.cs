@@ -128,6 +128,9 @@ public sealed class IncidentInvestigationTaskHandler(
             using var tracingHelper = new TracingHelper(tracer, context.ThreadId.ToString(), nameof(AgentTaskType.IncidentInvestigation));
             var runHooks = tracingHelper.GetAgentTaskTracingHooks();
 
+            // Register the step completion hook once at the beginning
+            runHooks.ToolStart += HandleReportStepCompletionToolCallAsync;
+
             runHooks.ResolveFactoryTools += (runContext, agent) =>
             {
                 List<AIFunction> tools = [];
@@ -494,18 +497,11 @@ public sealed class IncidentInvestigationTaskHandler(
             var validationResult = await ValidateHypothesisAsync(
                 inputData.IncidentDescription,
                 state.InitialInvestigation.ToString(),
-                hypothesis.ParentHypothesisDescription,
-                hypothesis.Description,
-                hypothesis.Id,
+                hypothesis,
+                state,
                 context,
                 runHooks,
                 currentStepSpan,
-                async step =>
-                {
-                    // Thread-safe step addition
-                    hypothesis.Steps.Add(step);
-                    await SaveStateAndStreamUpdateAsync(state, cancellationToken: cancellationToken);
-                },
                 cancellationToken);
 
             // Update hypothesis status
@@ -590,6 +586,7 @@ public sealed class IncidentInvestigationTaskHandler(
             _hypothesisValidationSemaphore.Release();
         }
     }
+
 
     /// <summary>
     /// Sends a deep investigation notification to the user.
@@ -1169,15 +1166,15 @@ public sealed class IncidentInvestigationTaskHandler(
     private async Task<HypothesisValidationResult> ValidateHypothesisAsync(
         string incidentDescription,
         string investigationSummary,
-        string validatedHypothesis,
-        string currentHypothesis,
-        Guid currentHypothesisId,
+        HypothesisTreeItem hypothesis,
+        IncidentInvestigationTaskProperties state,
         AgentContext context,
         RunHooks<AgentContext> runHooks,
         TelemetrySpan currentStepSpan,
-        Func<HypothesisStep, Task> saveAndUpdateCallback,
         CancellationToken cancellationToken)
     {
+        string currentHypothesis = hypothesis.Description;
+        string validatedHypothesis = hypothesis.ParentHypothesisDescription;
         logger.LogInternalInformation("Validating hypothesis: {Hypothesis}", currentHypothesis);
 
         var toolSelectionAgent = IncidentInvestigationAgents.CreateHypothesisValidationToolSelectionAgent(toolFactory, incidentDescription, investigationSummary, toolSubset, _llmDeploymentName);
@@ -1204,61 +1201,30 @@ public sealed class IncidentInvestigationTaskHandler(
         // trying out single agent flow for GPT-5
         if (_llmDeploymentName.Contains("gpt-5", StringComparison.OrdinalIgnoreCase))
         {
-            var validationAgent = IncidentInvestigationAgents.CreateHypothesisValidationAgentV2(
-                agentFactory,
-                toolNames,
-                incidentDescription,
-                investigationSummary
-            );
-
-            // // TODO: this won't output steps 1 by 1 anymore, need to find an alternate way to get the steps streamed out
-
-            // var resultV2 = await CallAgentAsync<HypothesisValidationResultV2>(
-            //     validationAgent,
-            //     context,
-            //     inputMessage,
-            //     runHooks,
-            //     true,
-            //     tracer: tracer,
-            //     parentSpan: currentStepSpan,
-            //     cancellationToken: cancellationToken);
-
-            // var hypSteps = await Task.WhenAll(resultV2.Steps.Select(async step =>
-            // {
-            //     // get databse item for the step to get tool executions
-            //     HypothesisStep? databaseStep = null;
-            //     if (_currentAgentTask != null)
-            //     {
-            //         databaseStep = await agentTaskToolResultHelper.FindExistingHypothesisStepAsync(
-            //             _currentAgentTask.Id,
-            //             _currentAgentTask.ThreadId,
-            //             currentHypothesisId,
-            //             step.Title);
-            //     }
-
-            //     var hypStep = new HypothesisStep
-            //     {
-            //         Summary = step.Title,
-            //         Details = step.Description,
-            //         ToolExecutions = databaseStep?.ToolExecutions ?? []
-            //     };
-
-            //     return hypStep;
-            // }));
-
-            // var validationResultV2 = new HypothesisValidationResult
-            // {
-            //     Status = resultV2.Status,
-            //     Steps = hypSteps,
-            //     IsRootCause = false,
-            //     Reasoning = resultV2.Reasoning
-            // };
-
-            // logger.LogInternalInformation("Hypothesis validation result: {Status}",
-            //     validationResultV2.Status);
-
-            // return validationResultV2;
+            return await ValidateHypothesisWithGpt5Async(incidentDescription, investigationSummary, hypothesis, state, context, runHooks, currentStepSpan, toolNames, inputMessage, cancellationToken);
         }
+        else
+        {
+            return await ValidateHypothesisWithGpt4Async(incidentDescription, investigationSummary, validatedHypothesis, hypothesis, state, context, runHooks, currentStepSpan, toolNames, inputMessage, cancellationToken);
+        }
+
+    }
+
+    private async Task<HypothesisValidationResult> ValidateHypothesisWithGpt4Async(
+        string incidentDescription,
+        string investigationSummary,
+        string validatedHypothesis,
+        HypothesisTreeItem hypothesis,
+        IncidentInvestigationTaskProperties state,
+        AgentContext context,
+        RunHooks<AgentContext> runHooks,
+        TelemetrySpan currentStepSpan,
+        List<string> toolNames,
+        ChatMessage inputMessage,
+        CancellationToken cancellationToken)
+    {
+        Guid currentHypothesisId = hypothesis.Id;
+        string currentHypothesis = hypothesis.Description;
 
         // start by generating a plan
         var planningAgent = IncidentInvestigationAgents.CreateHypothesisValidationPlanningAgent(
@@ -1344,7 +1310,8 @@ public sealed class IncidentInvestigationTaskHandler(
             };
 
             completedSteps.Add(item);
-            await saveAndUpdateCallback.Invoke(item);
+            hypothesis.Steps.Add(item);
+            await SaveStateAndStreamUpdateAsync(state, cancellationToken: cancellationToken);
 
             if (!stepExecutionResult.NeedContinue)
             {
@@ -1391,6 +1358,97 @@ public sealed class IncidentInvestigationTaskHandler(
         return validationResult;
     }
 
+    private async Task<HypothesisValidationResult> ValidateHypothesisWithGpt5Async(
+        string incidentDescription,
+        string investigationSummary,
+        HypothesisTreeItem hypothesis,
+        IncidentInvestigationTaskProperties state,
+        AgentContext context,
+        RunHooks<AgentContext> runHooks,
+        TelemetrySpan currentStepSpan,
+        List<string> toolNames,
+        ChatMessage inputMessage,
+        CancellationToken cancellationToken)
+    {
+        var validationAgent = IncidentInvestigationAgents.CreateHypothesisValidationAgentV2(
+                        agentFactory,
+                        toolNames,
+                        incidentDescription,
+                        investigationSummary
+                    );
+
+        Core.ToolStatic.AsyncLocalInvestigationStepContext.Value = new InvestigationStepContext(
+                "HypothesisValidation",
+                null,
+                hypothesis.Id
+            );
+
+        var resultV2 = await CallAgentAsync<HypothesisValidationResultV2>(
+            validationAgent,
+            context,
+            inputMessage,
+            runHooks,
+            true,
+            tracer: tracer,
+            parentSpan: currentStepSpan,
+            cancellationToken: cancellationToken);
+
+        // Use the steps that were streamed in real-time via ReportStepCompletion tool calls
+        // If no steps were captured via tool calls, fall back to the original method
+        IList<HypothesisStep> finalSteps;
+
+        if (hypothesis.Steps.Count > 0)
+        {
+            logger.LogInternalInformation(
+                "Using {StreamedStepCount} steps captured via ReportStepCompletion tool calls",
+                hypothesis.Steps.Count);
+            finalSteps = hypothesis.Steps;
+        }
+        else
+        {
+            logger.LogInternalInformation(
+                "No steps captured via ReportStepCompletion, falling back to original method with {OriginalStepCount} steps",
+                resultV2.Steps.Count);
+
+            // Fallback to original method if no steps were reported via tool
+            var hypSteps = await Task.WhenAll(resultV2.Steps.Select(async step =>
+            {
+                // get databse item for the step to get tool executions
+                HypothesisStep? databaseStep = null;
+                if (_currentAgentTask != null)
+                {
+                    databaseStep = await agentTaskToolResultHelper.FindExistingHypothesisStepAsync(
+                        _currentAgentTask.Id,
+                        _currentAgentTask.ThreadId,
+                        hypothesis.Id,
+                        step.Title);
+                }
+
+                var hypStep = new HypothesisStep
+                {
+                    Summary = step.Title,
+                    Details = step.Description,
+                    ToolExecutions = databaseStep?.ToolExecutions ?? []
+                };
+
+                return hypStep;
+            }));
+            finalSteps = hypSteps.ToList();
+        }
+
+        var validationResultV2 = new HypothesisValidationResult
+        {
+            Status = resultV2.Status,
+            Steps = finalSteps,
+            IsRootCause = false,
+            Reasoning = resultV2.Reasoning
+        };
+
+        logger.LogInternalInformation("Hypothesis validation result: {Status}",
+            validationResultV2.Status);
+
+        return validationResultV2;
+    }
 
     private async Task GenerateSingleValidHypothesisConclusion(
         HypothesisTreeItem validHypothesis,
@@ -1601,6 +1659,132 @@ public sealed class IncidentInvestigationTaskHandler(
         while (_allInvestigatedHypotheses.TryTake(out _)) { }
         while (_finalValidatedHypotheses.TryTake(out _)) { }
         while (_allHypothesesTitles.TryTake(out _)) { }
+    }
+
+    /// <summary>
+    /// Handles ReportStepCompletion tool calls to provide real-time step streaming.
+    /// </summary>
+    private async Task HandleReportStepCompletionToolCallAsync(RunContextWrapper<AgentContext> runContext, Agent<AgentContext> agent, AIFunction tool, IEnumerable<KeyValuePair<string, object?>>? input)
+    {
+        if (tool.Name == "ReportStepCompletion")
+        {
+            try
+            {
+                // Extract parameters directly from input
+                var stepTitle = ExtractToolParameter<string>(input, "stepTitle") ?? "Unknown Step";
+                var summary = ExtractToolParameter<string>(input, "summary") ?? "";
+                var status = ExtractToolParameter<string>(input, "status") ?? "Success";
+                var errorMessage = ExtractToolParameter<string>(input, "errorMessage");
+
+                // Find the current hypothesis ID from AsyncLocal context
+                var stepContext = Core.ToolStatic.AsyncLocalInvestigationStepContext.Value;
+                if (stepContext?.HypothesisId == null)
+                {
+                    logger.LogInternalWarning("No hypothesis ID found in investigation context for ReportStepCompletion call");
+                    return;
+                }
+
+                var contextHypothesisId = stepContext.HypothesisId.Value;
+
+                // Create hypothesis step
+                var hypothesisStep = new HypothesisStep
+                {
+                    Summary = stepTitle,
+                    Details = summary,
+                };
+
+                // Add error message if present
+                if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    hypothesisStep.Details += $"\n\nError: {errorMessage}";
+                }
+
+                // Get current state and find the hypothesis to update
+                var state = GetCurrentState();
+                var hypothesis = FindHypothesisInState(state, contextHypothesisId);
+                if (hypothesis != null)
+                {
+                    hypothesis.Steps.Add(hypothesisStep);
+                    await SaveStateAndStreamUpdateAsync(state);
+
+                    logger.LogInternalInformation(
+                        "Step streamed in real-time: {StepTitle} - {Status}",
+                        stepTitle, status);
+                }
+                else
+                {
+                    logger.LogInternalWarning("Could not find hypothesis {HypothesisId} in current state", contextHypothesisId);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalWarning(ex, "Failed to process step completion for tool call");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Finds a hypothesis in the state by its ID, searching recursively through the hypothesis tree.
+    /// </summary>
+    private HypothesisTreeItem? FindHypothesisInState(IncidentInvestigationTaskProperties state, Guid hypothesisId)
+    {
+        if (state.FormingHypothesis?.Hypotheses == null)
+            return null;
+
+        return FindHypothesisRecursive(state.FormingHypothesis.Hypotheses, hypothesisId);
+    }
+
+    /// <summary>
+    /// Recursively searches for a hypothesis by ID in the hypothesis tree.
+    /// </summary>
+    private HypothesisTreeItem? FindHypothesisRecursive(IList<HypothesisTreeItem> hypotheses, Guid hypothesisId)
+    {
+        foreach (var hypothesis in hypotheses)
+        {
+            if (hypothesis.Id == hypothesisId)
+                return hypothesis;
+
+            var found = FindHypothesisRecursive(hypothesis.Children, hypothesisId);
+            if (found != null)
+                return found;
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Helper method to extract parameters from tool input for the ReportStepCompletion hook.
+    /// </summary>
+    private T? ExtractToolParameter<T>(IEnumerable<KeyValuePair<string, object?>>? input, string parameterName)
+    {
+        if (input == null) return default;
+
+        var parameter = input.FirstOrDefault(kvp => kvp.Key == parameterName);
+        if (parameter.Value == null) return default;
+
+        return ConvertParameterValue<T>(parameter.Value, parameterName);
+    }
+
+
+    /// <summary>
+    /// Converts a parameter value to the specified type.
+    /// </summary>
+    private T? ConvertParameterValue<T>(object value, string parameterName)
+    {
+        try
+        {
+            if (value is T directValue)
+                return directValue;
+
+            if (value is JsonElement jsonElement)
+                return JsonSerializer.Deserialize<T>(jsonElement.GetRawText());
+
+            return (T)Convert.ChangeType(value, typeof(T));
+        }
+        catch (Exception ex)
+        {
+            logger.LogInternalWarning(ex, "Failed to extract tool parameter {ParameterName} of type {Type}", parameterName, typeof(T).Name);
+            return default;
+        }
     }
 
     #region Rate Limiting Helper Methods
