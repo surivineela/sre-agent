@@ -51,7 +51,10 @@ namespace Agent.Core.Services
     {
         private readonly bool IsDevelopment;
         private readonly ICMAPISettings _icmApiSettings;
-        private IncidentManagementSettings _current;
+       
+        private readonly IOptionsMonitor<IncidentManagementSettings> _incidentManagementSettingsOption;
+        private IncidentManagementSettings _incidentManagementSettings => _incidentManagementSettingsOption.CurrentValue;
+
         private readonly HttpClient _httpClient;
         private readonly int TimeoutInSeconds = 60;
         private readonly string IcmAPIPathPrefix;
@@ -64,18 +67,13 @@ namespace Agent.Core.Services
         private readonly string API2PathPrefix = "/api2/user/incidentapi";
         private readonly string APIPathPrefix = "/api/user";
 
-        public ICMAPIClient(IHostEnvironment environment, IOptionsMonitor<IncidentManagementSettings> monitor, ILogger<ICMAPIClient> logger, ActionSettings actionSettings, LoggingHttpMessageHandler loggingHandler, IAuthenticationService authService)
+        public ICMAPIClient(IHostEnvironment environment, IOptionsMonitor<IncidentManagementSettings> incidentManagementSettingsOption, ILogger<ICMAPIClient> logger, ActionSettings actionSettings, LoggingHttpMessageHandler loggingHandler, IAuthenticationService authService)
         {
             _logger = logger;
             _loggingHandler = loggingHandler;
             _authService = authService;
-            _current = monitor.CurrentValue;
-            monitor.OnChange(newConfig =>
-            {
-                _current = newConfig;
-                // Optionally log or re-initialize internal caches
-            });
-            _icmApiSettings = _current.ICMAPI;
+            _incidentManagementSettingsOption = incidentManagementSettingsOption;
+            _icmApiSettings = _incidentManagementSettings.ICMAPI;
             IsDevelopment = environment.IsDevelopment();
             _identity = actionSettings.Identity ?? string.Empty;
             //if (!_icmApiSettings.Enabled)
@@ -111,7 +109,7 @@ namespace Agent.Core.Services
 
             _httpClient = GetHttpClient();
         }
-
+       
         private HttpClient GetHttpClient()
         {
             HttpClient result;
@@ -1108,134 +1106,135 @@ namespace Agent.Core.Services
 
     public class NullableICMAPIClient : IICMAPIClient
     {
+        const string message = "ICM API client is not configured.";
         public Task<string> AcknowledgeIncidentAsync(string incidentId, string acknowledgeContactAlias = "antagent-1p")
         {
-            throw new NotImplementedException();
+            return Task.FromResult(message);
         }
 
         public Task<string> AddKeywordToIncident(string incidentId, string keyword)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(message);
         }
 
         public Task<string> AddParentIncidentLinkAsync(long incidentId, long parentIncidentId)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(message);
         }
 
         public Task<string> AddRelatedIncidentLinkAsync(long incidentId, long relatedIncidentId)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(message);
         }
 
         public Task<string> AddTagToIncident(string incidentId, string tag)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(message);
         }
 
         public Task<string> ChangeSeverityAsync(string incidentId, int severity, string discussionEntry, bool htmlRendering = true)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(message);
         }
 
         public Task<List<string>> GetChildIncidentsInfoAsync(long incidentId)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(message);
         }
 
         public Task<List<CustomField>> GetCustomFieldsAsync(string incidentId)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(message);
         }
 
         public Task<Incident> GetIncidentAsync(string incidentId)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(message);
         }
 
         public Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(message);
         }
 
         public Task<List<IncidentRepairItem>> GetIncidentRepairItemsAsync(long incidentId)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(message);
         }
 
         public Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains, string? owningTeamId = null, string? incidentType = null, string? createdBy = null, string? monitorId = null, string? severity = null,IEnumerable<string>? statuses = null)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(message);
         }
 
         public Task<List<string>> GetLinkedRelatedIncidentInfoAsync(long incidentId)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(message);
         }
 
         public Task<string> GetParentIncidentInfoAsync(long incidentId)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(message);
         }
 
         public bool IsEnabled()
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(message);
         }
 
         public Task<string> MitigateIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting = false, bool isNoise = false, string howFixed = "", string mitigateContactAlias = "antagent-1p")
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(message);
         }
 
         public Task<string> PostDiscussionEntryAsync(string incidentId, string discussionEntry, bool htmlRendering = true)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(message);
         }
 
         public Task<string> RemoveParentIncidentLinkAsync(long incidentId)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(message);
         }
 
         public Task<string> RemoveRelatedIncidentLinkAsync(long incidentId, long relatedIncidentId)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(message);
         }
 
         public Task<string> ResolveIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting = false, bool isNoise = false, string resolveContactAlias = "antagent-1p")
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(message);
         }
 
         public Task<List<SearchItem>> SearchIncidentsAsync(string searchString)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(message);
         }
 
         public Task<string> SetIncidentTags(string incidentId, List<string> tags)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(message);
         }
 
         public Task<string> TransferIncidentAsync(string incidentId, string discussionEntry, string tenantId, string teamId)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(message);
         }
 
         public Task<string> AddIncidentAttachment(string incidentId, string fileName, string base64Content)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(message);
         }
 
         public Task<List<Attachment>> ListIncidentAttachments(string incidentId)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(message);
         }
 
         public Task<string> DownloadIncidentAttachment(string incidentId, string attachmentId)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(message);
         }
     }
 }

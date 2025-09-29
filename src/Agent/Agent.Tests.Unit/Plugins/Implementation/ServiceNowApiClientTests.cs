@@ -14,6 +14,7 @@ using Agent.Core.Configuration;
 using Agent.Core.Models.ServiceNow;
 using Agent.Core.Services;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
 using Xunit;
@@ -25,7 +26,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         private readonly Mock<ILogger<ServiceNowAPIClient>> _mockLogger;
         private readonly Mock<HttpMessageHandler> _mockHttpMessageHandler;
         private readonly HttpClient _httpClient;
-        private readonly IncidentManagementSettings _validSettings;
+        private readonly Mock<IOptionsMonitor<IncidentManagementSettings>> _validSettings;
 
         public ServiceNowApiClientTests()
         {
@@ -33,7 +34,8 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             _mockHttpMessageHandler = new Mock<HttpMessageHandler>();
             _httpClient = new HttpClient(_mockHttpMessageHandler.Object);
 
-            _validSettings = new IncidentManagementSettings
+            _validSettings = new Mock<IOptionsMonitor<IncidentManagementSettings>>();
+            _validSettings.Setup(s => s.CurrentValue).Returns(new IncidentManagementSettings
             {
                 Type = IncidentManagementType.ServiceNow,
                 ConnectionUrl = "https://test.service-now.com",
@@ -42,7 +44,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                     Username = "testuser",
                     Password = "testpass"
                 })
-            };
+            });
         }
 
 
@@ -81,7 +83,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                     ItExpr.IsAny<CancellationToken>())
                 .ReturnsAsync(httpResponse);
 
-            var client = new ServiceNowAPIClient(_httpClient, _mockLogger.Object, _validSettings);
+            var client = new ServiceNowAPIClient(_httpClient, _mockLogger.Object, _validSettings.Object);
 
             // Act
             var result = await client.GetIncidentAsync(incidentId);
@@ -97,7 +99,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         public async Task GetIncidentAsync_WithEmptyIncidentId_ThrowsArgumentException()
         {
             // Arrange
-            var client = new ServiceNowAPIClient(_httpClient, _mockLogger.Object, _validSettings);
+            var client = new ServiceNowAPIClient(_httpClient, _mockLogger.Object, _validSettings.Object);
 
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentException>(() => 
@@ -133,7 +135,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                     ItExpr.IsAny<CancellationToken>())
                 .ReturnsAsync(httpResponse);
 
-            var client = new ServiceNowAPIClient(_httpClient, _mockLogger.Object, _validSettings);
+            var client = new ServiceNowAPIClient(_httpClient, _mockLogger.Object, _validSettings.Object);
 
             // Act
             var result = await client.GetIncidentsAsync(10, 0, null, null, null);
@@ -159,7 +161,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                     ItExpr.IsAny<CancellationToken>())
                 .ReturnsAsync(httpResponse);
 
-            var client = new ServiceNowAPIClient(_httpClient, _mockLogger.Object, _validSettings);
+            var client = new ServiceNowAPIClient(_httpClient, _mockLogger.Object, _validSettings.Object);
 
             // Act
             var result = await client.GetIncidentsAsync(10, 0, null, null, null);
@@ -190,7 +192,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                     ItExpr.IsAny<CancellationToken>())
                 .ReturnsAsync(httpResponse);
 
-            var client = new ServiceNowAPIClient(_httpClient, _mockLogger.Object, _validSettings);
+            var client = new ServiceNowAPIClient(_httpClient, _mockLogger.Object, _validSettings.Object);
 
             // Act
             var result = await client.PostDiscussionEntryAsync(incidentId, discussionEntry);
@@ -221,7 +223,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                     ItExpr.IsAny<CancellationToken>())
                 .ReturnsAsync(httpResponse);
 
-            var client = new ServiceNowAPIClient(_httpClient, _mockLogger.Object, _validSettings);
+            var client = new ServiceNowAPIClient(_httpClient, _mockLogger.Object, _validSettings.Object);
 
             // Act
             var result = await client.ResolveIncidentAsync(incidentId, resolutionNotes);
@@ -252,7 +254,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                     ItExpr.IsAny<CancellationToken>())
                 .ReturnsAsync(httpResponse);
 
-            var client = new ServiceNowAPIClient(_httpClient, _mockLogger.Object, _validSettings);
+            var client = new ServiceNowAPIClient(_httpClient, _mockLogger.Object, _validSettings.Object);
 
             // Act
             var result = await client.ChangePriorityAsync(incidentId, priority, discussionEntry);
@@ -291,7 +293,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                     ItExpr.IsAny<CancellationToken>())
                 .ReturnsAsync(httpResponse);
 
-            var client = new ServiceNowAPIClient(_httpClient, _mockLogger.Object, _validSettings);
+            var client = new ServiceNowAPIClient(_httpClient, _mockLogger.Object, _validSettings.Object);
 
             // Act
             var result = await client.GetIncidentDiscussionEntriesAsync(incidentId);
@@ -317,7 +319,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                     ItExpr.IsAny<CancellationToken>())
                 .ThrowsAsync(new HttpRequestException("Network error"));
 
-            var client = new ServiceNowAPIClient(_httpClient, _mockLogger.Object, _validSettings);
+            var client = new ServiceNowAPIClient(_httpClient, _mockLogger.Object, _validSettings.Object);
 
             // Act
             var result = await client.GetIncidentDiscussionEntriesAsync(incidentId);

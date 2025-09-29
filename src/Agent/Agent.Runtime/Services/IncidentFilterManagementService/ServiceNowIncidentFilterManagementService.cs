@@ -8,6 +8,7 @@ using Agent.Data;
 using Agent.Data.DataModels;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Agent.Runtime.Services;
 
@@ -17,13 +18,13 @@ public class ServiceNowIncidentFilterManagementService : IncidentFilterManagemen
     public ServiceNowIncidentFilterManagementService(
         CosmosClient cosmosClient,
         CosmosDBSettings cosmosDbSettings,
-        IncidentManagementSettings incidentManagementSettings,
+        IOptionsMonitor<IncidentManagementSettings> incidentManagementSettingsOptions,
         IServiceNowAPIClient serviceNowAPIClient,
         ILogger<ServiceNowIncidentFilterManagementService> logger)
         : base(cosmosClient.GetContainer(
             cosmosDbSettings.Docs.Database,
             AgentDataConfiguration.ThreadContainerName
-        ), logger, incidentManagementSettings)
+        ), logger, incidentManagementSettingsOptions)
     {
         _serviceNowAPIClient = serviceNowAPIClient;
     }

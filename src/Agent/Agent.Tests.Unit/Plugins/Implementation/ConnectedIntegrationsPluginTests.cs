@@ -4,6 +4,8 @@
 
 using Agent.Plugins.Implementation;
 using Agent.Core.Configuration;
+using Microsoft.Extensions.Options;
+using Moq;
 
 namespace Agent.Tests.Unit.Plugins.Implementation
 {
@@ -18,13 +20,15 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             };
         }
 
-        private IncidentManagementSettings GetIncidentSettings(IncidentManagementType? type = null, string? key = null)
+        private IOptionsMonitor<IncidentManagementSettings> GetIncidentSettings(IncidentManagementType? type = null, string? key = null)
         {
-            return new IncidentManagementSettings
+            var mock = new Mock<IOptionsMonitor<IncidentManagementSettings>>();
+            mock.Setup(o => o.CurrentValue).Returns(new IncidentManagementSettings
             {
                 Type = type,
                 ConnectionKey = key
-            };
+            });
+            return mock.Object;
         }
 
         private AppInsightsSettings GetAppInsightsSettings(string? connStr = null)

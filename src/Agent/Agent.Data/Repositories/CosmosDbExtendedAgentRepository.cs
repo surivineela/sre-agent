@@ -36,7 +36,7 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
         _logger = logger;
     }
 
-    #region Conversion Helper
+    
 
     /// <summary>
     /// Converts a dictionary-based document from Cosmos DB back to a strongly-typed domain model.
@@ -98,9 +98,9 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
 #pragma warning restore CS8603 // Possible null reference return.
     }
 
-    #endregion
+    
 
-    #region Agent Operations
+    
 
     public async Task<AgentDocumentModel> CreateAgentAsync(AgentDocumentModel document, string operationId)
     {
@@ -154,7 +154,7 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
 
 
 
-    #endregion
+    
 
     #region Tool Operations
 
@@ -263,6 +263,52 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
         return new PaginatedList<ToolDocumentModel>(results, limit, 0, 50);
     }
 
+    public async Task<PaginatedList<PlugInConfigDocumentModel>> GetPlugInConfigsAsync(int limit = 50, string? search = null)
+    {
+        var container = _cosmosClient.GetContainer(_databaseName, PlugInConfigDocumentModel.ContainerName);
+        // Query for dictionaries
+        var query = container.GetItemLinqQueryable<Dictionary<string, object>>()
+            .Where(d => (string)d["documentType"] == "PluginConfig");
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query = query.Where(d =>
+                ((string)d["name"]).Contains(search) ||
+                ((string)d["description"]).Contains(search));
+        }
+
+        using var iterator = query.Take(limit).ToFeedIterator();
+        var results = new List<PlugInConfigDocumentModel>();
+
+        while (iterator.HasMoreResults)
+        {
+            var response = await iterator.ReadNextAsync();
+            // Convert each dictionary in the response to the domain model
+            results.AddRange(response.Select(doc => ConvertPlugInConfigToModel(doc)));
+        }
+
+
+        return new PaginatedList<PlugInConfigDocumentModel>(results, limit, 0, 50);
+    }
+    
+    private PlugInConfigDocumentModel ConvertPlugInConfigToModel(Dictionary<string, object> doc)
+    {
+        
+        if (doc == null)
+        {
+#pragma warning disable CS8603 // Possible null reference return.
+            return null;
+
+        }
+        var jObject = JObject.FromObject(doc);
+        if (jObject == null)
+        {
+            return null;
+        }
+
+        return (PlugInConfigDocumentModel?)jObject.ToObject(typeof(PlugInConfigDocumentModel), s_serializer);
+#pragma warning restore CS8603 // Possible null reference return.
+    }
 
     public async Task<PaginatedList<CommonToolsListDocumentModel>> GetCommonToolsListsAsync(int limit = 50, string? search = null)
     {

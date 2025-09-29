@@ -8,6 +8,7 @@ using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents.Scanner;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Agent.Tests.Unit.Plugins.Implementation;
@@ -24,7 +25,7 @@ public class IcmScannerTest
     private readonly Mock<IIncidentAnalysisService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>> _mockIncidentAnalysisService;
     private readonly Mock<IICMPlugin> _mockIcmPlugin;
     private readonly Mock<Container> _mockContainer;
-    private readonly IncidentManagementSettings _incidentManagementSettings;
+    private readonly Mock<IOptionsMonitor<IncidentManagementSettings>> _mockIncidentManagementSettingsOptions;
     private readonly CosmosDBSettings _cosmosDbSettings;
 
     public IcmScannerTest()
@@ -40,7 +41,8 @@ public class IcmScannerTest
         _mockAgentOutboundCommunicationService = new Mock<IAgentOutboundCommunicationService>();
         _mockIncidentAnalysisService = new Mock<IIncidentAnalysisService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>>();
         _mockIcmPlugin = new Mock<IICMPlugin>();
-        _incidentManagementSettings = new IncidentManagementSettings
+        _mockIncidentManagementSettingsOptions= new Mock<IOptionsMonitor<IncidentManagementSettings>>();
+        _mockIncidentManagementSettingsOptions.Setup(o => o.CurrentValue).Returns(() => new IncidentManagementSettings
         {
             Type = IncidentManagementType.Icm,
             ICMAPI = new ICMAPISettings
@@ -51,7 +53,8 @@ public class IcmScannerTest
                 UserToken = "user-token",
                 OwningServiceId = "owning-service-id"
             }
-        };
+        });
+        
         _cosmosDbSettings = new CosmosDBSettings
         {
             Docs = new DocsSettings
@@ -74,7 +77,7 @@ public class IcmScannerTest
             _mockIncidentManagementService.Object,
             _mockIncidentFilterManagementService.Object,
             _mockAgentInboundCommunicationService.Object,
-            _incidentManagementSettings,
+            _mockIncidentManagementSettingsOptions.Object,
             _mockIncidentAnalysisService.Object
         );
     }

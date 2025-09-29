@@ -10,6 +10,8 @@ public interface IExtendedAgentRepository
 {
     Task<AgentDocumentModel> CreateAgentAsync(AgentDocumentModel agent, string operationId);
 
+    Task<PaginatedList<PlugInConfigDocumentModel>> GetPlugInConfigsAsync(int limit = 50, string? search = null);
+
     Task<AgentDocumentModel> UpdateAgentAsync(AgentDocumentModel agent, string operationId);
 
     Task<AgentDocumentModel?> GetAgentByNameAsync(string name);

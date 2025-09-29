@@ -31,6 +31,8 @@ public class AgentFactoryTests
     private readonly Mock<IAgentModeConfigurator<AgentContext>> _mockAgentModeConfigurator;
     private readonly Mock<IExtensibilityLoader> _mockExtendedAgentRepository;
     private readonly Mock<IMcpConnectable> _mockMcpToolsRepository;
+    private readonly Mock<IReloadableSettingsStore> _mockSettingsStore = new();
+    private readonly Mock<IPluginSettingsTypeRegistry> _mockPluginSettingsTypeRegistry = new();
     private readonly IServiceProvider _serviceProvider;
     private readonly ServiceCollection _services;
 
@@ -43,7 +45,7 @@ public class AgentFactoryTests
         _mockExtendedAgentRepository = new Mock<IExtensibilityLoader>();
         _mockMcpToolsRepository = new Mock<IMcpConnectable>();
         _mockMcpToolsRepository.Setup(m => m.GetAllFunctions()).Returns(new List<AIFunction>());
-
+        
         // Setup mock extensibility loader to return empty lists
         _mockExtendedAgentRepository.Setup(x => x.LoadExtendedToolsAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<YamlToolDefinitionBase>());
@@ -242,7 +244,9 @@ public class AgentFactoryTests
             serviceProvider: _serviceProvider,
             assembliesToScan: [Assembly.GetExecutingAssembly()],
             extensibilityLoader: _mockExtendedAgentRepository.Object,
-            mcpToolsRepository: _mockMcpToolsRepository.Object
+            mcpToolsRepository: _mockMcpToolsRepository.Object,
+            settingsStore: _mockSettingsStore.Object,
+            pluginSettingsTypeRegistry: _mockPluginSettingsTypeRegistry.Object
         );
 
         return toolFactory;

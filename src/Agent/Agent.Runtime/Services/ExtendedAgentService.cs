@@ -2,14 +2,41 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data;
 using Agent.Framework;
 using Agent.Runtime.Interfaces;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace Agent.Runtime.Services;
+public static class PluginConfigApplier
+{
+    public static void Apply(YamlPluginConfig documentModel, Type targetSettingsType, IReloadableSettingsStore store, IReloadableTokenSource? changeTokenSource)
+    {
+        if (documentModel == null)
+            throw new ArgumentNullException(nameof(documentModel));
+        if (targetSettingsType == null)
+            throw new ArgumentNullException(nameof(targetSettingsType));
+        if (store == null)
+            throw new ArgumentNullException(nameof(store));
+
+        // Deserialize the config dictionary into a strongly typed instance
+        var json = JsonConvert.SerializeObject(documentModel.Config);
+
+        var settingsInstance = JsonConvert.DeserializeObject(json, targetSettingsType);
+        if (settingsInstance == null)
+            throw new InvalidOperationException($"Failed to create settings for plugin '{documentModel.Name}'");
+
+        store.Set(documentModel.Name, settingsInstance);
+        if (changeTokenSource != null)
+            changeTokenSource.TriggerReload();
+    }
+
+    
+}
 
 public class ExtendedAgentService : IExtendedAgentService
 {
@@ -17,12 +44,18 @@ public class ExtendedAgentService : IExtendedAgentService
     private readonly IAgentFactory<AgentContext> _agentFactory;
     private readonly IToolFactory<AgentContext> _toolFactory;
     private readonly IExtendedAgentRepository _extendedAgentRepository;
+    private readonly IReloadableSettingsStore _settingsStore;
+    private readonly IPluginSettingsTypeRegistry _pluginSettingsTypeRegistry;
+    private readonly IServiceProvider _serviceProvider;
 
     public ExtendedAgentService(
         ILogger<ExtendedAgentService> logger,
         IAgentFactory<AgentContext> agentFactory,
         IToolFactory<AgentContext> toolFactory,
-        IExtendedAgentRepository extendedAgentRepository
+        IExtendedAgentRepository extendedAgentRepository,
+        IReloadableSettingsStore settingsStore,
+        IPluginSettingsTypeRegistry pluginSettingsTypeRegistry,
+        IServiceProvider serviceProvider
 
         )
     {
@@ -30,6 +63,9 @@ public class ExtendedAgentService : IExtendedAgentService
         _agentFactory = agentFactory;
         _toolFactory = toolFactory;
         _extendedAgentRepository = extendedAgentRepository;
+        _settingsStore = settingsStore;
+        _pluginSettingsTypeRegistry = pluginSettingsTypeRegistry;
+        _serviceProvider = serviceProvider;
     }
 
     public async Task<PaginatedList<YamlAgentDescriptor>> GetAgentsAsync(int pageIndex, int limit, string? search)
@@ -66,6 +102,7 @@ public class ExtendedAgentService : IExtendedAgentService
 
     public async Task RefreshAgentAndToolsRegisterationsAsync()
     {
+        await RefreshPluginRegisterationsAsync();
         _logger.LogInternalInformation("Starting custom agent files download...");
 
         try
@@ -147,6 +184,54 @@ public class ExtendedAgentService : IExtendedAgentService
         {
             _logger.LogInternalError(ex, "failed to load extended agents and tools");
             return;
+        }
+    }
+
+    
+    public async Task RefreshPluginRegisterationsAsync()
+    {
+        _logger.LogInternalInformation("Starting plugin configurations refresh...");
+
+        try
+        {
+            _logger.LogInternalInformation("Loading plugin configurations from Cosmos DB...");
+
+            // Load all plugin configurations
+            var pluginConfigs = await _extendedAgentRepository.GetPlugInConfigsAsync(limit: 1000);
+
+            // Load new ones
+            foreach (var pluginConfig in pluginConfigs)
+            {
+                var concretePluginConfig = DocumentToRuntimeMapper.ToRuntimePluginConfig(pluginConfig);
+                try
+                {
+                    if (!_pluginSettingsTypeRegistry.TryGetSettingsType(concretePluginConfig.Name, out var settingsType))
+                    {
+                        _logger.LogInternalError($"No registered settings type found for plugin '{concretePluginConfig.Name}'");
+                        continue;
+                    }
+
+                    var tokenSourceType = typeof(ReloadableOptionsChangeTokenSource<>).MakeGenericType(settingsType);
+                    var tokenSource = _serviceProvider.GetService(tokenSourceType) as IReloadableTokenSource;
+                    
+                    if (tokenSource == null)
+                    {
+                        throw new Exception($"Failed to get token source for plugin '{concretePluginConfig.Name}'");
+                    }
+
+                    PluginConfigApplier.Apply(concretePluginConfig, settingsType, _settingsStore, tokenSource);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError(ex, "Failed to load plugin configuration {PluginName} from Cosmos DB", concretePluginConfig.Name);
+                    // Continue loading other plugins even if one fails
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to load plugin configurations from Cosmos DB");
+            throw;
         }
     }
 
@@ -276,8 +361,6 @@ public class ExtendedAgentService : IExtendedAgentService
         }
     }
 
-   
-
     public async Task LoadExtendedAgentsAsync(CancellationToken cancellationToken = default)
     {
         _logger.LogInternalInformation("Starting custom agent files download...");
@@ -297,7 +380,7 @@ public class ExtendedAgentService : IExtendedAgentService
                     _logger.LogInternalError(ex, "Failed to load extended agent from Cosmos: {AgentName}", extendedAgent.Name);
                 }
             }
-            
+
             // load tools stored in Cosmos
         }
         catch (Exception ex)

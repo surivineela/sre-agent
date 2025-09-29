@@ -88,4 +88,13 @@ public static class DocumentToRuntimeMapper
         Name = toolsListDocumentModel.Name,
         Tools = toolsListDocumentModel.CommonToolsList,
     };
+
+    public static YamlPluginConfig ToRuntimePluginConfig(PlugInConfigDocumentModel toolsListDocumentModel) => new()
+    {
+        Name = toolsListDocumentModel.Name,
+
+        Metadata = toolsListDocumentModel.Metadata,
+
+        Config = toolsListDocumentModel.Config
+    };
 }

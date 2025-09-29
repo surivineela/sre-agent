@@ -226,7 +226,7 @@ public static class ApiToRuntimeMapper
     public static PlugInConfigDocumentModel ToDocumentConfig(PluginConfigDeploymentModel config, string operationId) => new
       PlugInConfigDocumentModel(
            Id: $"config_{config.Spec.PluginName}",
-           Name: $"config_{config.Spec.PluginName}",
+           Name: config.Spec.PluginName,
          Config: config.Spec.Config,
            Metadata: config.Metadata,
            OperationId: operationId);

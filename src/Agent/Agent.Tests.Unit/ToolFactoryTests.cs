@@ -122,6 +122,8 @@ namespace Agent.Tests.Unit
     {
         private readonly Mock<ILogger<ToolFactory<object>>> _mockLogger;
         private readonly Mock<IMcpConnectable> _mockMcpToolsRepository;
+        private readonly Mock<IReloadableSettingsStore> _mockSettingsStore = new();
+        private readonly Mock<IPluginSettingsTypeRegistry> _mockPluginSettingsTypeRegistry = new();
         private readonly IServiceProvider _serviceProvider;
         private readonly ServiceCollection _services;
 
@@ -383,7 +385,9 @@ namespace Agent.Tests.Unit
                serviceProvider: _serviceProvider,
                assembliesToScan: [Assembly.GetExecutingAssembly()],
                extensibilityLoader: null,
-               mcpToolsRepository: _mockMcpToolsRepository.Object);
+               mcpToolsRepository: _mockMcpToolsRepository.Object,
+               settingsStore: _mockSettingsStore.Object,
+               pluginSettingsTypeRegistry: _mockPluginSettingsTypeRegistry.Object);
             await toolFactory.InitializeAsync();
 
             return toolFactory;

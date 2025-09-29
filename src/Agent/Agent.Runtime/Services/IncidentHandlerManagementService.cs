@@ -8,6 +8,7 @@ using Agent.Data.DataModels;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace Agent.Runtime.Services
@@ -25,17 +26,19 @@ namespace Agent.Runtime.Services
     {
         private readonly Container _container;
         private readonly ILogger<IncidentHandlerManagementService> _logger;
-        private readonly IncidentManagementSettings _incidentManagementSettings;
+        private readonly IOptionsMonitor<IncidentManagementSettings> _incidentManagementSettingsOption;
+        private IncidentManagementSettings _incidentManagementSettings => _incidentManagementSettingsOption.CurrentValue;
         protected readonly string DocumentType = "IncidentHandler";
 
         public IncidentHandlerManagementService(
             CosmosClient cosmosClient,
             CosmosDBSettings cosmosDbSettings,
-            IncidentManagementSettings incidentManagementSettings,
+            IOptionsMonitor<IncidentManagementSettings> incidentManagementSettingsOptions,
             ILogger<IncidentHandlerManagementService> logger)
         {
-            _incidentManagementSettings = incidentManagementSettings;
-            DocumentType = $"IncidentHandler{_incidentManagementSettings.Type}";
+            _incidentManagementSettingsOption = incidentManagementSettingsOptions;
+            
+        DocumentType = $"IncidentHandler{_incidentManagementSettings.Type}";
             _container = cosmosClient.GetContainer(
                 cosmosDbSettings.Docs.Database,
                 AgentDataConfiguration.ThreadContainerName

@@ -14,9 +14,11 @@ using Agent.Plugins.Interface;
 using Agent.Plugins.Kusto;
 using Agent.Plugins.KustoPlugin;
 using Agent.Plugins.Models;
+using FirstPartyAgent.Common.Configuration;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Author = Agent.Core.Models.Api.v1.Author;
 using Message = Agent.Core.Models.Api.v1.Message;
@@ -67,7 +69,7 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
         CosmosClient cosmosDBService,
         CosmosDBSettings cosmosDBSettings,
         GenevaActionsSettings genevaActionsSettings,
-        ICMWorkflowSettings iCMWorkflowSettings,
+        IOptionsMonitor<Core.Configuration.ICMWorkflowSettings> monitor,
         OneBranchApprovalService oneBranchApprovalService,
         AgentSpaceProxySettings agentSpaceProxySettings,
         IICMAPIClient iCMAPIClient,
@@ -76,13 +78,19 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
         IAuthenticationService authenticationService,
         IAgentOutboundCommunicationService agentOutboundCommunicationService)
     {
+        var icmWorkflowSettings = monitor.CurrentValue;
+        monitor.OnChange(newConfig =>
+        {
+            icmWorkflowSettings = newConfig;
+            // Optionally log or re-initialize internal caches
+        });
         _logger = logger;
         _icmWorkflowClient = icmWorkflowClient;
         _kustoClient = kustoPlugin;
         _cosmosDBService = cosmosDBService;
         _cosmosDBSettings = cosmosDBSettings;
         _genevaActionsSettings = genevaActionsSettings;
-        _icmWorkflowReadOnly = iCMWorkflowSettings.ReadOnly;
+        _icmWorkflowReadOnly = icmWorkflowSettings.ReadOnly;
         _lazyGenevaActions = new Lazy<Task<List<GenevaActionConfig>>>(() => InitializeGenevaActionsConfig());
         _oneBranchApprovalService = oneBranchApprovalService;
         _icmAPIClient = iCMAPIClient;

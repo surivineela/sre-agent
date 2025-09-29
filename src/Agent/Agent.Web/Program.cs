@@ -541,8 +541,9 @@ public class Program
                         .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
                         .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true),
                     extensibilityLoader: sp.GetRequiredService<IExtensibilityLoader>(),
-                    mcpToolsRepository: sp.GetRequiredService<IMcpConnectable>()
-                    );
+                    mcpToolsRepository: sp.GetRequiredService<IMcpConnectable>(),
+                    settingsStore: sp.GetRequiredService<IReloadableSettingsStore>(),
+                pluginSettingsTypeRegistry: sp.GetRequiredService<IPluginSettingsTypeRegistry>());
             })
             .AddSingleton<IToolFactory<AgentContext>, ToolFactory<AgentContext>>(sp =>
             {
@@ -637,7 +638,7 @@ public class Program
             builder.Services
                 .AddTransient<RCAContainerAppIcMPluginDefinition>()
                 .AddTransient<RCAContainerAppQuotaPluginDefinition>();
-            builder.RegisterAcaFirstPartyAppSettings();
+           // builder.RegisterAcaFirstPartyAppSettings();
 
         }
 

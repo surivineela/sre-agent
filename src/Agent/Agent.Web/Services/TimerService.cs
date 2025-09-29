@@ -23,6 +23,7 @@ using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
 using Agent.Runtime.SubAgents.WebAppDownAgent;
 using Agent.Runtime.ThreadEvaluator;
 using Agent.Runtime.TrajectoryEvaluator;
+using Microsoft.Extensions.Options;
 
 namespace Agent.Web.Services;
 
@@ -67,7 +68,8 @@ public class TimerService : IHostedService, IDisposable
 
     private CrawlerSettings _settings;
     private TimerSettings _timerSettings;
-    private IncidentManagementSettings _incidentManagementSettings;
+    private readonly IOptionsMonitor<IncidentManagementSettings> _incidentManagementSettingsOption;
+    private IncidentManagementSettings _incidentManagementSettings => _incidentManagementSettingsOption.CurrentValue;
     private AgentMemorySettings _agentMemorySettings;
     private DashboardSettings _dashboardSettings;
     private TlsBestPracticesScanner _tlsBestPracticesScanner;
@@ -154,7 +156,7 @@ public class TimerService : IHostedService, IDisposable
         CrawlerSettings settings,
         TimerSettings timerSettings,
         DashboardSettings dashboardSettings,
-        IncidentManagementSettings incidentManagementSettings,
+        IOptionsMonitor<IncidentManagementSettings> incidentManagementSettingsOptions,
         AgentMemorySettings agentMemorySettings,
         IPostToTeamsPlugin teamsPlugin,
         TlsBestPracticesScanner tlsBestPracticesScanner,
@@ -187,7 +189,7 @@ public class TimerService : IHostedService, IDisposable
         _agentInboundCommunicationService = agentInboundCommunicationService;
         _chartPlugin = chartPlugin;
         _timerSettings = timerSettings;
-        _incidentManagementSettings = incidentManagementSettings;
+        _incidentManagementSettingsOption = incidentManagementSettingsOptions;
         _teamsPlugin = teamsPlugin;
         _tlsBestPracticesScanner = tlsBestPracticesScanner;
         _dailyReportScanner = dailyReportScanner;

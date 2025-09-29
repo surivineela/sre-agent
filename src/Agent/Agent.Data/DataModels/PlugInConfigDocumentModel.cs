@@ -16,7 +16,7 @@ using Agent.Framework.Reasoning.Models;
 public record PlugInConfigDocumentModel(
     string Id,
     string Name,
-    IDictionary<string, object> Config,
+    Dictionary<string, object> Config,
 
 YamlMetadata Metadata,
     string OperationId

@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using Agent.Core.Configuration;  // Add this using
 using Agent.Core.Extensions;     // Add this using
 using Agent.Core.Services;
+using Microsoft.Extensions.Options;
 
 namespace Agent.Runtime.Services
 {
@@ -36,7 +37,8 @@ namespace Agent.Runtime.Services
         private readonly IToolFactory<AgentContext> _toolFactory;
         private readonly IIncidentManagementServiceFactory _incidentManagementServiceFactory;
         private readonly ILogger<InstructionGenerationService> _logger;
-        private readonly IncidentManagementSettings _incidentManagementSettings; // Add this
+        private readonly IOptionsMonitor<IncidentManagementSettings> _incidentManagementSettingsOption;
+        private IncidentManagementSettings _incidentManagementSettings => _incidentManagementSettingsOption.CurrentValue;
         private readonly IPublishedToolsService _publishedToolsService;
 
         public InstructionGenerationService(
@@ -44,7 +46,7 @@ namespace Agent.Runtime.Services
             IChatClient chatClient,
             IIncidentManagementServiceFactory incidentManagementServiceFactory,
             ILogger<InstructionGenerationService> logger,
-            IncidentManagementSettings incidentManagementSettings,
+            IOptionsMonitor<IncidentManagementSettings> incidentManagementSettingsOptions,
             IPublishedToolsService publishedToolsService
             )
         {
@@ -52,7 +54,7 @@ namespace Agent.Runtime.Services
             _chatClient = chatClient;
             _incidentManagementServiceFactory = incidentManagementServiceFactory;
             _logger = logger;
-            _incidentManagementSettings = incidentManagementSettings; // Add this
+            _incidentManagementSettingsOption = incidentManagementSettingsOptions;
             _publishedToolsService = publishedToolsService;
         }
 

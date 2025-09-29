@@ -14,6 +14,7 @@ using Agent.Logging;
 using Agent.Runtime.Workflow;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using OpenTelemetry.Trace;
 
 namespace Agent.Runtime.Reasoning;
@@ -34,7 +35,8 @@ public class WorkflowOrchestrator : IDisposable
     private AgentContext _context; // made mutable to allow state transitions similar to ReasoningLoop
     private readonly IToolFactory<AgentContext> _toolFactory;
     private readonly Tracer _tracer;
-    private readonly IncidentManagementSettings _incidentManagementSettings;
+    private readonly IOptionsMonitor<IncidentManagementSettings> _incidentManagementSettingsOption;
+    private IncidentManagementSettings _incidentManagementSettings => _incidentManagementSettingsOption.CurrentValue;
     private readonly CoreSettings _coreSettings;
     private readonly ModeSwitchHandler _modeSwitchHandler;
 
@@ -66,7 +68,7 @@ public class WorkflowOrchestrator : IDisposable
         IAgentFactory<AgentContext> agentFactory,
         IToolFactory<AgentContext> toolFactory,
     Tracer tracer,
-    IncidentManagementSettings incidentManagementSettings,
+    IOptionsMonitor<IncidentManagementSettings> incidentManagementSettingsOptions,
     CoreSettings coreSettings)
     {
         _loggerFactory = loggerFactory;
@@ -78,7 +80,7 @@ public class WorkflowOrchestrator : IDisposable
         _agentFactory = agentFactory;
         _toolFactory = toolFactory;
         _tracer = tracer;
-        _incidentManagementSettings = incidentManagementSettings;
+        _incidentManagementSettingsOption = incidentManagementSettingsOptions;
         _coreSettings = coreSettings;
 
         // Initialize mode switch handler (kept minimal; only active if feature flag enabled)

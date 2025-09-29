@@ -8,6 +8,7 @@ using Agent.Runtime.Reasoning;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Agent.Runtime.Services
 {
@@ -48,11 +49,11 @@ namespace Agent.Runtime.Services
         public IncidentFilterManagementServiceBase(
             Container container,
             ILogger logger,
-            IncidentManagementSettings incidentManagementSettings)
+            IOptionsMonitor<IncidentManagementSettings> incidentManagementSettingsOptions)
         {
             _container = container;
             _logger = logger;
-            DocumentType = IncidentFilterDocumentUtilities.GetDocumentTypeName(incidentManagementSettings.Type);
+            DocumentType = IncidentFilterDocumentUtilities.GetDocumentTypeName(incidentManagementSettingsOptions.CurrentValue.Type);
         }
 
         public abstract Task<bool> CheckConnectivity();

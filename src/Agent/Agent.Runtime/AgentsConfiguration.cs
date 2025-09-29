@@ -8,6 +8,7 @@ using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
+using Agent.Framework.Interfaces;
 using Agent.Logging;
 using Agent.Runtime.Services;
 using Azure.AI.OpenAI;
@@ -231,6 +232,7 @@ namespace Agent.Runtime
             return services
                 .AddSingleton<IAsyncInitializer>(sp => sp.GetRequiredService<IToolFactory<AgentContext>>())
                 .AddSingleton<IAsyncInitializer>(sp => sp.GetRequiredService<IAgentFactory<AgentContext>>())
+                .AddSingleton<IAsyncInitializer>(sp => sp.GetRequiredService<IExtensibilityLoader>())
                 .AddHostedService<AsyncInitializerService>();
         }
     }

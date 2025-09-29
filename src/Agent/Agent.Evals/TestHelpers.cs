@@ -290,7 +290,10 @@ public static class TestHelpers
                     .Where(assembly => !assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
                     .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true),
                 mcpToolsRepository: sp.GetRequiredService<IMcpConnectable>(),
-                extensibilityLoader: sp.GetRequiredService<IExtensibilityLoader>());
+                extensibilityLoader: sp.GetRequiredService<IExtensibilityLoader>(),
+                settingsStore: sp.GetRequiredService<IReloadableSettingsStore>(),
+                pluginSettingsTypeRegistry: sp.GetRequiredService<IPluginSettingsTypeRegistry>()
+            );
 
             var replay = new ReplayToolFactory<AgentContext>(inner, toolReplaySerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web));
             return replay;

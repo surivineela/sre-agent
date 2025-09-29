@@ -9,6 +9,7 @@ using Agent.Data;
 using Agent.Data.DataModels;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Agent.Runtime.Services;
 
@@ -18,13 +19,13 @@ public class IcmIncidentFilterManagementService : IncidentFilterManagementServic
     public IcmIncidentFilterManagementService(
         CosmosClient cosmosClient,
         CosmosDBSettings cosmosDbSettings,
-        IncidentManagementSettings incidentManagementSettings,
+        IOptionsMonitor<IncidentManagementSettings> incidentManagementSettingsOptions,
         ILogger<IcmIncidentFilterManagementService> logger,
         IICMAPIClient icmApiClient)
         : base(cosmosClient.GetContainer(
             cosmosDbSettings.Docs.Database,
             AgentDataConfiguration.ThreadContainerName
-        ), logger, incidentManagementSettings)
+        ), logger, incidentManagementSettingsOptions)
     {
         _icmApiClient = icmApiClient;
     }

@@ -8,6 +8,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data;
 using Agent.Framework;
+using Agent.Core.Configuration;
 
 namespace Agent.Cli.UnitTests.Validations;
 
@@ -20,12 +21,17 @@ public class ServerSideYamlValidationTests
         var mockAgentFactory = new Mock<IAgentFactory<AgentContext>>();
         var mockToolFactory = new Mock<IToolFactory<AgentContext>>();
         var mockRepository = new Mock<IExtendedAgentRepository>();
-
+        var mockPluginSettingsTypeRegistry = new Mock<IPluginSettingsTypeRegistry>();
+        var mockSettingsStore = new Mock<IReloadableSettingsStore>();
+        var mockServiceProvider = new Mock<IServiceProvider>();
         var service = new ExtendedAgentService(
             mockLogger.Object,
             mockAgentFactory.Object,
             mockToolFactory.Object,
-            mockRepository.Object
+            mockRepository.Object,
+            mockSettingsStore.Object,
+            mockPluginSettingsTypeRegistry.Object,
+            mockServiceProvider.Object
         );
 
         return service.ValidateYamlStructure(rootDocument);
@@ -74,7 +80,7 @@ public class ServerSideYamlValidationTests
         Assert.Empty(errors);
     }
 
-    #endregion
+    #endregion Valid YAML Structure Tests
 
     #region Server-side Indentation Error Tests
 
@@ -131,7 +137,7 @@ public class ServerSideYamlValidationTests
         Assert.True(errors.Count >= 4);
     }
 
-    #endregion
+    #endregion Server-side Indentation Error Tests
 
     #region Integration Tests with Real Problematic YAML
 
@@ -162,7 +168,6 @@ max_reflection_count: 0";
 
         // Act
         var errors = CallServerValidateYamlStructure(rootDocument);
-
 
         // Assert
         Assert.True(errors.Count > 0, "Should have detected indentation errors");
@@ -204,7 +209,7 @@ spec:
         Assert.Empty(errors);
     }
 
-    #endregion
+    #endregion Integration Tests with Real Problematic YAML
 
     #region Missing Required Properties Tests
 
@@ -254,7 +259,7 @@ spec:
         Assert.Contains(errors, e => e.Contains("Required property 'system_prompt' is missing from 'spec' section"));
     }
 
-    #endregion
+    #endregion Missing Required Properties Tests
 
     #region Instructions vs System Prompt Tests
 
@@ -281,7 +286,7 @@ spec:
         Assert.Contains(errors, e => e.Contains("Use 'system_prompt' instead of 'instructions' in the 'spec' section"));
     }
 
-    #endregion
+    #endregion Instructions vs System Prompt Tests
 
     #region No Spec Section Tests
 
@@ -305,5 +310,5 @@ spec:
         Assert.Empty(errors);
     }
 
-    #endregion
+    #endregion No Spec Section Tests
 }

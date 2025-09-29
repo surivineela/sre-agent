@@ -56,6 +56,10 @@ resource agent 'Microsoft.App/agents@2025-05-01-preview' = {
       }
     }
     logConfiguration: {
+      applicationInsightsConfiguration: {
+        appId: '1e551903-0a37-42df-8474-bb52748f7f7f'
+        connectionString: null
+      }
       logAnalyticsConfiguration: {
         workspaceId: logAnalyticsWorkspace.properties.customerId
         sharedKey: logAnalyticsWorkspace.listKeys().primarySharedKey

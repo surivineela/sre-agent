@@ -12,6 +12,7 @@ using Agent.Framework;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using OpenTelemetry.Trace;
 
 namespace Agent.Runtime.Reasoning;
@@ -35,7 +36,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     private readonly IThreadRepository _threadRepository;
     private readonly ActionSettings _actionSettings;
     private readonly CoreSettings _coreSettings;
-    private readonly IncidentManagementSettings _incidentManagementSettings;
+    private readonly IOptionsMonitor<IncidentManagementSettings> _incidentManagementSettingsOption;
+    private IncidentManagementSettings _incidentManagementSettings => _incidentManagementSettingsOption.CurrentValue;
     private readonly IHostEnvironment _hostEnvironment;
 
     private readonly Tracer _tracer;
@@ -71,7 +73,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         IAgentMemoryClient agentMemoryClient,
         ISearchIndexService searchIndexService,
         IMeterFactory meterFactory,
-        IncidentManagementSettings incidentManagementSettings)
+        IOptionsMonitor<IncidentManagementSettings> incidentManagementSettingsOptions)
     {
         _loggerFactory = loggerFactory;
         _logger = _loggerFactory.CreateLogger<ReasoningLoopFactory>();
@@ -92,7 +94,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         _searchHelper = searchHelper;
         _agentMemoryClient = agentMemoryClient;
         _searchIndexService = searchIndexService;
-        _incidentManagementSettings = incidentManagementSettings;
+        _incidentManagementSettingsOption = incidentManagementSettingsOptions;
 
         // enable handoff reasoning for developer envs
         var enableHandoffReasoning = coreSettings.Experimental?.EnableHandoffReasoning
@@ -179,7 +181,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
                     agentFactory: _agentFactory,
                     toolFactory: _toolFactory,
                     tracer: _tracer,
-                    incidentManagementSettings: _incidentManagementSettings,
+                    incidentManagementSettingsOptions: _incidentManagementSettingsOption,
                     coreSettings: _coreSettings);
 
                 await workflowOrchestrator.LoadChatHistoryAsync();
@@ -206,7 +208,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
                     searchIndexService: _searchIndexService,
                     featureConfig: _featureConfig,
                     agentRuntimeModifier: _agentRuntimeModifier,
-                    incidentManagementSettings: _incidentManagementSettings,
+                    incidentManagementSettingsOptions: _incidentManagementSettingsOption,
                     coreSettings: _coreSettings,
                     modeSwitchEnabled: ModeSwitchHelper.ModeSwitchEnabled(_coreSettings));
 

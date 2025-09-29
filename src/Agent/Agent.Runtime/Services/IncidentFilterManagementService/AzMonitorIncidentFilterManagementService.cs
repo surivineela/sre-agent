@@ -9,6 +9,7 @@ using Agent.Data.Interface.IncidentAPI;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Agent.Runtime.Services;
 
@@ -18,13 +19,13 @@ public class AzMonitorIncidentFilterManagementService : IncidentFilterManagement
     public AzMonitorIncidentFilterManagementService(
         CosmosClient cosmosClient,
         CosmosDBSettings cosmosDbSettings,
-        IncidentManagementSettings incidentManagementSettings,
+        IOptionsMonitor<IncidentManagementSettings> incidentManagementSettingsOptions,
         ILogger<AzMonitorIncidentFilterManagementService> logger,
         IAzMonitorAlertService azMonitorAlertService)
         : base(cosmosClient.GetContainer(
             cosmosDbSettings.Docs.Database,
             AgentDataConfiguration.ThreadContainerName
-        ), logger, incidentManagementSettings)
+        ), logger, incidentManagementSettingsOptions)
     {
         _azMonitorAlertService = azMonitorAlertService;
     }
