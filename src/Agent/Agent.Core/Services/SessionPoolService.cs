@@ -19,6 +19,7 @@ public class SessionPoolService : ISessionPoolService
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly SessionPoolSettings _sessionPoolSettings;
+    private readonly FederationSettings _federationSettings;
     private readonly ILogger<SessionPoolService> _logger;
     private readonly string _defaultApiVersion = "2025-02-02-preview";
 
@@ -29,20 +30,28 @@ public class SessionPoolService : ISessionPoolService
     {
         _httpClientFactory = httpClientFactory;
         _sessionPoolSettings = azureSettings.SessionPool;
+        _federationSettings = azureSettings.Federation;
         _logger = logger;
     }
 
-    /// <summary>
-    /// Builds a stable session identifier for the code interpreter pool using the agent name and thread id.
-    /// This ensures all python/report generation code for the same (agent, thread) reuses the same underlying session when supported by the pool.
-    /// </summary>
-    public static string BuildSessionIdentifier(string agentName, string threadId)
+    // Client Id must be the first part of the identifer as this is a contract between YARP for authorization
+    public string BuildSessionIdentifier(string? agentName = null, string? threadId = null, bool randomSuffix = true)
     {
-        if (string.IsNullOrWhiteSpace(agentName)) throw new ArgumentException("agentName required", nameof(agentName));
-        if (string.IsNullOrWhiteSpace(threadId)) throw new ArgumentException("threadId required", nameof(threadId));
-        // Normalize thread id (strip braces if Guid string)
-        threadId = threadId.Trim().Trim('{', '}');
-        return $"{agentName}-{threadId}";
+        List<string> parts = [_federationSettings.ClientId];
+        if (!string.IsNullOrEmpty(agentName))
+        {
+            parts.Add(agentName);
+        }
+        if (!string.IsNullOrEmpty(threadId))
+        {
+            threadId = threadId.Trim().Trim('{', '}');
+            parts.Add(threadId);
+        }
+        if (randomSuffix)
+        {
+            parts.Add(Guid.NewGuid().ToString("N").Substring(0, 8));
+        }
+        return string.Join("--", parts);
     }
 
     public async Task<(int, string, string)> ExecuteCliLegacyAsync(string command, string accessToken, string identifier)

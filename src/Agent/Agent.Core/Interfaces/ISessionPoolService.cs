@@ -9,6 +9,7 @@ namespace Agent.Core.Interfaces;
 
 public interface ISessionPoolService
 {
+    string BuildSessionIdentifier(string? agentName = null, string? threadId = null, bool randomSuffix = true);
     Task<(int, string, string)> ExecuteCliLegacyAsync(string command, string accessToken, string identifier);
     Task<(int, string, string)> ExecuteCliAsync(string command, string identifier, Dictionary<string, string>? tokens);
 

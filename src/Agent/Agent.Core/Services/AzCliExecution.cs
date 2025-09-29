@@ -45,9 +45,7 @@ public class AzCliExecution
             if (_sessionPoolSettings.Enabled
                 && !string.IsNullOrEmpty(_sessionPoolSettings.PoolManagementEndpoint))
             {
-                // Uncomment to move to new session cli image
-                // return await _sessionPoolService.ExecuteCliAsync(_command, $"{AgentNameHelper.GetAgentName(!_isDevelopment)}-{Guid.NewGuid().ToString("N").Substring(0, 8)}", _additionalTokens);
-                (exitCode, stdout, stderr) = await _sessionPoolService.ExecuteCliLegacyAsync(_command, _accessToken ?? string.Empty, $"{AgentNameHelper.GetAgentName(!_isDevelopment)}-{Guid.NewGuid().ToString("N").Substring(0, 8)}");
+                (exitCode, stdout, stderr) = await _sessionPoolService.ExecuteCliAsync(_command, _sessionPoolService.BuildSessionIdentifier(randomSuffix: true), _additionalTokens);
             }
             else
             {

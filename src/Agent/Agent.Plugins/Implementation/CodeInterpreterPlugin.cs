@@ -105,11 +105,15 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
         return null;
     }
 
+    /// <summary>
+    /// Builds a stable session identifier for the code interpreter pool using the agent name and thread id.
+    /// This ensures all python/report generation code for the same (agent, thread) reuses the same underlying session when supported by the pool.
+    /// </summary>
     private string BuildIdentifier()
     {
         var agentName = AgentNameHelper.GetAgentName(!_hostEnvironment.IsDevelopment());
         var threadId = ThreadId?.ToString() ?? Guid.NewGuid().ToString();
-        return SessionPoolService.BuildSessionIdentifier(agentName, threadId);
+        return _sessionPoolService.BuildSessionIdentifier(agentName, threadId, false);
     }
 
     // Legacy shell path retained for backward compatibility (unused after inline API migration)
