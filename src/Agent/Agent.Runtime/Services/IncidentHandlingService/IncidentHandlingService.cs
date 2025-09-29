@@ -94,6 +94,12 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
         _experimentalSettings = experimentalSettings;
     }
 
+
+    /// <summary>
+    /// Returns the incident source type for this handler (e.g., "ICM", "PagerDuty", "ServiceNow", "AzMonitor").
+    /// </summary>
+    public abstract string GetIncidentSource();
+
     protected abstract Task<TIncidentDocument> GetIncidentAsync(string incidentId);
 
     protected abstract Task<Thread> CreateIncidentHandlerAgentThreadAsync(
@@ -386,7 +392,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
             // Emit agent action telemetry for meta thread creation with incident source
             try
             {
-                var param = JsonSerializer.Serialize(new { IncidentSource = request.Source ?? string.Empty });
+                var param = JsonSerializer.Serialize(new { IncidentSource = GetIncidentSource() ?? string.Empty });
                 _logger.LogAgentAction(
                     action: AgentActionEvents.CreateThread,
                     parameter: param,
@@ -628,7 +634,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
                 // Emit agent action telemetry for thread creation with incident source
                 try
                 {
-                    var param = JsonSerializer.Serialize(new { IncidentSource = sourceSystem ?? string.Empty });
+                    var param = JsonSerializer.Serialize(new { IncidentSource = GetIncidentSource(), HandlerId = incidentHandler.Id  });
                     _logger.LogAgentAction(
                         action: AgentActionEvents.CreateThread,
                         parameter: param,

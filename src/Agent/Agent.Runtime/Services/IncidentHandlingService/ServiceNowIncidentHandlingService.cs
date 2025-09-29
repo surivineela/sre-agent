@@ -108,7 +108,7 @@ public class ServiceNowIncidentHandlingService : IncidentHandlingServiceBase<Ser
             incidentHandler,
             incidentFilterDocument,
             request,
-            "ServiceNow",
+            GetIncidentSource(),
             GetServiceNowSpecificProperties);
     }
 
@@ -128,5 +128,10 @@ public class ServiceNowIncidentHandlingService : IncidentHandlingServiceBase<Ser
             UpdatedAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow
         };
+    }
+
+    public override string GetIncidentSource()
+    {
+        return "ServiceNow";
     }
 }

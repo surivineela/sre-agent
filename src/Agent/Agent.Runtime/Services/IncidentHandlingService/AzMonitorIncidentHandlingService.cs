@@ -33,6 +33,7 @@ using Thread = Agent.Core.Models.Api.v1.Thread;
 /// </summary>
 public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMonitorAlertDocument, AzMonitorIncidentFilterDocument, AzMonitorIncidentFilterDocumentPayload>
 {
+
     private readonly IIncidentManagementService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocumentPayload> _incidentManagementService;
     private readonly IAzMonitorAlertService _azMonitorAlertService;
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
@@ -67,6 +68,11 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         _dbContainer = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
         _graphDbClient = graphDbClient;
         _incidentsStatusMetricsService = incidentsStatusMetricsService;
+    }
+
+    public override string GetIncidentSource()
+    {
+        return "AzMonitor";
     }
 
     protected override async Task<AzMonitorAlertDocument> GetIncidentAsync(string incidentId)
@@ -638,7 +644,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         // Emit agent action telemetry for thread creation with incident source AzMonitor
         try
         {
-            var param = JsonSerializer.Serialize(new { IncidentSource = "AzMonitor" });
+            var param = JsonSerializer.Serialize(new { IncidentSource = GetIncidentSource() });
             _logger.LogAgentAction(
                 action: AgentActionEvents.CreateThread,
                 parameter: param,
@@ -787,7 +793,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         // Emit agent action telemetry for thread creation
         try
         {
-            var param = JsonSerializer.Serialize(new { IncidentSource = "AzMonitor", HandlerId = handlerDoc.Id });
+            var param = JsonSerializer.Serialize(new { IncidentSource = GetIncidentSource(), HandlerId = handlerDoc.Id });
             _logger.LogAgentAction(
                 action: AgentActionEvents.CreateThread,
                 parameter: param,

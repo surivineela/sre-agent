@@ -17,6 +17,7 @@ namespace Agent.Runtime.Services;
 public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmIncidentDocument, IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload>
 {
     private readonly IICMAPIClient _icmApiClient;
+
     private readonly IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload> _icmIncidentManagementService;
 
     public IcmIncidentHandlingService(
@@ -79,7 +80,7 @@ public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmInciden
             incidentHandler,
             incidentFilterDocument,
             request,
-            "ICM",
+            GetIncidentSource(),
             GetIcmSpecificProperties);
     }
 
@@ -99,5 +100,10 @@ public class IcmIncidentHandlingService : IncidentHandlingServiceBase<IcmInciden
             UpdatedAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow
         };
+    }
+
+    public override string GetIncidentSource()
+    {
+        return "ICM";
     }
 }

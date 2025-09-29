@@ -90,7 +90,7 @@ public class PagerDutyIncidentHandlingService : IncidentHandlingServiceBase<Page
             incidentHandler,
             incidentFilterDocument,
             request,
-            "PagerDuty",
+            GetIncidentSource(),
             GetPagerDutySpecificProperties);
     }
 
@@ -110,5 +110,10 @@ public class PagerDutyIncidentHandlingService : IncidentHandlingServiceBase<Page
             UpdatedAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow
         };
+    }
+
+    public override string GetIncidentSource()
+    {
+        return "PagerDuty";
     }
 }
