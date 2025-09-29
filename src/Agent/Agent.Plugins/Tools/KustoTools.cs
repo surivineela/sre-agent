@@ -53,6 +53,9 @@ namespace Agent.Plugins.Kusto.Tools
             var connector = _connectorResolver.GetConnectorFromSettings<KustoConnector>(parameterizedConnectorName, parameterizedConnectorName, kustoCluster);
             
             var kustoChat = _kustoFactory.Create(connector);
+
+            // Determine if we should print the query based on tool definition and LLM-supplied args
+            var printQuery = _definition.PrintQuery && args.GetValueOrDefault("printQuery", "true").ToLower() == "true";
             
             switch (_definition.Mode)
             {
@@ -62,7 +65,7 @@ namespace Agent.Plugins.Kusto.Tools
                 case KustoExecutionMode.Query:
                     // Region parameter is not used in Query mode, as the cluster is defined in the connector
                     var formatedQuery = KustoPlugin.FormatQuery(_definition.Query!, args);
-                    return await kustoChat.ExecuteClusterKustoQuery(connector.ClusterUrl, connector.Database, formatedQuery, _definition.PrintQuery, _definition.Name);
+                    return await kustoChat.ExecuteClusterKustoQuery(connector.ClusterUrl, connector.Database, formatedQuery, printQuery, _definition.Name);
 
                 default:
                     return string.Empty;

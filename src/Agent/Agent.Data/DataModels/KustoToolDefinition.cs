@@ -31,7 +31,7 @@ namespace Agent.Data.Tools
         public string? ClusterHint { get; set; }
 
         [YamlMember(Alias = "print_query")]
-        public bool? PrintQuery { get; set; } = true;
+        public bool PrintQuery { get; set; } = true;
 
         public override void Validate()
         {
