@@ -12,9 +12,9 @@ public class CustomerLogger : ApplicationInsightsLogger
     {
     }
 
-    public void LogMessage(string message)
+    public void LogMessage(string message, IDictionary<string, string>? properties = null)
     {
-        base.LogMessage(message, SeverityLevel.Information);
+        base.LogMessage(message, SeverityLevel.Information, properties);
     }
 
 

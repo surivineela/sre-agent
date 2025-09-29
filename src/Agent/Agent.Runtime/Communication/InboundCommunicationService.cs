@@ -145,7 +145,12 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
     public async Task<InboundServiceResponse> ProcessUserMessageAsync(ThreadMessage threadMessage)
     {
-        _customerLogger.LogMessage($"[ChatThreadId {threadMessage.ThreadId}; UserOId {threadMessage.UserId}; DisplayName {threadMessage.DisplayName}] Processing user message: {threadMessage.Message}");
+        _customerLogger.LogMessage($"[ChatThreadId {threadMessage.ThreadId} Processing user message: {threadMessage.Message}",
+            properties: new Dictionary<string, string>
+        {
+            { "UserId", threadMessage.UserId ?? "" },
+            { "DisplayName", threadMessage.DisplayName }
+        });
         _customerLogger.LogCustomEvent("MetaAgent", new Dictionary<string, string>
         {
             { "ChatThreadId", threadMessage.ThreadId.ToString() },

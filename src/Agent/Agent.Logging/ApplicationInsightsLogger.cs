@@ -31,11 +31,11 @@ public abstract class ApplicationInsightsLogger
         }
     }
 
-    protected void LogMessage(string message, SeverityLevel severityLevel)
+    protected void LogMessage(string message, SeverityLevel severityLevel, IDictionary<string, string>? properties = null)
     {
         if (_isConfigured && _telemetryClient != null)
         {
-            _telemetryClient.TrackTrace(message, severityLevel);
+            _telemetryClient.TrackTrace(message, severityLevel, properties);
         }
     }
 
