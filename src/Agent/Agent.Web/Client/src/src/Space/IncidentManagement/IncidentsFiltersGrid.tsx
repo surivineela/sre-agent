@@ -10,7 +10,6 @@ import { IncidentFilter, IncidentHandler } from '../../Common/Contracts/Azure/In
 import { AgentMode } from '../../Common/Contracts/Azure/SreAgent';
 import { IncidentManagementResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { SreAgentContext } from '../Contracts/Context';
-import { getIncidentManagementPlatform } from '../Settings/Hooks/useIncidentManagementSettings';
 import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
 import { IncidentFilterFormProps } from './CreateIncidentFilterDialog';
 import { HandlerCreateOrEditInfo, OperationStatus } from './CreateIncidentHandler/Contracts';
@@ -80,9 +79,10 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
     const [sortColumnKey, setSortColumnKey] = useState<keyof IncidentFilter | undefined>();
     const [isSortedDescending, setIsSortedDescending] = useState<boolean>(false);
 
-    const sreAgentContext = useContext(SreAgentContext);
-    const incidentPlatform = useMemo(() => getIncidentManagementPlatform(sreAgentContext.agentObj), [sreAgentContext.agentObj]);
-    const priorityOrSeverityStrings = useMemo(() => getPriorityOrSeverityStrings(incidentPlatform), [incidentPlatform]);
+    const {
+        incidentManagement: { incidentPlatformType },
+    } = useContext(SreAgentContext);
+    const priorityOrSeverityStrings = useMemo(() => getPriorityOrSeverityStrings(incidentPlatformType), [incidentPlatformType]);
 
     const filteredGridItems = useMemo(() => {
         let filteredGridItems = incidentFilters;
@@ -411,7 +411,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
 
     const columns = useMemo<ISortedDetailsListColumn[]>(() => {
         const columnWidth = '14';
-        const { fieldLabel: priorityOrSeverityLabel } = getPriorityOrSeverityStrings(incidentPlatform);
+        const { fieldLabel: priorityOrSeverityLabel } = getPriorityOrSeverityStrings(incidentPlatformType);
 
         const columns: ISortedDetailsListColumn[] = [
             {
@@ -527,7 +527,7 @@ const IncidentsFiltersGrid: FC<IncidentsFiltersGridProps> = (props: IncidentsFil
         return columns;
     }, [
         intl,
-        incidentPlatform,
+        incidentPlatformType,
         onRenderId,
         sortColumnKey,
         isSortedDescending,

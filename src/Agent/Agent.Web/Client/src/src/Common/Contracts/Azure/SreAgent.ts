@@ -97,6 +97,7 @@ export enum IncidentManagementType {
     AzMonitor = 'AzMonitor',
     Icm = 'Icm',
     ServiceNow = 'ServiceNow',
+    None = 'None',
 }
 
 export enum UpgradeChannel {

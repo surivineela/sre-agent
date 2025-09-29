@@ -21,7 +21,7 @@ import { AzPortalContext, useAzPortalContext } from '../Common/AzPortalProxy/Pro
 import { EnvironmentContext } from '../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { AppInsightsClient } from '../Common/Clients/AppInsightsClient';
 import RbacWarningBanner from '../Common/Components/RbacWarningBanner';
-import { AgentAccessLevel } from '../Common/Contracts/Azure/SreAgent';
+import { AgentAccessLevel, IncidentManagementType } from '../Common/Contracts/Azure/SreAgent';
 import { ArmResourceDescriptor } from '../Common/Helpers/ResourceDescriptors';
 import { useFeatureFlags } from '../Common/Hooks/useFeatureFlags';
 import { LocalStorageFlags, useLocalStorage } from '../Common/Hooks/useLocalStorage';
@@ -33,6 +33,7 @@ import { PermissionProvider } from './Contracts/PermissionContext';
 import DailyReports from './DailyReports/DailyReports';
 import Graph from './Graph/Graph';
 import { useIncidentManagementConnectivity } from './Hooks/useIncidentManagementConnectivity';
+import { useIncidentPlatformType } from './Hooks/useIncidentPlatformType';
 import IncidentManagement from './IncidentManagement/IncidentManagement';
 import ScheduledTasksOverview from './ScheduledTasks/ScheduledTasksOverview';
 import { useSreAgent } from './Settings/Hooks/useSreAgent';
@@ -77,6 +78,7 @@ const useControlPlaneDependentTabs = ({ inStandaloneMode, isCrossTenantPortalMod
     const sreAgentContext = useContext(SreAgentContext);
     const {
         agent: { setMode, setAccessLevel },
+        incidentManagement: { incidentPlatformType, incidentPlatformTypeLoaded },
     } = sreAgentContext;
 
     const { agent, agentLoaded } = useSreAgent(environmentContext.resourceId);
@@ -120,7 +122,9 @@ const useControlPlaneDependentTabs = ({ inStandaloneMode, isCrossTenantPortalMod
 
     return {
         controlPlaneTabsVisible: !inStandaloneMode && !isCrossTenantPortalMode,
-        incidentManagementTabDisabled: !agentLoaded,
+        incidentManagementTabVisible:
+            (!inStandaloneMode && !isCrossTenantPortalMode) || (!!incidentPlatformType && incidentPlatformType !== 'None'),
+        incidentManagementTabDisabled: !incidentPlatformTypeLoaded,
         logsTabDisabled: !agentLoaded || !appInsightsResourceId,
         onLogsClick,
     };
@@ -156,10 +160,11 @@ const TabsListWrapper: FC = () => {
     // Show scheduled tasks tab based on backend feature flag only
     const showScheduledTasksTab = features.scheduledTasks;
 
-    const { controlPlaneTabsVisible, incidentManagementTabDisabled, logsTabDisabled, onLogsClick } = useControlPlaneDependentTabs({
-        inStandaloneMode,
-        isCrossTenantPortalMode,
-    });
+    const { controlPlaneTabsVisible, incidentManagementTabVisible, incidentManagementTabDisabled, logsTabDisabled, onLogsClick } =
+        useControlPlaneDependentTabs({
+            inStandaloneMode,
+            isCrossTenantPortalMode,
+        });
 
     const selectedValue = useMemo(() => {
         if (location.pathname?.startsWith('/views/activities')) {
@@ -240,7 +245,7 @@ const TabsListWrapper: FC = () => {
                     <Tab id="Activities" value={TabValues.Activities}>
                         {intl.formatMessage(SreAgentTabResources.activities)}
                     </Tab>
-                    {controlPlaneTabsVisible && (
+                    {incidentManagementTabVisible && (
                         <>
                             <Tab
                                 id="IncidentManagement"
@@ -339,10 +344,52 @@ const router = createHashRouter([
 
 const SREAgentSpace: FC = () => {
     const azPortalProxy = useContext(AzPortalContext);
-    const environmentContext = useContext(EnvironmentContext);
+    const { isCrossTenantPortalMode, resourceId } = useContext(EnvironmentContext);
 
     const { agent, agentLoading, agentLoaded, agentLoadFailure, agentPatching, agentPatched, agentPatchFailure, patchAgent, refresh } =
-        useSreAgent(environmentContext.resourceId);
+        useSreAgent(resourceId);
+
+    const incidentPlatformTypeHook = useIncidentPlatformType();
+
+    const {
+        incidentPlatformType,
+        incidentPlatformTypeLoading,
+        incidentPlatformTypeLoaded,
+        incidentPlatformTypeLoadFailure,
+        refreshIncidentPlatformType,
+    } = useMemo(() => {
+        if (!isCrossTenantPortalMode && !inStandaloneMode) {
+            return {
+                incidentPlatformType: agent
+                    ? agent.properties.incidentManagementConfiguration?.type || IncidentManagementType.None
+                    : undefined,
+                incidentPlatformTypeLoading: agentLoading,
+                incidentPlatformTypeLoaded: agentLoaded,
+                incidentPlatformTypeLoadFailure: agentLoadFailure,
+                refreshIncidentPlatformType: refresh,
+            };
+        }
+
+        return {
+            incidentPlatformType: incidentPlatformTypeHook.incidentPlatformType,
+            incidentPlatformTypeLoading: incidentPlatformTypeHook.incidentPlatformTypeLoading,
+            incidentPlatformTypeLoaded: incidentPlatformTypeHook.incidentPlatformTypeLoaded,
+            incidentPlatformTypeLoadFailure: incidentPlatformTypeHook.incidentPlatformTypeLoadFailure,
+            refreshIncidentPlatformType: incidentPlatformTypeHook.refreshIncidentPlatformType,
+        };
+    }, [
+        isCrossTenantPortalMode,
+        agent,
+        agentLoading,
+        agentLoaded,
+        agentLoadFailure,
+        refresh,
+        incidentPlatformTypeHook.incidentPlatformType,
+        incidentPlatformTypeHook.incidentPlatformTypeLoading,
+        incidentPlatformTypeHook.incidentPlatformTypeLoaded,
+        incidentPlatformTypeHook.incidentPlatformTypeLoadFailure,
+        incidentPlatformTypeHook.refreshIncidentPlatformType,
+    ]);
 
     const [isGrafanaUpdating, setIsGrafanaUpdating] = useState(false);
     const [deploymentId, setDeploymentId] = useState<string>('');
@@ -352,8 +399,8 @@ const SREAgentSpace: FC = () => {
     const [lastVisitedThreadId, setLastVisitedThreadId] = useState<string>();
 
     const shouldPoll = useMemo(
-        () => !!agent?.properties?.incidentManagementConfiguration?.type,
-        [agent?.properties?.incidentManagementConfiguration?.type]
+        () => !!incidentPlatformType && incidentPlatformType !== 'None' && !incidentPlatformTypeLoading,
+        [incidentPlatformType, incidentPlatformTypeLoading]
     );
 
     const {
@@ -405,6 +452,11 @@ const SREAgentSpace: FC = () => {
                     setDeploymentId,
                 },
                 incidentManagement: {
+                    incidentPlatformType,
+                    incidentPlatformTypeLoading,
+                    incidentPlatformTypeLoaded,
+                    incidentPlatformTypeLoadFailure,
+                    refreshIncidentPlatformType,
                     isIncidentManagementConnected,
                     setIsIncidentManagementConnected,
                     hasFilters,

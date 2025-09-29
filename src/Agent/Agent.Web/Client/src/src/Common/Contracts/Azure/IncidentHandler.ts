@@ -1,4 +1,4 @@
-import { AgentMode, IncidentStatus } from './SreAgent';
+import { AgentMode, IncidentManagementType, IncidentStatus } from './SreAgent';
 
 export interface InstructionGenerationRequest {
     agentName: string;
@@ -109,6 +109,10 @@ export interface TestHandlerPayload {
 export interface TestHandlerResponse {
     threadId: string;
     message: string;
+}
+
+export interface IncidentPlatformTypeResponse {
+    incidentPlatformType: IncidentManagementType;
 }
 
 export type WithSelection<T> = T & {

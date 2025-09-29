@@ -5,6 +5,7 @@ import {
     IncidentFilter,
     IncidentFilterDocumentPayload,
     IncidentHandler,
+    IncidentPlatformTypeResponse,
     IncidentQueryRequest,
     IncidentQueryResponse,
     InstructionGenerationRequest,
@@ -478,6 +479,31 @@ export class IncidentHandlerClient extends DataPlaneClient {
                 action: 'testHandler',
                 actionModifier: 'failed',
                 data: `Failed to test handler: ${errorMessage}`,
+            });
+            return {
+                isSuccessful: false,
+                error: error,
+            };
+        }
+    };
+
+    public getIncidentPlatformType = async (): Promise<Response<IncidentPlatformTypeResponse>> => {
+        const url = this.getRequestUrl(`${this._apiIncidentPlaygroundPathPrefix}/incidentPlatformType`);
+        try {
+            const { data } = await axios.get<IncidentPlatformTypeResponse>(url, {
+                headers: getAgentHeaders(),
+            });
+            return {
+                isSuccessful: true,
+                content: data,
+            };
+        } catch (error) {
+            const errorMessage = this.getErrorMessage(error);
+            this._log?.({
+                logLevel: 'error',
+                action: 'getIncidentPlatformType',
+                actionModifier: 'failed',
+                data: `Failed to get incident platform type: ${errorMessage}`,
             });
             return {
                 isSuccessful: false,

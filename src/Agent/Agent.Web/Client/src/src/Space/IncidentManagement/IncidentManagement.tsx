@@ -15,16 +15,16 @@ import {
 import { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import AzPortalProxy from '../../Common/AzPortalProxy/AzPortalProxy';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { NoAccessError } from '../../Common/Components/NoAccessError';
 import { PermissionActions } from '../../Common/Contracts/Azure/Permission';
+import { IncidentManagementType } from '../../Common/Contracts/Azure/SreAgent';
 import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
 import { useUserPermissions } from '../../Common/Hooks/useUserPermissions';
 import { IncidentManagementResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { SreAgentContext } from '../Contracts/Context';
-import { IncidentManagementPlatform } from '../Contracts/IncidentManagement';
-import { getIncidentManagementPlatform } from '../Settings/Hooks/useIncidentManagementSettings';
 import IncidentManagementSettings from '../Settings/IncidentManagementSettings';
 import { useIncidentManagementStyles, useNavStyles } from '../Styles/IncidentManagement.styles';
 import Analysis from './Analysis';
@@ -34,16 +34,25 @@ import IncidentsOverview from './IncidentsOverview/IncidentsOverview';
 
 // TODO: Tooltip for disabled NavItems with reason
 
+const inStandaloneMode = AzPortalProxy.inStandaloneMode;
+
 const IncidentManagement: FC = () => {
     const { menuItem } = useParams();
     const location = useLocation();
     const navigate = useNavigate();
     const intl = useIntl();
 
-    const { agentObj, agentLoading, agentLoadFailure } = useContext(SreAgentContext);
+    const {
+        agentObj,
+        agentLoading,
+        agentLoadFailure,
+        incidentManagement: { incidentPlatformType },
+    } = useContext(SreAgentContext);
     const { logAmplitudeNavigationEvent } = useAzPortalContext();
     const { canReadIncidentManagement } = useUserPermissions();
-    const { resourceId } = useContext(EnvironmentContext);
+    const { resourceId, isCrossTenantPortalMode } = useContext(EnvironmentContext);
+
+    const showControlPlaneDependentFeatures = useMemo(() => !inStandaloneMode && !isCrossTenantPortalMode, [isCrossTenantPortalMode]);
 
     const styles = useIncidentManagementStyles();
     const navigationStyles = useNavStyles();
@@ -77,7 +86,7 @@ const IncidentManagement: FC = () => {
             },
         ];
 
-        if (showWatchtower) {
+        if (showControlPlaneDependentFeatures && showWatchtower) {
             items.push({
                 key: IncidentManagementMenuKeys.Analysis,
                 label: intl.formatMessage(IncidentManagementResources.analysis),
@@ -85,21 +94,22 @@ const IncidentManagement: FC = () => {
             });
         }
 
-        items.push(
-            {
-                key: IncidentManagementMenuKeys.HandlerConfiguration,
-                label: intl.formatMessage(IncidentManagementResources.responsePlans),
-                disabled: disableOverviewAndHandlers,
-            },
-            {
+        items.push({
+            key: IncidentManagementMenuKeys.HandlerConfiguration,
+            label: intl.formatMessage(IncidentManagementResources.responsePlans),
+            disabled: disableOverviewAndHandlers,
+        });
+
+        if (showControlPlaneDependentFeatures) {
+            items.push({
                 key: IncidentManagementMenuKeys.IncidentPlatform,
                 label: intl.formatMessage(IncidentManagementResources.incidentPlatform),
                 disabled: false,
-            }
-        );
+            });
+        }
 
         return items;
-    }, [intl, disableOverviewAndHandlers, showWatchtower, agentAppInsightsAppId]);
+    }, [intl, disableOverviewAndHandlers, showWatchtower, agentAppInsightsAppId, showControlPlaneDependentFeatures]);
 
     const renderNavIcon = useCallback(
         (key: IncidentManagementMenuKeys) => {
@@ -162,16 +172,15 @@ const IncidentManagement: FC = () => {
     }, []);
 
     useEffect(() => {
-        if (agentObj) {
-            const incidentManagementPlatform = getIncidentManagementPlatform(agentObj);
-            if (incidentManagementPlatform === IncidentManagementPlatform.Disconnected) {
+        if (incidentPlatformType) {
+            if (incidentPlatformType === IncidentManagementType.None) {
                 setDisableOverviewAndHandlers(true);
                 navigate({ ...location, pathname: `/views/incidentmanagement/${IncidentManagementMenuKeys.IncidentPlatform}` });
             } else {
                 setDisableOverviewAndHandlers(false);
             }
         }
-    }, [agentObj]);
+    }, [incidentPlatformType]);
 
     return (
         iconsInitialized && (

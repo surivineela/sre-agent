@@ -67,7 +67,9 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
     const appInsightsToken = useAuthToken('applicationinsightapi');
     const { resourceId } = useContext(EnvironmentContext);
     const { log } = useAzPortalContext();
-    const { agentObj } = useContext(SreAgentContext);
+    const {
+        incidentManagement: { incidentPlatformType },
+    } = useContext(SreAgentContext);
 
     const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRangeValue>({ key: TimespanKeys.SevenDays });
     const [openedResponsePlan, setOpenedResponsePlan] = useState<IncidentHandlerItem | undefined>(undefined);
@@ -78,11 +80,6 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
     const [incidentCoverageResponse, setIncidentCoverageResponse] = useState<IncidentCoverageItem[]>();
     const [incidentSummaryResponse, setIncidentSummaryResponse] = useState<IncidentSummaryItem[]>();
     const [incidentHandlersResponse, setIncidentHandlersResponse] = useState<IncidentHandlerItem[]>();
-
-    const incidentManagementPlatform = useMemo(
-        () => agentObj?.properties.incidentManagementConfiguration?.type,
-        [agentObj?.properties.incidentManagementConfiguration?.type]
-    );
 
     const timeRangeOptions = useMemo(() => getDefaultTimeRangeOptions(intl), [intl]);
 
@@ -377,7 +374,7 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
                                 <StatCard
                                     title={intl.formatMessage(IncidentManagementResources.incidentsReviewed)}
                                     subtitle={intl.formatMessage(IncidentManagementResources.acrossAllIncidentsInPeriod, {
-                                        platform: getLocalizedIncidentPlatformName(incidentManagementPlatform ?? '', intl),
+                                        platform: getLocalizedIncidentPlatformName(incidentPlatformType ?? '', intl),
                                     })}
                                     data={incidentsReviewedStatCardData}
                                     isLoading={isIncidentCoverageLoading || isIncidentSummaryLoading}

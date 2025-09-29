@@ -1,7 +1,7 @@
 import { createContext } from 'react';
 import { HttpResponseObject } from '../../Common/ArmHelper.types';
 import { ArmObj } from '../../Common/Contracts/Azure/ArmObj';
-import { Agent, AgentAccessLevel } from '../../Common/Contracts/Azure/SreAgent';
+import { Agent, AgentAccessLevel, IncidentManagementType } from '../../Common/Contracts/Azure/SreAgent';
 import { AgentTaskMetaData, InvestigationTreeNodeStatus } from '../../Common/Contracts/DataPlane/AgentTask';
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
 import { AgentContextProps, ChatMessage } from './Activities';
@@ -20,6 +20,11 @@ type SreAgentContextProps = {
         setDeploymentId: React.Dispatch<React.SetStateAction<string>>;
     };
     incidentManagement: {
+        incidentPlatformType: IncidentManagementType | undefined;
+        incidentPlatformTypeLoading: boolean | undefined;
+        incidentPlatformTypeLoaded: boolean | undefined;
+        incidentPlatformTypeLoadFailure: string | undefined;
+        refreshIncidentPlatformType: () => void;
         isIncidentManagementConnected: boolean;
         setIsIncidentManagementConnected: React.Dispatch<React.SetStateAction<boolean>>;
         hasFilters: boolean;
@@ -99,6 +104,11 @@ export const SreAgentContext = createContext<SreAgentContextProps>({
         setDeploymentId: () => {},
     },
     incidentManagement: {
+        incidentPlatformType: undefined,
+        incidentPlatformTypeLoading: undefined,
+        incidentPlatformTypeLoaded: false,
+        incidentPlatformTypeLoadFailure: '',
+        refreshIncidentPlatformType: () => {},
         isIncidentManagementConnected: false,
         setIsIncidentManagementConnected: () => {},
         hasFilters: false,

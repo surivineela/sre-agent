@@ -30,6 +30,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import PermissionedButton from '../../Common/Components/PermissionedButton';
+import { IncidentManagementType } from '../../Common/Contracts/Azure/SreAgent';
 import { FirstPartyHelper } from '../../Common/Helpers/FirstPartyHelper';
 import { ArmResourceDescriptor } from '../../Common/Helpers/ResourceDescriptors';
 import useUserPermissions from '../../Common/Hooks/useUserPermissions';
@@ -46,7 +47,7 @@ import {
     SreAgentTabResources,
 } from '../../Strings/SREAgentResources';
 import { SreAgentContext } from '../Contracts/Context';
-import { IncidentManagementFormProps, IncidentManagementPlatform } from '../Contracts/IncidentManagement';
+import { IncidentManagementFormProps } from '../Contracts/IncidentManagement';
 import { IncidentManagementMenuKeys } from '../IncidentManagement/CreateIncidentHandler/Contracts';
 import { DirtyStateConfirmationWrapper } from '../IncidentManagement/CreateIncidentHandler/DirtyStateConfirmationDialog';
 import { useDialogStyles, usePagerDutyStyles, useSettingsStyles } from './Styles/Settings.styles';
@@ -70,7 +71,7 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
     const { setFieldValue, setFieldTouched, submitForm, resetForm, values, isValid, isValidating, isSubmitting, dirty, initialValues } =
         formikProps;
     const [editingApiKey, setEditingApiKey] = useState(false);
-    const isSetupScenario = useMemo(() => initialValues.platform === IncidentManagementPlatform.Disconnected, [initialValues.platform]);
+    const isSetupScenario = useMemo(() => initialValues.platform === IncidentManagementType.None, [initialValues.platform]);
     const isApiKeyEditable = useMemo(() => isSetupScenario || editingApiKey, [isSetupScenario, editingApiKey]);
 
     const location = useLocation();
@@ -83,13 +84,13 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
 
     const incidentPlatformDropdownOptions = useMemo(() => {
         const options = [
-            { key: IncidentManagementPlatform.PagerDuty, text: intl.formatMessage(IncidentManagementPlatformResources.pagerDuty) },
-            { key: IncidentManagementPlatform.AzMonitor, text: intl.formatMessage(IncidentManagementPlatformResources.azMonitor) },
-            { key: IncidentManagementPlatform.ServiceNow, text: intl.formatMessage(IncidentManagementPlatformResources.serviceNow) },
+            { key: IncidentManagementType.PagerDuty, text: intl.formatMessage(IncidentManagementPlatformResources.pagerDuty) },
+            { key: IncidentManagementType.AzMonitor, text: intl.formatMessage(IncidentManagementPlatformResources.azMonitor) },
+            { key: IncidentManagementType.ServiceNow, text: intl.formatMessage(IncidentManagementPlatformResources.serviceNow) },
         ];
         const agentTenantId = tenantId ?? '';
         if (FirstPartyHelper.shouldEnableForIcm(agentTenantId)) {
-            options.push({ key: IncidentManagementPlatform.Icm, text: intl.formatMessage(IncidentManagementPlatformResources.icm) });
+            options.push({ key: IncidentManagementType.Icm, text: intl.formatMessage(IncidentManagementPlatformResources.icm) });
         }
         return options;
     }, [intl, tenantId]);
@@ -101,8 +102,8 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
 
     const isDirty = useMemo(() => {
         if (
-            values.platform !== IncidentManagementPlatform.PagerDuty &&
-            values.platform !== IncidentManagementPlatform.ServiceNow &&
+            values.platform !== IncidentManagementType.PagerDuty &&
+            values.platform !== IncidentManagementType.ServiceNow &&
             initialValues.platform === values.platform
         ) {
             return false;
@@ -116,7 +117,7 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
         changePlatformConfirmationTitle,
         changePlatformConfirmationMessage,
     } = useMemo(() => {
-        if (initialValues.platform === IncidentManagementPlatform.PagerDuty) {
+        if (initialValues.platform === IncidentManagementType.PagerDuty) {
             return {
                 disconnectConfirmationTitle: intl.formatMessage(PagerDutyResources.disconnectConfirmationTitle),
                 disconnectConfirmationMessage: intl.formatMessage(PagerDutyResources.disconnectConfirmationMessage),
@@ -125,7 +126,7 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
             };
         }
 
-        if (initialValues.platform === IncidentManagementPlatform.AzMonitor) {
+        if (initialValues.platform === IncidentManagementType.AzMonitor) {
             return {
                 disconnectConfirmationTitle: intl.formatMessage(AzMonitorResources.disconnectConfirmationTitle),
                 disconnectConfirmationMessage: intl.formatMessage(AzMonitorResources.disconnectConfirmationMessage),
@@ -134,7 +135,7 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
             };
         }
 
-        if (initialValues.platform === IncidentManagementPlatform.Icm) {
+        if (initialValues.platform === IncidentManagementType.Icm) {
             return {
                 disconnectConfirmationTitle: intl.formatMessage(IcMResources.disconnectConfirmationTitle),
                 disconnectConfirmationMessage: intl.formatMessage(IcMResources.disconnectConfirmationMessage),
@@ -143,7 +144,7 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
             };
         }
 
-        if (initialValues.platform === IncidentManagementPlatform.ServiceNow) {
+        if (initialValues.platform === IncidentManagementType.ServiceNow) {
             return {
                 disconnectConfirmationTitle: intl.formatMessage(ServiceNowResources.disconnectConfirmationTitle),
                 disconnectConfirmationMessage: intl.formatMessage(ServiceNowResources.disconnectConfirmationMessage),
@@ -188,9 +189,9 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
     return (
         <>
             {!loading &&
-                (values.platform === IncidentManagementPlatform.PagerDuty ||
-                    values.platform === IncidentManagementPlatform.Icm ||
-                    values.platform === IncidentManagementPlatform.ServiceNow) &&
+                (values.platform === IncidentManagementType.PagerDuty ||
+                    values.platform === IncidentManagementType.Icm ||
+                    values.platform === IncidentManagementType.ServiceNow) &&
                 !isSetupScenario &&
                 !integrated &&
                 isIncidentManagementConnected && (
@@ -243,14 +244,14 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                                             setFieldTouched('platform', true, false);
                                             setFieldValue('platform', data?.optionValue);
                                             if (
-                                                data?.optionValue !== IncidentManagementPlatform.PagerDuty &&
-                                                data?.optionValue !== IncidentManagementPlatform.ServiceNow
+                                                data?.optionValue !== IncidentManagementType.PagerDuty &&
+                                                data?.optionValue !== IncidentManagementType.ServiceNow
                                             ) {
                                                 setFieldValue('connectionKey', undefined, false);
                                                 setFieldTouched('connectionKey', false, false);
                                             }
                                             // Clear ServiceNow fields when switching away from ServiceNow
-                                            if (data?.optionValue !== IncidentManagementPlatform.ServiceNow) {
+                                            if (data?.optionValue !== IncidentManagementType.ServiceNow) {
                                                 setFieldValue('endpoint', undefined, false);
                                                 setFieldValue('username', undefined, false);
                                                 setFieldValue('password', undefined, false);
@@ -297,7 +298,7 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                             )}
                         </Field>
 
-                        {values.platform === IncidentManagementPlatform.PagerDuty && (
+                        {values.platform === IncidentManagementType.PagerDuty && (
                             <>
                                 <div style={styles.pagerDutyWrapperStyle}>
                                     <img src="./PagerDuty.svg" alt="PagerDuty" style={styles.pagerDutyLogoStyle} />
@@ -346,7 +347,7 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                             </>
                         )}
 
-                        {values.platform === IncidentManagementPlatform.AzMonitor && (
+                        {values.platform === IncidentManagementType.AzMonitor && (
                             <>
                                 <div style={styles.azMonitorWrapperStyle}>
                                     <img src="./AzMonitor.svg" alt="Azure Monitor" style={styles.azMonitorLogoStyle} />
@@ -375,7 +376,7 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                             </>
                         )}
 
-                        {values.platform === IncidentManagementPlatform.Icm && (
+                        {values.platform === IncidentManagementType.Icm && (
                             <>
                                 <div style={styles.azMonitorWrapperStyle}>
                                     <img src="./IcM.svg" alt="IcM" style={styles.azMonitorLogoStyle} />
@@ -418,7 +419,7 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                             </>
                         )}
 
-                        {values.platform === IncidentManagementPlatform.ServiceNow && (
+                        {values.platform === IncidentManagementType.ServiceNow && (
                             <>
                                 <div style={styles.pagerDutyWrapperStyle}>
                                     <img src="./ServiceNow.svg" alt="ServiceNow" style={styles.pagerDutyLogoStyle} />
@@ -517,7 +518,7 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                             </>
                         )}
 
-                        {values.platform !== IncidentManagementPlatform.Disconnected && isSetupScenario && (
+                        {values.platform !== IncidentManagementType.None && isSetupScenario && (
                             <>
                                 <Field
                                     id="createDefaultHandlerField"
@@ -543,11 +544,11 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                                         }}
                                         disabled={saving}
                                         label={
-                                            values.platform === IncidentManagementPlatform.PagerDuty
+                                            values.platform === IncidentManagementType.PagerDuty
                                                 ? intl.formatMessage(PagerDutyResources.quickstartHandlerDescription)
-                                                : values.platform === IncidentManagementPlatform.ServiceNow
+                                                : values.platform === IncidentManagementType.ServiceNow
                                                   ? intl.formatMessage(ServiceNowResources.quickstartHandlerDescription)
-                                                  : values.platform === IncidentManagementPlatform.AzMonitor
+                                                  : values.platform === IncidentManagementType.AzMonitor
                                                     ? intl.formatMessage(AzMonitorResources.quickstartHandlerDescription)
                                                     : intl.formatMessage(IcMResources.quickstartHandlerDescription)
                                         }
@@ -563,8 +564,8 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                         )}
 
                         <div style={styles.buttonsWrapperStyle}>
-                            {(initialValues.platform === IncidentManagementPlatform.PagerDuty ||
-                                initialValues.platform === IncidentManagementPlatform.ServiceNow) &&
+                            {(initialValues.platform === IncidentManagementType.PagerDuty ||
+                                initialValues.platform === IncidentManagementType.ServiceNow) &&
                                 !editingApiKey && (
                                     <PermissionedButton
                                         appearance="secondary"
@@ -576,7 +577,7 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                                             setEditingApiKey(true);
                                         }}
                                     >
-                                        {initialValues.platform === IncidentManagementPlatform.PagerDuty
+                                        {initialValues.platform === IncidentManagementType.PagerDuty
                                             ? intl.formatMessage(PagerDutyResources.changeKey)
                                             : intl.formatMessage(ServiceNowResources.changeKey)}
                                     </PermissionedButton>
@@ -593,8 +594,8 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                                         saving ||
                                         isValidating ||
                                         !isValid ||
-                                        (values.platform === IncidentManagementPlatform.PagerDuty && !values.connectionKey) ||
-                                        (values.platform === IncidentManagementPlatform.ServiceNow &&
+                                        (values.platform === IncidentManagementType.PagerDuty && !values.connectionKey) ||
+                                        (values.platform === IncidentManagementType.ServiceNow &&
                                             (!values.endpoint || !values.username || !values.password))
                                     }
                                     onClick={() => {
@@ -729,8 +730,8 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = props => {
     const { values, initialValues, dirty } = formikProps;
     const isDirty = useMemo(() => {
         if (
-            values.platform !== IncidentManagementPlatform.PagerDuty &&
-            values.platform !== IncidentManagementPlatform.ServiceNow &&
+            values.platform !== IncidentManagementType.PagerDuty &&
+            values.platform !== IncidentManagementType.ServiceNow &&
             initialValues.platform === values.platform
         ) {
             return false;

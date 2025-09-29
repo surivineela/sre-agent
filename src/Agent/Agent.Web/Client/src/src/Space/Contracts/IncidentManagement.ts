@@ -1,15 +1,8 @@
 import { FormikProps } from 'formik';
-
-export enum IncidentManagementPlatform {
-    Disconnected = 'Disconnected',
-    PagerDuty = 'PagerDuty',
-    AzMonitor = 'AzMonitor',
-    Icm = 'Icm',
-    ServiceNow = 'ServiceNow',
-}
+import { IncidentManagementType } from '../../Common/Contracts/Azure/SreAgent';
 
 export interface IncidentManagementFormValues {
-    platform?: IncidentManagementPlatform;
+    platform?: IncidentManagementType;
     connectionKey?: string;
     createDefaultHandler?: boolean;
     // ServiceNow specific fields

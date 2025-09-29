@@ -4,9 +4,9 @@ import { useFormikContext } from 'formik';
 import { FC, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { IncidentDocument } from '../../../../Common/Contracts/Azure/IncidentHandler';
+import { IncidentManagementType } from '../../../../Common/Contracts/Azure/SreAgent';
 import { IncidentHandlerCreateResources } from '../../../../Strings/SREAgentResources';
 import { MultipleSelectionShimmerDetailsList } from '../../../Components/MultipleSelectionShimmerDetailsList';
-import { IncidentManagementPlatform } from '../../../Contracts/IncidentManagement';
 import { getPriorityOrSeverityStrings } from '../../Utilities';
 import { IncidentTableFieldNames, TimeDuration, TimeDurationKey } from '../Contracts';
 import { DirtyStateConfirmationWrapper } from '../DirtyStateConfirmationDialog';
@@ -17,7 +17,7 @@ export const PreviewIncidentsStep: FC = () => {
     const intl = useIntl();
     const { dirty } = useFormikContext<IncidentHandlerCreateFormValues>();
 
-    const { incidentPlatform, setCurrentStep, exitToHome, handlerLoaded, saveHandler, incidentsPreviewMetadata } = useContext(
+    const { incidentPlatformType, setCurrentStep, exitToHome, handlerLoaded, saveHandler, incidentsPreviewMetadata } = useContext(
         IncidentHandlerConsolidatedCreateContext
     );
 
@@ -33,7 +33,7 @@ export const PreviewIncidentsStep: FC = () => {
     } = incidentsPreviewMetadata;
 
     const timespanDropdownOptions = useMemo(() => {
-        if (incidentPlatform === IncidentManagementPlatform.AzMonitor) {
+        if (incidentPlatformType === IncidentManagementType.AzMonitor) {
             return [
                 {
                     key: TimeDurationKey.Last1Day,
@@ -80,14 +80,14 @@ export const PreviewIncidentsStep: FC = () => {
                 text: intl.formatMessage(IncidentHandlerCreateResources.last90days),
             },
         ];
-    }, [intl, incidentPlatform]);
+    }, [intl, incidentPlatformType]);
 
     const selectedTimespanOption = useMemo(() => {
         return timespanDropdownOptions.find(option => option.value === selectedTimespan);
     }, [selectedTimespan, timespanDropdownOptions]);
 
     const incidentTableColumns: IColumn[] = useMemo(() => {
-        const { fieldLabel: priorityOrSeverityLabel } = getPriorityOrSeverityStrings(incidentPlatform);
+        const { fieldLabel: priorityOrSeverityLabel } = getPriorityOrSeverityStrings(incidentPlatformType);
         return [
             {
                 key: IncidentTableFieldNames.Priority,
@@ -136,7 +136,7 @@ export const PreviewIncidentsStep: FC = () => {
                 isSortable: true,
             },
         ];
-    }, [intl, incidentPlatform]);
+    }, [intl, incidentPlatformType]);
 
     return (
         <>

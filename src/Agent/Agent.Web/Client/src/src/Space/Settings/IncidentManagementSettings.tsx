@@ -2,13 +2,13 @@ import { Formik } from 'formik';
 import { FC } from 'react';
 import { IncidentManagementFormValues, IncidentManagementSettingsProps } from '../Contracts/IncidentManagement';
 import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
-import { useIncidentManagement } from './Hooks/useIncidentManagementSettings';
+import { useIncidentManagementSettings } from './Hooks/useIncidentManagementSettings';
 import IncidentManagementForm from './IncidentManagementForm';
 
 const IncidentManagementSettings: FC<IncidentManagementSettingsProps> = ({ integrated, close, keepOpen }) => {
     const styles = useIncidentManagementStyles();
     const { loading, loaded, loadFailure, saving, saveFailure, initialValues, save, disconnect, validate, agent } =
-        useIncidentManagement(close);
+        useIncidentManagementSettings(close);
 
     return (
         <div className={styles.navPanelWrapper}>

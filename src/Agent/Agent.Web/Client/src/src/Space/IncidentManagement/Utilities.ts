@@ -1,9 +1,9 @@
+import { IncidentManagementType } from '../../Common/Contracts/Azure/SreAgent';
 import { IncidentManagementResources } from '../../Strings/SREAgentResources';
-import { IncidentManagementPlatform } from '../Contracts/IncidentManagement';
 
 export const getFilterValues = (
     values: any,
-    incidentPlatform: IncidentManagementPlatform,
+    incidentPlatform?: IncidentManagementType,
     replaceAllKey?: boolean,
     allKeyReplacement?: string
 ) => {
@@ -24,12 +24,12 @@ export const getFilterValues = (
         result.priority = result.priority === 'ALL' ? allKeyReplacement : result.priority || allKeyReplacement;
     }
 
-    if (incidentPlatform === IncidentManagementPlatform.AzMonitor) {
+    if (incidentPlatform === IncidentManagementType.AzMonitor) {
         result.incidentType = undefined;
         result.impactedService = undefined;
     }
 
-    if (incidentPlatform !== IncidentManagementPlatform.Icm) {
+    if (incidentPlatform !== IncidentManagementType.Icm) {
         result.owningTeamId = undefined;
         result.createdBy = undefined;
         result.monitorId = undefined;
@@ -38,8 +38,8 @@ export const getFilterValues = (
     return result;
 };
 
-export const getPriorityOrSeverityStrings = (incidentPlatform?: IncidentManagementPlatform) => {
-    return incidentPlatform === IncidentManagementPlatform.AzMonitor || incidentPlatform === IncidentManagementPlatform.Icm
+export const getPriorityOrSeverityStrings = (incidentPlatform?: IncidentManagementType) => {
+    return incidentPlatform === IncidentManagementType.AzMonitor || incidentPlatform === IncidentManagementType.Icm
         ? {
               fieldLabel: IncidentManagementResources.severity,
               fieldLabelPlural: IncidentManagementResources.severities,

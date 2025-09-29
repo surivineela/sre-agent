@@ -5,11 +5,11 @@ import { useFormikContext } from 'formik';
 import { FC, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { ToolInfo } from '../../../../Common/Contracts/Azure/IncidentHandler';
+import { IncidentManagementType } from '../../../../Common/Contracts/Azure/SreAgent';
 import { ThreadSource } from '../../../../Common/Contracts/DataPlane/Thread';
 import { IncidentHandlerCreateResources } from '../../../../Strings/SREAgentResources';
 import ChatBox from '../../../Activities/ChatBox';
 import { MultipleSelectionShimmerDetailsList } from '../../../Components/MultipleSelectionShimmerDetailsList';
-import { IncidentManagementPlatform } from '../../../Contracts/IncidentManagement';
 import { useIncidentManagementStyles } from '../../../Styles/IncidentManagement.styles';
 import { ToolTableFieldNames } from '../Contracts';
 import { IncidentHandlerConsolidatedCreateContext } from '../IncidentHandlerConsolidatedCreateContext';
@@ -27,7 +27,7 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view }) =>
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
     const {
-        incidentPlatform,
+        incidentPlatformType,
         tools,
         toolsLoading,
         generatingUpdatedTools,
@@ -195,7 +195,7 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view }) =>
                                 onOptionSelect={(_event, data) => {
                                     const selectedOption = incidents?.find(incident => incident.id === data.optionValue);
                                     setSearchTerm(
-                                        (incidentPlatform === IncidentManagementPlatform.AzMonitor
+                                        (incidentPlatformType === IncidentManagementType.AzMonitor
                                             ? selectedOption?.alertId
                                             : selectedOption?.id) || ''
                                     );

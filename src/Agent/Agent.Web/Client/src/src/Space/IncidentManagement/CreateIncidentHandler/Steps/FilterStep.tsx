@@ -2,7 +2,7 @@ import { Button, Checkbox, Dropdown, Field, Input, MessageBar, Option, Radio, Ra
 import { useFormikContext } from 'formik';
 import { FC, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import { AgentMode } from '../../../../Common/Contracts/Azure/SreAgent';
+import { AgentMode, IncidentManagementType } from '../../../../Common/Contracts/Azure/SreAgent';
 import { IncidentHandlerCreateResources, IncidentManagementResources } from '../../../../Strings/SREAgentResources';
 import { getPriorityOrSeverityStrings } from '../../Utilities';
 import { DirtyStateConfirmationWrapper } from '../DirtyStateConfirmationDialog';
@@ -12,20 +12,20 @@ import { IncidentHandlerCreateFormValues } from '../IncidentHandlerCreateFormVal
 export const FilterStep: FC = () => {
     const intl = useIntl();
 
-    const { filterMode, exitToHome, setCurrentStep, incidentTypeOptions, impactedServiceOptions, priorityOptions, incidentPlatform } =
+    const { filterMode, exitToHome, setCurrentStep, incidentTypeOptions, impactedServiceOptions, priorityOptions, incidentPlatformType } =
         useContext(IncidentHandlerConsolidatedCreateContext);
     const { values, setFieldValue, setFieldTouched, dirty } = useFormikContext<IncidentHandlerCreateFormValues>();
 
-    const priorityOrSeverityStrings = useMemo(() => getPriorityOrSeverityStrings(incidentPlatform), [incidentPlatform]);
+    const priorityOrSeverityStrings = useMemo(() => getPriorityOrSeverityStrings(incidentPlatformType), [incidentPlatformType]);
 
     const incidentTypeOptionsExtended = useMemo(() => {
         const options = [];
-        if (incidentPlatform !== 'Icm') {
+        if (incidentPlatformType !== IncidentManagementType.Icm) {
             options.push({ key: 'ALL', display: intl.formatMessage(IncidentManagementResources.allIncidentTypes) });
         }
         incidentTypeOptions.forEach(option => options.push({ key: option, display: option }));
         return options;
-    }, [incidentTypeOptions, intl, incidentPlatform]);
+    }, [incidentTypeOptions, intl, incidentPlatformType]);
 
     const selectedIncidentTypeDisplay = useMemo(() => {
         const key = values.incidentType || (filterMode === 'edit' ? 'ALL' : '');
@@ -62,18 +62,18 @@ export const FilterStep: FC = () => {
             return (
                 !values.filterName ||
                 !values.priority ||
-                (incidentPlatform !== 'AzMonitor' && (!values.impactedService || !values.incidentType))
+                (incidentPlatformType !== IncidentManagementType.AzMonitor && (!values.impactedService || !values.incidentType))
             );
         }
 
-        if (incidentPlatform === 'Icm' && (!values.owningTeamId || !values.incidentType)) {
+        if (incidentPlatformType === IncidentManagementType.Icm && (!values.owningTeamId || !values.incidentType)) {
             return true;
         }
 
         return false;
     }, [
         filterMode,
-        incidentPlatform,
+        incidentPlatformType,
         values.filterName,
         values.owningTeamId,
         values.impactedService,
@@ -118,7 +118,7 @@ export const FilterStep: FC = () => {
                     </Text>
                     <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.filterParametersDescription)}</Text>
 
-                    {incidentPlatform === 'Icm' && (
+                    {incidentPlatformType === IncidentManagementType.Icm && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                             <Field label={intl.formatMessage(IncidentManagementResources.owningTeamId)} required>
                                 <Input
@@ -149,7 +149,7 @@ export const FilterStep: FC = () => {
                         </div>
                     )}
 
-                    {incidentPlatform !== 'AzMonitor' && (
+                    {incidentPlatformType !== IncidentManagementType.AzMonitor && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                             <Field label={intl.formatMessage(IncidentManagementResources.incidentType)} required>
                                 <Dropdown

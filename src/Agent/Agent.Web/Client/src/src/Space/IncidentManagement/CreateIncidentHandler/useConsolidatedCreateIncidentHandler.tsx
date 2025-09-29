@@ -14,13 +14,11 @@ import {
     IncidentQueryRequest,
     ToolInfo,
 } from '../../../Common/Contracts/Azure/IncidentHandler';
-import { AgentMode, IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
+import { AgentMode, IncidentManagementType, IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../../Common/Helpers/Guid';
 import { ArmResourceDescriptor } from '../../../Common/Helpers/ResourceDescriptors';
 import { IncidentHandlerCreateResources, IncidentManagementNotificationResources } from '../../../Strings/SREAgentResources';
 import { SreAgentContext } from '../../Contracts/Context';
-import { IncidentManagementPlatform } from '../../Contracts/IncidentManagement';
-import { getIncidentManagementPlatform } from '../../Settings/Hooks/useIncidentManagementSettings';
 import { getFilterValues } from '../Utilities';
 import { FilterMode, HandlerCreateOrEditInfo, HandlerMode, OperationStatus, TimeDuration } from './Contracts';
 import { IncidentHandlerCreateSteps } from './IncidentHandlerConsolidatedCreateContext';
@@ -54,12 +52,12 @@ const getNumberOfincidentsToOverflowincidentsListDiv = (
 const getSaveOrUpdateActionForFilter = (
     originalFilter: IncidentFilter | undefined,
     formValues: IncidentHandlerCreateFormValues,
-    incidentPlatform: IncidentManagementPlatform
+    incidentPlatformType: IncidentManagementType | undefined
 ): 'create-incidentFilter' | 'update-incidentFilter' | undefined => {
     if (!originalFilter) return 'create-incidentFilter';
 
-    const originalFilterValues = getFilterValues(originalFilter, incidentPlatform, false, '');
-    const currentFilterValues = getFilterValues(formValues, incidentPlatform, true, '');
+    const originalFilterValues = getFilterValues(originalFilter, incidentPlatformType, false, '');
+    const currentFilterValues = getFilterValues(formValues, incidentPlatformType, true, '');
     if (isEqual(originalFilterValues, currentFilterValues)) return undefined;
 
     return 'update-incidentFilter';
@@ -101,7 +99,9 @@ export const useConsolidatedCreateIncidentHandler = (
     setInitialValues: React.Dispatch<React.SetStateAction<IncidentHandlerCreateFormValues>>
 ) => {
     const intl = useIntl();
-    const sreAgentContext = useContext(SreAgentContext);
+    const {
+        incidentManagement: { incidentPlatformType },
+    } = useContext(SreAgentContext);
     const azPortalContext = useContext(AzPortalContext);
     const { resourceId, sreAgentEndpoint } = useContext(EnvironmentContext);
     const agentName = useMemo(() => (resourceId ? (new ArmResourceDescriptor(resourceId).resourceName ?? '') : ''), [resourceId]);
@@ -109,8 +109,6 @@ export const useConsolidatedCreateIncidentHandler = (
         () => IncidentHandlerClient.getInstance(sreAgentEndpoint, azPortalContext.log.bind(azPortalContext)),
         [azPortalContext, sreAgentEndpoint]
     );
-
-    const incidentPlatform = useMemo(() => getIncidentManagementPlatform(sreAgentContext.agentObj), [sreAgentContext.agentObj]);
 
     const [handler, setHandler] = useState<IncidentHandler>();
     const [handlerLoading, setHandlerLoading] = useState<boolean>(true);
@@ -126,7 +124,7 @@ export const useConsolidatedCreateIncidentHandler = (
 
     // Timespan field
     const [selectedTimespan, setSelectedTimespan] = useState<TimeDuration>(
-        incidentPlatform === IncidentManagementPlatform.AzMonitor
+        incidentPlatformType === IncidentManagementType.AzMonitor
             ? TimeDuration.Last15Days
             : handlerMode === 'create'
               ? TimeDuration.Last60Days
@@ -364,7 +362,7 @@ export const useConsolidatedCreateIncidentHandler = (
     ]);
 
     const saveHandler = useCallback(async () => {
-        const saveOrUpdateFilterAction = getSaveOrUpdateActionForFilter(handlerCreateOrEditInfo?.filter, values, incidentPlatform);
+        const saveOrUpdateFilterAction = getSaveOrUpdateActionForFilter(handlerCreateOrEditInfo?.filter, values, incidentPlatformType);
         const saveUpdateOrDeleteHandlerAction = getSaveUpdateOrDeleteActionForHandler(handler, values);
 
         if (!saveOrUpdateFilterAction && !saveUpdateOrDeleteHandlerAction) {
@@ -393,7 +391,7 @@ export const useConsolidatedCreateIncidentHandler = (
         );
 
         if (saveOrUpdateFilterAction) {
-            const filterValues = getFilterValues(values, incidentPlatform, true, '');
+            const filterValues = getFilterValues(values, incidentPlatformType, true, '');
             const filterPayload: IncidentFilterDocumentPayload = {
                 id: values.filterName || '',
                 ...filterValues,
@@ -528,7 +526,7 @@ export const useConsolidatedCreateIncidentHandler = (
 
         handlerCreateOrEditInfo,
         handler,
-        incidentPlatform,
+        incidentPlatformType,
         values.filterName,
         values.incidentType,
         values.impactedService,
@@ -581,7 +579,7 @@ export const useConsolidatedCreateIncidentHandler = (
                     ? getNumberOfincidentsToOverflowincidentsListDiv(incidentsListDivRef.current?.clientHeight, incidents?.length || 0)
                     : defaultNumberOfIncidentsToLoad;
 
-                const filterValues = getFilterValues(values, incidentPlatform, true, undefined);
+                const filterValues = getFilterValues(values, incidentPlatformType, true, undefined);
                 const oldIncidentsResponse = await incidentHandlerClient.queryIncidents({
                     filter: filterValues,
                     durationInDays: selectedTimespan,
@@ -623,7 +621,7 @@ export const useConsolidatedCreateIncidentHandler = (
             isLoadingInitialIncidents,
             incidentHandlerClient.queryIncidents,
             selectedTimespan,
-            incidentPlatform,
+            incidentPlatformType,
             values.impactedService,
             values.priority,
             values.incidentType,
@@ -676,7 +674,7 @@ export const useConsolidatedCreateIncidentHandler = (
             setLoadingIncidents(true);
             incidentsPageNumber.current = 0;
 
-            const filterValues = getFilterValues(values, incidentPlatform, true, undefined);
+            const filterValues = getFilterValues(values, incidentPlatformType, true, undefined);
             const queryPayload: IncidentQueryRequest = {
                 filter: filterValues,
                 durationInDays: selectedTimespan,
@@ -747,7 +745,7 @@ export const useConsolidatedCreateIncidentHandler = (
         selectedTimespan,
         handlerMode,
         initialSelectedIncidentIds,
-        incidentPlatform,
+        incidentPlatformType,
         values.impactedService,
         values.priority,
         values.incidentType,
@@ -895,7 +893,7 @@ export const useConsolidatedCreateIncidentHandler = (
         exitToHome,
         goToFullEditMode,
         agentName,
-        incidentPlatform,
+        incidentPlatformType,
         currentStep,
         setCurrentStep,
         generateInstructionsStepSkipped,

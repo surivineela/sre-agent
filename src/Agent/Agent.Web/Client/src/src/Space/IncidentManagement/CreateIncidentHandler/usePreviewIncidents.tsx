@@ -4,11 +4,9 @@ import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPorta
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { IncidentHandlerClient } from '../../../Common/Clients/IncidentHandlerClient';
 import { IncidentDocument, IncidentQueryRequest } from '../../../Common/Contracts/Azure/IncidentHandler';
-import { IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
+import { IncidentManagementType, IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../../Common/Helpers/Guid';
 import { SreAgentContext } from '../../Contracts/Context';
-import { IncidentManagementPlatform } from '../../Contracts/IncidentManagement';
-import { getIncidentManagementPlatform } from '../../Settings/Hooks/useIncidentManagementSettings';
 import { getFilterValues } from '../Utilities';
 import { TimeDuration } from './Contracts';
 import { IncidentHandlerCreateFormValues } from './IncidentHandlerCreateFormValues';
@@ -37,7 +35,9 @@ const getNumberOfincidentsToOverflowincidentsListDiv = (
 };
 
 export const usePreviewIncidents = () => {
-    const sreAgentContext = useContext(SreAgentContext);
+    const {
+        incidentManagement: { incidentPlatformType },
+    } = useContext(SreAgentContext);
     const azPortalContext = useContext(AzPortalContext);
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const incidentHandlerClient = useMemo(
@@ -45,11 +45,10 @@ export const usePreviewIncidents = () => {
         [azPortalContext, sreAgentEndpoint]
     );
 
-    const incidentPlatform = useMemo(() => getIncidentManagementPlatform(sreAgentContext.agentObj), [sreAgentContext.agentObj]);
     const { values } = useFormikContext<IncidentHandlerCreateFormValues>();
 
     const [selectedTimespan, setSelectedTimespan] = useState<TimeDuration>(
-        incidentPlatform === IncidentManagementPlatform.AzMonitor ? TimeDuration.Last30Days : TimeDuration.Last90Days
+        incidentPlatformType === IncidentManagementType.AzMonitor ? TimeDuration.Last30Days : TimeDuration.Last90Days
     );
     const onSelectedTimespanChange = useCallback((value: TimeDuration) => setSelectedTimespan(value), []);
 
@@ -75,7 +74,7 @@ export const usePreviewIncidents = () => {
                     ? getNumberOfincidentsToOverflowincidentsListDiv(incidentsListDivRef.current?.clientHeight, incidents?.length || 0)
                     : defaultNumberOfIncidentsToLoad;
 
-                const filterValues = getFilterValues(values, incidentPlatform, true, undefined);
+                const filterValues = getFilterValues(values, incidentPlatformType, true, undefined);
                 const oldIncidentsResponse = await incidentHandlerClient.queryIncidents({
                     filter: filterValues,
                     durationInDays: selectedTimespan,
@@ -117,7 +116,7 @@ export const usePreviewIncidents = () => {
             isLoadingInitialIncidents,
             incidentHandlerClient.queryIncidents,
             selectedTimespan,
-            incidentPlatform,
+            incidentPlatformType,
             values.impactedService,
             values.priority,
             values.incidentType,
@@ -138,7 +137,7 @@ export const usePreviewIncidents = () => {
         setLoadingIncidents(true);
         incidentsPageNumber.current = 0;
 
-        const filterValues = getFilterValues(values, incidentPlatform, true, undefined);
+        const filterValues = getFilterValues(values, incidentPlatformType, true, undefined);
         const queryPayload: IncidentQueryRequest = {
             filter: filterValues,
             durationInDays: selectedTimespan,
@@ -170,7 +169,7 @@ export const usePreviewIncidents = () => {
     }, [
         incidentHandlerClient,
         selectedTimespan,
-        incidentPlatform,
+        incidentPlatformType,
         values.impactedService,
         values.priority,
         values.incidentType,

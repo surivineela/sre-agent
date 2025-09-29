@@ -40,14 +40,12 @@ import {
 } from '../../../Common/Components/PillFilter/Contracts';
 import { LabelKeyPair } from '../../../Common/Components/PillFilter/ListWithSearch';
 import { PillFilterSet } from '../../../Common/Components/PillFilter/PillFilterSet';
-import { IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
+import { IncidentManagementType, IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
 import { Thread } from '../../../Common/Contracts/DataPlane/Thread';
 import Url from '../../../Common/Helpers/Url';
 import { ActivitiesThreadHeaderResources, IncidentManagementResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import ThreadActionsMenu from '../../Activities/ThreadActionsMenu';
 import { SreAgentContext } from '../../Contracts/Context';
-import { IncidentManagementPlatform } from '../../Contracts/IncidentManagement';
-import { getIncidentManagementPlatform } from '../../Settings/Hooks/useIncidentManagementSettings';
 import { useIncidentManagementStyles } from '../../Styles/IncidentManagement.styles';
 import IncidentChat from '../IncidentChat';
 import { getPriorityOrSeverityStrings } from '../Utilities';
@@ -88,9 +86,10 @@ interface SelectedThreadInfo {
 const IncidentsOverview: FC = () => {
     const showMockedComponents = useMemo(() => Url.getFeatureValue('showIncidentOverviewMocked') === 'true', []);
 
-    const sreAgentContext = useContext(SreAgentContext);
-    const incidentPlatform = useMemo(() => getIncidentManagementPlatform(sreAgentContext.agentObj), [sreAgentContext.agentObj]);
-    const priorityOrSeverityStrings = useMemo(() => getPriorityOrSeverityStrings(incidentPlatform), [incidentPlatform]);
+    const {
+        incidentManagement: { incidentPlatformType },
+    } = useContext(SreAgentContext);
+    const priorityOrSeverityStrings = useMemo(() => getPriorityOrSeverityStrings(incidentPlatformType), [incidentPlatformType]);
 
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
@@ -306,14 +305,14 @@ const IncidentsOverview: FC = () => {
                 }
             }
             return intl.formatMessage(
-                incidentPlatform === IncidentManagementPlatform.AzMonitor
+                incidentPlatformType === IncidentManagementType.AzMonitor
                     ? SreAgentResources.new
-                    : incidentPlatform === IncidentManagementPlatform.PagerDuty
+                    : incidentPlatformType === IncidentManagementType.PagerDuty
                       ? SreAgentResources.triggered
                       : SreAgentResources.active
             );
         },
-        [incidentPlatform, intl]
+        [incidentPlatformType, intl]
     );
     // End: Status
 

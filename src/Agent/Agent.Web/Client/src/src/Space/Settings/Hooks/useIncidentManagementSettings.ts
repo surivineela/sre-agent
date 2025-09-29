@@ -16,7 +16,7 @@ import {
     IncidentManagementValidationResources,
 } from '../../../Strings/SREAgentResources';
 import { SreAgentContext } from '../../Contracts/Context';
-import { IncidentManagementFormValues, IncidentManagementPlatform } from '../../Contracts/IncidentManagement';
+import { IncidentManagementFormValues } from '../../Contracts/IncidentManagement';
 import {
     PagerDutyApiKeyValidationResult,
     ServiceNowValidationResult,
@@ -24,26 +24,11 @@ import {
     validateServiceNowSettings,
 } from '../ValidationHelper';
 
-export const getIncidentManagementPlatform = (agent?: ArmObj<Agent>): IncidentManagementPlatform => {
-    switch (agent?.properties?.incidentManagementConfiguration?.type) {
-        case IncidentManagementType.PagerDuty:
-            return IncidentManagementPlatform.PagerDuty;
-        case IncidentManagementType.AzMonitor:
-            return IncidentManagementPlatform.AzMonitor;
-        case IncidentManagementType.Icm:
-            return IncidentManagementPlatform.Icm;
-        case IncidentManagementType.ServiceNow:
-            return IncidentManagementPlatform.ServiceNow;
-        default:
-            return IncidentManagementPlatform.Disconnected;
-    }
-};
-
 const getInitialValues = (agent?: ArmObj<Agent>): IncidentManagementFormValues => {
     const config = agent?.properties?.incidentManagementConfiguration;
 
     return {
-        platform: getIncidentManagementPlatform(agent),
+        platform: config?.type || IncidentManagementType.None,
         connectionKey: config?.connectionKey,
         createDefaultHandler: !config?.type,
         // ServiceNow specific fields - always empty for security
@@ -56,25 +41,25 @@ const getInitialValues = (agent?: ArmObj<Agent>): IncidentManagementFormValues =
 
 const generateIncidentManagementConfiguration = (formValues: IncidentManagementFormValues): IncidentManagementConfiguration | null => {
     switch (formValues.platform) {
-        case IncidentManagementPlatform.Disconnected:
+        case IncidentManagementType.None:
             return null;
-        case IncidentManagementPlatform.PagerDuty:
+        case IncidentManagementType.PagerDuty:
             return {
                 type: IncidentManagementType.PagerDuty,
                 connectionName: 'pagerduty',
                 connectionKey: formValues.connectionKey,
             };
-        case IncidentManagementPlatform.AzMonitor:
+        case IncidentManagementType.AzMonitor:
             return {
                 type: IncidentManagementType.AzMonitor,
                 connectionName: 'azmonitor',
             };
-        case IncidentManagementPlatform.Icm:
+        case IncidentManagementType.Icm:
             return {
                 type: IncidentManagementType.Icm,
                 connectionName: 'icm',
             };
-        case IncidentManagementPlatform.ServiceNow:
+        case IncidentManagementType.ServiceNow:
             return {
                 type: IncidentManagementType.ServiceNow,
                 connectionName: 'servicenow',
@@ -105,7 +90,7 @@ const pollForConnectivity = async (sreAgentEndpoint: string, log: (info: ITeleme
     return isConnected;
 };
 
-export function useIncidentManagement(close: (() => void) | undefined) {
+export function useIncidentManagementSettings(close: (() => void) | undefined) {
     const azPortalContext = useContext(AzPortalContext);
     const environmentContext = useContext(EnvironmentContext);
     const { resourceId, sreAgentEndpoint } = environmentContext;
@@ -115,7 +100,6 @@ export function useIncidentManagement(close: (() => void) | undefined) {
     const [saving, setSaving] = useState(false);
     const [saveFailure, setSaveFailure] = useState<string>();
 
-    const sreAgentContext = useContext(SreAgentContext);
     const {
         agentObj: agent,
         agentLoading,
@@ -123,14 +107,12 @@ export function useIncidentManagement(close: (() => void) | undefined) {
         agentLoadFailure,
         patchAgent,
         incidentManagement: { setIsIncidentManagementConnected, setHasFilters },
-    } = sreAgentContext;
+    } = useContext(SreAgentContext);
 
     const incidentHandlerClient = useMemo(
         () => IncidentHandlerClient.getInstance(sreAgentEndpoint, azPortalContext.log.bind(azPortalContext)),
         [sreAgentEndpoint, azPortalContext]
     );
-
-    const platform: IncidentManagementPlatform = useMemo(() => getIncidentManagementPlatform(agent), [agent]);
 
     const [initialValues, setInitialValues] = useState<IncidentManagementFormValues>(getInitialValues(agent));
 
@@ -195,7 +177,7 @@ export function useIncidentManagement(close: (() => void) | undefined) {
 
     const validate = useCallback(
         (formValues: IncidentManagementFormValues): Promise<FormikErrors<IncidentManagementFormValues>> => {
-            if (formValues.platform === IncidentManagementPlatform.PagerDuty) {
+            if (formValues.platform === IncidentManagementType.PagerDuty) {
                 if (!formValues.connectionKey) {
                     validationGuid.current = undefined;
                     latestValidationResult.current = { connectionKey: getValidationErrorMessage('missingKey') };
@@ -213,7 +195,7 @@ export function useIncidentManagement(close: (() => void) | undefined) {
                         return latestValidationResult.current;
                     });
                 }
-            } else if (formValues.platform === IncidentManagementPlatform.ServiceNow) {
+            } else if (formValues.platform === IncidentManagementType.ServiceNow) {
                 const errors: FormikErrors<IncidentManagementFormValues> = {};
 
                 if (!formValues.endpoint) {
@@ -308,13 +290,9 @@ export function useIncidentManagement(close: (() => void) | undefined) {
             };
 
             const amplitudeTargetName =
-                formValues.platform === IncidentManagementPlatform.Disconnected
-                    ? 'disconnectIncidentPlatform'
-                    : `connectTo${formValues.platform}`;
+                formValues.platform === IncidentManagementType.None ? 'disconnectIncidentPlatform' : `connectTo${formValues.platform}`;
             const amplitudeTargetFriendlyName =
-                formValues.platform === IncidentManagementPlatform.Disconnected
-                    ? 'Disconnect incident platform'
-                    : `Connect to ${formValues.platform}`;
+                formValues.platform === IncidentManagementType.None ? 'Disconnect incident platform' : `Connect to ${formValues.platform}`;
             azPortalContext.logAmplitudeOperationEvent({
                 targetType: 'update',
                 targetAction: 'start',
@@ -376,7 +354,7 @@ export function useIncidentManagement(close: (() => void) | undefined) {
                         resourceId,
                         data: additionalInfo,
                     });
-                    if (formValues.platform === IncidentManagementPlatform.Disconnected) {
+                    if (formValues.platform === IncidentManagementType.None) {
                         setIsIncidentManagementConnected(false);
                         setSaving(false);
                         setSaveFailure(undefined);
@@ -411,22 +389,22 @@ export function useIncidentManagement(close: (() => void) | undefined) {
                                     id: 'quickstart_handler',
                                 };
 
-                                if (formValues.platform === IncidentManagementPlatform.PagerDuty) {
+                                if (formValues.platform === IncidentManagementType.PagerDuty) {
                                     defaultIncidentFilter.incidentType = 'incident_default';
                                     defaultIncidentFilter.priority = 'P1';
                                 }
 
-                                if (formValues.platform === IncidentManagementPlatform.Icm) {
+                                if (formValues.platform === IncidentManagementType.Icm) {
                                     defaultIncidentFilter.incidentType = 'LiveSite';
                                     defaultIncidentFilter.priority = '3';
                                 }
 
-                                if (formValues.platform === IncidentManagementPlatform.ServiceNow) {
+                                if (formValues.platform === IncidentManagementType.ServiceNow) {
                                     defaultIncidentFilter.incidentType = 'incident';
                                     defaultIncidentFilter.priority = '1';
                                 }
 
-                                if (formValues.platform === IncidentManagementPlatform.AzMonitor) {
+                                if (formValues.platform === IncidentManagementType.AzMonitor) {
                                     defaultIncidentFilter.priority = 'Sev3';
                                 }
 
@@ -478,9 +456,7 @@ export function useIncidentManagement(close: (() => void) | undefined) {
                                     true,
                                     intl.formatMessage(IncidentManagementNotificationResources.saveSucceeded)
                                 );
-                                if (formValues.platform !== IncidentManagementPlatform.AzMonitor) {
-                                    close?.();
-                                }
+                                close?.();
                             }
                         });
                     }
@@ -502,7 +478,7 @@ export function useIncidentManagement(close: (() => void) | undefined) {
         ]
     );
     const disconnect = useCallback(() => {
-        save({ platform: IncidentManagementPlatform.Disconnected, connectionKey: undefined });
+        save({ platform: IncidentManagementType.None, connectionKey: undefined });
     }, [save]);
 
     return {
@@ -511,7 +487,7 @@ export function useIncidentManagement(close: (() => void) | undefined) {
         loadFailure: agentLoadFailure,
         saving,
         saveFailure,
-        platform,
+        platform: agent?.properties?.incidentManagementConfiguration?.type || IncidentManagementType.None,
         initialValues,
         validate,
         save,

@@ -1,14 +1,12 @@
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { getDataPlaneErrorMessage } from '../../../Common/Clients/DataPlaneClient';
 import { IncidentHandlerClient } from '../../../Common/Clients/IncidentHandlerClient';
 import { IncidentDocument, IncidentQueryRequest } from '../../../Common/Contracts/Azure/IncidentHandler';
-import { AgentMode, IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
+import { AgentMode, IncidentManagementType, IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../../Common/Helpers/Guid';
 import { SreAgentContext } from '../../Contracts/Context';
-import { IncidentManagementPlatform } from '../../Contracts/IncidentManagement';
-import { getIncidentManagementPlatform } from '../../Settings/Hooks/useIncidentManagementSettings';
 import { getFilterValues } from '../Utilities';
 import { HandlerCreateOrEditInfo, TimeDuration } from './Contracts';
 import { IncidentHandlerCreateFormValues } from './IncidentHandlerCreateFormValues';
@@ -23,9 +21,9 @@ export const useTestHandler = (
 ) => {
     const intl = useIntl();
     const azPortalContext = useContext(AzPortalContext);
-    const sreAgentContext = useContext(SreAgentContext);
-
-    const incidentPlatform = useMemo(() => getIncidentManagementPlatform(sreAgentContext.agentObj), [sreAgentContext.agentObj]);
+    const {
+        incidentManagement: { incidentPlatformType },
+    } = useContext(SreAgentContext);
 
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [incidents, setIncidents] = useState<IncidentDocument[]>();
@@ -43,7 +41,7 @@ export const useTestHandler = (
         loadIncidentsCallId.current = Guid.newShortGuid();
         setLoadingIncidents(true);
 
-        const filterValues = getFilterValues(values, incidentPlatform, true, undefined);
+        const filterValues = getFilterValues(values, incidentPlatformType, true, undefined);
         const queryPayload: IncidentQueryRequest = {
             filter: filterValues,
             durationInDays: TimeDuration.Last90Days,
@@ -114,9 +112,9 @@ export const useTestHandler = (
                 priority: values.priority === 'ALL' ? undefined : values.priority,
                 titleContains: values.titleContains || '',
                 agentMode: values.agentMode || AgentMode.review,
-                owningTeamId: incidentPlatform === IncidentManagementPlatform.Icm ? values.owningTeamId || '' : undefined,
-                createdBy: incidentPlatform === IncidentManagementPlatform.Icm ? values.createdBy || '' : undefined,
-                monitorId: incidentPlatform === IncidentManagementPlatform.Icm ? values.monitorId || '' : undefined,
+                owningTeamId: incidentPlatformType === IncidentManagementType.Icm ? values.owningTeamId || '' : undefined,
+                createdBy: incidentPlatformType === IncidentManagementType.Icm ? values.createdBy || '' : undefined,
+                monitorId: incidentPlatformType === IncidentManagementType.Icm ? values.monitorId || '' : undefined,
             },
         });
 

@@ -157,14 +157,9 @@ interface HandlersOverviewProps {
 const HandlersOverview: FC<HandlersOverviewProps> = ({ setNavigationHidden, useConsolidatedCreate }) => {
     const { logAmplitudeControlEvent } = useAzPortalContext();
     const {
-        incidentManagement: { isIncidentManagementConnected, checkingConnectivity, refreshConnectivity },
-        agentObj,
+        incidentManagement: { incidentPlatformType, isIncidentManagementConnected, checkingConnectivity, refreshConnectivity },
     } = useContext(SreAgentContext);
 
-    const incidentManagementType = useMemo(
-        () => agentObj?.properties.incidentManagementConfiguration?.type,
-        [agentObj?.properties.incidentManagementConfiguration?.type]
-    );
     const { canWriteIncidentManagement, canDeleteIncidentManagement } = useUserPermissions();
 
     const intl = useIntl();
@@ -231,7 +226,7 @@ const HandlersOverview: FC<HandlersOverviewProps> = ({ setNavigationHidden, useC
             <div className={styles.navPanelContent}>
                 <div className={styles.navPanelPadding}>
                     {!checkingConnectivity && !isIncidentManagementConnected && (
-                        <ConnectionFailureMessageBar platform={incidentManagementType} />
+                        <ConnectionFailureMessageBar platform={incidentPlatformType} />
                     )}
                     <div className={styles.description}>
                         {intl.formatMessage(IncidentManagementResources.incidentManagementTabDescription)}
@@ -279,7 +274,7 @@ const HandlersOverview: FC<HandlersOverviewProps> = ({ setNavigationHidden, useC
                             canDeleteIncidentManagement={canDeleteIncidentManagement}
                         />
                         <ConnectionIndicator
-                            platform={incidentManagementType}
+                            platform={incidentPlatformType}
                             connected={isIncidentManagementConnected}
                             style={{ marginLeft: 'auto', marginRight: '16px' }}
                             loading={checkingConnectivity}
