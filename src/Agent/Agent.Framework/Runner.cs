@@ -35,7 +35,8 @@ public class RunResultWithHandoff<TContext> where TContext : class
 public static class Runner
 {
     private const int DefaultMaxTurns = 50;
-
+    private const int Gpt5InputWindow = 272000;
+    private const int TokenThreshold = Gpt5InputWindow * 4 / 10;
     public static async Task<RunResult<TContext>> ResumeFromManualToolsAsync<TContext>(
         RunResult<TContext> previousResult,
         List<ManualToolCallResult> manualToolResults,
@@ -341,6 +342,15 @@ public static class Runner
                         continue;
                     }
 
+                    // Auto-compact chat history if needed
+                    await CompactChatHistory(
+                        currentAgent,
+                        originalInput,
+                        generatedMessages,
+                        contextWrapper,
+                        currentAgent.GetChatClient(config),
+                        hooks);
+
                     await hooks.OnAgentEnd(contextWrapper, currentAgent, turnResult.NextStep.Output);
 
                     // Reset critic counts when conversation completes successfully
@@ -363,6 +373,15 @@ public static class Runner
                 {
                     currentAgent = turnResult.NextStep.Agent;
                     shouldRunAgentStartHooks = true;
+
+                    await CompactChatHistory(
+                        currentAgent,
+                        originalInput,
+                        generatedMessages,
+                        contextWrapper,
+                        currentAgent.GetChatClient(config),
+                        hooks);
+
                     // we should not reset the trajectory, as it may contain important information for critic as handoff is very cheap frequent behavior.
                 }
                 else if (turnResult.NextStep.Type == NextStepType.RunAgain)
@@ -600,9 +619,7 @@ public static class Runner
         }
 
         List<ChatMessage> modelInput = [new ChatMessage(ChatRole.System, systemPrompt)];
-        var lastCompactedInput = SplitLastCompactedSummary(originalInput);
-        modelInput.AddRange(lastCompactedInput);
-        modelInput.AddRange(generatedMessages);
+        modelInput.AddRange(ParseCompactedInput(originalInput, generatedMessages));
 
         // Process handoff prompt override if current agent has UserPromptOverride
         if (!string.IsNullOrEmpty(agent.UserPromptOverride))
@@ -611,7 +628,7 @@ public static class Runner
         }
 
         // Add plan reminder if required
-        AddPlanReminderIfNeeded(modelInput, tools, agent);
+        AddPlanReminderIfNeeded(modelInput, tools);
 
         // tool invocations like metrics query depend on current time
         modelInput.Add(new ChatMessage(ChatRole.System, $"The current date is {DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss zzz}"));
@@ -1268,11 +1285,9 @@ public static class Runner
     </system-reminder>
     """;
 
-    private static void AddPlanReminderIfNeeded<TContext>(
-        List<ChatMessage> modelInput,
-        IReadOnlyList<AIFunction> tools,
-        Agent<TContext> agent)
-        where TContext : class
+    private static void AddPlanReminderIfNeeded(
+    List<ChatMessage> modelInput,
+    IReadOnlyList<AIFunction> tools)
     {
         var needsPlan = tools
             .Any(t => string.Equals(ToDoWriteTool.ToolName, t.Name, StringComparison.OrdinalIgnoreCase));
@@ -1292,28 +1307,25 @@ public static class Runner
             return;
         }
 
-        // if there is active plan, add reminder based on agent settings
-        if (agent.AlwaysAddPlanReminder)
+        // if there is active plan, always add reminder
+        var lastPlanContent = lastPlanMessage.Contents.Last(IsToDoWriteCall) as FunctionCallContent;
+        var lastPlanTodos = ToDoWriteTool.TryExtractTodos(new(lastPlanContent!.Arguments));
+        if (lastPlanTodos is not null)
         {
-            var lastPlanContent = lastPlanMessage.Contents.Last(IsToDoWriteCall) as FunctionCallContent;
-            var lastPlanTodos = ToDoWriteTool.TryExtractTodos(new(lastPlanContent!.Arguments));
-            if (lastPlanTodos is not null)
-            {
-                var sb = new StringBuilder();
+            var sb = new StringBuilder();
 
-                sb.AppendLine("<system-reminder>");
-                sb.AppendLine("These are the latest contents of your todo list:");
-                sb.AppendLine(lastPlanTodos);
-                sb.AppendLine("Continue on with the tasks at hand if applicable.");
-                sb.AppendLine("Ensure that you continue to use the todo list to track your progress.");
-                //sb.AppendLine("While working on a user ask, do not remove any items from the todo list, even if completed.");
-                //sb.AppendLine("You may only refresh the todo list from new, if the user intent changes.");
-                sb.AppendLine("</system-reminder>");
+            sb.AppendLine("<system-reminder>");
+            sb.AppendLine("These are the latest contents of your todo list:");
+            sb.AppendLine(lastPlanTodos);
+            sb.AppendLine("Continue on with the tasks at hand if applicable.");
+            sb.AppendLine("Ensure that you continue to use the todo list to track your progress.");
+            //sb.AppendLine("While working on a user ask, do not remove any items from the todo list, even if completed.");
+            //sb.AppendLine("You may only refresh the todo list from new, if the user intent changes.");
+            sb.AppendLine("</system-reminder>");
 
-                var planReminder = sb.ToString();
+            var planReminder = sb.ToString();
 
-                modelInput.Add(new ChatMessage(ChatRole.User, planReminder));
-            }
+            modelInput.Add(new ChatMessage(ChatRole.User, planReminder));
         }
     }
 
@@ -1349,4 +1361,66 @@ public static class Runner
 
         return validTools;
     }
+    /// <summary>
+    /// Compacts chat history if input tokens exceed threshold, using Summarizer.CompactChatHistoryAsync.
+    /// </summary>
+    private static async Task<bool> CompactChatHistory<TContext>(
+        Agent<TContext> startingAgent,
+        List<ChatMessage> input,
+        List<ChatMessage> generatedMessages,
+        RunContextWrapper<TContext> contextWrapper,
+        IChatClient chatClient,
+         RunHooks<TContext>? hooks = null,
+        string? additionalInstructions = null,
+        bool autoHandOffEnabled = false)
+        where TContext : class
+    {
+
+        if (contextWrapper.UsageDetails.InputTokenCount > TokenThreshold)
+        {
+            if (hooks != null)
+            {
+                await hooks.OnCompactionStart(contextWrapper, startingAgent);
+            }
+            // Build chat history (input + generated)
+            var chatHistory = new List<ChatMessage>();
+            chatHistory.AddRange(input);
+            chatHistory.AddRange(generatedMessages);
+
+            // Use Summarizer to compact
+            var compacted = await Summarizer.CompactChatHistoryAsync(
+                additionalInstructions ?? string.Empty,
+                chatHistory,
+                startingAgent.Name,
+                autoHandOffEnabled,
+                chatClient);
+
+            // Append compacted summary as a new user message
+            generatedMessages.Add(new ChatMessage(ChatRole.User, compacted));
+
+            if (hooks != null)
+            {
+                await hooks.OnCompactionEnd(contextWrapper, startingAgent);
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    private static List<ChatMessage> ParseCompactedInput(List<ChatMessage> originalInput, List<ChatMessage> generatedMessages)
+    {
+        var compactedInput = SplitLastCompactedSummary(generatedMessages);
+        if (compactedInput.Count > 0 && compactedInput[0].Text != null && compactedInput[0].Text.StartsWith(Summarizer.ChatSummaryMarker))
+        {
+            // Return a new list to avoid mutating the input
+            return new List<ChatMessage>(compactedInput);
+        }
+        // Otherwise, get compacted input from originalInput and append generatedMessages, but do not mutate either
+        var baseInput = SplitLastCompactedSummary(originalInput);
+        var result = new List<ChatMessage>(baseInput);
+        result.AddRange(generatedMessages);
+        return result;
+    }
+
 }

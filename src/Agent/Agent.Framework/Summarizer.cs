@@ -336,9 +336,9 @@ public static class Summarizer
     private const string AdditionalInstructionsPrompt =
     """
     There may be additional summarization instructions provided in the included context. If so, remember to follow these instructions when creating the above summary.
-        
+
     ## Additional Instructions:
-    When summarizing the conversation: 
+    When summarizing the conversation:
     """;
 
     private const string UserTrajectorySummarizerPrompt =

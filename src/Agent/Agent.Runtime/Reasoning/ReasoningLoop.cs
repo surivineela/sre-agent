@@ -68,6 +68,7 @@ public class ReasoningLoop : IDisposable
     private Exception? _currentException;
     private TelemetrySpan? _currentSummarizerSpan;
     private TelemetrySpan? _currentCriticSpan;
+    private TelemetrySpan? _currentCompactionSpan;
     private readonly IAgentRuntimeModifier<AgentContext> _agentRuntimeModifier;
     private readonly object _userCancellationTokenSourceLock = new();
     private CancellationTokenSource _userCancellationTokenSource = new();
@@ -1127,6 +1128,24 @@ public class ReasoningLoop : IDisposable
     private RunHooks<AgentContext> CreateRunHooks()
     {
         var hooks = new RunHooks<AgentContext>();
+
+        hooks.CompactionStart += (context, agent) =>
+        {
+            _logger.LogInternalInformation("Trace starting Compaction for agent: {AgentName}.", agent.Name);
+            _currentCompactionSpan = _tracer.StartSpan($"compaction", SpanKind.Internal, _currentAgentSpan);
+            _currentCompactionSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+            _currentCompactionSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
+            _currentCompactionSpan.SetAttribute(TraceAttribute.OperationName, "Compaction");
+            return Task.CompletedTask;
+        };
+
+        hooks.CompactionEnd += (context, agent) =>
+        {
+            _logger.LogInternalInformation("Trace ending Compaction for agent: {AgentName}.", agent.Name);
+            _currentCompactionSpan?.End();
+            _currentCompactionSpan = null;
+            return Task.CompletedTask;
+        };
 
         hooks.ResolveFactoryTools += (context, agent) =>
         {

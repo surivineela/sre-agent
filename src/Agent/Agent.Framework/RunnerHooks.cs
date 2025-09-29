@@ -21,7 +21,8 @@ public class RunHooks<TContext> where TContext : class
     public delegate Task CriticStartDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, int currentTurn);
     public delegate Task CriticEndDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, string userQuery, string criticResult, bool wasApproved);
     public delegate Task InputInjectionDelegate(RunContextWrapper<TContext> context, ChatMessage injectedMessage, string injectionSource);
-
+    public delegate Task CompactionStartDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent);
+    public delegate Task CompactionEndDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent);
     public event AgentStartDelegate? AgentStart;
     public event AgentEndDelegate? AgentEnd;
     public event ToolStartDelegate? ToolStart;
@@ -35,7 +36,8 @@ public class RunHooks<TContext> where TContext : class
     public event CriticStartDelegate? CriticStart;
     public event CriticEndDelegate? CriticEnd;
     public event InputInjectionDelegate? InputInjection;
-
+    public event CompactionStartDelegate? CompactionStart;
+    public event CompactionEndDelegate? CompactionEnd;
     public Task OnAgentStart(RunContextWrapper<TContext> context, Agent<TContext> agent) => AgentStart?.Invoke(context, agent) ?? Task.CompletedTask;
     public Task OnAgentEnd(RunContextWrapper<TContext> context, Agent<TContext> agent, object? result) => AgentEnd?.Invoke(context, agent, result) ?? Task.CompletedTask;
     public Task OnToolStart(RunContextWrapper<TContext> context, Agent<TContext> agent, AIFunction tool, IEnumerable<KeyValuePair<string, object?>>? arguments) => ToolStart?.Invoke(context, agent, tool, arguments) ?? Task.CompletedTask;
@@ -49,4 +51,6 @@ public class RunHooks<TContext> where TContext : class
     public Task OnCriticStart(RunContextWrapper<TContext> context, Agent<TContext> agent, int currentTurn) => CriticStart?.Invoke(context, agent, currentTurn) ?? Task.CompletedTask;
     public Task OnCriticEnd(RunContextWrapper<TContext> context, Agent<TContext> agent, string userQuery, string criticResult, bool wasApproved) => CriticEnd?.Invoke(context, agent, userQuery, criticResult, wasApproved) ?? Task.CompletedTask;
     public Task OnInputInjection(RunContextWrapper<TContext> context, ChatMessage injectedMessage, string injectionSource) => InputInjection?.Invoke(context, injectedMessage, injectionSource) ?? Task.CompletedTask;
+    public Task OnCompactionStart(RunContextWrapper<TContext> context, Agent<TContext> agent) => CompactionStart?.Invoke(context, agent) ?? Task.CompletedTask;
+    public Task OnCompactionEnd(RunContextWrapper<TContext> context, Agent<TContext> agent) => CompactionEnd?.Invoke(context, agent) ?? Task.CompletedTask;
 }
