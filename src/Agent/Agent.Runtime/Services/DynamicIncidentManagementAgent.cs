@@ -2,6 +2,7 @@ using Agent.Core.Configuration;
 using Agent.Framework;
 using Agent.Logging;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -14,7 +15,8 @@ namespace Agent.Runtime.Services;
 public class DynamicIncidentManagementAgent
 {
     private readonly ILogger<DynamicIncidentManagementAgent> _logger;
-    private readonly IncidentManagementSettings _settings;
+    private readonly IOptionsMonitor<IncidentManagementSettings> _incidentManagementSettingsOption;
+    private IncidentManagementSettings _settings => _incidentManagementSettingsOption.CurrentValue;
 
     // Maps incident platforms to their YAML file names
     private readonly Dictionary<IncidentManagementType, string> _platformToYamlMapping = new()
@@ -25,10 +27,11 @@ public class DynamicIncidentManagementAgent
     };
 
     public DynamicIncidentManagementAgent(
-        IncidentManagementSettings settings,
+        IOptionsMonitor<IncidentManagementSettings> incidentManagementSettingsOption,
         ILogger<DynamicIncidentManagementAgent> logger)
     {
-        _settings = settings;
+        _incidentManagementSettingsOption = incidentManagementSettingsOption;
+
         _logger = logger;
     }
 

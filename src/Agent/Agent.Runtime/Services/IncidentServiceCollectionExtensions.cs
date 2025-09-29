@@ -132,8 +132,8 @@ public abstract class IncidentServiceFactoryBase : IServiceFactory
     public IncidentServiceFactoryBase(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
-        var incidentManagementSettings = _serviceProvider.GetRequiredService<IncidentManagementSettings>();
-        _incidentManagementType = incidentManagementSettings.Type ?? IncidentManagementType.None;
+        var incidentManagementSettings = _serviceProvider.GetRequiredService<IOptionsMonitor<IncidentManagementSettings>>();
+        _incidentManagementType = incidentManagementSettings.CurrentValue.Type ?? IncidentManagementType.None;
     }
     public abstract dynamic GetServiceDynamic();
 }
