@@ -416,7 +416,7 @@ public sealed class IncidentInvestigationTaskHandler(
     }
 
     /// <summary>
-    /// Processes hypotheses in parallel with controlled concurrency and proper thread safety.
+    /// Processes hypotheses using BFS approach with a queue for maximum parallelism.
     /// </summary>
     private async Task ProcessHypothesesInParallel(
         IList<HypothesisTreeItem> hypotheses,
@@ -428,53 +428,95 @@ public sealed class IncidentInvestigationTaskHandler(
         TelemetrySpan currentStepSpan,
         CancellationToken cancellationToken)
     {
-        if (hypotheses.Count == 0 || currentDepth > 3)
+        if (hypotheses.Count == 0)
             return;
 
-        logger.LogInternalInformation("Processing {HypothesisCount} hypotheses at depth {Depth}", hypotheses.Count, currentDepth);
+        // Use a concurrent queue to track all hypotheses to be processed (BFS style)
+        var hypothesisQueue = new ConcurrentQueue<(HypothesisTreeItem hypothesis, int depth)>();
 
-        // Process hypotheses in parallel with controlled concurrency
-        var tasks = hypotheses.Select(hypothesis => ProcessSingleHypothesisAsync(
-            hypothesis,
-            currentDepth,
-            inputData,
-            state,
-            context,
-            runHooks,
-            currentStepSpan,
-            cancellationToken)).ToArray();
-
-        await Task.WhenAll(tasks);
-
-        // Collect all validated hypotheses from this level for next level processing
-        var validatedHypotheses = new List<HypothesisTreeItem>();
+        // Add initial hypotheses to queue
         foreach (var hypothesis in hypotheses)
         {
-            if (hypothesis.Status == HypothesisStatus.Validated && hypothesis.Children.Count > 0)
+            hypothesisQueue.Enqueue((hypothesis, currentDepth));
+        }
+
+        // Track running tasks to maintain controlled concurrency - use thread-safe collections
+        var runningTasks = new ConcurrentBag<Task>();
+        var completedTasks = new ConcurrentBag<Task>();
+
+        while (!hypothesisQueue.IsEmpty || !runningTasks.IsEmpty)
+        {
+            // Start new tasks up to concurrency limit
+            while (runningTasks.Count < 3 && hypothesisQueue.TryDequeue(out var item))
             {
-                validatedHypotheses.AddRange(hypothesis.Children);
+                var (hypothesis, depth) = item;
+
+                if (depth > 3)
+                    continue;
+
+                var task = ProcessSingleHypothesisWithQueueAsync(
+                    hypothesis,
+                    depth,
+                    inputData,
+                    state,
+                    context,
+                    runHooks,
+                    currentStepSpan,
+                    hypothesisQueue,
+                    cancellationToken);
+
+                runningTasks.Add(task);
+                logger.LogInternalInformation("Started processing hypothesis: {HypothesisTitle} at depth {Depth}", hypothesis.Title, depth);
+            }
+
+            // Wait for at least one task to complete
+            if (!runningTasks.IsEmpty)
+            {
+                var runningTasksArray = runningTasks.ToArray();
+                if (runningTasksArray.Length > 0)
+                {
+                    var completedTask = await Task.WhenAny(runningTasksArray);
+
+                    // Remove completed task from running tasks (drain and rebuild)
+                    var remainingTasks = new ConcurrentBag<Task>();
+                    while (runningTasks.TryTake(out var task))
+                    {
+                        if (task != completedTask)
+                        {
+                            remainingTasks.Add(task);
+                        }
+                    }
+                    runningTasks = remainingTasks;
+
+                    completedTasks.Add(completedTask);
+
+                    // Handle any exceptions
+                    try
+                    {
+                        await completedTask;
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogInternalError(ex, "Error in hypothesis processing task");
+                    }
+                } 
             }
         }
 
-        // Recursively process children if any
-        if (validatedHypotheses.Count > 0 && currentDepth < 3)
+        // Wait for all remaining tasks to complete
+        var allCompletedTasks = completedTasks.ToArray();
+        if (allCompletedTasks.Length > 0)
         {
-            await ProcessHypothesesInParallel(
-                validatedHypotheses,
-                currentDepth + 1,
-                inputData,
-                state,
-                context,
-                runHooks,
-                currentStepSpan,
-                cancellationToken);
+            await Task.WhenAll(allCompletedTasks);
         }
+
+        logger.LogInternalInformation("Completed BFS-style hypothesis processing");
     }
 
     /// <summary>
-    /// Processes a single hypothesis with proper concurrency control and thread safety.
+    /// Processes a single hypothesis and adds its children to the queue when validated (BFS approach).
     /// </summary>
-    private async Task ProcessSingleHypothesisAsync(
+    private async Task ProcessSingleHypothesisWithQueueAsync(
         HypothesisTreeItem hypothesis,
         int depth,
         IncidentInvestigationTaskInputData inputData,
@@ -482,9 +524,9 @@ public sealed class IncidentInvestigationTaskHandler(
         AgentContext context,
         RunHooks<AgentContext> runHooks,
         TelemetrySpan currentStepSpan,
+        ConcurrentQueue<(HypothesisTreeItem hypothesis, int depth)> hypothesisQueue,
         CancellationToken cancellationToken)
     {
-        await _hypothesisValidationSemaphore.WaitAsync(cancellationToken);
         try
         {
             logger.LogInternalInformation("Starting validation for hypothesis: {HypothesisTitle} at depth {Depth}", hypothesis.Title, depth);
@@ -531,7 +573,7 @@ public sealed class IncidentInvestigationTaskHandler(
             hypothesis.StatusMessage = statusMessage;
             await SaveStateAndStreamUpdateAsync(state, cancellationToken: cancellationToken);
 
-            // Handle validated hypotheses
+            // Handle validated hypotheses - add children to queue for BFS processing
             if (hypothesis.Status == HypothesisStatus.Validated)
             {
                 if (depth >= 3)
@@ -569,6 +611,17 @@ public sealed class IncidentInvestigationTaskHandler(
                     {
                         _finalValidatedHypotheses.Add(hypothesis);
                     }
+                    else
+                    {
+                        // Add children to queue for BFS processing (they'll be picked up by the main loop)
+                        foreach (var child in childHypotheses)
+                        {
+                            hypothesisQueue.Enqueue((child, depth + 1));
+                        }
+
+                        logger.LogInternalInformation("Added {ChildCount} children to queue for hypothesis: {HypothesisTitle}",
+                            childHypotheses.Count, hypothesis.Title);
+                    }
                 }
             }
 
@@ -581,12 +634,7 @@ public sealed class IncidentInvestigationTaskHandler(
             hypothesis.StatusMessage = $"Error processing hypothesis: {ex.Message}";
             _allInvestigatedHypotheses.Add(hypothesis);
         }
-        finally
-        {
-            _hypothesisValidationSemaphore.Release();
-        }
     }
-
 
     /// <summary>
     /// Sends a deep investigation notification to the user.
