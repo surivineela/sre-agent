@@ -76,5 +76,3 @@ common_prompts:
 - format_guidelines
 - guard_rail
 - notify_user
-
-max_reflection_count: 2

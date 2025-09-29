@@ -110,6 +110,11 @@ system_prompt: |
 
 handoff_description: "Handoff to this agent when dealing with the deployment issues of Azure Function App"
 
+handoffs:
+- run_from_package_agent
+- function_app_configuration_checker_agent
+- function_app_execution_failures_agent
+
 tools:
 - GetArmResourceAsJson
 - GetFunctionAppInfo
@@ -127,5 +132,3 @@ tools:
 common_prompts:
   - format_guidelines
   - guard_rail
-
-max_reflection_count: 2

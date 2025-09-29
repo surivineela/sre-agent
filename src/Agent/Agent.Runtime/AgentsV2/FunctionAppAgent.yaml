@@ -87,5 +87,3 @@ tools:
 common_prompts:
   - format_guidelines
   - guard_rail
-
-max_reflection_count: 2
