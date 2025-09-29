@@ -111,6 +111,18 @@ public class PagerDutyIncidentPlugin(ILogger<PagerDutyIncidentPlugin> logger,
         }
     }
 
+    public async Task<List<PagerDutyIncidentDocument>> GetPagerDutyIncidentById(string incidentId)
+    {
+        logger.LogInternalInformation("GetPagerDutyIncidentById called with incidentId: {IncidentId}", incidentId);
+        if (string.IsNullOrEmpty(incidentId))
+        {
+            logger.LogInternalWarning("IncidentId is null or empty.");
+            return [];
+        }
+
+        return await GetIncidentById([incidentId], 1);
+    }
+
     private async Task<List<PagerDutyIncidentDocument>> GetIncidentById(List<string> incidentId, uint maxResults)
     {
         var iterator = container.GetItemLinqQueryable<PagerDutyIncidentDocument>()

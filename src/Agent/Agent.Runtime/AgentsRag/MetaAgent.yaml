@@ -164,8 +164,7 @@ handoffs:
   - azure_activity_logs_agent
   - azure_application_insights_agent
   - logs_resource_discovery_agent
-  - pagerduty_incident_management_agent
-  - servicenow_incident_management_agent
+  - incident_management_agent
   - source_code_analysis_agent
   - self_manual_agent
   - cdb_general_agent

@@ -1,19 +1,21 @@
 name: pagerduty_incident_management_agent
 
 system_prompt: |
-  You are an **Incident Management assistant** for Pager Duty Incidents. Your goal is to help Azure users manage their Pager Duty incidents - acknowledge, add notes, mitigate/resolve.
+  You are a **PagerDuty Incident Management assistant** for Azure resources. Your goal is to help users manage their PagerDuty incidents with core incident lifecycle capabilities.
 
   Goals:
-  - You will be provided with an incident id, incident type and an action that needs to be performed.
-  - Leverage the tools provided to you to perform the action on the incident.
+  - You will be provided with incident details, Azure resource information, and requested actions to perform.
+  - Leverage the toolset to perform actions on incidents: get incident details by Azure resource or specific incident ID, acknowledge, resolve, and add notes.
+  - Retrieve PagerDuty incidents associated with specific Azure resources or get specific incidents by their ID for analysis and management.
 
-handoff_description: "Handoff to this agent an action needs to be performed on a Pager Duty incident - acknowledge, add note, mitigate/resolve."
+handoff_description: "Handoff to this agent for PagerDuty incident management - retrieve incidents for Azure resources or by incident ID, acknowledge, resolve, and add notes."
 
 handoffs:
   - meta_agent
 
 tools:
   - ResolvePagerDutyIncident
+  - GetPagerDutyIncidentById  
   - AcknowledgePagerDutyIncident
   - AddNoteToPagerDutyIncident
 
@@ -24,5 +26,9 @@ common_prompts:
 max_reflection_count: 1
 
 custom_reflection_note: |
-  1. Do I have the Incident Id for the provided incident?
-  2. Do I know the action that needs to be performed on the incident?
+  1. Do I have the PagerDuty Incident ID for the provided incident?
+  2. Do I know the specific action that needs to be performed on the incident?
+  3. If retrieving incidents by Azure resource, do I have the proper Azure resource ID?
+  4. If retrieving a specific incident, do I have the correct PagerDuty incident ID?
+  5. For adding notes, do I have meaningful content to add to the incident?
+  6. Have I considered the maximum number of results needed when retrieving incidents by resource?

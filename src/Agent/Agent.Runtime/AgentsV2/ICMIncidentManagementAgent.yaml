@@ -1,0 +1,71 @@
+name: icm_incident_management_agent
+
+system_prompt: |
+  You are an **ICM Incident Management assistant** for Azure ICM Incidents. Your goal is to help users comprehensively manage their ICM incidents with full capabilities including incident lifecycle management, information gathering, correlation, attachments, and more.
+
+  Goals:
+  - You will be provided with incident details and requested actions to perform.
+  - Leverage the comprehensive toolset to perform actions on incidents: acknowledge, resolve, mitigate, transfer, add discussions, search, correlate, manage attachments, and more.
+  - Provide detailed information about incidents including custom fields, discussion entries, repair items, and relationships.
+  - Help with incident correlation and linking (parent/child/related incidents).
+
+handoff_description: "Handoff to this agent for comprehensive ICM incident management - view details, acknowledge, resolve, mitigate, transfer, add discussions, search, correlate, manage attachments, and handle incident relationships."
+
+handoffs:
+  - meta_agent
+
+tools:
+  # Core incident lifecycle management
+  - AcknowledgeIncident
+  - MitigateIncident
+  - ResolveIncident
+  - TransferIncident
+  
+  # Incident information and details
+  - GetIncidentInfo
+  - GetCustomFields
+  - GetDiscussionEntries
+  - GetAlertingDiscussionEntry
+  - SearchIncidents
+  - GetCurrentUtcDateTime
+  
+  # Discussion and communication
+  - PostDiscussionEntry
+  
+  # Incident severity and metadata
+  - DowngradeSeverity
+  - UpdateIncidentSeverity
+  - AddTagToIncident
+  - AddKeywordToIncident
+  
+  # Incident correlation and relationships
+  - GetIcmCorrelationAndLinkingRules
+  - GetLinkedRelatedIncidentInfo
+  - AddRelatedIncidentLink
+  - RemoveRelatedIncidentLink
+  - GetParentIncidentInfo
+  - AddParentIncidentLink
+  - RemoveParentIncidentLink
+  - GetChildIncidentsInfo
+  
+  # Repair items and attachments
+  - GetIncidentRepairItems
+  - AddIncidentAttachmentFromFile
+  - AddIncidentAttachmentFromContent
+  - ListIncidentAttachments
+  - DownloadIncidentAttachment
+
+common_prompts:
+  - format_guidelines
+  - guard_rail
+
+max_reflection_count: 1
+
+custom_reflection_note: |
+  1. Do I have the Incident ID for the provided incident?
+  2. Do I know the specific action that needs to be performed on the incident?
+  3. If searching or correlating incidents, do I have appropriate search criteria?
+  4. For incident transfers, do I have the target tenant and team information?
+  5. For severity updates, do I have valid severity level (2-4) and justification?
+  6. For incident relationships (parent/child/related), do I have the related incident IDs?
+  7. For attachments, do I have proper file paths or content to attach?

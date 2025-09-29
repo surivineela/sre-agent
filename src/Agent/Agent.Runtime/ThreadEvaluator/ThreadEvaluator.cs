@@ -933,8 +933,7 @@ public partial class ThreadEvaluator
         systemPromptBuilder.AppendLine("- api_management_agent: API Management issues");
         systemPromptBuilder.AppendLine("- github_issue_agent: GitHub related queries and repository connections");
         systemPromptBuilder.AppendLine("- azuredevops_work_item_agent: Azure DevOps related queries and repository connections");
-        systemPromptBuilder.AppendLine("- pagerduty_incident_management_agent: PagerDuty incident management");
-        systemPromptBuilder.AppendLine("- servicenow_incident_management_agent: ServiceNow incident management");
+        systemPromptBuilder.AppendLine("- incident_management_agent: Incident management");
         systemPromptBuilder.AppendLine();
 
         systemPromptBuilder.AppendLine("**TYPICAL HANDOFF PATTERNS:**");

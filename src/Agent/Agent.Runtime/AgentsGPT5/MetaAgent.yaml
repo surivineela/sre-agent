@@ -153,8 +153,7 @@ handoffs:
   - repository_agent
   - postgresql_agent
   - cdb_general_agent
-  - pagerduty_incident_management_agent
-  - servicenow_incident_management_agent
+  - incident_management_agent
   - source_code_analysis_agent
   - self_manual_agent
   - logic_app_agent

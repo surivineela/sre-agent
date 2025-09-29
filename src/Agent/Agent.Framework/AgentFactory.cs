@@ -4,6 +4,7 @@
 
 using System.Reflection;
 using Agent.Framework.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -374,6 +375,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
 
             LoadAgentFromAssembly();
             LoadAgentFromYaml();
+            LoadDynamicIncidentManagementAgent();
             if (_extensibiltyLoader != null)
             {
                 var extendedAgents = await _extensibiltyLoader.LoadExtendedAgentsAsync();
@@ -490,6 +492,82 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
                 "Successfully loaded agent descriptor '{agentName}' from YAML file '{yamlFile}'.",
                 agent.Name,
                 yamlFile);
+        }
+    }
+
+    private void LoadDynamicIncidentManagementAgent()
+    {
+        try
+        {
+            // Get the DynamicIncidentManagementAgent service from the service provider
+            // We access it through the ToolFactory's service provider since AgentFactory doesn't have direct access
+            var serviceProvider = GetServiceProvider();
+            
+            if (serviceProvider == null)
+            {
+                _logger.LogInternalWarning("ServiceProvider not accessible. Skipping dynamic agent loading.");
+                return;
+            }
+
+            // Use reflection to get the service by type name to avoid hard assembly reference
+            var serviceTypeName = "Agent.Runtime.Services.DynamicIncidentManagementAgent";
+            var serviceType = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(a => a.GetTypes())
+                .FirstOrDefault(t => t.FullName == serviceTypeName);
+                
+            if (serviceType == null)
+            {
+                _logger.LogInternalWarning("DynamicIncidentManagementAgent type not found. Skipping dynamic agent loading.");
+                return;
+            }
+
+            var dynamicAgentService = serviceProvider.GetService(serviceType);
+            if (dynamicAgentService == null)
+            {
+                _logger.LogInternalWarning("DynamicIncidentManagementAgent service not registered. Skipping dynamic agent loading.");
+                return;
+            }
+
+            // Call GetIncidentManagementAgentDescriptor() method via reflection
+            var getDescriptorMethod = serviceType.GetMethod("GetIncidentManagementAgentDescriptor");
+            if (getDescriptorMethod == null)
+            {
+                _logger.LogInternalError("GetIncidentManagementAgentDescriptor method not found on DynamicIncidentManagementAgent.");
+                return;
+            }
+
+            var agentDescriptor = getDescriptorMethod.Invoke(dynamicAgentService, null);
+            if (agentDescriptor != null)
+            {
+                var agent = AddAgentDescriptor((IAgentDescriptor)agentDescriptor, false);
+                _logger.LogInternalInformation(
+                    "Successfully loaded dynamic incident management agent as '{agentName}'.",
+                    agent.Name);
+            }
+            else
+            {
+                _logger.LogInternalInformation("No dynamic incident management agent loaded (incident management disabled or not configured).");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to load dynamic incident management agent.");
+        }
+    }
+
+    private IServiceProvider? GetServiceProvider()
+    {
+        // Access service provider through reflection from ToolFactory
+        // This is a bit hacky but necessary since AgentFactory doesn't have direct access to service provider
+        try
+        {
+            var toolFactoryType = _toolFactory.GetType();
+            var serviceProviderField = toolFactoryType.GetField("_serviceProvider", BindingFlags.NonPublic | BindingFlags.Instance);
+            return serviceProviderField?.GetValue(_toolFactory) as IServiceProvider;
+        }
+        catch
+        {
+            return null;
         }
     }
 

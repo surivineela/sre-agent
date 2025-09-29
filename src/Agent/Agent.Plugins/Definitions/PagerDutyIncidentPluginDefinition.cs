@@ -28,6 +28,14 @@ namespace Agent.Plugins.Definitions
         }
 
         [AgentTool(ToolMode.Auto)]
+        [Description("Gets a specific PagerDuty incident by incident ID.")]
+        public async Task<List<PagerDutyIncidentDocument>> GetPagerDutyIncidentById(
+            [Description("PagerDuty incident id")] string incidentId)
+        {
+            return await incidentPlugin.GetPagerDutyIncidentById(incidentId);
+        }
+
+        [AgentTool(ToolMode.Auto)]
         [Description("Resolves a PagerDuty incident")]
         public async Task<string> ResolvePagerDutyIncidentAsync([Description("PagerDuty incident id")] string incidentId)
         {

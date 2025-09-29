@@ -513,6 +513,7 @@ public class Program
             .AddSingleton<IRemoteWriteService, RemoteWriteService>()
             .AddSingleton<IMetricsRegistry, MetricsRegistry>()
             .AddSingleton<IGremlinMetricsService, GremlinMetricsService>()
+            .AddSingleton<DynamicIncidentManagementAgent>()
             .AddSingleton<AppInsightsPlugin>()
             .AddTransient<ICpuAnalysisPlugin, CpuAnalysisPlugin>()
             .AddTransient<IAppCodeAnalysisPlugin, AppCodeAnalysisPlugin>()
