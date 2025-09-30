@@ -4682,7 +4682,6 @@ public class ArmHelper
         if (string.IsNullOrWhiteSpace(resourceId))
             throw new ArgumentException("Resource ID is required", nameof(resourceId));
 
-        // Validate resource ID format
         if (!IsWellFormattedResourceId(resourceId))
             throw new ArgumentException($"Invalid resource ID format: {resourceId}", nameof(resourceId));
 
@@ -4844,10 +4843,111 @@ public class ArmHelper
         return "Executing Azure CLI write command";
     }
 
+    public async Task<string> GetWorkflowAsync(string resourceId)
+    {
+        try
+        {
+            var url = $"https://management.azure.com{resourceId}?api-version=2018-11-01&expand=connections.json,parameters.json";
+            var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, url);
+            using HttpResponseMessage response = await httpClient.SendAsync(request);
+            if (!response.IsSuccessStatusCode)
+            {
+                if (CheckForUnauthorizedAccess(response))
+                {
+                    throw new ToolExecutionUnauthorizedException($"Unauthorized access to resource {resourceId}");
+                }
+                string errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogInternalError($"Failed to get deployment slots for resource {resourceId}: {errorContent}");
+                return string.Empty;
+            }
+            string jsonResponse = await response.Content.ReadAsStringAsync();
+            return jsonResponse;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError($"Failed to get workflow content: {ex.Message}");
+            throw;
+        }
+    }
+
     public static string? ExtractResourceGroupNameFromId(string resourceId)
     {
         var resourceIdentifier = new ResourceIdentifier(resourceId);
         return resourceIdentifier.ResourceGroupName;
+    }
+
+    public async Task<JsonElement> ListWorkflowRuns(string resourceId, string workflowName)
+    {
+        try
+        {
+            var url = $"https://management.azure.com{resourceId}/hostruntime/runtime/webhooks/workflow/api/management/workflows/{workflowName}/runs?api-version=2018-11-01&$top=40";
+
+            var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, url);
+            using HttpResponseMessage response = await httpClient.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                if (CheckForUnauthorizedAccess(response))
+                {
+                    throw new ToolExecutionUnauthorizedException($"Unauthorized access to resource {resourceId}");
+                }
+
+                string errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogInternalError($"Failed to get deployment slots for resource {resourceId}: {errorContent}");
+
+                return new JsonElement();
+            }
+
+            string jsonResponse = await response.Content.ReadAsStringAsync();
+            var jsonDocument = JsonDocument.Parse(jsonResponse);
+
+            if (jsonDocument.RootElement.TryGetProperty("value", out var valueArray))
+            {
+                return valueArray;
+            }
+
+            return new JsonElement();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError($"Failed to get runs: {ex.Message}");
+            throw;
+        }
+    }
+
+    public async Task<JsonElement> ListRunActions(string resourceId, string workflowName, string runName)
+    {
+        try
+        {
+            var url = $"https://management.azure.com{resourceId}/hostruntime/runtime/webhooks/workflow/api/management/workflows/{workflowName}/runs/{runName}/actions?api-version=2018-11-01";
+            var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, url);
+            using HttpResponseMessage response = await httpClient.SendAsync(request);
+            if (!response.IsSuccessStatusCode)
+            {
+                if (CheckForUnauthorizedAccess(response))
+                {
+                    throw new ToolExecutionUnauthorizedException($"Unauthorized access to resource {resourceId}");
+                }
+                string errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogInternalError($"Failed to get deployment slots for resource {resourceId}: {errorContent}");
+                return new JsonElement();
+            }
+            string jsonResponse = await response.Content.ReadAsStringAsync();
+            var jsonDocument = JsonDocument.Parse(jsonResponse);
+            if (jsonDocument.RootElement.TryGetProperty("value", out var valueArray))
+            {
+                return valueArray;
+            }
+            return new JsonElement();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError($"Failed to get runs: {ex.Message}");
+            throw;
+        }
     }
 
     #endregion

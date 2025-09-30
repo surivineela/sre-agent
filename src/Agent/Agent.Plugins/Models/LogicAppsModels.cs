@@ -20,3 +20,18 @@ public record Workflow(
     string Id,
     string Name
 );
+
+public record WorkflowRun(
+    string Id,
+    string Name,
+    string Status,
+    DateTime StartTime,
+    DateTime EndTime
+);
+
+public record ActionExecution(
+    string Name,
+    string Status,
+    DateTime StartTime,
+    DateTime EndTime
+);

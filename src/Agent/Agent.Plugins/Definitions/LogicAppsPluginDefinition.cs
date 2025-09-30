@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using Agent.Core.Models;
 using Agent.Framework;
+using Agent.Plugins.Implementation;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
 using Microsoft.VisualStudio.Services.Common;
@@ -16,6 +17,54 @@ namespace Agent.Plugins.Definitions
         public LogicAppsPluginDefinition(ILogicAppsPlugin plugin)
         {
             _plugin = plugin;
+        }
+
+        [Description("Update the app setting for a given Logic App")]
+        public async Task<UpdateAppSettingResult> UpdateAppSetting(string resourceId, string key, string value)
+        {
+            return await this._plugin.UpdateAppSetting(resourceId, key, value);
+        }
+
+        [Description("Gets the list of triggers of a workflow of the Logic App using REST API")]
+        public async Task<string> ListTriggers(
+            [Description("The ARM resource id of a standard Logic App")]
+            string resourceId,
+            [Description("The workflow name inside the standard Logic App")]
+            string workflowName)
+        {
+            return await _plugin.ListTriggers(resourceId, workflowName);
+        }
+
+        [Description("Gets the list of actions of a workflow of the Logic App using REST API")]
+        public async Task<string> ListActions(
+            [Description("The ARM resource id of a standard Logic App")]
+            string resourceId,
+            [Description("The workflow name inside the standard Logic App")]
+            string workflowName)
+        {
+            return await _plugin.ListActions(resourceId, workflowName);
+        }
+
+        [Description("Gets the list of runs of a workflow of the Logic App using REST API")]
+        public async Task<string> ListRuns(
+            [Description("The ARM resource id of a standard Logic App")]
+            string resourceId,
+            [Description("The workflow name inside the standard Logic App")]
+            string workflowName)
+        {
+            return await _plugin.ListRuns(resourceId, workflowName);
+        }
+
+        [Description("Gets a list of actions for a specific run of a flow in the Logic App using REST API")]
+        public async Task<string> ListRunActions(
+            [Description("The ARM resource id of a standard Logic App")]
+            string resourceId,
+            [Description("The workflow name inside the standard Logic App")]
+            string workflowName,
+            [Description("The run name")]
+            string runName)
+        {
+            return await _plugin.ListRunActions(resourceId, workflowName, runName);
         }
 
         [Description("Get the list of managed connectors for a given Logic App")]

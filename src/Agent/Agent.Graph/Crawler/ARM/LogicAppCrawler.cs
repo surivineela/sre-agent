@@ -157,7 +157,7 @@ public class LogicAppCrawler : AppServiceCrawler
         return workflowNodes;
     }
 
-    private IEnumerable<JsonElement> TraverseAllActions(JsonElement actionsElement)
+    public static IEnumerable<(string, JsonElement)> TraverseAllActions(JsonElement actionsElement)
     {
         if (actionsElement.ValueKind != JsonValueKind.Object)
         {
@@ -173,7 +173,7 @@ public class LogicAppCrawler : AppServiceCrawler
                 continue;
             }
 
-            yield return action;
+            yield return (actionProperty.Name, action);
 
             if (action.TryGetProperty("actions", out var actions))
             {
@@ -260,7 +260,7 @@ public class LogicAppCrawler : AppServiceCrawler
         {
             if (definitionElement.TryGetProperty("actions", out var actionsElement))
             {
-                foreach (var action in TraverseAllActions(actionsElement))
+                foreach (var (name, action) in TraverseAllActions(actionsElement))
                 {
                     await CrawlWorkflowOperation(action, siteResource, workflowNode, connections, graphAccumulatorDictionary, start, Constants.Relationships.UsesAction);
                 }
@@ -663,6 +663,13 @@ public class LogicAppCrawler : AppServiceCrawler
             return null;
         }
 
+        ResolveSettings(appSettings, logicAppConnections);
+
+        return logicAppConnections;
+    }
+
+    private void ResolveSettings(IDictionary<string, string> appSettings, LogicAppConnections? logicAppConnections)
+    {
         if (logicAppConnections?.ServiceProviderConnections != null)
         {
             foreach (var kvp in logicAppConnections.ServiceProviderConnections)
@@ -695,8 +702,6 @@ public class LogicAppCrawler : AppServiceCrawler
                 }
             }
         }
-
-        return logicAppConnections;
     }
 
     private async Task<ArmResourceNode?> GetServiceProviderResourceNode(ServiceProviderConnection connection, string subscriptionId)
