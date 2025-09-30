@@ -259,7 +259,7 @@ public class GraphService : IGraphService
                               .by(coalesce(values('resourceName'), constant('')))
                               .by(label())
                               .by(valueMap())),
-                        inE('LINKED', 'CONNECTED', 'HOSTED_ON')
+                        inE('LINKED', 'CONNECTED', 'HOSTED_ON', 'USES_ACTION', 'USES_TRIGGER', 'USES_TRIGGER_ACTION')
                           .where(outV().not(has('resourceType', within('resourcegroups', 'subscription'))).not(has('isDeleted', true)))
                           .project('edge', 'direction', 'node')
                           .by(label())

@@ -52,7 +52,7 @@ public class ConnectionCrawler : GenericArmResourceCrawler
                 {
                     await _graphDbClient.AddOrUpdateNodeAsync(connectedResource);
 
-                    var edge = new ArmResourceEdge(connectionNode.GetNodeId(), connectedResource.GetNodeId(), Constants.Relationships.Uses);
+                    var edge = new ArmResourceEdge(connectionNode.GetNodeId(), connectedResource.GetNodeId(), Constants.Relationships.Connected);
                     await _graphDbClient.AddOrUpdateEdgeAsync(edge);
                 }
 

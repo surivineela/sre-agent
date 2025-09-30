@@ -509,7 +509,7 @@ public class LogicAppCrawler : AppServiceCrawler
         var connectionToResourceEdge = new ArmResourceEdge(
             workflowConnectionNode.GetNodeId(),
             serviceProviderResourceNode.GetNodeId(),
-            Constants.Relationships.Uses);
+            Constants.Relationships.Connected);
         await _graphDbClient.AddOrUpdateEdgeAsync(connectionToResourceEdge);
 
         return serviceProviderResourceNode;
@@ -539,7 +539,7 @@ public class LogicAppCrawler : AppServiceCrawler
         var connectionToResourceEdge = new ArmResourceEdge(
             apiManagementConnectionNode.GetNodeId(),
             apiManagementResourceNode.GetNodeId(),
-            Constants.Relationships.Uses);
+            Constants.Relationships.Connected);
         await _graphDbClient.AddOrUpdateEdgeAsync(connectionToResourceEdge);
 
         return apiManagementResourceNode;
@@ -569,7 +569,7 @@ public class LogicAppCrawler : AppServiceCrawler
         var connectionToResourceEdge = new ArmResourceEdge(
             functionConnectionNode.GetNodeId(),
             functionResourceNode.GetNodeId(),
-            Constants.Relationships.Uses);
+            Constants.Relationships.Connected);
         await _graphDbClient.AddOrUpdateEdgeAsync(connectionToResourceEdge);
 
         return functionResourceNode;
