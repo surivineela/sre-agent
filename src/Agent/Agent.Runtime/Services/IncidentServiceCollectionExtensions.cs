@@ -15,7 +15,6 @@ using Agent.Graph.Services;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.SubAgents.Scanner;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 namespace Agent.Runtime.Services;
@@ -24,11 +23,11 @@ public static class IncidentServiceCollectionExtensions
 {
     private static IServiceCollection AddDefaultIncidentApiClientsAndScanner(this IServiceCollection services)
     {
-        services.TryAddSingleton<IPagerDutyService, NullablePagerDutyService>();
-        services.TryAddSingleton<IICMAPIClient, NullableICMAPIClient>();
-        services.TryAddSingleton<IServiceNowAPIClient, NullableServiceNowAPIClient>();
-        services.TryAddSingleton<IIncidentScanner, NullableIncidentScanner>();
-        services.TryAddSingleton<IAzMonitorAlertService, NullableAzMonitorAlertService>();
+        services.AddSingleton<IPagerDutyService, NullablePagerDutyService>();
+        services.AddSingleton<IICMAPIClient, NullableICMAPIClient>();
+        services.AddSingleton<IServiceNowAPIClient, NullableServiceNowAPIClient>();
+        services.AddSingleton<IIncidentScanner, NullableIncidentScanner>();
+        services.AddSingleton<IAzMonitorAlertService, NullableAzMonitorAlertService>();
         return services;
     }
 
@@ -36,42 +35,64 @@ public static class IncidentServiceCollectionExtensions
     {
         services.AddDefaultIncidentApiClientsAndScanner();
 
-        // AzMonitor
-        services.AddSingleton<IAzMonitorAlertService, AzMonitorAlertService>();
-        services.AddSingleton<AzMonitorScanner>();
-        services.AddSingleton<IIncidentHandlingService<AzMonitorIncidentFilterDocumentPayload>, AzMonitorIncidentHandlingService>();
-        services.AddSingleton<IIncidentManagementService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocumentPayload>, AzMonitorIncidentManagementService>();
-        services.AddSingleton<IIncidentFilterManagementService<AzMonitorIncidentFilterDocument, AzMonitorIncidentFilterDocumentPayload>, AzMonitorIncidentFilterManagementService>();
-        services.AddSingleton<IIncidentAnalysisService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocumentPayload>, AzMonitorIncidentAnalysisService>();
+        var serviceProvider = services.BuildServiceProvider();
+        var incidentManagementSettings = serviceProvider.GetRequiredService<IncidentManagementSettings>();
+        //Overwrite ApiClient and IIncidentScanner
+        switch (incidentManagementSettings.Type)
+        {
+            case IncidentManagementType.AzMonitor:
+                services.AddSingleton<IAzMonitorAlertService, AzMonitorAlertService>();
+                services.AddSingleton<IIncidentScanner, AzMonitorScanner>();
 
-        // PagerDuty
-        services.AddSingleton<IPagerDutyService, PagerDutyService>();
-        services.AddSingleton<PagerDutyScanner>();
-        services.AddSingleton<IIncidentHandlingService<PagerDutyIncidentFilterDocumentPayload>, PagerDutyIncidentHandlingService>();
-        services.AddSingleton<IIncidentManagementService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload>, PagerDutyIncidentManagementService>();
-        services.AddSingleton<IIncidentFilterManagementService<PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload>, PagerDutyIncidentFilterManagementService>();
-        services.AddSingleton<IIncidentAnalysisService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload>, PagerDutyIncidentAnalysisService>();
+                services.AddSingleton<IIncidentHandlingService<AzMonitorIncidentFilterDocumentPayload>, AzMonitorIncidentHandlingService>();
+                services.AddSingleton<IIncidentManagementService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocumentPayload>, AzMonitorIncidentManagementService>();
+                services.AddSingleton<IIncidentFilterManagementService<AzMonitorIncidentFilterDocument, AzMonitorIncidentFilterDocumentPayload>, AzMonitorIncidentFilterManagementService>();
+                services.AddSingleton<IIncidentAnalysisService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocumentPayload>, AzMonitorIncidentAnalysisService>();
+                break;
 
-        // ICM
-        services.AddSingleton<LoggingHttpMessageHandler>();
-        services.AddSingleton<IICMAPIClient, ICMAPIClient>();
-        services.AddSingleton<IcmScanner>();
-        services.AddSingleton<IIncidentHandlingService<IcmIncidentFilterDocumentPayload>, IcmIncidentHandlingService>();
-        services.AddSingleton<IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>, IcmIncidentManagementService>();
-        services.AddSingleton<IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload>, IcmIncidentFilterManagementService>();
-        services.AddSingleton<IIncidentAnalysisService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>, IcmIncidentAnalysisService>();
+            case IncidentManagementType.PagerDuty:
+                services.AddSingleton<IPagerDutyService, PagerDutyService>();
+                services.AddSingleton<IIncidentScanner, PagerDutyScanner>();
 
-        // ServiceNow
-        services.AddSingleton<IServiceNowAPIClient, ServiceNowAPIClient>();
-        services.AddSingleton<ServiceNowScanner>();
-        services.AddSingleton<IIncidentHandlingService<ServiceNowIncidentFilterDocumentPayload>, ServiceNowIncidentHandlingService>();
-        services.AddSingleton<IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload>, ServiceNowIncidentManagementService>();
-        services.AddSingleton<IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload>, ServiceNowIncidentFilterManagementService>();
-        services.AddSingleton<IIncidentAnalysisService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload>, ServiceNowIncidentAnalysisService>();
+                services.AddSingleton<IIncidentHandlingService<PagerDutyIncidentFilterDocumentPayload>, PagerDutyIncidentHandlingService>();
+                services.AddSingleton<IIncidentManagementService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload>, PagerDutyIncidentManagementService>();
+                services.AddSingleton<IIncidentFilterManagementService<PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload>, PagerDutyIncidentFilterManagementService>();
+                services.AddSingleton<IIncidentAnalysisService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload>, PagerDutyIncidentAnalysisService>();
+                break;
 
-        // None
-        services.AddSingleton<IIncidentFilterManagementService<NullableIncidentFilterDocument, IncidentFilterDocumentPayload>, NullableIncidentFilterManagementService>();
+            case IncidentManagementType.Icm:
+                services.AddSingleton<LoggingHttpMessageHandler>();
+                services.AddSingleton<IICMAPIClient, ICMAPIClient>();
+                services.AddSingleton<IIncidentScanner, IcmScanner>();
 
+                var logger = serviceProvider.GetRequiredService<ILogger<ICMAPITokenService>>();
+                var actionSettings = serviceProvider.GetRequiredService<ActionSettings>();
+                var authService = serviceProvider.GetRequiredService<IAuthenticationService>();
+                ICMAPITokenService.Instance.Initialize(authService, actionSettings, incidentManagementSettings.ICMAPI, logger);
+
+                services.AddSingleton<IIncidentHandlingService<IcmIncidentFilterDocumentPayload>, IcmIncidentHandlingService>();
+                services.AddSingleton<IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>, IcmIncidentManagementService>();
+                services.AddSingleton<IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload>, IcmIncidentFilterManagementService>();
+                services.AddSingleton<IIncidentAnalysisService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>, IcmIncidentAnalysisService>();
+                break;
+
+            case IncidentManagementType.ServiceNow:
+                services.AddSingleton<IServiceNowAPIClient, ServiceNowAPIClient>();
+                services.AddSingleton<IIncidentScanner, ServiceNowScanner>();
+
+                services.AddSingleton<IIncidentHandlingService<ServiceNowIncidentFilterDocumentPayload>, ServiceNowIncidentHandlingService>();
+                services.AddSingleton<IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload>, ServiceNowIncidentManagementService>();
+                services.AddSingleton<IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload>, ServiceNowIncidentFilterManagementService>();
+                services.AddSingleton<IIncidentAnalysisService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload>, ServiceNowIncidentAnalysisService>();
+                break;
+
+            case IncidentManagementType.None:
+                services.AddSingleton<IIncidentFilterManagementService<NullableIncidentFilterDocument, IncidentFilterDocumentPayload>, NullableIncidentFilterManagementService>();
+                break;
+
+            default:
+                break;
+        }
 
         services.AddSingleton<IIncidentHandlerManagementService, IncidentHandlerManagementService>();
         services.AddSingleton<IInstructionGenerationService, InstructionGenerationService>();
@@ -81,19 +102,7 @@ public static class IncidentServiceCollectionExtensions
         services.AddSingleton<IIncidentFilterManagementServiceFactory, IncidentFilterManagementServiceFactory>();
         services.AddSingleton<IIncidentManagementServiceFactory, IncidentManagementServiceFactory>();
         services.AddSingleton<IIncidentHandlingServiceFactory, IncidentHandlingServiceFactory>();
-        services.AddSingleton<IIncidentScanner>(sp =>
-        {
-            var settings = sp.GetRequiredService<IOptionsMonitor<IncidentManagementSettings>>().CurrentValue;
 
-            return settings.Type switch
-            {
-                IncidentManagementType.AzMonitor => sp.GetRequiredService<AzMonitorScanner>(),
-                IncidentManagementType.PagerDuty => sp.GetRequiredService<PagerDutyScanner>(),
-                IncidentManagementType.Icm => sp.GetRequiredService<IcmScanner>(),
-                IncidentManagementType.ServiceNow => sp.GetRequiredService<ServiceNowScanner>(),
-                _ => new NullableIncidentScanner()
-            };
-        });
         return services;
     }
 }

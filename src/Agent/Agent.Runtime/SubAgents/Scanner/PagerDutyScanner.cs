@@ -19,7 +19,6 @@ using Agent.Runtime.Interfaces;
 using Agent.Runtime.Services;
 using Agent.Logging;
 using System.Text.Json;
-using Microsoft.Extensions.Options;
 
 namespace Agent.Runtime.SubAgents.Scanner;
 
@@ -29,7 +28,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                               CosmosDBSettings cosmosDbSettings,
                               IChatClient chatClient,
                               IGraphDatabaseClient graphDbClient,
-                              IOptionsMonitor<IncidentManagementSettings> incidentManagementSettingsOptions,
+                              IncidentManagementSettings incidentManagementSettings,
                               IIncidentHandlingService<PagerDutyIncidentFilterDocumentPayload> incidentHandlingService,
                               IIncidentAnalysisService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload> incidentAnalysisService,
                               IAgentInboundCommunicationService agentInboundCommunicationService):IIncidentScanner
@@ -40,7 +39,6 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
 
     public async Task ScanAsync(CancellationToken cancellationToken)
     {
-        var incidentManagementSettings = incidentManagementSettingsOptions.CurrentValue;
         if (incidentManagementSettings is null || incidentManagementSettings.Type != IncidentManagementType.PagerDuty)
         {
             logger.LogInternalInformation("PagerDuty is not configured. Skipping scanning.");

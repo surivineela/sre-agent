@@ -5,24 +5,22 @@
 using Agent.Core.Configuration;
 using Agent.Core.Models;
 using Agent.Plugins.Interface;
-using Microsoft.Extensions.Options;
 
 namespace Agent.Plugins.Implementation;
 public class ConnectedIntegrationsPlugin : IConnectedIntegrationsPlugin
 {
 
     private readonly DashboardSettings _dashboard;
-    private readonly IOptionsMonitor<IncidentManagementSettings> _incidentManagementSettingsOption;
-    private IncidentManagementSettings _incidentManagementSettings => _incidentManagementSettingsOption.CurrentValue;
+    private readonly IncidentManagementSettings _incident;
     private readonly AppInsightsSettings _appInsights;
 
     public ConnectedIntegrationsPlugin(
         DashboardSettings dashboardOptions,
-        IOptionsMonitor<IncidentManagementSettings> incidentManagementSettingsOptions,
+        IncidentManagementSettings incidentOptions,
         AppInsightsSettings appInsightsOptions)
     {
         _dashboard = dashboardOptions;
-        _incidentManagementSettingsOption = incidentManagementSettingsOptions;
+        _incident = incidentOptions;
         _appInsights = appInsightsOptions;
     }
 
@@ -44,14 +42,14 @@ public class ConnectedIntegrationsPlugin : IConnectedIntegrationsPlugin
         });
 
         // Incident Management (e.g. PagerDuty)
-        var incidentConfigured = _incidentManagementSettings.Type is not null && (_incidentManagementSettings.Type == IncidentManagementType.AzMonitor ||
-            (_incidentManagementSettings.Type == IncidentManagementType.PagerDuty && !string.IsNullOrWhiteSpace(_incidentManagementSettings.ConnectionKey)));
+        var incidentConfigured = _incident.Type is not null && (_incident.Type == IncidentManagementType.AzMonitor ||
+            (_incident.Type == IncidentManagementType.PagerDuty && !string.IsNullOrWhiteSpace(_incident.ConnectionKey)));
         integrations.Add(new IntegrationInfo
         {
             Name = "IncidentManagement",
             IsActive = incidentConfigured,
             Details = incidentConfigured
-                ? $"Kind={_incidentManagementSettings.Type}"
+                ? $"Kind={_incident.Type}"
                 : "No incident management provider configured. Configure IncidentManagementSettings on this Microsoft.App/agents resource through an ARM call."
         });
 

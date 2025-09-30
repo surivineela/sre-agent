@@ -3,8 +3,6 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
-using Agent.Framework.Interfaces;
-using Agent.Runtime.Services;
 using Azure.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -164,7 +162,6 @@ Otherwise, there may be required settings which are not auto-populated by the pr
 
                 // Register all known plugin settings types
                 registry.Register<IncidentManagementSettings>("IncidentManagement");
-                registry.Register<ICMWorkflowSettings>("ICMWorkflows");
 
                 return registry;
             });
@@ -188,24 +185,8 @@ Otherwise, there may be required settings which are not auto-populated by the pr
             });
 
 
-            sc.AddSingleton<ReloadableOptionsChangeTokenSource<ICMWorkflowSettings>>();
-            sc.AddSingleton<IOptionsChangeTokenSource<ICMWorkflowSettings>>(sp =>
-                sp.GetRequiredService<ReloadableOptionsChangeTokenSource<ICMWorkflowSettings>>());
 
-            // Get fallback from core configuration
-            sc.AddSingleton<IConfigureOptions<ICMWorkflowSettings>>(sp =>
-            {
-                var store = sp.GetRequiredService<IReloadableSettingsStore>();
-                var registry = sp.GetRequiredService<IPluginSettingsTypeRegistry>();
-
-                // The fallback: injected from your application's strongly typed configuration
-                var fallback = sp.GetRequiredService<TAppSettings>().Core.External.ICMWorkflows;
-
-                return new ReloadableOptionsConfigurator<ICMWorkflowSettings>(store, registry, fallback);
-            });
-
-
-            
+            sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.IncidentManagement);
 
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.GenevaActions);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.ICMWorkflows);

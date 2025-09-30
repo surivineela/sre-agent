@@ -12,7 +12,6 @@ using Agent.Core.Services;
 using Agent.Plugins.Kusto;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.OperationalAgent.Core.Extensions;
 using Newtonsoft.Json;
 
@@ -23,26 +22,21 @@ namespace Agent.Plugins.IcmPlugin
         private readonly bool IsDevelopment;
         private static Lazy<Task<HttpClient>>? _httpClientLazy;
         private readonly ILogger<ICMWorkflowClient> _logger;
-        private  ICMWorkflowSettings _icmWorkflowSettings;
+        private readonly ICMWorkflowSettings _icmWorkflowSettings;
         private readonly IKeyVaultService _keyVaultService;
         private const string ActionPath = "triggers/manual/execute";
         private bool _processImages = true;
         public bool ProcessImages => _processImages;
 
-        public ICMWorkflowClient(IHostEnvironment environment, ILogger<ICMWorkflowClient> logger, IOptionsMonitor<ICMWorkflowSettings> monitor, IKeyVaultService keyVaultService, IAuthenticationService authService)
+        public ICMWorkflowClient(IHostEnvironment environment, ILogger<ICMWorkflowClient> logger, ICMWorkflowSettings icmWorkflowSettings, IKeyVaultService keyVaultService, IAuthenticationService authService)
         {
-            _icmWorkflowSettings = monitor.CurrentValue;
-            monitor.OnChange(newConfig =>
-            {
-                _icmWorkflowSettings = newConfig;
-                // Optionally log or re-initialize internal caches
-            });
+            _icmWorkflowSettings = icmWorkflowSettings;
             _processImages = _icmWorkflowSettings.ProcessImages;
             IsDevelopment = environment.IsDevelopment();
             _logger = logger;
             _keyVaultService = keyVaultService;
 
-            _httpClientLazy = new Lazy<Task<HttpClient>>(() => InitializeHttpClientAsync(_icmWorkflowSettings, keyVaultService, environment.IsDevelopment(), logger, authService));
+            _httpClientLazy = new Lazy<Task<HttpClient>>(() => InitializeHttpClientAsync(icmWorkflowSettings, keyVaultService, environment.IsDevelopment(), logger, authService));
         }
 
         private static async Task<HttpClient> InitializeHttpClientAsync(ICMWorkflowSettings icmWorkflowSettings, IKeyVaultService userKeyVaultService, bool isDevelopment, ILogger<ICMWorkflowClient> logger, IAuthenticationService authService)

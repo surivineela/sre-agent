@@ -10,7 +10,6 @@ using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Tools;
 using Agent.Runtime.Interfaces;
-using Agent.Runtime.Services;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -37,17 +36,13 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
     private readonly IExtensibilityLoader? _extensibilityLoader;
     private readonly IMcpConnectable _mcpToolsRepository;
     private readonly bool _handoffReasoningEnabled;
-    private readonly IReloadableSettingsStore _settingsStore;
-    private readonly IPluginSettingsTypeRegistry _pluginSettingsTypeRegistry;
 
     public ToolFactory(
         ILogger<ToolFactory<TContext>> logger,
         IServiceProvider serviceProvider,
         IEnumerable<Assembly> assembliesToScan,
         IExtensibilityLoader? extensibilityLoader,
-        IMcpConnectable mcpToolsRepository,
-        IReloadableSettingsStore settingsStore,
-        IPluginSettingsTypeRegistry pluginSettingsTypeRegistry
+        IMcpConnectable mcpToolsRepository
     )
     {
         _logger = logger;
@@ -60,8 +55,6 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
         var hostEnvironment = _serviceProvider.GetRequiredService<IHostEnvironment>();
         var experimentalSettings = _serviceProvider.GetRequiredService<ExperimentalSettings>();
         _handoffReasoningEnabled = experimentalSettings?.EnableHandoffReasoning ?? hostEnvironment.IsDevelopment();
-        _settingsStore = settingsStore;
-        _pluginSettingsTypeRegistry = pluginSettingsTypeRegistry;
     }
 
     protected override Task InitializeAsyncCore()
@@ -297,8 +290,6 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
             {
                 RegisterTool(tool, onNameConflict);
             }
-
-            await LoadPluginConfig();
         }
 
         // Register the ToDo Write tool
@@ -311,50 +302,6 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
             foreach (var aiFunction in _mcpToolsRepository.GetAllFunctions())
             {
                 RegisterTool(aiFunction, onNameConflict);
-            }
-        }
-    }
-
-    private async Task LoadPluginConfig()
-    {
-        if (_extensibilityLoader != null)
-        {
-            var extendedPluginConfigs = await _extensibilityLoader.LoadExtendedPluginConfigsAsync();
-            if(extendedPluginConfigs == null || !extendedPluginConfigs.Any())
-            {
-                _logger.LogInternalInformation("No extended plugin configurations found to load.");
-                return;
-            }
-            LoadPluginConfigs(extendedPluginConfigs);
-        }
-    }
-
-    private void LoadPluginConfigs(List<YamlPluginConfig> extendedPluginConfigs)
-    {
-        foreach (var pluginConfig in extendedPluginConfigs)
-        {
-            try
-            {
-                if (!_pluginSettingsTypeRegistry.TryGetSettingsType(pluginConfig.Name, out var settingsType))
-                {
-                    _logger.LogInternalError($"No registered settings type found for plugin '{pluginConfig.Name}'");
-                    continue;
-                }
-
-                var tokenSourceType = typeof(ReloadableOptionsChangeTokenSource<>).MakeGenericType(settingsType);
-                var tokenSource = _serviceProvider.GetService(tokenSourceType) as IReloadableTokenSource;
-
-                if (tokenSource == null)
-                {
-                    throw new Exception($"Failed to get token source for plugin '{pluginConfig.Name}'");
-                }
-
-                PluginConfigApplier.Apply(pluginConfig, settingsType, _settingsStore, tokenSource);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogInternalError(ex, "Failed to load plugin configuration {PluginName} from Cosmos DB", pluginConfig.Name);
-                // Continue loading other plugins even if one fails
             }
         }
     }

@@ -4,16 +4,36 @@
 
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
-using Agent.Data;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models.ExtendedAgents;
-using Agent.Runtime.Services;
 using Agent.Web.Models.ExtendedAgents;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
 namespace Agent.Web.Services;
 
+public static class PluginConfigApplier
+{
+    public static void Apply<T>(PluginConfigDeploymentModel deployment, Type targetSettingsType, IReloadableSettingsStore store, ReloadableOptionsChangeTokenSource<T> changeTokenSource)
+    {
+        if (deployment == null)
+            throw new ArgumentNullException(nameof(deployment));
+        if (targetSettingsType == null)
+            throw new ArgumentNullException(nameof(targetSettingsType));
+        if (store == null)
+            throw new ArgumentNullException(nameof(store));
+
+        // Deserialize the config dictionary into a strongly typed instance
+        var json = JsonConvert.SerializeObject(deployment.Spec.Config);
+
+        var settingsInstance = JsonConvert.DeserializeObject(json, targetSettingsType);
+        if (settingsInstance == null)
+            throw new InvalidOperationException($"Failed to create settings for plugin '{deployment.Spec.PluginName}'");
+
+        store.Set(deployment.Spec.PluginName, settingsInstance);
+        changeTokenSource.TriggerReload();
+    }
+}
 
 public class ResourceDeploymentService : IResourceDeploymentService
 {
@@ -231,21 +251,16 @@ public class ResourceDeploymentService : IResourceDeploymentService
 
         try
         {
-            var tokenSourceType = typeof(ReloadableOptionsChangeTokenSource<>).MakeGenericType(settingsType);
-            var tokenSource = _serviceProvider.GetService(tokenSourceType) as IReloadableTokenSource;
-            if(tokenSource == null)
-            {
-                return new BadRequestObjectResult($"Failed to resolve change token source for plugin '{pluginName}'");
-            }
-
+            var tokenSource = _serviceProvider.GetService<ReloadableOptionsChangeTokenSource<IncidentManagementSettings>>();
             // Step 2: Apply configuration to the settings store
-            var document = ApiToRuntimeMapper.ToDocumentConfig(pluginConfig, operationId);
-            var runtimePluginConfig = DocumentToRuntimeMapper.ToRuntimePluginConfig(document);
-
-            PluginConfigApplier.Apply(runtimePluginConfig, settingsType, _settingsStore, tokenSource);
+            if (tokenSource == null)
+            {
+                return new BadRequestObjectResult($"No registered settings type found for plugin '{pluginName}'");
+            }
+            PluginConfigApplier.Apply(pluginConfig, settingsType, _settingsStore, tokenSource);
 
             // Step 3: Convert to document and persist
-
+            var document = ApiToRuntimeMapper.ToDocumentConfig(pluginConfig, operationId);
             await _repository.UpdatePluginConfigAsync(document);
 
 

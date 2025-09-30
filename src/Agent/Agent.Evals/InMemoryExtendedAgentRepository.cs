@@ -121,11 +121,6 @@ internal class InMemoryExtendedAgentRepository : IExtendedAgentRepository
         return Task.FromResult(new PaginatedList<ConnectorDocumentModel>(items, totalCount, 0, limit));
     }
 
-    public Task<PaginatedList<PlugInConfigDocumentModel>> GetPlugInConfigsAsync(int limit = 50, string? search = null)
-    {
-        throw new NotImplementedException();
-    }
-
     public Task<ToolDocumentModel?> GetToolByNameAsync(string name)
     {
         return Task.FromResult(tools.FirstOrDefault(t => t.Name == name));

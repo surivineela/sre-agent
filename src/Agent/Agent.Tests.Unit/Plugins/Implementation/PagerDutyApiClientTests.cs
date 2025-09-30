@@ -22,7 +22,7 @@ public class PagerDutyApiClientTests
         _mockHttpMessageHandler = new Mock<HttpMessageHandler>();
         var mockHttpClientFactory = new Mock<IHttpClientFactory>();
         _mockIncidentManagementSettings = new Mock<IOptionsMonitor<IncidentManagementSettings>>();
-        _mockIncidentManagementSettings.Setup(m => m.CurrentValue).Returns(new IncidentManagementSettings());
+
         mockHttpClientFactory.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(() =>
         {
             var client = new HttpClient(_mockHttpMessageHandler.Object);

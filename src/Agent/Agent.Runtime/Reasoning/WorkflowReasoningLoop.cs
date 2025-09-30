@@ -12,7 +12,6 @@ using Agent.Framework;
 using Agent.Logging;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using OpenTelemetry.Trace;
 
 namespace Agent.Runtime.Reasoning;
@@ -49,9 +48,9 @@ public class WorkflowReasoningLoop : ReasoningLoop
         ISearchIndexService searchIndexService,
         FeatureConfigModel featureConfig,
         IAgentRuntimeModifier<AgentContext> agentRuntimeModifier,
-        IOptionsMonitor<IncidentManagementSettings> incidentManagementSettingsOptions,
-        CoreSettings coreSettings,
-        bool modeSwitchEnabled)
+    IncidentManagementSettings incidentManagementSettings,
+    CoreSettings coreSettings,
+    bool modeSwitchEnabled)
         : base(
             loggerFactory: loggerFactory,
             chatClient: chatClient,
@@ -83,7 +82,7 @@ public class WorkflowReasoningLoop : ReasoningLoop
             agentFactory: agentFactory,
             toolFactory: toolFactory,
             tracer: tracer,
-            incidentManagementSettingsOptions: incidentManagementSettingsOptions,
+            incidentManagementSettings: incidentManagementSettings,
             coreSettings: coreSettings);
 
         _logger = loggerFactory.CreateLogger<WorkflowReasoningLoop>();

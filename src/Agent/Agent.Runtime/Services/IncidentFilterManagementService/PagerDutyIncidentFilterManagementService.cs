@@ -9,7 +9,6 @@ using Agent.Data.DataModels;
 using Agent.Graph.Interfaces;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Agent.Runtime.Services;
 
@@ -19,13 +18,13 @@ public class PagerDutyIncidentFilterManagementService : IncidentFilterManagement
     public PagerDutyIncidentFilterManagementService(
         CosmosClient cosmosClient,
         CosmosDBSettings cosmosDbSettings,
-        IOptionsMonitor<IncidentManagementSettings> incidentManagementSettingsOptions,
+        IncidentManagementSettings incidentManagementSettings,
         IPagerDutyService pagerDutyService,
         ILogger<PagerDutyIncidentFilterManagementService> logger)
         : base(cosmosClient.GetContainer(
             cosmosDbSettings.Docs.Database,
             AgentDataConfiguration.ThreadContainerName
-        ), logger, incidentManagementSettingsOptions)
+        ), logger, incidentManagementSettings)
     {
         _pagerDutyService = pagerDutyService;
     }

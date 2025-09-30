@@ -19,7 +19,6 @@ using Agent.Runtime.SubAgents.IcmScanner;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Agent.Runtime.SubAgents.Scanner;
 
@@ -43,7 +42,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
     IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload> incidentManagementService,
     IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload> incidentFilterManagementService,
     IAgentInboundCommunicationService agentInboundCommunicationService,
-    IOptionsMonitor<IncidentManagementSettings> incidentManagementSettingsOptions,
+    IncidentManagementSettings incidentManagementSettings,
     IIncidentAnalysisService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload> incidentAnalysisService) : IIncidentScanner
 {
 
@@ -57,9 +56,9 @@ public class IcmScanner(ILogger<IcmScanner> logger,
     private readonly static int maxOffset = 200;
 
     // Automated RCA configuration
-    private bool IsAutomatedRCAEnabled => incidentManagementSettingsOptions.CurrentValue.AutomatedRCA.Enabled;
-    private string WebBaseUrl => incidentManagementSettingsOptions.CurrentValue.AutomatedRCA.WebBaseUrl;
-    private bool IsICMAPIReadOnly => incidentManagementSettingsOptions.CurrentValue.ICMAPI.ReadOnly;
+    private bool IsAutomatedRCAEnabled => incidentManagementSettings.AutomatedRCA.Enabled;
+    private string WebBaseUrl => incidentManagementSettings.AutomatedRCA.WebBaseUrl;
+    private bool IsICMAPIReadOnly => incidentManagementSettings.ICMAPI.ReadOnly;
 
     // Track processed incidents to avoid duplicate processing
     private readonly HashSet<string> _processedIncidents = new();

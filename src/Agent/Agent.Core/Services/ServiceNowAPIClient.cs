@@ -13,7 +13,6 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.ServiceNow;
 using Agent.Logging;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using static System.Net.WebRequestMethods;
 
 namespace Agent.Core.Services
@@ -23,21 +22,17 @@ namespace Agent.Core.Services
         private readonly HttpClient _httpClient;
         private readonly ILogger<ServiceNowAPIClient> _logger;
         private readonly ServiceNowAPISettings? _settings;
-        private readonly IOptionsMonitor<IncidentManagementSettings> _incidentManagementSettingsOption;
-        private IncidentManagementSettings _incidentManagementSettings => _incidentManagementSettingsOption.CurrentValue;
         private readonly string? _apiBaseUrl;
         private readonly bool isEnabled;
 
         public ServiceNowAPIClient(
             HttpClient httpClient,
             ILogger<ServiceNowAPIClient> logger,
-            IOptionsMonitor<IncidentManagementSettings> incidentManagementSettingsOption)
+            IncidentManagementSettings settings)
         {
             _httpClient = httpClient;
             _logger = logger;
-            _incidentManagementSettingsOption = incidentManagementSettingsOption;
-           
-            if (_incidentManagementSettings.Type != IncidentManagementType.ServiceNow)
+            if (settings.Type != IncidentManagementType.ServiceNow)
             {
                 isEnabled = false;
                 _logger.LogInternalWarning("ServiceNowAPIClient: ServiceNow is not configured, should use NullableServiceNowAPIClient instead.");
@@ -45,14 +40,14 @@ namespace Agent.Core.Services
             }
             try
             {
-                if (string.IsNullOrEmpty(_incidentManagementSettings.ConnectionKey))
+                if (string.IsNullOrEmpty(settings.ConnectionKey))
                 {
                     throw new InvalidOperationException("ServiceNow connection key is not configured.");
                 }
 
-                _settings = JsonSerializer.Deserialize<ServiceNowAPISettings>(_incidentManagementSettings.ConnectionKey, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+                _settings = JsonSerializer.Deserialize<ServiceNowAPISettings>(settings.ConnectionKey, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
                             ?? throw new InvalidOperationException("ServiceNow settings are not properly configured.");
-                _settings.Endpoint = _incidentManagementSettings.ConnectionUrl ?? throw new InvalidOperationException("ServiceNow connection URL is not configured.");
+                _settings.Endpoint = settings.ConnectionUrl ?? throw new InvalidOperationException("ServiceNow connection URL is not configured.");
                 _apiBaseUrl = $"{_settings.Endpoint}/api/now/v1";
 
                 var authToken = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_settings.Username}:{_settings.Password}"));

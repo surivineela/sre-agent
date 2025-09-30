@@ -7,14 +7,13 @@ using Agent.Data;
 using Agent.Framework;
 using Agent.Framework.Interfaces;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 
 namespace Agent.Runtime.Services;
 
-public class ExtensibilityLoader : AsyncInitializerBase, IExtensibilityLoader
+public class ExtensibilityLoader : IExtensibilityLoader
 {
     private readonly ILogger<ExtensibilityLoader> _logger;
-    private List<YamlPluginConfig> _pluginConfigs = new List<YamlPluginConfig>();
+
     private readonly IExtendedAgentRepository _extendedAgentRepository;
 
     public ExtensibilityLoader(
@@ -24,17 +23,8 @@ public class ExtensibilityLoader : AsyncInitializerBase, IExtensibilityLoader
     {
         _logger = logger;
         _extendedAgentRepository = extendedAgentRepository;
-     
     }
 
-    protected override async Task InitializeAsyncCore()
-    {
-        await LoadExtendedPluginConfigsAsync();
-        await LoadExtendedCommonToolsListsAsync();
-        await LoadExtendedCommonPromptsAsync();
-        await LoadExtendedToolsAsync();
-        await LoadExtendedAgentsAsync();
-    }
     public async Task<List<YamlCommonToolsDescriptor>> LoadExtendedCommonToolsListsAsync(CancellationToken cancellationToken = default)
     {
         _logger.LogInternalInformation("Starting custom agent files download...");
@@ -61,38 +51,6 @@ public class ExtensibilityLoader : AsyncInitializerBase, IExtensibilityLoader
         {
             _logger.LogInternalError(ex, "failed to load extended agents and tools");
             return new List<YamlCommonToolsDescriptor>();
-        }
-    }
-    
-
-    public async Task<List<YamlPluginConfig>> LoadExtendedPluginConfigsAsync(CancellationToken cancellationToken = default)
-    {
-        _logger.LogInternalInformation("Starting custom agent files download...");
-        List<YamlPluginConfig> loadedPluginConfigs = new List<YamlPluginConfig>();
-        try
-        {
-            var pluginConfigs = await _extendedAgentRepository.GetPlugInConfigsAsync(limit: 1000);
-
-            foreach (var plugInConfig in pluginConfigs)
-            {
-                try
-                {
-                    var concretePluginConfig = DocumentToRuntimeMapper.ToRuntimePluginConfig(plugInConfig);
-                    loadedPluginConfigs.Add(concretePluginConfig);
-                    _pluginConfigs.Add(concretePluginConfig);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogInternalError(ex, "Failed to load plugin config from Cosmos: {PluginConfigName}", plugInConfig.Name);
-                }
-            }
-
-            return loadedPluginConfigs;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError(ex, "failed to load extended agents and tools");
-            return new List<YamlPluginConfig>();
         }
     }
 
@@ -204,6 +162,4 @@ public class ExtensibilityLoader : AsyncInitializerBase, IExtensibilityLoader
             return new List<YamlAgentDescriptor>();
         }
     }
-
-  
 }

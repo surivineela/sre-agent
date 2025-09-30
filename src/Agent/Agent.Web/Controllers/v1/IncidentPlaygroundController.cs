@@ -9,13 +9,12 @@ using Agent.Data;
 using Agent.Data.DataModels;
 using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
-using Agent.Runtime.SubAgents.IcmScanner;
 using Agent.Runtime.SubAgents.Scanner;
-using Agent.Web.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Cosmos;
-using Microsoft.Extensions.Options;
+using Agent.Web.Authorization;
 using ArmOperations = Agent.Core.Constants.ArmOperations;
+using Agent.Runtime.SubAgents.IcmScanner;
 
 namespace Agent.Web.Controllers.v1;
 
@@ -28,8 +27,7 @@ public class IncidentPlaygroundController : ControllerBase
     private readonly IIncidentFilterManagementServiceFactory _incidentFilterManagementServiceFactory;
     private readonly IIncidentManagementServiceFactory _incidentManagementServiceFactory;
     private readonly ILogger<IncidentPlaygroundController> _logger;
-    private readonly IOptionsMonitor<IncidentManagementSettings> _incidentManagementSettingsOption;
-    private IncidentManagementSettings _incidentManagementSettings => _incidentManagementSettingsOption.CurrentValue;
+    private readonly IncidentManagementSettings _incidentManagementSettings;
     private readonly Container _container;
 
     public IncidentPlaygroundController(
@@ -37,7 +35,7 @@ public class IncidentPlaygroundController : ControllerBase
         IIncidentFilterManagementServiceFactory incidentFilterManagementServiceFactory,
         IIncidentManagementServiceFactory incidentManagementServiceFactory,
         IIncidentHandlerManagementService incidentHandlerManagementService,
-        IOptionsMonitor<IncidentManagementSettings> incidentManagementSettingsOptions,
+        IncidentManagementSettings incidentManagementSettings,
         ILogger<IncidentPlaygroundController> logger,
         CosmosClient cosmosClient,
         CosmosDBSettings cosmosDbSettings)
@@ -46,7 +44,7 @@ public class IncidentPlaygroundController : ControllerBase
         _incidentHandlerManagementService = incidentHandlerManagementService;
         _incidentFilterManagementServiceFactory = incidentFilterManagementServiceFactory;
         _incidentManagementServiceFactory = incidentManagementServiceFactory;
-        _incidentManagementSettingsOption = incidentManagementSettingsOptions;
+        _incidentManagementSettings = incidentManagementSettings;
         _logger = logger;
         _container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
     }
