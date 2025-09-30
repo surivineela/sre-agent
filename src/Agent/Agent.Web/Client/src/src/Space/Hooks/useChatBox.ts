@@ -671,7 +671,6 @@ export const useChatBox = (
                 setDownButtonState({ visible: true, flash: !!isAgentTyping });
             } else {
                 setDownButtonState({ visible: false, flash: false });
-                scrollToBottom(true);
             }
         }
     }, [streamingMessage, isAgentTyping]);
