@@ -22,6 +22,8 @@ configuration:
     role: Write
   - member: visagarwal
     role: Write
+  - member: ellhamai
+    role: Write
   - member: yashnisar
     role: Write
   - team: k4appscore
