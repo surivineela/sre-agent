@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
+import { EnvironmentContext } from '../AzPortalProxy/Providers/StartupInfoContext';
 import { getAgentHeaders } from '../Helpers/headers';
 
 interface FeatureFlags {
@@ -18,11 +19,13 @@ export const useFeatureFlags = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
 
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
+
     useEffect(() => {
         const fetchFeatureFlags = async () => {
             try {
                 setLoading(true);
-                const response = await fetch('/api/v1/feature/status', {
+                const response = await fetch(`${sreAgentEndpoint}/api/v1/feature/status`, {
                     headers: getAgentHeaders(),
                 });
 

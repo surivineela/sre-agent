@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { FC, useEffect, useState } from 'react';
+import { FC, useContext, useEffect, useState } from 'react';
 import {
     AiOutlineCheckCircle,
     AiOutlineClockCircle,
@@ -9,6 +9,7 @@ import {
     AiOutlinePlayCircle,
 } from 'react-icons/ai';
 import { useIntl } from 'react-intl';
+import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { Approval, KubectlExecution, PsqlExecution } from '../../Common/Contracts/DataPlane/Message';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { ExecutionOutputResources, GraphViewerResources, SreAgentResources } from '../../Strings/SREAgentResources';
@@ -38,6 +39,8 @@ const PsqlExecutionMessage: FC<{
 
     const { userIdAndDisplayName } = useAuthenticatedUserInfo();
     const intl = useIntl();
+
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
 
     const getRiskColor = (riskLevel: string) => {
         const level = riskLevel.toLowerCase();
@@ -123,7 +126,7 @@ const PsqlExecutionMessage: FC<{
             if (!isPolling) return;
 
             try {
-                const response = await fetch(`/api/v1/psqlExecution/${threadId}/${execution.id}/output`, {
+                const response = await fetch(`${sreAgentEndpoint}/api/v1/psqlExecution/${threadId}/${execution.id}/output`, {
                     headers: getAgentHeaders(),
                     cache: 'no-cache',
                 });
@@ -185,7 +188,7 @@ const PsqlExecutionMessage: FC<{
         for (let attempt = 0; attempt <= maxRetries; attempt++) {
             try {
                 const response = await axios.post(
-                    `/api/v1/psqlExecution/${threadId}/${execution.id}/action`,
+                    `${sreAgentEndpoint}/api/v1/psqlExecution/${threadId}/${execution.id}/action`,
                     {
                         action,
                         user: userIdAndDisplayName?.userId || 'sreagent-client',

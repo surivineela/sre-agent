@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
+import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { CreateScheduledTaskRequest, ScheduledTask, UpdateScheduledTaskRequest } from '../Contracts/ScheduledTasks';
 
@@ -21,6 +22,8 @@ export const useScheduledTasks = (): UseScheduledTasksResult => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
+
     const handleApiCall = async <T,>(apiCall: () => Promise<Response>): Promise<T | null> => {
         try {
             const response = await apiCall();
@@ -42,7 +45,7 @@ export const useScheduledTasks = (): UseScheduledTasksResult => {
         setError(null);
 
         const data = await handleApiCall<ScheduledTask[]>(() =>
-            fetch('/api/v1/scheduledtasks', {
+            fetch(`${sreAgentEndpoint}/api/v1/scheduledtasks`, {
                 method: 'GET',
                 headers: getAgentHeaders(),
             })
@@ -59,7 +62,7 @@ export const useScheduledTasks = (): UseScheduledTasksResult => {
             setError(null);
 
             const response = await handleApiCall<{ taskId: string }>(() =>
-                fetch('/api/v1/scheduledtasks', {
+                fetch(`${sreAgentEndpoint}/api/v1/scheduledtasks`, {
                     method: 'POST',
                     headers: getAgentHeaders(),
                     body: JSON.stringify(task),
@@ -72,7 +75,7 @@ export const useScheduledTasks = (): UseScheduledTasksResult => {
 
                 // Make a direct API call to get the created task to ensure we have the latest data
                 const createdTask = await handleApiCall<ScheduledTask>(() =>
-                    fetch(`/api/v1/scheduledtasks/${response.taskId}`, {
+                    fetch(`${sreAgentEndpoint}/api/v1/scheduledtasks/${response.taskId}`, {
                         method: 'GET',
                         headers: getAgentHeaders(),
                     })
@@ -90,7 +93,7 @@ export const useScheduledTasks = (): UseScheduledTasksResult => {
             setError(null);
 
             const response = await handleApiCall<any>(() =>
-                fetch(`/api/v1/scheduledtasks/${id}`, {
+                fetch(`${sreAgentEndpoint}/api/v1/scheduledtasks/${id}`, {
                     method: 'PUT',
                     headers: getAgentHeaders(),
                     body: JSON.stringify(updates),
@@ -111,7 +114,7 @@ export const useScheduledTasks = (): UseScheduledTasksResult => {
             setError(null);
 
             const response = await handleApiCall<any>(() =>
-                fetch(`/api/v1/scheduledtasks/${id}`, {
+                fetch(`${sreAgentEndpoint}/api/v1/scheduledtasks/${id}`, {
                     method: 'DELETE',
                     headers: getAgentHeaders(),
                 })
@@ -131,7 +134,7 @@ export const useScheduledTasks = (): UseScheduledTasksResult => {
             setError(null);
 
             const response = await handleApiCall<any>(() =>
-                fetch(`/api/v1/scheduledtasks/${id}/pause`, {
+                fetch(`${sreAgentEndpoint}/api/v1/scheduledtasks/${id}/pause`, {
                     method: 'POST',
                     headers: getAgentHeaders(),
                 })
@@ -151,7 +154,7 @@ export const useScheduledTasks = (): UseScheduledTasksResult => {
             setError(null);
 
             const response = await handleApiCall<any>(() =>
-                fetch(`/api/v1/scheduledtasks/${id}/resume`, {
+                fetch(`${sreAgentEndpoint}/api/v1/scheduledtasks/${id}/resume`, {
                     method: 'POST',
                     headers: getAgentHeaders(),
                 })
