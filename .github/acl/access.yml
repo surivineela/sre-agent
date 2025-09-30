@@ -14,21 +14,25 @@ configuration:
     role: Maintain
   - member: ruslany
     role: Maintain
-  - member: nazimlala
+  - member: shgup
     role: Maintain
+  - member: jijohn
+    role: Maintain
+  - member: ebcarek
+    role: Write
+  - member: visagarwal
+    role: Write
+  - member: yashnisar
+    role: Write
   - team: k4appscore
-    role: Write
+    role: Read
   - team: srea-devs
-    role: Write
+    role: Read
   - team: srea-readers
     role: Read
-  - member: vsoto
-    role: Maintain
-  - member: dashe
-    role: Maintain
   - team: crg-sreagentexte-f1fv-reader-4wok
     role: Read
   - team: crg-sreagentexte-f1fv-contributor-y512
-    role: Write
+    role: Read
   - member: csigs
-    role: Maintain
+    role: Write
