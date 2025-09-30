@@ -37,7 +37,6 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         private readonly Mock<IAzureBlobStorageClient> _mockBlobStorageClient;
         private readonly Mock<HttpMessageHandler> _mockHttpMessageHandler;
         private readonly RunFromPackagePlugin _plugin;
-        private readonly HttpClient _httpClient;
 
         private const string TestResourceId = "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/test-rg/providers/Microsoft.Web/sites/test-function-app";
         private const string TestSanitizedUrl = "https://teststorageaccount.blob.core.windows.net/deployments/package.zip";
@@ -73,8 +72,9 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                 mockSessionPoolService.Object,
                 mockChatClient.Object);
 
-            _httpClient = new HttpClient(_mockHttpMessageHandler.Object);
-            _mockHttpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(_httpClient);
+            // Setup HttpClientFactory to return a new HttpClient instance each time
+            _mockHttpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>()))
+                .Returns(() => new HttpClient(_mockHttpMessageHandler.Object));
 
             _plugin = new RunFromPackagePlugin(
                 _mockLogger.Object,
@@ -628,9 +628,71 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         /// </summary>
         private void SetupUpdateAppSettingsResponse(bool success = true)
         {
+            // Mock the POST request for GetAppSettings (used by RemoveSetting) - api-version=2022-03-01
+            var existingSettingsForGet = @"{
+                ""properties"": {
+                    ""WEBSITE_RUN_FROM_PACKAGE"": ""existing-value"",
+                    ""AzureWebJobsStorage"": ""DefaultEndpointsProtocol=https;AccountName=test;AccountKey=fake-key;EndpointSuffix=core.windows.net""
+                }
+            }";
+            
+            _mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(req => 
+                        req.Method == HttpMethod.Post &&
+                        req.RequestUri!.ToString().Contains("/config/appSettings/list") && 
+                        req.RequestUri!.ToString().Contains("api-version=2022-03-01")),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(existingSettingsForGet, System.Text.Encoding.UTF8, "application/json")
+                });
+
+            // Mock the POST request for UpdateAppSettingsAsync (get existing settings) - api-version=2024-04-01
+            var existingSettingsForUpdate = @"{
+                ""properties"": {
+                    ""WEBSITE_RUN_FROM_PACKAGE"": ""existing-value"",
+                    ""AzureWebJobsStorage"": ""DefaultEndpointsProtocol=https;AccountName=test;AccountKey=fake-key;EndpointSuffix=core.windows.net""
+                }
+            }";
+            
+            _mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(req => 
+                        req.Method == HttpMethod.Post &&
+                        req.RequestUri!.ToString().Contains("/config/appsettings/list") && 
+                        req.RequestUri!.ToString().Contains("api-version=2024-04-01")),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(existingSettingsForUpdate, System.Text.Encoding.UTF8, "application/json")
+                });
+
+            // Mock the PUT request to update app settings (UpdateAppSettingsAsync) - api-version=2024-04-01
             var statusCode = success ? HttpStatusCode.OK : HttpStatusCode.BadRequest;
-            var response = success ? @"{""status"":""success""}" : @"{""error"":""Update failed""}";
-            SetupArmApiResponse("/config/appSettings", statusCode, response);
+            var response = success ? @"{""properties"":{""WEBSITE_RUN_FROM_PACKAGE"":""1""}}" : @"{""error"":""Update failed""}";
+            
+            _mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(req => 
+                        req.Method == HttpMethod.Put &&
+                        req.RequestUri!.ToString().Contains("/config/appsettings") && 
+                        req.RequestUri!.ToString().Contains("api-version=2024-04-01") &&
+                        !req.RequestUri!.ToString().Contains("/config/appsettings/list")),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ReturnsAsync(new HttpResponseMessage(statusCode)
+                {
+                    Content = new StringContent(response, System.Text.Encoding.UTF8, "application/json")
+                });
         }
 
         [Fact]

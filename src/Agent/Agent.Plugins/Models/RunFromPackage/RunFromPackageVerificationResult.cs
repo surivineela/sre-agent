@@ -86,6 +86,16 @@ namespace Agent.Plugins.Models.RunFromPackage
         /// Error message if verification failed
         /// </summary>
         public string ErrorMessage { get; set; }
+
+        /// <summary>
+        /// The configuration that was retrieved during verification
+        /// </summary>
+        public RunFromPackageConfiguration? Configuration { get; set; }
+
+        /// <summary>
+        /// The SKU capabilities calculated during verification
+        /// </summary>
+        public SkuCapabilities? SkuCapabilities { get; set; }
     }
 
     /// <summary>

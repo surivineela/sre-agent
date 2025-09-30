@@ -210,6 +210,9 @@ namespace Agent.Plugins.Implementation
 
                 // Get the current configuration
                 var configuration = await GetRunFromPackageConfigurationAsync(resourceId);
+                
+                // Store the configuration in the result to avoid duplicate calls
+                result.Configuration = configuration;
 
                 // Check if there was an error getting the configuration (not just an invalid setting)
                 if (!configuration.IsValid && configuration.Details.Contains("An error occurred while getting WEBSITE_RUN_FROM_PACKAGE configuration"))
@@ -227,6 +230,10 @@ namespace Agent.Plugins.Implementation
 
                 // Get the recommended value for this SKU/OS
                 var skuCapabilities = SkuCapabilities.GetForSku(configuration.Sku, configuration.OperatingSystem);
+                
+                // Store the SKU capabilities in the result to avoid duplicate calls
+                result.SkuCapabilities = skuCapabilities;
+                
                 result.RecommendedValue = skuCapabilities.RecommendedValue;
                 result.IsSupported = skuCapabilities.SupportsMode(configuration.Mode);
 
@@ -834,40 +841,61 @@ namespace Agent.Plugins.Implementation
                     _ => ""
                 };
 
-                // Build the app settings update payload
-                var updatePayload = new Dictionary<string, object?>();
+                // Build the app settings update
                 if (repairAction == RunFromPackageRepairAction.RemoveSetting)
                 {
-                    // For removal, we send an empty/null value
-                    updatePayload["WEBSITE_RUN_FROM_PACKAGE"] = null;
+                    // For removal, we need to get existing settings and remove the specific key
+                    string appSettingsJson = await _armHelper.GetAppSettings(resourceId);
+                    if (string.IsNullOrWhiteSpace(appSettingsJson))
+                    {
+                        result.ErrorMessage = "Failed to retrieve existing app settings for removal";
+                        _logger.LogInternalError("Failed to retrieve app settings for removal for {ResourceId}", resourceId);
+                        return result;
+                    }
+
+                    var appSettings = JObject.Parse(appSettingsJson);
+                    var properties = appSettings["properties"] as JObject;
+                    var existingSettings = properties?.ToObject<Dictionary<string, string>>() ?? new Dictionary<string, string>();
+
+                    // Remove the WEBSITE_RUN_FROM_PACKAGE setting
+                    existingSettings.Remove("WEBSITE_RUN_FROM_PACKAGE");
+
+                    // Use UpdateAppSettingsAsync to update with the setting removed
+                    bool updateSuccess = await _armHelper.UpdateAppSettingsAsync(resourceId, existingSettings);
+                    result.IsSuccessful = updateSuccess;
+                    if (updateSuccess)
+                    {
+                        result.NewValue = "";
+                        _logger.LogInternalInformation("Successfully removed WEBSITE_RUN_FROM_PACKAGE for {ResourceId}", resourceId);
+                    }
+                    else
+                    {
+                        result.ErrorMessage = "Failed to remove WEBSITE_RUN_FROM_PACKAGE setting";
+                        _logger.LogInternalError("Failed to remove WEBSITE_RUN_FROM_PACKAGE for {ResourceId}", resourceId);
+                    }
                 }
                 else
                 {
-                    updatePayload["WEBSITE_RUN_FROM_PACKAGE"] = targetValue;
-                }
+                    // For set/update operations, use the helper method
+                    var updateSettings = new Dictionary<string, string>
+                    {
+                        { "WEBSITE_RUN_FROM_PACKAGE", targetValue }
+                    };
 
-                // Make HTTP call to update app settings
-                var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
-                var requestUri = $"https://management.azure.com{resourceId}/config/appSettings?api-version=2023-12-01";
-                var requestContent = new StringContent(
-                    JsonConvert.SerializeObject(new { properties = updatePayload }), 
-                    Encoding.UTF8, 
-                    "application/json");
-
-                var response = await httpClient.PostAsync(requestUri, requestContent);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    result.IsSuccessful = true;
-                    result.NewValue = targetValue;
-                    _logger.LogInternalInformation("Successfully updated WEBSITE_RUN_FROM_PACKAGE for {ResourceId}", resourceId);
-                }
-                else
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    result.ErrorMessage = $"Failed to update app settings: {response.StatusCode} - {errorContent}";
-                    _logger.LogInternalError("Failed to update WEBSITE_RUN_FROM_PACKAGE for {ResourceId}: {ErrorMessage}", 
-                        resourceId, result.ErrorMessage);
+                    bool updateSuccess = await _armHelper.UpdateAppSettingsAsync(resourceId, updateSettings);
+                    result.IsSuccessful = updateSuccess;
+                    if (updateSuccess)
+                    {
+                        result.NewValue = targetValue;
+                        _logger.LogInternalInformation("Successfully updated WEBSITE_RUN_FROM_PACKAGE for {ResourceId} to {NewValue}", 
+                            resourceId, targetValue);
+                    }
+                    else
+                    {
+                        result.ErrorMessage = "Failed to update WEBSITE_RUN_FROM_PACKAGE setting";
+                        _logger.LogInternalError("Failed to update WEBSITE_RUN_FROM_PACKAGE for {ResourceId} to {NewValue}", 
+                            resourceId, targetValue);
+                    }
                 }
             }
             catch (Exception ex)
@@ -942,9 +970,21 @@ namespace Agent.Plugins.Implementation
                 // Consider any status other than Valid as having issues
                 bool hasIssues = verificationResult.Status != ConfigurationStatus.Valid;
                 
-                // Get configuration to check mode and recommendations
-                var configuration = await GetRunFromPackageConfigurationAsync(resourceId);
-                var skuCapabilities = await GetSkuCapabilitiesAsync(resourceId);
+                // Use configuration from verification result to avoid duplicate call
+                var configuration = verificationResult.Configuration;
+                if (configuration == null)
+                {
+                    _logger.LogInternalError("Configuration is null in verification result for {ResourceId}", resourceId);
+                    return true; // Return true if we can't get configuration
+                }
+                
+                // Use SKU capabilities from verification result to avoid duplicate call
+                var skuCapabilities = verificationResult.SkuCapabilities;
+                if (skuCapabilities == null)
+                {
+                    _logger.LogInternalError("SkuCapabilities is null in verification result for {ResourceId}", resourceId);
+                    return true; // Return true if we can't get capabilities
+                }
                 
                 // Always check package structure if:
                 // 1. Basic configuration is valid, OR
@@ -2813,11 +2853,41 @@ namespace Agent.Plugins.Implementation
                     _logger.LogInternalInformation("Successfully validated blob access using managed identity");
                     return result;
                 }
-                catch (Exception managedIdentityEx)
+                catch (Azure.RequestFailedException azureEx)
                 {
-                    _logger.LogInternalInformation("Managed identity access failed, trying with SAS token: {Error}", managedIdentityEx.Message);
+                    _logger.LogInternalInformation("Managed identity access failed with status {StatusCode}: {Message}", azureEx.Status, azureEx.Message);
                     
-                    // If managed identity fails, try with SAS token if present
+                    // Check for specific error codes to differentiate between file not found and permissions issues
+                    if (azureEx.Status == 404)
+                    {
+                        result.IsAccessible = false;
+                        result.ErrorDetails = "The specified blob does not exist";
+                        result.Recommendations.Add("Verify the blob name and container path are correct");
+                        result.Recommendations.Add("Ensure the blob has been uploaded to the storage account");
+                        result.IsSuccessful = true;
+                        return result;
+                    }
+                    else if (azureEx.Status == 403)
+                    {
+                        // This is a permissions issue, try with SAS token if available
+                        _logger.LogInternalInformation("Access forbidden with managed identity, trying SAS token");
+                    }
+                    else if (azureEx.Status == 401)
+                    {
+                        // Authentication failed, try with SAS token if available
+                        _logger.LogInternalInformation("Authentication failed with managed identity, trying SAS token");
+                    }
+                    else
+                    {
+                        // Other Azure-specific error
+                        result.IsAccessible = false;
+                        result.ErrorDetails = $"Azure storage error: {azureEx.ErrorCode} - {azureEx.Message}";
+                        result.Recommendations.Add("Check the blob URL and storage account configuration");
+                        result.IsSuccessful = true;
+                        return result;
+                    }
+                    
+                    // If managed identity fails with 401/403, try with SAS token if present
                     if (blobUri.Query.Contains("sig="))
                     {
                         try
@@ -2833,14 +2903,116 @@ namespace Agent.Plugins.Implementation
                             _logger.LogInternalInformation("Successfully validated blob access using SAS token");
                             return result;
                         }
+                        catch (Azure.RequestFailedException sasAzureEx)
+                        {
+                            _logger.LogInternalWarning("SAS token access also failed with status {StatusCode}: {Message}", sasAzureEx.Status, sasAzureEx.Message);
+                            
+                            // Check for specific error codes with SAS token
+                            if (sasAzureEx.Status == 404)
+                            {
+                                result.IsAccessible = false;
+                                result.ErrorDetails = "The specified blob does not exist";
+                                result.Recommendations.Add("Verify the blob name and container path are correct");
+                                result.Recommendations.Add("Ensure the blob has been uploaded to the storage account");
+                            }
+                            else if (sasAzureEx.Status == 403)
+                            {
+                                result.IsAccessible = false;
+                                result.ErrorDetails = "Access denied - SAS token does not have sufficient permissions";
+                                result.Recommendations.Add("Ensure the SAS token has read permissions for the blob");
+                                result.Recommendations.Add("Check SAS token expiration time");
+                                result.Recommendations.Add("Verify the SAS token was generated for the correct blob/container");
+                            }
+                            else if (sasAzureEx.Status == 401)
+                            {
+                                result.IsAccessible = false;
+                                result.ErrorDetails = "SAS token authentication failed";
+                                result.Recommendations.Add("Check if the SAS token has expired");
+                                result.Recommendations.Add("Verify the SAS token format is correct");
+                                result.Recommendations.Add("Ensure the SAS token was generated for the correct storage account");
+                            }
+                            else
+                            {
+                                result.IsAccessible = false;
+                                result.ErrorDetails = $"Azure storage error with SAS token: {sasAzureEx.ErrorCode} - {sasAzureEx.Message}";
+                                result.Recommendations.Add("Check the SAS token and blob URL configuration");
+                            }
+                        }
                         catch (Exception sasEx)
                         {
-                            _logger.LogInternalWarning("SAS token access also failed: {Error}", sasEx.Message);
+                            _logger.LogInternalWarning("SAS token access failed with non-Azure exception: {Error}", sasEx.Message);
+                            result.IsAccessible = false;
+                            result.ErrorDetails = "Unable to access blob with SAS token";
+                            result.Recommendations.Add("Check SAS token validity and network connectivity");
+                        }
+                    }
+                    else
+                    {
+                        // No SAS token available and managed identity failed
+                        if (azureEx.Status == 403)
+                        {
+                            result.IsAccessible = false;
+                            result.RequiresAuthentication = true;
+                            result.ErrorDetails = "Access denied - insufficient permissions";
+                            result.Recommendations.Add("Ensure managed identity has Storage Blob Data Reader role");
+                            result.Recommendations.Add("Or provide a valid SAS token in the URL");
+                        }
+                        else if (azureEx.Status == 401)
+                        {
+                            result.IsAccessible = false;
+                            result.RequiresAuthentication = true;
+                            result.ErrorDetails = "Authentication required - no valid credentials available";
+                            result.Recommendations.Add("Ensure managed identity is properly configured");
+                            result.Recommendations.Add("Or provide a valid SAS token in the URL");
+                        }
+                    }
+                }
+                catch (Exception managedIdentityEx)
+                {
+                    _logger.LogInternalInformation("Managed identity access failed with non-Azure exception: {Error}", managedIdentityEx.Message);
+                    
+                    // If managed identity fails with non-Azure exception, try with SAS token if present
+                    if (blobUri.Query.Contains("sig="))
+                    // If managed identity fails with non-Azure exception, try with SAS token if present
+                    if (blobUri.Query.Contains("sig="))
+                    {
+                        try
+                        {
+                            var blobClientWithSas = new BlobClient(blobUri);
+                            var properties = await blobClientWithSas.GetPropertiesAsync();
+                            
+                            result.IsAccessible = true;
+                            result.RequiresAuthentication = false; // SAS token provides access
+                            result.IsSuccessful = true;
+                            result.ResponseCode = 200;
+                            
+                            _logger.LogInternalInformation("Successfully validated blob access using SAS token");
+                            return result;
+                        }
+                        catch (Azure.RequestFailedException sasAzureEx)
+                        {
+                            _logger.LogInternalWarning("SAS token access also failed with Azure exception: {Status} - {Message}", sasAzureEx.Status, sasAzureEx.Message);
+                            
+                            if (sasAzureEx.Status == 404)
+                            {
+                                result.IsAccessible = false;
+                                result.ErrorDetails = "The specified blob does not exist";
+                                result.Recommendations.Add("Verify the blob name and container path are correct");
+                                result.Recommendations.Add("Ensure the blob has been uploaded to the storage account");
+                            }
+                            else
+                            {
+                                result.IsAccessible = false;
+                                result.ErrorDetails = $"Unable to access blob: {sasAzureEx.ErrorCode} - {sasAzureEx.Message}";
+                                result.Recommendations.Add("Check SAS token validity and blob accessibility");
+                            }
+                        }
+                        catch (Exception sasEx)
+                        {
+                            _logger.LogInternalWarning("SAS token access failed: {Error}", sasEx.Message);
                             result.IsAccessible = false;
                             result.ErrorDetails = "Unable to access blob with available credentials";
-                            result.Recommendations.Add("Ensure the blob exists and is accessible");
-                            result.Recommendations.Add("Check SAS token expiration if using external URL");
-                            result.Recommendations.Add("Verify storage account permissions");
+                            result.Recommendations.Add("Check SAS token validity and network connectivity");
                         }
                     }
                     else
@@ -2895,15 +3067,21 @@ namespace Agent.Plugins.Implementation
                     switch (response.StatusCode)
                     {
                         case System.Net.HttpStatusCode.NotFound:
-                            result.Recommendations.Add("Verify the URL is correct and the resource exists");
+                            result.ErrorDetails = "The specified file does not exist at the given URL";
+                            result.Recommendations.Add("Verify the URL is correct and the file exists");
+                            result.Recommendations.Add("Check if the file has been uploaded to the correct location");
                             break;
                         case System.Net.HttpStatusCode.Unauthorized:
-                            result.Recommendations.Add("URL requires authentication");
+                            result.ErrorDetails = "Authentication required to access the URL";
+                            result.Recommendations.Add("Provide authentication credentials or use a URL that allows anonymous access");
                             break;
                         case System.Net.HttpStatusCode.Forbidden:
-                            result.Recommendations.Add("Access to the URL is forbidden");
+                            result.ErrorDetails = "Access to the URL is forbidden";
+                            result.Recommendations.Add("Check if you have permission to access this resource");
+                            result.Recommendations.Add("Verify the access token or credentials if using authenticated URL");
                             break;
                         default:
+                            result.ErrorDetails = $"HTTP {response.StatusCode}: {response.ReasonPhrase}";
                             result.Recommendations.Add($"Server returned {response.StatusCode}. Check the URL and server status");
                             break;
                     }
