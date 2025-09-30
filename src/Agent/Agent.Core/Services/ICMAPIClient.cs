@@ -86,16 +86,15 @@ namespace Agent.Core.Services
             }
 
             _authType = AuthType.None;
-            if (!string.IsNullOrEmpty(_identity))
-            {
-                _authType = AuthType.ManagedIdentity;
-                IcmAPIPathPrefix = API2PathPrefix;
-            }
-            else if (!string.IsNullOrWhiteSpace(_icmApiSettings.CertificateSubjectName) ||
+             if (!string.IsNullOrWhiteSpace(_icmApiSettings.CertificateSubjectName) ||
                      (!string.IsNullOrWhiteSpace(_icmApiSettings.CertificateKeyVaultUri) && !string.IsNullOrWhiteSpace(_icmApiSettings.CertificateKeyVaultSecretName)))
             {
                 _authType = AuthType.Certificate;
                 IcmAPIPathPrefix = "/api/cert";
+            } else if (!string.IsNullOrEmpty(_identity))
+            {
+                _authType = AuthType.ManagedIdentity;
+                IcmAPIPathPrefix = API2PathPrefix;
             }
             else if (!string.IsNullOrWhiteSpace(_icmApiSettings.UserToken))
             {
