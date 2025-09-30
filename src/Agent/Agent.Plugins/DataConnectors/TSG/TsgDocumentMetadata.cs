@@ -7,7 +7,7 @@ using Agent.Core.DataConnectors;
 using Azure.Search.Documents.Indexes;
 
 namespace Agent.Plugins.DataConnectors.TSG;
-
+// TODO: debug why TsgDocumentMetadata does not have all the required fields (that are now set to optional to unblock) being present in the object when the data is being pulled from blob/AI Search
 public record TsgDocumentMetadata : DataConnectorSourceDocument
 {
     [SimpleField(IsFilterable = true)]
@@ -26,10 +26,10 @@ public record TsgDocumentMetadata : DataConnectorSourceDocument
     public DateTime? LastModified { get; init; }
 
     [SimpleField]
-    public required DateTime IndexedAt { get; init; }
+    public DateTime? IndexedAt { get; init; }
 
     [SearchableField(IsFilterable = true)]
-    public required List<string> Tags { get; init; }
+    public List<string>? Tags { get; init; }
 
     [SimpleField(IsFilterable = true)]
     public string? Team { get; init; }
@@ -41,5 +41,5 @@ public record TsgDocumentMetadata : DataConnectorSourceDocument
     public string? FilePath { get; init; }
 
     [SearchableField]
-    public required string MetadataConcat { get; init; }
+    public string? MetadataConcat { get; init; }
 }

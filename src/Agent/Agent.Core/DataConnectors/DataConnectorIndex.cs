@@ -354,6 +354,7 @@ public class DataConnectorIndex
         }
         catch (Exception ex)
         {
+            // TODO: debug why TsgDocumentMetadata does not have all the required fields (that are now set to optional to unblock) being present in the object when the data is being pulled from blob/AI Search
             throw new InvalidOperationException($"Failed to get original document from URL: {indexDocument.SourceDocumentUrl}. Error: {ex.Message}", ex);
         }
     }
