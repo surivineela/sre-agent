@@ -15,6 +15,7 @@ import {
     Text,
     TextField,
 } from '@fluentui/react';
+import { tokens } from '@fluentui/react-components';
 import { Add16Regular, Bot16Regular, DocumentEdit16Regular, Info16Regular, Timer16Regular } from '@fluentui/react-icons';
 import React, { FC, useCallback, useMemo, useReducer, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -230,7 +231,7 @@ const hasErrors = (v: Validation) => Object.keys(v).length > 0;
 const SectionHeader: FC<{ icon: React.ReactNode; title: string }> = ({ icon, title }) => (
     <Stack horizontal verticalAlign="center" tokens={{ childrenGap: 8 }}>
         <Stack styles={{ root: { display: 'flex', alignItems: 'center', justifyContent: 'center' } }}>{icon}</Stack>
-        <Text variant="large" styles={{ root: { fontWeight: 600, color: '#323130' } }}>
+        <Text variant="large" styles={{ root: { fontWeight: 600, color: tokens.colorNeutralForeground1 } }}>
             {title}
         </Text>
     </Stack>
@@ -244,33 +245,34 @@ const PreviewCard: FC<{ cron: string }> = ({ cron }) => {
         <Stack
             styles={{
                 root: {
-                    background: '#f3f9ff',
+                    background: tokens.colorNeutralBackground3,
                     padding: 12,
                     borderRadius: 4,
-                    border: '1px solid #deecf9',
+                    border: `1px solid ${tokens.colorNeutralStroke1}`,
+                    boxShadow: tokens.shadow2,
                 },
             }}
             tokens={{ childrenGap: 6 }}
         >
             <Stack horizontal verticalAlign="center" tokens={{ childrenGap: 8 }}>
-                <Info16Regular style={{ color: '#0078d4', fontSize: 14 }} />
-                <Text variant="small" styles={{ root: { fontWeight: 600 } }}>
+                <Info16Regular style={{ color: tokens.colorBrandForeground1, fontSize: 14 }} />
+                <Text variant="small" styles={{ root: { fontWeight: 600, color: tokens.colorNeutralForeground1 } }}>
                     {intl.formatMessage(SreAgentResources.schedulePreview)}
                 </Text>
             </Stack>
-            <Text variant="small" styles={{ root: { color: '#605e5c' } }}>
+            <Text variant="small" styles={{ root: { color: tokens.colorNeutralForeground2 } }}>
                 {desc}
             </Text>
-            <Text variant="small" styles={{ root: { color: '#605e5c', fontSize: 11 } }}>
+            <Text variant="small" styles={{ root: { color: tokens.colorNeutralForeground2, fontSize: 11 } }}>
                 Cron: {normalizeCron(cron) || '—'}
             </Text>
             {samples.length > 0 && (
                 <Stack tokens={{ childrenGap: 4 }} styles={{ root: { marginTop: 4 } }}>
-                    <Text variant="xSmall" styles={{ root: { color: '#605e5c', fontWeight: 600 } }}>
+                    <Text variant="xSmall" styles={{ root: { color: tokens.colorNeutralForeground2, fontWeight: 600 } }}>
                         {intl.formatMessage(SreAgentResources.nextRunsLocalTime)}
                     </Text>
                     {samples.map((s, i) => (
-                        <Text key={i} variant="xSmall" styles={{ root: { color: '#605e5c' } }}>
+                        <Text key={i} variant="xSmall" styles={{ root: { color: tokens.colorNeutralForeground2 } }}>
                             • {s}
                         </Text>
                     ))}
@@ -365,8 +367,9 @@ const CreateScheduledTaskDialog: FC<CreateScheduledTaskDialogProps> = ({ isOpen,
             <Stack horizontal verticalAlign="center" tokens={{ childrenGap: 12 }}>
                 <Add16Regular
                     style={{
-                        color: '#8a8886',
-                        background: '#f3f2f1',
+                        color: '#0078d4',
+                        background: 'white',
+                        border: '2px solid #d1d1d1',
                         padding: 8,
                         borderRadius: '50%',
                         width: 40,
@@ -377,10 +380,10 @@ const CreateScheduledTaskDialog: FC<CreateScheduledTaskDialogProps> = ({ isOpen,
                     }}
                 />
                 <Stack tokens={{ childrenGap: 2 }}>
-                    <Text variant="xLarge" styles={{ root: { fontWeight: 600, color: '#323130' } }}>
+                    <Text variant="xLarge" styles={{ root: { fontWeight: 600, color: tokens.colorNeutralForeground1 } }}>
                         {intl.formatMessage(ScheduledTasksResources.createScheduledTask)}
                     </Text>
-                    <Text variant="medium" styles={{ root: { color: '#605e5c' } }}>
+                    <Text variant="medium" styles={{ root: { color: tokens.colorNeutralForeground2 } }}>
                         {intl.formatMessage(ScheduledTasksResources.createScheduledTaskDescription)}
                     </Text>
                 </Stack>
@@ -403,7 +406,7 @@ const CreateScheduledTaskDialog: FC<CreateScheduledTaskDialogProps> = ({ isOpen,
                 {/* Task Details */}
                 <Stack tokens={{ childrenGap: 8 }} styles={{ root: { maxWidth: 520 } }}>
                     <SectionHeader
-                        icon={<DocumentEdit16Regular style={{ color: '#0078d4', fontSize: 16 }} />}
+                        icon={<DocumentEdit16Regular style={{ color: tokens.colorBrandForeground1, fontSize: 16 }} />}
                         title={intl.formatMessage(ScheduledTasksResources.taskDetailsSection)}
                     />
 
@@ -429,12 +432,12 @@ const CreateScheduledTaskDialog: FC<CreateScheduledTaskDialogProps> = ({ isOpen,
                     />
                 </Stack>
 
-                <Separator styles={{ root: { selectors: { ':before': { backgroundColor: '#e1dfdd' } } } }} />
+                <Separator styles={{ root: { selectors: { ':before': { backgroundColor: tokens.colorNeutralStroke2 } } } }} />
 
                 {/* Schedule */}
                 <Stack tokens={{ childrenGap: 12 }}>
                     <SectionHeader
-                        icon={<Timer16Regular style={{ color: '#0078d4', fontSize: 16 }} />}
+                        icon={<Timer16Regular style={{ color: tokens.colorBrandForeground1, fontSize: 16 }} />}
                         title={intl.formatMessage(ScheduledTasksResources.scheduleSection)}
                     />
 
@@ -478,12 +481,12 @@ const CreateScheduledTaskDialog: FC<CreateScheduledTaskDialogProps> = ({ isOpen,
                     </Stack>
                 </Stack>
 
-                <Separator styles={{ root: { selectors: { ':before': { backgroundColor: '#e1dfdd' } } } }} />
+                <Separator styles={{ root: { selectors: { ':before': { backgroundColor: tokens.colorNeutralStroke2 } } } }} />
 
                 {/* Agent Instructions */}
                 <Stack tokens={{ childrenGap: 12 }} styles={{ root: { display: 'flex', flexDirection: 'column' } }}>
                     <SectionHeader
-                        icon={<Bot16Regular style={{ color: '#0078d4', fontSize: 16 }} />}
+                        icon={<Bot16Regular style={{ color: tokens.colorBrandForeground1, fontSize: 16 }} />}
                         title={intl.formatMessage(ScheduledTasksResources.agentInstructionsSection)}
                     />
 
@@ -502,8 +505,9 @@ const CreateScheduledTaskDialog: FC<CreateScheduledTaskDialogProps> = ({ isOpen,
                     <Stack
                         styles={{
                             root: {
-                                background: '#f8f8f8',
-                                border: '1px solid #e1dfdd',
+                                background: tokens.colorNeutralBackground3,
+                                border: `1px solid ${tokens.colorNeutralStroke1}`,
+                                boxShadow: tokens.shadow2,
                                 padding: 10,
                                 borderRadius: 4,
                                 maxWidth: 860,

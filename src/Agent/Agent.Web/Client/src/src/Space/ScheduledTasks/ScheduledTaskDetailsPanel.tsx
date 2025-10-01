@@ -11,6 +11,7 @@ import {
     Text,
     TextField,
 } from '@fluentui/react';
+import { tokens } from '@fluentui/react-components';
 import { FC, useCallback, useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { ScheduledTasksResources, SreAgentResources } from '../../Strings/SREAgentResources';
@@ -311,7 +312,14 @@ const ScheduledTaskDetailsPanel: FC<ScheduledTaskDetailsPanelProps> = ({
                         {!isEditing && (
                             <Text
                                 variant="medium"
-                                styles={{ root: { fontFamily: 'Monaco, monospace', background: '#faf9f8', padding: 4, borderRadius: 4 } }}
+                                styles={{
+                                    root: {
+                                        fontFamily: 'Monaco, monospace',
+                                        background: tokens.colorNeutralBackground3,
+                                        padding: 4,
+                                        borderRadius: 4,
+                                    },
+                                }}
                             >
                                 {task.cronExpression || intl.formatMessage(ScheduledTasksResources.dashPlaceholder)}
                             </Text>
@@ -334,8 +342,8 @@ const ScheduledTaskDetailsPanel: FC<ScheduledTaskDetailsPanelProps> = ({
                         {!isEditing && (
                             <div
                                 style={{
-                                    border: '1px solid #edebe9',
-                                    background: '#faf9f8',
+                                    border: `1px solid ${tokens.colorNeutralStroke1}`,
+                                    background: tokens.colorNeutralBackground3,
                                     padding: 8,
                                     maxHeight: 260,
                                     overflowY: 'auto',

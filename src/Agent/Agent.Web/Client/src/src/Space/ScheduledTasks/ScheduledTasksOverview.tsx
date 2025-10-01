@@ -1,3 +1,4 @@
+import { tokens } from '@fluentui/react-components';
 import { MessageBar, MessageBarType } from '@fluentui/react/lib/MessageBar';
 import { Spinner } from '@fluentui/react/lib/Spinner';
 import { Text } from '@fluentui/react/lib/Text';
@@ -78,7 +79,7 @@ const ScheduledTasksOverview: FC = () => {
                             style={{
                                 fontSize: '21px',
                                 fontWeight: 600,
-                                color: '#323130',
+                                color: tokens.colorNeutralForeground1,
                                 marginBottom: '8px',
                                 display: 'block',
                             }}
