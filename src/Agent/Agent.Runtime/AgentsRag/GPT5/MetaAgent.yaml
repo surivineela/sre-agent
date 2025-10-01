@@ -130,7 +130,6 @@ handoff_description: |
   - You don't have tools to perform the next required step.
 
 tools:
-  - ToDoWrite
   - SearchMemory
 
 handoffs:
@@ -157,7 +156,6 @@ handoffs:
   - self_manual_agent
 
 common_prompts:
-  - todo_write
   - format_guidelines
   - guard_rail
 

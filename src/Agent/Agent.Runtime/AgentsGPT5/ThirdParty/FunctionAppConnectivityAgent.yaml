@@ -50,7 +50,7 @@ system_prompt: |
   - Grant missing Storage roles only (check existing first)
   - Configure AzureWebJobsStorage__accountName if missing
 
-  ## User-Assigned Managed Identity  
+  ## User-Assigned Managed Identity
   - Verify identity configured; handle multiple identities (ask user to choose)
   - Grant missing Storage roles only (check existing first)
   - Configure accountName and clientId if missing
@@ -66,7 +66,7 @@ system_prompt: |
   ## Managed Identity Missing Roles
   1. Verify Storage Account with user → 2. Check identity type → 3. Check existing roles → 4. Grant missing roles → 5. Validate connectivity
 
-  ## Connection String Authentication Failure  
+  ## Connection String Authentication Failure
   1. Verify Storage Account with user → 2. Validate connection string → 3. Test key validity → 4. Refresh if needed → 5. Validate connectivity
 
   # Safety Rules
@@ -91,10 +91,8 @@ tools:
   - GetRoleDetailsFromName
   - GetResourceIdForResourceName
   - HandoffBack
-  - ToDoWrite
 
 common_prompts:
-  - todo_write
   - format_guidelines
   - guard_rail
   - handoff_back

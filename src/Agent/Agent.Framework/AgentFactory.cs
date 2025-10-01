@@ -4,7 +4,6 @@
 
 using System.Reflection;
 using Agent.Framework.Interfaces;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -183,6 +182,11 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             NextAgentMappings = agentDescriptor.NextAgentMappings?.ToList() ?? []
         };
 
+        if (!agent.FactoryTools.Contains(ToDoWriteTool.ToolName))
+        {
+            agent.FactoryTools.Add(ToDoWriteTool.ToolName);
+        }
+
         if (!string.IsNullOrEmpty(agentDescriptor.CriticPromptPath))
         {
             agent.CriticPromptPath = Path.Join(AppContext.BaseDirectory, agentDescriptor.CriticPromptPath);
@@ -220,6 +224,11 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             }
 
             agent.Instructions.AddCommonPrompt(commonPrompt.Prompt);
+        }
+
+        if (!agentDescriptor.CommonPrompts.Contains("todo_write"))
+        {
+            agentDescriptor.CommonPrompts.Add("todo_write");
         }
 
         // Add common tools to the agent
@@ -411,7 +420,8 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             UpdateHandoffs();
 
             UpdateAgentTools();
-        } catch (Exception ex)
+        }
+        catch (Exception ex)
         {
             _logger.LogInternalError(ex, "[AgentFactory:INIT_AGENTS] Failure during agent initialization pipeline");
             throw;
@@ -502,7 +512,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             // Get the DynamicIncidentManagementAgent service from the service provider
             // We access it through the ToolFactory's service provider since AgentFactory doesn't have direct access
             var serviceProvider = GetServiceProvider();
-            
+
             if (serviceProvider == null)
             {
                 _logger.LogInternalWarning("ServiceProvider not accessible. Skipping dynamic agent loading.");
@@ -514,7 +524,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             var serviceType = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(a => a.GetTypes())
                 .FirstOrDefault(t => t.FullName == serviceTypeName);
-                
+
             if (serviceType == null)
             {
                 _logger.LogInternalWarning("DynamicIncidentManagementAgent type not found. Skipping dynamic agent loading.");

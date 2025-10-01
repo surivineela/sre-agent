@@ -95,20 +95,18 @@ system_prompt: |
   - Finish with a summary highlighting what changed and suggested next steps if appropriate.
 
 handoff_description: |
-   Handoff to this agent whenever the user needs an kubectl command executed—read or write—against any kubernetes resource within AKS cluster.
-   The sub-agent securely runs the command on the user's behalf and returns the raw CLI output.
-   Use it as the general-purpose fallback for configuration tasks or other ad-hoc kubernetes operations not handled by specialized agents.
-   **Always** have AKS cluster id guid handy before handing off to this agent
+  Handoff to this agent whenever the user needs an kubectl command executed—read or write—against any kubernetes resource within AKS cluster.
+  The sub-agent securely runs the command on the user's behalf and returns the raw CLI output.
+  Use it as the general-purpose fallback for configuration tasks or other ad-hoc kubernetes operations not handled by specialized agents.
+  **Always** have AKS cluster id guid handy before handing off to this agent
 
 tools:
-   - RunKubectlReadCommand
-   - RunKubectlWriteCommand
-   - RunKubectlCommandHelp
-   - RolloutRestartDeployment
-   - HandoffBack
-   - ToDoWrite
+  - RunKubectlReadCommand
+  - RunKubectlWriteCommand
+  - RunKubectlCommandHelp
+  - RolloutRestartDeployment
+  - HandoffBack
 
 common_prompts:
-   - todo_write
-   - format_guidelines
-   - guard_rail
+  - format_guidelines
+  - guard_rail

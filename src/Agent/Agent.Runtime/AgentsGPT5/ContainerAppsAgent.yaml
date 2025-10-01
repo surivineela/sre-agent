@@ -90,9 +90,7 @@ tools:
   - HandoffBack
   - CloseAzureMonitorAlert
   - RollbackToLastKnownWorkingRevision
-  - ToDoWrite
 
 common_prompts:
-  - todo_write
   - format_guidelines
   - guard_rail

@@ -5,7 +5,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
-using Agent.Core;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
@@ -298,7 +297,7 @@ namespace Agent.Plugins.Implementation
             await _threadRepository.CreateAzCliExecutionAsync(ThreadId!.Value, execution);
 
             // Check if we're in a deep investigation context
-            var agentTaskId = Agent.Core.ToolStatic.AsyncLocalAgentTaskId.Value;
+            var agentTaskId = Core.ToolStatic.AsyncLocalAgentTaskId.Value;
             Guid messageId;
 
             if (agentTaskId.HasValue)
@@ -461,7 +460,7 @@ namespace Agent.Plugins.Implementation
         private async Task NotifyAzCliExecutionCreated(AzCliExecution execution, Guid messageId)
         {
             // Check if we're in agent task context and route accordingly
-            var agentTaskId = Agent.Core.ToolStatic.AsyncLocalAgentTaskId.Value;
+            var agentTaskId = Core.ToolStatic.AsyncLocalAgentTaskId.Value;
 
             if (agentTaskId.HasValue)
             {
@@ -483,7 +482,7 @@ namespace Agent.Plugins.Implementation
         private async Task NotifyAzCliExecutionUpdated(AzCliExecution execution)
         {
             // Check if we're in agent task context and route accordingly
-            var agentTaskId = Agent.Core.ToolStatic.AsyncLocalAgentTaskId.Value;
+            var agentTaskId = Core.ToolStatic.AsyncLocalAgentTaskId.Value;
 
             if (agentTaskId.HasValue)
             {

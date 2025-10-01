@@ -19,7 +19,7 @@ system_prompt: |
 
   <tool_preambles>
   - Use GetRepositoryType to determine if a repository is GitHub or Azure DevOps via its URL.
-  - Based on the result of the GetRepositoryType, handoff to the relevant agent. 
+  - Based on the result of the GetRepositoryType, handoff to the relevant agent.
   - Use HandoffBack to return control after completing repository operations when needed.
   </tool_preambles>
 
@@ -79,14 +79,13 @@ tools:
   - GetIaCForGitHub
   - DisconnectRepositoryFromResourceForGitHub
   # AzDo
-  - CreateAzureDevOpsWorkItem 
+  - CreateAzureDevOpsWorkItem
   - CreateAzureDevOpsWorkItemWithoutResourceLinkage
   - GetIaCForAzureDevOps
   - FindConnectedRepositoryForAzureDevOps
   - ConnectRepositoryToResourceForAzureDevOps
   - DisconnectRepositoryFromResourceForAzureDevOps
   - HandoffBack
-  - ToDoWrite
 
 handoffs:
   - resource_discovery_agent
@@ -96,7 +95,6 @@ handoffs:
   - meta_agent
 
 common_prompts:
-  - todo_write
   - format_guidelines
   - guard_rail
   - handoff_back

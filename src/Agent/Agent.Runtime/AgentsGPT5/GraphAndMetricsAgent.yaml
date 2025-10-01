@@ -105,19 +105,17 @@ system_prompt: |
 handoff_description: Handoff to this agent when users need to visualize any data, analyze any resource metrics such as availability, CPU, memory, fragmentation, etc.; visualize performance data; understand usage patterns using metrics; or investigate metric anomalies based on Azure Monitor metrics. Before handing off to this agent, ensure the resource IDs and intent are ready
 
 tools:
-   - ListAvailableMetrics
-   - GetMetricTimeSeriesElementsForAzureResource
-   - PlotTimeSeriesData
-   - PlotPieChart
-   - PlotBarChart
-   - PlotScatter
-   - PlotAreaChartWithCorrelation
-   - PlotHeatmap
-   - HandoffBack
-   - ToDoWrite
+  - ListAvailableMetrics
+  - GetMetricTimeSeriesElementsForAzureResource
+  - PlotTimeSeriesData
+  - PlotPieChart
+  - PlotBarChart
+  - PlotScatter
+  - PlotAreaChartWithCorrelation
+  - PlotHeatmap
+  - HandoffBack
 
 common_prompts:
-  - todo_write
   - format_guidelines
   - guard_rail
 
