@@ -206,7 +206,8 @@ jobs:
           path: 'container-test-results/*.trx'
           reporter: dotnet-trx
           use-actions-summary: 'true'
-          post-pr-comment: 'false'
+          report-title: 'E2E Test Results'
+          post-pr-comment: 'true'
           token: ${{ secrets.GITHUB_TOKEN }}
           fail-on-error: false
 
