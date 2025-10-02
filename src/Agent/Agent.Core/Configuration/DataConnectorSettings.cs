@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Agent.Core.Configuration
 {
@@ -59,6 +60,19 @@ namespace Agent.Core.Configuration
         /// The resource ID of the managed identity to use for authentication.
         /// </summary>
         public string Identity { get; init; } = string.Empty;
+
+        /// <summary>
+        /// The source of the data connector authentication.
+        /// </summary>
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public DataConnectorSource Source { get; init; } = DataConnectorSource.Agent;
+    }
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum DataConnectorSource
+    {
+        Agent,
+        AgentSpace
     }
 }
 

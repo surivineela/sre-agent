@@ -171,9 +171,11 @@ public class DataConnectorResolverService : IConnectorResolver
                 Enabled = true, // Configured = enabled by default
                 Auth = new ConnectorAuthSettings
                 {
-                    AuthenticationType = _env.IsDevelopment()
-                        ? ConnectorAuthType.User
-                        : ConnectorAuthType.UAMI,
+                    AuthenticationType = settings.Source == DataConnectorSource.AgentSpace
+                        ? ConnectorAuthType.AgentSpace
+                        : (_env.IsDevelopment()
+                            ? ConnectorAuthType.User
+                            : ConnectorAuthType.UAMI),
                     ManagedIdentityResourceId = settings.Identity
                 }
             };

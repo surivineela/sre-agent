@@ -81,9 +81,9 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
         {
             _dataConnectorInstanceSettings = instanceSettings ?? throw new ArgumentNullException(nameof(instanceSettings));
 
-            _logger.LogInternalInformation($"Using managed identity resource ID {instanceSettings.Identity} for Kusto summarizer.");
+            _logger.LogInternalInformation($"Using managed identity resource ID {instanceSettings.Identity} and auth source {instanceSettings.Source} for Kusto summarizer.");
 
-            _kustoSummarizer = new KustoTableSummarizer(_chatClient, new Uri(instanceSettings.DataSource), instanceSettings.Identity, _loggerFactory, _authService);
+            _kustoSummarizer = new KustoTableSummarizer(_chatClient, new Uri(instanceSettings.DataSource), instanceSettings.Identity, instanceSettings.Source, _loggerFactory, _authService);
 
             return Task.CompletedTask;
         }

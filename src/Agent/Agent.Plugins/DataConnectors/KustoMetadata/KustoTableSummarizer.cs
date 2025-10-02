@@ -7,6 +7,7 @@ using System.Data;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Framework.Reasoning.Models;
 using Agent.Plugins.Kusto;
@@ -35,12 +36,12 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
         private readonly Uri _clusterUri;
         private readonly ILogger<KustoTableSummarizer> _logger;
 
-        public KustoTableSummarizer(IChatClient chatClient, Uri clusterUri, string managedIdentityResourceId, ILoggerFactory loggerFactory, IAuthenticationService authService)
+        public KustoTableSummarizer(IChatClient chatClient, Uri clusterUri, string managedIdentityResourceId, DataConnectorSource dataConnectorSource, ILoggerFactory loggerFactory, IAuthenticationService authService)
         {
             _chatClient = chatClient;
             _clusterUri = clusterUri;
             _logger = loggerFactory.CreateLogger<KustoTableSummarizer>();
-            _kustoClient = BuildKustoClient(loggerFactory, authService, managedIdentityResourceId);
+            _kustoClient = BuildKustoClient(loggerFactory, authService, managedIdentityResourceId, dataConnectorSource);
 
             _chatOptions = new ChatOptions()
             {
@@ -543,18 +544,33 @@ namespace Agent.Plugins.DataConnectors.KustoMetadata
             }
         }
 
-        private static KustoClient BuildKustoClient(ILoggerFactory loggerFactory, IAuthenticationService authService, string managedIdentityResourceId)
+        private static KustoClient BuildKustoClient(ILoggerFactory loggerFactory, IAuthenticationService authService, string managedIdentityResourceId, DataConnectorSource dataConnectorSource)
         {
-            ConnectorAuthSettings authSettings = string.IsNullOrEmpty(managedIdentityResourceId) ?
-                new ConnectorAuthSettings()
+            ConnectorAuthSettings authSettings;
+
+            if (dataConnectorSource == DataConnectorSource.AgentSpace)
+            {
+                authSettings = new ConnectorAuthSettings()
+                {
+                    AuthenticationType = ConnectorAuthType.AgentSpace,
+                    ManagedIdentityResourceId = managedIdentityResourceId
+                };
+            }
+            else if (string.IsNullOrEmpty(managedIdentityResourceId))
+            {
+                authSettings = new ConnectorAuthSettings()
                 {
                     AuthenticationType = ConnectorAuthType.User
-                } :
-                new ConnectorAuthSettings()
+                };
+            }
+            else
+            {
+                authSettings = new ConnectorAuthSettings()
                 {
                     AuthenticationType = ConnectorAuthType.UAMI,
                     ManagedIdentityResourceId = managedIdentityResourceId
                 };
+            }
 
             return new KustoClient(loggerFactory.CreateLogger<KustoClient>(), new KustoConnector()
             {

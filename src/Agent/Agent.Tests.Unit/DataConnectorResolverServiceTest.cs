@@ -47,10 +47,18 @@ namespace Agent.Tests.Unit
                     Name = "KustoDev2",
                     DataConnectorType = "Kusto",
                     DataSource = "https://cappseus.eastus.kusto.windows.net/capps",
-                   
+
                     Identity = "/subscriptions/xxxx/resourceGroups/rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/mi"
                 },
-             
+                new DataConnectorInstanceSettings
+                {
+                    Name = "KustoAgentSpace",
+                    DataConnectorType = "Kusto",
+                    DataSource = "https://kustoagentspace.kusto.windows.net/TestDB",
+                    Identity = "User",
+                    Source = DataConnectorSource.AgentSpace
+                },
+
             });
             _logger = _mockLogger.Object;
             _env = new Mock<IHostEnvironment>();
@@ -111,6 +119,20 @@ namespace Agent.Tests.Unit
             Assert.Equal("Kusto", settings.Type);
             Assert.Equal("https://kustodev.kusto.windows.net", settings.ClusterUrl);
         }
+
+        [Fact]
+        public void GetConnectorSetting_Success_With_AgentSpaceAuthSource_SetsAgentSpaceAuthType()
+        {
+            var dataservice = new DataConnectorResolverService(_connectorSettings.Object, _logger, _env.Object);
+
+            var settings = dataservice.GetConnectorFromSettings<KustoConnector>("KustoAgentSpace", "Kusto", string.Empty);
+            Assert.NotNull(settings);
+            Assert.Equal("KustoAgentSpace", settings.Name);
+            Assert.Equal("Kusto", settings.Type);
+            Assert.Equal("https://kustoagentspace.kusto.windows.net", settings.ClusterUrl);
+            Assert.Equal(Agent.Framework.Reasoning.Models.ConnectorAuthType.AgentSpace, settings.Auth.AuthenticationType);
+        }
+
         public void Dispose()
         {
         }

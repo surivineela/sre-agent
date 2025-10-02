@@ -122,4 +122,18 @@ public class AgentNameHelper
 
         return rg;
     }
+
+    /// <summary>
+    /// Constructs the full Azure resource ID for the agent.
+    /// </summary>
+    /// <param name="isProd">Indicates whether the environment is production.</param>
+    /// <returns>The full agent resource ID in the format /subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.App/agents/{agentName}</returns>
+    public static string GetAgentResourceId(bool isProd)
+    {
+        var subscriptionId = GetSubscriptionId(isProd);
+        var resourceGroup = GetResourceGroupName(isProd);
+        var agentName = GetCustomerAgentName(isProd);
+
+        return $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.App/agents/{agentName}";
+    }
 }

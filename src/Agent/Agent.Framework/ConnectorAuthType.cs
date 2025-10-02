@@ -13,5 +13,6 @@ namespace Agent.Framework.Reasoning.Models
         UAMI,
         App,
         User, // for testing
+        AgentSpace
     }
 }

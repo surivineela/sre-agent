@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Agent.Core.Configuration;
+using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
@@ -91,7 +92,7 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
         _agentOutboundCommunicationService = agentOutboundCommunicationService;
         _authenticationService = authenticationService;
         _agentSpaceProxySettings = agentSpaceProxySettings;
-        _agentResourceId = GetAgentResourceId();
+        _agentResourceId = AgentNameHelper.GetAgentResourceId(isProd: true);
 
         _tokenCredentialHttpClientHandler = new TokenCredentialHttpClientHandler(_authenticationService.GetAgentSpaceProxyCredential(), _agentSpaceProxySettings.Scope);
     }
@@ -217,22 +218,6 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
 
         var response = await httpClient.SendAsync(request);
         return response;
-    }
-
-    private static string GetAgentResourceId()
-    {
-        var agentName = Environment.GetEnvironmentVariable("AGENT_NAME");
-
-        if (agentName != null)
-        {
-            var doubleHypyhenIndex = agentName!.LastIndexOf("--");
-            if (doubleHypyhenIndex > 0)
-            {
-                agentName = agentName.Substring(0, doubleHypyhenIndex);
-            }
-        }
-
-        return $"/subscriptions/{Environment.GetEnvironmentVariable("AGENT_SUBSCRIPTION_ID")}/resourceGroups/{Environment.GetEnvironmentVariable("AGENT_RESOURCE_GROUP")}/providers/Microsoft.App/agents/{agentName}";
     }
 
     private async Task<string> GetApprovalStatus(string documentId)

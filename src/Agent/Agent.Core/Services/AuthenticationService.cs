@@ -1,7 +1,11 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http.Headers;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.Json;
 using Agent.Core.Configuration;
+using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
+using Agent.Core.Models;
 using Agent.Framework.Reasoning.Models;
 using Agent.Logging;
 using Azure.Core;
@@ -23,6 +27,7 @@ public class AuthenticationService : IAuthenticationService
     private readonly GitHubSettings _gitHubSettings;
     private readonly AzureSearchSettings _azureSearchSettings;
     private readonly Lazy<IThreadRepository> _threadRepository;
+    private readonly AgentSpaceProxySettings _agentSpaceProxySettings;
 
     public AuthenticationService(
         ILogger<AuthenticationService> logger,
@@ -32,6 +37,7 @@ public class AuthenticationService : IAuthenticationService
         DashboardSettings dashboardSettings,
         GitHubSettings gitHubSettings,
         AzureSearchSettings azureSearchSettings,
+        AgentSpaceProxySettings agentSpaceProxySettings,
         IHostEnvironment hostEnvironment,
         IServiceProvider serviceProvider)
     {
@@ -43,6 +49,7 @@ public class AuthenticationService : IAuthenticationService
         _dashboardSettings = dashboardSettings;
         _gitHubSettings = gitHubSettings;
         _azureSearchSettings = azureSearchSettings;
+        _agentSpaceProxySettings = agentSpaceProxySettings;
 
         // To avoid cyclic dependency between cosmos client
         _threadRepository = new Lazy<IThreadRepository>(() => serviceProvider.GetRequiredService<IThreadRepository>());
@@ -309,6 +316,27 @@ public class AuthenticationService : IAuthenticationService
     {
         switch (connectorAuthSettings.AuthenticationType)
         {
+            case ConnectorAuthType.AgentSpace:
+                // Create a credential that fetches tokens from Agent Space Proxy
+                var resourceId = string.IsNullOrEmpty(connectorAuthSettings.ManagedIdentityResourceId)
+                    ? "system"
+                    : connectorAuthSettings.ManagedIdentityResourceId;
+                return DelegatedTokenCredential.Create(
+                    getToken: (context, cancellationToken) =>
+                    {
+                        // Synchronous delegate can throw, because GetTokenAsync will be used
+                        throw new NotSupportedException("Synchronous GetToken not supported.");
+                    },
+                    getTokenAsync: async (context, cancellationToken) =>
+                    {
+                        var scope = context.Scopes.FirstOrDefault()
+                            ?? throw new InvalidOperationException("No scope provided in token request context.");
+
+                        var token = await GetTokenFromAgentSpaceProxy(scope, resourceId)
+                            .ConfigureAwait(false);
+
+                        return token;
+                    });
             case ConnectorAuthType.ManagedIdentity:
                 return GetManagedIdentityCredential(Constants.SystemManagedIdentityName);
             case ConnectorAuthType.UAMI:
@@ -587,5 +615,55 @@ public class AuthenticationService : IAuthenticationService
         return GetManagedIdentityCredential(GetActionIdentity());
     }
     #endregion
-}
 
+    #region Agent Space Proxy Token methods
+    public async Task<AccessToken> GetTokenFromAgentSpaceProxy(string scope, string resourceId)
+    {
+        if (string.IsNullOrWhiteSpace(_agentSpaceProxySettings.Endpoint))
+        {
+            throw new InvalidOperationException("Agent Space Proxy endpoint is not configured.");
+        }
+
+        var path = $"agentSpaceTokens/getToken?scope={Uri.EscapeDataString(scope)}&resourceId={Uri.EscapeDataString(resourceId)}";
+        var agentResourceId = AgentNameHelper.GetAgentResourceId(!_hostEnvironment.IsDevelopment());
+
+        _logger.LogInternalInformation($"[AuthenticationService] [GetTokenFromAgentSpaceProxy] - endpoint: {_agentSpaceProxySettings.Endpoint}, scope: {scope}, resourceId: {resourceId}, agentResourceId: {agentResourceId}");
+
+        var tokenCredentialHandler = new TokenCredentialHttpClientHandler(
+            GetAgentSpaceProxyCredential(),
+            _agentSpaceProxySettings.Scope);
+
+        var httpClient = new HttpClient(tokenCredentialHandler);
+        httpClient.BaseAddress = new Uri(_agentSpaceProxySettings.Endpoint);
+        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        httpClient.DefaultRequestHeaders.Add("User-Agent", "SRE Agent");
+        httpClient.Timeout = TimeSpan.FromSeconds(120);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, path);
+        request.Headers.Add("x-ms-sreagent-resource-id", agentResourceId);
+
+        var response = await httpClient.SendAsync(request);
+        var content = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogInternalError($"[AuthenticationService] Failed to get token from Agent Space Proxy. StatusCode: {response.StatusCode}, Response: {content}");
+            throw new InvalidOperationException($"Failed to get token from Agent Space Proxy. StatusCode: {response.StatusCode}, Response: {content}");
+        }
+
+        var tokenResponse = JsonSerializer.Deserialize<AgentSpaceTokenResponse>(content);
+
+        if (tokenResponse == null)
+        {
+            throw new InvalidOperationException("Failed to deserialize token response from Agent Space Proxy.");
+        }
+
+        if (string.IsNullOrEmpty(tokenResponse.AccessToken))
+        {
+            throw new InvalidOperationException("AccessToken is null or empty in response from Agent Space Proxy.");
+        }
+
+        return new AccessToken(tokenResponse.AccessToken, tokenResponse.ExpiresOn);
+    }
+    #endregion
+}
