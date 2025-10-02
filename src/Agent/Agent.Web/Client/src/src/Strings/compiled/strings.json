@@ -1215,12 +1215,6 @@
       "value": "Data source"
     }
   ],
-  "7Cy5xk": [
-    {
-      "type": 0,
-      "value": "Go to Incident management"
-    }
-  ],
   "7Eq7I8": [
     {
       "type": 0,
@@ -4793,12 +4787,6 @@
       "value": "Disconnect Azure Monitor?"
     }
   ],
-  "bnwJj3": [
-    {
-      "type": 0,
-      "value": "You can now view incidents, and create additional incident response plans and custom response plans."
-    }
-  ],
   "boVrya": [
     {
       "type": 0,
@@ -7611,12 +7599,6 @@
     {
       "type": 0,
       "value": "Failed to create data connector"
-    }
-  ],
-  "ydnQQL": [
-    {
-      "type": 0,
-      "value": "Set up incident response plans and custom response plans so that the agent can start receiving incidents."
     }
   ],
   "yeJPGA": [

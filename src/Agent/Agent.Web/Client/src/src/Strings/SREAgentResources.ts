@@ -1149,15 +1149,6 @@ export const IncidentHandlerCreateResources = defineMessages({
 });
 
 export const IncidentManagementResources = defineMessages({
-    goToIncidentManagement: { defaultMessage: 'Go to Incident management', id: '7Cy5xk' },
-    setUpInfoBanner: {
-        defaultMessage: 'You can now view incidents, and create additional incident response plans and custom response plans.',
-        id: 'bnwJj3',
-    },
-    setUpInfoBannerWithoutHandlers: {
-        defaultMessage: 'Set up incident response plans and custom response plans so that the agent can start receiving incidents.',
-        id: 'ydnQQL',
-    },
     incidentManagement: { defaultMessage: 'Incident management', id: 'T7WpWs' },
     incidentManagementDescription: {
         defaultMessage: `Add an incident platform so that the agent can help respond to incidents in real time. To change to a different platform, you'll need to delete the connection to the current one.`,

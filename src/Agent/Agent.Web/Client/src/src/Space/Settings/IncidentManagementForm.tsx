@@ -26,7 +26,6 @@ import {
 import { CheckmarkCircle16Filled } from '@fluentui/react-icons';
 import { FC, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { useLocation, useNavigate } from 'react-router-dom';
 import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import PermissionedButton from '../../Common/Components/PermissionedButton';
@@ -48,7 +47,6 @@ import {
 } from '../../Strings/SREAgentResources';
 import { SreAgentContext } from '../Contracts/Context';
 import { IncidentManagementFormProps } from '../Contracts/IncidentManagement';
-import { IncidentManagementMenuKeys } from '../IncidentManagement/CreateIncidentHandler/Contracts';
 import { DirtyStateConfirmationWrapper } from '../IncidentManagement/CreateIncidentHandler/DirtyStateConfirmationDialog';
 import { useDialogStyles, usePagerDutyStyles, useSettingsStyles } from './Styles/Settings.styles';
 
@@ -74,8 +72,6 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
     const isSetupScenario = useMemo(() => initialValues.platform === IncidentManagementType.None, [initialValues.platform]);
     const isApiKeyEditable = useMemo(() => isSetupScenario || editingApiKey, [isSetupScenario, editingApiKey]);
 
-    const location = useLocation();
-    const navigate = useNavigate();
     const azPortalContext = useContext(AzPortalContext);
     const {
         incidentManagement: { isIncidentManagementConnected, hasFilters },
@@ -171,10 +167,6 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
         return resourceDescriptor.resourceName;
     }, [managedIdentityId]);
 
-    const handleGoToIncidentManagement = useCallback(() => {
-        navigate({ ...location, pathname: `/views/incidentmanagement/${IncidentManagementMenuKeys.HandlerConfiguration}` });
-    }, [location, navigate]);
-
     const openManagedIdentity = useCallback(() => {
         if (!managedIdentityId) {
             return;
@@ -188,31 +180,6 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
 
     return (
         <>
-            {!loading &&
-                (values.platform === IncidentManagementType.PagerDuty ||
-                    values.platform === IncidentManagementType.Icm ||
-                    values.platform === IncidentManagementType.ServiceNow) &&
-                !isSetupScenario &&
-                !integrated &&
-                isIncidentManagementConnected && (
-                    <MessageBar style={{ maxWidth: '80%', marginBottom: 16 }}>
-                        {intl.formatMessage(
-                            hasFilters
-                                ? IncidentManagementResources.setUpInfoBanner
-                                : IncidentManagementResources.setUpInfoBannerWithoutHandlers
-                        )}
-                        <Button
-                            appearance="secondary"
-                            size="medium"
-                            style={{ marginRight: 10, marginTop: 10, marginBottom: 10 }}
-                            onClick={() => {
-                                handleGoToIncidentManagement();
-                            }}
-                        >
-                            {intl.formatMessage(IncidentManagementResources.goToIncidentManagement)}
-                        </Button>
-                    </MessageBar>
-                )}
             <div style={styles.generalSettingsHeader}>{intl.formatMessage(SettingsTabResources.incidentPlatform)}</div>
             <div>
                 {loading ? (
@@ -321,29 +288,33 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                                         </div>
                                     </div>
                                 )}
-                                <Field
-                                    id="connectionKeyField"
-                                    label={intl.formatMessage(PagerDutyResources.pagerDutyApiKey)}
-                                    orientation="horizontal"
-                                    required={true}
-                                    validationMessage={
-                                        formikProps.touched.connectionKey && !isValidating ? formikProps.errors.connectionKey : undefined
-                                    }
-                                    style={{ maxWidth: '80%' }}
-                                >
-                                    <Input
-                                        style={styles.secureTextFieldStyles}
-                                        id="connectionKey"
-                                        value={isApiKeyEditable ? values.connectionKey : undefined}
-                                        placeholder={isApiKeyEditable ? undefined : ''}
-                                        onChange={(_event, newValue) => {
-                                            setFieldTouched('connectionKey', true, false);
-                                            setFieldValue('connectionKey', newValue?.value);
-                                        }}
-                                        disabled={saving || !isApiKeyEditable || !canWriteAgent}
-                                        contentAfter={isValidating && !isSubmitting ? <Spinner size={'tiny'} /> : null}
-                                    />
-                                </Field>
+                                {(isSetupScenario || editingApiKey) && (
+                                    <Field
+                                        id="connectionKeyField"
+                                        label={intl.formatMessage(PagerDutyResources.pagerDutyApiKey)}
+                                        orientation="horizontal"
+                                        required={true}
+                                        validationMessage={
+                                            formikProps.touched.connectionKey && !isValidating
+                                                ? formikProps.errors.connectionKey
+                                                : undefined
+                                        }
+                                        style={{ maxWidth: '80%' }}
+                                    >
+                                        <Input
+                                            style={styles.secureTextFieldStyles}
+                                            id="connectionKey"
+                                            value={isApiKeyEditable ? values.connectionKey : undefined}
+                                            placeholder={isApiKeyEditable ? undefined : ''}
+                                            onChange={(_event, newValue) => {
+                                                setFieldTouched('connectionKey', true, false);
+                                                setFieldValue('connectionKey', newValue?.value);
+                                            }}
+                                            disabled={saving || !isApiKeyEditable || !canWriteAgent}
+                                            contentAfter={isValidating && !isSubmitting ? <Spinner size={'tiny'} /> : null}
+                                        />
+                                    </Field>
+                                )}
                             </>
                         )}
 
