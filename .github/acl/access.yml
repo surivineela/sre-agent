@@ -16,15 +16,17 @@ configuration:
     role: Maintain
   - member: shgup
     role: Maintain
+  - member: ellhamai
+    role: Maintain
   - member: jijohn
     role: Maintain
   - member: ebcarek
     role: Write
   - member: visagarwal
     role: Write
-  - member: ellhamai
-    role: Write
   - member: yashnisar
+    role: Write
+  - member: liuqi
     role: Write
   - team: k4appscore
     role: Read
