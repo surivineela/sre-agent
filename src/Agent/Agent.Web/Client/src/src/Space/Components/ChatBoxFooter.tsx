@@ -38,7 +38,7 @@ import { ChatSuggestions } from '../Activities/ChatSuggestions';
 import { IChatBoxFooterProps } from '../Contracts/Activities';
 import { StreamingContext } from '../Contracts/Context';
 import { usePermissionContext } from '../Contracts/PermissionContext';
-import { chatInputTextStyles, sendButtonStyles, useChatInputStyles } from '../Styles/Activities.styles';
+import { chatInputTextStyles, sendButtonStyles, useChatInputStyles, useDialogStyles } from '../Styles/Activities.styles';
 import AgentModeSelector from './AgentModeSelector';
 import KnowledgeGraphBuildStatus from './KnowledgeGraphBuildStatus';
 
@@ -442,6 +442,7 @@ const PromptLibraryButton = memo(
         const [open, setOpen] = useState(false);
         const [query, setQuery] = useState('');
         const intl = useIntl();
+        const { dialogSurface, dialogBody, dialogContent } = useDialogStyles();
 
         const categories = useMemo<string[]>(
             () => ['Get started', 'Azure App Service', 'Azure Container App', 'Azure Kubernetes Service', 'Azure API Management'],
@@ -674,13 +675,13 @@ const PromptLibraryButton = memo(
                         </MenuItem>
                     )}
                 </DialogTrigger>
-                <DialogSurface style={{ width: '950px', maxWidth: '950px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                    <DialogBody style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                <DialogSurface className={dialogSurface}>
+                    <DialogBody className={dialogBody}>
                         <DialogTitle>
                             <FormattedMessage {...PromptResources.promptExamples} />
                         </DialogTitle>
                         <DialogContent>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxWidth: '100%' }}>
+                            <div className={dialogContent}>
                                 <Input
                                     placeholder={intl.formatMessage(SreAgentResources.search)}
                                     value={query}
