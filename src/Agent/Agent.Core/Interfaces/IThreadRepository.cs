@@ -13,6 +13,7 @@ public interface IThreadRepository
 {
     Task<Thread?> GetThreadAsync(Guid threadId);
     Task<IEnumerable<Thread>> GetThreadsAsync(ODataQueryOptions? queryOptions = null, ActionSeverity? severity = null, ThreadType? threadType = ThreadType.Prod, bool? favorite = null);
+    Task<IncidentThreadCounts> GetThreadsCountByStatusAsync(ODataQueryOptions? queryOptions = null);
     // Get threads whose ModifiedTimestamp falls within the given time window.
     // This allows callers to ask the repository (and underlying store) to only return
     // threads modified within the provided range which reduces memory and I/O pressure.

@@ -34,6 +34,22 @@ public class AzMonitorScanner(
     private readonly IIncidentStatusMetricsService _incidentsStatusMetricsService = incidentsStatusMetricsService;
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService = outboundCommunicationService;
 
+    private DateTimeOffset ParseDateTimeOffset(string? value)
+    {
+        DateTimeOffset createdAt;
+        if (!string.IsNullOrEmpty(value) && DateTimeOffset.TryParse(value, out var parsedDate))
+        {
+            createdAt = parsedDate;
+        }
+        else
+        {
+            createdAt = DateTimeOffset.UtcNow;
+            _logger.LogInternalWarning($"Could not parse start time {value}, using current time instead");
+        }
+
+        return createdAt;
+    }
+
     protected override string GetIncidentId(AlertItem incident)
     {
         return incident.Id;
@@ -46,7 +62,10 @@ public class AzMonitorScanner(
             IncidentId = incident.Id,
             Title = incident.Name,
             Severity = incident.Properties.Essentials?.Severity ?? string.Empty,
-            IncidentFilter = filter
+            IncidentFilter = filter,
+            IncidentHandler = null,
+            CreatedTime = ParseDateTimeOffset(incident.Properties.Essentials?.StartDateTime),
+            ImpactedService = string.Empty
         };
         await _incidentHandlingService.HandleIncidentAsync(request);
     }

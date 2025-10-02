@@ -288,9 +288,28 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
                 // Update thread status if exists
                 try
                 {
+                    var needsUpsertForDetailsChange = false;
+                    var needsUpsertForResolvedStatus = false;
                     var existingThreadDocument = await GetIncidentThread(incidentDocument.Id);
                     if (existingThreadDocument is not null)
                     {
+                        if (existingThreadDocument.IncidentDetails != null)
+                        {
+                            if (existingThreadDocument.IncidentDetails.IncidentTitle != incidentDocument.Title || existingThreadDocument.IncidentDetails.IncidentPriority != incidentDocument.Priority)
+                            {
+                                var updatedIncidentDetails = new IncidentDetails(
+                                    incidentDocument.Title,
+                                    existingThreadDocument.IncidentDetails.IncidentCreatedTime,
+                                    incidentDocument.Priority,
+                                    existingThreadDocument.IncidentDetails.ImpactedService,
+                                    existingThreadDocument.IncidentDetails.FilterId,
+                                    existingThreadDocument.IncidentDetails.HandlerId,
+                                    InvestigationStatus.Complete);
+                                existingThreadDocument.IncidentDetails = updatedIncidentDetails;
+                                needsUpsertForDetailsChange = true;
+                            }
+                        }
+
                         if (existingThreadDocument.IncidentStatus != "resolved")
                         {
                             // Log agent action event for incident resolution only when status changes
@@ -324,9 +343,31 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
                             }
 
                             existingThreadDocument.IncidentStatus = "resolved";
-                            logger.LogInternalInformation("Updating thread status to resolved for ServiceNow incident {incidentNumber}", incidentDocument.Id);
+                            needsUpsertForResolvedStatus = true;
+                        }
+
+                        if (needsUpsertForDetailsChange || needsUpsertForResolvedStatus)
+                        {
+                            if (needsUpsertForDetailsChange)
+                            {
+                                logger.LogInternalInformation("Title or priority changed for ServiceNow incident {incidentId}", incidentDocument.Id);
+                                logger.LogInternalInformation("Updating incident title or priority on ServiceNow incident thread {threadId}", existingThreadDocument.Id);
+                            }
+                            if (needsUpsertForResolvedStatus)
+                            {
+                                logger.LogInternalInformation("Updating thread status to resolved for ServiceNow incident {incidentNumber}", incidentDocument.Id);
+                            }
+
                             await container.UpsertItemAsync(existingThreadDocument, new PartitionKey(existingThreadDocument.Id));
-                            logger.LogInternalInformation("Updated thread status to resolved for ServiceNow incident {incidentNumber}", incidentDocument.Id);
+
+                            if (needsUpsertForDetailsChange)
+                            {
+                                logger.LogInternalInformation("Updated incident title or priority on ServiceNow incident thread {threadId}", existingThreadDocument.Id);
+                            }
+                            if (needsUpsertForResolvedStatus)
+                            {
+                                logger.LogInternalInformation("Updated thread status to resolved for ServiceNow incident {incidentNumber}", incidentDocument.Id);
+                            }
                         }
                     }
                 }
@@ -347,12 +388,35 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
                     Title = incidentDocument.Title,
                     Description = incidentDocument.Description,
                     Severity = incidentDocument.Priority,
-                    Source = "ServiceNow"
+                    Source = "ServiceNow",
+                    IncidentFilter = null,
+                    IncidentHandler = null
                 });
             }
             else
             {
                 logger.LogInternalInformation("Thread already exists for incident {incidentNumber}, checking for updates", incidentDocument.Id);
+
+                if (threadDocument.IncidentDetails != null)
+                {
+                    if (threadDocument.IncidentDetails.IncidentTitle != incidentDocument.Title || threadDocument.IncidentDetails.IncidentPriority != incidentDocument.Priority)
+                    {
+                        var updatedIncidentDetails = new IncidentDetails(
+                            incidentDocument.Title,
+                            threadDocument.IncidentDetails.IncidentCreatedTime,
+                            incidentDocument.Priority,
+                            threadDocument.IncidentDetails.ImpactedService,
+                            threadDocument.IncidentDetails.FilterId,
+                            threadDocument.IncidentDetails.HandlerId,
+                            threadDocument.IncidentDetails.InvestigationStatus);
+                        threadDocument.IncidentDetails = updatedIncidentDetails;
+                        logger.LogInternalInformation("Title or priority changed for ServiceNow incident {incidentId}", incidentDocument.Id);
+                        logger.LogInternalInformation("Updating incident title or priority on ServiceNow incident thread {threadId}", threadDocument.Id);
+                        await container.UpsertItemAsync(threadDocument, new PartitionKey(threadDocument.Id));
+                        logger.LogInternalInformation("Updated incident title or priority on ServiceNow incident thread {threadId}", threadDocument.Id);
+                    }
+                }
+
                 var existingIncidentDocument = await incidentManagementService.GetIncidentDetails(incidentDocument.Id);
                 var existingDiscussionEntries = existingIncidentDocument != null ? existingIncidentDocument.DiscussionEntries : new List<DiscussionEntry>();
                 // Keep using IncidentId (sys_id) for API calls to get discussion entries

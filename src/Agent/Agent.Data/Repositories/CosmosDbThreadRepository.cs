@@ -32,7 +32,7 @@ public class CosmosDbThreadRepository : IThreadRepository
     // For example, to get oldest 10 threads, a client can call `/api/v1/threads/{threadid}/messages?top=10` to get the oldest 10 threads, because the default order is `order by timeStamp asc`.
     // For example, to get latest 10 threads, a client can call `/api/v1/threads/{threadid}/messages?top=10&orderby=timeStamp+desc` to get the latest 10 threads.
     // For pagination, we can use `top` and `skip` to get the next page of threads.
-    private static readonly ODataQuerySettings oDataQuerySettings = new() { EnsureStableOrdering = false, TimeZone = TimeZoneInfo.Utc };
+    private static readonly ODataQuerySettings oDataQuerySettings = new() { EnsureStableOrdering = false, TimeZone = TimeZoneInfo.Utc, HandleNullPropagation = HandleNullPropagationOption.False };
 
     public CosmosDbThreadRepository(CosmosClient cosmosClient, string databaseName, ILogger<CosmosDbThreadRepository> logger)
     {
@@ -227,7 +227,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             }
         }
 
-        if (queryOptions is not null)
+        if (query is not null && queryOptions is not null)
         {
             query = queryOptions.ApplyTo(query, oDataQuerySettings) as IOrderedQueryable<ThreadDocument>;
         }
@@ -303,6 +303,46 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
 
         return threads;
+    }
+
+    public async Task<IncidentThreadCounts> GetThreadsCountByStatusAsync(ODataQueryOptions? queryOptions = null)
+    {
+        // Query for thread documents
+        var query = _client.GetContainer<ThreadDocument>(_databaseName).GetItemLinqQueryable<ThreadDocument>()
+            .Where(t => t.DocumentType == "Thread")
+            .Where(t => t.Source == ThreadSource.Incident)
+            .Where(t => t.ThreadType.IsDefined() == false || t.ThreadType == null || t.ThreadType == ThreadType.Prod);
+
+        if (query is not null && queryOptions is not null)
+        {
+            query = queryOptions.ApplyTo(query, oDataQuerySettings) as IOrderedQueryable<ThreadDocument>;
+        }
+
+        var incidentStatusCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var investigationStatusCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        using var iterator = query.ToFeedIterator();
+        while (iterator.HasMoreResults)
+        {
+            foreach (var threadDoc in await iterator.ReadNextAsync())
+            {
+                var incidentStatus = threadDoc.IncidentStatus ?? string.Empty;
+                if (incidentStatusCounts.ContainsKey(incidentStatus))
+                    incidentStatusCounts[incidentStatus]++;
+                else
+                    incidentStatusCounts[incidentStatus] = 1;
+
+                var investigationStatus = threadDoc.IncidentDetails?.InvestigationStatus.ToString() ?? string.Empty;
+                if (investigationStatusCounts.ContainsKey(investigationStatus))
+                    investigationStatusCounts[investigationStatus]++;
+                else
+                    investigationStatusCounts[investigationStatus] = 1;
+            }
+        }
+
+        var incidentStatusCountsList = incidentStatusCounts.Select(kvp => new StatusCount(kvp.Key, kvp.Value)).ToList();
+        var investigationStatusCountsList = investigationStatusCounts.Select(kvp => new StatusCount(kvp.Key, kvp.Value)).ToList();
+
+        return new IncidentThreadCounts(incidentStatusCountsList, investigationStatusCountsList);
     }
 
     public async Task<IEnumerable<Thread>> GetThreadsModifiedBetweenAsync(DateTime earliestInclusive, DateTime latestInclusive, ThreadType? threadType = ThreadType.Prod, bool? favorite = null)

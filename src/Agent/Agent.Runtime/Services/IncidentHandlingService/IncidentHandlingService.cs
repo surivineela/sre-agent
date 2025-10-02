@@ -35,6 +35,8 @@ public class IncidentHandlingRequestModel<TIncidentFilterDocumentPayload> : Inci
     public required string IncidentId { set; get; }
     public string? Severity { get; set; }
     public string? Source { get; set; }
+    public DateTimeOffset? CreatedTime { get; set; }
+    public string? ImpactedService { get; set; }
 }
 
 public class IncidentHandlingResponseModel
@@ -377,7 +379,15 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
                 source: ThreadSource.Incident,
                 incidentId: request.IncidentId ?? string.Empty,
                 threadType: isTest ? ThreadType.Test : ThreadType.Prod,
-                overrideAgentMode: incidentFilterDocument.AgentMode
+                overrideAgentMode: incidentFilterDocument.AgentMode,
+                incidentDetails: new IncidentDetails(
+                    request.Title ?? String.Empty,
+                    request.CreatedTime ?? new DateTimeOffset(),
+                    request.Severity ?? String.Empty,
+                    request.ImpactedService ?? String.Empty,
+                    request.IncidentFilter?.Id ?? String.Empty,
+                    request.IncidentHandler?.Id ?? String.Empty,
+                    InvestigationStatus.InProgress)
             );
 
             if (!string.IsNullOrEmpty(currentAgent))
@@ -609,7 +619,15 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
                     incidentId: incidentDetails.Id ?? string.Empty,
                     AllowedTools: incidentHandler.Tools,
                     threadType: request.IsTest ? ThreadType.Test : ThreadType.Prod,
-                    overrideAgentMode: incidentFilterDocument.AgentMode
+                    overrideAgentMode: incidentFilterDocument.AgentMode,
+                    incidentDetails: new IncidentDetails(
+                        title,
+                        incidentDetails.CreatedAt,
+                        incidentDetails.Priority ?? String.Empty,
+                        incidentDetails.ImpactedServiceName,
+                        incidentHandler.IncidentFilterId,
+                        incidentHandler.Id,
+                        InvestigationStatus.InProgress)
                 );
 
                 if (_experimentalSettings.UseYamlForIncidentHandling)

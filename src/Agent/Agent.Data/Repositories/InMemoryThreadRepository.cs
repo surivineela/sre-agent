@@ -117,6 +117,50 @@ namespace Agent.Data.Repositories
             return Task.FromResult(threads.AsEnumerable());
         }
 
+        private String GetIncidentStatus(Thread thread)
+        {
+            return thread.Status?.IncidentStatus?.Status ?? String.Empty;
+        }
+        private String GetInvestigationStatus(Thread thread)
+        {
+            return thread.IncidentDetails?.InvestigationStatus.ToString() ?? String.Empty;
+        }
+
+        public Task<IncidentThreadCounts> GetThreadsCountByStatusAsync(ODataQueryOptions? queryOptions = null)
+        {
+            // Query for thread documents
+            IQueryable<Thread> threads = _threads.Values.AsQueryable()
+                .Where(t => t.Source == ThreadSource.Incident)
+                .Where(t => t.Type == null || t.Type == ThreadType.Prod);
+
+
+
+            if (queryOptions is not null)
+            {
+                if (queryOptions.ApplyTo(threads) is IQueryable<Thread> filtered)
+                {
+                    threads = filtered;
+                }
+            }
+
+            // Group by incidentStatus and count
+            var incidentStatusCounts = threads
+                .GroupBy(t => GetIncidentStatus(t))
+                .ToDictionary(g => g.Key, g => g.Count(), StringComparer.OrdinalIgnoreCase)
+                .Select(kvp => new StatusCount(kvp.Key, kvp.Value))
+                .ToList();
+
+            var investigationStatusCounts = threads
+                .GroupBy(t => GetInvestigationStatus(t))
+                .ToDictionary(g => g.Key, g => g.Count(), StringComparer.OrdinalIgnoreCase)
+                .Select(kvp => new StatusCount(kvp.Key, kvp.Value))
+                .ToList();
+
+            var result = new IncidentThreadCounts(incidentStatusCounts, investigationStatusCounts);
+
+            return Task.FromResult<IncidentThreadCounts>(result);
+        }
+
         public Task<IEnumerable<Thread>> GetThreadsBySourceAsync(ODataQueryOptions? queryOptions = null, ThreadSource? source = null, IncidentType? incidentType = null, DateTime? createdAfter = null)
         {
             IQueryable<Thread> threads = _threads.Values.AsQueryable().OrderBy(t => t.CreatedTimestamp);

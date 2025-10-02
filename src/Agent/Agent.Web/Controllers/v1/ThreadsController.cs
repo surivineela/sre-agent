@@ -80,6 +80,15 @@ namespace Agent.Web.Controllers.v1
             return Ok(new PagedResponse<Thread>(threads));
         }
 
+        [HttpGet("threadsCountByStatus")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
+        public async Task<ActionResult<Dictionary<string, int>>> GetThreadsCountByStatusAsync(ODataQueryOptions<ThreadDocument> queryOptions)
+        {
+            var statusCounts = await repository.GetThreadsCountByStatusAsync(queryOptions);
+
+            return Ok(statusCounts);
+        }
+
         [HttpGet("{id}")]
         [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
         public async Task<ActionResult<Thread>> GetThread(Guid id)

@@ -118,9 +118,28 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                 // Update thread status if exists
                 try
                 {
+                    var needsUpsertForDetailsChange = false;
+                    var needsUpsertForResolvedStatus = false;
                     var existingThreadDocument = await GetIncidentThread(incidentDocument.Id);
                     if (existingThreadDocument is not null)
                     {
+                        if (existingThreadDocument.IncidentDetails != null)
+                        {
+                            if (existingThreadDocument.IncidentDetails.IncidentTitle != incidentDocument.Title || existingThreadDocument.IncidentDetails.IncidentPriority != incidentDocument.Priority)
+                            {
+                                var updatedIncidentDetails = new IncidentDetails(
+                                    incidentDocument.Title,
+                                    existingThreadDocument.IncidentDetails.IncidentCreatedTime,
+                                    incidentDocument.Priority,
+                                    existingThreadDocument.IncidentDetails.ImpactedService,
+                                    existingThreadDocument.IncidentDetails.FilterId,
+                                    existingThreadDocument.IncidentDetails.HandlerId,
+                                    InvestigationStatus.Complete);
+                                existingThreadDocument.IncidentDetails = updatedIncidentDetails;
+                                needsUpsertForDetailsChange = true;
+                            }
+                        }
+
                         if (existingThreadDocument.IncidentStatus != "resolved")
                         {
                             // Log agent action event for incident resolution only when status changes
@@ -154,9 +173,31 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                             }
 
                             existingThreadDocument.IncidentStatus = "resolved";
-                            logger.LogInternalInformation("Updating thread status to resolved for incident {incidentId}", incidentDocument.Id);
+                            needsUpsertForResolvedStatus = true;
+                        }
+
+                        if (needsUpsertForDetailsChange || needsUpsertForResolvedStatus)
+                        {
+                            if (needsUpsertForDetailsChange)
+                            {
+                                logger.LogInternalInformation("Title or priority changed for PagerDuty incident {incidentId}", incidentDocument.Id);
+                                logger.LogInternalInformation("Updating incident title or priority on PagerDuty incident thread {threadId}", existingThreadDocument.Id);
+                            }
+                            if (needsUpsertForResolvedStatus)
+                            {
+                                logger.LogInternalInformation("Updating thread status to resolved for PagerDuty incident {incidentId}", incidentDocument.Id);
+                            }
+
                             await container.UpsertItemAsync(existingThreadDocument, new PartitionKey(existingThreadDocument.Id));
-                            logger.LogInternalInformation("Updated thread status to resolved for incident {incidentId}", incidentDocument.Id);
+
+                            if (needsUpsertForDetailsChange)
+                            {
+                                logger.LogInternalInformation("Updated incident title or priority on PagerDuty incident thread {threadId}", existingThreadDocument.Id);
+                            }
+                            if (needsUpsertForResolvedStatus)
+                            {
+                                logger.LogInternalInformation("Updated thread status to resolved for PagerDuty incident {incidentId}", incidentDocument.Id);
+                            }
                         }
                     }
                 }
@@ -176,12 +217,37 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                     IncidentId = incidentDocument.Id,
                     Title = incidentDocument.Title,
                     Description = incidentDocument.Description,
-                    Severity = incidentDocument.Priority
+                    Severity = incidentDocument.Priority,
+                    CreatedTime = incidentDocument.CreatedAt,
+                    ImpactedService = incidentDocument.ImpactedServiceName,
+                    IncidentFilter = null,
+                    IncidentHandler = null
                 });
             }
             else
             {
                 logger.LogInternalInformation("Thread already exists for incident {incidentId}, checking whether it needs to be updated", incidentDocument.Id);
+
+                if (threadDocument.IncidentDetails != null)
+                {
+                    if (threadDocument.IncidentDetails.IncidentTitle != incidentDocument.Title || threadDocument.IncidentDetails.IncidentPriority != incidentDocument.Priority)
+                    {
+                        var updatedIncidentDetails = new IncidentDetails(
+                            incidentDocument.Title,
+                            threadDocument.IncidentDetails.IncidentCreatedTime,
+                            incidentDocument.Priority,
+                            threadDocument.IncidentDetails.ImpactedService,
+                            threadDocument.IncidentDetails.FilterId,
+                            threadDocument.IncidentDetails.HandlerId,
+                            threadDocument.IncidentDetails.InvestigationStatus);
+                        threadDocument.IncidentDetails = updatedIncidentDetails;
+                        logger.LogInternalInformation("Title or priority changed for PagerDuty incident {incidentId}", incidentDocument.Id);
+                        logger.LogInternalInformation("Updating incident title or priority on PagerDuty incident thread {threadId}", threadDocument.Id);
+                        await container.UpsertItemAsync(threadDocument, new PartitionKey(threadDocument.Id));
+                        logger.LogInternalInformation("Updated incident title or priority on PagerDuty incident thread {threadId}", threadDocument.Id);
+                    }
+                }
+
                 // todo
                 var iterator = container.GetItemLinqQueryable<MessageDocument>()
                     .Where(doc => doc.DocumentType == "Message" && doc.ThreadId == threadDocument.Id)
@@ -189,6 +255,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                     .Select(doc => doc.IncidentDiscussionId!)
                     .ToFeedIterator();
                 // .ToHashSet();
+
                 var existingNotesIds = new HashSet<string>();
                 while (iterator.HasMoreResults)
                 {

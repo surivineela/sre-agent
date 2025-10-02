@@ -35,7 +35,8 @@ public interface IAgentInboundCommunicationService
         bool isDailyReport = false,
         List<string>? AllowedTools = null,
         ThreadType threadType = ThreadType.Prod,
-        string overrideAgentMode = "");
+        string overrideAgentMode = "",
+        IncidentDetails? incidentDetails = null);
 
     /// <summary>
     /// Used for alert scenarios, where we need to create a new thread for an agent to work from,

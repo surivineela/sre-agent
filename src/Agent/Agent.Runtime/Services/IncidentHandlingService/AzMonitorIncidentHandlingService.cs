@@ -632,13 +632,22 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         var serializedAlertData = JsonSerializer.Serialize(alertData);
         var alertDataBlock = $"```incident-alert\n{serializedAlertData}\n```\n";
 
+        var title = $"[{severity}] [{targetResourceId?.Name ?? string.Empty}] {alertRuleName.Name}";
         (var thread, var agentContext) = await _inboundCommunicationService.CreateAgentThread(
-            title: $"Incident Alert - [{severity}] [{targetResourceId?.Name ?? string.Empty}] {alertRuleName.Name}",
+            title: $"Azure Monitor Alert - {title}",
             message: alertDataBlock,
             agentTypeEnum: AgentTypeEnum.Meta,
             source: ThreadSource.Incident,
             incidentId: alertIdResource.Name, // Alert GUID (unique every time a new alert is fired)
-            incidentSource: new IncidentSource(IncidentType.AzMonitor, alertRule)
+            incidentSource: new IncidentSource(IncidentType.AzMonitor, alertRule),
+            incidentDetails: new IncidentDetails(
+                title,
+                startDateTime,
+                severity,
+                String.Empty,
+                String.Empty,
+                String.Empty,
+                InvestigationStatus.InProgress)
         );
 
         // Emit agent action telemetry for thread creation with incident source AzMonitor
@@ -780,7 +789,15 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
             incidentId: alertIdResource.Name,
             incidentSource: new IncidentSource(IncidentType.AzMonitor, alertRule),
             AllowedTools: handlerDoc.Tools,
-            overrideAgentMode: filterPayload?.AgentMode ?? ""
+            overrideAgentMode: filterPayload?.AgentMode ?? "",
+            incidentDetails: new IncidentDetails(
+                title,
+                startDateTime,
+                severity,
+                String.Empty,
+                handlerDoc.IncidentFilterId,
+                handlerDoc.Id,
+                InvestigationStatus.InProgress)
         );
 
         // Update agent context for YAML mode

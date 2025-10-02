@@ -74,9 +74,11 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         bool isDailyReport = false,
         List<string>? AllowedTools = null,
         ThreadType threadMode = ThreadType.Prod,
-        string overrideAgentMode = "")
+        string overrideAgentMode = "",
+        IncidentDetails? incidentDetails = null
+        )
     {
-        return await CreateAgentInitiatedThread(title, message, source, agentTypeEnum, incidentId: incidentId, incidentSource: incidentSource, isDailyReport: isDailyReport, AllowedTools: AllowedTools, threadType: threadMode, overrideAgentMode: overrideAgentMode);
+        return await CreateAgentInitiatedThread(title, message, source, agentTypeEnum, incidentId: incidentId, incidentSource: incidentSource, isDailyReport: isDailyReport, AllowedTools: AllowedTools, threadType: threadMode, overrideAgentMode: overrideAgentMode, incidentDetails: incidentDetails);
     }
 
     public async Task<Core.Models.Api.v1.Thread> CreateAlertThreadWithTeams(
@@ -298,7 +300,9 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         bool isDailyReport = false,
         List<string>? AllowedTools = null,
         ThreadType threadType = ThreadType.Prod,
-        string overrideAgentMode = "")
+        string overrideAgentMode = "",
+        IncidentDetails? incidentDetails = null
+        )
     {
         var now = DateTime.UtcNow;
         var startMessage = new Message(
@@ -321,7 +325,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             FeatureConfig: null,  // will be populated when reasoning loop is created
             Source: source,
             IncidentSource: incidentSource,
-            Type: threadType
+            Type: threadType,
+            IncidentDetails: incidentDetails
         );
 
         if (incidentId != string.Empty)

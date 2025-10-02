@@ -34,11 +34,28 @@ namespace Agent.Core.Models.Api.v1
         Test  // For testing purposes, Agent will run in Readonly mode
     }
 
+    public enum InvestigationStatus
+    {
+        InProgress,
+        PendingUserInput,
+        Complete
+    }
+
     public sealed record IncidentSource(
         IncidentType IncidentType,
         string IncidentId);
 
-    //Theread type: PROD/TEST
+    public sealed record IncidentDetails(
+        string IncidentTitle,
+        DateTimeOffset IncidentCreatedTime,
+        string IncidentPriority,
+        string ImpactedService,
+        string FilterId,
+        string HandlerId,
+        InvestigationStatus InvestigationStatus
+    );
+
+    //Thread type: PROD/TEST
     public record Thread(
         Guid Id,
         string Title,
@@ -52,7 +69,8 @@ namespace Agent.Core.Models.Api.v1
         DateTime? WaitUntil = null,
         IncidentSource? IncidentSource = null,
         ThreadType? Type = ThreadType.Prod,
-        IEnumerable<AgentTaskShort>? AgentTasks = null
+        IEnumerable<AgentTaskShort>? AgentTasks = null,
+        IncidentDetails? IncidentDetails = null
     )
     {
         public Status? Status { get; set; } = null;
