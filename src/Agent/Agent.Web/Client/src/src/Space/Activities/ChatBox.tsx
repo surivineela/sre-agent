@@ -201,7 +201,7 @@ export const ChatBox = ({
                             stylesProps={agentTaskStyleProps}
                         />
                     )}
-                    {!hasExistingTasks && <TodoPlanManager drawerState={todoPlanDrawer} />}
+                    {!hasExistingTasks && todoPlanDrawer && <TodoPlanManager drawerState={todoPlanDrawer} />}
                 </div>
             </ThreadAgentModeContext.Provider>
         </ChatBoxContext.Provider>
