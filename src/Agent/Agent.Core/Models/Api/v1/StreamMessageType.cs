@@ -71,9 +71,14 @@ public enum StreamMessageType
     ChangeDiff,
 
     /// <summary>
-    /// Agent Task/Deep investigation message card   
+    /// Agent Task/Deep investigation message card
     /// </summary>
     DeepInvestigation,
+
+    /// <summary>
+    /// Todo Plan message card
+    /// </summary>
+    TodoPlan,
 
     /// <summary>
     /// Status update for an incident, re-reported when an incident appears

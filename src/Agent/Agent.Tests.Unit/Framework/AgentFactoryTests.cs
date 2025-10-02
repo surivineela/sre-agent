@@ -327,6 +327,14 @@ public class TestReadOnlyPrompt : IPromptDescriptor
     public string Prompt { get; set; } = PromptText;
 }
 
+public class TestTodoWritePrompt : IPromptDescriptor
+{
+    public const string PromptText = "# Task Management\nYou have access to the TodoWrite tool to help you manage and plan operational tasks.";
+
+    public string Name { get; set; } = "todo_write";
+    public string Prompt { get; set; } = PromptText;
+}
+
 [AgentToolPlugin]
 internal class TestTools
 {

@@ -60,6 +60,12 @@ export const ThreadContentStyles = mergeStyleSets({
         paddingBottom: '-10px',
         marginBlock: '0px 0px',
     },
+    todoPlanContainer: {
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        borderLeft: `1px solid ${tokens.colorNeutralStroke2}`,
+    },
 });
 
 export const useChatBoxStyles = makeStyles({

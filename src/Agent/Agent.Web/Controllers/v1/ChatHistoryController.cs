@@ -2,14 +2,9 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Text.Json;
 using Agent.Core.Interfaces;
-using Agent.Core.Models.Api.v1;
-using Agent.Logging;
 using Agent.Runtime.Reasoning;
-using Agent.Runtime.TeamsChatServices;
 using Microsoft.AspNetCore.Mvc;
-using Agent.Web.Authorization;
 
 namespace Agent.Web.Controllers.v1
 {

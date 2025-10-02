@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { Thread, ThreadSource } from '../Contracts/DataPlane/Thread';
+import { TodoPlan } from '../Contracts/DataPlane/TodoPlan';
 import { getAgentHeaders } from '../Helpers/headers';
 import { DataPlaneClient, Response } from './DataPlaneClient.ts';
 import { MessagePostOptions } from './MessageClient.ts';
@@ -411,6 +412,23 @@ export class ThreadClient extends DataPlaneClient {
             return {
                 isSuccessful: true,
                 content: response.data,
+            };
+        } catch (e) {
+            return {
+                isSuccessful: false,
+                error: e,
+            };
+        }
+    };
+
+    public getTodoPlans = async (threadId: string): Promise<Response<TodoPlan[]>> => {
+        try {
+            const { data } = await axios.get(this.getRequestUrl(`/api/v1/threads/${threadId}/todo-plans`), {
+                headers: getAgentHeaders(),
+            });
+            return {
+                isSuccessful: true,
+                content: data.value ?? [],
             };
         } catch (e) {
             return {

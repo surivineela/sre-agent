@@ -1,3 +1,5 @@
+import { Button, Tooltip, tokens } from '@fluentui/react-components';
+import { TaskListLtr20Regular } from '@fluentui/react-icons';
 import { Text } from '@fluentui/react-text';
 import { memo, useCallback, useContext, useEffect, useState } from 'react';
 import { FormattedMessage } from 'react-intl';
@@ -11,7 +13,15 @@ import { ThreadContentStyles } from '../Styles/Activities.styles';
 import ThreadActionsMenu from './ThreadActionsMenu';
 import { isFinalStreamingMessage, parseThreadFromStreamingText } from './Utility';
 
-const ThreadContentTitle = ({ thread, deleteThread }: { thread: Thread | null | undefined; deleteThread: (thread: Thread) => void }) => {
+const ThreadContentTitle = ({
+    thread,
+    deleteThread,
+    hasExistingPlans,
+}: {
+    thread: Thread | null | undefined;
+    deleteThread: (thread: Thread) => void;
+    hasExistingPlans: boolean;
+}) => {
     const [latestThread, setLatestThread] = useState<Thread | null | undefined>(thread);
     const { activeThreadId } = useContext(AgentContext);
     const { subscribeThreadUpdateEvent, subscribeMessageUpdateEvent } = useContext(StreamingContext);
@@ -73,11 +83,45 @@ const ThreadContentTitle = ({ thread, deleteThread }: { thread: Thread | null | 
         }
     }, [latestThread?.id, activeThreadId]);
 
+    const threadId = latestThread?.id ?? null;
+
     return (
         <div className={ThreadContentStyles.titleContainer}>
             <ThreadTitleText title={latestThread?.title} />
             {latestThread && <ThreadActionsMenu thread={latestThread} handleThreadDelete={handleThreadDelete} />}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: 'auto' }}>
+                {threadId && hasExistingPlans && <HeaderTodoToggleButton />}
+            </div>
         </div>
+    );
+};
+
+const HeaderTodoToggleButton = () => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    useEffect(() => {
+        const onState = (e: Event) => {
+            const ce = e as CustomEvent<{ open: boolean }>;
+            setIsOpen(!!ce.detail?.open);
+        };
+        window.addEventListener('todo-plan-state', onState as EventListener);
+        return () => window.removeEventListener('todo-plan-state', onState as EventListener);
+    }, []);
+
+    const tooltip = isOpen ? 'Close Todo Plans' : 'Open Todo Plans';
+
+    return (
+        <Tooltip content={tooltip} relationship="label">
+            <Button
+                aria-label={tooltip}
+                aria-pressed={isOpen}
+                icon={<TaskListLtr20Regular />}
+                appearance={'subtle'}
+                shape="circular"
+                onClick={() => window.dispatchEvent(new Event('toggle-todo-plan'))}
+                style={{ color: tokens.colorNeutralForeground2 }}
+            />
+        </Tooltip>
     );
 };
 

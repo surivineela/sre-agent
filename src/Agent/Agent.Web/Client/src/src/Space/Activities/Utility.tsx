@@ -812,7 +812,8 @@ export const isChatMessageEmpty = (message?: ChatMessage | null): boolean => {
             !!content.azCliExecution ||
             !!content.kubectlExecution ||
             !!content.psqlExecution ||
-            !!content.memorySearchResult
+            !!content.memorySearchResult ||
+            !!content.todoInfo
         );
     });
 };
@@ -838,6 +839,7 @@ export const convertMessageToChatMessage = (message: Message): ChatMessage => {
                 changeDiff: message.changeDiff,
                 agentTaskInfo: message.agentTaskInfo,
                 memorySearchResult: message.memorySearchResult,
+                todoInfo: message.todoInfo,
             },
         ],
     };

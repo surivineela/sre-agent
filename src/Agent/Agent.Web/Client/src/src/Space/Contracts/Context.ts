@@ -4,6 +4,7 @@ import { ArmObj } from '../../Common/Contracts/Azure/ArmObj';
 import { Agent, AgentAccessLevel, IncidentManagementType } from '../../Common/Contracts/Azure/SreAgent';
 import { AgentTaskMetaData, InvestigationTreeNodeStatus } from '../../Common/Contracts/DataPlane/AgentTask';
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
+import { TodoInfo } from '../../Common/Contracts/DataPlane/TodoInfo';
 import { AgentContextProps, ChatMessage } from './Activities';
 
 type SreAgentContextProps = {
@@ -69,6 +70,7 @@ type StreamingContextProps = {
 type ChatBoxContextProps = {
     getGroupedChatMessages: (message: ChatMessage, isStreamingMessage?: boolean) => ChatMessage[];
     openAgentTask: (agentTask: AgentTaskMetaData) => void;
+    openTodoPlan: (todoPlan: TodoInfo) => void;
 };
 
 type ThreadAgentModeContextProps = {
@@ -160,6 +162,7 @@ export const StreamingContext = createContext<StreamingContextProps>({
 export const ChatBoxContext = createContext<ChatBoxContextProps>({
     getGroupedChatMessages: (_message: ChatMessage, _isStreamingMessage?: boolean) => [],
     openAgentTask: (_agentTask: AgentTaskMetaData) => {},
+    openTodoPlan: (_todoPlan: TodoInfo) => {},
 });
 
 export const ThreadAgentModeContext = createContext<ThreadAgentModeContextProps>({

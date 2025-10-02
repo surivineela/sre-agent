@@ -8,6 +8,7 @@ export type StreamingMessageType =
     | 'psql'
     | 'taskupdate'
     | 'memorysearch'
+    | 'todoplan'
     | null;
 
 export enum MessageRequestType {

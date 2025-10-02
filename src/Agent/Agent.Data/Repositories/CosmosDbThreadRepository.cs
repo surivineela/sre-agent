@@ -2692,7 +2692,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
     public async Task<PsqlExecution?> GetPsqlExecutionAsync(Guid threadId, Guid executionId)
     {
-         try
+        try
         {
             string threadIdStr = threadId.ToString();
             string executionIdStr = executionId.ToString();
@@ -2766,7 +2766,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
     public async Task<PsqlExecution?> ListPendingPsqlExecutionAsync(Guid threadId)
     {
-         try
+        try
         {
             string threadIdStr = threadId.ToString();
             var pendingExecutions = new List<PsqlExecution>();
@@ -3173,6 +3173,84 @@ public class CosmosDbThreadRepository : IThreadRepository
     }
 
     #endregion
+
+    #endregion
+
+    #region Todo Plan Operations
+
+    public async Task<IReadOnlyList<TodoPlan>> GetTodoPlansAsync(Guid threadId)
+    {
+        _logger.LogInternalInformation("Getting todo plans for thread: {ThreadId}", threadId);
+
+        var results = new List<TodoPlan>();
+        string threadIdStr = threadId.ToString();
+
+        var query = _client.GetContainer<TodoPlanDocument>(_databaseName)
+            .GetItemLinqQueryable<TodoPlanDocument>()
+            .Where(p => p.DocumentType == "TodoPlan" && p.ThreadId == threadIdStr)
+            .OrderByDescending(p => p.CreatedAt);
+
+        using var iterator = query.ToFeedIterator();
+        while (iterator.HasMoreResults)
+        {
+            foreach (var planDoc in await iterator.ReadNextAsync())
+            {
+                results.Add(planDoc.ToDomainModel());
+            }
+        }
+
+        return results;
+    }
+
+    public async Task<TodoPlan?> GetTodoPlanAsync(Guid threadId, Guid planId)
+    {
+        _logger.LogInternalInformation("Getting todo plan {PlanId} for thread: {ThreadId}", planId, threadId);
+        try
+        {
+            string threadIdStr = threadId.ToString();
+            string planIdStr = planId.ToString();
+
+            TodoPlanDocument? planDoc = await GetDocumentAsync<TodoPlanDocument>(planIdStr, threadIdStr);
+            return planDoc?.ToDomainModel();
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public async Task<TodoPlan> CreateTodoPlanAsync(TodoPlan plan)
+    {
+        _logger.LogInternalInformation("Creating todo plan: {PlanId} for thread: {ThreadId}", plan.Id, plan.ThreadId);
+
+        var planToStore = plan;
+        if (plan.Id == Guid.Empty)
+        {
+            planToStore = plan with { Id = Guid.NewGuid() };
+        }
+
+        if (planToStore.CreatedAt == default)
+        {
+            planToStore = planToStore with { CreatedAt = DateTime.UtcNow };
+        }
+
+        var document = TodoPlanDocument.FromDomainModel(planToStore);
+        await _client.GetContainer<TodoPlanDocument>(_databaseName).CreateItemAsync(document, new PartitionKey(document.PartitionKey));
+
+        return planToStore;
+    }
+
+    public async Task<TodoPlan> UpdateTodoPlanAsync(TodoPlan plan)
+    {
+        _logger.LogInternalInformation("Updating todo plan: {PlanId} for thread: {ThreadId}", plan.Id, plan.ThreadId);
+
+        var planToStore = plan with { LastUpdated = DateTime.UtcNow };
+
+        var document = TodoPlanDocument.FromDomainModel(planToStore);
+        await _client.GetContainer<TodoPlanDocument>(_databaseName).UpsertItemAsync(document, new PartitionKey(document.PartitionKey));
+
+        return planToStore;
+    }
 
     #endregion
 }

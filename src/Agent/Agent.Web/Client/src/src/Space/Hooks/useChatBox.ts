@@ -7,6 +7,7 @@ import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalPr
 import { AgentTaskMetaData } from '../../Common/Contracts/DataPlane/AgentTask';
 import { Approval, AzCliExecution, KubectlExecution, MemorySearchResult, PsqlExecution } from '../../Common/Contracts/DataPlane/Message';
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
+import { TodoInfo } from '../../Common/Contracts/DataPlane/TodoInfo';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
 import { MessageCreateRequest } from '../../Common/Providers/StreamingProvider';
@@ -335,9 +336,10 @@ export const useChatBox = (
         const azCliExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'azcli');
         const kubectlExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'kubectl');
         const memorySearchResult = getSpecialMessageContentFromStreamingMessage<MemorySearchResult>(streamingMessage, 'memorysearch');
+        const todoInfo = getSpecialMessageContentFromStreamingMessage<TodoInfo>(streamingMessage, 'todoplan');
         const psqlExecution = getSpecialMessageContentFromStreamingMessage<PsqlExecution>(streamingMessage, 'psql');
         const text =
-            messageContent?.text && !approval && !azCliExecution && !kubectlExecution && !memorySearchResult && !psqlExecution
+            messageContent?.text && !approval && !azCliExecution && !kubectlExecution && !memorySearchResult && !psqlExecution && !todoInfo
                 ? messageContent.text
                 : '';
         const agentTaskInfo = getSpecialMessageContentFromStreamingMessage<AgentTaskMetaData>(streamingMessage, 'taskupdate');
@@ -359,6 +361,7 @@ export const useChatBox = (
             psqlExecution,
             memorySearchResult,
             agentTaskInfo,
+            todoInfo,
             isDailyReport: false,
         };
 

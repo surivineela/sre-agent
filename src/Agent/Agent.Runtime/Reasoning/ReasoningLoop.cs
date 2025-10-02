@@ -27,6 +27,7 @@ using Agent.Runtime.SubAgents.Core;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
+using TodoItem = Agent.Core.Models.Api.v1.TodoItem;
 
 namespace Agent.Runtime.Reasoning;
 
@@ -75,6 +76,9 @@ public class ReasoningLoop : IDisposable
     private readonly SemaphoreSlim _semaphore = new(initialCount: 1, maxCount: 1);
     private bool _disposed = false;
 
+    // Store todo arguments for processing in OnToolEnd
+    private IEnumerable<KeyValuePair<string, object?>>? _currentTodoArguments = null;
+
     // Retry configuration
     private const int MaxRetryAttempts = 3;
 
@@ -82,7 +86,7 @@ public class ReasoningLoop : IDisposable
     private const int MaxIterations = 10;
     private readonly IAgentMemoryClient _agentMemoryClient;
     private readonly ISearchIndexService _searchIndexService;
-    private static readonly TimeSpan[] RetryDelays = { TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1) };
+    private static readonly TimeSpan[] RetryDelays = [TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1)];
 
     private static readonly JsonSerializerOptions _toolArgumentsJsonOptions = new()
     {
@@ -1231,6 +1235,12 @@ public class ReasoningLoop : IDisposable
                 subAgentName: agent.Name,
                 featureConfig: WebJsonSerializer.Serialize(_featureConfig));
 
+            // Store todo arguments if this is a ToDoWrite tool
+            if (tool.Name == ToDoWriteTool.ToolName)
+            {
+                _currentTodoArguments = input;
+            }
+
             // Stream auto tools to avoid missing them (manual tools are handled separately)
             if (tool.GetToolMode() == ToolMode.Auto)
             {
@@ -1270,6 +1280,14 @@ public class ReasoningLoop : IDisposable
             }
 
             LogToolExecution(tool, output);
+
+            // Handle todo plan persistence and streaming if this was a ToDoWrite tool
+            if (tool.Name == ToDoWriteTool.ToolName && _currentTodoArguments != null)
+            {
+                var currentTodoArgument = _currentTodoArguments;
+                _ = Task.Run(async () => await ProcessTodoPersistenceAndStreamingAsync(currentTodoArgument, _context.ThreadId));
+                _currentTodoArguments = null; // Clear for next tool
+            }
         };
 
         hooks.ModelGenerationStart += (context, agent, messages, chatOptions) =>
@@ -2497,6 +2515,244 @@ public class ReasoningLoop : IDisposable
             // Unknown modifier, pass to main loop
             return new ModificationResult { PassToMainLoop = true };
         }
+    }
+
+    private async Task ProcessTodoPersistenceAndStreamingAsync(IEnumerable<KeyValuePair<string, object?>> todoArguments, Guid threadId)
+    {
+        if (_threadRepository == null || todoArguments == null)
+        {
+            _logger.LogInternalWarning("Skipping todo processing: HasThreadRepository={HasRepo}, HasArguments={HasArgs}",
+                _threadRepository != null, todoArguments != null);
+            return;
+        }
+
+        try
+        {
+            // Extract todos argument
+            if (!todoArguments.Any(kvp => kvp.Key == "todos"))
+                return;
+
+            var todosObj = todoArguments.First(kvp => kvp.Key == "todos").Value;
+            if (todosObj == null)
+                return;
+
+            string serializedTodos;
+            if (todosObj is JsonElement element)
+            {
+                serializedTodos = element.GetRawText();
+            }
+            else
+            {
+                serializedTodos = JsonSerializer.Serialize(todosObj, AIJsonUtilities.DefaultOptions);
+            }
+
+            var frameworkTodos = JsonSerializer.Deserialize<List<FrameworkTodoItem>>(serializedTodos, AIJsonUtilities.DefaultOptions);
+            if (frameworkTodos == null || frameworkTodos.Count == 0)
+                return;
+
+            var todoItems = frameworkTodos.Select((item, index) => new TodoItem
+            {
+                Content = item.Content,
+                ActiveForm = item.ActiveForm,
+                Status = ConvertToTodoItemStatus(item.Status),
+                Order = index,
+                StartedAt = item.Status == "in_progress" ? DateTime.UtcNow : null,
+                CompletedAt = item.Status == "completed" ? DateTime.UtcNow : null
+            }).ToList();
+
+            // Find existing todo plan with same content
+            var existingPlan = await FindTodoPlanWithSameContentAsync(todoItems, threadId, _threadRepository);
+
+            TodoPlan todoPlan;
+            TodoPlanUpdateType updateType;
+
+            if (existingPlan == null)
+            {
+                // Create new todo plan
+                todoPlan = CreateTodoPlanFromItems(todoItems, threadId);
+                await _threadRepository.CreateTodoPlanAsync(todoPlan);
+                updateType = TodoPlanUpdateType.Created;
+            }
+            else
+            {
+                // Update existing plan
+                todoPlan = UpdateExistingPlan(existingPlan, todoItems);
+                await _threadRepository.UpdateTodoPlanAsync(todoPlan);
+                updateType = DetermineUpdateType(existingPlan, todoPlan);
+            }
+
+            // Create and stream TodoInfo message for TodoPlan chat card (only for new plans)
+            if (updateType == TodoPlanUpdateType.Created)
+            {
+                _logger.LogInternalInformation("Creating TodoInfo message for new TodoPlan {TodoPlanId} in thread {ThreadId}", todoPlan.Id, threadId);
+
+                var todoInfo = new TodoInfo(
+                    todoPlan.Id,
+                    todoPlan.Title,
+                    todoPlan.Status,
+                    todoPlan.LastUpdated,
+                    todoPlan.TriggerMessageId
+                );
+
+                // Serialize TodoInfo for message
+                var options = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+                {
+                    Converters = { new JsonStringEnumConverter() }
+                };
+                var todoInfoJson = JsonSerializer.Serialize(todoInfo, options);
+                ChatMessage message = new ChatMessage(ChatRole.User, todoInfoJson);
+
+                _logger.LogInternalInformation("Streaming TodoInfo message with type TodoPlan for thread {ThreadId}, messageId {MessageId}", threadId, todoPlan.TriggerMessageId);
+
+                // Stream the TodoInfo message with TodoPlan type for frontend processing
+                await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                    threadId,
+                    string.Empty,
+                    message: message,
+                    agentTaskInfo: null,
+                    todoInfo: todoInfo,
+                    messageId: todoPlan.TriggerMessageId,
+                    type: StreamMessageType.TodoPlan
+                );
+
+                _logger.LogInternalInformation("Successfully streamed TodoInfo message for TodoPlan {TodoPlanId}", todoPlan.Id);
+            }
+            else
+            {
+                _logger.LogInternalInformation("Skipping TodoInfo streaming for TodoPlan {TodoPlanId} - updateType: {UpdateType}", todoPlan.Id, updateType);
+            }
+
+            _logger.LogInternalInformation("Successfully processed todo plan persistence and streaming for thread {ThreadId}", threadId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to process todo plan persistence and streaming for thread {ThreadId}", threadId);
+        }
+    }
+
+    private static async Task<TodoPlan?> FindTodoPlanWithSameContentAsync(List<TodoItem> newTodoItems, Guid threadId, IThreadRepository threadRepository)
+    {
+        var existingPlans = await threadRepository.GetTodoPlansAsync(threadId);
+
+        foreach (var plan in existingPlans)
+        {
+            // Compare todo items by content with overlap threshold
+            var existingContents = plan.Items.Select(item => item.Content).ToList();
+            var newContents = newTodoItems.Select(item => item.Content).ToList();
+
+            // Calculate overlap: how many existing items appear in new content
+            var matchCount = existingContents.Count(e => newContents.Contains(e));
+            var overlapPercentage = (double)matchCount / Math.Min(existingContents.Count, newContents.Count);
+
+            // At least 1 match AND 40%+ overlap = same plan
+            if (matchCount >= 1 && overlapPercentage >= 0.4)
+            {
+                return plan;
+            }
+        }
+
+        return null;
+    }
+
+    private static TodoPlan CreateTodoPlanFromItems(List<TodoItem> todoItems, Guid threadId)
+    {
+        var now = DateTime.UtcNow;
+        var title = GeneratePlanTitle(todoItems);
+
+        return new TodoPlan
+        {
+            Id = Guid.NewGuid(),
+            Title = title,
+            ThreadId = threadId,
+            TriggerMessageId = ToolStatic.AsyncLocalToolCallMessageId.Value ?? Guid.NewGuid(),
+            Status = DeterminePlanStatus(todoItems),
+            Items = todoItems,
+            CreatedAt = now,
+            LastUpdated = now
+        };
+    }
+
+    private static TodoPlan UpdateExistingPlan(TodoPlan existingPlan, List<TodoItem> newTodoItems)
+    {
+        var now = DateTime.UtcNow;
+
+        var updatedItems = newTodoItems.Select((item, index) => new TodoItem
+        {
+            Content = item.Content,
+            ActiveForm = item.ActiveForm,
+            Status = item.Status,
+            Order = index,
+            StartedAt = item.Status == TodoItemStatus.InProgress ? now : existingPlan.Items.ElementAtOrDefault(index)?.StartedAt,
+            CompletedAt = item.Status == TodoItemStatus.Completed ? now : existingPlan.Items.ElementAtOrDefault(index)?.CompletedAt
+        }).ToList();
+
+        return existingPlan with
+        {
+            Items = updatedItems,
+            Status = DeterminePlanStatus(updatedItems),
+            LastUpdated = now
+        };
+    }
+
+    private static TodoPlanUpdateType DetermineUpdateType(TodoPlan oldPlan, TodoPlan newPlan)
+    {
+        if (newPlan.Status == TodoPlanStatus.Completed && oldPlan.Status != TodoPlanStatus.Completed)
+            return TodoPlanUpdateType.Completed;
+
+        // Check if any item status changed
+        var oldItems = oldPlan.Items.ToList();
+        var newItems = newPlan.Items.ToList();
+
+        for (int i = 0; i < Math.Min(oldItems.Count, newItems.Count); i++)
+        {
+            if (oldItems[i].Status != newItems[i].Status)
+                return TodoPlanUpdateType.ItemStatusChanged;
+        }
+
+        return TodoPlanUpdateType.Updated;
+    }
+
+    private static string GeneratePlanTitle(List<TodoItem> todoItems)
+    {
+        if (todoItems.Count == 0)
+            return "Todo Plan";
+
+        var firstItem = todoItems.First().Content;
+
+        return firstItem;
+    }
+
+    private static TodoItemStatus ConvertToTodoItemStatus(string status)
+    {
+        return status switch
+        {
+            "pending" => TodoItemStatus.Pending,
+            "in_progress" => TodoItemStatus.InProgress,
+            "completed" => TodoItemStatus.Completed,
+            _ => TodoItemStatus.Pending
+        };
+    }
+
+    private static TodoPlanStatus DeterminePlanStatus(List<TodoItem> todoItems)
+    {
+        if (todoItems.Count == 0)
+            return TodoPlanStatus.Planning;
+
+        if (todoItems.All(item => item.Status == TodoItemStatus.Completed))
+            return TodoPlanStatus.Completed;
+
+        if (todoItems.Any(item => item.Status == TodoItemStatus.InProgress))
+            return TodoPlanStatus.InProgress;
+
+        return TodoPlanStatus.Planning;
+    }
+
+    // Helper class to deserialize framework todo format
+    private class FrameworkTodoItem
+    {
+        public string Content { get; set; } = string.Empty;
+        public string ActiveForm { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
     }
 
     public void Dispose()

@@ -94,9 +94,9 @@ namespace Agent.Web.Controllers.v1
                 {
                     using var stream = file.OpenReadStream();
                     using var reader = new StreamReader(stream);
-                    
+
                     string content = await reader.ReadToEndAsync();
-                    
+
                     UserDocument doc = new UserDocument()
                     {
                         Id = indexIdString,
@@ -329,7 +329,7 @@ namespace Agent.Web.Controllers.v1
         {
             // Remove invalid chars, trim, and ensure length is valid for Azure Blob Storage
             // Azure blob names cannot contain: \, /, ?, #, and must be between 1 and 1024 chars
-            
+
             var safeName = new string(fileName.Where(ch => !InvalidChars.Contains(ch)).ToArray());
             safeName = safeName.Trim().TrimEnd('.');
             if (safeName.Length == 0 || safeName.Length > 1024)

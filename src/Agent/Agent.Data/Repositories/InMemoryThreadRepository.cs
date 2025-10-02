@@ -1244,5 +1244,28 @@ namespace Agent.Data.Repositories
         }
 
         #endregion
+
+        #region Todo Plan Operations
+        // Todo plan methods - basic in-memory implementation for testing
+        public Task<IReadOnlyList<TodoPlan>> GetTodoPlansAsync(Guid threadId)
+        {
+            return Task.FromResult<IReadOnlyList<TodoPlan>>([]);
+        }
+
+        public Task<TodoPlan?> GetTodoPlanAsync(Guid threadId, Guid planId)
+        {
+            return Task.FromResult<TodoPlan?>(null);
+        }
+
+        public Task<TodoPlan> CreateTodoPlanAsync(TodoPlan plan)
+        {
+            return Task.FromResult(plan);
+        }
+
+        public Task<TodoPlan> UpdateTodoPlanAsync(TodoPlan plan)
+        {
+            return Task.FromResult(plan);
+        }
+        #endregion
     }
 }

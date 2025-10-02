@@ -446,6 +446,10 @@ export const SreAgentResources = defineMessages({
             'This chart shows the relationship between {y1} and {y2} over time. The correlation values indicate how strongly these two metrics influence each other.',
         id: 'rQAyD6',
     },
+    noTodoPlanAvailable: {
+        defaultMessage: 'No todo plan available',
+        id: 'bri0SI',
+    },
 });
 
 export const SreAgentTabResources = defineMessages({

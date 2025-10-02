@@ -3,6 +3,7 @@ import { IAgentMessageProps } from '../Contracts/Activities';
 import { useScheduledTaskMessage } from '../Hooks/useScheduledTaskMessage';
 import AgentTaskChatMessage from './AgentTaskChatMessage';
 import ApprovalMessage from './ApprovalMessage';
+import TodoPlanChatMessage from './TodoPlanChatMessage';
 import ChangeDiffMessage from './ChangeDiffMessage';
 import DailyReportMessage from './DailyReportMessage';
 import ErrorChatMessage from './ErrorMessage';
@@ -76,6 +77,8 @@ const AgentMessage = ({
                 />
             ) : messageContent.agentTaskInfo ? (
                 <AgentTaskChatMessage agentTask={messageContent.agentTaskInfo} />
+            ) : messageContent.todoInfo ? (
+                <TodoPlanChatMessage todoPlan={messageContent.todoInfo} />
             ) : messageContent.error ? (
                 <ErrorChatMessage error={messageContent.error} />
             ) : messageContent.memorySearchResult ? (

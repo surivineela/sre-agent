@@ -37,6 +37,11 @@ namespace Agent.Web.SignalR
         Task IncidentUpdate(ChatResponseUpdate update);
 
         /// <summary>
+        /// Sends a todo plan update to the client for timeline display
+        /// </summary>
+        Task TodoPlanUpdate(ChatResponseUpdate update);
+
+        /// <summary>
         /// Sends a text-only update to the client
         /// </summary>
         Task TextUpdate(string text);

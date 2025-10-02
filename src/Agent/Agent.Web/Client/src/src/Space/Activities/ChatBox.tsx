@@ -2,12 +2,14 @@ import { CopilotChat, CopilotProvider } from '@fluentui-copilot/react-copilot';
 import { mergeClasses } from '@fluentui/react-components';
 import { memo, useMemo } from 'react';
 import { ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
+import { TodoInfo } from '../../Common/Contracts/DataPlane/TodoInfo';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
 import ChatBoxFooter from '../Components/ChatBoxFooter';
 import ChatLoading from '../Components/ChatLoading';
 import ChatMessage from '../Components/ChatMessage';
 import ChatMessages from '../Components/ChatMessages';
 import PermissionErrorChatMessage from '../Components/PermissionErrorChatMessage';
+import { TodoPlanManager } from '../Components/TodoPlan';
 import { IChatBoxProps } from '../Contracts/Activities';
 import { ChatBoxContext, ThreadAgentModeContext } from '../Contracts/Context';
 import { useAgentTask } from '../Hooks/useAgentTask';
@@ -27,6 +29,7 @@ export const ChatBox = ({
     agentTaskStyleProps,
     collapseResizables,
     isAgentTaskEnabled,
+    todoPlanDrawer,
 }: IChatBoxProps) => {
     const {
         chatHistory,
@@ -57,7 +60,7 @@ export const ChatBox = ({
         onClickDeepInvestigationButton,
     } = useChatBox(addThread, updateThreadLastReadTime, threadId, threadSource);
 
-    const { isAgentTaskCollapsed, setIsAgentTaskCollapsed, openAgentTask, ...rest } = useAgentTask(
+    const { isAgentTaskCollapsed, setIsAgentTaskCollapsed, openAgentTask, hasExistingTasks, ...rest } = useAgentTask(
         threadId,
         userDefinedThreadIdRef.current,
         collapseResizables,
@@ -72,8 +75,19 @@ export const ChatBox = ({
 
     const chatBoxStyles = useMemo(() => getChatBoxV2Styles(!isAgentTaskCollapsed, stylesProps), [isAgentTaskCollapsed, stylesProps]);
 
+    const openTodoPlan = (todoInfo: TodoInfo) => {
+        if (!todoPlanDrawer) return;
+        const plan = todoPlanDrawer.todoPlans.find((p: any) => p.id === todoInfo.id);
+        todoPlanDrawer.openTodoPlanDrawer(plan?.id);
+    };
+
+    const chatBoxCtxValue = useMemo(
+        () => ({ getGroupedChatMessages, openAgentTask, openTodoPlan }),
+        [getGroupedChatMessages, openAgentTask, openTodoPlan]
+    );
+
     return (
-        <ChatBoxContext.Provider value={{ getGroupedChatMessages, openAgentTask }}>
+        <ChatBoxContext.Provider value={chatBoxCtxValue}>
             <ThreadAgentModeContext.Provider value={{ ...threadAgentModeData }}>
                 <div className={chatBoxStyles.chatBoxAndAgentTask}>
                     <div className={chatBoxStyles.chatBox}>
@@ -187,6 +201,7 @@ export const ChatBox = ({
                             stylesProps={agentTaskStyleProps}
                         />
                     )}
+                    {!hasExistingTasks && <TodoPlanManager drawerState={todoPlanDrawer} />}
                 </div>
             </ThreadAgentModeContext.Provider>
         </ChatBoxContext.Provider>

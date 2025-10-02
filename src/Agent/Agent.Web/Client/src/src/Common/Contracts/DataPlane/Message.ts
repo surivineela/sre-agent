@@ -1,4 +1,5 @@
 import { AgentTaskMetaData } from './AgentTask';
+import { TodoInfo } from './TodoInfo';
 
 export interface MessageMetaData {
     id: string;
@@ -19,9 +20,11 @@ export interface MessageContent {
     changeDiff?: ChangeDiffViewer;
     agentTaskInfo?: AgentTaskMetaData;
     memorySearchResult?: MemorySearchResult;
+    todoInfo?: TodoInfo;
 }
 
-export interface Message extends MessageMetaData, MessageContent {}
+export interface Message extends MessageMetaData, MessageContent {
+}
 
 export interface Approval {
     id: string;

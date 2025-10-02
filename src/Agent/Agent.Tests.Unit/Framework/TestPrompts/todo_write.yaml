@@ -1,0 +1,4 @@
+name: todo_write
+prompt: |
+  # Task Management
+  You have access to the TodoWrite tool to help you manage and plan operational tasks.

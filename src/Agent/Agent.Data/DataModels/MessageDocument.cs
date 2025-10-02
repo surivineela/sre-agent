@@ -24,7 +24,9 @@ public record MessageDocument(
     string? IncidentDiscussionId = null,
     bool IsDailyReport = false,
     // Agent Task information associated with this message (for deep investigation notifications)
-    AgentTaskInfo? AgentTaskInfo = null
+    AgentTaskInfo? AgentTaskInfo = null,
+    // Todo Plan information associated with this message (for todo plan notifications)
+    TodoInfo? TodoInfo = null
 ) : ICosmosDocument
 {
     public string DocumentType => "Message";
@@ -47,7 +49,8 @@ public record MessageDocument(
             PsqlExecution: message.PsqlExecution ?? null,
             IncidentDiscussionId: message.IncidentDiscussionId,
             message.IsDailyReport,
-            message.AgentTaskInfo ?? null
+            message.AgentTaskInfo ?? null,
+            message.TodoInfo ?? null
         );
 
     public Message ToDomainModel(Approval? approval = null, bool isDailyReport = false) =>
@@ -64,6 +67,7 @@ public record MessageDocument(
             PsqlExecution,
             IncidentDiscussionId: IncidentDiscussionId,
             IsDailyReport,
-            AgentTaskInfo
+            AgentTaskInfo,
+            TodoInfo: TodoInfo
         );
 }

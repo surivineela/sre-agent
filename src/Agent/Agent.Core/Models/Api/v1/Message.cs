@@ -11,6 +11,14 @@ public record AgentTaskInfo(
     DateTime? lastModified
 );
 
+public record TodoInfo(
+    Guid Id,
+    string Title,
+    TodoPlanStatus Status,
+    DateTime? LastModified,
+    Guid TriggerMessageId
+);
+
 public record Message(
     Guid Id,
     DateTime TimeStamp,
@@ -29,7 +37,9 @@ public record Message(
     // Agent Task information associated with this message (for deep investigation)
     AgentTaskInfo? AgentTaskInfo = null,
     // Memory search results from agent memory plugin
-    MemorySearchResult? MemorySearchResult = null
+    MemorySearchResult? MemorySearchResult = null,
+    // Todo Plan information associated with this message (for todo plan notifications)
+    TodoInfo? TodoInfo = null
 );
 
 public record Posted(

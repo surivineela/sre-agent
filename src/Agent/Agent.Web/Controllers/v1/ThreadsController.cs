@@ -21,8 +21,8 @@ using Agent.Web.Models.WelcomeMessage;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Action = Agent.Core.Models.Api.v1.Action;
-using ArmOperations = Agent.Core.Constants.ArmOperations;
 using Thread = Agent.Core.Models.Api.v1.Thread;
+using ArmOperations = Agent.Core.Constants.ArmOperations;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -967,6 +967,73 @@ namespace Agent.Web.Controllers.v1
             {
                 logger.LogInternalError(ex, "Error deleting thread evaluation {EvaluationId}", evaluationId);
                 return StatusCode(500, "Internal server error while deleting thread evaluation");
+            }
+        }
+
+        #endregion
+
+        #region Todo Plan API Endpoints
+
+        /// <summary>
+        /// Gets all todo plans for a specific thread ordered by creation time
+        /// </summary>
+        /// <param name="threadId">Thread ID to get todo plans for</param>
+        /// <returns>List of todo plans for timeline display</returns>
+        [HttpGet("{threadId}/todo-plans")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
+        public async Task<ActionResult<PagedResponse<TodoPlan>>> GetTodoPlans(Guid threadId)
+        {
+            try
+            {
+                var thread = await repository.GetThreadAsync(threadId);
+                if (thread == null)
+                {
+                    return NotFound($"Thread with ID {threadId} not found");
+                }
+
+                var todoPlans = await repository.GetTodoPlansAsync(threadId);
+
+                return Ok(new PagedResponse<TodoPlan>(todoPlans));
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalError(ex, "Error getting todo plans for thread {ThreadId}", threadId);
+                return StatusCode(500, "Internal server error while retrieving todo plans");
+            }
+        }
+
+        /// <summary>
+        /// Gets a specific todo plan with all items (for detailed timeline view)
+        /// </summary>
+        /// <param name="threadId">Thread ID</param>
+        /// <param name="planId">Todo plan ID</param>
+        /// <returns>Todo plan with all items</returns>
+        [HttpGet("{threadId}/todo-plans/{planId}")]
+        [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
+        public async Task<ActionResult<TodoPlan>> GetTodoPlan(Guid threadId, Guid planId)
+        {
+            try
+            {
+                // First check if thread exists
+                var thread = await repository.GetThreadAsync(threadId);
+                if (thread == null)
+                {
+                    return NotFound($"Thread with ID {threadId} not found");
+                }
+
+                var todoPlan = await repository.GetTodoPlanAsync(threadId, planId);
+
+                if (todoPlan == null)
+                {
+                    return NotFound($"Todo plan with ID {planId} not found in thread {threadId}");
+                }
+
+                return Ok(todoPlan);
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalError(ex, "Error getting todo plan {PlanId} for thread {ThreadId}", planId, threadId);
+                return StatusCode(500, "Internal server error while retrieving todo plan");
             }
         }
 

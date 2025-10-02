@@ -74,6 +74,7 @@ export interface IChatBoxProps {
     stylesProps?: ChatBoxV2StyleProps;
     agentTaskStyleProps?: AgentTaskStyleProps;
     collapseResizables?: () => void;
+    todoPlanDrawer?: any; // Using any for now - could be strongly typed later
 }
 
 export interface IChatMessageProps {

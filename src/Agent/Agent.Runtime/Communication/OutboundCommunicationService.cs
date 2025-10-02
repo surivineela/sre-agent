@@ -118,6 +118,30 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         await _sinkService.SinkAgentMessageAsync(threadId ?? Guid.Empty, message.Text ?? string.Empty, agentResponseMessageId: resolvedMessageId, recordedDateTime: recordedDateTime, agentTaskInfo: agentTaskInfo);
     }
 
+    // overload method that takes both AgentTaskInfo and TodoInfo
+    public async Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message, AgentTaskInfo? agentTaskInfo, TodoInfo? todoInfo, Guid? messageId = null, StreamMessageType? type = null)
+    {
+        if (!string.IsNullOrEmpty(orchestrationInstanceId))
+        {
+            await _mappingManager.AddMappingAsync(threadId?.ToString() ?? Guid.Empty.ToString(), orchestrationInstanceId);
+        }
+        _logger.LogExternalInformation("orchestrationInstanceId {orchestrationInstanceId} message to thread {ThreadId}: {Message}",
+            orchestrationInstanceId, threadId, message.Text);
+
+        _customerLogger.LogMessage($"[ChatThreadId {threadId}] Agent responding: {message.Text}");
+        _customerLogger.LogCustomEvent("AgentResponse", new Dictionary<string, string>
+        {
+            { "ChatThreadId", threadId?.ToString() ?? string.Empty },
+            { "Message", message.Text ?? string.Empty }
+        });
+
+        Guid resolvedMessageId = messageId ?? Guid.NewGuid();
+        DateTime recordedDateTime = DateTime.UtcNow;
+
+        await AppendAgentStreamMessage(threadId ?? Guid.Empty, message.Text ?? string.Empty, type, resolvedMessageId, recordedDateTime);
+        await _sinkService.SinkAgentMessageAsync(threadId ?? Guid.Empty, message.Text ?? string.Empty, agentResponseMessageId: resolvedMessageId, recordedDateTime: recordedDateTime, agentTaskInfo: agentTaskInfo, todoInfo: todoInfo);
+    }
+
     // over load method that also takes agent context
     public async Task UpdateThreadWithAgentMessageAsync(AgentContext context, ChatMessage message, Guid? messageId = null)
     {

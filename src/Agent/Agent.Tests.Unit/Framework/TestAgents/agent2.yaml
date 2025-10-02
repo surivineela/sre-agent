@@ -11,3 +11,6 @@ handoffs:
 tools:
   - TestAutoTool
   - TestManualTool
+
+common_prompts:
+  - todo_write

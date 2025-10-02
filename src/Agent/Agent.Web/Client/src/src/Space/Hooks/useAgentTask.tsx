@@ -308,5 +308,6 @@ export const useAgentTask = (
         isLoadingTreeState,
         toggleNode,
         getNodeStatus,
+        hasExistingTasks,
     };
 };

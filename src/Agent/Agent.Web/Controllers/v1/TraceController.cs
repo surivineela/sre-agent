@@ -2,7 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Logging;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using System.Text.Json.Serialization;

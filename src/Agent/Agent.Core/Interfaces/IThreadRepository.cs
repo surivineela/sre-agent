@@ -134,4 +134,12 @@ public interface IThreadRepository
     Task<bool> DeleteAllKubectlExecutionsAsync(Guid threadId);
     Task<bool> DeleteAllPsqlExecutionsAsync(Guid threadId);
     Task<bool> DeleteAllScheduledTasksAsync(Guid threadId);
+
+    // Todo plans - read-only for client API
+    Task<IReadOnlyList<TodoPlan>> GetTodoPlansAsync(Guid threadId);
+    Task<TodoPlan?> GetTodoPlanAsync(Guid threadId, Guid planId);
+
+    // Todo plans - internal methods for ToDoWriteTool
+    Task<TodoPlan> CreateTodoPlanAsync(TodoPlan plan);
+    Task<TodoPlan> UpdateTodoPlanAsync(TodoPlan plan);
 }

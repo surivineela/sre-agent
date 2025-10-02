@@ -1067,6 +1067,12 @@
       "value": "Failed to create managed connection"
     }
   ],
+  "6HiPiX": [
+    {
+      "type": 0,
+      "value": "A new To-do Plan has been created:"
+    }
+  ],
   "6IIC+D": [
     {
       "type": 0,
@@ -4809,6 +4815,12 @@
     {
       "type": 0,
       "value": "Last day"
+    }
+  ],
+  "bri0SI": [
+    {
+      "type": 0,
+      "value": "No todo plan available"
     }
   ],
   "brxlTt": [
