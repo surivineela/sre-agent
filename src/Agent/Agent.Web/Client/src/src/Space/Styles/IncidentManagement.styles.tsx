@@ -40,8 +40,8 @@ export const useNavStyles = makeStyles({
     },
     item: {
         backgroundColor: 'transparent',
-        '&.is-selected': {
-            backgroundColor: tokens.colorNeutralBackground3Selected,
+        '&[aria-current="page"]': {
+            backgroundColor: tokens.colorNeutralBackground1Selected,
         },
         '&:hover': {
             backgroundColor: tokens.colorNeutralBackground3Hover,
