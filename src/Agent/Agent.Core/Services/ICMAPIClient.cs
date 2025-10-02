@@ -355,6 +355,18 @@ namespace Agent.Core.Services
                 ["$filter"] = $"LastModifiedDate gt {modifiedDate.ToString("yyyy-MM-ddTHH:mm:ss'Z'")}{serviceIdFilter}{titleFilter}{teamIdFilter}{incidentTypeFilter}{createdByFilter}{monitorIdFilter}{stateFilter}"
             };
 
+            if (_authType == AuthType.Certificate)
+            {
+
+                // Order by is not supported in cert API, so we remove it
+                queryParams = new Dictionary<string, string?>()
+                {
+                    ["$top"] = limit.ToString(),
+                    ["$skip"] = offset.ToString(),
+                    ["$filter"] = $"{serviceIdFilter}{titleFilter}{teamIdFilter}{incidentTypeFilter}{createdByFilter}{monitorIdFilter}{stateFilter}"
+                };
+            }
+
             return await GetIncidentsAsyncInternal(queryParams);
         }
 
